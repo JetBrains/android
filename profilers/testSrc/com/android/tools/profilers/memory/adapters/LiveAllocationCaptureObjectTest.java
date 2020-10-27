@@ -36,10 +36,12 @@ import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.memory.ClassGrouping;
 import com.android.tools.profilers.memory.FakeMemoryService;
-import com.android.tools.profilers.memory.MemoryProfilerAspect;
-import com.android.tools.profilers.memory.MemoryProfilerConfiguration;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
+import com.android.tools.profilers.memory.CaptureSelectionAspect;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.LinkedList;
@@ -104,7 +106,7 @@ public class LiveAllocationCaptureObjectTest {
   public void before() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
     myIdeProfilerServices.setNativeFrameSymbolizer(FAKE_SYMBOLIZER);
-    myStage = new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeProfilerServices, myTimer));
+    myStage = new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, myTimer));
 
     long dataStartTime = CAPTURE_START_TIME;
     long dataEndTime = TimeUnit.SECONDS.toNanos(8);
@@ -149,7 +151,7 @@ public class LiveAllocationCaptureObjectTest {
     @Parameter(3)
     public Boolean myNewPipeline;
 
-    private ProfilerClient myProfilerClient = new ProfilerClient(myGrpcChannel.getName());
+    private ProfilerClient myProfilerClient;
 
     @Before
     @Override
@@ -157,6 +159,7 @@ public class LiveAllocationCaptureObjectTest {
       super.before();
       myIdeProfilerServices.enableJniReferenceTracking(myJniRefTracking);
       myIdeProfilerServices.enableEventsPipeline(myNewPipeline);
+      myProfilerClient = new ProfilerClient(myGrpcChannel.getChannel());
     }
 
     @Parameters(name = "{index}: HeapId:{0}, HeapName:{1}, JNI tracking: {2}, New Pipeline: {3}")
@@ -186,10 +189,10 @@ public class LiveAllocationCaptureObjectTest {
       // Heap set should start out empty.
       HeapSet heapSet = capture.getHeapSet(myHeapId);
       assertThat(heapSet.getChildrenClassifierSets().size()).isEqualTo(0);
-      heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE);
+      heapSet.setClassGrouping(ClassGrouping.ARRANGE_BY_PACKAGE);
 
       // Listens to the aspect change when load is called, then check the content of the changedNode parameter
-      myStage.getAspect().addDependency(myAspectObserver).onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, () -> loadSuccess[0] = true);
+      myStage.getCaptureSelection().getAspect().addDependency(myAspectObserver).onChange(CaptureSelectionAspect.CURRENT_HEAP_CONTENTS, () -> loadSuccess[0] = true);
 
       Queue<ClassifierSetTestData> expected_0_to_4 = new LinkedList<>();
       expected_0_to_4.add(new ClassifierSetTestData(0, myHeapName, 4, 2, 2, 4, 2, true));
@@ -225,7 +228,7 @@ public class LiveAllocationCaptureObjectTest {
       // Heap set should start out empty.
       HeapSet heapSet = capture.getHeapSet(myHeapId);
       assertThat(heapSet.getChildrenClassifierSets().size()).isEqualTo(0);
-      heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE);
+      heapSet.setClassGrouping(ClassGrouping.ARRANGE_BY_PACKAGE);
 
       Queue<ClassifierSetTestData> expected_0_to_4 = new LinkedList<>();
       expected_0_to_4.add(new ClassifierSetTestData(0, myHeapName, 4, 2, 2, 4, 2, true));
@@ -260,7 +263,7 @@ public class LiveAllocationCaptureObjectTest {
 
       // Listens to the aspect change when load is called, then check the content of the changedNode parameter
       int[] myHeapChangedCount = new int[1];
-      myStage.getAspect().addDependency(myAspectObserver).onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, () -> {
+      myStage.getCaptureSelection().getAspect().addDependency(myAspectObserver).onChange(CaptureSelectionAspect.CURRENT_HEAP_CONTENTS, () -> {
         // We should not receive more than one heapChanged event.
         assertThat(myHeapChangedCount[0]++).isEqualTo(0);
         loadSuccess[0] = true;
@@ -303,8 +306,8 @@ public class LiveAllocationCaptureObjectTest {
       // Heap set should start out empty.
       HeapSet heapSet = capture.getHeapSet(myHeapId);
       assertThat(heapSet.getChildrenClassifierSets().size()).isEqualTo(0);
-      heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE);
-      myStage.getAspect().addDependency(myAspectObserver).onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, () -> loadSuccess[0] = true);
+      heapSet.setClassGrouping(ClassGrouping.ARRANGE_BY_PACKAGE);
+      myStage.getCaptureSelection().getAspect().addDependency(myAspectObserver).onChange(CaptureSelectionAspect.CURRENT_HEAP_CONTENTS, () -> loadSuccess[0] = true);
 
 
       Range loadRange = new Range(CAPTURE_START_TIME, CAPTURE_START_TIME + TimeUnit.SECONDS.toMicros(4));
@@ -377,9 +380,9 @@ public class LiveAllocationCaptureObjectTest {
       // Heap set should start out empty.
       HeapSet heapSet = capture.getHeapSet(myHeapId);
       assertThat(heapSet.getChildrenClassifierSets().size()).isEqualTo(0);
-      heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE);
+      heapSet.setClassGrouping(ClassGrouping.ARRANGE_BY_PACKAGE);
 
-      myStage.getAspect().addDependency(myAspectObserver).onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, () -> loadSuccess[0] = true);
+      myStage.getCaptureSelection().getAspect().addDependency(myAspectObserver).onChange(CaptureSelectionAspect.CURRENT_HEAP_CONTENTS, () -> loadSuccess[0] = true);
 
       Queue<ClassifierSetTestData> expected_0_to_4 = new LinkedList<>();
       expected_0_to_4.add(new ClassifierSetTestData(0, myHeapName, 4, 2, 2, 4, 2, true));
@@ -452,9 +455,9 @@ public class LiveAllocationCaptureObjectTest {
       // Heap set should start out empty.
       HeapSet heapSet = capture.getHeapSet(myHeapId);
       assertThat(heapSet.getChildrenClassifierSets().size()).isEqualTo(0);
-      heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE);
+      heapSet.setClassGrouping(ClassGrouping.ARRANGE_BY_PACKAGE);
 
-      myStage.getAspect().addDependency(myAspectObserver).onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, () -> loadSuccess[0] = true);
+      myStage.getCaptureSelection().getAspect().addDependency(myAspectObserver).onChange(CaptureSelectionAspect.CURRENT_HEAP_CONTENTS, () -> loadSuccess[0] = true);
 
       Queue<ClassifierSetTestData> expected_0_to_4 = new LinkedList<>();
       expected_0_to_4.add(new ClassifierSetTestData(0, myHeapName, 4, 2, 2, 4, 2, true));
@@ -517,9 +520,9 @@ public class LiveAllocationCaptureObjectTest {
       // Heap set should start out empty.
       HeapSet heapSet = capture.getHeapSet(myHeapId);
       assertThat(heapSet.getChildrenClassifierSets().size()).isEqualTo(0);
-      heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE);
+      heapSet.setClassGrouping(ClassGrouping.ARRANGE_BY_PACKAGE);
 
-      myStage.getAspect().addDependency(myAspectObserver).onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, () -> loadSuccess[0] = true);
+      myStage.getCaptureSelection().getAspect().addDependency(myAspectObserver).onChange(CaptureSelectionAspect.CURRENT_HEAP_CONTENTS, () -> loadSuccess[0] = true);
 
       Queue<ClassifierSetTestData> expected_0_to_4 = new LinkedList<>();
       expected_0_to_4.add(new ClassifierSetTestData(0, myHeapName, 4, 2, 2, 4, 2, true));
@@ -628,7 +631,7 @@ public class LiveAllocationCaptureObjectTest {
                                                                             CAPTURE_START_TIME,
                                                                             LOAD_SERVICE,
                                                                             myStage);
-      myStage.getAspect().addDependency(myAspectObserver).onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, () -> loadSuccess[0] = true);
+      myStage.getCaptureSelection().getAspect().addDependency(myAspectObserver).onChange(CaptureSelectionAspect.CURRENT_HEAP_CONTENTS, () -> loadSuccess[0] = true);
 
       Range loadRange = new Range(CAPTURE_START_TIME, CAPTURE_START_TIME);
       loadSuccess[0] = false;
@@ -661,12 +664,13 @@ public class LiveAllocationCaptureObjectTest {
 
   public static class DefaultHeapTest extends LiveAllocationCaptureObjectTest {
 
-    private ProfilerClient myProfilerClient = new ProfilerClient(myGrpcChannel.getName());
+    private ProfilerClient myProfilerClient;
 
     @Before
     @Override
     public void before() {
       super.before();
+      myProfilerClient = new ProfilerClient(myGrpcChannel.getChannel());
     }
 
 
@@ -682,7 +686,7 @@ public class LiveAllocationCaptureObjectTest {
       // Heap set should start out empty.
       HeapSet heapSet = capture.getHeapSet(DEFAULT_HEAP_ID);
       assertThat(heapSet.getChildrenClassifierSets().size()).isEqualTo(0);
-      heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CALLSTACK);
+      heapSet.setClassGrouping(ClassGrouping.ARRANGE_BY_CALLSTACK);
 
       Queue<ClassifierSetTestData> expected_0_to_4 = new LinkedList<>();
       expected_0_to_4.add(new ClassifierSetTestData(0, DEFAULT_HEAP_NAME, 4, 2, 2, 4, 4, true));
@@ -718,15 +722,15 @@ public class LiveAllocationCaptureObjectTest {
       // Heap set should start out empty.
       HeapSet heapSet = capture.getHeapSet(DEFAULT_HEAP_ID);
       assertThat(heapSet.getChildrenClassifierSets().size()).isEqualTo(0);
-      heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE);
-      myStage.getAspect().addDependency(myAspectObserver).onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, () -> loadSuccess[0] = true);
+      heapSet.setClassGrouping(ClassGrouping.ARRANGE_BY_PACKAGE);
+      myStage.getCaptureSelection().getAspect().addDependency(myAspectObserver).onChange(CaptureSelectionAspect.CURRENT_HEAP_CONTENTS, () -> loadSuccess[0] = true);
 
       Range loadRange = new Range(CAPTURE_START_TIME, CAPTURE_START_TIME + TimeUnit.SECONDS.toMicros(4));
       loadSuccess[0] = false;
       capture.load(loadRange, LOAD_JOINER);
 
       // Filter with Java method name
-      heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CALLSTACK);
+      heapSet.setClassGrouping(ClassGrouping.ARRANGE_BY_CALLSTACK);
       heapSet.selectFilter(new Filter("MethodA"));
       Queue<ClassifierSetTestData> expected_0_to_4 = new LinkedList<>();
       expected_0_to_4.add(new ClassifierSetTestData(0, DEFAULT_HEAP_NAME, 3, 2, 1, 4, 3, true));
@@ -745,13 +749,14 @@ public class LiveAllocationCaptureObjectTest {
 
   public static class JniHeapTest extends LiveAllocationCaptureObjectTest {
 
-    private ProfilerClient myProfilerClient = new ProfilerClient(myGrpcChannel.getName());
+    private ProfilerClient myProfilerClient;
 
     @Before
     @Override
     public void before() {
       super.before();
       myIdeProfilerServices.enableJniReferenceTracking(true);
+      myProfilerClient = new ProfilerClient(myGrpcChannel.getChannel());
     }
 
     @Test
@@ -765,7 +770,7 @@ public class LiveAllocationCaptureObjectTest {
       // Heap set should start out empty.
       HeapSet heapSet = capture.getHeapSet(JNI_HEAP_ID);
       assertThat(heapSet.getChildrenClassifierSets().size()).isEqualTo(0);
-      heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CALLSTACK);
+      heapSet.setClassGrouping(ClassGrouping.ARRANGE_BY_CALLSTACK);
 
       Queue<ClassifierSetTestData> expected_0_to_4 = new LinkedList<>();
       expected_0_to_4.add(new ClassifierSetTestData(0, JNI_HEAP_NAME, 4, 2, 2, 4, 4, true));
@@ -801,15 +806,15 @@ public class LiveAllocationCaptureObjectTest {
       // Heap set should start out empty.
       HeapSet heapSet = capture.getHeapSet(JNI_HEAP_ID);
       assertThat(heapSet.getChildrenClassifierSets().size()).isEqualTo(0);
-      heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE);
-      myStage.getAspect().addDependency(myAspectObserver).onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, () -> loadSuccess[0] = true);
+      heapSet.setClassGrouping(ClassGrouping.ARRANGE_BY_PACKAGE);
+      myStage.getCaptureSelection().getAspect().addDependency(myAspectObserver).onChange(CaptureSelectionAspect.CURRENT_HEAP_CONTENTS, () -> loadSuccess[0] = true);
 
       Range loadRange = new Range(CAPTURE_START_TIME, CAPTURE_START_TIME + TimeUnit.SECONDS.toMicros(4));
       loadSuccess[0] = false;
       capture.load(loadRange, LOAD_JOINER);
 
       // Filter with Java method name
-      heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CALLSTACK);
+      heapSet.setClassGrouping(ClassGrouping.ARRANGE_BY_CALLSTACK);
       heapSet.selectFilter(new Filter("MethodA"));
       Queue<ClassifierSetTestData> expected_0_to_4 = new LinkedList<>();
       expected_0_to_4.add(new ClassifierSetTestData(0, JNI_HEAP_NAME, 3, 2, 1, 4, 3, true));

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.importer
 
-import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeModel
+import com.android.tools.idea.ui.wizard.ProposedFileTreeModel
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.getMetadata
 import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRendererManager
@@ -112,7 +112,7 @@ class SummaryScreenViewModel(private val designAssetImporter: DesignAssetImporte
 
   /**
    * Returns a [ProposedFileTreeModel] to be used in a [javax.swing.JTree]
-   * using a [com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeCellRenderer].
+   * using a [com.android.tools.idea.ui.wizard.ProposedFileTreeCellRenderer].
    */
   var fileTreeModel: ProposedFileTreeModel = ProposedFileTreeModel(absoluteResDirPath, getPreviewFiles())
 

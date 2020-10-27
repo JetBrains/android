@@ -14,6 +14,12 @@ import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewBundle;
 import com.intellij.usageView.UsageViewDescriptor;
 import com.intellij.util.containers.MultiMap;
+import org.jetbrains.android.dom.resources.ResourceNameConverter;
+import org.jetbrains.android.util.AndroidBundle;
+import com.android.tools.idea.res.IdeResourcesUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -25,9 +31,6 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 class AndroidInlineAllStyleUsagesProcessor extends BaseRefactoringProcessor {
   private final PsiElement myStyleElement;
   private final String myStyleName;
@@ -80,7 +83,7 @@ class AndroidInlineAllStyleUsagesProcessor extends BaseRefactoringProcessor {
     final Set<UsageInfo> usages = new HashSet<UsageInfo>();
     AndroidInlineUtil.addReferences(myStyleElement, usages);
 
-    for (PsiField field : AndroidResourceUtil.findResourceFieldsForValueResource(myStyleTag, false)) {
+    for (PsiField field : IdeResourcesUtil.findResourceFieldsForValueResource(myStyleTag, false)) {
       AndroidInlineUtil.addReferences(field, usages);
     }
     return usages.toArray(UsageInfo.EMPTY_ARRAY);

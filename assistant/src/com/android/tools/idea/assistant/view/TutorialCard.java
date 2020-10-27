@@ -27,6 +27,7 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.HorizontalLayout;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
@@ -46,9 +47,9 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.BoundedRangeModel;
 import javax.swing.Box;
+import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
-import javax.swing.JTextPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -178,8 +179,8 @@ public class TutorialCard extends CardViewPanel {
     c.insets = JBUI.insetsBottom(5);
 
     JBLabel title = new JBLabel(myTutorial.getLabel());
-    title.setFont(title.getFont().deriveFont(Font.PLAIN, 24F));
-    title.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
+    title.setFont(title.getFont().deriveFont(Font.PLAIN, JBUIScale.scaleFontSize(24)));
+    title.setBorder(JBUI.Borders.empty(10, 10, 0, 10));
     if (myTutorial.getIcon() != null) {
       title.setIcon(myTutorial.getIcon());
     }
@@ -261,7 +262,7 @@ public class TutorialCard extends CardViewPanel {
     SwingUtilities.invokeLater(() -> initScrollValues());
   }
 
-  private static class TutorialDescription extends JTextPane {
+  private static class TutorialDescription extends JEditorPane {
     TutorialDescription() {
       super();
       setOpaque(false);
@@ -361,7 +362,7 @@ public class TutorialCard extends CardViewPanel {
     }
   }
 
-  private static final class StepButton extends NavigationButton {
+  private static class StepButton extends NavigationButton {
     public enum Direction {
       NEXT,
       PREV
@@ -390,7 +391,7 @@ public class TutorialCard extends CardViewPanel {
   }
 
   // Determine why the border, contentfill, etc are reset to default on theme change. Note that this doesn't persist across restart.
-  private final class BackButton extends NavigationButton {
+  private class BackButton extends NavigationButton {
     private BackButton(@Nullable String label) {
       super(label, TutorialChooser.NAVIGATION_KEY, myListener);
       setIcon(AllIcons.Actions.Back);

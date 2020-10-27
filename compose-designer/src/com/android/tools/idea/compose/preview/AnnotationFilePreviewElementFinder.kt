@@ -15,21 +15,40 @@ package com.android.tools.idea.compose.preview
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import com.android.tools.idea.compose.preview.util.COMPOSABLE_ANNOTATION_FQN
+import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
+import com.android.tools.idea.compose.preview.util.HEIGHT_PARAMETER
+import com.android.tools.idea.compose.preview.util.PREVIEW_ANNOTATION_FQN
+import com.android.tools.idea.compose.preview.util.PREVIEW_PARAMETER_FQN
+import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
+import com.android.tools.idea.compose.preview.util.PreviewConfiguration
+import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
+import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.PreviewParameter
+import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
+import com.android.tools.idea.compose.preview.util.WIDTH_PARAMETER
+import com.android.tools.idea.compose.preview.util.toSmartPsiPointer
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.kotlin.fqNameMatches
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.text.nullize
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
+import org.jetbrains.uast.UParameter
 import org.jetbrains.uast.evaluateString
 import org.jetbrains.uast.getContainingUMethod
+import org.jetbrains.uast.kotlin.KotlinUClassLiteralExpression
 import org.jetbrains.uast.visitor.UastVisitor
 
 private fun UAnnotation.findAttributeIntValue(name: String) =
@@ -37,6 +56,9 @@ private fun UAnnotation.findAttributeIntValue(name: String) =
 
 private fun UAnnotation.findAttributeFloatValue(name: String) =
   findAttributeValue(name)?.evaluate() as? Float
+
+private fun UAnnotation.findClassNameValue(name: String) =
+  (findAttributeValue(name) as? KotlinUClassLiteralExpression)?.type?.canonicalText
 
 /**
  * Reads the `@Preview` annotation parameters and returns a [PreviewConfiguration] containing the values.
@@ -56,21 +78,41 @@ private fun attributesToConfiguration(node: UAnnotation): PreviewConfiguration {
  * [FilePreviewElementFinder] that uses `@Preview` annotations.
  */
 object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
-  override fun hasPreviewMethods(project: Project, file: VirtualFile): Boolean = ReadAction.compute<Boolean, Throwable> {
-    PsiTreeUtil.findChildrenOfType(PsiManager.getInstance(project).findFile(file), KtImportDirective::class.java)
-      .any { PREVIEW_ANNOTATION_FQN == it.importedFqName?.asString() }
+  override fun hasPreviewMethods(project: Project, vFile: VirtualFile): Boolean = ReadAction.compute<Boolean, Throwable> {
+    val psiFile = PsiManager.getInstance(project).findFile(vFile)
+    PsiTreeUtil.findChildrenOfType(psiFile, KtImportDirective::class.java)
+      .any { PREVIEW_ANNOTATION_FQN == it.importedFqName?.asString() } ||
+    PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java)
+      .any { it.fqNameMatches(PREVIEW_ANNOTATION_FQN) }
   }
 
   /**
    * Returns all the `@Composable` functions in the [uFile] that are also tagged with `@Preview`.
-   * The order of the elements will be the same as the order of the composable functions.
    */
-  override fun findPreviewMethods(uFile: UFile): List<PreviewElement> = ReadAction.compute<List<PreviewElement>, Throwable> {
+  override fun findPreviewMethods(uFile: UFile): Sequence<PreviewElement> = ReadAction.compute<Sequence<PreviewElement>, Throwable> {
+    if (DumbService.isDumb(uFile.sourcePsi.project)) {
+      Logger.getInstance(AnnotationFilePreviewElementFinder::class.java)
+        .debug("findPreviewMethods called in dumb mode. No annotations will be found")
+      return@compute sequenceOf()
+    }
+
     val previewMethodsFqName = mutableSetOf<String>()
     val previewElements = mutableListOf<PreviewElement>()
     uFile.accept(object : UastVisitor {
       // Return false so we explore all the elements in the file (in case there are multiple @Preview elements)
       override fun visitElement(node: UElement): Boolean = false
+
+      /**
+       * Returns a list of [PreviewParameter] for the given [Collection<UParameter>]. If the parameters are annotated with
+       * `PreviewParameter`, then they will be returned as part of the collection.
+       */
+      private fun getPreviewParameters(parameters: Collection<UParameter>): Collection<PreviewParameter> =
+        parameters.mapIndexedNotNull { index, parameter ->
+          val annotation = parameter.findAnnotation(PREVIEW_PARAMETER_FQN) ?: return@mapIndexedNotNull null
+          val providerClassFqn = (annotation.findClassNameValue("provider")) ?: return@mapIndexedNotNull null
+          val limit = annotation.findAttributeIntValue("limit") ?: Int.MAX_VALUE
+          PreviewParameter(parameter.name, index, providerClassFqn, limit)
+        }
 
       /**
        * Called for every `@Preview` annotation.
@@ -80,16 +122,32 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
         val composableMethod = "${uClass.qualifiedName}.${annotatedMethod.name}"
         val previewName = previewAnnotation.findDeclaredAttributeValue("name")?.evaluateString() ?: annotatedMethod.name
         val groupName = previewAnnotation.findDeclaredAttributeValue("group")?.evaluateString()
+        val showDecorations = previewAnnotation.findDeclaredAttributeValue("showDecoration")?.evaluate() as? Boolean ?: false
+        val showBackground = previewAnnotation.findDeclaredAttributeValue("showBackground")?.evaluate() as? Boolean ?: false
 
         // If the same composable functions is found multiple times, only keep the first one. This usually will happen during
         // copy & paste and both the compiler and Studio will flag it as an error.
         if (previewMethodsFqName.add(composableMethod)) {
-          previewElements.add(PreviewElement(previewName,
-                                             groupName,
-                                             composableMethod,
-                                             previewAnnotation.toSmartPsiPointer(),
-                                             annotatedMethod.uastBody.toSmartPsiPointer(),
-                                             attributesToConfiguration(previewAnnotation)))
+          val displaySettings = PreviewDisplaySettings(previewName,
+                                                       groupName,
+                                                       showDecorations,
+                                                       showBackground,
+                                                       null)
+
+          val parameters = getPreviewParameters(annotatedMethod.uastParameters)
+          val basePreviewElement = SinglePreviewElementInstance(composableMethod,
+                                                                displaySettings,
+                                                                previewAnnotation.toSmartPsiPointer(),
+                                                                annotatedMethod.uastBody.toSmartPsiPointer(),
+                                                                attributesToConfiguration(previewAnnotation))
+          if (!parameters.isEmpty()) {
+            if (StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.get()) {
+              previewElements.add(ParametrizedPreviewElementTemplate(basePreviewElement, parameters))
+            }
+          }
+          else {
+            previewElements.add(basePreviewElement)
+          }
         }
       }
 
@@ -103,7 +161,7 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
             }
 
             // The method must also be annotated with @Composable
-            if (it.annotations.any { annotation -> COMPOSABLE_ANNOTATION_FQN == annotation.qualifiedName }) {
+            if (it.uAnnotations.any { annotation -> COMPOSABLE_ANNOTATION_FQN == annotation.qualifiedName }) {
               visitPreviewAnnotation(node, it)
             }
           }
@@ -113,6 +171,6 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
       }
     })
 
-    return@compute previewElements
+    return@compute previewElements.asSequence()
   }
 }

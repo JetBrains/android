@@ -18,15 +18,8 @@ package com.android.tools.idea.uibuilder.editor
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.sync.setup.Facets
-import com.android.tools.idea.uibuilder.type.FontFileType
-import com.android.tools.idea.uibuilder.type.ZoomableDrawableFileType
-import com.intellij.facet.FacetManager
-import com.intellij.openapi.application.ApplicationManager
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.android.facet.AndroidFacet
 
 class NlEditorProviderTest : AndroidTestCase() {
 
@@ -42,6 +35,11 @@ class NlEditorProviderTest : AndroidTestCase() {
     DesignerTypeRegistrar.clearRegisteredTypes()
   }
 
+  fun testAcceptLayoutFile() {
+    val file = myFixture.addFileToProject("res/layout/my_layout.xml", layoutContent())
+    assertTrue(provider.accept(project, file.virtualFile))
+  }
+
   fun testDoNotAcceptNonLayoutFile() {
     val file = myFixture.addFileToProject("src/SomeFile.kt", "")
     assertFalse(provider.accept(project, file.virtualFile))
@@ -50,14 +48,6 @@ class NlEditorProviderTest : AndroidTestCase() {
   fun testDoNotAcceptNavigationFile() {
     val file = myFixture.addFileToProject("res/navigation/my_nav.xml", navigationContent())
     assertFalse(provider.accept(project, file.virtualFile))
-  }
-
-  fun testRegisterDrawablesIfSplitEditorIsDisabled() {
-    StudioFlags.NELE_SPLIT_EDITOR.override(false)
-    provider = NlEditorProvider()
-    assertTrue(DesignerTypeRegistrar.registeredTypes.contains(ZoomableDrawableFileType))
-    assertTrue(DesignerTypeRegistrar.registeredTypes.contains(FontFileType))
-    StudioFlags.NELE_SPLIT_EDITOR.clearOverride()
   }
 
   @Language("XML")

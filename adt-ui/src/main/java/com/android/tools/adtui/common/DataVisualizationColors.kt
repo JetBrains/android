@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.common
 
+import com.google.common.annotations.VisibleForTesting
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import com.intellij.ui.JBColor
@@ -48,6 +49,7 @@ object DataVisualizationColors {
   // To make text readable against data viz colors we create text colors from these predefined values independent of the current theme.
   @JvmField
   val DEFAULT_LIGHT_TEXT_COLOR: Color = Color.WHITE
+
   @JvmField
   val DEFAULT_DARK_TEXT_COLOR: Color = Color.BLACK
 
@@ -56,10 +58,21 @@ object DataVisualizationColors {
   var numberOfTonesPerColor = 0
   var isInitialized = false
 
+  /**
+   * Initialize colors with a palette file if not already initialized. Tests that use custom palette file should use [doInitialize] instead.
+   */
   fun initialize(paletteStream: InputStream = javaClass.getResourceAsStream("/palette/data-visualization-palette.json")) {
     if (isInitialized) {
       return
     }
+    doInitialize(paletteStream)
+  }
+
+  /**
+   * May be used by tests to always overwrite the existing palette regardless of initialization status.
+   */
+  @VisibleForTesting
+  fun doInitialize(paletteStream: InputStream) {
     loadColorPalette(paletteStream)
     numberOfTonesPerColor = dataPalette.values.first().size
     isInitialized = true
@@ -164,8 +177,7 @@ object DataVisualizationColors {
   private fun loadColorPalette(paletteStream: InputStream) {
     val gsonParser = Gson()
 
-    val colors = gsonParser.fromJson<Array<DataVisualizationTheme>>(
-      InputStreamReader(paletteStream), Array<DataVisualizationTheme>::class.java)
+    val colors = gsonParser.fromJson(InputStreamReader(paletteStream), Array<DataVisualizationTheme>::class.java)
     colors.forEach {
       // Data colors
       assert(it.light.size == it.dark.size) {

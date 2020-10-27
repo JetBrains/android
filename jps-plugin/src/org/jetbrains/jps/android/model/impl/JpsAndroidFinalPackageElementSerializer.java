@@ -7,9 +7,6 @@ import org.jetbrains.jps.model.module.JpsModuleReference;
 import org.jetbrains.jps.model.serialization.artifact.JpsPackagingElementSerializer;
 import org.jetbrains.jps.model.serialization.facet.JpsFacetSerializer;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class JpsAndroidFinalPackageElementSerializer extends JpsPackagingElementSerializer<JpsAndroidFinalPackageElement> {
 
   @NonNls private static final String PACKAGING_FACET_ATTRIBUTE = "facet";

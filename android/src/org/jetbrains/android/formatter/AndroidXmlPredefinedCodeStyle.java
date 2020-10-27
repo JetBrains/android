@@ -1,8 +1,8 @@
 package org.jetbrains.android.formatter;
 
 import com.android.SdkConstants;
-import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.xml.XMLLanguage;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.codeStyle.PredefinedCodeStyle;
@@ -22,7 +22,7 @@ public class AndroidXmlPredefinedCodeStyle extends PredefinedCodeStyle {
 
   @Override
   public void apply(CodeStyleSettings settings) {
-    final CommonCodeStyleSettings.IndentOptions indentOptions = settings.getIndentOptions(XmlFileType.INSTANCE);
+    final CommonCodeStyleSettings.IndentOptions indentOptions = settings.getIndentOptions(StdFileTypes.XML);
     indentOptions.CONTINUATION_INDENT_SIZE = indentOptions.INDENT_SIZE;
 
     XmlCodeStyleSettings xmlSettings = settings.getCustomSettings(XmlCodeStyleSettings.class);

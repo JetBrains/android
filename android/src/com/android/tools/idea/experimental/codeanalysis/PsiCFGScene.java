@@ -43,7 +43,7 @@ import org.jetbrains.annotations.NotNull;
  * A class that saves all information of the interprocedural control
  * flow analysis
  */
-public final class PsiCFGScene {
+public class PsiCFGScene {
   private static ConcurrentMap<Project, PsiCFGScene> instanceMap = Maps.newConcurrentMap();
 
   private Map<String, PsiCFGClass> mAppClassNamePsiMap;

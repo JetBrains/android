@@ -85,7 +85,7 @@ class NlInteractionHandler(private val surface: DesignSurface): InteractionHandl
   }
 
   private fun isInResizeZone(sceneView: SceneView, @SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int): Boolean {
-    val size = sceneView.size
+    val size = sceneView.scaledContentSize
     // Check if the mouse position is at the bottom-right corner of sceneView.
     val resizeZone = Rectangle(sceneView.x + size.width,
                                sceneView.y + size.height,
@@ -180,18 +180,17 @@ class NlInteractionHandler(private val surface: DesignSurface): InteractionHandl
     }
   }
 
-  private fun clickPreview(x: Int, y: Int, needsFocusEditor: Boolean) {
+  private fun clickPreview(@SwingCoordinate x: Int, @SwingCoordinate y: Int, needsFocusEditor: Boolean) {
     val sceneView = surface.getSceneView(x, y) ?: return
+    val androidX = Coordinates.getAndroidXDip(sceneView, x)
+    val androidY = Coordinates.getAndroidYDip(sceneView, y)
+    val sceneComponent = surface.scene?.findComponent(sceneView.context, androidX, androidY) ?: return
 
-    val component = Coordinates.findComponent(sceneView, x, y)
-    val navigationHandler = (surface as NlDesignSurface).navigationHandler
-    if (surface.navigationHandler != null) {
-      navigationHandler!!.handleNavigate(sceneView, surface.models, needsFocusEditor, component)
-      return
-    }
-
-    if (component != null) {
-      navigateToComponent(component, needsFocusEditor)
+    if ((surface as NlDesignSurface).navigationHandler?.handleNavigate(sceneView,
+                                                                       sceneComponent,
+                                                                       x, y,
+                                                                       needsFocusEditor) != true) {
+      navigateToComponent(sceneComponent.nlComponent, needsFocusEditor)
     }
   }
 
@@ -199,9 +198,11 @@ class NlInteractionHandler(private val surface: DesignSurface): InteractionHandl
                                           @SwingCoordinate mouseY: Int,
                                           @JdkConstants.InputEventMask modifiersEx: Int): Cursor? {
     val sceneView = surface.getSceneView(mouseX, mouseY)
-    // Check if the mouse position is at the bottom-right corner of sceneView.
-    if (sceneView != null && sceneView.scene.isResizeAvailable && isInResizeZone(sceneView, mouseX, mouseY)) {
-      return Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR)
+    if (sceneView != null) {
+      // Check if the mouse position is at the bottom-right corner of sceneView.
+      if (sceneView.isResizeable && sceneView.scene.isResizeAvailable && isInResizeZone(sceneView, mouseX, mouseY)) {
+        return Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR)
+      }
     }
     return super.getCursorWhenNoInteraction(mouseX, mouseY, modifiersEx)
   }

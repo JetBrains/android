@@ -41,32 +41,32 @@ import kotlin.test.assertNull
 @RunWith(GuiTestRemoteRunner::class)
 class ObsoleteConfigurationsTest {
   data class IssueAndFixes (
-    val moduleName : String,
-    val dependencyName : String,
-    val dependencyGradleText : String,
-    val message : String,
-    val fixes : Array<Pair<String, String>>
+    val gradlePath: String,
+    val dependencyName: String,
+    val dependencyGradleText: String,
+    val message: String,
+    val fixes: Array<Pair<String, String>>
   )
   private val expectedIssuesAndFixes = listOf(
-    IssueAndFixes("app", "com.google.guava:guava:23.0", "'com.google.guava:guava:23.0'",
+    IssueAndFixes(":app", "com.google.guava:guava:23.0", "'com.google.guava:guava:23.0'",
                   "Obsolete dependency configuration found: compile", arrayOf(Pair("compile", "implementation"))),
-    IssueAndFixes("app", "compile/libs", "fileTree(dir: 'libs', include: ['*.jar'])",
+    IssueAndFixes(":app", "compile/libs", "fileTree(dir: 'libs', include: ['*.jar'])",
                   "Obsolete dependency configuration found: compile", arrayOf(Pair("compile", "implementation"))),
-    IssueAndFixes("app", "junit:junit:4.11", "'junit:junit:4.11'",
+    IssueAndFixes(":app", "junit:junit:4.11", "'junit:junit:4.11'",
                   "Obsolete dependency configuration found: testCompile", arrayOf(Pair("testCompile", "testImplementation"))),
-    IssueAndFixes("app", "mylibrary", "project(path: ':mylibrary')",
+    IssueAndFixes(":app", "mylibrary", "project(path: ':mylibrary')",
                   "Obsolete dependency configuration found: compile", arrayOf(Pair("compile", "implementation"))),
-    IssueAndFixes("myjlibrary", "runtime/libs", "fileTree(dir: 'libs', include: ['*.jar'])",
+    IssueAndFixes(":myjlibrary", "runtime/libs", "fileTree(dir: 'libs', include: ['*.jar'])",
                   "Obsolete dependency configuration found: runtime",
                   arrayOf(Pair("runtime", "runtimeOnly"), Pair("runtime", "implementation"))),
-    IssueAndFixes("myjlibrary", "junit:junit:4.11", "'junit:junit:4.11'",
+    IssueAndFixes(":myjlibrary", "junit:junit:4.11", "'junit:junit:4.11'",
                   "Obsolete dependency configuration found: testRuntime",
                   arrayOf(Pair("testRuntime", "testRuntimeOnly"), Pair("testRuntime", "testImplementation"))),
-    IssueAndFixes("mylibrary", "com.android.support:appcompat-v7:26.0.1", "'com.android.support:appcompat-v7:26.0.1'",
+    IssueAndFixes(":mylibrary", "com.android.support:appcompat-v7:26.0.1", "'com.android.support:appcompat-v7:26.0.1'",
                   "Obsolete dependency configuration found: compile", arrayOf(Pair("compile", "api"), Pair("compile", "implementation"))),
-    IssueAndFixes("mylibrary", "compile/libs", "fileTree(dir: 'libs', include: ['*.jar'])",
+    IssueAndFixes(":mylibrary", "compile/libs", "fileTree(dir: 'libs', include: ['*.jar'])",
                   "Obsolete dependency configuration found: compile", arrayOf(Pair("compile", "api"), Pair("compile", "implementation"))),
-    IssueAndFixes("mylibrary", "junit:junit:4.11", "'junit:junit:4.11'",
+    IssueAndFixes(":mylibrary", "junit:junit:4.11", "'junit:junit:4.11'",
                   "Obsolete dependency configuration found: testCompile", arrayOf(Pair("testCompile", "testImplementation"))))
 
   @Rule
@@ -99,8 +99,10 @@ class ObsoleteConfigurationsTest {
     val warningSuggestions = warningsGroup.suggestions()
 
     val expectedMessages = expectedIssuesAndFixes
-      .map { Pair("\n${it.moduleName} » ${it.dependencyName}\n${it.message} View usage",
-                  it.fixes.map { fix -> "Update ${fix.first} to ${fix.second}"}.toTypedArray() ) }
+      .map {
+        Pair("\n${it.gradlePath} » ${it.dependencyName}\n${it.message} View usage",
+             it.fixes.map { fix -> "Update ${fix.first} to ${fix.second}" }.toTypedArray())
+      }
 
     assertThat(getHtmlMessages(warningSuggestions),
                hasItems(*(expectedMessages.map { it.first }).toTypedArray()))
@@ -129,7 +131,7 @@ class ObsoleteConfigurationsTest {
         suggestionsConfigurable.waitAnalysesCompleted(Wait.seconds(5))
         suggestionsConfigurable.waitForGroup("Warnings")
         var warningsGroup = suggestionsConfigurable.findGroup("Warnings")
-        val pattern = issueAndFix.let { "${it.moduleName} » ${it.dependencyName}\nObsolete dependency configuration found" }
+        val pattern = issueAndFix.let { "${it.gradlePath} » ${it.dependencyName}\nObsolete dependency configuration found" }
         var message = warningsGroup.findMessageMatching(pattern)
         assertNotNull(message)
         assertTrue(message.isActionActionAvailable())
@@ -153,20 +155,21 @@ class ObsoleteConfigurationsTest {
     val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")
     expectedIssuesAndFixes
       .forEach { issueAndFix ->
-        val origBuildGradleContent = issueAndFix.let { ide.editor.open("/${it.moduleName}/build.gradle").currentFileContents }
+        val origBuildGradleContent =
+          issueAndFix.let { ide.editor.open(it.buildFilePath).currentFileContents }
         val psd = ide.openPsd()
         val suggestionsConfigurable = psd.selectSuggestionsConfigurable()
         suggestionsConfigurable.waitAnalysesCompleted(Wait.seconds(5))
         suggestionsConfigurable.waitForGroup("Warnings")
         val warningsGroup = suggestionsConfigurable.findGroup("Warnings")
-        val pattern = issueAndFix.let { "${it.moduleName} » ${it.dependencyName}\nObsolete dependency configuration found" }
+        val pattern = issueAndFix.let { "${it.gradlePath} » ${it.dependencyName}\nObsolete dependency configuration found" }
         val message = warningsGroup.findMessageMatching(pattern)
         assertNotNull(message)
         assertTrue(message.isActionActionAvailable())
         // TODO(xof): test drop-down and clicking actions other than the default
         message.clickAction()
         psd.clickOk(Wait.seconds(3))
-        val newAppBuildGradleContent = issueAndFix.let { ide.editor.open("/${it.moduleName}/build.gradle").currentFileContents }
+        val newAppBuildGradleContent = issueAndFix.let { ide.editor.open(it.buildFilePath).currentFileContents }
         val expectedAppBuildGradleContent =
           issueAndFix.let {
             origBuildGradleContent
@@ -197,3 +200,5 @@ class ObsoleteConfigurationsTest {
     }
   }
 }
+
+private val ObsoleteConfigurationsTest.IssueAndFixes.buildFilePath : String get() = "${gradlePath.replace(":", "/")}/build.gradle"

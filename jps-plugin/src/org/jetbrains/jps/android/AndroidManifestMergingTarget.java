@@ -1,4 +1,3 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
@@ -20,11 +19,10 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidManifestMergingTarget extends ModuleBasedTarget<AndroidManifestMergingTarget.MyRootDescriptor> {
-  public AndroidManifestMergingTarget(ModuleBasedBuildTargetType<? extends ModuleBasedTarget<AndroidManifestMergingTarget.MyRootDescriptor>> targetType, @NotNull JpsModule module) {
+  public AndroidManifestMergingTarget(
+    ModuleBasedBuildTargetType<? extends ModuleBasedTarget<AndroidManifestMergingTarget.MyRootDescriptor>> targetType,
+    @NotNull JpsModule module) {
     super(targetType, module);
   }
 
@@ -113,7 +111,7 @@ public class AndroidManifestMergingTarget extends ModuleBasedTarget<AndroidManif
       myModule, context.getProjectDescriptor().dataManager.getDataPaths());
   }
 
-  public static final class MyTargetType extends ModuleBasedBuildTargetType<AndroidManifestMergingTarget> {
+  public static class MyTargetType extends ModuleBasedBuildTargetType<AndroidManifestMergingTarget> {
     public static final MyTargetType INSTANCE = new MyTargetType();
 
     private MyTargetType() {
@@ -156,7 +154,7 @@ public class AndroidManifestMergingTarget extends ModuleBasedTarget<AndroidManif
     }
   }
 
-  public static final class MyRootDescriptor extends BuildRootDescriptorImpl {
+  public static class MyRootDescriptor extends BuildRootDescriptorImpl {
     private final boolean myLibManifestRoot;
 
     private MyRootDescriptor(@NotNull BuildTarget target, @NotNull File root, boolean libManifestRoot) {

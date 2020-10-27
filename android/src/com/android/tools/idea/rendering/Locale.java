@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A language,region pair
  */
-public final class Locale {
+public class Locale {
   /**
    * A special marker region qualifier representing any region
    */

@@ -9,9 +9,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidNewSdkDialog extends DialogWrapper {
   private JPanel myContentPanel;
   private JComboBox myInternalJdkComboBox;

@@ -5,9 +5,6 @@ import org.jetbrains.jps.model.module.JpsModule;
 
 import java.io.File;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public abstract class AndroidDependencyProcessor {
   public void processExternalLibrary(@NotNull File file) {
   }

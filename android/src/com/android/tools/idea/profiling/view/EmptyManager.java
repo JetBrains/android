@@ -15,19 +15,12 @@
  */
 package com.android.tools.idea.profiling.view;
 
-import com.intellij.designer.DesignerEditorPanelFacade;
-import com.intellij.designer.LightToolWindow;
-import com.intellij.designer.LightToolWindowContent;
-import com.intellij.designer.LightToolWindowManager;
-import com.intellij.designer.ToggleEditorModeAction;
+import com.intellij.designer.*;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowAnchor;
-import icons.AndroidIcons;
-import java.util.Collections;
-import java.util.List;
-import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,7 +53,7 @@ public class EmptyManager extends CaptureEditorLightToolWindowManager {
   @NotNull
   @Override
   protected Icon getIcon() {
-    return AndroidIcons.Toolwindows.ToolWindowWarning;
+    return AllIcons.Toolwindows.ProblemsEmpty;
   }
 
   @NotNull

@@ -36,7 +36,7 @@ public class SpecificActivityLocatorTest extends AndroidTestCase {
     locator.validate();
   }
 
-  public void testActivityNotDeclared() throws ActivityLocator.ActivityLocatorException {
+  public void testActivityNotDeclared() {
     myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/Launcher2.java", "src/com/example/unittest/Launcher2.java");
 
@@ -69,7 +69,7 @@ public class SpecificActivityLocatorTest extends AndroidTestCase {
     locator.validate();
   }
 
-  public void testAliasNotDeclared() throws ActivityLocator.ActivityLocatorException {
+  public void testAliasNotDeclared() {
     myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/Launcher.java", "src/com/example/unittest/Launcher.java");
     SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "com.example.unittest.NotLaunchable");

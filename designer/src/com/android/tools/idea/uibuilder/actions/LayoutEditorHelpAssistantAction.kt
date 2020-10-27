@@ -16,36 +16,37 @@
 package com.android.tools.idea.uibuilder.actions
 
 import com.android.SdkConstants
-import com.android.tools.idea.assistant.AssistantBundleCreator
 import com.android.tools.idea.assistant.OpenAssistSidePanelAction
-import com.android.tools.idea.assistant.datamodel.TutorialBundleData
+import com.android.tools.idea.common.assistant.HelpPanelBundle
+import com.android.tools.idea.common.assistant.HelpPanelToolWindowListener
+import com.android.tools.idea.common.assistant.LayoutEditorHelpPanelAssistantBundleCreatorBase
 import com.android.tools.idea.flags.StudioFlags
+import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.DesignEditorHelpPanelEvent.HelpPanelType
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.project.Project
+
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.kotlin.idea.debugger.readAction
-import java.net.URL
 
-/**
- * Pairs plugin bundle id to the tutorial bundle xml
- */
-data class HelpPanelBundle(val bundleId: String, val bundleXml: String)
+const val MOTION_EDITOR_BUNDLE_ID = "LayoutEditor.HelpAssistant.MotionLayout"
+const val CONSTRAINT_LAYOUT_BUNDLE_ID = "LayoutEditor.HelpAssistant.ConstraintLayout"
+const val FULL_HELP_BUNDLE_ID = "LayoutEditor.HelpAssistant.Full"
 
 /**
  * Action that :
  * 1) Determines if the "?" icon should be displayed or not
  * 2) Performs opening Assistant Panel based on the file type that's opened.
  */
-open class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
+class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
 
   companion object {
     const val BUNDLE_ID = "LayoutEditor.HelpAssistant"
   }
 
-  private enum class Type {
+  enum class Type {
     NONE,
     CONSTRAINT_LAYOUT,
     MOTION_LAYOUT,
@@ -53,8 +54,13 @@ open class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
   }
 
   private val ONLY_FULL: Boolean = true // for now redirect to a single help content
-  private var tagName: String = ""
-  private var type = Type.NONE
+  @VisibleForTesting var type = Type.NONE
+
+  init {
+    HelpPanelToolWindowListener.map[MOTION_EDITOR_BUNDLE_ID] = HelpPanelType.MOTION_LAYOUT
+    HelpPanelToolWindowListener.map[CONSTRAINT_LAYOUT_BUNDLE_ID] = HelpPanelType.CONSTRAINT_LAYOUT
+    HelpPanelToolWindowListener.map[FULL_HELP_BUNDLE_ID] = HelpPanelType.FULL_ALL
+  }
 
   override fun update(e: AnActionEvent) {
     updateInternalVariables(e)
@@ -62,21 +68,28 @@ open class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
   }
 
   override fun actionPerformed(event: AnActionEvent) {
+    val project = event.project ?: return
+    HelpPanelToolWindowListener.registerListener(project)
+
     when (type) {
-      Type.CONSTRAINT_LAYOUT -> openWindow(constraintLayoutHelpPanelBundle.bundleId, event.project!!)
-      Type.MOTION_LAYOUT -> openWindow(motionLayoutHelpPanelBundle.bundleId, event.project!!)
-      Type.FULL -> openWindow(fullHelpPanelBundle.bundleId, event.project!!)
+      Type.CONSTRAINT_LAYOUT -> {
+        openWindow(constraintLayoutHelpPanelBundle.bundleId, event.project!!)
+      }
+      Type.MOTION_LAYOUT -> {
+        openWindow(motionLayoutHelpPanelBundle.bundleId, event.project!!)
+      }
+      Type.FULL -> {
+        openWindow(fullHelpPanelBundle.bundleId, event.project!!)
+      }
       Type.NONE -> Unit
     }
-
-    // TODO: Tracker - add the event kind for assistant usage.
   }
 
   private fun updateInternalVariables(e: AnActionEvent) {
-    tagName = tagName(e)
     if (ONLY_FULL) {
       type = Type.FULL
     } else {
+      val tagName = tagName(e)
       type = getType(tagName, e)
     }
   }
@@ -153,14 +166,15 @@ open class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
   }
 }
 
+
 private val motionLayoutHelpPanelBundle =
-  HelpPanelBundle("LayoutEditor.HelpAssistant.MotionLayout", "/motionlayout_help_assistance_bundle.xml")
+  HelpPanelBundle(MOTION_EDITOR_BUNDLE_ID, "/motionlayout_help_assistance_bundle.xml")
 
 private val constraintLayoutHelpPanelBundle =
-  HelpPanelBundle("LayoutEditor.HelpAssistant.ConstraintLayout", "/constraintlayout_help_assistance_bundle.xml")
+  HelpPanelBundle(CONSTRAINT_LAYOUT_BUNDLE_ID, "/constraintlayout_help_assistance_bundle.xml")
 
 private val fullHelpPanelBundle =
-  HelpPanelBundle("LayoutEditor.HelpAssistant.Full", "/layout_editor_help_assistance_bundle.xml")
+  HelpPanelBundle(FULL_HELP_BUNDLE_ID, "/layout_editor_help_assistance_bundle.xml")
 
 class MotionLayoutPanelAssistantBundleCreator :
   LayoutEditorHelpPanelAssistantBundleCreatorBase(motionLayoutHelpPanelBundle)
@@ -171,19 +185,3 @@ class ConstraintLayoutPanelAssistantBundleCreator :
 class LayoutEditorPanelAssistantBundleCreator :
   LayoutEditorHelpPanelAssistantBundleCreatorBase(fullHelpPanelBundle)
 
-/**
- * Base tutorial bundle xml creator.
- */
-open class LayoutEditorHelpPanelAssistantBundleCreatorBase(val type: HelpPanelBundle) : AssistantBundleCreator {
-  override fun getBundleId(): String {
-    return type.bundleId
-  }
-
-  override fun getBundle(project: Project): TutorialBundleData? {
-    return null
-  }
-
-  override fun getConfig(): URL? {
-    return javaClass.getResource(type.bundleXml)
-  }
-}

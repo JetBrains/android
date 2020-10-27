@@ -32,7 +32,6 @@ import com.android.tools.idea.lint.common.LintProblemData;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.lint.checks.AppCompatCustomViewDetector;
-import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.LintFix;
@@ -78,10 +77,10 @@ import java.util.stream.Collectors;
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.MethodMigrationEntry;
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ChangeCustomViewUsageInfo;
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ClassMigrationUsageInfo;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 
-final class MigrateToAppCompatUtil {
+class MigrateToAppCompatUtil {
 
   // Class known for its static members
   private MigrateToAppCompatUtil() {
@@ -214,7 +213,7 @@ final class MigrateToAppCompatUtil {
         }
       };
       request.setScope(Scope.JAVA_FILE_SCOPE);
-      new LintDriver(new AndroidLintIdeIssueRegistry(), client, request).analyze();
+      client.createDriver(request, new AndroidLintIdeIssueRegistry()).analyze();
     }
     finally {
       AppCompatCustomViewDetector.ISSUE.setEnabledByDefault(detectorWasEnabled);
@@ -241,7 +240,7 @@ final class MigrateToAppCompatUtil {
     return itemsOfType.stream()
       .map(name -> repository.getResources(ResourceNamespace.TODO(), resourceType, name))
       .flatMap(Collection::stream)
-      .map(item -> AndroidResourceUtil.getItemPsiFile(project, item))
+      .map(item -> IdeResourcesUtil.getItemPsiFile(project, item))
       .filter(f -> f instanceof XmlFile)
       .map(XmlFile.class::cast)
       .collect(Collectors.toSet());

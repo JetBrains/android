@@ -23,7 +23,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.util.function.Consumer;
 
-final class NonPooledImage implements ImagePool.Image {
+class NonPooledImage implements ImagePool.Image {
   private BufferedImage myImage;
 
   private NonPooledImage(@NotNull BufferedImage image) {
@@ -67,6 +67,11 @@ final class NonPooledImage implements ImagePool.Image {
   @Override
   public void dispose() {
     myImage = null;
+  }
+
+  @Override
+  public boolean isValid() {
+    return myImage != null;
   }
 
   @NotNull

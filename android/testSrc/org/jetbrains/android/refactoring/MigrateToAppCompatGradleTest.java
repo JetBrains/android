@@ -20,16 +20,16 @@ import static com.android.tools.idea.testing.TestProjectPaths.MIGRATE_TO_APP_COM
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.eclipse.GradleImport;
+import com.android.tools.idea.gradle.adtimport.GradleImport;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
@@ -245,7 +245,7 @@ b/146019491 */
   public void testModulesNeedingAppCompat() throws Exception {
     loadProject(MIGRATE_TO_APP_COMPAT);
     MigrateToAppCompatProcessor processor = new MigrateToAppCompatProcessor(getProject());
-    Module myLibraryBaseModule = ModuleManager.getInstance(getProject()).findModuleByName("mylibrarybase");
+    Module myLibraryBaseModule = TestModuleUtil.findModule(getProject(), "mylibrarybase");
     assertNotNull(myLibraryBaseModule);
     Set<Module> expected = ImmutableSet.of(myLibraryBaseModule);
     Set<Module> result = processor.computeModulesNeedingAppCompat();

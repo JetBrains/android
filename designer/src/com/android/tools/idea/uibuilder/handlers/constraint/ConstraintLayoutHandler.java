@@ -32,15 +32,19 @@ import static com.android.SdkConstants.ATTR_MIN_HEIGHT;
 import static com.android.SdkConstants.ATTR_MIN_WIDTH;
 import static com.android.SdkConstants.ATTR_ORIENTATION;
 import static com.android.SdkConstants.ATTR_VALUE;
+import static com.android.SdkConstants.AUTO_URI;
 import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS;
 import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_FLOW;
 import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_GROUP;
 import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_LAYER;
 import static com.android.SdkConstants.CLASS_MOTION_LAYOUT;
+import static com.android.SdkConstants.CLASS_VIEW;
+import static com.android.SdkConstants.CLASS_VIEWGROUP;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT_BARRIER;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE;
+import static com.android.SdkConstants.CONSTRAINT_REFERENCED_IDS;
 import static com.android.SdkConstants.GRAVITY_VALUE_BOTTOM;
 import static com.android.SdkConstants.GRAVITY_VALUE_TOP;
 import static com.android.SdkConstants.ID_PREFIX;
@@ -50,7 +54,7 @@ import static com.android.SdkConstants.TAG;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
-import static com.android.tools.idea.common.util.ImageUtilKt.iconToImage;
+import static com.android.tools.adtui.ImageUtils.iconToImage;
 import static com.android.tools.idea.uibuilder.api.actions.ViewActionUtils.getViewOptionsAction;
 import static icons.StudioIcons.LayoutEditor.Toolbar.BASELINE_ALIGNED_CONSTRAINT;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL;
@@ -85,7 +89,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
 import com.android.tools.idea.uibuilder.actions.ChainStyleViewActions;
-import com.android.tools.idea.uibuilder.actions.ToggleLiveRenderingAction;
+import com.android.tools.idea.uibuilder.actions.ToggleAllLiveRenderingAction;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.api.DragHandler;
@@ -103,7 +107,7 @@ import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutComponentNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.WidgetDraw;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.WidgetDecorator;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.WidgetDecoratorConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BaseLineToggleViewAction;
@@ -137,7 +141,6 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.LafIconLookup;
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -196,17 +199,17 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   }
 
   private static void loadWidgetDecoratorImages() {
-    if (WidgetDecorator.sLockImageIcon == null) {
-      WidgetDecorator.sLockImageIcon = iconToImage(StudioIcons.LayoutEditor.Toolbar.LOCK);
+    if (WidgetDecoratorConstants.sLockImageIcon == null) {
+      WidgetDecoratorConstants.sLockImageIcon = iconToImage(StudioIcons.LayoutEditor.Toolbar.LOCK);
     }
-    if (WidgetDecorator.sUnlockImageIcon == null) {
-      WidgetDecorator.sUnlockImageIcon = iconToImage(StudioIcons.LayoutEditor.Toolbar.UNLOCK);
+    if (WidgetDecoratorConstants.sUnlockImageIcon == null) {
+      WidgetDecoratorConstants.sUnlockImageIcon = iconToImage(StudioIcons.LayoutEditor.Toolbar.UNLOCK);
     }
-    if (WidgetDecorator.sDeleteConnectionsImageIcon == null) {
-      WidgetDecorator.sDeleteConnectionsImageIcon = iconToImage(StudioIcons.LayoutEditor.Toolbar.CLEAR_CONSTRAINTS);
+    if (WidgetDecoratorConstants.sDeleteConnectionsImageIcon == null) {
+      WidgetDecoratorConstants.sDeleteConnectionsImageIcon = iconToImage(StudioIcons.LayoutEditor.Toolbar.CLEAR_CONSTRAINTS);
     }
-    if (WidgetDecorator.sPackChainImageIcon == null) {
-      WidgetDecorator.sPackChainImageIcon = iconToImage(StudioIcons.LayoutEditor.Toolbar.CYCLE_CHAIN_PACKED);
+    if (WidgetDecoratorConstants.sPackChainImageIcon == null) {
+      WidgetDecoratorConstants.sPackChainImageIcon = iconToImage(StudioIcons.LayoutEditor.Toolbar.CYCLE_CHAIN_PACKED);
     }
     if (WidgetDraw.sGuidelineArrowLeft == null) {
       WidgetDraw.sGuidelineArrowLeft = iconToImage(StudioIcons.LayoutEditor.Toolbar.ARROW_LEFT);
@@ -250,7 +253,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       new ToggleVisibilityAction(SHOW_CONSTRAINTS_PREF_KEY, "Show All Constraints", false),
       new ToggleVisibilityAction(SHOW_MARGINS_PREF_KEY, "Show Margins", true),
       new ToggleVisibilityAction(FADE_UNSELECTED_VIEWS, "Fade Unselected Views ", false),
-      new ToggleLiveRenderingAction())));
+      new ToggleAllLiveRenderingAction())));
     actions.add(new ToggleAutoConnectAction());
     actions.add(new MarginSelector());
     actions.add(new ViewActionSeparator());
@@ -533,7 +536,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     return true;
   }
 
-  private static final class ClearConstraintsAction extends DirectViewAction {
+  private static class ClearConstraintsAction extends DirectViewAction {
 
     private static final String MESSAGE_DELETE_CONSTRAINT = "Delete all the constraints in the current layout?";
 
@@ -706,7 +709,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     }
   }
 
-  private static final class ToggleVisibilityAction extends ToggleViewAction {
+  private static class ToggleVisibilityAction extends ToggleViewAction {
     String mType;
 
     private ToggleVisibilityAction(String type, String text, boolean defaultValue) {
@@ -790,7 +793,31 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     }
   }
 
-  private static final class AddElementAction extends DirectViewAction {
+  /**
+   * Returns the list of selected ids in a string formatted:
+   * "${id1}, ${id2}, ${id3}".
+   * Returns null if there's no selected views.
+   */
+  @Nullable
+  static String getSelectedIds(List<NlComponent> selected) {
+    if (selected.isEmpty()) {
+      return null;
+    }
+
+    StringBuilder builder = new StringBuilder();
+    for (NlComponent component : selected) {
+      if (NlComponentHelperKt.isOrHasSuperclass(component, CLASS_VIEW) ||
+          NlComponentHelperKt.isOrHasSuperclass(component, CLASS_VIEWGROUP)) {
+        builder.append(component.getId()).append(",");
+      }
+    }
+    if (builder.length() == 0) {
+      return null;
+    }
+    return builder.toString().substring(0, builder.length() - 1);
+  }
+
+  private static class AddElementAction extends DirectViewAction {
     public static final int HORIZONTAL_GUIDELINE = 0;
     public static final int VERTICAL_GUIDELINE = 1;
     public static final int HORIZONTAL_BARRIER = 2;
@@ -848,6 +875,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
               .createChild(parent, editor, useAndroidx ? CLASS_CONSTRAINT_LAYOUT_GROUP.newName() : CLASS_CONSTRAINT_LAYOUT_GROUP.oldName(),
                            null, InsertType.CREATE);
             assert group != null;
+            String referencedIds = getSelectedIds(selectedChildren);
+            if (referencedIds != null) {
+              group.setAttribute(AUTO_URI, CONSTRAINT_REFERENCED_IDS, referencedIds);
+            }
             group.ensureId();
           }
           break;
@@ -866,6 +897,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
               .createChild(parent, editor, useAndroidx ? CLASS_CONSTRAINT_LAYOUT_LAYER.newName() : CLASS_CONSTRAINT_LAYOUT_LAYER.oldName(),
                            null, InsertType.CREATE);
             assert layer != null;
+
+            String referencedIds = getSelectedIds(selectedChildren);
+            if (referencedIds != null) {
+              layer.setAttribute(AUTO_URI, CONSTRAINT_REFERENCED_IDS, referencedIds);
+            }
             layer.ensureId();
           }
           break;
@@ -874,6 +910,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
               .createChild(parent, editor, useAndroidx ? CLASS_CONSTRAINT_LAYOUT_FLOW.newName() : CLASS_CONSTRAINT_LAYOUT_FLOW.oldName(),
                            null, InsertType.CREATE);
             assert layer != null;
+
+            String referencedIds = getSelectedIds(selectedChildren);
+            if (referencedIds != null) {
+              layer.setAttribute(AUTO_URI, CONSTRAINT_REFERENCED_IDS, referencedIds);
+            }
             layer.ensureId();
           }
           break;
@@ -919,6 +960,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
               .createChild(parent, editor, useAndroidx ? CONSTRAINT_LAYOUT_BARRIER.newName() : CONSTRAINT_LAYOUT_BARRIER.oldName(), null,
                            InsertType.CREATE);
             assert barrier != null;
+
+            String referencedIds = getSelectedIds(selectedChildren);
+            if (referencedIds != null) {
+              barrier.setAttribute(AUTO_URI, CONSTRAINT_REFERENCED_IDS, referencedIds);
+            }
             barrier.ensureId();
             barrier.setAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION, "top");
             // TODO add getAnalyticsManager(editor).trackAddHorizontalBarrier
@@ -982,6 +1028,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
               .createChild(parent, editor, useAndroidx ? CONSTRAINT_LAYOUT_BARRIER.newName() : CONSTRAINT_LAYOUT_BARRIER.oldName(), null,
                            InsertType.CREATE);
             assert barrier != null;
+            String referencedIds = getSelectedIds(selectedChildren);
+            if (referencedIds != null) {
+              barrier.setAttribute(AUTO_URI, CONSTRAINT_REFERENCED_IDS, referencedIds);
+            }
             barrier.ensureId();
             barrier.setAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION, "left");
 
@@ -1175,7 +1225,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     }
   }
 
-  private static final class MarginSelector extends DirectViewAction {
+  private static class MarginSelector extends DirectViewAction {
 
     private static final String PICK_A_DIMENSION = "Pick a Dimension";
     private static final float DEFAULT_ICON_FONT_SIZE = 12f;
@@ -1767,7 +1817,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       }
     }
 
-    private static final class ConnectSource extends DisappearingActionMenu {
+    private static class ConnectSource extends DisappearingActionMenu {
       int mIndex;
 
       private ConnectSource(int index,
@@ -1914,20 +1964,16 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                            StudioIcons.LayoutEditor.Toolbar.BARRIER_HORIZONTAL,
                            ADD_HORIZONTAL_BARRIER),
       new AddElementAction(AddElementAction.GROUP,
-                           // TODO: add new icon to StudioIcons and replace this icon
-                           AndroidIcons.Sherpa.SwitchBlueprintOff,
+                           StudioIcons.LayoutEditor.Palette.GROUP,
                            ADD_GROUP),
       new AddElementAction(AddElementAction.CONSTRAINT_SET,
-                           // TODO: add new icon to StudioIcons and replace this icon
-                           AndroidIcons.Sherpa.SwitchBlueprintOff,
+                           StudioIcons.LayoutEditor.Palette.CONSTRAINT_SET,
                            ADD_CONSTRAINTS_SET),
       new AddElementAction(AddElementAction.LAYER,
-                           // TODO: add new icon to StudioIcons and replace this icon
-                           AndroidIcons.Sherpa.SwitchBlueprintOff,
+                           StudioIcons.LayoutEditor.Palette.LAYER,
                            ADD_LAYER),
       new AddElementAction(AddElementAction.FLOW,
-                           // TODO: add new icon to StudioIcons and replace this icon
-                           AndroidIcons.Sherpa.SwitchBlueprintOff,
+                           StudioIcons.LayoutEditor.Palette.FLOW,
                            ADD_FLOW));
   }
 }

@@ -26,9 +26,6 @@ import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidPlatform {
   @NotNull private final AndroidSdkData mySdkData;
   @NotNull private final IAndroidTarget myTarget;

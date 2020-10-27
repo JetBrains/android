@@ -65,7 +65,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.targets.MotionLay
 import com.android.tools.idea.uibuilder.handlers.motion.editor.targets.MotionLayoutResizeBaseTarget;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.targets.MotionLayoutResizeTarget;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
+import com.android.tools.idea.uibuilder.assistant.ComponentAssistantFactory;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;

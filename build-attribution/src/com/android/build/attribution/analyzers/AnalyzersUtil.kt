@@ -16,6 +16,7 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.data.PluginData
+import com.android.build.attribution.data.TaskData
 
 fun isAndroidGradlePlugin(plugin: PluginData): Boolean {
   return plugin.displayName == "com.android.application"
@@ -39,3 +40,10 @@ fun isKotlinPlugin(plugin: PluginData): Boolean {
 }
 
 fun isGradlePlugin(plugin: PluginData) = plugin.displayName.startsWith("org.gradle.")
+
+fun isKaptTask(task: TaskData): Boolean {
+  return task.taskType == "org.jetbrains.kotlin.gradle.internal.KaptTask" ||
+         task.taskType == "org.jetbrains.kotlin.gradle.internal.KaptWithKotlincTask" ||
+         task.taskType == "org.jetbrains.kotlin.gradle.internal.KaptWithoutKotlincTask" ||
+         task.taskType == "org.jetbrains.kotlin.gradle.internal.KaptGenerateStubsTask"
+}

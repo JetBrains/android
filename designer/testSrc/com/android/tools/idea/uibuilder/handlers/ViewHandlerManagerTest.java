@@ -32,6 +32,7 @@ import com.android.tools.idea.uibuilder.handlers.flexbox.FlexboxLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandler;
 import com.android.tools.idea.uibuilder.property.MockNlComponent;
+import com.android.tools.idea.uibuilder.util.MockNlComponent;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.util.function.Function;
@@ -113,7 +114,7 @@ public class ViewHandlerManagerTest extends LayoutTestCase {
     assertNotNull(viewManager.getHandler(BOTTOM_APP_BAR));
   }
 
-  private static final class TestHandler implements ViewHandlerProvider {
+  private static class TestHandler implements ViewHandlerProvider {
     private final Function<String, ViewHandler> myProvider;
 
     private TestHandler(Function<String, ViewHandler> provider) {

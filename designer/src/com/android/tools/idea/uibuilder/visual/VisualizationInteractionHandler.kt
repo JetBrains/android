@@ -30,6 +30,7 @@ import org.intellij.lang.annotations.JdkConstants
 import java.awt.Component
 import java.awt.Cursor
 import java.awt.dnd.DropTargetDragEvent
+import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 
@@ -102,6 +103,13 @@ class VisualizationInteractionHandler(private val surface: DesignSurface,
   override fun getCursorWhenNoInteraction(@SwingCoordinate mouseX: Int,
                                           @SwingCoordinate mouseY: Int,
                                           @JdkConstants.InputEventMask modifiersEx: Int): Cursor? = null
+
+  override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? {
+    // TODO (b/142469546): Delete the selected Preview in CustomConfiguration mode.
+    return null
+  }
+
+  override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) = Unit
 }
 
 private class RemoveCustomModelAction(val provider: CustomModelsProvider, val model: NlModel, val enabled: Boolean) :

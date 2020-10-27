@@ -15,11 +15,18 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifact;
-import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifacts;
-import com.intellij.openapi.project.Project;
+import static com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel.SAMPLE_SOURCE_CLASSIFIER;
+import static com.android.tools.idea.gradle.project.sync.idea.AdditionalClassifierArtifactsModelCollectorKt.idToString;
+import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.NAME_PREFIX;
+import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
+import static com.intellij.openapi.util.io.FileUtil.notNullize;
+
+import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifacts;
+import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel;
 import com.intellij.jarFinder.InternetAttachSourceProvider;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.project.Project;
+import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,13 +35,6 @@ import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-
-import static com.android.tools.idea.gradle.project.sync.idea.SourcesAndJavadocCollectorKt.idToString;
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.NAME_PREFIX;
-import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
-import static com.intellij.openapi.util.io.FileUtil.notNullize;
-
 public class LibraryFilePaths {
   // Key: libraryId, Value: ExtraArtifactsPaths for the library.
   @NotNull private final Map<String, ArtifactPaths> myPathsMap = new HashMap<>();
@@ -42,22 +42,23 @@ public class LibraryFilePaths {
   // for 2019-05 gradle cache layout
   private static final Pattern gradleCachePattern = Pattern.compile("^[a-f0-9]{30,48}$");
 
-  private static final class ArtifactPaths {
+  private static class ArtifactPaths {
     @Nullable final File myJavaDoc;
     @Nullable final File mySources;
     @Nullable final File myPom;
+    @Nullable final File mySampleSource;
 
-    private ArtifactPaths(@Nullable File javadoc, @Nullable File sources, @Nullable File pom) {
-      myJavaDoc = javadoc;
-      mySources = sources;
-      myPom = pom;
+    private ArtifactPaths(AdditionalClassifierArtifacts artifact) {
+      myJavaDoc = artifact.getJavadoc();
+      mySources = artifact.getSources();
+      myPom = artifact.getMavenPom();
+      mySampleSource = artifact.getSampleSources();
     }
   }
 
-  public void populate(@NotNull SourcesAndJavadocArtifacts artifacts) {
-    for (SourcesAndJavadocArtifact artifact : artifacts.getArtifacts()) {
-      myPathsMap.computeIfAbsent(idToString(artifact.getId()),
-                                 k -> new ArtifactPaths(artifact.getJavadoc(), artifact.getSources(), artifact.getMavenPom()));
+  public void populate(@NotNull AdditionalClassifierArtifactsModel artifacts) {
+    for (AdditionalClassifierArtifacts artifact : artifacts.getArtifacts()) {
+      myPathsMap.computeIfAbsent(idToString(artifact.getId()), k -> new ArtifactPaths(artifact));
     }
   }
 
@@ -77,6 +78,15 @@ public class LibraryFilePaths {
       return myPathsMap.get(libraryId).mySources;
     }
     return findArtifactFilePathInRepository(libraryPath, "-sources.jar", true);
+  }
+
+  @Nullable
+  public File findSampleSourcesJarPath(@NotNull String libraryName, @NotNull File libraryPath) {
+    String libraryId = getLibraryId(libraryName);
+    if (myPathsMap.containsKey(libraryId)) {
+      return myPathsMap.get(libraryId).mySampleSource;
+    }
+    return findArtifactFilePathInRepository(libraryPath, SAMPLE_SOURCE_CLASSIFIER, true);
   }
 
   /**
@@ -113,9 +123,9 @@ public class LibraryFilePaths {
   }
 
   @Nullable
-  private static File findArtifactFilePathInRepository(@NotNull File libraryPath,
-                                                       @NotNull String fileNameSuffix,
-                                                       boolean searchInIdeCache) {
+  public static File findArtifactFilePathInRepository(@NotNull File libraryPath,
+                                                      @NotNull String fileNameSuffix,
+                                                      boolean searchInIdeCache) {
     if (!libraryPath.isFile()) {
       // Unlikely to happen. At this point the jar file should exist.
       return null;

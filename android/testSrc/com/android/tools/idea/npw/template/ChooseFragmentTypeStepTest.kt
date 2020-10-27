@@ -15,68 +15,71 @@
  */
 package com.android.tools.idea.npw.template
 
-import com.android.tools.idea.npw.platform.Language.JAVA
+import com.android.tools.idea.wizard.template.Language.Java
+import com.android.tools.idea.wizard.template.Template
+import com.android.tools.idea.wizard.template.TemplateConstraint
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.util.AndroidBundle.message
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
-
-import com.android.tools.idea.templates.TemplateMetadata
-import com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.ANDROIDX
 import org.junit.Test
-import java.util.EnumSet
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
 
 /**
  * Tests for [ChooseFragmentTypeStep].
  */
 class ChooseFragmentTypeStepTest {
-
   private val messageKeys = fragmentGalleryStepMessageKeys
 
   @Test
   fun testNoTemplateForExistingModule() {
-    assertThat(validateTemplate(null, 5, 5,
-                                isNewModule = false, isAndroidxProject = false, language = JAVA,
-                                messageKeys = messageKeys)).isEqualTo("No fragment template was selected")
+    assertThat(Template.NoActivity.validate(
+      moduleApiLevel = 5, moduleBuildApiLevel = 5,
+      isNewModule = false, isAndroidxProject = false, language = Java,
+      messageKeys = messageKeys)).isEqualTo("No fragment template was selected")
   }
 
   @Test
   fun testNoTemplateForNewModule() {
-    assertThat(validateTemplate(null, 5, 5,
-                                isNewModule = true, isAndroidxProject = false, language = JAVA,
-                                messageKeys = messageKeys)).isEqualTo("")
+    val template = mock(Template::class.java)
+    assertThat(template.validate(
+      moduleApiLevel = 5, moduleBuildApiLevel = 5,
+      isNewModule = true, isAndroidxProject = false, language = Java,
+      messageKeys = messageKeys)).isEqualTo("")
   }
 
   @Test
   fun testTemplateWithMinSdkHigherThanModule() {
-    val template = mock(TemplateMetadata::class.java)
+    val template = mock(Template::class.java)
     `when`(template.minSdk).thenReturn(9)
 
-    assertThat(validateTemplate(template, 5, 5,
-                                isNewModule = true, isAndroidxProject = true, language = JAVA,
-                                messageKeys = messageKeys))
+    assertThat(template.validate(
+      moduleApiLevel = 5, moduleBuildApiLevel = 5,
+      isNewModule = true, isAndroidxProject = true, language = Java,
+      messageKeys = messageKeys))
       .isEqualTo(message("android.wizard.fragment.invalid.min.sdk", 9))
   }
 
   @Test
   fun testTemplateWithMinBuildSdkHigherThanModule() {
-    val template = mock(TemplateMetadata::class.java)
-    `when`(template.minBuildApi).thenReturn(9)
+    val template = mock(Template::class.java)
+    `when`(template.minCompileSdk).thenReturn(9)
 
-    assertThat(validateTemplate(template, 5, 5,
-                                isNewModule = true, isAndroidxProject = true, language = JAVA,
-                                messageKeys = messageKeys))
+    assertThat(template.validate(
+      moduleApiLevel = 5, moduleBuildApiLevel = 5,
+      isNewModule = true, isAndroidxProject = true, language = Java,
+      messageKeys = messageKeys))
       .isEqualTo(message("android.wizard.fragment.invalid.min.build", 9))
   }
 
   @Test
   fun testTemplateRequiringAndroidX() {
-    val template = mock(TemplateMetadata::class.java)
-    `when`(template.constraints).thenReturn(EnumSet.of(ANDROIDX))
+    val template = mock(Template::class.java)
+    `when`(template.constraints).thenReturn(listOf(TemplateConstraint.AndroidX))
 
-    assertThat(validateTemplate(template, 5, 5,
-                                isNewModule = false, isAndroidxProject = false, language = JAVA,
-                                messageKeys = messageKeys))
+    assertThat(template.validate(
+      moduleApiLevel = 5, moduleBuildApiLevel = 5,
+      isNewModule = false, isAndroidxProject = false, language = Java,
+      messageKeys = messageKeys))
       .isEqualTo(message("android.wizard.fragment.invalid.androidx"))
   }
 }

@@ -17,29 +17,25 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.builder.model.SyncIssue.TYPE_MISSING_SDK_PACKAGE;
 import static com.android.builder.model.SyncIssue.TYPE_SDK_NOT_SET;
-import static com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidModuleDependenciesSetupTest.getLibraryTableModeCount;
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.testing.TestProjectPaths.NEW_SYNC_KOTLIN_TEST;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.vfs.VfsUtil.loadText;
 import static com.intellij.openapi.vfs.VfsUtil.saveText;
 
-import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.ServiceContainerUtil;
-import com.intellij.testFramework.rules.ProjectModelRule;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -89,18 +85,6 @@ public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
     assertContainsJavaModels(javalib1);
   }
 
-  public void testLibrariesAndProjectRootsAreNotRecreatedOnSync() throws Exception {
-    ProjectModelRule.ignoreTestUnderWorkspaceModel();
-    loadSimpleApplication();
-
-    long libraryTableModCount = getLibraryTableModeCount(getProject());
-
-    // Sync again
-    requestSyncAndWait();
-
-    assertEquals(libraryTableModCount, getLibraryTableModeCount(getProject()));
-  }
-
   // Ignored until ag/129043402 is fixed. This causes a IllegalStateException in AndroidUnitTest.java within the AndroidGradlePlugin.
   public void /*test*/MissingSdkPackageGiveCorrectError() throws Exception {
     prepareProjectForImport(NEW_SYNC_KOTLIN_TEST);
@@ -113,9 +97,9 @@ public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
     String failure = requestSyncAndGetExpectedFailure(request -> request.skipPreSyncChecks = true);
     assertThat(failure).contains("Sync issues found!");
 
-    Collection<SyncIssue> syncIssues = SyncIssues.forModule(getModule("app"));
+    Collection<SyncIssueData> syncIssues = SyncIssues.forModule(getModule("app"));
     assertThat(syncIssues).hasSize(2);
-    SyncIssue syncIssue = syncIssues.iterator().next();
+    SyncIssueData syncIssue = syncIssues.iterator().next();
     assertThat(syncIssue.getType()).isAnyOf(TYPE_SDK_NOT_SET, TYPE_MISSING_SDK_PACKAGE);
     syncIssue = syncIssues.iterator().next();
     assertThat(syncIssue.getType()).isAnyOf(TYPE_SDK_NOT_SET, TYPE_MISSING_SDK_PACKAGE);
@@ -147,24 +131,8 @@ public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
       }
     });
 
-    try {
-      String failure = requestSyncAndGetExpectedFailure(request -> request.skipPreSyncChecks = true);
-      // New sync path
-      assertThat(failure).contains("Sync issues found!");
-    }
-    catch (AssertionError e) {
-      // Old sync path
-      // Since this error is thrown in set-up it does not get caught in Old Sync, this means that even though
-      // requestSyncAndGetExpectedFailure is called we still get an exception thrown.
-      assertThat(e.getMessage()).contains("Sync issues found!");
-    }
-
-    SyncMessage message = messagesStub.getFirstReportedMessage();
-    assertThat(message).isNotNull();
-    assertThat(message.getType()).isEqualTo(ERROR);
-    assertThat(message.getText()[0]).isEqualTo("The module 'app' is an Android project without build variants, and cannot be built.");
-    assertThat(message.getText()[1])
-      .isEqualTo("Please fix the module's configuration in the build.gradle file and sync the project again.");
+    String failure = requestSyncAndGetExpectedFailure(request -> request.skipPreSyncChecks = true);
+    assertThat(failure).contains("No variants found for 'app'. Check build files to ensure at least one variant exists.");
   }
 
   @NotNull

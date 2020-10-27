@@ -49,7 +49,9 @@ public class CpuCaptureNodeTooltipView extends TooltipView {
     JLabel idleLabel = new JLabel(String.format("Idle: %s", TimeFormatter.getSingleUnitDurationString(idleDuration)));
     JLabel totalLabel = new JLabel(String.format("Total: %s", TimeFormatter.getSingleUnitDurationString(totalDuration)));
     JLabel contextHelpLabel = new JLabel("Click to inspect");
+    JLabel contextHelpSecondaryLabel = new JLabel("Click + drag to select multiple events");
     contextHelpLabel.setForeground(ProfilerColors.TOOLTIP_LOW_CONTRAST);
+    contextHelpSecondaryLabel.setForeground(ProfilerColors.TOOLTIP_LOW_CONTRAST);
 
     JPanel content = new JPanel(new TabularLayout("*").setVGap(12));
     content.add(nameLabel, new TabularLayout.Constraint(0, 0));
@@ -58,6 +60,7 @@ public class CpuCaptureNodeTooltipView extends TooltipView {
     content.add(totalLabel, new TabularLayout.Constraint(3, 0));
     content.add(AdtUiUtils.createHorizontalSeparator(), new TabularLayout.Constraint(4, 0));
     content.add(contextHelpLabel, new TabularLayout.Constraint(5, 0));
+    content.add(contextHelpSecondaryLabel, new TabularLayout.Constraint(6, 0));
     return content;
   }
 }

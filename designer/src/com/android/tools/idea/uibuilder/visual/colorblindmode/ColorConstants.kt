@@ -20,7 +20,6 @@ package com.android.tools.idea.uibuilder.visual.colorblindmode
  * go/cbm_simulator
  */
 
-const val DEBUG = false
 const val MUTATED_FACTOR = 0.25
 const val GAMMA = 2.2
 const val DIM = 16

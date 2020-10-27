@@ -17,7 +17,7 @@ package com.android.tools.idea.lang.androidSql
 
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.testFramework.LightProjectDescriptor
 import com.intellij.testFramework.fixtures.InjectionTestFixture
 import org.jetbrains.android.AndroidFacetProjectDescriptor
@@ -28,7 +28,7 @@ class RoomQueryInjectionTest : RoomLightTestCase() {
 
   fun testSanityCheck() {
     myFixture.configureByText(
-      JavaFileType.INSTANCE,
+      StdFileTypes.JAVA,
       """
         package com.example;
 
@@ -45,7 +45,7 @@ class RoomQueryInjectionTest : RoomLightTestCase() {
 
   fun testSimpleQuery() {
     myFixture.configureByText(
-      JavaFileType.INSTANCE,
+      StdFileTypes.JAVA,
       """
         package com.example;
 
@@ -62,7 +62,7 @@ class RoomQueryInjectionTest : RoomLightTestCase() {
 
   fun testDatabaseView() {
     myFixture.configureByText(
-      JavaFileType.INSTANCE,
+      StdFileTypes.JAVA,
       """
         package com.example;
 
@@ -79,7 +79,7 @@ class RoomQueryInjectionTest : RoomLightTestCase() {
 
   fun testConcatenation() {
     myFixture.configureByText(
-      JavaFileType.INSTANCE,
+      StdFileTypes.JAVA,
       """
         package com.example;
 
@@ -100,7 +100,7 @@ class RoomQueryInjectionTest : RoomLightTestCase() {
 
   fun testStringConstants() {
     myFixture.configureByText(
-      JavaFileType.INSTANCE,
+      StdFileTypes.JAVA,
       """
         package com.example;
 

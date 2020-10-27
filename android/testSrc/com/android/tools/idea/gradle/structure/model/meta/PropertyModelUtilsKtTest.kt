@@ -15,17 +15,19 @@
  */
 package com.android.tools.idea.gradle.structure.model.meta
 
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_MODEL_UTILS_TEST_AS_FILE
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_MODEL_UTILS_TEST_DSL_TEXT
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
-import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import com.android.tools.idea.gradle.structure.GradleFileModelTestCase
+import com.android.tools.idea.gradle.structure.PROPERTY_MODEL_UTILS_TEST_AS_FILE
+import com.android.tools.idea.gradle.structure.PROPERTY_MODEL_UTILS_TEST_DSL_TEXT
+import com.intellij.testFramework.RunsInEdt
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 import java.io.File
 
+@RunsInEdt
 class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
 
   private fun GradlePropertyModel.wrap(): ResolvedPropertyModel = resolve()

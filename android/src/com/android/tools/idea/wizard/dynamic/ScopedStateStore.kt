@@ -20,7 +20,6 @@ import com.google.common.collect.Iterables
 import com.google.common.collect.Lists
 import com.google.common.collect.Maps
 import com.google.common.collect.Sets
-import org.jetbrains.kotlin.utils.addToStdlib.cast
 import java.lang.ref.WeakReference
 
 /**
@@ -57,7 +56,9 @@ class ScopedStateStore(
   private val recentlyUpdated = Sets.newHashSet<Key<*>>()
   private val listeners = Lists.newArrayListWithCapacity<WeakReference<ScopedStoreListener>>(4)
   // Note that this should live as long as the store instance. Otherwise it gets GCed and no notifications are propagated.
-  private val parentListener = object : ScopedStoreListener {
+  private val parentListener = ScopedStoreListenerImpl()
+
+  private inner class ScopedStoreListenerImpl: ScopedStoreListener {
     override fun <T> invokeUpdate(changedKey: Key<T>?) {
       notifyListeners(changedKey)
     }

@@ -10,6 +10,6 @@ public class AndroidStudioGradleImportCustomizer extends GradleImportCustomizer 
 
   @Override
   public boolean useExtraJvmArgs() {
-    return false;
+    return true;
   }
 }

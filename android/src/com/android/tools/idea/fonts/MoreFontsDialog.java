@@ -402,7 +402,7 @@ public class MoreFontsDialog extends DialogWrapper {
     return builder.toString();
   }
 
-  private static final class FontFamilyRenderer extends ColoredListCellRenderer<FontFamily> {
+  private static class FontFamilyRenderer extends ColoredListCellRenderer<FontFamily> {
     private static final int FONT_CACHE_LOAD_BATCH_SIZE = 15;
 
     private final DownloadableFontCacheService myFontService;
@@ -513,7 +513,7 @@ public class MoreFontsDialog extends DialogWrapper {
     }
   }
 
-  private static final class FontDetailRenderer extends ColoredListCellRenderer<FontDetail> {
+  private static class FontDetailRenderer extends ColoredListCellRenderer<FontDetail> {
     private final DownloadableFontCacheService myFontService;
 
     private FontDetailRenderer() {
@@ -543,7 +543,7 @@ public class MoreFontsDialog extends DialogWrapper {
     }
   }
 
-  private static final class FontListModel extends DefaultListModel<FontFamily> {
+  private static class FontListModel extends DefaultListModel<FontFamily> {
     private static final int DOWNLOAD_SIZE = 25;
 
     private final DownloadableFontCacheService myFontService;

@@ -31,6 +31,8 @@ import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiManager
+import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.AAR_ADDRESS_KEY
+import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.LIGHT_CLASS_KEY
 import org.jetbrains.android.augment.AndroidLightField.FieldModifier
 import org.jetbrains.android.augment.InnerRClassBase
 import org.jetbrains.android.augment.InnerRClassBase.buildResourceFields
@@ -44,17 +46,28 @@ import kotlin.concurrent.withLock
  * Top-level R class for an AARv2 used in namespaced mode, backed by the AAR [ResourceRepository] that's assumed not to change.
  *
  * It only contains entries for resources included in the library itself, not any of its dependencies.
+ *
+ * @param psiManager        [PsiManager] of project used to create light elements
+ * @param library           [Library] of AAR which is added to module info of class so that it is found by Kotlin plugin
+ * @param packageName       Package of resources taken from AAR
+ * @param aarResources      The resources in the AAR
+ * @param resourceNamespace Namespace taken from package name of AAR
+ * @param aarAddress        Address of an AAR eg. com.android.support:recyclerview-v7:28.0.0@aar
  */
 class SmallAarRClass(
   psiManager: PsiManager,
   library: Library,
   private val packageName: String,
   private val aarResources: ResourceRepository,
-  private val resourceNamespace: ResourceNamespace
+  private val resourceNamespace: ResourceNamespace,
+  aarAddress: String
 ) : AndroidRClassBase(psiManager, packageName) {
 
   init {
     setModuleInfo(library)
+    val lightVirtualFile = myFile.viewProvider.virtualFile
+    lightVirtualFile.putUserData(LIGHT_CLASS_KEY, SmallAarRClass::class.java)
+    lightVirtualFile.putUserData(AAR_ADDRESS_KEY, aarAddress)
   }
 
   override fun getQualifiedName(): String? = "$packageName.R"
@@ -97,16 +110,26 @@ private class SmallAarInnerRClass(
  *
  * It contains entries for resources present in the AAR as well as all its dependencies, which is how the build system generates the R class
  * from the symbol file at build time.
+ *
+ * @param psiManager  [PsiManager] of project used to create light elements
+ * @param library     [Library] of AAR which is added to module info of class so that it is found by Kotlin plugin
+ * @param packageName Package of resources taken from AAR
+ * @param symbolFile  Symbol file (`R.txt`) containing information needed to generate non-namespaced R class
+ * @param aarAddress  Address of an AAR eg. com.android.support:recyclerview-v7:28.0.0@aar
  */
 class TransitiveAarRClass(
   psiManager: PsiManager,
   library: Library,
   private val packageName: String,
-  private val symbolFile: File
+  private val symbolFile: File,
+  aarAddress: String
 ) : AndroidRClassBase(psiManager, packageName) {
 
   init {
     setModuleInfo(library)
+    val lightVirtualFile = myFile.viewProvider.virtualFile
+    lightVirtualFile.putUserData(LIGHT_CLASS_KEY, TransitiveAarRClass::class.java)
+    lightVirtualFile.putUserData(AAR_ADDRESS_KEY, aarAddress)
   }
 
   private val parsingLock = ReentrantLock()

@@ -52,7 +52,6 @@ import com.android.tools.profilers.StudioMonitorStage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.analytics.FilterMetadata;
 import com.android.tools.profilers.cpu.CpuProfilerStage.CaptureState;
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.atrace.AtraceParser;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
@@ -101,7 +100,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
   public FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("CpuProfilerStageTestChannel", myCpuService, myTransportService, new FakeProfilerService(myTimer),
                         myMemoryService, new FakeEventService(), FakeNetworkService.newBuilder().build());
-  private ProfilerClient myProfilerClient = new ProfilerClient(myGrpcChannel.getName());
 
   private CpuProfilerStage myStage;
 
@@ -118,7 +116,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
   public void setUp() {
     myCpuService.clearTraceInfo();
 
-    StudioProfilers profilers = new StudioProfilers(myProfilerClient, myServices, myTimer);
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myServices, myTimer);
     // One second must be enough for new devices (and processes) to be picked up
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
@@ -633,17 +631,17 @@ public final class CpuProfilerStageTest extends AspectObserver {
     // Tooltip on first thread.
     tooltipTimeUs = TimeUnit.SECONDS.toMicros(5);
     tooltipRange.set(tooltipTimeUs, tooltipTimeUs);
-    assertThat(tooltip.getThreadState()).isEqualTo(CpuProfilerStage.ThreadState.RUNNING);
+    assertThat(tooltip.getThreadState()).isEqualTo(ThreadState.RUNNING);
 
     // Tooltip right on second thread.
     tooltipTimeUs = TimeUnit.SECONDS.toMicros(8);
     tooltipRange.set(tooltipTimeUs, tooltipTimeUs);
-    assertThat(tooltip.getThreadState()).isEqualTo(CpuProfilerStage.ThreadState.DEAD);
+    assertThat(tooltip.getThreadState()).isEqualTo(ThreadState.DEAD);
 
     // Tooltip after all data. Because data don't contain end time so the last thread state lasts "forever".
     tooltipTimeUs = TimeUnit.SECONDS.toMicros(12);
     tooltipRange.set(tooltipTimeUs, tooltipTimeUs);
-    assertThat(tooltip.getThreadState()).isEqualTo(CpuProfilerStage.ThreadState.DEAD);
+    assertThat(tooltip.getThreadState()).isEqualTo(ThreadState.DEAD);
   }
 
   @Test
@@ -652,7 +650,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     Range tooltipRange = myStage.getTimeline().getTooltipRange();
 
     viewRange.set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(11));
-    CpuCapture cpuCapture = new AtraceParser(1)
+    CpuCapture cpuCapture = new AtraceParser(new MainProcessSelector("", 1, null))
       .parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"), 0);
     myStage.setCapture(cpuCapture);
     myStage.enter();
@@ -669,7 +667,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     List<SeriesData<CpuThreadSliceInfo>> cpuSeriesData = new ArrayList<>();
     cpuSeriesData.add(new SeriesData<>(5, CpuThreadSliceInfo.NULL_THREAD));
     cpuSeriesData.add(new SeriesData<>(10, new CpuThreadSliceInfo(0, "Test", 0, "Test")));
-    AtraceDataSeries<CpuThreadSliceInfo> series = new AtraceDataSeries<>((AtraceCpuCapture)cpuCapture, (capture) -> cpuSeriesData);
+    LazyDataSeries<CpuThreadSliceInfo> series = new LazyDataSeries<>(() -> cpuSeriesData);
     tooltip.setCpuSeries(1, series);
     assertThat(tooltip.getCpuThreadSliceInfo().getProcessName()).isEqualTo("Test");
 
@@ -890,7 +888,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     myStage.exit();
 
     // Enter CpuProfilerStage again.
-    StudioProfilers profilers = new StudioProfilers(myProfilerClient, myServices, myTimer);
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myServices, myTimer);
     CpuProfilerStage newStage = new CpuProfilerStage(profilers);
     newStage.getStudioProfilers().setStage(newStage);
     // Trigger an update to kick off the InProgressTraceHandler which syncs the capture state and configuration.
@@ -910,7 +908,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     myStage.exit();
 
     // Enter CpuProfilerStage again.
-    StudioProfilers profilers = new StudioProfilers(myProfilerClient, myServices, myTimer);
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myServices, myTimer);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     CpuProfilerStage newStage = new CpuProfilerStage(profilers);
     newStage.getStudioProfilers().setStage(newStage);
@@ -1722,28 +1720,10 @@ public final class CpuProfilerStageTest extends AspectObserver {
       super.abortParsing();
     }
 
-    @Nullable
+    @NotNull
     @Override
-    public CompletableFuture<CpuCapture> parse(@NotNull Common.Session session,
-                                               long traceId,
-                                               @NotNull ByteString traceData,
-                                               Cpu.CpuTraceType profilerType) {
-      CompletableFuture<CpuCapture> capture = new CompletableFuture<>();
-      capture.cancel(true);
-      return capture;
-    }
-
-    @Nullable
-    @Override
-    public CompletableFuture<CpuCapture> parse(@NotNull File traceFile) {
-      CompletableFuture<CpuCapture> capture = new CompletableFuture<>();
-      capture.cancel(true);
-      return capture;
-    }
-
-    @Nullable
-    @Override
-    public CompletableFuture<CpuCapture> parse(@NotNull File traceFile, boolean reportImportMetrics) {
+    public CompletableFuture<CpuCapture> parse(
+      @NotNull File traceFile, long traceId, @Nullable Cpu.CpuTraceType preferredProfilerType, int idHint, @Nullable String nameHint) {
       CompletableFuture<CpuCapture> capture = new CompletableFuture<>();
       capture.cancel(true);
       return capture;

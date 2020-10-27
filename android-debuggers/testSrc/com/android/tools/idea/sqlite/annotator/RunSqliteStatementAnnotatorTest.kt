@@ -15,42 +15,50 @@
  */
 package com.android.tools.idea.sqlite.annotator
 
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
-import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.DatabaseInspectorMessenger
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
-import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
+import com.android.tools.idea.sqlite.DatabaseInspectorProjectServiceImpl
+import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
+import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorController
+import com.android.tools.idea.sqlite.model.DatabaseInspectorModelImpl
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
+import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.daemon.GutterMark
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
-import com.intellij.icons.AllIcons
-import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.editor.markup.GutterIconRenderer
+import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
+import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.EmptyIcon
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
+import icons.StudioIcons
 import javax.swing.Icon
 
 class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
   private lateinit var ideComponents: IdeComponents
 
-  private lateinit var mockDatabaseInspectorProjectService: DatabaseInspectorProjectService
-  private lateinit var sqliteDatabase1: SqliteDatabase
-  private lateinit var sqliteDatabase2: SqliteDatabase
+  private lateinit var databaseInspectorProjectService: DatabaseInspectorProjectService
+  private lateinit var sqliteDatabaseId1: SqliteDatabaseId
 
   override fun setUp() {
     super.setUp()
     StudioFlags.DATABASE_INSPECTOR_ENABLED.override(true)
 
-    sqliteDatabase1 = LiveSqliteDatabase("db1", mock(DatabaseConnection::class.java))
-    sqliteDatabase2 = LiveSqliteDatabase("db2", mock(DatabaseConnection::class.java))
+    sqliteDatabaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
+
+    val model = DatabaseInspectorModelImpl()
+    databaseInspectorProjectService = DatabaseInspectorProjectServiceImpl(
+      project = project,
+      model = model,
+      createController = { _, _ -> MockDatabaseInspectorController(DatabaseRepositoryImpl(project, EdtExecutorService.getInstance()), model) }
+    )
 
     ideComponents = IdeComponents(myFixture)
-    mockDatabaseInspectorProjectService = ideComponents.mockProjectService(DatabaseInspectorProjectService::class.java)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(setOf(sqliteDatabase1))
+    ideComponents.replaceProjectService(DatabaseInspectorProjectService::class.java, databaseInspectorProjectService)
   }
 
   override fun tearDown() {
@@ -63,10 +71,10 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
 
   fun testAnnotatorDoesntWorkIfSqliteInspectorFlagIsDisabled() {
     StudioFlags.DATABASE_INSPECTOR_ENABLED.override(false)
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(false)
+    databaseInspectorProjectService.openSqliteDatabase(sqliteDatabaseId1, getMockLiveDatabaseConnection())
 
     myFixture.configureByText(
-      JavaFileType.INSTANCE,
+      StdFileTypes.JAVA,
       // language=java
       """
         package com.example;
@@ -88,10 +96,8 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
   }
 
   fun testNoIconWhenDatabaseIsNotOpen() {
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(false)
-
     myFixture.configureByText(
-      JavaFileType.INSTANCE,
+      StdFileTypes.JAVA,
       // language=java
       """
         package com.example;
@@ -109,10 +115,10 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
   }
 
   fun testRunIconWhenDatabaseIsOpen() {
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    databaseInspectorProjectService.openSqliteDatabase(sqliteDatabaseId1, getMockLiveDatabaseConnection())
 
     myFixture.configureByText(
-      JavaFileType.INSTANCE,
+      StdFileTypes.JAVA,
       // language=java
       """
         package com.example;
@@ -126,14 +132,14 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     )
 
     val highlightInfo = findHighlightInfo()
-    checkGutterIconRenderer(highlightInfo.gutterIconRenderer, AllIcons.RunConfigurations.TestState.Run)
+    checkGutterIconRenderer(highlightInfo.gutterIconRenderer, StudioIcons.DatabaseInspector.NEW_QUERY)
   }
 
   fun testRendererVisibleWhenSqlStatementMadeOfMultipleStrings() {
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    databaseInspectorProjectService.openSqliteDatabase(sqliteDatabaseId1, getMockLiveDatabaseConnection())
 
     myFixture.configureByText(
-      JavaFileType.INSTANCE,
+      StdFileTypes.JAVA,
       // language=java
       """
         package com.example;
@@ -147,14 +153,14 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     )
 
     val highlightInfo = findHighlightInfo()
-    checkGutterIconRenderer(highlightInfo.gutterIconRenderer, AllIcons.RunConfigurations.TestState.Run)
+    checkGutterIconRenderer(highlightInfo.gutterIconRenderer, StudioIcons.DatabaseInspector.NEW_QUERY)
   }
 
   fun testAnnotatorWorksWithKotlin() {
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(false)
+    databaseInspectorProjectService.openSqliteDatabase(sqliteDatabaseId1, getMockLiveDatabaseConnection())
 
     myFixture.configureByText(
-      JavaFileType.INSTANCE,
+      StdFileTypes.JAVA,
       // language=kotlin
       """
         package com.example;
@@ -168,7 +174,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     )
 
     val highlightInfo = findHighlightInfo()
-    checkGutterIconRenderer(highlightInfo.gutterIconRenderer, EmptyIcon.ICON_0)
+    checkGutterIconRenderer(highlightInfo.gutterIconRenderer, StudioIcons.DatabaseInspector.NEW_QUERY)
   }
 
   private fun findHighlightInfo(): HighlightInfo {
@@ -186,5 +192,10 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     val renderer = gutterIconRenderer as GutterIconRenderer
     val icon = renderer.icon
     assertThat(icon).isEqualTo(expectedIcon)
+  }
+
+  private fun getMockLiveDatabaseConnection(): LiveDatabaseConnection {
+    val databaseInspectorMessenger = DatabaseInspectorMessenger(mock(), EdtExecutorService.getInstance())
+    return LiveDatabaseConnection(testRootDisposable, databaseInspectorMessenger, 0, EdtExecutorService.getInstance())
   }
 }

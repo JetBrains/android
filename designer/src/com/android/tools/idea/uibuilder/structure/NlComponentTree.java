@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import static com.android.tools.idea.common.property.PropertiesManager.UPDATE_DELAY_MSECS;
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
+import com.android.SdkConstants;
+import com.android.tools.idea.common.editor.ActionUtils;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -29,6 +30,7 @@ import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
+import com.android.tools.idea.uibuilder.handlers.motion.MotionUtils;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.annotations.VisibleForTesting;
@@ -78,8 +80,10 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.ToolTipManager;
 import org.jetbrains.annotations.NonNls;
@@ -98,10 +102,13 @@ import org.jetbrains.annotations.Nullable;
 
 public class NlComponentTree extends Tree implements DesignSurfaceListener, ModelListener, SelectionListener, Disposable,
                                                      DataProvider {
+  private  final static int UPDATE_DELAY_MSECS = 250;
+
   private final AtomicBoolean mySelectionIsUpdating;
   @VisibleForTesting
   final MergingUpdateQueue myUpdateQueue;
   private final NlTreeBadgeHandler myBadgeHandler;
+  private final NlVisibilityGutterPanel myVisibilityGutterPanel;
 
   @Nullable private NlModel myModel;
   private boolean mySkipWait;
@@ -112,8 +119,9 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   @Nullable private Rectangle myInsertionReceiverBounds;
   @Nullable private NlDesignSurface mySurface;
 
-
-  public NlComponentTree(@NotNull Project project, @Nullable NlDesignSurface designSurface) {
+  public NlComponentTree(@NotNull Project project,
+                         @Nullable NlDesignSurface designSurface,
+                         NlVisibilityGutterPanel visibilityGutter) {
     mySelectionIsUpdating = new AtomicBoolean(false);
     myUpdateQueue = new MergingUpdateQueue(
       "android.layout.structure-pane", UPDATE_DELAY_MSECS, true, null, null, null, SWING_THREAD);
@@ -149,6 +157,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       return !components.isEmpty() ? components.get(0).getTagName() : null;
     });
     help.registerCustomShortcutSet(KeyEvent.VK_F1, InputEvent.SHIFT_MASK, this);
+    myVisibilityGutterPanel = visibilityGutter;
+    addTreeExpansionListener(myVisibilityGutterPanel);
   }
 
   private void enableDnD() {
@@ -215,6 +225,12 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
         action.registerCustomShortcutSet(new CustomShortcutSet(newShortcuts.toArray(Shortcut.EMPTY_ARRAY)), this);
       }
     }
+  }
+
+  @NotNull
+  @VisibleForTesting
+  public MergingUpdateQueue getUpdateQueue() {
+    return myUpdateQueue;
   }
 
   @Nullable
@@ -287,6 +303,9 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
           }
           mySelectionIsUpdating.set(true);
 
+          // TODO b/157095734 resolve multi-selection in motion layout
+          getSelectionModel().setSelectionMode(MotionUtils.getTreeSelectionModel(myModel));
+
           List<TreePath> expandedPaths = TreeUtil.collectExpandedPaths(NlComponentTree.this);
           Object oldRoot = treeModel.getRoot();
           setModel(new NlComponentTreeModel(myModel));
@@ -321,6 +340,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   }
 
   private void updateSelection() {
+    // When updating selection it can expand collapsed paths.
+    myVisibilityGutterPanel.update(NlComponentTree.this);
     if (!mySelectionIsUpdating.compareAndSet(false, true)) {
       return;
     }
@@ -542,7 +563,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
           if (component instanceof NlComponent) {
             // TODO: Ensure the node is selected first
-            mySurface.getActionManager().showPopup(e, (NlComponent)component);
+            // TODO (b/151315668): extract the hardcoded value "LayoutEditor"
+            ActionUtils.showPopup(mySurface, e, mySurface.getActionManager().getPopupMenuActions((NlComponent) component), "LayoutEditor");
           }
           else {
             ActionManager actionManager = ActionManager.getInstance();
@@ -566,6 +588,12 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
       Object component = path.getLastPathComponent();
 
+      if (component instanceof String) {
+        NlComponent clicked = findComponent((String) component);
+        mySurface.getSelectionModel().setSelection(Arrays.asList(clicked));
+        return;
+      }
+
       if (!(component instanceof NlComponent)) {
         return;
       }
@@ -575,6 +603,15 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
         handler.onActivateInComponentTree((NlComponent)component, mySurface.getSceneManager().getViewEditor());
       }
     }
+  }
+
+  @Nullable
+  private NlComponent findComponent(String id) {
+    Optional<NlComponent> optional = myModel.flattenComponents().filter(it -> id.equals(it.getId())).findFirst();
+    if (optional.isPresent()) {
+      return optional.get();
+    }
+    return null;
   }
 
   private class StructurePaneSelectionListener implements TreeSelectionListener {

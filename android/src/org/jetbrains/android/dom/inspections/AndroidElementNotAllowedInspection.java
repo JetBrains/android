@@ -1,8 +1,7 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.dom.inspections;
 
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.codeInspection.InspectionManager;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.LocalQuickFix;
@@ -24,9 +23,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidElementNotAllowedInspection extends LocalInspectionTool {
 
   @Nls
@@ -66,7 +62,7 @@ public class AndroidElementNotAllowedInspection extends LocalInspectionTool {
     return ProblemDescriptor.EMPTY_ARRAY;
   }
 
-  private static final class MyVisitor extends XmlRecursiveElementVisitor {
+  private static class MyVisitor extends XmlRecursiveElementVisitor {
     private final InspectionManager myInspectionManager;
     private final boolean myOnTheFly;
     final List<ProblemDescriptor> myResult = new ArrayList<>();
@@ -105,7 +101,7 @@ public class AndroidElementNotAllowedInspection extends LocalInspectionTool {
   private static boolean isUnknownCustomView(XmlTag tag) {
     PsiFile file = tag.getContainingFile();
     if (file != null) {
-      ResourceFolderType type = ResourceHelper.getFolderType(file);
+      ResourceFolderType type = IdeResourcesUtil.getFolderType(file);
       if (type == ResourceFolderType.LAYOUT && tag.getName().indexOf('.') != -1) {
         return true;
       }

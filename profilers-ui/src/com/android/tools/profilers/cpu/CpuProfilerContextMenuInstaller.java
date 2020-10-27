@@ -34,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
  * This class should not be created directly instead {@link #install(CpuProfilerStage, IdeProfilerComponents, JComponent, JComponent)}
  * should be used.
  */
-final class CpuProfilerContextMenuInstaller {
+class CpuProfilerContextMenuInstaller {
   @NotNull private final CpuProfilerStage myStage;
   @NotNull private final ContextMenuInstaller myInstaller;
   @NotNull private final JComponent myComponent;

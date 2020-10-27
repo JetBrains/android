@@ -34,6 +34,8 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -59,7 +61,7 @@ import org.xmlpull.v1.XmlPullParser;
 /**
  * Design-time metadata lookup for layouts, such as fragment and AdapterView bindings.
  */
-public final class LayoutMetadata {
+public class LayoutMetadata {
   /**
    * The default layout to use for list items in expandable list views
    */
@@ -317,7 +319,7 @@ public final class LayoutMetadata {
           }
         } else {
           if (namespace != null) {
-            AndroidResourceUtil.ensureNamespaceImported(file, namespace, null);
+            IdeResourcesUtil.ensureNamespaceImported(file, namespace, null);
             element.setAttribute(name, namespace, value);
           } else {
             element.setAttribute(name, value);
@@ -342,7 +344,7 @@ public final class LayoutMetadata {
 
         VirtualFile layoutFile = file.getVirtualFile();
         if (layoutFile != null) {
-          final List<VirtualFile> variations = ResourceHelper.getResourceVariations(layoutFile, false);
+          final List<VirtualFile> variations = IdeResourcesUtil.getResourceVariations(layoutFile, false);
           if (variations.isEmpty()) {
             return null;
           }
@@ -399,7 +401,7 @@ public final class LayoutMetadata {
               }
             } else {
               if (namespace != null) {
-                AndroidResourceUtil.ensureNamespaceImported(file, namespace, null);
+                IdeResourcesUtil.ensureNamespaceImported(file, namespace, null);
                 tag.setAttribute(name, namespace, value);
               } else {
                 tag.setAttribute(name, value);

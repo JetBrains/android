@@ -18,7 +18,10 @@ package com.android.tools.idea.uibuilder.handlers.motion.property2;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.tools.property.panel.api.FilteredPTableModel.PTableModelFactory;
 
+import com.android.SdkConstants;
+import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.handlers.constraint.MotionConstraintPanel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
@@ -30,9 +33,12 @@ import com.android.tools.idea.uibuilder.handlers.motion.property2.action.DeleteC
 import com.android.tools.idea.uibuilder.handlers.motion.property2.action.DeleteMotionFieldAction;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.action.SubSectionControlAction;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
+import com.android.tools.idea.uibuilder.property2.inspector.InspectorSection;
 import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider;
 import com.android.tools.idea.uibuilder.property2.support.NeleTwoStateBooleanControlTypeProvider;
 import com.android.tools.idea.uibuilder.property2.ui.EmptyTablePanel;
+import com.android.tools.idea.uibuilder.property2.ui.TransformsPanel;
+import com.android.tools.idea.uibuilder.property2.ui.EasingCurvePanel;
 import com.android.tools.property.panel.api.EditorProvider;
 import com.android.tools.property.panel.api.FilteredPTableModel;
 import com.android.tools.property.panel.api.InspectorBuilder;
@@ -50,9 +56,17 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import com.intellij.xml.XmlElementDescriptor;
+import java.awt.BorderLayout;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JSeparator;
+import javax.swing.SwingConstants;
+import javax.swing.border.EmptyBorder;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
@@ -78,19 +92,22 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
     EditorProvider<NelePropertyItem> editorProvider = EditorProvider.Companion.create(enumSupportProvider, controlTypeProvider);
     TableUIProvider tableUIProvider = TableUIProvider.Companion.create(NelePropertyItem.class, controlTypeProvider, editorProvider);
     getMain().getBuilders().add(new SelectedTargetBuilder());
-    addTab("").getBuilders().add(new MotionInspectorBuilder(model, tableUIProvider));
+    addTab("").getBuilders().add(new MotionInspectorBuilder(model, tableUIProvider, enumSupportProvider));
   }
 
-  private static final class MotionInspectorBuilder implements InspectorBuilder<NelePropertyItem> {
+  private static class MotionInspectorBuilder implements InspectorBuilder<NelePropertyItem> {
     private final MotionLayoutAttributesModel myModel;
     private final TableUIProvider myTableUIProvider;
     private final XmlElementDescriptorProvider myDescriptorProvider;
+    private final NeleEnumSupportProvider myEnumSupportProvider;
 
     private MotionInspectorBuilder(@NotNull MotionLayoutAttributesModel model,
-                                   @NotNull TableUIProvider tableUIProvider) {
+                                   @NotNull TableUIProvider tableUIProvider,
+                                   @NotNull NeleEnumSupportProvider enumSupportProvider) {
       myModel = model;
       myTableUIProvider = tableUIProvider;
       myDescriptorProvider = new AndroidDomElementDescriptorProvider();
+      myEnumSupportProvider = enumSupportProvider;
     }
 
     @Override
@@ -109,20 +126,124 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
         case CONSTRAINT:
           boolean showConstraintPanel = !shouldDisplaySection(MotionSceneAttrs.Tags.LAYOUT, selection);
           addPropertyTable(inspector, selection, MotionSceneAttrs.Tags.CONSTRAINT, myModel, true, false, showConstraintPanel);
+          if (StudioFlags.NELE_TRANSFORM_PANEL.get()) {
+            addTransforms(inspector, selection, myModel, properties);
+          }
+          if (StudioFlags.NELE_TRANSITION_PANEL.get()) {
+            ArrayList<String> attributes = new ArrayList<>();
+            attributes.add("transitionEasing");
+            attributes.add("pathMotionArc");
+            attributes.add("transitionPathRotate");
+            addTransition(inspector, InspectorSection.TRANSITION, selection, myModel, "transitionEasing", properties, attributes);
+          }
           addSubTagSections(inspector, selection, myModel);
           break;
 
         case TRANSITION:
           addPropertyTable(inspector, selection, selection.getMotionSceneTagName(), myModel, false, false, false);
+          if (StudioFlags.NELE_TRANSITION_PANEL.get()) {
+            ArrayList<String> attributes = new ArrayList<>();
+            attributes.add("motionInterpolator");
+            attributes.add("staggered");
+            attributes.add("autoTransition");
+            attributes.add("pathMotionArc");
+            attributes.add("layoutDuringTransition");
+            addTransition(inspector, InspectorSection.TRANSITION_MODIFIERS, selection, myModel, "motionInterpolator", properties, attributes);
+          }
           addSubTagSections(inspector, selection, myModel);
           break;
 
         default:
           addPropertyTable(inspector, selection, selection.getMotionSceneTagName(), myModel, false, false, false);
+          if (StudioFlags.NELE_TRANSFORM_PANEL.get()) {
+            Map<String, PropertiesTable<NelePropertyItem>> allProperties = myModel.getAllProperties();
+            if (allProperties.containsKey("KeyAttribute")) {
+              addTransforms(inspector, selection, myModel, properties);
+            }
+          }
           break;
       }
       boolean showDefaultValues = selection.getType() == MotionEditorSelector.Type.CONSTRAINT;
       addCustomAttributes(inspector, selection, myModel, showDefaultValues);
+    }
+
+    private void addSubtitle(InspectorPanel inspector, String s, InspectorLineModel titleLine) {
+      JComponent component = new JLabel(s);
+      component.setBorder(new EmptyBorder(8, 8, 8, 8));
+      inspector.addComponent(component, titleLine);
+    }
+
+    private class MySeparator extends AdtSecondaryPanel {
+      MySeparator() {
+        super(new BorderLayout());
+        add(new JSeparator(SwingConstants.HORIZONTAL), BorderLayout.CENTER);
+      }
+      @Override
+      public void updateUI() {
+        super.updateUI();
+        setBorder(JBUI.Borders.empty(4));
+      }
+    }
+
+    private void addTransforms(@NotNull InspectorPanel inspector,
+                               @NotNull MotionSelection selection,
+                               @NotNull MotionLayoutAttributesModel model,
+                               @NotNull PropertiesTable<NelePropertyItem> properties) {
+      InspectorLineModel titleModel = inspector.addExpandableTitle(InspectorSection.TRANSFORMS.getTitle(), false, Collections.emptyList());
+      inspector.addComponent(new TransformsPanel(model, properties), titleModel);
+
+      ArrayList<String> rotationAttributes = new ArrayList<>();
+      rotationAttributes.add("rotationX");
+      rotationAttributes.add("rotationY");
+      rotationAttributes.add("rotation");
+
+      ArrayList<String> attributes = new ArrayList<>();
+      attributes.add("scaleX");
+      attributes.add("scaleY");
+      attributes.add("translationX");
+      attributes.add("translationY");
+      attributes.add("alpha");
+      attributes.add("visibility");
+
+      NeleTwoStateBooleanControlTypeProvider controlTypeProvider = new NeleTwoStateBooleanControlTypeProvider(myEnumSupportProvider);
+      EditorProvider<NelePropertyItem> editorProvider = EditorProvider.Companion.create(myEnumSupportProvider, controlTypeProvider);
+
+      for (String attributeName : rotationAttributes) {
+        NelePropertyItem property = properties.getOrNull(SdkConstants.ANDROID_URI, attributeName);
+        if (property != null) {
+          inspector.addEditor(editorProvider.createEditor(property, false), titleModel);
+        }
+      }
+      inspector.addComponent(new MySeparator(), titleModel);
+      addSubtitle(inspector, "Other Transforms", titleModel);
+
+      for (String attributeName : attributes) {
+        NelePropertyItem property = properties.getOrNull(SdkConstants.ANDROID_URI, attributeName);
+        if (property != null) {
+          inspector.addEditor(editorProvider.createEditor(property, false), titleModel);
+        }
+      }
+    }
+
+    private void addTransition(@NotNull InspectorPanel inspector,
+                               @NotNull InspectorSection title,
+                               @NotNull MotionSelection selection,
+                               @NotNull MotionLayoutAttributesModel model,
+                               @NotNull String easingAttributeName,
+                               @NotNull PropertiesTable<NelePropertyItem> properties,
+                               @NotNull ArrayList<String> attributes) {
+      InspectorLineModel titleModel = inspector.addExpandableTitle(title.getTitle(), false, Collections.emptyList());
+      inspector.addComponent(new EasingCurvePanel(model, easingAttributeName, properties), titleModel);
+
+      NeleTwoStateBooleanControlTypeProvider controlTypeProvider = new NeleTwoStateBooleanControlTypeProvider(myEnumSupportProvider);
+      EditorProvider<NelePropertyItem> editorProvider = EditorProvider.Companion.create(myEnumSupportProvider, controlTypeProvider);
+
+      for (String attributeName : attributes) {
+        NelePropertyItem property = properties.getOrNull(SdkConstants.AUTO_URI, attributeName);
+        if (property != null) {
+          inspector.addEditor(editorProvider.createEditor(property, false), titleModel);
+        }
+      }
     }
 
     private void addSubTagSections(@NotNull InspectorPanel inspector,

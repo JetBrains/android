@@ -307,7 +307,7 @@ public class AttributesTransaction implements NlAttributesHolder {
   /**
    * An attribute that hasn't been committed to the XML yet.
    */
-  private static final class PendingAttribute {
+  private static class PendingAttribute {
     final String namespace;
     final String name;
     String value;

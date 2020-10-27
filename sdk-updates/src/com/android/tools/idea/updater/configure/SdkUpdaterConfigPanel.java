@@ -19,7 +19,7 @@ import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.android.tools.adtui.validation.Validator.Severity.OK;
 
 import com.android.repository.api.Downloader;
-import com.android.repository.api.RepoManager.RepoLoadedCallback;
+import com.android.repository.api.RepoManager.RepoLoadedListener;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.api.RepositorySource;
 import com.android.repository.api.SettingsController;
@@ -73,6 +73,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.updateSettings.impl.UpdateSettingsConfigurable;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.HyperlinkAdapter;
@@ -93,6 +94,8 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -201,17 +204,17 @@ public class SdkUpdaterConfigPanel implements Disposable {
   private final BindingsManager myBindingsManager = new BindingsManager();
 
   /**
-   * {@link RepoLoadedCallback} that runs when we've finished reloading our local packages.
+   * {@link RepoLoadedListener} that runs when we've finished reloading our local packages.
    */
-  private final RepoLoadedCallback myLocalUpdater = packages -> ApplicationManager.getApplication().invokeLater(
+  private final RepoLoadedListener myLocalUpdater = packages -> ApplicationManager.getApplication().invokeLater(
     () -> loadPackages(packages), ModalityState.any());
 
   /**
-   * {@link RepoLoadedCallback} that runs when we've completely finished reloading our packages.
+   * {@link RepoLoadedListener} that runs when we've completely finished reloading our packages.
    */
-  private final RepoLoadedCallback myRemoteUpdater = new RepoLoadedCallback() {
+  private final RepoLoadedListener myRemoteUpdater = new RepoLoadedListener() {
     @Override
-    public void doRun(@NotNull final RepositoryPackages packages) {
+    public void loaded(@NotNull final RepositoryPackages packages) {
       ApplicationManager.getApplication().invokeLater(() -> {
         loadPackages(packages);
         myPlatformComponentsPanel.finishLoading();
@@ -573,8 +576,28 @@ public class SdkUpdaterConfigPanel implements Disposable {
           return;
         }
 
-        CausedFocusEventWrapper causedFocusEvent = CausedFocusEventWrapper.newInstanceOrNull(e);
-        if (causedFocusEvent != null && causedFocusEvent.isTraversalBackward()) {
+        // FIXME-ank4: just use Java 11 API
+        //CausedFocusEventWrapper causedFocusEvent = CausedFocusEventWrapper.newInstanceOrNull(e);
+        //if (causedFocusEvent != null && causedFocusEvent.isTraversalBackward()) {
+
+        boolean traversalBackward = false;
+
+        if (SystemInfoRt.IS_AT_LEAST_JAVA9) {
+          try {
+            Method getCause = FocusEvent.class.getMethod("getCause");
+            Enum<?> cause = (Enum<?>)getCause.invoke(e);
+            traversalBackward = "TRAVERSAL_BACKWARD".equals(cause.name());
+          }
+          catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
+            Logger.getInstance(SdkUpdaterConfigPanel.class).warn(ex);
+          }
+        }
+        else {
+          traversalBackward =
+            (e instanceof CausedFocusEvent && ((CausedFocusEvent)e).getCause() == CausedFocusEvent.Cause.TRAVERSAL_BACKWARD);
+        }
+
+        if (traversalBackward) {
           backwardAction.doAction(table);
         }
         else {

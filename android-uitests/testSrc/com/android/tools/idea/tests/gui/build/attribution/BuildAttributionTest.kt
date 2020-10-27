@@ -43,11 +43,13 @@ class BuildAttributionTest {
   @Before
   fun setUp() {
     StudioFlags.BUILD_ATTRIBUTION_ENABLED.override(true)
+    StudioFlags.NEW_BUILD_ANALYZER_UI_NAVIGATION_ENABLED.override(false)
   }
 
   @After
   fun tearDown() {
     StudioFlags.BUILD_ATTRIBUTION_ENABLED.clearOverride()
+    StudioFlags.NEW_BUILD_ANALYZER_UI_NAVIGATION_ENABLED.clearOverride()
   }
 
   /**
@@ -94,12 +96,10 @@ class BuildAttributionTest {
     expandSelectedNodeWithKeyStroke()
 
     selectPageByPath(" Tasks determining this build's duration 2 warnings/ :app:dummy1", ":app:dummy1")
-    findHyperlabelByTextContainsAndClick("Always-run Tasks")
-    requireOpenedPagePathAndHeader(" Warnings (2)/ Always-run Tasks 2 warnings/ :app:dummy1", ":app:dummy1")
+    requireWarningPanelsExistOnPage("ALWAYS_RUN_TASKS")
 
     selectPageByPath(" Tasks determining this build's duration 2 warnings/ :app:dummy2", ":app:dummy2")
-    findHyperlabelByTextContainsAndClick("Always-run Tasks")
-    requireOpenedPagePathAndHeader(" Warnings (2)/ Always-run Tasks 2 warnings/ :app:dummy2", ":app:dummy2")
+    requireWarningPanelsExistOnPage("ALWAYS_RUN_TASKS")
   }
 
   private fun BuildAttributionViewFixture.checkIssues() {
@@ -126,7 +126,7 @@ class BuildAttributionTest {
     // Move to Dummy plugin node using keyboard
     selectedNextNodeWithKeyStroke()
     requireOpenedPagePathAndHeader(
-      " Plugins with tasks determining this build's duration 2 warnings/ com.android.application ",
+      " Plugins with tasks determining this build's duration 2 warnings/ com.android.application",
       "com.android.application"
     )
     selectedNextNodeWithKeyStroke()
@@ -149,15 +149,17 @@ class BuildAttributionTest {
 
     selectedNextNodeWithKeyStroke()
     expandSelectedNodeWithKeyStroke()
-    selectedNextNodeWithKeyStroke()
+    requireOpenedPagePathAndHeader(
+      " Plugins with tasks determining this build's duration 2 warnings/ DummyPlugin 2 warnings/ Tasks determining this build's duration 2 warnings",
+      "Tasks added by DummyPlugin determining this build's duration"
+    )
+
+    findHyperlabelByTextContainsAndClick(":app:dummy1")
     requireOpenedPagePathAndHeader(
       " Plugins with tasks determining this build's duration 2 warnings/ DummyPlugin 2 warnings/ Tasks determining this build's duration 2 warnings/ :app:dummy1",
       ":app:dummy1"
     )
 
-    findHyperlabelByTextContainsAndClick("Always-run Tasks")
-    requireOpenedPagePathAndHeader(
-      " Plugins with tasks determining this build's duration 2 warnings/ DummyPlugin 2 warnings/ Warnings (2)/ Always-run Tasks 2 warnings/ :app:dummy1",
-      ":app:dummy1")
+    requireWarningPanelsExistOnPage("ALWAYS_RUN_TASKS")
   }
 }

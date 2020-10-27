@@ -47,7 +47,7 @@ class GradleMergedManifestContributorsTest {
   private val mergedManifest
     get() : MergedManifestSnapshot {
       return MergedManifestManager
-        .getMergedManifestSupplier(projectRule.androidFacet.module)
+        .getMergedManifestSupplier(projectRule.gradleModule(":app"))
         .get()
         .get(2, TimeUnit.SECONDS)
     }

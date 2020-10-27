@@ -25,9 +25,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class BufferingFolderWrapper implements IAbstractFolder {
   private final File myFile;
   private final IAbstractFolder myDelegate;

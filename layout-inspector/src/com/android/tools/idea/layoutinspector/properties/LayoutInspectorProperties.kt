@@ -42,6 +42,8 @@ class LayoutInspectorProperties(parentDisposable: Disposable) : ToolContent<Layo
 
   override fun dispose() {}
 
+  override fun getGearActions() = listOf(DimensionUnitAction)
+
   override fun supportsFiltering() = true
 
   override fun setFilter(filter: String) {

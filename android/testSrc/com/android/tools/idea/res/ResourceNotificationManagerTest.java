@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.ResourceNotificationManager.Reason;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceVersion;
@@ -29,14 +30,12 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.impl.source.tree.java.JavaFileElement;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.rename.RenameDialog;
 import com.intellij.util.ui.UIUtil;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -125,8 +124,8 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
                  configuration1.getResourceResolver()
                    .getStyle("AppTheme", false)
                    .getItem(ResourceNamespace.ANDROID, "colorBackground").getValue());
-    AndroidResourceUtil.createValueResource(getProject(), resourceDir, "color2", ResourceType.COLOR, "colors.xml",
-                                            Collections.singletonList("values"), "#fa2395");
+    IdeResourcesUtil.createValueResource(getProject(), resourceDir, "color2", ResourceType.COLOR, "colors.xml",
+                                         Collections.singletonList("values"), "#fa2395");
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
     clear(called1, calledValue1, called2, calledValue2);
     @SuppressWarnings("ConstantConditions")
@@ -181,8 +180,8 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     // Check that recreating AppResourceRepository object doesn't affect the ResourceNotificationManager
     clear(called1, calledValue1, called2, calledValue2);
     ResourceRepositoryManager.getInstance(myFacet).resetAllCaches();
-    AndroidResourceUtil.createValueResource(getProject(), resourceDir, "color4", ResourceType.COLOR, "colors.xml",
-                                            Collections.singletonList("values"), "#ff2300");
+    IdeResourcesUtil.createValueResource(getProject(), resourceDir, "color4", ResourceType.COLOR, "colors.xml",
+                                         Collections.singletonList("values"), "#ff2300");
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
 
     // Next check: Mark the lines between <TextView .... /> as comments
@@ -259,8 +258,10 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     };
     manager.addListener(listener1, myFacet, layout1.getVirtualFile(), configuration1);
     manager.addListener(listener2, myFacet, null, null);
+    // New resource renaming does not require the extension anymore.
+    String newResourceName = StudioFlags.RESOLVE_USING_REPOS.get() ? "newLayout" : "newLayout.xml";
     ApplicationManager.getApplication()
-      .invokeAndWait(() -> new RenameDialog(getProject(), layout1, null, null).performRename("newLayout.xml"));
+      .invokeAndWait(() -> new RenameDialog(getProject(), layout1, null, null).performRename(newResourceName));
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
   }
 

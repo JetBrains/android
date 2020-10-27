@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Class that produces a {@link RenderErrorModel} containing the issues found in a {@link RenderResult}.
  */
-public final class RenderErrorModelFactory {
+public class RenderErrorModelFactory {
   private RenderErrorModelFactory() {
   }
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator.nodes.ndk.includes.utils;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.util.containers.ContainerUtil;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,7 +77,7 @@ public class IncludeSet {
    * @return the list of includes in the order they were seen on the command-line.
    */
   public List<File> getIncludesInOrder() {
-    return myIncludes.stream().map(File::new).collect(Collectors.toList());
+    return ContainerUtil.map(myIncludes, File::new);
   }
 
   /**

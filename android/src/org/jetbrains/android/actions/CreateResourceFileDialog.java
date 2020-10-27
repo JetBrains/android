@@ -3,6 +3,7 @@
 package org.jetbrains.android.actions;
 
 import com.android.SdkConstants;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceConstants;
 import com.android.resources.ResourceFolderType;
@@ -10,6 +11,7 @@ import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.CommonBundle;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.ide.actions.TemplateKindCombo;
@@ -29,6 +31,8 @@ import java.util.List;
 import java.util.Set;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.DeviceConfiguratorPanel;
 import org.jetbrains.android.util.AndroidBundle;
@@ -100,14 +104,15 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
       myResourceTypeCombo.setVisible(false);
       myUpDownHint.setVisible(false);
       myResourceTypeCombo.setSelectedName(selectedTemplate);
-    } else {
+    }
+    else {
       // Select values by default if not otherwise specified
       myResourceTypeCombo.setSelectedName(ResourceConstants.FD_RES_VALUES);
       myResourceTypeCombo.registerUpDownHint(myFileNameField);
     }
 
     if (chooseFileName) {
-      filename = ResourceHelper.prependResourcePrefix(module, filename, folderType);
+      filename = IdeResourcesUtil.prependResourcePrefix(module, filename, folderType);
     }
 
     boolean validateImmediately = false;
@@ -137,9 +142,16 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
       myModuleCombo.setVisible(false);
     }
     myModuleCombo.setSelectedModule(module);
+    myModuleCombo.addItemListener(new ItemListener() {
+      @Override
+      public void itemStateChanged(ItemEvent e) {
+        CreateResourceDialogUtils
+          .updateSourceSetCombo(mySourceSetLabel, mySourceSetCombo, AndroidFacet.getInstance(getSelectedModule()), myResDirectory);
+      }
+    });
 
-    CreateResourceDialogUtils.updateSourceSetCombo(mySourceSetLabel, mySourceSetCombo,
-                                                  modulesSet.size() == 1 ? AndroidFacet.getInstance(modulesSet.iterator().next()) : null);
+    CreateResourceDialogUtils
+      .updateSourceSetCombo(mySourceSetLabel, mySourceSetCombo, AndroidFacet.getInstance(getSelectedModule()), myResDirectory);
 
     myDeviceConfiguratorPanel.updateAll();
     myDeviceConfiguratorWrapper.add(myDeviceConfiguratorPanel, BorderLayout.CENTER);
@@ -277,7 +289,7 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
       return myResDirectory;
     }
     Module module = getSelectedModule();
-    return CreateResourceDialogUtils.getResourceDirectory(getSourceProvider(), module);
+    return CreateResourceDialogUtils.getOrCreateResourceDirectory(mySourceSetCombo, module);
   }
 
   @NotNull
@@ -285,11 +297,6 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
     Module module = myModuleCombo.getSelectedModule();
     assert module != null;
     return module;
-  }
-
-  @Nullable
-  private IdeaSourceProvider getSourceProvider() {
-    return CreateResourceDialogUtils.getSourceProvider(mySourceSetCombo);
   }
 
   @NotNull
@@ -312,7 +319,7 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
   public JComponent getPreferredFocusedComponent() {
     String name = myFileNameField.getText();
     if (name.isEmpty()
-        || name.equals(ResourceHelper.prependResourcePrefix(getSelectedModule(), null, getSelectedFolderType()))
+        || name.equals(IdeResourcesUtil.prependResourcePrefix(getSelectedModule(), null, getSelectedFolderType()))
         || getNameError(name) != null) {
       return myFileNameField;
     }
@@ -327,5 +334,4 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
     }
     return myDirectoryNameTextField;
   }
-
 }

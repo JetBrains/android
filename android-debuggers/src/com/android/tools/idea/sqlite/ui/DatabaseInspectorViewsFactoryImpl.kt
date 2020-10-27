@@ -37,7 +37,8 @@ class DatabaseInspectorViewsFactoryImpl : DatabaseInspectorViewsFactory {
     tableView: TableView
   ) = SqliteEvaluatorViewImpl(project, tableView, schemaProvider)
 
-  override fun createParametersBindingView(project: Project) = ParametersBindingDialogViewImpl(project, true)
+  override fun createParametersBindingView(project: Project, sqliteStatementText: String)
+    = ParametersBindingDialogViewImpl(sqliteStatementText, project, true)
 
   override fun createDatabaseInspectorView(project: Project) = DatabaseInspectorViewImpl(project, project)
 }

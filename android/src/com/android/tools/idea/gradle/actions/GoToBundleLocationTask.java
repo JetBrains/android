@@ -276,11 +276,9 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
 
     private static void showFileOrDirectory(@NotNull File file) {
       if (file.isFile()) {
-        RevealFileAction.openFile(file);
+        file = file.getParentFile();
       }
-      else {
-        RevealFileAction.openDirectory(file.getParentFile());
-      }
+      RevealFileAction.openDirectory(file);
     }
   }
 

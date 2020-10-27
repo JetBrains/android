@@ -31,21 +31,16 @@ class TaskIssueReportGenerator(
   private val agpVersionsProvider: () -> List<GradleVersion>
 ) {
 
-  fun generateReportTitle(taskIssue: TaskIssueUiData): String {
-    return "${taskIssue.bugReportTitle}: ${taskIssue.task.pluginName} ${taskIssue.task.name}"
-  }
-
-  fun generateReportText(taskIssue: TaskIssueUiData): String {
+  fun generateReportText(taskData: TaskUiData): String {
     return """
-${generateHeaderText(taskIssue.task.pluginName)}
+${generateHeaderText(taskData.pluginName)}
 
-${taskIssue.type.uiName}
-${taskIssue.bugReportBriefDescription}
+${generateFoundIssuesText(taskData)}
 
-Plugin: ${taskIssue.task.pluginName}
-Task: ${taskIssue.task.name}
-Task type: ${taskIssue.task.taskType}
-${generateTaskExecutionText(taskIssue)}
+Plugin: ${taskData.pluginName}
+Task: ${taskData.name}
+Task type: ${taskData.taskType}
+${generateTaskExecutionText(taskData)}
 ====Build information:====
 ${generateBuildInformationText()}
 ====Platform information:====
@@ -56,8 +51,11 @@ ${generatePlatformInformationText()}
   private fun generateHeaderText(pluginName: String): String {
     val date = SimpleDateFormat("HH:mm, MMM dd, yyyy", Locale.US).format(
       Date(reportData.buildSummary.buildFinishedTimestamp))
-    return "At ${date}, Android Studio detected an issue with Gradle plugin ${pluginName}"
+    return "At ${date}, Android Studio detected the following issue(s) with Gradle plugin ${pluginName}"
   }
+
+  private fun generateFoundIssuesText(taskData: TaskUiData): String =
+    taskData.issues.joinToString(separator = "\n\n") { taskIssue -> "${taskIssue.type.uiName}\n${taskIssue.bugReportBriefDescription}" }
 
   private fun generateBuildInformationText(): String {
     return """
@@ -74,19 +72,21 @@ AGP versions: ${generateAgpVersionsString()}
     return platformInformationProvider().trim()
   }
 
-  private fun generateTaskExecutionText(taskIssue: TaskIssueUiData): String {
+  private fun generateTaskExecutionText(taskData: TaskUiData): String {
     return buildString {
-      val occurrences = findAllIssueOccurrences(taskIssue)
+      val occurrences = findOtherTaskOccurrencesWithIssues(taskData)
       val timeSum = TimeWithPercentage(
-        occurrences.sumByLong { it.task.executionTime.timeMs },
+        occurrences.sumByLong { it.executionTime.timeMs },
         reportData.buildSummary.criticalPathDuration.timeMs
       )
-      appendln("Issue detected in ${occurrences.size} module(s), total execution time was ${timeSum.commonString()}, by module:")
-      for (issue in occurrences) {
-        val line = "Execution mode: ${issue.task.executionMode}, " +
-                   "time: ${issue.task.executionTime.commonString()}, " +
-                   "determines build duration: ${issue.task.onExtendedCriticalPath}, " +
-                   "on critical path: ${issue.task.onLogicalCriticalPath}"
+      appendln(
+        "Issues for the same task were detected in ${occurrences.size} module(s), total execution time was ${timeSum.commonString()}, by module:")
+      for (task in occurrences) {
+        val line = "Execution mode: ${task.executionMode}, " +
+                   "time: ${task.executionTime.commonString()}, " +
+                   "determines build duration: ${task.onExtendedCriticalPath}, " +
+                   "on critical path: ${task.onLogicalCriticalPath}, " +
+                   task.issues.joinToString(prefix = "issues: ") { it.type.uiName }
         appendln("  $line")
       }
     }
@@ -95,24 +95,21 @@ AGP versions: ${generateAgpVersionsString()}
   private fun generateAgpVersionsString(): String =
     agpVersionsProvider().toSortedSet(Comparator.reverseOrder()).joinToString(limit = 5) { it.toString() }
 
-  private fun findAllIssueOccurrences(taskIssue: TaskIssueUiData): List<TaskIssueUiData> {
-    return reportData.issues
-      .first { it.type == taskIssue.type }
-      .issues
-      .filter { it.isSameIssue(taskIssue) }
-  }
-
-  fun generateIssueKey(taskIssue: TaskIssueUiData): String =
-    "${taskIssue.task.pluginName}_${taskIssue.task.name}_${taskIssue::class.simpleName}"
+  private fun findOtherTaskOccurrencesWithIssues(taskData: TaskUiData): List<TaskUiData> = reportData.issues.asSequence()
+    .flatMap { issuesGroup -> issuesGroup.issues.asSequence() }
+    .map { it.task }
+    .filter { it.isSameTask(taskData) }
+    .distinct()
+    .sortedByDescending { it.executionTime.timeMs }
+    .toList()
 
   private fun TimeWithPercentage.commonString(): String = "${durationString()} (${percentageString()})"
 
   /**
-   * Checks if other issue is the same possibly from different module.
+   * Checks if this task is same as other possible from different module.
    */
-  private fun TaskIssueUiData.isSameIssue(other: TaskIssueUiData): Boolean {
-    return task.name == other.task.name &&
-           task.pluginName == other.task.pluginName &&
-           this::class == other::class
+  private fun TaskUiData.isSameTask(other: TaskUiData): Boolean {
+    return this.name == other.name &&
+           this.pluginName == other.pluginName
   }
 }

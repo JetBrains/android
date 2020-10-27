@@ -30,9 +30,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidManifestMergingBuilder
   extends AndroidTargetBuilder<AndroidManifestMergingTarget.MyRootDescriptor, AndroidManifestMergingTarget> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.jps.android.AndroidManifestMergingBuilder");

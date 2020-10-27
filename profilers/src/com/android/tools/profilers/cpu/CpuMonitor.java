@@ -100,6 +100,7 @@ public class CpuMonitor extends ProfilerMonitor {
     public Legends(@NotNull CpuUsage usage, @NotNull Range range) {
       super(range);
       myCpuLegend = new SeriesLegend(usage.getCpuSeries(), CPU_USAGE_FORMATTER, range);
+      myCpuLegend.setCachingLastValue(true);
       add(myCpuLegend);
     }
 

@@ -15,44 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import static com.google.common.truth.Truth.assertThat;
-
-import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeAndroidProjectImpl;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
-import com.android.tools.idea.testing.TestGradleSyncListener;
 import com.android.tools.idea.testing.TestProjectPaths;
 
 /**
  * Tests for {@link IdeAndroidProjectImpl}.
  */
 public class IdeAndroidProjectIntegrationTest extends IdeAndroidProjectIntegrationTestCase {
-  public void testSyncFromCachedModel() throws Exception {
-    boolean originalUseSingleVariantSync = GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC;
-    try {
-      GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = false;
-
-      loadSimpleApplication();
-
-      IdeAndroidProject androidProject = getAndroidProjectInApp();
-      // Verify AndroidProject was copied.
-      assertThat(androidProject).isInstanceOf(IdeAndroidProjectImpl.class);
-
-      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
-      request.useCachedGradleModels = true;
-      TestGradleSyncListener syncListener = requestSync(request);
-      assertTrue(syncListener.isSyncSkipped());
-
-      IdeAndroidProject cached = getAndroidProjectInApp();
-      // Verify AndroidProject was deserialized.
-      assertThat(cached).isInstanceOf(IdeAndroidProjectImpl.class);
-
-      assertEquals(androidProject, cached);
-    }
-    finally {
-      GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = originalUseSingleVariantSync;
-    }
-  }
 
   public void testLevel2DependenciesWithHeadPlugin() throws Exception {
     loadSimpleApplication();

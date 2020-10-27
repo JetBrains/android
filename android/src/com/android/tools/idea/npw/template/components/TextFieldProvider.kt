@@ -17,13 +17,14 @@ package com.android.tools.idea.npw.template.components
 
 import com.android.tools.idea.observable.AbstractProperty
 import com.android.tools.idea.observable.ui.TextProperty
-import com.android.tools.idea.templates.Parameter
+import com.android.tools.idea.wizard.template.Parameter
+import com.android.tools.idea.wizard.template.StringParameter
 import javax.swing.JTextField
 
 /**
- * Provides a textfield well suited for handling [Parameter.Type.STRING] parameters.
+ * Provides a textfield well suited for handling [StringParameter].
  */
-class TextFieldProvider(parameter: Parameter) : ParameterComponentProvider<JTextField>(parameter) {
-  override fun createComponent(parameter: Parameter): JTextField = JTextField()
+class TextFieldProvider(parameter: Parameter<String>) : ParameterComponentProvider<JTextField>(parameter) {
+  override fun createComponent(parameter: Parameter<*>): JTextField = JTextField()
   override fun createProperty(component: JTextField): AbstractProperty<*>? = TextProperty(component)
 }

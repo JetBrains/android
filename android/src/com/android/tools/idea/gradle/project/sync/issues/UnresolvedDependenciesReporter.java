@@ -48,6 +48,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -61,40 +62,9 @@ import org.jetbrains.annotations.Nullable;
 public final class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssueReporter {
   private static final String UNRESOLVED_DEPENDENCIES_GROUP = "Unresolved dependencies";
 
-  @NotNull
-  public static UnresolvedDependenciesReporter getInstance() {
-    return ServiceManager.getService(UnresolvedDependenciesReporter.class);
-  }
-
   @Override
   int getSupportedIssueType() {
     return TYPE_UNRESOLVED_DEPENDENCY;
-  }
-
-  @Override
-  @NotNull
-  protected OpenFileHyperlink createModuleLink(@NotNull Project project,
-                                               @NotNull Module module,
-                                               @NotNull ProjectBuildModel projectBuildModel,
-                                               @NotNull List<SyncIssue> syncIssues,
-                                               @NotNull VirtualFile buildFile) {
-    assert !syncIssues.isEmpty();
-    // Get the dependency
-    String dependency = syncIssues.get(0).getData();
-    GradleBuildModel buildModel = projectBuildModel.getModuleBuildModel(buildFile);
-    ArtifactDependencyModel dependencyModel =
-      buildModel.dependencies().artifacts().stream().filter(artifact -> artifact.compactNotation().equals(dependency)).findFirst()
-                .orElse(null);
-    PsiElement element = dependencyModel == null ? null : dependencyModel.getPsiElement();
-    int lineNumber = getLineNumberForElement(project, element);
-
-    return new OpenFileHyperlink(buildFile.getPath(), module.getName(), lineNumber, -1);
-  }
-
-  @NotNull
-  @Override
-  protected Object getDeduplicationKey(@NotNull SyncIssue issue) {
-    return issue;
   }
 
   @NotNull
@@ -132,7 +102,7 @@ public final class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyn
     }
     else {
       GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(dependency);
-      List<VirtualFile> buildFiles = affectedModules.stream().map(m -> buildFileMap.get(m)).collect(Collectors.toList());
+      List<VirtualFile> buildFiles = ContainerUtil.map(affectedModules, m -> buildFileMap.get(m));
       Module module = affectedModules.get(0);
 
       if (dependency.startsWith("com.android.support") || dependency.startsWith("androidx.")
@@ -145,8 +115,7 @@ public final class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyn
         }
       }
 
-      //TODO(b/130224064): PSD is empty for projects with KTS at this moment. Need to remove kts check when fixed
-      if (IdeInfo.getInstance().isAndroidStudio() && buildFileMap.values().stream().noneMatch(GradleUtil::isKtsFile)) {
+      if (IdeInfo.getInstance().isAndroidStudio()) {
         if (coordinate != null) {
           quickFixes.add(new ShowDependencyInProjectStructureHyperlink(module, coordinate));
         }
@@ -184,7 +153,7 @@ public final class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyn
       return;
     }
     VirtualFile buildFile = getGradleBuildFile(module);
-    List<SyncIssue> syncIssues = unresolvedDependencies.stream().map(s -> new SyncIssue() {
+    List<SyncIssue> syncIssues = ContainerUtil.map(unresolvedDependencies, s -> new SyncIssue() {
       @Override
       public int getSeverity() {
         return SEVERITY_ERROR;
@@ -212,7 +181,7 @@ public final class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyn
       public List<String> getMultiLineMessage() {
         return null;
       }
-    }).collect(Collectors.toList());
+    });
 
     SyncIssueUsageReporter syncIssueUsageReporter = SyncIssueUsageReporter.Companion.getInstance(module.getProject());
     reportAll(syncIssues, syncIssues.stream().collect(Collectors.toMap(Function.identity(), k -> module)),

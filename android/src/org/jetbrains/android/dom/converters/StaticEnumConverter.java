@@ -26,9 +26,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * @author coyote
- */
 public class StaticEnumConverter extends ResolvingConverter<String> {
   private final Set<String> myValues = new HashSet<>();
 

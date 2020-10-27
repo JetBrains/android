@@ -41,6 +41,7 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.castSafelyTo
 import icons.StudioIcons
+import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
@@ -56,6 +57,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.psiUtil.getNextSiblingIgnoringWhitespace
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.types.typeUtil.isUnit
 
@@ -144,7 +146,8 @@ private class ComposeLookupElement(original: LookupElement) : LookupElementDecor
     val descriptor = getFunctionDescriptor()
     return when {
       !COMPOSE_COMPLETION_INSERT_HANDLER.get() -> super.handleInsert(context)
-      descriptor == null ->  super.handleInsert(context)
+      !AndroidEditorSettings.getInstance().globalState.isComposeInsertHandlerEnabled -> super.handleInsert(context)
+      descriptor == null -> super.handleInsert(context)
       else -> AndroidComposeInsertHandler(descriptor).handleInsert(context, this)
     }
   }
@@ -235,9 +238,20 @@ class AndroidComposeCompletionWeigher : CompletionWeigher() {
   private fun LookupElement.isForNamedArgument() = lookupString.endsWith(" =")
 }
 
+private fun InsertionContext.getNextElementIgnoringWhitespace(): PsiElement? {
+  val elementAtCaret = file.findElementAt(editor.caretModel.offset) ?: return null
+  return elementAtCaret.getNextSiblingIgnoringWhitespace(true) ?: return null
+}
+
+private fun InsertionContext.isNextElementOpenCurlyBrace() = getNextElementIgnoringWhitespace()?.text?.startsWith("{") == true
+
+private fun InsertionContext.isNextElementOpenParenthesis() = getNextElementIgnoringWhitespace()?.text?.startsWith("(") == true
+
 class AndroidComposeInsertHandler(private val descriptor: FunctionDescriptor) : KotlinCallableInsertHandler(CallType.DEFAULT) {
   override fun handleInsert(context: InsertionContext, item: LookupElement) = with(context) {
     super.handleInsert(context, item)
+
+    if (isNextElementOpenParenthesis()) return
 
     // All Kotlin insertion handlers do this, possibly to post-process adding a new import in the call to super above.
     val psiDocumentManager = PsiDocumentManager.getInstance(project)
@@ -274,7 +288,7 @@ class AndroidComposeInsertHandler(private val descriptor: FunctionDescriptor) : 
         }
       }
 
-      if (insertLambda) {
+      if (insertLambda && !isNextElementOpenCurlyBrace()) {
         addTextSegment(" {\n")
         addEndVariable()
         addTextSegment("\n}")
@@ -297,10 +311,11 @@ class AndroidComposeInsertHandler(private val descriptor: FunctionDescriptor) : 
 
 class AndroidComposeSuppressor : InspectionSuppressor {
   override fun isSuppressedFor(element: PsiElement, toolId: String): Boolean {
-    return toolId == "FunctionName" &&
-      element.language == KotlinLanguage.INSTANCE &&
-      element.node.elementType == KtTokens.IDENTIFIER &&
-      element.parent.isComposableFunction()
+    return StudioFlags.COMPOSE_EDITOR_SUPPORT.get() &&
+           toolId == "FunctionName" &&
+           element.language == KotlinLanguage.INSTANCE &&
+           element.node.elementType == KtTokens.IDENTIFIER &&
+           element.parent.isComposableFunction()
   }
 
   override fun getSuppressActions(element: PsiElement?, toolId: String): Array<SuppressQuickFix> {

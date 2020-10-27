@@ -37,7 +37,7 @@ import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
 import org.jetbrains.android.dom.resources.StyleItem;
 import org.jetbrains.android.dom.structure.StructureUtils;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,7 +83,7 @@ public class ResourceStructureViewBuilder extends TreeBasedStructureViewBuilder 
         public void visitDomElement(DomElement element) {}
 
         public void visitResourceElement(ResourceElement element) {
-          final ResourceType type = AndroidResourceUtil.getResourceTypeForResourceTag(element.getXmlTag());
+          final ResourceType type = IdeResourcesUtil.getResourceTypeForResourceTag(element.getXmlTag());
           final String name = element.getName().getValue();
           final XmlElement xmlElement = element.getXmlElement();
           if (name != null && type != null && xmlElement != null) {

@@ -30,6 +30,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.psi.codeStyle.autodetect.FormatterBasedLineIndentInfoBuilder;
 import com.intellij.psi.codeStyle.autodetect.LineIndentInfo;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.formatter.AndroidXmlFormattingModelBuilder;
 
 import java.io.IOException;
@@ -109,13 +110,13 @@ public class AndroidXmlIndentAutoDetectionTest extends AndroidTestCase {
   private static void assertSameIndents(List<LineIndentInfo> infos1,
                                         List<LineIndentInfo> infos2,
                                         List<Integer> expectedIndentSpaces) {
-    List<Integer> indentSizes1 = infos1.stream().map(LineIndentInfo::getIndentSize).collect(Collectors.toList());
-    List<Boolean> isNormalIndent1 = infos1.stream().map(LineIndentInfo::isLineWithNormalIndent).collect(Collectors.toList());
-    List<Boolean> isLineWithTabs1 = infos1.stream().map(LineIndentInfo::isLineWithTabs).collect(Collectors.toList());
+    List<Integer> indentSizes1 = ContainerUtil.map(infos1, LineIndentInfo::getIndentSize);
+    List<Boolean> isNormalIndent1 = ContainerUtil.map(infos1, LineIndentInfo::isLineWithNormalIndent);
+    List<Boolean> isLineWithTabs1 = ContainerUtil.map(infos1, LineIndentInfo::isLineWithTabs);
 
-    List<Integer> indentSizes2 = infos2.stream().map(LineIndentInfo::getIndentSize).collect(Collectors.toList());
-    List<Boolean> isNormalIndent2 = infos2.stream().map(LineIndentInfo::isLineWithNormalIndent).collect(Collectors.toList());
-    List<Boolean> isLineWithTabs2 = infos2.stream().map(LineIndentInfo::isLineWithTabs).collect(Collectors.toList());
+    List<Integer> indentSizes2 = ContainerUtil.map(infos2, LineIndentInfo::getIndentSize);
+    List<Boolean> isNormalIndent2 = ContainerUtil.map(infos2, LineIndentInfo::isLineWithNormalIndent);
+    List<Boolean> isLineWithTabs2 = ContainerUtil.map(infos2, LineIndentInfo::isLineWithTabs);
 
     assertThat(indentSizes1).isEqualTo(indentSizes2);
     assertThat(isNormalIndent1).isEqualTo(isNormalIndent2);

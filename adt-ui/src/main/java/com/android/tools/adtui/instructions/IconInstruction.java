@@ -61,6 +61,7 @@ public final class IconInstruction extends RenderInstruction {
       g2d.fillRoundRect(bounds.x, bounds.y, mySize.width, mySize.height, 5, 5);
     }
 
-    myIcon.paintIcon(c, g2d, bounds.x + myPadding, bounds.y + myPadding);
+    int iconY = bounds.y + (bounds.height - myIcon.getIconHeight()) / 2;
+    myIcon.paintIcon(c, g2d, bounds.x + myPadding, iconY);
   }
 }

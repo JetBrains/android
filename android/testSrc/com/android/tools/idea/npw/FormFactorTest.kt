@@ -20,8 +20,8 @@ import com.android.sdklib.AndroidVersion.VersionCodes.LOLLIPOP
 import com.android.sdklib.repository.targets.SystemImage
 import org.junit.Test
 
-import com.android.tools.idea.npw.FormFactor.AUTOMOTIVE
-import com.android.tools.idea.npw.FormFactor.MOBILE
+import com.android.tools.idea.device.FormFactor.AUTOMOTIVE
+import com.android.tools.idea.device.FormFactor.MOBILE
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import java.awt.geom.Arc2D.PIE

@@ -24,6 +24,7 @@ import com.android.tools.idea.assistant.StatefulButtonNotifier
 import com.android.tools.idea.assistant.datamodel.ActionData
 import com.android.tools.idea.assistant.view.StatefulButtonMessage
 import com.android.tools.idea.assistant.view.UIUtils
+import com.android.tools.idea.whatsnew.assistant.WhatsNewMetricsTracker
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -42,6 +43,7 @@ class BuildAnalyzerShowActionStateManager : AssistActionStateManager() {
 
   override fun init(project: Project, actionData: ActionData) {
     projectToConnection.computeIfAbsent(project, this::connectToNewProject)
+    WhatsNewMetricsTracker.getInstance().actionButtonCreated(project, BuildAnalyzerShowAction.ACTION_KEY)
   }
 
   private fun connectToNewProject(newProject: Project): MessageBusConnection {
@@ -50,6 +52,7 @@ class BuildAnalyzerShowActionStateManager : AssistActionStateManager() {
     connection.subscribe(BuildAttributionStateReporter.FEATURE_STATE_TOPIC, object : BuildAttributionStateReporter.Notifier {
       override fun stateUpdated(newState: State) {
         requestButtonRefresh(newProject)
+        WhatsNewMetricsTracker.getInstance().stateUpdateActionButton(newProject, BuildAnalyzerShowAction.ACTION_KEY)
       }
     })
     return connection

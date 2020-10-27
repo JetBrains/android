@@ -15,20 +15,27 @@
  */
 package com.android.tools.idea.uibuilder.scene.target;
 
+import static com.android.SdkConstants.VALUE_MATCH_PARENT;
+import static com.android.SdkConstants.VALUE_N_DP;
+import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
+
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.scene.draw.DrawHorizontalLine;
 import com.android.tools.idea.uibuilder.scene.draw.DrawResize;
 import com.android.tools.idea.uibuilder.scene.draw.DrawVerticalLine;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Dimension;
 import java.util.List;
-
-import static com.android.SdkConstants.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class ResizeWithSnapBaseTarget extends ResizeBaseTarget {
   /**
@@ -38,7 +45,30 @@ public abstract class ResizeWithSnapBaseTarget extends ResizeBaseTarget {
   private static final int MAX_MATCH_DISTANCE = 10;
   private static final int CANNOT_SNAP = Integer.MAX_VALUE;
 
-  protected Dimension myWrapSize;
+  @NotNull
+  protected Future<Dimension> myWrapSizeFuture = CompletableFuture.completedFuture(null);
+
+  /**
+   * Returns the value of {@link #myWrapSizeFuture} if done or null otherwise.
+   * This method will wait 250 milliseconds for the size to be available and will return null if the size could not
+   * be retrieved on time.
+   */
+  @Nullable
+  private Dimension getWrapSize() {
+    try {
+      // This is a workaround for measuring components using Layoutlib on the UI thread. If we time out, returning null
+      // means this component will not be "snappable"
+      return myWrapSizeFuture.get(250, TimeUnit.MILLISECONDS);
+    }
+    catch (InterruptedException e) {
+    }
+    catch (ExecutionException e) {
+    }
+    catch (TimeoutException e) {
+    }
+
+    return null;
+  }
 
   /////////////////////////////////////////////////////////////////////////////
   //region Constructor
@@ -58,8 +88,9 @@ public abstract class ResizeWithSnapBaseTarget extends ResizeBaseTarget {
     if (isHittable()) {
       DrawResize.add(list, sceneContext, myLeft, myTop, mIsOver ? DrawResize.OVER : DrawResize.NORMAL);
 
-      if (myWrapSize != null) {
-        renderWrapSizeSnapLines(list, sceneContext, myWrapSize.width, myWrapSize.height);
+      Dimension wrapSize = getWrapSize();
+      if (wrapSize != null) {
+        renderWrapSizeSnapLines(list, sceneContext, wrapSize.width, wrapSize.height);
       }
     }
   }
@@ -107,7 +138,7 @@ public abstract class ResizeWithSnapBaseTarget extends ResizeBaseTarget {
 
   @Override
   public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
-    myWrapSize = myComponent.getScene().measureWrapSize(myComponent);
+    myWrapSizeFuture = myComponent.getScene().measureWrapSize(myComponent);
     super.mouseDown(x, y);
   }
 
@@ -123,7 +154,7 @@ public abstract class ResizeWithSnapBaseTarget extends ResizeBaseTarget {
     x = snapX(x);
     y = snapY(y);
     super.mouseRelease(x, y, closestTargets);
-    myWrapSize = null;
+    myWrapSizeFuture = CompletableFuture.completedFuture(null);
   }
 
   @AndroidDpCoordinate
@@ -169,7 +200,8 @@ public abstract class ResizeWithSnapBaseTarget extends ResizeBaseTarget {
     if (parent != null && width == parent.getDrawWidth() && getNewXPos(x) == 0) {
       return VALUE_MATCH_PARENT;
     }
-    if (myWrapSize != null && width == myWrapSize.width) {
+    Dimension wrapSize = getWrapSize();
+    if (wrapSize != null && width == wrapSize.width) {
       return VALUE_WRAP_CONTENT;
     }
     return String.format(VALUE_N_DP, width);
@@ -182,7 +214,8 @@ public abstract class ResizeWithSnapBaseTarget extends ResizeBaseTarget {
     if (parent != null && height == parent.getDrawHeight() && getNewYPos(y) == 0) {
       return VALUE_MATCH_PARENT;
     }
-    if (myWrapSize != null && height == myWrapSize.height) {
+    Dimension wrapSize = getWrapSize();
+    if (wrapSize != null && height == wrapSize.height) {
       return VALUE_WRAP_CONTENT;
     }
     return String.format(VALUE_N_DP, height);
@@ -248,10 +281,11 @@ public abstract class ResizeWithSnapBaseTarget extends ResizeBaseTarget {
 
   @AndroidDpCoordinate
   private int snapToWrapWidth(@AndroidDpCoordinate int x) {
-    if (myWrapSize == null) {
+    Dimension wrapSize = getWrapSize();
+    if (wrapSize == null) {
       return CANNOT_SNAP;
     }
-    int width = myWrapSize.width;
+    int width = wrapSize.width;
     switch (myType) {
       case LEFT_TOP:
       case LEFT:
@@ -268,10 +302,11 @@ public abstract class ResizeWithSnapBaseTarget extends ResizeBaseTarget {
 
   @AndroidDpCoordinate
   private int snapToWrapHeight(@AndroidDpCoordinate int y) {
-    if (myWrapSize == null) {
+    Dimension wrapSize = getWrapSize();
+    if (wrapSize == null) {
       return CANNOT_SNAP;
     }
-    int height = myWrapSize.height;
+    int height = wrapSize.height;
     switch (myType) {
       case LEFT_TOP:
       case TOP:

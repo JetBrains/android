@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.customview
 
-import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.getSplitEditorFixture
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.UseBleak
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.runWithBleak
+import com.android.tools.idea.bleak.UseBleak
 import com.android.tools.idea.tests.gui.uibuilder.RenderTaskLeakCheckRule
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.Assert.assertFalse
@@ -51,7 +49,7 @@ class CustomViewPreviewTest {
   @RunIn(TestGroup.PERFORMANCE)
   fun testOpenBuildAndClosePreviewWithBleak() {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
-    runWithBleak { openBuildAndClosePreview(fixture) }
+    guiTest.runWithBleak { openBuildAndClosePreview(fixture) }
   }
 
   @Throws(Exception::class)
@@ -65,7 +63,9 @@ class CustomViewPreviewTest {
 
     assertTrue(multiRepresentationFixture.hasRenderErrors())
 
-    fixture.invokeMenuPath("Build", "Make Project").waitForBuildToFinish(BuildMode.ASSEMBLE)
+    fixture.invokeAndWaitForBuildAction("Build", "Make Project")
+
+    multiRepresentationFixture.waitForRenderToFinish()
     guiTest.robot().waitForIdle()
 
     assertFalse(multiRepresentationFixture.designSurface.issuePanelFixture.fullIssueText,

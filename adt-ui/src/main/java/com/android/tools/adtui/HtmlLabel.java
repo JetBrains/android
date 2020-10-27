@@ -16,7 +16,10 @@
 package com.android.tools.adtui;
 
 import com.intellij.ide.browsers.BrowserLauncher;
+import com.intellij.ui.ColorUtil;
 import com.intellij.ui.HyperlinkAdapter;
+import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -65,12 +68,17 @@ public class HtmlLabel extends JEditorPane {
   }
 
   private static void setUpAsHtmlLabel(@NotNull JEditorPane editorPane, @NotNull Font font, @NotNull String color) {
-    editorPane.setContentType("text/html");
+    editorPane.setEditorKit(UIUtil.getHTMLEditorKit());
     editorPane.setEditable(false);
     editorPane.setOpaque(false);
+    editorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+
     String bodyRule = "body { font-family: " + font.getFamily() + "; " + "font-size: " + font.getSize() + "pt; " + color + " } " +
                       "ol { padding-left: 0px; margin-left: 35px; margin-top: 0px; } " +
                       "ol li { margin-left: 0px; padding-left: 0px; list-style-type: decimal; }";
     ((HTMLDocument)editorPane.getDocument()).getStyleSheet().addRule(bodyRule);
+
+    String linkColor = "#" + ColorUtil.toHex(JBUI.CurrentTheme.Link.linkColor());
+    ((HTMLDocument)editorPane.getDocument()).getStyleSheet().addRule("a { color: " + linkColor + "; text-decoration: none;}");
   }
 }

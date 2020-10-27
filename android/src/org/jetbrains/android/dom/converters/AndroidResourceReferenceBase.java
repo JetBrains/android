@@ -25,9 +25,6 @@ import org.jetbrains.android.resourceManagers.ValueResourceInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlElement> {
   protected final AndroidFacet myFacet;
   protected final ResourceValue myResourceValue;

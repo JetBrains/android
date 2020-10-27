@@ -105,7 +105,7 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
    */
   @NotNull
   public NlConfigurationToolbarFixture<ParentFixture> chooseDevice(@NotNull String label) {
-    selectDropDownActionButtonItem("Device for Preview (D)", new DeviceNamePredicate(label));
+    selectDropDownActionButtonItem("Device for Preview", new DeviceNamePredicate(label));
     return this;
   }
 

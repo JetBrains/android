@@ -26,10 +26,10 @@ import com.android.tools.adtui.ActivityComponent;
 import com.android.tools.adtui.EventComponent;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
@@ -53,7 +53,7 @@ public class EventMonitorViewTest {
 
   @Before
   public void setUp() {
-    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), new FakeIdeProfilerServices(), myTimer);
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), new FakeIdeProfilerServices(), myTimer);
     myTransportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);

@@ -15,9 +15,6 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidInspectionsTest extends AndroidTestCase {
   @NonNls private static final String BASE_PATH = "/inspections/";
   @NonNls private static final String BASE_PATH_GLOBAL = BASE_PATH + "global/";

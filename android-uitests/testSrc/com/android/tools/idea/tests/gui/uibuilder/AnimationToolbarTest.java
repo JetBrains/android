@@ -43,14 +43,14 @@ public class AnimationToolbarTest {
     IdeFrameFixture frame = guiTest.ideFrame();
 
     EditorFixture editor = frame.getEditor().open("app/src/main/res/drawable/animated_vector.xml", EditorFixture.Tab.DESIGN);
-    DesignerEditorPanel panel = editor.getLayoutEditor(false).waitForRenderToFinish().target();
+    DesignerEditorPanel panel = editor.getLayoutEditor().waitForRenderToFinish().target();
     AnimationToolbar toolbar = frame.robot().finder().findByType(panel, AnimationToolbar.class);
     assertThat(toolbar).isNotNull();
 
     // Other drawables should not display the toolbar.
     frame.getEditor().open("app/src/main/res/drawable/vector.xml", EditorFixture.Tab.DESIGN);
 
-    panel = editor.getLayoutEditor(false).waitForRenderToFinish().target();
+    panel = editor.getLayoutEditor().waitForRenderToFinish().target();
     try {
       frame.robot().finder().findByType(panel, AnimationToolbar.class);
       fail("We shouldn't find an AnimationToolbar when opening vector files.");

@@ -15,8 +15,14 @@
  */
 package com.android.tools.idea.lang.aidl.highlight;
 
-import com.android.tools.idea.lang.aidl.psi.*;
-import com.intellij.lang.annotation.*;
+import com.android.tools.idea.lang.aidl.psi.AidlClassOrInterfaceType;
+import com.android.tools.idea.lang.aidl.psi.AidlDeclarationName;
+import com.android.tools.idea.lang.aidl.psi.AidlInterfaceDeclaration;
+import com.android.tools.idea.lang.aidl.psi.AidlMethodDeclaration;
+import com.android.tools.idea.lang.aidl.psi.AidlParcelableDeclaration;
+import com.intellij.lang.annotation.AnnotationHolder;
+import com.intellij.lang.annotation.Annotator;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -28,18 +34,22 @@ public class AidlClassNameAnnotator implements Annotator {
 
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-    AnnotationBuilder builder = holder.newSilentAnnotation(HighlightSeverity.INFORMATION);
-
     if (element instanceof AidlClassOrInterfaceType) {
-      builder = builder.textAttributes(DefaultLanguageHighlighterColors.CLASS_REFERENCE);
+      holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
+        .textAttributes(DefaultLanguageHighlighterColors.CLASS_REFERENCE)
+        .create();
     }
     else if (element instanceof AidlDeclarationName) {
       PsiElement component = element.getParent();
       if (component instanceof AidlInterfaceDeclaration || component instanceof AidlParcelableDeclaration) {
-        builder = builder.textAttributes(DefaultLanguageHighlighterColors.CLASS_NAME);
+        holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
+          .textAttributes(DefaultLanguageHighlighterColors.CLASS_NAME)
+          .create();
       }
       else if (element instanceof AidlMethodDeclaration) {
-        builder = builder.textAttributes(DefaultLanguageHighlighterColors.FUNCTION_DECLARATION);
+        holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
+          .textAttributes(DefaultLanguageHighlighterColors.FUNCTION_DECLARATION)
+          .create();
       }
     }
     builder.create();

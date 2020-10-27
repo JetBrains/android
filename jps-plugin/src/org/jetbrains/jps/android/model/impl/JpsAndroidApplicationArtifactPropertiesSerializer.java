@@ -10,9 +10,6 @@ import org.jetbrains.jps.model.serialization.artifact.JpsArtifactPropertiesSeria
 
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class JpsAndroidApplicationArtifactPropertiesSerializer
   extends JpsArtifactPropertiesSerializer<JpsAndroidApplicationArtifactProperties> {
 

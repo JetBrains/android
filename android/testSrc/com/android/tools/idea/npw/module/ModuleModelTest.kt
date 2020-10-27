@@ -19,11 +19,9 @@ import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.npw.java.NewLibraryModuleModel
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
-import com.android.tools.idea.templates.Template
-import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTestCase.invokeGradle
-import com.intellij.openapi.module.ModuleManager
+import com.android.tools.idea.testing.findModule
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import junit.framework.TestCase
@@ -50,7 +48,7 @@ class ModuleModelTest : AndroidGradleTestCase() {
 
     multiTemplateRenderer.requestRender(libraryModuleModel.renderer)
 
-    val module = ModuleManager.getInstance(myFixture.project).findModuleByName("lib")
+    val module = myFixture.project.findModule("lib")
     val modulesToCompile = arrayOf(module)
 
     val invocationResult = invokeGradle(project) {

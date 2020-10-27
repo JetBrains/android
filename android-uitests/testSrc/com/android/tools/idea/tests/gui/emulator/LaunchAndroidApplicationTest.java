@@ -79,12 +79,12 @@ public class LaunchAndroidApplicationTest {
       .getConfigureFormFactorStep()
       .enterApplicationName("TeapotTest");
 
-    samplesWizard.clickFinish();
-
-    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
+    IdeFrameFixture ideFrameFixture = IdeFrameFixture.actAndWaitForGradleProjectSyncToFinish(() -> {
+      samplesWizard.clickFinish();
+      return guiTest.ideFrame();
+    });
 
     ideFrameFixture
-      .waitForGradleProjectSyncToFinish()
       .getEditor()
       .open("classic-teapot/src/main/cpp/TeapotNativeActivity.cpp")
       .moveBetween("g_engine.Draw", "Frame()")

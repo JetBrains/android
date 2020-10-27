@@ -28,10 +28,8 @@ import com.android.tools.adtui.common.SwingLength
 
 inline class Scale(val value: Double) {
   operator fun times(length: AndroidLength): SwingLength = SwingLength(value.toFloat() * length.value)
-  override fun toString() = value.toString()
 }
 
 operator fun AndroidLength.times(rhs: Scale): SwingLength = rhs * this
 operator fun SwingLength.div(rhs: Scale): AndroidLength = AndroidLength(rhs.value.toFloat() / value)
 
-fun String.toScale() = Scale(this.toDouble())

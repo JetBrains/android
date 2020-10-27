@@ -16,16 +16,27 @@
 package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
-import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.concurrency.cancelOnDispose
+import com.android.tools.idea.concurrency.catching
+import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
+import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
+import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
+import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteStatementType
+import com.android.tools.idea.sqlite.model.createSqliteStatement
+import com.android.tools.idea.sqlite.repository.DatabaseRepository
+import com.android.tools.idea.sqlite.sqlLanguage.hasParsingError
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
-import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.Futures.immediateFailedFuture
 import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.SettableFuture
+import com.google.wireless.android.sdk.stats.AppInspectionEvent
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import java.util.concurrent.Executor
 
 /**
  * Implementation of the application logic related to running queries and updates on a sqlite database.
@@ -34,28 +45,74 @@ import com.intellij.openapi.util.Disposer
  */
 @UiThread
 class SqliteEvaluatorController(
+  private val project: Project,
+  private val model: DatabaseInspectorModel,
+  private val databaseRepository: DatabaseRepository,
   private val view: SqliteEvaluatorView,
-  private val edtExecutor: FutureCallbackExecutor
+  private val showSuccessfulExecutionNotification: (String) -> Unit,
+  override val closeTabInvoked: () -> Unit,
+  private val edtExecutor: Executor,
+  private val taskExecutor: Executor
 ) : DatabaseInspectorController.TabController {
   private var currentTableController: TableController? = null
   private val sqliteEvaluatorViewListener: SqliteEvaluatorView.Listener = SqliteEvaluatorViewListenerImpl()
   private val listeners = mutableListOf<Listener>()
+  private val openDatabases = mutableListOf<SqliteDatabaseId>()
+  // database currently active in combobox + current text in textfield
+  private var currentEvaluationParams: EvaluationParams = EvaluationParams(null, "")
 
-  fun setUp() {
-    view.addListener(sqliteEvaluatorViewListener)
+  // database + query that were used for last query/exec
+  private var lastUsedEvaluationParams : EvaluationParams? = null
+
+  private val modelListener = object : DatabaseInspectorModel.Listener {
+    override fun onDatabasesChanged(openDatabaseIds: List<SqliteDatabaseId>, closeDatabaseIds: List<SqliteDatabaseId>) {
+      openDatabases.clear()
+      openDatabases.addAll(openDatabaseIds.sortedBy { it.name })
+
+      if (currentEvaluationParams.databaseId !in openDatabaseIds) {
+        currentEvaluationParams =  currentEvaluationParams.copy(databaseId = openDatabases.firstOrNull())
+      }
+      if (lastUsedEvaluationParams?.databaseId !in openDatabaseIds) {
+        resetTable()
+      }
+
+      view.setDatabases(ArrayList(openDatabases), currentEvaluationParams.databaseId)
+      updateRunSqliteStatementButtonState()
+    }
+
+    override fun onSchemaChanged(databaseId: SqliteDatabaseId, oldSchema: SqliteSchema, newSchema: SqliteSchema) {
+      view.schemaChanged(databaseId)
+    }
   }
 
-  fun removeDatabase(index: Int) {
-    view.removeDatabase(index)
+  fun setUp(evaluationParams: EvaluationParams? = null) {
+    view.addListener(sqliteEvaluatorViewListener)
+    model.addListener(modelListener)
+    if (evaluationParams != null) {
+      val statement = createSqliteStatement(project, evaluationParams.statementText)
+      // we don't want to automatically run a statement that can modify a database
+      if (evaluationParams.databaseId in openDatabases && statement.isQueryStatement) {
+        showAndExecuteSqlStatement(evaluationParams.databaseId!!, statement)
+      }
+      else {
+        currentEvaluationParams = currentEvaluationParams.copy(statementText = evaluationParams.statementText)
+        view.showSqliteStatement(currentEvaluationParams.statementText)
+      }
+    }
   }
 
   override fun refreshData(): ListenableFuture<Unit> {
     return currentTableController?.refreshData() ?: Futures.immediateFuture(Unit)
   }
 
+  override fun notifyDataMightBeStale() {
+    currentTableController?.notifyDataMightBeStale()
+  }
+
   override fun dispose() {
     view.removeListener(sqliteEvaluatorViewListener)
     listeners.clear()
+    model.removeListener(modelListener)
   }
 
   fun addListener(listener: Listener) {
@@ -70,59 +127,113 @@ class SqliteEvaluatorController(
     listeners.clear()
   }
 
-  fun addDatabase(database: SqliteDatabase, index: Int) {
-    view.addDatabase(database, index)
+  fun showAndExecuteSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
+    if (databaseId !in openDatabases) {
+      return immediateFailedFuture(IllegalStateException("Can't evaluate SQLite statement, unknown database: '${databaseId.path}'"))
+    }
+
+    currentEvaluationParams = EvaluationParams(databaseId, sqliteStatement.sqliteStatementWithInlineParameters)
+    view.showSqliteStatement(sqliteStatement.sqliteStatementWithInlineParameters)
+    view.setDatabases(ArrayList(openDatabases), currentEvaluationParams.databaseId)
+    return executeSqlStatement(databaseId, sqliteStatement)
   }
 
-  fun evaluateSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
-    view.showSqliteStatement(sqliteStatement.assignValuesToParameters())
-    view.selectDatabase(database)
-    return execute(database, sqliteStatement)
+  fun saveEvaluationParams(): EvaluationParams {
+    // prefer newly entered data over last evaluated
+    val databaseId = lastUsedEvaluationParams?.takeIf { currentEvaluationParams.statementText == it.statementText }?.databaseId
+    return EvaluationParams(databaseId, currentEvaluationParams.statementText)
   }
 
-  private fun execute(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
-    val settableFuture = SettableFuture.create<Unit>()
-    val databaseConnection = database.databaseConnection
-    edtExecutor.addCallback(databaseConnection.execute(sqliteStatement), object : FutureCallback<SqliteResultSet?> {
-      override fun onSuccess(resultSet: SqliteResultSet?) {
-        if (resultSet != null) {
-          // query statement
-          currentTableController = TableController(
-            view = view.tableView,
-            table = null,
-            databaseConnection = databaseConnection,
-            sqliteStatement = sqliteStatement,
-            edtExecutor = edtExecutor
-          )
-          Disposer.register(this@SqliteEvaluatorController, currentTableController!!)
-          currentTableController!!.setUp()
-        } else {
-          // update statement
-          view.tableView.resetView()
-          view.tableView.setEditable(false)
-          listeners.forEach { it.onSchemaUpdated(database) }
-        }
+  private fun executeSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
+    resetTable()
 
-        settableFuture.set(Unit)
+    lastUsedEvaluationParams = EvaluationParams(databaseId, sqliteStatement.sqliteStatementWithInlineParameters)
+    return if (sqliteStatement.isQueryStatement) {
+      runQuery(databaseId, sqliteStatement)
+    }
+    else {
+      runUpdate(databaseId, sqliteStatement)
+    }
+  }
+
+  private fun resetTable() {
+    if (lastUsedEvaluationParams != null) {
+      lastUsedEvaluationParams = null
+      view.tableView.resetView()
+    }
+    if (currentTableController != null) {
+      Disposer.dispose(currentTableController!!)
+      currentTableController = null
+    }
+  }
+
+  private fun updateRunSqliteStatementButtonState() {
+    view.setRunSqliteStatementEnabled(currentEvaluationParams.databaseId != null && !hasParsingError(project, currentEvaluationParams.statementText))
+  }
+
+  private fun runQuery(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
+    currentTableController = TableController(
+      closeTabInvoked = closeTabInvoked,
+      project = project,
+      view = view.tableView,
+      tableSupplier = { null },
+      databaseId = databaseId,
+      databaseRepository = databaseRepository,
+      sqliteStatement = sqliteStatement,
+      edtExecutor = edtExecutor,
+      taskExecutor = taskExecutor
+    )
+    Disposer.register(this@SqliteEvaluatorController, currentTableController!!)
+    return currentTableController!!.setUp()
+      .transform(edtExecutor) {
+        showSuccessfulExecutionNotification(DatabaseInspectorBundle.message("statement.run.successfully"))
+      }.catching(edtExecutor, Throwable::class.java) {
+        view.tableView.setEmptyText(DatabaseInspectorBundle.message("error.running.statement"))
       }
+  }
 
-      override fun onFailure(t: Throwable) {
-        view.tableView.reportError("Error executing SQLite statement", t)
-        settableFuture.setException(t)
-      }
-    })
-
-    return settableFuture
+  private fun runUpdate(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
+    return databaseRepository.executeStatement(databaseId, sqliteStatement)
+      .transform(edtExecutor) {
+        view.tableView.setEmptyText(DatabaseInspectorBundle.message("statement.run.successfully"))
+        showSuccessfulExecutionNotification(DatabaseInspectorBundle.message("statement.run.successfully"))
+        listeners.forEach { it.onSqliteStatementExecuted(databaseId) }
+      }.catching(edtExecutor, Throwable::class.java) { throwable ->
+        view.tableView.setEmptyText(DatabaseInspectorBundle.message("error.running.statement"))
+        view.tableView.reportError(DatabaseInspectorBundle.message("error.running.statement"), throwable)
+      }.cancelOnDispose(this)
   }
 
   private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorView.Listener {
-    override fun evaluateSqlActionInvoked(database: SqliteDatabase, sqliteStatement: String) {
-      // TODO(b/143341562) handle SQLite statements with templates for ad-hoc queries.
-      evaluateSqlStatement(database, SqliteStatement(sqliteStatement, emptyList()))
+    override fun evaluateCurrentStatement() {
+      DatabaseInspectorAnalyticsTracker.getInstance(project).trackStatementExecuted(
+        AppInspectionEvent.DatabaseInspectorEvent.StatementContext.USER_DEFINED_STATEMENT_CONTEXT
+      )
+      executeSqlStatement(currentEvaluationParams.databaseId!!, createSqliteStatement(project, currentEvaluationParams.statementText))
+    }
+
+    override fun sqliteStatementTextChangedInvoked(newSqliteStatement: String) {
+      currentEvaluationParams = currentEvaluationParams.copy(statementText = newSqliteStatement)
+      updateRunSqliteStatementButtonState()
+    }
+
+    override fun onDatabaseSelected(databaseId: SqliteDatabaseId) {
+      currentEvaluationParams = currentEvaluationParams.copy(databaseId = databaseId)
     }
   }
 
   interface Listener {
-    fun onSchemaUpdated(database: SqliteDatabase)
+    /**
+     * Called when an user-defined SQLite statement is successfully executed
+     * @param databaseId The database on which the statement was executed.
+     * */
+    fun onSqliteStatementExecuted(databaseId: SqliteDatabaseId)
   }
+
+  data class EvaluationParams(val databaseId: SqliteDatabaseId?, val statementText: String)
 }
+
+private val SqliteStatement.isQueryStatement
+  get() = statementType == SqliteStatementType.SELECT ||
+          statementType == SqliteStatementType.EXPLAIN ||
+          statementType == SqliteStatementType.PRAGMA_QUERY

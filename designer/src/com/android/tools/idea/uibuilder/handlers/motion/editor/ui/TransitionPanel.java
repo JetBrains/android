@@ -28,6 +28,8 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSe
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -52,12 +54,18 @@ public class TransitionPanel extends JPanel {
 
   public TransitionPanel(MotionEditor motionEditor) {
     super(new BorderLayout());
-    JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    JPanel left = new JPanel(new GridBagLayout());
     JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     JPanel top = new JPanel(new BorderLayout());
+    GridBagConstraints gbc = new GridBagConstraints();
     top.add(left, BorderLayout.WEST);
     top.add(right, BorderLayout.EAST);
-    left.add(new JLabel("Transition ", MEIcons.LIST_TRANSITION, SwingConstants.LEFT));
+    top.setBorder(MEUI.getPanelBottomBorder());
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.gridy = 0;
+    gbc.gridx = 0;
+    gbc.ipadx = 16;
+    left.add(new JLabel("Transition ", MEIcons.LIST_TRANSITION, SwingConstants.CENTER), gbc);
     JButton create = MEUI.createToolBarButton(MEIcons.CREATE_KEYFRAME, "Create KeyFrames");
     create.setContentAreaFilled(false);
     right.add(create);

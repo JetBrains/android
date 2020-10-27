@@ -17,8 +17,14 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteValue
+import com.android.tools.idea.sqlite.model.createSqliteStatement
+import com.android.tools.idea.sqlite.sqlLanguage.expandCollectionParameters
+import com.android.tools.idea.sqlite.sqlLanguage.replaceNamedParametersWithPositionalParameters
 import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogView
 import com.intellij.openapi.Disposable
+import com.intellij.psi.PsiElement
+import java.util.LinkedList
 
 /**
  * Implementation of the application logic to show a dialog through which the user can assign values to parameters in a SQLite statement.
@@ -26,16 +32,24 @@ import com.intellij.openapi.Disposable
 @UiThread
 class ParametersBindingController(
   private val view: ParametersBindingDialogView,
-  private val sqliteStatement: String,
-  private val parametersNames: List<String>,
+  private val sqliteStatementPsi: PsiElement,
   private val runStatement: (SqliteStatement) -> Unit
 ): Disposable {
 
   private val listener = ParametersBindingViewListenerImpl()
+  private val parameters: List<SqliteParameter>
+
+  init {
+    val (_, myParameters) = replaceNamedParametersWithPositionalParameters(sqliteStatementPsi)
+    // rename parameters that start with '?' (eg: '?' and '?1') with 'param #'
+    parameters = myParameters.mapIndexed { i, p ->
+      SqliteParameter(if (p.name.startsWith("?")) "param ${i + 1}" else p.name, p.isCollection)
+    }
+  }
 
   fun setUp() {
     view.addListener(listener)
-    view.showNamedParameters(parametersNames.toSet())
+    view.showNamedParameters(parameters.toSet())
   }
 
   fun show() {
@@ -47,9 +61,38 @@ class ParametersBindingController(
   }
 
   private inner class ParametersBindingViewListenerImpl : ParametersBindingDialogView.Listener {
-    override fun bindingCompletedInvoked(parameters: Map<String, Any>) {
-      val parametersValues = parametersNames.map { parameters[it] ?: error("Missing parameter") }
-      runStatement(SqliteStatement(sqliteStatement, parametersValues))
+    override fun bindingCompletedInvoked(parameters: Map<SqliteParameter, SqliteParameterValue>) {
+      val parametersValues = this@ParametersBindingController.parameters.map {
+        parameters[it] ?: error("No value assigned to parameter $it.")
+      }
+
+      val newPsi = expandCollectionParameters(sqliteStatementPsi, LinkedList(parametersValues))
+      val (sqliteStatement, _) = replaceNamedParametersWithPositionalParameters(newPsi)
+      val sqliteValues = parametersValues.flatMap { sqliteParameterValue ->
+        when (sqliteParameterValue) {
+          is SqliteParameterValue.SingleValue -> listOf(sqliteParameterValue.value)
+          is SqliteParameterValue.CollectionValue -> sqliteParameterValue.value
+        }
+      }
+
+      runStatement(createSqliteStatement(sqliteStatementPsi.project, sqliteStatement, sqliteValues))
     }
   }
+}
+
+data class SqliteParameter(val name: String, val isCollection: Boolean = false)
+
+sealed class SqliteParameterValue {
+  companion object {
+    fun fromAny(vararg values: Any?): SqliteParameterValue {
+      return if (values.size == 1) {
+        SingleValue(SqliteValue.fromAny(values[0]))
+      }
+      else {
+        CollectionValue(values.map { SqliteValue.fromAny(it) })
+      }
+    }
+  }
+  data class SingleValue(val value: SqliteValue) : SqliteParameterValue()
+  data class CollectionValue(val value: List<SqliteValue>) : SqliteParameterValue()
 }

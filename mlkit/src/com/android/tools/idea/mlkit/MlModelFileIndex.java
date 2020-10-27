@@ -16,7 +16,14 @@
 package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.mlkit.viewer.TfliteModelFileType;
+import com.android.tools.mlkit.MlConstants;
+import com.android.tools.mlkit.ModelInfo;
+import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.indexing.DataIndexer;
 import com.intellij.util.indexing.FileBasedIndex;
 import com.intellij.util.indexing.FileBasedIndexExtension;
@@ -28,14 +35,15 @@ import com.intellij.util.io.KeyDescriptor;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Indexes machine learning model (e.g. TFLite model) files under the assets folder.
+ * Indexes machine learning model (e.g. TFLite model) files under the ml folder.
  */
 public class MlModelFileIndex extends FileBasedIndexExtension<String, MlModelMetadata> {
   public static final ID<String, MlModelMetadata> INDEX_ID = ID.create("MlModelFileIndex");
@@ -47,12 +55,16 @@ public class MlModelFileIndex extends FileBasedIndexExtension<String, MlModelMet
       @NotNull
       @Override
       public Map<String, MlModelMetadata> map(@NotNull FileContent inputData) {
-        // TODO(b/146356789): consider doing the model extraction here instead of light class generation time.
-        String fileUrl = inputData.getFile().getUrl();
-        String className = MlkitUtils.computeModelClassName(fileUrl);
-        Map<String, MlModelMetadata> map = new HashMap<>();
-        map.put(className, new MlModelMetadata(fileUrl, className));
-        return map;
+        VirtualFile modelFile = inputData.getFile();
+        try {
+          byte[] bytes = Files.readAllBytes(VfsUtilCore.virtualToIoFile(modelFile).toPath());
+          ModelInfo modelInfo = ModelInfo.buildFrom(ByteBuffer.wrap(bytes));
+          return ImmutableMap.of(modelFile.getUrl(), new MlModelMetadata(modelFile.getUrl(), modelInfo));
+        }
+        catch (Exception e) {
+          Logger.getInstance(MlModelFileIndex.class).warn("Failed to index " + modelFile.getUrl(), e);
+          return Collections.emptyMap();
+        }
       }
     };
   }
@@ -62,18 +74,16 @@ public class MlModelFileIndex extends FileBasedIndexExtension<String, MlModelMet
   public DataExternalizer<MlModelMetadata> getValueExternalizer() {
     return new DataExternalizer<MlModelMetadata>() {
       @Override
-      public void save(@NotNull DataOutput out, MlModelMetadata value) throws IOException {
-        if (value != null) {
-          out.writeUTF(value.myModelFileUrl);
-          out.writeUTF(value.myClassName);
-        }
+      public void save(@NotNull DataOutput out, @NotNull MlModelMetadata value) throws IOException {
+        out.writeUTF(value.myModelFileUrl);
+        value.myModelInfo.save(out);
       }
 
       @Override
       public MlModelMetadata read(@NotNull DataInput in) throws IOException {
         String fileUrl = in.readUTF();
-        String className = in.readUTF();
-        return new MlModelMetadata(fileUrl, className);
+        ModelInfo modelInfo = new ModelInfo(in);
+        return new MlModelMetadata(fileUrl, modelInfo);
       }
     };
   }
@@ -86,7 +96,7 @@ public class MlModelFileIndex extends FileBasedIndexExtension<String, MlModelMet
 
   @Override
   public int getVersion() {
-    return 1;
+    return 4;
   }
 
   @NotNull
@@ -98,12 +108,17 @@ public class MlModelFileIndex extends FileBasedIndexExtension<String, MlModelMet
   @NotNull
   @Override
   public FileBasedIndex.InputFilter getInputFilter() {
-    return file -> StudioFlags.MLKIT_LIGHT_CLASSES.get() && MlkitUtils.isMlModelFileInAssetsFolder(file);
+    return file -> StudioFlags.ML_MODEL_BINDING.get() &&
+                   file.getFileType() == TfliteModelFileType.INSTANCE &&
+                   file.getLength() > 0 &&
+                   file.getLength() <= MlConstants.MAX_SUPPORTED_MODEL_FILE_SIZE_IN_BYTES;
   }
 
   @Override
   public boolean dependsOnFileContent() {
-    return true;
+    // We don't actually index the model file content, just some metadata instead. So return false here to bypass the file size check used
+    // by the content loading, which is the precondition for indexing large model file (> 20 MB).
+    return false;
   }
 
   @NotNull

@@ -16,12 +16,10 @@
 package com.android.tools.idea.experimental.callgraph
 
 import com.android.tools.idea.lint.common.LintBatchResult
-import com.android.tools.idea.lint.common.LintIdeClient
 import com.android.tools.idea.lint.common.LintIdeRequest
 import com.android.tools.idea.lint.common.LintIdeSupport
 import com.android.tools.lint.checks.WrongThreadInterproceduralDetector
 import com.android.tools.lint.client.api.IssueRegistry
-import com.android.tools.lint.client.api.LintDriver
 import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.Scope
 import com.intellij.analysis.AnalysisScope
@@ -34,7 +32,8 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
-import java.util.*
+import java.util.ArrayList
+import java.util.EnumSet
 import kotlin.system.measureTimeMillis
 
 private val LOG = Logger.getInstance(WrongThreadInterproceduralAction::class.java)
@@ -66,7 +65,7 @@ class WrongThreadInterproceduralAction : BaseAnalysisAction(ACTION_NAME, ACTION_
               override val issues: List<Issue>
                 get() = listOf(WrongThreadInterproceduralDetector.ISSUE)
             }
-            LintDriver(issue, client, request).analyze()
+            client.createDriver(request, issue).analyze()
           }
           finally {
             Disposer.dispose(client)

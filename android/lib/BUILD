@@ -34,12 +34,6 @@ java_import(
 )
 
 filegroup(
-    name = "androidWidgets",
-    srcs = glob(["androidWidgets/**"]),
-    visibility = ["//visibility:public"],
-)
-
-filegroup(
     name = "sampleData",
     srcs = glob(["sampleData/**"]),
     visibility = ["//visibility:public"],
@@ -58,7 +52,6 @@ filegroup(
         # are not needed to compile.
         "commons-compress-1.8.1.jar",
         "javawriter-2.2.1.jar",
-        "androidWidgets/**",
     ]),
     visibility = ["//visibility:public"],
 )

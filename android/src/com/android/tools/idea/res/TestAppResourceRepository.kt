@@ -49,9 +49,21 @@ class TestAppResourceRepository private constructor(
 
       val dependencies = model.selectedAndroidTestCompileDependencies
       if (dependencies != null) {
+        val thisModuleGradlePath = GradleUtil.getGradlePath(facet.module)
+
         localRepositories.addAll(
           dependencies.moduleDependencies.asSequence()
-            .mapNotNull { it.projectPath }
+            .mapNotNull {
+              it.projectPath.takeIf { path ->
+                // This needs to be fixed properly in the model, see http://b/149078408.
+                //
+                // Fixing http://b/115334911 adds dependency from androidTest to tested (main) variant. This check is to
+                // filter that out. Note that this androidTest compile classpath still contains too many things
+                // because compile classpath extends tested compile classpath. While this is OK for classes,
+                // it is not correct for resources.
+                thisModuleGradlePath == null || path != thisModuleGradlePath
+              }
+            }
             .mapNotNull { GradleUtil.findModuleByGradlePath(project, it) }
             .mapNotNull { it.androidFacet }
             .map { ResourceRepositoryManager.getModuleResources(it) }

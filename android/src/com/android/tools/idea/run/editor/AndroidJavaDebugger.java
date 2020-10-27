@@ -93,7 +93,9 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
                                                    @NotNull Set<String> applicationIds,
                                                    @NotNull AndroidFacet facet,
                                                    @NotNull AndroidDebuggerState state,
-                                                   @NotNull String runConfigTypeId) {
+                                                   @NotNull String runConfigTypeId,
+                                                   @Nullable String packageNameOverride) {
+    // TODO(b/153668177): Note/Review: packageNameOverride is used in native debugger only.
     ConnectJavaDebuggerTask baseConnector = new ConnectJavaDebuggerTask(
       applicationIds, this, env.getProject(),
       facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP);
@@ -116,7 +118,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
 
   @Slow
   @Override
-  public void attachToClient(@NotNull Project project, @NotNull Client client) {
+  public void attachToClient(@NotNull Project project, @NotNull Client client, @Nullable RunConfiguration config) {
     String debugPort = getClientDebugPort(client);
     String runConfigName = getRunConfigurationName(debugPort);
 
@@ -163,23 +165,25 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
       }
     };
 
-    ApplicationManager.getApplication().invokeAndWait(() -> {
-      try {
-        ProgramRunnerUtil.executeConfigurationAsync(
-          // Code lifted out of ProgramRunnerUtil. We do this because we need to access the callback field.
-          ExecutionEnvironmentBuilder.create(DefaultDebugExecutor.getDebugExecutorInstance(), runSettings)
-            .contentToReuse(null)
-            .dataContext(null)
-            .activeTarget()
-            .build(),
-          /*showSettings=*/true,
-          /*assignNewId=*/true,
-          callback);
-      }
-      catch (ExecutionException e) {
-        Logger.getInstance(AndroidJavaDebugger.class).error(e);
-      }
-    });
+    ExecutionEnvironment executionEnvironment;
+    try {
+      // Code lifted out of ProgramRunnerUtil. We do this because we need to access the callback field.
+      executionEnvironment =
+        ExecutionEnvironmentBuilder.create(DefaultDebugExecutor.getDebugExecutorInstance(), runSettings)
+          .contentToReuse(null)
+          .dataContext(null)
+          .activeTarget()
+          .build();
+    }
+    catch (ExecutionException e) {
+      Logger.getInstance(AndroidJavaDebugger.class).error(e);
+      return;
+    }
+
+    // Need to execute on the EDT since the associated tool window may be created internally by IJ
+    // (we may be not be on the EDT at this point in the code).
+    ApplicationManager.getApplication().invokeLater(
+      () -> ProgramRunnerUtil.executeConfigurationAsync(executionEnvironment, /*showSettings=*/true, /*assignNewId=*/true, callback));
   }
 
   public DebuggerSession getDebuggerSession(@NotNull Client client) {
@@ -245,7 +249,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
     return false;
   }
 
-  private static final class VMExitedNotifier {
+  private static class VMExitedNotifier {
     @NotNull private final Client myClient;
     @NotNull private final AtomicBoolean myNeedsToNotify = new AtomicBoolean(true);
 

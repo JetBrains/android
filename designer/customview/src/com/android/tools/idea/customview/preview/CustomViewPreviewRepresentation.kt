@@ -16,6 +16,7 @@
 package com.android.tools.idea.customview.preview
 
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.editor.ActionsToolbar
@@ -26,6 +27,9 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.util.BuildListener
 import com.android.tools.idea.common.util.setupBuildListener
 import com.android.tools.idea.common.util.setupChangeListener
+import com.android.tools.idea.concurrency.AndroidCoroutinesAware
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationListener
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -40,15 +44,13 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.UserDataHolderBase
+import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
@@ -56,15 +58,15 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.uipreview.ModuleClassLoaderManager
 import java.awt.BorderLayout
 import java.util.function.BiFunction
 import java.util.function.Consumer
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.OverlayLayout
-
 
 private fun fqcn2name(fcqn: String) = fcqn.substringAfterLast('.')
 
@@ -78,14 +80,25 @@ private fun getXmlLayout(qualifiedName: String, shrinkWidth: Boolean, shrinkHeig
     android:layout_height="${layoutType(shrinkHeight)}"/>"""
 }
 
+fun getBuildState(project: Project): CustomViewVisualStateTracker.BuildState {
+  val gradleState = GradleBuildState.getInstance(project)
+  val prevBuildStatus = gradleState.summary?.status
+  return when {
+    gradleState.isBuildInProgress -> CustomViewVisualStateTracker.BuildState.IN_PROGRESS
+    prevBuildStatus == null || prevBuildStatus == BuildStatus.SKIPPED || prevBuildStatus == BuildStatus.SUCCESS ->
+      CustomViewVisualStateTracker.BuildState.SUCCESSFUL
+    else -> CustomViewVisualStateTracker.BuildState.FAILED
+  }
+}
 /**
  * A preview for a file containing custom android view classes. Allows selecting between the classes if multiple custom view classes are
  * present in the file.
  */
 class CustomViewPreviewRepresentation(
   psiFile: PsiFile,
-  persistenceProvider: (Project) -> PropertiesComponent = { p -> PropertiesComponent.getInstance(p)}) :
-  PreviewRepresentation, CustomViewPreviewManager {
+  persistenceProvider: (Project) -> PropertiesComponent = { p -> PropertiesComponent.getInstance(p)},
+  buildStateProvider: (Project) -> CustomViewVisualStateTracker.BuildState = ::getBuildState) :
+  PreviewRepresentation, CustomViewPreviewManager, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
 
   companion object {
     private val LOG = Logger.getInstance(CustomViewPreviewRepresentation::class.java)
@@ -95,6 +108,8 @@ class CustomViewPreviewRepresentation(
   private val persistenceManager = persistenceProvider(project)
   private var stateTracker: CustomViewVisualStateTracker
   private var configurationListener = ConfigurationListener { true }
+
+  private val uniqueTaskLauncher = UniqueTaskCoroutineLauncher(this, "Custom view preview update thread")
 
   private val previewId = "$CUSTOM_VIEW_PREVIEW_ID${psiFile.virtualFile!!.path}"
   private val currentStatePropertyName = "${previewId}_SELECTED"
@@ -158,14 +173,13 @@ class CustomViewPreviewRepresentation(
       "com.android.tools.idea.customview.preview.customViewEditorNotificationProvider"))
 
   private val surface = NlDesignSurface.builder(project, this)
-    .setDefaultSurfaceState(DesignSurface.State.SPLIT)
+    .setOnConfigurationChangedZoom(ZoomType.FIT)
     .setSceneManagerProvider { surface, model ->
       NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
         setShrinkRendering(true)
       }
     }.build().apply {
       setScreenMode(SceneMode.RESIZABLE_PREVIEW, false)
-      activate()
     }
 
   private val actionsToolbar = ActionsToolbar(this@CustomViewPreviewRepresentation, surface)
@@ -197,15 +211,11 @@ class CustomViewPreviewRepresentation(
     init(issuePanelSplitter, surface, listOf(), false)
   }
 
+  @Volatile
+  private var lastBuildStartedNanos = 0L
+
   init {
-    val gradleState = GradleBuildState.getInstance(project)
-    val prevBuildStatus = gradleState.summary?.status
-    val buildState = when {
-      gradleState.isBuildInProgress -> CustomViewVisualStateTracker.BuildState.IN_PROGRESS
-      prevBuildStatus == null || prevBuildStatus == BuildStatus.SKIPPED || prevBuildStatus == BuildStatus.SUCCESS ->
-        CustomViewVisualStateTracker.BuildState.SUCCESSFUL
-      else -> CustomViewVisualStateTracker.BuildState.FAILED
-    }
+    val buildState = buildStateProvider(project)
     val fileState = if (FileDocumentManager.getInstance().isFileModified(psiFile.virtualFile))
       CustomViewVisualStateTracker.FileState.MODIFIED
     else
@@ -253,13 +263,6 @@ class CustomViewPreviewRepresentation(
           return
         }
 
-        // Clean-up the class loading cache for all the possibly affected modules. Source files from 3rd party libs have no module.
-        ModuleUtil.findModuleForFile(file)?.let { module ->
-          val modules = mutableSetOf<Module>()
-          ModuleUtil.collectModulesDependsOn(module, modules)
-          modules.forEach { ModuleClassLoaderManager.get().clearCache(it) }
-        }
-
         stateTracker.setBuildState(CustomViewVisualStateTracker.BuildState.SUCCESSFUL)
         refresh()
       }
@@ -269,13 +272,16 @@ class CustomViewPreviewRepresentation(
       }
 
       override fun buildStarted() {
+        lastBuildStartedNanos = System.nanoTime()
         stateTracker.setFileState(CustomViewVisualStateTracker.FileState.UP_TO_DATE)
         stateTracker.setBuildState(CustomViewVisualStateTracker.BuildState.IN_PROGRESS)
       }
     }, this)
 
-    setupChangeListener(project, psiFile, {
-      stateTracker.setFileState(CustomViewVisualStateTracker.FileState.MODIFIED)
+    setupChangeListener(project, psiFile, { lastUpdatedNanos ->
+      if (lastUpdatedNanos > lastBuildStartedNanos) {
+        stateTracker.setFileState(CustomViewVisualStateTracker.FileState.MODIFIED)
+      }
     }, this)
 
     project.runWhenSmartAndSyncedOnEdt(this, Consumer { refresh() })
@@ -316,9 +322,13 @@ class CustomViewPreviewRepresentation(
   }
 
   private fun updateModel() {
+    uniqueTaskLauncher.launch(::updateModelSync)
+  }
+
+  private suspend fun updateModelSync() {
     val psiFile = psiFilePointer.element
     if (psiFile == null || !psiFile.isValid) {
-      LOG.warn("updateModel with invalid PsiFile")
+      LOG.warn("updateModelSync with invalid PsiFile")
       return
     }
 
@@ -336,14 +346,15 @@ class CustomViewPreviewRepresentation(
       val model = if (surface.models.isEmpty()) {
         val customPreviewXml = CustomViewLightVirtualFile("custom_preview.xml", fileContent)
         val config = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
-        NlModel.create(this@CustomViewPreviewRepresentation,
-                       className,
-                       facet,
-                       customPreviewXml,
-                       config,
-                       surface.componentRegistrar,
-                       BiFunction { project, _ -> AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile })
+        NlModel.builder(facet, customPreviewXml, config)
+          .withParentDisposable(this@CustomViewPreviewRepresentation)
+          .withModelDisplayName(className)
+          .withXmlProvider(BiFunction { project, _ -> AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile })
+          .withComponentRegistrar(surface.componentRegistrar)
+          .build()
       } else {
+        // We want to deactivate the surface so that configuration changes do not trigger scene repaint.
+        surface.deactivate()
         surface.models.first().let { model ->
           (surface.getSceneManager(model) as LayoutlibSceneManager).forceReinflate()
           model.configuration.removeListener(configurationListener)
@@ -353,21 +364,24 @@ class CustomViewPreviewRepresentation(
       val configuration = model.configuration
 
       // Load and set preview size if exists for this custom view
-      persistenceManager.getValues(dimensionsPropertyNameForClass(className))?.let { previewDimensions ->
-        updateConfigurationScreenSize(configuration, previewDimensions[0].toInt(), previewDimensions[1].toInt(), configuration.device)
-      }
-
-      surface.addModel(model).whenComplete { _, ex ->
-        surface.zoomToFit()
-        configurationListener = createConfigurationListener(configuration, className)
-        configuration.addListener(configurationListener)
-
-        if (ex != null) {
-          Logger.getInstance(CustomViewPreviewRepresentation::class.java).warn(ex)
+      withContext(uiThread) {
+        persistenceManager.getValues(dimensionsPropertyNameForClass(className))?.let { previewDimensions ->
+          updateConfigurationScreenSize(configuration, previewDimensions[0].toInt(), previewDimensions[1].toInt(), configuration.device)
         }
-
-        stateTracker.setVisualState(CustomViewVisualStateTracker.VisualState.OK)
       }
+
+      val addModelFuture = withContext(uiThread) {
+        surface.addAndRenderModel(model)
+      }
+      addModelFuture.await()
+      withContext(uiThread) {
+        surface.zoomToFit()
+      }
+      surface.activate()
+      configurationListener = createConfigurationListener(configuration, className)
+      configuration.addListener(configurationListener)
+
+      stateTracker.setVisualState(CustomViewVisualStateTracker.VisualState.OK)
     }
   }
 

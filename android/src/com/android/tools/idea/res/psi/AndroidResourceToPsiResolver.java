@@ -95,6 +95,16 @@ public interface AndroidResourceToPsiResolver {
   @NotNull
   PsiElement[] getGotoDeclarationTargets(@NotNull ResourceReference resourceReference, @NotNull PsiElement context);
 
+  /**
+   * The same as {@link AndroidResourceToPsiResolver#getGotoDeclarationTargets} above, it includes resources from dynamic feature modules
+   * that depend on the module of `context` element.
+   *
+   * <p>This is used for the navigation graph where dynamic feature resources can be used in the app module graph.</p>
+   */
+  @NotNull
+  PsiElement[] getGotoDeclarationTargetsWithDynamicFeatureModules(@NotNull ResourceReference resourceReference,
+                                                                  @NotNull PsiElement context);
+
   static AndroidResourceToPsiResolver getInstance() {
     return StudioFlags.RESOLVE_USING_REPOS.get() ? ResourceRepositoryToPsiResolver.INSTANCE : ResourceManagerToPsiResolver.INSTANCE;
   }

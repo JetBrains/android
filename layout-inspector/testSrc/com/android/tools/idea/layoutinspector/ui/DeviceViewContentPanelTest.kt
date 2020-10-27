@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.testutils.PropertySetterRule
+import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.*
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
@@ -48,15 +50,10 @@ class DeviceViewContentPanelTest {
   @get:Rule
   val chain = RuleChain.outerRule(ProjectRule()).around(DeviceViewSettingsRule())
 
-  @Before
-  fun setUp() {
-    InspectorClient.clientFactory = { _, _ -> mock(InspectorClient::class.java) }
-  }
-
-  @After
-  fun tearDown() {
-    InspectorClient.clientFactory = { model, disposable -> DefaultInspectorClient(model, disposable) }
-  }
+  @get:Rule
+  val clientFactoryRule = PropertySetterRule(
+    { _, _ -> listOf(mock(InspectorClient::class.java)) },
+    InspectorClient.Companion::clientFactory)
 
   @Test
   fun testSize() {
@@ -71,16 +68,16 @@ class DeviceViewContentPanelTest {
     val settings = DeviceViewSettings(scalePercent = 30)
     settings.drawLabel = false
     val panel = DeviceViewContentPanel(model, settings)
-    assertEquals(Dimension(188, 197), panel.preferredSize)
+    assertEquals(Dimension(376, 394), panel.preferredSize)
 
     settings.scalePercent = 100
-    assertEquals(Dimension(510, 542), panel.preferredSize)
+    assertEquals(Dimension(1020, 1084), panel.preferredSize)
 
     model.update(
       view(ROOT, 0, 0, 100, 200) {
         view(VIEW1, 0, 0, 50, 50)
       }, ROOT, listOf(ROOT))
-    assertEquals(Dimension(366, 410), panel.preferredSize)
+    assertEquals(Dimension(732, 820), panel.preferredSize)
   }
 
   @Test

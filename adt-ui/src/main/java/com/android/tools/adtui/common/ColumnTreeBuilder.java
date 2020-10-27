@@ -24,6 +24,7 @@ import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.render.RenderingUtil;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.tree.WideSelectionTreeUI;
 import org.jetbrains.annotations.NotNull;
 
@@ -91,6 +92,8 @@ public class ColumnTreeBuilder {
   @Nullable
   private Color myHoverColor;
 
+  private boolean myShowHeaderTooltips;
+
   @NotNull
   private final ColumnTreeScrollPanel myHScrollBarPanel;
 
@@ -155,6 +158,12 @@ public class ColumnTreeBuilder {
     return this;
   }
 
+  @NotNull
+  public ColumnTreeBuilder setShowHeaderTooltips(boolean showing) {
+    myShowHeaderTooltips = showing;
+    return this;
+  }
+
   public JComponent build() {
     boolean showsRootHandles = myTree.getShowsRootHandles(); // Stash this value since it'll get stomped WideSelectionTreeUI.
     final ColumnTreeHoverListener hoverListener = myHoverColor != null ? ColumnTreeHoverListener.create(myTree) : null;
@@ -199,7 +208,7 @@ public class ColumnTreeBuilder {
     });
 
     ColumnTreeTableRowSorter rowSorter = new ColumnTreeTableRowSorter(
-      myTable.getModel(), myColumnBuilders.stream().map(cb -> cb.mySortOrderPreference).collect(Collectors.toList()));
+      myTable.getModel(), ContainerUtil.map(myColumnBuilders, cb -> cb.mySortOrderPreference));
 
     myTable.setRowSorter(rowSorter);
     rowSorter.addRowSorterListener(event -> {
@@ -223,7 +232,7 @@ public class ColumnTreeBuilder {
 
     for (int i = 0; i < myColumnBuilders.size(); i++) {
       ColumnBuilder column = myColumnBuilders.get(i);
-      column.configure(i, myTable, rowSorter, myCellRenderer);
+      column.configure(i, myTable, rowSorter, myCellRenderer, myShowHeaderTooltips);
     }
 
     JPanel panel = new TreeWrapperPanel(myTable, myTree);
@@ -653,6 +662,7 @@ public class ColumnTreeBuilder {
     private int myWidth;
     private int myHeaderAlignment;
     private int myMinimumWidth;
+    private int myMaximumWidth = Integer.MAX_VALUE;
     private Border myHeaderBorder;
     private Comparator<?> myComparator;
     private ColoredTreeCellRenderer myRenderer;
@@ -674,6 +684,12 @@ public class ColumnTreeBuilder {
     @NotNull
     public ColumnBuilder setMinWidth(int width) {
       myMinimumWidth = width;
+      return this;
+    }
+
+    @NotNull
+    public ColumnBuilder setMaxWidth(int width) {
+      myMaximumWidth = width;
       return this;
     }
 
@@ -703,10 +719,15 @@ public class ColumnTreeBuilder {
       model.addColumn(myName);
     }
 
-    private void configure(int index, JTable table, ColumnTreeTableRowSorter sorter, ColumnTreeCellRenderer renderer) {
+    private void configure(int index,
+                           JTable table,
+                           ColumnTreeTableRowSorter sorter,
+                           ColumnTreeCellRenderer renderer,
+                           boolean showHeaderTooltips) {
       TableColumn column = table.getColumnModel().getColumn(index);
       column.setPreferredWidth(myWidth);
       column.setMinWidth(myMinimumWidth);
+      column.setMaxWidth(myMaximumWidth);
 
       final TableCellRenderer tableCellRenderer = table.getTableHeader().getDefaultRenderer();
       column.setHeaderRenderer(new DefaultTableCellRenderer() {
@@ -719,6 +740,9 @@ public class ColumnTreeBuilder {
           }
           if (component instanceof JComponent) {
             ((JComponent)component).setBorder(myHeaderBorder);
+            if (showHeaderTooltips) {
+              ((JComponent)component).setToolTipText(value.toString());
+            }
           }
           return component;
         }
@@ -802,7 +826,7 @@ public class ColumnTreeBuilder {
     }
   }
 
-  private static final class ColumnTreeTableRowSorter extends TableRowSorter<TableModel> {
+  private static class ColumnTreeTableRowSorter extends TableRowSorter<TableModel> {
     @NotNull private final List<SortOrder> mySortOrderPreferences;
 
     /**

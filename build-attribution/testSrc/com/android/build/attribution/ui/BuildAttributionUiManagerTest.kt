@@ -28,6 +28,7 @@ import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.build.BuildContentManager
 import com.intellij.build.BuildContentManagerImpl
 import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
 import com.intellij.testFramework.PlatformTestUtil
@@ -51,7 +52,7 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     super.setUp()
     UsageTracker.setWriterForTest(tracker)
     windowManager = ToolWindowHeadlessManagerImpl(project)
-    registerProjectComponent(ToolWindowManager::class.java, windowManager)
+    registerProjectService(ToolWindowManager::class.java, windowManager)
     registerProjectService(BuildContentManager::class.java, BuildContentManagerImpl(project))
 
     // Add a fake build tab
@@ -70,13 +71,13 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
   }
 
   fun testShowNewReport() {
-    showNewReport(reportUiData, buildSessionId)
+    setNewReportData(reportUiData, buildSessionId)
 
     verifyBuildAnalyzerTabExist()
     verifyBuildAnalyzerTabNotSelected()
 
     // Verify state
-    Truth.assertThat(buildAttributionUiManager.buildAttributionTreeView).isNotNull()
+    Truth.assertThat(buildAttributionUiManager.buildAttributionView).isNotNull()
     Truth.assertThat(buildAttributionUiManager.buildContent).isNotNull()
 
     // Verify metrics sent
@@ -88,8 +89,23 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     Truth.assertThat(buildAttributionUiEvent.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_CREATED)
   }
 
+  fun testOnBuildFailureWhenTabClosed() {
+    sendOnBuildFailure(buildSessionId)
+
+    verifyBuildAnalyzerTabNotExist()
+
+    // Verify state
+    Truth.assertThat(buildAttributionUiManager.buildAttributionView).isNull()
+    Truth.assertThat(buildAttributionUiManager.buildContent).isNull()
+
+    // Verify no metrics sent
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    Truth.assertThat(buildAttributionEvents).isEmpty()
+  }
+
+
   fun testShowNewReportAndOpenWithLink() {
-    showNewReport(reportUiData, buildSessionId)
+    setNewReportData(reportUiData, buildSessionId)
     openBuildAnalyzerTabFromAction()
 
     verifyBuildAnalyzerTabExist()
@@ -106,7 +122,7 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
   }
 
   fun testShowNewReportAndOpenWithTabClick() {
-    showNewReport(reportUiData, buildSessionId)
+    setNewReportData(reportUiData, buildSessionId)
     selectBuildAnalyzerTab()
 
     verifyBuildAnalyzerTabExist()
@@ -123,9 +139,9 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
   }
 
   fun testContentTabClosed() {
-    showNewReport(reportUiData, buildSessionId)
+    setNewReportData(reportUiData, buildSessionId)
     // Get the reference to check the state later
-    val buildAttributionTreeView = buildAttributionUiManager.buildAttributionTreeView!!
+    val buildAttributionTreeView = buildAttributionUiManager.buildAttributionView!!
     closeBuildAnalyzerTab()
 
     verifyBuildAnalyzerTabNotExist()
@@ -140,8 +156,8 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     }
 
     // Verify state cleaned up
-    Truth.assertThat(buildAttributionTreeView.isDisposed).isTrue()
-    Truth.assertThat(buildAttributionUiManager.buildAttributionTreeView).isNull()
+    Truth.assertThat(Disposer.isDisposed(buildAttributionTreeView)).isTrue()
+    Truth.assertThat(buildAttributionUiManager.buildAttributionView).isNull()
     Truth.assertThat(buildAttributionUiManager.buildContent).isNull()
   }
 
@@ -150,10 +166,10 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     val buildSessionId2 = UUID.randomUUID().toString()
     val buildSessionId3 = UUID.randomUUID().toString()
 
-    showNewReport(reportUiData, buildSessionId1)
-    showNewReport(reportUiData, buildSessionId2)
+    setNewReportData(reportUiData, buildSessionId1)
+    setNewReportData(reportUiData, buildSessionId2)
     closeBuildAnalyzerTab()
-    showNewReport(reportUiData, buildSessionId3)
+    setNewReportData(reportUiData, buildSessionId3)
 
     verifyBuildAnalyzerTabExist()
 
@@ -192,8 +208,42 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     }
   }
 
+  fun testOnBuildFailureWhenOpened() {
+    val buildSessionId1 = UUID.randomUUID().toString()
+    val buildSessionId2 = UUID.randomUUID().toString()
+
+    setNewReportData(reportUiData, buildSessionId1)
+    sendOnBuildFailure(buildSessionId2)
+
+    verifyBuildAnalyzerTabExist()
+
+    // Verify state
+    Truth.assertThat(buildAttributionUiManager.buildAttributionView).isNotNull()
+    Truth.assertThat(buildAttributionUiManager.buildAttributionView?.component?.name).isEqualTo("Build failure empty view")
+    Truth.assertThat(buildAttributionUiManager.buildContent).isNotNull()
+
+    // Verify metrics sent
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    Truth.assertThat(buildAttributionEvents).hasSize(3)
+
+    buildAttributionEvents[0].studioEvent.buildAttributionUiEvent.let {
+      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId1)
+      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_CREATED)
+    }
+
+    buildAttributionEvents[1].studioEvent.buildAttributionUiEvent.let {
+      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId1)
+      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.USAGE_SESSION_OVER)
+    }
+
+    buildAttributionEvents[2].studioEvent.buildAttributionUiEvent.let {
+      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId2)
+      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.CONTENT_REPLACED)
+    }
+  }
+
   fun testReportTabSelectedAndUnselected() {
-    showNewReport(reportUiData, buildSessionId)
+    setNewReportData(reportUiData, buildSessionId)
 
     verifyBuildAnalyzerTabExist()
 
@@ -221,7 +271,7 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
   }
 
   fun testBuildOutputLinkClickAfterTabUnselected() {
-    showNewReport(reportUiData, buildSessionId)
+    setNewReportData(reportUiData, buildSessionId)
 
     verifyBuildAnalyzerTabExist()
 
@@ -249,7 +299,7 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
   }
 
   fun testBuildOutputLinkClickAfterTabClosed() {
-    showNewReport(reportUiData, buildSessionId)
+    setNewReportData(reportUiData, buildSessionId)
 
     closeBuildAnalyzerTab()
     openBuildAnalyzerTabFromAction()
@@ -273,9 +323,48 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     }
 
     // Verify manager state
-    Truth.assertThat(buildAttributionUiManager.buildAttributionTreeView).isNotNull()
-    Truth.assertThat(buildAttributionUiManager.buildAttributionTreeView!!.isDisposed).isFalse()
+    Truth.assertThat(buildAttributionUiManager.buildAttributionView).isNotNull()
+    Truth.assertThat(Disposer.isDisposed(buildAttributionUiManager.buildAttributionView!!)).isFalse()
     Truth.assertThat(buildAttributionUiManager.buildContent).isNotNull()
+  }
+
+  fun testRequestShowWhenReadyBeforeDataExist() {
+    requestOpenWhenDataReady()
+
+    verifyBuildAnalyzerTabNotExist()
+
+    setNewReportData(reportUiData, buildSessionId)
+
+    verifyBuildAnalyzerTabExist()
+    // Since we requested to open earlier tab should be opened now.
+    verifyBuildAnalyzerTabSelected()
+
+    // Verify metrics sent
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    Truth.assertThat(buildAttributionEvents).hasSize(2)
+
+    buildAttributionEvents[1].studioEvent.buildAttributionUiEvent.let {
+      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId)
+      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_WNA_BUTTON)
+    }
+  }
+
+  fun testRequestShowWhenReadyAfterDataExist() {
+    setNewReportData(reportUiData, buildSessionId)
+
+    requestOpenWhenDataReady()
+
+    verifyBuildAnalyzerTabExist()
+    verifyBuildAnalyzerTabSelected()
+
+    // Verify metrics sent
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    Truth.assertThat(buildAttributionEvents).hasSize(2)
+
+    buildAttributionEvents[1].studioEvent.buildAttributionUiEvent.let {
+      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId)
+      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_WNA_BUTTON)
+    }
   }
 
   fun testProjectCloseBeforeAnyBuildFinished() {
@@ -290,8 +379,18 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
   }
 
-  private fun showNewReport(reportUiData: BuildAttributionReportUiData, buildSessionId: String) {
+  private fun setNewReportData(reportUiData: BuildAttributionReportUiData, buildSessionId: String) {
     buildAttributionUiManager.showNewReport(reportUiData, buildSessionId)
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+  }
+
+  private fun sendOnBuildFailure(buildSessionId: String) {
+    buildAttributionUiManager.onBuildFailure(buildSessionId)
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+  }
+
+  private fun requestOpenWhenDataReady() {
+    buildAttributionUiManager.requestOpenTabWhenDataReady(BuildAttributionUiAnalytics.TabOpenEventSource.WNA_BUTTON)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
   }
 

@@ -11,16 +11,13 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.siyeh.ipp.switchtoif.ReplaceSwitchWithIfIntention;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidNonConstantResIdsInSwitchInspection extends LocalInspectionTool {
   private final ReplaceSwitchWithIfIntention myBaseIntention = new ReplaceSwitchWithIfIntention();
-  
+
   @Nls
   @NotNull
   @Override
@@ -68,7 +65,7 @@ public class AndroidNonConstantResIdsInSwitchInspection extends LocalInspectionT
         }
 
         final PsiField resolvedField = (PsiField)resolvedElement;
-        if (!AndroidResourceUtil.isResourceField(resolvedField)) {
+        if (!IdeResourcesUtil.isResourceField(resolvedField)) {
           return;
         }
 
@@ -85,9 +82,9 @@ public class AndroidNonConstantResIdsInSwitchInspection extends LocalInspectionT
   public String getQuickFixName() {
     return myBaseIntention.getText();
   }
-  
+
   private class MyQuickFix implements LocalQuickFix {
-    
+
     @NotNull
     @Override
     public String getFamilyName() {
@@ -106,7 +103,7 @@ public class AndroidNonConstantResIdsInSwitchInspection extends LocalInspectionT
         return;
       }
 
-      ConvertSwitchToIfIntention.doProcessIntention(switchStatement); 
+      ConvertSwitchToIfIntention.doProcessIntention(switchStatement);
     }
   }
 }

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.benchmark
 
-import com.android.tools.idea.npw.platform.Language.JAVA
-import com.android.tools.idea.npw.platform.Language.KOTLIN
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
+import com.android.tools.idea.wizard.template.Language.Java
+import com.android.tools.idea.wizard.template.Language.Kotlin
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.Rule
@@ -27,8 +27,7 @@ import org.junit.runner.RunWith
 
 @RunWith(GuiTestRemoteRunner::class)
 class AddBenchmarkModuleTest {
-  @Rule
-  @JvmField
+  @get:Rule
   val guiTest = GuiTestRule()
 
   /**
@@ -59,10 +58,9 @@ class AddBenchmarkModuleTest {
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
       .clickNextToBenchmarkModule()
-      .setSourceLanguage(JAVA)
+      .setSourceLanguage(Java)
       .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish()
       .projectView
       .selectAndroidPane()
       .clickPath("benchmark")
@@ -72,8 +70,8 @@ class AddBenchmarkModuleTest {
     }
 
     guiTest.getProjectFileText("benchmark/build.gradle").run {
-      assertThat(this).contains("""apply plugin: 'com.android.library'""")
-      assertThat(this).contains("""apply plugin: 'androidx.benchmark'""")
+      assertThat(this).contains("""id 'com.android.library'""")
+      assertThat(this).contains("""id 'androidx.benchmark'""")
       assertThat(this).contains("""testBuildType = "release"""")
       assertThat(this).contains("""testInstrumentationRunner 'androidx.benchmark.junit4.AndroidBenchmarkRunner'""")
       assertThat(this).contains("""androidTestImplementation 'androidx.benchmark:benchmark-junit4:""")
@@ -108,10 +106,9 @@ class AddBenchmarkModuleTest {
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
       .clickNextToBenchmarkModule()
-      .setSourceLanguage(KOTLIN)
+      .setSourceLanguage(Kotlin)
       .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish()
       .projectView
       .selectAndroidPane()
       .clickPath("benchmark")
@@ -121,8 +118,8 @@ class AddBenchmarkModuleTest {
     }
 
     guiTest.getProjectFileText("benchmark/build.gradle").run {
-      assertThat(this).contains("""apply plugin: 'com.android.library'""")
-      assertThat(this).contains("""apply plugin: 'androidx.benchmark'""")
+      assertThat(this).contains("""id 'com.android.library'""")
+      assertThat(this).contains("""id 'androidx.benchmark'""")
       assertThat(this).contains("""testBuildType = "release"""")
       assertThat(this).contains("""testInstrumentationRunner 'androidx.benchmark.junit4.AndroidBenchmarkRunner'""")
       assertThat(this).contains("""androidTestImplementation 'androidx.benchmark:benchmark-junit4:""")

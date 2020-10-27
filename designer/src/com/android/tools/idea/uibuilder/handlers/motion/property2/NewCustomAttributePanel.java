@@ -273,7 +273,7 @@ public class NewCustomAttributePanel extends DialogWrapper {
     myDataType = new ComboBox<>();
   }
 
-  private static final class MyTextFieldModel implements CommonTextFieldModel {
+  private static class MyTextFieldModel implements CommonTextFieldModel {
     private final List<ValueChangedListener> myListeners;
     private final Runnable myTextChanged;
     private String myText = "";
@@ -296,7 +296,7 @@ public class NewCustomAttributePanel extends DialogWrapper {
 
         @NotNull
         @Override
-        public Function0<List<String>> getCompletion() {
+        public Function1<String, List<String>> getCompletion() {
           return editingSupport.getCompletion();
         }
       };
@@ -382,17 +382,22 @@ public class NewCustomAttributePanel extends DialogWrapper {
 
     @NotNull
     @Override
-    public Function0<List<String>> getCompletion() {
-      return () -> Collections.emptyList();
+    public Function1<String, List<String>> getCompletion() {
+      return (forText) -> Collections.emptyList();
     }
 
     @Override
     public boolean getAllowCustomValues() {
       return true;
     }
+
+    @Override
+    public boolean getAlwaysRefreshCompletions() {
+      return false;
+    }
   }
 
-  private static final class AttributeNameEditingSupport implements EditingSupport {
+  private static class AttributeNameEditingSupport implements EditingSupport {
     private final NlComponent myComponent;
     private final Supplier<CustomAttributeType> myType;
     private CustomAttributeType myLastLookupType;
@@ -424,8 +429,8 @@ public class NewCustomAttributePanel extends DialogWrapper {
 
     @NotNull
     @Override
-    public Function0<List<String>> getCompletion() {
-      return () -> getCompletions();
+    public Function1<String, List<String>> getCompletion() {
+      return (forText) -> getCompletions();
     }
 
     @Override

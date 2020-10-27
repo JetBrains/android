@@ -21,9 +21,9 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.util.concurrency.EdtExecutorService;
@@ -40,15 +40,28 @@ import org.jetbrains.annotations.Nullable;
 public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   private final Map<Object, Map<ResourceReference, ResourceValue>> myDefaultProperties;
   private ViewEditor myCustomViewEditor;
+  private boolean myIgnoreRenderRequests;
 
   public SyncLayoutlibSceneManager(@NotNull SyncNlModel model) {
-    super(model, model.getSurface(), () -> RenderSettings.getProjectSettings(model.getProject()), EdtExecutorService.getInstance());
+    super(model, model.getSurface(), EdtExecutorService.getInstance(), queue -> queue.setPassThrough(true),
+          new LayoutlibSceneManagerHierarchyProvider());
     myDefaultProperties = new HashMap<>();
+  }
+
+  public boolean getIgnoreRenderRequests() {
+    return myIgnoreRenderRequests;
+  }
+
+  public void setIgnoreRenderRequests(boolean ignoreRenderRequests) {
+    myIgnoreRenderRequests = ignoreRenderRequests;
   }
 
   @NotNull
   @Override
   protected CompletableFuture<RenderResult> render(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+    if (myIgnoreRenderRequests) {
+      return CompletableFuture.completedFuture(null);
+    }
     return CompletableFuture.completedFuture(super.render(trigger).join());
   }
 
@@ -74,7 +87,10 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   @Override
   @NotNull
   protected RenderService.RenderTaskBuilder setupRenderTaskBuilder(@NotNull RenderService.RenderTaskBuilder taskBuilder) {
-    return super.setupRenderTaskBuilder(taskBuilder).disableSecurityManager();
+    return super.setupRenderTaskBuilder(taskBuilder)
+      .disableSecurityManager()
+      // For testing, we do not need to wait for the full merged manifest
+      .setMergedManifestProvider(module -> MergedManifestManager.getMergedManifestSupplier(module).getNow());
   }
 
   @Override

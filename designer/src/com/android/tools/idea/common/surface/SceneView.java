@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.surface;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.resources.ScreenRound;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
@@ -29,35 +30,98 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
 import com.google.common.collect.ImmutableList;
-import java.awt.Dimension;
-import java.awt.Shape;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.util.ui.JBUI;
+import java.awt.*;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * View of a {@link Scene} used in a {@link DesignSurface}.
  */
-public abstract class SceneView implements Disposable {
+public abstract class SceneView extends PositionableContent implements Disposable {
+  /**
+   * Policy for determining the {@link Shape} of a {@link SceneView}.
+   */
+  public interface ShapePolicy {
+    @Nullable Shape getShape(@NotNull SceneView sceneView);
+  }
+
+  /**
+   * A {@link ShapePolicy} that uses the device configuration shape.
+   */
+  public static final ShapePolicy DEVICE_CONFIGURATION_SHAPE_POLICY = new ShapePolicy() {
+    @Nullable
+    @Override
+    public Shape getShape(@NotNull SceneView sceneView) {
+      Device device = sceneView.getConfiguration().getCachedDevice();
+      if (device == null) {
+        return null;
+      }
+
+      Screen screen = device.getDefaultHardware().getScreen();
+      if (screen.getScreenRound() != ScreenRound.ROUND) {
+        return null;
+      }
+
+      Dimension size = sceneView.getScaledContentSize();
+
+      int chin = screen.getChin();
+      int originX = sceneView.getX();
+      int originY = sceneView.getY();
+      if (chin == 0) {
+        // Plain circle
+        return new Ellipse2D.Double(originX, originY, size.width, size.height);
+      }
+      else {
+        int height = size.height * chin / screen.getYDimension();
+        Area a1 = new Area(new Ellipse2D.Double(originX, originY, size.width, size.height + height));
+        Area a2 = new Area(new Rectangle2D.Double(originX, originY + 2 * (size.height + height) - height, size.width, height));
+        a1.subtract(a2);
+        return a1;
+      }
+    }
+  };
+
+  /**
+   * A {@link ShapePolicy} that a square size. The size is determined from the rendered size.
+   */
+  public static final ShapePolicy SQUARE_SHAPE_POLICY = new ShapePolicy() {
+    @NotNull
+    @Override
+    public Shape getShape(@NotNull SceneView sceneView) {
+      Dimension size = sceneView.getScaledContentSize();
+      return new Rectangle(sceneView.getX(), sceneView.getY(), size.width, size.height);
+    }
+  };
+
+  protected static final Insets NO_MARGIN = JBUI.emptyInsets();
+
   @NotNull private final DesignSurface mySurface;
   @NotNull private final SceneManager myManager;
+  private final Object myLayersCacheLock = new Object();
+  @GuardedBy("myLayersCacheLock")
   private ImmutableList<Layer> myLayersCache;
   @SwingCoordinate private int x;
   @SwingCoordinate private int y;
+  private boolean myAnimated = false;
+  @NotNull private final ShapePolicy myShapePolicy;
 
   /**
    * A {@link SceneContext} which offers the rendering and/or picking information for this {@link SceneView}
    */
   @NotNull private final SceneContext myContext = new SceneViewTransform();
 
-  public SceneView(@NotNull DesignSurface surface, @NotNull SceneManager manager) {
+  public SceneView(@NotNull DesignSurface surface, @NotNull SceneManager manager, @NotNull ShapePolicy shapePolicy) {
     mySurface = surface;
     myManager = manager;
+    myShapePolicy = shapePolicy;
   }
 
   @NotNull
@@ -67,60 +131,59 @@ public abstract class SceneView implements Disposable {
    * If Layers are not exist, they will be created by {@link #createLayers()}. This should happen only once.
    */
   @NotNull
-  public final ImmutableList<Layer> getLayers() {
-    if (myLayersCache == null) {
-      myLayersCache = createLayers();
+  private ImmutableList<Layer> getLayers() {
+    if (Disposer.isDisposed(mySurface)) {
+      // Do not try to re-create the layers for a disposed surface
+      return ImmutableList.of();
     }
-    return myLayersCache;
+    synchronized (myLayersCacheLock) {
+      if (myLayersCache == null) {
+        myLayersCache = createLayers();
+      }
+      return myLayersCache;
+    }
   }
 
   @NotNull
-  public Scene getScene() {
-    return myManager.getScene();
+  public final Scene getScene() {
+    return getSceneManager().getScene();
   }
 
   /**
-   * Returns the current size of the view. This is the same as {@link #getPreferredSize()} but accounts for the current zoom level.
+   * Returns the current size of the view content, excluding margins. This is the same as {@link #getContentSize()} but accounts for the
+   * current zoom level
    *
    * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
    *                  returned.
    */
+  @Override
   @NotNull
   @SwingCoordinate
-  public Dimension getSize(@Nullable Dimension dimension) {
+  public final Dimension getScaledContentSize(@Nullable Dimension dimension) {
     if (dimension == null) {
       dimension = new Dimension();
     }
 
-    Dimension preferred = getPreferredSize(dimension);
+    Dimension contentSize = getContentSize(dimension);
     double scale = getScale();
 
-    dimension.setSize((int)(scale * preferred.width), (int)(scale * preferred.height));
+    dimension.setSize((int)(scale * contentSize.width), (int)(scale * contentSize.height));
     return dimension;
   }
 
+  /**
+   * Returns the margin requested by this {@link SceneView}
+   */
+  @Override
   @NotNull
-  public Dimension getPreferredSize() {
-    return getPreferredSize(null);
+  public Insets getMargin() {
+    return NO_MARGIN;
   }
 
-  /**
-   * Returns the current size of the view. This is the same as {@link #getPreferredSize()} but accounts for the current zoom level.
-   */
+  @Override
   @NotNull
-  @SwingCoordinate
-  public Dimension getSize() {
-    return getSize(null);
-  }
-
-  /**
-   * Get the height of the name label which displays the name on the top of SceneView.
-   * The value is sum of text height and space between text and SceneView.
-   */
-  abstract public int getNameLabelHeight();
-
-  @NotNull
-  abstract public Dimension getPreferredSize(@Nullable Dimension dimension);
+  @AndroidDpCoordinate
+  abstract public Dimension getContentSize(@Nullable Dimension dimension);
 
   @NotNull
   public Configuration getConfiguration() {
@@ -146,32 +209,7 @@ public abstract class SceneView implements Disposable {
    */
   @Nullable
   public Shape getScreenShape() {
-    Device device = getConfiguration().getDevice();
-    if (device == null) {
-      return null;
-    }
-
-    Screen screen = device.getDefaultHardware().getScreen();
-    if (screen.getScreenRound() != ScreenRound.ROUND) {
-      return null;
-    }
-
-    Dimension size = getSize();
-
-    int chin = screen.getChin();
-    int originX = getX();
-    int originY = getY();
-    if (chin == 0) {
-      // Plain circle
-      return new Ellipse2D.Double(originX, originY, size.width, size.height);
-    }
-    else {
-      int height = size.height * chin / screen.getYDimension();
-      Area a1 = new Area(new Ellipse2D.Double(originX, originY, size.width, size.height + height));
-      Area a2 = new Area(new Rectangle2D.Double(originX, originY + 2 * (size.height + height) - height, size.width, height));
-      a1.subtract(a2);
-      return a1;
-    }
+    return myShapePolicy.getShape(this);
   }
 
   @NotNull
@@ -187,16 +225,19 @@ public abstract class SceneView implements Disposable {
     return getSceneManager().getSceneScalingFactor();
   }
 
-  public void setLocation(@SwingCoordinate int screenX, @SwingCoordinate int screenY) {
+  @Override
+  public final void setLocation(@SwingCoordinate int screenX, @SwingCoordinate int screenY) {
     x = screenX;
     y = screenY;
   }
 
+  @Override
   @SwingCoordinate
   public int getX() {
     return x;
   }
 
+  @Override
   @SwingCoordinate
   public int getY() {
     return y;
@@ -226,6 +267,13 @@ public abstract class SceneView implements Disposable {
   @NotNull
   public abstract ColorSet getColorSet();
 
+  /**
+   * Returns true if this {@link SceneView} can be dynamically resized.
+   */
+  public boolean isResizeable() {
+    return false;
+  }
+
   @NotNull
   final public SceneContext getContext() {
     return myContext;
@@ -246,13 +294,93 @@ public abstract class SceneView implements Disposable {
   }
 
   /**
+   * Called by the surface when the {@link SceneView} needs to be painted
+   * @param graphics
+   */
+  final void paint(@NotNull Graphics2D graphics) {
+    for (Layer layer : getLayers()) {
+      if (layer.isVisible()) {
+        layer.paint(graphics);
+      }
+    }
+  }
+
+  /**
+   * Called when a drag operation starts on the {@link DesignSurface}
+   */
+  final void onDragStart() {
+    for (Layer layer : getLayers()) {
+      if (layer instanceof SceneLayer) {
+        SceneLayer sceneLayer = (SceneLayer)layer;
+        if (sceneLayer.isShowOnHover()) {
+          sceneLayer.setShowOnHover(true);
+        }
+      }
+    }
+  }
+
+  /**
+   * Called when a drag operation ends on the {@link DesignSurface}
+   */
+  final void onDragEnd() {
+    for (Layer layer : getLayers()) {
+      if (layer instanceof SceneLayer) {
+        SceneLayer sceneLayer = (SceneLayer)layer;
+        if (sceneLayer.isShowOnHover()) {
+          sceneLayer.setShowOnHover(false);
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns whether this {@link SceneView} has content. Some {@link SceneView} might not have the content available while it's rendering
+   * or if there's been a failure.
+   */
+  public boolean hasContent() {
+    return true;
+  }
+
+  public void dispose() {
+    synchronized (myLayersCacheLock) {
+      if (myLayersCache != null) {
+        // TODO(b/148936113)
+        myLayersCache.forEach(Disposer::dispose);
+      }
+    }
+  }
+
+  /**
+   * Called by the {@link DesignSurface} on mouse hover. The coordinates might be outside of the boundaries of this {@link SceneView}
+   */
+  final void onHover(@SwingCoordinate int mouseX, @SwingCoordinate int mouseY) {
+    for (Layer layer : getLayers()) {
+      layer.onHover(mouseX, mouseY);
+    }
+  }
+
+  /**
+   * Set the ConstraintsLayer and SceneLayer layers to paint, even if they are set to paint only on mouse hover
+   *
+   * @param value if true, force painting
+   */
+  public final void setForceLayersRepaint(boolean value) {
+    for (Layer layer : getLayers()) {
+      if (layer instanceof SceneLayer) {
+        SceneLayer sceneLayer = (SceneLayer)layer;
+        sceneLayer.setTemporaryShow(value);
+      }
+    }
+  }
+
+  /**
    * The {@link SceneContext} based on a {@link SceneView}.
    *
    * TODO: b/140160277
    *   For historical reason we put the Coordinate translation in {@link SceneContext} instead of using
    *   {@link SceneView} directly. Maybe we can remove {@link SceneContext} and just use {@link SceneView} only.
    */
-  private final class SceneViewTransform extends SceneContext {
+  private class SceneViewTransform extends SceneContext {
 
     private SceneViewTransform() {
     }
@@ -320,5 +448,20 @@ public abstract class SceneView implements Disposable {
     public int getSwingDimension(@AndroidCoordinate int dim) {
       return Coordinates.getSwingDimension(SceneView.this, dim);
     }
+  }
+
+  /**
+   * Sets animated mode of the scene.
+   * @param animated true if the scene is animated, false otherwise.
+   */
+  public void setAnimated(boolean animated) {
+    myAnimated = animated;
+  }
+
+  /**
+   * Returns true if the scene is animated, false otherwise.
+   */
+  public boolean isAnimated() {
+    return myAnimated;
   }
 }

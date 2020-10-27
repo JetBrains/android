@@ -16,7 +16,6 @@
 package com.android.tools.idea.common.editor
 
 import com.android.tools.idea.common.analytics.CommonUsageTracker
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
@@ -25,6 +24,7 @@ import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.LeakHunter
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
@@ -42,11 +42,9 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
-    StudioFlags.NELE_SPLIT_EDITOR.override(true)
-
-    val surface = NlDesignSurface.build(project, testRootDisposable)
     val panel = mock(DesignerEditorPanel::class.java)
-    `when`(panel.surface).thenReturn(surface)
+    `when`(panel.surface).thenReturn(NlDesignSurface.build(project, testRootDisposable))
+    `when`(panel.state).thenReturn(DesignerEditorPanel.State.FULL)
     designerEditor = mock(DesignerEditor::class.java)
     `when`(designerEditor.component).thenReturn(panel)
     val textEditorComponent = mock(JComponent::class.java)
@@ -57,8 +55,8 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
     `when`(editor.contentComponent).thenReturn(mock(JComponent::class.java))
     `when`(textEditor.editor).thenReturn(editor)
     val component = mock(JComponent::class.java)
-    `when`(component.getActionForKeyStroke(ArgumentMatchers.any(KeyStroke::class.java))).thenCallRealMethod()
-    splitEditor = object : DesignToolsSplitEditor(textEditor, designerEditor, "testEditor", project) {
+    `when`(component.getActionForKeyStroke(any(KeyStroke::class.java))).thenCallRealMethod()
+    splitEditor = object : DesignToolsSplitEditor(textEditor, designerEditor, project) {
       // The fact that we have to call registerModeNavigationShortcuts here repeating the behavior in SplitEditor is incorrect
       // and should be fixed. However, we can not use the original getComponent method since it calls getComponent of
       // TextEditorWithPreview which fails with a NullPointerException in testing environment. This test, however, has a value
@@ -74,6 +72,11 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
       }
     }
     CommonUsageTracker.NOP_TRACKER.resetLastTrackedEvent()
+  }
+
+  override fun tearDown() {
+    KeyboardFocusManager.setCurrentKeyboardFocusManager(null)
+    super.tearDown()
   }
 
   fun testTrackingModeChange() {
@@ -140,10 +143,5 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
 
     dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_RIGHT))
     assertThat(splitEditor.isSplitMode()).isTrue()
-  }
-
-  override fun tearDown() {
-    super.tearDown()
-    StudioFlags.NELE_SPLIT_EDITOR.clearOverride()
   }
 }

@@ -60,6 +60,7 @@ import com.intellij.ui.UIBundle;
 import com.intellij.util.Alarm;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ExceptionUtil;
+import com.intellij.util.containers.ContainerUtil;
 import java.awt.datatransfer.StringSelection;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -116,7 +117,7 @@ public class DeviceExplorerController {
   @NotNull private final Project myProject;
   @NotNull private final DeviceExplorerModel myModel;
   @NotNull private final DeviceExplorerView myView;
-  @NotNull private final DeviceFileSystemService myService;
+  @NotNull private final DeviceFileSystemService<? extends DeviceFileSystem> myService;
   @NotNull private final FutureCallbackExecutor myEdtExecutor;
   @NotNull private final DeviceExplorerFileManager myFileManager;
   @NotNull private final FileTransferWorkEstimator myWorkEstimator;
@@ -131,7 +132,7 @@ public class DeviceExplorerController {
   public DeviceExplorerController(@NotNull Project project,
                                   @NotNull DeviceExplorerModel model,
                                   @NotNull DeviceExplorerView view,
-                                  @NotNull DeviceFileSystemService service,
+                                  @NotNull DeviceFileSystemService<? extends DeviceFileSystem> service,
                                   @NotNull DeviceExplorerFileManager fileManager,
                                   @NotNull FileOpener fileOpener,
                                   @NotNull Executor edtExecutor,
@@ -211,11 +212,11 @@ public class DeviceExplorerController {
     cancelPendingOperations();
 
     myView.startRefresh("Refreshing list of devices");
-    ListenableFuture<List<DeviceFileSystem>> futureDevices = myService.getDevices();
+    ListenableFuture<? extends List<? extends DeviceFileSystem>> futureDevices = myService.getDevices();
     myEdtExecutor.addListener(futureDevices, myView::stopRefresh);
-    myEdtExecutor.addCallback(futureDevices, new FutureCallback<List<DeviceFileSystem>>() {
+    myEdtExecutor.addCallback(futureDevices, new FutureCallback<List<? extends DeviceFileSystem>>() {
       @Override
-      public void onSuccess(@Nullable List<DeviceFileSystem> result) {
+      public void onSuccess(@Nullable List<? extends DeviceFileSystem> result) {
         assert result != null;
         myModel.removeAllDevices();
         result.forEach(myModel::addDevice);
@@ -901,7 +902,7 @@ public class DeviceExplorerController {
         return;
       }
 
-      List<DeviceFileEntry> fileEntries = nodes.stream().map(DeviceFileEntryNode::getEntry).collect(Collectors.toList());
+      List<DeviceFileEntry> fileEntries = ContainerUtil.map(nodes, DeviceFileEntryNode::getEntry);
       String message = createDeleteConfirmationMessage(fileEntries);
       int returnValue = Messages.showOkCancelDialog(message,
                                                     UIBundle.message("delete.dialog.title"),
@@ -1700,7 +1701,7 @@ public class DeviceExplorerController {
     }
   }
 
-  private static final class ShowLoadingNodeRequest implements Runnable {
+  private static class ShowLoadingNodeRequest implements Runnable {
     @NotNull private DefaultTreeModel myTreeModel;
     @NotNull private DeviceFileEntryNode myNode;
 

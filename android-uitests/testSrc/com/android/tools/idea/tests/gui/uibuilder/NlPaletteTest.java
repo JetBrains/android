@@ -49,7 +49,7 @@ public class NlPaletteTest {
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
 
-    NlEditorFixture layout = editor.getLayoutEditor(false);
+    NlEditorFixture layout = editor.getLayoutEditor();
     layout.waitForRenderToFinish();
     NlPaletteFixture palette = layout.getPalette();
 
@@ -75,7 +75,7 @@ public class NlPaletteTest {
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
 
-    NlEditorFixture layout = editor.getLayoutEditor(false);
+    NlEditorFixture layout = editor.getLayoutEditor();
     layout.waitForRenderToFinish();
     NlPaletteFixture palette = layout.getPalette();
 
@@ -101,7 +101,7 @@ public class NlPaletteTest {
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
 
-    NlEditorFixture layout = editor.getLayoutEditor(false);
+    NlEditorFixture layout = editor.getLayoutEditor();
     layout.waitForRenderToFinish();
     NlPaletteFixture palette = layout.getPalette();
 
@@ -129,7 +129,7 @@ public class NlPaletteTest {
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
 
-    NlEditorFixture layout = editor.getLayoutEditor(false);
+    NlEditorFixture layout = editor.getLayoutEditor();
     layout.waitForRenderToFinish();
     NlPaletteFixture palette = layout.getPalette();
 
@@ -149,7 +149,7 @@ public class NlPaletteTest {
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
 
-    NlEditorFixture layout = editor.getLayoutEditor(false);
+    NlEditorFixture layout = editor.getLayoutEditor();
     layout.waitForRenderToFinish();
     layout.dragComponentToSurface("Containers", "<fragment>");
 
@@ -165,7 +165,7 @@ public class NlPaletteTest {
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
 
-    NlEditorFixture layout = editor.getLayoutEditor(false);
+    NlEditorFixture layout = editor.getLayoutEditor();
     layout.waitForRenderToFinish();
     layout.dragComponentToSurface("Containers", "<fragment>");
 

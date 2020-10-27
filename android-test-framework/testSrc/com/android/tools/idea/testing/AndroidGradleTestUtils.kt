@@ -51,6 +51,7 @@ import com.android.ide.common.gradle.model.stubs.ProductFlavorContainerStub
 import com.android.ide.common.gradle.model.stubs.ProductFlavorStub
 import com.android.ide.common.gradle.model.stubs.SourceProviderContainerStub
 import com.android.ide.common.gradle.model.stubs.SourceProviderStub
+import com.android.ide.common.gradle.model.stubs.VariantBuildInformationStub
 import com.android.ide.common.gradle.model.stubs.VariantStub
 import com.android.ide.common.gradle.model.stubs.VectorDrawablesOptionsStub
 import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
@@ -67,35 +68,56 @@ import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTask
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
+import com.android.tools.idea.gradle.project.sync.idea.setupDataNodesForSelectedVariant
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup
+import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
+import com.android.tools.idea.gradle.util.emulateStartupActivityForTest
+import com.android.tools.idea.io.FilePaths
+import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.utils.FileUtils
 import com.android.utils.appendCapitalized
-import com.google.common.truth.TruthJUnit.assume
+import com.google.common.collect.ImmutableList
 import com.intellij.externalSystem.JavaProjectData
+import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
+import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.JavaModuleType
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.StdModuleTypes.JAVA
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ex.ProjectEx
+import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
+import com.intellij.openapi.util.io.systemIndependentPath
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.pom.java.LanguageLevel
+import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.UsefulTestCase
+import com.intellij.testFramework.runInEdtAndGet
+import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.util.ThrowableConsumer
 import com.intellij.util.text.nullize
+import org.jetbrains.annotations.SystemDependent
+import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import org.jetbrains.plugins.gradle.model.ExternalSourceSet
 import org.jetbrains.plugins.gradle.model.ExternalTask
 import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache
 import java.io.File
+import java.io.IOException
 
-typealias AndroidProjectBuilder = (projectName: String, basePath: File, agpVersion: String) -> AndroidProject
+typealias AndroidProjectBuilderCore = (projectName: String, basePath: File, agpVersion: String) -> AndroidProject
 
 sealed class ModuleModelBuilder {
   abstract val gradlePath: String
@@ -108,10 +130,19 @@ data class AndroidModuleModelBuilder(
   override val gradleVersion: String? = null,
   override val agpVersion: String? = null,
   val selectedBuildVariant: String,
-  val projectBuilder: AndroidProjectBuilder
+  val projectBuilder: AndroidProjectBuilderCore
 ) : ModuleModelBuilder() {
   constructor (gradlePath: String, selectedBuildVariant: String, projectBuilder: AndroidProjectBuilder)
     : this(gradlePath, null, null, selectedBuildVariant, projectBuilder)
+
+  constructor (
+    gradlePath: String,
+    gradleVersion: String? = null,
+    agpVersion: String? = null,
+    selectedBuildVariant: String,
+    projectBuilder: AndroidProjectBuilder
+  )
+    : this(gradlePath, gradleVersion, agpVersion, selectedBuildVariant, projectBuilder.build())
 }
 
 data class JavaModuleModelBuilder(
@@ -120,16 +151,18 @@ data class JavaModuleModelBuilder(
   val buildable: Boolean = true
 ) : ModuleModelBuilder() {
 
-  constructor (gradlePath: String, buildable: Boolean = true) : this(gradlePath, null,  buildable)
+  constructor (gradlePath: String, buildable: Boolean = true) : this(gradlePath, null, buildable)
 
   override val agpVersion: String? = null
 
   companion object {
+    @JvmStatic
     val rootModuleBuilder = JavaModuleModelBuilder(":", buildable = false)
   }
 }
 
 data class AndroidModuleDependency(val moduleGradlePath: String, val variant: String?)
+
 /**
  * An interface providing access to [AndroidProject] sub-model builders are used to build [AndroidProject] and its other sub-models.
  */
@@ -153,6 +186,7 @@ interface AndroidProjectStubBuilder {
   val dynamicFeatures: List<String>
   val viewBindingOptions: ViewBindingOptions
   val dependenciesInfo: DependenciesInfo
+  val supportsBundleTask: Boolean
   fun androidModuleDependencies(variant: String): List<AndroidModuleDependency>?
   fun mainArtifact(variant: String): AndroidArtifact
   fun androidTestArtifact(variant: String): AndroidArtifact
@@ -161,34 +195,101 @@ interface AndroidProjectStubBuilder {
 }
 
 /**
- * A helper method for building [AndroidProject] stubs.
+ * A helper class for building [AndroidProject] stubs.
  *
  * This method creates a model of a simple project which can be slightly customized by providing alternative implementations of
  * sub-model builders.
+ *
+ * If a totally different is needed implement [AndroidProjectBuilderCore] directly.
  */
-fun createAndroidProjectBuilder(
-  buildId: AndroidProjectStubBuilder.() -> String = { "/tmp/buildId" }, //  buildId should not be assumed to be a path.
-  projectType: AndroidProjectStubBuilder.() -> Int = { AndroidProjectTypes.PROJECT_TYPE_APP },
-  minSdk: AndroidProjectStubBuilder.() -> Int = { 16 },
-  targetSdk: AndroidProjectStubBuilder.() -> Int = { 22 },
-  defaultConfig: AndroidProjectStubBuilder.() -> ProductFlavorContainerStub = { buildDefaultConfigStub() },
-  mainSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub = { buildMainSourceProviderStub() },
-  androidTestSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderContainerStub? = { buildAndroidTestSourceProviderContainerStub() },
-  unitTestSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderContainerStub? = { buildUnitTestSourceProviderContainerStub() },
-  debugSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub? = { buildDebugSourceProviderStub() },
-  releaseSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub? = { buildReleaseSourceProviderStub() },
-  debugBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub? = { buildDebugBuildTypeStub() },
-  releaseBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub? = { buildReleaseBuildTypeStub() },
-  dynamicFeatures: AndroidProjectStubBuilder.() -> List<String> = { emptyList() },
-  viewBindingOptions: AndroidProjectStubBuilder.() -> ViewBindingOptionsStub = { buildViewBindingOptions() },
-  dependenciesInfo: AndroidProjectStubBuilder.() -> DependenciesInfoStub = { buildDependenciesInfo() },
-  mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub = { variant -> buildMainArtifactStub(variant) },
-  androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub = { variant -> buildAndroidTestArtifactStub(variant) },
-  unitTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> JavaArtifactStub = { variant -> buildUnitTestArtifactStub(variant) },
-  androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency> = { emptyList() },
-  androidProject: AndroidProjectStubBuilder.() -> AndroidProject = { buildAndroidProjectStub() }
-): AndroidProjectBuilder {
-  return { projectName, basePath, agpVersion ->
+data class AndroidProjectBuilder(
+  val buildId: AndroidProjectStubBuilder.() -> String = { "/tmp/buildId" }, //  buildId should not be assumed to be a path.
+  val projectType: AndroidProjectStubBuilder.() -> Int = { AndroidProjectTypes.PROJECT_TYPE_APP },
+  val minSdk: AndroidProjectStubBuilder.() -> Int = { 16 },
+  val targetSdk: AndroidProjectStubBuilder.() -> Int = { 22 },
+  val defaultConfig: AndroidProjectStubBuilder.() -> ProductFlavorContainerStub = { buildDefaultConfigStub() },
+  val mainSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub = { buildMainSourceProviderStub() },
+  val androidTestSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderContainerStub? = { buildAndroidTestSourceProviderContainerStub() },
+  val unitTestSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderContainerStub? = { buildUnitTestSourceProviderContainerStub() },
+  val debugSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub? = { buildDebugSourceProviderStub() },
+  val releaseSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub? = { buildReleaseSourceProviderStub() },
+  val debugBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub? = { buildDebugBuildTypeStub() },
+  val releaseBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub? = { buildReleaseBuildTypeStub() },
+  val dynamicFeatures: AndroidProjectStubBuilder.() -> List<String> = { emptyList() },
+  val viewBindingOptions: AndroidProjectStubBuilder.() -> ViewBindingOptionsStub = { buildViewBindingOptions() },
+  val dependenciesInfo: AndroidProjectStubBuilder.() -> DependenciesInfoStub = { buildDependenciesInfo() },
+  val supportsBundleTask: AndroidProjectStubBuilder.() -> Boolean = { true },
+  val mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub = { variant -> buildMainArtifactStub(variant) },
+  val androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub =
+    { variant -> buildAndroidTestArtifactStub(variant) },
+  val unitTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> JavaArtifactStub =
+    { variant -> buildUnitTestArtifactStub(variant) },
+  val androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency> = { emptyList() },
+  val androidProject: AndroidProjectStubBuilder.() -> AndroidProject = { buildAndroidProjectStub() }
+) {
+
+  fun withBuildId(buildId: AndroidProjectStubBuilder.() -> String) =
+    copy(buildId = buildId)
+
+  fun withProjectType(projectType: AndroidProjectStubBuilder.() -> Int) =
+    copy(projectType = projectType)
+
+  fun withMinSdk(minSdk: AndroidProjectStubBuilder.() -> Int) =
+    copy(minSdk = minSdk)
+
+  fun withTargetSdk(targetSdk: AndroidProjectStubBuilder.() -> Int) =
+    copy(targetSdk = targetSdk)
+
+  fun withDefaultConfig(defaultConfig: AndroidProjectStubBuilder.() -> ProductFlavorContainerStub) =
+    copy(defaultConfig = defaultConfig)
+
+  fun withMainSourceProvider(mainSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub) =
+    copy(mainSourceProvider = mainSourceProvider)
+
+  fun withAndroidTestSourceProvider(androidTestSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderContainerStub?) =
+    copy(androidTestSourceProvider = androidTestSourceProvider)
+
+  fun withUnitTestSourceProvider(unitTestSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderContainerStub?) =
+    copy(unitTestSourceProvider = unitTestSourceProvider)
+
+  fun withDebugSourceProvider(debugSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub?) =
+    copy(debugSourceProvider = debugSourceProvider)
+
+  fun withReleaseSourceProvider(releaseSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub?) =
+    copy(releaseSourceProvider = releaseSourceProvider)
+
+  fun withDebugBuildType(debugBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub?) =
+    copy(debugBuildType = debugBuildType)
+
+  fun withReleaseBuildType(releaseBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub?) =
+    copy(releaseBuildType = releaseBuildType)
+
+  fun withDynamicFeatures(dynamicFeatures: AndroidProjectStubBuilder.() -> List<String>) =
+    copy(dynamicFeatures = dynamicFeatures)
+
+  fun withViewBindingOptions(viewBindingOptions: AndroidProjectStubBuilder.() -> ViewBindingOptionsStub) =
+    copy(viewBindingOptions = viewBindingOptions)
+
+  fun withSupportsBundleTask(supportsBundleTask: AndroidProjectStubBuilder.() -> Boolean) =
+    copy(supportsBundleTask = supportsBundleTask)
+
+  fun withMainArtifactStub(mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub) =
+    copy(mainArtifactStub = mainArtifactStub)
+
+  fun withAndroidTestArtifactStub(androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub) =
+    copy(androidTestArtifactStub = androidTestArtifactStub)
+
+  fun withUnitTestArtifactStub(unitTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> JavaArtifactStub) =
+    copy(unitTestArtifactStub = unitTestArtifactStub)
+
+  fun withAndroidModuleDependencyList(androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency>) =
+    copy(androidModuleDependencyList = androidModuleDependencyList)
+
+  fun withAndroidProject(androidProject: AndroidProjectStubBuilder.() -> AndroidProject) =
+    copy(androidProject = androidProject)
+
+
+  fun build(): AndroidProjectBuilderCore = { projectName, basePath, agpVersion ->
     val builder = object : AndroidProjectStubBuilder {
       override val agpVersion: String = agpVersion
       override val buildId: String = buildId()
@@ -209,6 +310,7 @@ fun createAndroidProjectBuilder(
       override val dynamicFeatures: List<String> = dynamicFeatures()
       override val viewBindingOptions: ViewBindingOptions = viewBindingOptions()
       override val dependenciesInfo: DependenciesInfo = dependenciesInfo()
+      override val supportsBundleTask: Boolean = supportsBundleTask()
       override fun androidModuleDependencies(variant: String): List<AndroidModuleDependency> = androidModuleDependencyList(variant)
       override fun mainArtifact(variant: String): AndroidArtifact = mainArtifactStub(variant)
       override fun androidTestArtifact(variant: String): AndroidArtifact = androidTestArtifactStub(variant)
@@ -219,29 +321,34 @@ fun createAndroidProjectBuilder(
   }
 }
 
-fun createAndroidProjectBuilderForDefaultTestProjectStructure(): AndroidProjectBuilder =
-    createAndroidProjectBuilder(
-      minSdk = { AndroidVersion.MIN_RECOMMENDED_API },
-      targetSdk = { AndroidVersion.VersionCodes.O_MR1 },
-      mainSourceProvider = {
-        SourceProviderStub(
-          ARTIFACT_NAME_MAIN,
-          File(basePath, "AndroidManifest.xml"),
-          listOf(File(basePath, "src")),
-          emptyList(),
-          emptyList(),
-          emptyList(),
-          emptyList(),
-          emptyList(),
-          listOf(File(basePath, "res")),
-          emptyList(),
-          emptyList(),
-          emptyList())
-      },
-      androidTestSourceProvider = { null },
-      unitTestSourceProvider = { null },
-      releaseSourceProvider = { null }
-    )
+@JvmOverloads
+fun createAndroidProjectBuilderForDefaultTestProjectStructure(
+  projectType: Int = AndroidProjectTypes.PROJECT_TYPE_APP
+): AndroidProjectBuilder =
+  AndroidProjectBuilder(
+    projectType = { projectType },
+    minSdk = { AndroidVersion.MIN_RECOMMENDED_API },
+    targetSdk = { AndroidVersion.VersionCodes.O_MR1 },
+    mainSourceProvider = {
+      SourceProviderStub(
+        ARTIFACT_NAME_MAIN,
+        File(basePath, "AndroidManifest.xml"),
+        listOf(File(basePath, "src")),
+        emptyList(),
+        emptyList(),
+        emptyList(),
+        emptyList(),
+        emptyList(),
+        listOf(File(basePath, "res")),
+        emptyList(),
+        emptyList(),
+        emptyList(),
+        emptyList())
+    },
+    androidTestSourceProvider = { null },
+    unitTestSourceProvider = { null },
+    releaseSourceProvider = { null }
+  )
 
 fun AndroidProjectStubBuilder.buildMainSourceProviderStub() =
   SourceProviderStub(ARTIFACT_NAME_MAIN, basePath.resolve("src/main"), "AndroidManifest.xml")
@@ -336,9 +443,11 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
         File("stub_assetsFolder"),
         it.variant,
         emptyList(),
-        File("srub_proguard.txt"),
+        File("stub_proguard.txt"),
         File("stub_lintJar.jar"),
-        File("stub_publicResources")
+        File("stub_publicResources"),
+        File("stub_symbolFile.txt"),
+        File("stub_annotations.zip")
       )
     }
   )
@@ -369,7 +478,7 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
     listOf(),
     null,
     null,
-    "bundle".takeIf { projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variant),
+    "bundle".takeIf { supportsBundleTask && projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variant),
     buildPath.resolve("intermediates/bundle_ide_model/$variant/output.json"),
     "extractApksFor".takeIf { projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variant),
     buildPath.resolve("intermediates/apk_from_bundle_ide_model/$variant/output.json"),
@@ -458,6 +567,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
     listOfNotNull(debugBuildType, releaseBuildType),
     listOf(),
     "buildToolsVersion",
+    "ndkVersion",
     listOf(),
     listOf("debug", "release")
       .map { variant ->
@@ -471,7 +581,8 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
           listOf(),
           defaultConfig.productFlavor,
           listOf(),
-          false
+          false,
+          listOf()
         )
       },
     listOfNotNull(debugBuildType?.sourceProvider?.name, releaseBuildType?.sourceProvider?.name),
@@ -482,6 +593,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
     listOf(),
     listOf(),
     LintOptionsStub(),
+    listOf(),
     setOf(),
     JavaCompileOptionsStub(),
     AaptOptionsStub(),
@@ -494,7 +606,19 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
     true,
     projectType,
     true,
-    AndroidGradlePluginProjectFlagsStub()
+    AndroidGradlePluginProjectFlagsStub(),
+    listOf("debug", "release")
+      .map { variantName ->
+        VariantBuildInformationStub(
+          variantName,
+          "assemble".appendCapitalized(variantName),
+          buildPath.resolve("output/apk/$variantName/output.json").absolutePath,
+          "bundle".takeIf { supportsBundleTask && projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variantName),
+          buildPath.resolve("intermediates/bundle_ide_model/$variantName/output.json").absolutePath,
+          "extractApksFor".takeIf { projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variantName),
+          buildPath.resolve("intermediates/apk_from_bundle_ide_model/$variantName/output.json").absolutePath
+        )
+      }
   )
 }
 
@@ -530,21 +654,20 @@ fun setupTestProjectFromAndroidModel(
       }
       if (module.name != project.name) {
         modifiableModel.renameModule(module, project.name)
-        modifiableModel.setModuleGroupPath(module, arrayOf(project.name))
       }
       modifiableModel.commit()
       ExternalSystemModulePropertyManager
         .getInstance(module)
         .setExternalOptions(
           GRADLE_SYSTEM_ID,
-          ModuleData(":", GRADLE_SYSTEM_ID, JAVA.id, project.name, basePath.path, basePath.path),
-          ProjectData(GRADLE_SYSTEM_ID, project.name, project.basePath!!, basePath.path))
+          ModuleData(":", GRADLE_SYSTEM_ID, JAVA.id, project.name, basePath.systemIndependentPath, basePath.systemIndependentPath),
+          ProjectData(GRADLE_SYSTEM_ID, project.name, project.basePath!!, basePath.systemIndependentPath))
     }
   }
   else {
-    assume().that(moduleManager.modules.size).isEqualTo(0)
+    error("There is already more than one module in the test project.")
   }
-  ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem (project))
+  ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
   val gradlePlugins = listOf(
     "com.android.java.model.builder.JavaLibraryPlugin", "org.gradle.buildinit.plugins.BuildInitPlugin",
     "org.gradle.buildinit.plugins.WrapperPlugin", "org.gradle.api.plugins.HelpTasksPlugin",
@@ -561,14 +684,14 @@ fun setupTestProjectFromAndroidModel(
     ProjectData(
       GRADLE_SYSTEM_ID,
       projectName,
-      basePath.path,
-      basePath.path),
+      basePath.systemIndependentPath,
+      basePath.systemIndependentPath),
     null)
 
   projectDataNode.addChild(
     DataNode<JavaProjectData>(
       JavaProjectData.KEY,
-      JavaProjectData(GRADLE_SYSTEM_ID, buildPath.path),
+      JavaProjectData(GRADLE_SYSTEM_ID, buildPath.systemIndependentPath, LanguageLevel.JDK_1_6, null),
       null
     )
   )
@@ -599,6 +722,7 @@ fun setupTestProjectFromAndroidModel(
     )
   )
 
+  val androidModels = mutableListOf<AndroidModuleModel>()
   moduleBuilders.forEach { moduleBuilder ->
     val gradlePath = moduleBuilder.gradlePath
     val moduleName = gradlePath.substringAfterLast(':').nullize() ?: projectName;
@@ -619,7 +743,12 @@ fun setupTestProjectFromAndroidModel(
             moduleBuilder.agpVersion ?: LatestKnownPluginVersionProvider.INSTANCE.get()
           ),
           moduleBuilder.selectedBuildVariant
-        )
+        ).also { androidModelDataNode ->
+          val model = ExternalSystemApiUtil.find(androidModelDataNode, AndroidProjectKeys.ANDROID_MODEL)?.data
+          if (model != null) {
+            androidModels.add(model)
+          }
+        }
       }
       is JavaModuleModelBuilder ->
         createJavaModuleDataNode(
@@ -632,15 +761,18 @@ fun setupTestProjectFromAndroidModel(
     projectDataNode.addChild(moduleDataNode)
   }
 
-  IdeSdks.removeJdksOn(project)
+  setupDataNodesForSelectedVariant(project, androidModels, projectDataNode)
+  ProjectDataManager.getInstance().importData(projectDataNode, project, true)
+
+  // Effectively getTestRootDisposable(), which is not the project itself but its earlyDisposable.
+  IdeSdks.removeJdksOn((project as? ProjectEx)?.earlyDisposable ?: project)
   runWriteAction {
     task.populateProject(
       projectDataNode,
-      ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, ExternalSystemTaskType.RESOLVE_PROJECT, project),
       PostSyncProjectSetup.Request(),
       null
     )
-    assume().that(GradleSyncState.getInstance(project).lastSyncFailed()).isFalse()
+    if (GradleSyncState.getInstance(project).lastSyncFailed()) error("Test project setup failed.")
   }
 }
 
@@ -685,7 +817,7 @@ private fun createAndroidModuleDataNode(
           androidProjectStub,
           IdeDependenciesFactory(),
           null,
-          null),
+          ImmutableList.of()),
         selectedVariantName
       ),
       null
@@ -737,8 +869,7 @@ private fun createJavaModuleDataNode(
         null,
         null,
         null,
-        buildable,
-        false
+        buildable
       ),
       null
     )
@@ -759,10 +890,116 @@ private fun createGradleModuleDataNode(
       GRADLE_SYSTEM_ID,
       JavaModuleType.getModuleType().id,
       moduleName,
-      moduleBasePath.path,
-      moduleBasePath.path
+      moduleBasePath.systemIndependentPath,
+      moduleBasePath.systemIndependentPath
     ),
     null
   )
   return moduleDataNode
 }
+
+/**
+ * Finds a module by the given [gradlePath].
+ *
+ * Note: In the case of composite build [gradlePath] can be in a form of `includedProject:module:module` for modules from included projects.
+ */
+fun Project.gradleModule(gradlePath: String): Module? =
+  ModuleManager.getInstance(this).modules.singleOrNull { GradleProjects.getGradleModulePath(it) == gradlePath }
+
+/**
+ * Finds a file by the [path] relative to the corresponding Gradle project root.
+ */
+fun Module.fileUnderGradleRoot(path: @SystemIndependent String): VirtualFile? =
+  VirtualFileManager.getInstance().findFileByUrl("${FilePaths.pathToIdeaUrl(File(AndroidProjectRootUtil.getModuleDirPath(this)!!))}/$path")
+
+/**
+ * See implementing classes for usage examples.
+ */
+interface GradleIntegrationTest {
+  /**
+   * Assumed to be matched by [UsefulTestCase.getName].
+   */
+  fun getName(): String
+
+  /**
+   * The base test directory to be used in tests.
+   */
+  fun getBaseTestPath(): @SystemDependent String
+
+
+  /**
+   * The path to a test data directory relative to the workspace or `null` to use the legacy resolution.
+   */
+  fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String
+
+  /**
+   * The collection of additional repositories to be added to the Gradle project.
+   */
+  fun getAdditionalRepos(): Collection<File>
+
+  /**
+   * The base testData directory to be used in tests.
+   */
+  fun resolveTestDataPath(testDataPath: @SystemIndependent String): File {
+    val testDataDirectory = File(TestUtils.getWorkspaceRoot(), toSystemDependentName(getTestDataDirectoryWorkspaceRelativePath()))
+    return testDataDirectory.resolve(toSystemDependentName(testDataPath))
+  }
+}
+
+/**
+ * Prepares a test project created from a [testProjectPath] under the given [name] so that it can be opened with [openPreparedProject].
+ */
+@JvmOverloads
+fun GradleIntegrationTest.prepareGradleProject(
+  testProjectPath: String,
+  name: String,
+  gradleVersion: String? = null,
+  gradlePluginVersion: String? = null
+): File {
+  if (name == this.getName()) throw IllegalArgumentException("Additional projects cannot be opened under the test name: $name")
+  val srcPath = resolveTestDataPath(testProjectPath)
+  val projectPath = nameToPath(name)
+
+  AndroidGradleTests.prepareProjectForImportCore(
+    srcPath, projectPath,
+    ThrowableConsumer<File, IOException> { projectRoot ->
+      AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, gradlePluginVersion,
+                                                     *getAdditionalRepos().toTypedArray())
+    })
+  return projectPath
+}
+
+fun prepareGradleProject(projectSourceRoot: File, projectPath: File, projectPatcher: ThrowableConsumer<File, IOException>) {
+  AndroidGradleTests.validateGradleProjectSource(projectSourceRoot)
+  AndroidGradleTests.prepareProjectForImportCore(projectSourceRoot, projectPath, projectPatcher)
+}
+
+/**
+ * Opens a test project previously prepared under the given [name], runs a test [action] and then closes and disposes the project.
+ *
+ * The project's `.idea` directory is not required to exist, however.
+ */
+fun <T> GradleIntegrationTest.openPreparedProject(name: String, action: (Project) -> T): T = openPreparedProject(nameToPath(name), action)
+
+private fun <T> openPreparedProject(projectPath: File, action: (Project) -> T): T {
+  val project = runInEdtAndGet {
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    val project = ProjectUtil.openOrImport(projectPath.absolutePath, null, true)!!
+    // Unfortunately we do not have start-up activities run in tests so we have to trigger a refresh here.
+    emulateStartupActivityForTest(project)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    project
+  }
+  try {
+    return action(project)
+  }
+  finally {
+    runInEdtAndWait {
+      ProjectUtil.closeAndDispose(project)
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    }
+  }
+}
+
+private fun GradleIntegrationTest.nameToPath(name: String) =
+  File(toSystemDependentName(getBaseTestPath() + "/" + name))

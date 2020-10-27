@@ -29,9 +29,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidApplicationPackageRenameProcessor extends RenamePsiElementProcessor {
   @Override
   public boolean canProcessElement(@NotNull PsiElement element) {

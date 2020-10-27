@@ -27,6 +27,8 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.wm.impl.welcomeScreen.FlatWelcomeFrame;
 import com.intellij.openapi.wm.impl.welcomeScreen.RecentProjectPanel;
 import com.intellij.ui.components.JBList;
+import java.awt.Component;
+import java.awt.Point;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
@@ -57,7 +59,10 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
 
   @NotNull
   public NewProjectWizardFixture createNewProject() {
-    findActionLinkByActionId("WelcomeScreen.CreateNewProject").click();
+    // Need to press on top of text, otherwise click is ignored.
+    Component actionLink = findActionLinkByActionId("WelcomeScreen.CreateNewProject").target();
+    robot().click(actionLink, new Point(actionLink.getWidth()/4, actionLink.getHeight()/2));
+
     return NewProjectWizardFixture.find(robot());
   }
 

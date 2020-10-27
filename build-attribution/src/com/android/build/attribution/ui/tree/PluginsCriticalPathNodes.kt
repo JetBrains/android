@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.tree
 
+import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel
 import com.android.build.attribution.ui.colorIcon
 import com.android.build.attribution.ui.data.CriticalPathPluginUiData
@@ -27,7 +28,6 @@ import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.issuesCountString
 import com.android.build.attribution.ui.panels.AbstractBuildAttributionInfoPanel
-import com.android.build.attribution.ui.panels.CRITICAL_PATH_LINK
 import com.android.build.attribution.ui.panels.ChartBuildAttributionInfoPanel
 import com.android.build.attribution.ui.panels.TimeDistributionChart
 import com.android.build.attribution.ui.panels.TimeDistributionChart.AggregatedChartDataItem
@@ -37,7 +37,7 @@ import com.android.build.attribution.ui.panels.TreeLinkListener
 import com.android.build.attribution.ui.panels.createIssueTypeListPanel
 import com.android.build.attribution.ui.panels.criticalPathHeader
 import com.android.build.attribution.ui.panels.headerLabel
-import com.android.build.attribution.ui.panels.htmlTextLabel
+import com.android.build.attribution.ui.panels.htmlTextLabelWithLinesWrap
 import com.android.build.attribution.ui.panels.pluginInfoPanel
 import com.android.build.attribution.ui.panels.taskInfoPanel
 import com.android.build.attribution.ui.percentageString
@@ -80,7 +80,7 @@ class CriticalPathPluginsRoot(
         .newline()
         .add("Addressing this group provides the greatest likelihood of reducing the overall build duration.")
         .closeHtmlBody()
-      return DescriptionWithHelpLinkLabel(text.html, CRITICAL_PATH_LINK, analytics)
+      return DescriptionWithHelpLinkLabel(text.html, BuildAnalyzerBrowserLinks.CRITICAL_PATH, analytics)
     }
 
     override fun createRightInfoPanel(): JComponent? = null
@@ -215,7 +215,7 @@ private class PluginTasksRootNode(
           .newline()
           .add("Addressing this group provides the greatest likelihood of reducing the overall build duration.")
           .closeHtmlBody()
-        return DescriptionWithHelpLinkLabel(descriptionText.html, CRITICAL_PATH_LINK, analytics)
+        return DescriptionWithHelpLinkLabel(descriptionText.html, BuildAnalyzerBrowserLinks.CRITICAL_PATH, analytics)
       }
     }
 
@@ -241,7 +241,7 @@ private class PluginTaskNode(
   override fun createComponent(): AbstractBuildAttributionInfoPanel = object : AbstractBuildAttributionInfoPanel() {
     override fun createHeader(): JComponent = headerLabel(taskData.taskPath)
 
-    override fun createBody(): JComponent = taskInfoPanel(taskData, issueClickListener)
+    override fun createBody(): JComponent = taskInfoPanel(taskData, analytics, issueReporter)
   }
     .withPreferredWidth(350)
 
@@ -253,8 +253,7 @@ private class PluginIssuesRootNode(
   private val pluginUiData: CriticalPathPluginUiData,
   private val parentNode: PluginNode
 ) : AbstractBuildAttributionNode(parentNode, "Warnings (${pluginUiData.warningCount})") {
-  //TODO mlazeba change to new type when added and merged b/144767316
-  override val pageType = BuildAttributionUiEvent.Page.PageType.UNKNOWN_PAGE
+  override val pageType = BuildAttributionUiEvent.Page.PageType.PLUGIN_WARNINGS_ROOT
   override val presentationIcon: Icon? = null
   override val issuesCountsSuffix: String? = null
   override val timeSuffix: String? = null
@@ -266,7 +265,7 @@ private class PluginIssuesRootNode(
       val listPanel = JBPanel<JBPanel<*>>(VerticalLayout(6))
       val totalWarningsCount = pluginUiData.warningCount
       listPanel.add(
-        htmlTextLabel(
+        htmlTextLabelWithLinesWrap(
           if (children.isEmpty())
             "No warnings detected for this build."
           else

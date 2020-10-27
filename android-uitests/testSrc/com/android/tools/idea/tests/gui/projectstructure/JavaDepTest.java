@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.projectstructure;
 
-import static com.android.tools.idea.npw.platform.Language.JAVA;
 import static com.android.tools.idea.tests.gui.projectstructure.DependenciesTestUtil.APP_NAME;
 import static com.android.tools.idea.tests.gui.projectstructure.DependenciesTestUtil.MIN_SDK_API;
+import static com.android.tools.idea.wizard.template.Language.Java;
+import static com.intellij.psi.impl.DebugUtil.sleep;
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 import static org.junit.Assert.assertTrue;
 
@@ -75,18 +76,16 @@ public class JavaDepTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void transitiveJavaDependenciesResolve() {
-    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, APP_NAME, MIN_SDK_API, JAVA);
+    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, APP_NAME, MIN_SDK_API, Java);
 
     ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .clickNextToJavaLibrary()
       .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish();
-
+      .clickFinishAndWaitForSyncToFinish();
     EditorFixture editor = ideFrame.getEditor()
       .open("/lib/build.gradle")
-      .select("dependencies \\{()")
-      .enterText("\napi 'com.google.code.gson:gson:2.6.2'\n");
+      .select("()java \\{")
+      .enterText("\ndependencies {\n    api 'com.google.code.gson:gson:2.6.2'\n}\n\n");
 
     ideFrame.getProjectView()
       .selectProjectPane()

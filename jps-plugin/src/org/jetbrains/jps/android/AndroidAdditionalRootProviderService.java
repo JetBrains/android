@@ -13,9 +13,6 @@ import org.jetbrains.jps.builders.storage.BuildDataPaths;
 import org.jetbrains.jps.incremental.ModuleBuildTarget;
 import org.jetbrains.jps.model.module.JpsModule;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidAdditionalRootProviderService extends AdditionalRootsProviderService<JavaSourceRootDescriptor> {
   public AndroidAdditionalRootProviderService() {
     super(Collections.singletonList(JavaModuleBuildTargetType.PRODUCTION));

@@ -54,7 +54,7 @@ class ProfilingTechnologyTest {
   fun fromConfigAtrace() {
     val atraceConfiguration = ProfilingConfiguration("MyConfiguration", CpuTraceType.ATRACE,
                                                      CpuTraceMode.SAMPLED)
-    assertThat(ProfilingTechnology.fromConfig(atraceConfiguration)).isEqualTo(ProfilingTechnology.ATRACE)
+    assertThat(ProfilingTechnology.fromConfig(atraceConfiguration)).isEqualTo(ProfilingTechnology.SYSTEM_TRACE)
   }
 
   @Test(expected = IllegalStateException::class)
@@ -67,7 +67,7 @@ class ProfilingTechnologyTest {
   @Test
   fun getType() {
     assertThat(ProfilingTechnology.SIMPLEPERF.type).isEqualTo(CpuTraceType.SIMPLEPERF)
-    assertThat(ProfilingTechnology.ATRACE.type).isEqualTo(CpuTraceType.ATRACE)
+    assertThat(ProfilingTechnology.SYSTEM_TRACE.type).isEqualTo(CpuTraceType.ATRACE)
 
     assertThat(ProfilingTechnology.ART_INSTRUMENTED.type).isEqualTo(CpuTraceType.ART)
     assertThat(ProfilingTechnology.ART_SAMPLED.type).isEqualTo(CpuTraceType.ART)
@@ -77,7 +77,7 @@ class ProfilingTechnologyTest {
   @Test
   fun getMode() {
     assertThat(ProfilingTechnology.SIMPLEPERF.mode).isEqualTo(CpuTraceMode.SAMPLED)
-    assertThat(ProfilingTechnology.ATRACE.mode).isEqualTo(CpuTraceMode.INSTRUMENTED)
+    assertThat(ProfilingTechnology.SYSTEM_TRACE.mode).isEqualTo(CpuTraceMode.INSTRUMENTED)
 
     assertThat(ProfilingTechnology.ART_INSTRUMENTED.mode).isEqualTo(CpuTraceMode.INSTRUMENTED)
     assertThat(ProfilingTechnology.ART_SAMPLED.mode).isEqualTo(CpuTraceMode.SAMPLED)

@@ -18,6 +18,7 @@ package com.android.tools.idea.navigator.nodes.android;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.navigator.nodes.FileGroupNode;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
+import com.android.tools.idea.navigator.nodes.GroupNodes;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -63,19 +64,19 @@ public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implemen
 
   @Override
   @NotNull
-  public PsiDirectory[] getFolders() {
+  public List<PsiDirectory> getFolders() {
     List<PsiFile> resFiles = getResFiles();
-    PsiDirectory[] folders = new PsiDirectory[resFiles.size()];
-    for (int i = 0; i < resFiles.size(); i++) {
-      folders[i] = resFiles.get(i).getParent();
+    List<PsiDirectory> folders = new ArrayList<>(resFiles.size());
+    for (PsiFile file : resFiles) {
+      folders.add(file.getParent());
     }
     return folders;
   }
 
   @Override
   @NotNull
-  public PsiFile[] getFiles() {
-    return getResFiles().toArray(PsiFile.EMPTY_ARRAY);
+  public List<PsiFile> getFiles() {
+    return getResFiles();
   }
 
   @NotNull
@@ -93,6 +94,11 @@ public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implemen
       }
     }
     return false;
+  }
+
+  @Override
+  public boolean canRepresent(Object element) {
+    return GroupNodes.canRepresent((FileGroupNode)this, element) || GroupNodes.canRepresent((FolderGroupNode)this, element);
   }
 
   @Override

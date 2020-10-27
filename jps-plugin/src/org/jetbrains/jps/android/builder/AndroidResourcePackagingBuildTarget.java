@@ -1,4 +1,3 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android.builder;
 
 import com.android.SdkConstants;
@@ -24,9 +23,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidResourcePackagingBuildTarget extends AndroidBuildTarget {
   public AndroidResourcePackagingBuildTarget(@NotNull JpsModule module) {
     super(MyTargetType.INSTANCE, module);
@@ -136,7 +132,7 @@ public class AndroidResourcePackagingBuildTarget extends AndroidBuildTarget {
     }
   }
 
-  public static final class MyTargetType extends AndroidBuildTargetType<AndroidResourcePackagingBuildTarget> {
+  public static class MyTargetType extends AndroidBuildTargetType<AndroidResourcePackagingBuildTarget> {
     public static final MyTargetType INSTANCE = new MyTargetType();
 
     private MyTargetType() {

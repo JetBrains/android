@@ -7,9 +7,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 class AddModuleDependencyTask extends ImportDependenciesTask {
   private final ModuleProvider myModuleProvider;
   private final ModuleProvider myDepModuleProvider;

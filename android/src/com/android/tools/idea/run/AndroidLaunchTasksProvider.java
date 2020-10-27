@@ -121,7 +121,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         // RunInstantAppTask
         LaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
                                                                         amStartOptions.toString(),
-                                                                        myLaunchOptions.isDebug(), launchStatus);
+                                                                        myLaunchOptions.isDebug(), launchStatus, myApkProvider);
         if (appLaunchTask != null) {
           launchTasks.add(appLaunchTask);
         }
@@ -190,7 +190,8 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         tasks.add(new ApplyCodeChangesTask(myProject, packages.build(), isApplyCodeChangesFallbackToRun(), installPathProvider));
       }
       else {
-        tasks.add(new DeployTask(myProject, packages.build(), myLaunchOptions.getPmInstallOptions(), installPathProvider));
+        tasks.add(new DeployTask(myProject, packages.build(), myLaunchOptions.getPmInstallOptions(device),
+                                 myLaunchOptions.getInstallOnAllUsers(), installPathProvider));
       }
     }
     return ImmutableList.copyOf(tasks);
@@ -231,8 +232,9 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     Logger logger = Logger.getInstance(AndroidLaunchTasksProvider.class);
 
     Set<String> packageIds = new HashSet<String>();
+    String packageName = null;
     try {
-      String packageName = myApplicationIdProvider.getPackageName();
+      packageName = myApplicationIdProvider.getPackageName();
       packageIds.add(packageName);
     }
     catch (ApkProvisionException e) {
@@ -240,9 +242,9 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     }
 
     try {
-      String packageName = myApplicationIdProvider.getTestPackageName();
-      if (packageName != null) {
-        packageIds.add(packageName);
+      String testPackageName = myApplicationIdProvider.getTestPackageName();
+      if (testPackageName != null) {
+        packageIds.add(testPackageName);
       }
     }
     catch (ApkProvisionException e) {
@@ -267,7 +269,8 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
                                              packageIds,
                                              myFacet,
                                              androidDebuggerState,
-                                             myRunConfig.getType().getId());
+                                             myRunConfig.getType().getId(),
+                                             packageName);
     }
 
     return null;

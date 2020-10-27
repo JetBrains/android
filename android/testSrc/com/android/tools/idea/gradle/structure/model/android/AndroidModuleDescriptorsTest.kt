@@ -54,6 +54,7 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
     assertThat(appModule, notNullValue())
 
     val buildToolsVersion = AndroidModuleDescriptors.buildToolsVersion.bind(appModule).getValue()
+    val ndkVersion = AndroidModuleDescriptors.ndkVersion.bind(appModule).getValue()
     val compileSdkVersion = AndroidModuleDescriptors.compileSdkVersion.bind(appModule).getValue()
     val sourceCompatibility = AndroidModuleDescriptors.sourceCompatibility.bind(appModule).getValue()
     val targetCompatibility = AndroidModuleDescriptors.targetCompatibility.bind(appModule).getValue()
@@ -61,6 +62,9 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
 
     assertThat(buildToolsVersion.resolved.asTestValue(), equalTo(SdkConstants.CURRENT_BUILD_TOOLS_VERSION))
     assertThat(buildToolsVersion.parsedValue.asTestValue(), equalTo(SdkConstants.CURRENT_BUILD_TOOLS_VERSION))
+
+    assertThat(ndkVersion.resolved.asTestValue(), nullValue())
+    assertThat(ndkVersion.parsedValue.asTestValue(), nullValue())
 
     assertThat(matchHashStrings(null, compileSdkVersion.resolved.asTestValue(), SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()),
                equalTo(true))
@@ -144,10 +148,13 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
 
     // Verify changes applied correctly.
     val buildToolsVersion = AndroidModuleDescriptors.buildToolsVersion.bind(appModule).getValue()
+    val ndkVersion = AndroidModuleDescriptors.ndkVersion.bind(appModule).getValue()
     val compileSdkVersion = AndroidModuleDescriptors.compileSdkVersion.bind(appModule).getValue()
     assertThat(buildToolsVersion.parsedValue.asTestValue(), equalTo("26.1.1"))
+    assertNull(ndkVersion.parsedValue.asTestValue())
     assertThat(compileSdkVersion.parsedValue.asTestValue(), equalTo("15"))
     assertThat(appModule.parsedModel?.android()?.buildToolsVersion()?.getValue(OBJECT_TYPE), equalTo<Any>("26.1.1"))
+    assertNull(appModule.parsedModel?.android()?.ndkVersion()?.getValue(OBJECT_TYPE))
     assertThat(appModule.parsedModel?.android()?.buildToolsVersion()?.getRawValue(STRING_TYPE), equalTo<Any>(expectedValues[0]))
 
     assertThat(appModule.parsedModel?.android()?.compileSdkVersion()?.getValue(OBJECT_TYPE), equalTo<Any>(15))

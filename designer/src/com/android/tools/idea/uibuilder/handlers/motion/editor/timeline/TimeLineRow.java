@@ -84,8 +84,9 @@ public class TimeLineRow extends JPanel {
       g.fillRect(0, 0, w, titley);
       if (mSelected) {
         g.setColor(MEUI.ourMySelectedLineColor);
-        g.fillRect(0, titley, w, myRowHeight);
+        g.fillRect(0, titley, MEUI.ourLeftColumnWidth, myRowHeight);
         g.setColor(MEUI.ourSecondaryPanelBackground);
+        g.fillRect(MEUI.ourLeftColumnWidth, titley, w - MEUI.ourLeftColumnWidth, myRowHeight);
         g.fillRect(0, titley + myRowHeight, w, h - (titley + myRowHeight));
       } else {
         g.setColor(MEUI.ourSecondaryPanelBackground);
@@ -96,8 +97,9 @@ public class TimeLineRow extends JPanel {
     } else {
       if (mSelected) {
         g.setColor(MEUI.ourMySelectedLineColor);
-        g.fillRect(0, 0, w, myRowHeight);
+        g.fillRect(0, 0, MEUI.ourLeftColumnWidth, myRowHeight);
         g.setColor(MEUI.ourSecondaryPanelBackground);
+        g.fillRect(MEUI.ourLeftColumnWidth, 0, w - MEUI.ourLeftColumnWidth, myRowHeight);
         g.fillRect(0, myRowHeight, w, h - myRowHeight);
       } else {
         g.setColor(MEUI.ourSecondaryPanelBackground);
@@ -118,7 +120,9 @@ public class TimeLineRow extends JPanel {
     int sy = 0;
     if (mShowTitle) {
       g.setColor(MEUI.ourTextColor);
+      g.setClip(0,0, MEUI.ourLeftColumnWidth, getHeight());
       g.drawString(mRow.mRef + ":" + mRow.mName, sx, fontAscent);
+      g.setClip(null);
       sy += myTitleHeight;
     }
     ((Graphics2D) g)
@@ -131,7 +135,9 @@ public class TimeLineRow extends JPanel {
     sx = MEUI.scale(22);
     int rowTypeEnd  = 0;
     if (mRow.mType != null) {
+      g.setClip(0,0, MEUI.ourLeftColumnWidth, getHeight());
       g.drawString(mRow.mType, sx, sy);
+      g.setClip(null);
       rowTypeEnd  =  sx + metrics.stringWidth(mRow.mType);
     }
     if (mRow.mKeyProp != null) {

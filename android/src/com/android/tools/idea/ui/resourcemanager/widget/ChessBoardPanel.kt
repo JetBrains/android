@@ -16,8 +16,10 @@
 package com.android.tools.idea.ui.resourcemanager.widget
 
 import com.intellij.ui.JBColor
-import com.intellij.util.ui.JBUI
+import com.intellij.ui.scale.JBUIScale
+import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.UIUtil
+import java.awt.BorderLayout
 import java.awt.FlowLayout
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -30,57 +32,23 @@ import javax.swing.JPanel
 import kotlin.reflect.KProperty
 
 // Chessboard texture constants
-/**
- * Size of a single square in the chessboard pattern
- */
-private val CHESSBOARD_CELL_SIZE = JBUI.scale(10)
-
-/**
- * Size of the whole patten (width and height)
- */
-private val CHESSBOARD_PATTERN_SIZE = 2 * CHESSBOARD_CELL_SIZE
-
 private val CHESSBOARD_COLOR_1 = JBColor(0xCDCDCD, 0x414243)
 
 private val CHESSBOARD_COLOR_2 = JBColor(0xF1F1F1, 0x393A3B)
 
-private val TEXTURE_ANCHOR = Rectangle(0, 0, CHESSBOARD_PATTERN_SIZE,
-                                       CHESSBOARD_PATTERN_SIZE)
+private fun createTextureAnchor(scaledPatternSize: Int) = Rectangle(0, 0, scaledPatternSize, scaledPatternSize)
 
-/**
- * A [TexturePaint] that updates itself when the theme changes
- */
-private val CHESSBOARD_PAINT by object {
-
-  private var isDarcula = UIUtil.isUnderDarcula()
-  private var chessboardPaint = TexturePaint(createTexturePattern(), TEXTURE_ANCHOR)
-
-  /**
-   * Four alternating squares to make the chessboard pattern
-   */
-  private fun createTexturePattern() = UIUtil.createImage(CHESSBOARD_PATTERN_SIZE,
-                                                          CHESSBOARD_PATTERN_SIZE,
-                                                          BufferedImage.TYPE_INT_ARGB).apply {
+private fun createTexturePattern(scaledCellSize: Int): BufferedImage {
+  val patternSize = scaledCellSize * 2
+  return ImageUtil.createImage(patternSize, patternSize, BufferedImage.TYPE_INT_ARGB).apply {
     with(this.graphics) {
       color = CHESSBOARD_COLOR_1
-      fillRect(0, 0, CHESSBOARD_PATTERN_SIZE,
-               CHESSBOARD_PATTERN_SIZE)
+      fillRect(0, 0, patternSize, patternSize)
       color = CHESSBOARD_COLOR_2
-      fillRect(0, CHESSBOARD_CELL_SIZE,
-               CHESSBOARD_CELL_SIZE,
-               CHESSBOARD_CELL_SIZE)
-      fillRect(CHESSBOARD_CELL_SIZE, 0,
-               CHESSBOARD_CELL_SIZE,
-               CHESSBOARD_CELL_SIZE)
+      fillRect(0, scaledCellSize, scaledCellSize, scaledCellSize)
+      fillRect(scaledCellSize, 0, scaledCellSize, scaledCellSize)
+      dispose()
     }
-  }
-
-  operator fun getValue(thisRef: Any?, property: KProperty<*>): Paint {
-    if (isDarcula != UIUtil.isUnderDarcula()) {
-      isDarcula = UIUtil.isUnderDarcula()
-      chessboardPaint = TexturePaint(createTexturePattern(), TEXTURE_ANCHOR)
-    }
-    return chessboardPaint
   }
 }
 
@@ -88,8 +56,27 @@ private val CHESSBOARD_PAINT by object {
  * A [JPanel] which draws a chessboard pattern as its background when [showChessboard] is true.
  */
 class ChessBoardPanel(
-  layoutManager: LayoutManager = FlowLayout())
+  cellSize: Int = 10,
+  layoutManager: LayoutManager = BorderLayout())
   : JPanel(layoutManager) {
+
+  /**
+   * The Chess Board [Paint], it updates itself whenever the theme changes.
+   */
+  private val chessBoardPaint by object {
+    private val scaledCellSize = JBUIScale.scale(cellSize)
+    private val scaledPatternSize = scaledCellSize * 2
+
+    private var isDarcula = UIUtil.isUnderDarcula()
+    private var paint = TexturePaint(createTexturePattern(scaledCellSize), createTextureAnchor(scaledPatternSize))
+    operator fun getValue(thisRef: Any?, property: KProperty<*>): Paint {
+      if (isDarcula != UIUtil.isUnderDarcula()) {
+        isDarcula = UIUtil.isUnderDarcula()
+        paint = TexturePaint(createTexturePattern(scaledCellSize), createTextureAnchor(scaledPatternSize))
+      }
+      return paint
+    }
+  }
 
   var showChessboard: Boolean = true
 
@@ -101,7 +88,7 @@ class ChessBoardPanel(
     if (showChessboard) {
       with(g as Graphics2D) {
         val oldPaint = paint
-        paint = CHESSBOARD_PAINT
+        paint = chessBoardPaint
         val insets = insets
         fillRect(insets.left,
                  insets.top,

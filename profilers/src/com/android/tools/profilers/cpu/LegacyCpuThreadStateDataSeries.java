@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Legacy class responsible for making an RPC call to perfd/datastore and converting the resulting proto into UI data.
  */
-public class LegacyCpuThreadStateDataSeries implements DataSeries<CpuProfilerStage.ThreadState> {
+public class LegacyCpuThreadStateDataSeries implements DataSeries<ThreadState> {
 
   @NotNull
   private CpuServiceGrpc.CpuServiceBlockingStub myClient;
@@ -52,9 +52,9 @@ public class LegacyCpuThreadStateDataSeries implements DataSeries<CpuProfilerSta
   }
 
   @Override
-  public List<SeriesData<CpuProfilerStage.ThreadState>> getDataForRange(Range range) {
+  public List<SeriesData<ThreadState>> getDataForRange(Range range) {
     // TODO Investigate if this is too slow. We can then have them share a common "series", and return a view to that series.
-    ArrayList<SeriesData<CpuProfilerStage.ThreadState>> data = new ArrayList<>();
+    ArrayList<SeriesData<ThreadState>> data = new ArrayList<>();
 
     long min = TimeUnit.MICROSECONDS.toNanos((long)range.getMin());
     long max = TimeUnit.MICROSECONDS.toNanos((long)range.getMax());
@@ -68,7 +68,7 @@ public class LegacyCpuThreadStateDataSeries implements DataSeries<CpuProfilerSta
       if (thread.getTid() == myThreadId) {
         // Merges information from current capture and samples:
         ArrayList<Double> captureTimes = new ArrayList<>(2);
-        if (mySelectedCapture != null && mySelectedCapture.getThreads().stream().anyMatch(t -> t.getId() == myThreadId)) {
+        if (mySelectedCapture != null && mySelectedCapture.containsThread(myThreadId)) {
           captureTimes.add(mySelectedCapture.getRange().getMin());
           captureTimes.add(mySelectedCapture.getRange().getMax());
         }

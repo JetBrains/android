@@ -15,9 +15,11 @@
  */
 package com.android.tools.adtui.common;
 
+import com.android.tools.adtui.TreeWalker;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.LoadingNode;
 import com.intellij.ui.treeStructure.Tree;
+import java.awt.event.MouseEvent;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -113,6 +115,23 @@ public class ColumnTreeBuilderTest {
     assertThat(tree.getUI()).isNotSameAs(ui);
   }
 
+  @Test
+  public void enabledHeaderTooltipShowsHeaderText() {
+    DefaultTreeModel treeModel = new DefaultTreeModel(new LoadingNode());
+    Tree tree = new Tree(treeModel);
+    JComponent treeTable = createTestColumnTreeBuilder(null, new MyEmptyRenderer(), tree)
+      .setShowHeaderTooltips(true)
+      .build();
+    JTableHeader header = (JTableHeader) new TreeWalker(treeTable).descendantStream()
+      .filter(c -> c instanceof JTableHeader).findAny()
+      .orElse(null);
+    assertThat(header).isNotNull();
+    MouseEvent onFirstHeader = new MouseEvent(tree, 0, 0, 0, 30, 30, 0, true);
+    MouseEvent onSecondHeader = new MouseEvent(tree, 0, 0, 0, 80, 30, 0, true);
+    assertThat(header.getToolTipText(onFirstHeader)).isEqualTo("A");
+    assertThat(header.getToolTipText(onSecondHeader)).isEqualTo("B");
+  }
+
   private ColumnTreeTestInfo createTestTable(Border headerBorder) {
     return createTestTable(headerBorder, new MyEmptyRenderer());
   }
@@ -120,9 +139,17 @@ public class ColumnTreeBuilderTest {
   private ColumnTreeTestInfo createTestTable(Border headerBorder, ColoredTreeCellRenderer cellRenderer) {
     DefaultTreeModel treeModel = new DefaultTreeModel(new LoadingNode());
     Tree tree = new Tree(treeModel);
+    ColumnTreeBuilder builder = createTestColumnTreeBuilder(headerBorder, cellRenderer, tree);
 
-    // Setup
-    ColumnTreeBuilder builder = new ColumnTreeBuilder(tree)
+    JScrollPane columnTreePane = (JScrollPane)builder.build().getComponent(0);
+    columnTreePane.setPreferredSize(new Dimension(100, 100));
+    ColumnTreeTestInfo info = new ColumnTreeTestInfo(tree, columnTreePane);
+    info.simulateLayout(new Dimension(100, 100));
+    return info;
+  }
+
+  private static ColumnTreeBuilder createTestColumnTreeBuilder(Border headerBorder, ColoredTreeCellRenderer cellRenderer, Tree tree) {
+    return new ColumnTreeBuilder(tree)
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("A")
                    .setPreferredWidth(30)
@@ -135,12 +162,6 @@ public class ColumnTreeBuilderTest {
                    .setHeaderAlignment(SwingConstants.TRAILING)
                    .setHeaderBorder(headerBorder)
                    .setRenderer(cellRenderer));
-
-    JScrollPane columnTreePane = (JScrollPane)builder.build().getComponent(0);
-    columnTreePane.setPreferredSize(new Dimension(100, 100));
-    ColumnTreeTestInfo info = new ColumnTreeTestInfo(tree, columnTreePane);
-    info.simulateLayout(new Dimension(100, 100));
-    return info;
   }
 
   private TableHeaderSizes getTestTableSizes(Border headerBorder) {

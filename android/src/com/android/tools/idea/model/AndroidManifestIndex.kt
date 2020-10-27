@@ -18,9 +18,11 @@ package com.android.tools.idea.model
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_DEBUGGABLE
 import com.android.SdkConstants.ATTR_ENABLED
+import com.android.SdkConstants.ATTR_EXPORTED
 import com.android.SdkConstants.ATTR_MIN_SDK_VERSION
 import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_PACKAGE
+import com.android.SdkConstants.ATTR_REQUIRED
 import com.android.SdkConstants.ATTR_TARGET_ACTIVITY
 import com.android.SdkConstants.ATTR_TARGET_SDK_VERSION
 import com.android.SdkConstants.ATTR_THEME
@@ -34,6 +36,7 @@ import com.android.SdkConstants.TAG_INTENT_FILTER
 import com.android.SdkConstants.TAG_MANIFEST
 import com.android.SdkConstants.TAG_PERMISSION
 import com.android.SdkConstants.TAG_PERMISSION_GROUP
+import com.android.SdkConstants.TAG_USES_FEATURE
 import com.android.SdkConstants.TAG_USES_PERMISSION
 import com.android.SdkConstants.TAG_USES_PERMISSION_SDK_23
 import com.android.SdkConstants.TAG_USES_PERMISSION_SDK_M
@@ -41,30 +44,35 @@ import com.android.SdkConstants.TAG_USES_SDK
 import com.android.tools.apk.analyzer.BinaryXmlParser
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.util.androidFacet
 import com.android.utils.reflection.qualifiedName
 import com.google.common.primitives.Shorts
 import com.google.devrel.gmscore.tools.apk.arsc.Chunk
-import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.io.DataInputOutputUtilRt.readSeq
 import com.intellij.openapi.util.io.DataInputOutputUtilRt.writeSeq
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.util.indexing.DataIndexer
 import com.intellij.util.indexing.DefaultFileTypeSpecificInputFilter
 import com.intellij.util.indexing.FileBasedIndex
+import com.intellij.util.indexing.FileBasedIndexExtension
 import com.intellij.util.indexing.FileContent
 import com.intellij.util.indexing.ID
-import com.intellij.util.indexing.SingleEntryFileBasedIndexExtension
-import com.intellij.util.indexing.SingleEntryIndexer
 import com.intellij.util.io.DataExternalizer
 import com.intellij.util.io.DataInputOutputUtil.readNullable
 import com.intellij.util.io.DataInputOutputUtil.writeNullable
+import com.intellij.util.io.EnumeratorStringDescriptor
 import com.intellij.util.io.IOUtil.readUTF
 import com.intellij.util.io.IOUtil.writeUTF
+import com.intellij.util.io.KeyDescriptor
 import com.intellij.util.text.CharArrayUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.kxml2.io.KXmlParser
@@ -84,8 +92,8 @@ import java.util.stream.Stream
 private val LOG = Logger.getInstance(AndroidManifestIndex::class.java)
 
 /**
- * A file-based index which maps each AndroidManifest.xml to a structured representation
- * of the manifest's raw text (as an [AndroidManifestRawText]).
+ * A file-based index which maps each AndroidManifest.xml to a single entry, <key: package name, value: structured
+ * representation of the manifest's raw text (as an [AndroidManifestRawText])>.
  *
  * Callers that need to consume only a subset of a merged manifest's attributes can use
  * this index to avoid blocking on computing the entire manifest by applying this pattern:
@@ -97,13 +105,39 @@ private val LOG = Logger.getInstance(AndroidManifestIndex::class.java)
  *      [com.android.tools.idea.projectsystem.AndroidModuleSystem.getManifestOverrides])
  *   4. Manually merge the attributes to obtain the final attribute(s) which would be present in the merged manifest
  */
-class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestRawText>() {
+class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawText>() {
   companion object {
     @JvmField
-    val NAME: ID<Int, AndroidManifestRawText> = ID.create(::NAME.qualifiedName)
+    val NAME: ID<String, AndroidManifestRawText> = ID.create(::NAME.qualifiedName)
 
     @JvmStatic
     fun indexEnabled() = ApplicationManager.getApplication().isUnitTestMode || StudioFlags.ANDROID_MANIFEST_INDEX_ENABLED.get()
+
+    /**
+     * Returns corresponding [AndroidFacet]s by given key(package name)
+     * NOTE: This function must be called from a smart read action.
+     *
+     * This may not be useful for non-Gradle build systems, as they may allow for package name overrides.
+     * Most callers should use the build system-dependent AndroidProjectSystem.findAndroidFacetsWithPackageName.
+     *
+     * @see DumbService.runReadActionInSmartMode
+     */
+    @JvmStatic
+    fun queryByPackageName(project: Project, packageName: String, scope: GlobalSearchScope): List<AndroidFacet> {
+      if (!checkIndexAccessibleFor(project)) {
+        return emptyList()
+      }
+
+      val facets = mutableSetOf<AndroidFacet>()
+      val fileBasedIndex = FileBasedIndex.getInstance()
+      fileBasedIndex.processFilesContainingAllKeys(NAME, listOf(packageName), scope, null, { relevantFile ->
+        val module = ProjectFileIndex.getInstance(project).getModuleForFile(relevantFile)
+        module?.androidFacet?.let { facets.add(it) }
+        true
+      })
+
+      return facets.toList()
+    }
 
     /**
      * Returns the [AndroidManifestRawText] for the given [manifestFile], or null
@@ -169,26 +203,46 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
       }
     }
 
+    /**
+     * Returns the [AndroidManifestRawText] for the given [manifestFile], or null
+     * if the file isn't recognized by the index (e.g. because it's malformed).
+     */
     @JvmStatic
     private fun doGetDataForManifestFile(project: Project, manifestFile: VirtualFile): AndroidManifestRawText? {
-      return FileBasedIndex.getInstance()
-        .getValues(NAME, getFileKey(manifestFile), GlobalSearchScope.fileScope(project, manifestFile))
-        .firstOrNull()
+      val index = FileBasedIndex.getInstance()
+      val scope = GlobalSearchScope.fileScope(project, manifestFile)
+      val values = mutableListOf<AndroidManifestRawText>()
+
+      // TODO (b/166625311) use FileBasedIndex#getFileData
+      for (key in index.getAllKeys(NAME, project)) {
+        index.processValues(NAME, key, manifestFile, { _, value ->
+          values.add(value)
+          true
+        }, scope)
+      }
+      // It's guaranteed that there's at most one entry: <package name, android manifest raw text>.
+      check(values.size <= 1)
+      return values.firstOrNull()
     }
   }
 
   override fun getValueExternalizer() = AndroidManifestRawText.Externalizer
   override fun getName() = NAME
-  override fun getVersion() = 4
+  override fun getVersion() = 10
   override fun getIndexer() = Indexer
   override fun getInputFilter() = InputFilter
 
-  object InputFilter : DefaultFileTypeSpecificInputFilter(XmlFileType.INSTANCE) {
+  object InputFilter : DefaultFileTypeSpecificInputFilter(StdFileTypes.XML) {
     override fun acceptInput(file: VirtualFile) = indexEnabled() && file.name == FN_ANDROID_MANIFEST_XML
   }
 
-  object Indexer : SingleEntryIndexer<AndroidManifestRawText>(false) {
-    public override fun computeValue(inputData: FileContent): AndroidManifestRawText? {
+  object Indexer : DataIndexer<String, AndroidManifestRawText, FileContent> {
+    override fun map(inputData: FileContent): Map<String, AndroidManifestRawText?> {
+      val manifestRawText = computeValue(inputData) ?: return emptyMap()
+      return mapOf(StringUtil.notNullize(manifestRawText.packageName) to manifestRawText)
+    }
+
+    private fun computeValue(inputData: FileContent): AndroidManifestRawText? {
       // TODO: rather than throw errors when the manifest is malformed,
       //  we should do our best to extract as much as we can from the document.
       val parser = KXmlParser()
@@ -265,17 +319,20 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
       val activityAliases = hashSetOf<ActivityAliasRawText>()
       val customPermissionGroupNames = hashSetOf<String>()
       val customPermissionNames = hashSetOf<String>()
-      val debuggable = getAttributeValue(ANDROID_URI, ATTR_DEBUGGABLE)
       val enabled = getAttributeValue(ANDROID_URI, ATTR_ENABLED)
       var minSdkLevel: String? = null
       val packageName = getAttributeValue(null, ATTR_PACKAGE)
       val usedPermissionNames = hashSetOf<String>()
+      val usedFeatures = hashSetOf<UsedFeatureRawText>()
+      var debuggable: String? = null
       var targetSdkLevel: String? = null
       var theme: String? = null
+
       processChildTags {
         when (name) {
           TAG_APPLICATION -> {
             theme = getAttributeValue(ANDROID_URI, ATTR_THEME)
+            debuggable = getAttributeValue(ANDROID_URI, ATTR_DEBUGGABLE)
             processChildTags {
               when (name) {
                 TAG_ACTIVITY -> activities.add(parseActivityTag())
@@ -296,6 +353,11 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
             androidName?.let(usedPermissionNames::add)
             skipSubTreeWithExceptionCaught()
           }
+          TAG_USES_FEATURE -> {
+            val required = getAttributeValue(ANDROID_URI, ATTR_REQUIRED)
+            usedFeatures.add(UsedFeatureRawText(androidName, required))
+            skipSubTreeWithExceptionCaught()
+          }
           TAG_USES_SDK -> {
             minSdkLevel = getAttributeValue(ANDROID_URI, ATTR_MIN_SDK_VERSION)
             targetSdkLevel = getAttributeValue(ANDROID_URI, ATTR_TARGET_SDK_VERSION)
@@ -304,6 +366,7 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
           else -> skipSubTreeWithExceptionCaught()
         }
       }
+
       return AndroidManifestRawText(
         activities = activities.toSet(),
         activityAliases = activityAliases.toSet(),
@@ -314,6 +377,7 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
         minSdkLevel = minSdkLevel,
         packageName = packageName,
         usedPermissionNames = usedPermissionNames.toSet(),
+        usedFeatures = usedFeatures.toSet(),
         targetSdkLevel = targetSdkLevel,
         theme = theme
       )
@@ -323,6 +387,8 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
       require(START_TAG, null, TAG_ACTIVITY)
       val activityName: String? = androidName
       val enabled: String? = getAttributeValue(ANDROID_URI, ATTR_ENABLED)
+      val exported: String? = getAttributeValue(ANDROID_URI, ATTR_EXPORTED)
+      val theme: String? = getAttributeValue(ANDROID_URI, ATTR_THEME)
       val intentFilters = hashSetOf<IntentFilterRawText>()
       processChildTags {
         if (name == TAG_INTENT_FILTER) {
@@ -335,6 +401,8 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
       return ActivityRawText(
         name = activityName,
         enabled = enabled,
+        exported = exported,
+        theme = theme,
         intentFilters = intentFilters.toSet()
       )
     }
@@ -344,6 +412,7 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
       val aliasName = androidName
       val targetActivity = getAttributeValue(ANDROID_URI, ATTR_TARGET_ACTIVITY)
       val enabled = getAttributeValue(ANDROID_URI, ATTR_ENABLED)
+      val exported: String? = getAttributeValue(ANDROID_URI, ATTR_EXPORTED)
       val intentFilters = hashSetOf<IntentFilterRawText>()
       processChildTags {
         if (name == TAG_INTENT_FILTER) {
@@ -357,6 +426,7 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
         name = aliasName,
         targetActivity = targetActivity,
         enabled = enabled,
+        exported = exported,
         intentFilters = intentFilters.toSet()
       )
     }
@@ -377,6 +447,12 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
         categoryNames = categoryNames.toSet()
       )
     }
+  }
+
+  override fun dependsOnFileContent() = true
+
+  override fun getKeyDescriptor(): KeyDescriptor<String> {
+    return EnumeratorStringDescriptor.INSTANCE
   }
 }
 
@@ -454,6 +530,7 @@ data class AndroidManifestRawText(
   val minSdkLevel: String?,
   val packageName: String?,
   val usedPermissionNames: Set<String>,
+  val usedFeatures: Set<UsedFeatureRawText>,
   val targetSdkLevel: String?,
   val theme: String?
 ) {
@@ -477,6 +554,7 @@ data class AndroidManifestRawText(
         writeNullable(out, minSdkLevel) { writeUTF(out, it) }
         writeNullable(out, packageName) { writeUTF(out, it) }
         writeSeq(out, usedPermissionNames) { writeUTF(out, it) }
+        writeSeq(out, usedFeatures) { UsedFeatureRawText.Externalizer.save(out, it) }
         writeNullable(out, targetSdkLevel) { writeUTF(out, it) }
         writeNullable(out, theme) { writeUTF(out, it) }
       }
@@ -492,6 +570,7 @@ data class AndroidManifestRawText(
       minSdkLevel = readNullable(`in`) { readUTF(`in`) },
       packageName = readNullable(`in`) { readUTF(`in`) },
       usedPermissionNames = readSeq(`in`) { readUTF(`in`) }.toSet(),
+      usedFeatures = readSeq(`in`) { UsedFeatureRawText.Externalizer.read(`in`) }.toSet(),
       targetSdkLevel = readNullable(`in`) { readUTF(`in`) },
       theme = readNullable(`in`) { readUTF(`in`) }
     )
@@ -504,7 +583,13 @@ data class AndroidManifestRawText(
  *
  * @see AndroidManifestRawText
  */
-data class ActivityRawText(val name: String?, val enabled: String?, val intentFilters: Set<IntentFilterRawText>) {
+data class ActivityRawText(
+  val name: String?,
+  val enabled: String?,
+  val exported: String?,
+  val theme: String?,
+  val intentFilters: Set<IntentFilterRawText>
+) {
   /**
    * Singleton responsible for serializing/de-serializing [ActivityRawText]s to/from disk.
    *
@@ -518,6 +603,8 @@ data class ActivityRawText(val name: String?, val enabled: String?, val intentFi
       value.apply {
         writeNullable(out, name) { writeUTF(out, it) }
         writeNullable(out, enabled) { writeUTF(out, it) }
+        writeNullable(out, exported) { writeUTF(out, it) }
+        writeNullable(out, theme) { writeUTF(out, it) }
         writeSeq(out, intentFilters) { IntentFilterRawText.Externalizer.save(out, it) }
       }
     }
@@ -525,6 +612,8 @@ data class ActivityRawText(val name: String?, val enabled: String?, val intentFi
     override fun read(`in`: DataInput) = ActivityRawText(
       name = readNullable(`in`) { readUTF(`in`) },
       enabled = readNullable(`in`) { readUTF(`in`) },
+      exported = readNullable(`in`) { readUTF(`in`) },
+      theme = readNullable(`in`) { readUTF(`in`) },
       intentFilters = readSeq(`in`) { IntentFilterRawText.Externalizer.read(`in`) }.toSet()
     )
   }
@@ -540,6 +629,7 @@ data class ActivityAliasRawText(
   val name: String?,
   val targetActivity: String?,
   val enabled: String?,
+  val exported: String?,
   val intentFilters: Set<IntentFilterRawText>
 ) {
   /**
@@ -556,6 +646,7 @@ data class ActivityAliasRawText(
         writeNullable(out, name) { writeUTF(out, it) }
         writeNullable(out, targetActivity) { writeUTF(out, it) }
         writeNullable(out, enabled) { writeUTF(out, it) }
+        writeNullable(out, exported) { writeUTF(out, it) }
         writeSeq(out, intentFilters) { IntentFilterRawText.Externalizer.save(out, it) }
       }
     }
@@ -564,6 +655,7 @@ data class ActivityAliasRawText(
       name = readNullable(`in`) { readUTF(`in`) },
       targetActivity = readNullable(`in`) { readUTF(`in`) },
       enabled = readNullable(`in`) { readUTF(`in`) },
+      exported = readNullable(`in`) { readUTF(`in`) },
       intentFilters = readSeq(`in`) { IntentFilterRawText.Externalizer.read(`in`) }.toSet()
     )
   }
@@ -595,6 +687,36 @@ data class IntentFilterRawText(val actionNames: Set<String>, val categoryNames: 
     override fun read(`in`: DataInput) = IntentFilterRawText(
       actionNames = readSeq(`in`) { readUTF(`in`) }.toSet(),
       categoryNames = readSeq(`in`) { readUTF(`in`) }.toSet()
+    )
+  }
+}
+
+/**
+ * Structured pieces of raw text from an AndroidManifest.xml file corresponding to a subset of uses-feature tag's
+ * attributes.
+ *
+ * @see AndroidManifestRawText
+ */
+data class UsedFeatureRawText(val name: String?, val required: String?) {
+  /**
+   * Singleton responsible for serializing/de-serializing [UsedFeatureRawText]s to/from disk.
+   *
+   * [AndroidManifestIndex] uses this externalizer to keep its cache within its memory limit
+   * and also to persist indexed data between IDE sessions. Any structural change to [UsedFeatureRawText]
+   * requires an update to the schema used here, and any update to the schema requires us to increment
+   * [AndroidManifestIndex.getVersion].
+   */
+  object Externalizer : DataExternalizer<UsedFeatureRawText> {
+    override fun save(out: DataOutput, value: UsedFeatureRawText) {
+      value.apply {
+        writeNullable(out, name) { writeUTF(out, it) }
+        writeNullable(out, required) { writeUTF(out, it) }
+      }
+    }
+
+    override fun read(`in`: DataInput) = UsedFeatureRawText(
+      name = readNullable(`in`) { readUTF(`in`) },
+      required = readNullable(`in`) { readUTF(`in`) }
     )
   }
 }

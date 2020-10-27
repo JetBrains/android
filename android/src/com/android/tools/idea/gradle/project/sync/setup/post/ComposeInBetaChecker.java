@@ -30,7 +30,7 @@ import org.jetbrains.android.util.AndroidBundle;
 
 public class ComposeInBetaChecker {
   private static final NotificationGroup NOTIFICATION_GROUP = new NotificationGroup(
-    "Compose Project Notification",
+    "Jetpack Compose Project Notification",
     NotificationDisplayType.STICKY_BALLOON,
     true);
 
@@ -59,7 +59,7 @@ public class ComposeInBetaChecker {
 
   static class ComposeProjectNotification extends Notification {
     public ComposeProjectNotification(String content) {
-      super(NOTIFICATION_GROUP.getDisplayId(), "Compose project opened in non-Canary IDE", content, NotificationType.INFORMATION, NotificationListener.URL_OPENING_LISTENER);
+      super(NOTIFICATION_GROUP.getDisplayId(), "Jetpack Compose project opened in non-Canary IDE", content, NotificationType.INFORMATION, NotificationListener.URL_OPENING_LISTENER);
     }
   }
 }

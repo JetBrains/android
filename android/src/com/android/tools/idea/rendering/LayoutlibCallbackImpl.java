@@ -45,6 +45,7 @@ import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_XML_FI
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.android.annotations.NonNull;
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.rendering.api.ActionBarCallback;
@@ -72,7 +73,6 @@ import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.classloading.InconvertibleClassError;
@@ -83,7 +83,7 @@ import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
@@ -121,10 +121,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.uipreview.ModuleClassLoader;
+import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
 import org.jetbrains.android.uipreview.ViewLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.tooling.util.BiFunction;
 import org.kxml2.io.KXmlParser;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -162,7 +166,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private final boolean myHasLegacyAppCompat;
   private final boolean myHasAndroidXAppCompat;
   private final AaptOptions.Namespacing myNamespacing;
-  @NotNull private String myNamespace;
   @NotNull private IRenderLogger myLogger;
   @NotNull private final ViewLoader myClassLoader;
   @Nullable private String myLayoutName;
@@ -201,6 +204,8 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    * @param credential the sandbox credential
    * @param actionBarHandler An {@link ActionBarHandler} instance.
    * @param parserFactory an optional factory for creating XML parsers.
+   * @param privateClassLoader if true ViewLoader should create a new privately owned ModuleClassLoader and should not share it, if false
+   *                           use a shared one from the ModuleClassLoaderManager
    */
   public LayoutlibCallbackImpl(@Nullable RenderTask renderTask,
                                @NotNull LayoutLibrary layoutLib,
@@ -210,7 +215,8 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
                                @NotNull IRenderLogger logger,
                                @Nullable Object credential,
                                @Nullable ActionBarHandler actionBarHandler,
-                               @Nullable ILayoutPullParserFactory parserFactory) {
+                               @Nullable ILayoutPullParserFactory parserFactory,
+                               boolean privateClassLoader) {
     myRenderTask = renderTask;
     myLayoutLib = layoutLib;
     myIdManager = ResourceIdManager.get(module);
@@ -218,18 +224,12 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myModule = module;
     myLogger = logger;
     myCredential = credential;
-    myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential);
+    ModuleClassLoaderManager manager = ModuleClassLoaderManager.get();
+    myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential, privateClassLoader ? manager::getPrivate : manager::getShared);
     myActionBarHandler = actionBarHandler;
     myLayoutPullParserFactory = parserFactory;
     myHasLegacyAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7);
     myHasAndroidXAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
-
-    String javaPackage = MergedManifestManager.getSnapshot(myModule).getPackage();
-    if (javaPackage != null && !javaPackage.isEmpty()) {
-      myNamespace = URI_PREFIX + javaPackage;
-    } else {
-      myNamespace = AUTO_URI;
-    }
 
     myNamespacing = ResourceRepositoryManager.getInstance(facet).getNamespacing();
     if (myNamespacing == AaptOptions.Namespacing.DISABLED) {
@@ -314,18 +314,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       throws ClassNotFoundException {
     myUsed = true;
     return myClassLoader.loadClass(name, constructorSignature, constructorArgs);
-  }
-
-  /**
-   * Returns the namespace for the project. The namespace contains a standard part + the
-   * application package.
-   *
-   * @return The package namespace of the project or null in case of error.
-   */
-  @Override
-  @NotNull
-  public String getNamespace() {
-    return myNamespace;
   }
 
   @Override
@@ -467,7 +455,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       parser = LayoutPsiPullParser.create(aaptResource, ResourceNamespace.TODO(), myLogger);
     }
     else {
-      PathString pathString = ResourceHelper.toFileResourcePathString(value);
+      PathString pathString = IdeResourcesUtil.toFileResourcePathString(value);
       if (pathString == null) {
         return null;
       }
@@ -916,6 +904,11 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     catch (InconvertibleClassError e) {
       throw new ClassNotFoundException(name + " not found.", e);
     }
+  }
+
+  @Override
+  public boolean isClassLoaded(@NonNull String name) {
+    return myClassLoader.isClassLoaded(name);
   }
 
   @NotNull

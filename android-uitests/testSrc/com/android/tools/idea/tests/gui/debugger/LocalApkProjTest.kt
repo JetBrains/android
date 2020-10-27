@@ -16,8 +16,7 @@
 package com.android.tools.idea.tests.gui.debugger
 
 import com.android.testutils.TestUtils
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
@@ -27,8 +26,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import com.intellij.util.ui.AsyncProcessIcon
@@ -42,9 +39,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
-import java.io.IOException
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicReference
 
 @RunWith(GuiTestRemoteRunner::class)
 class LocalApkProjTest {
@@ -53,8 +48,7 @@ class LocalApkProjTest {
    * for file refreshes. This test needs the huge timeout, even though it does not use
    * the emulator.
    */
-  @Rule
-  @JvmField
+  @get:Rule
   val guiTest = GuiTestRule().withTimeout(10, TimeUnit.MINUTES)
 
   private var homeDir: File? = null
@@ -133,14 +127,11 @@ class LocalApkProjTest {
   }
 
   private fun buildApkLocally(apkProjectToImport: String): File {
-    val ideFrame = guiTest.importProject(apkProjectToImport)
-    ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(120))
+    val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish(apkProjectToImport, Wait.seconds(120))
 
-    ideFrame.waitAndInvokeMenuPath("Build", "Build Bundle(s) / APK(s)", "Build APK(s)")
+    ideFrame.actAndWaitForBuildToFinish { it.waitAndInvokeMenuPath("Build", "Build Bundle(s) / APK(s)", "Build APK(s)") }
 
-    val projectRoot = ideFrame.getProjectPath()
-    guiTest.waitForBackgroundTasks()
-
+    val projectRoot = ideFrame.projectPath
     // We will have another window opened for the APK project. Close this window
     // so we don't have to manage two windows.
     ideFrame.closeProject()
@@ -162,7 +153,7 @@ class LocalApkProjTest {
       // should not fail a critical user journey test, so we ignore the error and continue
       // waiting.
       val robot = welcomeFrame.robot()
-      val fileDialog = FileChooserDialogFixture.findDialog(robot, "Select APK File");
+      val fileDialog = FileChooserDialogFixture.findDialog(robot, "Select APK File")
 
       // If the progress icon is missing, then we should expect that the file dialog is now
       // ready!
@@ -182,9 +173,9 @@ class LocalApkProjTest {
 
     // NOTE: This step generates the ~/ApkProjects/app-x86-debug directory.
     chooseApkFile.select(apkFile)
-      .clickOk()
+      .clickOkAndWaitToClose()
 
-    guiTest.waitForBackgroundTasks();
+    guiTest.waitForBackgroundTasks()
   }
 
   private fun attachJavaSources(ideFrame: IdeFrameFixture, sourceDir: File): IdeFrameFixture {

@@ -98,7 +98,7 @@ import org.w3c.dom.Document;
 /**
  * Handles locating templates and providing template metadata
  */
-public final class TemplateManager {
+public class TemplateManager {
   private static final Logger LOG = Logger.getInstance("#" + TemplateManager.class.getName());
 
   /**

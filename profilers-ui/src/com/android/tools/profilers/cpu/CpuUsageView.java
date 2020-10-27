@@ -73,7 +73,7 @@ abstract class CpuUsageView extends JBPanel {
     // We only show the sparkline if we are over the cpu usage chart. The cpu usage
     // chart is under the overlay component so using the events captured from the overlay
     // component tell us if we are over the right area.
-    myRangeSelectionComponent = new RangeSelectionComponent(myStage.getRangeSelectionModel(), myStage.getTimeline().getViewRange(), true);
+    myRangeSelectionComponent = new RangeSelectionComponent(myStage.getRangeSelectionModel(), true);
     myRangeSelectionComponent.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
     // After a capture is set we update the selection to be the length of the capture. The selection we update is on the range
     // instead of the selection model, or selection component. So here we listen to a selection capture event and give focus

@@ -41,7 +41,7 @@ class ShowLayoutInspectorAction : DumbAwareAction(
     val project = e.project!!
     for (windowEp in FacetDependentToolWindow.EXTENSION_POINT_NAME.extensionList) {
       if (windowEp.id == LAYOUT_INSPECTOR_TOOL_WINDOW_ID) {
-        ToolWindowManager.getInstance(project).getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)?.activate(null)
+        ToolWindowManager.getInstance(project).getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)!!.activate(null)
         break
       }
     }

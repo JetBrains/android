@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor.timeline;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 
-import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -37,7 +36,6 @@ public class TimeLineTopPanel extends JPanel {
   TimelineStructure mTimelineStructure;
 
   TimeLineTopPanel(TimelineStructure timelineStructure) {
-    setBorder(BorderFactory.createLineBorder(MEUI.ourBorder));
     setPreferredSize(new Dimension(MEUI.scale(100), MEUI.ourHeaderHeight));
     setBackground(MEUI.ourSecondaryPanelBackground);
     mTimelineStructure = timelineStructure;
@@ -97,6 +95,9 @@ public class TimeLineTopPanel extends JPanel {
       RenderingHints.VALUE_ANTIALIAS_ON);
     g.setColor(getBackground());
     g.fillRect(0, 0, w, h);
+    g.setColor(MEUI.ourBorder);
+    g.fillRect(0,0, 1, h);
+    g.fillRect(0, h-1, w, 1);
     g.setColor(MEUI.myGridColor);
     int n = mTickMarkCalculator.getCount();
     if (mTimelineStructure.myXTicksPixels.length > 0) {

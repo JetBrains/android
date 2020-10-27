@@ -34,16 +34,29 @@ import org.jetbrains.annotations.Nullable;
 public class LinuxHaxmInfoStep extends FirstRunWizardStep {
   private JPanel myRoot;
   private JEditorPane myUrlPane;
+  private final String myHtmlDescription;
 
   private static final String KVM_DOCUMENTATION_URL = "http://developer.android.com/r/studio-ui/emulator-kvm-setup.html";
 
   public LinuxHaxmInfoStep() {
     super("Emulator Settings");
     setComponent(myRoot);
+    HtmlBuilder description = new HtmlBuilder();
+    description.addHtml("Follow ");
+    description.addLink("Configure hardware acceleration for the Android Emulator", KVM_DOCUMENTATION_URL);
+    description.addHtml(" to enable KVM and achieve better performance.");
+    myHtmlDescription = description.getHtml();
   }
 
   @Override
   public void init() {
+  }
+
+  @Override
+  public void onEnterStep() {
+    super.onEnterStep();
+    updateText();
+    invokeUpdate(null);
   }
 
   @Nullable
@@ -65,12 +78,10 @@ public class LinuxHaxmInfoStep extends FirstRunWizardStep {
   private void createUIComponents() {
     myUrlPane = SwingHelper.createHtmlViewer(true, null, null, null);
     myUrlPane.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
-    HtmlBuilder description = new HtmlBuilder();
-    description.addHtml("Follow ");
-    description.addLink("Configure hardware acceleration for the Android Emulator", KVM_DOCUMENTATION_URL);
-    description.addHtml(" to enable KVM and achieve better performance.");
-    myUrlPane.setText(description.getHtml());
-    SwingHelper.setHtml(myUrlPane, description.getHtml(), UIUtil.getLabelForeground());
     myUrlPane.setBackground(UIUtil.getLabelBackground());
+  }
+
+  private void updateText() {
+    SwingHelper.setHtml(myUrlPane, myHtmlDescription, UIUtil.getLabelForeground());
   }
 }

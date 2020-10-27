@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
-import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
+import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class OpenProjectStructureHyperlink extends NotificationHyperlink {
+public class OpenProjectStructureHyperlink extends NotificationHyperlink {
   @Nullable
   public static OpenProjectStructureHyperlink openJdkSettings(@NotNull Project project) {
     return openSdkSettings(project, "Open JDK Settings");

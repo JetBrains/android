@@ -22,7 +22,7 @@ import java.util.HashSet;
 /**
  * This is a small selection component used in supporting components
  */
-public final class SecondarySelector {
+public class SecondarySelector {
   private static boolean DEBUG = false; // can be used to trace leaking objects
   NlComponent myComponent;
   Constraint myConstraint;

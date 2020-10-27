@@ -27,17 +27,16 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
-import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.memory.MemoryProfilerTestUtils;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -59,7 +58,7 @@ public class LegacyAllocationCaptureObjectTest {
   public void testFailedAllocationsInfo() {
     AllocationsInfo testInfo = AllocationsInfo.newBuilder().setSuccess(false).build();
     LegacyAllocationCaptureObject capture =
-      new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()),
+      new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getChannel()),
                                         ProfilersTestData.SESSION_DATA,
                                         testInfo,
                                         myIdeProfilerServices.getFeatureTracker());
@@ -81,7 +80,7 @@ public class LegacyAllocationCaptureObjectTest {
 
     AllocationsInfo testInfo = AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).setSuccess(true).build();
     LegacyAllocationCaptureObject capture =
-      new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()),
+      new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getChannel()),
                                         ProfilersTestData.SESSION_DATA,
                                         testInfo,
                                         myIdeProfilerServices.getFeatureTracker());

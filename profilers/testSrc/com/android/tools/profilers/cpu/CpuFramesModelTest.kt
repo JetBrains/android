@@ -42,7 +42,7 @@ class CpuFramesModelTest {
   fun setup() {
     val timer = FakeTimer()
     val services = FakeIdeProfilerServices()
-    val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), services, timer)
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     stage = CpuProfilerStage(profilers)
     model = CpuFramesModel(range, stage)
   }
@@ -50,7 +50,7 @@ class CpuFramesModelTest {
   @Test
   fun updateCaptureUpdatesModel() {
     assertThat(model.isEmpty).isTrue()
-    val parser = AtraceParser(1)
+    val parser = AtraceParser(MainProcessSelector(idHint = 1))
     val capture = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
     stage.capture = capture
     assertThat(model.size).isEqualTo(2)
@@ -82,7 +82,7 @@ class CpuFramesModelTest {
     assertThat(itemAddedCalled).isEqualTo(0)
     assertThat(itemRemovedCalled).isEqualTo(0)
 
-    val parser = AtraceParser(1)
+    val parser = AtraceParser(MainProcessSelector(idHint = 1))
     val capture = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
     stage.capture = capture
 

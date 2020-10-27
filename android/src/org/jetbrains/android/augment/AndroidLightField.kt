@@ -2,7 +2,8 @@
 package org.jetbrains.android.augment
 
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.ide.common.resources.flattenResourceName
+import com.android.ide.common.resources.resourceNameToFieldName
+import com.android.resources.ResourceType
 import com.google.common.base.MoreObjects
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.navigation.NavigationItem
@@ -86,11 +87,12 @@ class ResourceLightField(
   fieldModifier: FieldModifier,
   myConstantValue: Any?) : AndroidLightField(resourceName, myContext, myType, fieldModifier, myConstantValue) {
 
-  override fun getNameIdentifier(): LightIdentifier = LightIdentifier(manager, flattenResourceName(_name))
-  override fun getName(): String = flattenResourceName(_name)
+  override fun getNameIdentifier(): LightIdentifier = LightIdentifier(manager, resourceNameToFieldName(_name))
+  override fun getName(): String = resourceNameToFieldName(_name)
   override fun toString(): String = "ResourceLightField:$_name"
 
-  fun getResourceName(): String = super._name
+  val resourceName: String get() = super._name
+  val resourceType: ResourceType get() = ResourceType.fromClassName(containingClass.name!!)!!
 }
 
 class ManifestLightField(
@@ -124,9 +126,9 @@ data class StyleableAttrFieldUrl(val styleable: ResourceReference, val attr: Res
   fun toFieldName(): String {
     val packageName = attr.namespace.packageName
     return if (styleable.namespace == attr.namespace || packageName.isNullOrEmpty()) {
-      "${flattenResourceName(styleable.name)}_${flattenResourceName(attr.name)}"
+      "${resourceNameToFieldName(styleable.name)}_${resourceNameToFieldName(attr.name)}"
     } else {
-      "${flattenResourceName(styleable.name)}_${flattenResourceName(packageName)}_${flattenResourceName(attr.name)}"
+      "${resourceNameToFieldName(styleable.name)}_${resourceNameToFieldName(packageName)}_${resourceNameToFieldName(attr.name)}"
     }
   }
 }

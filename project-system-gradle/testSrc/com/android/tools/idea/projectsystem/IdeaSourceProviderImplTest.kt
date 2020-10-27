@@ -19,7 +19,6 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.TruthJUnit.assume
 import com.intellij.openapi.vfs.VirtualFileManager
 import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.android.facet.containsFile
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
 
 class IdeaSourceProviderImplTest : AndroidTestCase() {

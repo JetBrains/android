@@ -34,6 +34,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModelExtensionKt;
 import com.android.tools.idea.gradle.util.BuildFileProcessor;
+import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
@@ -170,7 +171,8 @@ public class AndroidPluginVersionUpdater {
             }
             else {
               // Gradle version will *not* change, use project version
-              RepositoriesModelExtensionKt.addGoogleMavenRepository(buildModel.buildscript().repositories(), myProject);
+              RepositoriesModelExtensionKt.addGoogleMavenRepository(buildModel.buildscript().repositories(),
+                                                                    GradleVersions.getInstance().getGradleVersionOrDefault(myProject, new GradleVersion(1, 0)));
             }
           }
           modelsToUpdate.add(buildModel);
@@ -217,7 +219,7 @@ public class AndroidPluginVersionUpdater {
       if (rootFolder != null) {
         try {
           File wrapperPropertiesFilePath = getDefaultPropertiesFilePath(rootFolder);
-          GradleWrapper gradleWrapper = GradleWrapper.get(wrapperPropertiesFilePath);
+          GradleWrapper gradleWrapper = GradleWrapper.get(wrapperPropertiesFilePath, myProject);
           String current = gradleWrapper.getGradleVersion();
           GradleVersion parsedCurrent = null;
           if (current != null) {

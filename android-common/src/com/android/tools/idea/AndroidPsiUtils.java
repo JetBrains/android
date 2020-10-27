@@ -33,6 +33,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiClassOwner;
 import com.intellij.psi.PsiDirectory;
@@ -41,6 +42,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiReferenceExpression;
+import com.intellij.psi.PsiType;
 import com.intellij.psi.impl.PsiModificationTrackerImpl;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
@@ -402,12 +404,19 @@ public class AndroidPsiUtils {
     return psiTracker.forLanguage(XMLLanguage.INSTANCE);
   }
 
-  /** Returns a modification tracker which tracks changes to all physical PSI *except* XML PSI. */
+  /**
+   * Returns a modification tracker which tracks changes to all physical PSI *except* XML PSI.
+   */
   @NotNull
   public static ModificationTracker getPsiModificationTrackerIgnoringXml(@NotNull Project project) {
     // Note: we also ignore the Language.ANY modification count, because that modification count
     // is incremented unconditionally on every PSI change (see PsiModificationTrackerImpl#incLanguageCounters).
     PsiModificationTrackerImpl psiTracker = (PsiModificationTrackerImpl)PsiManager.getInstance(project).getModificationTracker();
     return psiTracker.forLanguages(lang -> !lang.is(XMLLanguage.INSTANCE) && !lang.is(Language.ANY));
+  }
+
+  @Nullable
+  public static PsiType toPsiType(@NotNull PsiClass clazz) {
+    return JavaPsiFacade.getElementFactory(clazz.getProject()).createType(clazz);
   }
 }

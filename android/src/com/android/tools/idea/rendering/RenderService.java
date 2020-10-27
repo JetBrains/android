@@ -25,11 +25,13 @@ import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
+import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
@@ -53,14 +55,11 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
@@ -75,59 +74,31 @@ import org.jetbrains.annotations.TestOnly;
  * The {@link RenderService} provides rendering and layout information for Android layouts. This is a wrapper around the layout library.
  */
 public class RenderService implements Disposable {
-  /** Number of ms that we will wait for the rendering thread to return before timing out */
-  private static final long DEFAULT_RENDER_THREAD_TIMEOUT_MS = Long.getLong("layoutlib.thread.timeout",
-                                                                            TimeUnit.SECONDS.toMillis(
-                                                                              ApplicationManager.getApplication().isUnitTestMode()
-                                                                              ? 60
-                                                                              : 6));
-  @VisibleForTesting
-  public static long ourRenderThreadTimeoutMs = DEFAULT_RENDER_THREAD_TIMEOUT_MS;
-  private static final AtomicReference<Thread> ourRenderingThread = new AtomicReference<>();
-  private static ExecutorService ourRenderingExecutor;
-  private static final AtomicInteger ourTimeoutExceptionCounter = new AtomicInteger(0);
+  private static RenderExecutor ourExecutor;
 
   /**
    * {@link Key} used to keep the RenderService instance project association. They key is also used as synchronization object to guard the
    * access to the new instances.
    */
   private static final Key<RenderService> KEY = Key.create(RenderService.class.getName());
-  private static boolean isFirstCall = true;
 
   static {
-    innerInitializeRenderExecutor();
+    ourExecutor = new RenderExecutor();
     // Register the executor to be shutdown on close
     ShutDownTracker.getInstance().registerShutdownTask(RenderService::shutdownRenderExecutor);
   }
 
   private final Project myProject;
 
-  private static void innerInitializeRenderExecutor() {
-    ourRenderingExecutor = new ThreadPoolExecutor(1, 1,
-                             0, TimeUnit.MILLISECONDS,
-                             new LinkedBlockingQueue<>(),
-                             (Runnable r) -> {
-                               Thread renderingThread = new Thread(null, r, "Layoutlib Render Thread");
-                               renderingThread.setDaemon(true);
-                               ourRenderingThread.set(renderingThread);
-
-                               return renderingThread;
-                             });
-  }
-
   @TestOnly
   public static void initializeRenderExecutor() {
     assert ApplicationManager.getApplication().isUnitTestMode(); // Only to be called from unit testszs
 
-    innerInitializeRenderExecutor();
+    ourExecutor = new RenderExecutor();
   }
 
   private static void shutdownRenderExecutor() {
-    ourRenderingExecutor.shutdownNow();
-    Thread currentThread = ourRenderingThread.getAndSet(null);
-    if (currentThread != null) {
-      currentThread.interrupt();
-    }
+    ourExecutor.shutdown();
   }
 
   /**
@@ -138,16 +109,7 @@ public class RenderService implements Disposable {
   public static void shutdownRenderExecutor(@SuppressWarnings("SameParameterValue") long timeoutSeconds) {
     assert ApplicationManager.getApplication().isUnitTestMode(); // Only to be called from unit tests
 
-    if (timeoutSeconds > 0) {
-      try {
-        ourRenderingExecutor.awaitTermination(timeoutSeconds, TimeUnit.SECONDS);
-      }
-      catch (InterruptedException ignored) {
-        Logger.getInstance(RenderService.class).warn("The RenderExecutor does not shutdown after " + timeoutSeconds + " seconds");
-      }
-    }
-
-    shutdownRenderExecutor();
+    ourExecutor.shutdown(timeoutSeconds);
   }
 
   private static final String JDK_INSTALL_URL = "https://developer.android.com/preview/setup-sdk.html#java8";
@@ -273,37 +235,7 @@ public class RenderService implements Disposable {
    * method.
    */
   public static <T> T runRenderAction(@NotNull Callable<T> callable) throws Exception {
-    try {
-      // If the number of timeouts exceeds a certain threshold, stop waiting so the caller doesn't block. We try to submit a task that
-      // clean-up the timeout counter instead. If it goes through, it means the queue is free.
-      if (ourTimeoutExceptionCounter.get() > 3) {
-        ourRenderingExecutor.submit(() -> ourTimeoutExceptionCounter.set(0)).get(50, TimeUnit.MILLISECONDS);
-      }
-      long timeout = ourRenderThreadTimeoutMs;
-      if (isFirstCall) {
-        // The initial call might be significantly slower since there is a lot of initialization done on the resource management side.
-        // This covers that case.
-        isFirstCall = false;
-        timeout *= 2;
-      }
-      T result = ourRenderingExecutor.submit(callable).get(timeout, TimeUnit.MILLISECONDS);
-      // The executor seems to be taking tasks so reset the counter
-      ourTimeoutExceptionCounter.set(0);
-
-      return result;
-    }
-    catch (TimeoutException e) {
-      ourTimeoutExceptionCounter.incrementAndGet();
-
-      Thread renderingThread = ourRenderingThread.get();
-      TimeoutException timeoutException = new TimeoutException("Preview timed out while rendering the layout.\n" +
-                                                               "This typically happens when there is an infinite loop or unbounded recursion in one of the custom views.");
-      if (renderingThread != null) {
-        timeoutException.setStackTrace(renderingThread.getStackTrace());
-      }
-
-      throw timeoutException;
-    }
+    return ourExecutor.runAction(callable);
   }
 
   /**
@@ -314,7 +246,7 @@ public class RenderService implements Disposable {
    */
   @NotNull
   public static <T> CompletableFuture<T> runAsyncRenderAction(@NotNull Supplier<T> callable) {
-    return CompletableFuture.supplyAsync(callable, ourRenderingExecutor);
+    return ourExecutor.runAsyncAction(callable);
   }
 
   /**
@@ -324,7 +256,7 @@ public class RenderService implements Disposable {
    * This method will run the passed action asynchronously
    */
   public static void runAsyncRenderAction(@NotNull Runnable runnable) {
-    ourRenderingExecutor.execute(runnable);
+    ourExecutor.runAsyncAction(runnable);
   }
 
   /**
@@ -410,7 +342,7 @@ public class RenderService implements Disposable {
    */
   private static final int MAX_MAGNITUDE = 1 << (MEASURE_SPEC_MODE_SHIFT - 5);
 
-  public static final class RenderTaskBuilder {
+  public static class RenderTaskBuilder {
     private final RenderService myService;
     private final AndroidFacet myFacet;
     private final Configuration myConfiguration;
@@ -422,13 +354,35 @@ public class RenderService implements Disposable {
     private boolean isSecurityManagerEnabled = true;
     private float myDownscaleFactor = 1f;
     private boolean showDecorations = true;
-    private boolean showWithToolsAttributes = true;
+    private boolean showWithToolsVisibilityAndPosition = true;
     private int myMaxRenderWidth = -1;
     private int myMaxRenderHeight = -1;
     private boolean isShadowEnabled = StudioFlags.NELE_ENABLE_SHADOW.get();
     private boolean useHighQualityShadows = StudioFlags.NELE_RENDER_HIGH_QUALITY_SHADOW.get();
+    private boolean enableLayoutValidator = false;
     private SessionParams.RenderingMode myRenderingMode = null;
     private boolean useTransparentBackground = false;
+    @NotNull private Function<Module, MergedManifestSnapshot> myManifestProvider =
+      module -> {
+        try {
+          return MergedManifestManager.getMergedManifest(module).get(1, TimeUnit.SECONDS);
+        }
+        catch (InterruptedException | TimeoutException e) {
+          Logger.getInstance(RenderService.class).warn(e);
+        }
+        catch (ExecutionException e) {
+          Logger.getInstance(RenderService.class).error(e);
+        }
+
+        return null;
+      };
+
+    /**
+     * If two RenderTasks share the same ModuleClassLoader they share the same compose framework. This way they share the state. If we would
+     * like to control the state of the framework we want to create a dedicated ClassLoader so that the RenderTask has its own compose
+     * framework. Having a dedicated ClassLoader also allows for clearing resources right after the RenderTask no longer used.
+     */
+    private boolean privateClassLoader = false;
 
     private RenderTaskBuilder(@NotNull RenderService service,
                               @NotNull AndroidFacet facet,
@@ -440,6 +394,15 @@ public class RenderService implements Disposable {
       myConfiguration = configuration;
       myImagePool = defaultImagePool;
       myCredential = credential;
+    }
+
+    /**
+     * Forces the task to create its own ModuleClassLoader instead of using a shared one from the ModuleClassLoaderManager
+     */
+    @NotNull
+    public RenderTaskBuilder usePrivateClassLoader() {
+      privateClassLoader = true;
+      return this;
     }
 
     @NotNull
@@ -457,6 +420,11 @@ public class RenderService implements Disposable {
     @NotNull
     public RenderTaskBuilder withParserFactory(@NotNull ILayoutPullParserFactory parserFactory) {
       this.myParserFactory = parserFactory;
+      return this;
+    }
+
+    public RenderTaskBuilder withLayoutValidation(Boolean enableLayoutValidator) {
+      this.enableLayoutValidator = enableLayoutValidator;
       return this;
     }
 
@@ -528,8 +496,8 @@ public class RenderService implements Disposable {
     }
 
     @NotNull
-    public RenderTaskBuilder disableToolsAttributes() {
-      this.showWithToolsAttributes = false;
+    public RenderTaskBuilder disableToolsVisibilityAndPosition() {
+      this.showWithToolsVisibilityAndPosition = false;
       return this;
     }
 
@@ -552,6 +520,15 @@ public class RenderService implements Disposable {
     }
 
     /**
+     * Sets the {@link MergedManifestSnapshot} provider
+     */
+    @NotNull
+    public RenderTaskBuilder setMergedManifestProvider(@NotNull Function<Module, MergedManifestSnapshot> provider) {
+      myManifestProvider = provider;
+      return this;
+    }
+
+    /**
      * Builds a new {@link RenderTask}. The returned future always completes successfully but the value might be null if the RenderTask
      * can not be created.
      */
@@ -561,7 +538,7 @@ public class RenderService implements Disposable {
         withLogger(myService.createLogger(myFacet));
       }
 
-      AllocationStackTrace stackTraceElement = RenderTaskAllocationTrackerKt.captureAllocationStackTrace();
+      StackTraceCapture stackTraceCaptureElement = RenderTaskAllocationTrackerKt.captureAllocationStackTrace();
 
       return CompletableFuture.supplyAsync(() -> {
         AndroidPlatform platform = getPlatform(myFacet, myLogger);
@@ -576,6 +553,10 @@ public class RenderService implements Disposable {
         }
 
         Module module = myFacet.getModule();
+        if (module.isDisposed()) {
+          Logger.getInstance(RenderService.class).warn("Module was already disposed");
+          return null;
+        }
         LayoutLibrary layoutLib;
         try {
           layoutLib = platform.getSdkData().getTargetData(target).getLayoutLibrary(module.getProject());
@@ -606,7 +587,8 @@ public class RenderService implements Disposable {
           RenderTask task =
             new RenderTask(myFacet, myService, myConfiguration, myLogger, layoutLib,
                            device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
-                           myParserFactory, isSecurityManagerEnabled, myDownscaleFactor, stackTraceElement);
+                           myParserFactory, isSecurityManagerEnabled, myDownscaleFactor, stackTraceCaptureElement, myManifestProvider,
+                           privateClassLoader);
           if (myPsiFile instanceof XmlFile) {
             task.setXmlFile((XmlFile)myPsiFile);
           }
@@ -615,7 +597,8 @@ public class RenderService implements Disposable {
             .setDecorations(showDecorations)
             .setHighQualityShadows(useHighQualityShadows)
             .setShadowEnabled(isShadowEnabled)
-            .setShowWithToolsAttributes(showWithToolsAttributes);
+            .setShowWithToolsVisibilityAndPosition(showWithToolsVisibilityAndPosition)
+            .setEnableLayoutValidator(enableLayoutValidator);
 
           if (myMaxRenderWidth != -1 && myMaxRenderHeight != -1) {
             task.setMaxRenderSize(myMaxRenderWidth, myMaxRenderHeight);

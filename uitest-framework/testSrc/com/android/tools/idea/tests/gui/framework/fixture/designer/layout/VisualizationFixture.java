@@ -34,7 +34,7 @@ public class VisualizationFixture extends ToolWindowFixture {
   public VisualizationFixture(@NotNull Project project, @NotNull Robot robot) {
     super(AndroidBundle.message("android.layout.visual.tool.window.title"), project, robot);
     myDesignSurfaceFixture = new NlDesignSurfaceFixture(
-      robot, GuiTests.waitUntilShowing(robot, Matchers.byName(NlDesignSurface.class, VisualizationForm.VISUALIZATION_DESIGN_SURFACE)));
+      robot, GuiTests.waitUntilShowing(robot, null, Matchers.byName(NlDesignSurface.class, VisualizationForm.VISUALIZATION_DESIGN_SURFACE), 20));
   }
 
   public VisualizationFixture waitForRenderToFinish() {

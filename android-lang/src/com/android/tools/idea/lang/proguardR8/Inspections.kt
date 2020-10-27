@@ -27,9 +27,11 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.TokenType
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.idea.core.util.end
 
 /**
  *  Reports unresolved class members in Proguard/R8 files.
@@ -52,6 +54,26 @@ class ProguardR8ReferenceInspection : LocalInspectionTool() {
         super.visitQualifiedName(name)
         if (!name.containsWildcards() && name.resolveToPsiClass() == null) {
           holder.registerProblem(name, "Unresolved class name")
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Reports invalid separator between class and inner class in Proguard/R8 files.
+ */
+class ProguardR8InnerClassSeparatorInspection : LocalInspectionTool() {
+  override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
+    return object : ProguardR8Visitor() {
+      override fun visitQualifiedName(name: ProguardR8QualifiedName) {
+        super.visitQualifiedName(name)
+        if (!name.containsWildcards() && name.resolveToPsiClass() == null) {
+          val lastResolvedClass = name.references.lastOrNull { it.resolve() is PsiClass } ?: return
+          val nextSymbol = name.text[lastResolvedClass.rangeInElement.end]
+          if (lastResolvedClass.rangeInElement.end + 1 != name.textLength && nextSymbol != '$') {
+            holder.registerProblem(name, "Inner classes should be separated by a dollar sign \"\$\"")
+          }
         }
       }
     }

@@ -24,6 +24,7 @@ import com.android.fakeadbserver.FakeAdbServer;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.AndroidProfilerToolWindowFixture;
+import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils;
 import com.android.tools.perflogger.Benchmark;
 import com.android.tools.perflogger.WindowDeviationAnalyzer;
 import com.google.common.truth.Correspondence;
@@ -69,13 +70,10 @@ public class AndroidProfilerTest {
     // Start server execution.
     myAdbServer.start();
 
-    // Terminate the service if it's already started (it's a UI test, so there might be no shutdown between tests).
-    AdbService.getInstance().dispose();
-
     // Start ADB with fake server and its port.
-    AndroidDebugBridge.enableFakeAdbServerMode(myAdbServer.getPort());
+    AndroidDebugBridgeUtils.enableFakeAdbServerMode(myAdbServer.getPort());
 
-    Project project = myGuiTest.openProject(PROJECT_NAME);
+    Project project = myGuiTest.openProjectAndWaitForIndexingToFinish(PROJECT_NAME);
 
     // Get the bridge synchronously, since we're in test mode.
     myBridge = AdbService.getInstance().getDebugBridge(AndroidSdkUtils.getAdb(project)).get();

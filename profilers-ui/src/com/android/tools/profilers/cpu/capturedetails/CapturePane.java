@@ -30,7 +30,6 @@ import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuProfilerAspect;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import com.google.common.collect.ImmutableMap;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.SimpleListCellRenderer;
 import java.awt.BorderLayout;
@@ -38,7 +37,6 @@ import java.awt.Component;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.swing.JComboBox;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
@@ -57,10 +55,6 @@ abstract class CapturePane extends JPanel {
   // For Atrace captures, names from this map will be used in place of default tab names.
   private static final Map<CaptureDetails.Type, String> ATRACE_TAB_NAMES = ImmutableMap.of(
     CaptureDetails.Type.CALL_CHART, "Trace Events");
-
-  // If the render audit flag is enabled, tab names from this map will be added
-  private static final Map<CaptureDetails.Type, String> RENDER_AUDIT_TAB_NAMES = ImmutableMap.of(
-    CaptureDetails.Type.RENDER_AUDIT, "Render Audit");
 
   // Some of the tab names may be replaced. This list contains the default tabs
   protected final Map<CaptureDetails.Type, String> myTabs = new LinkedHashMap<>(DEFAULT_TAB_NAMES);
@@ -95,10 +89,6 @@ abstract class CapturePane extends JPanel {
       CpuCapture capture = myStageView.getStage().getCapture();
       if (capture != null && capture.getType() == Cpu.CpuTraceType.ATRACE) {
         myTabs.putAll(ATRACE_TAB_NAMES);
-
-        if (myStageView.getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isAuditsEnabled()) {
-          myTabs.putAll(RENDER_AUDIT_TAB_NAMES);
-        }
       }
 
       for (String label : myTabs.values()) {

@@ -17,7 +17,7 @@ package com.android.tools.idea.ui.resourcemanager.rendering
 
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.res.resolveMultipleColors
-import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
+import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.resolveValue
 import com.intellij.openapi.project.Project
 import java.awt.Color
@@ -27,7 +27,7 @@ import javax.swing.Icon
 
 /**
  * Create a reusable [Icon] that is updated each time [getIcon] is called
- * and represent a color or a set of color if the provided [DesignAsset]
+ * and represent a color or a set of color if the provided [Asset]
  * is a state list.
  */
 class ColorIconProvider(
@@ -37,25 +37,29 @@ class ColorIconProvider(
 
   override var supportsTransparency: Boolean = true
 
-  private val icon = ColorIcon()
+  private val icon = MultipleColorIcon()
   val colors get() = icon.colors
 
-  override fun getIcon(assetToRender: DesignAsset,
+  override fun getIcon(assetToRender: Asset,
                        width: Int,
                        height: Int,
                        refreshCallback: () -> Unit,
                        shouldBeRendered: () -> Boolean): Icon {
-    icon.colors = resourceResolver.resolveMultipleColors(resourceResolver.resolveValue(assetToRender), project).toSet()
+    icon.colors = resourceResolver.resolveMultipleColors(resourceResolver.resolveValue(assetToRender), project)
     icon.width = width
     icon.height = height
     return icon
   }
 }
 
-private class ColorIcon : Icon {
+/**
+ * The icon which displays multiple colors horizontally.
+ * Note that there is another [com.intellij.util.ui.ColorsIcon] which displays multiple colors as a grid.
+ */
+class MultipleColorIcon : Icon {
   var width: Int = 0
   var height: Int = 0
-  var colors: Set<Color> = emptySet()
+  var colors: List<Color> = emptyList()
 
   override fun getIconHeight(): Int = height
 
@@ -67,7 +71,7 @@ private class ColorIcon : Icon {
     val splitSize = iconWidth / colors.size
     colors.forEachIndexed { i, color ->
       g.color = color
-      g.fillRect(i * splitSize, 0, splitSize, iconHeight)
+      g.fillRect(x + i * splitSize, y, splitSize, iconHeight)
     }
   }
 }

@@ -20,7 +20,9 @@ import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.SyncException;
 import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.analytics.CommonMetricsData;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
@@ -423,7 +425,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackRecordAllocations() {
-    track(AndroidProfilerEvent.Type.CAPTURE_ALLOCATIONS);
+    // Adding device information to capture allocations so we can tell if the device is Q+ for native allocation tracking.
+    newTracker(AndroidProfilerEvent.Type.CAPTURE_ALLOCATIONS).setDevice(myActiveDevice).track();
   }
 
   @Override
@@ -469,6 +472,9 @@ public final class StudioFeatureTracker implements FeatureTracker {
         break;
       case CaptureObject.JNI_HEAP_NAME:
         heapType = AndroidProfilerEvent.MemoryHeap.JNI_HEAP;
+        break;
+      case CaptureObject.NATIVE_HEAP_NAME:
+        heapType = AndroidProfilerEvent.MemoryHeap.NATIVE_HEAP;
         break;
       default:
         getLogger().error("Attempt to report selection of unknown heap name: " + heapName);
@@ -724,12 +730,17 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
       if (myDevice != null) {
         event.setDeviceInfo(
+          // Set the properties consistently with AndroidStudioUsageTracker.deviceToDeviceInfo().
           DeviceInfo.newBuilder()
-            .setManufacturer(myDevice.getManufacturer())
-            .setModel(myDevice.getModel())
+            .setAnonymizedSerialNumber(AnonymizerUtil.anonymizeUtf8(myDevice.getSerial()))
+            .setBuildTags(myDevice.getBuildTags())
+            .setBuildType(myDevice.getBuildType())
             .setBuildVersionRelease(myDevice.getVersion())
             .setBuildApiLevelFull(new AndroidVersion(myDevice.getApiLevel(), myDevice.getCodename()).getApiString())
+            .setCpuAbi(CommonMetricsData.applicationBinaryInterfaceFromString(myDevice.getCpuAbi()))
+            .setManufacturer(myDevice.getManufacturer())
             .setDeviceType(myDevice.getIsEmulator() ? DeviceInfo.DeviceType.LOCAL_EMULATOR : DeviceInfo.DeviceType.LOCAL_PHYSICAL)
+            .setModel(myDevice.getModel())
             .build());
       }
 
@@ -863,6 +874,9 @@ public final class StudioFeatureTracker implements FeatureTracker {
           break;
         case ATRACE:
           cpuConfigInfo.setType(CpuProfilingConfig.Type.ATRACE);
+          break;
+        case PERFETTO:
+          cpuConfigInfo.setType(CpuProfilingConfig.Type.PERFETTO);
           break;
         case UNSPECIFIED_TYPE:
         case UNRECOGNIZED:

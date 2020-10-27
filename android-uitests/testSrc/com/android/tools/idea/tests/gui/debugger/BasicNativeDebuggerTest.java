@@ -46,8 +46,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
 
   @Before
   public void setUp() throws Exception {
-    guiTest.importProject("debugger/BasicCmakeAppForUI");
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(60));
+    guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/BasicCmakeAppForUI", Wait.seconds(60));
 
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
   }
@@ -93,7 +92,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     NewModuleWizardFixture.find(guiTest.ideFrame())
       .clickNextToAndroidLibrary()
       .wizard()
-      .clickFinish();
+      .clickFinishAndWaitForSyncToFinish();
 
     MessagesFixture messagesFixture = MessagesFixture.findByTitle(guiTest.robot(), "Terminate debugging");
     // Cancel and check that the debugging session is still happening.
@@ -109,7 +108,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     NewModuleWizardFixture.find(guiTest.ideFrame())
       .clickNextToAndroidLibrary()
       .wizard()
-      .clickFinish();
+      .clickFinishAndWaitForSyncToFinish();
 
     messagesFixture = MessagesFixture.findByTitle(guiTest.robot(), "Terminate debugging");
     // Click okay and check that the debugger has been killed.

@@ -21,7 +21,6 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -57,14 +56,12 @@ public class GotoComponentAction extends DumbAwareAction {
       }
     }
 
-    if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
-      FileEditor selectedEditor = FileEditorManager.getInstance(mySurface.getProject()).getSelectedEditor();
-      if (selectedEditor instanceof DesignToolsSplitEditor) {
-        DesignToolsSplitEditor splitEditor = (DesignToolsSplitEditor)selectedEditor;
-        if (splitEditor.isDesignMode()) {
-          // If we're in design mode, we want to change the split editor mode to XML-only before navigating to the element.
-          splitEditor.selectTextMode(false);
-        }
+    FileEditor selectedEditor = FileEditorManager.getInstance(mySurface.getProject()).getSelectedEditor();
+    if (selectedEditor instanceof DesignToolsSplitEditor) {
+      DesignToolsSplitEditor splitEditor = (DesignToolsSplitEditor)selectedEditor;
+      if (splitEditor.isDesignMode()) {
+        // If we're in design mode, we want to change the split editor mode to XML-only before navigating to the element.
+        splitEditor.selectTextMode(false);
       }
     }
 

@@ -98,7 +98,6 @@ public abstract class ChartBuildAttributionInfoPanel extends AbstractBuildAttrib
     c.gridwidth = 1;
     c.anchor = GridBagConstraints.FIRST_LINE_START;
     c.fill = GridBagConstraints.NONE;
-    c.insets = JBUI.insetsRight(8);
     body.add(chart, c);
     preferredWidth += chart.getPreferredSize().width;
   }
@@ -115,7 +114,7 @@ public abstract class ChartBuildAttributionInfoPanel extends AbstractBuildAttrib
     rulerConstraints.gridwidth = 1;
     rulerConstraints.anchor = GridBagConstraints.FIRST_LINE_START;
     rulerConstraints.fill = GridBagConstraints.VERTICAL;
-    rulerConstraints.insets = JBUI.emptyInsets();
+    rulerConstraints.insets = JBUI.insets(0, 23);
 
     GridBagConstraints panelConstraints = new GridBagConstraints();
     panelConstraints.gridx = 2;
@@ -124,7 +123,6 @@ public abstract class ChartBuildAttributionInfoPanel extends AbstractBuildAttrib
     panelConstraints.weighty = 1.0;
     panelConstraints.gridheight = 2;
     panelConstraints.gridwidth = GridBagConstraints.REMAINDER;
-    panelConstraints.insets = JBUI.insetsLeft(8);
     panelConstraints.fill = GridBagConstraints.BOTH;
     if (info != null) {
       body.add(verticalRuler(), rulerConstraints);

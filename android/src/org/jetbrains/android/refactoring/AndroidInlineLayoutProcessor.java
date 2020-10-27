@@ -17,6 +17,12 @@ import com.intellij.usageView.UsageViewBundle;
 import com.intellij.usageView.UsageViewDescriptor;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.MultiMap;
+import org.jetbrains.android.util.AndroidBundle;
+import com.android.tools.idea.res.IdeResourcesUtil;
+import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,9 +35,6 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidInlineLayoutProcessor extends BaseRefactoringProcessor {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.refactoring.AndroidInlineLayoutProcessor");
 
@@ -83,7 +86,7 @@ public class AndroidInlineLayoutProcessor extends BaseRefactoringProcessor {
     final Set<UsageInfo> usages = new HashSet<UsageInfo>();
     AndroidInlineUtil.addReferences(myLayoutFile, usages);
 
-    for (PsiField field : AndroidResourceUtil.findResourceFieldsForFileResource(myLayoutFile, false)) {
+    for (PsiField field : IdeResourcesUtil.findResourceFieldsForFileResource(myLayoutFile, false)) {
       AndroidInlineUtil.addReferences(field, usages);
     }
     return usages.toArray(UsageInfo.EMPTY_ARRAY);

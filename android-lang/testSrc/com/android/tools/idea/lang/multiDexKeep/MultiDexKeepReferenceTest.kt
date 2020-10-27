@@ -17,21 +17,24 @@ package com.android.tools.idea.lang.multiDexKeep
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.caret
-import com.google.common.truth.Truth.*
+import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiClass
-import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
+import com.intellij.testFramework.PsiTestUtil
+import org.jetbrains.android.AndroidTestCase
 
-class MultiDexKeepReferenceTest : LightJavaCodeInsightFixtureTestCase() {
+class MultiDexKeepReferenceTest : AndroidTestCase() {
   override fun setUp() {
    super.setUp()
     StudioFlags.MULTI_DEX_KEEP_FILE_SUPPORT_ENABLED.override(true)
+
+    PsiTestUtil.addLibrary(myModule, "mylib", "", myFixture.testDataPath + "/maven/myjar/myjar-1.0.jar")
 
     myFixture.addClass(
       """
         package com.example.myapplication;
 
         public class MainActivity  {
-
+          public static class Inner {}
         }
 
       """.trimIndent()
@@ -69,6 +72,18 @@ class MultiDexKeepReferenceTest : LightJavaCodeInsightFixtureTestCase() {
     assertThat(psiClass.qualifiedName).isEqualTo("com.example.myapplication.MainActivity")
   }
 
+  fun testResolve_innerClass() {
+    myFixture.configureByText(
+      MultiDexKeepFileType.INSTANCE,
+      """
+        com/example/myapplication/MainActivity${'$'}Inner.class${caret}
+      """.trimIndent())
+
+    assertThat(myFixture.elementAtCaret).isInstanceOf(PsiClass::class.java)
+    val psiClass = myFixture.elementAtCaret as PsiClass
+    assertThat(psiClass.qualifiedName).isEqualTo("com.example.myapplication.MainActivity.Inner")
+  }
+
   fun testCodeCompletionOnEmptyFile() {
     myFixture.configureByText(
       MultiDexKeepFileType.INSTANCE,
@@ -78,7 +93,10 @@ class MultiDexKeepReferenceTest : LightJavaCodeInsightFixtureTestCase() {
 
     assertThat(myFixture.lookupElementStrings).containsExactly(
       "com/example/myapplication/MainActivity.class",
-      "com/example/myapplication/OtherClass.class"
+      "com/example/myapplication/MainActivity${'$'}Inner.class",
+      "com/example/myapplication/OtherClass.class",
+      "p1/p2/R.class",
+      "com/myjar/MyJarClass.class"
     )
   }
 
@@ -93,6 +111,7 @@ class MultiDexKeepReferenceTest : LightJavaCodeInsightFixtureTestCase() {
 
     assertThat(myFixture.lookupElementStrings).containsExactly(
       "com/example/myapplication/MainActivity.class",
+      "com/example/myapplication/MainActivity${'$'}Inner.class",
       "com/example/myapplication/OtherClass.class"
     )
   }

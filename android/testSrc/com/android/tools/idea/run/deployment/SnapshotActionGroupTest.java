@@ -18,13 +18,11 @@ package com.android.tools.idea.run.deployment;
 import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Presentation;
 import java.util.Arrays;
-import java.util.List;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -32,24 +30,19 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class SnapshotActionGroupTest {
-  @Rule
-  public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
-
-  private DeviceAndSnapshotComboBoxAction myComboBoxAction;
-  private Project myProject;
+  private Presentation myPresentation;
+  private AnActionEvent myEvent;
 
   @Before
-  public void mockComboBoxAction() {
-    myComboBoxAction = Mockito.mock(DeviceAndSnapshotComboBoxAction.class);
-  }
+  public void mockEvent() {
+    myPresentation = new Presentation();
 
-  @Before
-  public void initProject() {
-    myProject = myRule.getProject();
+    myEvent = Mockito.mock(AnActionEvent.class);
+    Mockito.when(myEvent.getPresentation()).thenReturn(myPresentation);
   }
 
   @Test
-  public void snapshotActionGroup() {
+  public void update() {
     // Arrange
     Device device1 = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
@@ -63,17 +56,17 @@ public final class SnapshotActionGroupTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    List<Device> devices = Arrays.asList(device1, device2);
+    AnAction action = new SnapshotActionGroup(Arrays.asList(device1, device2));
 
     // Act
-    AnAction action = new SnapshotActionGroup(devices, myComboBoxAction, myProject);
+    action.update(myEvent);
 
     // Assert
-    assertEquals("Pixel 3 API 29", action.getTemplatePresentation().getText());
+    assertEquals("Pixel 3 API 29", myPresentation.getText());
   }
 
   @Test
-  public void snapshotActionGroupDevicesHaveValidityReasons() {
+  public void updateDevicesHaveValidityReasons() {
     // Arrange
     Device device1 = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
@@ -89,12 +82,12 @@ public final class SnapshotActionGroupTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    List<Device> devices = Arrays.asList(device1, device2);
+    AnAction action = new SnapshotActionGroup(Arrays.asList(device1, device2));
 
     // Act
-    AnAction action = new SnapshotActionGroup(devices, myComboBoxAction, myProject);
+    action.update(myEvent);
 
     // Assert
-    assertEquals("Pixel 3 API 29 (Missing system image)", action.getTemplatePresentation().getText());
+    assertEquals("Pixel 3 API 29 (Missing system image)", myPresentation.getText());
   }
 }

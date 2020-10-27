@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.instantapp;
 
-import static com.android.tools.idea.npw.platform.Language.JAVA;
 import static com.android.tools.idea.testing.FileSubject.file;
+import static com.android.tools.idea.wizard.template.Language.Java;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -51,14 +51,13 @@ public class NewInstantAppTest {
       .wizard()
       .clickNext()
       .getConfigureNewAndroidProjectStep()
-      .setSourceLanguage(JAVA)
+      .setSourceLanguage(Java)
       .enterName(projectName)
       .selectMinimumSdkApi(23)
       .wizard()
-      .clickFinish();
+      .clickFinishAndWaitForSyncToFinish();
 
     guiTest.ideFrame()
-      .waitForGradleProjectSyncToFinish()
       .findRunApplicationButton().waitUntilEnabledAndShowing(); // Wait for the toolbar to be ready
 
     guiTest.ideFrame()
@@ -155,8 +154,7 @@ public class NewInstantAppTest {
     createAndOpenDefaultAIAProject("BuildApp", null);
     guiTest.ideFrame()
       .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Login Activity")
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish();
+      .clickFinishAndWaitForSyncToFinish();
 
     assertThat(guiTest.getProjectFileText("app/src/main/res/values/strings.xml"))
       .contains("title_activity_login");
@@ -171,12 +169,15 @@ public class NewInstantAppTest {
     guiTest.ideFrame().getEditor()
            .open("app/src/main/res/layout/activity_fullscreen.xml")
            .open("app/src/main/res/values/attrs.xml") // Make sure "Full Screen" themes, colors and styles are on the base module
-           .moveBetween("ButtonBarContainerTheme", "")
+           .moveBetween("FullscreenAttrs", "")
            .open("app/src/main/res/values/colors.xml")
            .moveBetween("black_overlay", "")
-           .open("app/src/main/res/values/styles.xml")
-           .moveBetween("FullscreenTheme", "")
-           .moveBetween("FullscreenActionBarStyle", "");
+           .open("app/src/main/res/values/themes.xml")
+           .moveBetween("Theme.BuildApp.Fullscreen", "")
+           .moveBetween("FullscreenContainer", "")
+           .open("app/src/main/res/values-night/themes.xml")
+           .moveBetween("fullscreenBackgroundColor", "")
+           .moveBetween("fullscreenTextColor", "");
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
@@ -187,11 +188,8 @@ public class NewInstantAppTest {
     String releasePath = "app/src/release/res/values/google_maps_api.xml";
     createAndOpenDefaultAIAProject("BuildApp", null);
     guiTest.ideFrame()
-           .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Google", "Google Maps Activity")
-           .clickFinish();
-
-    guiTest.ideFrame()
-           .waitForGradleProjectSyncToFinish();
+      .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Google", "Google Maps Activity")
+      .clickFinishAndWaitForSyncToFinish();
 
     assertAbout(file()).that(guiTest.getProjectPath(debugPath)).isFile();
     assertAbout(file()).that(guiTest.getProjectPath(releasePath)).isFile();
@@ -204,8 +202,7 @@ public class NewInstantAppTest {
     createAndOpenDefaultAIAProject("BuildApp", null);
     guiTest.ideFrame()
       .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Master/Detail Flow")
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish();
+      .clickFinishAndWaitForSyncToFinish();
 
     String baseStrings = guiTest.getProjectFileText("app/src/main/res/values/strings.xml");
     assertThat(baseStrings).contains("title_item_detail");
@@ -218,8 +215,7 @@ public class NewInstantAppTest {
     createAndOpenDefaultAIAProject("BuildApp", null);
     guiTest.ideFrame()
       .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Fullscreen Activity")
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish();
+      .clickFinishAndWaitForSyncToFinish();
 
     assertThat(guiTest.getProjectFileText("app/src/main/res/values/strings.xml"))
       .contains("title_activity_fullscreen");

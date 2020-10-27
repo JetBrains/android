@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.tests.gui.framework.*;
+import static com.google.common.truth.Truth.assertThat;
+
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -25,21 +28,15 @@ import com.android.tools.idea.tests.util.WizardUtils;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import org.fest.swing.timing.Wait;
-import org.intellij.lang.annotations.Language;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.fest.swing.timing.Wait;
+import org.intellij.lang.annotations.Language;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 /**
  * UI tests for the constraint layout
@@ -51,17 +48,6 @@ public class ConstraintLayoutTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
-
-  @Before
-  public void setUp() {
-    // Temporary: until this test can run with new properties panel
-    StudioFlags.NELE_NEW_PROPERTY_PANEL.override(false);
-  }
-
-  @After
-  public void tearDown() {
-    StudioFlags.NELE_NEW_PROPERTY_PANEL.clearOverride();
-  }
 
   /**
    * To verify that items from the tool kit can be added to a layout.
@@ -86,7 +72,7 @@ public class ConstraintLayoutTest {
 
     NlEditorFixture design = ideFrameFixture.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", Tab.DESIGN)
-      .getLayoutEditor(false)
+      .getLayoutEditor()
       .waitForRenderToFinish();
 
     Multimap<String, String> widgets = ArrayListMultimap.create();
@@ -133,11 +119,11 @@ public class ConstraintLayoutTest {
     editor.closeFile(ACTIVITY_MAIN_XML_RELATIVE_PATH.toString());
     editor.open(ACTIVITY_MAIN_XML_RELATIVE_PATH);
 
-    NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
+    NlEditorFixture layoutEditor = editor.getLayoutEditor();
 
     layoutEditor.waitForRenderToFinish();
-    layoutEditor.findView("TextView", 0).click();
-    layoutEditor.getPropertiesPanel().getConstraintLayoutViewInspector().selectMarginStart(8);
+    layoutEditor.findView("TextView", 0).getSceneComponent().click();
+    layoutEditor.getAttributesPanel().findConstraintLayoutViewInspector("Layout").selectMarginStart(8);
 
     editor.selectEditorTab(Tab.EDITOR);
 
@@ -195,11 +181,11 @@ public class ConstraintLayoutTest {
       .open(ACTIVITY_MAIN_XML_RELATIVE_PATH)
       .replaceText(contents);
 
-    NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
+    NlEditorFixture layoutEditor = editor.getLayoutEditor();
     layoutEditor.waitForRenderToFinish();
     layoutEditor.showOnlyDesignView();
-    layoutEditor.findView("TextView", 0).click();
-    layoutEditor.getPropertiesPanel().getConstraintLayoutViewInspector().getDeleteRightConstraintButton().click();
+    layoutEditor.findView("TextView", 0).getSceneComponent().click();
+    layoutEditor.getAttributesPanel().findConstraintLayoutViewInspector("Layout").getDeleteRightConstraintButton().click();
 
     editor.selectEditorTab(Tab.EDITOR);
 

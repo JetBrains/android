@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.assetstudio;
 
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.roundToInt;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangleAroundCenter;
-import static com.android.tools.idea.npw.assetstudio.VectorDrawableTransformer.transform;
+import static com.android.tools.idea.rendering.VectorDrawableTransformer.transform;
 import static java.lang.Math.max;
 
 import com.android.ide.common.util.AssetUtil;
@@ -34,6 +34,9 @@ import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
+import com.android.tools.idea.rendering.DrawableRenderer;
+import com.android.tools.idea.rendering.Gravity;
+import com.android.tools.idea.rendering.VectorDrawableTransformer;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -137,13 +140,15 @@ public class TvBannerGenerator extends IconGenerator {
     if (foregroundAsset != null && foregroundAsset.imagePath().getValueOrNull() != null) {
       double scaleFactor = foregroundAsset.scalingPercent().get() / 100.;
       options.foregroundImage =
-          new TransformedImageAsset(foregroundAsset, SIZE_ADAPTIVE_DP, scaleFactor, null, getGraphicGeneratorContext());
+        new TransformedImageAsset(foregroundAsset, SIZE_ADAPTIVE_DP, scaleFactor,
+                                  null, getGraphicGeneratorContext(), myLineSeparator);
     }
 
     TextAsset textAsset = myTextAsset.getValueOrNull();
     if (textAsset != null && !StringUtil.trimTrailing(textAsset.text().get()).isEmpty()) {
       double scaleFactor = textAsset.scalingPercent().get() / 100.;
-      options.foregroundText = new TransformedImageAsset(textAsset, SIZE_ADAPTIVE_DP, scaleFactor, null, getGraphicGeneratorContext());
+      options.foregroundText = new TransformedImageAsset(textAsset, SIZE_ADAPTIVE_DP, scaleFactor,
+                                                         null, getGraphicGeneratorContext(), myLineSeparator);
       Color color = textAsset.color().getValueOrNull();
       options.foregroundTextColor = color == null ? 0 : color.getRGB();
     }
@@ -155,7 +160,8 @@ public class TvBannerGenerator extends IconGenerator {
     if (backgroundAsset != null) {
       double scaleFactor = backgroundAsset.scalingPercent().get() / 100.;
       options.backgroundImage =
-          new TransformedImageAsset(backgroundAsset, SIZE_ADAPTIVE_DP, scaleFactor, null, getGraphicGeneratorContext());
+        new TransformedImageAsset(backgroundAsset, SIZE_ADAPTIVE_DP, scaleFactor,
+                                  null, getGraphicGeneratorContext(), myLineSeparator);
     }
 
     options.backgroundColor = myBackgroundColor.get().getRGB();

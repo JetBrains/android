@@ -27,9 +27,6 @@ import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.converters.AttrNameConverter;
 import org.jetbrains.android.dom.converters.FormatConverter;
 
-/**
- * @author coyote
- */
 public interface Attr extends GenericDomValue, AndroidDomElement {
 
   @Required

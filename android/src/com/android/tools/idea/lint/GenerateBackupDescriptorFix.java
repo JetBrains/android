@@ -28,7 +28,7 @@ import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.android.tools.idea.templates.TemplateUtils;
+import com.android.tools.idea.util.EditorUtil;
 import com.android.tools.lint.detector.api.ResourceEvaluator;
 import com.android.tools.lint.helpers.DefaultJavaEvaluator;
 import com.google.common.collect.Lists;
@@ -121,9 +121,9 @@ class GenerateBackupDescriptorFix implements LintIdeQuickFix {
         VirtualFile xmlDir = createChildDirectoryIfNotExist(project, primaryResourceDir, FD_RES_XML);
         VirtualFile resFile = xmlDir.createChildData(project, myUrl.name + DOT_XML);
         VfsUtil.saveText(resFile, generateBackupDescriptorContents(databaseNames, sharedPreferenceFiles));
-        TemplateUtils.reformatAndRearrange(project, resFile);
-        TemplateUtils.openEditor(project, resFile);
-        TemplateUtils.selectEditor(project, resFile);
+        EditorUtil.reformatAndRearrange(project, resFile);
+        EditorUtil.openEditor(project, resFile);
+        EditorUtil.selectEditor(project, resFile);
       }
       catch (IOException e) {
         String error = String.format("Failed to create file: %1$s", e.getMessage());

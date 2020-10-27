@@ -37,7 +37,7 @@ import org.jetbrains.android.dom.drawable.AndroidDrawableDomUtil;
 import org.jetbrains.android.dom.transition.TransitionDomUtil;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -120,7 +120,7 @@ public class XmlWrongFileTypeInspection extends LocalInspectionTool {
       return null;
     }
 
-    if (!AndroidResourceUtil.isResourceSubdirectory(directory, null)) {
+    if (!IdeResourcesUtil.isResourceSubdirectory(directory, null)) {
       return null;
     }
 

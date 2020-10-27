@@ -21,7 +21,7 @@ android {
 
 dependencies {
 /*  api fileTree(dir: 'libs', include: ['*.jar'])*/
-  implementation 'com.example.libs:lib1:0.+'
+  implementation 'com.example.libs:lib1:0.9.1'
   api 'com.android.support:appcompat-v7:+'
   implementation project (path: ":jModuleK")
 }

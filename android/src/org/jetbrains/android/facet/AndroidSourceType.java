@@ -24,7 +24,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.util.List;
 import java.util.function.Function;
 import javax.swing.Icon;
-import kotlin.collections.CollectionsKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,6 +54,9 @@ public enum AndroidSourceType {
 
   /** Java-style resources. */
   RESOURCES("resources", it -> ImmutableList.copyOf(it.getResourcesDirectories()), AllIcons.Modules.ResourcesRoot),
+
+  /** Machine learning models. */
+  ML("ml", it -> ImmutableList.copyOf(it.getMlModelsDirectories()), AllIcons.Modules.ResourcesRoot),
   ;
 
   private final String myName;

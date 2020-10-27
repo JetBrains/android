@@ -92,53 +92,28 @@ class AndroidUsagesTargetProviderTest : AndroidTestCase() {
     return resourceReferencePsiElement as ResourceReferencePsiElement
   }
 
-  private fun checkScopePerModuleForOpenFile(
-    resourceReferencePsiElement: ResourceReferencePsiElement,
-    mainModule: Boolean,
-    moduleWithDependency: Boolean,
-    moduleWithoutDependency: Boolean
-  ) {
-    val scope = resourceReferencePsiElement.getCopyableUserData(ResourceReferencePsiElement.RESOURCE_CONTEXT_SCOPE)
-    assertThat(scope!!.contains(MAIN_MODULE_COLOR_FILE)).isEqualTo(mainModule)
-    assertThat(scope.contains(MODULE_WITH_DEPENDENCY_COLOR_FILE)).isEqualTo(moduleWithDependency)
-    assertThat(scope.contains(MODULE_WITHOUT_DEPENDENCY_COLOR_FILE)).isEqualTo(moduleWithoutDependency)
-  }
-
-  private fun checkContextElement(targetElement: ResourceReferencePsiElement) {
+  private fun checkContextElement() {
+    val targetElement = getElementFromTargetProvider()
     val elementInFile = myFixture.file.findElementAt(myFixture.editor.caretModel.offset)
     val contextElement = targetElement.getCopyableUserData(ResourceReferencePsiElement.RESOURCE_CONTEXT_ELEMENT)
     assertThat(contextElement).isEqualTo(elementInFile)
   }
 
-  fun testMainModule() {
+  fun testContextElement() {
     myFixture.configureFromExistingVirtualFile(MAIN_MODULE_COLOR_FILE)
     myFixture.moveCaret("name=\"testCo|lor\"")
-    val targetElement = getElementFromTargetProvider()
-    checkScopePerModuleForOpenFile(targetElement, mainModule = true, moduleWithDependency = false, moduleWithoutDependency = false)
-    checkContextElement(targetElement)
-  }
+    checkContextElement()
 
-  fun testMainModuleReference() {
     myFixture.configureFromExistingVirtualFile(MAIN_MODULE_USAGE_COLOR_FILE)
     myFixture.moveCaret("@color/test|Color")
-    val targetElement = getElementFromTargetProvider()
-    checkScopePerModuleForOpenFile(targetElement, mainModule = true, moduleWithDependency = false, moduleWithoutDependency = false)
-    checkContextElement(targetElement)
-  }
+    checkContextElement()
 
-  fun testLibraryWithDependentModule() {
     myFixture.configureFromExistingVirtualFile(MODULE_WITH_DEPENDENCY_COLOR_FILE)
     myFixture.moveCaret("name=\"testCo|lor\"")
-    val targetElement = getElementFromTargetProvider()
-    checkScopePerModuleForOpenFile(targetElement, mainModule = true, moduleWithDependency = true, moduleWithoutDependency = false)
-    checkContextElement(targetElement)
-  }
+    checkContextElement()
 
-  fun testLibraryWithoutDependentModule() {
     myFixture.configureFromExistingVirtualFile(MODULE_WITHOUT_DEPENDENCY_COLOR_FILE)
     myFixture.moveCaret("name=\"testCo|lor\"")
-    val targetElement = getElementFromTargetProvider()
-    checkScopePerModuleForOpenFile(targetElement, mainModule = false, moduleWithDependency = false, moduleWithoutDependency = true)
-    checkContextElement(targetElement)
+    checkContextElement()
   }
 }

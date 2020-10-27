@@ -17,11 +17,11 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
+import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder.Companion.rootModuleBuilder
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
-import com.android.tools.idea.testing.createAndroidProjectBuilder
 import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
 import com.android.tools.idea.testing.saveAndDump
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
@@ -46,14 +46,14 @@ class LightSyncBasedTestsWithGradleLikeStructureTest : SnapshotComparisonTest {
   @get:Rule
   var testName = TestName()
 
-  val projectRule = AndroidProjectRule.withAndroidModel(createAndroidProjectBuilder())
+  val projectRule = AndroidProjectRule.withAndroidModel(AndroidProjectBuilder())
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   override fun getName(): String = testName.methodName
 
-  override val snapshotDirectoryName: String = "syncedProjectSnapshots"
+  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/syncedProjects"
 
   @Test
   fun testLightTestsWithGradleLikeStructure() {
@@ -75,7 +75,7 @@ class LightSyncBasedTestsWithDefaultTestProjectStructureTest : SnapshotCompariso
 
   override fun getName(): String = testName.methodName
 
-  override val snapshotDirectoryName: String = "syncedProjectSnapshots"
+  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/syncedProjects"
 
   @Test
   fun testLightTestsWithDefaultTestProjectStructure() {
@@ -97,7 +97,7 @@ class LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest : SnapshotC
 
   override fun getName(): String = testName.methodName
 
-  override val snapshotDirectoryName: String = "syncedProjectSnapshots"
+  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/syncedProjects"
 
   @Test
   fun testLightTestsWithMultipleModulesTestProjectStructure() {
@@ -109,7 +109,7 @@ class LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest : SnapshotC
 }
 
 class LightSyncForAndroidTestCaseTest : AndroidTestCase(), SnapshotComparisonTest {
-  override val snapshotDirectoryName: String = "syncedProjectSnapshots"
+  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/syncedProjects"
 
   @Test
   fun testLightTestsWithDefaultTestProjectStructureForAndroidTestCase() {
@@ -138,6 +138,6 @@ class LightSyncForAndroidTestCaseTest : AndroidTestCase(), SnapshotComparisonTes
 private val appModuleBuilder = AndroidModuleModelBuilder(
   ":app",
   "debug",
-  createAndroidProjectBuilder(androidModuleDependencyList = { listOf(AndroidModuleDependency(":lib", "debug")) })
+  AndroidProjectBuilder(androidModuleDependencyList = { listOf(AndroidModuleDependency(":lib", "debug")) })
 )
-private val libModuleBuilder = AndroidModuleModelBuilder(":lib", "debug", createAndroidProjectBuilder())
+private val libModuleBuilder = AndroidModuleModelBuilder(":lib", "debug", AndroidProjectBuilder())

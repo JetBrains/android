@@ -37,7 +37,7 @@ import org.jetbrains.annotations.TestOnly;
  * and response data. Request data is filled immediately when the connection starts. Response data may be empty, it will filled when
  * connection completes.
  */
-public final class HttpData {
+public class HttpData {
 
   private final long myId;
   private final long myRequestStartTimeUs;

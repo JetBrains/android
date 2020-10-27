@@ -17,9 +17,6 @@ package org.jetbrains.android.util;
 
 import org.jetbrains.annotations.NotNull;
 
-/**
-* @author Eugene.Kudelevsky
-*/
 public class ResourceEntry {
   private final String myType;
   private final String myName;

@@ -47,6 +47,7 @@ import java.io.File;
 import java.util.*;
 
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+import static java.util.Collections.emptyList;
 
 /**
  * <pre>
@@ -120,8 +121,8 @@ public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements
 
   @NotNull
   @Override
-  public PsiDirectory[] getFolders() {
-    return PsiDirectory.EMPTY_ARRAY;
+  public List<PsiDirectory> getFolders() {
+    return emptyList();
   }
 
   @NotNull

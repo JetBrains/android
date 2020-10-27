@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.mlkit;
 
+import com.android.tools.mlkit.ModelInfo;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -22,20 +24,23 @@ import org.jetbrains.annotations.NotNull;
  */
 public class MlModelMetadata {
   public final String myModelFileUrl;
-  public final String myClassName;
+  public final ModelInfo myModelInfo;
 
-  public MlModelMetadata(@NotNull String modelFileUrl, @NotNull String className) {
+  public MlModelMetadata(@NotNull String modelFileUrl, @NotNull ModelInfo modelInfo) {
     myModelFileUrl = modelFileUrl;
-    myClassName = className;
+    myModelInfo = modelInfo;
   }
 
   @Override
-  public boolean equals(Object obj) {
-    return obj instanceof MlModelMetadata && myModelFileUrl.equals(((MlModelMetadata)obj).myModelFileUrl);
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    MlModelMetadata that = (MlModelMetadata)o;
+    return myModelFileUrl.equals(that.myModelFileUrl) && myModelInfo.equals(that.myModelInfo);
   }
 
   @Override
   public int hashCode() {
-    return myModelFileUrl.hashCode();
+    return Objects.hash(myModelFileUrl, myModelInfo);
   }
 }

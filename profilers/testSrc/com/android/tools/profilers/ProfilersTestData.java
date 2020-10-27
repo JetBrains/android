@@ -68,11 +68,11 @@ public final class ProfilersTestData {
     Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.UNATTACHABLE).build();
 
   // For live allocation tracking tests - duration of each allocation event.
-  public static long ALLOC_EVENT_DURATION_NS = 2 * FakeTimer.ONE_SECOND_IN_NS;
+  public static final long ALLOC_EVENT_DURATION_NS = 2 * FakeTimer.ONE_SECOND_IN_NS;
   // For live allocation tracking tests - number of class/method entries in our fake context data pool.
-  public static int ALLOC_CONTEXT_NUM = 4;
+  public static final int ALLOC_CONTEXT_NUM = 4;
   // For live allocation tracking tests - fixed object size.
-  public static int ALLOC_SIZE = 1;
+  public static final int ALLOC_SIZE = 1;
   // For live allocation tracking tests - class names that gets cycled/reused every |ALLOC_CONTEXT_NUM| us.
   public static final List<String> CONTEXT_CLASS_NAMES = Arrays.asList(
     "This.Is.Foo",
@@ -89,7 +89,7 @@ public final class ProfilersTestData {
   );
 
   // Used for testing JNI reference tracking.
-  public static final Long NATIVE_ADDRESSES_BASE = 0xBAADF00Dl;
+  public static final Long NATIVE_ADDRESSES_BASE = 0xBAADF00DL;
   public static final Long SYSTEM_NATIVE_ADDRESSES_BASE = NATIVE_ADDRESSES_BASE - 1;
   // Used for testing JNI reference tracking.
   public static final List<String> FAKE_NATIVE_MODULE_NAMES = Arrays.asList(
@@ -240,6 +240,14 @@ public final class ProfilersTestData {
     return Common.Event.newBuilder().setTimestamp(timestampNs).setGroupId(groupId).setKind(Common.Event.Kind.MEMORY_HEAP_DUMP)
       .setIsEnded(true).setMemoryHeapdump(Memory.MemoryHeapDumpData.newBuilder().setInfo(info));
   }
+
+  @NotNull
+  public static Common.Event.Builder generateMemoryNativeSampleData(long groupId, long timestampUs, Memory.MemoryNativeSampleData info) {
+    long timestampNs = TimeUnit.MICROSECONDS.toNanos(timestampUs);
+    return Common.Event.newBuilder().setTimestamp(timestampNs).setGroupId(groupId).setKind(Common.Event.Kind.MEMORY_NATIVE_SAMPLE_CAPTURE)
+      .setIsEnded(true).setMemoryNativeSample(info);
+  }
+
 
   @NotNull
   public static Common.Event.Builder generateMemoryAllocationInfoData(long timestamp, int pid, Memory.AllocationsInfo info) {

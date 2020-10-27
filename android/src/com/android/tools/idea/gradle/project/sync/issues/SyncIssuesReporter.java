@@ -22,7 +22,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.serviceContainer.NonInjectable;
@@ -39,7 +38,7 @@ import org.jetbrains.annotations.NotNull;
 
 @Service
 public final class SyncIssuesReporter {
-  @NotNull private final Map<Integer, BaseSyncIssuesReporter> myStrategies = new HashMap<>(6);
+  @NotNull private final Map<Integer, BaseSyncIssuesReporter> myStrategies = new HashMap<>(12);
   @NotNull private final BaseSyncIssuesReporter myDefaultMessageFactory;
 
   @NotNull
@@ -49,14 +48,14 @@ public final class SyncIssuesReporter {
 
   @SuppressWarnings("unused") // Instantiated by IDEA
   public SyncIssuesReporter() {
-    this(UnresolvedDependenciesReporter.getInstance(), new ExternalNdkBuildIssuesReporter(), new UnsupportedGradleReporter(),
+    this(new UnresolvedDependenciesReporter(), new ExternalNdkBuildIssuesReporter(), new UnsupportedGradleReporter(),
          new BuildToolsTooLowReporter(), new MissingSdkPackageSyncIssuesReporter(), new MinSdkInManifestIssuesReporter(),
          new TargetSdkInManifestIssuesReporter(), new DeprecatedConfigurationReporter(), new MissingSdkIssueReporter(),
-         new OutOfDateThirdPartyPluginIssueReporter(), new CxxConfigurationIssuesReporter());
+         new OutOfDateThirdPartyPluginIssueReporter(), new CxxConfigurationIssuesReporter(), new AndroidXUsedReporter());
   }
 
-  @VisibleForTesting
   @NonInjectable
+  @VisibleForTesting
   SyncIssuesReporter(@NotNull BaseSyncIssuesReporter... strategies) {
     for (BaseSyncIssuesReporter strategy : strategies) {
       int issueType = strategy.getSupportedIssueType();
@@ -65,15 +64,9 @@ public final class SyncIssuesReporter {
     myDefaultMessageFactory = new UnhandledIssuesReporter();
   }
 
-  public void report(@NotNull Project project) {
-    SyncIssues.seal(project);
-    report(SyncIssues.byModule(project));
-  }
-
   /**
    * Reports all sync errors for the provided collection of modules.
    */
-  @VisibleForTesting
   public void report(@NotNull Map<Module, List<SyncIssue>> issuesByModules) {
     if (issuesByModules.isEmpty()) {
       return;

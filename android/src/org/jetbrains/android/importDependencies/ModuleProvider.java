@@ -4,9 +4,6 @@ import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
-* @author Eugene.Kudelevsky
-*/
 abstract class ModuleProvider {
 
   private ModuleProvider() {

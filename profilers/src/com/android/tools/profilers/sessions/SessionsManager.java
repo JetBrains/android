@@ -45,11 +45,13 @@ import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
+import com.android.tools.profilers.memory.HeapProfdSessionArtifact;
 import com.android.tools.profilers.memory.HprofSessionArtifact;
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -61,7 +63,6 @@ import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -156,6 +157,9 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     myArtifactsFetchers.add(HprofSessionArtifact::getSessionArtifacts);
     myArtifactsFetchers.add(LegacyAllocationsSessionArtifact::getSessionArtifacts);
     myArtifactsFetchers.add(CpuCaptureSessionArtifact::getSessionArtifacts);
+    if (profilers.getIdeServices().getFeatureConfig().isNativeMemorySampleEnabled()) {
+      myArtifactsFetchers.add(HeapProfdSessionArtifact::getSessionArtifacts);
+    }
   }
 
   @NotNull
@@ -234,7 +238,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
    */
   private void updateSessionItemsByGroup(List<EventGroup> groups) {
     List<SessionArtifact> sessionArtifacts = new ArrayList<>();
-    List previousArtifactProtos = mySessionArtifacts.stream().map(artifact -> artifact.getArtifactProto()).collect(Collectors.toList());
+    List previousArtifactProtos = ContainerUtil.map(mySessionArtifacts, artifact -> artifact.getArtifactProto());
 
     // Note: we only add to a growing list of sessions at the moment.
     // If there are multiple groups being updated (e.g., one session ends and another one starts), we want to
@@ -286,7 +290,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     });
 
     // Trigger artifact updates.
-    List newArtifactProtos = sessionArtifacts.stream().map(artifact -> artifact.getArtifactProto()).collect(Collectors.toList());
+    List newArtifactProtos = ContainerUtil.map(sessionArtifacts, artifact -> artifact.getArtifactProto());
     if (!previousArtifactProtos.equals(newArtifactProtos)) {
       mySessionArtifacts.forEach(artifact -> myProfilers.getUpdater().unregister(artifact));
       mySessionArtifacts = sessionArtifacts;
@@ -412,7 +416,9 @@ public class SessionsManager extends AspectModel<SessionAspect> {
         .setBeginSession(requestBuilder)
         .setType(Command.CommandType.BEGIN_SESSION)
         .build();
-      myProfilers.getClient().getTransportClient().execute(ExecuteRequest.newBuilder().setCommand(command).build());
+      // TODO(b/150503095)
+      Transport.ExecuteResponse response =
+          myProfilers.getClient().getTransportClient().execute(ExecuteRequest.newBuilder().setCommand(command).build());
     }
     else {
       BeginSessionRequest.Builder requestBuilder = BeginSessionRequest.newBuilder()
@@ -462,7 +468,9 @@ public class SessionsManager extends AspectModel<SessionAspect> {
         .setEndSession(EndSession.newBuilder().setSessionId(profilingSession.getSessionId()))
         .setType(Command.CommandType.END_SESSION)
         .build();
-      myProfilers.getClient().getTransportClient().execute(ExecuteRequest.newBuilder().setCommand(command).build());
+      // TODO(b/150503095)
+      Transport.ExecuteResponse response =
+          myProfilers.getClient().getTransportClient().execute(ExecuteRequest.newBuilder().setCommand(command).build());
     }
     else {
       // In legacy pipeline BeginSession uses device ID as stream ID.
@@ -504,11 +512,13 @@ public class SessionsManager extends AspectModel<SessionAspect> {
         .setFromTimestamp(session.getStartTimestamp())
         .setToTimestamp(session.getEndTimestamp())
         .build();
-      myProfilers.getClient().getTransportClient().deleteEvents(deleteRequest);
+      // TODO(b/150503095)
+      Transport.DeleteEventsResponse response = myProfilers.getClient().getTransportClient().deleteEvents(deleteRequest);
     }
     else {
       DeleteSessionRequest request = DeleteSessionRequest.newBuilder().setSessionId(session.getSessionId()).build();
-      myProfilers.getClient().getProfilerClient().deleteSession(request);
+      // TODO(b/150503095)
+      Profiler.DeleteSessionResponse response = myProfilers.getClient().getProfilerClient().deleteSession(request);
     }
 
     // TODO b/141261422 the main update loop does not handle removing items at the moment. For now we manually remove the SessionItem and
@@ -554,8 +564,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     myStreamIdToStreamServerMap.put(stream.getStreamId(), streamServer);
     streamServer.getByteCacheMap().putAll(byteCacheMap);
     BlockingDeque<Event> deque = streamServer.getEventDeque();
-    for (int i = 0; i < events.length; i++) {
-      deque.offer(events[i]);
+    for (Event event : events) {
+      deque.offer(event);
     }
     // inserts the pair of Session begin + end events.
     deque.offer(Common.Event.newBuilder()
@@ -596,7 +606,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     assert !myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled();
 
     Common.Session session = Common.Session.newBuilder()
-      .setSessionId(generateUniqueSessionId())
+      .setSessionId(startTimestampNs)
       .setStartTimestamp(startTimestampNs)
       .setEndTimestamp(endTimestampNs)
       .build();
@@ -607,7 +617,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       .setSessionType(sessionType)
       .setStartTimestampEpochMs(startTimestampEpochMs)
       .build();
-    myProfilers.getClient().getProfilerClient().importSession(sessionRequest);
+    // TODO(b/150503095)
+    Profiler.ImportSessionResponse response = myProfilers.getClient().getProfilerClient().importSession(sessionRequest);
 
     return session;
   }
@@ -642,20 +653,12 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   }
 
   /**
-   * Return a unique Session ID
-   */
-  private int generateUniqueSessionId() {
-    // TODO: b/74401257 generate session ID in a proper way
-    return ++importedSessionCount;
-  }
-
-  /**
    * Update or add to the list of {@link SessionItem} based on the input list.
    *
    * @param sessions the list of {@link Common.Session} objects that have been added/updated.
    */
   private void updateSessionItems(@NotNull List<Common.Session> sessions) {
-    List previousProtos = mySessionArtifacts.stream().map(artifact -> artifact.getArtifactProto()).collect(Collectors.toList());
+    List previousProtos = ContainerUtil.map(mySessionArtifacts, artifact -> artifact.getArtifactProto());
 
     // Note: we only add to a growing list of sessions at the moment.
     sessions.forEach(session -> {
@@ -691,7 +694,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     }
     sessionArtifacts.sort(ARTIFACT_COMPARATOR);
 
-    List newProtos = sessionArtifacts.stream().map(artifact -> artifact.getArtifactProto()).collect(Collectors.toList());
+    List newProtos = ContainerUtil.map(sessionArtifacts, artifact -> artifact.getArtifactProto());
     if (!previousProtos.equals(newProtos)) {
       mySessionArtifacts.forEach(artifact -> myProfilers.getUpdater().unregister(artifact));
       mySessionArtifacts = sessionArtifacts;

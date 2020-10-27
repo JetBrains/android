@@ -203,10 +203,7 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
     // Unwrap method with @InverseMethod annotations.
     else if (dbExpr is PsiDbCallExpr) {
       val parameters = dbExpr.expressionList?.exprList ?: return null
-      if (parameters.size != 1) {
-        return null
-      }
-      val parameter = parameters[0]
+      val parameter = parameters.lastOrNull() ?: return null
       // Check if its only parameter has a valid type for setter.
       findAssignableTypeToBindingExpression(parameter, invertibleMethodNames) ?: return null
       // Return the returnType of the original method.

@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.module.Module;
@@ -26,21 +26,20 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 
 public class StringResourceEditorProvider implements FileEditorProvider, DumbAware {
   public static final String ID = "string-resource-editor";
 
   public static boolean canViewTranslations(@NotNull Project project, @NotNull VirtualFile file) {
-    String name = AndroidResourceUtil.getDefaultResourceFileName(ResourceType.STRING);
+    String name = IdeResourcesUtil.getDefaultResourceFileName(ResourceType.STRING);
     assert name != null;
 
     if (!file.getName().endsWith(name)) {
       return false;
     }
 
-    if (ResourceHelper.getFolderType(file) != ResourceFolderType.VALUES) {
+    if (IdeResourcesUtil.getFolderType(file) != ResourceFolderType.VALUES) {
       return false;
     }
 

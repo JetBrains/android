@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,10 +41,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
-import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
-import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetupStep;
-import com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidVariantChangeModuleSetup;
-import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkVariantChangeModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.IdeModifiableModelsProviderFactory;
 import com.android.tools.idea.model.AndroidModel;
@@ -70,10 +66,6 @@ import org.mockito.stubbing.Answer;
 public class BuildVariantUpdaterTest extends PlatformTestCase {
   @Mock private IdeModifiableModelsProvider myModifiableModelsProvider;
   @Mock private IdeModifiableModelsProviderFactory myModifiableModelsProviderFactory;
-  @Mock private AndroidModuleSetupStep mySetupStepToInvoke;
-  @Mock private AndroidModuleSetupStep mySetupStepToIgnore;
-  @Mock private NdkModuleSetupStep myNdkSetupStepToInvoke;
-  @Mock private NdkModuleSetupStep myNdkSetupStepToIgnore;
   @Mock private AndroidModuleModel myAndroidModel;
   @Mock private NdkModuleModel myNdkModel;
   @Mock private IdeAndroidProject myAndroidProject;
@@ -100,12 +92,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     Project project = getProject();
     when(myModifiableModelsProviderFactory.create(project)).thenReturn(myModifiableModelsProvider);
 
-    when(mySetupStepToInvoke.invokeOnBuildVariantChange()).thenReturn(true);
-    when(mySetupStepToIgnore.invokeOnBuildVariantChange()).thenReturn(false);
-
-    when(myNdkSetupStepToInvoke.invokeOnBuildVariantChange()).thenReturn(true);
-    when(myNdkSetupStepToIgnore.invokeOnBuildVariantChange()).thenReturn(false);
-
     when(myDebugVariant.getName()).thenReturn("debug");
 
     when(myAndroidModel.getSelectedMainCompileLevel2Dependencies()).thenReturn(myIdeDependencies);
@@ -117,9 +103,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // Replace the GradleFiles service so no hashes are updated as this can cause a NPE since the mocked models don't return anything
     ServiceContainerUtil.replaceService(project, GradleFiles.class, myGradleFiles, getTestRootDisposable());
 
-    myVariantUpdater = new BuildVariantUpdater(myModuleSetupContextFactory, myModifiableModelsProviderFactory,
-                                               new AndroidVariantChangeModuleSetup(mySetupStepToInvoke, mySetupStepToIgnore),
-                                               new NdkVariantChangeModuleSetup(myNdkSetupStepToIgnore, myNdkSetupStepToInvoke));
+    myVariantUpdater = new BuildVariantUpdater(myModifiableModelsProviderFactory);
     myVariantUpdater.addSelectionChangeListener(myVariantSelectionChangeListener);
 
     when(myNdkModel.getNdkVariantNames()).thenReturn(new HashSet() {{
@@ -140,14 +124,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     myVariantUpdater.updateSelectedBuildVariant(myProject, myModule.getName(), variantToSelect);
 
     verify(myAndroidModel).setSelectedVariantName(variantToSelect);
-    verify(mySetupStepToInvoke).setUpModule(myModuleSetupContext, myAndroidModel);
-    verify(mySetupStepToIgnore, never()).setUpModule(myModuleSetupContext, myAndroidModel);
     verify(myVariantSelectionChangeListener).selectionChanged();
-
-    // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
-    // See http://b/64069792
-    PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
 
   // Initial variant/ABI selection:
@@ -187,14 +164,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // invoke method to test.
     myVariantUpdater.updateSelectedBuildVariant(myProject, myModule.getName(), variantToSelect);
 
-    verify(myNdkSetupStepToInvoke).setUpModule(myModuleSetupContext, myNdkModel);
-    verify(myNdkSetupStepToIgnore, never()).setUpModule(myModuleSetupContext, myNdkModel);
     verify(myVariantSelectionChangeListener).selectionChanged();
-
-    // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
-    // See http://b/64069792
-    PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
 
 
@@ -235,14 +205,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // invoke method to test.
     myVariantUpdater.updateSelectedAbi(myProject, myModule.getName(), abiToSelect);
 
-    verify(myNdkSetupStepToInvoke).setUpModule(myModuleSetupContext, myNdkModel);
-    verify(myNdkSetupStepToIgnore, never()).setUpModule(myModuleSetupContext, myNdkModel);
     verify(myVariantSelectionChangeListener).selectionChanged();
-
-    // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
-    // See http://b/64069792
-    PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
 
   public void testUpdateSelectedVariantWithUnchangedVariantName() {
@@ -253,14 +216,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     myVariantUpdater.updateSelectedBuildVariant(myProject, myModule.getName(), variantToSelect);
 
     verify(myAndroidModel, never()).setSelectedVariantName(variantToSelect);
-    verify(mySetupStepToInvoke, never()).setUpModule(myModuleSetupContext, myAndroidModel);
-    verify(mySetupStepToIgnore, never()).setUpModule(myModuleSetupContext, myAndroidModel);
     verify(myVariantSelectionChangeListener, never()).selectionChanged();
-
-    // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
-    // See http://b/64069792
-    PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    verify(myPostSyncProjectSetup, never()).setUpProject(eq(setupRequest), any(), any());
   }
 
   public void testUpdateSelectedVariantWithChangedBuildFiles() {
@@ -289,12 +245,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     verify(myAndroidModel).setSelectedVariantName(variantToSelect);
     verify(syncInvoker).requestProjectSync(eq(myProject), any(GradleSyncStats.Trigger.class), any());
     verify(myVariantSelectionChangeListener).selectionChanged();
-
-    // Verify that module setup steps are not being called.
-    verify(mySetupStepToInvoke, never()).setUpModule(myModuleSetupContext, myAndroidModel);
-    verify(mySetupStepToIgnore, never()).setUpModule(myModuleSetupContext, myAndroidModel);
-    PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    verify(myPostSyncProjectSetup, never()).setUpProject(eq(setupRequest), any(), any());
   }
 
   // app module depends on library module.
@@ -363,15 +313,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     verify(myAndroidModel).setSelectedVariantName(variantToSelect);
     verify(libraryAndroidModel).setSelectedVariantName(variantToSelect);
 
-    // Verify the invoked setup steps.
-    verify(mySetupStepToInvoke).setUpModule(myModuleSetupContext, myAndroidModel);
-    verify(mySetupStepToIgnore, never()).setUpModule(myModuleSetupContext, myAndroidModel);
     verify(myVariantSelectionChangeListener).selectionChanged();
-
-    // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
-    // See http://b/64069792
-    PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
 
   // app module depends on library module.
@@ -455,15 +397,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     verify(myNdkModel).setSelectedVariantName(ndkVariantToSelect);
     verify(libraryAndroidModel).setSelectedVariantName(variantToSelect);
 
-    // Verify the invoked setup steps.
-    verify(myNdkSetupStepToInvoke).setUpModule(myModuleSetupContext, myNdkModel);
-    verify(myNdkSetupStepToIgnore, never()).setUpModule(myModuleSetupContext, myNdkModel);
     verify(myVariantSelectionChangeListener).selectionChanged();
-
-    // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
-    // See http://b/64069792
-    PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
 
   // app module depends on library module.
@@ -558,15 +492,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     verify(libraryAndroidModel).setSelectedVariantName(variantToSelect);
     verify(libraryNdkModel).setSelectedVariantName(ndkVariantToSelect);
 
-    // Verify the invoked setup steps.
-    verify(myNdkSetupStepToInvoke).setUpModule(libraryModuleSetupContext, libraryNdkModel);
-    verify(myNdkSetupStepToIgnore, never()).setUpModule(libraryModuleSetupContext, libraryNdkModel);
     verify(myVariantSelectionChangeListener).selectionChanged();
-
-    // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
-    // See http://b/64069792
-    PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
 
   // app module depends on library module.
@@ -677,15 +603,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     verify(libraryAndroidModel).setSelectedVariantName(variantToSelect);
     verify(libraryNdkModel).setSelectedVariantName(ndkVariantToSelect);
 
-    // Verify the invoked setup steps.
-    verify(myNdkSetupStepToInvoke).setUpModule(libraryModuleSetupContext, libraryNdkModel);
-    verify(myNdkSetupStepToIgnore, never()).setUpModule(libraryModuleSetupContext, libraryNdkModel);
     verify(myVariantSelectionChangeListener).selectionChanged();
-
-    // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
-    // See http://b/64069792
-    PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
 
   // app module depends on library module.
@@ -799,14 +717,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     verify(libraryAndroidModel).setSelectedVariantName(variantToSelect);
     verify(libraryNdkModel).setSelectedVariantName(ndkVariantToSelect);
 
-    // Verify the invoked setup steps.
-    verify(myNdkSetupStepToInvoke).setUpModule(libraryModuleSetupContext, libraryNdkModel);
-    verify(myNdkSetupStepToIgnore, never()).setUpModule(libraryModuleSetupContext, libraryNdkModel);
     verify(myVariantSelectionChangeListener).selectionChanged();
-
-    // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
-    // See http://b/64069792
-    PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
 }

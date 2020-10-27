@@ -1,4 +1,3 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.dom;
 
 import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX;
@@ -70,14 +69,11 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.ValueResourceInfo;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidXmlDocumentationProvider implements DocumentationProvider {
   private static final Key<SoftReference<Map<XmlName, CachedValue<String>>>> ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE_KEY =
       Key.create("ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE");
@@ -208,7 +204,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
 
         if (TAG_RESOURCES.equals(parentTag.getName())) {
           // Handle ID definitions, http://developer.android.com/guide/topics/resources/more-resources.html#Id
-          ResourceType type = AndroidResourceUtil.getResourceTypeForResourceTag(tag);
+          ResourceType type = IdeResourcesUtil.getResourceTypeForResourceTag(tag);
           if (type != null) {
             return generateDoc(element, type, value, false);
           }
@@ -497,7 +493,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     return null;
   }
 
-  private static final class MyDocElement extends FakePsiElement {
+  private static class MyDocElement extends FakePsiElement {
 
     XmlAttribute myParent;
     String myValue;
@@ -528,7 +524,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
    * Contains the element from which the completion has been started from, and the a String taken from lookup
    * element, which is a {@link ResourceUrl}.
    */
-  public static final class ResourceReferenceCompletionElement extends FakePsiElement {
+  public static class ResourceReferenceCompletionElement extends FakePsiElement {
     final PsiElement myParent;
     final String myResource;
 

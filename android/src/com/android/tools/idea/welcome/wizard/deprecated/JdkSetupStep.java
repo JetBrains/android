@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
-import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.JDK_LOCATION_TOOLTIP;
-import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.JDK_LOCATION_WARNING_URL;
-import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.generateChooseValidJdkDirectoryError;
-import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.getLocationFromComboBoxWithBrowseButton;
+import static com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_TOOLTIP;
+import static com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_WARNING_URL;
+import static com.android.tools.idea.gradle.ui.SdkUiStrings.generateChooseValidJdkDirectoryError;
+import static com.android.tools.idea.gradle.ui.SdkUiUtils.getLocationFromComboBoxWithBrowseButton;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
 import static com.android.tools.idea.wizard.WizardConstants.KEY_JDK_LOCATION;
@@ -26,7 +26,7 @@ import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.structure.IdeSdksConfigurable;
+import com.android.tools.idea.gradle.ui.LabelAndFileForLocation;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.application.ApplicationManager;
@@ -81,7 +81,7 @@ public class JdkSetupStep extends FirstRunWizardStep {
     if (embeddedPath != null) {
       File validatedPath = validateJdkPath(embeddedPath);
       if (validatedPath != null) {
-        comboBox.addItem(new IdeSdksConfigurable.LabelAndFileForLocation("Embedded JDK", validatedPath));
+        comboBox.addItem(new LabelAndFileForLocation("Embedded JDK", validatedPath));
       }
     }
     String javaHomePath = getJdkFromJavaHome();
@@ -89,7 +89,7 @@ public class JdkSetupStep extends FirstRunWizardStep {
       File validatedPath = validateJdkPath(new File(javaHomePath));
       myIsJavaHomeValid = validatedPath != null;
       if (myIsJavaHomeValid) {
-        comboBox.addItem(new IdeSdksConfigurable.LabelAndFileForLocation("JAVA_HOME", validatedPath));
+        comboBox.addItem(new LabelAndFileForLocation("JAVA_HOME", validatedPath));
       }
     }
     comboBox.setEditable(true);
@@ -98,8 +98,8 @@ public class JdkSetupStep extends FirstRunWizardStep {
       public void itemStateChanged(ItemEvent event) {
         if (event.getStateChange() == ItemEvent.SELECTED) {
           Object selectedItem = event.getItem();
-          if (selectedItem instanceof IdeSdksConfigurable.LabelAndFileForLocation) {
-            ApplicationManager.getApplication().invokeLater(() -> setJdkLocationComboBox(((IdeSdksConfigurable.LabelAndFileForLocation)selectedItem).getFile()));
+          if (selectedItem instanceof LabelAndFileForLocation) {
+            ApplicationManager.getApplication().invokeLater(() -> setJdkLocationComboBox(((LabelAndFileForLocation)selectedItem).getFile()));
           }
         }
       }

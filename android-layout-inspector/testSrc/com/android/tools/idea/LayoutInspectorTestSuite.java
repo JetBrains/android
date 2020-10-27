@@ -26,13 +26,4 @@ import org.junit.runner.RunWith;
   LayoutInspectorCaptureTaskTest.class})
 @SuppressWarnings("NewClassNamingConvention") // Not a test.
 public class LayoutInspectorTestSuite extends IdeaTestSuiteBase {
-
-  static {
-    symlinkToIdeaHome(
-      "tools/adt/idea/android/annotations",
-      "tools/adt/idea/android/testData",
-      "tools/adt/idea/android-layout-inspector/testData",
-      "tools/base/templates",
-      "tools/idea/java");
-  }
 }

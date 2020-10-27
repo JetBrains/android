@@ -19,7 +19,6 @@ import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
-import com.android.tools.idea.uibuilder.error.MockIssueFactory;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import org.jetbrains.android.AndroidTestCase;
 import org.mockito.Mockito;

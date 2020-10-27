@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.npw.importing;
 
+import com.android.tools.idea.util.FormatUtil;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.ModuleToImport;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.annotations.VisibleForTesting;
@@ -306,8 +308,8 @@ public final class ModuleListModel {
             return "'" + getModuleName(input) + "'";
           }
         });
-        return ImportUIUtil.formatElementListString(requiredBy, "Required by module %s", "Required by modules %s and %s",
-                                                    "Required by modules %s and %d more");
+        return FormatUtil.formatElementListString(requiredBy, "Required by module %s", "Required by modules %s and %s",
+                                                  "Required by modules %s and %d more");
       case INVALID_NAME:
         return getNameErrorMessage(getModuleName(module));
     }

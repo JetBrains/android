@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.junit;
 
+import com.android.tools.idea.IdeInfo;
 import com.intellij.conversion.ConversionContext;
 import com.intellij.conversion.ConverterProvider;
 import com.intellij.conversion.ProjectConverter;

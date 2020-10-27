@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.handlers.motion.property2
 
 import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.AUTO_URI
+import com.android.tools.idea.res.psi.ResourceReferencePsiElement
+import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE
@@ -103,6 +105,11 @@ object Navigation {
     var element = ref.resolve()
     if (element == null) {
       element = ref.element
+    }
+    if (element is ResourceReferencePsiElement) {
+      return ResourceRepositoryToPsiResolver.getGotoDeclarationTargets(element.resourceReference, tag)
+        .filterIsInstance<Navigatable>()
+        .firstOrNull()
     }
     return element as? Navigatable
   }

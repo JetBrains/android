@@ -20,6 +20,7 @@ import static com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEJTable;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag.Attribute;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
@@ -74,6 +75,7 @@ class LayoutPanel extends JPanel {
     JPanel top = new JPanel(new BorderLayout());
     top.add(left, BorderLayout.WEST);
     top.add(right, BorderLayout.EAST);
+    top.setBorder(MEUI.getPanelBottomBorder());
     mConstraintSetTable.setShowHorizontalLines(false);
 
     left.add(mTitle = new JLabel("Layout ", MEIcons.LIST_LAYOUT, SwingConstants.LEFT));

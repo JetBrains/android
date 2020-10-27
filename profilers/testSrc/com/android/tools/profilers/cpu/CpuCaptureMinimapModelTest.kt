@@ -24,7 +24,7 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture
+import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -36,17 +36,16 @@ class CpuCaptureMinimapModelTest {
 
   @get:Rule
   var grpcChannel = FakeGrpcChannel("CpuCaptureMinimapModelTest", FakeCpuService(), FakeProfilerService(timer), FakeTransportService(timer))
-  private val profilerClient = ProfilerClient(grpcChannel.name)
 
   private lateinit var profilers: StudioProfilers
   @Before
   fun setUp() {
-    profilers = StudioProfilers(profilerClient, FakeIdeProfilerServices(), timer)
+    profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), timer)
   }
 
   @Test
   fun selectionRangeIsBoundByCaptureRange() {
-    val mockCapture = Mockito.mock(AtraceCpuCapture::class.java)
+    val mockCapture = Mockito.mock(SystemTraceCpuCapture::class.java)
     Mockito.`when`(mockCapture.range).thenReturn(Range(1.0, 10.0))
     Mockito.`when`(mockCapture.type).thenReturn(Cpu.CpuTraceType.ATRACE)
 

@@ -18,16 +18,68 @@ package com.android.tools.idea.compose.preview.runconfiguration
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.project.Project
+import org.jdom.Element
+
+private const val CONFIGURATION_ELEMENT_NAME = "compose-preview-run-configuration"
+private const val COMPOSABLE_FQN_ATR_NAME = "composable-fqn"
 
 /** A run configuration to launch the Compose tooling PreviewActivity to a device/emulator passing a @Composable via intent parameter. */
 open class ComposePreviewRunConfiguration(project: Project, factory: ConfigurationFactory) : AndroidRunConfiguration(project, factory) {
+
+  var composableMethodFqn: String? = null
+    set(value) {
+      field = value
+      updateActivityExtraFlags()
+    }
+
+  var providerClassFqn: String? = null
+    set(value) {
+      field = value
+      updateActivityExtraFlags()
+    }
+
+  var providerIndex: Int = -1
+    set(value) {
+      field = value
+      updateActivityExtraFlags()
+    }
+
   init {
     // This class is open just to be inherited in the tests, and the derived class is available when it needs to be accessed
+    // TODO(b/152183413): limit the search to the library scope. We currently use the global scope because SpecificActivityLaunch.State only
+    //                    accepts either project or global scope.
     @Suppress("LeakingThis")
-    setLaunchActivity("androidx.ui.tooling.preview.PreviewActivity")
+    setLaunchActivity("androidx.ui.tooling.preview.PreviewActivity", true)
   }
 
-  fun setComposableMethod(methodFqn: String) {
-    ACTIVITY_EXTRA_FLAGS = "--es composable ${methodFqn}"
+  private fun updateActivityExtraFlags() {
+    ACTIVITY_EXTRA_FLAGS =
+      (composableMethodFqn?.let { "--es composable $it" } ?: "") +
+      (providerClassFqn?.let { " --es parameterProviderClassName $it" } ?: "") +
+      (providerIndex.takeIf { it >= 0 }?.let { " --ei parameterProviderIndex $it" } ?: "")
   }
+
+  override fun isProfilable() = false
+
+  override fun readExternal(element: Element) {
+    super.readExternal(element)
+
+    element.getChild(CONFIGURATION_ELEMENT_NAME)?.let {
+      it.getAttribute(COMPOSABLE_FQN_ATR_NAME)?.let { attr ->
+        composableMethodFqn = attr.value
+      }
+    }
+  }
+
+  override fun writeExternal(element: Element) {
+    super.writeExternal(element)
+
+    composableMethodFqn?.let {
+      val configurationElement = Element(CONFIGURATION_ELEMENT_NAME)
+      configurationElement.setAttribute(COMPOSABLE_FQN_ATR_NAME, it)
+      element.addContent(configurationElement)
+    }
+  }
+
+  override fun getConfigurationEditor() = ComposePreviewSettingsEditor(project, this)
 }

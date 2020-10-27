@@ -21,7 +21,6 @@ import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
@@ -34,6 +33,8 @@ import com.android.tools.profilers.cpu.CpuCaptureStage
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -41,13 +42,15 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import javax.swing.JLabel
 
+@RunsInEdt
 class CpuAnalysisPanelTest {
 
   private val timer = FakeTimer()
   @get:Rule
   var grpcChannel = FakeGrpcChannel("CpuCaptureStageTestChannel", FakeCpuService(), FakeProfilerService(timer),
                                     FakeTransportService(timer, true))
-  private val profilerClient = ProfilerClient(grpcChannel.name)
+  @get:Rule val myEdtRule = EdtRule()
+
   private lateinit var profilers: StudioProfilers
   private val services = FakeIdeProfilerServices()
   private lateinit var stage: CpuCaptureStage
@@ -55,10 +58,9 @@ class CpuAnalysisPanelTest {
 
   @Before
   fun setUp() {
-    services.enablePerfetto(true)
-    profilers = StudioProfilers(profilerClient, services, timer)
+    profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
-                                   TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH))
+                                   TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH), 123L)
     panel = CpuAnalysisPanel(StudioProfilersView(profilers, FakeIdeProfilerComponents()), stage)
   }
 
@@ -77,10 +79,16 @@ class CpuAnalysisPanelTest {
 
   @Test
   fun newAnalysisIsAutoSelected() {
+    // Add test-only binding.
+    class TestCpuAnalysisTabModel(type: Type) : CpuAnalysisTabModel<CpuCapture>(type)
+    class TestCpuAnalysisTab(profilersView: StudioProfilersView, model: TestCpuAnalysisTabModel)
+      : CpuAnalysisTab<TestCpuAnalysisTabModel>(profilersView, model)
+    panel.tabViewsBinder.bind(TestCpuAnalysisTabModel::class.java, ::TestCpuAnalysisTab)
+
     stage.enter()
     val selectedModel = CpuAnalysisModel<CpuCapture>("TEST")
-    selectedModel.addTabModel(CpuAnalysisTabModel(CpuAnalysisTabModel.Type.SUMMARY))
-    selectedModel.addTabModel(CpuAnalysisTabModel(CpuAnalysisTabModel.Type.LOGS))
+    selectedModel.addTabModel(TestCpuAnalysisTabModel(CpuAnalysisTabModel.Type.SUMMARY))
+    selectedModel.addTabModel(TestCpuAnalysisTabModel(CpuAnalysisTabModel.Type.LOGS))
     stage.addCpuAnalysisModel(selectedModel)
     assertThat(panel.tabView.tabCount).isEqualTo(2)
   }
@@ -98,8 +106,8 @@ class CpuAnalysisPanelTest {
   fun tabsAreOnlyPopulatedWhenSelected() {
     stage.enter()
     assertThat(panel.tabView.selectedIndex).isEqualTo(0)
-    assertThat(panel.tabView.getComponentAt(0)).isInstanceOf(CpuAnalysisChart::class.java)
+    assertThat(panel.tabView.getComponentAt(0)).isInstanceOf(CpuAnalysisSummaryTab::class.java)
     panel.tabView.selectedIndex = 1
-    assertThat(panel.tabView.getComponentAt(0)).isNotInstanceOf(CpuAnalysisChart::class.java)
+    assertThat(panel.tabView.getComponentAt(0)).isNotInstanceOf(CpuAnalysisSummaryTab::class.java)
   }
 }

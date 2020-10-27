@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.PropertyKey;
 
-public final class LayoutlibBundle extends DynamicBundle {
+public class LayoutlibBundle extends DynamicBundle {
   @NonNls private static final String BUNDLE = "messages.LayoutlibBundle";
   private static final LayoutlibBundle INSTANCE = new LayoutlibBundle();
 

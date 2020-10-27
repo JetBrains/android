@@ -90,7 +90,7 @@ public final class MemoryProfilerTest {
   public void setUp() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
     myIdeProfilerServices.enableEventsPipeline(myUnifiedPipeline);
-    myStudioProfiler = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeProfilerServices, myTimer);
+    myStudioProfiler = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, myTimer);
   }
 
   @Test
@@ -150,7 +150,7 @@ public final class MemoryProfilerTest {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
     // We first call stop tracking before starting.
-    Memory.AllocationsInfo lastInfo = null;
+    Memory.AllocationsInfo lastInfo;
     if (myUnifiedPipeline) {
       verifyIsUsingLiveAllocation();
       lastInfo = allocTrackingHandler.getLastInfo();
@@ -219,6 +219,22 @@ public final class MemoryProfilerTest {
   }
 
   @Test
+  public void testGetNativeHeapSamplesForSession() {
+    Assume.assumeTrue(myUnifiedPipeline);
+    long nativeHeapTimestamp = 30L;
+    Memory.MemoryNativeSampleData nativeHeapInfo =
+      Memory.MemoryNativeSampleData.newBuilder().setStartTime(nativeHeapTimestamp).setEndTime(nativeHeapTimestamp + 1).build();
+    Common.Event nativeHeapData =
+      ProfilersTestData.generateMemoryNativeSampleData(nativeHeapTimestamp, nativeHeapTimestamp + 1, nativeHeapInfo)
+        .setPid(ProfilersTestData.SESSION_DATA.getPid()).build();
+    myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(), nativeHeapData);
+    List<Memory.MemoryNativeSampleData> samples = MemoryProfiler
+      .getNativeHeapSamplesForSession(myStudioProfiler.getClient(), ProfilersTestData.SESSION_DATA,
+                                      new Range(Long.MIN_VALUE, Long.MAX_VALUE));
+    Truth.assertThat(samples).containsExactly(nativeHeapInfo);
+  }
+
+  @Test
   public void testSaveHeapDumpToFile() {
     Assume.assumeFalse("Unified pipeline import cannot yet be tested because of dependencies on TransportService.getInstance().",
                        myUnifiedPipeline);
@@ -237,6 +253,17 @@ public final class MemoryProfilerTest {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     MemoryProfiler.saveHeapDumpToFile(myStudioProfiler.getClient(), ProfilersTestData.SESSION_DATA, dumpInfo, baos,
                                       myStudioProfiler.getIdeServices().getFeatureTracker());
+    assertArrayEquals(buffer, baos.toByteArray());
+  }
+
+  @Test
+  public  void testSaveHeapProfdSampleToFile() {
+    long startTimeNs = 3;
+    Memory.MemoryNativeSampleData data = Memory.MemoryNativeSampleData.newBuilder().setStartTime(startTimeNs).build();
+    byte[] buffer = data.toByteArray();
+    myTransportService.addFile(Long.toString(startTimeNs), ByteString.copyFrom(buffer));
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    MemoryProfiler.saveHeapProfdSampleToFile(myStudioProfiler.getClient(), ProfilersTestData.SESSION_DATA, data, baos);
     assertArrayEquals(buffer, baos.toByteArray());
   }
 

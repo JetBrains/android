@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.aspects.AspectsAgentLogUtil
 import com.android.tools.tests.IdeaTestSuiteBase
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testGuiFramework.impl.GuiTestStarter
 import org.apache.log4j.Level
@@ -47,8 +48,6 @@ import java.util.jar.Manifest
  * executable/script.
  *
  * See [GuiTestStarter] and [GuiTestThread] for details on what happens after the new process is forked.
- *
- * @author Sergey Karashevich
  */
 object GuiTestLauncher {
 
@@ -155,6 +154,7 @@ object GuiTestLauncher {
       "-Didea.platform.prefix=AndroidStudio",
       "-Didea.jre.check=true",
       /* testing-specific options */
+      "-Djava.io.tmpdir=${System.getProperty("java.io.tmpdir")}",
       "-Didea.config.path=${GuiTests.getConfigDirPath()}",
       "-Didea.system.path=${GuiTests.getSystemDirPath()}",
       "-Dplugin.path=${GuiTestOptions.getPluginPath()}",
@@ -166,7 +166,7 @@ object GuiTestLauncher {
       "-Didea.gui.test.port=$port"
     )
     /* aspects agent options */
-    if (!SystemInfo.IS_AT_LEAST_JAVA9) {  // b/134524025
+    if (!SystemInfoRt.IS_AT_LEAST_JAVA9) {  // b/134524025
       options += "-javaagent:${GuiTestOptions.getAspectsAgentJar()}=${GuiTestOptions.getAspectsAgentRules()};${GuiTestOptions.getAspectsAgentBaseline()}"
       options += "-Daspects.baseline.export.path=${GuiTestOptions.getAspectsBaselineExportPath()}"
     }
@@ -176,7 +176,7 @@ object GuiTestLauncher {
       options += "-Xmx16g"
       options += "-XX:+UseG1GC"
       val jvmtiAgent = File(TestUtils.getWorkspaceRoot(),
-                            "bazel-bin/tools/adt/idea/uitest-framework/testSrc/com/android/tools/idea/tests/gui/framework/heapassertions/bleak/agents/libjnibleakhelper.so")
+                            "bazel-bin/tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents/libjnibleakhelper.so")
       if (jvmtiAgent.exists()) {
         options += "-agentpath:${jvmtiAgent.absolutePath}"
         options += "-Dbleak.jvmti.enabled=true"
@@ -194,7 +194,9 @@ object GuiTestLauncher {
       options += "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=${GuiTestOptions.getDebugPort()}"
     }
     if (TestUtils.runningFromBazel()) {
-      options += "-Didea.home=${IdeaTestSuiteBase.createTmpDir("tools/idea")}"
+      options += "-Didea.home.path=${TestUtils.getWorkspaceFile("tools/idea")}"
+      options += "-Didea.system.path=${IdeaTestSuiteBase.createTmpDir("idea/system")}"
+      options += "-Didea.config.path=${IdeaTestSuiteBase.createTmpDir("idea/config")}"
       options += "-Dgradle.user.home=${IdeaTestSuiteBase.createTmpDir("home")}"
       options += "-DANDROID_SDK_HOME=${IdeaTestSuiteBase.createTmpDir(".android")}"
       options += "-Dlayoutlib.thread.timeout=60000"
@@ -214,7 +216,7 @@ object GuiTestLauncher {
 
   private fun getCurrentJavaExec(): String {
     val homeDir = File(System.getProperty("java.home"))
-    val binDir = File(if (SystemInfo.IS_AT_LEAST_JAVA9) homeDir else homeDir.parentFile, "bin")
+    val binDir = File(if (SystemInfoRt.IS_AT_LEAST_JAVA9) homeDir else homeDir.parentFile, "bin")
     val javaName = if (SystemInfo.isWindows) "java.exe" else "java"
     return File(binDir, javaName).path
   }
@@ -227,7 +229,7 @@ object GuiTestLauncher {
       @Suppress("UNCHECKED_CAST")
       val urlsListOrArray = getUrlsMethod.invoke(classLoader)
       var urls = (urlsListOrArray as? List<*> ?: (urlsListOrArray as Array<*>).toList()).filterIsInstance(URL::class.java)
-      return urls.map { Paths.get(it.toURI()).toFile() }
+      return urls.filter { !it.toString().contains("android.core.tests") }.map { Paths.get(it.toURI()).toFile() }
     } else {
       // under JDK 11, when run from the IDE, the ClassLoader in question here will be ClassLoaders$AppClassLoader.
       // Fortunately, under these circumstances, java.class.path has everything we need.

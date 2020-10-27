@@ -33,6 +33,14 @@ import org.mockito.stubbing.Answer
 import sun.awt.AWTAccessor
 import java.awt.*
 import java.awt.event.FocusEvent
+import sun.awt.CausedFocusEvent
+import java.awt.Component
+import java.awt.Container
+import java.awt.DefaultKeyboardFocusManager
+import java.awt.Frame
+import java.awt.GraphicsEnvironment
+import java.awt.KeyboardFocusManager
+import java.awt.Window
 import java.awt.peer.ComponentPeer
 import javax.swing.JComponent
 

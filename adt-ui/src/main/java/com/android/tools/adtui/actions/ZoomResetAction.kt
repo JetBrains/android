@@ -16,6 +16,7 @@
 package com.android.tools.adtui.actions
 
 import com.android.tools.adtui.ZOOMABLE_KEY
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
@@ -25,14 +26,21 @@ import com.intellij.util.ui.JBUI
 import java.awt.Color
 import javax.swing.JComponent
 
-/** Similar to ZoomFitAction, but it's just a button with a text that reads 'Reset' (no icon). */
-object ZoomResetAction : SetZoomAction(ZoomType.FIT), CustomComponentAction {
+/**
+ * Similar to ZoomFitAction, but it's just a button with a text that reads 'Reset' (no icon).
+ *
+ * TODO(b/149212539): make constructor private after resolving failed test cases.
+ */
+class ZoomResetAction : SetZoomAction(ZoomType.FIT), CustomComponentAction {
   private val myTextColor = Color(0x1a7dc4) // For light and dark mode.
 
   init {
     templatePresentation.icon = EmptyIcon.ICON_0
     templatePresentation.disabledIcon = EmptyIcon.ICON_0
-    templatePresentation.text = "Reset"
+  }
+
+  companion object {
+    fun getInstance() = ActionManager.getInstance().getAction(AdtuiActions.ZOOM_RESET_ACTION) as ZoomResetAction
   }
 
   override fun update(event: AnActionEvent) {
@@ -42,8 +50,10 @@ object ZoomResetAction : SetZoomAction(ZoomType.FIT), CustomComponentAction {
     event.presentation.isEnabled = event.getData(ZOOMABLE_KEY)?.canZoomToFit() ?: false
   }
 
-  override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
-    ActionButtonWithText(this, presentation, place, JBUI.size(60, 0)).apply {
+  override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
+    presentation.text = "Reset"
+    return ActionButtonWithText(this, presentation, place, JBUI.size(60, 0)).apply {
       foreground = myTextColor
     }
+  }
 }

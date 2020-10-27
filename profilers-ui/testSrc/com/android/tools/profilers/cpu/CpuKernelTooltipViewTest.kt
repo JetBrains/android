@@ -29,7 +29,6 @@ import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture
 import com.android.tools.profilers.cpu.atrace.AtraceParser
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo
@@ -48,7 +47,7 @@ class CpuKernelTooltipViewTest {
   private lateinit var myStage: CpuProfilerStage
   private lateinit var myCpuKernelTooltip: CpuKernelTooltip
   private lateinit var myCpuKernelTooltipView: FakeCpuKernelTooltipView
-  private lateinit var myCapture: AtraceCpuCapture
+  private lateinit var myCapture: CpuCapture
   private lateinit var myRange: Range
   private val myFakeTransportService = FakeTransportService(timer)
   @get:Rule
@@ -59,9 +58,9 @@ class CpuKernelTooltipViewTest {
     val device = Common.Device.newBuilder().setDeviceId(1).build()
     myFakeTransportService.addDevice(device)
     myFakeTransportService.addProcess(device, Common.Process.newBuilder().setDeviceId(1).setPid(1).build())
-    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), FakeIdeProfilerServices(), timer)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), FakeIdeProfilerServices(), timer)
     myStage = CpuProfilerStage(profilers)
-    myCapture = AtraceParser(1).parse(TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE), 0) as AtraceCpuCapture
+    myCapture = AtraceParser(MainProcessSelector(idHint = 1)).parse(TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE), 0)
     myStage.capture = myCapture
     timer.tick(TimeUnit.SECONDS.toNanos(1))
     profilers.stage = myStage
@@ -80,7 +79,7 @@ class CpuKernelTooltipViewTest {
     val testSeriesData = ArrayList<SeriesData<CpuThreadSliceInfo>>()
     testSeriesData.add(SeriesData(0, CpuThreadSliceInfo(0, "SomeThread", 0, "MyProcess", TimeUnit.SECONDS.toMicros(2))))
     testSeriesData.add(SeriesData(5, CpuThreadSliceInfo.NULL_THREAD))
-    val series = AtraceDataSeries<CpuThreadSliceInfo>(myCapture, { _ -> testSeriesData })
+    val series = LazyDataSeries<CpuThreadSliceInfo> { testSeriesData }
     myRange.set(1.0, 1.0)
     myCpuKernelTooltip.setCpuSeries(1, series)
     val labels = TreeWalker(myCpuKernelTooltipView.tooltipPanel).descendants().filterIsInstance<JLabel>()
@@ -96,7 +95,7 @@ class CpuKernelTooltipViewTest {
   fun otherDetailsAppearOnOtherApps() {
     val testSeriesData = ArrayList<SeriesData<CpuThreadSliceInfo>>()
     testSeriesData.add(SeriesData(0, CpuThreadSliceInfo(0, "SomeThread", 22, "MyProcess")))
-    val series = AtraceDataSeries<CpuThreadSliceInfo>(myCapture, { _ -> testSeriesData })
+    val series = LazyDataSeries<CpuThreadSliceInfo> { testSeriesData }
     myRange.set(1.0, 1.0)
     myCpuKernelTooltip.setCpuSeries(1, series)
     val labels = TreeWalker(myCpuKernelTooltipView.tooltipPanel).descendants().filterIsInstance<JLabel>()

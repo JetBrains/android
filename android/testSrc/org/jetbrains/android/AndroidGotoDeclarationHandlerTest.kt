@@ -16,10 +16,12 @@
 package org.jetbrains.android
 
 import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.TransitiveAarRClass
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addBinaryAarDependency
 import com.android.tools.idea.testing.caret
@@ -40,6 +42,7 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
+import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.dom.AndroidValueResourcesTest
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
@@ -558,29 +561,32 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
   open fun testGotoAarResourceFromCode_libRClass() {
     addAarDependencyToMyModule()
 
-    assertEquals("values/styles.xml:2:\n" +
-                 "  <style name=\"LibStyle\"></style>\n" +
-                 "              ~|~~~~~~~~~        \n",
-                 describeElements(
-                   getDeclarationsFrom(
-                     myFixture.addFileToProject(
-                       "src/p1/p2/GotoAarStyle.java",
-                       // language=java
-                       """
-                       package p1.p2;
+    val virtualFile = myFixture.addFileToProject(
+      "src/p1/p2/GotoAarStyle.java",
+      // language=java
+      """
+       package p1.p2;
 
-                       public class GotoAarStyle {
-                           public void f() {
-                               int id1 = p1.p2.aarLib.R.style.Lib${caret}Style;
-                           }
-                       }
-                       """.trimIndent()
-                     ).virtualFile
-                   )
-                 )
+       public class GotoAarStyle {
+           public void f() {
+               int id1 = com.example.aarLib.R.style.Lib${caret}Style;
+           }
+       }
+       """.trimIndent()
+    ).virtualFile
+
+    myFixture.configureFromExistingVirtualFile(virtualFile)
+    val elementAtCaret = myFixture.elementAtCaret
+    assertThat(elementAtCaret).isInstanceOf(ResourceLightField::class.java)
+    assertThat(elementAtCaret.parent.parent).isInstanceOf(TransitiveAarRClass::class.java)
+
+    assertEquals("values/styles.xml:5:\n" +
+                 "  <style name=\"LibStyle\" parent=\"ParentStyle\">\n" +
+                 "              ~|~~~~~~~~~                     \n",
+                 describeElements(getDeclarationsFrom(virtualFile))
     )
 
-    assertEquals("values/styles.xml:4:\n" +
+    assertEquals("values/styles.xml:9:\n" +
                  "  <attr name=\"libAttr\" format=\"string\" />\n" +
                  "             ~|~~~~~~~~                  \n",
                  describeElements(
@@ -593,7 +599,7 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
 
                        public class GotoAarStyleableAttr {
                            public void f() {
-                               int id1 = p1.p2.aarLib.R.style.lib${caret}Attr;
+                               int id1 = com.example.aarLib.R.attr.lib${caret}Attr;
                            }
                        }
                        """.trimIndent()
@@ -661,6 +667,18 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
 
   override fun addAarDependencyToMyModule() {
     addAarDependency(myModule, "aarLib", "com.example.aarLib") { resDir ->
+      resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText(
+        """
+          int attr libAttr 0x7f010000
+          int drawable libLogo 0x7f020000
+          int style ParentStyle 0x7f040001
+          int style LibStyle 0x7f040002
+          int dimen smallText 0x7f080001
+          int dimen libDimen 0x7f080002
+          int[] styleable LibStyleable { 0x7f040001}
+          int styleable LibStyleable_libAttr 0
+          """.trimIndent()
+      )
       resDir.resolve("values/styles.xml").writeText(
         // language=XML
         """
@@ -792,10 +810,6 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
     val target = targets.single()
     assertThat(target).isInstanceOf(PsiFile::class.java)
     assertThat((target as PsiFile).virtualFile.name).isEqualTo("libLogo.xml")
-  }
-
-  override fun testGotoAarResourceFromCode_libRClass() {
-    // TODO(b/109652745): fix handling of AAR R classes.
   }
 
   fun testGotoAarResourceFromAarXml() = with(myFixture) {

@@ -85,8 +85,8 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
     mChart = new HTreeChart.Builder<>(null, mTimeSelectionRangeUs, new JavaMethodHRenderer())
       .setOrientation(HTreeChart.Orientation.BOTTOM_UP)
       .build();
-    RangeSelectionModel model = new RangeSelectionModel(mTimeSelectionRangeUs);
-    mSelector = new RangeSelectionComponent(model, mTimeGlobalRangeUs);
+    RangeSelectionModel model = new RangeSelectionModel(mTimeSelectionRangeUs, mTimeGlobalRangeUs);
+    mSelector = new RangeSelectionComponent(model);
   }
 
   @Override

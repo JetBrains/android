@@ -17,7 +17,8 @@ package com.android.tools.idea.npw.template.components
 
 import com.android.tools.idea.observable.AbstractProperty
 import com.android.tools.idea.observable.ui.TextProperty
-import com.android.tools.idea.templates.Parameter
+import com.android.tools.idea.wizard.template.Parameter
+import com.android.tools.idea.wizard.template.StringParameter
 import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaCodeFragment
@@ -28,18 +29,18 @@ import com.intellij.ui.RecentsManager
 /**
  * Provides an editable combobox which allows the user to specify a package name (or pull from a list of recently used packages).
  */
-class PackageComboProvider(private val myProject: Project,
-                           parameter: Parameter,
-                           private val myInitialPackage: String,
-                           private val myRecentsKey: String) : ParameterComponentProvider<EditorComboBox>(parameter) {
-  override fun createComponent(parameter: Parameter): EditorComboBox {
-    val doc = JavaReferenceEditorUtil.createDocument(myInitialPackage, myProject, false,
-                                                     JavaCodeFragment.VisibilityChecker.PROJECT_SCOPE_VISIBLE)!!
-    val classComboBox = EditorComboBox(doc, myProject, StdFileTypes.JAVA)
+class PackageComboProvider(private val project: Project,
+                           parameter: StringParameter,
+                           private val initialPackage: String,
+                           private val recentsKey: String) : ParameterComponentProvider<EditorComboBox>(parameter) {
+  override fun createComponent(parameter: Parameter<*>): EditorComboBox {
+    val doc = JavaReferenceEditorUtil.createDocument(
+      initialPackage, project, false, JavaCodeFragment.VisibilityChecker.PROJECT_SCOPE_VISIBLE)!!
+    val classComboBox = EditorComboBox(doc, project, StdFileTypes.JAVA)
 
     // Make sure our suggested package is in the recents list and at the top
-    RecentsManager.getInstance(myProject).registerRecentEntry(myRecentsKey, myInitialPackage)
-    val recents = RecentsManager.getInstance(myProject).getRecentEntries(myRecentsKey)!!
+    RecentsManager.getInstance(project).registerRecentEntry(recentsKey, initialPackage)
+    val recents = RecentsManager.getInstance(project).getRecentEntries(recentsKey)!!
     // We just added at least one entry!
 
     classComboBox.setHistory(recents.toTypedArray())
@@ -49,6 +50,6 @@ class PackageComboProvider(private val myProject: Project,
   override fun createProperty(component: EditorComboBox): AbstractProperty<*>? = TextProperty(component)
 
   override fun accept(component: EditorComboBox) {
-    RecentsManager.getInstance(myProject).registerRecentEntry(myRecentsKey, component.text)
+    RecentsManager.getInstance(project).registerRecentEntry(recentsKey, component.text)
   }
 }

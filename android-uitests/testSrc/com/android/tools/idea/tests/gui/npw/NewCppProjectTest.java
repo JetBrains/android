@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
-import com.android.tools.idea.npw.cpp.CppStandardType;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.CppStandardType;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class NewCppProjectTest {

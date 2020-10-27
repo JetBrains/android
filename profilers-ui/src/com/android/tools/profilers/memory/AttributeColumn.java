@@ -31,6 +31,7 @@ class AttributeColumn<T extends MemoryObject> {
   private final Supplier<ColoredTreeCellRenderer> myRendererSuppier;
   private final int myHeaderAlignment;
   private final int myPreferredWidth;
+  private final int myMaxWidth;
   private final SortOrder mySortOrderPreference;
   private final Comparator<MemoryObjectTreeNode<T>> myComparator;
 
@@ -40,10 +41,21 @@ class AttributeColumn<T extends MemoryObject> {
                          int preferredWidth,
                          @NotNull SortOrder sortOrderPreference,
                          @NotNull Comparator<MemoryObjectTreeNode<T>> comparator) {
+    this(name, rendererSupplier, headerAlignment, preferredWidth, Integer.MAX_VALUE, sortOrderPreference, comparator);
+  }
+
+  public AttributeColumn(@NotNull String name,
+                         @NotNull Supplier<ColoredTreeCellRenderer> rendererSupplier,
+                         int headerAlignment,
+                         int preferredWidth,
+                         int maxWidth,
+                         @NotNull SortOrder sortOrderPreference,
+                         @NotNull Comparator<MemoryObjectTreeNode<T>> comparator) {
     myName = name;
     myRendererSuppier = rendererSupplier;
     myHeaderAlignment = headerAlignment;
     myPreferredWidth = preferredWidth;
+    myMaxWidth = maxWidth;
     mySortOrderPreference = sortOrderPreference;
     myComparator = comparator;
   }
@@ -62,6 +74,7 @@ class AttributeColumn<T extends MemoryObject> {
       .setRenderer(myRendererSuppier.get())
       .setHeaderAlignment(myHeaderAlignment)
       .setPreferredWidth(myPreferredWidth)
+      .setMaxWidth(myMaxWidth)
       .setSortOrderPreference(mySortOrderPreference)
       .setComparator(myComparator)
       .setHeaderBorder(border);

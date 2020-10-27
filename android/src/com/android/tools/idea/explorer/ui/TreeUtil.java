@@ -16,6 +16,7 @@
 package com.android.tools.idea.explorer.ui;
 
 import com.intellij.ui.tree.TreePathUtil;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -123,7 +124,7 @@ public class TreeUtil {
     else if (parentNode.getChildCount() == 0) {
       // Special case: no existing children, so we map all entries and add them
       // This is more efficient that doing incremental updates
-      List<T> nodes = newEntries.stream().map(ops::mapEntry).collect(Collectors.toList());
+      List<T> nodes = ContainerUtil.map(newEntries, ops::mapEntry);
       removeAllChildren(parentNode);
       setAllowsChildren(parentNode); // Note: Must be done *before* inserting new nodes
       nodes.forEach(x -> parentNode.insert(x, parentNode.getChildCount()));

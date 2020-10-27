@@ -76,8 +76,9 @@ public class CMakeListsTest {
       .until(() -> C_FILE_NAME.equals(ideFrame.getEditor().getCurrentFileName()));
 
     ideFrame.getProjectView()
-      .selectProjectPane()
-      .clickPath("CMakeListsHelloJni", "app", "src", "main", "cpp", C_FILE_NAME)
+      .selectAndroidPane()
+      .expand(30)
+      .clickPath("app", "cpp", C_FILE_NAME)
       .invokeMenuPath("Refactor", "Rename...");
 
     RenameFileDialogFixture.find(ideFrame)
@@ -88,7 +89,6 @@ public class CMakeListsTest {
     Wait.seconds(10).expecting(RENAMED_C_FILE_NAME + "file is opened.")
       .until(() -> RENAMED_C_FILE_NAME.equals(ideFrame.getEditor().getCurrentFileName()));
 
-    ideFrame.requestProjectSync();
-    ideFrame.waitForGradleProjectSyncToFinish();
+    ideFrame.requestProjectSyncAndWaitForSyncToFinish();
   }
 }

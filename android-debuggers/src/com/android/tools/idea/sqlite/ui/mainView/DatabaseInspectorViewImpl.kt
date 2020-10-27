@@ -16,8 +16,8 @@
 package com.android.tools.idea.sqlite.ui.mainView
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.adtui.common.AdtUiUtils
-import com.android.tools.adtui.stdui.CommonButton
+import com.android.tools.adtui.stdui.EmptyStatePanel
+import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.adtui.workbench.AutoHide
 import com.android.tools.adtui.workbench.Side
 import com.android.tools.adtui.workbench.Split
@@ -25,109 +25,67 @@ import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.sqlite.controllers.TabId
-import com.android.tools.idea.sqlite.model.FileSqliteDatabase
-import com.android.tools.idea.sqlite.model.SqliteDatabase
-import com.android.tools.idea.sqlite.model.SqliteSchema
-import com.android.tools.idea.sqlite.model.SqliteTable
-import com.android.tools.idea.sqlite.ui.renderers.SchemaTreeCellRenderer
+import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
+import com.android.tools.idea.sqlite.ui.notifyError
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.IdeFocusManager
-import com.intellij.ui.DoubleClickListener
 import com.intellij.ui.UIBundle
+import com.intellij.ui.tabs.JBTabsBorder
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.ui.tabs.UiDecorator
-import com.intellij.ui.tabs.impl.JBEditorTabs
-import com.intellij.ui.treeStructure.Tree
+import com.intellij.ui.tabs.impl.JBEditorTabsBorder
+import com.intellij.ui.tabs.impl.JBTabsImpl
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import java.awt.event.InputEvent
-import java.awt.event.KeyAdapter
-import java.awt.event.KeyEvent
+import icons.StudioIcons
+import java.awt.BorderLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.Icon
 import javax.swing.JComponent
-import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.OverlayLayout
-import javax.swing.tree.DefaultMutableTreeNode
-import javax.swing.tree.DefaultTreeModel
-import javax.swing.tree.TreePath
 
 @UiThread
 class DatabaseInspectorViewImpl(
   project: Project,
   parentDisposable: Disposable
 ) : DatabaseInspectorView {
-  private val viewContext = SqliteViewContext()
-  private val listeners = mutableListOf<DatabaseInspectorView.Listener>()
+  val listeners = mutableListOf<DatabaseInspectorView.Listener>()
 
-  private val rootPanel = JPanel()
-  private val workBench: WorkBench<SqliteViewContext> = WorkBench(project, "Sqlite", null, parentDisposable)
-  private var sqliteEditorPanel = SqliteEditorPanel()
-  private val defaultUiPanel = DefaultUiPanel()
-  private val tabs = JBEditorTabs(project, ActionManager.getInstance(), IdeFocusManager.getInstance(project), project)
+  private val centerPanel = JPanel(BorderLayout())
+  private val leftPanelView = LeftPanelView(this)
+  private val viewContext = SqliteViewContext(leftPanelView.component)
+  private val workBench: WorkBench<SqliteViewContext> = WorkBench(project, "Database Inspector", null, parentDisposable)
+  private val tabs = BorderedTabs(project, IdeFocusManager.getInstance(project), project)
 
-  override val component: JComponent = rootPanel
+  override val component: JComponent = workBench
 
   private val openTabs = mutableMapOf<TabId, TabInfo>()
 
   init {
-    val definitions = mutableListOf<ToolWindowDefinition<SqliteViewContext>>()
-    definitions.add(createToolWindowDefinition())
-    workBench.init(sqliteEditorPanel.mainPanel, viewContext, definitions, false)
+    workBench.init(centerPanel, viewContext, listOf(createToolWindowDefinition()), false)
 
-    rootPanel.layout = OverlayLayout(rootPanel)
-    rootPanel.add(defaultUiPanel.rootPanel)
-    rootPanel.add(workBench)
-    workBench.isVisible = false
+    addEmptyStatePanel(DatabaseInspectorBundle.message("waiting.for.connection"))
 
-    defaultUiPanel.label.font = AdtUiUtils.EMPTY_TOOL_WINDOW_FONT
-    defaultUiPanel.label.foreground = UIUtil.getInactiveTextColor()
-
-    val openSqliteEvaluatorButton = CommonButton("Open SQLite evaluator", AllIcons.Actions.Search)
-    openSqliteEvaluatorButton.toolTipText = "Open SQLite evaluator"
-    sqliteEditorPanel.headerPanel.add(openSqliteEvaluatorButton)
-
-    openSqliteEvaluatorButton.addActionListener { listeners.forEach { it.openSqliteEvaluatorTabActionInvoked() } }
-
+    tabs.name = "right-panel-tabs-panel"
     tabs.apply {
-      setTabDraggingEnabled(true)
-      setUiDecorator { UiDecorator.UiDecoration(null, JBUI.insets(4, 10)) }
-      addTabMouseListener(TabMouseListener())
-    }
-
-    sqliteEditorPanel.tabsRoot.add(tabs)
-
-    setUpSqliteSchemaTree()
-  }
-
-  private fun setUpSqliteSchemaTree() {
-    // TODO(b/137731627) why do we have to do this manually? Check how is done in Device Explorer.
-    val treeKeyAdapter = object : KeyAdapter() {
-      override fun keyPressed(event: KeyEvent) {
-        if (event.keyCode == KeyEvent.VK_ENTER) {
-          fireAction(viewContext.schemaTree!!, event)
+      isTabDraggingEnabled = true
+      setUiDecorator { UiDecorator.UiDecoration(null, JBUI.insets(5, 10, 5, 10)) }
+      addTabMouseListener(object : MouseAdapter() {
+        override fun mousePressed(e: MouseEvent) {
+          if (UIUtil.isCloseClick(e)) {
+            val targetTabInfo = findInfo(e)
+            val tabId = targetTabInfo?.`object` as? TabId ?: return
+            listeners.forEach { it.closeTabActionInvoked(tabId) }
+          }
         }
-      }
-    }
-
-    val treeDoubleClickListener = object : DoubleClickListener() {
-      override fun onDoubleClick(event: MouseEvent): Boolean {
-        fireAction(viewContext.schemaTree!!, event)
-        return true
-      }
-    }
-
-    viewContext.schemaTree?.let {
-      it.addKeyListener(treeKeyAdapter)
-      treeDoubleClickListener.installOn(it)
+      })
     }
   }
 
@@ -143,57 +101,44 @@ class DatabaseInspectorViewImpl(
     // TODO(b/133320900) Should show proper loading UI.
     //  This loading logic is not the best now that multiple databases can be opened.
     //  This method is called each time a new database is opened.
-    workBench.isVisible = true
-    defaultUiPanel.rootPanel.isVisible = false
     workBench.setLoadingText(text)
   }
 
   override fun stopLoading() {
   }
 
-  override fun addDatabaseSchema(database: SqliteDatabase, schema: SqliteSchema, index: Int) {
-    val tree = viewContext.schemaTree!!
-    val treeModel = tree.model as DefaultTreeModel
-    val root = treeModel.root as DefaultMutableTreeNode
-
-    val schemaNode = DefaultMutableTreeNode(database)
-    schema.tables.forEach { table ->
-      val tableNode = DefaultMutableTreeNode(table)
-      table.columns.forEach { column -> tableNode.add(DefaultMutableTreeNode(column)) }
-      schemaNode.add(tableNode)
+  override fun updateDatabases(databaseDiffOperations: List<DatabaseDiffOperation>) {
+    for (databaseDiffOperation in databaseDiffOperations) {
+      when (databaseDiffOperation) {
+        is DatabaseDiffOperation.AddDatabase -> {
+          leftPanelView.addDatabaseSchema(databaseDiffOperation.viewDatabase, databaseDiffOperation.schema, databaseDiffOperation.index)
+        }
+        is DatabaseDiffOperation.RemoveDatabase -> leftPanelView.removeDatabaseSchema(databaseDiffOperation.viewDatabase)
+      }
     }
 
-    treeModel.insertNodeInto(schemaNode, root, index)
-    tree.expandPath(TreePath(schemaNode.path))
+    if (openTabs.isEmpty() || leftPanelView.databasesCount == 0) {
+      addEmptyStatePanel(DatabaseInspectorBundle.message("default.empty.state.message"))
+    }
   }
 
-  override fun updateDatabase(database: SqliteDatabase, toAdd: List<SqliteTable>) {
-    val treeModel = viewContext.schemaTree!!.model as DefaultTreeModel
-    val currentSchemaNode = findTreeNode(database)
-    currentSchemaNode.userObject = database
+  override fun updateDatabaseSchema(viewDatabase: ViewDatabase, diffOperations: List<SchemaDiffOperation>) {
+    leftPanelView.updateDatabase(viewDatabase, diffOperations)
+  }
 
-    currentSchemaNode.children().toList().map { it as DefaultMutableTreeNode }.forEach { treeModel.removeNodeFromParent(it) }
-
-    toAdd.forEachIndexed { index, table ->
-      val newTableNode = DefaultMutableTreeNode(table)
-      table.columns.forEach { column -> newTableNode.add(DefaultMutableTreeNode(column)) }
-      treeModel.insertNodeInto(newTableNode, currentSchemaNode, index)
+  override fun openTab(tabId: TabId, tabName: String, tabIcon: Icon, component: JComponent) {
+    if (openTabs.isEmpty()) {
+      centerPanel.removeAll()
+      centerPanel.layout = BorderLayout()
+      centerPanel.add(tabs, BorderLayout.CENTER)
+      centerPanel.revalidate()
+      centerPanel.repaint()
     }
 
-    viewContext.schemaTree?.expandPath(TreePath(currentSchemaNode.path))
-  }
-
-  override fun removeDatabaseSchema(database: SqliteDatabase) {
-    val treeModel = viewContext.schemaTree!!.model as DefaultTreeModel
-    val databaseNode = findTreeNode(database)
-    treeModel.removeNodeFromParent(databaseNode)
-  }
-
-  override fun openTab(tableId: TabId, tabName: String, component: JComponent) {
-    val tab = createSqliteExplorerTab(tableId, tabName, component)
+    val tab = createTab(tabId, tabName, tabIcon, component)
     tabs.addTab(tab)
     tabs.select(tab, true)
-    openTabs[tableId] = tab
+    openTabs[tabId] = tab
   }
 
   override fun focusTab(tabId: TabId) {
@@ -203,24 +148,45 @@ class DatabaseInspectorViewImpl(
   override fun closeTab(tabId: TabId) {
     val tab = openTabs.remove(tabId)
     tabs.removeTab(tab)
+
+    if (openTabs.isEmpty()) {
+      addEmptyStatePanel(DatabaseInspectorBundle.message("default.empty.state.message"))
+    }
   }
 
-  override fun reportError(message: String, t: Throwable) {
-    val errorMessage = if (t.message != null) "$message: ${t.message}" else message
-    workBench.loadingStopped(errorMessage)
+  override fun reportError(message: String, throwable: Throwable?) {
+    notifyError(message, throwable)
+  }
+
+  override fun updateKeepConnectionOpenButton(keepOpen: Boolean) {
+    leftPanelView.updateKeepConnectionOpenButton(keepOpen)
   }
 
   override fun reportSyncProgress(message: String) {
-    viewContext.syncLabel?.text = message
   }
 
-  private fun createSqliteExplorerTab(tableId: TabId, tableName: String, tabContent: JComponent): TabInfo {
+  private fun addEmptyStatePanel(text: String) {
+    val emptyStatePanel = EmptyStatePanel(text, UrlData("Learn more", "https://d.android.com/r/studio-ui/db-inspector-help"))
+    emptyStatePanel.name = "right-panel-empty-state"
+
+    centerPanel.removeAll()
+    centerPanel.layout = BorderLayout()
+    centerPanel.add(emptyStatePanel)
+    centerPanel.revalidate()
+    centerPanel.repaint()
+  }
+
+  private fun createTab(tabId: TabId, tabName: String, tabIcon: Icon, tabContent: JComponent): TabInfo {
     val tab = TabInfo(tabContent)
+    tab.`object` = tabId
 
     val tabActionGroup = DefaultActionGroup()
-    tabActionGroup.add(object : AnAction("Close tabs", "Click to close tab", AllIcons.Actions.Close) {
+    tabActionGroup.add(object : AnAction(
+      DatabaseInspectorBundle.message("action.close.tab"),
+      DatabaseInspectorBundle.message("action.close.tab.desc"),
+      AllIcons.Actions.Close) {
       override fun actionPerformed(e: AnActionEvent) {
-        listeners.forEach { it.closeTabActionInvoked(tableId) }
+        listeners.forEach { it.closeTabActionInvoked(tabId) }
       }
 
       override fun update(e: AnActionEvent) {
@@ -230,42 +196,16 @@ class DatabaseInspectorViewImpl(
       }
     })
     tab.setTabLabelActions(tabActionGroup, ActionPlaces.EDITOR_TAB)
-    tab.icon = AllIcons.Nodes.DataTables
-    tab.text = tableName
+    tab.icon = tabIcon
+    tab.text = tabName
     return tab
-  }
-
-  private fun findTreeNode(database: SqliteDatabase): DefaultMutableTreeNode {
-    val root = viewContext.schemaTree!!.model.root as DefaultMutableTreeNode
-    return root.children().asSequence()
-      .map { it as DefaultMutableTreeNode }
-      .first { it.userObject == database }
-  }
-
-  private fun fireAction(tree: Tree, e: InputEvent) {
-    val lastPathComponent = tree.selectionPath?.lastPathComponent as? DefaultMutableTreeNode ?: return
-
-    val sqliteTable = lastPathComponent.userObject
-    if (sqliteTable is SqliteTable) {
-      val parentNode = lastPathComponent.parent as DefaultMutableTreeNode
-      val database = parentNode.userObject as SqliteDatabase
-      listeners.forEach { l -> l.tableNodeActionInvoked(database, sqliteTable) }
-      e.consume()
-    } else {
-      val path = TreePath(lastPathComponent.path)
-      if (tree.isExpanded(path)) {
-        tree.collapsePath(path)
-      } else {
-        tree.expandPath(path)
-      }
-    }
   }
 
   private fun createToolWindowDefinition(): ToolWindowDefinition<SqliteViewContext> {
     return ToolWindowDefinition(
-      "Open Databases",
-      AllIcons.Nodes.DataTables,
-      "OPEN_DATABASES",
+      "Databases",
+      StudioIcons.DatabaseInspector.TABLE,
+      "DATABASES",
       Side.LEFT,
       Split.TOP,
       AutoHide.DOCKED,
@@ -275,87 +215,39 @@ class DatabaseInspectorViewImpl(
     ) { SchemaPanelToolContent() }
   }
 
-  private inner class TabMouseListener : MouseAdapter() {
-    override fun mouseReleased(e: MouseEvent) {
-      if(e.button == 2) {
-        // TODO (b/135525331)
-        // mouse wheel click
-        //tabs.removeTab()
-      }
-    }
-  }
-
   inner class SchemaPanelToolContent : ToolContent<SqliteViewContext> {
-
-    private val schemaPanel = SqliteSchemaPanel()
-    private val tree = schemaPanel.tree
-    private val syncProgressLabel = JLabel()
-
-    init {
-      val closeDatabaseButton = CommonButton("Close db", AllIcons.Diff.Remove)
-      closeDatabaseButton.toolTipText = "Close db"
-      schemaPanel.controlsPanel.add(closeDatabaseButton)
-
-      closeDatabaseButton.addActionListener {
-        val databaseToRemove = tree?.selectionPaths?.mapNotNull { findDatabaseNode(it) }
-        listeners.forEach { databaseToRemove?.forEach { database -> it.removeDatabaseActionInvoked(database) } }
-      }
-
-      val reDownloadButton = CommonButton("Re-download file", AllIcons.Actions.Refresh)
-      reDownloadButton.toolTipText = "Re-download file"
-      schemaPanel.controlsPanel.add(reDownloadButton)
-
-      reDownloadButton.addActionListener {
-        val databaseToSync = tree?.selectionPaths
-                               ?.mapNotNull { findDatabaseNode(it) }
-                               ?.filterIsInstance(FileSqliteDatabase::class.java)
-                               ?.first() ?: return@addActionListener
-        listeners.forEach { it.reDownloadDatabaseFileActionInvoked(databaseToSync) }
-      }
-
-      schemaPanel.controlsPanel.add(syncProgressLabel)
-
-      setUpSchemaTree(tree)
-    }
-
-    private fun findDatabaseNode(treePath: TreePath): SqliteDatabase {
-      var currentPath: TreePath? = treePath
-      while (currentPath != null) {
-        val userObject = (currentPath.lastPathComponent as DefaultMutableTreeNode).userObject
-        if (userObject is SqliteDatabase)
-          return userObject
-        currentPath = currentPath.parentPath
-      }
-
-      throw NoSuchElementException("$treePath")
-    }
-
-    private fun setUpSchemaTree(tree: Tree) {
-      tree.cellRenderer = SchemaTreeCellRenderer()
-      val root = DefaultMutableTreeNode("Schemas")
-
-      tree.model = DefaultTreeModel(root)
-      tree.toggleClickCount = 0
-    }
-
-    override fun getComponent(): JComponent {
-      return schemaPanel.component
-    }
-
-    override fun dispose() {
-    }
+    private lateinit var component: JComponent
 
     /**
      * Initialize the UI from the passed in [SqliteViewContext]
      */
     override fun setToolContext(toolContext: SqliteViewContext?) {
-      toolContext?.schemaTree = schemaPanel.tree
-      toolContext?.syncLabel = syncProgressLabel
+      component = toolContext?.component ?: JPanel()
+    }
+
+    override fun getComponent(): JComponent {
+      return component
+    }
+
+    override fun dispose() {
+    }
+
+    override fun getAdditionalActions(): List<AnAction> {
+      return listOf(leftPanelView.createCollapseTreeAction())
     }
   }
 
-  class SqliteViewContext {
-    var schemaTree: Tree? = null
-    var syncLabel: JLabel? = null
+  data class SqliteViewContext(val component: JComponent)
+
+  /**
+   * Extends [JBTabsImpl] by using a [JBEditorTabsBorder], which adds a tab border to all the tabs.
+   * The [JBTabsBorder] used by [JBTabsImpl] does not add a border to the first tab, if there is only one tab.
+   */
+  private class BorderedTabs(
+    project: Project,
+    focusManager: IdeFocusManager,
+    parent: Disposable
+  ) : JBTabsImpl(project, focusManager, parent) {
+    override fun createTabBorder() = JBEditorTabsBorder(this)
   }
 }

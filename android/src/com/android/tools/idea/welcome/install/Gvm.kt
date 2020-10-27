@@ -16,10 +16,14 @@
 package com.android.tools.idea.welcome.install
 
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode
+import com.android.tools.idea.observable.core.IntValueProperty
 import com.android.tools.idea.welcome.install.InstallationIntention.UNINSTALL
+import com.android.tools.idea.welcome.wizard.HaxmInstallSettingsStep
+import com.android.tools.idea.welcome.wizard.HaxmUninstallInfoStep
 import com.android.tools.idea.welcome.wizard.deprecated.GvmInstallInfoStep
 import com.android.tools.idea.welcome.wizard.deprecated.VmUninstallInfoStep
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore
+import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.openapi.util.SystemInfo
 
 /**
@@ -27,11 +31,13 @@ import com.intellij.openapi.util.SystemInfo
  */
 class Gvm(
   installationIntention: InstallationIntention,
-  store: ScopedStateStore,
   isCustomInstall: ScopedStateStore.Key<Boolean>
-) : Vm(Gvm, store, installationIntention, isCustomInstall) {
+) : Vm(Gvm, installationIntention, isCustomInstall) {
   override val filePrefix = "gvm"
   override val installUrl = GVM_WINDOWS_INSTALL_URL
+  override val steps: Collection<ModelWizardStep<*>>
+    get() = setOf(if (installationIntention == UNINSTALL) HaxmUninstallInfoStep(VmType.GVM)
+            else HaxmInstallSettingsStep(IntValueProperty(1024))) // FIXME
 
   override fun createSteps() =
     setOf(if (installationIntention === UNINSTALL) VmUninstallInfoStep(VmType.GVM)
@@ -41,7 +47,7 @@ class Gvm(
     override val vendor = "google"
     override val installSolution = SolutionCode.INSTALL_GVM
     override val reinstallSolution = SolutionCode.REINSTALL_GVM
-    override val compatibleSystem = SystemInfo.isWindows && CpuVendor.isAMD()
+    override val compatibleSystem = SystemInfo.isWindows && CpuVendor.isAMD
     override val componentPath = "Android_Emulator_Hypervisor_Driver"
   }
 }

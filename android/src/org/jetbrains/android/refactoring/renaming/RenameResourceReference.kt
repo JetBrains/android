@@ -15,24 +15,29 @@
  */
 package org.jetbrains.android.refactoring.renaming
 
+import com.android.annotations.concurrency.WorkerThread
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.ValueResourceNameValidator
 import com.android.resources.ResourceType
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement.Companion.RESOURCE_CONTEXT_ELEMENT
-import com.android.tools.idea.res.psi.ResourceReferencePsiElement.Companion.RESOURCE_CONTEXT_SCOPE
 import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver
 import com.android.tools.idea.util.androidFacet
+import com.android.utils.reflection.qualifiedName
 import com.intellij.ide.TitledHandler
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.psi.PsiElement
@@ -41,16 +46,23 @@ import com.intellij.psi.PsiReference
 import com.intellij.psi.search.SearchScope
 import com.intellij.refactoring.listeners.RefactoringElementListener
 import com.intellij.refactoring.rename.BindablePsiReference
+import com.intellij.refactoring.rename.PsiElementRenameHandler
 import com.intellij.refactoring.rename.RenameDialog
 import com.intellij.refactoring.rename.RenameHandler
 import com.intellij.refactoring.rename.RenamePsiElementProcessor
 import com.intellij.refactoring.rename.RenameUtil
+import com.intellij.ui.EditorTextField
 import com.intellij.usageView.UsageInfo
+import com.intellij.util.containers.MultiMap
 import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.augment.StyleableAttrFieldUrl
 import org.jetbrains.android.augment.StyleableAttrLightField
 import org.jetbrains.android.util.AndroidBuildCommonUtils.PNG_EXTENSION
-import org.jetbrains.android.util.AndroidResourceUtil
+import com.android.tools.idea.res.findStyleableAttrFieldsForAttr
+import com.android.tools.idea.res.findStyleableAttrFieldsForStyleable
+import com.android.tools.idea.res.getResourceElementFromSurroundingValuesTag
+import com.android.tools.idea.res.scheduleNewResolutionAndHighlighting
+import com.intellij.psi.xml.XmlTag
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
 /**
@@ -63,9 +75,30 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
            ResourceReferencePsiElement.create(element)?.toWritableResourceReferencePsiElement() != null
   }
 
+  override fun findExistingNameConflicts(element: PsiElement, newName: String, conflicts: MultiMap<PsiElement, String>) {
+    if (element !is ResourceReferencePsiElement) {
+      return super.findExistingNameConflicts(element, newName, conflicts)
+    }
+    val contextElement = element.getCopyableUserData(RESOURCE_CONTEXT_ELEMENT)
+                         ?: return super.findExistingNameConflicts(element, newName, conflicts)
+    val repository = ResourceRepositoryManager.getInstance(contextElement)?.allResources
+                     ?: return super.findExistingNameConflicts(element, newName, conflicts)
+    val oldResourceReference = element.resourceReference
+    if (repository.hasResources(oldResourceReference.namespace, oldResourceReference.resourceType, newName)) {
+      val newReference = ResourceReference(oldResourceReference.namespace, oldResourceReference.resourceType, newName)
+      // Find all of the existing resource declarations for which this new name clashes
+      val gotoDeclarationTargets = ResourceRepositoryToPsiResolver.getGotoDeclarationTargets(newReference, contextElement)
+      for (target in gotoDeclarationTargets) {
+        conflicts.put(target, mutableListOf("Resource ${newReference.resourceUrl} already exists"))
+      }
+    }
+    return super.findExistingNameConflicts(element, newName, conflicts)
+  }
+
   override fun prepareRenaming(element: PsiElement, newName: String, allRenames: MutableMap<PsiElement, String>) {
     if (element !is ResourceReferencePsiElement) {
       val resourceReferenceElement = ResourceReferencePsiElement.create(element)?.toWritableResourceReferencePsiElement() ?: return
+      resourceReferenceElement.putCopyableUserData(RESOURCE_CONTEXT_ELEMENT, element)
       allRenames.remove(element)
       allRenames[resourceReferenceElement] = newName
     }
@@ -117,18 +150,24 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
         }
       }
     }
+    else {
+      // Attempt to rename a synthetic element related to the resource
+      RenameUtil.rename(usage, newName)
+    }
   }
 
+  @WorkerThread
   override fun findReferences(
     element: PsiElement,
     searchScope: SearchScope,
     searchInCommentsAndStrings: Boolean
   ): MutableCollection<PsiReference> {
-    val found = super.findReferences(element, searchScope, searchInCommentsAndStrings)
-    val resourceElement =
-      (element as? ResourceReferencePsiElement) ?: return found
-    val contextElement =
-      resourceElement.getCopyableUserData(RESOURCE_CONTEXT_ELEMENT) ?: return found
+    val resourceElement = (element as? ResourceReferencePsiElement)
+                          ?: return super.findReferences(element, searchScope, searchInCommentsAndStrings)
+    val contextElement = resourceElement.getCopyableUserData(RESOURCE_CONTEXT_ELEMENT)
+                         ?: return super.findReferences(element, searchScope, searchInCommentsAndStrings)
+    val resourceScope = ResourceRepositoryToPsiResolver.getResourceSearchScope(resourceElement.resourceReference, contextElement)
+    val found = super.findReferences(element, searchScope.intersectWith(resourceScope), searchInCommentsAndStrings)
 
     // Add any file based resources not found in references search
     val fileResources =
@@ -139,10 +178,10 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
     val androidFacet = contextElement.androidFacet ?: return found
     when (resourceElement.resourceReference.resourceType) {
       ResourceType.ATTR -> {
-        val fields = AndroidResourceUtil.findStyleableAttrFieldsForAttr(androidFacet, resourceElement.resourceReference.name)
+        val fields = findStyleableAttrFieldsForAttr(androidFacet, resourceElement.resourceReference.name)
         found.addAll(fields.map { super.findReferences(it, searchScope, searchInCommentsAndStrings) }.flatten())}
       ResourceType.STYLEABLE -> {
-        val fields = AndroidResourceUtil.findStyleableAttrFieldsForStyleable(androidFacet, resourceElement.resourceReference.name)
+        val fields = findStyleableAttrFieldsForStyleable(androidFacet, resourceElement.resourceReference.name)
         found.addAll(fields.map { super.findReferences(it, searchScope, searchInCommentsAndStrings) }.flatten())}
       else -> { /* Fields for other types are found in the references search */}
     }
@@ -179,7 +218,7 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
   override fun getPostRenameCallback(element: PsiElement, newName: String, elementListener: RefactoringElementListener): Runnable? {
     val psiManager = (element as? ResourceReferencePsiElement)?.psiManager ?: return null
     return Runnable {
-      AndroidResourceUtil.scheduleNewResolutionAndHighlighting(psiManager)
+      scheduleNewResolutionAndHighlighting(psiManager)
     }
   }
 
@@ -187,6 +226,12 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
     private val LOG = Logger.getInstance(ResourceReferenceRenameProcessor::class.java)
   }
 }
+
+/**
+ * [DataKey] used by areas of the IDE that want to override the name suggestion field of the resource rename dialog with their own new name
+ * suggestion.
+ */
+val NEW_NAME_RESOURCE: DataKey<String> = DataKey.create(::NEW_NAME_RESOURCE.qualifiedName)
 
 /**
  * [RenameHandler] for Android Resources, in Java, XML, and PsiFiles.
@@ -213,12 +258,16 @@ open class ResourceRenameHandler : RenameHandler, TitledHandler {
     else {
       // The user has selected an element that does not resolve to a resource, check whether they have selected something nearby and if we
       // can assume the correct resource if any. The allowed matches are:
-      // XmlTag of a values resource. eg. <col${caret}or name="... />
       // XmlValue of a values resource if it is not a reference to another resource. eg. <color name="foo">#12${caret}3456</color>
       val offset = CommonDataKeys.CARET.getData(dataContext)?.offset ?: return null
       val file = CommonDataKeys.PSI_FILE.getData(dataContext) ?: return null
       val elementInFile = file.findElementAt(offset) ?: return null
-      return AndroidResourceUtil.getResourceElementFromSurroundingValuesTag(elementInFile)?.toWritableResourceReferencePsiElement()
+      if (elementInFile.parent is XmlTag) {
+        // No longer supporting renaming XmlTags themselves, in this case the caret exists inside a resource tag name eg. <strin<caret>g>
+        // http://b/153850296
+        return null;
+      }
+      return getResourceElementFromSurroundingValuesTag(elementInFile)?.toWritableResourceReferencePsiElement()
     }
   }
 
@@ -231,13 +280,9 @@ open class ResourceRenameHandler : RenameHandler, TitledHandler {
     if (file == null) {
       return
     }
-    referencePsiElement.putCopyableUserData<PsiElement>(RESOURCE_CONTEXT_ELEMENT, file)
-    referencePsiElement.putCopyableUserData(
-      RESOURCE_CONTEXT_SCOPE,
-      ResourceRepositoryToPsiResolver.getResourceSearchScope(referencePsiElement.resourceReference, file)
-    )
-    val renameDialog = ResourceRenameDialog(project, referencePsiElement, null, editor)
-    RenameDialog.showRenameDialog(dataContext, renameDialog)
+    referencePsiElement.putCopyableUserData(RESOURCE_CONTEXT_ELEMENT, file)
+    val newName = NEW_NAME_RESOURCE.getData(dataContext)
+    ResourceRenameDialog(project, referencePsiElement, null, editor, newName).show(dataContext)
   }
 
   override fun invoke(project: Project, elements: Array<out PsiElement>, dataContext: DataContext) {
@@ -257,8 +302,26 @@ open class ResourceRenameHandler : RenameHandler, TitledHandler {
     project: Project,
     resourceReferenceElement: ResourceReferencePsiElement,
     nameSuggestionContext: PsiElement?,
-    editor: Editor?
+    editor: Editor?,
+    providedName: String?
   ) : RenameDialog(project, resourceReferenceElement, nameSuggestionContext, editor) {
+
+    init {
+      if (providedName != null) {
+        (nameSuggestionsField.focusableComponent as? EditorTextField)?.text = providedName
+      }
+    }
+
+    fun show(dataContext: DataContext) {
+      if (ApplicationManager.getApplication().isUnitTestMode) {
+        val newTestingName = NEW_NAME_RESOURCE.getData(dataContext) ?: PsiElementRenameHandler.DEFAULT_NAME.getData(dataContext) ?: return
+        performRename(newTestingName)
+        close(DialogWrapper.OK_EXIT_CODE)
+      }
+      else {
+        super.show()
+      }
+    }
 
     override fun canRun() {
       val name = newName

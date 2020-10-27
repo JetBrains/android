@@ -24,6 +24,7 @@ import com.android.tools.idea.common.model.NlDependencyManager;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
@@ -35,7 +36,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutComponentHel
 import com.android.tools.idea.uibuilder.handlers.motion.MotionUtils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
@@ -53,14 +53,11 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -93,6 +90,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   private MTag[] myLastSelectedTags;
   private boolean mShowPath = true;
   private boolean myUpdatingSelectionInLayoutEditor = false;
+  private boolean myUpdatingSelectionFromLayoutEditor = false;
 
   private void applyMotionSceneValue(boolean apply) {
     if (TEMP_HACK_FORCE_APPLY) {
@@ -285,7 +283,14 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     return new ResourceNotificationManager.ResourceChangeListener() {
       @Override
       public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
-        boolean hasMotionSelection = myLastSelectedTags != null && mLastSelection != null;
+        // When a motion editor item is selected: the MTags of the MotionEditor must be updated (they are now stale).
+        // When a layout view is selected: Ignore this notification. The properties panel is reading from XmlTags directly there is
+        // no need to update the MTags of the MotionEditor. A selection change may have side effects for the Nele property panel if
+        // this notification comes too early.
+        boolean forLayout = mLastSelection == MotionEditorSelector.Type.LAYOUT || mLastSelection == MotionEditorSelector.Type.LAYOUT_VIEW;
+        if (forLayout) {
+          return;
+        }
         mLastSelection = null;
         myLastSelectedTags = null;
         MotionSceneTag.Root motionScene = getMotionScene(myMotionLayoutNlComponent);
@@ -294,7 +299,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
           myMotionSceneFile = motionScene.mVirtualFile;
           mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "", getSetupError());
 
-          if (myLastSelectedTags == null && hasMotionSelection) {
+          if (myLastSelectedTags == null) {
             // The previous selection could not be restored.
             // Select something in the MotionScene to avoid the properties panel reverting back to the MotionLayout.
             selectSomething(motionScene);
@@ -313,6 +318,9 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   }
 
   private void updateSelectionInLayoutEditor(@NotNull List<NlComponent> selected) {
+    if (myUpdatingSelectionInLayoutEditor || myUpdatingSelectionFromLayoutEditor) {
+      return;
+    }
     myUpdatingSelectionInLayoutEditor = true;
     try {
       myDesignSurface.getSelectionModel().setSelection(selected);
@@ -352,7 +360,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       if ("alpha".equals(v.getPreviewType())) {
         return error;
       }
-      if (v.getPreview() < 3) {
+      if ("beta".equals(v.getPreviewType()) && v.getPreview() < 3) {
         return error;
       }
     }
@@ -388,7 +396,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   }
 
   private void handleSelectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
-    if (myUpdatingSelectionInLayoutEditor) {
+    if (myUpdatingSelectionInLayoutEditor || myUpdatingSelectionFromLayoutEditor) {
       // We initiated the selection change in the layout editor.
       // There is no need to adjust the selection here.
       return;
@@ -401,9 +409,15 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     for (NlComponent component : selection) {
       ids[count++] = Utils.stripID(component.getId());
     }
-    mMotionEditor.selectById(ids);
+    myUpdatingSelectionFromLayoutEditor = true;
+    try {
+      mMotionEditor.selectById(ids);
 
-    fireSelectionChanged(selection);
+      fireSelectionChanged(selection);
+    }
+    finally {
+      myUpdatingSelectionFromLayoutEditor = false;
+    }
   }
 
   @Nullable
@@ -427,7 +441,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     // let's open the file
     AndroidFacet facet = motionLayout.getModel().getFacet();
 
-    List<VirtualFile> resourcesXML = AndroidResourceUtil.getResourceSubdirs(ResourceFolderType.XML, ResourceRepositoryManager
+    List<VirtualFile> resourcesXML = IdeResourcesUtil.getResourceSubdirs(ResourceFolderType.XML, ResourceRepositoryManager
       .getModuleResources(facet).getResourceDirs());
     if (resourcesXML.isEmpty()) {
       return null;
@@ -623,7 +637,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       return null;
     }
     AndroidFacet facet = component.getModel().getFacet();
-    List<VirtualFile> resourcesXML = AndroidResourceUtil.getResourceSubdirs(ResourceFolderType.XML, ResourceRepositoryManager
+    List<VirtualFile> resourcesXML = IdeResourcesUtil.getResourceSubdirs(ResourceFolderType.XML, ResourceRepositoryManager
       .getModuleResources(facet).getResourceDirs());
     if (resourcesXML.isEmpty()) {
       return null;

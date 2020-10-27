@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator.nodes.other;
 
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
+import com.android.tools.idea.navigator.nodes.GroupNodes;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -163,7 +164,7 @@ public class NonAndroidSourceTypeNode extends ProjectViewNode<Module> implements
 
   @Override
   @NotNull
-  public PsiDirectory[] getFolders() {
+  public List<PsiDirectory> getFolders() {
     assert myProject != null;
     PsiManager psiManager = PsiManager.getInstance(myProject);
     List<VirtualFile> sourceFolders = getSourceFolders();
@@ -175,6 +176,11 @@ public class NonAndroidSourceTypeNode extends ProjectViewNode<Module> implements
         folders.add(dir);
       }
     }
-    return folders.toArray(PsiDirectory.EMPTY_ARRAY);
+    return folders;
+  }
+
+  @Override
+  public boolean canRepresent(Object element) {
+    return GroupNodes.canRepresent(this, element);
   }
 }

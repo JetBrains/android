@@ -28,10 +28,11 @@ import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.ddms.DeviceRenderer;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.run.util.LaunchUtils;
 import com.google.common.base.Predicate;
 import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.ui.JBPopupMenu;
@@ -62,10 +63,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -94,9 +95,9 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
   private final JBTable myDeviceTable;
 
   private final Predicate<IDevice> myFilter;
-  private final AndroidVersion myMinSdkVersion;
+  private final ListenableFuture<AndroidVersion> myMinSdkVersion;
+  private final AndroidFacet myFacet;
   private final IAndroidTarget myProjectTarget;
-  private final EnumSet<IDevice.HardwareFeature> myRequiredHardwareFeatures;
   private final Set<String> mySupportedAbis;
 
   private int[] mySelectedRows;
@@ -107,29 +108,21 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
                        @NotNull AndroidFacet facet,
                        @NotNull IAndroidTarget projectTarget,
                        @Nullable Predicate<IDevice> filter) {
+    myFacet = facet;
     myFilter = filter;
-    myMinSdkVersion = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersionSynchronously();
+    myMinSdkVersion = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersion();
     myProjectTarget = projectTarget;
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
     mySupportedAbis = androidModuleModel != null ?
                       androidModuleModel.getSelectedVariant().getMainArtifact().getAbiFilters() :
-                      null;
-
-    // Currently, we only look at whether the device supports the watch feature.
-    // We may not want to search the device for every possible feature, but only a small subset of important
-    // features, starting with hardware type watch.
-    if (LaunchUtils.isWatchFeatureRequired(facet)) {
-      myRequiredHardwareFeatures = EnumSet.of(IDevice.HardwareFeature.WATCH);
-    }
-    else {
-      myRequiredHardwareFeatures = EnumSet.noneOf(IDevice.HardwareFeature.class);
-    }
+                      Collections.emptySet();
 
     myDeviceTable = new JBTable();
     myPanel = ScrollPaneFactory.createScrollPane(myDeviceTable);
     myPanel.setPreferredSize(JBUI.size(550, 220));
 
-    myDeviceTable.setModel(new MyDeviceTableModel(EMPTY_DEVICE_ARRAY));
+    MyDeviceTableModel tableModel = new MyDeviceTableModel(EMPTY_DEVICE_ARRAY);
+    myDeviceTable.setModel(tableModel);
     myDeviceTable
       .setSelectionMode(multipleSelection ? ListSelectionModel.MULTIPLE_INTERVAL_SELECTION : ListSelectionModel.SINGLE_SELECTION);
     myDeviceTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
@@ -214,6 +207,8 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
 
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
     AndroidDebugBridge.addDeviceChangeListener(this);
+
+    myMinSdkVersion.addListener(() -> tableModel.fireTableDataChanged(), ApplicationManager.getApplication()::invokeLater);
   }
 
   private static void setColumnWidth(JBTable deviceTable, int columnIndex, String sampleText) {
@@ -503,7 +498,14 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
         case COMPATIBILITY_COLUMN_INDEX:
           // This value is also used in the method isRowCompatible(). Update that if there's a change here.
           AndroidDevice connectedDevice = new ConnectedAndroidDevice(device, null);
-          return connectedDevice.canRun(myMinSdkVersion, myProjectTarget, myRequiredHardwareFeatures, mySupportedAbis);
+          try {
+            return myMinSdkVersion.isDone() ? connectedDevice
+              .canRun(myMinSdkVersion.get(), myProjectTarget, myFacet, LaunchCompatibilityCheckerImpl::getRequiredHardwareFeatures,
+                      mySupportedAbis) : false;
+          }
+          catch (InterruptedException | ExecutionException e) {
+            return false;
+          }
       }
       return null;
     }

@@ -87,13 +87,34 @@ public class JComboBoxViewTest {
     assertEquals("C", mySelected);
   }
 
+  @Test
+  public void testResetting() {
+    myComboBoxView = new JComboBoxView<>(myComboBox, myAspectModel, TestAspect.CHANGED,
+                                         () -> myList,
+                                         () -> mySelected,
+                                         s -> mySelected = s,
+                                         () -> reset(mySelected));
+    myComboBoxView.bind();
+    mySelected = "A1";
+    myAspectModel.changed(TestAspect.CHANGED);
+    assertEquals(reset(mySelected), myComboBox.getModel().getSelectedItem());
+  }
+
+  private static String reset(String item) {
+    return item.substring(0, 1);
+  }
+
   /**
    * Check that list of items and selected item in myComboBox is corresponds to myList
    * and mySelected.
    */
   private void check() {
+    checkWithSelected(mySelected);
+  }
+
+  private void checkWithSelected(String selected) {
     ComboBoxModel model = myComboBox.getModel();
-    assertEquals(mySelected, model.getSelectedItem());
+    assertEquals(selected, model.getSelectedItem());
 
     assertEquals(myList.size(), model.getSize());
     for (int i = 0; i < myList.size(); ++i) {

@@ -25,6 +25,7 @@ import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialC
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialGraphicalColorPipetteProvider
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -34,7 +35,6 @@ import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiType
 import com.intellij.psi.impl.source.tree.LeafPsiElement
-import com.intellij.psi.util.PsiTypesUtil
 import com.intellij.util.ui.ColorIcon
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtConstantExpression
@@ -62,11 +62,17 @@ class ComposeColorAnnotator : Annotator {
       element is KtCallElement -> {
         val uElement = element.toUElement(UCallExpression::class.java) ?: return
         val returnType = uElement.returnType ?: return
-        if (uElement.kind == UastCallKind.METHOD_CALL && isColorType(returnType) && COLOR_METHOD == uElement.methodName) {
+        if (uElement.kind != UastCallKind.METHOD_CALL || returnType != PsiType.LONG || COLOR_METHOD != uElement.methodName) {
+          return
+        }
+
+        // Resolve the MethodCall expression after the faster checks
+        val fqName = uElement.resolve()?.containingClass?.qualifiedName ?: return
+        if (fqName == COMPOSE_COLOR_CLASS) {
           val color = getColor(uElement.valueArguments) ?: return
-          holder.createInfoAnnotation(element, null).also { annotation ->
-            annotation.gutterIconRenderer = ColorIconRenderer(uElement, color)
-          }
+          holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
+            .gutterIconRenderer(ColorIconRenderer(uElement, color))
+            .create()
         }
       }
     }
@@ -75,7 +81,7 @@ class ComposeColorAnnotator : Annotator {
   private fun getColor(args: List<UExpression>): Color? {
     return try {
       when (getConstructorType(args)) {
-        ComposeColorConstructor.INT ->  {
+        ComposeColorConstructor.INT -> {
           val rgbInt = args[0].getInt() ?: return null
           Color(rgbInt)
         }
@@ -87,7 +93,7 @@ class ComposeColorAnnotator : Annotator {
           val r = args[0].getInt() ?: return null
           val g = args[1].getInt() ?: return null
           val b = args[2].getInt() ?: return null
-          Color(r,g,b)
+          Color(r, g, b)
         }
         ComposeColorConstructor.INT_X4 -> {
           val r = args[0].getInt() ?: return null
@@ -100,7 +106,7 @@ class ComposeColorAnnotator : Annotator {
           val r = args[0].getFloat() ?: return null
           val g = args[1].getFloat() ?: return null
           val b = args[2].getFloat() ?: return null
-          Color(r,g,b)
+          Color(r, g, b)
         }
         ComposeColorConstructor.FLOAT_X4, ComposeColorConstructor.FLOAT_X4_COLORSPACE -> {
           val r = args[0].getFloat() ?: return null
@@ -111,7 +117,8 @@ class ComposeColorAnnotator : Annotator {
         }
         else -> null
       }
-    } catch (ignore: Exception) {
+    }
+    catch (ignore: Exception) {
       return null
     }
   }
@@ -133,7 +140,9 @@ data class ColorIconRenderer(val element: UCallExpression, val color: Color) : G
 
   override fun getClickAction(): AnAction? {
     val constructorType = getConstructorType(element.valueArguments) ?: return null
-    if (!constructorType.canBeOverwritten()) { return null }
+    if (!constructorType.canBeOverwritten()) {
+      return null
+    }
     return object : AnAction() {
       override fun actionPerformed(e: AnActionEvent) {
         val editor = e.getData(CommonDataKeys.EDITOR)
@@ -162,7 +171,9 @@ data class ColorIconRenderer(val element: UCallExpression, val color: Color) : G
 
   fun setColorToAttribute(color: Color) {
     val constructorType = getConstructorType(element.valueArguments) ?: return
-    if (!constructorType.canBeOverwritten()) { return }
+    if (!constructorType.canBeOverwritten()) {
+      return
+    }
     val runnable =
       Runnable {
         val hexString = "0x${(Integer.toHexString(color.rgb)).toUpperCase(Locale.getDefault())}"
@@ -179,7 +190,7 @@ data class ColorIconRenderer(val element: UCallExpression, val color: Color) : G
 }
 
 private const val COLOR_METHOD = "Color"
-private const val COMPOSE_COLOR_CLASS = "androidx.ui.graphics.Color"
+private const val COMPOSE_COLOR_CLASS = "androidx.ui.graphics.ColorKt"
 
 private fun getConstructorType(arguments: List<UExpression>): ComposeColorConstructor? {
   val paramType = arguments.firstOrNull()?.getExpressionType() ?: return null
@@ -212,12 +223,6 @@ private fun UExpression.getConstant(): Any? {
   val value = this.uValueOf() ?: return null
   val constant = value.toConstant() ?: return null
   return constant.value
-}
-
-private fun isColorType(type: PsiType): Boolean {
-  val aClass = PsiTypesUtil.getPsiClass(type) ?: return false
-  val fqn = aClass.qualifiedName ?: return false
-  return COMPOSE_COLOR_CLASS == fqn
 }
 
 enum class ComposeColorConstructor {

@@ -28,24 +28,21 @@ import javax.swing.JList
  *
  * @see NamedModuleTemplate
  */
-class ModuleTemplateComboProvider(private val templates: List<NamedModuleTemplate>) : ComponentProvider<ComboBox<*>>() {
-  override fun createComponent(): ComboBox<*> {
-    val comboBoxModel = DefaultComboBoxModel<Any>()
-    templates.forEach {
-      comboBoxModel.addElement(it)
-    }
+class ModuleTemplateComboProvider(private val templates: List<NamedModuleTemplate>) : ComponentProvider<ComboBox<NamedModuleTemplate>>() {
+  override fun createComponent(): ComboBox<NamedModuleTemplate> {
+    val comboBoxModel = DefaultComboBoxModel(templates.toTypedArray())
 
     return ComboBox(comboBoxModel).apply {
       toolTipText = "<html>The source set within which to generate new project files.<br>" +
                     "If you specify a source set that does not yet exist on disk, a folder will be created for it.</html>"
-      renderer = object : SimpleListCellRenderer<Any>() {
-        override fun customize(list: JList<*>, value: Any, index: Int, selected: Boolean, hasFocus: Boolean) {
-          text = (value as NamedModuleTemplate).name
+      renderer = object : SimpleListCellRenderer<NamedModuleTemplate>() {
+        override fun customize(list: JList<out NamedModuleTemplate>, value: NamedModuleTemplate, index: Int, selected: Boolean, hasFocus: Boolean) {
+          text = value.name
         }
       }
     }
   }
 
-  override fun createProperty(component: ComboBox<*>): AbstractProperty<*> = SelectedItemProperty<NamedModuleTemplate>(component)
+  override fun createProperty(component: ComboBox<NamedModuleTemplate>): AbstractProperty<*> = SelectedItemProperty<NamedModuleTemplate>(component)
 }
 

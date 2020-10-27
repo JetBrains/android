@@ -1,0 +1,66 @@
+<!--
+  ~ Copyright (C) 2020 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<idea-plugin>
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceImplementation="com.android.tools.idea.emulator.RunningEmulatorCatalog"/>
+
+    <applicationConfigurable groupId="tools" id="emulator"
+                             provider="com.android.tools.idea.emulator.settings.EmulatorConfigurableProvider"/>
+
+    <customizableActionGroupProvider implementation="com.android.tools.idea.emulator.actions.EmulatorCustomizableActionGroupProvider"/>
+
+    <facet.toolWindow id="Android Emulator"
+                      facetIdList="android,apk"
+                      anchor="right"
+                      secondary="true"
+                      canCloseContents="true"
+                      doNotActivateOnStart="true"
+                      icon="StudioIcons.Shell.ToolWindows.EMULATOR"
+                      factoryClass="com.android.tools.idea.emulator.EmulatorToolWindowFactory"/>
+  </extensions>
+
+  <actions>
+    <group id="EmulatorToolbar">
+      <action id="android.emulator.power.button" class="com.android.tools.idea.emulator.actions.EmulatorPowerButtonAction"
+              icon="StudioIcons.Emulator.POWER" text="Power" description="Press the Power button"/>
+      <action id="android.emulator.volume.up.button" class="com.android.tools.idea.emulator.actions.EmulatorVolumeUpButtonAction"
+              icon="StudioIcons.Emulator.VOLUME_UP" text="Volume Up" description="Press the Volume Up button"/>
+      <action id="android.emulator.volume.down.button" class="com.android.tools.idea.emulator.actions.EmulatorVolumeDownButtonAction"
+              icon="StudioIcons.Emulator.VOLUME_DOWN" text="Volume Down" description="Press the Volume Down button"/>
+      <action id="android.emulator.rotate.left" class="com.android.tools.idea.emulator.actions.EmulatorRotateLeftAction"
+              icon="StudioIcons.Emulator.ROTATE_LEFT" text="Rotate Left" description="Rotate counterclockwise by 90 degrees"/>
+      <action id="android.emulator.rotate.right" class="com.android.tools.idea.emulator.actions.EmulatorRotateRightAction"
+              icon="StudioIcons.Emulator.ROTATE_RIGHT" text="Rotate Right" description="Rotate clockwise by 90 degrees"/>
+      <action id="android.emulator.back.button" class="com.android.tools.idea.emulator.actions.EmulatorBackButtonAction"
+              icon="StudioIcons.Emulator.BACK" text="Back" description="Press the Back button"/>
+      <action id="android.emulator.home.button" class="com.android.tools.idea.emulator.actions.EmulatorHomeButtonAction"
+              icon="StudioIcons.Emulator.HOME" text="Home" description="Press the Home button"/>
+      <action id="android.emulator.overview.button" class="com.android.tools.idea.emulator.actions.EmulatorOverviewButtonAction"
+              icon="StudioIcons.Emulator.OVERVIEW" text="Overview" description="Press the Overview button"/>
+      <action id="android.emulator.screenshot" class="com.android.tools.idea.emulator.actions.EmulatorScreenshotAction"
+              icon="StudioIcons.Emulator.SCREENSHOT" text="Take Screenshot" description="Take a screenshot"/>
+      <group id="android.emulator.snapshot" class="com.android.tools.idea.emulator.actions.BootOptionsPopupActionGroup"
+             icon="StudioIcons.Emulator.SNAPSHOTS" text="Snapshots" description="Create or select an Emulator snapshot"
+             popup="true">
+        <action id="android.emulator.create.snapshot" class="com.android.tools.idea.emulator.actions.EmulatorCreateSnapshotAction"
+                text="Create Snapshot" description="Create a snapshot of the Emulator state"/>
+        <action id="android.emulator.boot.options" class="com.android.tools.idea.emulator.actions.EmulatorBootOptionsAction"
+                text="Boot Options" description="Select an Emulator boot mode"/>
+        <separator/>
+      </group>
+    </group>
+  </actions>
+</idea-plugin>

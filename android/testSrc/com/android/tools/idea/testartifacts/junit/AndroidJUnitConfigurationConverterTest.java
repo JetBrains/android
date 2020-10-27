@@ -15,39 +15,33 @@
  */
 package com.android.tools.idea.testartifacts.junit;
 
-import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.testing.IdeComponents;
+import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationConverter.ANDROID_JUNIT_CONFIGURATION_FACTORY_NAME;
+import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationConverter.ANDROID_JUNIT_CONFIGURATION_TYPE;
+import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationConverter.CONFIGURATION_TYPE_ATTRIBUTE;
+import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationConverter.FACTORY_NAME_ATTRIBUTE;
+import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationConverter.JUNIT_CONFIGURATION_FACTORY_NAME;
+import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationConverter.JUNIT_CONFIGURATION_TYPE;
+import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationConverter.TEMPLATE_FLAG_ATTRIBUTE;
+import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_OLD_TESTS;
+import static org.jetbrains.android.AndroidTestBase.getTestDataPath;
+
 import com.intellij.conversion.ConversionProcessor;
 import com.intellij.conversion.RunManagerSettings;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-import org.jdom.Element;
-import org.jdom.input.SAXBuilder;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
-
-import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationConverter.*;
-import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_OLD_TESTS;
-import static org.jetbrains.android.AndroidTestBase.getTestDataPath;
-import static org.mockito.Mockito.when;
+import org.jdom.Element;
+import org.jdom.input.SAXBuilder;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link AndroidJUnitConfigurationConverter}.
  */
 public class AndroidJUnitConfigurationConverterTest extends HeavyPlatformTestCase {
-  private IdeInfo mockIdeInfo;
-
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    mockIdeInfo = new IdeComponents(myProject).mockApplicationService(IdeInfo.class);
-  }
 
   public void testConfigurationsAreConvertedInStudio() throws Exception {
-    when(mockIdeInfo.isAndroidStudio()).thenReturn(true);
 
     ConversionProcessor<RunManagerSettings> converter = new AndroidJUnitConfigurationConverter().createRunConfigurationsConverter();
     RunManagerSettings runManagerSettings = getStubRunManagerSettings();
@@ -60,15 +54,6 @@ public class AndroidJUnitConfigurationConverterTest extends HeavyPlatformTestCas
     converter.process(runManagerSettings);
     assertEmpty(getJUnitConfigurations(runConfigurations));
     assertSize(2, getAndroidJUnitConfigurations(runConfigurations));
-  }
-
-  public void testConfigurationsAreNotConvertedInIdea() {
-    when(mockIdeInfo.isAndroidStudio()).thenReturn(false);
-
-    ConversionProcessor<RunManagerSettings> converter = new AndroidJUnitConfigurationConverter().createRunConfigurationsConverter();
-    RunManagerSettings runManagerSettings = getStubRunManagerSettings();
-
-    assertFalse(converter.isConversionNeeded(runManagerSettings));
   }
 
   @NotNull

@@ -49,7 +49,7 @@ public final class NavigationViewTest {
     myEditor = myGuiTest.ideFrame().getEditor();
     myEditor.open(FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "activity_main.xml"));
 
-    myLayoutEditor = myEditor.getLayoutEditor(false);
+    myLayoutEditor = myEditor.getLayoutEditor();
 
     myLayoutEditor.waitForRenderToFinish();
     myLayoutEditor.showOnlyDesignView();

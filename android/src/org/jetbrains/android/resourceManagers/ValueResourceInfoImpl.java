@@ -16,13 +16,10 @@ import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.dom.resources.Attr;
 import org.jetbrains.android.dom.resources.Item;
 import org.jetbrains.android.dom.resources.ResourceElement;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public final class ValueResourceInfoImpl implements ValueResourceInfo {
   private final ResourceItem myResource;
   private final VirtualFile myFile;
@@ -66,7 +63,7 @@ public final class ValueResourceInfoImpl implements ValueResourceInfo {
       return null;
     }
 
-    XmlTag tag = AndroidResourceUtil.getItemTag(myProject, myResource);
+    XmlTag tag = IdeResourcesUtil.getItemTag(myProject, myResource);
     if (tag == null) {
       return null;
     }
@@ -90,7 +87,7 @@ public final class ValueResourceInfoImpl implements ValueResourceInfo {
       return null;
     }
 
-    XmlTag tag = AndroidResourceUtil.getItemTag(myProject, myResource);
+    XmlTag tag = IdeResourcesUtil.getItemTag(myProject, myResource);
     if (tag == null) {
       return null;
     }
@@ -114,7 +111,7 @@ public final class ValueResourceInfoImpl implements ValueResourceInfo {
 
   @Override
   public int compareTo(@NotNull ValueResourceInfo other) {
-    int delta = AndroidResourceUtil.compareResourceFiles(myFile, other.getContainingFile());
+    int delta = IdeResourcesUtil.compareResourceFiles(myFile, other.getContainingFile());
     if (delta != 0) {
       return delta;
     }

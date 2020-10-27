@@ -31,7 +31,7 @@ import java.io.File
 fun generateManifest(
   packageName: String,
   hasApplicationBlock: Boolean = false,
-  theme: String = "@style/AppTheme",
+  theme: String = "@style/Theme.App",
   usesFeatureBlock: String = "",
   hasRoundIcon: Boolean = true
 ): String {
@@ -44,9 +44,10 @@ fun generateManifest(
     android:supportsRtl="true"
     android:theme="$theme" />
   """
-  else "/"
+  else ""
 
   return """
+    <?xml version="1.0" encoding="utf-8"?>
     <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="${packageName}">
     $usesFeatureBlock
@@ -85,7 +86,6 @@ fun proguardConfig(
     """
   }
 
-
 fun androidConfig(
   buildApiString: String,
   explicitBuildToolsVersion: Boolean,
@@ -99,7 +99,6 @@ fun androidConfig(
   hasApplicationId: Boolean = false,
   applicationId: String = "",
   hasTests: Boolean = false,
-  canHaveCpp: Boolean = false,
   canUseProguard: Boolean = false,
   addLintOptions: Boolean = false
 ): String {
@@ -118,7 +117,7 @@ fun androidConfig(
     """
   }
 
-  val cppBlock = renderIf(canHaveCpp && includeCppSupport) {
+  val cppBlock = renderIf(includeCppSupport) {
     """
       externalNativeBuild {
         cmake {
@@ -127,7 +126,7 @@ fun androidConfig(
       }
   """
   }
-  val cppBlock2 = renderIf(canHaveCpp && includeCppSupport) {
+  val cppBlock2 = renderIf(includeCppSupport) {
     """
       externalNativeBuild {
         cmake {
@@ -138,7 +137,6 @@ fun androidConfig(
       """
   }
 
-  // TODO(qumeric): add compileOptions
   return """
     android {
     compileSdkVersion ${buildApiString.toIntOrNull() ?: "\"$buildApiString\""}
@@ -226,17 +224,25 @@ fun RecipeExecutor.addTests(
   )
 }
 
-fun basicStylesXml(parent: String) = """
+/**
+ * Plugin block placeholder. Used to introduce an extra space at the bottom of the block.
+ */
+fun emptyPluginsBlock() = """
+plugins {
+}
+"""
+
+fun basicThemesXml(parent: String, themeName: String = "Theme.App") = """
 <resources>
-    <style name="AppTheme" parent="$parent" />
-</resources> 
+    <style name="$themeName" parent="$parent" />
+</resources>
 """
 
 fun supportsImprovedTestDeps(agpVersion: GradlePluginVersion) =
   GradleVersion.parse(agpVersion).compareIgnoringQualifiers("3.0.0") >= 0
 
 fun RecipeExecutor.addTestDependencies(agpVersion: GradlePluginVersion) {
-  addDependency("junit:junit:4.12", "testCompile")
+  addDependency("junit:junit:4.+", "testCompile")
   if (supportsImprovedTestDeps(agpVersion)) {
     addDependency("com.android.support.test:runner:+", "androidTestCompile")
     addDependency("com.android.support.test.espresso:espresso-core:+", "androidTestCompile")

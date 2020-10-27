@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.assistant.datamodel;
 
-import com.android.tools.idea.templates.recipe.Recipe;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 
 /**
  * An action represents a single button and its behaviors.
@@ -65,10 +63,4 @@ public interface ActionData {
    * Gets whether the button should be highlighted like the default action in dialogs
    */
   boolean isHighlighted();
-
-  /**
-   * Gets a set of well formed instructions to be performed on button click.
-   */
-  @Nullable("not all instructions may be expressed in Recipe form")
-  Recipe getRecipe();
 }

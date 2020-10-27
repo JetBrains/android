@@ -18,9 +18,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class CreateResourceDirectoryAction extends CreateResourceActionBase {
   private final ResourceFolderType myResourceFolderType;
 

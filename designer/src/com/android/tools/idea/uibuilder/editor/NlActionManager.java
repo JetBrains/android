@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import static com.android.tools.idea.uibuilder.api.actions.ViewActionsKt.withRank;
-
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.editor.ActionToolbarUtil;
 import com.android.tools.idea.actions.MockupDeleteAction;
@@ -29,6 +27,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.actions.ConvertToConstraintLayoutAction;
+import com.android.tools.idea.uibuilder.actions.DisableToolsVisibilityAndPositionInPreviewAction;
 import com.android.tools.idea.uibuilder.actions.MorphComponentAction;
 import com.android.tools.idea.uibuilder.actions.SelectAllAction;
 import com.android.tools.idea.uibuilder.actions.SelectNextAction;
@@ -49,7 +48,6 @@ import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.ActionGroup;
@@ -57,6 +55,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DataKey;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -65,9 +64,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.components.panels.VerticalLayout;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.ui.JBUI;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import javax.swing.*;
 import org.jetbrains.android.refactoring.AndroidExtractAsIncludeAction;
@@ -81,6 +80,12 @@ import org.jetbrains.annotations.Nullable;
  * Provides and handles actions in the layout editor
  */
 public class NlActionManager extends ActionManager<NlDesignSurface> {
+  /**
+   * Data key for the actions work in Layout Editor. This includes NlDesignSurface and ActionToolBar, but **exclude** all attached
+   * TODO: Try to make all actions work for all design tools, so we can remove this data key.
+   */
+  public static final DataKey<NlDesignSurface> LAYOUT_EDITOR = DataKey.create(NlDesignSurface.class.getName() + "_LayoutEditor");
+
   private AnAction mySelectAllAction;
   private AnAction mySelectParent;
   private GotoComponentAction myGotoComponentAction;
@@ -148,7 +153,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
    * label for menu usage (e.g. with mnemonics) and makes hidden action visible but
    * disabled instead
    */
-  private static final class AndroidRefactoringActionWrapper extends AnAction {
+  private static class AndroidRefactoringActionWrapper extends AnAction {
     private final AnAction myRefactoringAction;
 
     private AndroidRefactoringActionWrapper(@NotNull String text, @NotNull AnAction refactoringAction) {
@@ -175,14 +180,19 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
 
   @Override
   @NotNull
-  @VisibleForTesting
   public DefaultActionGroup getPopupMenuActions(@Nullable NlComponent leafComponent) {
     DefaultActionGroup group = new DefaultActionGroup();
 
     SceneView screenView = mySurface.getFocusedSceneView();
     if (screenView != null) {
       if (leafComponent != null) {
-        addViewHandlerActions(group, leafComponent, screenView.getSelectionModel().getSelection());
+        // Look up view handlers
+        int prevCount = group.getChildrenCount();
+        // Add popup menu action
+        addActions(group, leafComponent.getParent(), leafComponent, screenView.getSelectionModel().getSelection(), false);
+        if (group.getChildrenCount() > prevCount) {
+          group.addSeparator();
+        }
       }
 
       group.addSeparator();
@@ -227,17 +237,6 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     group.addSeparator();
   }
 
-  private void addViewHandlerActions(@NotNull DefaultActionGroup group,
-                                     @NotNull NlComponent component,
-                                     @NotNull List<NlComponent> selection) {
-    // Look up view handlers
-    int prevCount = group.getChildrenCount();
-    addPopupMenuActions(group, component, selection);
-    if (group.getChildrenCount() > prevCount) {
-      group.addSeparator();
-    }
-  }
-
   @Nullable
   private static NlComponent findSharedParent(@NotNull List<NlComponent> newSelection) {
     NlComponent parent = null;
@@ -257,19 +256,22 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     return parent;
   }
 
-  private void addActions(@NotNull DefaultActionGroup group, @Nullable NlComponent component,
-                          @NotNull List<NlComponent> newSelection, boolean toolbar) {
-    NlComponent parent;
-    if (component == null) {
-      parent = findSharedParent(newSelection);
-      if (parent == null) {
-        return;
-      }
-    }
-    else {
-      parent = component.getParent();
-    }
-
+  /**
+   * Adds the actions for the given leafComponent and selection. The actions of leafComponent (if any) are followed by the actions of
+   * selection.
+   *
+   * @param group         The group to collect the added view actions.
+   * @param parent        The shared parent of selection. Can be null (e.g. there is no selection).
+   * @param leafComponent The target {@link NlComponent} which ask for actions. For example, the right-clicked component when opening
+   *                      context menu.
+   * @param selection     The current selected NlComponent
+   * @param toolbar       Indicate the added actions are for toolbar or context menu.
+   */
+  private void addActions(@NotNull DefaultActionGroup group,
+                          @Nullable NlComponent parent,
+                          @Nullable NlComponent leafComponent,
+                          @NotNull List<NlComponent> selection,
+                          boolean toolbar) {
     SceneView screenView = mySurface.getFocusedSceneView();
     if (screenView == null) {
       return;
@@ -284,19 +286,24 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
 
     // TODO: Perform caching
     List<AnAction> actions = new ArrayList<>();
-    if (component != null) {
-      ViewHandler handler = ViewHandlerManager.get(project).getHandler(component);
-      actions.addAll(getViewActionsForHandler(component, newSelection, editor, handler, toolbar));
+    if (leafComponent != null) {
+      ViewHandler handler = ViewHandlerManager.get(project).getHandler(leafComponent);
+      if (handler != null) {
+        actions.addAll(getViewActionsForHandler(leafComponent, selection, editor, handler, toolbar));
+      }
     }
     if (parent != null) {
       ViewHandler handler = ViewHandlerManager.get(project).getHandler(parent);
-      List<NlComponent> selectedChildren = Lists.newArrayListWithCapacity(newSelection.size());
-      for (NlComponent selected : newSelection) {
-        if (selected.getParent() == parent) {
-          selectedChildren.add(selected);
+      if (handler != null) {
+        List<NlComponent> selectedChildren = Lists.newArrayListWithCapacity(selection.size());
+        // TODO(b/150297043): If the selected components have different parents, do we need to provide the view action from parents?
+        for (NlComponent selected : selection) {
+          if (selected.getParent() == parent) {
+            selectedChildren.add(selected);
+          }
         }
+        actions.addAll(getViewActionsForHandler(parent, selectedChildren, editor, handler, toolbar));
       }
-      actions.addAll(getViewActionsForHandler(parent, selectedChildren, editor, handler, toolbar));
     }
 
     boolean lastWasSeparator = false;
@@ -312,33 +319,37 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     }
   }
 
-  private void addPopupMenuActions(@NotNull DefaultActionGroup group,
-                                     @Nullable NlComponent component,
-                                     @NotNull List<NlComponent> newSelection) {
-    addActions(group, component, newSelection, false);
-  }
-
   @Override
   @NotNull
-  public DefaultActionGroup getToolbarActions(@Nullable NlComponent component,
-                                @NotNull List<NlComponent> newSelection) {
+  public DefaultActionGroup getToolbarActions(@NotNull List<NlComponent> selection) {
     DefaultActionGroup group = new DefaultActionGroup();
-    addActions(group, component, newSelection, true);
-
+    NlComponent sharedParent = findSharedParent(selection);
+    addActions(group, sharedParent, null, selection, true);
     return group;
+  }
+
+  @Nullable
+  @Override
+  public JComponent getSceneViewContextToolbar(@NotNull SceneView sceneView) {
+    DefaultActionGroup group = new DefaultActionGroup();
+    group.add(DisableToolsVisibilityAndPositionInPreviewAction.INSTANCE);
+    ActionToolbar actionToolbar =
+      com.intellij.openapi.actionSystem.ActionManager.getInstance().createActionToolbar("SceneView", group, true);
+    actionToolbar.setTargetComponent(mySurface);
+    actionToolbar.setReservePlaceAutoPopupIcon(false);
+    JComponent toolbarComponent = actionToolbar.getComponent();
+    toolbarComponent.setOpaque(false);
+    toolbarComponent.setBorder(JBUI.Borders.empty());
+    return toolbarComponent;
   }
 
   @NotNull
   private List<AnAction> getViewActionsForHandler(@NotNull NlComponent component,
                                         @NotNull List<NlComponent> newSelection,
                                         @NotNull ViewEditor editor,
-                                        @Nullable ViewHandler handler,
+                                        @NotNull ViewHandler handler,
                                         boolean toolbar) {
-    if (handler == null) {
-      return Collections.emptyList();
-    }
-
-    List<ViewAction> viewActions = createViewActionList();
+    List<ViewAction> viewActions = new ArrayList<>();
     if (toolbar) {
       viewActions.addAll(ViewHandlerManager.get(mySurface.getProject()).getToolbarActions(handler));
     }
@@ -349,35 +360,12 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       }
     }
 
-    Collections.sort(viewActions);
-
     List<AnAction> target = new ArrayList<>();
     for (ViewAction viewAction : viewActions) {
       addActions(target, toolbar, viewAction, editor, handler, component, newSelection);
     }
 
     return target;
-  }
-
-  @NotNull
-  private static List<ViewAction> createViewActionList() {
-    return new ArrayList<ViewAction>() {
-      @Override
-      public boolean add(ViewAction viewAction) {
-        // Ensure that if no rank is specified, we just sort in the insert order
-        if (!isEmpty()) {
-          ViewAction prev = get(size() - 1);
-          if (viewAction.getRank() == prev.getRank() || viewAction.getRank() == -1) {
-            viewAction = withRank(viewAction, prev.getRank() + 5);
-          }
-        }
-        else if (viewAction.getRank() == -1) {
-          viewAction =  withRank(viewAction, 0);
-        }
-
-        return super.add(viewAction);
-      }
-    };
   }
 
   /**
@@ -440,7 +428,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
   /**
    * Wrapper around a {@link DirectViewAction} which uses an IDE {@link AnAction} in the toolbar
    */
-  private final class DirectViewActionWrapper extends AnAction implements ViewActionPresentation {
+  private class DirectViewActionWrapper extends AnAction implements ViewActionPresentation {
     private final DirectViewAction myAction;
     private final ViewHandler myHandler;
     private final ViewEditor myEditor;
@@ -540,7 +528,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
   /**
    * Wrapper around a {@link ToggleViewAction} which uses an IDE {@link AnAction} in the toolbar
    */
-  private final class ToggleViewActionWrapper extends AnAction implements ViewActionPresentation {
+  private class ToggleViewActionWrapper extends AnAction implements ViewActionPresentation {
     private final ToggleViewAction myAction;
     private final ViewEditor myEditor;
     private final ViewHandler myHandler;
@@ -636,7 +624,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
   /**
    * Wrapper around a {@link ViewActionMenu} which uses an IDE {@link AnAction} in the toolbar
    */
-  private final class ViewActionMenuWrapper extends ActionGroup implements ViewActionPresentation {
+  private class ViewActionMenuWrapper extends ActionGroup implements ViewActionPresentation {
     private final ViewActionMenu myAction;
     private final ViewEditor myEditor;
     private final ViewHandler myHandler;
@@ -704,7 +692,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     }
   }
 
-  private final class ViewActionToolbarMenuWrapper extends DropDownAction implements ViewActionPresentation {
+  private class ViewActionToolbarMenuWrapper extends DropDownAction implements ViewActionPresentation {
     private final NestedViewActionMenu myAction;
     private final ViewEditor myEditor;
     private final ViewHandler myHandler;

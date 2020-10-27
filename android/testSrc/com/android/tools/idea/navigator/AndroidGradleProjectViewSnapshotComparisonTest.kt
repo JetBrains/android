@@ -21,9 +21,20 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludesViewNode
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.*
+import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleTests
+import com.android.tools.idea.testing.GradleIntegrationTest
+import com.android.tools.idea.testing.SnapshotComparisonTest
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths
+import com.android.tools.idea.testing.assertIsEqualToSnapshot
+import com.android.tools.idea.testing.openPreparedProject
+import com.android.tools.idea.testing.prepareGradleProject
+import com.intellij.ide.impl.ProjectUtil
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.projectView.impl.GroupByTypeComparator
+import com.intellij.ide.projectView.impl.ProjectViewImpl
+import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.ide.util.treeView.AbstractTreeStructure
@@ -36,35 +47,51 @@ import com.intellij.ui.DeferredIcon
 import com.intellij.ui.LayeredIcon
 import com.intellij.ui.RetrievableIcon
 import com.intellij.ui.RowIcon
+import org.jetbrains.annotations.SystemIndependent
 import sun.swing.ImageIconUIResource
 import java.io.File
 import javax.swing.Icon
 
-class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotComparisonTest {
-  override val snapshotDirectoryName = "projectViewSnapshots"
+class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), GradleIntegrationTest, SnapshotComparisonTest {
+  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/projectViews"
+  override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData/snapshots"
 
-  data class ProjectViewSettings(val hideEmptyPackages: Boolean = true)
+  data class ProjectViewSettings(
+    val hideEmptyPackages: Boolean = true,
+    val flattenPackages: Boolean = false
+  )
 
   fun testSimpleApplication() {
-    val text = importSyncAndDumpProject(TestProjectPaths.SIMPLE_APPLICATION)
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION)
     assertIsEqualToSnapshot(text)
   }
 
-  // TODO(b/121345405): Fix test multi-flavor source set support.
-  // TODO(b/141846471): Fix the order of nodes representing multiple folders or merge them by package.
+  fun testWithMlModels() {
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.APP_WITH_ML_MODELS)
+    assertIsEqualToSnapshot(text)
+  }
+
   fun testMultiFlavor() {
-    val text = importSyncAndDumpProject(TestProjectPaths.MULTI_FLAVOR)
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.MULTI_FLAVOR)
+    assertIsEqualToSnapshot(text)
+  }
+
+  fun testMultiFlavor_flattenPackages() {
+    val text = importSyncAndDumpProject(
+      TestProjectToSnapshotPaths.MULTI_FLAVOR,
+      projectViewSettings = ProjectViewSettings(hideEmptyPackages = true, flattenPackages = true)
+    )
     assertIsEqualToSnapshot(text)
   }
 
   fun testNestedProjects() {
-    val text = importSyncAndDumpProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY)
     assertIsEqualToSnapshot(text)
   }
 
   fun testNavigatorPackageViewCommonRoots_compact() {
     val text = importSyncAndDumpProject(
-      TestProjectPaths.NAVIGATOR_PACKAGEVIEW_COMMONROOTS,
+      TestProjectToSnapshotPaths.NAVIGATOR_PACKAGEVIEW_COMMONROOTS,
       projectViewSettings = ProjectViewSettings(hideEmptyPackages = true)
     )
     assertIsEqualToSnapshot(text)
@@ -72,42 +99,46 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
 
   fun testNavigatorPackageViewCommonRoots_notCompact() {
     val text = importSyncAndDumpProject(
-      TestProjectPaths.NAVIGATOR_PACKAGEVIEW_COMMONROOTS,
+      TestProjectToSnapshotPaths.NAVIGATOR_PACKAGEVIEW_COMMONROOTS,
       projectViewSettings = ProjectViewSettings(hideEmptyPackages = false)
     )
     assertIsEqualToSnapshot(text)
   }
 
   fun testNavigatorPackageViewSimple() {
-    val text = importSyncAndDumpProject(TestProjectPaths.NAVIGATOR_PACKAGEVIEW_SIMPLE)
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.NAVIGATOR_PACKAGEVIEW_SIMPLE)
     assertIsEqualToSnapshot(text)
   }
 
   fun testCompositeBuild() {
-    val text = importSyncAndDumpProject(TestProjectPaths.COMPOSITE_BUILD)
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD)
     assertIsEqualToSnapshot(text)
   }
 
   @Bombed(year = 2021, month = 4, day = 6, user = "andrei.kuznetsov", description = "Bomb slow muted tests in IDEA to speed up")
   fun testWithBuildSrc() {
-    val text = importSyncAndDumpProject(TestProjectPaths.APP_WITH_BUILDSRC)
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.APP_WITH_BUILDSRC)
+    assertIsEqualToSnapshot(text)
+  }
+
+  fun testNdkProject() {
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.HELLO_JNI, initialState = false, filter = this::filterOutMostIncludeFiles)
+    assertIsEqualToSnapshot(text)
+  }
+
+  fun testBasicCmakeApp() {
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.BASIC_CMAKE_APP, initialState = false, filter = this::filterOutMostIncludeFiles)
     assertIsEqualToSnapshot(text)
   }
 
   fun testDependentNativeModules() {
-    val text = importSyncAndDumpProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, initialState = false) { element, state ->
-      // Drop any file nodes under IncludesViewNode node.
-      when {
-        element is IncludesViewNode -> true
-        state && element is PsiFileNode -> null
-        else -> state
-      }
-    }
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.DEPENDENT_NATIVE_MODULES, initialState = false,
+                                        filter = this::filterOutMostIncludeFiles)
     assertIsEqualToSnapshot(text)
   }
 
   fun testJpsWithQualifiedNames() {
-    val srcPath = File(myFixture.testDataPath, toSystemDependentName(TestProjectPaths.JPS_WITH_QUALIFIED_NAMES))
+    val srcPath = File(myFixture.testDataPath, toSystemDependentName(TestProjectToSnapshotPaths.JPS_WITH_QUALIFIED_NAMES))
     // Prepare project in a different directory (_jps) to avoid closing the currently opened project.
     val projectPath = File(toSystemDependentName(project.basePath + "_jps"))
 
@@ -124,12 +155,21 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
   }
 
   fun testCompatibilityWithAndroidStudio36Project() {
-    val text = importSyncAndDumpProject(TestProjectPaths.COMPATIBILITY_TESTS_AS_36)
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36)
     assertIsEqualToSnapshot(text)
   }
 
   fun testCompatibilityWithAndroidStudio36NoImlProject() {
-    val text = importSyncAndDumpProject(TestProjectPaths.COMPATIBILITY_TESTS_AS_36_NO_IML)
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36_NO_IML)
+    assertIsEqualToSnapshot(text)
+  }
+
+  fun testMissingImlIsIgnored() {
+    prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION_CORRUPTED_MISSING_IML_40, "testMissingImlIsIgnored_Test")
+    val text = openPreparedProject("testMissingImlIsIgnored_Test" ) { project: Project ->
+    project.dumpAndroidProjectView()
+  }
+
     assertIsEqualToSnapshot(text)
   }
 
@@ -234,13 +274,17 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     }
 
     fun applySettings(settings: ProjectViewSettings) {
-      ProjectView.getInstance(project).apply {
+      ProjectView.getInstance(this).apply {
         setHideEmptyPackages(AndroidProjectViewPane.ID, settings.hideEmptyPackages)
+        (this as ProjectViewImpl).setFlattenPackages(AndroidProjectViewPane.ID, settings.flattenPackages);
       }
     }
 
-    fun getCurrentSettings(): ProjectViewSettings = ProjectView.getInstance(project).let { view ->
-      ProjectViewSettings(hideEmptyPackages = view.isHideEmptyMiddlePackages(AndroidProjectViewPane.ID))
+    fun getCurrentSettings(): ProjectViewSettings = ProjectView.getInstance(this).let { view ->
+      ProjectViewSettings(
+        hideEmptyPackages = view.isHideEmptyMiddlePackages(AndroidProjectViewPane.ID),
+        flattenPackages = view.isFlattenPackages(AndroidProjectViewPane.ID)
+      )
     }
 
     val oldSettings = getCurrentSettings()
@@ -252,5 +296,15 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
       applySettings(oldSettings)
     }
   }
-}
 
+  private fun filterOutMostIncludeFiles(element: AbstractTreeNode<*>, state: Boolean): Boolean? {
+    return when {
+      element is IncludesViewNode -> true
+      state && element is PsiDirectoryNode && element.name == "android" -> state
+      state && element is PsiDirectoryNode -> null
+      state && element is PsiFileNode && element.name?.endsWith("native_activity.h") == true -> state
+      state && element is PsiFileNode -> null
+      else -> state
+    }
+  }
+}

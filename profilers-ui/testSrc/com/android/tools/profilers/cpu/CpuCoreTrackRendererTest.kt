@@ -28,8 +28,8 @@ import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerTrackRendererType
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo
+import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -44,25 +44,24 @@ class CpuCoreTrackRendererTest {
 
   @get:Rule
   var grpcChannel = FakeGrpcChannel("CpuCoreTrackTestChannel", FakeCpuService(), FakeProfilerService(timer), transportService)
-  private val profilerClient = ProfilerClient(grpcChannel.name)
 
   private lateinit var profilers: StudioProfilers
 
   @Before
   @Throws(Exception::class)
   fun setUp() {
-    profilers = StudioProfilers(profilerClient, services, timer)
-    DataVisualizationColors.initialize(
+    profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
+    DataVisualizationColors.doInitialize(
       FileInputStream(TestUtils.getWorkspaceFile("tools/adt/idea/profilers-ui/testData/data-colors.json")))
   }
 
   @Test
   fun render() {
-    val mockCapture = Mockito.mock(AtraceCpuCapture::class.java)
+    val mockCapture = Mockito.mock(SystemTraceCpuCapture::class.java)
     Mockito.`when`(mockCapture.range).thenReturn(Range())
     Mockito.`when`(mockCapture.mainThreadId).thenReturn(123)
     val coreTrackModel = TrackModel.newBuilder(
-      CpuCoreTrackModel(AtraceDataSeries(mockCapture) { capture -> capture.getCpuThreadSliceInfoStates(0) }, Range(), mockCapture),
+      CpuCoreTrackModel(LazyDataSeries { mockCapture.getCpuThreadSliceInfoStates(0) }, Range(), mockCapture),
       ProfilerTrackRendererType.CPU_CORE,
       "Foo")
       .build()

@@ -29,7 +29,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Computable;
 import gnu.trove.TIntArrayList;
 import gnu.trove.TObjectIntHashMap;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.org.objectweb.asm.ClassWriter;
@@ -69,7 +68,7 @@ import static org.jetbrains.org.objectweb.asm.Opcodes.*;
  * In namespaced projects the R class contains only resources from the aar itself and the repository used by the
  * {@link ResourceClassGenerator} should be the one created from the AAR.
  */
-public final class ResourceClassGenerator {
+public class ResourceClassGenerator {
   private static final Logger LOG = Logger.getInstance(ResourceClassGenerator.class);
 
   interface NumericIdProvider {
@@ -170,7 +169,7 @@ public final class ResourceClassGenerator {
     Collection<String> resourceNames = myResources.getResourceNames(myNamespace, resType);
     for (String name : resourceNames) {
       int initialValue = myIdProvider.getOrGenerateId(new ResourceReference(myNamespace, resType, name));
-      name = AndroidResourceUtil.getFieldNameByResourceName(name);
+      name = IdeResourcesUtil.getFieldNameByResourceName(name);
       generateField(cw, name, initialValue);
       cache.put(name, initialValue);
     }
@@ -207,7 +206,7 @@ public final class ResourceClassGenerator {
         }
         continue;
       }
-      String fieldName = AndroidResourceUtil.getFieldNameByResourceName(styleableName);
+      String fieldName = IdeResourcesUtil.getFieldNameByResourceName(styleableName);
       cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, fieldName, "[I", null, null);
       if (debug) {
         LOG.debug("  Defined styleable " + fieldName);
@@ -237,7 +236,7 @@ public final class ResourceClassGenerator {
     MethodVisitor mv = cw.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
     mv.visitCode();
     for (MergedStyleable mergedStyleable : mergedStyleables) {
-      String fieldName = AndroidResourceUtil.getFieldNameByResourceName(mergedStyleable.name);
+      String fieldName = IdeResourcesUtil.getFieldNameByResourceName(mergedStyleable.name);
       TIntArrayList values = new TIntArrayList();
       for (ResourceReference attr : mergedStyleable.attrs) {
         values.add(myIdProvider.getOrGenerateId(attr));
@@ -340,7 +339,7 @@ public final class ResourceClassGenerator {
   }
 
   private static void appendEscaped(@NotNull StringBuilder sb, @NotNull String v) {
-    // See AndroidResourceUtil.getFieldNameByResourceName
+    // See AndroidResourcesIdeUtil.getFieldNameByResourceName
     for (int i = 0, n = v.length(); i < n; i++) {
       char c = v.charAt(i);
       if (c == '.' || c == ':' || c == '-') {
@@ -351,7 +350,7 @@ public final class ResourceClassGenerator {
     }
   }
 
-  private static final class MergedStyleable {
+  private static class MergedStyleable {
     @NotNull final String name;
     @NotNull final LinkedHashSet<ResourceReference> attrs;
 

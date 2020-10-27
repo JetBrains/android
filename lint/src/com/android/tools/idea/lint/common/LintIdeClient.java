@@ -18,9 +18,6 @@ package com.android.tools.idea.lint.common;
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 import com.android.annotations.NonNull;
-import com.android.builder.model.LintOptions;
-import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.ide.common.gradle.model.IdeLintOptions;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.client.api.Configuration;
 import com.android.tools.lint.client.api.DefaultConfiguration;
@@ -28,6 +25,7 @@ import com.android.tools.lint.client.api.GradleVisitor;
 import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.client.api.LintDriver;
+import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.client.api.UastParser;
 import com.android.tools.lint.client.api.XmlParser;
 import com.android.tools.lint.detector.api.Context;
@@ -39,6 +37,9 @@ import com.android.tools.lint.detector.api.Severity;
 import com.android.tools.lint.detector.api.TextFormat;
 import com.android.tools.lint.helpers.DefaultJavaEvaluator;
 import com.android.tools.lint.helpers.DefaultUastParser;
+import com.android.tools.lint.model.LintModelLintOptions;
+import com.android.tools.lint.model.LintModelModule;
+import com.android.tools.lint.model.LintModelSeverity;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.analysis.AnalysisScope;
@@ -80,6 +81,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -93,6 +95,12 @@ import org.jetbrains.annotations.Nullable;
  * reading files, reporting issues, logging errors, etc.
  */
 public class LintIdeClient extends LintClient implements Disposable {
+  /**
+   * Whether we support running .class file checks. No class file checks are currently registered as inspections.
+   * Since IntelliJ doesn't perform background compilation (e.g. only parsing, so there are no bytecode checks)
+   * this might need some work before we enable it.
+   */
+  public static final boolean SUPPORT_CLASS_FILES = false;
   protected static final Logger LOG = Logger.getInstance("#com.android.tools.idea.lint.common.LintIdeClient");
 
   @NonNull protected Project myProject;
@@ -104,6 +112,32 @@ public class LintIdeClient extends LintClient implements Disposable {
     super(CLIENT_STUDIO);
     myProject = project;
     myLintResult = lintResult;
+  }
+
+  public LintDriver createDriver(@NonNull LintRequest request) {
+    return createDriver(request, LintIdeSupport.get().getIssueRegistry());
+  }
+
+  public LintDriver createDriver(@NonNull LintRequest request, @NonNull IssueRegistry registry) {
+    LintDriver driver = new LintDriver(registry, this, request);
+
+    Collection<com.android.tools.lint.detector.api.Project> projects = request.getProjects();
+    if (projects != null && !projects.isEmpty()) {
+      com.android.tools.lint.detector.api.Project main = request.getMainProject(projects.iterator().next());
+      LintModelModule model = main.getBuildModule();
+      if (model != null) {
+        try {
+          LintModelLintOptions lintOptions = model.getLintOptions();
+          driver.setCheckTestSources(lintOptions.getCheckTestSources());
+          driver.setCheckDependencies(lintOptions.getCheckDependencies());
+        }
+        catch (Exception e) {
+          LOG.error(e);
+        }
+      }
+    }
+
+    return driver;
   }
 
   /**
@@ -234,30 +268,30 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Override
   public Configuration getConfiguration(@NonNull com.android.tools.lint.detector.api.Project project, @Nullable final LintDriver driver) {
     if (project.isGradleProject() && project.isAndroidProject() && !project.isLibrary()) {
-      IdeAndroidProject model = project.getGradleProjectModel();
+      LintModelModule model = project.getBuildModule();
       if (model != null) {
         try {
-          IdeLintOptions lintOptions = model.getLintOptions();
-          final Map<String, Integer> overrides = lintOptions.getSeverityOverrides();
+          LintModelLintOptions lintOptions = model.getLintOptions();
+          final Map<String, LintModelSeverity> overrides = lintOptions.getSeverityOverrides();
           if (overrides != null && !overrides.isEmpty()) {
             return new DefaultConfiguration(this, project, null) {
               @NonNull
               @Override
               public Severity getSeverity(@NonNull Issue issue) {
-                Integer severity = overrides.get(issue.getId());
+                LintModelSeverity severity = overrides.get(issue.getId());
                 if (severity != null) {
-                  switch (severity.intValue()) {
-                    case LintOptions.SEVERITY_FATAL:
+                  switch (severity) {
+                    case FATAL:
                       return Severity.FATAL;
-                    case LintOptions.SEVERITY_ERROR:
+                    case ERROR:
                       return Severity.ERROR;
-                    case LintOptions.SEVERITY_WARNING:
+                    case WARNING:
                       return Severity.WARNING;
-                    case LintOptions.SEVERITY_INFORMATIONAL:
+                    case INFORMATIONAL:
                       return Severity.INFORMATIONAL;
-                    case LintOptions.SEVERITY_DEFAULT_ENABLED:
+                    case DEFAULT_ENABLED:
                       return issue.getDefaultSeverity();
-                    case LintOptions.SEVERITY_IGNORE:
+                    case IGNORE:
                     default:
                       return Severity.IGNORE;
                   }
@@ -458,6 +492,15 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Nullable
   protected Module getModule() {
     return myLintResult.getModule();
+  }
+
+  @Nullable
+  protected Module getModule(@NonNull com.android.tools.lint.detector.api.Project project) {
+    Module module = findModuleForLintProject(getIdeProject(), project);
+    if (module != null) {
+      return module;
+    }
+    return getModule();
   }
 
   @Override
@@ -681,7 +724,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   @NonNull
   @Override
   public List<File> getJavaSourceFolders(@NonNull com.android.tools.lint.detector.api.Project project) {
-    Module module = myLintResult.getModule();
+    Module module = getModule(project);
     if (module == null) {
       module = findModuleForLintProject(myProject, project);
       if (module == null) {
@@ -695,11 +738,6 @@ public class LintIdeClient extends LintClient implements Disposable {
       result.add(new File(root.getPath()));
     }
     return result;
-  }
-
-  @Override
-  public boolean checkForSuppressComments() {
-    return false;
   }
 
   @Override

@@ -42,6 +42,10 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
   // Hack to avoid: "java.lang.Error: Cannot load com.apple.laf.AquaLookAndFeel"
   @SuppressWarnings("unused")
   private static volatile boolean DARK = StartupUiUtil.isUnderDarcula();
+  private static final String WORKBENCH_NAME1 = "NELE_EDITOR";
+  private static final String WORKBENCH_TITLE1 = "Designer";
+  private static final String WORKBENCH_NAME2 = "Layout Inspector";
+  private static final String WORKBENCH_TITLE2 = WORKBENCH_NAME2;
 
   @Mock
   private FileEditorManager myEditorManager;
@@ -54,15 +58,23 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
   @Mock
   private WorkBench myWorkBench2;
   @Mock
-  private AttachedToolWindow myAttachedToolWindow1;
+  private AttachedToolWindow myAttachedToolWindow1a;
   @Mock
-  private AttachedToolWindow myAttachedToolWindow2;
+  private AttachedToolWindow myAttachedToolWindow1b;
+  @Mock
+  private AttachedToolWindow myAttachedToolWindow2a;
+  @Mock
+  private AttachedToolWindow myAttachedToolWindow2b;
   @Mock
   private VirtualFile myVirtualFile;
   @Mock
-  private DetachedToolWindow myDetachedToolWindow1;
+  private DetachedToolWindow myDetachedToolWindow1a;
   @Mock
-  private DetachedToolWindow myDetachedToolWindow2;
+  private DetachedToolWindow myDetachedToolWindow1b;
+  @Mock
+  private DetachedToolWindow myDetachedToolWindow2a;
+  @Mock
+  private DetachedToolWindow myDetachedToolWindow2b;
   @Mock
   private DetachedToolWindowFactory myDetachedToolWindowFactory;
   @Mock
@@ -77,12 +89,22 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     initMocks(this);
     registerProjectComponent(FileEditorManager.class, myEditorManager);
     KeyboardFocusManager.setCurrentKeyboardFocusManager(myKeyboardFocusManager);
-    when(myWorkBench1.getDetachedToolWindows()).thenReturn(ImmutableList.of(myAttachedToolWindow1));
-    when(myWorkBench2.getDetachedToolWindows()).thenReturn(ImmutableList.of(myAttachedToolWindow2));
-    when(myAttachedToolWindow1.getDefinition()).thenReturn(PalettePanelToolContent.getDefinition());
-    when(myAttachedToolWindow2.getDefinition()).thenReturn(PalettePanelToolContent.getOtherDefinition());
-    when(myDetachedToolWindowFactory.create(any(Project.class), any(ToolWindowDefinition.class)))
-      .thenReturn(myDetachedToolWindow1, myDetachedToolWindow2, null);
+    when(myWorkBench1.getName()).thenReturn(WORKBENCH_NAME1);
+    when(myWorkBench2.getName()).thenReturn(WORKBENCH_NAME2);
+    when(myWorkBench1.getDetachedToolWindows()).thenReturn(ImmutableList.of(myAttachedToolWindow1a, myAttachedToolWindow1b));
+    when(myWorkBench2.getDetachedToolWindows()).thenReturn(ImmutableList.of(myAttachedToolWindow2a, myAttachedToolWindow2b));
+    when(myAttachedToolWindow1a.getDefinition()).thenReturn(PalettePanelToolContent.getDefinition());
+    when(myAttachedToolWindow1b.getDefinition()).thenReturn(PalettePanelToolContent.getOtherDefinition());
+    when(myAttachedToolWindow2a.getDefinition()).thenReturn(PalettePanelToolContent.getDefinition());
+    when(myAttachedToolWindow2b.getDefinition()).thenReturn(PalettePanelToolContent.getOtherDefinition());
+    when(myDetachedToolWindowFactory.create(any(Project.class), eq(WORKBENCH_TITLE1), eq(PalettePanelToolContent.getDefinition())))
+      .thenReturn(myDetachedToolWindow1a, null);
+    when(myDetachedToolWindowFactory.create(any(Project.class), eq(WORKBENCH_TITLE1), eq(PalettePanelToolContent.getOtherDefinition())))
+      .thenReturn(myDetachedToolWindow1b, null);
+    when(myDetachedToolWindowFactory.create(any(Project.class), eq(WORKBENCH_TITLE2), eq(PalettePanelToolContent.getDefinition())))
+      .thenReturn(myDetachedToolWindow2a, null);
+    when(myDetachedToolWindowFactory.create(any(Project.class), eq(WORKBENCH_TITLE2), eq(PalettePanelToolContent.getOtherDefinition())))
+      .thenReturn(myDetachedToolWindow2b, null);
 
     myManager = new DetachedToolWindowManager(getProject());
     myManager.setDetachedToolWindowFactory(myDetachedToolWindowFactory);
@@ -118,7 +140,7 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     myManager.restoreDefaultLayout();
     UIUtil.dispatchAllInvocationEvents();
     Disposer.dispose(myManager);
-    verify(myDetachedToolWindow1).updateSettingsInAttachedToolWindow();
+    verify(myDetachedToolWindow1a).updateSettingsInAttachedToolWindow();
   }
 
   @SuppressWarnings("unchecked")
@@ -126,7 +148,7 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     when(myKeyboardFocusManager.getFocusOwner()).thenReturn(myWorkBench1);
     myManager.restoreDefaultLayout();
     UIUtil.dispatchAllInvocationEvents();
-    verify(myDetachedToolWindow1).show(eq(myAttachedToolWindow1));
+    verify(myDetachedToolWindow1a).show(eq(myAttachedToolWindow1a));
   }
 
   public void testFileOpened() {
@@ -139,7 +161,7 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     UIUtil.dispatchAllInvocationEvents();
 
     //noinspection unchecked
-    verify(myDetachedToolWindow1).show(eq(myAttachedToolWindow1));
+    verify(myDetachedToolWindow1a).show(eq(myAttachedToolWindow1a));
   }
 
   public void testFileOpenedCausingFloatingToolWindowToDisplay2() {
@@ -148,7 +170,7 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     UIUtil.dispatchAllInvocationEvents();
 
     //noinspection unchecked
-    verify(myDetachedToolWindow1).show(eq(myAttachedToolWindow1));
+    verify(myDetachedToolWindow1a).show(eq(myAttachedToolWindow1a));
   }
 
   @SuppressWarnings("unchecked")
@@ -156,30 +178,30 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     when(myKeyboardFocusManager.getFocusOwner()).thenReturn(myWorkBench1, myWorkBench2);
     myListener.fileOpened(myEditorManager, myVirtualFile);
     UIUtil.dispatchAllInvocationEvents();
-    verify(myDetachedToolWindow1).show(eq(myAttachedToolWindow1));
+    verify(myDetachedToolWindow1a).show(eq(myAttachedToolWindow1a));
     myListener.fileOpened(myEditorManager, myVirtualFile);
     UIUtil.dispatchAllInvocationEvents();
-    verify(myDetachedToolWindow1).hide();
-    verify(myDetachedToolWindow2).show(eq(myAttachedToolWindow2));
+    verify(myDetachedToolWindow1a).hide();
+    verify(myDetachedToolWindow2a).show(eq(myAttachedToolWindow2a));
 
     FileEditorManagerEvent event1 = new FileEditorManagerEvent(myEditorManager, null, null, null, myFileEditor1);
     FileEditorManagerEvent event2 = new FileEditorManagerEvent(myEditorManager, null, null, null, myFileEditor2);
 
     myListener.selectionChanged(event1);
     UIUtil.dispatchAllInvocationEvents();
-    verify(myDetachedToolWindow2).hide();
-    verify(myDetachedToolWindow1, times(2)).show(eq(myAttachedToolWindow1));
+    verify(myDetachedToolWindow2a).hide();
+    verify(myDetachedToolWindow1a, times(2)).show(eq(myAttachedToolWindow1a));
     myListener.selectionChanged(event2);
     UIUtil.dispatchAllInvocationEvents();
-    verify(myDetachedToolWindow1, times(2)).hide();
-    verify(myDetachedToolWindow2, times(2)).show(eq(myAttachedToolWindow2));
+    verify(myDetachedToolWindow1a, times(2)).hide();
+    verify(myDetachedToolWindow2a, times(2)).show(eq(myAttachedToolWindow2a));
 
     // Now unregister one of them:
     myManager.unregister(myFileEditor1);
     myListener.selectionChanged(event1);
     UIUtil.dispatchAllInvocationEvents();
-    verify(myDetachedToolWindow1, times(3)).hide();
-    verify(myDetachedToolWindow2, times(2)).hide();
+    verify(myDetachedToolWindow1a, times(3)).hide();
+    verify(myDetachedToolWindow2a, times(2)).hide();
   }
 
   @SuppressWarnings("unchecked")
@@ -187,10 +209,10 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     when(myKeyboardFocusManager.getFocusOwner()).thenReturn(myWorkBench1, new JLabel());
     myListener.fileOpened(myEditorManager, myVirtualFile);
     UIUtil.dispatchAllInvocationEvents();
-    verify(myDetachedToolWindow1).show(eq(myAttachedToolWindow1));
+    verify(myDetachedToolWindow1a).show(eq(myAttachedToolWindow1a));
 
     myListener.fileClosed(myEditorManager, myVirtualFile);
     UIUtil.dispatchAllInvocationEvents();
-    verify(myDetachedToolWindow1).hide();
+    verify(myDetachedToolWindow1a).hide();
   }
 }

@@ -18,12 +18,15 @@ package com.android.tools.idea.testartifacts.instrumented;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.testrunner.AndroidTestOrchestratorRemoteAndroidTestRunner;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.GradleApplicationIdProvider;
+import com.android.tools.idea.run.editor.NoApksProvider;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
@@ -122,11 +125,13 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     ApplicationIdProvider applicationIdProvider = new GradleApplicationIdProvider(myAndroidFacet);
     LaunchStatus launchStatus = new ProcessHandlerLaunchStatus(new NopProcessHandler());
 
-    LaunchTask task = config.getApplicationLaunchTask(applicationIdProvider, myAndroidFacet, "", false, launchStatus);
+    LaunchTask task = config.getApplicationLaunchTask(applicationIdProvider, myAndroidFacet, "", false, launchStatus, new NoApksProvider());
     assertThat(task).isInstanceOf(AndroidTestApplicationLaunchTask.class);
 
     AndroidTestApplicationLaunchTask androidTestTask = (AndroidTestApplicationLaunchTask)task;
-    return androidTestTask.createRemoteAndroidTestRunner(mock(IDevice.class));
+    IDevice mockDevice = mock(IDevice.class);
+    when(mockDevice.getVersion()).thenReturn(new AndroidVersion(26));
+    return androidTestTask.createRemoteAndroidTestRunner(mockDevice);
   }
 
   private AndroidTestRunConfiguration createConfigFromClass(String className) {

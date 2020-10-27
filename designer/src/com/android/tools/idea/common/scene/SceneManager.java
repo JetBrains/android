@@ -24,9 +24,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.rendering.RenderSettings;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -35,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,6 +40,25 @@ import org.jetbrains.annotations.Nullable;
  * A facility for creating and updating {@link Scene}s based on {@link NlModel}s.
  */
 abstract public class SceneManager implements Disposable {
+  /**
+   * Provider mapping {@link NlComponent}s to {@link SceneComponent}/
+   */
+  public interface SceneComponentHierarchyProvider {
+    /**
+     * Called by the {@link SceneManager} to create the initially {@link SceneComponent} hierarchy from the given
+     * {@link NlComponent}.
+     */
+    @NotNull
+    List<SceneComponent> createHierarchy(@NotNull SceneManager manager, @NotNull NlComponent component);
+
+    /**
+     * Call by the {@link SceneManager} to trigger a sync of the {@link NlComponent} to the given {@link SceneComponent}.
+     * This allows for the SceneComponent to sync the latest data from the {@link NlModel} and update the UI
+     * representation. The method will be called when the {@link SceneManager} detects that there is the need to sync.
+     * This could be after a render or after a model change, for example.
+     */
+    void syncFromNlComponent(@NotNull SceneComponent sceneComponent);
+  }
 
   public static final boolean SUPPORTS_LOCKING = false;
 
@@ -50,16 +66,30 @@ abstract public class SceneManager implements Disposable {
   @NotNull private final DesignSurface myDesignSurface;
   @NotNull private final Scene myScene;
   // This will be initialized when constructor calls updateSceneView().
-  @SuppressWarnings("NullableProblems")
   @Nullable private SceneView mySceneView;
   @NotNull private final HitProvider myHitProvider = new DefaultHitProvider();
+  @NotNull private final SceneComponentHierarchyProvider mySceneComponentProvider;
 
-  public SceneManager(@NotNull NlModel model, @NotNull DesignSurface surface, @NotNull Supplier<RenderSettings> renderSettingsProvider) {
+  /**
+   * Creates a new {@link SceneManager}.
+   * @param model the {@NlMode} linked to this {@link SceneManager}.
+   * @param surface the {@DesignSurface} that will render this {@link SceneManager}.
+   * @param useLiveRendering if true, the {@link SceneManager} will re-render on every component update. When false, only when a explicit
+   *                         {@link SceneManager#requestRender} happens.
+   * @param sceneComponentProvider a {@link SceneComponentHierarchyProvider} that will generate the {@link SceneComponent}s from the
+   *                               given {@link NlComponent}.
+   */
+  public SceneManager(
+    @NotNull NlModel model,
+    @NotNull DesignSurface surface,
+    boolean useLiveRendering,
+    @Nullable SceneComponentHierarchyProvider sceneComponentProvider) {
     myModel = model;
     myDesignSurface = surface;
     Disposer.register(model, this);
 
-    myScene = new Scene(this, myDesignSurface, renderSettingsProvider.get().getUseLiveRendering());
+    mySceneComponentProvider = sceneComponentProvider == null ? new DefaultSceneManagerHierarchyProvider() : sceneComponentProvider;
+    myScene = new Scene(this, myDesignSurface, useLiveRendering);
   }
 
   /**
@@ -71,9 +101,6 @@ abstract public class SceneManager implements Disposable {
     }
     mySceneView = doCreateSceneView();
     Disposer.register(this, mySceneView);
-
-    myDesignSurface.addLayers(getLayers());
-    myDesignSurface.layoutContent();
   }
 
   /**
@@ -86,20 +113,29 @@ abstract public class SceneManager implements Disposable {
   /**
    * Update the SceneView of SceneManager. The SceneView may be recreated if needed.
    */
-  public void updateSceneView() {
-    myDesignSurface.removeLayers(getLayers());
+  public final void updateSceneView() {
+    // Remove the current SceneViews before they are disposed
+    for (SceneView sceneView : getSceneViews()) {
+      myDesignSurface.removeSceneView(sceneView);
+    }
     createSceneView();
+
+    // Add the newly allocated SceneViews
+    for (SceneView sceneView : getSceneViews()) {
+      myDesignSurface.addSceneView(sceneView);
+    }
   }
 
+  @Deprecated // A SceneManager can have more than one SceneView. Use getSceneViews() instead
   @NotNull
   public SceneView getSceneView() {
-    assert mySceneView != null: "createSceneView() should have been called during initialization";
+    assert mySceneView != null : "createSceneView was not called";
     return mySceneView;
   }
 
   @NotNull
-  public ImmutableList<Layer> getLayers() {
-    return mySceneView.getLayers();
+  public List<SceneView> getSceneViews() {
+    return ImmutableList.of(getSceneView());
   }
 
   /**
@@ -110,6 +146,9 @@ abstract public class SceneManager implements Disposable {
 
   @Override
   public void dispose() {
+    for (SceneView sceneView : getSceneViews()) {
+      myDesignSurface.removeSceneView(sceneView);
+    }
   }
 
   /**
@@ -133,7 +172,7 @@ abstract public class SceneManager implements Disposable {
       scene.setRoot(null);
     }
 
-    List<SceneComponent> hierarchy = createHierarchy(rootComponent);
+    List<SceneComponent> hierarchy = mySceneComponentProvider.createHierarchy(this, rootComponent);
     SceneComponent root = hierarchy.isEmpty() ? null : hierarchy.get(0);
     scene.setRoot(root);
     if (root != null) {
@@ -171,38 +210,6 @@ abstract public class SceneManager implements Disposable {
   }
 
   /**
-   * Create SceneComponents corresponding to an NlComponent hierarchy
-   */
-  @NotNull
-  protected List<SceneComponent> createHierarchy(@NotNull NlComponent component) {
-    SceneComponent sceneComponent = getScene().getSceneComponent(component);
-    if (sceneComponent == null) {
-      sceneComponent = new SceneComponent(getScene(), component, getHitProvider(component));
-    }
-    sceneComponent.setToolLocked(isComponentLocked(component));
-    Set<SceneComponent> oldChildren = new HashSet<>(sceneComponent.getChildren());
-    for (NlComponent nlChild : component.getChildren()) {
-      List<SceneComponent> children = createHierarchy(nlChild);
-      oldChildren.removeAll(children);
-      for (SceneComponent child : children) {
-        // Even the parent of child is the same, re-add it to make the order same as NlComponent.
-        child.removeFromParent();
-        sceneComponent.addChild(child);
-      }
-    }
-    for (SceneComponent child : oldChildren) {
-      if (child instanceof TemporarySceneComponent && child.getParent() == sceneComponent) {
-        // ignore TemporarySceneComponent since its associated NlComponent has not been added to the hierarchy.
-        continue;
-      }
-      if (child.getParent() == sceneComponent) {
-        child.removeFromParent();
-      }
-    }
-    return ImmutableList.of(sceneComponent);
-  }
-
-  /**
    * Update the SceneComponent paired to the given NlComponent and its children.
    *
    * @param component      the root SceneComponent to update
@@ -211,16 +218,11 @@ abstract public class SceneManager implements Disposable {
   protected final void updateFromComponent(@NotNull SceneComponent component, @NotNull Set<SceneComponent> seenComponents) {
     seenComponents.add(component);
 
-    updateFromComponent(component);
+    syncFromNlComponent(component);
 
     for (SceneComponent child : component.getChildren()) {
       updateFromComponent(child, seenComponents);
     }
-
-    postUpdateFromComponent(component);
-  }
-
-  protected void postUpdateFromComponent(@NotNull SceneComponent component) {
   }
 
   /**
@@ -232,8 +234,8 @@ abstract public class SceneManager implements Disposable {
   /**
    * Updates a single SceneComponent from its corresponding NlComponent.
    */
-  protected void updateFromComponent(SceneComponent sceneComponent) {
-    sceneComponent.setToolLocked(false); // the root is always unlocked.
+  protected final void syncFromNlComponent(SceneComponent sceneComponent) {
+    mySceneComponentProvider.syncFromNlComponent(sceneComponent);
   }
 
   @NotNull

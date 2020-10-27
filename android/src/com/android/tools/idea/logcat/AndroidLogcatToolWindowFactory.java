@@ -44,8 +44,6 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.messages.MessageBusConnection;
-import java.io.File;
-import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -54,7 +52,10 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAware {
+import java.io.File;
+import java.util.List;
+
+public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAware {
   public static final Key<DevicePanel> DEVICES_PANEL_KEY = Key.create("DevicePanel");
 
   @Override
@@ -71,8 +72,8 @@ public final class AndroidLogcatToolWindowFactory implements ToolWindowFactory, 
     AndroidLogcatView logcatView = logcatPanel.getLogcatView();
 
     MessageBusConnection busConnection = project.getMessageBus().connect(toolWindow.getDisposable());
-    busConnection.subscribe(ProjectTopics.PROJECT_ROOTS, new MyAndroidPlatformListener(logcatView));
     busConnection.subscribe(ToolWindowManagerListener.TOPIC, new MyToolWindowManagerListener(project, logcatView));
+    busConnection.subscribe(ProjectTopics.PROJECT_ROOTS, new MyAndroidPlatformListener(logcatView));
 
     ContentManager contentManager = toolWindow.getContentManager();
     Content c = contentManager.getFactory().createContent(logcatPanel, "", true);
@@ -193,7 +194,7 @@ public final class AndroidLogcatToolWindowFactory implements ToolWindowFactory, 
     }
   }
 
-  private static final class MyAndroidPlatformListener implements ModuleRootListener {
+  private static class MyAndroidPlatformListener implements ModuleRootListener {
     private final Project myProject;
     private final AndroidLogcatView myView;
 

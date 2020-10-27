@@ -32,9 +32,14 @@ import java.awt.*;
 public class FlatSeparator extends JComponent {
   private final Dimension mySize;
 
-  public FlatSeparator() {
-    mySize = JBUI.size(6, 24);
+  public FlatSeparator(int width, int height) {
+    mySize = JBUI.size(width, height);
   }
+
+  public FlatSeparator() {
+    this(6, 24);
+  }
+
 
   @Override
   public Dimension getPreferredSize() {
@@ -57,7 +62,7 @@ public class FlatSeparator extends JComponent {
       }
     }
     else {
-      g.setColor(UIUtil.getSeparatorColor());
+      g.setColor(JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground());
       if (getParent() != null) {
         LinePainter2D.paint((Graphics2D)g, 3, 2, 3, getParent().getSize().height - 2);
       }

@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.io.Files.createTempDir;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.ensureExists;
@@ -49,6 +50,7 @@ import com.intellij.openapi.application.ex.PathManagerEx;
 import com.intellij.openapi.diagnostic.Attachment;
 import com.intellij.openapi.diagnostic.FrequentEventDetector;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.impl.CoreProgressManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -75,6 +77,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -632,27 +635,37 @@ public final class GuiTests {
       // A 90-second default limit is high, but the first test in the suite may need it.
       wait = Wait.seconds(90);
     }
-
+    String[] last = {null};
     try {
       wait
         .expecting("background tasks to finish")
         .until(() -> {
           robot.waitForIdle();
-          return noProgressIndicator();
+          last[0] = progressIndicators();
+          return last[0].isEmpty();
         });
     }
     catch (WaitTimedOutError e) {
       PerformanceWatcher.getInstance().dumpThreads("waiting-background-tasks", true);
+      LOG.error("Current progress indicators: " + last[0]);
       LOG.error("Timeout out waiting background tasks to finish" + ThreadDumper.dumpThreadsToString());
       throw e;
     }
   }
 
-  private static boolean noProgressIndicator() {
+  public static String progressIndicators() {
+    Collection<ProgressIndicator> progressIndicators = getIndicatorsCollection();
+    return progressIndicators.stream()
+      .map(it -> nullToEmpty(it.getText()))
+      .collect(Collectors.joining(","));
+  }
+
+  @NotNull
+  private static Collection<ProgressIndicator> getIndicatorsCollection() {
     try {
       Field field = CoreProgressManager.class.getDeclaredField("currentIndicators");
       field.setAccessible(true);
-      return ((ConcurrentLongObjectMap)field.get(null)).isEmpty();
+      return ((ConcurrentLongObjectMap<ProgressIndicator>)field.get(null)).values();
     }
     catch (NoSuchFieldException | IllegalAccessException ex) {
       throw new RuntimeException("Failure retrieving CoreProgressManager.currentIndicators", ex);
@@ -677,6 +690,6 @@ public final class GuiTests {
   public static void waitForProjectIndexingToFinish(@NotNull Project project) {
     // Bazel wipes all Android Studio Caches between tests and all JDK and Android SDK libraries are re-indexed (about 50K files)
     // Usually this take 20-30 secs, but depends heavily on the machine and its load
-    waitForProjectIndexingToFinish(project, Wait.seconds(120));
+    waitForProjectIndexingToFinish(project, Wait.seconds(240));
   }
 }

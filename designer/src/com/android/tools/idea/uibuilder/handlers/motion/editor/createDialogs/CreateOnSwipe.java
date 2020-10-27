@@ -207,12 +207,4 @@ public class CreateOnSwipe extends BaseCreatePanel {
     return "Swipe Handler";
   }
 
-  public static void main(String[] arg) {
-    JFrame f = new JFrame(TITLE);
-    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    f.setContentPane(new CreateOnSwipe());
-    f.pack();
-    f.validate();
-    f.setVisible(true);
-  }
 }

@@ -3,9 +3,6 @@ package org.jetbrains.android.importDependencies;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
-* @author Eugene.Kudelevsky
-*/
 abstract class ImportDependenciesTask {
 
   @Nullable

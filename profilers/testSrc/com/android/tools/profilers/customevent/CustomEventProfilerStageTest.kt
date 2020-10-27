@@ -47,7 +47,7 @@ class CustomEventProfilerStageTest {
 
   @Before
   fun setUp() {
-    profilers = StudioProfilers(ProfilerClient(grpcChannel.name), services, timer)
+    profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
   }
 
   @Test

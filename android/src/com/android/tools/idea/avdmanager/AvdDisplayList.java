@@ -20,15 +20,19 @@ import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Device;
-import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.IconLoader;
@@ -36,6 +40,7 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.TableView;
+import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.JBUI;
@@ -44,6 +49,13 @@ import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import icons.StudioIcons;
 import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.KeyboardFocusManager;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -55,11 +67,27 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import javax.swing.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.BoxLayout;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.KeyStroke;
+import javax.swing.ListSelectionModel;
 import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -89,6 +117,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   private Set<AvdSelectionListener> myListeners = new HashSet<AvdSelectionListener>();
   private final AvdActionsColumnInfo myActionsColumnRenderer = new AvdActionsColumnInfo("Actions", 2 /* Num Visible Actions */);
   private static final HashMap<String, HighlightableIconPair> myDeviceClassIcons = new HashMap<String, HighlightableIconPair>(8);
+  private final Logger myLogger = Logger.getInstance(AvdDisplayList.class);
 
   /**
    * Components which wish to receive a notification when the user has selected an AVD from this
@@ -98,28 +127,15 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     void onAvdSelected(@Nullable AvdInfo avdInfo);
   }
 
-  @VisibleForTesting
-  @NotNull
-  public static String storageSizeDisplayString(@NotNull Storage size) {
-    String unitString = "MB";
-    double value = size.getPreciseSizeAsUnit(Storage.Unit.MiB);
-    if (value >= 1024.0) {
-      unitString = "GB";
-      value = size.getPreciseSizeAsUnit(Storage.Unit.GiB);
-    }
-    if (value > 9.94) {
-      return String.format(Locale.getDefault(), "%1$.0f %2$s", value, unitString);
-    } else {
-      return String.format(Locale.getDefault(), "%1$.1f %2$s", value, unitString);
-    }
-  }
-
   public AvdDisplayList(@NotNull AvdListDialog dialog, @Nullable Project project) {
     myDialog = dialog;
     myProject = project;
-    myModel.setColumnInfos(myColumnInfos);
     myModel.setSortable(true);
+
     myTable = new TableView<AvdInfo>();
+
+    myModel.setColumnInfos(newColumns().toArray(ColumnInfo.EMPTY_ARRAY));
+
     myTable.setModelAndUpdateColumns(myModel);
     myTable.setDefaultRenderer(Object.class, new MyRenderer(myTable.getDefaultRenderer(Object.class)));
     setLayout(new BorderLayout());
@@ -262,6 +278,12 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     return this;
   }
 
+  @NotNull
+  @Override
+  public JComponent getAvdProviderComponent() {
+    return this;
+  }
+
   private final MouseAdapter myEditingListener = new MouseAdapter() {
     @Override
     public void mouseMoved(MouseEvent e) {
@@ -401,114 +423,112 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     }
   }
 
-  /**
-   * List of columns present in our table. Each column is represented by a ColumnInfo which tells the table how to get
-   * the cell value in that column for a given row item.
-   */
-  private final ColumnInfo[] myColumnInfos = new ColumnInfo[] {
-    new AvdIconColumnInfo("Type") {
+  @NotNull
+  private Collection<ColumnInfo<AvdInfo, ?>> newColumns() {
+    return Arrays.asList(
+      new AvdIconColumnInfo("Type") {
 
-      @NotNull
-      @Override
-      public HighlightableIconPair valueOf(AvdInfo avdInfo) {
-        return getDeviceClassIconPair(avdInfo);
-      }
-    },
-    new AvdColumnInfo("Name") {
-      @Nullable
-      @Override
-      public String valueOf(AvdInfo info) {
-        return AvdManagerConnection.getAvdDisplayName(info);
-      }
-    },
-    new AvdIconColumnInfo("Play Store", JBUI.scale(75)) {
-      private final HighlightableIconPair emptyIconPair = new HighlightableIconPair(null);
-      private final HighlightableIconPair playStoreIconPair = new HighlightableIconPair(StudioIcons.Avd.DEVICE_PLAY_STORE);
+        @NotNull
+        @Override
+        public HighlightableIconPair valueOf(AvdInfo avdInfo) {
+          return getDeviceClassIconPair(avdInfo);
+        }
+      },
+      new AvdColumnInfo("Name") {
+        @Nullable
+        @Override
+        public String valueOf(AvdInfo info) {
+          return AvdManagerConnection.getAvdDisplayName(info);
+        }
+      },
+      new AvdIconColumnInfo("Play Store", JBUI.scale(75)) {
+        private final HighlightableIconPair emptyIconPair = new HighlightableIconPair(null);
+        private final HighlightableIconPair playStoreIconPair = new HighlightableIconPair(StudioIcons.Avd.DEVICE_PLAY_STORE);
 
-      @NotNull
-      @Override
-      public HighlightableIconPair valueOf(AvdInfo avdInfo) {
-        return avdInfo.hasPlayStore() ? playStoreIconPair : emptyIconPair;
-      }
+        @NotNull
+        @Override
+        public HighlightableIconPair valueOf(AvdInfo avdInfo) {
+          return avdInfo.hasPlayStore() ? playStoreIconPair : emptyIconPair;
+        }
 
-      @NotNull
-      @Override
-      public Comparator<AvdInfo> getComparator() {
-        return (avd1, avd2) -> Boolean.compare(avd2.hasPlayStore(), avd1.hasPlayStore());
-      }
-    },
-    new AvdColumnInfo("Resolution") {
-      @Nullable
-      @Override
-      public String valueOf(AvdInfo avdInfo) {
-        return getResolution(avdInfo);
-      }
+        @NotNull
+        @Override
+        public Comparator<AvdInfo> getComparator() {
+          return (avd1, avd2) -> Boolean.compare(avd2.hasPlayStore(), avd1.hasPlayStore());
+        }
+      },
+      new AvdColumnInfo("Resolution") {
+        @Nullable
+        @Override
+        public String valueOf(AvdInfo avdInfo) {
+          return getResolution(avdInfo);
+        }
 
-      /**
-       * We override the comparator here to sort the AVDs by total number of pixels on the screen rather than the
-       * default sort order (lexicographically by string representation)
-       */
-      @NotNull
-      @Override
-      public Comparator<AvdInfo> getComparator() {
-        return new Comparator<AvdInfo>() {
-          @Override
-          public int compare(AvdInfo o1, AvdInfo o2) {
-            Dimension d1 = getScreenSize(o1);
-            Dimension d2 = getScreenSize(o2);
-            if (d1 == d2) {
-              return 0;
-            } else if (d1 == null) {
-              return -1;
-            } else if (d2 == null) {
-              return 1;
-            } else {
-              return d1.width * d1.height - d2.width * d2.height;
+        /**
+         * We override the comparator here to sort the AVDs by total number of pixels on the screen rather than the
+         * default sort order (lexicographically by string representation)
+         */
+        @NotNull
+        @Override
+        public Comparator<AvdInfo> getComparator() {
+          return new Comparator<AvdInfo>() {
+            @Override
+            public int compare(AvdInfo o1, AvdInfo o2) {
+              Dimension d1 = getScreenSize(o1);
+              Dimension d2 = getScreenSize(o2);
+              if (d1 == d2) {
+                return 0;
+              } else if (d1 == null) {
+                return -1;
+              } else if (d2 == null) {
+                return 1;
+              } else {
+                return d1.width * d1.height - d2.width * d2.height;
+              }
             }
-          }
-        };
-      }
-    },
-    new AvdColumnInfo("API", JBUI.scale(50)) {
-      @NotNull
-      @Override
-      public String valueOf(AvdInfo avdInfo) {
-        return avdInfo.getAndroidVersion().getApiString();
-      }
+          };
+        }
+      },
+      new AvdColumnInfo("API", JBUI.scale(50)) {
+        @NotNull
+        @Override
+        public String valueOf(AvdInfo avdInfo) {
+          return avdInfo.getAndroidVersion().getApiString();
+        }
 
-      /**
-       * We override the comparator here to sort the API levels numerically (when possible;
-       * with preview platforms codenames are compared alphabetically)
-       */
-      @NotNull
-      @Override
-      public Comparator<AvdInfo> getComparator() {
-        final ApiLevelComparator comparator = new ApiLevelComparator();
-        return new Comparator<AvdInfo>() {
-          @Override
-          public int compare(AvdInfo o1, AvdInfo o2) {
-            return comparator.compare(valueOf(o1), valueOf(o2));
-          }
-        };
-      }
-    },
-    new AvdColumnInfo("Target") {
-      @NotNull
-      @Override
-      public String valueOf(AvdInfo info) {
-        return targetString(info.getAndroidVersion(), info.getTag());
-      }
-    },
-    new AvdColumnInfo("CPU/ABI") {
-      @NotNull
-      @Override
-      public String valueOf(AvdInfo avdInfo) {
-        return avdInfo.getCpuArch();
-      }
-    },
-    new AvdSizeColumnInfo("Size on Disk"),
-    myActionsColumnRenderer,
-  };
+        /**
+         * We override the comparator here to sort the API levels numerically (when possible;
+         * with preview platforms codenames are compared alphabetically)
+         */
+        @NotNull
+        @Override
+        public Comparator<AvdInfo> getComparator() {
+          final ApiLevelComparator comparator = new ApiLevelComparator();
+          return new Comparator<AvdInfo>() {
+            @Override
+            public int compare(AvdInfo o1, AvdInfo o2) {
+              return comparator.compare(valueOf(o1), valueOf(o2));
+            }
+          };
+        }
+      },
+      new AvdColumnInfo("Target") {
+        @NotNull
+        @Override
+        public String valueOf(AvdInfo info) {
+          return targetString(info.getAndroidVersion(), info.getTag());
+        }
+      },
+      new AvdColumnInfo("CPU/ABI") {
+        @NotNull
+        @Override
+        public String valueOf(AvdInfo avdInfo) {
+          return avdInfo.getCpuArch();
+        }
+      },
+      new SizeOnDiskColumn(myTable),
+      myActionsColumnRenderer);
+  }
 
   @VisibleForTesting
   static String targetString(@NotNull AndroidVersion version, @NotNull IdDisplay tag) {
@@ -522,22 +542,27 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   }
 
   private void refreshErrorCheck() {
-    boolean refreshUI = myNotificationPanel.getComponentCount() > 0;
+    final AtomicBoolean refreshUI = new AtomicBoolean(myNotificationPanel.getComponentCount() > 0);
     myNotificationPanel.removeAll();
-    AccelerationErrorCode error = AvdManagerConnection.getDefaultAvdManagerConnection().checkAcceleration();
-    if (error != AccelerationErrorCode.ALREADY_INSTALLED) {
-      refreshUI = true;
-      myNotificationPanel.add(new AccelerationErrorNotificationPanel(error, myProject, new Runnable() {
-        @Override
-        public void run() {
-          refreshErrorCheck();
+    ListenableFuture<AccelerationErrorCode> error = AvdManagerConnection.getDefaultAvdManagerConnection().checkAccelerationAsync();
+    Futures.addCallback(error, new FutureCallback<AccelerationErrorCode>() {
+      @Override
+      public void onSuccess(AccelerationErrorCode result) {
+        if (result != AccelerationErrorCode.ALREADY_INSTALLED) {
+          refreshUI.set(true);
+          myNotificationPanel.add(new AccelerationErrorNotificationPanel(result, myProject, () -> refreshErrorCheck()));
         }
-      }));
-    }
-    if (refreshUI) {
-      myNotificationPanel.revalidate();
-      myNotificationPanel.repaint();
-    }
+        if (refreshUI.get()) {
+          myNotificationPanel.revalidate();
+          myNotificationPanel.repaint();
+        }
+      }
+
+      @Override
+      public void onFailure(Throwable t) {
+        myLogger.warn("Check for emulation acceleration failed", t);
+      }
+    }, EdtExecutorService.getInstance());
   }
 
   /**
@@ -755,47 +780,6 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
 
     public boolean cycleFocus(AvdInfo info, boolean backward) {
       return getComponent(info).cycleFocus(backward);
-    }
-  }
-
-  private class AvdSizeColumnInfo extends AvdColumnInfo {
-
-    public AvdSizeColumnInfo(@NotNull String name) {
-      super(name);
-    }
-
-    @NotNull
-    private Storage getSize(AvdInfo avdInfo) {
-      long sizeInBytes = 0;
-      if (avdInfo != null) {
-        File avdDir = new File(avdInfo.getDataFolderPath());
-        try {
-          sizeInBytes = FileUtilKt.recursiveSize(avdDir.toPath());
-        } catch (IOException ee) {
-          // Just leave the size as zero
-        }
-      }
-      return new Storage(sizeInBytes);
-    }
-
-    @Nullable
-    @Override
-    public String valueOf(AvdInfo avdInfo) {
-      Storage size = getSize(avdInfo);
-      return storageSizeDisplayString(size);
-    }
-
-    @Nullable
-    @Override
-    public Comparator<AvdInfo> getComparator() {
-      return new Comparator<AvdInfo>() {
-        @Override
-        public int compare(AvdInfo o1, AvdInfo o2) {
-          Storage s1 = getSize(o1);
-          Storage s2 = getSize(o2);
-          return Comparing.compare(s1.getSize(), s2.getSize());
-        }
-      };
     }
   }
 

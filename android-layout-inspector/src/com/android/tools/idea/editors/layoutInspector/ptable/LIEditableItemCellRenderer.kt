@@ -27,6 +27,7 @@ import java.awt.Color
 import java.awt.Component
 import javax.swing.JPanel
 import javax.swing.JTable
+import javax.swing.UIManager
 import javax.swing.table.TableCellRenderer
 
 /**
@@ -51,7 +52,7 @@ class LIEditableItemCellRenderer : TableCellRenderer {
     val fg: Color
     val bg: Color
     if (isSelected) {
-      fg = UIUtil.getTableSelectionForeground()
+      fg = UIManager.getColor("Table.selectionForeground")
       bg = UIUtil.getTableSelectionBackground(true)
     } else {
       fg = UIUtil.getTableForeground()

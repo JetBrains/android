@@ -17,9 +17,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidProjectStructureDetector extends ProjectStructureDetector {
   @NotNull
   @Override

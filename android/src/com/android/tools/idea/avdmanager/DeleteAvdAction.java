@@ -38,17 +38,17 @@ public class DeleteAvdAction extends AvdUiAction {
     }
     if (connection.isAvdRunning(info)) {
       Messages.showErrorDialog(
-        myAvdInfoProvider.getComponent(),
+        myAvdInfoProvider.getAvdProviderComponent(),
         "The selected AVD is currently running in the Emulator. Please exit the emulator instance and try deleting again.",
         "Cannot Delete A Running AVD");
       return;
     }
-    int result = Messages.showYesNoDialog(myAvdInfoProvider.getComponent(),
+    int result = Messages.showYesNoDialog(myAvdInfoProvider.getAvdProviderComponent(),
                                           "Do you really want to delete AVD " + info.getName() + "?", "Confirm Deletion",
                                           AllIcons.General.QuestionDialog);
     if (result == Messages.YES) {
       if (!connection.deleteAvd(info)) {
-        Messages.showErrorDialog(myAvdInfoProvider.getComponent(),
+        Messages.showErrorDialog(myAvdInfoProvider.getAvdProviderComponent(),
                                  "An error occurred while deleting the AVD. See idea.log for details.", "Error Deleting AVD");
       }
       refreshAvds();

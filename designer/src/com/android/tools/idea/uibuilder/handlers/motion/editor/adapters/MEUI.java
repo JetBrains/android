@@ -26,8 +26,8 @@ import com.intellij.openapi.util.registry.Registry;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.IconUtil;
+import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -43,6 +43,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
+import javax.swing.border.Border;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -83,6 +84,10 @@ public class MEUI {
     return JBColor.border();
   }
 
+  public static final Border getPanelBottomBorder() {
+    return JBUI.Borders.customLine(MEUI.getBorderColor(), 0, 0,1,0);
+  }
+
   private static Color makeColor(String name, int rgb, int darkRGB) {
     return JBColor.namedColor(name, new JBColor(rgb, darkRGB));
   }
@@ -117,7 +122,7 @@ public class MEUI {
   public static final Color ourAddConstraintPlus = makeColor("UIDesigner.motion.AddConstraintPlus", 0xffc9c9c9, 0xff333333);
 
   public static BufferedImage createImage(int w, int h, int type) {
-    return UIUtil.createImage(w, h, type);
+    return ImageUtil.createImage(w, h, type);
   }
 
   /**
@@ -258,6 +263,7 @@ public class MEUI {
           public void onClosed(@NotNull LightweightWindowEvent event) {
             MEActionButton button = (myLocal instanceof MEActionButton ? (MEActionButton)myLocal : null);
             if (button != null) {
+              button.getRootPane().requestFocusInWindow();
               button.setPopupIsShowing(false);
             }
           }

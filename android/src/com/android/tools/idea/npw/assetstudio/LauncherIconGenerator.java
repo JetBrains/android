@@ -27,6 +27,7 @@ import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObjectValueProperty;
+import com.android.tools.idea.rendering.DrawableRenderer;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.awt.Color;
@@ -137,14 +138,16 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
         scaleFactor *= IMAGE_SIZE_SAFE_ZONE_DP.getWidth() / SIZE_FULL_BLEED_DP.getWidth();
       }
       options.foregroundImage =
-          new TransformedImageAsset(foregroundAsset, SIZE_FULL_BLEED_DP, scaleFactor, color, getGraphicGeneratorContext());
+        new TransformedImageAsset(foregroundAsset, SIZE_FULL_BLEED_DP, scaleFactor,
+                                  color, getGraphicGeneratorContext(), myLineSeparator);
     }
     // Set background image.
     ImageAsset backgroundAsset = backgroundImageAsset().getValueOrNull();
     if (backgroundAsset != null) {
       double scaleFactor = backgroundAsset.scalingPercent().get() / 100.;
       options.backgroundImage =
-          new TransformedImageAsset(backgroundAsset, SIZE_FULL_BLEED_DP, scaleFactor, null, getGraphicGeneratorContext());
+        new TransformedImageAsset(backgroundAsset, SIZE_FULL_BLEED_DP, scaleFactor,
+                                  null, getGraphicGeneratorContext(), myLineSeparator);
     }
 
     options.backgroundColor = backgroundColor().get().getRGB();

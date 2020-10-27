@@ -9,9 +9,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.inspections.AndroidNonConstantResIdsInSwitchInspection;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidIntentionsTest extends AndroidTestCase {
   private static final String BASE_PATH = "intentions/";
 

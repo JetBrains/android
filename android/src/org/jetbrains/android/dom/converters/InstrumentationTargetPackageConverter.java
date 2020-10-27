@@ -23,9 +23,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class InstrumentationTargetPackageConverter extends Converter<String> implements CustomReferenceConverter<String> {
   @Nullable
   @Override

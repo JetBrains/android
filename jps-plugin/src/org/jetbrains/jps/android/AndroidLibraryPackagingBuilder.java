@@ -24,9 +24,6 @@ import org.jetbrains.jps.incremental.StopBuildException;
 import org.jetbrains.jps.incremental.messages.ProgressMessage;
 import org.jetbrains.jps.model.module.JpsModule;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidLibraryPackagingBuilder extends AndroidTargetBuilder<BuildRootDescriptor, AndroidLibraryPackagingTarget> {
   @NonNls private static final String BUILDER_NAME = "Android Library Packaging";
 

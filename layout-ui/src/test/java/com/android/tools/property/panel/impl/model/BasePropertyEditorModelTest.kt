@@ -54,7 +54,7 @@ class BasePropertyEditorModelTest {
   fun testSetValueIsPropagatedToPropertyAndValueListener() {
     val (model, listener) = createModelWithListener()
     model.value = "#FFFF00"
-    verify(listener).valueChanged()
+    verify(listener, never()).valueChanged()
     assertThat(model.property.value).isEqualTo("#FFFF00")
   }
 

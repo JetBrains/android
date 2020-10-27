@@ -44,7 +44,7 @@ class GcStatsDataSeriesTest {
   fun setup() {
     val ideServices = FakeIdeProfilerServices()
     ideServices.enableEventsPipeline(true)
-    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), ideServices, myTimer)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideServices, myTimer)
     myStage = MemoryProfilerStage(profilers)
 
     // insert gc data for new pipeline.

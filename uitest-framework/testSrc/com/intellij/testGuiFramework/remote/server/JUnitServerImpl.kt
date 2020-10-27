@@ -43,9 +43,6 @@ import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
-/**
- * @author Sergey Karashevich
- */
 
 class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
 
@@ -90,6 +87,8 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
           RestartPolicy.EACH_TEST -> true
           RestartPolicy.TEST_FAILURE -> failure != null || ideError
           RestartPolicy.IDE_ERROR_OR_JUNIT_TIMEOUT -> failure?.exception is TestTimedOutException || ideError
+          RestartPolicy.JUNIT_TIMEOUT -> failure?.exception is TestTimedOutException
+          RestartPolicy.NEVER -> false
         }
         if (shouldRestart) {
           closeIdeAndStop()

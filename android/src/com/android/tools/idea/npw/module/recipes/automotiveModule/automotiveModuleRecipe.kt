@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.module.recipes.automotiveModule
 
+import com.android.tools.idea.npw.module.recipes.basicThemesXml
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.npw.module.recipes.generateCommonModule
@@ -22,7 +23,8 @@ import com.android.tools.idea.npw.module.recipes.generateManifest
 
 fun RecipeExecutor.generateAutomotiveModule(
   data: ModuleTemplateData,
-  appTitle: String
+  appTitle: String,
+  useKts: Boolean
 ) {
   val usesFeatureBlock = """
 <uses-feature
@@ -30,9 +32,16 @@ fun RecipeExecutor.generateAutomotiveModule(
     android:required="true"/>
 """
   generateCommonModule(
-    data, appTitle,
-    generateManifest(data.packageName, !data.isLibrary, usesFeatureBlock = usesFeatureBlock),
-    true
+    data = data, appTitle = appTitle, useKts = useKts,
+    manifestXml = generateManifest(
+      packageName = data.packageName,
+      hasApplicationBlock = !data.isLibrary,
+      theme = "@style/${data.themesData.main.name}",
+      usesFeatureBlock = usesFeatureBlock
+    ),
+    generateTests = true,
+    themesXml = basicThemesXml("android:Theme.Material.Light.DarkActionBar", data.themesData.main.name),
+    colorsXml = null
   )
-  addDependency("com.android.support:appcompat-v7:${data.apis.buildApi}.+")
+  addDependency("com.android.support:appcompat-v7:${data.apis.appCompatVersion}.+")
 }

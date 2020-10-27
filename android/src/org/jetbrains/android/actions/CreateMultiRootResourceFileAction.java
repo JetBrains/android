@@ -38,8 +38,6 @@ import java.awt.*;
 import java.util.List;
 
 /**
- * @author Eugene.Kudelevsky
- *
  * Like CreateTypedResourceFileAction but prompts for a root tag
  */
 public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAction {

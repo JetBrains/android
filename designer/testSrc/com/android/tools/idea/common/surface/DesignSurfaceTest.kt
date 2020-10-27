@@ -25,12 +25,16 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
+import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.google.common.collect.ImmutableList
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
+import java.awt.Container
 import java.awt.Dimension
-import java.awt.Rectangle
+import java.awt.datatransfer.DataFlavor
 import java.awt.event.ComponentEvent
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
@@ -45,10 +49,10 @@ class DesignSurfaceTest : LayoutTestCase() {
 
     assertEquals(0, surface.models.size)
 
-    surface.addModel(model1)
+    surface.addModelWithoutRender(model1)
     assertEquals(1, surface.models.size)
 
-    surface.addModel(model2)
+    surface.addModelWithoutRender(model2)
     assertEquals(2, surface.models.size)
 
     surface.removeModel(model2)
@@ -66,10 +70,10 @@ class DesignSurfaceTest : LayoutTestCase() {
 
     assertEquals(0, surface.models.size)
 
-    surface.addModel(model)
+    surface.addModelWithoutRender(model)
     assertEquals(1, surface.models.size)
 
-    surface.addModel(model)
+    surface.addModelWithoutRender(model)
     // should not add model again and the callback should not be triggered.
     assertEquals(1, surface.models.size)
   }
@@ -86,7 +90,7 @@ class DesignSurfaceTest : LayoutTestCase() {
     // do nothing and the callback should not be triggered.
     assertEquals(0, surface.models.size)
 
-    surface.addModel(model1)
+    surface.addModelWithoutRender(model1)
     assertEquals(1, surface.models.size)
 
     surface.removeModel(model2)
@@ -116,8 +120,8 @@ class DesignSurfaceTest : LayoutTestCase() {
     val model2 = builder.build()
 
     val surface = TestDesignSurface(project, testRootDisposable)
-    surface.addModel(model1)
-    surface.addModel(model2)
+    surface.addModelWithoutRender(model1)
+    surface.addModelWithoutRender(model2)
 
     val scene1 = surface.getSceneManager(model1)!!.scene
     val scene2 = surface.getSceneManager(model2)!!.scene
@@ -129,6 +133,31 @@ class DesignSurfaceTest : LayoutTestCase() {
     assert(scene1.displayListVersion > oldVersion1)
     assert(scene2.displayListVersion > oldVersion2)
   }
+
+  fun testDesignSurfaceModelOrdering() {
+    val builder = model("relative.xml",
+                        component(RELATIVE_LAYOUT)
+                          .withBounds(0, 0, 1000, 1000)
+                          .matchParentWidth()
+                          .matchParentHeight())
+    val model1 = builder.build()
+    val model2 = builder.build()
+    val model3 = builder.build()
+
+
+    val surface = TestDesignSurface(project, testRootDisposable)
+    surface.addModelWithoutRender(model1)
+    surface.addModelWithoutRender(model2)
+    surface.addModelWithoutRender(model3)
+
+    assertThat(surface.models).containsExactly(model1, model2, model3).inOrder()
+    surface.addModelWithoutRender(model3)
+    assertThat(surface.models).containsExactly(model1, model2, model3).inOrder()
+    surface.addModelWithoutRender(model1)
+    assertThat(surface.models).containsExactly(model2, model3, model1).inOrder()
+    surface.addModelWithoutRender(model3)
+    assertThat(surface.models).containsExactly(model2, model1, model3).inOrder()
+  }
 }
 
 class TestActionManager(surface: DesignSurface) : ActionManager<DesignSurface>(surface) {
@@ -136,7 +165,7 @@ class TestActionManager(surface: DesignSurface) : ActionManager<DesignSurface>(s
 
   override fun getPopupMenuActions(leafComponent: NlComponent?) = DefaultActionGroup()
 
-  override fun getToolbarActions(component: NlComponent?, newSelection: MutableList<NlComponent>) = DefaultActionGroup()
+  override fun getToolbarActions(selection: MutableList<NlComponent>) = DefaultActionGroup()
 }
 
 class TestInteractionHandler(surface: DesignSurface) : InteractionHandlerBase(surface) {
@@ -145,38 +174,44 @@ class TestInteractionHandler(surface: DesignSurface) : InteractionHandlerBase(su
   override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? = null
 }
 
+class TestLayoutManager(private val surface: DesignSurface) : PositionableContentLayoutManager() {
+  override fun layoutContent(content: Collection<PositionableContent>) {
+  }
+
+  override fun preferredLayoutSize(parent: Container?): Dimension = surface.sceneViews.map { it.contentSize }.firstOrNull() ?: Dimension(0,
+                                                                                                                                         0)
+
+}
+
+class TestActionHandler(surface: DesignSurface) : DesignSurfaceActionHandler(surface) {
+  override fun getPasteTarget(): NlComponent? = null
+  override fun canHandleChildren(component: NlComponent, pasted: MutableList<NlComponent>): Boolean = false
+  override fun getFlavor(): DataFlavor = ItemTransferable.DESIGNER_FLAVOR
+  override fun canDeleteElement(dataContext: DataContext): Boolean = false
+  override fun isPasteEnabled(dataContext: DataContext): Boolean = false
+  override fun isCopyEnabled(dataContext: DataContext): Boolean = false
+  override fun isCopyVisible(dataContext: DataContext): Boolean = false
+  override fun isCutVisible(dataContext: DataContext): Boolean = false
+  override fun isPastePossible(dataContext: DataContext): Boolean = false
+}
+
 private class TestDesignSurface(project: Project, disposible: Disposable)
   : DesignSurface(project,
                   disposible,
                   java.util.function.Function { TestActionManager(it) },
                   java.util.function.Function { TestInteractionHandler(it) },
-                  State.FULL,
-                  true) {
+                  true,
+                  java.util.function.Function { TestLayoutManager(it) },
+                  java.util.function.Function { TestActionHandler(it) }) {
   override fun getSelectionAsTransferable(): ItemTransferable {
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
   }
 
-  private var factor: Float = 1f
-
   override fun getComponentRegistrar() = Consumer<NlComponent> {}
-
-  override fun createActionHandler(): DesignSurfaceActionHandler {
-    throw UnsupportedOperationException("Action handler not implemented for TestDesignSurface")
-  }
 
   override fun createSceneManager(model: NlModel) = SyncLayoutlibSceneManager(model as SyncNlModel)
 
-  override fun getRenderableBoundsForInvisibleComponents(sceneView: SceneView, rectangle: Rectangle?): Rectangle {
-    val rect = rectangle ?: Rectangle()
-    rect.bounds = myScrollPane.viewport.viewRect
-    return rect
-  }
-
-  override fun layoutContent() = Unit
-
   override fun scrollToCenter(list: MutableList<NlComponent>) {}
-
-  override fun getScrolledAreaSize(): Dimension? = null
 
   override fun getDefaultOffset() = Dimension()
 

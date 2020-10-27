@@ -20,9 +20,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class LayoutUsageData {
   private final Project myProject;
   private final XmlTag myIncludeTag;

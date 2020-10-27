@@ -15,18 +15,24 @@
  */
 package com.android.tools.adtui.trackgroup
 
-import com.android.tools.adtui.model.MultiSelectionModel
+import com.android.tools.adtui.BoxSelectionComponent
+import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.model.Range
+import com.android.tools.adtui.model.RangeSelectionModel
 import com.android.tools.adtui.model.trackgroup.StringSelectable
 import com.android.tools.adtui.model.trackgroup.TestTrackRendererType
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.laf.HeadlessListUI
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
+import java.awt.Component
 
 @RunsInEdt
 class TrackGroupTest {
@@ -36,6 +42,12 @@ class TrackGroupTest {
 
   @get:Rule
   val edtRule = EdtRule()
+
+  /**
+   * For initializing [com.intellij.ide.HelpTooltip].
+   */
+  @get:Rule
+  val appRule = ApplicationRule()
 
   @Test
   fun createTrackGroup() {
@@ -57,6 +69,8 @@ class TrackGroupTest {
     val trackGroup = TrackGroup(trackGroupModel, TRACK_RENDERER_FACTORY)
 
     assertThat(trackGroup.trackList.isVisible).isFalse()
+    assertThat(trackGroup.overlay.isVisible).isFalse()
+    assertThat(trackGroup.trackTitleOverlay.isVisible).isFalse()
     assertThat(trackGroup.actionsDropdown.isVisible).isFalse()
     assertThat(trackGroup.actionsDropdown.toolTipText).isEqualTo("More actions")
     assertThat(trackGroup.separator.isVisible).isFalse()
@@ -64,12 +78,16 @@ class TrackGroupTest {
 
     trackGroup.setCollapsed(false)
     assertThat(trackGroup.trackList.isVisible).isTrue()
+    assertThat(trackGroup.overlay.isVisible).isTrue()
+    assertThat(trackGroup.trackTitleOverlay.isVisible).isTrue()
     assertThat(trackGroup.actionsDropdown.isVisible).isTrue()
-    assertThat(trackGroup.separator.isVisible).isFalse()
+    assertThat(trackGroup.separator.isVisible).isTrue()
     assertThat(trackGroup.collapseButton.text).isNull()
 
     trackGroup.setCollapsed(true)
     assertThat(trackGroup.trackList.isVisible).isFalse()
+    assertThat(trackGroup.overlay.isVisible).isFalse()
+    assertThat(trackGroup.trackTitleOverlay.isVisible).isFalse()
     assertThat(trackGroup.actionsDropdown.isVisible).isFalse()
     assertThat(trackGroup.separator.isVisible).isFalse()
     assertThat(trackGroup.collapseButton.text).isEqualTo("Expand Section")
@@ -91,14 +109,35 @@ class TrackGroupTest {
     assertThat(noInfoTrackGroup.titleInfoIcon.isVisible).isFalse()
     assertThat(noInfoTrackGroup.titleInfoIcon.toolTipText).isNull()
 
-    val infoTrackGroupModel = TrackGroupModel.newBuilder().setTitle("Bar").setTitleInfo("Information").build();
+    val infoTrackGroupModel = TrackGroupModel.newBuilder().setTitle("Bar").setTitleHelpText("Information").build()
     val infoTrackGroup = TrackGroup(infoTrackGroupModel, TestTrackRendererFactory())
     assertThat(infoTrackGroup.titleInfoIcon.isVisible).isTrue()
-    assertThat(infoTrackGroup.titleInfoIcon.toolTipText).isEqualTo("Information")
   }
 
   @Test
-  fun keyboardExpandCollapseTrackListItemTest() {
+  fun mouseClickExpandsCollapsesTrack() {
+    val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group1").setTrackSelectable(true).build()
+    val trackModel = TrackModel.newBuilder(StringSelectable("Bar1"), TestTrackRendererType.STRING_SELECTABLE, "Group1 - Bar1")
+      .setCollapsible(true)
+    trackGroupModel.addTrackModel(trackModel)
+    val trackGroup = TrackGroup(trackGroupModel, TRACK_RENDERER_FACTORY)
+    trackGroup.trackList.setBounds(0, 0, 500, 100)
+    trackGroup.trackTitleOverlay.setBounds(16, 0, 100, 100)
+
+    val ui = FakeUi(trackGroup.trackTitleOverlay)
+    // Make sure test doesn't trip in a headless environment.
+    trackGroup.trackList.ui = HeadlessListUI()
+    // Single-click caret icon.
+    ui.mouse.press(2, 4)
+    assertThat(trackGroupModel[0].isCollapsed).isTrue()
+    ui.mouse.release()
+    // Double-click label.
+    ui.mouse.doubleClick(50, 10)
+    assertThat(trackGroupModel[0].isCollapsed).isFalse()
+  }
+
+  @Test
+  fun keyboardExpandsCollapsesTrack() {
     val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group1").setTrackSelectable(true).build()
 
     // build two track models both of which are collapsible and initially in a collapsed state
@@ -147,5 +186,40 @@ class TrackGroupTest {
 
     assertThat(trackGroupModel[0].isCollapsed).isTrue()
     assertThat(trackGroupModel[1].isCollapsed).isTrue()
+  }
+
+  @Test
+  fun supportsBoxSelection() {
+    val rangeSelectionModel = RangeSelectionModel(Range(), Range(0.0, 10.0))
+    val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group").setRangeSelectionModel(rangeSelectionModel).build()
+    trackGroupModel.addTrackModel(TrackModel.newBuilder("text", TestTrackRendererType.STRING, "Bar"))
+    val trackGroup = TrackGroup(trackGroupModel, TRACK_RENDERER_FACTORY)
+    trackGroup.component.setBounds(0, 0, 500, 100)
+    // Make sure test doesn't trip in a headless environment.
+    trackGroup.trackList.ui = HeadlessListUI()
+    val treeWalker = TreeWalker(trackGroup.component)
+    treeWalker.descendantStream().forEach(Component::doLayout)
+    val boxComponent = treeWalker.descendants().filterIsInstance(BoxSelectionComponent::class.java).first()
+    val boxUi = FakeUi(boxComponent)
+
+    assertThat(rangeSelectionModel.selectionRange.isEmpty).isTrue()
+    boxUi.mouse.drag(0, 0, 100, 10)
+    assertThat(rangeSelectionModel.selectionRange.isEmpty).isFalse()
+    assertThat(trackGroup.trackList.selectedIndices.asList()).containsExactly(0)
+
+    // Box selection is cleared when manually selecting a track.
+    val trackTitleUi = FakeUi(trackGroup.trackTitleOverlay)
+    trackTitleUi.mouse.click(0, 0)
+    assertThat(rangeSelectionModel.selectionRange.isEmpty).isTrue()
+    assertThat(trackGroup.trackList.selectedIndices.asList()).containsExactly(0)
+
+    // Verify box selection can be disabled.
+    boxUi.mouse.click(0, 0) // Clear selection
+    assertThat(rangeSelectionModel.selectionRange.isEmpty).isTrue()
+    assertThat(trackGroup.trackList.selectedIndices.asList()).isEmpty()
+    trackGroup.setEventHandlersEnabled(false)
+    boxUi.mouse.drag(0, 0, 100, 10)
+    assertThat(rangeSelectionModel.selectionRange.isEmpty).isTrue()
+    assertThat(trackGroup.trackList.selectedIndices.asList()).isEmpty()
   }
 }

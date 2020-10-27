@@ -28,6 +28,7 @@ import com.android.tools.idea.transport.faketransport.commands.EndSession;
 import com.android.tools.idea.transport.faketransport.commands.HeapDump;
 import com.android.tools.idea.transport.faketransport.commands.MemoryAllocSampling;
 import com.android.tools.idea.transport.faketransport.commands.MemoryAllocTracking;
+import com.android.tools.idea.transport.faketransport.commands.MemoryNativeSampling;
 import com.android.tools.idea.transport.faketransport.commands.StartCpuTrace;
 import com.android.tools.idea.transport.faketransport.commands.StopCpuTrace;
 import com.android.tools.profiler.proto.Commands.Command;
@@ -74,6 +75,8 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     .setState(Common.Process.State.ALIVE)
     .setName(FAKE_PROCESS_NAME)
     .build();
+  public static final Common.Device FAKE_OFFLINE_DEVICE = FAKE_DEVICE.toBuilder().setState(Common.Device.State.OFFLINE).build();
+  public static final Common.Process FAKE_OFFLINE_PROCESS = FAKE_PROCESS.toBuilder().setState(Common.Process.State.DEAD).build();
 
   private final Map<Long, Common.Device> myDevices;
   private final MultiMap<Common.Device, Common.Process> myProcesses;
@@ -81,6 +84,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
   @GuardedBy("myStreamEvents")
   private final Map<Long, List<Common.Event>> myStreamEvents;
   private final Map<Command.CommandType, CommandHandler> myCommandHandlers;
+  private final Map<Long, Integer> myEventPositionMarkMap;
   private final FakeTimer myTimer;
   private boolean myThrowErrorOnGetDevices;
   private Common.AgentData myAgentStatus;
@@ -99,6 +103,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     myCache = new HashMap<>();
     myStreamEvents = new HashMap<>();
     myCommandHandlers = new HashMap<>();
+    myEventPositionMarkMap = new HashMap<>();
     myTimer = timer;
     if (connected) {
       addDevice(FAKE_DEVICE);
@@ -118,6 +123,9 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     MemoryAllocTracking allocTrackingHandler = new MemoryAllocTracking(myTimer);
     setCommandHandler(Command.CommandType.START_ALLOC_TRACKING, allocTrackingHandler);
     setCommandHandler(Command.CommandType.STOP_ALLOC_TRACKING, allocTrackingHandler);
+    MemoryNativeSampling nativeSampling = new MemoryNativeSampling(myTimer);
+    setCommandHandler(Command.CommandType.START_NATIVE_HEAP_SAMPLE, nativeSampling);
+    setCommandHandler(Command.CommandType.STOP_NATIVE_HEAP_SAMPLE, nativeSampling);
     setCommandHandler(Command.CommandType.MEMORY_ALLOC_SAMPLING, new MemoryAllocSampling(myTimer));
     setCommandHandler(Command.CommandType.HEAP_DUMP, new HeapDump(myTimer));
   }
@@ -329,6 +337,26 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     // getListForStream - is guarded by lock, but we add to resulting array  => should be behind lock too
     synchronized (myStreamEvents) {
       getListForStream(streamId).add(event);
+    }
+  }
+
+  /**
+   * Remember a position in the event list for the specified stream.
+   */
+  public void saveEventPositionMark(long streamId) {
+    synchronized (myStreamEvents) {
+      myEventPositionMarkMap.put(streamId, getListForStream(streamId).size());
+    }
+  }
+
+  /**
+   * Remove all events added added after the previously saved mark in the events for the specified stream.
+   */
+  public void revertToEventPositionMark(long streamId) {
+    synchronized (myStreamEvents) {
+      int mark = myEventPositionMarkMap.getOrDefault(streamId, 0);
+      List<Common.Event> events = getListForStream(streamId);
+      events.subList(mark, events.size()).clear();
     }
   }
 

@@ -4,13 +4,13 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.undo.UndoUtil;
-import com.intellij.openapi.fileTypes.FileTypeRegistry;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -55,13 +55,9 @@ import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProcessor {
   private final Module myModule;
   private final Map<AndroidAttributeInfo, String> myAttrMap;
@@ -207,14 +203,14 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
         collectResDir(m, myStyleName, resDirs);
       }
     }
-    final List<VirtualFile> subdirs = AndroidResourceUtil.getResourceSubdirs(
+    final List<VirtualFile> subdirs = IdeResourcesUtil.getResourceSubdirs(
       ResourceFolderType.LAYOUT, resDirs);
 
     List<VirtualFile> filesToProcess = new ArrayList<VirtualFile>();
 
     for (VirtualFile subdir : subdirs) {
       for (VirtualFile child : subdir.getChildren()) {
-        if (FileTypeRegistry.getInstance().isFileOfType(child, XmlFileType.INSTANCE) &&
+        if (child.getFileType() == StdFileTypes.XML &&
             (myFileToScan == null || myFileToScan.equals(child))) {
           filesToProcess.add(child);
         }

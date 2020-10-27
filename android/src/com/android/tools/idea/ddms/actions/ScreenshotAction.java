@@ -28,7 +28,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,7 +41,7 @@ public class ScreenshotAction extends AbstractDeviceAction {
   public ScreenshotAction(@NotNull Project p, @NotNull DeviceContext context) {
     super(context, AndroidBundle.message("android.ddms.actions.screenshot"),
           AndroidBundle.message("android.ddms.actions.screenshot.description"),
-          AndroidIcons.Ddms.ScreenCapture); // Alternate: AllIcons.Actions.Dump looks like a camera
+          StudioIcons.Logcat.SNAPSHOT);
     myProject = p;
   }
 

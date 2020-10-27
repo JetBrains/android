@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.refactoring.modularize;
 
+import static com.android.tools.idea.projectsystem.SourceProvidersKt.containsFile;
+import static com.android.tools.idea.projectsystem.SourceProvidersKt.getManifestFiles;
 import static com.intellij.openapi.actionSystem.LangDataKeys.TARGET_MODULE;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -25,7 +27,7 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -68,10 +70,8 @@ import java.util.Locale;
 import java.util.Queue;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.facet.SourceProviderManager;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -188,7 +188,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
           element.accept(new JavaReferenceVisitor(facet, element));
 
           // Check for manifest entries referencing this class (this applies to activities, content providers, etc).
-          GlobalSearchScope manifestScope = GlobalSearchScope.filesScope(myProject, IdeaSourceProviderUtil.getManifestFiles(facet));
+          GlobalSearchScope manifestScope = GlobalSearchScope.filesScope(myProject, getManifestFiles(facet));
 
           ReferencesSearch.search(element, manifestScope).forEach(reference -> {
             PsiElement tag = reference.getElement();
@@ -247,10 +247,10 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
           PsiField[] fields;
           PsiElement elm = getResourceDefinition(item);
           if (elm instanceof PsiFile) {
-            fields = AndroidResourceUtil.findResourceFieldsForFileResource((PsiFile)elm, true);
+            fields = IdeResourcesUtil.findResourceFieldsForFileResource((PsiFile)elm, true);
           }
           else if (elm instanceof XmlTag) {
-            fields = AndroidResourceUtil.findResourceFieldsForValueResource((XmlTag)elm, true);
+            fields = IdeResourcesUtil.findResourceFieldsForValueResource((XmlTag)elm, true);
           }
           else {
             continue;
@@ -288,14 +288,14 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
 
     @Nullable
     private PsiElement getResourceDefinition(ResourceItem resource) {
-      PsiFile psiFile = AndroidResourceUtil.getItemPsiFile(myProject, resource);
+      PsiFile psiFile = IdeResourcesUtil.getItemPsiFile(myProject, resource);
       if (psiFile == null) { // psiFile could be null if this is dynamically defined, so nothing to visit...
         return null;
       }
 
-      if (ResourceHelper.getFolderType(psiFile) == ResourceFolderType.VALUES) {
+      if (IdeResourcesUtil.getFolderType(psiFile) == ResourceFolderType.VALUES) {
         // This is just a value, so we'll just scan its corresponding XmlTag
-        return AndroidResourceUtil.getItemTag(myProject, resource);
+        return IdeResourcesUtil.getItemTag(myProject, resource);
       }
       return psiFile;
     }
@@ -396,7 +396,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
         if (target instanceof PsiClass) {
           if (!(target instanceof PsiTypeParameter) && !(target instanceof SyntheticElement)) {
             VirtualFile source = target.getContainingFile().getVirtualFile();
-            if (IdeaSourceProviderUtil.containsFile(SourceProviderManager.getInstance(myFacet).getSources(), source)) {
+            if (containsFile(SourceProviderManager.getInstance(myFacet).getSources(), source)) {
               // This is a local source file, therefore a candidate to be moved
               if (myClassRefSet.add((PsiClass)target)) {
                 myVisitQueue.add(target);

@@ -16,10 +16,15 @@
 package com.android.tools.adtui.instructions;
 
 import com.intellij.ui.HyperlinkLabel;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An instruction for rendering an URL. It wraps a {@link HyperlinkLabel} which supports all the proper formatting and interactions users
@@ -33,7 +38,7 @@ public final class UrlInstruction extends RenderInstruction {
     myHyperlinkLabel = new HyperlinkLabel(text);
     myHyperlinkLabel.setHyperlinkTarget(url);
     myHyperlinkLabel.setFont(font);
-    mySize = myHyperlinkLabel.getMinimumSize();
+    mySize = myHyperlinkLabel.getPreferredSize();
 
     setMouseHandler(evt -> myHyperlinkLabel.dispatchEvent(evt));
   }
@@ -42,6 +47,12 @@ public final class UrlInstruction extends RenderInstruction {
   @Override
   public Dimension getSize() {
     return mySize;
+  }
+
+  @Override
+  @Nullable
+  public Cursor getCursorIcon() {
+    return (myHyperlinkLabel.isCursorSet()) ? myHyperlinkLabel.getCursor() : null;
   }
 
   @Override

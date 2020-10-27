@@ -23,6 +23,7 @@ import com.android.tools.lint.detector.api.TextFormat
 import com.android.utils.HtmlBuilder
 import com.google.common.collect.ImmutableCollection
 import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.psi.util.PsiEditorUtil
 import java.util.*
@@ -127,7 +128,11 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
           val project = model.project
           CommandProcessor.getInstance().executeCommand(
             project,
-            { fix.apply(myIssue.startElement, myIssue.endElement, AndroidQuickfixContexts.BatchContext.getInstance()) },
+            {
+              WriteAction.run<Throwable> {
+                fix.apply(myIssue.startElement, myIssue.endElement, AndroidQuickfixContexts.BatchContext.getInstance())
+              }
+            },
               EXECUTE_FIX + fix.name, null
           )
         }

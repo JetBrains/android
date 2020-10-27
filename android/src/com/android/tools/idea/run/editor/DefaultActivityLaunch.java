@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.AndroidRunConfiguration;
+import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.activity.*;
 import com.android.tools.idea.run.tasks.DefaultActivityLaunchTask;
@@ -38,34 +40,31 @@ public class DefaultActivityLaunch extends LaunchOption<DefaultActivityLaunch.St
     public LaunchTask getLaunchTask(@NotNull String applicationId,
                                     @NotNull AndroidFacet facet,
                                     @NotNull StartActivityFlagsProvider startActivityFlagsProvider,
-                                    @NotNull ProfilerState profilerState) {
-      return new DefaultActivityLaunchTask(applicationId, getActivityLocatorForLaunch(profilerState, facet), startActivityFlagsProvider);
+                                    @NotNull ProfilerState profilerState,
+                                    @NotNull ApkProvider apkProvider) {
+      return new DefaultActivityLaunchTask(applicationId, getActivityLocatorForLaunch(facet, apkProvider), startActivityFlagsProvider);
     }
 
     @NotNull
     @Override
     public List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {
-      try {
-        getActivityLocator(facet).validate();
-        return ImmutableList.of();
-      }
-      catch (ActivityLocator.ActivityLocatorException e) {
-        // The launch will probably fail, but we allow the user to continue in case we are looking at stale data.
-        return ImmutableList.of(ValidationError.warning(e.getMessage()));
-      }
+      // Neither MavenDefaultActivityLocator nor DefaultApkActivityLocator can validate
+      // based on Facets. There is no point calling validate().
+      return ImmutableList.of();
     }
 
     @NotNull
-    private static ActivityLocator getActivityLocatorForLaunch(@NotNull ProfilerState profilerState,
-                                                               @NotNull AndroidFacet facet) {
-      return getActivityLocator(facet);
-    }
+    private static ActivityLocator getActivityLocatorForLaunch(@NotNull AndroidFacet facet,
+                                                               @NotNull ApkProvider apkProvider) {
+      if (facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST) {
+        return new MavenDefaultActivityLocator(facet);
+      }
 
-    @NotNull
-    private static ActivityLocator getActivityLocator(@NotNull AndroidFacet facet) {
-      return facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST
-             ? new MavenDefaultActivityLocator(facet)
-             : new DefaultActivityLocator(facet);
+      if (StudioFlags.DEFAULT_ACTIVITY_LOCATOR_FROM_APKS.get()) {
+         return new DefaultApkActivityLocator(apkProvider);
+      } else {
+        return new DefaultActivityLocator(facet);
+      }
     }
   }
 

@@ -200,7 +200,9 @@ class InputParsersTest {
     assertEquals("26".asParsed().annotated(), parseHashString("26"))
     assertEquals("android-26".asParsed().annotated(), parseHashString("android-26"))
     assertEquals("android-P".asParsed().annotated(), parseHashString("android-P"))
-    assertEquals("P".asParsed().annotateWithError("Invalid hash string"), parseHashString("P"))
+    assertEquals("P".asParsed().annotated(), parseHashString("P"))
+    assertEquals("Superlogic:Superlogic SDK v7.34".asParsed().annotated(),
+                 parseHashString("Superlogic:Superlogic SDK v7.34"))
   }
 
   @Test

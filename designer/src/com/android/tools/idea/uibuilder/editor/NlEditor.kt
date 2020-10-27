@@ -26,7 +26,6 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.mockup.editor.MockupToolDefinition
 import com.android.tools.idea.uibuilder.palette.PaletteDefinition
-import com.android.tools.idea.uibuilder.property.NlPropertyPanelDefinition
 import com.android.tools.idea.uibuilder.property2.NelePropertiesPanelDefinition
 import com.android.tools.idea.uibuilder.structure.NlComponentTreeDefinition
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -45,24 +44,23 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
   override fun getEditorId() = NL_EDITOR_ID
 
   override fun createEditorPanel() =
-    DesignerEditorPanel(this, myProject, myFile, WorkBench<DesignSurface>(myProject, WORKBENCH_NAME, this, this),
-                        { NlDesignSurface.builder(myProject, this)
-                          .setDefaultSurfaceState(AndroidEditorSettings.getInstance().globalState.preferredSurfaceState())
-                          .build()
-                          .apply { setCentered(true) }
+    DesignerEditorPanel(this, myProject, myFile, WorkBench(myProject, WORKBENCH_NAME, this, this),
+                        {
+                          if (StudioFlags.NELE_TOGGLE_TOOLS_ATTRIBUTES_IN_PREVIEW.get()) {
+                            NlDesignSurface.builder(myProject, this).showModelNames().build()
+                          }
+                          else {
+                            NlDesignSurface.builder(myProject, this).build()
+                          }
                         },
-                        { toolWindowDefinitions(it) })
+                        { toolWindowDefinitions(it) },
+                        AndroidEditorSettings.getInstance().globalState.preferredSurfaceState())
 
   private fun toolWindowDefinitions(facet: AndroidFacet): List<ToolWindowDefinition<DesignSurface>> {
     val definitions = ImmutableList.builder<ToolWindowDefinition<DesignSurface>>()
 
     definitions.add(PaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.DOCKED))
-    if (StudioFlags.NELE_NEW_PROPERTY_PANEL.get()) {
-      definitions.add(NelePropertiesPanelDefinition(facet, Side.RIGHT, Split.TOP, AutoHide.DOCKED))
-    }
-    else {
-      definitions.add(NlPropertyPanelDefinition(facet, Side.RIGHT, Split.TOP, AutoHide.DOCKED))
-    }
+    definitions.add(NelePropertiesPanelDefinition(facet, Side.RIGHT, Split.TOP, AutoHide.DOCKED))
     definitions.add(NlComponentTreeDefinition(myProject, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED))
     if (StudioFlags.NELE_MOCKUP_EDITOR.get()) {
       definitions.add(MockupToolDefinition(Side.RIGHT, Split.TOP, AutoHide.AUTO_HIDE))
@@ -75,8 +73,8 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
 }
 
 fun AndroidEditorSettings.GlobalState.preferredSurfaceState() = when(preferredEditorMode) {
-  AndroidEditorSettings.EditorMode.CODE -> DesignSurface.State.DEACTIVATED
-  AndroidEditorSettings.EditorMode.SPLIT -> DesignSurface.State.SPLIT
-  AndroidEditorSettings.EditorMode.DESIGN -> DesignSurface.State.FULL
-  else -> DesignSurface.State.FULL // default
+  AndroidEditorSettings.EditorMode.CODE -> DesignerEditorPanel.State.DEACTIVATED
+  AndroidEditorSettings.EditorMode.SPLIT -> DesignerEditorPanel.State.SPLIT
+  AndroidEditorSettings.EditorMode.DESIGN -> DesignerEditorPanel.State.FULL
+  else -> DesignerEditorPanel.State.FULL // default
 }

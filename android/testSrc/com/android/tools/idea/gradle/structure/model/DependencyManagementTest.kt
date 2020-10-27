@@ -69,7 +69,7 @@ class DependencyManagementTest : DependencyTestCase() {
     run {
       val libModule = project.findModuleByName("modulePlus") as PsAndroidModule
       val lib1 = libModule.dependencies.findLibraryDependency("com.example.libs:lib1:0.+")
-      assertThat(lib1.testDeclaredScopes(), hasItems("implementation"))
+      assertThat(lib1.testDeclaredScopes(), hasItems("releaseImplementation"))
 
       val module1 = libModule.dependencies.findModuleDependencies(":jModuleK")
       assertThat(module1.testDeclaredScopes(), hasItems("implementation"))
@@ -241,7 +241,7 @@ class DependencyManagementTest : DependencyTestCase() {
     val dependencies = artifact!!.dependencies
     val lib1 = dependencies.findLibraryDependency("com.example.libs:lib1:0.9.1")
     assertThat(lib1.testDeclared(), hasItems(true))
-    assertThat(lib1.testMatchingScopes(), hasItems("implementation"))
+    assertThat(lib1.testMatchingScopes(), hasItems("implementation:releaseImplementation"))
   }
 
   fun testParsedDependencyPromotions() {

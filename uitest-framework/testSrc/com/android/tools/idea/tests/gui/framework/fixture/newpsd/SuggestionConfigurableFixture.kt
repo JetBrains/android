@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.suggestions.ModuleS
 import com.android.tools.idea.tests.gui.framework.find
 import com.android.tools.idea.tests.gui.framework.finder
 import com.android.tools.idea.tests.gui.framework.matcher
+import com.android.tools.idea.tests.gui.framework.waitForIdle
 import com.intellij.ui.components.JBLabel
 import org.fest.swing.core.Robot
 import org.fest.swing.edt.GuiQuery

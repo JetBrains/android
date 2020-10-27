@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.data
 
+import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import org.gradle.tooling.events.PluginIdentifier
 
 /**
@@ -32,6 +33,15 @@ class PluginContainer {
   fun getPlugin(pluginIdentifier: PluginIdentifier?, projectPath: String): PluginData {
     return pluginCache.getOrPut(PluginData.toString(pluginIdentifier, projectPath)) {
       PluginData(pluginIdentifier, projectPath)
+    }
+  }
+
+  fun updatePluginsData(agpAttributionData: AndroidGradlePluginAttributionData) {
+    // Identify the build src plugins
+    pluginCache.values.forEach { plugin ->
+      if (agpAttributionData.buildSrcPlugins.contains(plugin.displayName)) {
+        plugin.markAsBuildSrcPlugin()
+      }
     }
   }
 

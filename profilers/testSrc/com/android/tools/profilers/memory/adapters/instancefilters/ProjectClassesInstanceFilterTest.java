@@ -48,7 +48,7 @@ public class ProjectClassesInstanceFilterTest {
                                                     mismatchedInnerClassInstance);
 
     ProjectClassesInstanceFilter filter = new ProjectClassesInstanceFilter(ideServices);
-    Set<InstanceObject> result = filter.filter(instances, capture.getClassDatabase());
+    Set<InstanceObject> result = filter.filter(instances);
     assertThat(result).containsExactly(matchedClassInstance, matchedInnerClassInstance);
   }
 }

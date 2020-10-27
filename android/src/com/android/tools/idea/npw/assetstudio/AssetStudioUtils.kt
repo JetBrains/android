@@ -21,8 +21,6 @@
 
 package com.android.tools.idea.npw.assetstudio
 
-import java.awt.image.BufferedImage.TYPE_INT_ARGB
-
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.util.AssetUtil
 import com.android.resources.ResourceFolderType
@@ -32,14 +30,25 @@ import com.android.tools.idea.projectsystem.AndroidModulePaths
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.base.CaseFormat
 import com.google.common.collect.Iterables
+import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.util.io.exists
+import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
-import org.jetbrains.android.facet.AndroidFacet
+import java.awt.image.BufferedImage.TYPE_INT_ARGB
+import java.io.File
+import java.io.IOException
+import java.nio.file.Paths
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+
+private val LOG: Logger
+  get() = logger("#com.android.tools.idea.npw.assetstudio.AssetStudioUtils")
 
 /**
  * Scales the given rectangle by the given scale factor.
@@ -168,3 +177,26 @@ fun toLowerCamelCase(enumValue: Enum<*>): String = CaseFormat.UPPER_UNDERSCORE.t
  * Returns the name of an enum value as an upper camel case string.
  */
 fun toUpperCamelCase(enumValue: Enum<*>): String = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, enumValue.name)
+
+/**
+ * Returns a file pointing to a resource inside template.
+ */
+fun getBundledImage(dir: String, fileName: String): File {
+  val homePath = Paths.get(PathManager.getHomePath())
+  val releaseImagesDir = homePath.resolve("plugins/android/resources/images/$dir")
+  val devImagesDir = homePath.resolve("../../tools/adt/idea/android/resources/images/$dir")
+  val releaseImage = releaseImagesDir.resolve(fileName)
+  val devImage = devImagesDir.resolve(fileName)
+
+  val root = listOf(releaseImage, devImage, releaseImagesDir, devImagesDir, homePath).firstOrNull {
+    it.exists()
+  }?.toFile() ?: throw IOException("Studio root dir '$homePath' is not readable")
+
+  if (root.isDirectory) {
+    LOG.error(
+      "Bundled image file $fileName is not found neither in $releaseImagesDir not $devImagesDir"
+    )
+  }
+
+  return root
+}

@@ -7,9 +7,6 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public interface ValueResourceInfo extends Comparable<ValueResourceInfo> {
   @Nullable
   XmlAttributeValue computeXmlElement();

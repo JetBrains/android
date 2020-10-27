@@ -20,11 +20,11 @@ import com.android.tools.adtui.chart.linechart.LineChart
 import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
-import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
@@ -54,7 +54,7 @@ class CpuUsageNormalModeViewTest {
   @Before
   fun setUp() {
     ideServices = FakeIdeProfilerServices()
-    val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), ideServices, timer)
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideServices, timer)
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 

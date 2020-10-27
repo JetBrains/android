@@ -21,10 +21,10 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
+import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.Facets
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.JavaModuleModelBuilder
-import com.android.tools.idea.testing.createAndroidProjectBuilder
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.collect.Multimap
 import com.google.common.truth.Truth.assertThat
@@ -274,6 +274,12 @@ class GradleTaskFinderTest : PlatformTestCase() {
       ":lib:testClasses"
     ))
   }
+
+  fun testFindTasksToExecuteForBuildSrcModule() {
+    setupTestProjectFromAndroidModel(project, projectDir, rootModule(), javaModule(":lib"), javaModule(":buildSrc"))
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, TestCompileType.ALL)
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":lib:assemble", ":lib:testClasses"))
+  }
 }
 
 private fun javaModule(gradlePath: String) = JavaModuleModelBuilder(gradlePath)
@@ -290,7 +296,7 @@ private fun androidModule(
 ) = AndroidModuleModelBuilder(
   gradlePath,
   "debug",
-  createAndroidProjectBuilder(
+  AndroidProjectBuilder(
     projectType = { projectType },
     androidModuleDependencyList = { moduleDependencies.map { AndroidModuleDependency(it, "debug") } },
     dynamicFeatures = { dynamicFeatures }

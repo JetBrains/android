@@ -49,7 +49,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -57,6 +56,7 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.RuntimeInterruptedException;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -370,7 +370,7 @@ public class AppBarConfigurationDialog extends JDialog {
     String content = Templates.getTextView(namespaces.get(ANDROID_URI), text.toString());
     String xml = getXml(content, collapsed, namespaces);
     Project project = getProject();
-    return PsiFileFactory.getInstance(project).createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml);
+    return PsiFileFactory.getInstance(project).createFileFromText(PREVIEW_PLACEHOLDER_FILE, StdFileTypes.XML, xml);
   }
 
   private void updatePreviewImages() {
@@ -633,12 +633,12 @@ public class AppBarConfigurationDialog extends JDialog {
       }
     }
 
-    if (result == null || !result.hasImage()) {
+    if (result == null) {
       return null;
     }
 
     ImagePool.Image image = result.getRenderedImage();
-    if (image.getWidth() < MIN_WIDTH || image.getHeight() < MIN_HEIGHT) {
+    if (!image.isValid() || image.getWidth() < MIN_WIDTH || image.getHeight() < MIN_HEIGHT) {
       return null;
     }
 

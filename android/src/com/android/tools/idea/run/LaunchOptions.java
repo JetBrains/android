@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.ddmlib.IDevice;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import java.util.Optional;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +35,8 @@ public final class LaunchOptions {
 
   public static final class Builder {
     private boolean myDeploy = true;
-    private String myPmInstallOptions = null;
+    private Function<Optional<IDevice>, String> myPmInstallOptions = null;
+    private boolean myAllUsers = false;
     private List<String> myDisabledDynamicFeatures = new ArrayList<>();
     private boolean myDebug = false;
     private boolean myOpenLogcatAutomatically = false;
@@ -49,6 +53,7 @@ public final class LaunchOptions {
     public LaunchOptions build() {
       return new LaunchOptions(myDeploy,
                                myPmInstallOptions,
+                               myAllUsers,
                                myDisabledDynamicFeatures,
                                myDebug,
                                myOpenLogcatAutomatically,
@@ -66,8 +71,14 @@ public final class LaunchOptions {
     }
 
     @NotNull
-    public Builder setPmInstallOptions(@Nullable String options) {
+    public Builder setPmInstallOptions(@Nullable Function<Optional<IDevice>, String> options) {
       myPmInstallOptions = options;
+      return this;
+    }
+
+    @NotNull
+    public Builder setAllUsers(boolean allUsers) {
+      myAllUsers = allUsers;
       return this;
     }
 
@@ -125,7 +136,8 @@ public final class LaunchOptions {
   }
 
   private final boolean myDeploy;
-  private final String myPmInstallOptions;
+  private final Function<Optional<IDevice>, String> myPmInstallOptions;
+  private final boolean myAllUsers;
   private List<String> myDisabledDynamicFeatures;
   private final boolean myDebug;
   private final boolean myOpenLogcatAutomatically;
@@ -136,7 +148,8 @@ public final class LaunchOptions {
   private final boolean myDeployAsInstant;
 
   private LaunchOptions(boolean deploy,
-                        @Nullable String pmInstallOptions,
+                        @Nullable Function<Optional<IDevice>, String> pmInstallOptions,
+                        boolean allUsers,
                         @NotNull List<String> disabledDynamicFeatures,
                         boolean debug,
                         boolean openLogcatAutomatically,
@@ -147,6 +160,7 @@ public final class LaunchOptions {
                         boolean deployAsInstant) {
     myDeploy = deploy;
     myPmInstallOptions = pmInstallOptions;
+    myAllUsers = allUsers;
     myDisabledDynamicFeatures = disabledDynamicFeatures;
     myDebug = debug;
     myOpenLogcatAutomatically = openLogcatAutomatically;
@@ -162,8 +176,15 @@ public final class LaunchOptions {
   }
 
   @Nullable
-  public String getPmInstallOptions() {
-    return myPmInstallOptions;
+  public String getPmInstallOptions(@Nullable IDevice device) {
+    if (myPmInstallOptions == null) {
+      return null;
+    }
+    return myPmInstallOptions.apply(Optional.ofNullable(device));
+  }
+
+  public boolean getInstallOnAllUsers() {
+    return myAllUsers;
   }
 
   @NotNull

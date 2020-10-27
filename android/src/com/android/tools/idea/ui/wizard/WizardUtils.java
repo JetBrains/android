@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.ui.wizard;
 
-import static com.android.tools.idea.templates.TemplateManager.CATEGORY_COMPOSE;
-
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.wizard.template.Category;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
@@ -117,19 +116,19 @@ public final class WizardUtils {
    * @return The supplied initialValue if its valid (as per the return of {@link Validator}, or the initialValue contatenated with an
    * {@link Integer} value that will be valid.
    */
-  public static String getUniqueName(String initialValue, Validator<String> validator) {
+  public static String getUniqueName(String initialValue, Validator<? super String> validator) {
     int i = 2;
     String uniqueName = initialValue;
     while (i <= 100 && validator.validate(uniqueName).getSeverity() == Validator.Severity.ERROR) {
-      uniqueName = initialValue + Integer.toString(i);
+      uniqueName = initialValue + i;
       i++;
     }
 
     return uniqueName;
   }
 
-  public static boolean hasComposeMinAgpVersion(@Nullable Project project, @Nullable String templateCategory) {
-    if (project == null || !CATEGORY_COMPOSE.equals(templateCategory)) {
+  public static boolean hasComposeMinAgpVersion(@Nullable Project project, Category category) {
+    if (project == null || !Category.Compose.equals(category)) {
       return true;
     }
     AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.findFromModel(project);

@@ -24,7 +24,7 @@ interface ComponentTreeSelectionModel {
    *
    * Any changes will cause the tree to be notified.
    */
-  var selection: List<Any>
+  var currentSelection: List<Any>
 
   /**
    * Add a listeners for selection changes.

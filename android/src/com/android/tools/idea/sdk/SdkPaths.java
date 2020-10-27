@@ -29,7 +29,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 /**
  * Utility methods for SDK paths.
  */
-public final class SdkPaths {
+public class SdkPaths {
   private SdkPaths() {
   }
 
@@ -123,7 +123,7 @@ public final class SdkPaths {
     return ValidationResult.SUCCESS;
   }
 
-  public static final class ValidationResult {
+  public static class ValidationResult {
     @NotNull public static final ValidationResult SUCCESS = new ValidationResult(true, null);
 
     public final boolean success;

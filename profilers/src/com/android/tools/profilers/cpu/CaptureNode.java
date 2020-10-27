@@ -15,18 +15,24 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.filter.Filter;
+import com.android.tools.adtui.model.filter.FilterAccumulator;
 import com.android.tools.adtui.model.filter.FilterResult;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.PriorityQueue;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class CaptureNode implements HNode<CaptureNode> {
-
   /**
    * Start time with GLOBAL clock.
    */
@@ -72,6 +78,13 @@ public class CaptureNode implements HNode<CaptureNode> {
   @NotNull
   private final CaptureNodeModel myData;
 
+  /**
+   * Aspect model for the node {@link Aspect}. Only root nodes provide aspect changes so it is lazily initialized to avoid the overhead of
+   * its instantiation.
+   */
+  @Nullable
+  private AspectModel<Aspect> myAspectModel = null;
+
   public CaptureNode(@NotNull CaptureNodeModel model) {
     myChildren = new ArrayList<>();
     myClockType = ClockType.GLOBAL;
@@ -110,6 +123,18 @@ public class CaptureNode implements HNode<CaptureNode> {
   @Override
   public CaptureNode getParent() {
     return myParent;
+  }
+
+  /**
+   * @return root node of this node. If this node doesn't have a parent, return this node.
+   */
+  @NotNull
+  public CaptureNode findRootNode() {
+    CaptureNode rootNode = this;
+    while (rootNode.getParent() != null) {
+      rootNode = rootNode.getParent();
+    }
+    return rootNode;
   }
 
   @Override
@@ -163,6 +188,14 @@ public class CaptureNode implements HNode<CaptureNode> {
     myClockType = clockType;
   }
 
+  @NotNull
+  public AspectModel<Aspect> getAspectModel() {
+    if (myAspectModel == null) {
+      myAspectModel = new AspectModel<>();
+    }
+    return myAspectModel;
+  }
+
   /**
    * Returns the proportion of time the method was using CPU relative to the total (wall-clock) time that passed.
    */
@@ -182,6 +215,36 @@ public class CaptureNode implements HNode<CaptureNode> {
   }
 
   /**
+   * Iterate through all descendants of this node, apply a filter and then find the top k nodes by the given comparator.
+   *
+   * @param k          number of results
+   * @param filter     keep only nodes that satisfies this filter
+   * @param comparator to compare nodes by
+   * @return up to top k nodes from all descendants, in descending order
+   */
+  @NotNull
+  public List<CaptureNode> getTopKNodes(int k, @NotNull Predicate<CaptureNode> filter, @NotNull Comparator<CaptureNode> comparator) {
+    // Put all matched nodes in a priority queue capped at size n, so the queue always contain the n longest running ones.
+    PriorityQueue<CaptureNode> candidates = new PriorityQueue<>(k + 1, comparator);
+    getDescendantsStream().filter(filter).forEach(node -> {
+      candidates.offer(node);
+      if (candidates.size() > k) {
+        candidates.poll();
+      }
+    });
+    List<CaptureNode> result = new ArrayList<>(candidates);
+    Collections.sort(result, comparator.reversed());
+    return result;
+  }
+
+  /**
+   * @return all descendants in pre-order (i.e. node, left, right) as a stream.
+   */
+  public Stream<CaptureNode> getDescendantsStream() {
+    return Stream.concat(Stream.of(this), getChildren().stream().flatMap(CaptureNode::getDescendantsStream));
+  }
+
+  /**
    * Apply a filter to this node and its children.
    *
    * @param filter filter to apply. An empty matches all nodes.
@@ -189,29 +252,29 @@ public class CaptureNode implements HNode<CaptureNode> {
    */
   @NotNull
   public FilterResult applyFilter(@NotNull Filter filter) {
-    return applyFilter(filter, false);
+    FilterAccumulator accumulator = new FilterAccumulator(!filter.isEmpty());
+    computeFilter(filter, false, accumulator);
+    if (myAspectModel != null) {
+      myAspectModel.changed(Aspect.FILTER_APPLIED);
+    }
+    return accumulator.toFilterResult();
   }
 
 
   /**
    * Recursively applies filter to this node and its children.
    */
-  @NotNull
-  private FilterResult applyFilter(@NotNull Filter filter, boolean matches) {
-    int matchCount = 0;
-    int totalCount = 0;
+  private void computeFilter(@NotNull Filter filter, boolean matches, @NotNull FilterAccumulator accumulator) {
     boolean nodeExactMatch = filter.matches(getData().getFullName());
     matches = matches || nodeExactMatch;
     if (nodeExactMatch) {
-      ++matchCount;
+      accumulator.increaseMatchCount();
     }
-    ++totalCount;
+    accumulator.increaseTotalCount();
 
     boolean allChildrenUnmatch = true;
     for (CaptureNode child : getChildren()) {
-      FilterResult result = child.applyFilter(filter, matches);
-      matchCount += result.getMatchCount();
-      totalCount += result.getTotalCount();
+      child.computeFilter(filter, matches, accumulator);
       if (!child.isUnmatched()) {
         allChildrenUnmatch = false;
       }
@@ -226,7 +289,6 @@ public class CaptureNode implements HNode<CaptureNode> {
     else {
       setFilterType(FilterType.MATCH);
     }
-    return new FilterResult(matchCount, totalCount, !filter.isEmpty());
   }
 
   @NotNull
@@ -257,5 +319,11 @@ public class CaptureNode implements HNode<CaptureNode> {
      * Neither this node matches to the filter nor one of its ancestor nor one of its descendant.
      */
     UNMATCH,
+  }
+  public enum Aspect {
+    /**
+     * Fired when a {@link Filter} is applied to this node.
+     */
+    FILTER_APPLIED
   }
 }

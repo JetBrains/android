@@ -22,6 +22,7 @@ import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.project.sync.setup.post.upgrade.GradlePluginUpgrade.expireProjectUpgradeNotifications;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
@@ -50,6 +51,7 @@ import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -75,7 +77,7 @@ import org.jetbrains.plugins.groovy.GroovyFileType;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrCodeBlock;
 
-public final class GradleFiles {
+public class GradleFiles {
   @NotNull private final Project myProject;
 
   @NotNull private final Object myLock = new Object();
@@ -96,11 +98,9 @@ public final class GradleFiles {
   @NotNull
   private final Set<VirtualFile> myExternalBuildFiles = new HashSet<>();
 
-  @NotNull private final SyncListener mySyncListener = new SyncListener();
-
   @NotNull private final FileEditorManagerListener myFileEditorListener;
 
-  public static class UpdateHashesStartupActivity implements StartupActivity {
+  public static class UpdateHashesStartupActivity implements StartupActivity.DumbAware {
     @Override
     public void runActivity(@NotNull Project project) {
       // Populate build file hashes on project startup.
@@ -128,9 +128,6 @@ public final class GradleFiles {
 
     // Add a listener to see when gradle files are being edited.
     myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, myFileEditorListener);
-
-
-    GradleSyncState.subscribe(myProject, mySyncListener);
   }
 
   private void maybeAddOrRemovePsiTreeListener(@Nullable VirtualFile file, @NotNull PsiTreeChangeListener fileChangeListener) {
@@ -153,13 +150,6 @@ public final class GradleFiles {
 
   @NotNull
   @VisibleForTesting
-  GradleSyncListener getSyncListener() {
-    //noinspection ReturnOfInnerClass
-    return mySyncListener;
-  }
-
-  @NotNull
-  @VisibleForTesting
   FileEditorManagerListener getFileEditorListener() {
     return myFileEditorListener;
   }
@@ -171,7 +161,7 @@ public final class GradleFiles {
     }
   }
 
-  private void removeChangedFiles() {
+  public void removeChangedFiles() {
     synchronized (myLock) {
       myChangedFiles.clear();
       myChangedExternalFiles.clear();
@@ -287,9 +277,14 @@ public final class GradleFiles {
    */
   private void scheduleUpdateFileHashes() {
     ApplicationManager.getApplication().invokeLater(() -> {
+      Project project = myProject;
+      if (project.isDisposed()) {
+        return;
+      }
+
       // Local map to minimize time holding myLock
       Map<VirtualFile, Integer> fileHashes = new HashMap<>();
-      GradleWrapper gradleWrapper = GradleWrapper.find(myProject);
+      GradleWrapper gradleWrapper = GradleWrapper.find(project);
       if (gradleWrapper != null) {
         File propertiesFilePath = gradleWrapper.getPropertiesFilePath();
         if (propertiesFilePath.isFile()) {
@@ -304,7 +299,7 @@ public final class GradleFiles {
       removeExternalBuildFiles();
       List<VirtualFile> externalBuildFiles = new ArrayList<>();
 
-      List<Module> modules = Lists.newArrayList(ModuleManager.getInstance(myProject).getModules());
+      List<Module> modules = Lists.newArrayList(ModuleManager.getInstance(project).getModules());
       ExecutorService executorService = AndroidIoManager.getInstance().getBackgroundDiskIoExecutor();
       ProgressManager progressManager = ProgressManager.getInstance();
       ProgressIndicator progressIndicator = progressManager.getProgressIndicator();
@@ -316,7 +311,7 @@ public final class GradleFiles {
           ProgressManager.checkCanceled();
           File path = VfsUtilCore.virtualToIoFile(buildFile);
           if (path.isFile()) {
-            ReadAction.run(() -> putHashForFile(fileHashes, buildFile));
+            putHashForFile(fileHashes, buildFile);
           }
         }
         NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
@@ -421,24 +416,16 @@ public final class GradleFiles {
     }
   }
 
-  /**
-   * Listens for GradleSync events in order to clear the files that have changed and update the
-   * file hashes for each of the gradle build files.
-   */
-  private class SyncListener implements GradleSyncListener {
-    @Override
-    public void syncStarted(@NotNull Project project) {
-      maybeProcessSyncStarted(project);
-    }
+  public void resetChangedFilesState() {
+    scheduleUpdateFileHashes();
+    removeChangedFiles();
+  }
 
-    private void maybeProcessSyncStarted(@NotNull Project project) {
-      if (!project.isInitialized() && project.equals(myProject)) {
-        return;
-      }
-
-      scheduleUpdateFileHashes();
-      removeChangedFiles();
+  void maybeProcessSyncStarted() {
+    if (!myProject.isInitialized()) {
+      return;
     }
+    resetChangedFilesState();
   }
 
   /**
@@ -457,7 +444,7 @@ public final class GradleFiles {
    * only triggered with the children set in the after method and sometimes no after method is triggered
    * at all.
    */
-  private static final class GradleFileChangeListener extends PsiTreeChangeAdapter {
+  private static class GradleFileChangeListener extends PsiTreeChangeAdapter {
     @NotNull
     private final GradleFiles myGradleFiles;
 
@@ -513,7 +500,7 @@ public final class GradleFiles {
 
       boolean foundChange = false;
       for (PsiElement element : elements) {
-        if (element == null || element instanceof PsiWhiteSpace) {
+        if (element == null || element instanceof PsiWhiteSpace || element instanceof PsiComment) {
           continue;
         }
 
@@ -533,6 +520,7 @@ public final class GradleFiles {
       if (foundChange) {
         myGradleFiles.addChangedFile(psiFile.getVirtualFile(), isExternalBuildFile);
         EditorNotifications.getInstance(psiFile.getProject()).updateNotifications(psiFile.getVirtualFile());
+        expireProjectUpgradeNotifications(myGradleFiles.myProject);
       }
     }
   }

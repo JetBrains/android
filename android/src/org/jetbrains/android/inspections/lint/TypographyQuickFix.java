@@ -13,9 +13,6 @@ import java.util.List;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class TypographyQuickFix implements LintIdeQuickFix {
   private final Issue myIssue;
   private final String myMessage;

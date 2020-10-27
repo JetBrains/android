@@ -24,27 +24,24 @@ import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.npw.module.recipes.androidProject.androidProjectRecipe
-import com.android.tools.idea.npw.platform.Language
-import com.android.tools.idea.npw.platform.Language.JAVA
-import com.android.tools.idea.npw.platform.Language.KOTLIN
 import com.android.tools.idea.npw.project.DomainToPackageExpression
 import com.android.tools.idea.npw.project.setGradleWrapperExecutable
-import com.android.tools.idea.npw.template.TemplateValueInjector
-import com.android.tools.idea.observable.core.*
+import com.android.tools.idea.observable.core.BoolProperty
+import com.android.tools.idea.observable.core.BoolValueProperty
+import com.android.tools.idea.observable.core.OptionalProperty
+import com.android.tools.idea.observable.core.OptionalValueProperty
+import com.android.tools.idea.observable.core.StringProperty
+import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.ProjectTemplateDataBuilder
-import com.android.tools.idea.templates.Template
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_ANDROIDX_SUPPORT
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_TITLE
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_CPP_FLAGS
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_CPP_SUPPORT
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_NEW_PROJECT
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_TOP_OUT
-import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
-import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor2
-import com.android.tools.idea.templates.recipe.RenderingContext2
-import com.android.tools.idea.wizard.WizardConstants
+import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
+import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
+import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.BytecodeLevel
+import com.android.tools.idea.wizard.template.Language
+import com.android.tools.idea.wizard.template.Language.Java
+import com.android.tools.idea.wizard.template.Language.Kotlin
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
@@ -59,7 +56,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.impl.NonProjectFileWritingAccessProvider
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.ProjectJdkTable
@@ -67,6 +63,7 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.platform.PlatformProjectOpenProcessor
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.android.util.AndroidUtils
@@ -85,10 +82,10 @@ interface ProjectModelData {
   val projectLocation: StringProperty
   val enableCppSupport: BoolProperty
   val useAppCompat: BoolProperty
+  val useGradleKts: BoolProperty
   val cppFlags: StringProperty
   var project: Project
   val isNewProject: Boolean
-  val projectTemplateValues: MutableMap<String, Any>
   val language: OptionalProperty<Language>
   val multiTemplateRenderer: MultiTemplateRenderer
   val projectTemplateDataBuilder: ProjectTemplateDataBuilder
@@ -99,51 +96,49 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val applicationName = StringValueProperty("My Application")
   override val packageName = StringValueProperty()
   override val projectLocation = StringValueProperty()
-  override val enableCppSupport = BoolValueProperty(PropertiesComponent.getInstance().isTrueValue(PROPERTIES_CPP_SUPPORT_KEY))
+  override val enableCppSupport = BoolValueProperty()
   override val useAppCompat = BoolValueProperty()
+  override val useGradleKts = BoolValueProperty()
   override val cppFlags = StringValueProperty()
   override lateinit var project: Project
   override val isNewProject = true
-  override val projectTemplateValues = mutableMapOf<String, Any>()
   override val language = OptionalValueProperty<Language>()
   override val multiTemplateRenderer = MultiTemplateRenderer { renderer ->
-    run {
-      assert(!::project.isInitialized)
-      val projectName = applicationName.get()
-      val projectLocation = projectLocation.get()
-      project = GradleProjectImporter.getInstance().createProject(projectName, File(projectLocation))
-      AndroidNewProjectInitializationStartupActivity.setProjectInitializer(project) {
-        logger.info("Rendering a new project.")
-        NonProjectFileWritingAccessProvider.disableChecksDuring {
-          renderer(project)
-        }
+    assert(!::project.isInitialized)
+    val projectName = applicationName.get()
+    val projectLocation = projectLocation.get()
+    val projectBaseDirectory = File(projectLocation)
+    project = GradleProjectImporter.getInstance().createProject(projectName, projectBaseDirectory)
+    AndroidNewProjectInitializationStartupActivity.setProjectInitializer(project) {
+      logger.info("Rendering a new project.")
+      NonProjectFileWritingAccessProvider.disableChecksDuring {
+        renderer(project)
       }
-
-      val path = Paths.get(projectLocation)
-      ProjectManagerEx.getInstanceEx().openProject(path, OpenProjectTask(forceOpenInNewFrame = true, project = project))
     }
+
+    val openProjectTask = OpenProjectTask(
+      project = project,
+      isNewProject = false,  // We have already created a new project.
+      forceOpenInNewFrame = true
+    )
+    PlatformProjectOpenProcessor.openExistingProject(projectBaseDirectory.toPath(), projectBaseDirectory.toPath(), openProjectTask)
   }
   override val projectTemplateDataBuilder = ProjectTemplateDataBuilder(true)
 
   init {
-    packageName.addListener {
-      val androidPackage = packageName.get().substringBeforeLast('.')
-      if (AndroidUtils.isValidAndroidPackageName(androidPackage)) {
-        PropertiesComponent.getInstance().setValue(PROPERTIES_ANDROID_PACKAGE_KEY, androidPackage)
-      }
-    }
-
     applicationName.addConstraint(String::trim)
 
-    language.set(calculateInitialLanguage(PropertiesComponent.getInstance()))
+    language.set(calculateInitialLanguage(properties))
   }
 
-  private fun saveWizardState() {
-    // Set the property value
-    val props = PropertiesComponent.getInstance()
-    props.setValue(PROPERTIES_CPP_SUPPORT_KEY, enableCppSupport.get())
-    props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, language.value.toString())
-    props.setValue(PROPERTIES_NPW_ASKED_LANGUAGE_KEY, true)
+  private fun saveWizardState() = with(properties){
+    setValue(PROPERTIES_NPW_LANGUAGE_KEY, language.value.toString())
+    setValue(PROPERTIES_NPW_ASKED_LANGUAGE_KEY, true)
+
+    val androidPackage = packageName.get().substringBeforeLast('.')
+    if (AndroidUtils.isValidAndroidPackageName(androidPackage)) {
+      setValue(PROPERTIES_ANDROID_PACKAGE_KEY, androidPackage)
+    }
   }
 
   override fun handleFinished() {
@@ -179,28 +174,13 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     }
     multiTemplateRenderer.requestRender(ProjectTemplateRenderer())
     ProjectUtil.updateLastProjectLocation(projectLocation)
+
+    saveWizardState()
   }
 
   private inner class ProjectTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
-    lateinit var projectTemplate: Template
     @WorkerThread
     override fun init() {
-      projectTemplate = Template.createFromName(Template.CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME)
-      // Cpp Apps attributes are needed to generate the Module and to generate the Render Template files (activity and layout)
-      projectTemplateValues[ATTR_CPP_SUPPORT] = enableCppSupport.get()
-      projectTemplateValues[ATTR_CPP_FLAGS] = cppFlags.get()
-      projectTemplateValues[ATTR_TOP_OUT] = project.basePath ?: ""
-      projectTemplateValues[ATTR_IS_NEW_PROJECT] = true
-      projectTemplateValues[ATTR_APP_TITLE] = applicationName.get()
-
-      if (useAppCompat.get()) {
-        projectTemplateValues[ATTR_ANDROIDX_SUPPORT] = false
-      }
-
-      TemplateValueInjector(projectTemplateValues)
-        .setProjectDefaults(project, isNewProject)
-        .setLanguage(language.value)
-
       projectTemplateDataBuilder.apply {
         topOut = File(project.basePath ?: "")
         androidXSupport = !useAppCompat.get()
@@ -231,12 +211,10 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       catch (e: IOException) {
         logger.warn("Failed to update Gradle wrapper permissions", e)
       }
-
-      saveWizardState()
     }
 
     private fun performCreateProject(dryRun: Boolean) {
-      val context = RenderingContext2(
+      val context = RenderingContext(
         project,
         null,
         "New Project",
@@ -245,10 +223,10 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         dryRun = dryRun,
         moduleRoot = null
       )
-      val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
-      val recipe: Recipe = { appTitle: String, language: Language, useAndroidX: Boolean ->
-        { data: TemplateData -> androidProjectRecipe(data as ProjectTemplateData, appTitle, language, useAndroidX) }
-      }(applicationName.get(), language.value, !useAppCompat.get())
+      val executor = if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)
+      val recipe: Recipe = { data: TemplateData ->
+        androidProjectRecipe(data as ProjectTemplateData, applicationName.get(), language.value, !useAppCompat.get(), useGradleKts.get())
+      }
 
       recipe.render(context, executor, AndroidStudioEvent.TemplateRenderer.ANDROID_PROJECT)
     }
@@ -261,10 +239,10 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         try {
           val gradleDistFile = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(GRADLE_LATEST_VERSION)
           if (gradleDistFile == null) {
-            GradleWrapper.get(wrapperPropertiesFilePath).updateDistributionUrl(GRADLE_LATEST_VERSION)
+            GradleWrapper.get(wrapperPropertiesFilePath, project).updateDistributionUrl(GRADLE_LATEST_VERSION)
           }
           else {
-            GradleWrapper.get(wrapperPropertiesFilePath).updateDistributionUrl(gradleDistFile)
+            GradleWrapper.get(wrapperPropertiesFilePath, project).updateDistributionUrl(gradleDistFile)
           }
         }
         catch (e: IOException) {
@@ -314,7 +292,6 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     @VisibleForTesting
     const val PROPERTIES_NPW_ASKED_LANGUAGE_KEY = "SAVED_ANDROID_NPW_ASKED_LANGUAGE"
 
-    private const val PROPERTIES_CPP_SUPPORT_KEY = "SAVED_PROJECT_CPP_SUPPORT"
     private const val EXAMPLE_DOMAIN = "example.com"
     private val DISALLOWED_IN_DOMAIN = Pattern.compile("[^a-zA-Z0-9_]")
     private val MODULE_NAME_GROUP = Pattern.compile(".*:") // Anything before ":" belongs to the module parent name
@@ -349,7 +326,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       if (languageValue == null) {
         val selectedOldUseKotlin = props.getBoolean(PROPERTIES_KOTLIN_SUPPORT_KEY)
         val isFirstUsage = !props.isValueSet(PROPERTIES_ANDROID_PACKAGE_KEY)
-        initialLanguage = if (selectedOldUseKotlin || isFirstUsage) KOTLIN else JAVA
+        initialLanguage = if (selectedOldUseKotlin || isFirstUsage) Kotlin else Java
 
         // Save now, otherwise the user may cancel the wizard, but the property for "isFirstUsage" will be set just because it was shown.
         props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, initialLanguage.toString())
@@ -357,12 +334,12 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       }
       else {
         // We have this value saved already, nothing to do
-        initialLanguage = Language.fromName(languageValue, KOTLIN)
+        initialLanguage = Language.fromName(languageValue, Kotlin)
       }
 
       val askedBefore = props.getBoolean(PROPERTIES_NPW_ASKED_LANGUAGE_KEY)
       // After version 3.5, we force the user to select the language if we didn't ask before or if the selection was not Kotlin.
-      return if (initialLanguage === KOTLIN || askedBefore) Optional.of(initialLanguage) else Optional.empty()
+      return if (initialLanguage === Kotlin || askedBefore) Optional.of(initialLanguage) else Optional.empty()
     }
 
     @JvmStatic
@@ -386,4 +363,8 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     }
   }
 }
-private val log = logger<NewProjectModel>()
+
+// this is used both by new project and new module UI
+internal const val PROPERTIES_BYTECODE_LEVEL_KEY = "SAVED_BYTECODE_LEVEL"
+
+internal val properties get() = PropertiesComponent.getInstance()

@@ -20,9 +20,6 @@ import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidSdkResolveScopeProvider extends ResolveScopeProvider {
 
   @Nullable
@@ -40,7 +37,7 @@ public class AndroidSdkResolveScopeProvider extends ResolveScopeProvider {
     return new MyJdkScope(project, entry, index.isInLibrarySource(file));
   }
 
-  public static final class MyJdkScope extends JdkScope {
+  public static class MyJdkScope extends JdkScope {
     private @Nullable final Sdk mySdk;
     private final boolean myIncludeSource;
 

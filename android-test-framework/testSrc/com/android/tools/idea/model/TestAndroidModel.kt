@@ -32,7 +32,6 @@ open class TestAndroidModel @JvmOverloads constructor(
   private val classJarProvider: ClassJarProvider? = null,
   private val overridesManifestPackage: Boolean = false,
   private val debuggable: Boolean = false,
-  private val dataBindingMode: DataBindingMode = DataBindingMode.NONE,
   private val versionCode: Int? = null,
   private val namespacing: AaptOptions.Namespacing = AaptOptions.Namespacing.DISABLED,
   private val desugaringLevel: Set<Desugaring> = Desugaring.DEFAULT
@@ -52,7 +51,6 @@ open class TestAndroidModel @JvmOverloads constructor(
   override fun getRuntimeMinSdkVersion(): AndroidVersion? = runtimeMinSdkVersion
   override fun getTargetSdkVersion(): AndroidVersion? = targetSdkVersion
   override fun getVersionCode(): Int? = versionCode
-  override fun getDataBindingMode(): DataBindingMode = dataBindingMode
   override fun getClassJarProvider(): ClassJarProvider = classJarProvider ?: error("classJarProvider not set")
   override fun getNamespacing(): AaptOptions.Namespacing = namespacing
   override fun getDesugaring(): Set<Desugaring> = desugaringLevel

@@ -6,9 +6,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
-/**
-* @author Eugene.Kudelevsky
-*/
 class ExcludedSourcesFilter implements Condition<File> {
   private final Project myProject;
 

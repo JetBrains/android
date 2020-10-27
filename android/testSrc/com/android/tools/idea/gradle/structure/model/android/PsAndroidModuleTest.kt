@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.testing.TestProjectPaths.BASIC
 import com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB
@@ -45,7 +46,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   var signingConfigsChanged = 0
   var variantsChanged = 0
 
-  private val DISALLOWED_NAME_CHARS = "/\\:<>\"?*|"
+  private val DISALLOWED_NAME_CHARS = "/\\:<>\"?*|\$'"
 
   fun testFlavorDimensions() {
     loadProject(PSD_SAMPLE_GROOVY)
@@ -857,6 +858,39 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertThat(signingConfigs.map { it.name }).containsExactly("yourConfig", "debug")
   }
 
+  fun testRenameSigningConfigAndReferences() {
+    loadProject(BASIC)
+
+    val resolvedProject = myFixture.project
+    var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    var appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
+    assertNotNull(appModule); appModule!!
+    appModule.testSubscribeToChangeNotifications()
+
+    var signingConfigs = appModule.signingConfigs
+    assertThat(signingConfigs.map { it.name }).containsExactly("myConfig", "debug").inOrder()
+
+    appModule.findSigningConfig("myConfig")!!.rename("yourConfig", true)
+    assertThat(signingConfigsChanged).isEqualTo(1)
+
+    signingConfigs = appModule.signingConfigs
+    assertThat(signingConfigs.map { it.name }).containsExactly("yourConfig", "debug")
+
+    appModule.applyChanges()
+    requestSyncAndWait()
+    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+    appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
+    assertNotNull(appModule); appModule!!
+
+    signingConfigs = appModule.signingConfigs
+    assertThat(signingConfigs.map { it.name }).containsExactly("yourConfig", "debug")
+
+    val debugSigningConfig = PsBuildType.BuildTypeDescriptors.signingConfig.bind(appModule.findBuildType("debug")!!).getValue()
+    assertThat(debugSigningConfig.parsedValue)
+      .isEqualTo(ParsedValue.Set.Parsed(null, DslText.Reference("signingConfigs.yourConfig")).annotated())
+  }
+
   fun testApplyChangesDropsResolvedValues() {
     loadProject(BASIC)
 
@@ -1576,7 +1610,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
 internal fun moduleWithoutSyncedModel(project: PsProject, name: String): PsAndroidModule {
   val moduleWithSyncedModel = project.findModuleByName(name) as PsAndroidModule
   return PsAndroidModule(project, moduleWithSyncedModel.gradlePath).apply {
-    init(moduleWithSyncedModel.name, null, null, moduleWithSyncedModel.parsedModel)
+    init(moduleWithSyncedModel.name, null, null, null, moduleWithSyncedModel.parsedModel)
   }
 }
 

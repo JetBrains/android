@@ -16,12 +16,12 @@
 package com.android.tools.idea.tests.gui.compose
 
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_WIZARD_TEMPLATES
-import com.android.tools.idea.npw.platform.Language.KOTLIN
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture.ActivityTextField.NAME
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
 import com.android.tools.idea.tests.util.WizardUtils.createNewProject
+import com.android.tools.idea.wizard.template.Language.Kotlin
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.After
@@ -32,8 +32,7 @@ import org.junit.runner.RunWith
 
 @RunWith(GuiTestRemoteRunner::class)
 class AddComposeTest {
-  @Rule
-  @JvmField
+  @get:Rule
   val guiTest = GuiTestRule()
 
   @Before
@@ -62,29 +61,28 @@ class AddComposeTest {
   fun newComposeModule() {
     createNewProject(guiTest, "Empty Activity")
     guiTest.getProjectFileText("app/build.gradle").run {
-      assertThat(this).doesNotContain("implementation 'androidx.ui:ui-framework:")
-      assertThat(this).doesNotContain("implementation 'androidx.ui:ui-tooling:")
+      assertThat(this).doesNotContain("androidx.ui:ui-framework:")
+      assertThat(this).doesNotContain("androidx.ui:ui-tooling:")
     }
 
     NewModuleWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "New Module..."))
       .clickNextPhoneAndTabletModule()
-      .setSourceLanguage(KOTLIN)
+      .setSourceLanguage(Kotlin)
       .selectMinimumSdkApi(28)
       .enterModuleName("compose")
       .wizard()
       .clickNext()
       .chooseActivity("Empty Compose Activity")
       .clickNext()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish()
       .projectView
       .selectAndroidPane()
       .clickPath("compose")
 
     guiTest.getProjectFileText("compose/build.gradle").run {
-      assertThat(this).contains("implementation 'androidx.ui:ui-layout:")
-      assertThat(this).contains("implementation 'androidx.ui:ui-material:")
-      assertThat(this).contains("implementation 'androidx.ui:ui-tooling:")
+      assertThat(this).contains("implementation \"androidx.ui:ui-layout:")
+      assertThat(this).contains("implementation \"androidx.ui:ui-material:")
+      assertThat(this).contains("implementation \"androidx.ui:ui-tooling:")
     }
     guiTest.getProjectFileText("compose/src/main/java/com/google/compose/MainActivity.kt").run {
       assertThat(this).contains("@Composable")
@@ -107,8 +105,8 @@ class AddComposeTest {
   fun newComposeActivity() {
     createNewProject(guiTest, "Empty Activity")
     guiTest.getProjectFileText("app/build.gradle").run {
-      assertThat(this).doesNotContain("implementation 'androidx.ui:ui-framework:")
-      assertThat(this).doesNotContain("implementation 'androidx.ui:ui-tooling:")
+      assertThat(this).doesNotContain("androidx.ui:ui-framework:")
+      assertThat(this).doesNotContain("androidx.ui:ui-tooling:")
     }
 
     fun addComposeActivity(name: String) {
@@ -116,20 +114,19 @@ class AddComposeTest {
         .configureActivityStep
         .enterTextFieldValue(NAME, name)
         .wizard()
-        .clickFinish()
-        .waitForGradleProjectSyncToFinish()
+        .clickFinishAndWaitForSyncToFinish()
         .projectView
         .selectAndroidPane()
-        .clickPath("app");
+        .clickPath("app")
     }
 
     val activityTitle = "ComposeActivity"
     addComposeActivity(activityTitle)
 
     guiTest.getProjectFileText("app/build.gradle").run {
-      assertThat(this).contains("implementation 'androidx.ui:ui-layout:")
-      assertThat(this).contains("implementation 'androidx.ui:ui-material:")
-      assertThat(this).contains("implementation 'androidx.ui:ui-tooling:")
+      assertThat(this).contains("implementation \"androidx.ui:ui-layout:")
+      assertThat(this).contains("implementation \"androidx.ui:ui-material:")
+      assertThat(this).contains("implementation \"androidx.ui:ui-tooling:")
     }
     guiTest.getProjectFileText("app/src/main/java/com/google/myapplication/$activityTitle.kt").run {
       assertThat(this).contains("Greeting")

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.motion;
 
+import static java.awt.event.ComponentEvent.COMPONENT_RESIZED;
+
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.TimeLinePanel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.TimeLineRow;
@@ -28,8 +30,10 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Graphics2D;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 public class METimelineRenderingTest extends BaseMotionEditorTest {
@@ -73,6 +77,11 @@ public class METimelineRenderingTest extends BaseMotionEditorTest {
     public void click(int x, int y) {
       MouseEvent event = new MouseEvent(this, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), x, y, 0, 1, false);
     }
+    public void myResize() {
+
+      ComponentEvent e = new ComponentEvent(this,COMPONENT_RESIZED);
+      processComponentEvent(e);
+    }
   }
 
   public void testTimeLinePanel() {
@@ -87,13 +96,13 @@ public class METimelineRenderingTest extends BaseMotionEditorTest {
       }
     });
     timeLinePanel.setListeners(selector);
-
     assertTrue(timeLinePanel != null);
 
     MeModel model = getModel();
     MTag[] trans = model.motionScene.getChildTags("Transition");
     dummyPanel.add(timeLinePanel);
-    int size = 1000;
+    int size = 512;
+    dummyPanel.setBounds(0,0,size,size);
     TimeLineTopLeft topLeft = (TimeLineTopLeft)find(timeLinePanel, e -> {
       return e instanceof TimeLineTopLeft;
     });
@@ -115,6 +124,11 @@ public class METimelineRenderingTest extends BaseMotionEditorTest {
       BufferedImage bufferedImage = new BufferedImage(size, size, BufferedImage.TYPE_INT_RGB);
       Graphics2D g2d = bufferedImage.createGraphics();
       long time = System.nanoTime();
+      dummyPanel.paint(g2d);
+      dummyPanel.setSize(size-1,size);
+      dummyPanel.myResize();
+      timeLinePanel.paint(g2d);
+      timeLinePanel.getLayout().layoutContainer(timeLinePanel);
       dummyPanel.paint(g2d);
 
       time = System.nanoTime() - time;

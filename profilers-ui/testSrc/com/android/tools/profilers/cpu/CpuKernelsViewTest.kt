@@ -60,7 +60,7 @@ class CpuKernelsViewTest {
   @Before
   fun setUp() {
     ideServices = FakeIdeProfilerServices()
-    val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), ideServices, timer)
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideServices, timer)
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
@@ -127,7 +127,7 @@ class CpuKernelsViewTest {
     val hideablePanel = TreeWalker(kernelsView.component).descendants().filterIsInstance<HideablePanel>().first()
 
     val traceFile = TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH)
-    val capture = AtraceParser(1).parse(traceFile, 0)
+    val capture = AtraceParser(MainProcessSelector(idHint = 1)).parse(traceFile, 0)
 
     assertThat(kernelsView.component.isVisible).isFalse()
     assertThat(hideablePanel.isExpanded).isFalse()

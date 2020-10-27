@@ -32,7 +32,8 @@ import java.util.concurrent.LinkedBlockingDeque
 fun mockTransportProxy(): TransportProxy {
   val mockProxy = mock<TransportProxy>(TransportProxy::class.java)
 
-  `when`<ManagedChannel>(mockProxy.transportChannel).thenReturn(NettyChannelBuilder.forTarget("someTarget").build())
+  val channel = NettyChannelBuilder.forTarget("someTarget").usePlaintext().build()
+  `when`<ManagedChannel>(mockProxy.transportChannel).thenReturn(channel)
   `when`<Map<String, ByteString>>(mockProxy.bytesCache).thenReturn(mutableMapOf())
   `when`<BlockingDeque<Common.Event>>(mockProxy.eventQueue).thenReturn(LinkedBlockingDeque<Common.Event>())
 

@@ -42,16 +42,17 @@ class ComponentAssistantTest {
     val layout = guiTest.importSimpleApplication()
       .editor
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
 
     layout.dragComponentToSurface("Containers", "RecyclerView")
-    MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency").clickOk()
-    val editor = guiTest.ideFrame()
-      .waitForGradleProjectSyncToFinish()
-      .editor
+    guiTest.ideFrame().actAndWaitForGradleProjectSyncToFinish {
+      MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency").clickOk()
+    }
+    val editor = guiTest.ideFrame().editor
 
     layout.waitForRenderToFinish()
       .findView("android.support.v7.widget.RecyclerView", 0)
+      .sceneComponent!!
       .click()
       .openComponentAssistant()
       .getRecyclerViewAssistant().apply {
@@ -66,6 +67,7 @@ class ComponentAssistantTest {
 
     editor.selectEditorTab(EditorFixture.Tab.DESIGN)
     layout.findView("android.support.v7.widget.RecyclerView", 0)
+      .sceneComponent!!
       .click()
       .openComponentAssistant()
       .getRecyclerViewAssistant().apply {
@@ -85,10 +87,11 @@ class ComponentAssistantTest {
     val layout = guiTest.importSimpleApplication()
       .editor
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
 
     layout.dragComponentToSurface("Text", "TextView")
     layout.findView("TextView", 1)
+      .sceneComponent!!
       .click()
       .openComponentAssistant()
       .getTextViewAssistant().apply {
@@ -104,6 +107,7 @@ class ComponentAssistantTest {
 
     // Verify that the element still displays as selected in the assistant panel
     layout.findView("TextView", 1)
+      .sceneComponent!!
       .click()
       .openComponentAssistant()
       .getTextViewAssistant()

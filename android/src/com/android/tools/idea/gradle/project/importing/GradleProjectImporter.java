@@ -16,8 +16,14 @@
 package com.android.tools.idea.gradle.project.importing;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.project.GradleProjectInfo.beginInitializingGradleProjectAt;
+import static com.android.tools.idea.gradle.util.GradleUtil.BUILD_DIR_DEFAULT_NAME;
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.invokeLater;
+import static com.intellij.openapi.project.ProjectTypeService.setProjectType;
 import static com.intellij.openapi.ui.Messages.showErrorDialog;
+import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ExceptionUtil.rethrowUnchecked;
 import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
@@ -26,14 +32,26 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.util.ToolWindows;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ide.impl.OpenProjectTask;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.ProjectType;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.CompilerProjectExtension;
+import com.intellij.openapi.roots.LanguageLevelProjectExtension;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.platform.PlatformProjectOpenProcessor;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.serviceContainer.NonInjectable;
 import java.io.File;
@@ -51,11 +69,12 @@ import org.jetbrains.plugins.gradle.util.GradleJvmResolutionUtil;
  * Imports an Android-Gradle project without showing the "Import Project" Wizard UI.
  */
 public class GradleProjectImporter {
-  // A copy of a private constant from GradleJvmStartupActivity.
+  public static final ProjectType ANDROID_PROJECT_TYPE = new ProjectType("Android");
+// A copy of a private constant from GradleJvmStartupActivity.
   @NonNls private static final String SHOW_UNLINKED_GRADLE_POPUP = "show.inlinked.gradle.project.popup";
   @NotNull private final SdkSync mySdkSync;
-  @NotNull private final NewProjectSetup myNewProjectSetup;
   @NotNull private final ProjectFolder.Factory myProjectFolderFactory;
+  @NotNull private final TopLevelModuleFactory myTopLevelModuleFactory;
 
   @NotNull
   public static GradleProjectImporter getInstance() {
@@ -63,16 +82,16 @@ public class GradleProjectImporter {
   }
 
   public GradleProjectImporter() {
-    this(SdkSync.getInstance(), new NewProjectSetup(), new ProjectFolder.Factory());
+    this(SdkSync.getInstance(), new TopLevelModuleFactory(), new ProjectFolder.Factory());
   }
 
   @NonInjectable
   @VisibleForTesting
   GradleProjectImporter(@NotNull SdkSync sdkSync,
-                        @NotNull NewProjectSetup newProjectSetup,
+                        @NotNull TopLevelModuleFactory topLevelModuleFactory,
                         @NotNull ProjectFolder.Factory projectFolderFactory) {
     mySdkSync = sdkSync;
-    myNewProjectSetup = newProjectSetup;
+    myTopLevelModuleFactory = topLevelModuleFactory;
     myProjectFolderFactory = projectFolderFactory;
   }
 
@@ -81,7 +100,10 @@ public class GradleProjectImporter {
    * storage to force their re-import.
    */
   @Nullable
-  public Project importProjectCore(@NotNull VirtualFile projectFolder, @Nullable Project newProject) {
+  public Project importAndOpenProjectCore(@Nullable Project projectToClose,
+                                          boolean forceOpenInNewFrame,
+                                          @NotNull VirtualFile projectFolder) {
+    Project newProject;
     File projectFolderPath = virtualToIoFile(projectFolder);
     try {
       setUpLocalProperties(projectFolderPath);
@@ -90,6 +112,24 @@ public class GradleProjectImporter {
         newProject = createProject(projectName, projectFolderPath);
       }
       importProjectNoSync(new Request(newProject));
+      PlatformProjectOpenProcessor.openExistingProject(
+        projectFolderPath.toPath(),
+        projectFolderPath.toPath(),
+        new OpenProjectTask(
+          forceOpenInNewFrame,
+          projectToClose,
+          false,
+          false,
+          newProject,
+          null,
+          false,
+          false,
+          true,
+          null,
+          null,
+          null,
+          -1,
+          -1));
     }
     catch (Throwable e) {
       if (ApplicationManager.getApplication().isUnitTestMode()) {
@@ -135,23 +175,68 @@ public class GradleProjectImporter {
     projectInfo.setImportedProject(true);
     silenceUnlinkedGradleProjectNotificationIfNecessary(newProject);
 
-    myNewProjectSetup.prepareProjectForImport(newProject, request.javaLanguageLevel);
+    WriteAction.runAndWait(() -> {
+      Sdk jdk = IdeSdks.getInstance().getJdk();
+      if (jdk != null) {
+        ProjectRootManager.getInstance(newProject).setProjectSdk(jdk);
+      }
+
+      if (request.javaLanguageLevel != null) {
+        LanguageLevelProjectExtension extension = LanguageLevelProjectExtension.getInstance(newProject);
+        if (extension != null) {
+          extension.setLanguageLevel(request.javaLanguageLevel);
+        }
+      }
+
+      // In practice, it really does not matter where the compiler output folder is. Gradle handles that. This is done just to please
+      // IDEA.
+      File compilerOutputFolderPath = new File(getBaseDirPath(newProject), join(BUILD_DIR_DEFAULT_NAME, "classes"));
+      String compilerOutputFolderUrl = pathToIdeaUrl(compilerOutputFolderPath);
+      CompilerProjectExtension compilerProjectExt = CompilerProjectExtension.getInstance(newProject);
+      assert compilerProjectExt != null;
+      compilerProjectExt.setCompilerOutputUrl(compilerOutputFolderUrl);
+
+      // This allows to customize UI when android project is opened inside IDEA with android plugin.
+      setProjectType(newProject, ANDROID_PROJECT_TYPE);
+      myTopLevelModuleFactory.createTopLevelModule(newProject);
+    });
+    invokeLater(newProject, () -> ToolWindows.activateProjectView(newProject));
   }
 
+  /**
+   * Creates a new not configured project in a given location.
+   */
   @NotNull
   public Project createProject(@NotNull String projectName, @NotNull File projectFolderPath) {
-    Project newProject;
-    newProject = myNewProjectSetup.createProject(projectName, projectFolderPath.toPath());
+    try (AccessToken ignored = beginInitializingGradleProjectAt(projectFolderPath)) {
+      ProjectManager projectManager = ProjectManager.getInstance();
+      Project newProject = projectManager.createProject(projectName, projectFolderPath.getPath());
+      if (newProject == null) {
+        throw new NullPointerException("Failed to create a new project");
+      }
+      configureNewProject(newProject);
+      return newProject;
+    }
+  }
+
+  @VisibleForTesting
+  public static void configureNewProject(Project newProject) {
+    GradleSettings gradleSettings = GradleSettings.getInstance(newProject);
+    String externalProjectPath = toCanonicalPath(newProject.getBasePath());
+    if (!gradleSettings.getLinkedProjectsSettings().isEmpty()) {
+      if (!ApplicationManager.getApplication().isUnitTestMode()) {
+        throw new IllegalStateException("configureNewProject should be used with new projects only");
+      }
+      for (GradleProjectSettings setting : gradleSettings.getLinkedProjectsSettings()) {
+        gradleSettings.unlinkExternalProject(setting.getExternalProjectPath());
+      }
+    }
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
-    @NotNull GradleSettings settings = GradleSettings.getInstance(newProject);
-    GradleProjectImportUtil.setupGradleSettings(settings);
-    GradleProjectImportUtil.setupGradleProjectSettings(projectSettings, projectFolderPath.toPath());
-    GradleSettings.getInstance(newProject).setStoreProjectFilesExternally(false);
+    GradleProjectImportUtil.setupGradleSettings(projectSettings, externalProjectPath, newProject, null);
+    gradleSettings.setStoreProjectFilesExternally(false);
     //noinspection unchecked
     ExternalSystemApiUtil.getSettings(newProject, SYSTEM_ID).linkProject(projectSettings);
-
-    return newProject;
   }
 
   private static void silenceUnlinkedGradleProjectNotificationIfNecessary(Project newProject) {

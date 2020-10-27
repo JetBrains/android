@@ -53,6 +53,7 @@ import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -77,7 +78,7 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -150,7 +151,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
         return folderType == ResourceFolderType.DRAWABLE || folderType == ResourceFolderType.MIPMAP;
       }
 
-      return AndroidResourceUtil.isLocalResourceDirectory(file, project);
+      return IdeResourcesUtil.isLocalResourceDirectory(file, project);
     }
 
     return false;
@@ -311,7 +312,8 @@ public class ConvertToWebpAction extends DumbAwareAction {
           sb.append("<br>").append(Integer.toString(mySkipped)).append(" files were skipped because there was no net space savings");
         }
         String message = sb.toString();
-        new NotificationGroup("Convert to WebP", NotificationDisplayType.BALLOON, true)
+        new NotificationGroup(
+          "Convert to WebP", NotificationDisplayType.BALLOON, true, null, null, null, PluginId.getId("org.jetbrains.android"))
           .createNotification(message, NotificationType.INFORMATION)
           .notify(myProject);
       }

@@ -40,9 +40,6 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.inspections.AndroidDomInspection;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidLibraryProjectTest extends AndroidTestCase {
   private static final String BASE_PATH = "libModule/";
 

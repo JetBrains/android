@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.issues;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.GradleSyncIssue;
@@ -32,6 +33,7 @@ import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
+import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.WARNING;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -61,7 +63,7 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
     loadSimpleApplication();
     mySyncMessagesStub.removeAllMessages();
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
 
     String text = "Hello World!";
     String expectedText =
@@ -76,7 +78,7 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
     assertSize(1, messages);
 
     NotificationData message = messages.get(0);
-    assertEquals(ERROR, message.getNotificationCategory());
+    assertEquals(WARNING, message.getNotificationCategory());
     assertThat(message.getMessage()).contains(expectedText);
 
     assertThat(message.getNavigatable()).isInstanceOf(OpenFileDescriptor.class);
@@ -96,7 +98,7 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
     loadSimpleApplication();
     mySyncMessagesStub.removeAllMessages();
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
 
     String text = "Hello World!";
     String expectedText = text + "\nAffected Modules: app";
@@ -110,7 +112,7 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
     assertSize(1, messages);
 
     NotificationData message = messages.get(0);
-    assertEquals(ERROR, message.getNotificationCategory());
+    assertEquals(WARNING, message.getNotificationCategory());
     assertEquals(expectedText, message.getMessage());
 
     assertNull(message.getNavigatable());

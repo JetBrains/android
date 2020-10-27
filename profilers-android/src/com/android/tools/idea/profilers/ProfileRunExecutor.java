@@ -27,13 +27,12 @@ import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
+import java.util.Map;
+import javax.swing.Icon;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.Map;
 
 public class ProfileRunExecutor extends DefaultRunExecutor implements ExecutorIconProvider, LaunchOptionsProvider {
   public static final String PROFILER_LAUNCH_OPTION_KEY = "isProfiling";

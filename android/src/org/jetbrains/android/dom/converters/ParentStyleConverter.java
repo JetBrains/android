@@ -32,9 +32,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class ParentStyleConverter extends ResourceReferenceConverter {
   public ParentStyleConverter() {
     super(ResourceType.STYLE, false, false);

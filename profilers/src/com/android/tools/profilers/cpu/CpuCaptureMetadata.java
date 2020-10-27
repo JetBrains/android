@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.profiler.proto.Cpu;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Metadata of a {@link CpuCapture}, such as capture duration, parsing time, profiler type, etc.
@@ -100,7 +101,9 @@ public class CpuCaptureMetadata {
 
   /**
    * Whether the capture + parsing finished successfully or if there was an error in the capturing or parsing steps.
+   * It's null until set by {@link setStatus(CaptureStatus)}.
    */
+  @Nullable
   private CaptureStatus myStatus;
 
   /**
@@ -140,6 +143,7 @@ public class CpuCaptureMetadata {
     myProfilingConfiguration = configuration;
   }
 
+  @Nullable
   public CaptureStatus getStatus() {
     return myStatus;
   }

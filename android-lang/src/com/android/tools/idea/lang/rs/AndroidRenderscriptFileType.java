@@ -16,12 +16,12 @@
 package com.android.tools.idea.lang.rs;
 
 import com.intellij.openapi.fileTypes.LanguageFileType;
-import icons.AndroidIcons;
-import javax.swing.*;
+import icons.StudioIcons;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public final class AndroidRenderscriptFileType extends LanguageFileType {
+public class AndroidRenderscriptFileType extends LanguageFileType {
   public static final AndroidRenderscriptFileType INSTANCE = new AndroidRenderscriptFileType();
   @NonNls public static final String CODE_EXTENSION = "rs";
   @NonNls public static final String FS_CODE_EXTENSION = "fs";
@@ -51,6 +51,6 @@ public final class AndroidRenderscriptFileType extends LanguageFileType {
 
   @Override
   public Icon getIcon() {
-    return AndroidIcons.RenderScript;
+    return StudioIcons.Shell.Filetree.RENDER_SCRIPT;
   }
 }

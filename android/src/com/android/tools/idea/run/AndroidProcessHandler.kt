@@ -181,7 +181,7 @@ class AndroidProcessHandler @JvmOverloads constructor(
     if (activeTarget === DefaultExecutionTarget.INSTANCE || activeTarget !is AndroidExecutionTarget) {
       return false
     }
-    return activeTarget.iDevice?.let { isAssociated(it) } ?: false
+    return areAnyDevicesAssociated(activeTarget)
   }
 
   @AnyThread
@@ -200,10 +200,15 @@ class AndroidProcessHandler @JvmOverloads constructor(
     }
 
     if (executionTarget is AndroidExecutionTarget) {
-      return executionTarget.iDevice?.let { isAssociated(it) } ?: false
+      return areAnyDevicesAssociated(executionTarget)
     }
 
     return sessionInfo.executionTarget.id == executionTarget.id
+  }
+
+  @AnyThread
+  private fun areAnyDevicesAssociated(executionTarget: AndroidExecutionTarget): Boolean {
+    return executionTarget.devices.any { isAssociated(it) }
   }
 }
 

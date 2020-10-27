@@ -53,8 +53,7 @@ public class OpenAssistSidePanelAction extends AnAction {
   /**
    * Opens the assistant associated with the given actionId
    */
-  @VisibleForTesting
-  public void openWindowNow(@NotNull String actionId, @NotNull Project project) {
+  private void openWindowNow(@NotNull String actionId, @NotNull Project project) {
     AssistToolWindowFactory factory = new AssistToolWindowFactory(actionId);
     ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
     ToolWindow toolWindow = toolWindowManager.getToolWindow(TOOL_WINDOW_TITLE);

@@ -4,9 +4,6 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 
 import javax.swing.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public interface ApkSigningSettingsForm {
   JButton getLoadKeyStoreButton();
 

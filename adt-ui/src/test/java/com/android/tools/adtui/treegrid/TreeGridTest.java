@@ -43,6 +43,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.*;
+import com.intellij.util.ui.ImageUtil;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;

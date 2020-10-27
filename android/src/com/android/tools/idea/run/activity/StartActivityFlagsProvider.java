@@ -18,7 +18,20 @@ package com.android.tools.idea.run.activity;
 import com.android.ddmlib.IDevice;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Wraps "am start" flags.
+ * <p>
+ * Start activity flags can be a combination of many different options: sources-debugger,
+ * debugger state, run configuration, etc. This class encapsulates flags management so we
+ * can hide details about these multiple sources.
+ */
 public interface StartActivityFlagsProvider {
+
+  /**
+   * Returns a concatenated list of flags and values. E.g. "-flag1=foo -flag2=bar.
+   *
+   * @param device The target device, should it affect the startup flags.
+   */
   @NotNull
   String getFlags(@NotNull IDevice device);
 }

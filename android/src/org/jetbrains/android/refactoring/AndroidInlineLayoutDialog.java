@@ -9,9 +9,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidInlineLayoutDialog extends InlineOptionsDialog {
   private final XmlFile myLayoutFile;
   private final XmlTag myLayoutRootTag;

@@ -26,7 +26,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.ThreeState;
 import java.io.File;
 import java.io.IOException;
@@ -43,11 +42,6 @@ public final class GradleVersions {
 
   public GradleVersions() {
     mySettingsFinder = GradleProjectSettingsFinder.getInstance();
-  }
-
-  @NonInjectable
-  public GradleVersions(@NotNull GradleProjectSettingsFinder settingsFinder) {
-    mySettingsFinder = settingsFinder;
   }
 
   @NotNull
@@ -71,7 +65,7 @@ public final class GradleVersions {
       }
     }
 
-    GradleProjectSettings gradleSettings = mySettingsFinder.findGradleProjectSettings(project);
+    GradleProjectSettings gradleSettings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project);
     if (gradleSettings != null) {
       DistributionType distributionType = gradleSettings.getDistributionType();
       if (distributionType == DEFAULT_WRAPPED) {
@@ -97,6 +91,12 @@ public final class GradleVersions {
       }
     }
     return null;
+  }
+
+  @NotNull
+  public GradleVersion getGradleVersionOrDefault(@NotNull Project project, GradleVersion defaultVersion) {
+    GradleVersion gradleVersion = getGradleVersion(project);
+    return gradleVersion == null ? defaultVersion : gradleVersion;
   }
 
   /**

@@ -13,7 +13,7 @@ android {
   defaultConfig {
     targetSdkVersion(27)
     minSdkVersion(15)
-    applicationId = "com.example.google.migratetoandroidx"
+    applicationId = "com.example.google.migratetoandroidxkts"
     versionCode = 1
     versionName = "1.0"
   }

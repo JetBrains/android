@@ -16,30 +16,20 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.idea;
 
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.BaseSetup;
-import com.android.tools.idea.gradle.project.sync.setup.module.idea.java.*;
+import com.android.tools.idea.gradle.project.sync.setup.module.idea.java.ArtifactsByConfigurationModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.idea.java.CompilerOutputModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.idea.java.JavaFacetModuleSetupStep;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class JavaModuleSetup extends BaseSetup<JavaModuleSetupStep, JavaModuleModel> {
   public JavaModuleSetup() {
-    this(new CheckAndroidModuleWithoutVariantsStep(), new JavaFacetModuleSetupStep(), new ContentRootsModuleSetupStep(),
-         new DependenciesModuleSetupStep(), new ArtifactsByConfigurationModuleSetupStep(), new CompilerOutputModuleSetupStep(),
-         new JavaLanguageLevelModuleSetupStep());
+    this(new JavaFacetModuleSetupStep(), new ArtifactsByConfigurationModuleSetupStep(), new CompilerOutputModuleSetupStep());
   }
 
   @VisibleForTesting
   JavaModuleSetup(@NotNull JavaModuleSetupStep... setupSteps) {
     super(setupSteps);
-  }
-
-  @Override
-  protected void beforeSetup(@NotNull ModuleSetupContext context, @Nullable JavaModuleModel model) {
-    if (model != null) {
-      SyncIssues.registerSyncIssues(context.getModule(), model.getSyncIssues());
-    }
   }
 }

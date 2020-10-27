@@ -23,12 +23,13 @@ import com.android.builder.model.level2.GlobalLibraryMap
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
-import com.android.tools.idea.gradle.project.sync.idea.getSourcesAndJavadocArtifacts
+import com.android.tools.idea.gradle.project.sync.idea.getAdditionalClassifierArtifactsModel
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
+import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
 @UsedInBuildAction
@@ -45,9 +46,10 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
   override fun populateProjectModels(controller: BuildController,
                                      projectModel: Model,
                                      modelConsumer: ProjectImportModelProvider.ProjectModelConsumer) {
-    projectModel
-      .let { controller.findModel(projectModel, GradlePluginModel::class.java) }
+    controller.findModel(projectModel, GradlePluginModel::class.java)
       ?.also { pluginModel -> modelConsumer.consume(pluginModel, GradlePluginModel::class.java) }
+    controller.findModel(projectModel, KaptGradleModel::class.java)
+      ?.also { model -> modelConsumer.consume(model, KaptGradleModel::class.java) }
   }
 
   /**
@@ -104,8 +106,14 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
       }
     }
 
-    // SourcesAndJavadocArtifacts must be requested after AndroidProject and Variant model since it requires the library list in dependency model.
-    getSourcesAndJavadocArtifacts(controller, androidModules, syncActionOptions.cachedSourcesAndJavadoc, consumer)
+    // AdditionalClassiferArtifactsModel must be requested after AndroidProject and Variant model since it requires the library list in dependency model.
+    getAdditionalClassifierArtifactsModel(
+      controller,
+      androidModules,
+      syncActionOptions.cachedLibraries,
+      consumer,
+      syncActionOptions.downloadAndroidxUISamplesSources
+    )
   }
 
   private fun populateProjectSyncIssues(

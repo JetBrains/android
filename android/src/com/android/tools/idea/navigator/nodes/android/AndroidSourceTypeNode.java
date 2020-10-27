@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.navigator.nodes.android;
 
+import static com.android.tools.idea.projectsystem.SourceProvidersKt.containsFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
-import com.android.tools.idea.navigator.AndroidProjectTreeBuilder;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
+import com.android.tools.idea.navigator.nodes.GroupNodes;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
@@ -44,7 +45,6 @@ import java.util.Set;
 import javax.swing.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidSourceType;
-import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -76,15 +76,11 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
   public Collection<? extends AbstractTreeNode<?>> getChildren() {
     List<AbstractTreeNode<?>> children = new ArrayList<>();
     ProjectViewDirectoryHelper projectViewDirectoryHelper = ProjectViewDirectoryHelper.getInstance(myProject);
-    AndroidProjectTreeBuilder treeBuilder = (AndroidProjectTreeBuilder)myProjectViewPane.getTreeBuilder();
 
     for (PsiDirectory directory : getSourceFolders()) {
       Collection<AbstractTreeNode<?>> directoryChildren = projectViewDirectoryHelper.getDirectoryChildren(directory, getSettings(), true);
 
       children.addAll(annotateWithSourceProvider(directoryChildren));
-
-      // Inform the tree builder of the node that this particular virtual file maps to
-      treeBuilder.createMapping(directory.getVirtualFile(), this);
     }
 
     return children;
@@ -119,7 +115,7 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
     AndroidFacet androidFacet = getValue();
     assert androidFacet != null;
     for (NamedIdeaSourceProvider provider : AndroidProjectViewPane.getSourceProviders(androidFacet)) {
-      if (IdeaSourceProviderUtil.containsFile(provider, virtualFile)) {
+      if (containsFile(provider, virtualFile)) {
         return provider;
       }
     }
@@ -181,6 +177,11 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
   }
 
   @Override
+  public boolean canRepresent(Object element) {
+    return GroupNodes.canRepresent(this, element);
+  }
+
+  @Override
   @Nullable
   public Comparable getSortKey() {
     return mySourceType;
@@ -219,8 +220,7 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
 
   @Override
   @NotNull
-  public PsiDirectory[] getFolders() {
-    List<PsiDirectory> folders = getSourceFolders();
-    return folders.toArray(PsiDirectory.EMPTY_ARRAY);
+  public List<PsiDirectory> getFolders() {
+    return getSourceFolders();
   }
 }

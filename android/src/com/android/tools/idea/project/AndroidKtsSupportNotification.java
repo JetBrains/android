@@ -26,6 +26,7 @@ import com.intellij.notification.NotificationsConfiguration;
 import com.intellij.notification.impl.NotificationSettings;
 import com.intellij.notification.impl.NotificationsConfigurationImpl;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +34,7 @@ public class AndroidKtsSupportNotification {
   public static final String KTS_DISABLED_WARNING_MSG = "This project uses Gradle KTS build files which are not fully supported. Some functions may be affected.";
   public static final String KTS_ENABLED_WARNING_MSG = "Support for <tt>gradle.kts</tt> build files is experimental: please file bugs to report any problems you encounter.";
   public static final String KTS_WARNING_TITLE = "Gradle Kotlinscript Build Files";
-  public static final NotificationGroup KTS_NOTIFICATION_GROUP = NotificationGroup.balloonGroup("Gradle KTS build files");
+  public static final NotificationGroup KTS_NOTIFICATION_GROUP = NotificationGroup.balloonGroup("Gradle KTS build files", PluginId.getId("org.jetbrains.android"));
 
   @NotNull private final Project myProject;
   private boolean alreadyShown;

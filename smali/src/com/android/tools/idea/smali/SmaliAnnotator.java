@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.smali;
 
+import static com.android.tools.idea.smali.SmaliHighlighterColors.CONSTANT_ATTR_KEY;
+import static com.android.tools.idea.smali.SmaliHighlighterColors.INSTANCE_FIELD_ATTR_KEY;
+import static com.android.tools.idea.smali.SmaliHighlighterColors.STATIC_FIELD_ATTR_KEY;
+import static com.android.tools.idea.smali.psi.SmaliTypes.IDENTIFIER;
+import static com.intellij.psi.util.PsiTreeUtil.findFirstParent;
+
 import com.android.tools.idea.smali.psi.SmaliAccessModifier;
 import com.android.tools.idea.smali.psi.SmaliFieldName;
 import com.android.tools.idea.smali.psi.SmaliFieldSpec;
@@ -25,16 +31,11 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static com.android.tools.idea.smali.SmaliHighlighterColors.*;
-import static com.android.tools.idea.smali.psi.SmaliTypes.IDENTIFIER;
-import static com.intellij.psi.util.PsiTreeUtil.findFirstParent;
+import org.jetbrains.annotations.NotNull;
 
 public class SmaliAnnotator implements Annotator {
   @Override

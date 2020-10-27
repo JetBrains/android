@@ -14,16 +14,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import gnu.trove.TObjectLongHashMap;
 import org.jetbrains.android.util.ResourceEntry;
 import org.jetbrains.android.util.ResourceFileData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.incremental.storage.ValidityState;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public final class AndroidAptValidityState implements ValidityState {
   private static final int SIGNATURE = 0xDEADBEEF;
   private static final byte VERSION = 1;

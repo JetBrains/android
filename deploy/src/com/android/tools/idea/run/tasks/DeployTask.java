@@ -35,6 +35,7 @@ public class DeployTask extends AbstractDeployTask {
   private static final String ID = "DEPLOY";
 
   private final String[] userInstallOptions;
+  private final boolean installOnAllUsers;
 
   /**
    * Creates a task to deploy a list of apks.
@@ -45,6 +46,7 @@ public class DeployTask extends AbstractDeployTask {
   public DeployTask(@NotNull Project project,
                     @NotNull Map<String, List<File>> packages,
                     String userInstallOptions,
+                    boolean installOnAllUsers,
                     Computable<String> installPathProvider) {
     super(project, packages, false, installPathProvider);
     if (userInstallOptions != null && !userInstallOptions.isEmpty()) {
@@ -53,6 +55,7 @@ public class DeployTask extends AbstractDeployTask {
     } else {
       this.userInstallOptions = new String[0];
     }
+    this.installOnAllUsers = installOnAllUsers;
   }
 
   @NotNull
@@ -63,7 +66,15 @@ public class DeployTask extends AbstractDeployTask {
 
   @Override
   protected Deployer.Result perform(IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException {
+    // All installations default to allow debuggable APKs
     InstallOptions.Builder options = InstallOptions.builder().setAllowDebuggable();
+
+    // We default to install only on the current user because we run only apps installed on the
+    // current user. Installing on "all" users causes the device to only update on users that the app
+    // is already installed, failing to run if it's not installed on the current user.
+    if (!installOnAllUsers && device.getVersion().isGreaterOrEqualThan(24)) {
+      options.setInstallOnCurrentUser();
+    }
 
     // Embedded devices (Android Things) have all runtime permissions granted since there's no requirement for user
     // interaction/display. However, regular installation will not grant some permissions until the next device reboot.
@@ -85,6 +96,9 @@ public class DeployTask extends AbstractDeployTask {
     if (userInstallOptions != null) {
       options.setUserInstallOptions(userInstallOptions);
     }
+
+    // Skip verification if possible.
+    options.setSkipVerification(device, applicationId);
 
     LOG.info("Installing application: " + applicationId);
     Deployer.InstallMode installMode = Deployer.InstallMode.DELTA;

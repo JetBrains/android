@@ -15,26 +15,27 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
-import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.ide.CopyPasteManager
 import java.awt.datatransfer.DataFlavor
 
 class NlDesignSurfaceActionHandler @JvmOverloads constructor(
-  surface: NlDesignSurface,
+  surface: DesignSurface,
   @VisibleForTesting copyPasteManager: CopyPasteManager = CopyPasteManager.getInstance()
 ) : DesignSurfaceActionHandler(surface, copyPasteManager) {
 
   override fun deleteElement(dataContext: DataContext) {
     // For layout editor we may delete selected constraints.
     if (ConstraintComponentUtilities.clearSelectedConstraint(mySurface)){
-      return;
+      return
     }
     super.deleteElement(dataContext)
   }

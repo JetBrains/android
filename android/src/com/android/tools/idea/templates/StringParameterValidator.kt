@@ -21,6 +21,8 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.idea.npw.assetstudio.resourceExists
+import com.android.tools.idea.projectsystem.getForFile
+import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.res.IdeResourceNameValidator
 import com.android.tools.idea.res.ResourceFolderRegistry
 import com.android.tools.idea.util.androidFacet
@@ -34,7 +36,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.impl.java.stubs.index.JavaStaticMemberNameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.GlobalSearchScope.EMPTY_SCOPE
 import org.jetbrains.android.facet.AndroidFacet
@@ -47,7 +48,6 @@ import org.jetbrains.kotlin.idea.caches.project.toInfo
 import org.jetbrains.kotlin.idea.core.KotlinIndicesHelper
 import org.jetbrains.kotlin.idea.project.TargetPlatformDetector
 import java.io.File
-import java.util.EnumSet
 
 /**
  * Validate the given value for this parameter and list any reasons why the given value is invalid.
@@ -68,7 +68,6 @@ private fun StringParameter.getErrorMessageForViolatedConstraint(c: Constraint, 
   PACKAGE -> "$name is not set to a valid package name"
   MODULE -> "$name is not set to a valid module name"
   KOTLIN_FUNCTION -> "$name is not set to a valid function name"
-  ID -> "$name is not set to a valid id."
   DRAWABLE, NAVIGATION, STRING, LAYOUT -> {
     val rft = c.toResourceFolderType()
     val resourceNameError = IdeResourceNameValidator.forFilename(rft).getErrorText(value)
@@ -82,9 +81,8 @@ private fun StringParameter.getErrorMessageForViolatedConstraint(c: Constraint, 
   UNIQUE -> "$name must be unique"
   EXISTS -> "$name must already exist"
   URI_AUTHORITY -> "$name must be a valid URI authority"
-  API_LEVEL -> TODO("validity check")
-  VALUES -> TODO()
-  SOURCE_SET_FOLDER -> TODO()
+  VALUES -> "$name must be a valid 'values' file name"
+  SOURCE_SET_FOLDER -> "$name must be a valid source directory name"
 }
 
 /**
@@ -114,7 +112,6 @@ fun StringParameter.validateStringType(
     }
     SOURCE_SET_FOLDER, MODULE -> false // may only violate uniqueness
     UNIQUE, EXISTS -> false // not applicable
-    API_LEVEL, ID -> TODO()
   }
 
   fun checkExistence(c: Constraint): Boolean {
@@ -127,7 +124,8 @@ fun StringParameter.validateStringType(
       }
     KOTLIN_FUNCTION -> {
       project ?: return false
-      val moduleInfo = module!!.toInfo(SourceType.PRODUCTION)!!
+      module ?: return false
+      val moduleInfo = module.toInfo(SourceType.PRODUCTION)!!
       val platform = TargetPlatformDetector.getPlatform(module)
       val facade = KotlinCacheService.getInstance(project).getResolutionFacadeByModuleInfo(moduleInfo, platform)!!
       val helper = KotlinIndicesHelper(facade, searchScope, { true })
@@ -163,9 +161,9 @@ fun StringParameter.validateStringType(
         val modulePath: @SystemIndependent String = AndroidRootUtil.getModuleDirPath(module) ?: return false
         val file = File(FileUtil.toSystemDependentName(modulePath), value)
         val vFile = VfsUtil.findFileByIoFile(file, true)
-        getSourceProvidersForFile(facet, vFile) != null
+        facet.sourceProviders.getForFile(vFile) != null
       }
-      NONEMPTY, ID, STRING, URI_AUTHORITY, API_LEVEL -> false
+      NONEMPTY, STRING, URI_AUTHORITY -> false
       UNIQUE, EXISTS -> false // not applicable
     }
   }
@@ -188,15 +186,7 @@ fun StringParameter.uniquenessSatisfied(
   project: Project?, module: Module?, provider: SourceProvider?, packageName: String?, value: String?, relatedValues: Set<Any>
 ): Boolean = !validateStringType(project, module, provider, packageName, value, relatedValues).contains(UNIQUE)
 
-// TODO(qumeric):
-//fun StringParameter.isRelated(p: Parameter<*>): Boolean =
-//  p is StringParameter && p !== this && TYPE_CONSTRAINTS.intersect(constraints).intersect(p.constraints).isNotEmpty()
-
-// TODO(qumeric): make private
-const val URI_AUTHORITY_REGEX = "[a-zA-Z][a-zA-Z0-9-_.]*(:\\d+)?"
-val TYPE_CONSTRAINTS: EnumSet<Constraint> = EnumSet.of(
-  ACTIVITY, API_LEVEL, CLASS, PACKAGE, APP_PACKAGE, MODULE, LAYOUT, DRAWABLE, NAVIGATION, ID, SOURCE_SET_FOLDER, STRING, URI_AUTHORITY
-)
+private const val URI_AUTHORITY_REGEX = "[a-zA-Z][a-zA-Z0-9-_.]*(:\\d+)?"
 
 fun existsResourceFile(module: Module?, resourceType: ResourceType, name: String?): Boolean {
   if (name == null || name.isEmpty() || module == null) {
@@ -259,11 +249,9 @@ fun Constraint.toResourceFolderType(): ResourceFolderType = when (this) {
   else -> throw IllegalArgumentException("There is no matching ResourceFolderType for $this constraint")
 }
 
-// TODO(qumeric): make private
-fun isValidFullyQualifiedJavaIdentifier(value: String) = AndroidUtils.isValidJavaPackageName(value) && value.contains('.')
+private fun isValidFullyQualifiedJavaIdentifier(value: String) = AndroidUtils.isValidJavaPackageName(value) && value.contains('.')
 
-// TODO(qumeric): make private
-fun existsPackage(project: Project?, sourceProvider: SourceProvider?, packageName: String): Boolean {
+private fun existsPackage(project: Project?, sourceProvider: SourceProvider?, packageName: String): Boolean {
   if (project == null) {
     return false
   }

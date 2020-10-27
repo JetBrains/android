@@ -18,15 +18,26 @@ package com.android.tools.idea.concurrency
 
 import com.google.common.base.Function
 import com.google.common.util.concurrent.*
+import com.google.common.util.concurrent.AsyncFunction
+import com.google.common.util.concurrent.FutureCallback
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.JdkFutureAdapters
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.ListenableFutureTask
+import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.intellij.ide.IdeEventQueue
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.util.AtomicNotNullLazyValue
+import com.intellij.openapi.util.Disposer
 import com.intellij.util.Alarm
 import com.intellij.util.Alarm.ThreadToUse
 import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.IncorrectOperationException
+import org.jetbrains.ide.PooledThreadExecutor
 import java.awt.EventQueue.isDispatchThread
 import java.awt.Toolkit
 import java.util.concurrent.*
@@ -34,8 +45,16 @@ import java.util.concurrent.*
 /**
  * Wrapper function to apply transform function to ListenableFuture after it get done
  */
+//TODO(b/151801197) remove default value for executor.
 fun <I, O> ListenableFuture<I>.transform(executor: Executor = directExecutor(), func: (I) -> O): ListenableFuture<O> {
   return Futures.transform(this, Function<I, O> { i -> func(i!!) }, executor)
+}
+
+/**
+ * @see Futures.transformAsync
+ */
+fun <I, O> ListenableFuture<I>.transformAsync(executor: Executor, func: (I) -> ListenableFuture<O>): ListenableFuture<O> {
+  return Futures.transformAsync(this, AsyncFunction { i -> func(i!!) }, executor)
 }
 
 /**
@@ -46,10 +65,12 @@ fun ListenableFuture<*>.ignoreResult(): ListenableFuture<Void?> = transform { nu
 /**
  * Wrapper function to convert Future to ListenableFuture
  */
+//TODO(b/151801197) remove default value for executor.
 fun <I> Future<I>.listenInPoolThread(executor: Executor = directExecutor()): ListenableFuture<I> {
   return JdkFutureAdapters.listenInPoolThread(this, executor)
 }
 
+//TODO(b/151801197) remove default value for executor.
 fun <I> List<Future<I>>.listenInPoolThread(executor: Executor = directExecutor()): List<ListenableFuture<I>> {
   return this.map { future: Future<I> -> future.listenInPoolThread(executor) }
 }
@@ -61,6 +82,7 @@ fun <I> List<ListenableFuture<I>>.whenAllComplete(): Futures.FutureCombiner<I?> 
 /**
  * Wrapper function to add callback for a ListenableFuture
  */
+//TODO(b/151801197) remove default value for executor.
 fun <I> ListenableFuture<I>.addCallback(executor: Executor = directExecutor(), success: (I?) -> Unit, failure: (Throwable?) -> Unit) {
   addCallback(executor, object : FutureCallback<I> {
     override fun onFailure(t: Throwable?) {
@@ -76,6 +98,7 @@ fun <I> ListenableFuture<I>.addCallback(executor: Executor = directExecutor(), s
 /**
  * Wrapper function to add callback for a ListenableFuture
  */
+//TODO(b/151801197) remove default value for executor.
 fun <I> ListenableFuture<I>.addCallback(executor: Executor = directExecutor(), futureCallback: FutureCallback<I>) {
   Futures.addCallback(this, futureCallback, executor)
 }
@@ -169,4 +192,105 @@ fun <V> pumpEventsAndWaitForFuture(future: Future<V>, timeout: Long, unit: TimeU
   }
 
   throw TimeoutException()
+}
+
+/**
+ * Similar to [transform], but executes [finallyBlock] in both success and error completion.
+ * The returned future fails if:
+ * 1. The original future fails.
+ * 2. The [finallyBlock] fails.
+ *
+ * If they both fail, the Throwable from the original future is returned,
+ * with the error from [finallyBlock] available through [Throwable.getSuppressed].
+ */
+fun <I> ListenableFuture<I>.finallySync(executor: Executor, finallyBlock: () -> Unit): ListenableFuture<I> {
+  val futureResult = SettableFuture.create<I>()
+  val inputFuture = this
+  addCallback(executor, object : FutureCallback<I> {
+    override fun onSuccess(result: I?) {
+      try {
+        finallyBlock()
+        futureResult.set(result)
+      }
+      catch (finallyError: Throwable) {
+        futureResult.setException(finallyError)
+      }
+    }
+
+    override fun onFailure(t: Throwable) {
+      try {
+        finallyBlock()
+      }
+      catch (finallyThrowable: Throwable) {
+        t.addSuppressed(finallyThrowable)
+      }
+
+      if (inputFuture.isCancelled) {
+        // respect cancellation cause, though we swallow
+        // finallyThrowable in this situation
+        futureResult.setFuture(inputFuture)
+        return
+      }
+      // propagate original exception with finallyThrowableSuppressed
+      futureResult.setException(t)
+    }
+  })
+
+  futureResult.addCallback(directExecutor(), {}) {
+    if (futureResult.isCancelled) {
+      inputFuture.cancel(true)
+    }
+  }
+  return futureResult
+}
+
+/**
+ * @see [Futures.catching]
+ */
+fun <V, X : Throwable> ListenableFuture<V>.catching(executor: Executor, exceptionType: Class<X>, fallback: (X) -> V): ListenableFuture<V> {
+  return Futures.catching(this, exceptionType, Function<X, V> { t -> fallback(t!!) }, executor)
+}
+
+/**
+ * Submits a [function] in this executor queue, and returns a [ListenableFuture]
+ * that completes with the [function] result or the exception thrown from the [function].
+ */
+fun <V> Executor.executeAsync(function: () -> V): ListenableFuture<V> {
+  // Should be migrated to Futures.submit(), once guava will be updated to version >= 28.2
+  return Futures.immediateFuture(Unit).transform(this) { function() }
+}
+
+/**
+ * Cancels this future, when parent [Disposable] is disposed.
+ *
+ * @return this future to allow chaining
+ */
+fun <V> ListenableFuture<V>.cancelOnDispose(parent: Disposable): ListenableFuture<V> {
+  // best effort but it doesn't guarantee that Disposer.register won't fail
+  if (Disposer.isDisposed(parent) || Disposer.isDisposing(parent)) {
+    cancel(true)
+    return this
+  }
+  val disposable = Disposable {
+    // no-op if future is completed by now.
+    cancel(true)
+  }
+  // on "directExecutor()" usage: disposable that we dispose in this listener is no-op
+  // because it is completed by now, so it is relatively safe.
+  // It isn't completely safe, because to access the tree Disposer grabs internal lock
+  // and it is blocking operation
+  addListener(Runnable {
+    if (!Disposer.isDisposed(disposable) && !Disposer.isDisposing(disposable)) {
+      // we need to remove disposable from the tree since we don't need it anymore
+      // as well as we need to free future, so it can be gc-ed
+      Disposer.dispose(disposable)
+    }
+  }, directExecutor())
+  try {
+    Disposer.register(parent, disposable)
+  } catch (e: IncorrectOperationException) {
+    // parent was disposed in meanwhile, so cancel future
+    cancel(true)
+  }
+  return this
 }

@@ -40,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Methods for accessing built-in library of images.
  */
-public final class BuiltInImages {
+public class BuiltInImages {
   /** Do not instantiate - all methods are static. */
   private BuiltInImages() {}
 

@@ -20,15 +20,16 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.idea.util.androidFacet
+import com.android.utils.SdkUtils
 import com.intellij.codeHighlighting.Pass
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.icons.AllIcons
-import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.navigation.GotoRelatedItem
 import com.intellij.openapi.editor.markup.GutterIconRenderer
+import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.psi.JavaRecursiveElementWalkingVisitor
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -46,11 +47,12 @@ import org.jetbrains.android.dom.AndroidAttributeValue
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
-import org.jetbrains.android.util.AndroidBuildCommonUtils
-import org.jetbrains.android.util.AndroidResourceUtil
 import org.jetbrains.android.util.AndroidUtils
+import com.android.tools.idea.res.findResourceFields
+import com.android.tools.idea.res.getReferredResourceOrManifestField
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.asJava.toLightClass
+import org.jetbrains.kotlin.idea.KotlinIcons
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
@@ -78,20 +80,25 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
       is PsiClass -> {
         val gotoList = getItemsForClass(element, facet) ?: return
         val nameIdentifier = element.nameIdentifier ?: return
-        result.add(createRelatedItemLineMarkerInfo(nameIdentifier, gotoList, XmlFileType.INSTANCE.icon!!, "Related XML file"))
+        result.add(createRelatedItemLineMarkerInfo(nameIdentifier, gotoList, StdFileTypes.XML.icon!!, "Related XML file"))
       }
       is KtClass -> {
         val gotoList = element.toLightClass()?.let { getItemsForClass(it, facet) } ?: return
         val nameIdentifier = element.nameIdentifier ?: return
-        result.add(createRelatedItemLineMarkerInfo(nameIdentifier, gotoList, XmlFileType.INSTANCE.icon!!,
+        result.add(createRelatedItemLineMarkerInfo(nameIdentifier, gotoList, StdFileTypes.XML.icon!!,
                                                    "Related XML file"))
       }
       is XmlFile -> {
         val gotoList = getItemsForXmlFile(element, facet) ?: return
         val rootTag = element.rootTag ?: return
         val anchor = XmlTagUtil.getStartTagNameElement(rootTag) ?: return
-        result.add(
-          createRelatedItemLineMarkerInfo(anchor as PsiElement, gotoList, AllIcons.Nodes.Class,"Related context Java file"))
+        if (gotoList.any { it.element?.language == KotlinLanguage.INSTANCE }) {
+          result.add(
+            createRelatedItemLineMarkerInfo(anchor as PsiElement, gotoList, KotlinIcons.CLASS, "Related Kotlin class"))
+        } else {
+          result.add(
+            createRelatedItemLineMarkerInfo(anchor as PsiElement, gotoList, AllIcons.Nodes.Class,"Related Java class"))
+        }
       }
     }
   }
@@ -181,7 +188,7 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
           super.visitReferenceExpression(expression)
 
           val resClassName = ResourceType.LAYOUT.getName()
-          val info = AndroidResourceUtil.getReferredResourceOrManifestField(facet, expression, resClassName, true) ?: return
+          val info = getReferredResourceOrManifestField(facet, expression, resClassName, true) ?: return
           if (info.isFromManifest) {
             return
           }
@@ -202,7 +209,7 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
           super.visitReferenceExpression(expression)
           val resClassName = ResourceType.LAYOUT.getName()
           val info = (expression as? KtSimpleNameExpression)?.let {
-            AndroidResourceUtil.getReferredResourceOrManifestField(facet, it, resClassName, true)
+            getReferredResourceOrManifestField(facet, it, resClassName, true)
           } ?: return
           if (info.isFromManifest) {
             return
@@ -219,8 +226,8 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
     }
 
     private fun collectRelatedClasses(file: XmlFile, facet: AndroidFacet): List<GotoRelatedItem>? {
-      val resourceName = AndroidBuildCommonUtils.getResourceName(ResourceType.LAYOUT.getName(), file.name)
-      val fields = AndroidResourceUtil.findResourceFields(facet, ResourceType.LAYOUT.getName(), resourceName, true)
+      val resourceName = SdkUtils.fileNameToResourceName(file.name)
+      val fields = findResourceFields(facet, ResourceType.LAYOUT.getName(), resourceName, true)
       val field = fields.firstOrNull() ?: return null
       val module = facet.module
       // Explicitly chosen in the layout/menu file with a tools:context attribute?
@@ -309,7 +316,7 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
     }
 
     override fun getCustomIcon(): Icon? {
-      return XmlFileType.INSTANCE.icon
+      return StdFileTypes.XML.icon
     }
   }
 }

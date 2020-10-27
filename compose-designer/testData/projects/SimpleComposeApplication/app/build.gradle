@@ -35,6 +35,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
     lintOptions {
         abortOnError false
     }
@@ -47,6 +48,11 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "+"
+    }
+
     kotlinOptions {
         jvmTarget = "1.8"
     }

@@ -15,35 +15,69 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.testutils.PropertySetterRule
+import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeMouse.Button
 import com.android.tools.adtui.swing.FakeMouse.Button.LEFT
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.layoutinspector.DEFAULT_DEVICE
+import com.android.tools.idea.layoutinspector.DEFAULT_PROCESS
+import com.android.tools.idea.layoutinspector.DEFAULT_STREAM
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorTransportRule
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
+import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.ui.components.JBScrollPane
 import junit.framework.TestCase
-import org.junit.After
+import org.jetbrains.android.util.AndroidBundle
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
-import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
 import java.awt.Image
 import java.awt.Point
 import javax.swing.JCheckBox
+import javax.swing.JComponent
+import javax.swing.JPanel
+import javax.swing.JScrollPane
 import javax.swing.JViewport
+
+@RunsInEdt
+class DeviceViewPanelWithFullInspectorTest {
+
+  @get:Rule
+  val disposableRule = DisposableRule()
+
+  @get:Rule
+  val edtRule = EdtRule()
+
+  @get:Rule
+  val inspectorRule = LayoutInspectorTransportRule().withDefaultDevice().attach()
+
+  @Test
+  fun testLiveControlEnabled() {
+    val settings = DeviceViewSettings()
+    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, disposableRule.disposable))
+    val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
+    assertThat(checkbox.isEnabled).isTrue()
+    assertThat(checkbox.toolTipText).isNull()
+  }
+}
 
 @RunsInEdt
 class DeviceViewPanelTest {
@@ -55,16 +89,47 @@ class DeviceViewPanelTest {
   val edtRule = EdtRule()
 
   @get:Rule
-  val inspectorRule = LayoutInspectorTransportRule().withDefaultDevice(connected = true)
+  val projectRule = ProjectRule()
 
-  @Before
-  fun setUp() {
-    InspectorClient.clientFactory = { _, _ -> mock(InspectorClient::class.java) }
-  }
+  @get:Rule
+  val clientFactoryRule = PropertySetterRule(
+    { _, _ -> listOf(mock(DefaultInspectorClient::class.java)) },
+    InspectorClient.Companion::clientFactory)
 
-  @After
-  fun tearDown() {
-    InspectorClient.clientFactory = { model, parentDisposable -> DefaultInspectorClient(model, parentDisposable) }
+  @Test
+  fun testZoomOnConnect() {
+    val viewSettings = DeviceViewSettings(scalePercent = 100)
+    val model = InspectorModel(projectRule.project)
+    val panel = DeviceViewPanel(LayoutInspector(model, disposableRule.disposable), viewSettings, disposableRule.disposable)
+
+    val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
+    scrollPane.setSize(200, 300)
+
+    assertThat(viewSettings.scalePercent).isEqualTo(100)
+
+    val newModel = model {
+      view(ROOT, 0, 0, 100, 200) {
+        view(VIEW1, 25, 30, 50, 50, imageBottom = mock(Image::class.java))
+      }
+    }
+
+    model.update(newModel.root, ROOT, listOf(ROOT))
+
+    // now we should be zoomed to fit
+    assertThat(viewSettings.scalePercent).isEqualTo(135)
+
+    viewSettings.scalePercent = 200
+
+    // Update the model
+    val newModel2 = model {
+      view(ROOT, 0, 0, 100, 200) {
+        view(VIEW2, 50, 20, 30, 40, imageBottom = mock(Image::class.java))
+      }
+    }
+    model.update(newModel2.root, ROOT, listOf(ROOT))
+
+    // Should still have the manually set zoom
+    assertThat(viewSettings.scalePercent).isEqualTo(200)
   }
 
   @Test
@@ -74,15 +139,6 @@ class DeviceViewPanelTest {
     val settings = DeviceViewSettings()
     val toolbar = getToolbar(DeviceViewPanel(inspector, settings, disposableRule.disposable))
     toolbar.components.forEach { assertThat(it.isFocusable).isTrue() }
-  }
-
-  @Test
-  fun testLiveControlEnabled() {
-    val settings = DeviceViewSettings()
-    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, disposableRule.disposable))
-    val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
-    assertThat(checkbox.isEnabled).isTrue()
-    assertThat(checkbox.toolTipText).isNull()
   }
 
   @Test
@@ -132,11 +188,9 @@ class DeviceViewPanelTest {
     fakeUi.mouse.drag(20, 20, -10, -10)
     TestCase.assertEquals(-0.01, contentPanel.model.xOff)
     TestCase.assertEquals(-0.01, contentPanel.model.yOff)
-
   }
 }
 
-@Ignore("The client is not correctly setup for this test. Delay this test until 4.1.")
 @RunsInEdt
 class DeviceViewPanelLegacyTest {
   @get:Rule
@@ -146,7 +200,7 @@ class DeviceViewPanelLegacyTest {
   val edtRule = EdtRule()
 
   @get:Rule
-  val inspectorRule = LayoutInspectorTransportRule().withLegacyClient().withDefaultDevice(connected = true)
+  val inspectorRule = LayoutInspectorTransportRule().withLegacyClient().withDefaultDevice().attach()
 
   @Test
   fun testLiveControlDisabled() {
@@ -158,11 +212,130 @@ class DeviceViewPanelLegacyTest {
   }
 }
 
-private fun getToolbar(panel: DeviceViewPanel) = flatten(panel).find { it.name == DEVICE_VIEW_ACTION_TOOLBAR_NAME } as Container
+@RunsInEdt
+class DeviceViewPanelLegacyWithApi29DeviceTest {
+  @get:Rule
+  val disposableRule = DisposableRule()
 
-private fun flatten(component: Component): List<Component> {
-  if (component !is Container) {
-    return listOf(component)
+  @get:Rule
+  val edtRule = EdtRule()
+
+  @get:Rule
+  val inspectorRule = LayoutInspectorTransportRule().withLegacyClient()
+
+  @Test
+  fun testLiveControlDisabled() {
+    inspectorRule.addProcess(DEFAULT_DEVICE, DEFAULT_PROCESS)
+    inspectorRule.attachTo(DEFAULT_STREAM, DEFAULT_PROCESS)
+    val settings = DeviceViewSettings()
+    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, disposableRule.disposable))
+    val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
+    assertThat(checkbox.isEnabled).isFalse()
+    assertThat(checkbox.toolTipText).isEqualTo(AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY))
   }
-  return component.components.flatMap { flatten(it) }.plus(component)
 }
+
+@RunsInEdt
+class MyViewportLayoutManagerTest {
+  private lateinit var scrollPane: JScrollPane
+  private lateinit var contentPanel: JComponent
+  private lateinit var layoutManager: MyViewportLayoutManager
+
+  private var layerSpacing = INITIAL_LAYER_SPACING
+
+  private var rootPosition = Point(400, 500)
+
+  @get:Rule
+  val edtRule = EdtRule()
+
+  @Before
+  fun setUp() {
+    contentPanel = JPanel()
+    scrollPane = JBScrollPane(contentPanel)
+    scrollPane.size = Dimension(502, 202)
+    scrollPane.preferredSize = Dimension(502, 202)
+    contentPanel.preferredSize = Dimension(1000, 1000)
+    layoutManager = MyViewportLayoutManager(scrollPane.viewport, { layerSpacing }, { rootPosition })
+    layoutManager.layoutContainer(scrollPane.viewport)
+    scrollPane.layout.layoutContainer(scrollPane)
+  }
+
+  @Test
+  fun testAdjustLayerSpacing() {
+    // Start view as centered
+    scrollPane.viewport.viewPosition = Point(250, 400)
+    // expand spacing
+    layerSpacing = 200
+    contentPanel.preferredSize = Dimension(1200, 1200)
+    layoutManager.layoutContainer(scrollPane.viewport)
+    // Still centered
+    assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(350, 500))
+
+    // offset view (-100, -50) from center
+    scrollPane.viewport.viewPosition = Point(250, 450)
+    // put spacing and size back
+    layerSpacing = INITIAL_LAYER_SPACING
+    contentPanel.preferredSize = Dimension(1000, 1000)
+    layoutManager.layoutContainer(scrollPane.viewport)
+
+    // view still offset (-100, -50) from center
+    assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(150, 350))
+  }
+
+  @Test
+  fun testZoomToFit() {
+    assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(0, 0))
+    layoutManager.currentZoomOperation = ZoomType.FIT
+    layoutManager.layoutContainer(scrollPane.viewport)
+    // view is centered after fit
+    assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(250, 400))
+  }
+
+  @Test
+  fun testZoom() {
+    // Start view as centered
+    scrollPane.viewport.viewPosition = Point(250, 400)
+    // zoom in
+    layoutManager.currentZoomOperation = ZoomType.IN
+    contentPanel.preferredSize = Dimension(1200, 1200)
+
+    layoutManager.layoutContainer(scrollPane.viewport)
+    // Still centered
+    assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(350, 500))
+
+    // offset view (-100, -50) from center
+    scrollPane.viewport.viewPosition = Point(250, 450)
+    // zoom out
+    layoutManager.currentZoomOperation = ZoomType.OUT
+    contentPanel.preferredSize = Dimension(1000, 1000)
+
+    layoutManager.layoutContainer(scrollPane.viewport)
+
+    // view proportionally offset from center
+    assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(166, 358))
+  }
+
+  @Test
+  fun testChangeSize() {
+    // Start view as centered
+    scrollPane.viewport.viewPosition = Point(250, 400)
+    layoutManager.layoutContainer(scrollPane.viewport)
+
+    // view grows
+    contentPanel.preferredSize = Dimension(1200, 1200)
+    layoutManager.layoutContainer(scrollPane.viewport)
+
+    // view should still be in the same place
+    assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(250, 400))
+
+    // view grows, root location moves
+    contentPanel.preferredSize = Dimension(1300, 1300)
+    rootPosition = Point(500, 600)
+    layoutManager.layoutContainer(scrollPane.viewport)
+
+    // scroll changes to keep view in the same place
+    assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(350, 500))
+  }
+}
+
+private fun getToolbar(panel: DeviceViewPanel) = flatten(panel).find { it.name == DEVICE_VIEW_ACTION_TOOLBAR_NAME } as Container

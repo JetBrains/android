@@ -16,10 +16,11 @@
 package com.android.tools.idea.tests.gui.compose
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.util.WizardUtils
+import com.android.tools.idea.wizard.template.Language
 import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.After
 import org.junit.Before
@@ -30,8 +31,7 @@ import java.util.concurrent.TimeUnit
 
 @RunWith(GuiTestRemoteRunner::class)
 class NewComposeProjectTest {
-  @Rule
-  @JvmField
+  @get:Rule
   val guiTest = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
 
   @Before
@@ -56,16 +56,16 @@ class NewComposeProjectTest {
    */
   @Test
   fun newComposeProject() {
-    WizardUtils.createNewProject(guiTest, "Empty Compose Activity", Language.KOTLIN)
+    WizardUtils.createNewProject(guiTest, "Empty Compose Activity", Language.Kotlin)
 
     guiTest.getProjectFileText("app/build.gradle").run {
-      Truth.assertThat(this).contains("implementation 'androidx.ui:ui-layout:")
-      Truth.assertThat(this).contains("implementation 'androidx.ui:ui-material:")
-      Truth.assertThat(this).contains("implementation 'androidx.ui:ui-tooling:")
+      assertThat(this).contains("implementation \"androidx.ui:ui-layout:")
+      assertThat(this).contains("implementation \"androidx.ui:ui-material:")
+      assertThat(this).contains("implementation \"androidx.ui:ui-tooling:")
     }
     guiTest.getProjectFileText("app/src/main/java/com/google/myapplication/MainActivity.kt").run {
-      Truth.assertThat(this).contains("@Composable")
-      Truth.assertThat(this).contains("@Preview")
+      assertThat(this).contains("@Composable")
+      assertThat(this).contains("@Preview")
     }
   }
 }

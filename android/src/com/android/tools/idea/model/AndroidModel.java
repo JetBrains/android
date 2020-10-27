@@ -129,12 +129,6 @@ public interface AndroidModel {
   boolean isGenerated(@NotNull VirtualFile file);
 
   /**
-   * @return Whether data binding is enabled for this model and whether it is support or X versions.
-   */
-  @NotNull
-  DataBindingMode getDataBindingMode();
-
-  /**
    * @return A provider for finding .class output files and external .jars.
    */
   @NotNull
@@ -142,6 +136,9 @@ public interface AndroidModel {
 
   /**
    * @return Whether the class specified by fqcn is out of date and needs to be rebuilt.
+   * <p>
+   * NOTE: Implementations are not necessarily able to detect all the cases when the file is out of date. Therefore, {@code false} should
+   *       be interpreted as meaning "not known".
    */
   boolean isClassFileOutOfDate(@NotNull Module module, @NotNull String fqcn, @NotNull VirtualFile classFile);
 

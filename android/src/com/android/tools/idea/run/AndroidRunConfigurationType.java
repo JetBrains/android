@@ -1,74 +1,50 @@
 // Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.run;
 
-import static com.android.tools.idea.help.StudioHelpManagerImpl.STUDIO_HELP_PREFIX;
-
-import com.intellij.compiler.options.CompileStepBeforeRun;
-import com.intellij.execution.BeforeRunTask;
+import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.intellij.execution.configurations.ConfigurationFactory;
-import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.ConfigurationTypeBase;
 import com.intellij.execution.configurations.ConfigurationTypeUtil;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.configurations.RunConfigurationSingletonPolicy;
-import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.NotNullLazyValue;
 import icons.StudioIcons;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 public final class AndroidRunConfigurationType extends ConfigurationTypeBase {
+  public static final String ID = "AndroidRunConfigurationType";
+
   public AndroidRunConfigurationType() {
-    super("AndroidRunConfigurationType", AndroidBundle.message("android.run.configuration.type.name"), AndroidBundle.message("android.run.configuration.type.description"),
+    super(ID,
+          AndroidBundle.message("android.run.configuration.type.name"),
+          AndroidBundle.message("android.run.configuration.type.description"),
           NotNullLazyValue.createValue(() -> StudioIcons.Shell.Filetree.ANDROID_PROJECT));
 
-    addFactory(new AndroidRunConfigurationFactory(this, "Android App"));
+    addFactory(new AndroidRunConfigurationFactory("Android App"));
   }
 
   @Override
   public String getHelpTopic() {
-    return STUDIO_HELP_PREFIX + "reference.dialogs.rundebug.AndroidRunConfigurationType";
+    return AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/rundebugconfig.html";
   }
 
-  public static class AndroidRunConfigurationFactory extends ConfigurationFactory {
-    private @NotNull String myId;
+  public class AndroidRunConfigurationFactory extends AndroidRunConfigurationFactoryBase {
+    public AndroidRunConfigurationFactory() {
+      super(AndroidRunConfigurationType.this);
+    }
 
-    protected AndroidRunConfigurationFactory(@NotNull ConfigurationType type, @NotNull String id) {
-      super(type);
-      myId = id;
+    @Override
+    @NotNull
+    public String getId() {
+      // This ID must be non-localized, use a rae string instead of the message bundle string.
+      return "Android App";
     }
 
     @NotNull
     @Override
     public RunConfiguration createTemplateConfiguration(@NotNull Project project) {
       return new AndroidRunConfiguration(project, this);
-    }
-
-    @NotNull
-    @Override
-    public RunConfigurationSingletonPolicy getSingletonPolicy() {
-      return RunConfigurationSingletonPolicy.MULTIPLE_INSTANCE;
-    }
-
-    @Override
-    public boolean isApplicable(@NotNull Project project) {
-      return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID);
-    }
-
-    @Override
-    public void configureBeforeRunTaskDefaults(Key<? extends BeforeRunTask> providerID, BeforeRunTask task) {
-      // Disable the default Make compile step for this run configuration type
-      if (CompileStepBeforeRun.ID.equals(providerID)) {
-        task.setEnabled(false);
-      }
-    }
-
-    @Override
-    public @NotNull String getId() {
-      return myId;
     }
   }
 

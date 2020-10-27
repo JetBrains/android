@@ -17,15 +17,13 @@ package com.android.tools.idea.welcome.install
 
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.testutils.TestUtils
-import com.android.tools.idea.wizard.dynamic.ScopedStateStore
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import org.mockito.Mockito
 
 class AndroidSdkTest {
   @Test
   fun `get required SDK packages doesn't return emulator on Chrome OS`() {
-    val sdk = AndroidSdk(Mockito.mock(ScopedStateStore::class.java), true).apply {
+    val sdk = AndroidSdk(true).apply {
       updateState(AndroidSdkHandler.getInstance(TestUtils.getSdk()))
     }
     val packages = sdk.getRequiredSdkPackages(true)

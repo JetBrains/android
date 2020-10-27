@@ -23,14 +23,13 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.model.MergedManifestManager;
-import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.Collections;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class ImageViewHandlerTest extends LayoutTestCase {
@@ -46,8 +45,7 @@ public class ImageViewHandlerTest extends LayoutTestCase {
     myFixture.addFileToProject("AndroidManifest.xml", MANIFEST_SOURCE);
     myModel = createModel();
 
-    MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(myModel.getModule());
-    String pkg = StringUtil.notNullize(manifest.getPackage());
+    String pkg = StringUtil.notNullize(AndroidManifestUtils.getPackageName(myModule));
     assertThat(pkg).isEqualTo("com.example");
   }
 

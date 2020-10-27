@@ -26,10 +26,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext;
 
-class ProjectFinder {
+public class ProjectFinder {
   @Nullable
-  Project findProject(@NotNull ProjectResolverContext context) {
-    String projectPath = context.getProjectPath();
+  public Project findProject(@NotNull String projectPath) {
     if (isNotEmpty(projectPath)) {
       File projectFolderPath = toSystemDependentPath(projectPath);
       for (Project project : ProjectManager.getInstance().getOpenProjects()) {
@@ -39,6 +38,13 @@ class ProjectFinder {
       }
     }
     return null;
+  }
+
+
+  @Nullable
+  Project findProject(@NotNull ProjectResolverContext context) {
+    String projectPath = context.getProjectPath();
+    return findProject(projectPath);
   }
 
   private static boolean hasMatchingPath(@NotNull Project project, @NotNull File path) {

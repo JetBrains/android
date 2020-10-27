@@ -19,6 +19,7 @@ import com.android.builder.model.TestOptions
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.AndroidTestOrchestratorRemoteAndroidTestRunner
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner
+import com.android.ddmlib.testrunner.RemoteAndroidTestRunner.StatusReporterMode
 import com.android.ide.common.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.ConsolePrinter
@@ -31,7 +32,7 @@ import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationL
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationLaunchTask.Companion.allInPackageTest
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationLaunchTask.Companion.classTest
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationLaunchTask.Companion.methodTest
-import com.android.tools.idea.testartifacts.instrumented.testsuite.ANDROID_TEST_RESULT_LISTENER_KEY
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.DdmlibTestRunListenerAdapter
 import com.intellij.execution.Executor
 import com.intellij.openapi.application.ApplicationManager
@@ -184,7 +185,19 @@ class AndroidTestApplicationLaunchTask private constructor(
                                                                                                          myInstrumentationTestRunner,
                                                                                                          device,
                                                                                                          true)
-      else -> RemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device)
+      else -> {
+        val statusReporterMode =
+          if (device.version.apiLevel >= StatusReporterMode.PROTO_STD.minimumApiLevel) {
+            StatusReporterMode.PROTO_STD
+          }
+          else {
+            StatusReporterMode.RAW_TEXT
+          }
+        RemoteAndroidTestRunner(myTestApplicationId,
+                                myInstrumentationTestRunner,
+                                device,
+                                statusReporterMode)
+      }
     }.apply {
       setDebug(myWaitForDebugger)
       runOptions = myInstrumentationOptions

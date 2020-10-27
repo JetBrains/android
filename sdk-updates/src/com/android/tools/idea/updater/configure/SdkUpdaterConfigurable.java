@@ -29,7 +29,7 @@ import com.android.repository.util.InstallerUtil;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
-import com.android.tools.idea.help.StudioHelpManagerImpl;
+import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -42,6 +42,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -71,6 +72,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.swing.*;
 import javax.swing.event.AncestorEvent;
 import org.jetbrains.android.util.AndroidBundle;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.event.AncestorEvent;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -109,7 +113,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   @Nullable
   @Override
   public String getHelpTopic() {
-    return StudioHelpManagerImpl.STUDIO_HELP_PREFIX + "r/studio-ui/sdk-manager.html";
+    return AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/sdk-manager.html";
   }
 
   @Nullable

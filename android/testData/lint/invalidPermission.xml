@@ -17,7 +17,7 @@
         <action android:name="android.intent.action.MAIN"/>
 
         <category android:name="android.intent.category.LAUNCHER"
-        <error descr="Protecting an unsupported element with a permission is a no-op and potentially dangerous.">android:<caret>permission="android.permission.SET_WALLPAPER"</error>/>
+        <error descr="Protecting an unsupported element with a permission is a no-op and potentially dangerous">android:<caret>permission="android.permission.SET_WALLPAPER"</error>/>
       </intent-filter>
     </activity>
   </application>

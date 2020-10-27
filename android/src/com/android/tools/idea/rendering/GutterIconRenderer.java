@@ -1,16 +1,20 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.rendering;
 
 import static com.android.SdkConstants.DOT_JAR;
 import static com.intellij.util.io.URLUtil.FILE_PROTOCOL;
 import static com.intellij.util.io.URLUtil.JAR_PROTOCOL;
+import static org.jetbrains.android.AndroidAnnotatorUtil.createSetAttributeTask;
 
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.util.PathString;
+import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
+import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.util.FileExtensions;
 import com.android.utils.HashCodes;
 import com.android.utils.SdkUtils;
@@ -18,6 +22,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.application.TransactionGuard;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -27,37 +33,62 @@ import com.intellij.openapi.ui.popup.ComponentPopupBuilder;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.Consumer;
 import com.intellij.util.io.URLUtil;
 import com.intellij.util.ui.EmptyIcon;
+import icons.StudioIcons;
+import java.awt.MouseInfo;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Objects;
 import javax.swing.Icon;
 import javax.swing.SwingConstants;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * {@link com.intellij.openapi.editor.markup.GutterIconRenderer} for Drawable resource references in XML files.
+ */
 public class GutterIconRenderer extends com.intellij.openapi.editor.markup.GutterIconRenderer implements DumbAware {
+  private final static int PREVIEW_MAX_WIDTH = JBUI.scale(128);
+  private final static int PREVIEW_MAX_HEIGHT = JBUI.scale(128);
+  private final static String PREVIEW_TEXT = "Click Image to Open Resource";
+
   @NotNull private final ResourceResolver myResourceResolver;
   @NotNull private final AndroidFacet myFacet;
-  @NotNull private final VirtualFile myFile;
+  @Nullable private final VirtualFile myFile;
   @NotNull private final Configuration myConfiguration;
+  @NotNull private final Consumer<String> mySetAttributeTask;
 
-  public GutterIconRenderer(@NotNull ResourceResolver resourceResolver, @NotNull AndroidFacet facet, @NotNull VirtualFile file,
+  /**
+   * @param element {@link PsiElement} being annotated, usually an XML attribute or tag.
+   * @param resourceResolver {@link ResourceResolver} instance used to resolve resources from the active theme.
+   * @param facet the {@link AndroidFacet} for the active module.
+   * @param file the bitmap file to render in the gutter, when null, a fallback icon will be rendered instead. See {@link #getIcon()}.
+   * @param configuration Android {@link Configuration} associated with the containing file of the annotated element.
+   */
+  public GutterIconRenderer(@NotNull PsiElement element,
+                            @NotNull ResourceResolver resourceResolver,
+                            @NotNull AndroidFacet facet,
+                            @Nullable VirtualFile file,
                             @NotNull Configuration configuration) {
     myResourceResolver = resourceResolver;
     myFacet = facet;
     myFile = file;
     myConfiguration = configuration;
+    mySetAttributeTask = createSetAttributeTask(element);
   }
 
   @Override
   @NotNull
   public Icon getIcon() {
-    Icon icon = GutterIconCache.getInstance().getIcon(myFile, myResourceResolver, myFacet);
+    Icon icon = myFile != null
+                ? GutterIconCache.getInstance().getIcon(myFile, myResourceResolver, myFacet)
+                : StudioIcons.LayoutEditor.Properties.IMAGE_PICKER;
     return icon == null ? EmptyIcon.ICON_0 : icon;
   }
 
@@ -75,29 +106,40 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
     GutterIconRenderer that = (GutterIconRenderer)o;
 
     if (!myFacet.equals(that.myFacet)) return false;
-    if (!myFile.equals(that.myFile)) return false;
+    if (!Objects.equals(myFile, that.myFile)) return false;
 
     return true;
   }
 
   @Override
   public int hashCode() {
-    return HashCodes.mix(myFacet.hashCode(), myFile.hashCode());
+    return HashCodes.mix(myFacet.hashCode(), Objects.hashCode(myFile));
   }
 
-  private static final class GutterIconClickAction extends AnAction implements NavigationTargetProvider {
-    private final static int PREVIEW_MAX_WIDTH = JBUIScale.scale(128);
-    private final static int PREVIEW_MAX_HEIGHT = JBUIScale.scale(128);
-    private final static String PREVIEW_TEXT = "Click Image to Open Resource";
+  private final static String SET_RESOURCE_COMMAND_NAME = "Resource picked";
 
-    @NotNull private final VirtualFile myFile;
+  private void setAttribute(@NotNull String colorString) {
+    Project project = myFacet.getModule().getProject();
+    TransactionGuard.submitTransaction(project, () ->
+      WriteCommandAction.runWriteCommandAction(project, SET_RESOURCE_COMMAND_NAME, null, () -> mySetAttributeTask.consume(colorString))
+    );
+  }
+
+  private static void openImageResourceTab(@NotNull Project project, @NotNull VirtualFile navigationTarget) {
+    OpenFileDescriptor descriptor = new OpenFileDescriptor(project, navigationTarget, -1);
+    FileEditorManager.getInstance(project).openEditor(descriptor, true);
+  }
+
+  private class GutterIconClickAction extends AnAction implements NavigationTargetProvider {
+
+    @Nullable private final VirtualFile myFile;
     @NotNull private final ResourceResolver myResourceResolver;
     @NotNull private final AndroidFacet myFacet;
     @NotNull private final Configuration myConfiguration;
     @Nullable private VirtualFile myNavigationTarget;
     private boolean myNavigationTargetComputed;
 
-    private GutterIconClickAction(@NotNull VirtualFile file, @NotNull ResourceResolver resourceResolver, @NotNull AndroidFacet facet,
+    private GutterIconClickAction(@Nullable VirtualFile file, @NotNull ResourceResolver resourceResolver, @NotNull AndroidFacet facet,
                                   @NotNull Configuration configuration) {
       myFile = file;
       myResourceResolver = resourceResolver;
@@ -108,28 +150,46 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
     @Override
     public void actionPerformed(@NotNull AnActionEvent event) {
       final Editor editor = event.getData(CommonDataKeys.EDITOR);
+      if (editor == null) return;
 
-      if (editor != null) {
-        Project project = editor.getProject();
+      Project project = editor.getProject();
+      if (project == null) return;
 
-        if (project != null) {
-          VirtualFile navigationTarget = getNavigationTarget();
-          Runnable onClick = navigationTarget == null ? null : () -> openImageResourceTab(project, navigationTarget);
-          JBPopup preview = createPreview(onClick);
-
-          if (preview != null) {
-            // Show preview popup at location of mouse click.
-            preview.show(new RelativePoint((MouseEvent)event.getInputEvent()));
+      if (StudioFlags.NELE_RESOURCE_POPUP_PICKER.get() && StudioFlags.NELE_DRAWABLE_POPUP_PICKER.get()) {
+        // Show the resource picker popup.
+        ResourceChooserHelperKt.createAndShowResourcePickerPopup(
+          ResourceType.DRAWABLE,
+          myConfiguration,
+          myFacet,
+          MouseInfo.getPointerInfo().getLocation(),
+          resourceReference -> {
+            setAttribute(resourceReference);
+            return null;
           }
-          else if (navigationTarget != null) {
-            openImageResourceTab(project, navigationTarget);
-          }
+        );
+      }
+      else {
+        // Show the navigate-able preview popup (a larger preview of the icon that opens the image file when clicked).
+        VirtualFile navigationTarget = getNavigationTarget();
+        Runnable onClick = navigationTarget == null ? null : () -> openImageResourceTab(project, navigationTarget);
+        JBPopup preview = createPreview(onClick);
+
+        if (preview != null) {
+          // Show preview popup at location of mouse click.
+          preview.show(new RelativePoint((MouseEvent)event.getInputEvent()));
+        }
+        else if (navigationTarget != null) {
+          openImageResourceTab(project, navigationTarget);
         }
       }
     }
 
     @Nullable
     private JBPopup createPreview(@Nullable Runnable onClick) {
+      if (myFile == null) {
+        return null;
+      }
+
       Icon icon = GutterIconFactory.createIcon(myFile, myResourceResolver, PREVIEW_MAX_WIDTH, PREVIEW_MAX_HEIGHT, myFacet);
 
       if (icon == null) {
@@ -158,16 +218,11 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
       return popup;
     }
 
-    private static void openImageResourceTab(@NotNull Project project, @NotNull VirtualFile navigationTarget) {
-      OpenFileDescriptor descriptor = new OpenFileDescriptor(project, navigationTarget, -1);
-      FileEditorManager.getInstance(project).openEditor(descriptor, true);
-    }
-
     @VisibleForTesting
     @Override
     @Nullable
     public VirtualFile getNavigationTarget() {
-      if (!myNavigationTargetComputed) {
+      if (!myNavigationTargetComputed && myFile != null) {
         IAndroidTarget target = myConfiguration.getTarget();
 
         // If myFile points to an embedded framework resource intended for rendering only,

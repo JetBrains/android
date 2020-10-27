@@ -27,7 +27,6 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Assert.fail
 import org.junit.Test
 import org.mockito.Mockito.mock
 import java.awt.Image
@@ -35,7 +34,6 @@ import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.geom.AffineTransform
 import kotlin.math.abs
-import kotlin.math.roundToInt
 
 class DeviceViewPanelModelTest {
   @Test

@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.npw
 
-import com.google.common.truth.Truth.assertThat
-
-import com.android.tools.idea.npw.FormFactor
-import com.android.tools.idea.npw.platform.Language
+import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.device.FormFactor
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
+import com.android.tools.idea.wizard.template.Language
+import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.Rule
 import org.junit.Test
@@ -30,12 +30,12 @@ import org.junit.runner.RunWith
  */
 @RunWith(GuiTestRemoteRunner::class)
 class NewWearProjectTest {
-  @JvmField @Rule
+  @get:Rule
   val guiTest = GuiTestRule()
 
   @Test
   fun testBuildBlankWearActivityWithoutCompanion() {
-    createWearProject("Blank Activity", Language.JAVA, false)
+    createWearProject("Blank Activity", Language.Java, false)
 
     guiTest.getProjectFileText("app/build.gradle").apply {
       assertThat(this).contains("compileOnly 'com.google.android.wearable")
@@ -54,7 +54,7 @@ class NewWearProjectTest {
 
   @Test
   fun testBuildBlankWearActivityWithCompanion() {
-    createWearProject("Blank Activity", Language.KOTLIN, true)
+    createWearProject("Blank Activity", Language.Kotlin, true)
 
     guiTest.getProjectFileText("mobile/build.gradle").apply {
       assertThat(this).contains("wearApp project")
@@ -73,18 +73,15 @@ class NewWearProjectTest {
     guiTest.welcomeFrame()
       .createNewProject()
       .chooseAndroidProjectStep
-      .selectWearTab()
+      .selectTab(FormFactor.WEAR)
       .chooseActivity(activityName)
       .wizard()
       .clickNext()
       .configureNewAndroidProjectStep
       .setSourceLanguage(language)
-      .selectMinimumSdkApi(FormFactor.WEAR, 28)
+      .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setPairWithPhoneApp(pairWithPhone)
       .wizard()
-      .clickFinish()
-
-    guiTest.ideFrame()
-      .waitForGradleProjectSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish()
   }
 }

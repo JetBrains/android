@@ -49,11 +49,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.JBUI;
 import java.awt.*;
@@ -129,6 +131,7 @@ public class BuildVariantView {
   }
 
   @VisibleForTesting
+  @NonInjectable
   public BuildVariantView(@NotNull Project project, @NotNull BuildVariantUpdater updater) {
     myProject = project;
     myUpdater = updater;
@@ -274,10 +277,7 @@ public class BuildVariantView {
     NdkModuleModel ndkModuleModel = getNdkModuleModelIfNotJustDummy(module);
     if (ndkModuleModel != null) {
       buildVariantNames.addAll(
-        ndkModuleModel.getNdkVariantNames()
-          .stream()
-          .map(ndkVariantName -> ndkModuleModel.getVariantName(ndkVariantName))
-          .collect(Collectors.toList()));
+        ContainerUtil.map(ndkModuleModel.getNdkVariantNames(), ndkVariantName -> ndkModuleModel.getVariantName(ndkVariantName)));
     }
 
     return buildVariantNames;
@@ -801,7 +801,6 @@ public class BuildVariantView {
     private JPanel myPanel;
     private JLabel myModuleNameLabel;
     private JPanel myButtonsPanel;
-    private JButton myInfoButton;
     private JButton myFixButton;
 
     private Object myValue;
@@ -809,16 +808,6 @@ public class BuildVariantView {
     ModuleTableCell() {
       myModuleNameLabel = new JLabel();
       myModuleNameLabel.setOpaque(false);
-
-      myInfoButton = createButton(AllIcons.General.BalloonInformation);
-      myInfoButton.setToolTipText("More info");
-      myInfoButton.addActionListener(e -> {
-        if (myValue instanceof Module) {
-          Module module = (Module)myValue;
-          ModuleVariantsInfoGraph dialog = new ModuleVariantsInfoGraph(module);
-          dialog.show();
-        }
-      });
 
       myFixButton = createButton(AllIcons.Actions.QuickfixBulb);
       myFixButton.setToolTipText("Fix problem");
@@ -836,7 +825,6 @@ public class BuildVariantView {
 
       myButtonsPanel = new JPanel();
       myButtonsPanel.setOpaque(false);
-      myButtonsPanel.add(myInfoButton);
       myButtonsPanel.add(myFixButton);
 
       myPanel = new JPanel(new BorderLayout()) {
@@ -847,10 +835,6 @@ public class BuildVariantView {
             return toolTip;
           }
           int x = e.getX() - myButtonsPanel.getX();
-          toolTip = getToolTipTextIfUnderX(myInfoButton, x);
-          if (toolTip != null) {
-            return toolTip;
-          }
           toolTip = getToolTipTextIfUnderX(myFixButton, x);
           if (toolTip != null) {
             return toolTip;
@@ -913,7 +897,6 @@ public class BuildVariantView {
       Color background = isSelected ? table.getSelectionBackground() : table.getBackground();
 
       if (isAndriodGradleModule) {
-        myInfoButton.setVisible(true);
         myConflict = ((BuildVariantTable)table).findConflict(row);
 
         myModuleNameLabel.setToolTipText(myConflict != null ? myConflict.toString() : null);
@@ -924,7 +907,6 @@ public class BuildVariantView {
       }
       else {
         // TODO: Consider showing dependency graph and conflict resolution options for native android modules also.
-        myInfoButton.setVisible(false);
         myFixButton.setVisible(false);
       }
 

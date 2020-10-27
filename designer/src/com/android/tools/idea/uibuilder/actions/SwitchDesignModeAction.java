@@ -15,25 +15,38 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
+import com.android.tools.idea.actions.DesignerActions;
+import com.android.tools.idea.actions.DesignerDataKeys;
+import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Switch between {@link NlDesignSurface}'s design modes
  */
 public class SwitchDesignModeAction extends AnAction {
 
-  private final NlDesignSurface mySurface;
+  private SwitchDesignModeAction() {
+  }
 
-  public SwitchDesignModeAction(NlDesignSurface surface) {
-    mySurface = surface;
+  @NotNull
+  public static SwitchDesignModeAction getInstance() {
+    return (SwitchDesignModeAction) ActionManager.getInstance().getAction(DesignerActions.ACTION_SWITCH_DESIGN_MODE);
+  }
+
+  @Override
+  public void update(@NotNull AnActionEvent e) {
+    e.getPresentation().setEnabled(e.getData(NlActionManager.LAYOUT_EDITOR) != null);
   }
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    SceneMode nextMode = mySurface.getSceneMode().next();
-    mySurface.setScreenMode(nextMode, true);
+    NlDesignSurface surface = e.getRequiredData(NlActionManager.LAYOUT_EDITOR);
+    SceneMode nextMode = surface.getSceneMode().next();
+    surface.setScreenMode(nextMode, true);
   }
 }

@@ -40,10 +40,10 @@ import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
+import io.grpc.Server;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
-import io.grpc.internal.ServerImpl;
 import io.grpc.stub.StreamObserver;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -344,7 +344,7 @@ public class TransportServiceProxyTest {
   private ManagedChannel startNamedChannel(String uniqueName, FakeTransportService thruService) throws IOException {
     InProcessServerBuilder builder = InProcessServerBuilder.forName(uniqueName);
     builder.addService(thruService);
-    ServerImpl server = builder.build();
+    Server server = builder.build();
     server.start();
 
     return InProcessChannelBuilder.forName(uniqueName).build();
@@ -360,6 +360,9 @@ public class TransportServiceProxyTest {
     when(mockDevice.getClients()).thenReturn(clients);
     when(mockDevice.getState()).thenReturn(IDevice.DeviceState.ONLINE);
     when(mockDevice.getAbis()).thenReturn(Collections.singletonList("armeabi"));
+    when(mockDevice.getProperty(IDevice.PROP_BUILD_TAGS)).thenReturn("release-keys");
+    when(mockDevice.getProperty(IDevice.PROP_BUILD_TYPE)).thenReturn("user");
+    when(mockDevice.getProperty(IDevice.PROP_DEVICE_CPU_ABI)).thenReturn("armeabi");
     doAnswer(new Answer<Void>() {
       @Override
       public Void answer(InvocationOnMock invocation) {

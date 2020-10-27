@@ -4,9 +4,6 @@ import com.android.annotations.NonNull;
 import com.android.utils.ILogger;
 import com.intellij.openapi.diagnostic.Logger;
 
-/**
-* @author Eugene.Kudelevsky
-*/
 public class AvdManagerLog implements ILogger {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.sdk.AvdManagerLog");
 

@@ -35,6 +35,7 @@ import com.android.tools.idea.diagnostics.crash.GenericStudioReport;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository;
 import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.lint.common.LintResult;
 import com.android.tools.idea.model.AndroidModel;
@@ -43,11 +44,10 @@ import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.res.FileResourceReader;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.templates.IdeDeprecatedSdkRegistry;
-import com.android.tools.idea.templates.IdeGoogleMavenRepository;
 import com.android.tools.lint.detector.api.DefaultPosition;
 import com.android.tools.lint.detector.api.Desugaring;
 import com.android.tools.lint.detector.api.Location;
@@ -77,7 +77,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -91,7 +90,6 @@ public class AndroidLintIdeClient extends LintIdeClient {
   protected static final Logger LOG = Logger.getInstance(AndroidLintIdeClient.class);
 
   @NonNull protected Project myProject;
-  @Nullable protected Map<com.android.tools.lint.detector.api.Project, Module> myModuleMap;
 
   public AndroidLintIdeClient(@NonNull Project project, @NotNull LintResult lintResult) {
     super(project, lintResult);
@@ -212,7 +210,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
   @Nullable
   public Revision getBuildToolsRevision(@NonNull com.android.tools.lint.detector.api.Project project) {
     if (project.isGradleProject()) {
-      Module module = getModule();
+      Module module = getModule(project);
       if (module != null) {
         AndroidModuleModel model = AndroidModuleModel.get(module);
         if (model != null) {
@@ -242,7 +240,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
 
   @Override
   public boolean isGradleProject(@NotNull com.android.tools.lint.detector.api.Project project) {
-    Module module = getModule();
+    Module module = getModule(project);
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       return facet != null && AndroidModel.isRequired(facet);
@@ -335,7 +333,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
   @NotNull
   @Override
   public Set<Desugaring> getDesugaring(@NotNull com.android.tools.lint.detector.api.Project project) {
-    Module module = findModuleForLintProject(myProject, project);
+    Module module = getModule(project);
     if (module == null) {
       return Desugaring.DEFAULT;
     }
@@ -356,12 +354,9 @@ public class AndroidLintIdeClient extends LintIdeClient {
   @NonNull
   @Override
   public List<File> getResourceFolders(@NonNull com.android.tools.lint.detector.api.Project project) {
-    Module module = myLintResult.getModule();
+    Module module = getModule(project);
     if (module == null) {
-      module = findModuleForLintProject(myProject, project);
-      if (module == null) {
-        return super.getResourceFolders(project);
-      }
+      return super.getResourceFolders(project);
     }
 
     AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -414,7 +409,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
   @Override
   @NonNull
   public Location.Handle createResourceItemHandle(@NonNull ResourceItem item) {
-    XmlTag tag = AndroidResourceUtil.getItemTag(myProject, item);
+    XmlTag tag = IdeResourcesUtil.getItemTag(myProject, item);
     if (tag != null) {
       PathString source = item.getSource();
       assert source != null : item;

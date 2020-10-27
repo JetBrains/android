@@ -2,26 +2,19 @@ package org.jetbrains.android;
 
 import static com.android.SdkConstants.TAG_RESOURCES;
 import static com.android.tools.idea.res.psi.ResourceReferencePsiElement.RESOURCE_CONTEXT_ELEMENT;
-import static com.android.tools.idea.res.psi.ResourceReferencePsiElement.RESOURCE_CONTEXT_SCOPE;
-import static org.jetbrains.android.util.AndroidResourceUtil.VALUE_RESOURCE_TYPES;
 
 import com.android.SdkConstants;
+import com.android.annotations.concurrency.AnyThread;
 import com.android.resources.ResourceFolderType;
-import com.android.resources.ResourceUrl;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
-import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiReference;
-import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlToken;
@@ -29,15 +22,13 @@ import com.intellij.psi.xml.XmlTokenType;
 import com.intellij.usages.UsageTarget;
 import com.intellij.usages.UsageTargetProvider;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidUsagesTargetProvider implements UsageTargetProvider {
 
+  @AnyThread
   @Override
   public UsageTarget[] getTargets(@NotNull Editor editor, @NotNull PsiFile file) {
     if (StudioFlags.RESOLVE_USING_REPOS.get()) {
@@ -55,14 +46,12 @@ public class AndroidUsagesTargetProvider implements UsageTargetProvider {
         // can assume the correct resource if any. The allowed matches are:
         // XmlTag of a values resource. eg. <col${caret}or name="... />
         // XmlValue of a values resource if it is not a reference to another resource. eg. <color name="foo">#12${caret}3456</color>
-        resourceReferencePsiElement = AndroidResourceUtil.getResourceElementFromSurroundingValuesTag(contextElement);
+        resourceReferencePsiElement = IdeResourcesUtil.getResourceElementFromSurroundingValuesTag(contextElement);
       }
       if (resourceReferencePsiElement == null) {
         return UsageTarget.EMPTY_ARRAY;
       }
       resourceReferencePsiElement.putCopyableUserData(RESOURCE_CONTEXT_ELEMENT, contextElement);
-      SearchScope scope = ResourceRepositoryToPsiResolver.getResourceSearchScope(resourceReferencePsiElement.getResourceReference(), contextElement);
-      resourceReferencePsiElement.putCopyableUserData(RESOURCE_CONTEXT_SCOPE, scope);
       return new UsageTarget[]{new PsiElement2UsageTargetAdapter(resourceReferencePsiElement)};
     } else {
       final XmlTag tag = findValueResourceTagInContext(editor, file, false);
@@ -72,6 +61,7 @@ public class AndroidUsagesTargetProvider implements UsageTargetProvider {
     }
   }
 
+  @AnyThread
   @Nullable
   @Override
   public UsageTarget[] getTargets(@NotNull PsiElement psiElement) {
@@ -84,8 +74,6 @@ public class AndroidUsagesTargetProvider implements UsageTargetProvider {
         return UsageTarget.EMPTY_ARRAY;
       }
       referencePsiElement.putCopyableUserData(RESOURCE_CONTEXT_ELEMENT, psiElement);
-      SearchScope scope = ResourceRepositoryToPsiResolver.getResourceSearchScope(referencePsiElement.getResourceReference(), psiElement);
-      referencePsiElement.putCopyableUserData(RESOURCE_CONTEXT_SCOPE, scope);
       return new UsageTarget[]{new PsiElement2UsageTargetAdapter(referencePsiElement)};
     }
     return UsageTarget.EMPTY_ARRAY;
@@ -113,7 +101,7 @@ public class AndroidUsagesTargetProvider implements UsageTargetProvider {
       return null;
     }
 
-    if (!AndroidResourceUtil.isInResourceSubdirectory(file, ResourceFolderType.VALUES.getName())) {
+    if (!IdeResourcesUtil.isInResourceSubdirectory(file, ResourceFolderType.VALUES.getName())) {
       return null;
     }
 
@@ -122,16 +110,6 @@ public class AndroidUsagesTargetProvider implements UsageTargetProvider {
     // This doesn't apply to rename, because AndroidRenameHandler handles it differently.
     // It needs the tag not to be null to call either one of performValueResourceRenaming or performResourceReferenceRenaming methods.
     if (!rename && element instanceof XmlToken && XmlTokenType.XML_DATA_CHARACTERS.equals(((XmlToken)element).getTokenType())) {
-      return null;
-    }
-
-    if (element == null) {
-      return null;
-    }
-    final PsiElement directParent = element.getParent();
-    if (directParent instanceof XmlTag && rename) {
-      // No longer supporting renaming XmlTags themselves, in this case the caret exists inside a resource tag name eg. <strin<caret>g>
-      // http://b/153850296
       return null;
     }
 

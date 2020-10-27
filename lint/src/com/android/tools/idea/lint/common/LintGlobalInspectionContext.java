@@ -35,13 +35,11 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.module.impl.scopes.ModuleWithDependenciesScope;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.util.ProgressWrapper;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
@@ -128,13 +126,8 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
     LintBatchResult lintResult = new LintBatchResult(project, problemMap, scope, issues);
     final LintIdeClient client = ideSupport.createBatchClient(lintResult);
 
-    final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
-    if (indicator != null) {
-      ProgressWrapper.unwrap(indicator).setText("Running Android Lint");
-    }
-
     EnumSet<Scope> lintScope;
-    if (!LintIdeProject.SUPPORT_CLASS_FILES) {
+    if (!LintIdeClient.SUPPORT_CLASS_FILES) {
       lintScope = EnumSet.copyOf(Scope.ALL);
       // Can't run class file based checks
       lintScope.remove(Scope.CLASS_FILE);
@@ -254,7 +247,7 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
 
     LintRequest request = new LintIdeRequest(client, project, files, modules, false);
     request.setScope(lintScope);
-    final LintDriver lint = new LintDriver(LintIdeIssueRegistry.get(), client, request);
+    final LintDriver lint = client.createDriver(request);
 
     // Baseline analysis?
     myBaseline = null;
@@ -357,7 +350,8 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
             .format(Locale.US, "Created baseline file %1$s<br>%2$d issues will be filtered out", myBaseline.getFile().getName(),
                     myBaseline.getTotalCount());
         }
-        new NotificationGroup("Wrote Baseline", NotificationDisplayType.BALLOON, true)
+        new NotificationGroup(
+          "Wrote Baseline", NotificationDisplayType.BALLOON, true, null, null, null, PluginId.getId("org.jetbrains.android"))
           .createNotification(message, NotificationType.INFORMATION)
           .notify(context.getProject());
       }

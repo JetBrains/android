@@ -159,7 +159,7 @@ class BuildVariantsTest {
       }
       findSuggestionsConfigurable().run {
         findGroup("Errors").run {
-          findMessageMatching("No build type in module 'mylibrary' matches build type 'newBuildType'.")!!.run {
+          findMessageMatching("No build type in module ':mylibrary' matches build type 'newBuildType'.")!!.run {
             clickAction()
           }
         }

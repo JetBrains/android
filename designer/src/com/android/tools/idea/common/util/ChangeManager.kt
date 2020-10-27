@@ -24,31 +24,36 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.util.listenUntilNextSync
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
-import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
+import org.jetbrains.android.uipreview.ModuleClassLoaderManager
+import java.util.WeakHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import java.util.function.Consumer
+import javax.annotation.concurrent.GuardedBy
 import kotlin.concurrent.withLock
 
 /**
- * Sets up a change listener for the given [psiFile]. When the file changes, [refreshPreview] will be called. The listener might be called
- * in any thread.
+ * Sets up a change listener for the given [psiFile]. When the file changes, [onDocumentUpdated] will be called. The listener might be
+ * called in any thread.
  *
  * The given [parentDisposable] will be used to set the life cycle of the listener. When disposed, the listener will be disposed too.
  */
 fun setupChangeListener(
   project: Project,
   psiFile: PsiFile,
-  refreshPreview: () -> Unit,
+  onDocumentUpdated: (Long) -> Unit,
   parentDisposable: Disposable,
   mergeQueue: MergingUpdateQueue = MergingUpdateQueue("Document change queue",
                                                       TimeUnit.SECONDS.toMillis(1).toInt(),
@@ -56,20 +61,27 @@ fun setupChangeListener(
                                                       null,
                                                       parentDisposable,
                                                       null,
-                                                      false).setRestartTimerOnAdd(true)) {
+                                                      false).setRestartTimerOnAdd(true),
+  timeNanosProvider: () -> Long = { System.nanoTime() }) {
   val documentManager = PsiDocumentManager.getInstance(project)
   documentManager.getDocument(psiFile)!!.addDocumentListener(object : DocumentListener {
     val aggregatedEventsLock = ReentrantLock()
+    @GuardedBy("aggregatedEventsLock")
     val aggregatedEvents = mutableSetOf<DocumentEvent>()
+    @GuardedBy("aggregatedEventsLock")
+    var lastUpdatedNanos = 0L
 
-    private fun onDocumentChanged(event: Set<DocumentEvent>) {
-      refreshPreview()
+    private fun onDocumentChanged(events: Set<DocumentEvent>) {
+      onDocumentUpdated(aggregatedEventsLock.withLock {
+        lastUpdatedNanos
+      })
     }
 
     override fun documentChanged(event: DocumentEvent) {
       // On documentChange, we simply save the event to be processed later when onDocumentChanged is called.
       aggregatedEventsLock.withLock {
         aggregatedEvents.add(event)
+        lastUpdatedNanos = timeNanosProvider()
       }
 
       // We use the merge queue to avoid triggering unnecessary updates. All the changes are aggregated. We wait for the documents to be
@@ -105,6 +117,24 @@ interface BuildListener {
   fun buildStarted() {}
 }
 
+private val projectSubscriptionsLock = ReentrantLock()
+@GuardedBy("projectSubscriptionsLock")
+private val projectSubscriptions = WeakHashMap<Project, WeakHashMap<Disposable, BuildListener>>()
+
+/**
+ * Executes [method] against all the non-disposed subscriptions for the [project]. Removes disposed subscriptions.
+ */
+private fun forEachNonDisposedBuildListener(project: Project, method: (BuildListener) -> Unit) {
+  projectSubscriptionsLock.withLock {
+    projectSubscriptions[project]?.let { subscriptions ->
+      // Clear disposed
+      subscriptions.keys.removeIf { Disposer.isDisposed(it) }
+
+      subscriptions.values.forEach(method)
+    }
+  }
+}
+
 /**
  * This sets up a listener that receives updates every time gradle build starts or finishes. On successful build, it calls
  * [BuildListener.buildSucceeded] method of the passed [BuildListener]. If the build fails, [BuildListener.buildFailed] will be called
@@ -120,36 +150,68 @@ fun setupBuildListener(
   project: Project,
   buildable: BuildListener,
   parentDisposable: Disposable) {
-
-  /**
-   * Initializes the preview editor and triggers a refresh. This method can only be called once
-   * the project has synced and is smart.
-   */
-  fun initPreviewWhenSmartAndSynced() {
-    val status = GradleBuildState.getInstance(project)?.summary?.status
-    if (status.isSuccess()) {
-      // This is called from runWhenSmartAndSyncedOnEdt callback which should not be called if parentDisposable is disposed
-      buildable.buildSucceeded()
-    }
-
+  if (Disposer.isDisposed(parentDisposable)) {
+    Logger.getInstance("ChangeManager").warn("calling setupBuildListener for a disposed component $parentDisposable")
+    return
+  }
+  // If we are not yet subscribed to this project, we should subscribe
+  if (projectSubscriptionsLock.withLock {
+      val notSubscribed = projectSubscriptions[project] == null
+      projectSubscriptions.computeIfAbsent(project) {
+        Disposer.register(project, Disposable {
+          projectSubscriptionsLock.withLock {
+            projectSubscriptions.remove(project)
+          }
+        })
+        WeakHashMap()
+      }
+      notSubscribed
+    }) {
     GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
       // We do not have to check isDisposed inside the callbacks since they won't get called if parentDisposable is disposed
       override fun buildStarted(context: BuildContext) {
         if (context.buildMode == BuildMode.CLEAN) return
 
-        buildable.buildStarted()
+        forEachNonDisposedBuildListener(project, BuildListener::buildStarted)
       }
 
       override fun buildFinished(status: BuildStatus, context: BuildContext?) {
+        // We do not call refresh if the build was not successful or if it was simply a clean build.
         if (status.isSuccess() && context?.buildMode != BuildMode.CLEAN) {
-          // We do not call refresh if the build was not successful or if it was simply a clean build.
-          buildable.buildSucceeded()
+          // Before calling any of the build listeners we should invalidate current ClassLoaders for the rebuilt modules
+          ModuleManager.getInstance(project).modules.forEach { ModuleClassLoaderManager.get().clearCache(it) }
+
+          forEachNonDisposedBuildListener(project, BuildListener::buildSucceeded)
         }
         else {
-          buildable.buildFailed()
+          forEachNonDisposedBuildListener(project, BuildListener::buildFailed)
         }
       }
-    }, parentDisposable)
+    })
+  }
+  /**
+   * Initializes the preview editor and triggers a refresh. This method can only be called once
+   * the project has synced and is smart.
+   */
+  fun initPreviewWhenSmartAndSynced() {
+    if (Disposer.isDisposed(parentDisposable)) return
+
+    projectSubscriptionsLock.withLock {
+      projectSubscriptions[project]!!.let {
+        it[parentDisposable] = buildable
+        Disposer.register(parentDisposable, Disposable {
+          projectSubscriptionsLock.withLock {
+            projectSubscriptions[project]?.remove(parentDisposable)
+          }
+        })
+      }
+    }
+
+    val status = GradleBuildState.getInstance(project)?.summary?.status
+    if (status.isSuccess()) {
+      // This is called from runWhenSmartAndSyncedOnEdt callback which should not be called if parentDisposable is disposed
+      buildable.buildSucceeded()
+    }
   }
 
   /**

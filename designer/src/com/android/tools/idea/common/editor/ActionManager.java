@@ -18,16 +18,14 @@ package com.android.tools.idea.common.editor;
 import com.android.tools.adtui.stdui.KeyBindingKt;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.actionSystem.ActionPopupMenu;
+import com.android.tools.idea.common.surface.SceneView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
-import java.awt.*;
-import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.List;
-import javax.swing.*;
+import javax.swing.JComponent;
+import javax.swing.KeyStroke;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,7 +51,10 @@ public abstract class ActionManager<S extends DesignSurface> {
   protected static void registerAction(@NotNull AnAction action,
                                        @NotNull KeyStroke keyStroke,
                                        @NotNull JComponent component) {
-    KeyBindingKt.registerAnActionKey(component, () -> action, keyStroke, action.getClass().getSimpleName(), JComponent.WHEN_FOCUSED);
+    KeyBindingKt.registerAnActionKey(component,
+                                     () -> action, keyStroke,
+                                     action.getClass().getSimpleName(),
+                                     JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
   }
 
   @NotNull
@@ -64,23 +65,6 @@ public abstract class ActionManager<S extends DesignSurface> {
   @NotNull
   public JComponent createDesignSurfaceToolbar() {
     return new DesignSurfaceActionsToolbar(mySurface, mySurface, mySurface).getDesignSurfaceToolbar();
-  }
-
-  // non-final for testing
-  public void showPopup(@NotNull MouseEvent event, @Nullable NlComponent leafComponent) {
-    Component invoker = event.getSource() instanceof Component ? (Component)event.getSource() : mySurface;
-    showPopup(invoker, event.getX(), event.getY(), leafComponent);
-  }
-
-  public final void showPopup(@NotNull Component invoker, int x, int y, @Nullable NlComponent leafComponent) {
-    DefaultActionGroup group = getPopupMenuActions(leafComponent);
-    if (group.getChildrenCount() == 0) {
-      return;
-    }
-
-    com.intellij.openapi.actionSystem.ActionManager actionManager = com.intellij.openapi.actionSystem.ActionManager.getInstance();
-    ActionPopupMenu popupMenu = actionManager.createActionPopupMenu("LayoutEditor", group);
-    popupMenu.getComponent().show(invoker, x, y);
   }
 
   /**
@@ -100,16 +84,27 @@ public abstract class ActionManager<S extends DesignSurface> {
   public abstract void registerActionsShortcuts(@NotNull JComponent component);
 
   /**
-   * Creates a pop-up menu for the given component
+   * Creates the actions for the pop-up menu (a.k.a. context menu) for the given {@link NlComponent}.
+   *
+   * @param leafComponent The target component for the pop-up menu (e.g. The right-clicked component)
    */
-  @VisibleForTesting
   @NotNull
   public abstract DefaultActionGroup getPopupMenuActions(@Nullable NlComponent leafComponent);
 
   /**
-   * Creates the toolbar actions for the given component
+   * Creates the actions for the given {@link NlComponent}s.
+   *
+   * @param selection The selected {@link NlComponent}s in {@link DesignSurface}.
    */
   @NotNull
-  public abstract DefaultActionGroup getToolbarActions(@Nullable NlComponent component,
-                                                       @NotNull List<NlComponent> newSelection);
+  public abstract DefaultActionGroup getToolbarActions(@NotNull List<NlComponent> selection);
+
+  /**
+   * Returns the context toolbar for a {@link SceneView}. This toolbar should contain actions
+   * that are specific to this {@link SceneView}. The method returns null if no toolbar is needed.
+   */
+  @Nullable
+  public JComponent getSceneViewContextToolbar(@NotNull SceneView sceneView) {
+    return null;
+  }
 }

@@ -5,9 +5,8 @@ package org.jetbrains.android.refactoring;
 import com.android.SdkConstants;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
-import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.IncludeReference;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.utils.SdkUtils;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
@@ -36,15 +35,11 @@ import org.jetbrains.android.actions.CreateResourceFileAction;
 import org.jetbrains.android.dom.layout.Include;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidExtractAsIncludeAction extends AndroidBaseLayoutRefactoringAction {
   @NonNls public static final String ACTION_ID = "AndroidExtractAsIncludeAction";
 
@@ -235,10 +230,10 @@ public class AndroidExtractAsIncludeAction extends AndroidBaseLayoutRefactoringA
       }
     }
 
-    String includingLayout = SdkConstants.LAYOUT_RESOURCE_PREFIX + ResourceHelper.getResourceName(file);
+    String includingLayout = SdkConstants.LAYOUT_RESOURCE_PREFIX + SdkUtils.fileNameToResourceName(file.getName());
     IncludeReference.setIncludingLayout(project, newFile, includingLayout);
 
-    final String resourceName = AndroidBuildCommonUtils.getResourceName(ResourceType.LAYOUT.getName(), newFile.getName());
+    final String resourceName = SdkUtils.fileNameToResourceName(newFile.getName());
     final XmlTag includeTag = elementFactory.createTagFromText("<include layout=\"@layout/" + resourceName + "\"/>");
     parentTag.addAfter(includeTag, to);
     parentTag.deleteChildRange(from, to);

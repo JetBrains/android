@@ -54,7 +54,7 @@ class HprofSessionArtifactTest {
   @Before
   fun setup() {
     myProfilers = StudioProfilers(
-      ProfilerClient(myGrpcChannel.name),
+      ProfilerClient(myGrpcChannel.channel),
       FakeIdeProfilerServices(),
       FakeTimer()
     )

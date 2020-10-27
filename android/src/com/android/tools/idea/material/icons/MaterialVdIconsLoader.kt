@@ -18,7 +18,11 @@ package com.android.tools.idea.material.icons
 import com.android.SdkConstants
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.vectordrawable.VdIcon
-import com.android.tools.idea.material.icons.MaterialIconsUtils.toDirFormat
+import com.android.tools.idea.material.icons.common.BundledIconsUrlProvider
+import com.android.tools.idea.material.icons.common.MaterialIconsUrlProvider
+import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
+import com.android.tools.idea.material.icons.metadata.MaterialMetadataIcon
+import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.toDirFormat
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.containers.MultiMap
 import java.io.File
@@ -34,7 +38,7 @@ private val LOG = Logger.getInstance(MaterialVdIconsLoader::class.java)
  */
 class MaterialVdIconsLoader(
   private val metadata: MaterialIconsMetadata,
-  private val urlProvider: MaterialIconsUrlProvider = MaterialIconsUrlProviderImpl()
+  private val urlProvider: MaterialIconsUrlProvider = BundledIconsUrlProvider()
 ) {
 
   private val styleCategoryToSortedIcons: HashMap<String, Map<String, Array<VdIcon>>> = HashMap()
@@ -119,7 +123,7 @@ class MaterialVdIconsLoader(
     if (iconUrl == null) {
       LOG.warn("Could not load icon: Name=$iconName FileName=$iconFileName")
     }
-    return urlProvider.getIconUrl(style, iconName, iconFileName)
+    return iconUrl
   }
 
   private fun openAndVisitIconFiles(url: URL?, iconZipVisitor: (ZipEntry) -> Unit, iconFileVisitor: (File) -> Unit) {
@@ -141,43 +145,12 @@ class MaterialVdIconsLoader(
   }
 
   private fun visitFiles(file: File, visitor: (File) -> Unit) {
-    file.listFiles()?.forEach { iconFile ->
-      iconFile.listFiles()?.let { childFiles ->
-        if (childFiles.size == 1 && !childFiles.first().isDirectory) {
-          visitor(childFiles.first())
-        }
-      }
-    }
-  }
-}
-
-/**
- * The model for the Material [VdIcon]s loaded.
- */
-class MaterialVdIcons(
-  private val styleCategoryToSortedIcons: Map<String, Map<String, Array<VdIcon>>>,
-  private val styleToSortedIcons: Map<String, Array<VdIcon>>
-) {
-
-  val styles: Array<String> = styleCategoryToSortedIcons.keys.sorted().toTypedArray()
-
-  fun getCategories(style: String): Array<String> {
-    return styleCategoryToSortedIcons[style]?.keys?.sorted()?.toTypedArray() ?: arrayOf<String>()
-  }
-
-  fun getIcons(style: String, category: String): Array<VdIcon> {
-    return styleCategoryToSortedIcons[style]?.get(category) ?: arrayOf<VdIcon>()
-  }
-
-  fun getAllIcons(style: String): Array<VdIcon> {
-    return styleToSortedIcons[style] ?: arrayOf()
-  }
-
-  companion object {
-    /**
-     * The default empty instance. Returns empty arrays for every method.
-     */
-    @JvmField
-    val EMPTY = MaterialVdIcons(emptyMap(), emptyMap())
+    val vectorDrawableFiles =
+      file.listFiles()?.mapNotNull { iconDir ->
+        iconDir.listFiles { fileInIconDir ->
+          !fileInIconDir.isDirectory && fileInIconDir.name.endsWith(SdkConstants.DOT_XML, true)
+        }?.firstOrNull() // For every icon directory, one 'xml' file is expected
+      } ?: emptyList()
+    vectorDrawableFiles.forEach(visitor)
   }
 }

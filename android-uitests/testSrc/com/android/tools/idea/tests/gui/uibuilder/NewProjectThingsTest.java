@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.uibuilder;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.device.FormFactor;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
@@ -40,17 +41,14 @@ public class NewProjectThingsTest {
       .welcomeFrame()
       .createNewProject()
       .getChooseAndroidProjectStep()
-      .selectThingsTab()
-      .chooseActivity("Android Things Empty Activity")
+      .selectTab(FormFactor.THINGS)
+      .chooseActivity("Empty Activity")
       .wizard()
       .clickNext()
       .clickNext()
-      .clickFinish();
-
-
-    guiTest.ideFrame()
-      .waitForGradleProjectSyncToFinish()
-      .invokeMenuPath("Build", "Rebuild Project").waitForBuildToFinish(BuildMode.REBUILD);
+      .clickFinishAndWaitForSyncToFinish()
+      .invokeMenuPath("Build", "Rebuild Project")
+      .waitForBuildToFinish(BuildMode.REBUILD);
 
     assertThat(guiTest.getProjectFileText("app/build.gradle")).contains("lintOptions");
   }

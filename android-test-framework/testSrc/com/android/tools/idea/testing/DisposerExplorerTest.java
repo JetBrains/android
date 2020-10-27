@@ -15,22 +15,32 @@
  */
 package com.android.tools.idea.testing;
 
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
+
 import com.android.tools.idea.testing.DisposerExplorer.VisitResult;
 import com.android.tools.idea.testing.DisposerExplorer.Visitor;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
-
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
+import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+import org.junit.After;
+import org.junit.Test;
 
 /**
  * Tests for the {@link DisposerExplorer} class.
  */
 public class DisposerExplorerTest {
+  private final Set<Disposable> liveDisposables = new LinkedHashSet<>();
+
+  @After
+  public void checkEverythingWasDisposed() {
+    // If this check fails, then there may be leftover disposables in the disposer tree which may affect other tests.
+    assertWithMessage("Some test disposables were not disposed").that(liveDisposables).isEmpty();
+  }
 
   @Test
   public void testBasicMethods() {
@@ -53,59 +63,59 @@ public class DisposerExplorerTest {
     Disposer.dispose(c); // Dispose c to create an orphan root.
     TestDisposable notRegistered = new TestDisposable("not_registered");
 
-    try {
-      assertThat(DisposerExplorer.isContainedInTree(b2)).isTrue();
-      assertThat(DisposerExplorer.isContainedInTree(root2)).isTrue();
-      assertThat(DisposerExplorer.isContainedInTree(notRegistered)).isFalse();
+    assertThat(DisposerExplorer.isContainedInTree(b2)).isTrue();
+    assertThat(DisposerExplorer.isContainedInTree(root2)).isTrue();
+    assertThat(DisposerExplorer.isContainedInTree(notRegistered)).isFalse();
 
-      assertThat(DisposerExplorer.getTreeRoots()).containsExactly(root1, root2);
+    assertThat(DisposerExplorer.getTreeRoots()).containsExactly(root1, root2);
 
-      assertThat(DisposerExplorer.getChildren(a)).containsExactly(a1, a2);
-      assertThat(DisposerExplorer.hasChildren(a)).isTrue();
-      assertThat(DisposerExplorer.getChildren(root2)).isEmpty();
-      assertThat(DisposerExplorer.hasChildren(root2)).isFalse();
-      assertThat(DisposerExplorer.getChildren(notRegistered)).isEmpty();
-      assertThat(DisposerExplorer.hasChildren(notRegistered)).isFalse();
+    assertThat(DisposerExplorer.getChildren(a)).containsExactly(a1, a2);
+    assertThat(DisposerExplorer.hasChildren(a)).isTrue();
+    assertThat(DisposerExplorer.getChildren(root2)).isEmpty();
+    assertThat(DisposerExplorer.hasChildren(root2)).isFalse();
+    assertThat(DisposerExplorer.getChildren(notRegistered)).isEmpty();
+    assertThat(DisposerExplorer.hasChildren(notRegistered)).isFalse();
 
-      assertThat(DisposerExplorer.getParent(a1)).isSameAs(a);
-      assertThat(DisposerExplorer.getParent(root1)).isNull();
-      assertThat(DisposerExplorer.getParent(notRegistered)).isNull();
+    assertThat(DisposerExplorer.getParent(a1)).isSameAs(a);
+    assertThat(DisposerExplorer.getParent(root1)).isNull();
+    assertThat(DisposerExplorer.getParent(notRegistered)).isNull();
 
-      Collector v1 = new Collector();
-      DisposerExplorer.visitTree(v1);
-      assertThat(v1.visited).containsExactly(root1, a, a1, a2, b, b1, b2, root2);
+    Collector v1 = new Collector();
+    DisposerExplorer.visitTree(v1);
+    assertThat(v1.visited).containsExactly(root1, a, a1, a2, b, b1, b2, root2);
 
-      Collector v2 = new Collector() {
-        @Override
-        @NotNull
-        public VisitResult visit(@NotNull Disposable disposable) {
-          super.visit(disposable);
-          return disposable == a ? VisitResult.SKIP_CHILDREN : disposable == b1 ? VisitResult.ABORT : VisitResult.CONTINUE;
-        }
-      };
-      DisposerExplorer.visitDescendants(root1, v2);
-      assertThat(v2.visited).containsExactly(a, b, b1).inOrder();
+    Collector v2 = new Collector() {
+      @Override
+      @NotNull
+      public VisitResult visit(@NotNull Disposable disposable) {
+        super.visit(disposable);
+        return disposable == a ? VisitResult.SKIP_CHILDREN : disposable == b1 ? VisitResult.ABORT : VisitResult.CONTINUE;
+      }
+    };
+    DisposerExplorer.visitDescendants(root1, v2);
+    assertThat(v2.visited).containsExactly(a, b, b1).inOrder();
 
-      Collector v3 = new Collector();
-      DisposerExplorer.visitDescendants(root1, v3);
-      assertThat(v3.visited).containsExactly(a, a1, a2, b, b1, b2).inOrder();
+    Collector v3 = new Collector();
+    DisposerExplorer.visitDescendants(root1, v3);
+    assertThat(v3.visited).containsExactly(a, a1, a2, b, b1, b2).inOrder();
 
-      assertThat(DisposerExplorer.findAll(d -> d.toString().endsWith("2"))).containsExactly(root2, a2, b2);
+    assertThat(DisposerExplorer.findAll(d -> d.toString().endsWith("2"))).containsExactly(root2, a2, b2);
 
-      assertThat(DisposerExplorer.findFirst(d -> d.toString().endsWith("a"))).isSameAs(a);
-      assertThat(DisposerExplorer.findFirst(d -> d.toString().endsWith("x"))).isNull();
-    } finally {
-      // cleanup
-      Disposer.dispose(root1);
-      Disposer.dispose(root2);
-    }
+    assertThat(DisposerExplorer.findFirst(d -> d.toString().endsWith("a"))).isSameAs(a);
+    assertThat(DisposerExplorer.findFirst(d -> d.toString().endsWith("x"))).isNull();
+
+    // Clean up to avoid interference with other tests.
+    Disposer.dispose(root1);
+    Disposer.dispose(root2);
+    Disposer.dispose(notRegistered);
   }
 
-  private static class TestDisposable implements Disposable {
+  private class TestDisposable implements Disposable {
     @NotNull private final String myName;
 
     TestDisposable(@NotNull String name) {
       myName = name;
+      liveDisposables.add(this);
     }
 
     @Override
@@ -116,6 +126,7 @@ public class DisposerExplorerTest {
 
     @Override
     public void dispose() {
+      liveDisposables.remove(this);
     }
   }
 

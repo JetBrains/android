@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lint.common;
 
-import static com.android.tools.idea.lint.common.LintIdeProject.SUPPORT_CLASS_FILES;
+import static com.android.tools.idea.lint.common.LintIdeClient.SUPPORT_CLASS_FILES;
 
 import com.android.annotations.NonNull;
 import com.android.tools.lint.checks.BuiltinIssueRegistry;

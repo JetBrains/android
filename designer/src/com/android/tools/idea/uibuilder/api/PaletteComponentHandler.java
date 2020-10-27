@@ -127,6 +127,9 @@ public abstract class PaletteComponentHandler {
     else if (tagName.startsWith(ANDROIDX_APPCOMPAT_PKG)) {
       return ANDROIDX_APPCOMPAT_LIB_ARTIFACT;
     }
+    else if (tagName.startsWith(ANDROIDX_COORDINATOR_LAYOUT_PKG)) {
+      return ANDROIDX_COORDINATOR_LAYOUT_LIB_ARTIFACT;
+    }
     return IN_PLATFORM;
   }
 
@@ -173,6 +176,6 @@ public abstract class PaletteComponentHandler {
   @NotNull
   protected Icon loadBuiltinIcon(@NotNull String tagName) {
     Icon icon = AndroidDomElementDescriptorProvider.getIconForViewTag(getSimpleTagName(tagName));
-    return icon != null ? icon : StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW;
+    return icon != null ? icon : StudioIcons.LayoutEditor.Palette.VIEW;
   }
 }

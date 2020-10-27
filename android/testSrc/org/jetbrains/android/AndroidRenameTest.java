@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.ide.DataManager;
@@ -56,6 +57,7 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.IOException;
 import java.util.List;
+import org.jetbrains.android.refactoring.renaming.ResourceRenameHandler;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AndroidRenameTest extends AndroidTestCase {
@@ -76,25 +78,6 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
       finally {
         super.tearDown();
       }
-    }
-
-    // Regression test for http://b/153850296
-    public void testOneHandlerAvailableForXmlTag() {
-      VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "strings3.xml", "res/values/strings.xml");
-      myFixture.configureFromExistingVirtualFile(file);
-      assertThat(ContainerUtil
-                   .filter(RenameHandler.EP_NAME.getExtensionList(), it -> it.isRenaming(createDataContext(file)))).hasSize(1);
-    }
-
-    private MapDataContext createDataContext(VirtualFile f) {
-      MapDataContext context = new MapDataContext();
-      context.put(CommonDataKeys.EDITOR, myFixture.getEditor());
-      context.put(CommonDataKeys.PSI_FILE, myFixture.getFile());
-      context.put(CommonDataKeys.PSI_ELEMENT, TargetElementUtil.findTargetElement(myFixture.getEditor(),
-                                                                                  TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED
-                                                                                  | TargetElementUtil.ELEMENT_NAME_ACCEPTED));
-      context.put(CommonDataKeys.CARET, myFixture.getEditor().getCaretModel().getCurrentCaret());
-      return context;
     }
 
     public void testRenameCustomView() throws Throwable {
@@ -264,6 +247,25 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
       StudioFlags.RESOLVE_USING_REPOS.override(true);
     }
 
+    // Regression test for http://b/153850296
+    public void testOneHandlerAvailableForXmlTag() {
+      VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "strings3.xml", "res/values/strings.xml");
+      myFixture.configureFromExistingVirtualFile(file);
+      assertThat(ContainerUtil
+                   .filter(RenameHandler.EP_NAME.getExtensionList(), it -> it.isRenaming(createDataContext()))).hasSize(1);
+    }
+
+    private MapDataContext createDataContext() {
+      MapDataContext context = new MapDataContext();
+      context.put(CommonDataKeys.EDITOR, myFixture.getEditor());
+      context.put(CommonDataKeys.PSI_FILE, myFixture.getFile());
+      context.put(CommonDataKeys.PSI_ELEMENT, TargetElementUtil.findTargetElement(myFixture.getEditor(),
+                                                                                  TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED
+                                                                                  | TargetElementUtil.ELEMENT_NAME_ACCEPTED));
+      context.put(CommonDataKeys.CARET, myFixture.getEditor().getCaretModel().getCurrentCaret());
+      return context;
+    }
+
     @Override
     public void tearDown() throws Exception {
       try {
@@ -316,6 +318,14 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
       assertEquals("icon_with_new_name.xml", iconXml.getName());
       assertEquals("icon_with_new_name.png", iconPng.getName());
       assertEquals("icon.xml", iconInValue.getName());
+    }
+
+    public void testRenameFileWithInvalidResourceName() {
+      VirtualFile drawableFile = myFixture.copyFileToProject(BASE_PATH + "icon.xml", "res/drawable/icon space.xml");
+      myFixture.configureFromExistingVirtualFile(drawableFile);
+      myFixture.renameElement(myFixture.getFile(), "icon_with_new_name.xml");
+      assertEquals("icon_with_new_name.xml", drawableFile.getName());
+      assertThat(ResourceReferencePsiElement.create(myFixture.getFile())).isNotNull();
     }
 
     public void testXmlReferenceToFileResource() throws Throwable {
@@ -398,7 +408,7 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
   }
 
   /** Due to http://b/153850296 we are currently not supporting renaming resources from the Xml Tag token. **/
-  public void _testStyleInheritance() throws Throwable {
+  public void ignore_testStyleInheritance() throws Throwable {
     doTestStyleInheritance("styles1.xml", "styles1_after.xml");
   }
 
@@ -686,12 +696,12 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
   }
 
   /** Due to http://b/153850296 we are currently not supporting renaming resources from the Xml Tag token. **/
-  public void _testValueResource3() throws Throwable {
+  public void ignore_testValueResource3() throws Throwable {
     doTestStringRename("strings3.xml");
   }
 
   /** Due to http://b/153850296 we are currently not supporting renaming resources from the Xml Tag token. **/
-  public void _testValueResource4() throws Throwable {
+  public void ignore_testValueResource4() throws Throwable {
     doTestStringRename("strings4.xml");
   }
 

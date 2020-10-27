@@ -16,20 +16,19 @@
 package com.android.tools.adtui.workbench;
 
 import com.android.annotations.Nullable;
+import com.android.tools.adtui.stdui.EmptyStatePanel;
+import com.android.tools.adtui.stdui.IconChunk;
+import com.android.tools.adtui.stdui.TextChunk;
+import com.android.tools.adtui.stdui.LabelData;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
-import com.intellij.ui.ColorUtil;
 import com.intellij.ui.components.JBLoadingPanel;
-import com.intellij.util.ui.UIUtil;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.LayoutManager;
 import javax.swing.Icon;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -38,13 +37,11 @@ import org.jetbrains.annotations.NotNull;
  */
 public class WorkBenchLoadingPanel extends JPanel {
   private final JBLoadingPanel myLoadingPanel;
-  private final MyMessagePanel myMessagePanel;
-  private boolean myShowingMessagePanel;
+  @Nullable private EmptyStatePanel myMessagePanel = null;
 
   public WorkBenchLoadingPanel(@Nullable LayoutManager manager, @NotNull Disposable parent,
                         @SuppressWarnings("SameParameterValue") int startDelayMs) {
     super(new BorderLayout());
-    myMessagePanel = new MyMessagePanel();
     myLoadingPanel = new JBLoadingPanel(manager, parent, startDelayMs);
     super.add(myLoadingPanel);
   }
@@ -70,7 +67,7 @@ public class WorkBenchLoadingPanel extends JPanel {
 
   @VisibleForTesting
   public boolean hasError() {
-    return myMessagePanel.isShowing();
+    return myMessagePanel != null;
   }
 
   boolean isLoadingOrHasError() {
@@ -101,56 +98,19 @@ public class WorkBenchLoadingPanel extends JPanel {
    * Replaces loading animation with the given message.
    */
   public void abortLoading(String message, @SuppressWarnings("SameParameterValue") Icon icon) {
-    myMessagePanel.setText(message);
-    myMessagePanel.setIcon(icon);
-    if (!myShowingMessagePanel) {
-      super.remove(myLoadingPanel);
-      super.add(myMessagePanel);
-      myShowingMessagePanel = true;
+    if (myMessagePanel != null) {
+      super.remove(myMessagePanel);
     }
+    myMessagePanel = new EmptyStatePanel(new LabelData(new IconChunk(icon), new TextChunk(message)));
+    super.remove(myLoadingPanel);
+    super.add(myMessagePanel);
   }
 
   private void resumeLoading() {
-    if (myShowingMessagePanel) {
+    if (myMessagePanel != null) {
       super.remove(myMessagePanel);
       super.add(myLoadingPanel);
-      myShowingMessagePanel = false;
-    }
-  }
-
-  private static class MyMessagePanel extends JPanel {
-    private final JLabel myText = new JLabel("", SwingConstants.CENTER);
-    private boolean myInitialized;
-
-    MyMessagePanel() {
-      super(new BorderLayout());
-      setOpaque(false);
-      add(myText);
-      updateTextFont();
-      myInitialized = true;
-    }
-
-    public void setText(String text) {
-      myText.setText(text);
-    }
-
-    public void setIcon(Icon icon) {
-      myText.setIcon(icon);
-    }
-
-    @Override
-    public void updateUI() {
-      super.updateUI();
-      if (myInitialized) {
-        updateTextFont();
-      }
-    }
-
-    private void updateTextFont() {
-      // Similar to JBLoadingPanel.customizeStatusText but with a smaller font.
-      Font font = UIUtil.getLabelFont();
-      myText.setFont(font.deriveFont(font.getStyle(), font.getSize() + 4));
-      myText.setForeground(ColorUtil.toAlpha(UIUtil.getLabelForeground(), 150));
+      myMessagePanel = null;
     }
   }
 }

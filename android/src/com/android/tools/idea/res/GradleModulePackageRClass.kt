@@ -21,7 +21,12 @@ import com.android.tools.idea.res.ModuleRClass.SourceSet.MAIN
 import com.android.tools.idea.res.ModuleRClass.SourceSet.TEST
 import com.android.tools.idea.res.ModuleRClass.Transitivity.NON_TRANSITIVE
 import com.android.tools.idea.res.ModuleRClass.Transitivity.TRANSITIVE
+import com.intellij.openapi.module.ModulePointerManager
 import com.intellij.psi.PsiManager
+import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.FILE_SOURCE_SET_KEY
+import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.LIGHT_CLASS_KEY
+import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.MODULE_POINTER_KEY
+import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.TRANSITIVITY_KEY
 import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.dom.manifest.getTestPackageName
 import org.jetbrains.android.facet.AndroidFacet
@@ -50,6 +55,11 @@ class ModuleRClass(
         TEST -> true
       }
     )
+    val lightVirtualFile = myFile.viewProvider.virtualFile
+    lightVirtualFile.putUserData(MODULE_POINTER_KEY, ModulePointerManager.getInstance(project).create(facet.module))
+    lightVirtualFile.putUserData(LIGHT_CLASS_KEY, ModuleRClass::class.java)
+    lightVirtualFile.putUserData(TRANSITIVITY_KEY, transitivity)
+    lightVirtualFile.putUserData(FILE_SOURCE_SET_KEY, sourceSet)
   }
 
   override fun getScopeType() = when (sourceSet) {

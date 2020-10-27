@@ -23,12 +23,13 @@ import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.ExpandableItemsHandler
-import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import java.awt.Font
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.Icon
 import javax.swing.JPanel
 import javax.swing.border.Border
@@ -49,7 +50,7 @@ class CollapsibleLabelPanel(
   fontStyle: Int,
   actions: List<AnAction> = emptyList()
 ) : JPanel(BorderLayout()) {
-  val label = ExpandableLabel(model.name, this, fontSize, fontStyle)
+  val label = ExpandableLabel()
 
   // The label wil automatically display ellipsis at the end of a string that is too long for the width
   private val valueWithTrailingEllipsis = model.name
@@ -58,7 +59,7 @@ class CollapsibleLabelPanel(
 
   private val expandAction = object : AnAction() {
     override fun actionPerformed(event: AnActionEvent) {
-      model.expanded = !model.expanded
+      toggle()
     }
   }
 
@@ -78,12 +79,17 @@ class CollapsibleLabelPanel(
 
   init {
     background = secondaryPanelBackground
+    label.actualText = model.name
+    label.font = UIUtil.getLabelFont(fontSize)
+    if (fontStyle != Font.PLAIN) {
+      label.font = label.font.deriveFont(fontStyle)
+    }
     button.border = JBUI.Borders.emptyRight(2)
     add(button, BorderLayout.WEST)
     add(label, BorderLayout.CENTER)
     model.addValueChangedListener(ValueChangedListener { valueChanged() })
     if (actions.isNotEmpty()) {
-      val dataManager = DataManager.getInstance();
+      val dataManager = DataManager.getInstance()
       val buttons = JPanel(FlowLayout(FlowLayout.CENTER, JBUI.scale(2), 0))
       actions.forEach {
         val button = FocusableActionButton(it)
@@ -92,7 +98,18 @@ class CollapsibleLabelPanel(
       }
       add(buttons, BorderLayout.EAST)
     }
+    label.addMouseListener(object : MouseAdapter() {
+      override fun mouseClicked(event: MouseEvent) {
+        if (event.clickCount > 1) {
+          toggle()
+        }
+      }
+    })
     valueChanged()
+  }
+
+  private fun toggle() {
+    model.expanded = !model.expanded
   }
 
   private fun valueChanged() {
@@ -108,43 +125,5 @@ class CollapsibleLabelPanel(
 
   private fun toHtml(text: String): String {
     return "<html><nobr>${HtmlEscapers.htmlEscaper().escape(text)}</nobr></html>"
-  }
-}
-
-/**
- * A label that works with an [ExpandableItemsHandler].
- *
- * See [InspectorPanelImpl].
- */
-class ExpandableLabel(
-  label: String,
-  val panel: CollapsibleLabelPanel,
-  private val fontSize: UIUtil.FontSize,
-  private val fontStyle: Int
-): JBLabel(label) {
-
-  private var initialized = false
-
-  init {
-    setFont()
-    initialized = true
-  }
-
-  override fun contains(x: Int, y: Int): Boolean {
-    return isVisible && super.contains(x, y)
-  }
-
-  override fun updateUI() {
-    super.updateUI()
-    if (initialized) {
-      setFont()
-    }
-  }
-
-  private fun setFont() {
-    font = UIUtil.getLabelFont(fontSize)
-    if (fontStyle != Font.PLAIN) {
-      font = font.deriveFont(fontStyle)
-    }
   }
 }

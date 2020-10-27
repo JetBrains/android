@@ -18,4 +18,7 @@ package com.android.tools.idea.gradle.project.sync.idea.issues
 /**
  * Marker interface for all exceptions that are triggered via Android specific errors in project import.
  */
-open class AndroidSyncException() : RuntimeException()
+open class AndroidSyncException : RuntimeException {
+  constructor(message: String) : super(message)
+  constructor() : super()
+}

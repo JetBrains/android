@@ -21,7 +21,7 @@ import com.android.tools.analytics.UsageTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.testFramework.registerComponentInstance
+import com.intellij.testFramework.registerServiceInstance
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mock
 import org.mockito.Mockito
@@ -39,9 +39,8 @@ class ToolWindowTrackerServiceTest : AndroidTestCase() {
     MockitoAnnotations.initMocks(this)
     myUsageTracker = TestUsageTracker(VirtualTimeScheduler())
     UsageTracker.setWriterForTest(myUsageTracker)
-    val project = project
     myService = ToolWindowTrackerService(project)
-    project.registerComponentInstance(ToolWindowManager::class.java, myMockToolWindowManager, testRootDisposable)
+    project.registerServiceInstance(ToolWindowManager::class.java, myMockToolWindowManager)
   }
 
   override fun tearDown() {

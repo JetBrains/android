@@ -1,4 +1,18 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+/*
+ * Copyright 2000-2011 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.android.util;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
@@ -12,10 +26,9 @@ import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.android.tools.idea.util.CommonAndroidUtil;
@@ -104,6 +117,11 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.swing.*;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextArea;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
@@ -113,10 +131,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author yole, coyote
- */
-public final class AndroidUtils extends CommonAndroidUtil {
+public class AndroidUtils extends CommonAndroidUtil {
   private static final Logger LOG = Logger.getInstance(AndroidUtils.class);
 
   @NonNls public static final String NAMESPACE_KEY = "android";
@@ -846,7 +861,7 @@ public final class AndroidUtils extends CommonAndroidUtil {
       boolean startsWithDot = context.charAt(0) == '.';
       if (startsWithDot || context.indexOf('.') == -1) {
         // Prepend application package
-        String pkg = MergedManifestManager.getSnapshot(module).getPackage();
+        String pkg = AndroidManifestUtils.getPackageName(module);
         return startsWithDot ? pkg + context : pkg + '.' + context;
       }
       return context;
@@ -881,7 +896,7 @@ public final class AndroidUtils extends CommonAndroidUtil {
    */
   @Nullable
   public static String getRootTagName(@NotNull PsiFile file) {
-    ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+    ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
     if (folderType == ResourceFolderType.XML || folderType == ResourceFolderType.MENU || folderType == ResourceFolderType.DRAWABLE) {
       if (file instanceof XmlFile) {
         XmlTag rootTag = AndroidPsiUtils.getRootTagSafely(((XmlFile)file));

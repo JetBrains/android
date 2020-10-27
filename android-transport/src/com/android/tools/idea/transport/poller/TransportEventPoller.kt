@@ -30,8 +30,11 @@ import kotlin.math.max
  * Encapsulates most of the polling functionality that Transport Pipeline subscribers would need to implement
  * to listen for updates and Events coming in from the pipeline
  */
-class TransportEventPoller(private val transportClient: TransportServiceGrpc.TransportServiceBlockingStub,
-                           private val sortOrder: Comparator<Common.Event>) {
+class TransportEventPoller(
+  private val transportClient: TransportServiceGrpc.TransportServiceBlockingStub,
+  private val sortOrder: Comparator<Common.Event> = Comparator.comparing(Common.Event::getTimestamp)
+) {
+  private val writeLock = Object()
   private val eventListeners: MutableList<TransportEventListener> = CopyOnWriteArrayList() // Used to preserve insertion order
   private val listenersToLastTimestamp = ConcurrentHashMap<TransportEventListener, Long>()
 
@@ -39,15 +42,20 @@ class TransportEventPoller(private val transportClient: TransportServiceGrpc.Tra
    * Adds a listener to the list to poll for and be notified of changes. Listeners are polled in insertion order.
    */
   fun registerListener(listener: TransportEventListener) {
-    eventListeners.add(listener)
+    synchronized(writeLock) {
+      eventListeners.add(listener)
+      listenersToLastTimestamp[listener] = Long.MIN_VALUE
+    }
   }
 
   /**
-   * Removes a listener from the list
+   * Removes a listener from the list, or do nothing if it is not in the list
    */
   fun unregisterListener(listener: TransportEventListener) {
-    eventListeners.remove(listener)
-    listenersToLastTimestamp.remove(listener)
+    synchronized(writeLock) {
+      eventListeners.remove(listener)
+      listenersToLastTimestamp.remove(listener)
+    }
   }
 
   fun poll() {
@@ -68,7 +76,6 @@ class TransportEventPoller(private val transportClient: TransportServiceGrpc.Tra
       eventListener.groupId?.invoke()?.let { builder.groupId = it }
 
       val request = builder.build()
-      var removeListener = false
 
       // Order by timestamp
       val response = transportClient.getEventGroups(request)
@@ -77,14 +84,24 @@ class TransportEventPoller(private val transportClient: TransportServiceGrpc.Tra
           .flatMap { group -> group.eventsList }
           .sortedWith(sortOrder)
           .filter { event -> event.timestamp >= startTimestamp && eventListener.filter(event) }
-        filtered.forEach { event -> eventListener.executor.execute { removeListener = eventListener.callback(event) } }
-        val maxTimeEvent = filtered.maxBy {it.timestamp}
+        filtered.forEach { event ->
+          eventListener.executor.execute {
+            if(eventListener.callback(event)) {
+              // Previous code collected the flag and unregistered once in the main thread,
+              // but there was a concurrency bug if the main thread finishes before the listeners.
+              // We unregister from here instead. Unregistering the same listener multiple times is harmless.
+              unregisterListener(eventListener)
+            }
+          }
+        }
+        val maxTimeEvent = filtered.maxBy { it.timestamp }
         // Update last timestamp per listener
-        maxTimeEvent?.let { listenersToLastTimestamp[eventListener] = max(startTimestamp, it.timestamp + 1) }
-      }
-
-      if (removeListener) {
-        unregisterListener(eventListener)
+        synchronized(writeLock) {
+          // Make sure the listener is still registered before adding a new timestamp
+          if (maxTimeEvent != null && listenersToLastTimestamp.containsKey(eventListener)) {
+            listenersToLastTimestamp[eventListener] = max(startTimestamp, maxTimeEvent.timestamp + 1)
+          }
+        }
       }
     }
   }

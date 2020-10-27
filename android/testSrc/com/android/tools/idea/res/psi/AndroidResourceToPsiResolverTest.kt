@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res.psi
 
+import com.android.AndroidProjectTypes
 import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.Density
@@ -27,15 +28,19 @@ import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.rendering.Locale
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlElement
 import com.intellij.testFramework.PsiTestUtil
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper
@@ -252,16 +257,85 @@ class ResourceManagerToPsiResolverTest : AndroidResourceToPsiResolverTest() {
 
 class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
 
+  private val MODULE_WITH_DEPENDENCY = "MODULE_WITH_DEPENDENCY"
+  private val MODULE_WITHOUT_DEPENDENCY = "MODULE_WITHOUT_DEPENDENCY"
+  private lateinit var MAIN_MODULE_COLOR_FILE : VirtualFile
+  private lateinit var MAIN_MODULE_USAGE_COLOR_FILE : VirtualFile
+  private lateinit var MODULE_WITH_DEPENDENCY_COLOR_FILE : VirtualFile
+  private lateinit var MODULE_WITHOUT_DEPENDENCY_COLOR_FILE : VirtualFile
+
   override fun setUp() {
     super.setUp()
     StudioFlags.RESOLVE_USING_REPOS.override(true)
     StudioFlags.NAV_DYNAMIC_SUPPORT.override(true)
+
+    MAIN_MODULE_COLOR_FILE = myFixture.addFileToProject("/res/values/colors.xml", COLORS_XML).virtualFile
+    MAIN_MODULE_USAGE_COLOR_FILE = myFixture.addFileToProject(
+      "/res/values/morecolors.xml",
+      //language=XML
+      """
+      <resources>
+          <color name="newColor">@color/testColor</color>
+      </resources>
+      """.trimIndent()
+    ).virtualFile
+    MODULE_WITH_DEPENDENCY_COLOR_FILE = myFixture.addFileToProject(
+      getAdditionalModulePath(MODULE_WITH_DEPENDENCY) + "/res/values/colors.xml",
+      COLORS_XML
+    ).virtualFile
+    MODULE_WITHOUT_DEPENDENCY_COLOR_FILE = myFixture.addFileToProject(
+      getAdditionalModulePath(MODULE_WITHOUT_DEPENDENCY) + "/res/values/colors.xml",
+      COLORS_XML
+    ).virtualFile
   }
 
   override fun tearDown() {
     StudioFlags.RESOLVE_USING_REPOS.clearOverride()
     StudioFlags.NAV_DYNAMIC_SUPPORT.clearOverride()
     super.tearDown()
+  }
+
+  private val COLORS_XML =
+    //language=XML
+    """
+    <resources>
+        <color name="testColor">#123456</color>
+    </resources>
+    """.trimIndent()
+
+  override fun configureAdditionalModules(
+    projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
+    modules: MutableList<MyAdditionalModuleData>
+  ) {
+    addModuleWithAndroidFacet(projectBuilder, modules, MODULE_WITHOUT_DEPENDENCY, AndroidProjectTypes.PROJECT_TYPE_LIBRARY, false)
+    addModuleWithAndroidFacet(projectBuilder, modules, MODULE_WITH_DEPENDENCY, AndroidProjectTypes.PROJECT_TYPE_LIBRARY, true)
+  }
+
+  private fun checkScopePerModuleForOpenFile(mainModule: Boolean, moduleWithDependency: Boolean, moduleWithoutDependency: Boolean) {
+    val scope = ResourceRepositoryToPsiResolver.getResourceSearchScope(
+      (myFixture.elementAtCaret as ResourceReferencePsiElement).resourceReference,
+      myFixture.file.findElementAt(myFixture.caretOffset)!!)
+    assertThat(scope.contains(MAIN_MODULE_COLOR_FILE)).isEqualTo(mainModule)
+    assertThat(scope.contains(MODULE_WITH_DEPENDENCY_COLOR_FILE)).isEqualTo(moduleWithDependency)
+    assertThat(scope.contains(MODULE_WITHOUT_DEPENDENCY_COLOR_FILE)).isEqualTo(moduleWithoutDependency)
+  }
+
+  fun testResourceScoping() {
+    myFixture.configureFromExistingVirtualFile(MODULE_WITH_DEPENDENCY_COLOR_FILE)
+    myFixture.moveCaret("name=\"testCo|lor\"")
+    checkScopePerModuleForOpenFile(mainModule = true, moduleWithDependency = true, moduleWithoutDependency = false)
+
+    myFixture.configureFromExistingVirtualFile(MODULE_WITHOUT_DEPENDENCY_COLOR_FILE)
+    myFixture.moveCaret("name=\"testCo|lor\"")
+    checkScopePerModuleForOpenFile(mainModule = false, moduleWithDependency = false, moduleWithoutDependency = true)
+
+    myFixture.configureFromExistingVirtualFile(MAIN_MODULE_USAGE_COLOR_FILE)
+    myFixture.moveCaret("@color/test|Color")
+    checkScopePerModuleForOpenFile(mainModule = true, moduleWithDependency = false, moduleWithoutDependency = false)
+
+    myFixture.configureFromExistingVirtualFile(MAIN_MODULE_COLOR_FILE)
+    myFixture.moveCaret("name=\"testCo|lor\"")
+    checkScopePerModuleForOpenFile(mainModule = true, moduleWithDependency = false, moduleWithoutDependency = false)
   }
 
   fun testDynamicFeatureModuleResource() {

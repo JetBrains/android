@@ -34,9 +34,6 @@ import org.jetbrains.jps.indices.ModuleExcludeIndex;
 import org.jetbrains.jps.model.JpsModel;
 import org.jetbrains.jps.model.module.JpsModule;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidDexBuildTarget extends AndroidBuildTarget {
   public AndroidDexBuildTarget(@NotNull JpsModule module) {
     super(MyTargetType.INSTANCE, module);

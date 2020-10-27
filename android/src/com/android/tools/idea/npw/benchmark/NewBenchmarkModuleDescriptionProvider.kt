@@ -19,8 +19,6 @@ import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider
 import com.android.tools.idea.npw.module.ModuleGalleryEntry
-import com.android.tools.idea.templates.Template
-import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.intellij.openapi.project.Project
 import icons.AndroidIcons

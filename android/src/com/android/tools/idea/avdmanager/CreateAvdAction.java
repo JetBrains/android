@@ -38,7 +38,7 @@ public class CreateAvdAction extends AvdUiAction {
   @Override
   public void actionPerformed(ActionEvent e) {
     AvdOptionsModel avdOptionsModel = new AvdOptionsModel(null);
-    ModelWizardDialog dialog = AvdWizardUtils.createAvdWizard(myAvdInfoProvider.getComponent(), getProject(), avdOptionsModel);
+    ModelWizardDialog dialog = AvdWizardUtils.createAvdWizard(myAvdInfoProvider.getAvdProviderComponent(), getProject(), avdOptionsModel);
     if (dialog.showAndGet()) {
       // Select the AVD that we just created
       refreshAvdsAndSelect(avdOptionsModel.getCreatedAvd());

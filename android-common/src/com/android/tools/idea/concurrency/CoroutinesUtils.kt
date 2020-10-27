@@ -20,13 +20,27 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
 import kotlinx.coroutines.*
+import com.intellij.util.concurrency.AppExecutorUtil
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.Executor
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * [CoroutineDispatcher]s equivalent to executors defined in [AndroidExecutors].
@@ -107,8 +121,8 @@ fun SupervisorJob(disposable: Disposable): Job {
  *   - a [CoroutineExceptionHandler] that logs unhandled exception at `ERROR` level.
  */
 @Suppress("FunctionName") // Mirroring coroutines API, with many functions that look like constructors.
-fun AndroidCoroutineScope(disposable: Disposable): CoroutineScope {
-  return CoroutineScope(SupervisorJob(disposable) + AndroidDispatchers.workerThread + androidCoroutineExceptionHandler)
+fun AndroidCoroutineScope(disposable: Disposable, context: CoroutineContext = EmptyCoroutineContext): CoroutineScope {
+  return CoroutineScope(SupervisorJob(disposable) + AndroidDispatchers.workerThread + androidCoroutineExceptionHandler + context)
 }
 
 /**
@@ -130,5 +144,37 @@ interface AndroidCoroutinesAware : UserDataHolderEx, Disposable, CoroutineScope 
   /** @see AndroidCoroutineScope */
   override val coroutineContext: CoroutineContext get() {
     return getUserData(CONTEXT) ?: putUserDataIfAbsent(CONTEXT, AndroidCoroutineScope(this).coroutineContext)
+  }
+}
+
+private val PROJECT_SCOPE: Key<CoroutineScope> = Key.create(::PROJECT_SCOPE.qualifiedName)
+
+val Project.coroutineScope: CoroutineScope
+  get() = getUserData(PROJECT_SCOPE) ?: (this as UserDataHolderEx).putUserDataIfAbsent(PROJECT_SCOPE, AndroidCoroutineScope(this))
+
+/**
+ * A coroutine-based launcher that ensures that at most one task is running at any point in time. It cancels the previous task if a new is
+ * enqueued.
+ */
+class UniqueTaskCoroutineLauncher(private val coroutineScope: CoroutineScope, description: String) {
+  // This mutex makes sure that the previous job is cancelled before a new one is started. This prevents several jobs to be executed at the
+  // same time meaning that several tasks also cannot be executed at the same time and therefore we do not need a mutex on a task execution
+  // itself.
+  private val jobMutex = Mutex()
+
+  private val taskDispatcher = AppExecutorUtil.createBoundedApplicationPoolExecutor(description, 1).asCoroutineDispatcher()
+
+  private var taskJob: Job? = null
+
+  fun launch(task: suspend () -> Unit): Job {
+    taskJob?.cancel()
+    return coroutineScope.launch(taskDispatcher) {
+      jobMutex.withLock {
+        taskJob?.join()
+        taskJob = launch(taskDispatcher) {
+          task()
+        }
+      }
+    }
   }
 }

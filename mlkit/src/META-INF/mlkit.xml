@@ -16,18 +16,27 @@
 <idea-plugin>
 
   <extensions defaultExtensionNs="com.intellij">
-    <moduleService serviceImplementation="com.android.tools.idea.mlkit.MlkitModuleService"/>
-    <fileTypeFactory implementation="com.android.tools.idea.mlkit.MlModelFileTypeFactory"/>
-    <fileEditorProvider implementation="com.android.tools.idea.mlkit.TfliteModelFileEditorProvider"/>
+    <moduleService serviceImplementation="com.android.tools.idea.mlkit.MlModuleService"/>
+    <fileTypeFactory implementation="com.android.tools.idea.mlkit.viewer.MlModelFileTypeFactory"/>
+    <fileEditorProvider implementation="com.android.tools.idea.mlkit.viewer.TfliteModelFileEditorProvider"/>
     <fileBasedIndex implementation="com.android.tools.idea.mlkit.MlModelFileIndex"/>
-    <java.shortNamesCache implementation="com.android.tools.idea.mlkit.MlkitShortNamesCache"/>
-    <java.elementFinder implementation="com.android.tools.idea.mlkit.MlkitClassFinder" id="mlkit.MlkitClassFinder"
+    <java.shortNamesCache implementation="com.android.tools.idea.mlkit.MlShortNamesCache"/>
+    <java.elementFinder implementation="com.android.tools.idea.mlkit.MlClassFinder" id="mlkit.MlClassFinder"
                         order="first, before java"/>
-    <resolveScopeEnlarger implementation="com.android.tools.idea.mlkit.MlkitResolveScopeEnlarger"/>
+    <resolveScopeEnlarger implementation="com.android.tools.idea.mlkit.MlResolveScopeEnlarger"/>
+    <editorNotificationProvider implementation="com.android.tools.idea.mlkit.notifications.MissingDependenciesNotificationProvider"/>
+    <editorNotificationProvider implementation="com.android.tools.idea.mlkit.notifications.InNonMlFolderNotificationProvider"/>
+    <editorNotificationProvider implementation="com.android.tools.idea.mlkit.notifications.BuildFeatureOffNotificationProvider"/>
+    <editorNotificationProvider implementation="com.android.tools.idea.mlkit.notifications.DependenciesTooLowNotificationProvider"/>
+    <editorNotificationProvider implementation="com.android.tools.idea.mlkit.notifications.LowAgpVersionNotificationProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
-    <resolveScopeEnlarger implementation="com.android.tools.idea.mlkit.MlkitResolveScopeEnlarger$MlkitKotlinResolveScopeEnlarger"/>
+    <resolveScopeEnlarger implementation="com.android.tools.idea.mlkit.MlResolveScopeEnlarger$MlKotlinResolveScopeEnlarger"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.templates">
+    <additionalTemplateActionsProvider implementation="com.android.tools.idea.mlkit.importmodel.ImportMlModelActionsProvider"/>
   </extensions>
 
 </idea-plugin>

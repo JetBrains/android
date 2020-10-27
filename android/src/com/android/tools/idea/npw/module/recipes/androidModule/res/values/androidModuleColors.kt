@@ -15,11 +15,17 @@
  */
 package com.android.tools.idea.npw.module.recipes.androidModule.res.values
 
+import com.android.tools.idea.wizard.template.MaterialColor
+
 fun androidModuleColors() = """
   <?xml version="1.0" encoding="utf-8"?>
   <resources>
-      <color name="colorPrimary">#6200EE</color>
-      <color name="colorPrimaryDark">#3700B3</color>
-      <color name="colorAccent">#03DAC5</color>
+      ${MaterialColor.PURPLE_200.xmlElement()}
+      ${MaterialColor.PURPLE_500.xmlElement()}
+      ${MaterialColor.PURPLE_700.xmlElement()}
+      ${MaterialColor.TEAL_200.xmlElement()}
+      ${MaterialColor.TEAL_700.xmlElement()}
+      ${MaterialColor.BLACK.xmlElement()}
+      ${MaterialColor.WHITE.xmlElement()}
   </resources>
 """

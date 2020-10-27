@@ -20,9 +20,9 @@ import static com.android.tools.idea.gradle.util.GradleUtil.findGradleSettingsFi
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.util.containers.ContainerUtil.newConcurrentSet;
 import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 
-import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -34,26 +34,29 @@ import com.intellij.ide.DataManager;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.application.AccessToken;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.UserDataHolderEx;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.Consumer;
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 import javax.swing.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
-public final class GradleProjectInfo {
+public class GradleProjectInfo {
   @NotNull private final Project myProject;
-  @NotNull private final AndroidProjectInfo myProjectInfo;
   @NotNull private final ProjectFileIndex myProjectFileIndex;
 
   private volatile boolean myNewProject;
@@ -67,14 +70,8 @@ public final class GradleProjectInfo {
   }
 
   public GradleProjectInfo(@NotNull Project project) {
-    this(project, AndroidProjectInfo.getInstance(project), ProjectFileIndex.getInstance(project));
-  }
-
-  @NonInjectable
-  public GradleProjectInfo(@NotNull Project project, @NotNull AndroidProjectInfo projectInfo, @NotNull ProjectFileIndex projectFileIndex) {
     myProject = project;
-    myProjectInfo = AndroidProjectInfo.getInstance(project);
-    myProjectFileIndex = projectFileIndex;
+    myProjectFileIndex = ProjectFileIndex.getInstance(myProject);
     myFacetManager = ProjectFacetManager.getInstance(myProject);
   }
 
@@ -103,17 +100,6 @@ public final class GradleProjectInfo {
   }
 
   /**
-   * Indicates whether the IDE should build the project by invoking Gradle directly, or through IDEA's JPS. By default Android Studio
-   * invokes Gradle directly.
-   *
-   * @return {@code true} if the IDE should build the project by invoking Gradle directly; {@code false} otherwise.
-   */
-  public boolean isDirectGradleBuildEnabled() {
-    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(myProject);
-    return buildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD;
-  }
-
-  /**
    * Indicates whether Gradle is used to build at least one module in this project.
    * Note: {@link AndroidProjectInfo#requiresAndroidModel())} indicates whether a project requires an {@link AndroidModel}.
    * That method should be preferred in almost all cases. Use this method only if you explicitly need to check whether the model is
@@ -124,6 +110,9 @@ public final class GradleProjectInfo {
       if (myProject.isDisposed()) {
         return false;
       }
+      if (isBeingInitializedAsGradleProject(myProject)) {
+        return true;
+      }
       if (myFacetManager.hasFacets(GradleFacet.getFacetTypeId())) {
         return true;
       }
@@ -132,11 +121,9 @@ public final class GradleProjectInfo {
       if (GradleSyncState.getInstance(myProject).getLastSyncFinishedTimeStamp() != -1L) {
         return true;
       }
-
       if (!GradleSettings.getInstance(myProject).getLinkedProjectsSettings().isEmpty()){
         return true;
       }
-
       return hasTopLevelGradleFile();
     });
   }
@@ -233,25 +220,7 @@ public final class GradleProjectInfo {
   public AndroidModuleModel findAndroidModelInModule(@NotNull VirtualFile file, boolean honorExclusion) {
     Module module = findModuleForFile(file, honorExclusion);
     if (module == null) {
-      if (myProjectInfo.requiresAndroidModel()) {
-        // You've edited a file that does not correspond to a module in a Gradle project; you are most likely editing a file in an excluded
-        // folder under the build directory
-        VirtualFile rootFolder = myProject.getBaseDir();
-        if (rootFolder != null) {
-          VirtualFile parent = file.getParent();
-          while (parent != null && parent.equals(rootFolder)) {
-            module = findModuleForFile(file, honorExclusion);
-            if (module != null) {
-              break;
-            }
-            parent = parent.getParent();
-          }
-        }
-      }
-
-      if (module == null) {
-        return null;
-      }
+      return null;
     }
 
     if (module.isDisposed()) {
@@ -301,6 +270,38 @@ public final class GradleProjectInfo {
       return isProjectModule(module) ? ModuleManager.getInstance(myProject).getModules() : new Module[]{module};
     }
     return Module.EMPTY_ARRAY;
+  }
+
+  private static final Key<Set<File>> PROJECTS_BEING_INITIALIZED = Key.create("PROJECTS_BEING_INITIALIZED");
+
+  /**
+   * Registers the given location as the location of a new Gradle project which is being initialized.
+   *
+   * <p>This makes {@link #isBuildWithGradle()} return true for projects at this location.
+   *
+   * @return an access token which should be finalized when the project is initialized.
+   */
+  public static AccessToken beginInitializingGradleProjectAt(@NotNull File projectFolderPath) {
+    UserDataHolderEx userData = (UserDataHolderEx)ApplicationManager.getApplication();
+    Set<File> projectsBeingInitialized = userData.putUserDataIfAbsent(PROJECTS_BEING_INITIALIZED, newConcurrentSet());
+    if (!projectsBeingInitialized.add(projectFolderPath)) {
+      throw new IllegalStateException(
+        "Cannot initialize two projects at the same location at the same time. Project location: " + projectFolderPath);
+    }
+    return new AccessToken() {
+      @Override
+      public void finish() {
+        projectsBeingInitialized.remove(projectFolderPath);
+      }
+    };
+  }
+
+  private static boolean isBeingInitializedAsGradleProject(@NotNull Project project) {
+    String basePath = project.getBasePath();
+    if (basePath == null) return false;
+    Set<File> projectsBeingInitialized = ApplicationManager.getApplication().getUserData(PROJECTS_BEING_INITIALIZED);
+    if (projectsBeingInitialized == null) return false;
+    return projectsBeingInitialized.contains(new File(basePath));
   }
 
   private static boolean isProjectModule(@NotNull Module module) {

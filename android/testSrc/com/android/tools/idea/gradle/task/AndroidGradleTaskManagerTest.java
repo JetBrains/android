@@ -25,9 +25,6 @@ import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 import org.picocontainer.PicoContainer;
 
-/**
- * @author Vladislav.Soroka
- */
 public class AndroidGradleTaskManagerTest {
   @Test
   public void executeTasks() {
@@ -57,9 +54,8 @@ b/144931276 */
     GradleProjectInfo gradleProjectInfo = mock(GradleProjectInfo.class);
     when(taskId.findProject()).thenReturn(project);
     when(project.getPicoContainer()).thenReturn(picoContainer);
-    when(gradleProjectInfo.isDirectGradleBuildEnabled()).thenReturn(true);
+    when(picoContainer.getComponentInstance(GradleProjectInfo.class.getName())).thenReturn(gradleProjectInfo);
     AndroidGradleBuildConfiguration androidGradleBuildConfiguration = new AndroidGradleBuildConfiguration();
-    androidGradleBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = true;
     when(picoContainer.getComponentInstance(AndroidGradleBuildConfiguration.class.getName())).thenReturn(androidGradleBuildConfiguration);
     when(gradleBuildInvoker.getProject()).thenReturn(project);
     ModuleManager moduleManager = mock(ModuleManager.class);

@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.tests.gui.projectstructure;
 
+import static com.intellij.psi.impl.DebugUtil.sleep;
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
-import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.NewJavaClassDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.AddLibraryDependencyDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.AddModuleDependencyDialogFixture;
@@ -31,9 +32,9 @@ import com.android.tools.idea.tests.gui.framework.fixture.newpsd.DependenciesPer
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.DependenciesPerspectiveConfigurableFixtureKt;
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructureDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
+import com.android.tools.idea.wizard.template.Language;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.util.Arrays;
 import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
@@ -63,7 +64,7 @@ public class DependenciesTestUtil {
                                                     @NotNull String appName,
                                                     int minSdkApi,
                                                     @NotNull Language language) {
-    guiTest
+    return guiTest
       .welcomeFrame()
       .createNewProject()
       .getChooseAndroidProjectStep()
@@ -76,17 +77,14 @@ public class DependenciesTestUtil {
       .selectMinimumSdkApi(minSdkApi)
       .setSourceLanguage(language)
       .wizard()
-      .clickFinish();
-
-    return guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(30));
+      .clickFinishAndWaitForSyncToFinish();
   }
 
   protected static void createJavaModule(@NotNull IdeFrameFixture ideFrame) {
     ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .clickNextToJavaLibrary()
       .wizard()
-      .clickFinish() // Use default Java Module name.
-      .waitForGradleProjectSyncToFinish();
+      .clickFinishAndWaitForSyncToFinish();
   }
 
   protected static void accessLibraryClassAndVerify(@NotNull IdeFrameFixture ideFrame,
@@ -162,8 +160,7 @@ public class DependenciesTestUtil {
       .clickNextToAndroidLibrary()
       .enterModuleName(moduleName)
       .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish();
+      .clickFinishAndWaitForSyncToFinish();
   }
 
   protected static void createJavaClassInModule(@NotNull IdeFrameFixture ideFrame,
@@ -187,8 +184,8 @@ public class DependenciesTestUtil {
     });
 
     ideFrame.invokeMenuPath("File", "New", "Java Class");
-    CreateFileFromTemplateDialogFixture dialog = CreateFileFromTemplateDialogFixture.find(ideFrame.robot());
-    dialog.setName(className);
+    NewJavaClassDialogFixture dialog = NewJavaClassDialogFixture.find(ideFrame);
+    dialog.enterName(className);
     dialog.clickOk();
   }
 

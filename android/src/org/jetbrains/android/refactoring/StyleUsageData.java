@@ -7,9 +7,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
-/**
- * @author Eugene.Kudelevsky
- */
 interface StyleUsageData {
   @Nullable
   PsiFile getFile();

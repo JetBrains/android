@@ -52,7 +52,7 @@ fun createTaskChartItems(data: CriticalPathTasksUiData): List<TimeDistributionCh
   when {
     aggregatedTasks.size > 1 -> result.add(OtherChartItem(
       time = TimeWithPercentage(aggregatedTasks.map { it.executionTime.timeMs }.sum(), data.criticalPathDuration.totalMs),
-      textPrefix = "Other tasks",
+      textPrefix = "Short tasks",
       aggregatedItems = aggregatedTasks,
       assignedColor = CriticalPathChartLegend.OTHER_TASKS_COLOR,
       hasWarnings = aggregatedTasks.any { it.hasWarning }
@@ -68,7 +68,8 @@ fun createTaskChartItems(data: CriticalPathTasksUiData): List<TimeDistributionCh
 
 fun createPluginChartItems(data: CriticalPathPluginsUiData): List<TimeDistributionChart.ChartDataItem<CriticalPathPluginUiData>> {
   val result = ArrayList<TimeDistributionChart.ChartDataItem<CriticalPathPluginUiData>>()
-  val palette = CriticalPathChartLegend.PluginColorPalette()
+  val palette = CriticalPathChartLegend.pluginColorPalette
+  palette.reset()
   val aggregatedPlugins = ArrayList<CriticalPathPluginUiData>()
   data.plugins
     .sortedByDescending { it.criticalPathDuration.timeMs }
@@ -76,7 +77,8 @@ fun createPluginChartItems(data: CriticalPathPluginsUiData): List<TimeDistributi
       if (result.size < MAX_ITEMS_SHOWN_SEPARATELY) {
         result.add(PluginChartItem(
           pluginData = pluginData,
-          assignedColor = palette.newColor))
+          assignedColor = palette.getColor(pluginData.name)
+        ))
       }
       else {
         aggregatedPlugins.add(pluginData)
@@ -86,14 +88,14 @@ fun createPluginChartItems(data: CriticalPathPluginsUiData): List<TimeDistributi
   when {
     aggregatedPlugins.size > 1 -> result.add(OtherChartItem(
       time = TimeWithPercentage(aggregatedPlugins.map { it.criticalPathDuration.timeMs }.sum(), data.criticalPathDuration.totalMs),
-      textPrefix = "Other plugins",
+      textPrefix = "Short plugins",
       aggregatedItems = aggregatedPlugins,
-      assignedColor = palette.newColor,
+      assignedColor = palette.getOneColorForAll(aggregatedPlugins),
       hasWarnings = aggregatedPlugins.any { it.warningCount > 0 }
     ))
     aggregatedPlugins.size == 1 -> result.add(PluginChartItem(
       pluginData = aggregatedPlugins[0],
-      assignedColor = palette.newColor
+      assignedColor = palette.getColor(aggregatedPlugins[0].name)
     ))
   }
 

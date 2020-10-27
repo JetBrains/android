@@ -16,7 +16,7 @@
 package com.android.tools.idea.lang.androidSql
 
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.psi.NavigatablePsiElement
 import com.intellij.psi.PsiParameter
 
@@ -24,7 +24,7 @@ class ParameterReferencesTest : RoomLightTestCase() {
   fun testReference_single() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -60,7 +60,7 @@ class ParameterReferencesTest : RoomLightTestCase() {
   fun testReference_multiple() {
     myFixture.addRoomEntity("com.example.User", "age" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -96,7 +96,7 @@ class ParameterReferencesTest : RoomLightTestCase() {
   fun testCompletionAfterColon_single() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -128,7 +128,7 @@ class ParameterReferencesTest : RoomLightTestCase() {
   fun testCompletionAfterColon_none() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -147,7 +147,7 @@ class ParameterReferencesTest : RoomLightTestCase() {
   fun testCompletionAfterColon_multiple() {
     myFixture.addRoomEntity("com.example.User", "age" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -172,7 +172,7 @@ class ParameterReferencesTest : RoomLightTestCase() {
   fun testCompletionNoColon() {
     myFixture.addRoomEntity("com.example.User", "age" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -197,7 +197,7 @@ class ParameterReferencesTest : RoomLightTestCase() {
   fun testRename() {
     myFixture.addRoomEntity("com.example.User", "age" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;

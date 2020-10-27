@@ -16,77 +16,67 @@
 package com.android.tools.profilers.cpu.atrace
 
 import com.android.tools.adtui.model.Range
-import com.android.tools.profilers.cpu.atrace.AtraceTestUtils.Companion.DELTA
+import com.android.tools.profilers.systemtrace.TraceEventModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import trebuchet.model.base.SliceGroup
-import trebuchet.model.fragments.SliceGroupBuilder
 
 class SliceStreamTest {
   @Test
   fun testCallbackOnlyOnMatchingPattern() {
     val sliceList = buildSliceGroup(5)
-    var callBackTimes = 0;
+    var callBackTimes = 0
     SliceStream(sliceList)
       .matchName("Test1")
-      .enumerate(
-          { slice ->
-            assertThat(slice.name).isEqualTo("Test1")
-            callBackTimes++
-            SliceStream.EnumerationResult.CONTINUE
-          }
-      )
+      .enumerate { slice ->
+        assertThat(slice.name).isEqualTo("Test1")
+        callBackTimes++
+        SliceStream.EnumerationResult.CONTINUE
+      }
     assertThat(callBackTimes).isEqualTo(1)
   }
 
   @Test
   fun testCallbackOnlyOnMatchingTimeRange() {
     val sliceList = buildSliceGroup(5)
-    val rangeList = listOf<Range>(Range(0.0, 1.0), Range(1.0, 2.0), Range(2.0, 3.0))
-    var rangeIndex = 0;
+    val rangeList = listOf(Range(0.0, 1.0), Range(1.0, 2.0), Range(2.0, 3.0))
+    var rangeIndex = 0
     SliceStream(sliceList)
       .overlapsRange(Range(1.0, 2.0))
-      .enumerate(
-          { slice ->
-            assertThat(slice.startTime).isWithin(DELTA).of(rangeList[rangeIndex].min)
-            assertThat(slice.endTime).isWithin(DELTA).of(rangeList[rangeIndex].max)
-            rangeIndex++
-            SliceStream.EnumerationResult.CONTINUE
-          }
-      )
+      .enumerate { slice ->
+        assertThat(slice.startTimestampUs).isEqualTo(rangeList[rangeIndex].min.toLong())
+        assertThat(slice.endTimestampUs).isEqualTo(rangeList[rangeIndex].max.toLong())
+        rangeIndex++
+        SliceStream.EnumerationResult.CONTINUE
+      }
     assertThat(rangeList).hasSize(rangeIndex)
   }
 
   @Test
   fun testCallbackFalseStopsEnumeration() {
     val sliceList = buildSliceGroup(5)
-    var callBackTimes = 0;
-    SliceStream(sliceList).enumerate(
-        { slice ->
-          callBackTimes++
-          SliceStream.EnumerationResult.TERMINATE
-        }
-    )
+    var callBackTimes = 0
+    SliceStream(sliceList).enumerate {
+      callBackTimes++
+      SliceStream.EnumerationResult.TERMINATE
+    }
     assertThat(callBackTimes).isEqualTo(1)
   }
 
   @Test
   fun testEnumerationSkipsChildrenOnSkipChildren() {
-    val sliceList = mutableListOf<SliceGroup>()
+    val sliceList = mutableListOf<TraceEventModel>()
     for (i in 0..5) {
-      val list = mutableListOf<SliceGroupBuilder.MutableSliceGroup>()
+      val list = mutableListOf<TraceEventModel>()
       for (j in 0..5) {
-        list.add(SliceGroupBuilder.MutableSliceGroup(j * 1.0, (j + 1.0), false, 0.0, "Test", mutableListOf()))
+        list.add(TraceEventModel("Test", j.toLong(), j + 1L, 1L, emptyList()))
       }
-      sliceList.add(SliceGroupBuilder.MutableSliceGroup(i * 1.0, (i + 1.0), false, 0.0, "Test", list))
+      sliceList.add(TraceEventModel("Test", i.toLong(), i + 1L, 1L, list))
     }
-    var callBackTimes = 0;
-    SliceStream(sliceList).enumerate(
-      { slice ->
-        callBackTimes++
-        SliceStream.EnumerationResult.SKIP_CHILDREN
-      }
-    )
+    var callBackTimes = 0
+    SliceStream(sliceList).enumerate {
+      callBackTimes++
+      SliceStream.EnumerationResult.SKIP_CHILDREN
+    }
     assertThat(callBackTimes).isEqualTo(sliceList.size)
   }
 
@@ -105,10 +95,10 @@ class SliceStreamTest {
     assertThat(slice).isNull()
   }
 
-  fun buildSliceGroup(count: Int): MutableList<SliceGroup> {
-    val sliceList = mutableListOf<SliceGroup>()
+  private fun buildSliceGroup(count: Int): MutableList<TraceEventModel> {
+    val sliceList = mutableListOf<TraceEventModel>()
     for (i in 0..count) {
-      sliceList.add(SliceGroupBuilder.MutableSliceGroup(i * 1.0, (i + 1.0), false, 0.0, "Test" + i, mutableListOf()))
+      sliceList.add(TraceEventModel("Test$i", i.toLong(), i + 1L, 1L, emptyList()))
     }
     return sliceList
   }

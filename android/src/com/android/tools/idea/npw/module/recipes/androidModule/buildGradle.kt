@@ -19,17 +19,18 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.repository.Revision.parseRevision
 import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion
 import com.android.tools.idea.npw.module.recipes.androidConfig
+import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.npw.module.recipes.getConfigurationName
 import com.android.tools.idea.npw.module.recipes.supportsImprovedTestDeps
-import com.android.tools.idea.templates.RepositoryUrlManager
+import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.templates.resolveDependency
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.GradlePluginVersion
-import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.has
 import com.android.tools.idea.wizard.template.renderIf
 
 fun buildGradle(
+  isKts: Boolean,
   isLibraryProject: Boolean,
   isDynamicFeature: Boolean,
   packageName: String,
@@ -38,10 +39,8 @@ fun buildGradle(
   minApi: String,
   targetApi: String,
   useAndroidX: Boolean,
-  language: Language,
   gradlePluginVersion: GradlePluginVersion,
   includeCppSupport: Boolean = false,
-  // TODO(qumeric): do something better
   cppFlags: String = "",
   isCompose: Boolean = false,
   baseFeatureName: String = "base",
@@ -53,18 +52,6 @@ fun buildGradle(
   val explicitBuildToolsVersion = needsExplicitBuildToolsVersion(GradleVersion.parse(gradlePluginVersion), parseRevision(buildToolsVersion))
   val supportsImprovedTestDeps = supportsImprovedTestDeps(gradlePluginVersion)
   val isApplicationProject = !isLibraryProject
-  val kotlinPluginsBlock = renderIf(language == Language.Kotlin) {
-    """
-    apply plugin: 'kotlin-android'
-    apply plugin: 'kotlin-android-extensions'
-    """
-  }
-  val pluginsBlock = "    " + when {
-    isLibraryProject -> "apply plugin: 'com.android.library'"
-    isDynamicFeature -> "apply plugin: 'com.android.dynamic-feature'"
-    else -> "apply plugin: 'com.android.application'"
-  } + "\n    " + kotlinPluginsBlock
-
 
   val androidConfigBlock = androidConfig(
     buildApiString,
@@ -79,10 +66,19 @@ fun buildGradle(
     isApplicationProject,
     packageName,
     hasTests = hasTests,
-    canHaveCpp = true,
     canUseProguard = true,
     addLintOptions = addLintOptions
   )
+
+  if (isDynamicFeature) {
+    return """
+$androidConfigBlock
+
+dependencies {
+    implementation project("${baseFeatureName}")
+}
+"""
+  }
 
   val composeDependenciesBlock = renderIf(isCompose) { "kotlinPlugin \"androidx.compose:compose-compiler:+\"" }
 
@@ -96,8 +92,7 @@ fun buildGradle(
     """
   }
 
-  val dynamicFeatureBlock = when {
-    isDynamicFeature -> """implementation project (":${baseFeatureName}")"""
+  val wearProjectBlock = when {
     !wearProjectName.isBlank() && formFactorNames.has(FormFactor.Mobile) && formFactorNames.has(FormFactor.Wear) ->
       """wearApp project (":${wearProjectName}")"""
     else -> ""
@@ -106,16 +101,47 @@ fun buildGradle(
   val dependenciesBlock = """
   dependencies {
     $composeDependenciesBlock
-    ${getConfigurationName("compile", gradlePluginVersion)} fileTree (dir: "libs", include: ["*.jar"])
     $oldTestDependenciesBlock
-    $dynamicFeatureBlock
+    $wearProjectBlock
   }
   """
 
-  return """
-    $pluginsBlock
+  val allBlocks =
+    """
+    ${emptyPluginsBlock()}
     $androidConfigBlock
     $dependenciesBlock
-  """
+    """
+
+  return if (isKts) {
+    allBlocks
+      .split("\n").joinToString("\n") {
+        it.replace("'", "\"")
+          .toKtsFunction("compileSdkVersion")
+          .toKtsProperty("applicationId")
+          .toKtsFunction("minSdkVersion")
+          .toKtsFunction("targetSdkVersion")
+          .toKtsProperty("versionCode")
+          .toKtsProperty("versionName")
+          .toKtsProperty("testInstrumentationRunner")
+          .toKtsProperty("minifyEnabled")
+          .toKtsFunction("proguardFiles")
+          .toKtsFunction("wearApp")
+          .replace("minifyEnabled", "isMinifyEnabled")
+          .replace("release {", "getByName(\"release\") {")
+      }
+  }
+  else {
+    allBlocks
+  }
 }
+
+private fun String.toKtsFunction(funcName: String): String = if (this.contains("$funcName ")) {
+  this.replace("$funcName ", "$funcName(") + ")"
+}
+else {
+  this
+}
+
+private fun String.toKtsProperty(funcName: String): String = this.replace("$funcName ", "$funcName = ")
 

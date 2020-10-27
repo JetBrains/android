@@ -22,7 +22,6 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
-import com.intellij.xdebugger.breakpoints.XBreakpointType;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -102,6 +101,7 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
    * @param applicationIds target Android application IDs to be debugged
    * @param state an Android debugger state and configuration to be used to start the debugger
    * @param runConfigTypeId a run configuration type ID of a debugee process
+   * @param packageNameOverride to be used for attaching to a process that has a name different from the name of the app's package
    * @return a task which starts a debugger and attach to target processes
    */
   @NotNull
@@ -110,7 +110,9 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
                                             @NotNull Set<String> applicationIds,
                                             @NotNull AndroidFacet facet,
                                             @NotNull S state,
-                                            @NotNull String runConfigTypeId);
+                                            @NotNull String runConfigTypeId,
+                                            // TODO(b/153668177): Note/Review: packageNameOverride is used in native debugger only.
+                                            @Nullable String packageNameOverride);
 
   /**
    * Returns true if this debugger supports a given {@code project}.
@@ -122,10 +124,10 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
    * running Android processes without associated run configuration and run action. When you attach a debugger
    * through debug run action, {@link #getConnectDebuggerTask} is used instead.
    *
-   * <p>Note: the state object is not passed into this method because the state is associated with run configuration
-   * and we have no associated run configuration.
+   * <p>Note: the config object is passed into this method is optional. If the caller passes a config, then the
+   * settings (e.g., debugger settings) in that config object should be used. Otherwise, default settings should be used.
    */
-  void attachToClient(@NotNull Project project, @NotNull Client client);
+  void attachToClient(@NotNull Project project, @NotNull Client client, @Nullable RunConfiguration config);
 
   /**
    * Indicates whether this debugger should be the default.

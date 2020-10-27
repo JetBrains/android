@@ -18,6 +18,7 @@ package com.android.tools.idea.run.deployment;
 import static org.junit.Assert.assertEquals;
 
 import com.google.common.util.concurrent.Futures;
+import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -27,13 +28,12 @@ public final class WorkerTest {
   @Test
   public void performResultFutureIsCancelled() {
     // Arrange
-    Object expectedResult = new Object();
-    Worker<Object> worker = new Worker<>(expectedResult);
+    Worker<Object> worker = new Worker<>();
 
     // Act
-    Object actualResult = worker.perform(Futures::immediateCancelledFuture);
+    Object result = worker.perform(Futures::immediateCancelledFuture);
 
     // Assert
-    assertEquals(expectedResult, actualResult);
+    assertEquals(Optional.empty(), result);
   }
 }

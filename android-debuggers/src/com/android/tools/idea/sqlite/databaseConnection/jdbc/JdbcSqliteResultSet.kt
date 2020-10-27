@@ -16,91 +16,80 @@
 package com.android.tools.idea.sqlite.databaseConnection.jdbc
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.concurrency.executeAsync
+import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
-import com.android.tools.idea.sqlite.model.SqliteColumn
+import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
+import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteValue
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.util.Disposer
-import com.intellij.util.concurrency.SequentialTaskExecutor
 import java.sql.Connection
 import java.sql.JDBCType
 import java.sql.ResultSet
+import java.util.concurrent.Executor
 
-class JdbcSqliteResultSet(
-  private val service: JdbcDatabaseConnection,
+abstract class JdbcSqliteResultSet(
+  private val taskExecutor: Executor,
   private val connection: Connection,
   private val sqliteStatement: SqliteStatement
 ) : SqliteResultSet {
 
-  /**
-   * It's safe to use [LazyThreadSafetyMode.NONE] because the property is accessed from a [SequentialTaskExecutor] with a single thread.
-   */
-  private val _columns: List<SqliteColumn> by lazy(LazyThreadSafetyMode.NONE) {
-    val preparedStatement = connection.resolvePreparedStatement(sqliteStatement)
-    val resultSet = preparedStatement.executeQuery()
+  override val columns get() = taskExecutor.executeAsync {
+    connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
+      preparedStatement.executeQuery().use {
+        val metaData = it.metaData
+        (1..metaData.columnCount).map { i ->
+          val tableName = metaData.getTableName(i)
+          val columnName = metaData.getColumnName(i)
 
-    val metaData = resultSet.metaData
-    (1..metaData.columnCount).map { i ->
-      val tableName = metaData.getTableName(i)
-      val columnName = metaData.getColumnName(i)
-
-      val keyColumnsNames = connection.getColumnNamesInPrimaryKey(tableName)
-      SqliteColumn(metaData.getColumnName(i), JDBCType.valueOf(metaData.getColumnType(i)), keyColumnsNames.contains(columnName))
+          val keyColumnsNames = connection.getColumnNamesInPrimaryKey(tableName)
+          ResultSetSqliteColumn(
+            metaData.getColumnName(i),
+            SqliteAffinity.fromJDBCType(JDBCType.valueOf(metaData.getColumnType(i))),
+            metaData.isNullable(i) == 1,
+            keyColumnsNames.contains(columnName)
+          )
+        }
+      }
     }
   }
 
-  private val _rowCount: Int by lazy(LazyThreadSafetyMode.NONE) {
-    check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }
-    check(!connection.isClosed) { "The connection has been closed." }
+  abstract override val totalRowCount: ListenableFuture<Int>
+  abstract override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>>
 
-    val countQuery = "SELECT COUNT(*) FROM (${sqliteStatement.sqliteStatementText})"
-    val preparedStatement = connection.resolvePreparedStatement(SqliteStatement(countQuery, sqliteStatement.parametersValues))
-    val resultSet = preparedStatement.executeQuery()
-
-    resultSet.next()
-    val count = resultSet.getInt(1)
-
-    resultSet.close()
-    preparedStatement.close()
-
-    count
-  }
-
-  override val columns get() = service.sequentialTaskExecutor.executeAsync { _columns }
-
-  override val rowCount get() = service.sequentialTaskExecutor.executeAsync { _rowCount }
-
-  override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> {
-    require(rowOffset >= 0) { "Offset must be >= 0." }
-    require(rowBatchSize > 0) { "Row batch size must be > 0." }
-
-    return service.sequentialTaskExecutor.executeAsync {
+  protected fun getRowCount(sqliteStatement: SqliteStatement, handleResponse: (ResultSet) -> Int): ListenableFuture<Int> {
+    return taskExecutor.executeAsync {
       check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }
       check(!connection.isClosed) { "The connection has been closed." }
 
-      val limitOffsetQuery = "SELECT * FROM (${sqliteStatement.sqliteStatementText}) LIMIT $rowOffset, $rowBatchSize"
-      val preparedStatement = connection.resolvePreparedStatement(SqliteStatement(limitOffsetQuery, sqliteStatement.parametersValues))
-      val resultSet = preparedStatement.executeQuery()
-
-      val rows = ArrayList<SqliteRow>()
-      while (resultSet.next()) {
-        rows.add(createCurrentRow(resultSet))
+      connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
+        preparedStatement.executeQuery().use { handleResponse(it) }
       }
+    }
+  }
 
-      resultSet.close()
-      preparedStatement.close()
+  protected fun getRowBatch(
+    sqliteStatement: SqliteStatement,
+    handleResponse: (ResultSet, List<ResultSetSqliteColumn>) -> List<SqliteRow>
+  ): ListenableFuture<List<SqliteRow>> {
+    return columns.transform(taskExecutor) { columns ->
+      check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }
+      check(!connection.isClosed) { "The connection has been closed." }
 
-      rows
+      connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
+        preparedStatement.executeQuery().use { handleResponse(it, columns) }
+      }
     }
   }
 
   @WorkerThread
-  private fun createCurrentRow(resultSet: ResultSet): SqliteRow {
-    return SqliteRow(_columns.mapIndexed { i, column -> SqliteColumnValue(column, resultSet.getObject(i + 1)) })
+  protected fun createCurrentRow(resultSet: ResultSet, columns: List<ResultSetSqliteColumn>): SqliteRow {
+    return SqliteRow(columns.mapIndexed { i, column -> SqliteColumnValue(column.name, SqliteValue.fromAny(resultSet.getObject(i + 1))) })
   }
 
-  override fun dispose() {
-  }
+  override fun dispose() { }
 }

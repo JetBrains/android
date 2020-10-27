@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
  * @param <M> data model type
  * @param <R> renderer enum type
  */
-public final class TrackModel<M, R extends Enum> implements DragAndDropModelListElement {
+public class TrackModel<M, R extends Enum> implements DragAndDropModelListElement {
   public enum Aspect {
     // The track's collapse state has changed.
     COLLAPSE_CHANGE
@@ -140,7 +140,7 @@ public final class TrackModel<M, R extends Enum> implements DragAndDropModelList
     return new Builder<>(dataModel, rendererType, title);
   }
 
-  public static final class Builder<M, R extends Enum> {
+  public static class Builder<M, R extends Enum> {
     private final M myDataModel;
     private final R myRendererType;
     private final String myTitle;

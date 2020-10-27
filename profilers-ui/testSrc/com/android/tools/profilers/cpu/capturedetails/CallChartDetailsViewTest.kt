@@ -31,14 +31,12 @@ import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
-import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCaptureParser
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.CpuProfilerStageView
-import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
@@ -66,7 +64,7 @@ class CallChartDetailsViewTest {
 
   @Before
   fun setUp() {
-    val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), FakeIdeProfilerServices(), timer)
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), timer)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
 
@@ -124,14 +122,13 @@ class CallChartDetailsViewTest {
   @Test
   fun callChartHasCpuTraceEventTooltipView() {
     val parser = CpuCaptureParser(FakeIdeProfilerServices())
-    val atraceCapture = parser.parse(ProfilersTestData.SESSION_DATA.toBuilder().setPid(1).build(),
-                                     FakeCpuService.FAKE_TRACE_ID,
-                                     CpuProfilerTestUtils.traceFileToByteString(
-                                       TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_PID1_PATH)),
-                                     Cpu.CpuTraceType.ATRACE)!!.get()
+
+    val traceFile = TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_PID1_PATH)
+    val aTraceCapture = parser.parse(traceFile, FakeCpuService.FAKE_TRACE_ID, Cpu.CpuTraceType.ATRACE, 1, null).get()
+
     val callChart = CaptureDetails.Type.CALL_CHART.build(Range(Double.MIN_VALUE, Double.MAX_VALUE),
-                                                         listOf(atraceCapture.getCaptureNode(atraceCapture.mainThreadId)),
-                                                         atraceCapture) as CaptureDetails.CallChart
+                                                         listOf(aTraceCapture.getCaptureNode(aTraceCapture.mainThreadId)),
+                                                         aTraceCapture) as CaptureDetails.CallChart
     val callChartView = ChartDetailsView.CallChartDetailsView(profilersView, callChart)
     val treeChart = TreeWalker(callChartView.component).descendants().filterIsInstance<HTreeChart<CaptureNode>>().first()
     assertThat(treeChart.mouseMotionListeners[2]).isInstanceOf(CpuTraceEventTooltipView::class.java)

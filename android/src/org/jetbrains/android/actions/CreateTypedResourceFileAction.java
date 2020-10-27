@@ -58,14 +58,11 @@ import org.jetbrains.android.dom.transition.TransitionDomUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class CreateTypedResourceFileAction extends CreateResourceActionBase {
 
   protected final ResourceFolderType myResourceFolderType;
@@ -128,7 +125,7 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
 
   PsiElement[] doCreateAndNavigate(String newName, PsiDirectory directory, String rootTagName, boolean chooseTagName, boolean navigate)
     throws Exception {
-    final XmlFile file = AndroidResourceUtil
+    final XmlFile file = IdeResourcesUtil
       .createFileResource(newName, directory, rootTagName, myResourceFolderType.getName(), myValuesResourceFile);
 
     if (navigate) {
@@ -202,7 +199,7 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
     return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
       PsiElement e = element;
       while (e != null) {
-        if (e instanceof PsiDirectory && AndroidResourceUtil.isResourceSubdirectory((PsiDirectory)e, resourceType)) {
+        if (e instanceof PsiDirectory && IdeResourcesUtil.isResourceSubdirectory((PsiDirectory)e, resourceType)) {
           // Verify the given PsiElement is a directory within a valid resource type folder (e.g: .../res/color).
           return true;
         }

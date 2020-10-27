@@ -31,7 +31,7 @@ import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.lint.common.LintIdeRequest;
 import com.android.tools.idea.lint.common.LintIdeSupport;
 import com.android.tools.idea.lint.common.LintProblemData;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.lint.checks.UnusedResourceDetector;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
@@ -163,7 +163,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
               }
             }
             else {
-              ResourceFolderType folderType = ResourceHelper.getFolderType(psiFile);
+              ResourceFolderType folderType = IdeResourcesUtil.getFolderType(psiFile);
               if (folderType == null) {
                 // Not found in a resource folder. This happens for example for
                 // matches in build.gradle.
@@ -288,7 +288,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
       LintIdeClient client = LintIdeSupport.get().createBatchClient(lintResult);
       LintRequest request = new LintIdeRequest(client, myProject, null, Arrays.asList(myModules), false);
       request.setScope(Scope.ALL);
-      LintDriver lint = new LintDriver(new AndroidLintIdeIssueRegistry(), client, request);
+      LintDriver lint = client.createDriver(request, new AndroidLintIdeIssueRegistry());
       lint.analyze();
     }
     finally {

@@ -23,7 +23,7 @@ import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
-import com.android.tools.profilers.cpu.atrace.AtraceFrame;
+import com.android.tools.profilers.cpu.atrace.SystemTraceFrame;
 import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.JBUI;
@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Creates a view containing a {@link HideablePanel} composed by a {@link CpuListScrollPane} displaying a list of Frames. Each row
  * represents a thread composed by a {@link com.android.tools.adtui.chart.statechart.StateChart} whose data is
- * a list of {@link AtraceFrame} associated with that thread filtered by name.
+ * a list of {@link SystemTraceFrame} associated with that thread filtered by name.
  */
 public class CpuFramesView {
 
@@ -119,7 +119,7 @@ public class CpuFramesView {
           frameHighlighted(model);
         }
         else {
-          myRenderer.setHighlightedFrame(AtraceFrame.EMPTY);
+          myRenderer.setHighlightedFrame(SystemTraceFrame.EMPTY);
         }
       }
     });
@@ -127,7 +127,7 @@ public class CpuFramesView {
     myFrames.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseExited(MouseEvent e) {
-        myRenderer.setHighlightedFrame(AtraceFrame.EMPTY);
+        myRenderer.setHighlightedFrame(SystemTraceFrame.EMPTY);
       }
     });
   }
@@ -137,9 +137,9 @@ public class CpuFramesView {
    */
   private void frameHighlighted(@NotNull CpuFramesModel.FrameState model) {
     Range tooltipRange = myStage.getTimeline().getTooltipRange();
-    List<SeriesData<AtraceFrame>> modelList = model.getModel().getSeries().get(0).getSeriesForRange(tooltipRange);
+    List<SeriesData<SystemTraceFrame>> modelList = model.getModel().getSeries().get(0).getSeriesForRange(tooltipRange);
     if (modelList.isEmpty()) {
-      myRenderer.setHighlightedFrame(AtraceFrame.EMPTY);
+      myRenderer.setHighlightedFrame(SystemTraceFrame.EMPTY);
       return;
     }
     myRenderer.setHighlightedFrame(modelList.get(0).value);
@@ -181,8 +181,8 @@ public class CpuFramesView {
     }
     CpuFramesModel.FrameState state = myFrames.getModel().getElementAt(selectedIndex);
     Range tooltipRange = myStage.getTimeline().getTooltipRange();
-    List<SeriesData<AtraceFrame>> process = state.getModel().getSeries().get(0).getSeriesForRange(tooltipRange);
-    if (process.isEmpty() || process.get(0).value == AtraceFrame.EMPTY) {
+    List<SeriesData<SystemTraceFrame>> process = state.getModel().getSeries().get(0).getSeriesForRange(tooltipRange);
+    if (process.isEmpty() || process.get(0).value == SystemTraceFrame.EMPTY) {
       return;
     }
     // Select the range of this frame.

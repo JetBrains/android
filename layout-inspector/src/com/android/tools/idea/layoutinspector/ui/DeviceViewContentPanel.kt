@@ -33,6 +33,7 @@ import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Image
+import java.awt.Point
 import java.awt.RenderingHints
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -61,6 +62,13 @@ private val EMPHASIZED_LINE_OUTLINE_COLOR = Color.white
 class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSettings: DeviceViewSettings) : AdtPrimaryPanel() {
 
   val model = DeviceViewPanelModel(inspectorModel)
+
+  val rootLocation: Point
+    get() {
+      val modelLocation = model.hitRects.firstOrNull()?.bounds?.bounds?.location ?: Point(0,0)
+      return Point((modelLocation.x * viewSettings.scaleFraction).toInt() + (size.width / 2),
+                   (modelLocation.y * viewSettings.scaleFraction).toInt() + (size.height / 2))
+    }
 
   private val HQ_RENDERING_HINTS = mapOf(
     RenderingHints.KEY_ANTIALIASING to RenderingHints.VALUE_ANTIALIAS_ON,
@@ -105,7 +113,7 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
         repaint()
       }
 
-      private fun nodeAtPoint(e: MouseEvent) = model.findTopRect((e.x - size.width / 2.0) / viewSettings.scaleFraction,
+      private fun nodeAtPoint(e: MouseEvent) = model.findTopViewAt((e.x - size.width / 2.0) / viewSettings.scaleFraction,
                                                                  (e.y - size.height / 2.0) / viewSettings.scaleFraction)
 
       override fun mouseClicked(e: MouseEvent) {
@@ -115,7 +123,7 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
 
       override fun mouseMoved(e: MouseEvent) {
         if (e.isConsumed) return
-        inspectorModel.hoveredNode = findClickedComponent(e.x, e.y)
+        inspectorModel.hoveredNode = findComponentsAt(e.x, e.y).lastOrNull()
       }
     }
     addMouseListener(listener)
@@ -123,7 +131,7 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
 
     addMouseListener(object : PopupHandler() {
       override fun invokePopup(comp: Component, x: Int, y: Int) {
-        showViewContextMenu(findClickedComponent(x, y), inspectorModel, this@DeviceViewContentPanel, x, y)
+        showViewContextMenu(findComponentsAt(x, y), inspectorModel, this@DeviceViewContentPanel, x, y)
       }
     })
 
@@ -134,7 +142,7 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
     }
   }
 
-  private fun findClickedComponent(x: Int, y: Int) = model.findTopRect((x - size.width / 2.0) / viewSettings.scaleFraction,
+  private fun findComponentsAt(x: Int, y: Int) = model.findViewsAt((x - size.width / 2.0) / viewSettings.scaleFraction,
                                                                       (y - size.height / 2.0) / viewSettings.scaleFraction)
 
   override fun paint(g: Graphics?) {
@@ -162,8 +170,10 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
 
   override fun getPreferredSize() =
     if (inspectorModel.isEmpty) Dimension(0, 0)
-    else Dimension((model.maxWidth * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt(),
-                   (model.maxHeight * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt())
+    // Give twice the needed size so we have room to move the view around a little. Otherwise things can jump around
+    // when the number of layers changes and the canvas size adjusts to smaller than the viewport size.
+    else Dimension((model.maxWidth * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt() * 2,
+                   (model.maxHeight * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt() * 2)
 
   private fun drawView(g: Graphics,
                        drawInfo: ViewDrawInfo,

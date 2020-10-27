@@ -29,6 +29,7 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import java.awt.GridBagConstraints;
 import java.util.Arrays;
@@ -60,6 +61,12 @@ public class CreateKeyPosition extends BaseCreateKey {
 
     GridBagConstraints gbc = new GridBagConstraints();
     int y = createTop(gbc, "CREATE KEY POSITION");
+
+    grid(gbc, 0, y++, 2, 1);
+    gbc.weighty = 0;
+    gbc.insets = MEUI.dialogSeparatorInsets();
+    gbc.anchor = GridBagConstraints.CENTER;
+    add(new JSeparator(), gbc);
 
     grid(gbc, 0, y++, 2, 1);
     gbc.weighty = 0;
@@ -186,9 +193,8 @@ public class CreateKeyPosition extends BaseCreateKey {
       showErrorDialog("was not able to parse \"" + pos.trim() + "\"");
       return null;
     }
-    if (mType.getSelectedIndex() != 0) {
-      keyPosition.setAttribute("motion", "keyPositionType", (String) mType.getSelectedItem());
-    }
+
+    keyPosition.setAttribute("motion", "keyPositionType", (String) mType.getSelectedItem());
 
     String xStr = mPercentX.getText().trim();
     if (xStr.length() > 0 && !xStr.equals(PERCENT_PROMPT)) {
@@ -222,12 +228,4 @@ public class CreateKeyPosition extends BaseCreateKey {
     return "KeyPosition";
   }
 
-  public static void main(String[] arg) {
-    JFrame f = new JFrame(TITLE);
-    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    f.setContentPane(new CreateKeyPosition());
-    f.pack();
-    f.validate();
-    f.setVisible(true);
-  }
 }

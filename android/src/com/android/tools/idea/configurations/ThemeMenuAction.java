@@ -22,7 +22,7 @@ import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -89,7 +89,7 @@ public class ThemeMenuAction extends DropDownAction {
     if (theme == null) {
       return "";
     }
-    theme = ResourceHelper.styleToTheme(theme);
+    theme = IdeResourcesUtil.styleToTheme(theme);
 
     if (brief) {
       int index = theme.lastIndexOf('.');

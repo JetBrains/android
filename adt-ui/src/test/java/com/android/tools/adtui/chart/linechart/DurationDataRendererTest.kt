@@ -83,11 +83,14 @@ class DurationDataRendererTest {
     underneathComponent.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
 
     val fakeUi = FakeUi(overlayComponent)
-    val clickRegionRect = durationDataRenderer.getScaledClickRegion(durationDataRenderer.clickRegionCache[0], 200, 50)
+    val clickRegionRect = durationDataRenderer.getScaledClickRegion(durationDataRenderer.clickRegionCache[0],
+                                                                    200,
+                                                                    50,
+                                                                    !durationDataRenderer.regionOnLineSeries[0])
     fakeUi.mouse.moveTo(0, 0)
     assertThat(underneathComponent.cursor).isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
 
-    fakeUi.mouse.moveTo(clickRegionRect.x.toInt()+1, clickRegionRect.y.toInt()+1)
+    fakeUi.mouse.moveTo(clickRegionRect.x.toInt() + 1, clickRegionRect.y.toInt() + 1)
     assertThat(underneathComponent.cursor).isEqualTo(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR))
   }
 
@@ -97,23 +100,16 @@ class DurationDataRendererTest {
     val xRange = Range(0.0, 10.0)
     val yRange = Range(0.0, 10.0)
     val attachedSeries = DefaultDataSeries<Long>()
-    run {
-      var i = 4
-      while (i < 10) {
-        attachedSeries.add(i.toLong(), i.toLong())
-        i += 2
-      }
+    for (i in 4 until 10 step 2) {
+      attachedSeries.add(i.toLong(), i.toLong())
     }
+
     val attachedRangeSeries = RangedContinuousSeries("attached", xRange, yRange, attachedSeries)
 
     // Setup the duration data series
     val dataSeries = DefaultDataSeries<DurationData>()
-    run {
-      var i = 0
-      while (i < 10) {
-        dataSeries.add(i.toLong(), DurationData { 0 })
-        i += 2
-      }
+    for (i in 0 until 10 step 2) {
+      dataSeries.add(i.toLong(), DurationData { 0 })
     }
     val durationData = DurationDataModel(RangedSeries(xRange, dataSeries))
     durationData.setAttachedSeries(attachedRangeSeries, Interpolatable.SegmentInterpolator)
@@ -124,7 +120,7 @@ class DurationDataRendererTest {
     `when`(mockIcon.iconWidth).thenReturn(5)
     `when`(mockIcon.iconHeight).thenReturn(5)
     val durationDataRenderer = DurationDataRenderer.Builder(durationData, Color.BLACK)
-      .setIcon(mockIcon).setHostInsets(Insets(5, 10, 15, 20)).setClickRegionPadding(0, 0).build ()
+      .setIcon(mockIcon).setHostInsets(Insets(5, 10, 15, 20)).setClickRegionPadding(0, 0).build()
     durationData.update(-1)  // value doesn't matter here.
 
     assertThat(durationDataRenderer.clickRegionCache.size).isEqualTo(5)
@@ -135,32 +131,45 @@ class DurationDataRendererTest {
     // attached series has no data after this point, use the last point as the attached y.
     validateRegion(durationDataRenderer.clickRegionCache[4], 0.8f, 0.2f, 5f, 5f)
 
-    // Also checked for the post-scaled values.
-    validateRegion(durationDataRenderer.getScaledClickRegion(durationDataRenderer.clickRegionCache[0], 100, 100),
-                   10f, // Account for the 10 pixel left inset
-                   80f, // Account for the 15 pixel bottom inset + icon height
-                   5f,
-                   5f)
-    validateRegion(durationDataRenderer.getScaledClickRegion(durationDataRenderer.clickRegionCache[1], 100, 100),
-                   24f, // 10 pixel left inset + 0.2 * 70 pixels (after accounting for padding)
-                   80f, // Account for the 15 pixel bottom inset + icon height
-                   5f,
-                   5f)
-    validateRegion(durationDataRenderer.getScaledClickRegion(durationDataRenderer.clickRegionCache[2], 100, 100),
-                   38f, // 10 pixel left inset + 0.4 * 70 pixels (after accounting for padding)
-                   80f, // Account for the 15 pixel bottom inset + icon height
-                   5f,
-                   5f)
-    validateRegion(durationDataRenderer.getScaledClickRegion(durationDataRenderer.clickRegionCache[3], 100, 100),
-                   52f, // 10 pixel left inset + 0.6 * 70 pixels (after accounting for padding)
-                   32f, // Account for the 15 pixel bottom inset + icon height + 0.4 * 80 pixels after accounting for padding)
-                   5f,
-                   5f)
-    validateRegion(durationDataRenderer.getScaledClickRegion(durationDataRenderer.clickRegionCache[4], 100, 100),
-                   66f, // 10 pixel left inset + 0.8 * 70 pixels (after accounting for padding)
-                   16f, // Account for the 15 pixel bottom inset + icon height + 0.2 * 80 pixels after accounting for padding)
-                   5f,
-                   5f)
+    assert(durationDataRenderer.clickRegionCache.size == durationDataRenderer.regionOnLineSeries.size)
+
+    // Also checked for the post-scaled values
+    fun testPostScaled(hostWidth: Int, hostHeight: Int) = fun (i: Int, x: Float, y: Float) =
+      validateRegion(durationDataRenderer.getScaledClickRegion(durationDataRenderer.clickRegionCache[i],
+                                                               hostWidth,
+                                                               hostHeight,
+                                                               durationDataRenderer.regionOnLineSeries[i]),
+                     x,
+                     y,
+                     5f,
+                     5f)
+
+    val testPostScaledWithEnoughRoomAt = testPostScaled(100, 100)
+
+    // 10 pixel left inset, 15 pixel bottom inset + icon height
+    testPostScaledWithEnoughRoomAt(0, 10f, 80f)
+    // 10 pixel left inset + 0.2 * 70 pixels (after accounting for padding)
+    // 15 pixel bottom inset + icon height
+    testPostScaledWithEnoughRoomAt(1, 24f, 80f)
+    // 10 pixel left inset + 0.4 * 70 pixels (after accounting for padding)
+    // 15 pixel bottom inset + icon height
+    testPostScaledWithEnoughRoomAt(2, 38f, 80f)
+    // 10 pixel left inset + 0.6 * 70 pixels (after accounting for padding)
+    // 15 pixel bottom inset + icon height + 0.4 * 80 pixels after accounting for padding)
+    testPostScaledWithEnoughRoomAt(3, 52f, 32f)
+    // 10 pixel left inset + 0.8 * 70 pixels (after accounting for padding)
+    // 15 pixel bottom inset + icon height + 0.2 * 80 pixels after accounting for padding)
+    testPostScaledWithEnoughRoomAt(4, 66f, 16f)
+
+    // When the host is no tall enough:
+    // - Labels not on line should respect the insets
+    // - Labels on line should stick to the line
+    val testPostScaledWithNotEnoughRoomAt = testPostScaled(100, 10)
+    testPostScaledWithNotEnoughRoomAt(0, 10f, 5f)    // off
+    testPostScaledWithNotEnoughRoomAt(1, 24f, 5f)    // off
+    testPostScaledWithNotEnoughRoomAt(2, 38f, 5f)    // off
+    testPostScaledWithNotEnoughRoomAt(3, 52f, -4f)   // on
+    testPostScaledWithNotEnoughRoomAt(4, 66f, -2f)   // on
   }
 
   @Test
@@ -192,9 +201,9 @@ class DurationDataRendererTest {
 
     // Fake a renderLines call then check that the dash phase on the custom LineConfig has been updated.
     durationDataRenderer.renderLines(lineChart,
-        mock(Graphics2D::class.java),
-        Collections.singletonList(Path2D.Float()) as List<Path2D>,
-        Arrays.asList(rangeSeries1, rangeSeries2))
+                                     mock(Graphics2D::class.java),
+                                     Collections.singletonList(Path2D.Float()) as List<Path2D>,
+                                     Arrays.asList(rangeSeries1, rangeSeries2))
     assertThat(durationDataRenderer.getCustomLineConfig(rangeSeries1).adjustedDashPhase).isWithin(EPSILON.toDouble()).of(0.25)
     // rangeSeries2 isn't updated as the custom LineConfig is not a dash stroke.
     assertThat(durationDataRenderer.getCustomLineConfig(rangeSeries2).adjustedDashPhase).isWithin(EPSILON.toDouble()).of(0.0)

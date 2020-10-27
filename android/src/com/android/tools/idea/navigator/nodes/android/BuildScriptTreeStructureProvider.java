@@ -40,9 +40,8 @@ public class BuildScriptTreeStructureProvider implements TreeStructureProvider {
 
   @NotNull
   @Override
-  public Collection<AbstractTreeNode<?>> modify(@NotNull AbstractTreeNode<?> parent,
-                                             @NotNull Collection<AbstractTreeNode<?>> children,
-                                             @Nullable ViewSettings settings) {
+  public Collection<AbstractTreeNode<?>> modify(
+    @NotNull AbstractTreeNode<?> parent, @NotNull Collection<AbstractTreeNode<?>> children, @Nullable ViewSettings settings) {
     if (parent instanceof AndroidBuildScriptsGroupNode) {
       return children;
     }

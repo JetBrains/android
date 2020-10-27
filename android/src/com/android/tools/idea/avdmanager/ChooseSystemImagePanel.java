@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.repository.Revision;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
@@ -44,6 +45,7 @@ import java.awt.event.ActionListener;
 import java.util.List;
 
 import static com.android.sdklib.AndroidVersion.MIN_FOLDABLE_DEVICE_API;
+import static com.android.sdklib.AndroidVersion.MIN_FREEFORM_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_API;
 import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_WEAR_API;
 
@@ -173,6 +175,18 @@ public class ChooseSystemImagePanel extends JPanel
     if (device.getDefaultHardware().getScreen().isFoldable() &&
         image.getVersion().getFeatureLevel() < MIN_FOLDABLE_DEVICE_API) {
         return false;
+    }
+
+    // Freeform display device requires R preview DP2 or API30 and above.
+    if (device.getId().equals("13.5in Freeform")) {
+      if (image.getVersion() == null || image.getVersion().getFeatureLevel() < MIN_FREEFORM_DEVICE_API) {
+        return false;
+      }
+      if ("R".equals(image.getVersion().getCodename())) {
+        if (image.getRevision() == null || image.getRevision().compareTo(new Revision(2, 0, 0)) <= 0) {
+          return false;
+        }
+      }
     }
 
     // Unknown/generic device?

@@ -23,7 +23,7 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Conditions;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -64,9 +64,8 @@ public final class FileDescriptionUtils {
                                                       @NotNull ResourceFolderType folderType,
                                                       @NotNull Collection<String> tagNames) {
     Condition<XmlTag> tagCondition = tagNames.isEmpty() ?
-                                      Conditions.alwaysTrue() :
-                                      rootTag -> asStream(rootTag)
-                                        .anyMatch(tag -> tagNames.contains(tag.getName()));
+                                     Conditions.alwaysTrue() :
+                                     rootTag -> rootTag != null && asStream(rootTag).anyMatch(tag -> tagNames.contains(tag.getName()));
 
     return ApplicationManager.getApplication().runReadAction(newResourceTypeVerifier(file, folderType, tagCondition));
   }
@@ -85,12 +84,11 @@ public final class FileDescriptionUtils {
         return false;
       }
 
-      if (!AndroidResourceUtil.isInResourceSubdirectory(file, folderType.getName())) {
+      if (!IdeResourcesUtil.isInResourceSubdirectory(file, folderType.getName())) {
         return false;
       }
 
       XmlTag rootTag = file.getRootTag();
-      assert rootTag != null;
 
       return tagVerifier.value(rootTag);
     };
@@ -108,6 +106,6 @@ public final class FileDescriptionUtils {
     //noinspection unchecked
     return rootTags.isEmpty() ?
            newResourceTypeVerifier(file, folderType, Conditions.alwaysTrue()) :
-           newResourceTypeVerifier(file, folderType, element -> rootTags.contains(element.getName()));
+           newResourceTypeVerifier(file, folderType, element -> element != null && rootTags.contains(element.getName()));
   }
 }

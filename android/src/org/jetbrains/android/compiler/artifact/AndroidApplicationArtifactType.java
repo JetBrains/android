@@ -1,4 +1,3 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.compiler.artifact;
 
 import com.intellij.facet.FacetModel;
@@ -26,9 +25,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidApplicationArtifactType extends ArtifactType {
   public AndroidApplicationArtifactType() {
     super("apk", AndroidBundle.messagePointer("android.application.title"));
@@ -81,7 +77,7 @@ public class AndroidApplicationArtifactType extends ArtifactType {
     return ContainerUtil.findInstance(getAllTypes(), AndroidApplicationArtifactType.class);
   }
 
-  private final class MyTemplate extends ArtifactTemplate {
+  private class MyTemplate extends ArtifactTemplate {
     private final Project myProject;
     private final List<AndroidFacet> myFacets;
 

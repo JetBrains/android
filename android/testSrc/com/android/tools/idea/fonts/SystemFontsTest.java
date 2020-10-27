@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.android.dom.AndroidDomUtil;
@@ -34,7 +35,7 @@ public class SystemFontsTest extends FontTestCase {
   }
 
   public void testAllSystemFontsAvailable() {
-    List<String> fontNames = mySystemFonts.getFontFamilies().stream().map(FontFamily::getName).collect(Collectors.toList());
+    List<String> fontNames = ContainerUtil.map(mySystemFonts.getFontFamilies(), FontFamily::getName);
     assertThat(fontNames).containsExactlyElementsIn(AndroidDomUtil.AVAILABLE_FAMILIES);
   }
 

@@ -28,6 +28,7 @@ import com.android.tools.adtui.model.stdui.CommonAction;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.adtui.stdui.menu.CommonDropDownButton;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerAspect;
@@ -35,16 +36,18 @@ import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.CpuCaptureArtifactView;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
+import com.android.tools.profilers.memory.HeapProfdArtifactView;
+import com.android.tools.profilers.memory.HeapProfdSessionArtifact;
 import com.android.tools.profilers.memory.HprofArtifactView;
 import com.android.tools.profilers.memory.HprofSessionArtifact;
 import com.android.tools.profilers.memory.LegacyAllocationsArtifactView;
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
@@ -56,6 +59,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -216,6 +220,7 @@ public class SessionsView extends AspectObserver {
     mySessionArtifactViewBinder = new ViewBinder<>();
     mySessionArtifactViewBinder.bind(SessionItem.class, SessionItemView::new);
     mySessionArtifactViewBinder.bind(HprofSessionArtifact.class, HprofArtifactView::new);
+    mySessionArtifactViewBinder.bind(HeapProfdSessionArtifact.class, HeapProfdArtifactView::new);
     mySessionArtifactViewBinder.bind(LegacyAllocationsSessionArtifact.class, LegacyAllocationsArtifactView::new);
     mySessionArtifactViewBinder.bind(CpuCaptureSessionArtifact.class, CpuCaptureArtifactView::new);
 
@@ -368,10 +373,15 @@ public class SessionsView extends AspectObserver {
   private void addImportAction() {
     // Add the dropdown action for loading from file
     CommonAction loadAction = new CommonAction("Load from file...", null);
+    List<String> supportedExtensions = new ArrayList<>();
+    supportedExtensions.add("hprof");
+    supportedExtensions.add("trace");
+    if (getProfilers().getIdeServices().getFeatureConfig().isNativeMemorySampleEnabled()) {
+      supportedExtensions.add("heapprofd");
+    }
     loadAction.setAction(
       () -> myIdeProfilerComponents.createImportDialog().open(
-        () -> "Open",
-        ImmutableList.of("hprof", "trace"),
+        () -> "Open", supportedExtensions,
         file -> {
           if (!myProfilers.getSessionsManager().importSessionFromFile(new File(file.getPath()))) {
             myIdeProfilerComponents.createUiMessageHandler()
@@ -392,7 +402,7 @@ public class SessionsView extends AspectObserver {
   }
 
   private void refreshProcessDropdown() {
-    Map<Common.Device, java.util.List<Common.Process>> processMap = myProfilers.getDeviceProcessMap();
+    Map<Common.Device, List<Common.Process>> processMap = myProfilers.getDeviceProcessMap();
     myProcessSelectionAction.clear();
     addImportAction();
 
@@ -407,9 +417,8 @@ public class SessionsView extends AspectObserver {
     else {
       for (Common.Device device : devices) {
         CommonAction deviceAction = new CommonAction(buildDeviceName(device), null);
-        java.util.List<Common.Process> processes = processMap.get(device).stream()
-          .filter(process -> process.getState() == Common.Process.State.ALIVE)
-          .collect(Collectors.toList());
+        List<Common.Process> processes =
+          ContainerUtil.filter(processMap.get(device), process -> process.getState() == Common.Process.State.ALIVE);
         if (processes.isEmpty()) {
           String noProcessReason = device.getUnsupportedReason().isEmpty() ? NO_DEBUGGABLE_PROCESSES : device.getUnsupportedReason();
           CommonAction noProcessAction = new CommonAction(noProcessReason, null);
@@ -420,7 +429,7 @@ public class SessionsView extends AspectObserver {
           List<CommonAction> preferredProcessActions = new ArrayList<>();
           List<CommonAction> otherProcessActions = new ArrayList<>();
           for (Common.Process process : processes) {
-            CommonAction processAction = new CommonAction(String.format("%s (%d)", process.getName(), process.getPid()), null);
+            CommonAction processAction = new CommonAction(String.format(Locale.US, "%s (%d)", process.getName(), process.getPid()), null);
             processAction.setAction(() -> {
               // First warn and stop the currently profiling session if there is one.
               if (SessionsManager.isSessionAlive(myProfilers.getSessionsManager().getProfilingSession())) {
@@ -470,10 +479,16 @@ public class SessionsView extends AspectObserver {
               deviceAction.addChildrenActions(new CommonAction.SeparatorAction());
             }
 
-            CommonAction otherProcessesFlyout = new CommonAction("Other processes", null);
-            otherProcessActions.sort(Comparator.comparing(CommonAction::getText, Ordering.natural()));
-            otherProcessesFlyout.addChildrenActions(otherProcessActions);
-            deviceAction.addChildrenActions(otherProcessesFlyout);
+            if (IdeInfo.isGameTool()) {
+              // In standalone profiler, all processes falls under "Other processes" so there is no point to have this separate flyout.
+              deviceAction.addChildrenActions(otherProcessActions);
+            }
+            else {
+              CommonAction otherProcessesFlyout = new CommonAction("Other processes", null);
+              otherProcessActions.sort(Comparator.comparing(CommonAction::getText, Ordering.natural()));
+              otherProcessesFlyout.addChildrenActions(otherProcessActions);
+              deviceAction.addChildrenActions(otherProcessesFlyout);
+            }
           }
         }
         myProcessSelectionAction.addChildrenActions(deviceAction);

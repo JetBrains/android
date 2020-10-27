@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.analytics
 
 import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.idea.common.editor.DesignerEditorPanel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorState
@@ -27,12 +28,14 @@ open class DesignerAnalyticsManager(protected var surface: DesignSurface) {
 
   open val surfaceType = LayoutEditorState.Surfaces.UNKNOWN_SURFACES
 
-  open val surfaceMode
-    get() = when (surface.state) {
-    DesignSurface.State.FULL -> LayoutEditorState.Mode.DESIGN_MODE
+  private var panelState: DesignerEditorPanel.State = DesignerEditorPanel.State.DEACTIVATED
+
+  val editorMode
+    get() = when (panelState) {
+    DesignerEditorPanel.State.FULL -> LayoutEditorState.Mode.DESIGN_MODE
     // We map split mode to PREVIEW_MODE to keep consistency with past data
-    DesignSurface.State.SPLIT -> LayoutEditorState.Mode.PREVIEW_MODE
-    DesignSurface.State.DEACTIVATED -> LayoutEditorState.Mode.UNKOWN_MODE
+    DesignerEditorPanel.State.SPLIT -> LayoutEditorState.Mode.PREVIEW_MODE
+    DesignerEditorPanel.State.DEACTIVATED -> LayoutEditorState.Mode.UNKOWN_MODE
   }
 
   open val layoutType = LayoutEditorState.Type.UNKNOWN_TYPE
@@ -49,10 +52,18 @@ open class DesignerAnalyticsManager(protected var surface: DesignSurface) {
     else -> {} // ignore unrecognized zoom type.
   }
 
-  fun trackSelectEditorMode() = when (surface.state) {
-    DesignSurface.State.FULL -> track(LayoutEditorEvent.LayoutEditorEventType.SELECT_VISUAL_MODE)
-    DesignSurface.State.SPLIT -> track(LayoutEditorEvent.LayoutEditorEventType.SELECT_SPLIT_MODE)
-    DesignSurface.State.DEACTIVATED -> track(LayoutEditorEvent.LayoutEditorEventType.SELECT_TEXT_MODE)
+  /**
+   * Sets the [DesignerEditorPanel.State] so all related tracking, like rendering has the information about the state. If you want to log
+   * an editor mode change that was triggered by the user, you should use [trackSelectEditorMode] instead.
+   */
+  fun setEditorModeWithoutTracking(panelState: DesignerEditorPanel.State) {
+    this.panelState = panelState
+  }
+
+  fun trackSelectEditorMode(panelState: DesignerEditorPanel.State) = when (panelState) {
+    DesignerEditorPanel.State.FULL -> track(LayoutEditorEvent.LayoutEditorEventType.SELECT_VISUAL_MODE)
+    DesignerEditorPanel.State.SPLIT -> track(LayoutEditorEvent.LayoutEditorEventType.SELECT_SPLIT_MODE)
+    DesignerEditorPanel.State.DEACTIVATED -> track(LayoutEditorEvent.LayoutEditorEventType.SELECT_TEXT_MODE)
   }
 
   fun trackIssuePanel(minimized: Boolean) =

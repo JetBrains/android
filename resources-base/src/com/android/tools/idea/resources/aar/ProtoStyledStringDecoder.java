@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Static methods for converting {@link Resources.StyledString} proto message back to the original XML string.
  */
-final class ProtoStyledStringDecoder {
+class ProtoStyledStringDecoder {
   /**
    * Decodes the given {@link Resources.StyledString} proto message to obtain the original XML string.
    *

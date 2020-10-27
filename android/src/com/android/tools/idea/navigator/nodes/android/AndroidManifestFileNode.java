@@ -26,15 +26,17 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.FD_MAIN;
+import static com.android.tools.idea.projectsystem.SourceProvidersKt.findByFile;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+import static java.util.Collections.emptyList;
 
 public class AndroidManifestFileNode extends PsiFileNode implements FolderGroupNode {
   @NotNull private final AndroidFacet myAndroidFacet;
@@ -69,7 +71,7 @@ public class AndroidManifestFileNode extends PsiFileNode implements FolderGroupN
 
   @Nullable
   static NamedIdeaSourceProvider getSourceProvider(@NotNull AndroidFacet facet, @NotNull PsiFile file) {
-    return IdeaSourceProviderUtil.findByFile(AndroidProjectViewPane.getSourceProviders(facet), file.getVirtualFile());
+    return findByFile(AndroidProjectViewPane.getSourceProviders(facet), file.getVirtualFile());
   }
 
   @Override
@@ -97,8 +99,8 @@ public class AndroidManifestFileNode extends PsiFileNode implements FolderGroupN
 
   @Override
   @NotNull
-  public PsiDirectory[] getFolders() {
-    return PsiDirectory.EMPTY_ARRAY;
+  public List<PsiDirectory> getFolders() {
+    return emptyList();
   }
 
   @Override

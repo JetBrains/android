@@ -24,20 +24,20 @@ import static org.junit.Assert.assertNotNull;
 
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.ClassSet;
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject;
 import com.android.tools.profilers.memory.adapters.FakeInstanceObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.ValueObject;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.collect.ImmutableSet;
@@ -62,7 +62,7 @@ public class MemoryNavigationTest {
   @Before
   public void before() {
     FakeIdeProfilerServices profilerServices = new FakeIdeProfilerServices();
-    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), profilerServices, myTimer);
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), profilerServices, myTimer);
     myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
     StudioProfilersView profilersView = new StudioProfilersView(profilers, myFakeIdeProfilerComponents);
 
@@ -89,7 +89,7 @@ public class MemoryNavigationTest {
 
     ClassSet instanceClassSet =
       findDescendantClassSetNodeWithInstance(getRootClassifierSet(myStageView.getClassifierView().getTree()).getAdapter(), instance);
-    myStage.selectClassSet(instanceClassSet);
+    myStage.getCaptureSelection().selectClassSet(instanceClassSet);
 
     MemoryClassSetView view = myStageView.getClassSetView();
     JTree classSetTree = view.getTree();
@@ -115,7 +115,7 @@ public class MemoryNavigationTest {
     // Trigger the context menu action to go to the field's class
     assertTrue(menus.get(0).isEnabled());
     menus.get(0).run();
-    assertEquals(fakeCaptureObject.getHeapSet(DEFAULT_HEAP_ID), myStage.getSelectedHeapSet());
+    assertEquals(fakeCaptureObject.getHeapSet(DEFAULT_HEAP_ID), myStage.getCaptureSelection().getSelectedHeapSet());
     assertEquals(instanceClassSet, myStage.getSelectedClassSet());
     assertEquals(fieldInstance, myStage.getSelectedInstanceObject());
     */
@@ -133,12 +133,12 @@ public class MemoryNavigationTest {
 
     myStage.selectCaptureDuration(
       new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> fakeCaptureObject)), null);
-    assertEquals(fakeCaptureObject.getHeapSet(DEFAULT_HEAP_ID), myStage.getSelectedHeapSet());
+    assertEquals(fakeCaptureObject.getHeapSet(DEFAULT_HEAP_ID), myStage.getCaptureSelection().getSelectedHeapSet());
 
     ClassSet instanceClassSet =
       findDescendantClassSetNodeWithInstance(getRootClassifierSet(myStageView.getClassifierView().getTree()).getAdapter(), fakeInstance);
-    myStage.selectClassSet(instanceClassSet);
-    myStage.selectInstanceObject(fakeInstance);
+    myStage.getCaptureSelection().selectClassSet(instanceClassSet);
+    myStage.getCaptureSelection().selectInstanceObject(fakeInstance);
 
     JTree classifierTree = myStageView.getClassifierView().getTree();
     assertNotNull(classifierTree);

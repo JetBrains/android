@@ -22,7 +22,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -55,8 +55,8 @@ public class MockupToggleAction extends ToggleAction {
   }
 
   private static Icon getDesignIcon() {
-    // TODO: add new icon to StudioIcons and replace this icon
-    return AndroidIcons.Mockup.Mockup;
+    // TODO: Using NavEditor icon as placeholder, will replace when needed
+    return StudioIcons.NavEditor.ExistingDestinations.PLACEHOLDER;
   }
 
   @Override

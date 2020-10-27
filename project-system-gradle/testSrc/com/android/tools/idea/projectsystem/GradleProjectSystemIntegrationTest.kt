@@ -32,7 +32,7 @@ class GradleProjectSystemIntegrationTest : AndroidGradleTestCase() {
     val moduleSystem = project
       .getProjectSystem()
       .getModuleSystem(getModule("app"))
-    val libraries = moduleSystem.getResolvedDependentLibraries()
+    val libraries = moduleSystem.getResolvedLibraryDependencies()
 
     // There are many aars and jars in the loaded application. Here we just confirm that a few known ones are present
     val guava = libraries
@@ -47,5 +47,16 @@ class GradleProjectSystemIntegrationTest : AndroidGradleTestCase() {
     assertThat(appcompat.address).matches("com.android.support:support-compat:[\\.\\d]+@aar")
     assertThat(appcompat.manifestFile?.fileName).isEqualTo(SdkConstants.FN_ANDROID_MANIFEST_XML)
     assertThat(appcompat.resFolder!!.root.toFile()).isDirectory()
+  }
+
+  fun testGetDefaultApkFile() {
+    loadSimpleApplication()
+    // Invoke assemble task to generate output listing file and apk file.
+    invokeGradleTasks(project, "assembleDebug")
+    val defaultApkFile = project
+      .getProjectSystem()
+      .getDefaultApkFile()
+    assertNotNull(defaultApkFile)
+    assertThat(defaultApkFile!!.name).isEqualTo("app-debug.apk")
   }
 }

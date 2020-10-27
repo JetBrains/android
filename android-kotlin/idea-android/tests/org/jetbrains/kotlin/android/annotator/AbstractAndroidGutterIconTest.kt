@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.android.annotator
 
+import com.android.tools.idea.ui.resourcemanager.rendering.MultipleColorIcon
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.PathUtil
 import com.intellij.util.ui.ColorIcon
@@ -52,7 +53,13 @@ abstract class AbstractAndroidGutterIconTest : KotlinAndroidTestCase() {
             val gutter = myFixture.findGuttersAtCaret().find {
                 when {
                     drawable -> it.icon is ImageIcon
-                    color != null -> (it.icon as? ColorIcon)?.iconColor == color
+                    color != null -> {
+                      when (val icon = it.icon) {
+                        is ColorIcon -> icon.iconColor == color
+                        is MultipleColorIcon -> icon.colors[0] == color
+                        else -> false
+                      }
+                    }
                     else -> true
                 }
             }

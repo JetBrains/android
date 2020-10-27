@@ -59,8 +59,7 @@ public class CreateNewAppModuleWithDefaultsTest {
            .wizard()
            .clickNext()
            .chooseActivity("No Activity")
-           .clickFinish()
-           .waitForGradleProjectSyncToFinish(Wait.seconds(30));
+           .clickFinishAndWaitForSyncToFinish(Wait.seconds(30));
     assertAbout(file()).that(guiTest.getProjectPath("application_module")).isDirectory();
   }
 }

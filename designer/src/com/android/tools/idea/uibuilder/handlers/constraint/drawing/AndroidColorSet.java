@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint.drawing;
 
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.ColorTheme;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.WidgetDecorator;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.WidgetDecoratorConstants;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 
@@ -30,7 +30,7 @@ public class AndroidColorSet extends ColorSet {
 
     public AndroidColorSet() {
 
-        mStyle = WidgetDecorator.ANDROID_STYLE;
+        mStyle = WidgetDecoratorConstants.ANDROID_STYLE;
 
         mShadow = new Color(250, 250, 250);
 

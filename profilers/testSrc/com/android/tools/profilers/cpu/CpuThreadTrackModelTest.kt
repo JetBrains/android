@@ -16,40 +16,30 @@
 package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.model.DefaultTimeline
-import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.MultiSelectionModel
 import com.android.tools.adtui.model.Range
-import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
-import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.ProfilerClient
-import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel
+import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel.Type
 import com.google.common.truth.Truth.assertThat
-import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 
 class CpuThreadTrackModelTest {
-  private val timer = FakeTimer()
-  private val services = FakeIdeProfilerServices()
-  private val transportService = FakeTransportService(timer, true)
-
-  @get:Rule
-  var grpcChannel = FakeGrpcChannel("CpuThreadTrackModelTest", transportService)
-  private val profilerClient = ProfilerClient(grpcChannel.name)
-
-  private lateinit var profilers: StudioProfilers
-
-  @Before
-  fun setUp() {
-    services.enableEventsPipeline(true)
-    profilers = StudioProfilers(profilerClient, services, timer)
-  }
 
   @Test
   fun noThreadStatesFromArtTrace() {
     val capture = CpuProfilerTestUtils.getValidCapture()
-    val threadTrackModel = CpuThreadTrackModel(Range(), capture, CpuThreadInfo(516, "Foo"), DefaultTimeline(), MultiSelectionModel())
+    val threadTrackModel = CpuThreadTrackModel(capture, CpuThreadInfo(516, "Foo"), DefaultTimeline(), MultiSelectionModel())
     assertThat(threadTrackModel.threadStateChartModel.series).isEmpty()
+  }
+
+  @Test
+  fun analysisTabs() {
+    val capture = Mockito.mock(CpuCapture::class.java).apply {
+      Mockito.`when`(this.range).thenReturn(Range())
+    }
+    val threadTrackModel = CpuThreadTrackModel(capture, CpuThreadInfo(1, "Foo"), DefaultTimeline(), MultiSelectionModel())
+    val analysisTabModels = threadTrackModel.analysisModel.tabModels.map(CpuAnalysisTabModel<*>::getTabType).toSet()
+    assertThat(analysisTabModels).containsExactly(Type.SUMMARY, Type.FLAME_CHART, Type.TOP_DOWN, Type.BOTTOM_UP)
   }
 }

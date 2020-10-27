@@ -15,19 +15,25 @@
  */
 package com.android.tools.idea.compose.preview.runconfiguration
 
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.execution.configurations.SimpleConfigurationType
+import com.intellij.openapi.extensions.ExtensionNotApplicableException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NotNullLazyValue
 import icons.StudioIcons
 
-// TODO(b/144500928): Register this type in compose-designer.xml
 /** A type for run configurations that launch Compose Previews to a device/emulator. */
 class ComposePreviewRunConfigurationType : SimpleConfigurationType("ComposePreviewRunConfiguration",
                                                                    "Compose Preview",
                                                                    "Compose Preview Run Configuration Type",
                                                                    NotNullLazyValue.createValue {
-                                                                     // TODO(b/144500928): use proper icon
-                                                                     StudioIcons.Misc.COMPOSABLE_FUNCTION
+                                                                     StudioIcons.Compose.RUN_CONFIGURATION
                                                                    }) {
+  init {
+    if (!StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.get()) {
+      throw ExtensionNotApplicableException.INSTANCE
+    }
+  }
+
   override fun createTemplateConfiguration(project: Project) = ComposePreviewRunConfiguration(project, this)
 }

@@ -18,7 +18,7 @@ package com.android.tools.idea.res.psi;
 import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.navigation.NavigationItem;
 import com.intellij.openapi.module.Module;
@@ -53,7 +53,7 @@ public class GoToAndroidResourceContributor extends GoToSymbolProvider {
       for (SingleNamespaceResourceRepository repository : resources.getLeafResourceRepositories()) {
         repository.accept(item -> {
           if (item.getName().equals(name)) {
-            VirtualFile file = ResourceHelper.getSourceAsVirtualFile(item);
+            VirtualFile file = IdeResourcesUtil.getSourceAsVirtualFile(item);
             if (file != null) {
               result.add(new ResourceNavigationItem(item, file, module.getProject()));
             }

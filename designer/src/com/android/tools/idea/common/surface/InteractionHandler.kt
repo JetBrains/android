@@ -18,15 +18,19 @@ package com.android.tools.idea.common.surface
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.api.DragType
 import com.android.tools.idea.common.editor.DesignToolsSplitEditor
+import com.android.tools.idea.common.editor.showPopup
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.Coordinates.getAndroidXDip
 import com.android.tools.idea.common.model.Coordinates.getAndroidYDip
 import com.android.tools.idea.common.model.DnDTransferItem
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities
 import com.android.tools.idea.uibuilder.model.NlDropEvent
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction
+import com.android.tools.idea.uibuilder.surface.PanInteraction
 import com.intellij.ide.util.PsiNavigationSupport
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.pom.Navigatable
 import org.intellij.lang.annotations.JdkConstants
@@ -35,6 +39,7 @@ import java.awt.Toolkit
 import java.awt.dnd.DnDConstants
 import java.awt.dnd.DropTargetDragEvent
 import java.awt.event.InputEvent
+import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 
@@ -109,12 +114,21 @@ interface InteractionHandler {
 
   /**
    * Get Cursor by [InteractionManager] when there is no active [Interaction].
-   *
-   * TODO (b/142953949): Remove those 3 arguments when StudioFlags.NELE_NEW_INTERACTION_INTERFACE is removed.
    */
   fun getCursorWhenNoInteraction(@SwingCoordinate mouseX: Int,
                                  @SwingCoordinate mouseY: Int,
                                  @JdkConstants.InputEventMask modifiersEx: Int): Cursor?
+
+  /**
+   * Called by [InteractionManager] when a key is pressed without any active [Interaction]. Return an [Interaction] if pressing the given
+   * key should start it, or null otherwise.
+   */
+  fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction?
+
+  /**
+   * Called by [InteractionManager] when a key is released without any active [Interaction].
+   */
+  fun keyReleasedWithoutInteraction(keyEvent: KeyEvent)
 }
 
 abstract class InteractionHandlerBase(private val surface: DesignSurface) : InteractionHandler {
@@ -180,23 +194,18 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface) : Inte
   override fun hoverWhenNoInteraction(@SwingCoordinate mouseX: Int,
                                       @SwingCoordinate mouseY: Int,
                                       @JdkConstants.InputEventMask modifiersEx: Int) {
-    if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
-      // b/142953949: Before refactoring the hover is done when updating cursor. Use a flag to make the old behavior as same as before when
-      // flag is not enabled.
-      val sceneView = surface.getSceneView(mouseX, mouseY)
-      if (sceneView != null) {
-        val context = sceneView.context
-        context.setMouseLocation(mouseX, mouseY)
-        sceneView.scene.mouseHover(context, getAndroidXDip(sceneView, mouseX), getAndroidYDip(sceneView, mouseY), modifiersEx)
-        cursorWhenNoInteraction = sceneView.scene.mouseCursor
-      }
-      else {
-        cursorWhenNoInteraction = null
-      }
+    val sceneView = surface.getSceneView(mouseX, mouseY)
+    if (sceneView != null) {
+      val context = sceneView.context
+      context.setMouseLocation(mouseX, mouseY)
+      sceneView.scene.mouseHover(context, getAndroidXDip(sceneView, mouseX), getAndroidYDip(sceneView, mouseY), modifiersEx)
+      cursorWhenNoInteraction = sceneView.scene.mouseCursor
     }
-    for (layer in surface.layers) {
-      layer.onHover(mouseX, mouseY)
+    else {
+      cursorWhenNoInteraction = null
     }
+
+    surface.sceneManagers.map { it.sceneView }.forEach { it.onHover(mouseX, mouseY) }
   }
 
   override fun popupMenuTrigger(mouseEvent: MouseEvent) {
@@ -206,7 +215,9 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface) : Inte
     val sceneView = surface.getSceneView(x, y)
     if (sceneView != null) {
       val component = sceneView.selectComponentAt(x, y, modifiersEx, false, true)
-      surface.actionManager.showPopup(mouseEvent, component)
+      val actions = surface.actionManager.getPopupMenuActions(component)
+      // TODO (b/151315668): extract the hardcoded value "LayoutEditor". Be aware this value is used by [SetZoomAction#update].
+      surface.showPopup(mouseEvent, actions, "LayoutEditor")
     }
   }
 
@@ -219,18 +230,16 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface) : Inte
   }
 
   override fun singleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) {
-    if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
-      val selectedEditor = FileEditorManager.getInstance(surface.project).selectedEditor
-      if (selectedEditor is DesignToolsSplitEditor) {
-        val splitEditor = selectedEditor as DesignToolsSplitEditor?
-        if (splitEditor!!.isSplitMode()) {
-          // If we're in split mode, we want to select the component in the text editor.
-          val sceneView = surface.getSceneView(x, y) ?: return
-          // TODO: Use {@link SceneViewHelper#selectComponentAt() instead.
-          val component = Coordinates.findComponent(sceneView, x, y)
-          if (component != null) {
-            navigateToComponent(component, false)
-          }
+    val selectedEditor = FileEditorManager.getInstance(surface.project).selectedEditor
+    if (selectedEditor is DesignToolsSplitEditor) {
+      val splitEditor = selectedEditor as DesignToolsSplitEditor?
+      if (splitEditor!!.isSplitMode()) {
+        // If we're in split mode, we want to select the component in the text editor.
+        val sceneView = surface.getSceneView(x, y) ?: return
+        // TODO: Use {@link SceneViewHelper#selectComponentAt() instead.
+        val component = Coordinates.findComponent(sceneView, x, y)
+        if (component != null) {
+          navigateToComponent(component, false)
         }
       }
     }
@@ -252,19 +261,38 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface) : Inte
   override fun getCursorWhenNoInteraction(@SwingCoordinate mouseX: Int,
                                           @SwingCoordinate mouseY: Int,
                                           @JdkConstants.InputEventMask modifiersEx: Int): Cursor? {
-    if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
-      return cursorWhenNoInteraction
-    }
-    else {
-      // b/142953949: Before refactoring the hover is done when updating cursor. Use a flag to make the old behavior as same as before when
-      // flag is not enabled.
-      val sceneView = surface.getSceneView(mouseX, mouseY) ?: return null
-      val context = sceneView.context
-      context.setMouseLocation(mouseX, mouseY)
-      sceneView.scene.mouseHover(context, getAndroidXDip(sceneView, mouseX), getAndroidYDip(sceneView, mouseY), modifiersEx)
-      return sceneView.scene.mouseCursor
-    }
+    return cursorWhenNoInteraction
   }
+
+  override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? {
+    val keyCode = keyEvent.keyCode
+    if (keyCode == DesignSurfaceShortcut.PAN.keyCode) {
+      return PanInteraction(surface)
+    }
+
+    // The deletion only applies without modifier keys.
+    if (keyEvent.isAltDown || keyEvent.isMetaDown || keyEvent.isShiftDown || keyEvent.isControlDown) {
+      return null
+    }
+
+    if (keyCode == KeyEvent.VK_DELETE || keyCode == KeyEvent.VK_BACK_SPACE) {
+      // Try to delete selected Constraints first.
+      if (!ConstraintComponentUtilities.clearSelectedConstraint(surface)) {
+        // If there is no Constraint to delete, delete the selected NlComponent(s).
+        val selection: List<NlComponent> = surface.selectionModel.selection
+        // It is possible that different NlComponents are form different NlModels, group them first.
+        val modelComponentsMap = selection.groupBy { it.model }
+
+        // Use WriteCommandAction to wrap deletions so this operation only has one undo stack.
+        WriteCommandAction.runWriteCommandAction(surface.project, "Delete Components", null, {
+          modelComponentsMap.forEach { (model, nlComponents) -> model.delete(nlComponents) }
+        }, modelComponentsMap.keys.map { it.file }.toTypedArray())
+      }
+    }
+    return null
+  }
+
+  override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) = Unit
 }
 
 internal fun navigateToComponent(component: NlComponent, needsFocusEditor: Boolean) {

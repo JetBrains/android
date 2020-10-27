@@ -8,14 +8,28 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
+    <orderEntry type="module" module-name="android.sdktools.mlkit-common" />
+    <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.core" />
-    <orderEntry type="module" module-name="intellij.java.indexing" />
-    <orderEntry type="module" module-name="intellij.platform.analysis.impl" />
+    <orderEntry type="module" module-name="intellij.java.indexing.impl" />
     <orderEntry type="module" module-name="intellij.java.psi" />
     <orderEntry type="module" module-name="intellij.platform.core" />
+    <orderEntry type="module" module-name="intellij.platform.ide" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="intellij.xml.dom" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="module" module-name="intellij.android.wizard.model" />
+    <orderEntry type="module" module-name="intellij.android.observable" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui" />
+    <orderEntry type="module" module-name="intellij.android.observable.ui" />
+    <orderEntry type="module" module-name="intellij.android.wizard" />
+    <orderEntry type="module" module-name="intellij.platform.ide.impl" />
+    <orderEntry type="module" module-name="intellij.android.artwork" />
+    <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" />
+    <orderEntry type="library" name="protobuf" level="project" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="module" module-name="intellij.platform.lang.impl" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
   </component>

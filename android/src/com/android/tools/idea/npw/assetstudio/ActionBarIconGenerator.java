@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.assetstudio;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObjectValueProperty;
+import com.android.tools.idea.rendering.DrawableRenderer;
 import com.intellij.openapi.project.Project;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -94,7 +95,7 @@ public class ActionBarIconGenerator extends IconGenerator {
           break;
       }
       asset.opacityPercent().set(opacityPercent);
-      options.image = new TransformedImageAsset(asset, ICON_SIZE, scaleFactor, color, getGraphicGeneratorContext());
+      options.image = new TransformedImageAsset(asset, ICON_SIZE, scaleFactor, color, getGraphicGeneratorContext(), myLineSeparator);
     }
 
     return options;

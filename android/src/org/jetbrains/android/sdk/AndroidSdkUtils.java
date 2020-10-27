@@ -79,9 +79,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public final class AndroidSdkUtils {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.sdk.AndroidSdkUtils");
 
@@ -441,19 +438,6 @@ public final class AndroidSdkUtils {
 
   public static boolean isAndroidSdkAvailable() {
     return AndroidSdks.getInstance().tryToChooseAndroidSdk() != null;
-  }
-
-  public static boolean isGlassInstalled() {
-    StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(AndroidSdkUtils.class);
-    AndroidSdkHandler handler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-    Collection<IAndroidTarget> targets = handler.getAndroidTargetManager(progress).getTargets(progress);
-    for (IAndroidTarget target : targets) {
-      if (!target.isPlatform() && target.getName().startsWith("Glass Development Kit")) {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   /**

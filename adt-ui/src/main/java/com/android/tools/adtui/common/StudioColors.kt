@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.common
 
+import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import java.awt.Color
@@ -45,6 +46,26 @@ val secondaryPanelBackground = JBColor.namedColor("UIDesigner.Panel.background",
 val border = JBColor.namedColor("UIDesigner.Panel.borderColor", JBColor(0xc9c9c9, 0x282828))
 
 /**
+ * Color of the 3d lines in the transform panel of the layout editor
+ */
+val lines3d = JBColor.namedColor("UIDesigner.Panel.lines3d", JBColor(0x2D2D2D, 0x26A04A))
+
+/**
+ * Color of the graph lines in the transition panel of the layout editor
+ */
+val graphLines = JBColor.namedColor("UIDesigner.Panel.graphLines", JBColor(0x2D2D2D, 0xD9D9D9))
+
+/**
+ * Color of the graph lines in the transition panel of the layout editor
+ */
+val secondaryGraphLines = JBColor.namedColor("UIDesigner.Panel.secondaryGraphLines", JBColor(0x636363, 0x5F6265))
+
+/**
+ * Color of the graph lines in the transition panel of the layout editor
+ */
+val graphLabel = JBColor.namedColor("UIDesigner.Panel.graphLabel", JBColor(0x636363, 0x8A8A8A))
+
+/**
  * Border color to use when separating element inside the same panel.
  *
  * Example: border between the category list and widget list in the
@@ -67,6 +88,13 @@ val canvasTooltipBackground = JBColor.namedColor("Canvas.Tooltip.background", JB
 val primaryContentBackground = JBColor.namedColor("Content.background", JBColor(0xffffff, 0x2b2b2b))
 
 /**
+ * Color for textual content that are clickable
+ *
+ * Example: text color of "Leak" button
+ */
+val linkForeground = JBColor.namedColor("Link.foreground", JBColor(0x195FC4, 0x9CCEFE))
+
+/**
  * Background color for selected content.
  *
  * Example: selected range in profilers.
@@ -75,18 +103,33 @@ val contentSelectionBackground = JBColor.namedColor("Content.selectionBackground
                                                     JBColor(Color(0x330478DA, true), Color(0x4C2395F5, true)))
 
 /**
+ * Background color for deselected content.
+ *
+ * Example: box selection in profilers.
+ */
+val contentDeselectionBackground = JBColor.namedColor("Content.selectionInactiveBackground",
+                                                      JBColor(Color(0x33121212, true), Color(0x33EDEDED, true)))
+
+/**
+ * Overlay background color for selected range
+ *
+ * Example: box selection overlay in profilers
+ */
+val selectionOverlayBackground = JBColor(Color(0x330478DA, true), Color(0x4C2395F5, true))
+
+/**
+ * Overlay background color for deselected content
+ *
+ * Example: box selection overlay in profilers
+ */
+val inactiveSelectionOverlayBackground = JBColor(Color(0x33121212, true), Color(0x33EDEDED, true))
+
+/**
  * Background color for an active selection.
  *
  * Example: selected track in a track group.
  */
 val selectionBackground = JBColor.namedColor("List.selectionBackground", JBColor(0x4874D7, 0x1E67CE))
-
-/**
- * Foreground color for an active selection.
- *
- * Example: title label of a selected track in a track group.
- */
-val selectionForeground = JBColor.namedColor("List.selectionForeground", JBColor(0xFFFFFF, 0xFFFFFF))
 
 /**
  * Color of the underline when a intellij style tab is focused.
@@ -101,3 +144,10 @@ val tabbedPaneFocus = JBUI.CurrentTheme.TabbedPane.ENABLED_SELECTED_COLOR
  * Example: Analysis tab of a cpu profiling capture.
  */
 val tabbedPaneHoverHighlight = JBUI.CurrentTheme.TabbedPane.HOVER_COLOR
+
+/**
+ * Color of the text used to display help information.
+ *
+ * Example: Keyboard/mouse shortcut descriptions in Summary tab of a cpu profiling capture.
+ */
+val helpText = JBColor.namedColor("Editor.foreground", JBColor(Gray._80, Gray._160))

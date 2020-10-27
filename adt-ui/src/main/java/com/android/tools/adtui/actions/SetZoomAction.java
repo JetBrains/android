@@ -17,6 +17,7 @@ package com.android.tools.adtui.actions;
 
 import com.android.tools.adtui.Zoomable;
 import com.android.tools.adtui.ZoomableKt;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
@@ -24,11 +25,12 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Action for performing a zooming operation according to the {@link ZoomType}
  */
-public class SetZoomAction extends AnAction {
-  @NotNull private final ZoomType myType;
+abstract public class SetZoomAction extends AnAction {
+  @VisibleForTesting
+  @NotNull
+  public final ZoomType myType;
 
   public SetZoomAction(@NotNull ZoomType type) {
-    super(type.getLabel());
     myType = type;
     getTemplatePresentation().setIcon(type.getIcon());
   }

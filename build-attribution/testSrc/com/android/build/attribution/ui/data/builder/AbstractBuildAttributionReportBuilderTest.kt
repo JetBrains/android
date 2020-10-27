@@ -18,6 +18,7 @@ package com.android.build.attribution.ui.data.builder
 import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.AnnotationProcessorData
+import com.android.build.attribution.data.GarbageCollectionData
 import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.PluginConfigurationData
 import com.android.build.attribution.data.PluginData
@@ -27,10 +28,10 @@ import com.android.build.attribution.data.TasksSharingOutputData
 
 open class AbstractBuildAttributionReportBuilderTest {
 
-  val applicationPlugin = PluginData(PluginData.PluginType.PLUGIN, "com.android.application")
-  val libraryPlugin = PluginData(PluginData.PluginType.PLUGIN, "com.android.library")
-  val pluginA = PluginData(PluginData.PluginType.PLUGIN, "pluginA")
-  val pluginB = PluginData(PluginData.PluginType.PLUGIN, "pluginB")
+  val applicationPlugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "com.android.application")
+  val libraryPlugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "com.android.library")
+  val pluginA = PluginData(PluginData.PluginType.BINARY_PLUGIN, "pluginA")
+  val pluginB = PluginData(PluginData.PluginType.BINARY_PLUGIN, "pluginB")
   val pluginC = PluginData(PluginData.PluginType.UNKNOWN, "pluginC")
   val buildScriptA = PluginData(PluginData.PluginType.SCRIPT, "buildA.gradle")
   val buildScriptB = PluginData(PluginData.PluginType.SCRIPT, "buildB.gradle")
@@ -51,6 +52,8 @@ open class AbstractBuildAttributionReportBuilderTest {
     override fun getAlwaysRunTasks(): List<AlwaysRunTaskData> = emptyList()
     override fun getNonCacheableTasks(): List<TaskData> = emptyList()
     override fun getTasksSharingOutput(): List<TasksSharingOutputData> = emptyList()
+    override fun getGarbageCollectionData(): List<GarbageCollectionData> = emptyList()
+    override fun getTotalGarbageCollectionTimeMs(): Long = 0
   }
 
   fun plugin(pluginData: PluginData, duration: Long) = PluginConfigurationData(pluginData, duration)

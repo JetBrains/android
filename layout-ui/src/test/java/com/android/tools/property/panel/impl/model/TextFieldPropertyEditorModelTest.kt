@@ -55,13 +55,12 @@ class TextFieldPropertyEditorModelTest {
 
   @Test
   fun testEnter() {
-    val (model, listener) = createModel()
+    val (model, _) = createModel()
     val line = FakeInspectorLineModel(FakeLineType.PROPERTY)
     model.lineModel = line
     model.text = "world"
     model.commit()
     assertThat(model.property.value).isEqualTo("world")
-    verify(listener).valueChanged()
   }
 
   @Test
@@ -86,7 +85,7 @@ class TextFieldPropertyEditorModelTest {
   @Test
   fun testFocusLossWillUpdateValue() {
     // setup
-    val (model, listener) = createModel()
+    val (model, _) = createModel()
     model.focusGained()
     model.text = "#333333"
 
@@ -94,7 +93,6 @@ class TextFieldPropertyEditorModelTest {
     model.focusLost()
     assertThat(model.hasFocus).isFalse()
     assertThat(model.property.value).isEqualTo("#333333")
-    verify(listener).valueChanged()
   }
 
   @Test
@@ -113,7 +111,7 @@ class TextFieldPropertyEditorModelTest {
   fun testEnterKeyWithAsyncPropertySetterDoesNotNavigateToNextEditor() {
     // setup
     val property = FakeAsyncPropertyItem(ANDROID_URI, ATTR_ID, "textView")
-    val (model, listener) = createModel(property)
+    val (model, _) = createModel(property)
     val line = FakeInspectorLineModel(FakeLineType.PROPERTY)
     model.lineModel = line
     model.focusGained()
@@ -123,14 +121,13 @@ class TextFieldPropertyEditorModelTest {
     model.commit()
     assertThat(property.lastUpdatedValue).isEqualTo("imageView")
     assertThat(property.updateCount).isEqualTo(1)
-    verify(listener).valueChanged()
   }
 
   @Test
   fun testFocusLossAfterEnterKeyWithAsyncPropertySetter() {
     // setup
     val property = FakePropertyItem(ANDROID_URI, ATTR_ID, "textView")
-    val (model, listener) = createModel(property)
+    val (model, _) = createModel(property)
     model.focusGained()
     model.text = "imageView"
     model.commit()
@@ -139,7 +136,6 @@ class TextFieldPropertyEditorModelTest {
     model.focusLost()
     assertThat(property.value).isEqualTo("imageView")
     assertThat(property.updateCount).isEqualTo(1)
-    verify(listener).valueChanged()
   }
 
   @Test

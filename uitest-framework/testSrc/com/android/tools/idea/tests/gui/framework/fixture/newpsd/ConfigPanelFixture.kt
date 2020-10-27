@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
 import com.android.tools.idea.tests.gui.framework.findByType
 import com.intellij.ui.treeStructure.Tree
+import org.fest.swing.core.Scrolling
 import org.fest.swing.edt.GuiQuery
 import org.fest.swing.fixture.ContainerFixture
 import org.fest.swing.fixture.JTreeFixture
@@ -29,10 +30,8 @@ abstract class ConfigPanelFixture protected constructor(
 
   protected fun findEditor(label: String): PropertyEditorFixture {
     val component = robot().finder().findByLabel<JComponent>(target(), label, JComponent::class.java, false)
-    GuiQuery.get {
-      val checkBoxRect = component.bounds
-      component.scrollRectToVisible(checkBoxRect)
-    }
+    Scrolling.scrollToVisible(robot(), component)
+
     return PropertyEditorFixture(robot(), component)
   }
 

@@ -27,6 +27,7 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import java.util.ArrayList;
@@ -37,6 +38,7 @@ import java.util.concurrent.TimeUnit;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MockAvdManagerConnection extends AvdManagerConnection {
 
@@ -57,8 +59,10 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
   }
 
   @Override
-  protected void addParameters(@NotNull AvdInfo info, @NotNull GeneralCommandLine commandLine) {
-    super.addParameters(info, commandLine);
+  protected void addParameters(@Nullable Project project,
+                               @NotNull AvdInfo info,
+                               @NotNull GeneralCommandLine commandLine) {
+    super.addParameters(project, info, commandLine);
     commandLine.addParameters("-no-window");
   }
 

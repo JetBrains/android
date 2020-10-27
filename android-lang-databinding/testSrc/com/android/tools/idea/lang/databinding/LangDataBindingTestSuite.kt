@@ -24,17 +24,9 @@ import org.junit.runner.RunWith
 class LangDataBindingTestSuite : IdeaTestSuiteBase() {
   companion object {
     init {
-      symlinkToIdeaHome(
-        "prebuilts/studio/jdk",
-        "prebuilts/studio/sdk",
-        "tools/adt/idea/android/annotations",
-        "tools/adt/idea/android-lang-databinding/testData",
-        "tools/base/templates",
-        "tools/idea/java") // For the mock JDK.
-
-      IdeaTestSuiteBase.setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository")
-      IdeaTestSuiteBase.setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo")
-      IdeaTestSuiteBase.setUpOfflineRepo("tools/data-binding/data_binding_runtime.zip", "prebuilts/tools/common/m2/repository")
+      unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip")
+      unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip")
+      unzipIntoOfflineMavenRepo("tools/data-binding/data_binding_runtime.zip")
     }
   }
 }

@@ -16,9 +16,8 @@
 package com.android.tools.idea.appinspection.api
 
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.appinspection.internal.AppInspectionTransport
-import com.android.tools.idea.appinspection.internal.attachAppInspectionTarget
-import com.google.common.annotations.VisibleForTesting
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.google.common.util.concurrent.ListenableFuture
 import java.util.concurrent.Executor
 
@@ -42,6 +41,7 @@ interface AppInspectionTarget {
   fun <T : AppInspectorClient> launchInspector(
     inspectorId: String,
     inspectorJar: AppInspectorJar,
+    projectName: String,
     @WorkerThread creator: (AppInspectorClient.CommandMessenger) -> T
   ): ListenableFuture<T>
 
@@ -51,18 +51,4 @@ interface AppInspectionTarget {
    * Listener fires immediately if connection is already closed.
    */
   fun addTargetTerminatedListener(executor: Executor, listener: TargetTerminatedListener): TargetTerminatedListener
-
-  val processDescriptor: ProcessDescriptor
-
-  companion object {
-    /**
-     * Creates an [AppInspectionTarget] for the given [process] on the given device ([stream])
-     */
-    @VisibleForTesting
-    @WorkerThread
-    fun attach(
-      transport: AppInspectionTransport,
-      jarCopier: AppInspectionJarCopier
-    ): ListenableFuture<AppInspectionTarget> = attachAppInspectionTarget(transport, jarCopier)
-  }
 }

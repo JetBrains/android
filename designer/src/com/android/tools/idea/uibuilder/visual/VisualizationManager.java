@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.visual;
 
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
@@ -41,6 +41,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ToolWindowType;
+import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -64,19 +65,20 @@ import org.jetbrains.annotations.Nullable;
  * the window is gone.
  * <p>
  * The visualization tool use {@link NlDesignSurface} for rendering previews.
- * <p>
- * This class is inspired by {@link NlPreviewManager}.<br>
- * Most of the codes are copied from {@link NlPreviewManager} instead of sharing, because {@link NlPreviewManager} is being
- * removed after we enable split editor.
  */
 @Service
 public final class VisualizationManager implements Disposable {
-  private final MergingUpdateQueue myToolWindowUpdateQueue;
+  /**
+   * The default width for first time open.
+   */
+  private static final int DEFAULT_WINDOW_WIDTH = 500;
+
+  @Nullable private final MergingUpdateQueue myToolWindowUpdateQueue;
 
   private final Project myProject;
 
-  private VisualizationForm myToolWindowForm;
-  private ToolWindow myToolWindow;
+  @Nullable private VisualizationForm myToolWindowForm;
+  @Nullable private ToolWindow myToolWindow;
   private boolean myToolWindowReady = false;
   private boolean myToolWindowDisposed = false;
 
@@ -89,6 +91,11 @@ public final class VisualizationManager implements Disposable {
 
   public VisualizationManager(@NotNull Project project) {
     myProject = project;
+
+    if (!StudioFlags.NELE_VISUALIZATION.get()) {
+      myToolWindowUpdateQueue = null;
+      return;
+    }
     myToolWindowUpdateQueue = new MergingUpdateQueue("android.layout.visual", 100, true, null, project);
     MessageBusConnection connection = project.getMessageBus().connect();
     connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerListener());
@@ -103,7 +110,8 @@ public final class VisualizationManager implements Disposable {
     return myToolWindow != null && myToolWindow.isVisible();
   }
 
-  private String getToolWindowId() {
+  @NotNull
+  public String getToolWindowId() {
       return AndroidBundle.message("android.layout.visual.tool.window.title");
   }
 
@@ -112,7 +120,10 @@ public final class VisualizationManager implements Disposable {
     return new VisualizationForm(myProject);
   }
 
-  private void initToolWindow() {
+  protected void initToolWindow() {
+    if (!StudioFlags.NELE_VISUALIZATION.get()) {
+      return;
+    }
     myToolWindowForm = createPreviewForm();
     Disposer.register(this, myToolWindowForm);
 
@@ -128,6 +139,12 @@ public final class VisualizationManager implements Disposable {
         }
 
         final ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(toolWindowId);
+        if (VisualizationToolSettings.getInstance().getGlobalState().isFirstTimeOpen() && window instanceof ToolWindowEx) {
+          ToolWindowEx windowEx = (ToolWindowEx)window;
+          int width = window.getComponent().getWidth();
+          windowEx.stretchWidth(DEFAULT_WINDOW_WIDTH - width);
+        }
+        VisualizationToolSettings.getInstance().getGlobalState().setFirstTimeOpen(false);
         if (window != null && window.isAvailable()) {
           final boolean visible = window.isVisible();
           VisualizationToolSettings.getInstance().getGlobalState().setVisible(visible);
@@ -185,6 +202,9 @@ public final class VisualizationManager implements Disposable {
   private HierarchyListener myHierarchyListener;
 
   private void processFileEditorChange(@Nullable final FileEditor newEditor) {
+    if (myToolWindowUpdateQueue == null) {
+      return;
+    }
     if (myPendingShowComponent != null) {
       myPendingShowComponent.removeHierarchyListener(myHierarchyListener);
       myPendingShowComponent = null;
@@ -246,6 +266,10 @@ public final class VisualizationManager implements Disposable {
           initToolWindow();
         }
 
+        if (myToolWindow == null || myToolWindowForm == null) {
+          return;
+        }
+
         if (newEditor == null) {
           myToolWindow.setAvailable(false);
           return;
@@ -257,10 +281,7 @@ public final class VisualizationManager implements Disposable {
         }
 
         myToolWindow.setAvailable(true);
-        // If user is using Preview Form, don't force switch to Visualization Tool.
-        final boolean visible = VisualizationToolSettings.getInstance().getGlobalState().isVisible()
-                                && !NlPreviewManager.getInstance(myProject).isWindowVisible();
-        if (visible && !myToolWindow.isVisible()) {
+        if (VisualizationToolSettings.getInstance().getGlobalState().isVisible() && !myToolWindow.isVisible()) {
           Runnable restoreFocus = null;
           if (myToolWindow.getType() == ToolWindowType.WINDOWED) {
             // Ugly hack: Fix for b/68148499
@@ -320,7 +341,7 @@ public final class VisualizationManager implements Disposable {
     return Arrays.stream(FileEditorManager.getInstance(myProject).getSelectedEditors())
       .filter(editor -> {
         VirtualFile editorFile = editor.getFile();
-        ResourceFolderType type = ResourceHelper.getFolderType(editorFile);
+        ResourceFolderType type = IdeResourcesUtil.getFolderType(editorFile);
         return type == ResourceFolderType.LAYOUT;
       })
       .findFirst()
@@ -373,17 +394,13 @@ public final class VisualizationManager implements Disposable {
 
     @Override
     public void selectionChanged(@NotNull FileEditorManagerEvent event) {
-      if (NlPreviewManager.getInstance(myProject).isWindowVisible()) {
-        // User is using preview, don't switch to VisualizationWindow.
-        return;
-      }
       FileEditor editorForLayout = null;
       FileEditor newEditor = event.getNewEditor();
       if (newEditor != null) {
         VirtualFile newVirtualFile = newEditor.getFile();
         if (newVirtualFile != null) {
           PsiFile psiFile = PsiManager.getInstance(myProject).findFile(newVirtualFile);
-          if (ResourceHelper.getFolderType(psiFile) == ResourceFolderType.LAYOUT) {
+          if (IdeResourcesUtil.getFolderType(psiFile) == ResourceFolderType.LAYOUT) {
             // Visualization tool only works for layout files.
             editorForLayout = newEditor;
           }

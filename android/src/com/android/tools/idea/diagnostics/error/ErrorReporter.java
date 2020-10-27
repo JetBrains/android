@@ -46,7 +46,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
 import com.intellij.util.Consumer;
-import java.util.Optional;
 import org.jetbrains.android.diagnostics.error.IdeaITNProxy;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;

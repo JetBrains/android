@@ -27,10 +27,9 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.OutputStream;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -137,7 +136,13 @@ public class AndroidRemoteDebugProcessHandler extends ProcessHandler implements 
       if (client == null || !client.isValid()) {
         return false;
       }
-      return ((AndroidExecutionTarget)executionTarget).getIDevice() == client.getDevice();
+
+      Object device = client.getDevice();
+
+      // The reference equality is intentional. We will only ever have a single IDevice instance for a device while it's connected. The
+      // IntelliJ Platform expects a different IDevice when you disconnect and reconnect a device. If we used the equals method (based on
+      // the serial number, say), a reconnected device would be the same and that would violate platform expectations.
+      return ((AndroidExecutionTarget)executionTarget).getDevices().stream().anyMatch(d -> d == device);
     }
 
     return sessionInfo.getExecutionTarget().getId().equals(executionTarget.getId());

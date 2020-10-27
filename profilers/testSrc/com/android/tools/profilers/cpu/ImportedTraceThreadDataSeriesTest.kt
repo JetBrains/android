@@ -40,7 +40,7 @@ class ImportedTraceThreadDataSeriesTest {
   fun setUp() {
     val timer = FakeTimer()
     val ideServices = FakeIdeProfilerServices()
-    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), ideServices, timer)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideServices, timer)
     // One second must be enough for new devices (and processes) to be picked up
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
@@ -72,10 +72,10 @@ class ImportedTraceThreadDataSeriesTest {
     var othersActivity = 0
 
     for (state in dataSeries) {
-      if (state.value == CpuProfilerStage.ThreadState.HAS_ACTIVITY) {
+      if (state.value == ThreadState.HAS_ACTIVITY) {
         hasActivityCount++
       }
-      else if (state.value == CpuProfilerStage.ThreadState.NO_ACTIVITY) {
+      else if (state.value == ThreadState.NO_ACTIVITY) {
         noActivityCount++
       }
       else {
@@ -98,7 +98,7 @@ class ImportedTraceThreadDataSeriesTest {
     val dataSeries = mySeries!!.getDataForRange(rangeAfterStates)
     // Assert that we return only the last NO_ACTIVITY state
     assertThat(dataSeries).hasSize(1)
-    assertThat(dataSeries[0].value).isEqualTo(CpuProfilerStage.ThreadState.NO_ACTIVITY)
+    assertThat(dataSeries[0].value).isEqualTo(ThreadState.NO_ACTIVITY)
   }
 
   @Test

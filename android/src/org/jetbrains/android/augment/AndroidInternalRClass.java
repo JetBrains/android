@@ -1,4 +1,3 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.augment;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -6,7 +5,7 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.AndroidInternalRClassFinder;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.ide.highlighter.JavaFileType;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.ModificationTracker;
@@ -25,9 +24,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidInternalRClass extends AndroidLightClassBase {
   private static final Key<Sdk> ANDROID_INTERNAL_R = Key.create("ANDROID_INTERNAL_R");
   private final PsiFile myFile;
@@ -36,7 +32,7 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
 
   public AndroidInternalRClass(@NotNull PsiManager psiManager, @NotNull AndroidPlatform platform, Sdk sdk) {
     super(psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
-    myFile = PsiFileFactory.getInstance(myManager.getProject()).createFileFromText("R.java", JavaFileType.INSTANCE, "");
+    myFile = PsiFileFactory.getInstance(myManager.getProject()).createFileFromText("R.java", StdFileTypes.JAVA, "");
     myFile.getViewProvider().getVirtualFile().putUserData(ANDROID_INTERNAL_R, sdk);
     setModuleInfo(sdk);
     myPlatform = platform;
@@ -96,7 +92,7 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
     return null;
   }
 
-  private final class MyInnerClass extends InnerRClassBase {
+  private class MyInnerClass extends InnerRClassBase {
 
     private MyInnerClass(@NotNull ResourceType resourceType) {
       super(AndroidInternalRClass.this, resourceType);

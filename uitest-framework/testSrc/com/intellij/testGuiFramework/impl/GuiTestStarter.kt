@@ -13,8 +13,6 @@ private const val HOST_LOCALHOST = "localhost"
  *
  * This implementation starts a [GuiTestThread], strips the "guitest" and port arguments, and then delegates to the default
  * [IdeStarter] implementation.
- *
- * @author Sergey Karashevich
  */
 class GuiTestStarter : IdeStarter() {
   companion object {
@@ -38,7 +36,7 @@ class GuiTestStarter : IdeStarter() {
     guiTestThread.start()
   }
 
-  override fun main(args: Array<String>) {
+  override fun main(args: List<String>) {
     super.main(removeGuiTestArgs(args))
   }
 
@@ -53,9 +51,9 @@ class GuiTestStarter : IdeStarter() {
     LOG.info("Set GUI tests port: $portArg")
   }
 
-  private fun removeGuiTestArgs(args: Array<String>): Array<String> {
-    return args.sliceArray(1..args.lastIndex)  //remove guitest keyword
+
+  private fun removeGuiTestArgs(args: List<String>): List<String> {
+    return args.drop(1)  //remove guitest keyword
       .filterNot { arg -> arg.startsWith("port") || arg.startsWith("host") }//lets remove host and port from args
-      .toTypedArray()
   }
 }

@@ -40,12 +40,12 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
     createIfNotExists(wrapperFilePath);
 
-    GradleWrapper gradleWrapper = GradleWrapper.get(wrapperFilePath);
+    GradleWrapper gradleWrapper = GradleWrapper.get(wrapperFilePath, myProject);
     gradleWrapper.updateDistributionUrlAndDisplayFailure("1.6");
 
     Properties properties = getProperties(wrapperFilePath);
     String distributionUrl = properties.getProperty("distributionUrl");
-    assertEquals("https://services.gradle.org/distributions/gradle-1.6-all.zip", distributionUrl);
+    assertEquals("https://services.gradle.org/distributions/gradle-1.6-bin.zip", distributionUrl);
   }
 
   public void testUpdateDistributionUrlLeavesGradleWrapperAloneAll() throws IOException {
@@ -59,12 +59,12 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
                 "zipStorePath=wrapper/dists\n" +
                 "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-all.zip");
 
-    GradleWrapper gradleWrapper = GradleWrapper.get(wrapperFilePath);
+    GradleWrapper gradleWrapper = GradleWrapper.get(wrapperFilePath, myProject);
     gradleWrapper.updateDistributionUrlAndDisplayFailure("1.9");
 
     Properties properties = getProperties(wrapperFilePath);
     String distributionUrl = properties.getProperty("distributionUrl");
-    assertEquals("https://services.gradle.org/distributions/gradle-1.9-all.zip", distributionUrl);
+    assertEquals("https://services.gradle.org/distributions/gradle-1.9-bin.zip", distributionUrl);
   }
 
 
@@ -79,7 +79,7 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
                  "zipStorePath=wrapper/dists\n" +
                  "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-bin.zip");
 
-    GradleWrapper gradleWrapper = GradleWrapper.get(wrapperFilePath);
+    GradleWrapper gradleWrapper = GradleWrapper.get(wrapperFilePath, myProject);
     gradleWrapper.updateDistributionUrlAndDisplayFailure("1.9");
 
     Properties properties = getProperties(wrapperFilePath);
@@ -98,12 +98,12 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
                 "zipStorePath=wrapper/dists\n" +
                 "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-bin.zip");
 
-    GradleWrapper gradleWrapper = GradleWrapper.get(wrapperFilePath);
+    GradleWrapper gradleWrapper = GradleWrapper.get(wrapperFilePath, myProject);
     gradleWrapper.updateDistributionUrlAndDisplayFailure("1.6");
 
     Properties properties = getProperties(wrapperFilePath);
     String distributionUrl = properties.getProperty("distributionUrl");
-    assertEquals("https://services.gradle.org/distributions/gradle-1.6-all.zip", distributionUrl);
+    assertEquals("https://services.gradle.org/distributions/gradle-1.6-bin.zip", distributionUrl);
   }
 
   public void testUpdateDistributionUrlUpgradeGradleWrapper() throws IOException {
@@ -117,12 +117,12 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
                 "zipStorePath=wrapper/dists\n" +
                 "distributionUrl=file\\:/usr/local/home/studio-master-dev/tools/external/gradle/gradle-4.5-bin.zip");
 
-    GradleWrapper gradlewrapper = GradleWrapper.get(wrapperFilePath);
-    gradlewrapper.updateDistributionUrlAndDisplayFailure("5.1.1");
+    GradleWrapper gradlewrapper = GradleWrapper.get(wrapperFilePath, myProject);
+    gradlewrapper.updateDistributionUrlAndDisplayFailure("6.1.1");
 
     Properties properties = getProperties(wrapperFilePath);
     String distributionUrl = properties.getProperty("distributionUrl");
-    assertEquals("https://services.gradle.org/distributions/gradle-5.1.1-all.zip", distributionUrl);
+    assertEquals("https://services.gradle.org/distributions/gradle-6.1.1-bin.zip", distributionUrl);
   }
 
   public void testGetPropertiesFilePath() {
@@ -142,7 +142,7 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
     assertFalse(projectWrapperDirPath.exists());
 
     String gradleVersion = "1.5";
-    GradleWrapper gradleWrapper = GradleWrapper.create(projectPath, gradleVersion);
+    GradleWrapper gradleWrapper = GradleWrapper.create(projectPath, gradleVersion, myProject);
     assertNotNull(gradleWrapper);
     assertWrapperCreated(projectWrapperDirPath, gradleVersion);
   }
@@ -153,7 +153,7 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
     File projectWrapperDirPath = new File(projectPath, FD_GRADLE_WRAPPER);
     assertFalse(projectWrapperDirPath.exists());
 
-    GradleWrapper gradleWrapper = GradleWrapper.create(projectPath);
+    GradleWrapper gradleWrapper = GradleWrapper.create(projectPath, myProject);
     assertNotNull(gradleWrapper);
     assertWrapperCreated(projectWrapperDirPath, SdkConstants.GRADLE_LATEST_VERSION);
   }
@@ -167,7 +167,7 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
     Properties gradleProperties = getProperties(new File(projectWrapperFolderPath, FN_GRADLE_WRAPPER_PROPERTIES));
     String distributionUrl = gradleProperties.getProperty(DISTRIBUTION_URL_PROPERTY);
     String folderName = GradleWrapper.isSnapshot(gradleVersion) ? "distributions-snapshots" : "distributions";
-    assertEquals("https://services.gradle.org/" + folderName + "/gradle-" + gradleVersion + "-all.zip", distributionUrl);
+    assertEquals("https://services.gradle.org/" + folderName + "/gradle-" + gradleVersion + "-bin.zip", distributionUrl);
   }
 
   public void testGetDistributionUrlWithBinReleaseVersion() {

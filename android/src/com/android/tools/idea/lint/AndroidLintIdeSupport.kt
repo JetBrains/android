@@ -27,10 +27,11 @@ import com.android.tools.idea.res.AndroidFileChangeListener
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioSdkUtil
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
-import com.android.tools.idea.templates.RepositoryUrlManager
+import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.lint.client.api.IssueRegistry
 import com.android.tools.lint.client.api.LintDriver
 import com.android.tools.lint.detector.api.Issue
+import com.android.tools.lint.detector.api.Platform
 import com.android.utils.SdkUtils
 import com.google.wireless.android.sdk.stats.LintSession
 import com.intellij.codeInsight.intention.IntentionAction
@@ -48,10 +49,10 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
-import org.jetbrains.android.util.AndroidResourceUtil
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.plugins.groovy.GroovyFileType
 import java.io.File
+import java.util.EnumSet
 
 class AndroidLintIdeSupport : LintIdeSupport() {
   override fun getIssueRegistry(): IssueRegistry {
@@ -202,6 +203,8 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     return RepositoryUrlManager.get().resolveDynamicCoordinateVersion(gc, project, sdkHandler)
   }
 
+  override fun getPlatforms(): EnumSet<Platform> = Platform.ANDROID_SET
+
   // Analytics
   override fun canRequestFeedback(): Boolean = ProvideLintFeedbackPanel.canRequestFeedback()
 
@@ -218,6 +221,6 @@ class AndroidLintIdeSupport : LintIdeSupport() {
   }
 
   override fun ensureNamespaceImported(file: XmlFile, namespaceUri: String, suggestedPrefix: String?): String {
-    return AndroidResourceUtil.ensureNamespaceImported(file, namespaceUri, suggestedPrefix)
+    return com.android.tools.idea.res.ensureNamespaceImported(file, namespaceUri, suggestedPrefix)
   }
 }

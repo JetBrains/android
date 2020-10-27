@@ -1,4 +1,3 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import com.android.SdkConstants;
@@ -81,10 +80,7 @@ import org.jetbrains.jps.model.module.JpsModuleSourceRoot;
 import org.jetbrains.jps.model.serialization.JpsModelSerializationDataService;
 import org.jetbrains.jps.util.JpsPathUtil;
 
-/**
- * @author Eugene.Kudelevsky
- */
-public final class AndroidJpsUtil {
+public class AndroidJpsUtil {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.jps.android.AndroidJpsUtil");
 
   @NonNls public static final String ANDROID_FACET_TYPE_ID = "android";

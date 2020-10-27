@@ -26,6 +26,7 @@ import com.android.tools.adtui.model.DefaultDurationData;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.model.legend.EventLegend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.profilers.ChartTooltipViewBase;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.CaptureNode;
 import java.awt.Color;
@@ -36,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Tooltip view for the Trace Event chart in Systrace.
  */
-class CpuTraceEventTooltipView extends CpuChartTooltipViewBase {
+class CpuTraceEventTooltipView extends ChartTooltipViewBase<CaptureNode> {
   @NotNull private final TraceEventTooltipLegends myLegends;
   @NotNull private final Color myRunningColor;
   @NotNull private final Color myIdleColor;
@@ -52,7 +53,7 @@ class CpuTraceEventTooltipView extends CpuChartTooltipViewBase {
   }
 
   @Override
-  protected void showTooltip(@NotNull CaptureNode node) {
+  public void showTooltip(@NotNull CaptureNode node) {
     long totalDuration = node.getDuration();
     long threadDuration = Math.min(totalDuration, Math.max(0, node.getEndThread() - node.getStartThread()));
     long idleDuration = totalDuration - threadDuration;

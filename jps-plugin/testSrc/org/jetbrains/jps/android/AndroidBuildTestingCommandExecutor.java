@@ -23,9 +23,6 @@ import java.util.regex.Pattern;
 import org.jetbrains.android.util.AndroidBuildTestingManager;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 abstract class AndroidBuildTestingCommandExecutor implements AndroidBuildTestingManager.MyCommandExecutor {
   public static final String ENTRY_HEADER = "______ENTRY_";
 
@@ -312,7 +309,7 @@ abstract class AndroidBuildTestingCommandExecutor implements AndroidBuildTesting
     }
   }
 
-  private static final class MyLogEntry {
+  private static class MyLogEntry {
     final String myContent;
     final String[] myDepIds;
 

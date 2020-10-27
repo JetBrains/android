@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run
 
+import com.android.SdkConstants
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.model.MergedManifestSnapshot
@@ -23,6 +24,8 @@ import com.android.utils.concurrency.AsyncSupplier
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.SettableFuture
+import com.intellij.openapi.project.DumbServiceImpl
+import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
@@ -48,46 +51,75 @@ class LaunchCompatibilityCheckerTest {
   }
 
   @Test
+  fun usesManifestIndexForMinSdkIfAvailable() {
+    val manifest = """
+    <?xml version='1.0' encoding='utf-8'?>
+    <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
+      package='com.example' android:debuggable="false" android:enabled='true'>
+      <uses-sdk android:minSdkVersion='20' android:targetSdkVersion='28'/>
+    </manifest>
+      """.trimIndent()
+    projectRule.fixture.addFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, manifest)
+    runInEdtAndWait {
+      val checker = LaunchCompatibilityCheckerImpl.create(facet, null, null) as LaunchCompatibilityCheckerImpl
+      assertThat(checker.myMinSdkVersion.apiLevel).isEqualTo(20)
+    }
+  }
+
+  @Test
   fun usesCachedManifestForMinSdkIfAvailable() {
     val api27Manifest = mockManifest(AndroidVersion(27))
     val api28Manifest = mockManifest(AndroidVersion(28))
 
-    `when`(mockManifestManager.mergedManifest).thenReturn(object :  AsyncSupplier<MergedManifestSnapshot> {
+    `when`(mockManifestManager.mergedManifest).thenReturn(object : AsyncSupplier<MergedManifestSnapshot> {
       override val now = api27Manifest
       override fun get() = api28Manifest.asFuture()
     })
 
-    val checker = LaunchCompatibilityCheckerImpl.create(facet, null, null) as LaunchCompatibilityCheckerImpl
-    assertThat(checker.myMinSdkVersion.apiLevel).isEqualTo(27)
+    runInEdtAndWait {
+      DumbServiceImpl.getInstance(projectRule.project).isDumb = true
+      val checker = LaunchCompatibilityCheckerImpl.create(facet, null, null) as LaunchCompatibilityCheckerImpl
+      assertThat(checker.myMinSdkVersion.apiLevel).isEqualTo(27)
+      DumbServiceImpl.getInstance(projectRule.project).isDumb = false
+    }
   }
 
   @Test
   fun usesComputedManifestForMinSdkIfAvailable() {
     val api28Manifest = mockManifest(AndroidVersion(28))
 
-    `when`(mockManifestManager.mergedManifest).thenReturn(object :  AsyncSupplier<MergedManifestSnapshot> {
-      override val now : MergedManifestSnapshot? = null
+    `when`(mockManifestManager.mergedManifest).thenReturn(object : AsyncSupplier<MergedManifestSnapshot> {
+      override val now: MergedManifestSnapshot? = null
       override fun get() = api28Manifest.asFuture()
     })
 
-    val checker = LaunchCompatibilityCheckerImpl.create(facet, null, null) as LaunchCompatibilityCheckerImpl
-    assertThat(checker.myMinSdkVersion.apiLevel).isEqualTo(28)
+    runInEdtAndWait {
+      DumbServiceImpl.getInstance(projectRule.project).isDumb = true
+      val checker = LaunchCompatibilityCheckerImpl.create(facet, null, null) as LaunchCompatibilityCheckerImpl
+      assertThat(checker.myMinSdkVersion.apiLevel).isEqualTo(28)
+      DumbServiceImpl.getInstance(projectRule.project).isDumb = false
+    }
   }
 
   @Test
   fun usesDefaultVersionForMinSdkIfManifestUnavailable() {
-    `when`(mockManifestManager.mergedManifest).thenReturn(object :  AsyncSupplier<MergedManifestSnapshot> {
+    `when`(mockManifestManager.mergedManifest).thenReturn(object : AsyncSupplier<MergedManifestSnapshot> {
       override val now: MergedManifestSnapshot? = null
       override fun get() = SettableFuture.create<MergedManifestSnapshot>()
     })
-    val checker = LaunchCompatibilityCheckerImpl.create(facet, null, null) as LaunchCompatibilityCheckerImpl
-    assertThat(checker.myMinSdkVersion).isEqualTo(AndroidVersion.DEFAULT)
+
+    runInEdtAndWait {
+      DumbServiceImpl.getInstance(projectRule.project).isDumb = true
+      val checker = LaunchCompatibilityCheckerImpl.create(facet, null, null) as LaunchCompatibilityCheckerImpl
+      assertThat(checker.myMinSdkVersion).isEqualTo(AndroidVersion.DEFAULT)
+      DumbServiceImpl.getInstance(projectRule.project).isDumb = false
+    }
   }
 }
 
 private fun <T> T.asFuture() = Futures.immediateFuture(this)
 
-private fun mockManifest(minSdkVersion: AndroidVersion) : MergedManifestSnapshot {
+private fun mockManifest(minSdkVersion: AndroidVersion): MergedManifestSnapshot {
   return mock(MergedManifestSnapshot::class.java).also {
     `when`(it.minSdkVersion).thenReturn(minSdkVersion)
   }

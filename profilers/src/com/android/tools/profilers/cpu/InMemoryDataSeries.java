@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.SeriesData;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Implementers of this class should implement {@link #inMemoryDataList}, which should return all the {@link DataSeries} that would be
@@ -63,5 +64,6 @@ abstract class InMemoryDataSeries<T> implements DataSeries<T> {
   /**
    * Returns all the {@link SeriesData} stored in memory, to be filtered by range in {@link #getDataForRange(Range)}
    */
+  @NotNull
   protected abstract List<SeriesData<T>> inMemoryDataList();
 }

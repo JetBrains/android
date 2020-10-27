@@ -77,20 +77,23 @@ public class GradleClassFileFinder extends ModuleBasedClassFileFinder {
     // Older models may not supply it; in that case, we rely on looking relative to the .APK file location:
     //noinspection ConstantConditions
     if (classesFolder == null) {
-      @SuppressWarnings("deprecation")  // For getOutput()
-        AndroidArtifactOutput output = GradleUtil.getOutput(mainArtifactInfo);
-      File file = output.getMainOutputFile().getOutputFile();
-      File buildFolder = file.getParentFile().getParentFile();
-      classesFolder = new File(buildFolder, "classes"); // See AndroidContentRoot
+      File file = GradleUtil.getOutputFile(model);
+      if (file != null) {
+        File buildFolder = file.getParentFile().getParentFile();
+        classesFolder = new File(buildFolder, "classes"); // See AndroidContentRoot
+      }
     }
 
-    File outFolder = new File(classesFolder,
-                              // Change variant name variant-release into variant/release directories
-                              variantName.replace('-', File.separatorChar));
-    if (outFolder.exists()) {
-      VirtualFile file = VfsUtil.findFileByIoFile(outFolder, true);
-      if (file != null) {
-        compilerOutputs.add(file);
+    //noinspection ConstantConditions
+    if (classesFolder != null) {
+      File outFolder = new File(classesFolder,
+                                // Change variant name variant-release into variant/release directories
+                                variantName.replace('-', File.separatorChar));
+      if (outFolder.exists()) {
+        VirtualFile file = VfsUtil.findFileByIoFile(outFolder, true);
+        if (file != null) {
+          compilerOutputs.add(file);
+        }
       }
     }
 

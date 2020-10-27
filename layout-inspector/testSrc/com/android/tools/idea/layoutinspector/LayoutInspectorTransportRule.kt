@@ -15,16 +15,27 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.ddmlib.ClientData
+import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
+import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler
+import com.android.fakeadbserver.devicecommandhandlers.ddmsHandlers.FeaturesHandler
+import com.android.testutils.MockitoKt.eq
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.FpsTimer
 import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
+import com.android.tools.idea.layoutinspector.legacydevice.LegacyTreeLoader
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.idea.layoutinspector.util.ConfigurationBuilder
+import com.android.tools.idea.layoutinspector.util.DemoExample
+import com.android.tools.idea.layoutinspector.util.TestStringTable
+import com.android.tools.idea.layoutinspector.util.TreeBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -34,9 +45,15 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.AgentData.Status.ATTACHED
 import com.android.tools.profiler.proto.Common.AgentData.Status.UNATTACHABLE
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
 import java.net.Socket
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -44,31 +61,38 @@ import java.util.concurrent.TimeUnit
 val DEFAULT_PROCESS = Common.Process.newBuilder().apply {
   name = "myProcess"
   pid = 12345
-  deviceId = 1234
+  deviceId = 123456
   state = Common.Process.State.ALIVE
 }.build()!!
 
 val DEFAULT_DEVICE = Common.Device.newBuilder().apply {
-  deviceId = 1234
+  deviceId = 123456
   model = "My Model"
   manufacturer = "Google"
-  serial = "1234"
+  serial = "123456"
   featureLevel = 29
   state = Common.Device.State.ONLINE
 }.build()!!
 
 val LEGACY_DEVICE = Common.Device.newBuilder().apply {
-  deviceId = 1234
+  deviceId = 123488
   model = "My Legacy Model"
   manufacturer = "Google"
-  serial = "1234"
-  apiLevel = 27
+  serial = "123488"
+  featureLevel = 27
   state = Common.Device.State.ONLINE
 }.build()!!
 
 val DEFAULT_STREAM = Common.Stream.newBuilder().apply {
   device = DEFAULT_DEVICE
-  streamId = 1111
+  streamId = 123456
+  type = Common.Stream.Type.DEVICE
+}.build()!!
+
+val LEGACY_STREAM = Common.Stream.newBuilder().apply {
+  device = LEGACY_DEVICE
+  streamId = 123488
+  type = Common.Stream.Type.DEVICE
 }.build()!!
 
 /**
@@ -81,25 +105,42 @@ val DEFAULT_STREAM = Common.Stream.newBuilder().apply {
 class LayoutInspectorTransportRule(
   private val timer: FakeTimer = FakeTimer(),
   private val adbRule: FakeAdbRule = FakeAdbRule(),
-  private val transportService: FakeTransportService = FakeTransportService(timer),
+  val transportService: FakeTransportService = FakeTransportService(timer),
   private val grpcServer: FakeGrpcServer =
     FakeGrpcServer.createFakeGrpcServer("LayoutInspectorTestChannel", transportService, transportService),
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
 ) : TestRule {
 
+  private var isStarted = false
+  private var isCompleted = false
+
   lateinit var inspector: LayoutInspector
   lateinit var inspectorClient: InspectorClient
-  var inspectorModel: () -> InspectorModel = { model(projectRule.project) { view(0L) } }
+  lateinit var inspectorModel: InspectorModel
+  val project: Project get() = projectRule.project
 
   /** If you set this to false before attaching a device, the attach will fail (return [UNATTACHABLE]) */
   var shouldConnectSuccessfully = true
+
+  /**
+   * By default we get an empty model.
+   *
+   * If a connected default device is requested, this initial root will be setup instead.
+   */
+  var initialRoot = view(0L)
 
   // "2" since it's called for debug_view_attributes and debug_view_attributes_application_package
   private val unsetSettingsLatch = CountDownLatch(2)
   private val scheduler = VirtualTimeScheduler()
   private var inspectorClientFactory: () -> InspectorClient = {
-    DefaultInspectorClient(inspectorModel(), projectRule.fixture.projectDisposable, grpcServer.name, scheduler)
+    DefaultInspectorClient(inspectorModel, projectRule.fixture.projectDisposable, grpcServer.name, scheduler)
   }
+
+  private var originalClientFactory: ((InspectorModel, Disposable) -> List<InspectorClient>)? = null
+
+  private val commandHandlers = mutableMapOf<
+    LayoutInspectorProto.LayoutInspectorCommand.Type,
+    (Commands.Command, MutableList<Common.Event>) -> Unit>()
 
   private var attachHandler: CommandHandler = object : CommandHandler(timer) {
     override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
@@ -116,7 +157,7 @@ class LayoutInspectorTransportRule(
   }
 
   private val startedLatch = CountDownLatch(1)
-  private var inspectorHandler: CommandHandler = object : CommandHandler(timer) {
+  private val startHandler : CommandHandler = object : CommandHandler(timer) {
     override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
       if (command.layoutInspector.type == LayoutInspectorProto.LayoutInspectorCommand.Type.START) {
         startedLatch.countDown()
@@ -124,22 +165,35 @@ class LayoutInspectorTransportRule(
     }
   }
 
+  private var inspectorHandler: CommandHandler = object : CommandHandler(timer) {
+    override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
+      val handler = commandHandlers[command.layoutInspector.type]
+      handler?.invoke(command, events) ?: startHandler.handleCommand(command, events)
+    }
+  }
+
+  private val initialActions = mutableListOf<() -> Unit>()
   private val beforeActions = mutableListOf<() -> Unit>()
 
   init {
+    adbRule.withDeviceCommandHandler(JdwpCommandHandler().addPacketHandler(
+      FeaturesHandler.CHUNK_TYPE, FeaturesHandler(emptyMap(), listOf(ClientData.FEATURE_VIEW_HIERARCHY))))
     adbRule.withDeviceCommandHandler(object : DeviceCommandHandler("shell") {
       override fun accept(server: FakeAdbServer, socket: Socket, device: DeviceState, command: String, args: String): Boolean {
-        if (args == "settings put global debug_view_attributes 1") {
-          com.android.fakeadbserver.CommandHandler.writeOkay(socket.getOutputStream())
-          return true
+        when (args) {
+          "settings put global debug_view_attributes 1",
+          "settings put global debug_view_attributes_application_package com.example",
+          "settings delete global debug_view_attributes",
+          "settings delete global debug_view_attributes_application_package" -> {
+            com.android.fakeadbserver.CommandHandler.writeOkay(socket.getOutputStream())
+            if (args.startsWith("settings delete")) {
+              unsetSettingsLatch.countDown()
+            }
+            return true
+          }
+
+          else -> return false
         }
-        else if (args == "settings delete global debug_view_attributes" ||
-                 args == "settings delete global debug_view_attributes_application_package") {
-          com.android.fakeadbserver.CommandHandler.writeOkay(socket.getOutputStream())
-          unsetSettingsLatch.countDown()
-          return true
-        }
-        return false
       }
     })
 
@@ -149,7 +203,9 @@ class LayoutInspectorTransportRule(
   /**
    * Create a [LegacyClient] rather than a [DefaultInspectorClient]
    */
-  fun withLegacyClient() = apply { inspectorClientFactory = { LegacyClient(projectRule.project) } }
+  fun withLegacyClient() = apply { inspectorClientFactory = {
+    LegacyClient(inspectorModel.resourceLookup, projectRule.fixture.projectDisposable) }
+  }
 
   /**
    * The default attach handler just attaches (or fails if [shouldConnectSuccessfully] is false). Use this if you want to do something else.
@@ -157,13 +213,13 @@ class LayoutInspectorTransportRule(
   fun withAttachHandler(handler: CommandHandler) = apply { attachHandler = handler }
 
   /**
-   * By default we get a model with one empty view. Use this if you want anything else.
+   * Add a specific [LayoutInspectorProto.LayoutInspectorCommand] handler.
    */
-  fun withModel(modelFactory: () -> InspectorModel) = apply {
-    inspectorModel = modelFactory
-  }
+  fun withCommandHandler(type: LayoutInspectorProto.LayoutInspectorCommand.Type,
+                         handler: (Commands.Command, MutableList<Common.Event>) -> Unit) =
+    apply { commandHandlers[type] = handler }
 
-  fun withDefaultDevice(connected: Boolean) = apply {
+  fun withDefaultDevice() = apply {
     beforeActions.add {
       if (inspectorClient is DefaultInspectorClient) {
         addProcess(DEFAULT_DEVICE, DEFAULT_PROCESS)
@@ -172,21 +228,60 @@ class LayoutInspectorTransportRule(
         addProcess(LEGACY_DEVICE, DEFAULT_PROCESS)
       }
     }
-    if (connected) {
-        beforeActions.add {
-          inspectorClient.attach(DEFAULT_STREAM, DEFAULT_PROCESS)
-          if (inspectorClient is DefaultInspectorClient) {
-            advanceTime(1100, TimeUnit.MILLISECONDS)
-            waitForStart()
-            transportService.addEventToStream(DEFAULT_STREAM.streamId,
-                                              Common.Event.newBuilder()
-                                                .setKind(Common.Event.Kind.LAYOUT_INSPECTOR)
-                                                .setPid(DEFAULT_PROCESS.pid)
-                                                .setGroupId(Common.Event.EventGroupIds.COMPONENT_TREE.number.toLong())
-                                                .build())
-            advanceTime(1100, TimeUnit.MILLISECONDS)
-          }
-        }
+  }
+
+  fun attach() = apply {
+    val attacher = {
+      if (inspectorClient is LegacyClient) {
+        attachTo(LEGACY_STREAM, DEFAULT_PROCESS)
+      }
+      else {
+        inspectorClient.attach(DEFAULT_STREAM, DEFAULT_PROCESS)
+        advanceTime(1100, TimeUnit.MILLISECONDS)
+        waitForStart()
+        transportService.addEventToStream(DEFAULT_STREAM.streamId, createComponentTreeEvent(initialRoot))
+        advanceTime(1100, TimeUnit.MILLISECONDS)
+      }
+    }
+    if (!isStarted) {
+      beforeActions.add(attacher)
+    }
+    else {
+      attacher()
+    }
+  }
+
+  /**
+   * Use this method to attach instead of calling InspectorClient.attach directly.
+   *
+   * This is because the known streams and processes may be generated different by the [LegacyClient]
+   * and the attach will fail unless the known instances are used.
+   */
+  fun attachTo(stream: Common.Stream, process: Common.Process) {
+    if (inspectorClient is LegacyClient) {
+      val client = inspectorClient as LegacyClient
+      val loader = mock(LegacyTreeLoader::class.java)
+      `when`(loader.getAllWindowIds(any(), eq(client))).thenReturn(listOf("window1", "window2"))
+      client.treeLoader = loader
+
+      val serial = stream.device.serial
+      val knownStream = inspectorClient.getStreams()
+                          .firstOrNull { it.device.serial == serial } ?: error("Device not found: $serial")
+      val knownProcess = inspectorClient.getProcesses(knownStream)
+                           .firstOrNull { it.pid == process.pid } ?: error("Process not found: ${process.pid}")
+      inspectorClient.attach(knownStream, knownProcess)
+    }
+    else {
+      inspectorClient.attach(stream, process)
+    }
+  }
+
+  /**
+   * Add the demo layout from [DemoExample] and include views if the connected option is chosen.
+   */
+  fun withDemoLayout() = apply {
+    initialActions.add {
+      initialRoot = model(project, DemoExample.setUpDemo(projectRule.fixture)).root
     }
   }
 
@@ -205,19 +300,37 @@ class LayoutInspectorTransportRule(
     if (!shouldConnectSuccessfully) {
       return
     }
-    startedLatch.await()
+    assertThat(startedLatch.await(30, TimeUnit.SECONDS)).isTrue()
   }
 
   /**
    * Add the given process and stream to the transport service.
    */
   fun addProcess(device: Common.Device, process: Common.Process) {
-    adbRule.attachDevice(device.deviceId.toString(), device.manufacturer, device.model, device.version, device.apiLevel.toString(),
-                         DeviceState.HostConnectionType.USB)
+    val deviceState = adbRule.attachDevice(device.deviceId.toString(), device.manufacturer, device.model, device.version,
+                                           device.featureLevel.toString(), DeviceState.HostConnectionType.USB)
+    val uid = System.currentTimeMillis().toInt()
+    deviceState.startClient(process.pid, uid, process.name, "${process.name}.com.example.myapplication", true)
     if (device.featureLevel >= 29) {
       transportService.addDevice(device)
       transportService.addProcess(device, process)
     }
+    waitUntilProcessIsAvailable(device, process)
+  }
+
+  private fun waitUntilProcessIsAvailable(device: Common.Device, process: Common.Process) {
+    var times = 20
+    while (!isProcessAvailable(device, process)) {
+      Thread.sleep(100)
+      if (--times <= 0) {
+        error("Timeout waiting for process to be available")
+      }
+    }
+  }
+
+  private fun isProcessAvailable(device: Common.Device, process: Common.Process): Boolean {
+    val stream = inspectorClient.getStreams().find { it.device.serial == device.serial } ?: return false
+    return inspectorClient.getProcesses(stream).find { it.pid == process.pid } != null
   }
 
   override fun apply(base: Statement, description: Description): Statement {
@@ -226,7 +339,9 @@ class LayoutInspectorTransportRule(
         override fun evaluate() {
           before()
           try {
+            isStarted = true
             base.evaluate()
+            isCompleted = true
           }
           finally {
             after()
@@ -237,28 +352,52 @@ class LayoutInspectorTransportRule(
   }
 
   private fun before() {
+    initialActions.forEach { it() }
+    inspectorModel = InspectorModel(project)
+    originalClientFactory = InspectorClient.clientFactory
     inspectorClientFactory.let {
       inspectorClient = it()
-      InspectorClient.clientFactory = { _, _ -> inspectorClient }
+      InspectorClient.clientFactory = { _, _ -> listOf(inspectorClient) }
     }
-    inspector = LayoutInspector(inspectorModel(), projectRule.fixture.projectDisposable)
+    inspector = LayoutInspector(inspectorModel, project)
+    inspector.currentClient = inspectorClient
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, attachHandler)
     transportService.setCommandHandler(Commands.Command.CommandType.LAYOUT_INSPECTOR, inspectorHandler)
     beforeActions.forEach { it() }
   }
 
   private fun after() {
+    InspectorClient.clientFactory = originalClientFactory!!
     if (inspectorClient.isConnected) {
       val processDone = CountDownLatch(1)
       inspectorClient.registerProcessChanged { processDone.countDown() }
-      inspectorClient.disconnect()
-      processDone.await()
-      waitForUnsetSettings()
+      inspectorClient.disconnect().get(10, TimeUnit.SECONDS)
+      grpcServer.channel.shutdown().awaitTermination(10, TimeUnit.SECONDS)
+      assertThat(processDone.await(30, TimeUnit.SECONDS)).isTrue()
+      if (inspectorClient is DefaultInspectorClient) {
+        waitForUnsetSettings()
+      }
     }
-    InspectorClient.clientFactory = { model, parentDisposable -> DefaultInspectorClient(model, parentDisposable) }
   }
 
   private fun waitForUnsetSettings() {
-    unsetSettingsLatch.await()
+    assertThat(unsetSettingsLatch.await(30, TimeUnit.SECONDS)).isTrue()
+  }
+
+  fun createComponentTreeEvent(rootView: ViewNode): Common.Event {
+    val strings = TestStringTable()
+    val tree = TreeBuilder(strings)
+    val config = ConfigurationBuilder(strings)
+    return Common.Event.newBuilder().apply {
+      kind = Common.Event.Kind.LAYOUT_INSPECTOR
+      pid = DEFAULT_PROCESS.pid
+      groupId = Common.Event.EventGroupIds.COMPONENT_TREE.number.toLong()
+      layoutInspectorEventBuilder.treeBuilder.apply {
+        root = tree.makeViewTree(rootView)
+        resources = config.makeDummyConfiguration(project)
+        addAllString(strings.asEntryList())
+        addAllWindowIds(rootView.drawId)
+      }
+    }.build()
   }
 }

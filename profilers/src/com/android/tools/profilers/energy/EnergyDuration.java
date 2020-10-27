@@ -19,6 +19,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Energy;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -201,7 +202,7 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
         durationMap.put(event.getGroupId(), list);
       }
     }
-    return durationMap.values().stream().map(list -> new EnergyDuration(list)).collect(Collectors.toList());
+    return ContainerUtil.map(durationMap.values(), list -> new EnergyDuration(list));
   }
 
   @NotNull

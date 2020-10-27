@@ -50,8 +50,13 @@ class AndroidSqlParserDefinition : ParserDefinition {
   companion object {
     @JvmStatic
     fun isValidSqlQuery(project: Project, input: String): Boolean {
-      val psiFile = PsiFileFactory.getInstance(project).createFileFromText("temp.sql", AndroidSqlFileType.INSTANCE, input)
+      val psiFile = parseSqlQuery(project, input)
       return !PsiTreeUtil.hasErrorElements(psiFile)
+    }
+
+    @JvmStatic
+    fun parseSqlQuery(project: Project, input: String): PsiFile {
+      return PsiFileFactory.getInstance(project).createFileFromText("temp.sql", AndroidSqlFileType.INSTANCE, input)
     }
   }
 }

@@ -27,7 +27,7 @@ interface DatabaseInspectorViewsFactory {
 
   fun createEvaluatorView(project: Project, schemaProvider: SchemaProvider, tableView: TableView): SqliteEvaluatorView
 
-  fun createParametersBindingView(project: Project): ParametersBindingDialogView
+  fun createParametersBindingView(project: Project, sqliteStatementText: String): ParametersBindingDialogView
 
   fun createDatabaseInspectorView(project: Project): DatabaseInspectorView
 }

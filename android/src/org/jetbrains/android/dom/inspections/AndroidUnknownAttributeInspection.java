@@ -1,16 +1,29 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+/*
+ * Copyright 2000-2010 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.android.dom.inspections;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.databinding.DataBindingModuleComponent;
+import com.android.tools.idea.databinding.DataBindingAnnotationsService;
 import com.intellij.codeInspection.InspectionManager;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.lang.ASTNode;
-import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.XmlRecursiveElementVisitor;
@@ -24,7 +37,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.android.dom.AndroidAnyAttributeDescriptor;
-import org.jetbrains.android.dom.AndroidDomExtender;
 import org.jetbrains.android.dom.AndroidXmlTagDescriptor;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
@@ -68,17 +80,10 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
       return ProblemDescriptor.EMPTY_ARRAY;
     }
 
-    if (!AndroidDomExtender.areExtensionsKnown()) {
-      return ProblemDescriptor.EMPTY_ARRAY;
-    }
-
     if (isMyFile(facet, (XmlFile)file)) {
-      Module module = facet.getModule();
       // Support attributes defined by @BindingAdapter annotations.
-      DataBindingModuleComponent dataBindingComponent = module.getService(DataBindingModuleComponent.class);
-      Set<String> bindingAdapterAttributes = dataBindingComponent != null
-                                             ? dataBindingComponent.getBindingAdapterAttributes()
-                                             : Collections.emptySet();
+      DataBindingAnnotationsService bindingAnnotationsService = DataBindingAnnotationsService.getInstance(facet);
+      Set<String> bindingAdapterAttributes = bindingAnnotationsService.getBindingAdapterAttributes();
       MyVisitor visitor = new MyVisitor(manager, bindingAdapterAttributes, isOnTheFly);
       file.accept(visitor);
       return visitor.myResult.toArray(ProblemDescriptor.EMPTY_ARRAY);
@@ -105,7 +110,7 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
     return ManifestDomFileDescription.isManifestFile(file, facet);
   }
 
-  private static final class MyVisitor extends XmlRecursiveElementVisitor {
+  private static class MyVisitor extends XmlRecursiveElementVisitor {
     private final InspectionManager myInspectionManager;
     private final Set<String> myBindingAdapterAttributes;
     private final boolean myOnTheFly;

@@ -48,6 +48,8 @@ import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
 import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import org.junit.Assume
 import org.junit.Before
 import org.junit.Ignore
@@ -59,6 +61,7 @@ import java.awt.event.ActionEvent
 import java.util.Arrays
 import java.util.concurrent.TimeUnit
 
+@RunsInEdt
 @RunWith(Parameterized::class)
 class SessionsViewTest(private val useUnifiedEvents: Boolean) {
 
@@ -91,6 +94,8 @@ class SessionsViewTest(private val useUnifiedEvents: Boolean) {
     FakeEventService(),
     FakeNetworkService.newBuilder().build()
   )
+  @get:Rule val myEdtRule = EdtRule()
+
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var mySessionsManager: SessionsManager
@@ -98,7 +103,7 @@ class SessionsViewTest(private val useUnifiedEvents: Boolean) {
 
   @Before
   fun setup() {
-    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), myIdeProfilerServices, myTimer)
+    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), myIdeProfilerServices, myTimer)
     mySessionsManager = myProfilers.sessionsManager
     mySessionsView = SessionsView(myProfilers, FakeIdeProfilerComponents())
   }
@@ -689,7 +694,7 @@ class SessionsViewTest(private val useUnifiedEvents: Boolean) {
     assertThat(sessionItem.artifact.session).isEqualTo(session)
     assertThat(cpuCaptureItem.artifact.session).isEqualTo(session)
     assertThat(cpuCaptureItem.artifact.isOngoing).isTrue()
-    assertThat(cpuCaptureItem.artifact.name).isEqualTo(ProfilingTechnology.ATRACE.getName())
+    assertThat(cpuCaptureItem.artifact.name).isEqualTo(ProfilingTechnology.SYSTEM_TRACE.getName())
     assertThat(cpuCaptureItem.artifact.subtitle).isEqualTo(SessionArtifact.CAPTURING_SUBTITLE)
     assertThat(cpuCaptureItem.exportLabel).isNull()
 
@@ -744,7 +749,7 @@ class SessionsViewTest(private val useUnifiedEvents: Boolean) {
     // Makes sure memory profiler stage is now open.
     assertThat(myProfilers.stage).isInstanceOf(MemoryProfilerStage::class.java)
     // Makes sure a HeapDumpCaptureObject is loaded.
-    assertThat((myProfilers.stage as MemoryProfilerStage).selectedCapture).isInstanceOf(HeapDumpCaptureObject::class.java)
+    assertThat((myProfilers.stage as MemoryProfilerStage).captureSelection.selectedCapture).isInstanceOf(HeapDumpCaptureObject::class.java)
 
     // Make sure clicking the export label does not select the session.
     mySessionsManager.setSession(Common.Session.getDefaultInstance())
@@ -794,7 +799,7 @@ class SessionsViewTest(private val useUnifiedEvents: Boolean) {
     // Makes sure memory profiler stage is now open.
     assertThat(myProfilers.stage).isInstanceOf(MemoryProfilerStage::class.java)
     // Makes sure that there is no capture selected.
-    assertThat((myProfilers.stage as MemoryProfilerStage).selectedCapture).isNull()
+    assertThat((myProfilers.stage as MemoryProfilerStage).captureSelection.selectedCapture).isNull()
     assertThat(myProfilers.timeline.isStreaming).isTrue()
   }
 
@@ -834,7 +839,7 @@ class SessionsViewTest(private val useUnifiedEvents: Boolean) {
     // Makes sure memory profiler stage is now open.
     assertThat(myProfilers.stage).isInstanceOf(MemoryProfilerStage::class.java)
     // Makes sure a HeapDumpCaptureObject is loaded.
-    assertThat((myProfilers.stage as MemoryProfilerStage).selectedCapture).isInstanceOf(LegacyAllocationCaptureObject::class.java)
+    assertThat((myProfilers.stage as MemoryProfilerStage).captureSelection.selectedCapture).isInstanceOf(LegacyAllocationCaptureObject::class.java)
 
     // Make sure clicking the export label does not select the session.
     mySessionsManager.setSession(Common.Session.getDefaultInstance())
@@ -884,7 +889,7 @@ class SessionsViewTest(private val useUnifiedEvents: Boolean) {
     // Makes sure memory profiler stage is now open.
     assertThat(myProfilers.stage).isInstanceOf(MemoryProfilerStage::class.java)
     // Makes sure that there is no capture selected.
-    assertThat((myProfilers.stage as MemoryProfilerStage).selectedCapture).isNull()
+    assertThat((myProfilers.stage as MemoryProfilerStage).captureSelection.selectedCapture).isNull()
     assertThat(myProfilers.timeline.isStreaming).isTrue()
   }
 }

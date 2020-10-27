@@ -168,7 +168,7 @@ abstract class AssetView : JPanel(BorderLayout()) {
 
   abstract var focused: Boolean
 
-  protected var contentWrapper = ChessBoardPanel(BorderLayout()).apply {
+  protected var contentWrapper = ChessBoardPanel().apply {
     showChessboard = withChessboard
   }
 

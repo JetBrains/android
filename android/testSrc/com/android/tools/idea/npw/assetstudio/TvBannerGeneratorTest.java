@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
+import static com.android.SdkConstants.FD_ML_MODELS;
 import static com.android.SdkConstants.FD_TEST;
 import static com.android.SdkConstants.FD_UNIT_TEST;
 import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
@@ -24,8 +25,10 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
+import com.android.tools.idea.rendering.DrawableRenderer;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.intellij.application.options.CodeStyle;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.ThreadTracker;
@@ -98,6 +101,12 @@ public class TvBannerGeneratorTest extends AndroidTestCase {
     public File getManifestDirectory() {
       return new File(getModuleRoot(), "manifests");
     }
+
+    @Override
+    @NotNull
+    public List<File> getMlModelsDirectories() {
+      return ImmutableList.of(new File(getModuleRoot(), FD_ML_MODELS));
+    }
   };
 
   @Override
@@ -156,7 +165,9 @@ public class TvBannerGeneratorTest extends AndroidTestCase {
       if (!Arrays.asList(excludedFromContentComparison).contains(filename)) {
         if (filename.endsWith(".xml")) {
           assertEquals("File " + filename + " does not match",
-                       new String(Files.readAllBytes(goldenFile), UTF_8), ((GeneratedXmlResource)icon).getXmlText());
+                       new String(Files.readAllBytes(goldenFile), UTF_8).replaceAll("(\r\n|\n)",
+                                                                                    CodeStyle.getSettings(getProject()).getLineSeparator()),
+                       ((GeneratedXmlResource)icon).getXmlText());
         }
         else {
           BufferedImage goldenImage = ImageIO.read(goldenFile.toFile());
@@ -201,12 +212,12 @@ public class TvBannerGeneratorTest extends AndroidTestCase {
     myIconGenerator.sourceAsset().setValue(createImageAsset("foreground.xml"));
     TextAsset textAsset = new TextAsset();
     textAsset.text().set("Test");
-    textAsset.fontFamily().set("Roboto");
+    textAsset.fontFamily().set("Droid Sans");
     textAsset.color().setValue(new Color(0x888888));
     myIconGenerator.textAsset().setValue(textAsset);
     myIconGenerator.backgroundColor().set(Color.WHITE);
     // Don't compare context of ic_launcher_foreground.xml because it is slightly platform dependent.
-    checkGeneratedIcons(expectedFilenames, 1.5, "resources/drawable-v24/ic_banner_foreground.xml");
+    checkGeneratedIcons(expectedFilenames, "resources/drawable-v24/ic_banner_foreground.xml");
   }
 
   public void testDrawable() throws Exception {
@@ -228,13 +239,13 @@ public class TvBannerGeneratorTest extends AndroidTestCase {
         "resources/mipmap-xhdpi/ic_banner.png" };
     TextAsset textAsset = new TextAsset();
     textAsset.text().set("Test");
-    textAsset.fontFamily().set("Roboto");
+    textAsset.fontFamily().set("Droid Sans");
     textAsset.color().setValue(new Color(0x0000FF));
     textAsset.scalingPercent().set(50);
     myIconGenerator.sourceAsset().setNullableValue(null);
     myIconGenerator.textAsset().setValue(textAsset);
     myIconGenerator.backgroundColor().set(new Color(0x88AAFF));
     // Don't compare context of ic_launcher_foreground.xml because it is slightly platform dependent.
-    checkGeneratedIcons(expectedFilenames, 1.5, "resources/drawable/ic_banner_foreground.xml");
+    checkGeneratedIcons(expectedFilenames, "resources/drawable/ic_banner_foreground.xml");
   }
 }

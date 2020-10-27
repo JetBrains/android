@@ -48,8 +48,9 @@ import com.android.sdklib.devices.State;
 import com.android.tools.idea.io.BufferingFileWrapper;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.utils.SdkUtils;
 import com.android.utils.SparseIntArray;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -111,7 +112,7 @@ public class ConfigurationMatcher {
 
   // ---- Finding matching configurations ----
 
-  private static final class ConfigBundle {
+  private static class ConfigBundle {
     private final FolderConfiguration config;
     private int localeIndex;
     private int dockModeIndex;
@@ -169,7 +170,8 @@ public class ConfigurationMatcher {
    */
   public boolean isCurrentFileBestMatchFor(@NotNull FolderConfiguration config) {
     if (myResources != null && myNamespace != null && myFile != null) {
-      ResourceReference reference = new ResourceReference(myNamespace, getResourceType(myFile), ResourceHelper.getResourceName(myFile));
+      ResourceReference reference = new ResourceReference(myNamespace, getResourceType(myFile),
+                                                          SdkUtils.fileNameToResourceName(myFile.getName()));
       List<VirtualFile> files = getMatchingFiles(myResources, reference, config, new HashSet<>(), true, 0);
       VirtualFile match = files.isEmpty() ? null : files.get(0);
       if (match != null) {
@@ -191,7 +193,7 @@ public class ConfigurationMatcher {
     if (parent != null) {
       String parentName = parent.getName();
       if (!parentName.startsWith(FD_RES_LAYOUT)) {
-        ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+        ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
         if (folderType != null) {
           List<ResourceType> related = FolderTypeRelationship.getRelatedResourceTypes(folderType);
           if (!related.isEmpty()) {
@@ -242,7 +244,7 @@ public class ConfigurationMatcher {
                                                    @NotNull ResourceNamespace namespace,
                                                    @NotNull ResourceType type,
                                                    @NotNull FolderConfiguration config) {
-    ResourceReference reference = new ResourceReference(namespace, type, ResourceHelper.getResourceName(file));
+    ResourceReference reference = new ResourceReference(namespace, type, SdkUtils.fileNameToResourceName(file.getName()));
     return getMatchingFiles(repository, reference, config, new HashSet<>(), false, 0);
   }
 
@@ -286,7 +288,7 @@ public class ConfigurationMatcher {
         }
       }
 
-      VirtualFile virtualFile = ResourceHelper.getSourceAsVirtualFile(match);
+      VirtualFile virtualFile = IdeResourcesUtil.getSourceAsVirtualFile(match);
       if (virtualFile != null) {
         output.add(virtualFile);
       }
@@ -666,7 +668,7 @@ public class ConfigurationMatcher {
         FileDocumentManager documentManager = FileDocumentManager.getInstance();
         VirtualFile file = documentManager.getFile(activeEditor.getDocument());
         if (file != null && !file.equals(myFile) && FileTypeRegistry.getInstance().isFileOfType(file, StdFileTypes.XML)
-            && ResourceHelper.getFolderType(myFile) == ResourceHelper.getFolderType(file)) {
+            && IdeResourcesUtil.getFolderType(myFile) == IdeResourcesUtil.getFolderType(file)) {
           Configuration configuration = myManager.getConfiguration(file);
           FolderConfiguration fullConfig = configuration.getFullConfig();
           for (ConfigMatch match : matches) {
@@ -715,7 +717,7 @@ public class ConfigurationMatcher {
         ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(module);
         if (repositoryManager != null) {
           LocalResourceRepository resources = repositoryManager.getAppResources();
-          ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+          ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
           if (folderType != null) {
             List<ResourceType> types = FolderTypeRelationship.getRelatedResourceTypes(folderType);
             if (!types.isEmpty()) {
@@ -736,7 +738,7 @@ public class ConfigurationMatcher {
   /**
    * Note: this comparator imposes orderings that are inconsistent with equals.
    */
-  private static final class TabletConfigComparator implements Comparator<ConfigMatch> {
+  private static class TabletConfigComparator implements Comparator<ConfigMatch> {
     private final Map<String, Integer> mIdRank;
     private static final String PREFERRED_ID = "Nexus 10";
 

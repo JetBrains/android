@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle;
 import static com.android.tools.idea.gradle.LibraryFilePaths.getLibraryId;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifact;
-import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifactIdentifier;
-import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifacts;
+import com.android.ide.gradle.model.ArtifactIdentifier;
+import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifacts;
+import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import java.io.File;
 import java.util.Arrays;
@@ -47,29 +47,31 @@ public class LibraryFilePathsTest extends AndroidGradleTestCase {
     LibraryFilePaths libraryFilePaths = LibraryFilePaths.getInstance(getProject());
     libraryFilePaths.populate(createArtifacts());
     assertThat(libraryFilePaths.findJavadocJarPath("Gradle: junit:junit:4.12@jar", new File("dummy")).getPath())
-      .isEqualTo("/cache/junit-javadoc.jar");
+      .isEqualTo(new File("/cache/junit-javadoc.jar").getPath());
     assertThat(libraryFilePaths.findSourceJarPath("Gradle: junit:junit:4.12@jar", new File("dummy")).getPath())
-      .isEqualTo("/cache/junit-sources.jar");
+      .isEqualTo(new File("/cache/junit-sources.jar").getPath());
     assertThat(libraryFilePaths.findPomPathForLibrary("Gradle: junit:junit:4.12@jar", new File("dummy")).getPath())
-      .isEqualTo("/cache/junit.pom");
+      .isEqualTo(new File("/cache/junit.pom").getPath());
     assertThat(libraryFilePaths.findJavadocJarPath("Gradle: androidx.fragment:fragment:1.0.0@aar", new File("dummy")).getPath())
-      .isEqualTo("/cache/fragment-javadoc.jar");
+      .isEqualTo(new File("/cache/fragment-javadoc.jar").getPath());
     assertThat(libraryFilePaths.findSourceJarPath("Gradle: androidx.fragment:fragment:1.0.0@aar", new File("dummy")).getPath())
-      .isEqualTo("/cache/fragment-sources.jar");
+      .isEqualTo(new File("/cache/fragment-sources.jar").getPath());
     assertThat(libraryFilePaths.findPomPathForLibrary("Gradle: androidx.fragment:fragment:1.0.0@aar", new File("dummy")).getPath())
-      .isEqualTo("/cache/fragment.pom");
+      .isEqualTo(new File("/cache/fragment.pom").getPath());
   }
 
   @NotNull
-  private static SourcesAndJavadocArtifacts createArtifacts() {
-    return new SourcesAndJavadocArtifacts() {
+  private static AdditionalClassifierArtifactsModel createArtifacts() {
+    return new AdditionalClassifierArtifactsModel() {
       @NotNull
       @Override
-      public Collection<SourcesAndJavadocArtifact> getArtifacts() {
+      public Collection<AdditionalClassifierArtifacts> getArtifacts() {
         return Arrays
-          .asList(createArtifact("junit", "junit", "4.12", "/cache/junit-javadoc.jar", "/cache/junit-sources.jar", "/cache/junit.pom"),
+          .asList(createArtifact("junit", "junit", "4.12", "/cache/junit-javadoc.jar", "/cache/junit-sources.jar", "/cache/junit.pom",
+                                 "/cache/junit-" + AdditionalClassifierArtifactsModel.SAMPLE_SOURCE_CLASSIFIER + ".jar"),
                   createArtifact("androidx.fragment", "fragment", "1.0.0", "/cache/fragment-javadoc.jar",
-                                 "/cache/fragment-sources.jar", "/cache/fragment.pom"));
+                                 "/cache/fragment-sources.jar", "/cache/fragment.pom",
+                                 "/cache/fragment-" + AdditionalClassifierArtifactsModel.SAMPLE_SOURCE_CLASSIFIER + ".jar"));
       }
 
       @Nullable
@@ -81,17 +83,18 @@ public class LibraryFilePathsTest extends AndroidGradleTestCase {
   }
 
   @NotNull
-  private static SourcesAndJavadocArtifact createArtifact(@NotNull String group,
-                                                          @NotNull String artifactId,
-                                                          @NotNull String version,
-                                                          @NotNull String javadoc,
-                                                          @NotNull String sources,
-                                                          @NotNull String pom) {
-    return new SourcesAndJavadocArtifact() {
+  private static AdditionalClassifierArtifacts createArtifact(@NotNull String group,
+                                                              @NotNull String artifactId,
+                                                              @NotNull String version,
+                                                              @NotNull String javadoc,
+                                                              @NotNull String sources,
+                                                              @NotNull String pom,
+                                                              @NotNull String sampleSource) {
+    return new AdditionalClassifierArtifacts() {
       @NotNull
       @Override
-      public SourcesAndJavadocArtifactIdentifier getId() {
-        return new SourcesAndJavadocArtifactIdentifier() {
+      public ArtifactIdentifier getId() {
+        return new ArtifactIdentifier() {
           @NotNull
           @Override
           public String getGroupId() {
@@ -122,6 +125,12 @@ public class LibraryFilePathsTest extends AndroidGradleTestCase {
       @Override
       public File getJavadoc() {
         return new File(javadoc);
+      }
+
+      @Nullable
+      @Override
+      public File getSampleSources() {
+        return new File(sampleSource);
       }
 
       @Nullable

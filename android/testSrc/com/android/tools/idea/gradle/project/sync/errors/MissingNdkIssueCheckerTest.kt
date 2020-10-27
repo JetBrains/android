@@ -17,10 +17,13 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.repository.Revision
 import com.android.repository.api.LocalPackage
+import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
+import org.gradle.tooling.model.build.BuildEnvironment
+import org.gradle.tooling.model.build.GradleEnvironment
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.Mockito.doReturn
@@ -93,6 +96,79 @@ class MissingNdkIssueCheckerTest : AndroidGradleTestCase() {
     IdeComponents(project).replaceApplicationService(IdeSdks::class.java, spyIdeSdks)
     doReturn(null).`when`(spyIdeSdks).getHighestLocalNdkPackage(anyBoolean())
     verifyWithInstall("NDK location not found.")
+  }
+
+  fun testOldAndroidGradlePluginDoesNotReturnAnything() {
+    val buildEnvironment = mock(BuildEnvironment::class.java)
+    val gradle = mock(GradleEnvironment::class.java)
+    doReturn(gradle).`when`(buildEnvironment).gradle
+    doReturn("6.2").`when`(gradle).gradleVersion
+
+    val issueData = GradleIssueData(projectFolderPath.path, Throwable("NDK not configured."), buildEnvironment, null)
+    val buildIssue = missingNdkIssueChecker.check(issueData)
+    assertThat(buildIssue).isNull()
+  }
+
+  fun testLessOldGradlePluginDoesReturnSomething() {
+    val buildEnvironment = mock(BuildEnvironment::class.java)
+    val gradle = mock(GradleEnvironment::class.java)
+    doReturn(gradle).`when`(buildEnvironment).gradle
+    doReturn("6.3").`when`(gradle).gradleVersion
+    val issueData = GradleIssueData(projectFolderPath.path, Throwable("NDK not configured."), null, null)
+    val buildIssue = missingNdkIssueChecker.check(issueData)
+    assertThat(buildIssue).isNotNull()
+  }
+
+  fun testCheckIssueHandled() {
+    assertThat(
+      missingNdkIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "NDK not configured. Download it with SDK manager. Preferred NDK version is '45.2.0'",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    assertThat(
+      missingNdkIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "No version of NDK matched the requested version 45.26.0",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    assertThat(
+      missingNdkIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "NDK location not found.",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    assertThat(
+      missingNdkIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Specified android.ndkVersion A.B.C does not have enough precision.\n Please fix.",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    assertThat(
+      missingNdkIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Failed to install the following Android SDK packages as some licences have not been accepted. NDK location not found.",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
   }
 
   private fun verifyWithFixVersion(errMsg: String) {

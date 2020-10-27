@@ -17,8 +17,8 @@ package com.android.tools.idea.editors.strings;
 
 import static org.junit.Assert.assertEquals;
 
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBFont;
-import com.intellij.util.ui.JBUI;
 import java.awt.Font;
 import org.junit.After;
 import org.junit.Before;
@@ -38,19 +38,19 @@ public final class StringResourceEditorTest {
 
   @Before
   public void setScale() {
-    myOldScale = JBUI.scale(1F);
-    JBUI.setUserScaleFactor(2F);
+    myOldScale = JBUIScale.scale(1);
+    JBUIScale.setUserScaleFactor(2);
   }
 
   @After
   public void resetScaleToOldValue() {
-    JBUI.setUserScaleFactor(myOldScale);
+    JBUIScale.setUserScaleFactor(myOldScale);
   }
 
   @Test
   public void getFontScalesFonts() {
     // Act
-    Font font = StringResourceEditor.getFont("", myFont, true);
+    Font font = StringResourceEditor.getFont(myFont);
 
     // Assert
     assertEquals(24, font.getSize());
@@ -62,7 +62,7 @@ public final class StringResourceEditorTest {
     Font font = JBFont.create(myFont);
 
     // Act
-    font = StringResourceEditor.getFont("", font, true);
+    font = StringResourceEditor.getFont(font);
 
     // Assert
     assertEquals(24, font.getSize());

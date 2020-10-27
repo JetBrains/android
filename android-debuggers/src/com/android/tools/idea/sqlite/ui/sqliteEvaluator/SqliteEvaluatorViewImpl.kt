@@ -17,15 +17,36 @@ package com.android.tools.idea.sqlite.ui.sqliteEvaluator
 
 import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
 import com.android.tools.idea.sqlite.SchemaProvider
-import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.sqlLanguage.SqliteSchemaContext
 import com.android.tools.idea.sqlite.ui.tableView.TableView
+import com.intellij.openapi.actionSystem.CustomShortcutSet
+import com.intellij.openapi.application.TransactionGuard
+import com.intellij.openapi.editor.event.DocumentEvent
+import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.keymap.KeymapManager
+import com.intellij.openapi.keymap.KeymapUtil
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
-import com.intellij.ui.LanguageTextField
+import com.intellij.openapi.ui.ComboBox
+import com.intellij.psi.PsiManager
+import com.intellij.ui.ColoredListCellRenderer
+import com.intellij.ui.EditorTextField
+import com.intellij.ui.IdeBorderFactory
+import com.intellij.ui.SideBorder
+import com.intellij.util.ui.JBUI
+import icons.StudioIcons
 import java.awt.BorderLayout
+import java.awt.Toolkit
+import java.awt.event.KeyEvent
 import java.util.ArrayList
+import javax.swing.JButton
 import javax.swing.JComponent
+import javax.swing.JList
+import javax.swing.JPanel
+import javax.swing.KeyStroke
 
 /**
  * @see SqliteEvaluatorView
@@ -35,51 +56,137 @@ class SqliteEvaluatorViewImpl(
   override val tableView: TableView,
   private val schemaProvider: SchemaProvider
 ) : SqliteEvaluatorView {
-  private val evaluatorPanel = SqliteEvaluatorPanel()
-  override val component: JComponent = evaluatorPanel.root
 
-  private val editorTextField = LanguageTextField(AndroidSqlLanguage.INSTANCE, project, "")
+  override val component: JComponent = JPanel(BorderLayout())
+
+  private val databaseComboBox = ComboBox<SqliteDatabaseId>()
+  private val expandableEditor = ExpandableEditor(EditorTextField(project, AndroidSqlLanguage.INSTANCE.associatedFileType))
 
   private val listeners = ArrayList<SqliteEvaluatorView.Listener>()
 
+  private val runButton = JButton("Run")
+  private var evaluateSqliteStatementEnabled = false
+
   init {
-    evaluatorPanel.controlsContainer.add(editorTextField, BorderLayout.CENTER)
-    evaluatorPanel.root.add(tableView.component, BorderLayout.CENTER)
-    evaluatorPanel.evaluateButton.addActionListener {
+    val controlsPanel = JPanel(BorderLayout())
+
+    component.add(controlsPanel, BorderLayout.NORTH)
+    component.add(tableView.component, BorderLayout.CENTER)
+
+    val active = KeymapManager.getInstance().activeKeymap
+
+    // Re-use existing shortcut, see platform/platform-resources/src/keymaps/$default.xml
+    val shortcutsMultiline = active.getShortcuts("Console.Execute.Multiline")
+    val keyStrokeMultiline = KeymapUtil.getKeyStroke(CustomShortcutSet(*shortcutsMultiline)) ?:
+                             KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, Toolkit.getDefaultToolkit().menuShortcutKeyMask)
+
+    val shortcutText = KeymapUtil.getFirstKeyboardShortcutText(CustomShortcutSet(keyStrokeMultiline))
+    runButton.toolTipText = "Run SQLite expression ($shortcutText)"
+    runButton.isEnabled = false
+    runButton.addActionListener { evaluateSqliteExpression() }
+    runButton.name = "run-button"
+
+    val runStatementAction = DumbAwareAction.create { evaluateSqliteExpression() }
+
+    runStatementAction.registerCustomShortcutSet(CustomShortcutSet(keyStrokeMultiline), expandableEditor.collapsedEditor)
+    runStatementAction.registerCustomShortcutSet(CustomShortcutSet(keyStrokeMultiline), expandableEditor.expandedEditor)
+
+    databaseComboBox.addActionListener {
+      setSchemaFromSelectedItem()
+      val sqliteDatabaseId = databaseComboBox.selectedItem as? SqliteDatabaseId ?: return@addActionListener
+
       listeners.forEach {
-        it.evaluateSqlActionInvoked((evaluatorPanel.databaseComboBox.selectedItem as ComboBoxItem).database, editorTextField.text)
+        it.onDatabaseSelected(sqliteDatabaseId)
       }
     }
 
-    evaluatorPanel.databaseComboBox.addActionListener { setSchemaFromSelectedItem() }
+    databaseComboBox.setMinimumAndPreferredWidth(JBUI.scale(300))
+    databaseComboBox.renderer = object : ColoredListCellRenderer<SqliteDatabaseId?>() {
+      override fun customizeCellRenderer(
+        list: JList<out SqliteDatabaseId?>,
+        sqliteDatabase: SqliteDatabaseId?,
+        index: Int,
+        selected: Boolean,
+        hasFocus: Boolean
+      ) {
+        if (sqliteDatabase != null) {
+          icon = StudioIcons.DatabaseInspector.DATABASE
+          append(sqliteDatabase.name)
+        } else {
+          icon = null
+          append(DatabaseInspectorBundle.message("no.databases.available"))
+        }
+      }
+    }
+
+    val myDocumentListener = object : DocumentListener {
+      override fun documentChanged(event: DocumentEvent) {
+        listeners.forEach { it.sqliteStatementTextChangedInvoked(event.document.text) }
+      }
+    }
+
+    expandableEditor.collapsedEditor.document.addDocumentListener(myDocumentListener)
+    expandableEditor.expandedEditor.document.addDocumentListener(myDocumentListener)
+    expandableEditor.collapsedEditor.name = "collapsed-editor"
+
+    controlsPanel.add(runButton, BorderLayout.EAST)
+    controlsPanel.add(databaseComboBox, BorderLayout.WEST)
+    controlsPanel.add(expandableEditor.collapsedEditor, BorderLayout.CENTER)
+
+    controlsPanel.border = JBUI.Borders.merge(
+      JBUI.Borders.empty(2, 0, 2, 0),
+      IdeBorderFactory.createBorder(SideBorder.BOTTOM),
+      true
+    )
+  }
+
+  override fun schemaChanged(databaseId: SqliteDatabaseId) {
+    // A fresh schema is taken from the schema provider each time the selected db changes in the combo box.
+    // Therefore the only case we need to worry about is when the schema that changed belongs to the currently selected db.
+    if ((databaseComboBox.selectedItem as SqliteDatabaseId) == databaseId) {
+      setSchemaFromSelectedItem()
+    }
+  }
+
+  override fun setRunSqliteStatementEnabled(enabled: Boolean) {
+    evaluateSqliteStatementEnabled = enabled
+    runButton.isEnabled = enabled
+  }
+
+  private fun evaluateSqliteExpression() {
+    if (!evaluateSqliteStatementEnabled) return
+
+    listeners.forEach {
+      it.evaluateCurrentStatement()
+    }
   }
 
   private fun setSchemaFromSelectedItem() {
-    val database = (evaluatorPanel.databaseComboBox.selectedItem as ComboBoxItem).database
+    if (databaseComboBox.selectedIndex < 0) return
+    val database = (databaseComboBox.selectedItem as SqliteDatabaseId)
     val schema = schemaProvider.getSchema(database)
-    FileDocumentManager.getInstance().getFile(editorTextField.document)?.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
+
+    val fileDocumentManager = FileDocumentManager.getInstance()
+    fileDocumentManager.getFile(expandableEditor.collapsedEditor.document)?.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
+    fileDocumentManager.getFile(expandableEditor.expandedEditor.document)?.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
+
+    TransactionGuard.submitTransaction(project, Runnable {
+      // since the schema has changed we need to drop psi caches to re-run reference resolution and highlighting in the editor text field.
+      PsiManager.getInstance(project).dropPsiCaches()
+    })
   }
 
-  override fun addDatabase(database: SqliteDatabase, index: Int) {
-    evaluatorPanel.databaseComboBox.insertItemAt(ComboBoxItem(database, database.name), index)
-    if (evaluatorPanel.databaseComboBox.selectedIndex == -1) evaluatorPanel.databaseComboBox.selectedIndex = 0
-    setSchemaFromSelectedItem()
-  }
+  override fun setDatabases(databaseIds: List<SqliteDatabaseId>, selected: SqliteDatabaseId?) {
+    databaseComboBox.removeAllItems()
+    databaseComboBox.isEnabled = databaseIds.isNotEmpty()
+    for (database in databaseIds) {
+      databaseComboBox.addItem(database)
+    }
 
-  override fun selectDatabase(database: SqliteDatabase) {
-    evaluatorPanel.databaseComboBox.selectedItem = database
-  }
-
-  override fun removeDatabase(index: Int) {
-    evaluatorPanel.databaseComboBox.removeItemAt(index)
-  }
-
-  override fun getActiveDatabase(): SqliteDatabase {
-    return (evaluatorPanel.databaseComboBox.selectedItem as ComboBoxItem).database
-  }
-
-  override fun getSqliteStatement(): String {
-    return editorTextField.text
+    // Avoid setting the item if it's already selected, so we don't trigger the action listener for no reason.
+    if (databaseComboBox.selectedItem != selected) {
+      databaseComboBox.selectedItem = selected
+    }
   }
 
   override fun addListener(listener: SqliteEvaluatorView.Listener) {
@@ -91,10 +198,6 @@ class SqliteEvaluatorViewImpl(
   }
 
   override fun showSqliteStatement(sqliteStatement: String) {
-    editorTextField.text = sqliteStatement
-  }
-
-  internal data class ComboBoxItem(val database: SqliteDatabase, val name: String) {
-    override fun toString() = name
+    expandableEditor.activeEditor.text = sqliteStatement
   }
 }

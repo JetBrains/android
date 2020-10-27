@@ -19,6 +19,11 @@ import static com.android.tools.idea.welcome.install.HaxmKt.UI_UNITS;
 
 import com.android.sdklib.devices.Storage;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.IntProperty;
+import com.android.tools.idea.observable.ui.DeprecatedSpinnerValueProperty;
+import com.android.tools.idea.observable.ui.SliderValueProperty;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.intellij.openapi.util.SystemInfo;
@@ -42,7 +47,9 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Wizard page for setting up Intel® HAXM settings
+ * @deprecated use {@link com.android.tools.idea.welcome.wizard.HaxmInstallSettingsStep}
  */
+@Deprecated
 public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
   private static final int MAJOR_TICKS = 4;
   private static final int MINOR_TICKS = 512;
@@ -50,10 +57,11 @@ public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
   private static final int MAX_TICK_RESOLUTION = 32; //Mb
   private static final int MIN_EMULATOR_MEMORY = 512; //Mb
 
-  private final ScopedStateStore.Key<Integer> myKeyEmulatorMemory;
+  private final BindingsManager myBindings = new BindingsManager();
+  private final IntProperty myEmulatorMemory;
   private final int myRecommendedMemorySize;
   private final ScopedStateStore.Key<Boolean> myKeyCustomInstall;
-  private final ScopedStateStore.Key<Boolean> myKeyInstallHaxm;
+  private final BoolProperty myInstallHaxm;
   private JBScrollPane myRoot;
   private HyperlinkLabel myIntelHAXMDocumentationButton;
   private JSlider myMemorySlider;
@@ -61,19 +69,21 @@ public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
   private JLabel myUnitLabel;
   private JButton myRecommended;
 
-  public HaxmInstallSettingsStep(@NotNull ScopedStateStore.Key<Boolean> keyCustomInstall,
-                                 @NotNull ScopedStateStore.Key<Boolean> keyInstallHaxm,
-                                 @NotNull ScopedStateStore.Key<Integer> keyEmulatorMemory) {
+  public HaxmInstallSettingsStep(
+    @NotNull ScopedStateStore.Key<Boolean> keyCustomInstall,
+    @NotNull BoolProperty installHaxm,
+    @NotNull IntProperty emulatorMemory
+  ) {
     super("Emulator Settings");
     myKeyCustomInstall = keyCustomInstall;
-    myKeyInstallHaxm = keyInstallHaxm;
+    myInstallHaxm = installHaxm;
     myUnitLabel.setText(UI_UNITS.toString());
-    myKeyEmulatorMemory = keyEmulatorMemory;
+    myEmulatorMemory = emulatorMemory;
     myIntelHAXMDocumentationButton.setHyperlinkText("Intel® HAXM Documentation");
     myIntelHAXMDocumentationButton.setHyperlinkTarget(FirstRunWizardDefaults.HAXM_DOCUMENTATION_URL);
     myRecommendedMemorySize = setupSliderAndSpinner(AvdManagerConnection.getMemorySize(), myMemorySlider, myMemorySize);
     setComponent(myRoot);
-    myRecommended.addActionListener(e -> myState.put(myKeyEmulatorMemory, myRecommendedMemorySize));
+    myRecommended.addActionListener(e -> myEmulatorMemory.set(myRecommendedMemorySize));
   }
 
   @SuppressWarnings("UseOfObsoleteCollectionType")
@@ -150,13 +160,13 @@ public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
   public boolean isStepVisible() {
     return !SystemInfo.isLinux &&
            Boolean.TRUE.equals(myState.get(myKeyCustomInstall)) &&
-           !Boolean.FALSE.equals(myState.get(myKeyInstallHaxm));
+           myInstallHaxm.get();
   }
 
   @Override
   public void init() {
-    register(myKeyEmulatorMemory, myMemorySlider);
-    register(myKeyEmulatorMemory, myMemorySize, new SpinnerBinding());
+    myBindings.bindTwoWay(new DeprecatedSpinnerValueProperty(myMemorySize), myEmulatorMemory);
+    myBindings.bindTwoWay(new SliderValueProperty(myMemorySlider), myEmulatorMemory);
   }
 
   @Nullable
@@ -168,23 +178,5 @@ public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
   @Override
   public JComponent getPreferredFocusedComponent() {
     return myMemorySlider;
-  }
-
-  private static class SpinnerBinding extends ComponentBinding<Integer, JSpinner> {
-    @Override
-    public void setValue(@Nullable Integer newValue, @NotNull JSpinner component) {
-      component.setValue(newValue);
-    }
-
-    @Nullable
-    @Override
-    public Integer getValue(@NotNull JSpinner component) {
-      return (Integer)component.getValue();
-    }
-
-    @Override
-    public void addChangeListener(@NotNull ChangeListener listener, @NotNull JSpinner component) {
-      component.addChangeListener(listener);
-    }
   }
 }

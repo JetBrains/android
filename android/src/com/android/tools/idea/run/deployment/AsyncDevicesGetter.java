@@ -32,9 +32,9 @@ import java.io.File;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -45,7 +45,7 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AsyncDevicesGetter {
+final class AsyncDevicesGetter {
   @NotNull
   private final Project myProject;
 
@@ -84,35 +84,53 @@ public class AsyncDevicesGetter {
     myProject = project;
     mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
 
-    myVirtualDevicesWorker = new Worker<>(Collections.emptyList());
-    myConnectedDevicesWorker = new Worker<>(Collections.emptyList());
+    myVirtualDevicesWorker = new Worker<>();
+    myConnectedDevicesWorker = new Worker<>();
 
     myMap = map;
     myGetName = getName;
   }
 
+  @NotNull
+  static AsyncDevicesGetter getInstance(@NotNull Project project) {
+    return project.getService(AsyncDevicesGetter.class);
+  }
+
   /**
-   * @return a list of devices including the virtual devices ready to be launched, virtual devices that have been launched, and the
-   * connected physical devices
+   * @return an optional list of devices including the virtual devices ready to be launched, virtual devices that have been launched, and
+   * the connected physical devices
    */
   @NotNull
-  List<Device> get() {
+  Optional<List<Device>> get() {
     initChecker(RunManager.getInstance(myProject).getSelectedConfiguration(), AndroidFacet::getInstance);
     File adb = AndroidSdkUtils.getAdb(myProject);
 
     if (adb == null) {
       Logger.getInstance(AsyncDevicesGetter.class).info("adb not found");
-      return Collections.emptyList();
+      return Optional.empty();
+    }
+
+    AndroidDebugBridge bridge = new DdmlibAndroidDebugBridge(adb);
+
+    if (!bridge.isConnected()) {
+      Logger.getInstance(AsyncDevicesGetter.class).info("ADB is not connected");
+      return Optional.empty();
     }
 
     boolean snapshotsEnabled = mySelectDeviceSnapshotComboBoxSnapshotsEnabled.getAsBoolean();
     FileSystem fileSystem = FileSystems.getDefault();
     AsyncSupplier<Collection<VirtualDevice>> virtualDevicesTask = new VirtualDevicesTask(snapshotsEnabled, fileSystem, myChecker);
 
-    AndroidDebugBridge bridge = new DdmlibAndroidDebugBridge(adb);
     AsyncSupplier<List<ConnectedDevice>> connectedDevicesTask = new ConnectedDevicesTask(bridge, snapshotsEnabled, myChecker);
 
-    return getImpl(myVirtualDevicesWorker.perform(virtualDevicesTask), myConnectedDevicesWorker.perform(connectedDevicesTask));
+    Optional<Collection<VirtualDevice>> virtualDevices = myVirtualDevicesWorker.perform(virtualDevicesTask);
+    Optional<List<ConnectedDevice>> connectedDevices = myConnectedDevicesWorker.perform(connectedDevicesTask);
+
+    if (!virtualDevices.isPresent() || !connectedDevices.isPresent()) {
+      return Optional.empty();
+    }
+
+    return Optional.of(getImpl(virtualDevices.get(), connectedDevices.get()));
   }
 
   /**
@@ -128,7 +146,6 @@ public class AsyncDevicesGetter {
   @NotNull
   @VisibleForTesting
   List<Device> getImpl(@NotNull Collection<VirtualDevice> virtualDevices, @NotNull Collection<ConnectedDevice> connectedDevices) {
-    @SuppressWarnings("UnstableApiUsage")
     Stream<Device> deviceStream = Streams.concat(
       connectedVirtualDeviceStream(connectedDevices, virtualDevices),
       physicalDeviceStream(connectedDevices),
@@ -174,8 +191,7 @@ public class AsyncDevicesGetter {
   }
 
   @VisibleForTesting
-  final void initChecker(@Nullable RunnerAndConfigurationSettings configurationAndSettings,
-                         @NotNull Function<Module, AndroidFacet> facetGetter) {
+  void initChecker(@Nullable RunnerAndConfigurationSettings configurationAndSettings, @NotNull Function<Module, AndroidFacet> facetGetter) {
     if (configurationAndSettings == null) {
       myChecker = null;
       return;
@@ -188,7 +204,7 @@ public class AsyncDevicesGetter {
       return;
     }
 
-    Module module = ((ModuleBasedConfiguration)configuration).getConfigurationModule().getModule();
+    Module module = ((ModuleBasedConfiguration<?, ?>)configuration).getConfigurationModule().getModule();
 
     if (module == null) {
       myChecker = null;
@@ -213,7 +229,7 @@ public class AsyncDevicesGetter {
   }
 
   @VisibleForTesting
-  final Object getChecker() {
+  Object getChecker() {
     return myChecker;
   }
 }

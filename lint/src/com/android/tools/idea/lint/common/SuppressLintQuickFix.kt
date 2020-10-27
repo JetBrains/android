@@ -16,6 +16,7 @@
 package com.android.tools.idea.lint.common
 
 import com.android.SdkConstants
+import com.android.SdkConstants.FQCN_SUPPRESS_LINT
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX
 import com.google.common.base.Joiner
 import com.google.common.base.Splitter
@@ -35,10 +36,12 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiBinaryFile
+import com.intellij.psi.PsiClassInitializer
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiModifierListOwner
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
@@ -47,6 +50,7 @@ import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.util.addAnnotation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtClassInitializer
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
 import org.jetbrains.kotlin.psi.KtElement
@@ -107,9 +111,19 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
     addSuppressAttribute(file, tag, lintId)
   }
 
+  private fun findModifierListOwner(element: PsiElement?): PsiModifierListOwner? {
+    val modifier = PsiTreeUtil.getParentOfType(element, PsiModifierListOwner::class.java)
+    if (modifier !is PsiClassInitializer) {
+      return modifier
+    }
+    else {
+      return findModifierListOwner(modifier)
+    }
+  }
+
   @Throws(IncorrectOperationException::class)
   private fun handleJava(element: PsiElement) {
-    val container = PsiTreeUtil.getParentOfType(element, PsiModifierListOwner::class.java) ?: return
+    val container = findModifierListOwner(element) ?: return
     if (!FileModificationService.getInstance().preparePsiElementForWrite(container)) {
       return
     }
@@ -186,7 +200,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
     when (annotationContainer) {
       is KtModifierListOwner -> {
         annotationContainer.addAnnotation(
-          FQNAME_SUPPRESS_LINT,
+          FqName(getAnnotationClass(element)),
           argument,
           whiteSpaceText = if (annotationContainer.isNewLineNeededForAnnotation()) "\n" else " ",
           addToExistingAnnotation = { entry -> addArgumentToAnnotation(entry, argument) })
@@ -204,7 +218,8 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
     return this is KtDeclaration &&
            (this as? KtProperty)?.hasBackingField() ?: true &&
            this !is KtFunctionLiteral &&
-           this !is KtDestructuringDeclaration
+           this !is KtDestructuringDeclaration &&
+           this !is KtClassInitializer
   }
 
   override fun startInWriteAction(): Boolean {
@@ -213,7 +228,19 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
 
   companion object {
     private const val NO_INSPECTION_PREFIX = "//" + SuppressionUtilCore.SUPPRESS_INSPECTIONS_TAG_NAME + " "
-    private val FQNAME_SUPPRESS_LINT = FqName(SdkConstants.FQCN_SUPPRESS_LINT)
+
+    private fun getAnnotationClass(context: PsiElement): String {
+      val project = context.project
+
+      val module = ModuleUtilCore.findModuleForPsiElement(context)
+      val scope = module?.getModuleWithDependenciesAndLibrariesScope(false)
+                  ?: GlobalSearchScope.allScope(project)
+      return when {
+        JavaPsiFacade.getInstance(project).findClass(FQCN_SUPPRESS_LINT, scope) != null -> FQCN_SUPPRESS_LINT
+        context.language == KotlinLanguage.INSTANCE -> "kotlin.Suppress"
+        else -> "java.lang.SuppressWarnings"
+      }
+    }
 
     fun getLintId(intentionId: String): String {
       return intentionId.removePrefix(LINT_INSPECTION_PREFIX)
@@ -249,7 +276,8 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
                                       container: PsiElement,
                                       modifierOwner: PsiModifierListOwner,
                                       id: String) {
-      val annotation = AnnotationUtil.findAnnotation(modifierOwner, SdkConstants.FQCN_SUPPRESS_LINT)
+      val annotationName = getAnnotationClass(container)
+      val annotation = AnnotationUtil.findAnnotation(modifierOwner, annotationName)
       val newAnnotation = createNewAnnotation(project, container, annotation, id)
       if (newAnnotation != null) {
         if (annotation != null && annotation.isPhysical) {
@@ -257,8 +285,8 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
         }
         else {
           val attributes = newAnnotation.parameterList.attributes
-          AddAnnotationFix(SdkConstants.FQCN_SUPPRESS_LINT, modifierOwner, attributes).invoke(project, null,
-                                                                                              container.containingFile)/*editor*/
+          AddAnnotationFix(annotationName, modifierOwner, attributes).invoke(project, null,
+                                                                             container.containingFile)/*editor*/
         }
       }
     }
@@ -277,7 +305,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
             return if (suppressedWarnings.contains(currentSuppressedId)) null
             else JavaPsiFacade.getInstance(
               project).elementFactory.createAnnotationFromText(
-              "@${SdkConstants.FQCN_SUPPRESS_LINT}({$suppressedWarnings, $currentSuppressedId})", container)
+              "@${getAnnotationClass(container)}({$suppressedWarnings, $currentSuppressedId})", container)
 
           }
         }
@@ -294,7 +322,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
       }
       else {
         return JavaPsiFacade.getInstance(project).elementFactory
-          .createAnnotationFromText("@${SdkConstants.FQCN_SUPPRESS_LINT}(\"$id\")", container)
+          .createAnnotationFromText("@${getAnnotationClass(container)}(\"$id\")", container)
       }
       return null
     }

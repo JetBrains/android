@@ -197,8 +197,8 @@ class BuildAttributionStateReporterImplTest {
     sendBuildStarted()
     sendBuildFailed()
 
-    Truth.assertThat(stateReporter.currentState()).isEqualTo(State.REPORT_DATA_READY)
-    Truth.assertThat(receivedStateUpdates).isEmpty()
+    Truth.assertThat(stateReporter.currentState()).isEqualTo(State.NO_DATA_BUILD_FAILED_TO_FINISH)
+    Truth.assertThat(receivedStateUpdates).isEqualTo(listOf(State.NO_DATA_BUILD_FAILED_TO_FINISH))
   }
 
   @RunsInEdt

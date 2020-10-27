@@ -18,6 +18,7 @@ package com.android.tools.idea.avdmanager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.actions.RevealFileAction;
+
 import java.awt.event.ActionEvent;
 import java.io.File;
 

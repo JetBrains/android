@@ -26,6 +26,7 @@ import static com.android.SdkConstants.SWITCH;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 
+import com.android.SdkConstants.PreferenceTags;
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
@@ -59,7 +60,6 @@ import org.jetbrains.annotations.NotNull;
 @UiThread
 public class DataModel implements Disposable {
   public static final Palette.Group COMMON = new Palette.Group("Common");
-  @VisibleForTesting
   public static final Palette.Group RESULTS = new Palette.Group("All Results");
   @VisibleForTesting
   public static final String FAVORITE_ITEMS = "Palette.Favorite.items";
@@ -216,7 +216,19 @@ public class DataModel implements Disposable {
   private static List<String> readFavoriteItems() {
     String[] favorites = PropertiesComponent.getInstance().getValues(FAVORITE_ITEMS);
     if (favorites == null) {
-      favorites = new String[]{TEXT_VIEW, BUTTON, IMAGE_VIEW, RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), VIEW_FRAGMENT, SCROLL_VIEW, SWITCH};
+      favorites = new String[]{
+          TEXT_VIEW,
+          BUTTON,
+          IMAGE_VIEW,
+          RECYCLER_VIEW.oldName(),
+          RECYCLER_VIEW.newName(),
+          VIEW_FRAGMENT,
+          SCROLL_VIEW, SWITCH,
+          PreferenceTags.CHECK_BOX_PREFERENCE,
+          PreferenceTags.EDIT_TEXT_PREFERENCE,
+          PreferenceTags.SWITCH_PREFERENCE,
+          PreferenceTags.PREFERENCE_CATEGORY,
+      };
     }
     return Lists.newArrayList(favorites);
   }

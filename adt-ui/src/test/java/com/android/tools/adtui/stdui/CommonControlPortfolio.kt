@@ -16,7 +16,14 @@
 package com.android.tools.adtui.stdui
 
 import com.android.tools.adtui.common.secondaryPanelBackground
-import com.android.tools.adtui.model.stdui.*
+import com.android.tools.adtui.model.stdui.CommonAction
+import com.android.tools.adtui.model.stdui.CommonTextFieldModel
+import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
+import com.android.tools.adtui.model.stdui.DefaultCommonTextFieldModel
+import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
+import com.android.tools.adtui.model.stdui.EditingErrorCategory
+import com.android.tools.adtui.model.stdui.EditingSupport
+import com.android.tools.adtui.model.stdui.EditorCompletion
 import com.android.tools.adtui.stdui.menu.CommonDropDownButton
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ui.laf.IntelliJLaf
@@ -26,8 +33,23 @@ import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import java.awt.*
-import javax.swing.*
+import java.awt.BorderLayout
+import java.awt.Component
+import java.awt.Container
+import java.awt.FlowLayout
+import java.awt.GridLayout
+import javax.swing.BorderFactory
+import javax.swing.Icon
+import javax.swing.JCheckBox
+import javax.swing.JComponent
+import javax.swing.JFrame
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.LookAndFeel
+import javax.swing.SwingConstants
+import javax.swing.SwingUtilities
+import javax.swing.UIManager
+import javax.swing.WindowConstants
 
 /**
  * Tester for misc common controls.
@@ -213,44 +235,45 @@ class TestEditingSupport(val model: CommonTextFieldModel): EditingSupport {
 
   override var allowCustomValues: Boolean = true
 
-  override val completion = fun(): List<String> {
-    return listOf("@string/almond",
-                  "@string/app_firstName",
-                  "@string/app_name",
-                  "@string/app_name1",
-                  "@string/app_name2",
-                  "@string/app_name3",
-                  "@string/app_name4",
-                  "@string/app_name5",
-                  "@string/app_name6",
-                  "@string/app_name7",
-                  "@string/app_name8",
-                  "@string/app_name9",
-                  "@string/app_name10",
-                  "@string/app_name11",
-                  "@string/app_name12",
-                  "@string/app_name13",
-                  "@string/app_name14",
-                  "@string/app_name15",
-                  "@string/app_name16",
-                  "@string/app_name17",
-                  "@string/app_name18",
-                  "@string/app_name19",
-                  "@string/app_name20",
-                  "@string/app_name21",
-                  "@string/app_name22",
-                  "@string/app_name23",
-                  "@string/app_name24",
-                  "@string/app_name25",
-                  "@string/app_name26",
-                  "@string/app_name27",
-                  "@string/app_name28",
-                  "@string/app_name29",
-                  "@string/app_name30",
-                  "@string/appelsin",
-                  "@string/apricot",
-                  "@android:string/paste_as_plain_text",
-                  "@android:string/hello")
+  override val completion: EditorCompletion = {
+    listOf(
+      "@string/almond",
+      "@string/app_firstName",
+      "@string/app_name",
+      "@string/app_name1",
+      "@string/app_name2",
+      "@string/app_name3",
+      "@string/app_name4",
+      "@string/app_name5",
+      "@string/app_name6",
+      "@string/app_name7",
+      "@string/app_name8",
+      "@string/app_name9",
+      "@string/app_name10",
+      "@string/app_name11",
+      "@string/app_name12",
+      "@string/app_name13",
+      "@string/app_name14",
+      "@string/app_name15",
+      "@string/app_name16",
+      "@string/app_name17",
+      "@string/app_name18",
+      "@string/app_name19",
+      "@string/app_name20",
+      "@string/app_name21",
+      "@string/app_name22",
+      "@string/app_name23",
+      "@string/app_name24",
+      "@string/app_name25",
+      "@string/app_name26",
+      "@string/app_name27",
+      "@string/app_name28",
+      "@string/app_name29",
+      "@string/app_name30",
+      "@string/appelsin",
+      "@string/apricot",
+      "@android:string/paste_as_plain_text",
+      "@android:string/hello")
   }
 }
 

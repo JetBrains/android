@@ -30,6 +30,7 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.labels.LinkLabel;
 import com.intellij.ui.components.labels.LinkListener;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.awt.Component;
@@ -246,7 +247,7 @@ public class DynamicFeaturesParameters {
 
   public void updateBasedOnInstantState(@NotNull Module module, boolean instantAppDeploy) {
     java.util.List<Module> features = DynamicAppUtils.getDependentInstantFeatureModules(module);
-    java.util.List<String> featurenames = features.stream().map(x -> x.getName()).collect(Collectors.toList());
+    List<String> featurenames = ContainerUtil.map(features, x -> x.getName());
     if (instantAppDeploy) {
       myTableModel.myFeatures.forEach(x -> {
         if (!featurenames.contains(x.getFeatureName()) && !x.isBaseFeature()) {

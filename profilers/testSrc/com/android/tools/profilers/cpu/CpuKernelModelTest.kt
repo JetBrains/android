@@ -50,7 +50,7 @@ class CpuKernelModelTest {
   @Before
   fun setup() {
     val services = FakeIdeProfilerServices()
-    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), services, myTimer)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), services, myTimer)
     myStage = CpuProfilerStage(profilers)
     myCpuModel = CpuKernelModel(myRange, myStage)
   }
@@ -58,7 +58,7 @@ class CpuKernelModelTest {
   @Test
   fun updateCaptureUpdatesModel() {
     assertThat(myCpuModel.isEmpty).isTrue()
-    val parser = AtraceParser(1)
+    val parser = AtraceParser(MainProcessSelector(idHint = 1))
     val capture = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
     myStage.capture = capture;
     assertThat(myCpuModel.size).isEqualTo(4)
@@ -88,7 +88,7 @@ class CpuKernelModelTest {
     assertThat(itemAddedCalled).isEqualTo(0)
     assertThat(itemRemovedCalled).isEqualTo(0)
 
-    val parser = AtraceParser(1)
+    val parser = AtraceParser(MainProcessSelector(idHint = 1))
     val capture = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
     myStage.capture = capture;
 

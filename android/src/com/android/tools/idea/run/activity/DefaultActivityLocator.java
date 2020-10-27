@@ -27,9 +27,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.flags.StudioFlags.DefaultActivityLocatorStrategy;
 import com.android.tools.idea.model.AndroidManifestIndex;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
-import com.android.utils.concurrency.AsyncSupplier;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
@@ -86,6 +84,19 @@ public class DefaultActivityLocator extends ActivityLocator {
   public void validate() throws ActivityLocatorException {
     assert !myFacet.getProperties().USE_CUSTOM_COMPILER_MANIFEST;
 
+    DefaultActivityLocatorStrategy strategy = StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.get();
+
+    if (strategy == DefaultActivityLocatorStrategy.INDEX && AndroidManifestIndex.indexEnabled()) {
+      if (DumbService.isDumb(myFacet.getModule().getProject())) {
+        return;
+      }
+      List<ActivityWrapper> activities = getActivitiesFromManifestIndex(myFacet);
+      if (computeDefaultActivity(activities) == null) {
+        throw new ActivityLocatorException(AndroidBundle.message("default.activity.not.found.error"));
+      }
+      return;
+    }
+
     // Workaround for b/123339491 since the Mac touchbar icon updater will call this method on the UI thread
     // This workaround avoids calculating the MergedManifest on the UI thread.
     boolean usePotentiallyStaleManifest = ApplicationManager.getApplication().isDispatchThread();
@@ -106,7 +117,7 @@ public class DefaultActivityLocator extends ActivityLocator {
    * @see DefaultActivityLocatorStrategy
    */
   @VisibleForTesting
-  static List<ActivityWrapper> getActivitiesFromMergedManifest(@NotNull final AndroidFacet facet) {
+  public static List<ActivityWrapper> getActivitiesFromMergedManifest(@NotNull final AndroidFacet facet) {
     DefaultActivityLocatorStrategy strategy = StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.get();
     if (strategy == DefaultActivityLocatorStrategy.INDEX && AndroidManifestIndex.indexEnabled()) {
       return DumbService.getInstance(facet.getModule().getProject())
@@ -123,24 +134,11 @@ public class DefaultActivityLocator extends ActivityLocator {
     return activities;
   }
 
-  @Nullable
-  private static MergedManifestSnapshot getMergedManifest(@NotNull final AndroidFacet facet, boolean usePotentiallyStaleManifest) {
-    if (usePotentiallyStaleManifest) {
-      AsyncSupplier<MergedManifestSnapshot> manifestSupplier = MergedManifestManager.getMergedManifestSupplier(facet.getModule());
-      // This will trigger recomputation of the merged manifest in the background if it's out of date
-      // or has never been computed. Doing so won't help us this time, but it will help keep the manifest
-      // fresh for future callers.
-      manifestSupplier.get();
-      return manifestSupplier.getNow();
-    }
-    return MergedManifestManager.getFreshSnapshot(facet.getModule());
-  }
-
   @NotNull
   private static List<ActivityWrapper> getActivitiesFromManifestIndex(@NotNull final AndroidFacet facet) {
     boolean onEdt = ApplicationManager.getApplication().isDispatchThread();
     Stopwatch timer = Stopwatch.createStarted();
-    List<ActivityWrapper> activityWrappers = queryActivitiesFromManifestIndex(facet);
+    List<ActivityWrapper> activityWrappers = queryActivitiesFromManifestIndex(facet).getJoined();
     logManifestLatency(onEdt, true, false, timer.elapsed(TimeUnit.MILLISECONDS));
     return activityWrappers;
   }
@@ -188,8 +186,7 @@ public class DefaultActivityLocator extends ActivityLocator {
    * or <@code null> if none can be found.
    */
   @Nullable
-  @VisibleForTesting
-  public static String computeDefaultActivity(@NotNull List<ActivityWrapper> activities) {
+  public static String computeDefaultActivity(@NotNull List<? extends ActivityWrapper> activities) {
     List<ActivityWrapper> launchableActivities = getLaunchableActivities(activities);
     if (launchableActivities.isEmpty()) {
       return null;
@@ -284,7 +281,7 @@ public class DefaultActivityLocator extends ActivityLocator {
   }
 
   @NotNull
-  private static List<ActivityWrapper> getLaunchableActivities(@NotNull List<ActivityWrapper> allActivities) {
+  private static List<ActivityWrapper> getLaunchableActivities(@NotNull List<? extends ActivityWrapper> allActivities) {
     List<ActivityWrapper> launchableActivities = allActivities
       .stream()
       .filter(activity -> ActivityLocatorUtils.containsLauncherIntent(activity) && activity.isEnabled())
@@ -343,6 +340,14 @@ public class DefaultActivityLocator extends ActivityLocator {
      * @return whether there is at least 1 intent filter specified for this activity.
      */
     public abstract boolean hasIntentFilter();
+
+    /**
+     * @return an overall theme for the activity.
+     */
+    @Nullable
+    public String getTheme() {
+      throw new UnsupportedOperationException("An activity theme name is not tracked");
+    }
 
     @Nullable
     public abstract String getQualifiedName();

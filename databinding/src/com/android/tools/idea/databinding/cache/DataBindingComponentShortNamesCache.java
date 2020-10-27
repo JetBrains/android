@@ -36,8 +36,8 @@ import org.jetbrains.annotations.NotNull;
  * See {@link LightDataBindingComponentClass}
  */
 final class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
-  private final Project myProject;
   private static final String[] ourClassNames = new String[]{SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT};
+  private final Project myProject;
 
   DataBindingComponentShortNamesCache(@NotNull Project project) {
     myProject = project;
@@ -61,8 +61,7 @@ final class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
 
   private boolean check(String name, GlobalSearchScope scope) {
     return SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT.equals(name)
-            && scope.getProject() != null
-            && myProject.equals(scope.getProject());
+           && scope.getProject() == myProject;
   }
 
   @NotNull
@@ -91,8 +90,8 @@ final class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
 
   @Override
   public boolean processMethodsWithName(@NonNls @NotNull String name,
-          @NotNull GlobalSearchScope scope,
-          @NotNull Processor<? super PsiMethod> processor) {
+                                        @NotNull GlobalSearchScope scope,
+                                        @NotNull Processor<? super PsiMethod> processor) {
     return true;
   }
 

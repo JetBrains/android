@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.property.panel.api.PropertyItem
+import com.android.tools.property.panel.api.TableSupport
 import com.android.tools.property.panel.impl.ui.PropertyTooltip
 import com.android.tools.property.ptable2.PTable
 import com.android.tools.property.ptable2.PTableGroupItem
@@ -55,7 +56,7 @@ const val DEPTH_INDENT = 8
  * the group using the expand icon shown to the left of the property name.
  * A custom icon can be shown for non group items.
  */
-class DefaultNameComponent(toggle: () -> Unit) : JPanel(BorderLayout()) {
+class DefaultNameComponent(private val tableSupport: TableSupport? = null) : JPanel(BorderLayout()) {
   private val iconLabel = LabelWithFocusBorder()
   private val label = JBLabel()
   private var standardIndent = 0
@@ -93,10 +94,20 @@ class DefaultNameComponent(toggle: () -> Unit) : JPanel(BorderLayout()) {
       override fun mousePressed(event: MouseEvent) {
         requestFocusInWindow()
       }
+
+      override fun mouseClicked(event: MouseEvent) {
+        if (event.clickCount > 1) {
+          toggle()
+        }
+      }
     })
 
     add(iconLabel, BorderLayout.WEST)
     add(label, BorderLayout.CENTER)
+  }
+
+  private fun toggle() {
+    tableSupport?.toggleGroup()
   }
 
   override fun updateUI() {

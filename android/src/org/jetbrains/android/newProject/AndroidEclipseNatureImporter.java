@@ -19,9 +19,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.idea.eclipse.importWizard.EclipseNatureImporter;
 
-/**
- * @author Eugene.Kudelevsky
- */
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 public class AndroidEclipseNatureImporter extends EclipseNatureImporter {
 
   private static final Set<String> ADT_INTERNAL_LIBS = new HashSet<String>(Arrays.asList(

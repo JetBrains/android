@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Interface for actions that can operate on {@code View}s
  */
-public interface ViewAction extends Comparable<ViewAction> {
+public interface ViewAction {
   /**
    * Method invoked by the system right before this action is about to be changed,
    * or if the action is already showing, when something relevant has changed
@@ -61,20 +61,6 @@ public interface ViewAction extends Comparable<ViewAction> {
                @NotNull NlComponent component,
                @NotNull List<NlComponent> selectedChildren,
                @JdkConstants.InputEventMask int modifiers);
-
-  /**
-   * The relative sorting order of this action. Should be unique for all actions
-   * that are shown together. By convention these typically increment by 20 to allow
-   * other actions from other sources to insert themselves within the hierarchy. For
-   * similar reasons, avoid changing these values later.
-   * @deprecated Do not use ranks. Ordering should be based on list ordering.
-   */
-  int getRank();
-
-  @Override
-  default int compareTo(ViewAction other) {
-    return getRank() - other.getRank();
-  }
 
   /**
    * Returns the default label or tooltip

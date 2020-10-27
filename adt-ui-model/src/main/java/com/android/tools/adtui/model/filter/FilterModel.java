@@ -28,7 +28,7 @@ public class FilterModel {
 
   @Nullable private FilterHandler myHandler;
   @NotNull Filter myFilter = Filter.EMPTY_FILTER;
-  private FilterResult myResult = new FilterResult();
+  private FilterResult myResult = FilterResult.EMPTY_RESULT;
 
   public void setFilter(@NotNull Filter filter) {
     myFilter = filter;

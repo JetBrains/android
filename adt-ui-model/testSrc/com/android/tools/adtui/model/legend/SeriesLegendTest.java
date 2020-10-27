@@ -19,6 +19,8 @@ import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.MockAxisFormatter;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.truth.Truth;
+import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
@@ -61,6 +63,32 @@ public class SeriesLegendTest {
     RangedContinuousSeries series = new RangedContinuousSeries("test", new Range(0, 100), new Range(0, 100), dataSeries);
     SeriesLegend legend = new SeriesLegend(series, new MockAxisFormatter(1, 1, 1), new Range(0, 100));
     assertEquals("12.3cm", legend.getValue());
+  }
+
+  @Test
+  public void cachedLegendShowsPreviousValue() {
+    TestDataSeries dataSeries = new TestDataSeries(ImmutableList.of(new SeriesData<>(100, 123L)));
+    RangedContinuousSeries series = new RangedContinuousSeries("test", new Range(0, 200), new Range(0, 200), dataSeries);
+    Range r = new Range(0, 100);
+    SeriesLegend legend = new SeriesLegend(series, new MockAxisFormatter(1, 1, 1), r);
+    legend.setCachingLastValue(true);
+    assertEquals("12.3cm", legend.getValue());
+    r.setMax(200);
+    dataSeries.clear();
+    assertEquals("12.3cm", legend.getValue());
+  }
+
+  @Test
+  public void uncachedLegendShowsUnavailable() {
+    TestDataSeries dataSeries = new TestDataSeries(ImmutableList.of(new SeriesData<>(100, 123L)));
+    RangedContinuousSeries series = new RangedContinuousSeries("test", new Range(0, 200), new Range(0, 200), dataSeries);
+    Range r = new Range(0, 100);
+    SeriesLegend legend = new SeriesLegend(series, new MockAxisFormatter(1, 1, 1), r);
+    assertEquals("12.3cm", legend.getValue());
+    r.setMax(200);
+    dataSeries.clear();
+    Truth.assertThat(legend.isCachingLastValue()).isFalse();
+    assertEquals(SeriesLegend.UNAVAILABLE_MESSAGE, legend.getValue());
   }
 
   @Test
@@ -121,6 +149,10 @@ public class SeriesLegendTest {
     @Override
     public List<SeriesData<Long>> getDataForRange(Range range) {
       return myDataList;
+    }
+
+    public void clear() {
+      myDataList = Collections.emptyList();
     }
   }
 }

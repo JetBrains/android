@@ -17,13 +17,17 @@ package com.android.tools.idea.projectsystem
 
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.resources.AndroidManifestPackageNameUtils
 import com.android.ide.common.util.PathString
 import com.android.projectmodel.Library
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.util.androidFacet
 import com.google.common.collect.HashMultimap
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -80,7 +84,7 @@ class TestProjectSystem @JvmOverloads constructor(
   fun getAddedDependencies(module: Module): Set<GradleCoordinate> = dependenciesByModule.get(module)
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
-    return object : AndroidModuleSystem {
+    class TestAndroidModuleSystemImpl : AndroidModuleSystem {
       override val module = module
 
       override fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>)
@@ -101,7 +105,7 @@ class TestProjectSystem @JvmOverloads constructor(
         return Triple(found, missing, "")
       }
 
-      override fun getResolvedDependentLibraries(includeExportedTransitiveDeps: Boolean): Collection<Library> {
+      override fun getResolvedLibraryDependencies(): Collection<Library> {
         return emptySet()
       }
 
@@ -141,7 +145,18 @@ class TestProjectSystem @JvmOverloads constructor(
 
       override fun getSampleDataDirectory(): PathString? = null
 
-      override fun getPackageName(): String? = null
+      override fun getPackageName(): String? {
+        val facet = module.androidFacet ?: return null
+        val primaryManifest = facet.sourceProviders.mainManifestFile ?: return null
+        return AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(PathString(primaryManifest.path))
+      }
+
+      override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider {
+        return object : ApplicationIdProvider {
+          override fun getPackageName(): String = this@TestAndroidModuleSystemImpl.getPackageName()!!
+          override fun getTestPackageName(): String? = null
+        }
+      }
 
       override fun getManifestOverrides() = ManifestOverrides()
 
@@ -149,6 +164,8 @@ class TestProjectSystem @JvmOverloads constructor(
         return module.getModuleWithDependenciesAndLibrariesScope(scopeType != ScopeType.MAIN)
       }
     }
+
+    return TestAndroidModuleSystemImpl()
   }
 
   fun emulateSync(result: SyncResult) {
@@ -192,10 +209,6 @@ class TestProjectSystem @JvmOverloads constructor(
     TODO("not implemented")
   }
 
-  override fun mergeBuildFiles(dependencies: String, destinationContents: String, supportLibVersionFilter: String?): String {
-    TODO("not implemented")
-  }
-
   override fun getPsiElementFinders() = emptyList<PsiElementFinder>()
 
   override fun getLightResourceClassService(): LightResourceClassService {
@@ -205,10 +218,15 @@ class TestProjectSystem @JvmOverloads constructor(
       override fun getLightRClassesContainingModuleResources(module: Module) = emptyList<PsiClass>()
       override fun findRClassPackage(qualifiedName: String): PsiPackage? = null
       override fun getAllLightRClasses() = emptyList<PsiClass>()
+      override fun getLightRClassesDefinedByModule(module: Module, includeTestClasses: Boolean) = emptyList<PsiClass>()
     }
   }
 
   override fun getSourceProvidersFactory(): SourceProvidersFactory = sourceProvidersFactoryStub
+
+  override fun getAndroidFacetsWithPackageName(project: Project, packageName: String, scope: GlobalSearchScope): List<AndroidFacet> {
+    return emptyList()
+  }
 }
 
 private class SourceProvidersFactoryStub : SourceProvidersFactory {

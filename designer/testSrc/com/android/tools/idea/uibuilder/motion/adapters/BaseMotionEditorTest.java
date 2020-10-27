@@ -74,7 +74,7 @@ public class BaseMotionEditorTest extends TestCase {
     return new MeModel(getScene(), getLayout(), "Layout", "Scene");
   }
 
-  protected static String convert(InputStream inputStream) {
+  public static String convert(InputStream inputStream) {
     StringBuilder stringBuilder = new StringBuilder();
     String line = null;
 

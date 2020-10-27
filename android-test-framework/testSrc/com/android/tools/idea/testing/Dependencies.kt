@@ -18,6 +18,7 @@ package com.android.tools.idea.testing
 import com.android.SdkConstants
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.util.AndroidTestPaths
+import com.android.testutils.TestUtils
 import com.android.tools.idea.util.toVirtualFile
 import com.intellij.openapi.roots.DependencyScope
 import com.intellij.openapi.roots.ModuleRootModificationUtil
@@ -30,7 +31,6 @@ import java.io.File
 private const val LEGACY_FOLDER = "com/android/support/"
 private const val ANDROIDX_FOLDER = "androidx/"
 private const val GOOGLE_FOLDER = "com/google/android/"
-
 /**
  * Adds a dependency from prebuilts to an existing test fixture.
  *

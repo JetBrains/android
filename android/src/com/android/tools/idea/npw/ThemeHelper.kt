@@ -23,16 +23,13 @@ import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.model.MergedManifestManager.Companion.getMergedManifest
+import com.android.tools.idea.configurations.getAppThemeName
 import com.android.tools.idea.res.LocalResourceRepository
 import com.android.tools.idea.res.ResourceRepositoryManager
-import com.intellij.execution.ExecutionException
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.text.StringUtil.trimStart
 
-private const val DEFAULT_THEME_NAME = "AppTheme"
-private const val ALTERNATE_THEME_NAME = "Theme.App"
+private const val DEFAULT_THEME_NAME = "Theme.App"
 
 /**
  * Theme utility class for use with templates.
@@ -41,18 +38,10 @@ class ThemeHelper(private val module: Module) {
   private val projectRepository: LocalResourceRepository? = ResourceRepositoryManager.getProjectResources(module)
   val appThemeName: String?
     get() {
-      val manifest = try {
-        getMergedManifest(module).get()
-      } catch (e: ExecutionException) {
-        Logger.getInstance(this::class.java)
-          .warn("Couldn't determine theme because there was an error computing the merged manifest", e.cause)
-        return null
-      }
-      val manifestTheme = manifest.manifestTheme
+      val manifestTheme = module.getAppThemeName()
       return when {
         manifestTheme != null -> trimStart(manifestTheme, SdkConstants.STYLE_RESOURCE_PREFIX)
         DEFAULT_THEME_NAME.toProjectStyleResource() != null -> DEFAULT_THEME_NAME
-        ALTERNATE_THEME_NAME.toProjectStyleResource() != null -> ALTERNATE_THEME_NAME
         else -> null
       }
     }

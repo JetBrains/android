@@ -105,7 +105,7 @@
 root ::= statement ';'?
 
 private statement ::=
-  ( EXPLAIN ( QUERY PLAN )? )?
+  explain_prefix ?
   (
   select_statement
   | update_statement
@@ -134,6 +134,8 @@ private statement ::=
   | savepoint_statement
   | vacuum_statement
   ) { name="statement" }
+
+explain_prefix ::= EXPLAIN ( QUERY PLAN )?
 
 with_clause_statement ::= with_clause (delete_statement | insert_statement | update_statement | select_statement) {
   implements="com.android.tools.idea.lang.androidSql.psi.HasWithClause"
@@ -355,7 +357,7 @@ private equivalence_group ::= equivalence_expression | between_expression
 
 and_expression ::= expression AND expression
 or_expression ::= expression OR expression
-equivalence_expression ::= expression ( '==' | '=' | '!=' | '<>' | IS NOT? | LIKE | GLOB | MATCH | REGEXP) expression
+equivalence_expression ::= expression ( '==' | '=' | '!=' | '<>' | IS NOT?) expression
 comparison_expression ::= expression ( '<' | '<=' | '>' | '>=' ) expression
 bit_expression ::= expression ( '<<' | '>>' | '&' | '|' ) expression
 add_expression ::= expression ( '+' | '-' ) expression

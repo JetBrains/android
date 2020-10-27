@@ -1,4 +1,18 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+/*
+ * Copyright 2000-2014 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.android.inspections;
 
 import static com.android.SdkConstants.INT_DEF_ANNOTATION;
@@ -15,6 +29,7 @@ import static com.android.tools.lint.detector.api.ResourceEvaluator.RES_SUFFIX;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.google.common.collect.Lists;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.ExpectedTypeInfo;
 import com.intellij.codeInsight.completion.CompletionContributor;
@@ -63,6 +78,11 @@ import com.intellij.util.Consumer;
 import gnu.trove.THashSet;
 import gnu.trove.TObjectHashingStrategy;
 import java.util.ArrayList;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -130,7 +150,7 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
         PsiElementFactory factory = JavaPsiFacade.getElementFactory(pos.getProject());
         String code = "R." + resourceType.getName();
         // Look up the fully qualified name of the application package
-        String fqcn = MergedManifestManager.getSnapshot(facet).getPackage();
+        String fqcn = AndroidManifestUtils.getPackageName(facet);
         String qualifiedCode = fqcn + "." + code;
         Project project = facet.getModule().getProject();
         PsiClass cls = JavaPsiFacade.getInstance(project).findClass(qualifiedCode, GlobalSearchScope.allScope(project));
@@ -340,7 +360,7 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
    * which references this class unchanged (since it's based on MagicConstantInspection, so we
    * can more easily diff and incorporate recent MagicConstantInspection changes.)
    */
-  static final class AllowedValues extends Constraints {
+  static class AllowedValues extends Constraints {
     final PsiAnnotationMemberValue[] values;
     final boolean canBeOred;
 

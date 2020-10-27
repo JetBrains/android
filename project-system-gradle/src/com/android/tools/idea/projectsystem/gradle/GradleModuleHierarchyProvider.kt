@@ -68,8 +68,8 @@ class GradleModuleHierarchyProvider(private val project: Project) {
     val moduleManager = ModuleManager.getInstance(project)
     val grouper = moduleManager.getModuleGrouper(null)
 
-    fun moduleHierarchyId(module: Module?): List<String>? {
-      if (!isExternalSystemAwareModule(GRADLE_SYSTEM_ID, module ?: return null)) return null
+    fun moduleHierarchyId(module: Module): List<String>? {
+      if (!isExternalSystemAwareModule(GRADLE_SYSTEM_ID, module)) return null
       return grouper.getModuleAsGroupPath(module) ?: grouper.getGroupPath(module)
     }
 
@@ -124,7 +124,9 @@ class GradleModuleHierarchyProvider(private val project: Project) {
     hierarchyIdToSubmodulesMap[projectRootHierarchyId]
       ?.takeIf { it.size > 1 }
       ?.removeIf {
-        ModuleRootManager.getInstance(it).sourceRootUrls.isEmpty() && hierarchyIdToSubmodulesMap[moduleHierarchyId(it)]?.isEmpty() == true
+        ModuleRootManager.getInstance(it).sourceRootUrls.isEmpty() &&
+        hierarchyIdToSubmodulesMap[moduleHierarchyId(it)]?.isEmpty() == true &&
+        moduleHierarchyId(it)?.size == 1
       }
     return hierarchyIdToSubmodulesMap.mapKeys<List<String>, List<Module>, ComponentManager> { hierarchyIdToModuleMap[it.key] ?: project }
   }

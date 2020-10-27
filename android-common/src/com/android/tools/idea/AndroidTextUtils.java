@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Various utilities for generating user-facing text
  */
-public final class AndroidTextUtils {
+public class AndroidTextUtils {
   // Static utility functions class
   private AndroidTextUtils() { }
 

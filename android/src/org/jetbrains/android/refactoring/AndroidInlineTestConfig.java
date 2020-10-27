@@ -4,9 +4,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.util.containers.MultiMap;
 import org.jetbrains.annotations.TestOnly;
 
-/**
-* @author Eugene.Kudelevsky
-*/
 class AndroidInlineTestConfig {
   private final boolean myInlineThisOnly;
   private MultiMap<PsiElement, String> myConflicts = null;

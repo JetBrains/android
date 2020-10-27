@@ -42,7 +42,6 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
     get() = property.value.orEmpty()
     set(value) {
       property.value = if (value.isEmpty()) null else value
-      refresh()
     }
 
   override var visible = true
@@ -87,6 +86,10 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
     if (isUsedInRendererWithSelection) UIUtil.getTableBackground(true, true) else background
 
   override var isExpandedTableItem: Boolean by Delegates.observable(false) { _, _, _ -> fireValueChanged() }
+
+  override var isCustomHeight = false
+
+  override var tableSupport: TableSupport? = null
 
   /**
    * Toggle to a known value.

@@ -17,7 +17,6 @@ package com.android.tools.profilers.cpu.capturedetails
 
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.common.DataVisualizationColors
-import com.android.tools.adtui.common.DataVisualizationColors.getColor
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel
@@ -32,7 +31,7 @@ import com.intellij.ui.ColorUtil
 import com.intellij.ui.Graphics2DDelegate
 import com.intellij.util.ui.ImageUtil
 import com.intellij.ui.JBColor
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.ImageUtil
 import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
@@ -48,7 +47,7 @@ class CaptureNodeHRendererTest {
 
   @Before
   fun setup() {
-    DataVisualizationColors.initialize(
+    DataVisualizationColors.doInitialize(
       FileInputStream(TestUtils.getWorkspaceFile("tools/adt/idea/profilers-ui/testData/data-colors.json")))
   }
 

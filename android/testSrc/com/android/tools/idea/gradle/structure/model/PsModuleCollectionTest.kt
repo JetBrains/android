@@ -18,11 +18,12 @@ package com.android.tools.idea.gradle.structure.model
 import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.asParsed
-import com.android.tools.idea.gradle.structure.model.android.testResolve
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VirtualFile
@@ -38,8 +39,8 @@ import java.io.File
 class PsModuleCollectionTest : DependencyTestCase() {
   private var patchProject: ((VirtualFile) -> Unit)? = null
 
-  override fun patchPreparedProject(projectRoot: File, gradleVersion: String?, graldePluginVersion: String?) {
-    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, graldePluginVersion)
+  override fun patchPreparedProject(projectRoot: File, gradleVersion: String?, graldePluginVersion: String?, vararg localRepos: File) {
+    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, graldePluginVersion, *localRepos)
     synchronizeTempDirVfs(PlatformTestUtil.getOrCreateProjectBaseDir(project))
     patchProject?.run {
       ApplicationManager.getApplication().runWriteAction {
@@ -96,7 +97,7 @@ class PsModuleCollectionTest : DependencyTestCase() {
     // Make sure we have correctly patched the build file.
     assertThat(
         GradleModelProvider
-            .get()
+            .getInstance()
             .getProjectModel(resolvedProject)
             .getModuleBuildModel(File(resolvedProject.basePath, "app"))
             ?.plugins()
@@ -126,8 +127,17 @@ class PsModuleCollectionTest : DependencyTestCase() {
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
+    val basePath = resolvedProject.basePath
 
     assertThat(project.modules.map { it.gradlePath }).containsExactly(":app", ":lib")
+    (project.findModuleByGradlePath(":app") as PsAndroidModule).run {
+      val root = parsedModel?.moduleRootDirectory
+      assertThat(root).isEqualTo(File(FileUtils.toSystemDependentPath("$basePath/app")))
+    }
+    (project.findModuleByGradlePath(":lib") as PsAndroidModule).run {
+      val root = parsedModel?.moduleRootDirectory
+      assertThat(root).isEqualTo(File(FileUtils.toSystemDependentPath("$basePath/module/lib")))
+    }
   }
 
   fun testRelocatedModules_withResolvedModel() {
@@ -141,6 +151,12 @@ class PsModuleCollectionTest : DependencyTestCase() {
     // And make sure the build file is parsed.
     val javModule = project.findModuleByGradlePath(":jav") as? PsJavaModule
     assertThat(javModule?.dependencies?.findLibraryDependencies("junit", "junit")?.firstOrNull()?.version).isEqualTo("4.12".asParsed())
+    javModule!!.run {
+      // We can't work out where the module is from the project settings, but our implementation will assume that the module root
+      // is where the build.gradle file is (which happens to be correct in this case)
+      val root = parsedModel?.moduleRootDirectory
+      assertThat(root).isEqualTo(File(FileUtils.toSystemDependentPath("${resolvedProject.basePath}/module/jav")))
+    }
   }
 
   fun testEmptyParentsInNestedModules() {

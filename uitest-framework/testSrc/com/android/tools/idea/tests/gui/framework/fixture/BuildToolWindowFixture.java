@@ -28,10 +28,12 @@ import com.intellij.ui.content.Content;
 import java.awt.Point;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JTree;
 import org.fest.swing.core.ComponentMatcher;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,6 +50,13 @@ public class BuildToolWindowFixture extends ToolWindowFixture {
   public ConsoleViewImpl getGradleSyncConsoleView() {
     Content syncContent = getContent("Sync");
     return myRobot.finder().findByType(syncContent.getComponent(), ConsoleViewImpl.class, true /* showing */);
+  }
+
+  @NotNull
+  public JTreeFixture getGradleSyncEventTree() {
+    Content syncContent = getContent("Sync");
+    JTree tree = myRobot.finder().findByType(syncContent.getComponent(), JTree.class, true /* showing */);
+    return new JTreeFixture(myRobot, tree);
   }
 
   @NotNull
@@ -97,7 +106,7 @@ public class BuildToolWindowFixture extends ToolWindowFixture {
 
   public void waitTabExist(@NotNull String displayName) {
     ComponentMatcher matcher = Matchers.byText(BaseLabel.class, displayName);
-    GuiTests.waitUntilShowing(myRobot, getContentUI(), new GenericTypeMatcher<BaseLabel>(BaseLabel.class) {
+    GuiTests.waitUntilShowing(myRobot, getContentUI().getTabComponent(), new GenericTypeMatcher<BaseLabel>(BaseLabel.class) {
       @Override
       protected boolean isMatching(@NotNull BaseLabel component) {
         return matcher.matches(component);
@@ -107,7 +116,7 @@ public class BuildToolWindowFixture extends ToolWindowFixture {
 
   public void waitTabNotExist(@NotNull String displayName) {
     ComponentMatcher matcher = Matchers.byText(BaseLabel.class, displayName);
-    GuiTests.waitUntilGone(myRobot, getContentUI(), new GenericTypeMatcher<BaseLabel>(BaseLabel.class) {
+    GuiTests.waitUntilGone(myRobot, getContentUI().getTabComponent(), new GenericTypeMatcher<BaseLabel>(BaseLabel.class) {
       @Override
       protected boolean isMatching(@NotNull BaseLabel component) {
         return matcher.matches(component);
@@ -123,14 +132,13 @@ public class BuildToolWindowFixture extends ToolWindowFixture {
   }
 
   private void clickTab(@NotNull String name) {
-    ContentTabLabelFixture buildSpeedTab =
-      ContentTabLabelFixture.findByText(myRobot, getContentUI(), name, 3);
+    ContentTabLabelFixture buildSpeedTab = ContentTabLabelFixture.findByText(myRobot, getContentUI().getTabComponent(), name, 3);
     buildSpeedTab.click();
   }
 
   private void clickCloseTab(@NotNull String name) {
     ContentTabLabelFixture buildSpeedTab =
-      ContentTabLabelFixture.findByText(myRobot, getContentUI(), name, 3);
+      ContentTabLabelFixture.findByText(myRobot, getContentUI().getTabComponent(), name, 3);
     buildSpeedTab.close();
   }
 

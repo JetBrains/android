@@ -28,6 +28,11 @@ public class CpuFullTraceAnalysisModel extends CpuAnalysisModel<CpuCapture> {
   }
 
   private void init(@NotNull CpuCapture capture, @NotNull Range selectionRange) {
+    // Summary
+    FullTraceAnalysisSummaryTabModel summaryModel = new FullTraceAnalysisSummaryTabModel(capture.getRange(), selectionRange);
+    summaryModel.getDataSeries().add(capture);
+    addTabModel(summaryModel);
+
     // Flame Chart
     CpuAnalysisChartModel<CpuCapture> flameModel =
       new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.FLAME_CHART, selectionRange, capture, CpuCapture::getCaptureNodes);

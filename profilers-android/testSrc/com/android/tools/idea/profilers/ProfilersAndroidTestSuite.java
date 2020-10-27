@@ -22,8 +22,4 @@ import org.junit.runner.RunWith;
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses(ProfilersAndroidTestSuite.class)  // a suite mustn't contain itself
 public class ProfilersAndroidTestSuite extends IdeaTestSuiteBase {
-  static {
-    symlinkToIdeaHome("tools/idea/java");
-  }
 }
-

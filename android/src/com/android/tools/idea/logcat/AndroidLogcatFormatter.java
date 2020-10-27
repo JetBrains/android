@@ -19,13 +19,14 @@ package com.android.tools.idea.logcat;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.intellij.diagnostic.logging.DefaultLogFormatter;
+import java.time.ZoneId;
+import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.time.ZoneId;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Class which handles parsing the output from logcat and reformatting it to its final form before
@@ -178,14 +179,9 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
 
     // If the prefix is set, it contains log lines which were initially skipped over by our
     // filter but were belatedly accepted later.
-    String[] lines = prefix.split("\n");
-    StringBuilder sb = new StringBuilder(prefix.length() + (lines.length - 1) * CONTINUATION_INDENT.length());
-    for (String line : lines) {
-      sb.append(formatMessage(line));
-      sb.append('\n');
-    }
-
-    return sb.toString();
+    return Arrays.stream(prefix.split("\n", -1))
+      .map(this::formatMessage)
+      .collect(Collectors.joining("\n"));
   }
 
   @NotNull

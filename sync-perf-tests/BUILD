@@ -5,6 +5,18 @@ load("//tools/base/bazel:maven.bzl", "maven_repo")
 iml_module(
     name = "intellij.android.sync-perf-tests",
     iml_files = ["intellij.android.sync-perf-tests.iml"],
+    split_test_targets = {
+        "Base100": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100PerfTest",
+        },
+        "Dolphin": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.DolphinPerfTest",
+        },
+        # This split test target contains AveragePerfTest, and other unspecified tests if
+        # they exist. Additional targets should be made if this one begins taking a long time.
+        "other": {
+        },
+    },
     test_class = "com.android.tools.idea.SyncPerfTestSuite",
     # keep sorted
     test_data = [
@@ -24,12 +36,10 @@ iml_module(
         "//tools/base/build-system:gradle-distrib-5.5",
         "//tools/base/build-system:studio_repo.zip",
         "//tools/base/build-system/previous-versions:3.5.0.zip",
-        "//tools/base/templates",
-        "//tools/idea:platform-build-info",
-        "//tools/idea/java/jdkAnnotations",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [
+        "//tools/idea/platform/statistics/devkit:intellij.platform.statistics.devkit",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/.idea/libraries:delight-rhino-sandbox",
         "//tools/idea/.idea/libraries:rhino",
@@ -37,19 +47,19 @@ iml_module(
         "//tools/idea/.idea/libraries:javassist",
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/.idea/libraries:error-prone-annotations",
-        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
-        "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
-        "//tools/idea/jvm/jvm-analysis-java-tests:intellij.jvm.analysis.java.tests",
+        "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
-        "//tools/idea/java/manifest:intellij.java.manifest",
-        "//tools/idea/java/remote-servers/impl:intellij.java.remoteServers.impl",
+        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
+        "//tools/idea/jvm/jvm-analysis-java-tests:intellij.jvm.analysis.java.tests",
         "//tools/idea:intellij.java.ui.tests",
+        "//tools/idea/java/manifest:intellij.java.manifest",
+        "//tools/idea/plugins/java-i18n:intellij.java.i18n",
+        "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
         "//tools/idea/plugins/ui-designer:intellij.java.guiForms.designer",
         "//tools/idea/java/plugin:intellij.java.plugin",
-        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
-        "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
-        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/193.4:jar",
+        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
+        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
         "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/adt/idea/databinding:intellij.android.databinding",

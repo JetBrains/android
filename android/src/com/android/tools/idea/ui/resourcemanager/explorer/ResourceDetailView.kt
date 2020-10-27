@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
-import com.android.tools.idea.npw.assetstudio.wizard.WrappedFlowLayout
+import com.android.tools.idea.ui.wizard.WrappedFlowLayout
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet

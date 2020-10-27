@@ -50,9 +50,8 @@ public class AndroidTreeStructureProvider implements TreeStructureProvider {
 
   @Override
   @NotNull
-  public Collection<AbstractTreeNode<?>> modify(@NotNull AbstractTreeNode<?> parent,
-                                             @NotNull Collection<AbstractTreeNode<?>> children,
-                                             ViewSettings settings) {
+  public Collection<AbstractTreeNode<?>> modify(
+    @NotNull AbstractTreeNode<?> parent, @NotNull Collection<AbstractTreeNode<?>> children, ViewSettings settings) {
     Project project = parent.getProject();
     if (project != null && AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
       if (parent instanceof NamedLibraryElementNode) {
@@ -60,7 +59,7 @@ public class AndroidTreeStructureProvider implements TreeStructureProvider {
         LibraryOrSdkOrderEntry orderEntry = value.getOrderEntry();
         if (orderEntry instanceof JdkOrderEntry) {
           Sdk sdk = ((JdkOrderEntry)orderEntry).getJdk();
-          if (sdk != null && sdk.getSdkType() instanceof JavaSdk) {
+          if (sdk.getSdkType() instanceof JavaSdk) {
             List<AbstractTreeNode<?>> newChildren = new ArrayList<>();
             for (AbstractTreeNode child : children) {
               if (isRtJar(child)) {
@@ -112,6 +111,6 @@ public class AndroidTreeStructureProvider implements TreeStructureProvider {
 
   @VisibleForTesting
   public interface ChangeListener extends EventListener {
-    void nodeChanged(@NotNull AbstractTreeNode<?> parent, @NotNull Collection<AbstractTreeNode<?>> newChildren);
+    void nodeChanged(@NotNull AbstractTreeNode parent, @NotNull Collection<AbstractTreeNode<?>> newChildren);
   }
 }

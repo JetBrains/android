@@ -29,7 +29,7 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
+import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.GradleProjects;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.build.BuildContentManager;
@@ -77,10 +77,12 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
 
   /** The values are disposable notification panels created last for the editors. */
   @NotNull private static final ConcurrentMap<FileEditor, Disposable> ourDisposablePanels = new ConcurrentHashMap<>();
+  @NotNull private static final Object ourDisposablePanelRegistrationLock = new Object();
 
   @NotNull private final GradleProjectInfo myProjectInfo;
   @NotNull private final GradleSyncState mySyncState;
 
+  @SuppressWarnings("unused") // Invoked by IDEA
   public ProjectSyncStatusNotificationProvider(@NotNull Project project) {
     this(GradleProjectInfo.getInstance(project), GradleSyncState.getInstance(project));
   }
@@ -113,19 +115,24 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
 
   private static void registerDisposablePanel(@NotNull FileEditor editor, @Nullable NotificationPanel panel) {
     Disposable newDisposablePanel = panel instanceof Disposable ? (Disposable)panel : null;
-    Disposable oldDisposablePanel =
-        newDisposablePanel == null ? ourDisposablePanels.remove(editor) : ourDisposablePanels.put(editor, newDisposablePanel);
-    if (oldDisposablePanel != null) {
-      Disposer.dispose(oldDisposablePanel);
-    }
-    if (newDisposablePanel != null) {
-      try {
-        Disposer.register(newDisposablePanel, () -> ourDisposablePanels.remove(editor, newDisposablePanel));
-        Disposer.register(editor, newDisposablePanel);
+
+    // The synchronized block below is intended to prevent disposal of the panel
+    // before it is registered with the Disposer.
+    synchronized (ourDisposablePanelRegistrationLock) {
+      Disposable oldDisposablePanel =
+          newDisposablePanel == null ? ourDisposablePanels.remove(editor) : ourDisposablePanels.put(editor, newDisposablePanel);
+      if (oldDisposablePanel != null) {
+        Disposer.dispose(oldDisposablePanel);
       }
-      catch (Throwable t) {
-        Disposer.dispose(newDisposablePanel);
-        throw t;
+      if (newDisposablePanel != null) {
+        try {
+          Disposer.register(newDisposablePanel, () -> ourDisposablePanels.remove(editor, newDisposablePanel));
+          Disposer.register(editor, newDisposablePanel);
+        }
+        catch (Throwable t) {
+          Disposer.dispose(newDisposablePanel);
+          throw t;
+        }
       }
     }
   }
@@ -270,13 +277,17 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
   private static class StaleGradleModelNotificationPanel extends IndexingSensitiveNotificationPanel {
     StaleGradleModelNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
       super(project, type, text);
-      if (GradleProjects.containsExternalCppProjects(project)) {
+      if (GradleFiles.getInstance(project).areExternalBuildFilesModified()) {
         // Set this to true so that the request sent to gradle daemon contains arg -Pandroid.injected.refresh.external.native.model=true,
         // which would refresh the C++ project. See com.android.tools.idea.gradle.project.sync.common.CommandLineArgs for related logic.
         project.putUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY, true);
       }
       createActionLabel("Sync Now",
                         () -> GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_USER_STALE_CHANGES));
+      createActionLabel("Ignore these changes", () -> {
+        GradleFiles.getInstance(project).removeChangedFiles();
+        this.setVisible(false);
+      });
     }
   }
 
@@ -288,9 +299,9 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
                         () -> GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_USER_TRY_AGAIN));
 
       createActionLabel("Open 'Build' View", () -> {
-        ToolWindow toolWindow = BuildContentManager.getInstance(project).getOrCreateToolWindow();
-        if (!toolWindow.isActive()) {
-          toolWindow.activate(null, false);
+        ToolWindow tw = BuildContentManager.getInstance(project).getOrCreateToolWindow();
+        if (tw != null && !tw.isActive()) {
+          tw.activate(null, false);
         }
       });
 

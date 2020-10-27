@@ -15,28 +15,27 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
+import static com.android.tools.idea.tests.gui.npw.NewCppProjectTestUtil.createNewProjectWithCpp;
+
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
-import com.android.tools.idea.npw.cpp.CppStandardType;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.CppStandardType;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.IOException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.idea.tests.gui.npw.NewCppProjectTestUtil.createNewProjectWithCpp;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class CreateNewProjectWithCpp1Test {

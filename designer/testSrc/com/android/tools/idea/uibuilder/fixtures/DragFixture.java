@@ -15,16 +15,29 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
+import static org.mockito.Mockito.mock;
+
 import com.android.tools.idea.common.fixtures.ComponentListFixture;
 import com.android.tools.idea.common.fixtures.KeyEventBuilder;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.surface.DragEnterEvent;
+import com.android.tools.idea.common.surface.DragOverEvent;
+import com.android.tools.idea.common.surface.DropEvent;
+import com.android.tools.idea.common.surface.InteractionInformation;
+import com.android.tools.idea.common.surface.InteractionNonInputEvent;
+import com.android.tools.idea.common.surface.KeyPressedEvent;
+import com.android.tools.idea.common.surface.KeyReleasedEvent;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import java.awt.datatransfer.Transferable;
+import java.awt.dnd.DropTargetContext;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,6 +45,9 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.List;
 
+/**
+ * Fixture to simulate dragging across swing components. See {@link java.awt.dnd.DropTargetListener}.
+ */
 public class DragFixture {
   @NotNull private final DragDropInteraction myInteraction;
   @NotNull private final ComponentListFixture myComponents;
@@ -52,7 +68,13 @@ public class DragFixture {
 
     int startX = Coordinates.getSwingX(myScreen, NlComponentHelperKt.getX(primary) + NlComponentHelperKt.getW(primary) / 2);
     int startY = Coordinates.getSwingY(myScreen, NlComponentHelperKt.getY(primary) + NlComponentHelperKt.getH(primary) / 2);
-    myInteraction.begin(startX, startY, 0);
+
+    DropTargetContext context = mock(DropTargetContext.class);
+    Transferable transferable = myScreen.getSurface().getSelectionAsTransferable();
+    DropTargetDragEvent dragDropEvent = new DropTargetDragEventBuilder(context, startX, startY, transferable).build();
+
+    DropTargetDragEvent event = createDropTargetDragEvent(startX, startY);
+    myInteraction.begin(new DragEnterEvent(event, new InteractionInformation(startX, startY, myModifiers)));
     myCurrentX = startX;
     myCurrentY = startY;
     moveTo(myCurrentX, myCurrentY);
@@ -90,7 +112,7 @@ public class DragFixture {
 
     DesignSurface surface = myScreen.getSurface();
     KeyEvent event = new KeyEventBuilder(keyCode, keyChar).withSource(surface).build();
-    myInteraction.keyPressed(event);
+    myInteraction.update(new KeyPressedEvent(event, new InteractionInformation(myCurrentX, myCurrentY, myModifiers)));
     return this;
   }
 
@@ -109,23 +131,39 @@ public class DragFixture {
     }
     DesignSurface surface = myScreen.getSurface();
     KeyEvent event = new KeyEventBuilder(keyCode, keyChar).withSource(surface).build();
-    myInteraction.keyReleased(event);
+    myInteraction.update(new KeyReleasedEvent(event, new InteractionInformation(myCurrentX, myCurrentY, myModifiers)));
     return this;
   }
 
   private void moveTo(@SwingCoordinate int x, @SwingCoordinate int y) {
     myCurrentX = x;
     myCurrentY = y;
-    myInteraction.update(myCurrentX, myCurrentY, myModifiers);
+    myInteraction.update(new DragOverEvent(createDropTargetDragEvent(x, y),
+                                           new InteractionInformation(myCurrentX, myCurrentY, myModifiers)));
   }
 
   public ComponentListFixture release() {
-    myInteraction.end(myCurrentX, myCurrentY, myModifiers);
+    myInteraction.commit(new DropEvent(createDropTargetDropEvent(myCurrentX, myCurrentY),
+                                       new InteractionInformation(myCurrentX, myCurrentY, myModifiers)));
     return myComponents;
   }
 
   public ComponentListFixture cancel() {
-    myInteraction.cancel(myCurrentX, myCurrentY, myModifiers);
+    myInteraction.cancel(new InteractionNonInputEvent(new InteractionInformation(myCurrentX, myCurrentY, myModifiers)));
     return myComponents;
+  }
+
+  @NotNull
+  private DropTargetDragEvent createDropTargetDragEvent(@SwingCoordinate int x, @SwingCoordinate int y) {
+    DropTargetContext context = mock(DropTargetContext.class);
+    Transferable transferable = myScreen.getSurface().getSelectionAsTransferable();
+    return new DropTargetDragEventBuilder(context, x, y, transferable).build();
+  }
+
+  @NotNull
+  private DropTargetDropEvent createDropTargetDropEvent(@SwingCoordinate int x, @SwingCoordinate int y) {
+    DropTargetContext context = mock(DropTargetContext.class);
+    Transferable transferable = myScreen.getSurface().getSelectionAsTransferable();
+    return new DropTargetDropEventBuilder(context, x, y, transferable).build();
   }
 }

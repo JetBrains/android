@@ -16,10 +16,9 @@
 package com.android.build.attribution.ui
 
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
-import com.android.build.attribution.ui.panels.htmlTextLabel
+import com.android.build.attribution.ui.panels.htmlTextLabelWithLinesWrap
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBPanel
-import com.intellij.util.ui.JBUI
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 
@@ -30,28 +29,38 @@ import java.awt.GridBagLayout
  */
 class DescriptionWithHelpLinkLabel(
   text: String,
-  learnMoreTarget: String,
-  analytics: BuildAttributionUiAnalytics
+  learnMoreTarget: BuildAnalyzerBrowserLinks,
+  linkClickCallback: (BuildAnalyzerBrowserLinks) -> Unit
 ) : JBPanel<JBPanel<*>>(GridBagLayout()) {
 
+  @Deprecated("Used only in old navigation model, to be removed with cleanup.")
+  constructor(
+    text: String,
+    learnMoreTarget: BuildAnalyzerBrowserLinks,
+    analytics: BuildAttributionUiAnalytics
+  ) : this(text, learnMoreTarget, analytics::helpLinkClicked)
+
   init {
-    val descriptionTextLabel = htmlTextLabel(text)
+    val descriptionTextLabel = htmlTextLabelWithLinesWrap(text)
 
     val descriptionConstraints = GridBagConstraints().apply {
       fill = GridBagConstraints.HORIZONTAL
       gridx = 0
       weightx = 1.0
       gridy = 0
-      insets = JBUI.insetsLeft(2)
       anchor = GridBagConstraints.FIRST_LINE_START
     }
 
-    val learnMoreLink = HyperlinkLabel("Learn more").apply {
-      addHyperlinkListener { analytics.helpLinkClicked() }
-      setHyperlinkTarget(learnMoreTarget)
+    val learnMoreLink = object : HyperlinkLabel("Learn more"){
+      override fun getTextOffset(): Int {
+        return 0
+      }
+    }.apply {
+      addHyperlinkListener { linkClickCallback(learnMoreTarget) }
+      setHyperlinkTarget(learnMoreTarget.urlTarget)
     }
     val linkConstraints = GridBagConstraints().apply {
-      fill = GridBagConstraints.HORIZONTAL
+      fill = GridBagConstraints.NONE
       gridx = 0
       gridy = 1
       anchor = GridBagConstraints.LINE_START

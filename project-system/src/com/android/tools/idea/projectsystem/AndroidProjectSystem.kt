@@ -24,6 +24,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFinder
+import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.android.facet.AndroidFacet
 import java.nio.file.Path
 
@@ -62,27 +63,6 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
   fun getModuleSystem(module: Module): AndroidModuleSystem
 
   /**
-   * Merge new dependencies into a (potentially existing) build file. Build files are build-system-specific
-   * text files describing the steps for building a single android application or library.
-   *
-   * TODO: The association between a single android library and a single build file is too gradle-specific.
-   * TODO: Document the exact format for the supportLibVersionFilter string
-   * TODO: Document the format for the dependencies string
-   *
-   * @param dependencies new dependencies.
-   * @param destinationContents original content of the build file.
-   * @param supportLibVersionFilter If a support library filter is provided, the support libraries will be
-   * limited to match that filter. This is typically set to the compileSdkVersion, such that you don't end
-   * up mixing and matching compileSdkVersions and support libraries from different versions, which is not
-   * supported.
-   *
-   * @return new content of the build file
-   */
-  fun mergeBuildFiles(dependencies: String,
-                      destinationContents: String,
-                      supportLibVersionFilter: String?): String
-
-  /**
    * Returns an instance of [ProjectSystemSyncManager] that applies to the project.
    */
   fun getSyncManager(): ProjectSystemSyncManager
@@ -104,6 +84,11 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
    * when the structure of the project changes.
    */
   fun getSourceProvidersFactory(): SourceProvidersFactory
+
+  /**
+   * Returns a list of [AndroidFacet]s by given package name.
+   */
+  fun getAndroidFacetsWithPackageName(project: Project, packageName: String, scope: GlobalSearchScope): Collection<AndroidFacet>
 }
 
 val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")

@@ -51,7 +51,7 @@ import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -100,7 +100,7 @@ public class StringsWriteUtils {
     final List<XmlTag> tags = Lists.newArrayListWithExpectedSize(items.size());
     final Set<PsiFile> files = Sets.newHashSetWithExpectedSize(items.size());
     for (ResourceItem item : items) {
-      XmlTag tag = AndroidResourceUtil.getItemTag(project, item);
+      XmlTag tag = IdeResourcesUtil.getItemTag(project, item);
       if (tag == null) {
         return false;
       }
@@ -142,7 +142,7 @@ public class StringsWriteUtils {
       // Deletes the tag
       return setAttributeForItems(project, SdkConstants.ATTR_NAME, null, Collections.singletonList(item));
     }
-    final XmlTag tag = AndroidResourceUtil.getItemTag(project, item);
+    final XmlTag tag = IdeResourcesUtil.getItemTag(project, item);
     if (tag != null) {
       new WriteCommandAction.Simple(project, "Setting value of " + item.getName(), tag.getContainingFile()) {
         @Override
@@ -274,7 +274,7 @@ public class StringsWriteUtils {
         return null;
       }
     }
-    String resourceFileName = AndroidResourceUtil.getDefaultResourceFileName(ResourceType.STRING);
+    String resourceFileName = IdeResourcesUtil.getDefaultResourceFileName(ResourceType.STRING);
     if (resourceFileName == null) {
       return null;
     }
@@ -286,7 +286,7 @@ public class StringsWriteUtils {
         return null;
       }
       try {
-        resourceFile = AndroidResourceUtil.createFileResource(resourceFileName, valuesDir, "", ResourceType.STRING.getName(), true);
+        resourceFile = IdeResourcesUtil.createFileResource(resourceFileName, valuesDir, "", ResourceType.STRING.getName(), true);
       }
       catch (Exception ex) {
         return null;

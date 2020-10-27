@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.appinspection.api
 
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
+
 /**
  * Defines the method through which an [AppInspectorJar] could be copied to device.
  */
@@ -24,29 +26,3 @@ interface AppInspectionJarCopier {
    */
   fun copyFileToDevice(jar: AppInspectorJar): List<String>
 }
-
-/**
- * Represents an instance of an inspector Jar.
- *
- * To be used with [AppInspectionJarCopier] to copy inspector jar from studio to device.
- */
-data class AppInspectorJar(
-  /**
-   * Name of the jar.
-   */
-  val name: String,
-
-  /**
-   * The directory in the studio release in which this jar is located.
-   *
-   * It should look like: plugins/android/resources/inspection
-   */
-  val releaseDirectory: String? = null,
-
-  /**
-   * The development path of the jar relative to tools/idea.
-   *
-   * For example: ../../prebuilts/tools/common/m2/repository/androidx/inspection/inspection/1.0.0-SNAPSHOT
-   */
-  val developmentDirectory: String? = null
-)

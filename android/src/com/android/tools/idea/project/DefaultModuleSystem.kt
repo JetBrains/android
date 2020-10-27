@@ -25,8 +25,10 @@ import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalLibrary
 import com.android.projectmodel.Library
 import com.android.projectmodel.RecursiveResourceFolder
+import com.android.tools.idea.apk.ApkFacet
+import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.model.MergedManifestManager
+import com.android.tools.idea.model.queryPackageNameFromManifestIndex
 import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.CapabilityNotSupported
@@ -39,17 +41,32 @@ import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.projectsystem.ScopeType
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
+import com.android.tools.idea.run.AndroidDeviceSpec
+import com.android.tools.idea.run.AndroidRunConfiguration
+import com.android.tools.idea.run.AndroidRunConfigurationBase
+import com.android.tools.idea.run.ApkProvider
+import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.FileSystemApkProvider
+import com.android.tools.idea.run.NonGradleApkProvider
+import com.android.tools.idea.run.NonGradleApplicationIdProvider
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toPathString
 import com.android.utils.reflection.qualifiedName
 import com.google.common.collect.ImmutableList
+import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleOrderEntry
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.OrderRootType
+import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
@@ -58,10 +75,12 @@ import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.manifest.cachedValueFromPrimaryManifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
+import java.io.File
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 private val PACKAGE_NAME = Key.create<CachedValue<String?>>("merged.manifest.package.name")
+private val LOG: Logger get() = logger(::LOG)
 
 /** Creates a map for the given pairs, filtering out null values. */
 private fun <K, V> notNullMapOf(vararg pairs: Pair<K, V?>): Map<K, V> {
@@ -114,8 +133,8 @@ class DefaultModuleSystem(override val module: Module) :
             continue
           }
           AndroidFacet.getInstance(moduleForEntry) ?: continue
-          val manifestInfo = MergedManifestManager.getSnapshot(moduleForEntry)
-          if ("android.support.v7.appcompat" == manifestInfo.`package`) {
+          val packageName = moduleForEntry.getModuleSystem().getPackageName()
+          if ("android.support.v7.appcompat" == packageName) {
             return GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
           }
         }
@@ -136,7 +155,7 @@ class DefaultModuleSystem(override val module: Module) :
 
   override fun getDirectResourceModuleDependents(): List<Module> = ModuleManager.getInstance(module.project).getModuleDependentModules(module)
 
-  override fun getResolvedDependentLibraries(includeExportedTransitiveDeps: Boolean): Collection<Library> {
+  override fun getResolvedLibraryDependencies(includeExportedTransitiveDeps: Boolean): Collection<Library> {
     val libraries = mutableListOf<Library>()
 
     val orderEnumerator = ModuleRootManager.getInstance(module)
@@ -193,11 +212,63 @@ class DefaultModuleSystem(override val module: Module) :
   }
 
   override fun getPackageName(): String? {
+    val facet = AndroidFacet.getInstance(module) ?: return null
+    var rawPackageName: String? = null
+
+    if (AndroidManifestIndex.indexEnabled()) {
+      rawPackageName = DumbService.getInstance(module.project)
+        .runReadActionInSmartMode(Computable { getPackageNameFromIndex(facet) })
+    }
+
+    return rawPackageName ?: getPackageNameByParsingPrimaryManifest(facet)
+  }
+
+  override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider {
+    return NonGradleApplicationIdProvider(
+      AndroidFacet.getInstance(module) ?: throw IllegalStateException("Cannot find AndroidFacet. Module: ${module.name}"))
+  }
+
+  override fun getNotRuntimeConfigurationSpecificApplicationIdProviderForLegacyUse(): ApplicationIdProvider {
+    return NonGradleApplicationIdProvider(
+      AndroidFacet.getInstance(module) ?: throw IllegalStateException("Cannot find AndroidFacet. Module: ${module.name}"))
+  }
+
+  override fun getApkProvider(runConfiguration: RunConfiguration, targetDeviceSpec: AndroidDeviceSpec?): ApkProvider? {
+    val forTests: Boolean = (runConfiguration as? AndroidRunConfigurationBase)?.isTestConfiguration ?: false
     val facet = AndroidFacet.getInstance(module)!!
+    val applicationIdProvider = getApplicationIdProvider(runConfiguration)
+    if (forTests) {
+      return NonGradleApkProvider(facet, applicationIdProvider, null)
+    }
+    val apkFacet = ApkFacet.getInstance(module)
+    return when {
+      apkFacet != null -> FileSystemApkProvider(apkFacet.module, File(apkFacet.configuration.APK_PATH))
+      runConfiguration is AndroidRunConfiguration -> NonGradleApkProvider(facet, applicationIdProvider, runConfiguration.ARTIFACT_NAME)
+      else -> null
+    }
+  }
+
+  private fun getPackageNameByParsingPrimaryManifest(facet: AndroidFacet): String? {
     val cachedValue = facet.cachedValueFromPrimaryManifest {
       packageName.nullize(true)
     }
     return facet.putUserDataIfAbsent(PACKAGE_NAME, cachedValue).value
+  }
+
+  private fun getPackageNameFromIndex(facet: AndroidFacet): String? {
+    if (DumbService.isDumb(module.project)) {
+      return null
+    }
+    return try {
+      facet.queryPackageNameFromManifestIndex()
+    }
+    catch (e: IndexNotReadyException) {
+      // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+      //  We need to refactor the callers of this to require a *smart*
+      //  read action, at which point we can remove this try-catch.
+      LOG.debug(e)
+      null
+    }
   }
 
   override fun getManifestOverrides(): ManifestOverrides {
@@ -227,6 +298,7 @@ class DefaultModuleSystem(override val module: Module) :
     val usesCompose: Key<Boolean> = Key.create(::usesCompose.qualifiedName)
     val isRClassTransitive: Key<Boolean> = Key.create(::isRClassTransitive.qualifiedName)
     val codeShrinker: Key<CodeShrinker?> = Key.create(::codeShrinker.qualifiedName)
+    val isMlModelBindingEnabled: Key<Boolean> = Key.create(::isMlModelBindingEnabled.qualifiedName)
   }
 
   override var usesCompose: Boolean by UserData(Keys.usesCompose, false)
@@ -234,6 +306,8 @@ class DefaultModuleSystem(override val module: Module) :
   override var isRClassTransitive: Boolean by UserData(Keys.isRClassTransitive, true)
 
   override var codeShrinker: CodeShrinker? by UserData(Keys.codeShrinker, null)
+
+  override var isMlModelBindingEnabled: Boolean by UserData(Keys.isMlModelBindingEnabled, false)
 }
 
 /**

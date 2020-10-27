@@ -9,9 +9,6 @@ import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.incremental.storage.ValidityState;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidBuildConfigState implements ValidityState {
   private final String myPackage;
   private final Set<String> myLibPackages;

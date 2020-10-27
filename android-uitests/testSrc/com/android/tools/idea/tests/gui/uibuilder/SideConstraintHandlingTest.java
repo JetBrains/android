@@ -61,7 +61,7 @@ public class SideConstraintHandlingTest {
                                   .open("app/src/main/res/layout/constraint.xml", EditorFixture.Tab.DESIGN);
     guiTest.ideFrame().closeProjectPanel();
 
-    NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
+    NlEditorFixture layoutEditor = editor.getLayoutEditor();
 
     layoutEditor
       .showOnlyDesignView()
@@ -83,7 +83,7 @@ public class SideConstraintHandlingTest {
 
     layoutEditor = editor.select("(<Button[\\s\\S]*/>\\n)")
                          .invokeAction(EditorFixture.EditorAction.BACK_SPACE)
-                         .getLayoutEditor(true);
+                         .getLayoutEditor();
 
     layoutEditor
       .showOnlyBlueprintView()

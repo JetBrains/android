@@ -17,8 +17,9 @@ package com.android.tools.idea.welcome.wizard
 
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.ValidatorPanel
-import com.android.tools.idea.gradle.structure.IdeSdksConfigurable
-import com.android.tools.idea.gradle.structure.IdeSdksConfigurable.getLocationFromComboBoxWithBrowseButton
+import com.android.tools.idea.gradle.ui.LabelAndFileForLocation
+import com.android.tools.idea.gradle.ui.SdkUiStrings.generateChooseValidJdkDirectoryError
+import com.android.tools.idea.gradle.ui.SdkUiUtils.getLocationFromComboBoxWithBrowseButton
 import com.android.tools.idea.io.FilePaths
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
@@ -42,7 +43,7 @@ import java.io.File
 /**
  * Wizard step for JDK setup.
  */
-class JdkSetupStep : ModelWizardStep.WithoutModel("Select default JDK location") {
+class JdkSetupStep(model: FirstRunModel) : ModelWizardStep<FirstRunModel>(model, "Select default JDK location") {
   private val jdkLocationComboBox = ComboboxWithBrowseButton()
 
   private val jdkPanel = panel {
@@ -64,7 +65,7 @@ class JdkSetupStep : ModelWizardStep.WithoutModel("Select default JDK location")
 
   init {
     val descriptor = createSingleFolderDescriptor { file ->
-      validateJdkPath(file) ?: throw IllegalArgumentException(IdeSdksConfigurable.generateChooseValidJdkDirectoryError())
+      validateJdkPath(file) ?: throw IllegalArgumentException(generateChooseValidJdkDirectoryError())
       setJdkLocationComboBox(file)
     }
 
@@ -78,7 +79,7 @@ class JdkSetupStep : ModelWizardStep.WithoutModel("Select default JDK location")
     fun addJdkIfValid(path: File?, label: String) {
       path ?: return
       val validatedPath = validateJdkPath(path) ?: return
-      comboBox.addItem(IdeSdksConfigurable.LabelAndFileForLocation(label, validatedPath))
+      comboBox.addItem(LabelAndFileForLocation(label, validatedPath))
     }
 
     val embeddedPath = IdeSdks.getInstance().embeddedJdkPath
@@ -92,7 +93,7 @@ class JdkSetupStep : ModelWizardStep.WithoutModel("Select default JDK location")
     comboBox.isEditable = true
     comboBox.addItemListener { event ->
       val selectedItem = event.item
-      if (event.stateChange == ItemEvent.SELECTED && selectedItem is IdeSdksConfigurable.LabelAndFileForLocation) {
+      if (event.stateChange == ItemEvent.SELECTED && selectedItem is LabelAndFileForLocation) {
         invokeLater { setJdkLocationComboBox(selectedItem.file) }
       }
     }

@@ -18,7 +18,7 @@ package com.android.tools.idea.npw.platform
 import com.android.SdkConstants.CPU_ARCH_INTEL_ATOM
 import com.android.repository.api.ProgressIndicator
 import com.android.repository.api.RepoManager
-import com.android.repository.api.RepoManager.RepoLoadedCallback
+import com.android.repository.api.RepoManager.RepoLoadedListener
 import com.android.repository.api.RepoPackage
 import com.android.repository.api.UpdatablePackage
 import com.android.repository.impl.meta.RepositoryPackages
@@ -37,7 +37,7 @@ import com.android.sdklib.repository.meta.DetailsTypes.ApiDetailsType
 import com.android.sdklib.repository.meta.DetailsTypes.SysImgDetailsType
 import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision
-import com.android.tools.idea.npw.FormFactor
+import com.android.tools.idea.device.FormFactor
 import com.android.tools.idea.npw.invokeLater
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
@@ -47,10 +47,8 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.progress.StudioProgressRunner
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.PackageResolutionException
-import com.android.tools.idea.templates.TemplateMetadata
 import com.android.tools.idea.templates.TemplateUtils.knownVersions
 import com.google.common.annotations.VisibleForTesting
-import org.jetbrains.android.sdk.AndroidSdkUtils
 import java.io.File
 import java.util.function.Consumer
 
@@ -73,33 +71,21 @@ class AndroidVersionsInfo {
    */
   fun loadLocalVersions() {
     // Load the local definitions of the android compilation targets.
+    val installedCompilationTargets = loadInstalledCompilationTargets()
+    val additionalInstalledTargets = installedCompilationTargets.filter { it.version.isPreview || it.additionalLibraries.isNotEmpty() }
     knownTargetVersions = sequence {
-      if (AndroidSdkUtils.isAndroidSdkAvailable()) {
-        knownVersions.forEachIndexed { i, version ->
-          yield(VersionItem(version, i + 1))
-        }
+      knownVersions.forEachIndexed { i, version ->
+        yield(VersionItem(version, i + 1))
       }
-      loadInstalledCompilationTargets()
-        .filter { it.version.isPreview || it.additionalLibraries.isNotEmpty() }
-        .forEach { yield(VersionItem(it)) }
+      additionalInstalledTargets.forEach { yield(VersionItem(it)) }
     }.toList()
 
     // Load the installed android versions from the installed SDK.
-    val installedCompilationTargets = loadInstalledCompilationTargets()
-    installedVersions = installedCompilationTargets.filter {
-      it.version.isPreview || it.additionalLibraries.isNotEmpty()
-    }.map { it.version }.toSet()
+    installedVersions = additionalInstalledTargets.map { it.version }.toSet()
 
-    var highestInstalledTarget: IAndroidTarget? = null
-
-    for (target in installedCompilationTargets
-      .filter { it.isPlatform && it.version.featureLevel >= LOWEST_COMPILE_SDK_VERSION }) {
-      if ((highestInstalledTarget == null ||
-           (target.version.featureLevel > highestInstalledTarget.version.featureLevel && !target.version.isPreview))) {
-        highestInstalledTarget = target
-      }
-    }
-    highestInstalledApiTarget = highestInstalledTarget
+    highestInstalledApiTarget = installedCompilationTargets
+      .filter { it.isPlatform && it.version.featureLevel >= LOWEST_COMPILE_SDK_VERSION && !it.version.isPreview }
+      .maxBy { it.version.featureLevel }
   }
 
   /**
@@ -175,7 +161,7 @@ class AndroidVersionsInfo {
 
     val runCallbacks = Runnable { itemsLoadedCallback.accept(versionItemList) }
 
-    val onComplete = RepoLoadedCallback { packages: RepositoryPackages ->
+    val onComplete = RepoLoadedListener { packages: RepositoryPackages ->
       invokeLater {
         addPackages(packages.newPkgs)
         addOfflineLevels()
@@ -184,7 +170,7 @@ class AndroidVersionsInfo {
     }
 
     // We need to pick up addons that don't have a target created due to the base platform not being installed.
-    val onLocalComplete = RepoLoadedCallback { packages: RepositoryPackages ->
+    val onLocalComplete = RepoLoadedListener { packages: RepositoryPackages ->
       invokeLater {
         addPackages(packages.localPackages.values)
       }
@@ -243,7 +229,7 @@ class AndroidVersionsInfo {
     val buildApiLevelStr: String
       get() = when {
         androidTarget == null -> buildApiLevel.toString()
-        androidTarget!!.isPlatform -> TemplateMetadata.getBuildApiString(androidTarget!!.version)
+        androidTarget!!.isPlatform -> androidTarget!!.version.toBuildApiString()
         else -> AndroidTargetHash.getTargetHashString(androidTarget!!)
       }
 
@@ -335,3 +321,9 @@ private fun getTag(repoPackage: RepoPackage): IdDisplay? {
     else -> NO_MATCH
   }
 }
+
+/**
+ * Computes a suitable build api string, e.g. "18" for API level 18.
+ */
+fun AndroidVersion.toBuildApiString() =
+  if (isPreview) AndroidTargetHash.getPlatformHashString(this) else apiString

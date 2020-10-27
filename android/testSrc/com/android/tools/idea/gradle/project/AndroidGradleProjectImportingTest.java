@@ -2,6 +2,7 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.openapi.module.ModuleManager;
 import org.jetbrains.plugins.gradle.importing.GradleImportingTestCase;
 import org.junit.Ignore;
@@ -11,9 +12,6 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.Collection;
 
-/**
- * @author Dmitry Avdeev
- */
 public class AndroidGradleProjectImportingTest extends GradleImportingTestCase {
   @Ignore("Fails with Unknown host 'repo.labs.intellij.net: unknown error'")
   @Test
@@ -59,8 +57,8 @@ public class AndroidGradleProjectImportingTest extends GradleImportingTestCase {
     createProjectSubFile("lib/build.gradle", "");
     importProject();
     assertEquals(3, ModuleManager.getInstance(myProject).getModules().length);
-    assertNotNull(GradleFacet.getInstance(getModule("android")));
-    assertNotNull(JavaFacet.getInstance(getModule("lib")));
+    assertNotNull(GradleFacet.getInstance(TestModuleUtil.findModule(myProject, "android")));
+    assertNotNull(JavaFacet.getInstance(TestModuleUtil.findModule(myProject, "lib")));
   }
 
   @SuppressWarnings("MethodOverridesStaticMethodOfSuperclass")

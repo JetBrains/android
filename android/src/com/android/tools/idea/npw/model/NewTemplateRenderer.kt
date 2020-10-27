@@ -17,9 +17,10 @@ package com.android.tools.idea.npw.model
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.stats.withProjectId
-import com.android.tools.idea.templates.TemplateUtils
-import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
-import com.android.tools.idea.templates.recipe.RenderingContext2
+import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
+import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
+import com.android.tools.idea.templates.recipe.RenderingContext
+import com.android.tools.idea.util.EditorUtil
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ProjectTemplateData
@@ -36,7 +37,6 @@ import com.intellij.openapi.command.WriteCommandAction.writeCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.ui.Messages
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.impl.source.PostprocessReformattingAspect
@@ -45,10 +45,16 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 private val log: Logger get() = logger<Template>()
 
-fun Template.render(c: RenderingContext2, e: RecipeExecutor) =
+fun Template.render(c: RenderingContext, e: RecipeExecutor) =
   recipe.render(c, e, titleToTemplateRenderer(name, formFactor).takeUnless { this == Template.NoActivity })
 
-fun Recipe.render(c: RenderingContext2, e: RecipeExecutor, loggingEvent: TemplateRenderer?): Boolean {
+fun Recipe.findReferences(c: RenderingContext) =
+  render(c, FindReferencesRecipeExecutor(c), null)
+
+fun Recipe.actuallyRender(c: RenderingContext) =
+  render(c, DefaultRecipeExecutor(c), null)
+
+fun Recipe.render(c: RenderingContext, e: RecipeExecutor, loggingEvent: TemplateRenderer?): Boolean {
   val success = if (c.project.isInitialized)
     doRender(c, e)
   else
@@ -61,22 +67,18 @@ fun Recipe.render(c: RenderingContext2, e: RecipeExecutor, loggingEvent: Templat
   }
 
   if (!c.dryRun) {
-    StartupManager.getInstance(c.project)
-      .runWhenProjectIsInitialized { TemplateUtils.reformatAndRearrange(c.project, c.targetFiles) }
+    ApplicationManager.getApplication().invokeAndWait { PsiDocumentManager.getInstance(c.project).commitAllDocuments() }
+    EditorUtil.reformatRearrangeAndSave(c.project, c.targetFiles)
   }
-
-  ApplicationManager.getApplication().invokeAndWait { PsiDocumentManager.getInstance(c.project).commitAllDocuments() }
 
   return success
 }
 
-private fun Recipe.doRender(c: RenderingContext2, e: RecipeExecutor): Boolean {
+private fun Recipe.doRender(c: RenderingContext, e: RecipeExecutor): Boolean {
   try {
     writeCommandAction(c.project).withName(c.commandName).run<IOException> {
       this(e, c.templateData)
-      // Old recipe executor calls applyChanges after every BuildModel update. It is slow but correct.
-      // TODO(qumeric): remove casting when the old executor will be deleted
-      if (e is DefaultRecipeExecutor2) {
+      if (e is DefaultRecipeExecutor) {
         e.applyChanges()
       }
     }
@@ -128,7 +130,7 @@ Your project may not compile.
 You may want to Undo to get back to the original state.
 """
 
-fun formatWarningMessage(context: RenderingContext2): String {
+fun formatWarningMessage(context: RenderingContext): String {
   val maxWarnings = 10
   val warningCount = context.warnings.size
   var messages: MutableList<String> = context.warnings.toMutableList()
@@ -144,11 +146,12 @@ fun formatWarningMessage(context: RenderingContext2): String {
 
 // TODO(qumeric): update TemplateRenderer and this method
 @VisibleForTesting
-internal fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRenderer = when (title) {
+fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRenderer = when (title) {
   "" -> TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER
 
   "Android Project" -> TemplateRenderer.ANDROID_PROJECT
 
+  "Benchmark Module" -> TemplateRenderer.BENCHMARK_LIBRARY_MODULE
   "Android Module" -> TemplateRenderer.ANDROID_MODULE
   "Java Library" -> TemplateRenderer.JAVA_LIBRARY
   "Android TV Module" -> TemplateRenderer.ANDROID_TV_MODULE
@@ -163,10 +166,11 @@ internal fun titleToTemplateRenderer(title: String, formFactor: FormFactor): Tem
   "Scrolling Activity" -> TemplateRenderer.SCROLLING_ACTIVITY
   "Google AdMob Ads Activity" -> TemplateRenderer.GOOGLE_ADMOBS_ADS_ACTIVITY
   "Always On Wear Activity" -> TemplateRenderer.ALWAYS_ON_WEAR_ACTIVITY
-  "Android TV Activity" -> TemplateRenderer.ANDROID_TV_ACTIVITY
+  "Android TV Blank Activity" -> TemplateRenderer.ANDROID_TV_ACTIVITY
   "Fullscreen Activity" -> TemplateRenderer.FULLSCREEN_ACTIVITY
   "Empty Compose Activity" -> TemplateRenderer.COMPOSE_EMPTY_ACTIVITY
-  "Google Maps Activity" -> TemplateRenderer.GOOGLE_MAPS_ACTIVITY
+  "Google Maps Activity" ->
+    if (formFactor == FormFactor.Wear) TemplateRenderer.WATCH_GOOGLE_MAPS_ACTIVITY else TemplateRenderer.GOOGLE_MAPS_ACTIVITY
   "Navigation Drawer Activity" -> TemplateRenderer.NAVIGATION_DRAWER_ACTIVITY
   "Settings Activity" -> TemplateRenderer.SETTINGS_ACTIVITY
   "Master/Detail Flow" -> TemplateRenderer.MASTER_DETAIL_FLOW

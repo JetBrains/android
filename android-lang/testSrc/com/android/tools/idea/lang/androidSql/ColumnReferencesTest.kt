@@ -16,13 +16,14 @@
 package com.android.tools.idea.lang.androidSql
 
 import com.android.tools.idea.lang.androidSql.resolution.AndroidSqlColumnPsiReference
+import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.find.FindManager
-import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.IdeActions
+import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.psi.PsiLiteralExpression
 import com.intellij.psi.PsiManager
 
@@ -36,7 +37,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testDefaultColumnName() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -68,7 +69,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testCaseInsensitive_unquoted() {
     myFixture.addRoomEntity("com.example.User", "fullName" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -86,7 +87,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testCaseInsensitive_quoted() {
     myFixture.addRoomEntity("com.example.User", "fullName" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -106,7 +107,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
       "com.example.User",
       FieldDefinition("fullName", "String", columnName = "full_name"))
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -127,7 +128,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
     myFixture.addRoomEntity("com.example.User", "id" ofType "int")
     myFixture.addRoomEntity("com.example.Book", "id" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -146,7 +147,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
     myFixture.addRoomEntity("com.example.User", "id" ofType "int")
     myFixture.addRoomEntity("com.example.Book", "id" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -165,7 +166,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
     myFixture.addRoomEntity("com.example.User", "id" ofType "int")
     myFixture.addRoomEntity("com.example.Book", "id" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -184,7 +185,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
     myFixture.addRoomEntity("com.example.User", "id" ofType "int")
     myFixture.addRoomEntity("com.example.Book", "id" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -250,7 +251,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testRename_fromSql() {
     myFixture.addRoomEntity("com.example.User", "id" ofType "int", "name" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -282,7 +283,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testRename_fromSql_quoted() {
     myFixture.addRoomEntity("com.example.Order", "count" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -349,7 +350,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testRename_escaping() {
     myFixture.addRoomEntity("com.example.User", "id" ofType "int", "name" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -382,7 +383,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testCodeCompletion_select() {
     myFixture.addRoomEntity("com.example.User", "firstName" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -412,7 +413,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testCodeCompletion_update() {
     myFixture.addRoomEntity("com.example.User", "firstName" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -442,7 +443,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testCodeCompletion_insert() {
     myFixture.addRoomEntity("com.example.User", "firstName" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -472,7 +473,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testCodeCompletion_delete() {
     myFixture.addRoomEntity("com.example.User", "firstName" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -502,7 +503,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testCodeCompletion_caseSensitivity() {
     myFixture.addRoomEntity("com.example.User", "firstName" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -533,7 +534,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
     myFixture.addRoomEntity("com.example.User", "id" ofType "int", "name" ofType "String")
     myFixture.addRoomEntity("com.example.Address", "city" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -557,7 +558,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
     myFixture.addRoomEntity("com.example.User", "id" ofType "int", "check" ofType "boolean")
     val checkField = myFixture.findField("com.example.User", "check")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -595,7 +596,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testUsages() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -621,7 +622,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
       public class User { private String name; }
       """.trimIndent())
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -644,7 +645,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testUsages_caseInsensitive() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -668,7 +669,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
       FieldDefinition("id", "int"), FieldDefinition("fullName", "String", columnName = "full_name")
     )
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -702,7 +703,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
 
     val element = myFixture.elementAtCaret
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -736,7 +737,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
 
     val element = myFixture.elementAtCaret
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -770,7 +771,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
         }
     """.trimIndent())
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -797,7 +798,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
       FieldDefinition("fullName", "String", columnName = "user's name")
     )
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -818,7 +819,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testUsages_keyword() {
     myFixture.addRoomEntity("com.example.Item", "desc" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -847,7 +848,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testQualifiedColumns() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -866,7 +867,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
     myFixture.addRoomEntity("com.example.User", "id" ofType "int", "name" ofType "String")
     myFixture.addRoomEntity("com.example.Book", "bid" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -887,7 +888,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testAliases() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -905,7 +906,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testAliases_hiding() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -924,7 +925,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
     myFixture.addRoomEntity("com.example.User", "uid" ofType "int")
     myFixture.addRoomEntity("com.example.Book", "bid" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -943,7 +944,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
     myFixture.addRoomEntity("com.example.User", "uid" ofType "int")
     myFixture.addRoomEntity("com.example.Book", "bid" ofType "int", "title" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -965,7 +966,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
     myFixture.addRoomEntity("com.example.User", "uid" ofType "int")
     myFixture.addRoomEntity("com.example.Book", "bid" ofType "int", "title" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -987,7 +988,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testWithClause_newTable_completion() {
     myFixture.addRoomEntity("com.example.User", "uid" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1007,7 +1008,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testWithClause_subquery() {
     myFixture.addRoomEntity("com.example.User", "uid" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1028,7 +1029,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
     myFixture.addRoomEntity("com.example.User", "uid" ofType "int", "name" ofType "String")
     myFixture.addRoomEntity("com.example.Book", "bid" ofType "int", "title" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1052,7 +1053,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
     myFixture.addRoomEntity("com.example.User", "uid" ofType "int", "name" ofType "String")
     myFixture.addRoomEntity("com.example.Book", "bid" ofType "int", "title" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1074,7 +1075,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
     myFixture.addRoomEntity("com.example.User", "uid" ofType "int", "name" ofType "String")
     myFixture.addRoomEntity("com.example.Book", "bid" ofType "int", "title" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1097,7 +1098,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
     myFixture.addRoomEntity("com.example.Bbb", "b" ofType "int")
     myFixture.addRoomEntity("com.example.Ccc", "c" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1111,7 +1112,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
 
     assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("a", "b")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1125,7 +1126,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
 
     assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("a", "b", "c")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1139,7 +1140,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
 
     assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("a", "b", "c")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1159,7 +1160,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
     myFixture.addRoomEntity("com.example.Bbb", "b" ofType "int")
     myFixture.addRoomEntity("com.example.Ccc", "c" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1174,7 +1175,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
 
     assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("Aaa", "Bbb", "Ccc", "t1", "t2")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1193,7 +1194,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testValueSubquery() {
     myFixture.addRoomEntity("com.example.Aaa", "a" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1207,7 +1208,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
 
     assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("Aaa")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1225,7 +1226,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testValuesSubqueryAliases() {
     myFixture.addRoomEntity("com.example.Aaa", "a" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1244,7 +1245,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testSubqueryDelete() {
     myFixture.addRoomEntity("com.example.User", "score" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1259,7 +1260,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
 
     assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("User")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1274,7 +1275,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
 
     assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("score")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1293,7 +1294,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testSubqueryUpdate() {
     myFixture.addRoomEntity("com.example.User", "score" ofType "int", "alive" ofType "boolean")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1308,7 +1309,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
 
     assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("User")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1323,7 +1324,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
 
     assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("score", "alive")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1410,7 +1411,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testColumnSubqueryAliasResolvesWithoutExplicitSelection() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
     //language=JAVA
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1432,7 +1433,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testColumnSubqueryAlias() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
     //language=JAVA
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1456,7 +1457,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
     myFixture.addRoomEntity("com.example.TableTwo", "shouldNotResolve" ofType "String")
 
     //language=JAVA
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1476,7 +1477,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
     myFixture.addRoomEntity("com.example.TableTwo", "shouldNotResolve" ofType "String")
 
     //language=JAVA
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1494,7 +1495,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testRecursiveWithClause() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
     //language=JAVA
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1517,7 +1518,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testRecursiveWithClauseNoInfiniteLoop() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
     //language=JAVA
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1536,7 +1537,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
 
   fun testRecursiveWithClauseNoInfiniteLoopMutual() {
     //language=JAVA
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1555,7 +1556,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
 
   fun testRecursiveWithClauseNoInfiniteLoopMutual2() {
     //language=JAVA
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1575,7 +1576,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testColumnAlias() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
     //language=JAVA
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1597,7 +1598,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testColumnAliasWithOrderByClause() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
     //language=JAVA
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1618,7 +1619,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testNotResolveColumnIfAliasOutOfScope() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
     //language=JAVA
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1637,7 +1638,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testNotResolveNotExistingColumnFromSubquery() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
     //language=JAVA
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1655,7 +1656,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testTableAliasWithColumnAlias() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
     //language=JAVA
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1678,7 +1679,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testParserRecovery() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1696,7 +1697,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   fun testOrderBy() {
     myFixture.addRoomEntity("com.example.User", "id" ofType "int", "fullName" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1747,7 +1748,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
       """)
 
     myFixture.configureByText(
-      JavaFileType.INSTANCE,
+      StdFileTypes.JAVA,
       //language=JAVA
       """
         package com.example;
@@ -1873,7 +1874,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
     )
 
     //language=JAVA
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
@@ -1933,5 +1934,22 @@ class ColumnReferencesTest : RoomLightTestCase() {
     myFixture.moveCaret("my|Id")
     renameAction = myFixture.testAction(ActionManager.getInstance().getAction(IdeActions.ACTION_RENAME))
     assertThat(renameAction.isEnabledAndVisible).isTrue()
+  }
+
+  fun testResolveBuildInTable() {
+    myFixture.loadNewFile("com/example/SomeDao.kt", """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        interface Dao {
+          @Query("SELECT <caret> FROM sqlite_sequence WHERE name = :tableName")
+          suspend fun getSequenceNumber(tableName:String) : Long?
+        }
+    """.trimIndent())
+
+    val columns = myFixture.completeBasic().map { it.lookupString }
+    assertThat(columns).containsExactly("name", "seq")
   }
 }

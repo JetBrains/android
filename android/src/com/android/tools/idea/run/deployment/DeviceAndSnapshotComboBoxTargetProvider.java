@@ -24,11 +24,14 @@ import com.android.tools.idea.run.editor.DeployTargetConfigurable;
 import com.android.tools.idea.run.editor.DeployTargetConfigurableContext;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.DeployTargetState;
+import com.google.common.base.MoreObjects;
 import com.intellij.execution.Executor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -36,7 +39,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetProvider<State> {
-  private boolean myProvidingMultipleTargets;
+  static final Key<@NotNull Boolean> MULTIPLE_DEPLOY_TARGETS =
+    Key.create("com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider.MULTIPLE_DEPLOY_TARGETS");
 
   @NotNull
   @Override
@@ -85,40 +89,26 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
 
   @Override
   public boolean requiresRuntimePrompt(@NotNull Project project) {
-    return myProvidingMultipleTargets;
+    return MoreObjects.firstNonNull(project.getUserData(MULTIPLE_DEPLOY_TARGETS), false);
   }
 
-  void setProvidingMultipleTargets(@SuppressWarnings("SameParameterValue") boolean providingMultipleTargets) {
-    myProvidingMultipleTargets = providingMultipleTargets;
-  }
-
-  @Nullable
-  public DeployTarget<State> showPrompt(@NotNull AndroidFacet facet) {
+  @Override
+  public @Nullable DeployTarget<@NotNull State> showPrompt(@NotNull Executor executor,
+                                                           @NotNull ExecutionEnvironment environment,
+                                                           @NotNull AndroidFacet facet,
+                                                           @NotNull DeviceCount count,
+                                                           boolean androidInstrumentedTest,
+                                                           @NotNull Map<@NotNull String, @NotNull DeployTargetState> providerIdToStateMap,
+                                                           int configurationId,
+                                                           @NotNull LaunchCompatibilityChecker checker) {
     Project project = facet.getModule().getProject();
+    List<Device> devices = AsyncDevicesGetter.getInstance(project).get().orElse(Collections.emptyList());
 
-    assert requiresRuntimePrompt(project);
-    myProvidingMultipleTargets = false;
-
-    SelectDeploymentTargetsDialog dialog = new SelectDeploymentTargetsDialog(project);
-
-    if (!dialog.showAndGet()) {
+    if (!new ModifyDeviceSetDialog(project, devices).showAndGet()) {
       return null;
     }
 
-    return new DeviceAndSnapshotComboBoxTarget(dialog.getSelectedDevices());
-  }
-
-  @Nullable
-  @Override
-  public DeployTarget<State> showPrompt(@NotNull Executor executor,
-                                        @NotNull ExecutionEnvironment environment,
-                                        @NotNull AndroidFacet facet,
-                                        @NotNull DeviceCount count,
-                                        boolean androidInstrumentedTests,
-                                        @NotNull Map providerIdToStateMap,
-                                        int configurationId,
-                                        @NotNull LaunchCompatibilityChecker checker) {
-    return showPrompt(facet);
+    return new DeviceAndSnapshotComboBoxTarget(DevicesSelectedService.getInstance(project).getDevicesSelectedWithDialog(devices));
   }
 
   @NotNull
@@ -130,11 +120,6 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
   @NotNull
   @Override
   public DeployTarget<State> getDeployTarget(@NotNull Project project) {
-    assert !myProvidingMultipleTargets;
-
-    ActionManager manager = ActionManager.getInstance();
-    DeviceAndSnapshotComboBoxAction action = (DeviceAndSnapshotComboBoxAction)manager.getAction("DeviceAndSnapshotComboBox");
-
-    return new DeviceAndSnapshotComboBoxTarget(action.getSelectedDevice(project));
+    return new DeviceAndSnapshotComboBoxTarget(DeviceAndSnapshotComboBoxAction.getInstance().getSelectedDevices(project));
   }
 }

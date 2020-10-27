@@ -19,11 +19,11 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.UnifiedEventDataSeries
 import com.android.tools.profilers.cpu.atrace.AtraceParser
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -37,9 +37,9 @@ class CpuUsageTest {
 
   @get:Rule
   var grpcChannel = FakeGrpcChannel("CpuUsageTest", FakeCpuService(), FakeProfilerService(timer), transportService)
-  private val profilerClient = ProfilerClient(grpcChannel.name)
+
   private val services = FakeIdeProfilerServices()
-  private val profilers = StudioProfilers(profilerClient, services, timer)
+  private val profilers by lazy { StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer) }
 
   @Before
   fun setup() {
@@ -48,16 +48,24 @@ class CpuUsageTest {
 
   @Test
   fun atraceCaptureCreatesMergedDataSeries() {
-    val parser = AtraceParser(1)
+    val parser = AtraceParser(MainProcessSelector(idHint = 1))
     val capture = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
     val usage = CpuUsage(profilers, capture.range, capture.range, capture)
     assertThat(usage.cpuSeries.series).isNotEmpty()
   }
 
   @Test
+  fun perfettoCaptureCreatesMergedDataSeries() {
+    val parser = AtraceParser(Cpu.CpuTraceType.PERFETTO, MainProcessSelector())
+    val capture = parser.parse(CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace"), 0)
+    val usage = CpuUsage(profilers, capture.range, capture.range, capture)
+    assertThat(usage.cpuSeries.series).isNotEmpty()
+  }
+
+  @Test
   fun nullCaptureIsHandled() {
-    val viewRange = Range(0.0,1.0)
-    val dataRange = Range(0.0,10.0)
+    val viewRange = Range(0.0, 1.0)
+    val dataRange = Range(0.0, 10.0)
     val usage = CpuUsage(profilers, viewRange, dataRange, null)
     assertThat(usage.cpuSeries.series).isEmpty()
   }

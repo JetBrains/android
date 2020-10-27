@@ -68,7 +68,7 @@ public class UserEventDataSeriesTest {
 
   @Before
   public void setUp() {
-    mySeries = new UserEventDataSeries(new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeProfilerServices, myTimer));
+    mySeries = new UserEventDataSeries(new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, myTimer));
   }
 
   @Test

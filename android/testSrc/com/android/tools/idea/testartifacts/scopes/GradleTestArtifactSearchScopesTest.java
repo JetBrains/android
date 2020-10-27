@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
-import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.testing.TestProjectPaths.CIRCULAR_MODULE_DEPS;
 import static com.android.tools.idea.testing.TestProjectPaths.SHARED_TEST_FOLDER;
@@ -37,6 +36,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ImmutableCollection;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -61,10 +61,10 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
   // Naming scheme follows "Gradle: " + name of the library. See LibraryDependency#setName method
   private static final String GRADLE_PREFIX = GradleConstants.SYSTEM_ID.getReadableName() + ": ";
 
-  private static final String GSON = GRADLE_PREFIX + "com.google.code.gson:gson:2.8.0@jar";
-  private static final String GUAVA = GRADLE_PREFIX + "com.google.guava:guava:18.0@jar";
-  private static final String HAMCREST = GRADLE_PREFIX + "org.hamcrest:hamcrest-core:1.3@jar";
-  private static final String JUNIT = GRADLE_PREFIX + "junit:junit:4.12@jar";
+  private static final String GSON = GRADLE_PREFIX + "com.google.code.gson:gson:2.8.0";
+  private static final String GUAVA = GRADLE_PREFIX + "com.google.guava:guava:18.0";
+  private static final String HAMCREST = GRADLE_PREFIX + "org.hamcrest:hamcrest-core:1.3";
+  private static final String JUNIT = GRADLE_PREFIX + "junit:junit:4.12";
   @Override
   protected boolean shouldRunTest() {
     if (SystemInfo.isWindows) {
@@ -187,7 +187,7 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
   public void testProjectWithSharedTestFolder() throws Exception {
     loadProject(SHARED_TEST_FOLDER);
-    Module module = myModules.getAppModule();
+    Module module = TestModuleUtil.findAppModule(getProject());
     TestArtifactSearchScopes scopes = TestArtifactSearchScopes.getInstance(module);
     assertNotNull(scopes);
 
@@ -201,7 +201,7 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
   public void testResolvedScopeForTestOnlyModuleProject() throws Exception {
     loadProject(TEST_ONLY_MODULE);
-    Module testModule = getModule("test");
+    Module testModule = TestModuleUtil.findModule(getProject(), "test");
     TestArtifactSearchScopes testArtifactSearchScopes = TestArtifactSearchScopes.getInstance(testModule);
     assertNotNull(testArtifactSearchScopes);
 
@@ -224,7 +224,7 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
   @NotNull
   private GradleTestArtifactSearchScopes loadMultiProjectAndGetTestScopesForModule(String moduleName) throws Exception {
     loadProject(SYNC_MULTIPROJECT);
-    Module module1 = myModules.getModule(moduleName);
+    Module module1 = TestModuleUtil.findModule(getProject(), moduleName);
     GradleTestArtifactSearchScopes testArtifactSearchScopes = GradleTestArtifactSearchScopes.getInstance(module1);
     assertNotNull(testArtifactSearchScopes);
     return testArtifactSearchScopes;
@@ -232,7 +232,7 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
   public void testMergeSubmoduleDependencies() throws Exception {
     loadProject(TEST_ARTIFACTS_MULTIDEPENDENCIES);
-    Module module = myModules.getModule("module1");
+    Module module = TestModuleUtil.findModule(getProject(), "module1");
     GradleTestArtifactSearchScopes scopes = GradleTestArtifactSearchScopes.getInstance(module);
     scopes.resolveDependencies();
   }
@@ -250,22 +250,20 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
     // verify scope of test-util
     // implementation project(':lib')
-    Module testUtilModule = myModules.getModule("test-util");
-    Module libModule = myModules.getModule("lib");
+    Module testUtilModule = TestModuleUtil.findModule(getProject(), "test-util");
+    Module libModule = TestModuleUtil.findModule(getProject(), "lib");
 
     GradleTestArtifactSearchScopes scopes = GradleTestArtifactSearchScopes.getInstance(testUtilModule);
     scopes.resolveDependencies();
 
-    String projectFolder = getProject().getBasePath();
-    String moduleId = createUniqueModuleId(projectFolder, ":lib");
     ImmutableCollection<ModuleDependency> moduleDependencies = scopes.getMainDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(moduleId, COMPILE, libModule));
+    assertThat(moduleDependencies).contains(new ModuleDependency(COMPILE, libModule));
 
     moduleDependencies = scopes.getUnitTestDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(moduleId, COMPILE, libModule));
+    assertThat(moduleDependencies).contains(new ModuleDependency(COMPILE, libModule));
 
     moduleDependencies = scopes.getAndroidTestDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(moduleId, TEST, libModule));
+    assertThat(moduleDependencies).contains(new ModuleDependency(TEST, libModule));
 
     // verify scope of lib
     // testImplementation project(':test-util')
@@ -276,10 +274,10 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
     assertThat(moduleDependencies).isEmpty();
 
     moduleDependencies = scopes.getUnitTestDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(createUniqueModuleId(projectFolder, ":test-util"), TEST, testUtilModule));
+    assertThat(moduleDependencies).contains(new ModuleDependency(TEST, testUtilModule));
 
     moduleDependencies = scopes.getAndroidTestDependencies().onModules();
-    assertThat(moduleDependencies).isEmpty();
+    assertThat(moduleDependencies).contains(new ModuleDependency(COMPILE, libModule));
   }
 
   public void testGeneratedTestSourcesIncluded() throws Exception {

@@ -22,7 +22,9 @@ import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.openapi.module.Module;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.Nullable;
@@ -43,7 +45,7 @@ public abstract class IdeAndroidProjectIntegrationTestCase extends AndroidGradle
 
   @Nullable
   protected IdeAndroidProject getAndroidProjectInApp() {
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
     return androidModel != null ? androidModel.getAndroidProject() : null;
   }
@@ -57,8 +59,7 @@ public abstract class IdeAndroidProjectIntegrationTestCase extends AndroidGradle
       IdeDependencies level2Dependencies = variant.getMainArtifact().getLevel2Dependencies();
       assertThat(level2Dependencies).isNotNull();
       assertThat(level2Dependencies.getModuleDependencies()).isEmpty();
-      List<String> androidLibraries =
-        level2Dependencies.getAndroidLibraries().stream().map(Library::getArtifactAddress).collect(Collectors.toList());
+      List<String> androidLibraries = ContainerUtil.map(level2Dependencies.getAndroidLibraries(), Library::getArtifactAddress);
       assertThat(level2Dependencies.getAndroidLibraries()).isNotEmpty();
       assertThat(androidLibraries).contains(expectedLibraryName);
     });

@@ -24,22 +24,25 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.android.uipreview.AndroidEditorSettings
 
 class AndroidComposeCompletionContributorTest : AndroidTestCase() {
 
   public override fun setUp() {
     super.setUp()
     StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
-    StudioFlags.COMPOSE_COMPLETION_INSERT_HANDLER.override(true)
     StudioFlags.COMPOSE_COMPLETION_PRESENTATION.override(true)
+    StudioFlags.COMPOSE_COMPLETION_INSERT_HANDLER.override(true)
+    StudioFlags.COMPOSE_COMPLETION_WEIGHER.override(true)
     (myModule.getModuleSystem() as DefaultModuleSystem).usesCompose = true
     myFixture.stubComposableAnnotation()
   }
 
   override fun tearDown() {
     StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
-    StudioFlags.COMPOSE_COMPLETION_INSERT_HANDLER.clearOverride()
     StudioFlags.COMPOSE_COMPLETION_PRESENTATION.clearOverride()
+    StudioFlags.COMPOSE_COMPLETION_INSERT_HANDLER.clearOverride()
+    StudioFlags.COMPOSE_COMPLETION_WEIGHER.clearOverride()
     super.tearDown()
   }
 
@@ -180,6 +183,94 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
     )
   }
 
+  fun testInsertHandler_dont_insert_before_parenthesis() {
+    // Given:
+    myFixture.addFileToProject(
+      "src/com/example/MyViews.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun FoobarOne(first: Int, second: String, third: String? = null) {}
+
+      """.trimIndent()
+    )
+
+    var file = myFixture.addFileToProject(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun HomeScreen() {
+        Foobar${caret}()
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun HomeScreen() {
+        FoobarOne()
+      }
+      """.trimIndent()
+    )
+
+
+    // Check completion with tab
+    file = myFixture.addFileToProject(
+      "src/com/example/Test2.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun HomeScreen() {
+        ${caret}()
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    myFixture.completeBasic()
+    myFixture.type("Foobar\t")
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun HomeScreen() {
+        FoobarOne()
+      }
+      """.trimIndent()
+    )
+  }
+
   fun testInsertHandler_lambda() {
     // Given:
     myFixture.addFileToProject(
@@ -226,6 +317,106 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       @Composable
       fun HomeScreen() {
         FoobarOne {
+
+        }
+      }
+      """.trimIndent()
+      , true)
+  }
+
+  fun testInsertHandler_lambda_before_curly_braces() {
+    // Given:
+    myFixture.addFileToProject(
+      "src/com/example/MyViews.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun FoobarOne(children: @Composable() () -> Unit) {}
+
+      """.trimIndent()
+    )
+
+    var file = myFixture.addFileToProject(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun HomeScreen() {
+      // Space after caret.
+        $caret {
+
+        }
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    myFixture.type("Foobar")
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun HomeScreen() {
+      // Space after caret.
+        FoobarOne {
+
+        }
+      }
+      """.trimIndent()
+      , true)
+
+    // Given:
+    file = myFixture.addFileToProject(
+      "src/com/example/Test2.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun HomeScreen() {
+      // No space after caret.
+        $caret{
+
+        }
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    myFixture.type("Foobar")
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun HomeScreen() {
+      // No space after caret.
+        FoobarOne{
 
         }
       }
@@ -335,6 +526,60 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       }
       """.trimIndent()
       , true)
+  }
+
+  fun testInsertHandler_disabledThroughSettings() {
+    // Given:
+    myFixture.addFileToProject(
+      "src/com/example/MyViews.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun FoobarOne(first: Int, second: String, third: String? = null) {}
+
+      """.trimIndent()
+    )
+
+    val file = myFixture.addFileToProject(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun HomeScreen() {
+        Foobar${caret}
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    AndroidEditorSettings.getInstance().globalState.isComposeInsertHandlerEnabled = false
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun HomeScreen() {
+        FoobarOne()
+      }
+      """.trimIndent()
+    )
+
+    AndroidEditorSettings.getInstance().globalState.isComposeInsertHandlerEnabled = true
   }
 
   private val JavaCodeInsightTestFixture.renderedLookupElements: Collection<String>

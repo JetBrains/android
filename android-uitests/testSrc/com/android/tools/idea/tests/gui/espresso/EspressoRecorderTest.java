@@ -23,7 +23,6 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.emulator.AvdSpec;
 import com.android.tools.idea.tests.gui.framework.emulator.AvdTestRule;
-import com.android.tools.idea.tests.gui.framework.emulator.EmulatorGenerator;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RecordingDialogFixture;
@@ -116,10 +115,13 @@ public class EspressoRecorderTest {
 
     RecordingDialogFixture.find(guiTest.robot()).clickOk();
     TestClassNameInputDialogFixture.find(guiTest.robot()).clickOk();
-    MessagesFixture.findByTitle(guiTest.robot(), "Missing or obsolete Espresso dependencies").clickYes();
+    ideFrameFixture.actAndWaitForGradleProjectSyncToFinish(
+      it ->
+        MessagesFixture
+          .findByTitle(guiTest.robot(), "Missing or obsolete Espresso dependencies")
+          .clickYes());
 
     // Run Android test.
-    ideFrameFixture.waitForGradleProjectSyncToFinish();
     // The test menu item does not appear in the menu until we interact with the editor
     // This is a minor bug: https://issuetracker.google.com/71516507
     // Generate a click in the editor:

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.databinding;
 
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache;
 import com.intellij.openapi.util.ModificationTracker;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +27,7 @@ public class LayoutBindingSupportImpl implements LayoutBindingSupport {
   @Override
   @NotNull
   public DataBindingMode getDataBindingMode(@NotNull AndroidFacet facet) {
-    return ModuleDataBinding.getInstance(facet).getDataBindingMode();
+    return LayoutBindingModuleCache.getInstance(facet).getDataBindingMode();
   }
 
   /**
@@ -35,8 +36,7 @@ public class LayoutBindingSupportImpl implements LayoutBindingSupport {
   @Override
   @NotNull
   public ModificationTracker getDataBindingEnabledTracker() {
-    //noinspection AccessStaticViaInstance
-    return DataBindingModeTrackingService.getInstance().DATA_BINDING_ENABLED_TRACKER;
+    return DataBindingModeTrackingService.getInstance();
   }
 
   /**

@@ -15,6 +15,15 @@
  */
 package com.android.tools.idea.updater.configure;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.repository.api.ConstantSourceProvider;
 import com.android.repository.api.RemoteListSourceProvider;
 import com.android.repository.api.RepoManager;
@@ -27,27 +36,27 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.sources.RemoteSiteType;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
-
+import com.intellij.testFramework.ApplicationRule;
 import java.io.File;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.jetbrains.annotations.NotNull;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-public class SourcesTableModelTest extends AndroidTestCase {
+public class SourcesTableModelTest {
   private SourcesTableModel myModel;
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    AtomicBoolean initDone = new AtomicBoolean();
-    myModel = new SourcesTableModel(() -> {}, () -> initDone.set(true), ModalityState.current());
+  @Rule
+  public ApplicationRule myApplicationRule = new ApplicationRule();
+
+  @Before
+  public void setUp() throws Exception {
+    Semaphore initDone = new Semaphore(0);
+    myModel = new SourcesTableModel(() -> {}, () -> initDone.release(), ModalityState.NON_MODAL);
     myModel.setRefreshCallback(() -> {});
     SdkUpdaterConfigurable configurable = mock(SdkUpdaterConfigurable.class);
     MockFileOp fop = new MockFileOp();
@@ -80,17 +89,15 @@ public class SourcesTableModelTest extends AndroidTestCase {
 
     myModel.setConfigurable(configurable);
     myModel.reset();
-    while (!initDone.get()) {
-      UIUtil.dispatchAllInvocationEvents();
-    }
+    assertTrue(initDone.tryAcquire(5, TimeUnit.SECONDS));
   }
 
-  @Override
-  protected void tearDown() throws Exception {
+  @After
+  public void tearDown() {
     myModel = null;
-    super.tearDown();
   }
 
+  @Test
   public void testEditable() {
     assertEquals(4, myModel.getRowCount());
     assertFalse(myModel.getItem(0).isModified());
@@ -110,12 +117,15 @@ public class SourcesTableModelTest extends AndroidTestCase {
     }
   }
 
-  public void testAddSource() {
+  @Test
+  public void testAddSource() throws Exception {
     runAndWaitForUpdate(() -> myModel.createSource("http://www.example.com/2", "z new site", null));
     assertEquals(5, myModel.getRowCount());
+    //noinspection unchecked
     assertEquals("z new site", myModel.getColumnInfos()[1].valueOf(myModel.getItem(1)));
   }
 
+  @Test
   public void testDisable() {
     assertTrue(myModel.getItem(0).mySource.isEnabled());
     myModel.setValueAt(false, 0, 0);
@@ -124,7 +134,8 @@ public class SourcesTableModelTest extends AndroidTestCase {
     assertTrue(myModel.getItem(0).mySource.isEnabled());
   }
 
-  public void testEnableAll() {
+  @Test
+  public void testEnableAll() throws Exception {
     runAndWaitForUpdate(() -> myModel.createSource("http://www.example.com/2", "z new site", null));
     assertTrue(myModel.getItem(0).mySource.isEnabled());
     assertTrue(myModel.getItem(1).mySource.isEnabled());
@@ -154,27 +165,24 @@ public class SourcesTableModelTest extends AndroidTestCase {
     assertTrue(myModel.getItem(0).mySource.isEnabled());
   }
 
-  public void testRemoveSource() {
+  @Test
+  public void testRemoveSource() throws Exception {
+    //noinspection unchecked
     assertEquals("test local source", myModel.getColumnInfos()[1].valueOf(myModel.getItem(0)));
     runAndWaitForUpdate(() -> myModel.removeRow(0));
     assertEquals(3, myModel.getRowCount());
-    assertFalse("test local source".equals(myModel.getColumnInfos()[1].valueOf(myModel.getItem(0))));
+    //noinspection unchecked
+    assertNotEquals("test local source", myModel.getColumnInfos()[1].valueOf(myModel.getItem(0)));
     // not editable
     runAndWaitForUpdate(() -> myModel.removeRow(0));
     assertEquals(3, myModel.getRowCount());
   }
 
-  private void runAndWaitForUpdate(@NotNull Runnable action) {
-    AtomicBoolean loadingFinishedCalled = new AtomicBoolean();
-    myModel.setLoadingFinishedCallback(() -> assertTrue(loadingFinishedCalled.compareAndSet(false, true)));
+  private void runAndWaitForUpdate(@NotNull Runnable action) throws Exception {
+    Semaphore loadingFinishedCalled = new Semaphore(0);
+    myModel.setLoadingFinishedCallback(() -> loadingFinishedCalled.release());
     action.run();
-    long startTime = System.currentTimeMillis();
-    while (!loadingFinishedCalled.get()) {
-      UIUtil.dispatchAllInvocationEvents();
-      if (startTime + TimeUnit.SECONDS.toMillis(2) < System.currentTimeMillis()) {
-        fail("timed out waiting for update to complete");
-      }
-    }
+    assertTrue(loadingFinishedCalled.tryAcquire(2, TimeUnit.SECONDS));
     myModel.setLoadingFinishedCallback(() -> {});
   }
 }

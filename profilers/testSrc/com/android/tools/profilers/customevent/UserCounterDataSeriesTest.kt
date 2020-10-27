@@ -94,7 +94,7 @@ class UserCounterDataSeriesTest {
     val services = FakeIdeProfilerServices().apply {
       enableCustomEventVisualization(true)
     }
-    profilers = StudioProfilers(ProfilerClient(grpcChannel.name), services, timer)
+    profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     USER_EVENTS.forEach { event -> transportService.addEventToStream(1, event) }
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
@@ -103,30 +103,18 @@ class UserCounterDataSeriesTest {
 
   @Test
   fun testEmptyRange() {
-    // Create a series with empty range.
     val series = UserCounterDataSeries(profilers.client.transportClient, profilers)
     val dataSeries = series.getDataForRange(Range())
-    assertNotNull(dataSeries)
-    // No data within given range.
-    assertTrue(dataSeries.isEmpty())
+    assertThat(dataSeries).isEmpty()
   }
 
 
   @Test
   fun testNonEmptyRange() {
-    // Create a series with a non-empty range.
-    // Check that 1 event is found within this timeframe
     val dataSeriesForRange1 = userCounterDataSeries.getDataForRange(Range(0.0, 100000.0))
-
-    assertNotNull(dataSeriesForRange1)
-    assertThat(dataSeriesForRange1).isNotNull()
     assertThat(dataSeriesForRange1).containsExactly(SeriesData(0L, 1L))
 
-    // Check that 2 events are found within this timeframe
     val dataSeriesForRange2 = userCounterDataSeries.getDataForRange(Range(700000.0, 1100000.0))
-
-    assertNotNull(dataSeriesForRange2)
-    assertThat(dataSeriesForRange2.size).isEqualTo(2)
     assertThat(dataSeriesForRange2).containsExactly(SeriesData(700000L, 2L), SeriesData(1000000L, 0L))
   }
 
@@ -137,18 +125,13 @@ class UserCounterDataSeriesTest {
     val dataSeriesForRange = userCounterDataSeries.getDataForRange(Range(721000.0, 721500.0))
 
     // An event occurs at 700ms and 720ms, both outside the range but within the overlapping bucket
-    assertNotNull(dataSeriesForRange)
-    assertThat(dataSeriesForRange.size).isEqualTo(1)
     assertThat(dataSeriesForRange).containsExactly(SeriesData(721000L, 2L))
   }
 
   @Test
   fun testBucketDistribution() {
-    // Check that all event counts are correctly distributed into their respective buckets
     val dataSeriesForRange = userCounterDataSeries.getDataForRange(Range(0.0, 2800000.0))
 
-    assertNotNull(dataSeriesForRange)
-    assertThat(dataSeriesForRange.size).isEqualTo(5)
     assertThat(dataSeriesForRange).containsExactly(SeriesData(0L, 1L), SeriesData(500000L, 2L), SeriesData(1000000L, 0L),
                                                    SeriesData(1500000L, 1L), SeriesData(2000000L, 0L))
   }

@@ -17,12 +17,13 @@ package com.android.tools.idea.testing
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.util.toVirtualFile
+import com.android.tools.idea.util.androidFacet
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.VfsTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.SystemIndependent
+import org.junit.AssumptionViolatedException
 import org.junit.Ignore
 import org.junit.runner.Description
 import java.io.File
@@ -33,19 +34,22 @@ import java.io.File
  * To use it, simply set the path to the target project using the provided [fixture] (see
  * [CodeInsightTestFixture.setTestDataPath]) and then [load] the project.
  */
-class AndroidGradleProjectRule : NamedExternalResource() {
+class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndependent String = "tools/adt/idea/android/testData") : NamedExternalResource() {
   /**
    * This rule is a thin wrapper around [AndroidGradleTestCase], which we delegate to to handle any
    * heavy lifting.
    */
   @Ignore // TestCase used here for its internal logic, not to run tests. Tests will be run by the class that uses this rule.
-  private class DelegateGradleTestCase : AndroidGradleTestCase() {
+  private inner class DelegateGradleTestCase : AndroidGradleTestCase() {
     val fixture: CodeInsightTestFixture get() = myFixture
-    val androidFacet: AndroidFacet get() = myAndroidFacet
-    val modules: Modules get() = myModules
+    override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = workspaceRelativeTestDataPath
 
     fun invokeTasks(project: Project, vararg tasks: String): GradleInvocationResult {
       return AndroidGradleTestCase.invokeGradleTasks(project, *tasks)
+    }
+
+    public override fun generateSources() { // Changes visibility only.
+      super.generateSources()
     }
   }
 
@@ -53,11 +57,16 @@ class AndroidGradleProjectRule : NamedExternalResource() {
 
   val fixture: CodeInsightTestFixture get() = delegateTestCase.fixture
   val project: Project get() = fixture.project
-  val androidFacet: AndroidFacet get() = delegateTestCase.androidFacet
-  val modules: Modules get() = delegateTestCase.modules
+
+  fun androidFacet(gradlePath: String): AndroidFacet = findGradleModule(gradlePath)?.androidFacet ?: gradleModuleNotFound(gradlePath)
+  fun gradleModule(gradlePath: String): Module = findGradleModule(gradlePath) ?: gradleModuleNotFound(gradlePath)
+  fun findGradleModule(gradlePath: String): Module? = project.gradleModule(gradlePath)
+
+  fun getModule(moduleName: String) = delegateTestCase.getModule(moduleName);
+  fun hasModule(moduleName: String) = delegateTestCase.hasModule(moduleName);
 
   override fun before(description: Description) {
-    delegateTestCase.name = description.methodName
+    delegateTestCase.name = description.methodName ?: description.displayName
     delegateTestCase.setUp()
   }
 
@@ -73,16 +82,20 @@ class AndroidGradleProjectRule : NamedExternalResource() {
    *   is actually loaded.
    */
   @JvmOverloads
-  fun load(projectPath: String, preLoad: ((projectRoot: File) -> Unit)? = null) {
+  fun load(
+    projectPath: String,
+    issueFilter: AndroidGradleTests.SyncIssueFilter? = null,
+    preLoad: ((projectRoot: File) -> Unit)? = null
+  ) {
     if (preLoad != null) {
       val rootFile = delegateTestCase.prepareProjectForImport(projectPath)
 
       preLoad(rootFile)
-      delegateTestCase.importProject()
+      delegateTestCase.importProject(issueFilter)
       delegateTestCase.prepareProjectForTest(project, null)
     }
     else {
-      delegateTestCase.loadProject(projectPath)
+      delegateTestCase.loadProject(projectPath, issueFilter)
     }
   }
 
@@ -96,16 +109,21 @@ class AndroidGradleProjectRule : NamedExternalResource() {
    */
   @JvmOverloads
   fun loadProject(projectPath: String, chosenModuleName: String? = null, gradleVersion: String? = null, agpVersion: String? = null) {
-      delegateTestCase.loadProject(projectPath, chosenModuleName, gradleVersion, agpVersion)
+      delegateTestCase.loadProject(projectPath, chosenModuleName, gradleVersion, agpVersion, null)
   }
 
-  fun requestSyncAndWait() {
-    delegateTestCase.requestSyncAndWait()
+  @JvmOverloads
+  fun requestSyncAndWait(issueFilter: AndroidGradleTests.SyncIssueFilter? = null) {
+    delegateTestCase.requestSyncAndWait(issueFilter)
   }
 
   fun requestSyncAndWait(request: GradleSyncInvoker.Request) {
     val syncListener = delegateTestCase.requestSync(request)
-    AndroidGradleTests.checkSyncStatus(syncListener)
+    AndroidGradleTests.checkSyncStatus(project, syncListener, null)
+  }
+
+  fun generateSources() {
+    delegateTestCase.generateSources()
   }
 
   /**
@@ -117,3 +135,7 @@ class AndroidGradleProjectRule : NamedExternalResource() {
 
   fun resolveTestDataPath(relativePath: String): File = delegateTestCase.resolveTestDataPath(relativePath)
 }
+
+private fun gradleModuleNotFound(gradlePath: String): Nothing =
+  throw AssumptionViolatedException("No module with Gradle path: $gradlePath")
+

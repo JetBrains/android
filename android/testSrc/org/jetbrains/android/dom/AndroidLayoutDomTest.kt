@@ -12,7 +12,6 @@ import com.android.tools.idea.lint.common.LintExternalAnnotator
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addBinaryAarDependency
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
-import com.android.tools.idea.templates.TemplateUtils.camelCaseToUnderlines
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
@@ -68,7 +67,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
       """
       package android.support.v7.widget;
 
-      import android.widget.ViewGroup;
+      import android.view.ViewGroup;
 
       public class RecyclerView extends ViewGroup {
         public abstract static class LayoutManager {
@@ -87,7 +86,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     """
       package androidx.recyclerview.widget;
 
-      import android.widget.ViewGroup;
+      import android.view.ViewGroup;
 
       public class RecyclerView extends ViewGroup {
         public abstract static class LayoutManager {
@@ -456,6 +455,11 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     UsefulTestCase.assertSameElements(
       lookupElementStrings, "android:layout_above", "android:layout_alignBaseline",
       "android:layout_alignBottom", "android:layout_alignEnd", "android:layout_alignLeft")
+  }
+
+  fun testAttributeNameInheritedAttributesForViewTag() {
+    // TextClock inherits "bufferType" attr from TextView.
+    toTestCompletion("inheritedAttributesForViewTag.xml", "inheritedAttributesForViewTag_after.xml")
   }
 
   fun testLiveTemplateAttributeCompletion() {

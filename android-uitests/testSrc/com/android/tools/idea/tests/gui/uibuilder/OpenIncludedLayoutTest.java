@@ -47,7 +47,7 @@ public class OpenIncludedLayoutTest {
     EditorFixture editor = ideFrame.getEditor()
       .open(OUTER_XML, EditorFixture.Tab.DESIGN);
 
-    NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
+    NlEditorFixture layoutEditor = editor.getLayoutEditor();
     layoutEditor.waitForRenderToFinish();
     JTreeFixture tree = layoutEditor.getComponentTree();
     tree.click();
@@ -66,12 +66,12 @@ public class OpenIncludedLayoutTest {
     EditorFixture editor = ideFrame.getEditor()
       .open(OUTER_XML, EditorFixture.Tab.DESIGN);
 
-    NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
+    NlEditorFixture layoutEditor = editor.getLayoutEditor();
     layoutEditor.waitForRenderToFinish();
     layoutEditor.getAllComponents()
       .stream()
       .filter(fixture -> fixture.getComponent().getTagName().equalsIgnoreCase(SdkConstants.VIEW_INCLUDE))
-      .findFirst().get().doubleClick();
+      .findFirst().get().getSceneComponent().doubleClick();
     assertEquals(INCLUDED_XML, editor.getCurrentFileName());
   }
 }

@@ -21,9 +21,6 @@ import java.util.*;
 
 import static org.jetbrains.jps.api.CmdlineRemoteProto.Message.ControllerMessage.ParametersMessage.TargetTypeBuildScope;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidBuildTargetScopeProvider extends BuildTargetScopeProvider {
 
   private static boolean isProGuardUsed(@NotNull Project project, @NotNull CompileScope scope) {

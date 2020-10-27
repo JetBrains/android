@@ -26,6 +26,7 @@ import com.google.common.base.Splitter;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
@@ -80,6 +81,8 @@ import org.jetbrains.annotations.TestOnly;
  * @param <T> Specifies the type of data controlled by this {@link WorkBench}.
  */
 public class WorkBench<T> extends JBLayeredPane implements Disposable {
+  private static Logger LOG = Logger.getInstance(WorkBench.class);
+
   private final String myName;
   private final PropertiesComponent myPropertiesComponent;
   private final WorkBenchManager myWorkBenchManager;
@@ -93,7 +96,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   private final MinimizedPanel<T> myLeftMinimizePanel;
   private final MinimizedPanel<T> myRightMinimizePanel;
   private final ButtonDragListener<T> myButtonDragListener;
-  private final PropertyChangeListener myMyPropertyChangeListener = this::autoHide;
+  private final PropertyChangeListener myMyPropertyChangeListener = this::handlePropertyEvent;
   private FileEditor myFileEditor;
 
   @NotNull private String myContext = "";
@@ -124,6 +127,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
                    @NotNull T context,
                    @NotNull List<ToolWindowDefinition<T>> definitions,
                    boolean minimizedWindows) {
+    LOG.debug("init");
     if (ScreenReader.isActive()) {
       setFocusCycleRoot(true);
       setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
@@ -138,24 +142,33 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myModel.setContext(context);
     addToolsToModel(minimizedWindows);
     myWorkBenchManager.register(this);
-    myDetachedToolWindowManager.register(myFileEditor, this);
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", myMyPropertyChangeListener);
   }
 
   public void setLoadingText(@NotNull String loadingText) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("setLoadingText: " + loadingText);
+    }
     myLoadingPanel.setLoadingText(loadingText);
   }
 
   public void showLoading(@NotNull String message) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("showLoading: " + message);
+    }
     setLoadingText(message);
     myLoadingPanel.startLoading();
   }
 
   public void hideLoading() {
+    LOG.debug("hideLoading");
     myLoadingPanel.stopLoading();
   }
 
   public void loadingStopped(@NotNull String message) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("loadingStopped " + message);
+    }
     myLoadingPanel.abortLoading(message, AllIcons.General.Warning);
   }
 
@@ -180,6 +193,9 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
    * Currently needed for the designer preview pane.
    */
   public void setToolContext(@Nullable T context) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("setToolContext " + context);
+    }
     myModel.setContext(context);
   }
 
@@ -188,6 +204,9 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
    * Currently needed for the designer preview pane.
    */
   public void setFileEditor(@Nullable FileEditor fileEditor) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("setFileEditor " + fileEditor);
+    }
     myDetachedToolWindowManager.unregister(myFileEditor);
     myDetachedToolWindowManager.register(fileEditor, this);
     myFileEditor = fileEditor;
@@ -198,6 +217,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
 
   @Override
   public void dispose() {
+    LOG.debug("dispose");
     myWorkBenchManager.unregister(this);
     myDetachedToolWindowManager.unregister(myFileEditor);
     KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", myMyPropertyChangeListener);
@@ -248,6 +268,26 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
       }
     }
     return false;
+  }
+
+  private void handlePropertyEvent(@NotNull PropertyChangeEvent event) {
+    updateDetachedToolWindows(event);
+    autoHide(event);
+  }
+
+  private void updateDetachedToolWindows(@NotNull PropertyChangeEvent event) {
+    Object newValue = event.getNewValue();
+    if (!(newValue instanceof JComponent)) {
+      return;
+    }
+    JComponent newComponent = (JComponent)newValue;
+    JComponent oldComponent = event.getOldValue() instanceof JComponent ? (JComponent)event.getOldValue() : null;
+    // If a component inside this WorkBench got the focus and it didn't already have the focus, we want to show
+    // our detached (floating) tool windows and hide detached tool windows from other workbenches.
+    if (SwingUtilities.isDescendingFrom(newComponent, this) &&
+        (oldComponent == null || !SwingUtilities.isDescendingFrom(oldComponent, this))) {
+      myDetachedToolWindowManager.updateToolWindowsForWorkBench(this);
+    }
   }
 
   private void autoHide(@NotNull PropertyChangeEvent event) {

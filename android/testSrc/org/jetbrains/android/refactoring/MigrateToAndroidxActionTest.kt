@@ -15,14 +15,13 @@
  */
 package org.jetbrains.android.refactoring
 
-import com.android.tools.idea.gradle.project.sync.setup.post.project.GradleKtsBuildFilesWarningStep
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.project.Project
-import org.junit.Assert.assertFalse
+import com.intellij.openapi.util.Key
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -59,7 +58,7 @@ class MigrateToAndroidxActionTest {
 
   @Test
   fun `check action is enabled when kts detected`() {
-    myProject?.putUserData(GradleKtsBuildFilesWarningStep.HAS_KTS_BUILD_FILES, true)
+    myProject?.putUserData(Key("gradle.has.kts.files"), true)
 
     val action = MigrateToAndroidxAction()
     val event = myEvent!!
@@ -71,7 +70,7 @@ class MigrateToAndroidxActionTest {
 
   @Test
   fun `check action is enabled when kts not detected`() {
-    myProject?.putUserData(GradleKtsBuildFilesWarningStep.HAS_KTS_BUILD_FILES, false)
+    myProject?.putUserData(Key("gradle.has.kts.files"), false)
 
     val action = MigrateToAndroidxAction()
     val event = myEvent!!

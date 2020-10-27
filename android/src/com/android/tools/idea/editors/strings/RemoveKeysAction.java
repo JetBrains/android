@@ -28,7 +28,7 @@ import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.refactoring.safeDelete.SafeDeleteDialog;
 import com.intellij.refactoring.safeDelete.SafeDeleteProcessor;
 import com.intellij.refactoring.util.CommonRefactoringUtil;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -60,7 +60,7 @@ final class RemoveKeysAction extends AnAction {
     PsiElement[] keys = Arrays.stream(table.getSelectedModelRowIndices())
                               .mapToObj(index -> model.getStringResourceAt(index).getKey())
                               .flatMap(key -> repository.getItems(key).stream())
-                              .map(item -> AndroidResourceUtil.getItemTag(project, item))
+                              .map(item -> IdeResourcesUtil.getItemTag(project, item))
                               .toArray(PsiElement[]::new);
 
     if (keys.length == 0) {

@@ -1,4 +1,18 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+/*
+ * Copyright 2000-2010 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.android.dom;
 
 import static com.android.SdkConstants.ANDROID_URI;
@@ -68,7 +82,6 @@ import com.android.support.AndroidxName;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
@@ -128,11 +141,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-/**
- * @author Eugene.Kudelevsky
- */
 @SuppressWarnings({"EnumSwitchStatementWhichMissesCases"})
-public final class AndroidDomUtil {
+public class AndroidDomUtil {
   private static final Logger LOG = Logger.getInstance(AndroidDomUtil.class);
 
   private static final AndroidxName RECYCLER_VIEW_LAYOUT_MANAGER_NAME =
@@ -421,8 +431,6 @@ public final class AndroidDomUtil {
 
   @Nullable
   public static AttributeDefinition getAttributeDefinition(@NotNull AndroidFacet facet, @NotNull XmlAttribute attribute) {
-    checkThreading();
-
     String localName = attribute.getLocalName();
 
     ResourceNamespace namespace = null;
@@ -575,20 +583,5 @@ public final class AndroidDomUtil {
 
     PsiClass tagClass = JavaPsiFacade.getInstance(tag.getProject()).findClass(qualifiedName, tag.getResolveScope());
     return InheritanceUtil.isInheritor(tagClass, MigrateToAndroidxUtil.getNameInProject(baseClass, tag.getProject()));
-  }
-
-  private static final boolean CHECK_THREADING = false;
-
-  public static void checkThreading() {
-    if (!CHECK_THREADING) {
-      return;
-    }
-
-    if (ApplicationManager.getApplication().isDispatchThread()) {
-      LOG.error("Android DOM operations on the UI thread.");
-    }
-    else if (Thread.currentThread().getName().startsWith("JobScheduler FJ pool")) {
-      LOG.error("Android DOM operations on FJ pool.");
-    }
   }
 }

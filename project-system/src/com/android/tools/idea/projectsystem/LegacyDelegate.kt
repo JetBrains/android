@@ -31,6 +31,8 @@ class LegacyDelegate constructor(private val facet: AndroidFacet) : NamedIdeaSou
 
   override val name: String = ""
 
+  override val scopeType: ScopeType = ScopeType.MAIN
+
   private val manifestFileUrl: String get() = manifestFile?.url ?: let {
     val moduleDirPath: String = File(facet.module.moduleFilePath).parent
     VfsUtilCore.pathToUrl(
@@ -121,6 +123,9 @@ class LegacyDelegate constructor(private val facet: AndroidFacet) : NamedIdeaSou
   override val shadersDirectoryUrls: Collection<String> get() = emptySet()
   override val shadersDirectories: Collection<VirtualFile> get() = emptySet()
 
+  override val mlModelsDirectoryUrls: Collection<String> get() = emptySet()
+  override val mlModelsDirectories: Collection<VirtualFile> get() = emptySet()
+
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (other == null || javaClass != other.javaClass) return false
@@ -141,7 +146,7 @@ fun createSourceProvidersForLegacyModule(facet: AndroidFacet): SourceProviders {
     currentSourceProviders = listOf(mainSourceProvider),
     currentUnitTestSourceProviders = emptyList(),
     currentAndroidTestSourceProviders = emptyList(),
-    allSourceProviders = listOf(mainSourceProvider),
+    currentAndSomeFrequentlyUsedInactiveSourceProviders = listOf(mainSourceProvider),
     mainAndFlavorSourceProviders = listOf(mainSourceProvider)
   )
 }

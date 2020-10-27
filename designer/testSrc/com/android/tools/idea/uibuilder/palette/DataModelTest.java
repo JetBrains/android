@@ -37,6 +37,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.android.SdkConstants.PreferenceTags;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
@@ -144,7 +145,7 @@ public class DataModelTest extends AndroidTestCase {
 
   public void testCommonLayoutGroup() {
     setLayoutTypeAndWait(myDataModel, LayoutFileType.INSTANCE);
-    assertThat(myCategoryListModel.getSize()).isEqualTo(8);
+    assertThat(myCategoryListModel.getSize()).isEqualTo(9);
     assertThat(myCategoryListModel.getElementAt(0)).isEqualTo(DataModel.COMMON);
     assertThat(getElementsAsStrings(myItemListModel)).isEmpty();
     myDataModel.categorySelectionChanged(DataModel.COMMON);
@@ -157,8 +158,9 @@ public class DataModelTest extends AndroidTestCase {
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(2));
     myDataModel.addFavoriteItem(myDataModel.getPalette().getItemById(FLOATING_ACTION_BUTTON.newName()));
     assertThat(PropertiesComponent.getInstance().getValues(FAVORITE_ITEMS)).asList()
-                                                                           .containsExactly(TEXT_VIEW, BUTTON, IMAGE_VIEW, RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), VIEW_FRAGMENT, SCROLL_VIEW, SWITCH,
-                                                                                            FLOATING_ACTION_BUTTON.newName()).inOrder();
+      .containsExactly(TEXT_VIEW, BUTTON, IMAGE_VIEW, RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), VIEW_FRAGMENT,
+                       SCROLL_VIEW, SWITCH, PreferenceTags.CHECK_BOX_PREFERENCE, PreferenceTags.EDIT_TEXT_PREFERENCE,
+                       PreferenceTags.SWITCH_PREFERENCE, PreferenceTags.PREFERENCE_CATEGORY, FLOATING_ACTION_BUTTON.newName()).inOrder();
     myDataModel.categorySelectionChanged(DataModel.COMMON);
     assertThat(getElementsAsStrings(myItemListModel))
       .containsExactly("TextView", "Button", "ImageView", "RecyclerView", "<fragment>", "ScrollView", "Switch", "FloatingActionButton")
@@ -170,14 +172,16 @@ public class DataModelTest extends AndroidTestCase {
     myDataModel.categorySelectionChanged(DataModel.COMMON);
     myDataModel.removeFavoriteItem(myDataModel.getPalette().getItemById("Button"));
     assertThat(PropertiesComponent.getInstance().getValues(FAVORITE_ITEMS)).asList()
-                                                                           .containsExactly(TEXT_VIEW, IMAGE_VIEW, RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), VIEW_FRAGMENT, SCROLL_VIEW, SWITCH).inOrder();
+      .containsExactly(TEXT_VIEW, IMAGE_VIEW, RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), VIEW_FRAGMENT,
+                       SCROLL_VIEW, SWITCH, PreferenceTags.CHECK_BOX_PREFERENCE, PreferenceTags.EDIT_TEXT_PREFERENCE,
+                       PreferenceTags.SWITCH_PREFERENCE, PreferenceTags.PREFERENCE_CATEGORY).inOrder();
     assertThat(getElementsAsStrings(myItemListModel))
       .containsExactly("TextView", "ImageView", "RecyclerView", "<fragment>", "ScrollView", "Switch").inOrder();
   }
 
   public void testButtonsGroup() {
     setLayoutTypeAndWait(myDataModel, LayoutFileType.INSTANCE);
-    assertThat(myCategoryListModel.getSize()).isEqualTo(8);
+    assertThat(myCategoryListModel.getSize()).isEqualTo(9);
     assertThat(myCategoryListModel.getElementAt(2).getName()).isEqualTo("Buttons");
     assertThat(myCategoryListModel.hasMatchCounts()).isFalse();
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(2));
@@ -186,9 +190,20 @@ public class DataModelTest extends AndroidTestCase {
       "FloatingActionButton").inOrder();
   }
 
+  public void testHelpersGroup() {
+    setLayoutTypeAndWait(myDataModel, LayoutFileType.INSTANCE);
+    assertThat(myCategoryListModel.getSize()).isEqualTo(9);
+    assertThat(myCategoryListModel.getElementAt(6).getName()).isEqualTo("Helpers");
+    assertThat(myCategoryListModel.hasMatchCounts()).isFalse();
+    myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(6));
+    assertThat(getElementsAsStrings(myItemListModel)).containsExactly(
+      "Group", "Barrier (Horizontal)", "Barrier (Vertical)", "Flow", "Guideline (Horizontal)", "Guideline (Vertical)",
+      "Layer", "ImageFilterView", "ImageFilterButton", "MockView").inOrder();
+  }
+
   public void testContainersGroup() {
     setLayoutTypeAndWait(myDataModel, LayoutFileType.INSTANCE);
-    assertThat(myCategoryListModel.getSize()).isEqualTo(8);
+    assertThat(myCategoryListModel.getSize()).isEqualTo(9);
     assertThat(myCategoryListModel.getElementAt(5).getName()).isEqualTo("Containers");
     assertThat(myCategoryListModel.hasMatchCounts()).isFalse();
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(5));
@@ -202,16 +217,19 @@ public class DataModelTest extends AndroidTestCase {
     setLayoutTypeAndWait(myDataModel, LayoutFileType.INSTANCE);
     myDataModel.setFilterPattern("ima");
     assertThat(getElementsAsStrings(myCategoryListModel))
-      .containsExactly(DataModel.RESULTS.getName(), "Text", "Buttons", "Widgets").inOrder();
-    assertThat(getMatchCounts()).containsExactly(3, 1, 1, 1).inOrder();
+      .containsExactly(DataModel.RESULTS.getName(), "Text", "Buttons", "Widgets", "Helpers").inOrder();
+    assertThat(getMatchCounts()).containsExactly(5, 1, 1, 1, 2).inOrder();
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(0));
-    assertThat(getElementsAsStrings(myItemListModel)).containsExactly("Number (Decimal)", "ImageButton", "ImageView").inOrder();
+    assertThat(getElementsAsStrings(myItemListModel)).containsExactly("Number (Decimal)", "ImageButton", "ImageView",
+                                                                      "ImageFilterView", "ImageFilterButton").inOrder();
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(1));
     assertThat(getElementsAsStrings(myItemListModel)).containsExactly("Number (Decimal)");
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(2));
     assertThat(getElementsAsStrings(myItemListModel)).containsExactly("ImageButton");
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(3));
     assertThat(getElementsAsStrings(myItemListModel)).containsExactly("ImageView");
+    myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(4));
+    assertThat(getElementsAsStrings(myItemListModel)).containsExactly("ImageFilterView", "ImageFilterButton");
     myDataModel.setFilterPattern("Floating");
     assertThat(getElementsAsStrings(myCategoryListModel))
       .containsExactly(DataModel.RESULTS.getName(), "Buttons").inOrder();
@@ -312,8 +330,8 @@ public class DataModelTest extends AndroidTestCase {
     myFixture.addClass(MY_TEXT_VIEW);
     setLayoutTypeAndWait(myDataModel, LayoutFileType.INSTANCE);
 
-    assertThat(myCategoryListModel.getSize()).isEqualTo(9);
-    myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(8));
+    assertThat(myCategoryListModel.getSize()).isEqualTo(10);
+    myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(9));
     assertThat(myItemListModel.getSize()).isEqualTo(1);
     assertThat(myItemListModel.getElementAt(0).getTagName()).isEqualTo("com.example.MyTextView");
   }

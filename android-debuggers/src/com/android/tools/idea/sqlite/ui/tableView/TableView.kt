@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.sqlite.ui.tableView
 
-import com.android.tools.idea.sqlite.model.SqliteColumn
+import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteRow
+import com.android.tools.idea.sqlite.model.SqliteValue
 import javax.swing.JComponent
 
 /**
@@ -32,10 +33,6 @@ interface TableView {
    * Removes data for both columns and rows and updates the view.
    */
   fun resetView()
-  /**
-   * Removes data for rows and updates the view.
-   */
-  fun removeRows()
 
   /**
    * Updates the UI to show the number of rows loaded per page.
@@ -43,8 +40,7 @@ interface TableView {
   fun showPageSizeValue(maxRowCount: Int)
 
   fun startTableLoading()
-  fun showTableColumns(columns: List<SqliteColumn>)
-  fun showTableRowBatch(rows: List<SqliteRow>)
+  fun showTableColumns(columns: List<ViewColumn>)
   fun stopTableLoading()
   fun reportError(message: String, t: Throwable?)
 
@@ -66,13 +62,39 @@ interface TableView {
   fun addListener(listener: Listener)
   fun removeListener(listener: Listener)
 
+  /**
+   * Shows rows in the table, by applying the list of [RowDiffOperation]s.
+   */
+  fun updateRows(rowDiffOperations: List<RowDiffOperation>)
+
+  /**
+   * Sets the text shown when the table is empty.
+   */
+  fun setEmptyText(text: String)
+
+  fun setRowOffset(rowOffset: Int)
+
+  /**
+   * Reverts the last edit operation in the table's UI.
+   *
+   * When we edit a cell we want to immediately show the new value in the UI (to avoid jumps)
+   * if the corresponding update operation fails in the database, we need to revert this UI change.
+   */
+  fun revertLastTableCellEdit()
+
+  /**
+   * Updates the sort indicator in the table's columns.
+   */
+  fun setColumnSortIndicator(orderBy: OrderBy)
+
   interface Listener {
     fun loadPreviousRowsInvoked()
     fun loadNextRowsInvoked()
     fun loadFirstRowsInvoked()
     fun loadLastRowsInvoked()
     fun refreshDataInvoked()
-    fun updateCellInvoked(targetRow: SqliteRow, targetColumn: SqliteColumn, newValue: Any?)
+    fun toggleLiveUpdatesInvoked()
+    fun updateCellInvoked(targetRowIndex: Int, targetColumn: ViewColumn, newValue: SqliteValue)
 
     /**
      * Invoked when the user changes the number of rows to display per page.
@@ -82,6 +104,58 @@ interface TableView {
     /**
      * Invoked when the user wants to order the data by a specific column
      */
-    fun toggleOrderByColumnInvoked(sqliteColumn: SqliteColumn)
+    fun toggleOrderByColumnInvoked(viewColumn: ViewColumn)
+
+    /**
+     * Invoked when the user wants to cancel the SQLite statement that is currently running.
+     */
+    fun cancelRunningStatementInvoked()
   }
+}
+
+/**
+ * Class used to indicate how the table is sorted
+ */
+sealed class OrderBy {
+  data class Asc(val column: ViewColumn) : OrderBy()
+  data class Desc(val column: ViewColumn) : OrderBy()
+  object NotOrdered : OrderBy()
+
+  /**
+   * Returns the next state cycling between not sorted, desc and asc.
+   * If the column changes the sorting starts from desc on the new column.
+   */
+  fun nextState(newColumn: ViewColumn): OrderBy {
+    val column = when (this) {
+      is Asc -> column
+      is Desc -> column
+      NotOrdered -> null
+    }
+
+    // start from desc if sorting on new column
+    if (column != newColumn) {
+      return Desc(newColumn)
+    }
+
+    return when(this) {
+      is NotOrdered -> Desc(newColumn)
+      is Desc -> Asc(newColumn)
+      is Asc -> NotOrdered
+    }
+  }
+}
+
+data class ViewColumn(val name: String, val inPrimaryKey: Boolean, val isNullable: Boolean)
+
+/** Class that represents a generic rows diff operation */
+sealed class RowDiffOperation {
+  /** Update operations are applied to the cells of existing rows */
+  data class UpdateCell(val newValue: SqliteColumnValue, val rowIndex: Int, val colIndex: Int) : RowDiffOperation()
+  /** Add operations are applied after [UpdateCell] operations, therefore rows are added at the end of the table */
+  data class AddRow(val row: SqliteRow) : RowDiffOperation()
+  /**
+   * Remove operations are applied after [UpdateCell] operations
+   * @param startIndex The index from which rows should be removed from the view.
+   */
+  data class RemoveLastRows(val startIndex: Int) : RowDiffOperation()
 }

@@ -19,10 +19,14 @@ import org.gradle.tooling.events.BinaryPluginIdentifier
 import org.gradle.tooling.events.PluginIdentifier
 import org.gradle.tooling.events.ScriptPluginIdentifier
 
-data class PluginData(val pluginType: PluginType, val displayName: String) {
+class PluginData(pluginType: PluginType, val displayName: String) {
+  var pluginType: PluginType = pluginType
+    private set
+
   enum class PluginType {
     UNKNOWN,
-    PLUGIN,
+    BINARY_PLUGIN,
+    BUILDSRC_PLUGIN,
     SCRIPT
   }
 
@@ -31,6 +35,19 @@ data class PluginData(val pluginType: PluginType, val displayName: String) {
 
   override fun toString(): String = toString(pluginType, displayName)
 
+  override fun equals(other: Any?): Boolean {
+    return other is PluginData &&
+           displayName == other.displayName
+  }
+
+  override fun hashCode(): Int {
+    return displayName.hashCode()
+  }
+
+  fun markAsBuildSrcPlugin() {
+    this.pluginType = PluginType.BUILDSRC_PLUGIN
+  }
+
   companion object {
     fun toString(pluginIdentifier: PluginIdentifier?, projectPath: String): String = toString(getPluginType(pluginIdentifier),
                                                                                               getPluginName(pluginIdentifier, projectPath))
@@ -38,14 +55,15 @@ data class PluginData(val pluginType: PluginType, val displayName: String) {
     fun toString(pluginType: PluginType, displayName: String): String {
       return when (pluginType) {
         PluginType.UNKNOWN -> "unknown plugin"
-        PluginType.PLUGIN -> "plugin $displayName"
+        PluginType.BINARY_PLUGIN -> "binary plugin $displayName"
+        PluginType.BUILDSRC_PLUGIN -> "buildSrc plugin $displayName"
         PluginType.SCRIPT -> "script $displayName"
       }
     }
 
     private fun getPluginType(pluginIdentifier: PluginIdentifier?): PluginType {
       return when (pluginIdentifier) {
-        is BinaryPluginIdentifier -> PluginType.PLUGIN
+        is BinaryPluginIdentifier -> PluginType.BINARY_PLUGIN
         is ScriptPluginIdentifier -> PluginType.SCRIPT
         else -> PluginType.UNKNOWN
       }

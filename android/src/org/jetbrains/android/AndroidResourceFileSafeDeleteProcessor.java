@@ -1,9 +1,8 @@
 package org.jetbrains.android;
 
-import static org.jetbrains.android.util.AndroidBuildCommonUtils.getResourceName;
-
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceFolderType;
+import com.android.utils.SdkUtils;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -24,13 +23,10 @@ import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidResourceFileSafeDeleteProcessor extends SafeDeleteProcessorDelegateBase {
   @Nullable
   @Override
@@ -62,7 +58,7 @@ public class AndroidResourceFileSafeDeleteProcessor extends SafeDeleteProcessorD
     SafeDeleteProcessor.findGenericElementUsages(element, result, allElementsToDelete);
 
     if (element instanceof PsiFile) {
-      final PsiField[] fields = AndroidResourceUtil.findResourceFieldsForFileResource((PsiFile)element, true);
+      final PsiField[] fields = IdeResourcesUtil.findResourceFieldsForFileResource((PsiFile)element, true);
 
       for (PsiField field : fields) {
         SafeDeleteProcessor.findGenericElementUsages(field, result, allElementsToDelete);
@@ -97,7 +93,8 @@ public class AndroidResourceFileSafeDeleteProcessor extends SafeDeleteProcessorD
     final String name = vFile.getName();
 
     LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
-    Collection<PsiFile> resourceFiles = resourceManager.findResourceFiles(ResourceNamespace.TODO(), folderType, getResourceName(type, name), true, false);
+    Collection<PsiFile> resourceFiles = resourceManager.findResourceFiles(ResourceNamespace.TODO(), folderType,
+                                                                          SdkUtils.fileNameToResourceName(name), true, false);
 
     final List<PsiElement> result = new ArrayList<>();
 

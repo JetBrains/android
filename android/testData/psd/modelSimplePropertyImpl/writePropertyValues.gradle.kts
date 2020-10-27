@@ -1,0 +1,6 @@
+val propValue by extra ("value")
+val prop25 by extra(25)
+val propTrue by extra (true)
+val propInterpolated by extra("${prop25}th")
+val propUnresolved by extra(unresolvedReference)
+val propRef by extra (propValue)

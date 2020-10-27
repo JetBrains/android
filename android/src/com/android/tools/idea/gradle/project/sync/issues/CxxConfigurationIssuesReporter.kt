@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.builder.model.SyncIssue
-import com.android.builder.model.SyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION
 import com.android.tools.idea.gradle.project.sync.errors.tryExtractPreferredNdkDownloadVersion
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallNdkHyperlink
 import com.android.tools.idea.gradle.project.sync.issues.CxxConfigurationIssuesReporter.Classification.MISSING_NDK_WITH_PREFERRED_VERSION
@@ -33,7 +32,7 @@ class CxxConfigurationIssuesReporter : SimpleDeduplicatingSyncIssueReporter() {
 
   override fun getDeduplicationKey(issue: SyncIssue) : Any = classifySyncIssue(issue)
 
-  override fun getSupportedIssueType() = TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION
+  override fun getSupportedIssueType() = SyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION
 
   override fun getCustomLinks(project: Project,
                               syncIssues: List<SyncIssue>,

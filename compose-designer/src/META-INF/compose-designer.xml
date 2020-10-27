@@ -28,7 +28,6 @@
   <extensions defaultExtensionNs="com.intellij">
     <lang.documentationProvider language="kotlin" implementationClass="com.android.tools.idea.compose.documentation.ComposeDocumentationProvider" order="first"/>
 
-    <fileEditorProvider implementation="com.android.tools.idea.compose.preview.ComposeFileEditorProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.compose.preview.ComposeNewPreviewNotificationProvider" />
 
     <!--
@@ -41,27 +40,50 @@
                      bundle="messages.ComposePreviewBundle" key="inspection.no.parameters.name" groupKey="inspections.group.name"
                      language="kotlin"
                      enabledByDefault="true"
+                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     displayName="inspection.no.parameters.name"
                      level="ERROR"/>
 
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewNeedsComposableAnnotationInspection"
                      bundle="messages.ComposePreviewBundle" key="inspection.no.composable.name" groupKey="inspections.group.name"
                      language="kotlin"
                      enabledByDefault="true"
+                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     displayName="inspection.no.composable.name"
                      level="ERROR"/>
 
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewMustBeTopLevelFunction"
                      bundle="messages.ComposePreviewBundle" key="inspection.top.level.function" groupKey="inspections.group.name"
                      language="kotlin"
                      enabledByDefault="true"
+                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     displayName="inspection.top.level.function"
                      level="ERROR"/>
 
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewDimensionRespectsLimit"
                      bundle="messages.ComposePreviewBundle" key="inspection.dimension.limit.name" groupKey="inspections.group.name"
                      language="kotlin"
                      enabledByDefault="true"
+                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     displayName="inspection.dimension.limit.name"
                      level="WARNING"/>
 
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewMultipleParameterProvidersInspection"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     displayName="inspection.no.multiple.preview.provider.description"
+                     level="ERROR"/>
+
     <deadCode implementation="com.android.tools.idea.compose.preview.PreviewEntryPoint" />
+
+    <postStartupActivity implementation="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationStartupActivity" />
+    <configurationType implementation="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType"/>
+    <runConfigurationProducer
+        implementation="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationProducer"/>
+    <runLineMarkerContributor
+        language="kotlin"
+        implementationClass="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunLineMarkerContributor"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.compose.preview">

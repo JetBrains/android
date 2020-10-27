@@ -24,7 +24,7 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowEP
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
-import com.intellij.testFramework.registerComponentInstance
+import com.intellij.testFramework.registerServiceInstance
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -43,7 +43,7 @@ class LayoutInspectorSettingsTest {
     originalValue = enableLiveLayoutInspector
     val project = projectRule.project
     windowManager = MyToolWindowManager(project)
-    project.registerComponentInstance(ToolWindowManager::class.java, windowManager, project)
+    project.registerServiceInstance(ToolWindowManager::class.java, windowManager)
   }
 
 
@@ -73,7 +73,13 @@ class LayoutInspectorSettingsTest {
   }
 
   private class MyToolWindowManager(val project: Project) : ToolWindowHeadlessManagerImpl(project) {
-    var toolWindow: ToolWindow = MyMockToolWindow(project)
+    var toolWindow: ToolWindow? = null
+
+    override fun initToolWindow(bean: ToolWindowEP) {
+      assertThat(bean.toolWindowFactory.isApplicable(project)).isTrue()
+      assertThat(bean.id).isEqualTo(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
+      toolWindow = MyMockToolWindow(project)
+    }
 
     override fun getToolWindow(id: String?): ToolWindow? {
       assertThat(id).isEqualTo(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
@@ -82,16 +88,14 @@ class LayoutInspectorSettingsTest {
   }
 
   private class MyMockToolWindow(project: Project) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
-    var windowAvailable = true
+    var shouldBeAvailable = true
     var visible = true
 
     override fun setAvailable(available: Boolean, runnable: Runnable?) {
-      this.windowAvailable = available
+      shouldBeAvailable = available
     }
 
-    override fun isAvailable(): Boolean {
-      return windowAvailable
-    }
+    override fun isAvailable() = shouldBeAvailable
 
     override fun show(runnable: Runnable?) {
       visible = true

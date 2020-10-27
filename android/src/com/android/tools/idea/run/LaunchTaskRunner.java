@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.annotations.NonNull;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
-import com.android.ddmlib.NullOutputReceiver;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
 import com.android.tools.idea.run.tasks.LaunchResult;
@@ -35,6 +33,7 @@ import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.RunContentManager;
+import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
@@ -43,6 +42,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.wm.ToolWindowId;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -180,6 +180,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         // This totalDuration and elapsed step count is used only for showing a progress bar.
         int totalDuration = getTotalDuration(launchTasks, debugSessionTask);
         int elapsed = 0;
+        NotificationGroup notificationGroup = NotificationGroup.toolWindowGroup("LaunchTaskRunner", ToolWindowId.RUN);
         for (LaunchTask task : launchTasks) {
           if (!checkIfLaunchIsAliveAndTerminateIfCancelIsRequested(indicator, launchStatus, destroyProcessOnCancellation)) {
             return;
@@ -202,6 +203,8 @@ public class LaunchTaskRunner extends Task.Backgroundable {
                                        result.getConsoleHyperlinkInfo());
             }
 
+            notificationGroup.createNotification("Error", result.getError(), NotificationType.ERROR, null).setImportant(true).notify(myProject);
+
             // Show the tool window when we have an error.
             RunContentManager.getInstance(myProject).toFrontRunContent(myLaunchInfo.executor, myProcessHandler);
 
@@ -209,10 +212,15 @@ public class LaunchTaskRunner extends Task.Backgroundable {
             return;
           }
 
+          // Notify listeners of the deployment.
+          myProject.getMessageBus().syncPublisher(AppDeploymentListener.TOPIC).appDeployedToDevice(device, myProject);
+
           // Update progress.
           elapsed += task.getDuration();
           indicator.setFraction((double)(elapsed / totalDuration + deviceIndex) / devices.size());
         }
+
+        notificationGroup.createNotification("Success", "Operation succeeded", NotificationType.INFORMATION, null).setImportant(false).notify(myProject);
 
         // A debug session task should be performed at last.
         if (debugSessionTask != null) {
@@ -355,7 +363,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
    * connect to the stale Client, and almost immediately have the same Client's killed state get reflected by ddmlib, and removed from the
    * process handler.
    */
-  private static final class ApplicationTerminationWaiter implements AndroidDebugBridge.IDeviceChangeListener {
+  private static class ApplicationTerminationWaiter implements AndroidDebugBridge.IDeviceChangeListener {
     @NotNull private final IDevice myIDevice;
     @NotNull private final List<Client> myClientsToWaitFor;
     @NotNull private final CountDownLatch myProcessKilledLatch = new CountDownLatch(1);
@@ -384,17 +392,17 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     }
 
     @Override
-    public void deviceConnected(@NonNull IDevice device) {}
+    public void deviceConnected(@NotNull IDevice device) {}
 
     @Override
-    public void deviceDisconnected(@NonNull IDevice device) {
+    public void deviceDisconnected(@NotNull IDevice device) {
       myIsDeviceAlive = false;
       myProcessKilledLatch.countDown();
       AndroidDebugBridge.removeDeviceChangeListener(this);
     }
 
     @Override
-    public void deviceChanged(@NonNull IDevice changedDevice, int changeMask) {
+    public void deviceChanged(@NotNull IDevice changedDevice, int changeMask) {
       if (changedDevice != myIDevice || (changeMask & IDevice.CHANGE_CLIENT_LIST) == 0) {
         checkDone();
         return;

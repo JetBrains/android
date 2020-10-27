@@ -1628,6 +1628,36 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // EXPLAIN ( QUERY PLAN )?
+  public static boolean explain_prefix(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "explain_prefix")) return false;
+    if (!nextTokenIs(builder, EXPLAIN)) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = consumeToken(builder, EXPLAIN);
+    result = result && explain_prefix_1(builder, level + 1);
+    exit_section_(builder, marker, EXPLAIN_PREFIX, result);
+    return result;
+  }
+
+  // ( QUERY PLAN )?
+  private static boolean explain_prefix_1(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "explain_prefix_1")) return false;
+    explain_prefix_1_0(builder, level + 1);
+    return true;
+  }
+
+  // QUERY PLAN
+  private static boolean explain_prefix_1_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "explain_prefix_1_0")) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = consumeTokens(builder, 0, QUERY, PLAN);
+    exit_section_(builder, marker, null, result);
+    return result;
+  }
+
+  /* ********************************************************** */
   // &(WITH|SELECT|VALUES) subquery_greedy
   static boolean expression_subquery(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "expression_subquery")) return false;
@@ -3272,7 +3302,7 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // ( EXPLAIN ( QUERY PLAN )? )?
+  // explain_prefix ?
   //   (
   //   select_statement
   //   | update_statement
@@ -3311,39 +3341,11 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
     return result;
   }
 
-  // ( EXPLAIN ( QUERY PLAN )? )?
+  // explain_prefix ?
   private static boolean statement_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "statement_0")) return false;
-    statement_0_0(builder, level + 1);
+    explain_prefix(builder, level + 1);
     return true;
-  }
-
-  // EXPLAIN ( QUERY PLAN )?
-  private static boolean statement_0_0(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "statement_0_0")) return false;
-    boolean result;
-    Marker marker = enter_section_(builder);
-    result = consumeToken(builder, EXPLAIN);
-    result = result && statement_0_0_1(builder, level + 1);
-    exit_section_(builder, marker, null, result);
-    return result;
-  }
-
-  // ( QUERY PLAN )?
-  private static boolean statement_0_0_1(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "statement_0_0_1")) return false;
-    statement_0_0_1_0(builder, level + 1);
-    return true;
-  }
-
-  // QUERY PLAN
-  private static boolean statement_0_0_1_0(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "statement_0_0_1_0")) return false;
-    boolean result;
-    Marker marker = enter_section_(builder);
-    result = consumeTokens(builder, 0, QUERY, PLAN);
-    exit_section_(builder, marker, null, result);
-    return result;
   }
 
   // select_statement
@@ -4620,7 +4622,7 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
     return result;
   }
 
-  // '==' | '=' | '!=' | '<>' | IS NOT? | LIKE | GLOB | MATCH | REGEXP
+  // '==' | '=' | '!=' | '<>' | IS NOT?
   private static boolean equivalence_expression_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "equivalence_expression_0")) return false;
     boolean result;
@@ -4630,10 +4632,6 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
     if (!result) result = consumeTokenSmart(builder, NOT_EQ);
     if (!result) result = consumeTokenSmart(builder, UNEQ);
     if (!result) result = equivalence_expression_0_4(builder, level + 1);
-    if (!result) result = consumeTokenSmart(builder, LIKE);
-    if (!result) result = consumeTokenSmart(builder, GLOB);
-    if (!result) result = consumeTokenSmart(builder, MATCH);
-    if (!result) result = consumeTokenSmart(builder, REGEXP);
     exit_section_(builder, marker, null, result);
     return result;
   }

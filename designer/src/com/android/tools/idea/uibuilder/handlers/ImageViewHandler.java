@@ -50,7 +50,7 @@ import com.android.tools.idea.uibuilder.handlers.actions.PickDrawableViewAction;
 import com.android.tools.idea.uibuilder.handlers.actions.ScaleTypesViewActionMenu;
 import com.android.tools.idea.uibuilder.handlers.assistant.ImageViewAssistant;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
-import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
+import com.android.tools.idea.uibuilder.assistant.ComponentAssistantFactory;
 import com.android.xml.XmlBuilder;
 import com.google.common.collect.ImmutableList;
 import java.util.EnumSet;

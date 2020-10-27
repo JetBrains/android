@@ -111,7 +111,7 @@ class LegacyEnergyEventsDataSeriesTest {
 
   @Test
   fun testAllDataIncluded() {
-    val dataSeries = LegacyEnergyEventsDataSeries(ProfilerClient(grpcChannel.name),
+    val dataSeries = LegacyEnergyEventsDataSeries(ProfilerClient(grpcChannel.channel),
                                                   ProfilersTestData.SESSION_DATA)
 
     val range = Range(0.0, Double.MAX_VALUE)
@@ -121,7 +121,7 @@ class LegacyEnergyEventsDataSeriesTest {
 
   @Test
   fun testEventsMerged() {
-    val dataSeries = LegacyEnergyEventsDataSeries(ProfilerClient(grpcChannel.name),
+    val dataSeries = LegacyEnergyEventsDataSeries(ProfilerClient(grpcChannel.channel),
                                                   ProfilersTestData.SESSION_DATA)
 
     // Filter wakelocks

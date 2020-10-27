@@ -35,18 +35,16 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerMode
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
-import com.android.tools.profilers.cpu.CpuProfilerStageView.KERNEL_VIEW_SPLITTER_RATIO
-import com.android.tools.profilers.cpu.CpuProfilerStageView.SPLITTER_DEFAULT_RATIO
-import com.android.tools.profilers.cpu.atrace.AtraceParser
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
 import com.android.tools.profilers.stacktrace.CodeLocation
 import com.android.tools.profilers.stacktrace.ContextMenuItem
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.JBSplitter
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -62,6 +60,7 @@ import javax.swing.SwingUtilities
 // Path to trace file. Used in test to build AtraceParser.
 private const val TOOLTIP_TRACE_DATA_FILE = "tools/adt/idea/profilers-ui/testData/cputraces/atrace.ctrace"
 
+@RunsInEdt
 @RunWith(Parameterized::class)
 class CpuProfilerStageViewTest(newPipeline: Boolean) {
 
@@ -90,6 +89,7 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
     "CpuCaptureViewTestChannel", myCpuService, myTransportService, FakeProfilerService(myTimer),
     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build()
   )
+  @get:Rule val myEdtRule = EdtRule()
 
   private lateinit var myStage: CpuProfilerStage
 
@@ -97,7 +97,7 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
 
   @Before
   fun setUp() {
-    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), myIdeServices, myTimer)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), myIdeServices, myTimer)
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
 
     // One second must be enough for new devices (and processes) to be picked up
@@ -107,21 +107,6 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
     myStage.studioProfilers.stage = myStage
     myStage.enter()
     myProfilersView = StudioProfilersView(profilers, myComponents)
-  }
-
-  @Ignore("b/113554750")
-  @Test
-  fun splitterRatioChangesOnAtraceCapture() {
-    val stageView = CpuProfilerStageView(myProfilersView, myStage)
-    val splitter = TreeWalker(stageView.component).descendants().filterIsInstance<JBSplitter>().first()
-
-    val traceFile = TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)
-    val capture = AtraceParser(1).parse(traceFile, 0)
-
-    assertThat(splitter.proportion).isWithin(0.0001f).of(SPLITTER_DEFAULT_RATIO)
-    myStage.capture = capture
-    // Verify the expanded kernel view adjust the splitter to take up more space.
-    assertThat(splitter.proportion).isWithin(0.0001f).of(KERNEL_VIEW_SPLITTER_RATIO)
   }
 
   @Test

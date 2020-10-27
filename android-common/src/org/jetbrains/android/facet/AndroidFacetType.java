@@ -26,9 +26,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-/**
- * @author yole
- */
 public class AndroidFacetType extends FacetType<AndroidFacet, AndroidFacetConfiguration> {
 
   public static final String TYPE_ID = "android";

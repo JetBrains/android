@@ -34,6 +34,7 @@ import java.util.Properties;
 public class ProfilerState {
   public static final String ANDROID_PROFILER_STATE_ID = "android.profilers.state";
   public static final String ANDROID_ADVANCED_PROFILING_TRANSFORMS = "android.advanced.profiling.transforms";
+  public static final int DEFAULT_NATIVE_MEMORY_SAMPLE_RATE_BYTES = 1024*2; // 2KB
 
   /**
    * Whether to apply the profiling transform.
@@ -41,8 +42,17 @@ public class ProfilerState {
   public boolean ADVANCED_PROFILING_ENABLED = false;
   public static final String ENABLE_ADVANCED_PROFILING_NAME = "android.profiler.enabled";
 
+  public boolean STARTUP_PROFILING_ENABLED = false;
+  public static final String ENABLE_STARTUP_PROFILING_NAME = "android.profiler.startup.enabled";
+
   public boolean STARTUP_CPU_PROFILING_ENABLED = false;
   public String STARTUP_CPU_PROFILING_CONFIGURATION_NAME = CpuProfilerConfig.Technology.SAMPLED_JAVA.getName();
+
+  public boolean STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = false;
+  public static final String STARTUP_MEMORY_PROFILING_NAME = "android.profiler.startup.native.memory.enabled";
+
+  public int NATIVE_MEMORY_SAMPLE_RATE_BYTES = DEFAULT_NATIVE_MEMORY_SAMPLE_RATE_BYTES;
+  public static final String NATIVE_MEMORY_SAMPLE_RATE_NAME = "android.profiler.native.memory.rate";
 
   private boolean PROFILING_OKHTTP_ENABLED = true;
   public static final String ENABLE_ADVANCED_OKHTTP_PROFILING_NAME = "android.profiler.okhttp.enabled";
@@ -65,11 +75,22 @@ public class ProfilerState {
     DefaultJDOMExternalizer.writeExternal(this, element);
   }
 
+  public boolean isCpuStartupProfilingEnabled() {
+    return STARTUP_PROFILING_ENABLED && STARTUP_CPU_PROFILING_ENABLED;
+  }
+
+  public boolean isNativeMemoryStartupProfilingEnabled() {
+    return STARTUP_PROFILING_ENABLED && STARTUP_NATIVE_MEMORY_PROFILING_ENABLED;
+  }
+
   public Properties toProperties() {
     Properties result = new Properties();
     result.setProperty(ENABLE_ADVANCED_PROFILING_NAME, String.valueOf(ADVANCED_PROFILING_ENABLED));
+    result.setProperty(ENABLE_STARTUP_PROFILING_NAME, String.valueOf(STARTUP_PROFILING_ENABLED));
     result.setProperty(ENABLE_UNIFIED_PIPELINE_NAME, String.valueOf(StudioFlags.PROFILER_UNIFIED_PIPELINE.get()));
     result.setProperty(ENABLE_ADVANCED_OKHTTP_PROFILING_NAME, String.valueOf(PROFILING_OKHTTP_ENABLED));
+    result.setProperty(STARTUP_MEMORY_PROFILING_NAME, String.valueOf(STARTUP_NATIVE_MEMORY_PROFILING_ENABLED));
+    result.setProperty(NATIVE_MEMORY_SAMPLE_RATE_NAME, String.valueOf(NATIVE_MEMORY_SAMPLE_RATE_BYTES));
     return result;
   }
 

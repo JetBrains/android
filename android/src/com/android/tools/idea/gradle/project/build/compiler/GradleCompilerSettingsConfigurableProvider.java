@@ -6,9 +6,6 @@ import com.intellij.openapi.options.ConfigurableProvider;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class GradleCompilerSettingsConfigurableProvider extends ConfigurableProvider {
   private final Project myProject;
 

@@ -23,7 +23,6 @@ import com.android.tools.idea.databinding.index.BindingXmlIndex;
 import com.android.tools.idea.databinding.index.ImportData;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionSupport;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionUtil;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
@@ -50,6 +49,7 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.xml.GenericAttributeValue;
 import java.util.List;
 import org.jetbrains.android.dom.layout.Import;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -116,14 +116,14 @@ public final class DataBindingUtil {
    */
   @Nullable
   public static String getQualifiedBindingName(@NotNull AndroidFacet facet, @NotNull BindingXmlIndex.Entry bindingIndexEntry) {
-    String modulePackage = MergedManifestManager.getSnapshot(facet).getPackage();
+    String modulePackage = AndroidManifestUtils.getPackageName(facet);
     if (modulePackage == null) {
       return null;
     }
 
     String customBindingName = bindingIndexEntry.getData().getCustomBindingName();
     if (customBindingName == null || customBindingName.isEmpty()) {
-      return modulePackage + ".databinding." + convertToJavaClassName(bindingIndexEntry.getFile().getName()) + "Binding";
+      return modulePackage + ".databinding." + convertFileNameToJavaClassName(bindingIndexEntry.getFile().getName()) + "Binding";
     }
     else {
       int firstDotIndex = customBindingName.indexOf('.');
@@ -155,7 +155,7 @@ public final class DataBindingUtil {
    * @return The class name that will represent the given file
    */
   @NotNull
-  public static String convertToJavaClassName(@NotNull String name) {
+  public static String convertFileNameToJavaClassName(@NotNull String name) {
     int dotIndex = name.indexOf('.');
     if (dotIndex >= 0) {
       name = name.substring(0, dotIndex);
@@ -170,18 +170,24 @@ public final class DataBindingUtil {
   }
 
   /**
-   * Utility method to convert a variable name into java field name.
+   * Utility method to convert an 'android:id' value into a java field name.
    *
-   * @param name The variable name.
-   * @return The java field name for the given variable name.
+   * Note that, though uncommon in use, the android:id format technically supports putting a '.' in
+   * its value, which should get treated like a '_' in the final result. Therefore, we treat any
+   * dots present in the passed-in {@code name} as underscores.
+   */
+  public static String convertAndroidIdToJavaFieldName(@NotNull String name) {
+    return convertVariableNameToJavaFieldName(name.replace('.', '_'));
+  }
+
+  /**
+   * Utility method to convert a variable name (declared in XML, so it might contain underscores)
+   * into a java field name.
+   *
+   * For example, "test_id" to "testId".
    */
   @NotNull
-  public static String convertToJavaFieldName(@NotNull String name) {
-    int dotIndex = name.indexOf('.');
-    if (dotIndex >= 0) {
-      name = name.substring(0, dotIndex);
-    }
-
+  public static String convertVariableNameToJavaFieldName(@NotNull String name) {
     String[] split = name.split("[_-]");
     StringBuilder out = new StringBuilder();
     boolean first = true;
@@ -317,9 +323,7 @@ public final class DataBindingUtil {
    */
   @Nullable
   public static String getGeneratedPackageName(@NotNull AndroidFacet facet) {
-    // TODO(132629996): Replace this with AndroidManifestUtils.getPackage(facet) once it has been updated to use
-    //                  the merged manifest. The deprecated API used here has the potential to block the EDT.
-    return MergedManifestManager.getSnapshot(facet).getPackage();
+    return AndroidManifestUtils.getPackageName(facet);
   }
 
   /**

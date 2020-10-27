@@ -269,6 +269,7 @@ class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> S
     if (stringToIdMap.contains(string)) return stringToIdMap[string]
     val id = nextStringID()
     writer.writeStringInUTF8(id, string)
+    stringToIdMap.put(string, id)
     return id
   }
 

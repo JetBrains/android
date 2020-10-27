@@ -213,6 +213,9 @@ public class TransportServiceProxy extends ServiceProxy
       .setFeatureLevel(device.getVersion().getFeatureLevel())
       .setManufacturer(getDeviceManufacturer(device))
       .setIsEmulator(device.isEmulator())
+      .setBuildTags(device.getProperty(IDevice.PROP_BUILD_TAGS))
+      .setBuildType(device.getProperty(IDevice.PROP_BUILD_TYPE))
+      .setCpuAbi(device.getProperty(IDevice.PROP_DEVICE_CPU_ABI))
       .setState(convertState(device.getState()))
       .setUnsupportedReason(getDeviceUnsupportedReason(device))
       .build();
@@ -453,27 +456,27 @@ public class TransportServiceProxy extends ServiceProxy
   @Override
   public ServerServiceDefinition getServiceDefinition() {
     Map<MethodDescriptor, ServerCallHandler> overrides = Maps.newHashMap();
-    overrides.put(TransportServiceGrpc.METHOD_GET_DEVICES,
+    overrides.put(TransportServiceGrpc.getGetVersionMethod(),
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     getDevices((GetDevicesRequest)request, (StreamObserver)observer);
                   }));
-    overrides.put(TransportServiceGrpc.METHOD_GET_PROCESSES,
+    overrides.put(TransportServiceGrpc.getGetProcessesMethod(),
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     getProcesses((GetProcessesRequest)request, (StreamObserver)observer);
                   }));
-    overrides.put(TransportServiceGrpc.METHOD_GET_CURRENT_TIME,
+    overrides.put(TransportServiceGrpc.getGetCurrentTimeMethod(),
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     getCurrentTime((TimeRequest)request, (StreamObserver)observer);
                   }));
-    overrides.put(TransportServiceGrpc.METHOD_GET_EVENTS,
+    overrides.put(TransportServiceGrpc.getGetEventsMethod(),
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     getEvents((GetEventsRequest)request, (StreamObserver)observer);
                   }));
-    overrides.put(TransportServiceGrpc.METHOD_GET_BYTES,
+    overrides.put(TransportServiceGrpc.getGetBytesMethod(),
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     getBytes((BytesRequest)request, (StreamObserver)observer);
                   }));
-    overrides.put(TransportServiceGrpc.METHOD_EXECUTE,
+    overrides.put(TransportServiceGrpc.getExecuteMethod(),
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     execute((ExecuteRequest)request, (StreamObserver)observer);
                   }));

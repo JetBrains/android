@@ -25,12 +25,4 @@ import org.junit.runner.RunWith;
   WhatsNewTestSuite.class
 })
 public class WhatsNewTestSuite extends IdeaTestSuiteBase {
-
-  static {
-    symlinkToIdeaHome(
-        "tools/adt/idea/android/annotations",
-        "tools/adt/idea/android/testData",
-        "tools/base/templates",
-        "tools/idea/java");
-  }
 }

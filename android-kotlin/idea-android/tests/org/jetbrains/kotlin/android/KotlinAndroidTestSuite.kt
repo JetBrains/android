@@ -21,19 +21,4 @@ import org.junit.runner.RunWith
 
 @RunWith(JarTestSuiteRunner::class)
 @JarTestSuiteRunner.ExcludeClasses(org.jetbrains.kotlin.android.KotlinAndroidTestSuite::class)
-class KotlinAndroidTestSuite : IdeaTestSuiteBase() {
-  companion object {
-
-    init {
-      IdeaTestSuiteBase.symlinkToIdeaHome(
-        "prebuilts/studio/layoutlib",
-        "tools/adt/idea/android/annotations",
-        "tools/adt/idea/android/lib")
-
-      IdeaTestSuiteBase.symlinkToIdeaHome(
-        "tools/adt/idea/android-kotlin/android-extensions-idea/testData",
-        "tools/adt/idea/android-kotlin/idea-android/testData",
-        "tools/idea/java")
-    }
-  }
-}
+class KotlinAndroidTestSuite : IdeaTestSuiteBase()

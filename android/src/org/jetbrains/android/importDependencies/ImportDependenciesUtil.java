@@ -41,11 +41,8 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 @SuppressWarnings("deprecation")
-public final class ImportDependenciesUtil {
+public class ImportDependenciesUtil {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.importDependencies.ImportDependenciesUtil");
   private static final Key<Boolean> WAIT_FOR_IMPORTING_DEPENDENCIES_KEY = new Key<Boolean>("WAIT_FOR_IMPORTING_DEPENDENCIES_KEY");
   private static final Object LOCK = new Object();
@@ -249,7 +246,7 @@ public final class ImportDependenciesUtil {
     return null;
   }
 
-  private static final class MyUnresolvedDependency {
+  private static class MyUnresolvedDependency {
     final ModuleProvider myModuleProvider;
     final VirtualFile myLibDir;
 

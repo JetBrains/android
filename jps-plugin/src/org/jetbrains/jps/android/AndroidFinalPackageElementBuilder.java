@@ -19,9 +19,6 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidFinalPackageElementBuilder extends LayoutElementBuilderService<JpsAndroidFinalPackageElement> {
   public AndroidFinalPackageElementBuilder() {
     super(JpsAndroidFinalPackageElement.class);

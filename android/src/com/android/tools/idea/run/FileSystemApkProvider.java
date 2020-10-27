@@ -20,6 +20,9 @@ import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,8 +44,7 @@ public class FileSystemApkProvider implements ApkProvider {
   @NotNull
   @Override
   public Collection<ApkInfo> getApks(@NotNull IDevice device) throws ApkProvisionException {
-    MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(myModule);
-    String id = manifest.getApplicationId();
+    String id = AndroidManifestUtils.getPackageName(myModule);
     if (id == null) {
       throw new ApkProvisionException("Invalid manifest, no package name specified");
     }

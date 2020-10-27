@@ -16,11 +16,10 @@
 package com.android.tools.adtui.actions;
 
 import com.intellij.icons.AllIcons;
+import java.util.Arrays;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.Arrays;
 
 /** Describes different types of zoom actions */
 public enum ZoomType {
@@ -101,18 +100,22 @@ public enum ZoomType {
   };
 
   public static int zoomIn(int percentage) {
-    int i = Arrays.binarySearch(ZOOM_POINTS, percentage);
+    return zoomIn(percentage, ZOOM_POINTS);
+  }
+
+  public static int zoomIn(int percentage, @NotNull int[] zoomPoints) {
+    int i = Arrays.binarySearch(zoomPoints, percentage);
     if (i < 0) {
       // inexact match: jump to nearest
       i = -i - 1;
       if (i == 0) {
         // If we're far down (like 0.1) don't just jump up to 25%, jump 20% on the current zoom point
-        if (percentage < (ZOOM_POINTS[0] - ZOOM_POINTS[0]*0.25)) {
-          return Math.min((int)(Math.ceil(percentage * 1.2)), ZOOM_POINTS[0]);
+        if (percentage < zoomPoints[0] * 0.75) {
+          return Math.min((int)(Math.ceil(percentage * 1.2)), zoomPoints[0]);
         }
       }
-      if (i < ZOOM_POINTS.length) {
-        return ZOOM_POINTS[i];
+      if (i < zoomPoints.length) {
+        return zoomPoints[i];
       }
       else {
         // Round up to next nearest hundred
@@ -121,8 +124,8 @@ public enum ZoomType {
     }
     else {
       // exact match
-      if (i < ZOOM_POINTS.length - 1) {
-        return ZOOM_POINTS[i + 1];
+      if (i < zoomPoints.length - 1) {
+        return zoomPoints[i + 1];
       }
       // Just increase by 100 after this: 200, 300, 400, ...
       return percentage + 100;
@@ -130,7 +133,11 @@ public enum ZoomType {
   }
 
   public static int zoomOut(int percentage) {
-    int i = Arrays.binarySearch(ZOOM_POINTS, percentage);
+    return zoomOut(percentage, ZOOM_POINTS);
+  }
+
+  public static int zoomOut(int percentage, @NotNull int[] zoomPoints) {
+    int i = Arrays.binarySearch(zoomPoints, percentage);
     if (i < 0) {
       // inexact match: jump to nearest
       i = -i - 1;
@@ -138,8 +145,8 @@ public enum ZoomType {
         // If we're far down (like 0.1) don't just jump up to 25%, jump 10%
         return (int)Math.floor(percentage / 1.1);
       }
-      if (i < ZOOM_POINTS.length) {
-        return ZOOM_POINTS[i - 1];
+      if (i < zoomPoints.length) {
+        return zoomPoints[i - 1];
       }
       else {
         // Round down to next nearest hundred
@@ -149,7 +156,7 @@ public enum ZoomType {
     else {
       // exact match
       if (i > 0) {
-        return ZOOM_POINTS[i - 1];
+        return zoomPoints[i - 1];
       }
       return (int)Math.floor(percentage / 1.1);
     }

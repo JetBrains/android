@@ -57,7 +57,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
 import com.android.tools.idea.uibuilder.actions.ChainStyleViewActions;
-import com.android.tools.idea.uibuilder.actions.ToggleLiveRenderingAction;
+import com.android.tools.idea.uibuilder.actions.ToggleAllLiveRenderingAction;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -153,7 +153,7 @@ public class CommonActions {
       new ToggleVisibilityAction(SHOW_CONSTRAINTS_PREF_KEY, "Show All Constraints", false),
       new ToggleVisibilityAction(SHOW_MARGINS_PREF_KEY, "Show Margins", true),
       new ToggleVisibilityAction(FADE_UNSELECTED_VIEWS, "Fade Unselected Views ", false),
-      new ToggleLiveRenderingAction())));
+      new ToggleAllLiveRenderingAction())));
     actions.add(new MarginSelector());
     actions.add(new ViewActionSeparator());
 
@@ -224,7 +224,7 @@ public class CommonActions {
 
 
 
-  private static final class ToggleVisibilityAction extends ToggleViewAction {
+  private static class ToggleVisibilityAction extends ToggleViewAction {
     String mType;
 
     private ToggleVisibilityAction(String type, String text, boolean defaultValue) {
@@ -570,7 +570,7 @@ public class CommonActions {
       }
     }
 
-    private static final class ConnectSource extends DisappearingActionMenu {
+    private static class ConnectSource extends DisappearingActionMenu {
       int mIndex;
 
       private ConnectSource(int index,
@@ -717,16 +717,13 @@ public class CommonActions {
                            StudioIcons.LayoutEditor.Toolbar.BARRIER_HORIZONTAL,
                            ADD_HORIZONTAL_BARRIER),
       new AddElementAction(AddElementAction.GROUP,
-                           // TODO: add new icon to StudioIcons and replace this icon
-                           AndroidIcons.Sherpa.SwitchBlueprintOff,
+                           StudioIcons.LayoutEditor.Toolbar.GROUP,
                            ADD_GROUP),
       new AddElementAction(AddElementAction.CONSTRAINT_SET,
-                           // TODO: add new icon to StudioIcons and replace this icon
-                           AndroidIcons.Sherpa.SwitchBlueprintOff,
+                           StudioIcons.LayoutEditor.Toolbar.CONSTRAINT_SET,
                            ADD_CONSTRAINTS_SET),
       new AddElementAction(AddElementAction.LAYER,
-                           // TODO: add new icon to StudioIcons and replace this icon
-                           AndroidIcons.Sherpa.SwitchBlueprintOff,
+                           StudioIcons.LayoutEditor.Toolbar.LAYER,
                            ADD_LAYER));
   }
 
@@ -777,7 +774,7 @@ public class CommonActions {
     boolean isEnabled(List<NlComponent> selected);
   }
 
-  private static final class AddElementAction extends DirectViewAction {
+  private static class AddElementAction extends DirectViewAction {
     public static final int HORIZONTAL_GUIDELINE = 0;
     public static final int VERTICAL_GUIDELINE = 1;
     public static final int HORIZONTAL_BARRIER = 2;
@@ -1046,7 +1043,7 @@ public class CommonActions {
     return false;
   }
 
-  private static final class MarginSelector extends DirectViewAction {
+  private static class MarginSelector extends DirectViewAction {
 
     private static final String PICK_A_DIMENSION = "Pick a Dimension";
     private static final float DEFAULT_ICON_FONT_SIZE = 12f;
@@ -1337,7 +1334,7 @@ public class CommonActions {
   }
 
 
-  private static final class ClearConstraintsAction extends DirectViewAction {
+  private static class ClearConstraintsAction extends DirectViewAction {
 
     private static final String MESSAGE_DELETE_CONSTRAINT = "Delete all the constraints in the current layout?";
 

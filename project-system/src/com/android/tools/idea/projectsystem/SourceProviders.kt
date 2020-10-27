@@ -16,6 +16,8 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.utils.reflection.qualifiedName
+import com.google.common.annotations.VisibleForTesting
+import com.google.common.collect.ImmutableList
 import com.intellij.ProjectTopics
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
@@ -29,6 +31,7 @@ import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -85,8 +88,6 @@ interface SourceProviders {
    * precedence order.
    *
    * @see currentSourceProviders
-   *
-   * Note: [testSources] source provider represents the same set of source files in a merged form.
    */
   val currentUnitTestSourceProviders: List<NamedIdeaSourceProvider>
 
@@ -99,19 +100,19 @@ interface SourceProviders {
   val currentAndroidTestSourceProviders: List<NamedIdeaSourceProvider>
 
   /**
-   * Returns a list of all IDEA source providers, for the given facet, in the overlay order
-   * (meaning that later providers override earlier providers when they redefine resources.)
+   * NOTE: (In Gradle) Does not return ALL source providers!
    *
+   * (In Gradle) Returns a list of all active main scope source providers (i.e. the same as [currentSourceProviders]) and additionally
+   * returns frequently used inactive source providers.
    *
-   * Note that the list will never be empty; there is always at least one source provider.
+   * Note: Inactive source providers are not configured as project source roots and do not necessarily represent directories
+   *       under a configured content entry.
    *
+   * Note: Does not include test scope source providers.
    *
-   * The overlay source order is defined by the underlying build system.
-   *
-   * This method should be used when only on-disk source sets are required. It will return
-   * empty source sets for all other source providers (since VirtualFiles MUST exist on disk).
+   * Use this method only if absolutely necessary and consider using [currentSourceProviders] where possible.
    */
-  val allSourceProviders: List<NamedIdeaSourceProvider>
+  val currentAndSomeFrequentlyUsedInactiveSourceProviders: List<NamedIdeaSourceProvider>
 
   /**
    * Returns a list of source providers which includes the main source provider and
@@ -134,7 +135,7 @@ interface SourceProviders {
      */
     @JvmStatic
     fun replaceForTest(facet: AndroidFacet, disposable: Disposable, sourceSet: NamedIdeaSourceProvider) {
-      facet.putUserData(KEY, object: SourceProviders {
+      facet.putUserData(KEY_FOR_TEST, object : SourceProviders {
         override val sources: IdeaSourceProvider
           get() = sourceSet
         override val unitTestSources: IdeaSourceProvider
@@ -142,13 +143,13 @@ interface SourceProviders {
         override val androidTestSources: IdeaSourceProvider
           get() = throw UnsupportedOperationException()
         override val currentSourceProviders: List<NamedIdeaSourceProvider>
-          get() = throw UnsupportedOperationException()
+          get() = ImmutableList.of(sourceSet)
         override val currentUnitTestSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         override val currentAndroidTestSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
-        override val allSourceProviders: List<NamedIdeaSourceProvider>
-          get() = throw UnsupportedOperationException()
+        override val currentAndSomeFrequentlyUsedInactiveSourceProviders: List<NamedIdeaSourceProvider>
+          get() = ImmutableList.of(sourceSet)
         @Suppress("OverridingDeprecatedMember")
         override val mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
@@ -157,7 +158,7 @@ interface SourceProviders {
         override val mainManifestFile: VirtualFile?
           get() = sourceSet.manifestFiles.single()
       })
-      Disposer.register(disposable, Disposable { facet.putUserData(KEY, null) })
+      Disposer.register(disposable, Disposable { facet.putUserData(KEY_FOR_TEST, null) })
     }
 
     /**
@@ -167,7 +168,7 @@ interface SourceProviders {
      */
     @JvmStatic
     fun replaceForTest(facet: AndroidFacet, disposable: Disposable, manifestFile: VirtualFile?) {
-      facet.putUserData(KEY, object: SourceProviders {
+      facet.putUserData(KEY_FOR_TEST, object : SourceProviders {
         override val sources: IdeaSourceProvider
           get() = throw UnsupportedOperationException()
         override val unitTestSources: IdeaSourceProvider
@@ -180,7 +181,7 @@ interface SourceProviders {
           get() = throw UnsupportedOperationException()
         override val currentAndroidTestSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
-        override val allSourceProviders: List<NamedIdeaSourceProvider>
+        override val currentAndSomeFrequentlyUsedInactiveSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         @Suppress("OverridingDeprecatedMember")
         override val mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider>
@@ -190,14 +191,16 @@ interface SourceProviders {
         override val mainManifestFile: VirtualFile?
           get() = manifestFile
       })
-      Disposer.register(disposable, Disposable { facet.putUserData(KEY, null) })
+      Disposer.register(disposable, Disposable { facet.putUserData(KEY_FOR_TEST, null) })
     }
   }
 }
 
-val AndroidFacet.sourceProviders: SourceProviders get() = getUserData(KEY) ?: createSourceProviderFor(this)
+val AndroidFacet.sourceProviders: SourceProviders get() = getUserData(KEY_FOR_TEST) ?: (getUserData(KEY) ?: createSourceProviderFor(this))
 
 private val KEY: Key<SourceProviders> = Key.create(::KEY.qualifiedName)
+
+private val KEY_FOR_TEST: Key<SourceProviders> = Key.create(::KEY_FOR_TEST.qualifiedName)
 
 private fun createSourceProviderFor(facet: AndroidFacet): SourceProviders {
   return facet.module.project.getProjectSystem().getSourceProvidersFactory().createSourceProvidersFor(facet)
@@ -256,8 +259,11 @@ private class SourceProviderManagerComponent(val project: Project) : ProjectComp
   }
 }
 
-fun createMergedSourceProvider(providers: List<NamedIdeaSourceProvider>): IdeaSourceProvider =
-  IdeaSourceProviderImpl(
+fun createMergedSourceProvider(scopeType: ScopeType, providers: List<NamedIdeaSourceProvider>): IdeaSourceProvider {
+  // Note: In non-Gradle project systems the list of merged source providers may consist of source providers of different types.
+  //       This is because they may be re-used between main and tests scopes.
+  return IdeaSourceProviderImpl(
+    scopeType,
     manifestFileUrls = providers.flatMap { it.manifestFileUrls },
     manifestDirectoryUrls = providers.flatMap { it.manifestDirectoryUrls },
     javaDirectoryUrls = providers.flatMap { it.javaDirectoryUrls },
@@ -268,5 +274,111 @@ fun createMergedSourceProvider(providers: List<NamedIdeaSourceProvider>): IdeaSo
     jniLibsDirectoryUrls = providers.flatMap { it.jniLibsDirectoryUrls },
     resDirectoryUrls = providers.flatMap { it.resDirectoryUrls },
     assetsDirectoryUrls = providers.flatMap { it.assetsDirectoryUrls },
-    shadersDirectoryUrls = providers.flatMap { it.shadersDirectoryUrls }
+    shadersDirectoryUrls = providers.flatMap { it.shadersDirectoryUrls },
+    mlModelsDirectoryUrls = providers.flatMap { it.mlModelsDirectoryUrls }
   )
+}
+
+/**
+ * Returns a list of all source providers that contain, or are contained by, the given file.
+ * For example, with the file structure:
+ *
+ * ```
+ * src
+ *   main
+ *     aidl
+ *       myfile.aidl
+ *   free
+ *     aidl
+ *       myoverlay.aidl
+ * ```
+ *
+ * With target file == "myoverlay.aidl" the returned list would be ['free'], but if target file == "src",
+ * the returned list would be ['main', 'free'] since both of those source providers have source folders which
+ * are descendants of "src."
+ *
+ * Returns `null` if none found.
+ */
+fun SourceProviders.getForFile(targetFolder: VirtualFile?): List<NamedIdeaSourceProvider>? {
+  return if (targetFolder != null) {
+    // Add source providers that contain the file (if any) and any that have files under the given folder
+    currentAndSomeFrequentlyUsedInactiveSourceProviders
+      .filter { provider -> provider.containsFile(targetFolder) || provider.isContainedBy(targetFolder) }
+      .takeUnless { it.isEmpty() }
+  }
+  else null
+}
+
+@VisibleForTesting
+fun IdeaSourceProvider.isContainedBy(targetFolder: VirtualFile): Boolean {
+  return manifestFileUrls.any { manifestFileUrl -> VfsUtilCore.isEqualOrAncestor(targetFolder.url, manifestFileUrl) } ||
+         allSourceFolderUrls.any { sourceFolderUrl -> VfsUtilCore.isEqualOrAncestor(targetFolder.url, sourceFolderUrl) }
+}
+
+
+private val IdeaSourceProvider.allSourceFolderUrls: Sequence<String>
+  get() =
+    arrayOf(
+      javaDirectoryUrls,
+      resDirectoryUrls,
+      aidlDirectoryUrls,
+      renderscriptDirectoryUrls,
+      assetsDirectoryUrls,
+      jniDirectoryUrls,
+      jniLibsDirectoryUrls
+    )
+      .asSequence()
+      .flatten()
+
+
+/**
+ * Returns true if this SourceProvider has one or more source folders contained by (or equal to)
+ * the given folder.
+ */
+fun IdeaSourceProvider.containsFile(file: VirtualFile): Boolean {
+  if (manifestFiles.contains(file) || manifestDirectories.contains(file)) {
+    return true
+  }
+
+  for (container in allSourceFolders) {
+    // Don't do ancestry checking if this file doesn't exist
+    if (!container.exists()) {
+      continue
+    }
+
+    if (VfsUtilCore.isAncestor(container, file, false /* allow them to be the same */)) {
+      return true
+    }
+  }
+  return false
+}
+
+fun <T : IdeaSourceProvider> Iterable<T>.findByFile(file: VirtualFile): T? = firstOrNull { it.containsFile(file) }
+
+fun isTestFile(facet: AndroidFacet, candidate: VirtualFile): Boolean {
+  return SourceProviders.getInstance(facet).unitTestSources.containsFile(candidate) ||
+         SourceProviders.getInstance(facet).androidTestSources.containsFile(candidate)
+}
+
+/** Returns true if the given candidate file is a manifest file in the given module  */
+fun AndroidFacet.isManifestFile(candidate: VirtualFile): Boolean {
+  return SourceProviders.getInstance(this).sources.manifestFiles.contains(candidate)
+}
+
+/** Returns the manifest files in the given module  */
+fun AndroidFacet.getManifestFiles(): List<VirtualFile> = SourceProviders.getInstance(this).sources.manifestFiles.toList()
+
+val IdeaSourceProvider.allSourceFolders: Sequence<VirtualFile>
+  get() =
+    arrayOf(
+      javaDirectories,
+      resDirectories,
+      aidlDirectories,
+      renderscriptDirectories,
+      assetsDirectories,
+      jniDirectories,
+      jniLibsDirectories
+    )
+      .asSequence()
+      .flatten()
+

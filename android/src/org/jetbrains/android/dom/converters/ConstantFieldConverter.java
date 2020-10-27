@@ -58,9 +58,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author yole
- */
 public class ConstantFieldConverter extends Converter<String> implements CustomReferenceConverter<String> {
   @Override
   public String fromString(@Nullable @NonNls String s, ConvertContext context) {

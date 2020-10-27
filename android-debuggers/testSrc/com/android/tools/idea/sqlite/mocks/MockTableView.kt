@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.sqlite.mocks
 
-import com.android.tools.idea.sqlite.model.SqliteColumn
-import com.android.tools.idea.sqlite.model.SqliteRow
+import com.android.tools.idea.sqlite.ui.tableView.OrderBy
+import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
+import com.android.tools.idea.sqlite.ui.tableView.ViewColumn
 import org.mockito.Mockito.mock
 import javax.swing.JComponent
 
 open class MockTableView : TableView {
+
+  val errorReported = mutableListOf<Pair<String, Throwable?>>()
 
   val listeners = mutableListOf<TableView.Listener>()
 
@@ -31,13 +34,11 @@ open class MockTableView : TableView {
 
   override fun startTableLoading() { }
 
-  override fun showTableColumns(columns: List<SqliteColumn>) { }
-
-  override fun showTableRowBatch(rows: List<SqliteRow>) { }
+  override fun showTableColumns(columns: List<ViewColumn>) { }
 
   override fun stopTableLoading() { }
 
-  override fun reportError(message: String, t: Throwable?) { }
+  override fun reportError(message: String, t: Throwable?) { errorReported.add(Pair(message, t)) }
 
   override fun setFetchPreviousRowsButtonState(enable: Boolean) { }
 
@@ -53,7 +54,15 @@ open class MockTableView : TableView {
     listeners.remove(listener)
   }
 
-  override fun removeRows() { }
+  override fun updateRows(rowDiffOperations: List<RowDiffOperation>) { }
+
+  override fun setEmptyText(text: String) { }
+
+  override fun setRowOffset(rowOffset: Int) { }
+
+  override fun revertLastTableCellEdit() { }
+
+  override fun setColumnSortIndicator(orderBy: OrderBy) { }
 
   override fun showPageSizeValue(maxRowCount: Int) { }
 }

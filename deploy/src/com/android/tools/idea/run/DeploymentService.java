@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.deployer.ApkFileDatabase;
+import com.android.tools.deployer.DeploymentCacheDatabase;
 import com.android.tools.deployer.SqlApkFileDatabase;
 import com.android.tools.deployer.tasks.TaskRunner;
 import com.android.tools.idea.run.deployable.DeployableProvider;
@@ -31,7 +31,7 @@ import java.util.concurrent.Executors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class DeploymentService {
+public class DeploymentService {
 
   private final Project project;
 
@@ -39,7 +39,8 @@ public final class DeploymentService {
 
   private final TaskRunner runner;
 
-  private final NotNullLazyValue<ApkFileDatabase> dexDatabase;
+  private final NotNullLazyValue<SqlApkFileDatabase> dexDatabase;
+  private final NotNullLazyValue<DeploymentCacheDatabase> deploymentCacheDatabase;
 
   @Nullable
   private DeployableProvider myDeployableProvider = null;
@@ -53,16 +54,24 @@ public final class DeploymentService {
     this.project = project;
     service = Executors.newFixedThreadPool(5);
     runner = new TaskRunner(service);
-    Path path = Paths.get(PathManager.getSystemPath(), ".deploy.db");
-    dexDatabase  = NotNullLazyValue.createValue(() -> new SqlApkFileDatabase(new File(path.toString()), PathManager.getTempPath()));
+
+    Path dexDbPath = Paths.get(PathManager.getSystemPath(), ".dex_cache.db");
+    Path deployDbPath = Paths.get(PathManager.getSystemPath(), ".deploy_cache.db");
+
+    dexDatabase  = NotNullLazyValue.createValue(() -> new SqlApkFileDatabase(dexDbPath.toFile(), PathManager.getTempPath()));
+    deploymentCacheDatabase =  NotNullLazyValue.createValue(() -> new DeploymentCacheDatabase(deployDbPath.toFile()));
   }
 
   public TaskRunner getTaskRunner() {
     return runner;
   }
 
-  public ApkFileDatabase getDexDatabase() {
+  public SqlApkFileDatabase getDexDatabase() {
     return dexDatabase.getValue();
+  }
+
+  public DeploymentCacheDatabase getDeploymentCacheDatabase() {
+    return deploymentCacheDatabase.getValue();
   }
 
   public void setDeployableProvider(@Nullable DeployableProvider provider) {

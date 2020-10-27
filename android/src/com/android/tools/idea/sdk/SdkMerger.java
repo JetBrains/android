@@ -118,7 +118,7 @@ public class SdkMerger {
     return results;
   }
 
-  private static final class MergeablePackage {
+  private static class MergeablePackage {
     @NotNull private final LocalPackage srcPkg;
     @Nullable private final LocalPackage destPkg;
     @NotNull private final File destLocation;

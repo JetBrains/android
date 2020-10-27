@@ -28,8 +28,6 @@ import com.android.tools.componenttree.util.StyleNodeType
 import com.android.tools.componenttree.util.StyleRenderer
 import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.ui.NotRoamableUiSettings
-import com.intellij.ide.ui.UISettings
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
@@ -59,24 +57,6 @@ class ComponentTreeModelImplTest {
 
   @Before
   fun setUp() {
-    // Needed to avoid this kotlin.KotlinNullPointerException:
-    //  at com.intellij.ide.ui.UISettings$Companion.getInstance(UISettings.kt:423)
-    //  at com.intellij.ide.ui.UISettings$Companion.getInstanceOrNull(UISettings.kt:434)
-    //  at com.intellij.ide.ui.AntialiasingType.getAAHintForSwingComponent(AntialiasingType.java:17)
-    //  at com.intellij.ide.ui.UISettings$Companion.setupComponentAntialiasing(UISettings.kt:483)
-    //  at com.intellij.ide.ui.UISettings.setupComponentAntialiasing(UISettings.kt)
-    //  at com.intellij.ui.SimpleColoredComponent.updateUI(SimpleColoredComponent.java:107)
-    //  at com.intellij.ui.SimpleColoredComponent.<init>(SimpleColoredComponent.java:102)
-    //  at com.intellij.ui.SimpleColoredRenderer.<init>(SimpleColoredRenderer.java:23)
-    //  at com.android.tools.componenttree.impl.ViewTreeCellRenderer$ColoredViewRenderer.<init>(ViewTreeCellRenderer.kt:83)
-    //  at com.android.tools.componenttree.impl.ViewTreeCellRenderer.<init>(ViewTreeCellRenderer.kt:46)
-    //  at com.android.tools.componenttree.api.ViewNodeType.createRenderer(ViewNodeType.kt:51)
-    //  at com.android.tools.componenttree.impl.ComponentTreeModelImpl.createRenderer(ComponentTreeModelImpl.kt:116)
-    //
-    // Which can happen if the following settings has been made in a different test:
-    //  LoadingState.CONFIGURATION_STORE_INITIALIZED.isOccurred
-    appRule.testApplication.registerService(UISettings::class.java, UISettings (NotRoamableUiSettings()))
-
     item1.children.addAll(listOf(item2, item3))
     item2.parent = item1
     item3.parent = item1
@@ -153,7 +133,7 @@ class ComponentTreeModelImplTest {
 
   @RunsInEdt
   @Test
-  fun testSelectionNotificationFromModel() {
+  fun testNoSelectionNotificationFromModel() {
     // setup
     var selectionChangeCount = 0
     var treeSelectionChangeCount = 0
@@ -164,11 +144,11 @@ class ComponentTreeModelImplTest {
     selectionModel.addTreeSelectionListener { treeSelectionChangeCount++ }
 
     // test
-    selectionModel.selection = listOf(item2)
-    assertThat(selectionChangeCount).isEqualTo(1)
+    selectionModel.currentSelection = listOf(item2)
+    assertThat(selectionChangeCount).isEqualTo(0)
     assertThat(treeSelectionChangeCount).isEqualTo(1)
     assertThat(count.anyChanges()).isFalse()
-    assertThat(selectionModel.selection).containsExactly(item2)
+    assertThat(selectionModel.currentSelection).containsExactly(item2)
   }
 
   private class NotificationCount : ComponentTreeModelListener {

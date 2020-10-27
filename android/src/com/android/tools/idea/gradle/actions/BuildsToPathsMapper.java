@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputFileOrFolderFromListingFile;
+
 import com.android.AndroidProjectTypes;
 import com.android.build.OutputFile;
 import com.android.builder.model.AndroidArtifactOutput;
@@ -27,7 +29,7 @@ import com.android.builder.model.VariantBuildOutput;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.OutputBuildAction;
 import com.android.tools.idea.gradle.run.PostBuildModel;
-import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.idea.gradle.util.OutputType;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -41,9 +43,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * <p> Generates a map from module/build variant to the location
- * (if it's apk, either the apk itself if only one or to the folder if multiples.
- * if it's app bundle, it's always bundle itself.)
+ * <p> Generates a map from module/build variant to the location of generated apk or bundle,
+ * if it's a single apk, returns the apk file;
+ * if there're multiple apks, returns the parent folder of apk files;
+ * if it's app bundle, returns the bundle file.
  * <p>
  * {@link PostBuildModel} being built from the result of {@link OutputBuildAction} contains paths information of each of the build.
  */
@@ -98,8 +101,12 @@ public class BuildsToPathsMapper {
                                            boolean isSigned,
                                            @Nullable String signedApkOrBundlePath) {
     File outputFolderOrFile = null;
-
-    if (postBuildModel != null) {
+    if (androidModel.getFeatures().isBuildOutputFileSupported()) {
+      // get from build output listing file.
+      OutputType outputType = isAppBundle ? OutputType.Bundle : OutputType.Apk;
+      outputFolderOrFile = getOutputFileOrFolderFromListingFile(androidModel, buildVariant, outputType, false);
+    }
+    else if (postBuildModel != null) {
       if (androidModel.getAndroidProject().getProjectType() == AndroidProjectTypes.PROJECT_TYPE_APP ||
           androidModel.getAndroidProject().getProjectType() == AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE) {
         if (isAppBundle) {
@@ -193,9 +200,9 @@ public class BuildsToPathsMapper {
     return null;
   }
 
-  @VisibleForTesting
   @Nullable
-  static File tryToGetOutputPreBuild(@NotNull AndroidModuleModel androidModel) {
+  private static File tryToGetOutputPreBuild(@NotNull AndroidModuleModel androidModel) {
+    @SuppressWarnings("deprecation")
     Collection<AndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();
     if (outputs.isEmpty()) {
       return null;

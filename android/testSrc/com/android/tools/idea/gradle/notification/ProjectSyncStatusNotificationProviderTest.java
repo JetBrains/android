@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.notification;
 
+import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.intellij.util.ThreeState.YES;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -23,7 +24,9 @@ import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider.IndexingSensitiveNotificationPanel;
 import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider.NotificationPanel.Type;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.mock.MockDumbService;
 import com.intellij.openapi.Disposable;
@@ -43,6 +46,7 @@ import org.mockito.Mock;
 public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase {
   @Mock private GradleProjectInfo myProjectInfo;
   @Mock private GradleSyncState mySyncState;
+  @Mock private GradleFiles myGradleFiles;
 
   private ProjectSyncStatusNotificationProvider myNotificationProvider;
   private VirtualFile myFile;
@@ -54,6 +58,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     super.setUp();
 
     initMocks(this);
+    new IdeComponents(myProject).replaceProjectService(GradleFiles.class, myGradleFiles);
 
     when(myProjectInfo.isBuildWithGradle()).thenReturn(true);
     when(mySyncState.areSyncNotificationsEnabled()).thenReturn(true);
@@ -63,6 +68,30 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
 
     myPropertiesComponent = new PropertiesComponentMock();
     ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), PropertiesComponent.class, myPropertiesComponent, getTestRootDisposable());
+  }
+
+  public void testNotificationPanelTypeWithSyncNeededWithNoExternalFileChanged() {
+    when(mySyncState.isSyncNeeded()).thenReturn(YES);
+    when(myGradleFiles.areExternalBuildFilesModified()).thenReturn(false);
+
+    Type type = myNotificationProvider.notificationPanelType();
+    assertEquals(Type.SYNC_NEEDED, type);
+    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
+    assertInstanceOf(panel, IndexingSensitiveNotificationPanel.class);
+    Boolean refreshExternalNativeModels = myProject.getUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY);
+    assertNull(refreshExternalNativeModels);
+  }
+
+  public void testNotificationPanelTypeWithSyncNeededWithExternalFileChanged() {
+    when(mySyncState.isSyncNeeded()).thenReturn(YES);
+    when(myGradleFiles.areExternalBuildFilesModified()).thenReturn(true);
+
+    Type type = myNotificationProvider.notificationPanelType();
+    assertEquals(Type.SYNC_NEEDED, type);
+    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
+    assertInstanceOf(panel, IndexingSensitiveNotificationPanel.class);
+    Boolean refreshExternalNativeModels = myProject.getUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY);
+    assertTrue(refreshExternalNativeModels);
   }
 
   public void testNotificationPanelTypeWithProjectNotBuiltWithGradle() {

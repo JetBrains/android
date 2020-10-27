@@ -19,8 +19,10 @@ import com.android.SdkConstants;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -69,5 +71,12 @@ public class AndroidDebugBridgeUtils {
       }
     }
     return false;
+  }
+
+  public static void enableFakeAdbServerMode(int port) {
+    // Terminate the service if it's already started (it's a UI test, so there might be no shutdown between tests).
+    Disposer.dispose(AdbService.getInstance());
+    // Enable the fake ADB server and attach a fake device to which the preview will be deployed.
+    AndroidDebugBridge.enableFakeAdbServerMode(port);
   }
 }

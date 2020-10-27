@@ -51,7 +51,7 @@ private val EMPTY_ICON_COLOR = JBColor(Color(0xAA, 0xAA, 0xAA, 0x33),
 private val ITEM_BORDER = JBUI.Borders.empty(ITEM_BORDER_WIDTH)
 private val ITEM_BORDER_SELECTED = BorderFactory.createCompoundBorder(
   JBUI.Borders.empty(ITEM_BORDER_WIDTH - ITEM_SELECTED_BORDER_WIDTH),
-  JBUI.Borders.customLine(UIUtil.getListBackground(true), ITEM_SELECTED_BORDER_WIDTH))
+  JBUI.Borders.customLine(UIUtil.getListBackground(true, true), ITEM_SELECTED_BORDER_WIDTH))
 
 /**
  * Component that displays [ResourceValue] in a grid.

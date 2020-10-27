@@ -39,7 +39,7 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class StringResourceRepository {
+public class StringResourceRepository {
   private final Map<VirtualFile, LocalResourceRepository> myResourceDirectoryRepositoryMap;
 
   // TODO Drop support for dynamic resources?

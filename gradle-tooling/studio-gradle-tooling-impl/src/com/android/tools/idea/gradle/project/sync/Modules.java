@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.utils.FileUtils;
 import java.io.File;
+import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,10 +50,22 @@ public final class Modules {
    *
    * @param rootProjectFolderPath path to project root folder.
    * @param gradlePath            Gradle path of a module.
-   * @return a unique identifier for a module, i.e. project folder path + Gradle path.
+   * @return a unique identifier for a module, i.e. system-dependent project folder path + Gradle path.
    */
   @NotNull
   public static String createUniqueModuleId(@NotNull String rootProjectFolderPath, @NotNull String gradlePath) {
-    return rootProjectFolderPath + ':' + gradlePath;
+    return FileUtils.toSystemDependentPath(rootProjectFolderPath) + ':' + gradlePath;
+  }
+
+  /**
+   * This method creates a unique string identifier for a GradleProject, the value is project id plus Gradle path.
+   * For example: "/path/to/project1:lib", or "/path/to/project1:lib1".
+   *
+   * @return a unique identifier for GradleProject, i.e. system-dependent project folder path + Gradle path.
+   */
+  @NotNull
+  public static String createUniqueModuleId(@NotNull GradleProject gradleProject) {
+    File rootProjectFolderPath = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir();
+    return createUniqueModuleId(rootProjectFolderPath.getPath(), gradleProject.getPath());
   }
 }

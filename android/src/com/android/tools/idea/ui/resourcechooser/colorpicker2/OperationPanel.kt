@@ -47,23 +47,16 @@ class OperationPanel(private val model: ColorPickerModel,
     background = PICKER_BACKGROUND_COLOR
 
     if (cancel != null) {
-      val cancelButton = MyButton("Cancel")
+      val cancelButton = CommonButton("Cancel")
       cancelButton.border = JBUI.Borders.empty(BUTTON_BORDER_SIZE)
       cancelButton.addActionListener { cancel(model.color) }
       add(cancelButton, BorderLayout.WEST)
     }
     if (ok != null) {
-      val okButton = MyButton("OK")
+      val okButton = CommonButton("OK")
       okButton.border = JBUI.Borders.empty(BUTTON_BORDER_SIZE)
       okButton.addActionListener { ok(model.color) }
       add(okButton, BorderLayout.EAST)
     }
   }
-}
-
-/**
- * TODO: Remove this after [CommonButton.isFocusable] returns true.
- */
-private class MyButton(text: String) : CommonButton(text) {
-  override fun isFocusable(): Boolean = true
 }

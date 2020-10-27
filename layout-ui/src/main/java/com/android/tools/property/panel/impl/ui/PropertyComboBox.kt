@@ -39,6 +39,7 @@ import javax.swing.ComboBoxEditor
 import javax.swing.JComponent
 import javax.swing.JList
 import javax.swing.JPanel
+import javax.swing.JPopupMenu
 import javax.swing.ListCellRenderer
 import javax.swing.SwingUtilities
 import javax.swing.event.PopupMenuEvent
@@ -110,7 +111,20 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
         }
 
         override fun popupMenuWillBecomeVisible(event: PopupMenuEvent) {
-          model.popupMenuWillBecomeVisible()
+          model.popupMenuWillBecomeVisible updatePopup@{
+            // This callback means the model has an update for the list in the popup.
+            //
+            // At this point the List in the popup has already resized to the new elements
+            // in the popup, but the popup itself must be resized somehow.
+            // Do this by calling JPopupMenu.show(Component,x,y) which could be overridden
+            // in a LAF implementation of PopupMenuUI.
+            val popupMenu = popup as? JPopupMenu ?: return@updatePopup
+            val location = popupMenu.locationOnScreen
+            val comboLocation = this@WrappedComboBox.locationOnScreen
+            location.translate(-comboLocation.x, -comboLocation.y)
+            popupMenu.show(this@WrappedComboBox, location.x, location.y)
+            popupMenu.pack()
+          }
         }
 
         private fun isClickOnItemInPopup(event: MouseEvent): Boolean {

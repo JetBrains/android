@@ -35,7 +35,6 @@ import static com.android.tools.idea.layoutlib.LayoutLibrary.LAYOUTLIB_STANDARD_
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceType;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -64,6 +63,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
@@ -105,9 +105,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -146,9 +147,8 @@ public class HtmlLinkManager {
    * {@link NotificationGroup} used to let the user now that the click on a link did something. This is meant to be used
    * in those actions that do not trigger any UI updates (like Copy stack trace to clipboard).
    */
-  private static final NotificationGroup NOTIFICATIONS_GROUP =
-    new NotificationGroup("Render error panel notifications", NotificationDisplayType.BALLOON, false);
-
+  private static final NotificationGroup NOTIFICATIONS_GROUP = new NotificationGroup(
+    "Render error panel notifications", NotificationDisplayType.BALLOON, false, null, null, null, PluginId.getId("org.jetbrains.android"));
 
   public static void showNotification(@NotNull String content) {
     Notification notification = NOTIFICATIONS_GROUP.createNotification(content, NotificationType.INFORMATION);
@@ -490,7 +490,7 @@ public class HtmlLinkManager {
     int index = s.lastIndexOf('.');
     if (index == -1) {
       className = s;
-      packageName = MergedManifestManager.getSnapshot(module).getPackage();
+      packageName = AndroidManifestUtils.getPackageName(module);
       if (packageName == null) {
         return;
       }
@@ -846,7 +846,7 @@ public class HtmlLinkManager {
     WriteCommandAction<Void> action = new WriteCommandAction<Void>(project, "Assign Preview Layout", file) {
       @Override
       protected void run(@NotNull Result<Void> result) throws Throwable {
-        AndroidResourceUtil.ensureNamespaceImported(file, TOOLS_URI, null);
+        IdeResourcesUtil.ensureNamespaceImported(file, TOOLS_URI, null);
         Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
         for (XmlTag tag : xmlTags) {
           if (tag.getName().equals(VIEW_FRAGMENT)) {
@@ -975,7 +975,7 @@ public class HtmlLinkManager {
 
   private static void handleRefreshRenderUrl(@Nullable EditorDesignSurface surface) {
       if (surface != null) {
-        RefreshRenderAction.clearCache(surface.getConfigurations());
+        RenderUtils.clearCache(surface.getConfigurations());
       }
   }
 

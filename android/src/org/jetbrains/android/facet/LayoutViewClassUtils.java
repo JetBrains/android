@@ -1,4 +1,18 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+/*
+ * Copyright 2000-2010 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.jetbrains.android.facet;
 
@@ -7,7 +21,7 @@ import static com.android.tools.lint.checks.AnnotationDetector.RESTRICT_TO_ANNOT
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ScopeType;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -18,13 +32,15 @@ import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.util.ArrayUtilRt;
+import com.intellij.psi.util.InheritanceUtil;
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility methods for connecting PsiClass instances to layout view tag names
  */
-public final class LayoutViewClassUtils {
+public class LayoutViewClassUtils {
   // Utility class, no constructor
   private LayoutViewClassUtils() { }
 
@@ -41,7 +57,7 @@ public final class LayoutViewClassUtils {
         return new String[]{name};
       }
 
-      if (ResourceHelper.isClassPackageNeeded(qualifiedName, c, apiLevel)) {
+      if (IdeResourcesUtil.isClassPackageNeeded(qualifiedName, c, apiLevel)) {
         return new String[]{qualifiedName};
       }
       return new String[]{name, qualifiedName};
@@ -60,7 +76,9 @@ public final class LayoutViewClassUtils {
       for (PsiClass aClass : classes) {
         final String qualifiedName = aClass.getQualifiedName();
 
-        if (qualifiedName != null && !ResourceHelper.isClassPackageNeeded(qualifiedName, baseClass, apiLevel) && aClass.isInheritor(baseClass, true)) {
+        if (qualifiedName != null &&
+            !IdeResourcesUtil.isClassPackageNeeded(qualifiedName, baseClass, apiLevel) &&
+            InheritanceUtil.isInheritorOrSelf(aClass, baseClass, true)) {
           return aClass;
         }
       }
@@ -70,11 +88,18 @@ public final class LayoutViewClassUtils {
         name, ProjectSystemUtil.getModuleSystem(module).getResolveScope(ScopeType.MAIN));
 
       for (PsiClass aClass : classes) {
-        if (aClass.isInheritor(baseClass, true)) {
+        if (InheritanceUtil.isInheritorOrSelf(aClass, baseClass, true)) {
           return aClass;
         }
       }
     }
+    return null;
+  }
+
+  @Nullable
+  public static PsiClass findVisibleClassByTagName(@NotNull AndroidFacet facet, @NotNull String name, @NotNull String baseClassQName) {
+    PsiClass aClass = findClassByTagName(facet, name, baseClassQName);
+    if (aClass != null && isViewClassVisibleAsTag(aClass)) return aClass;
     return null;
   }
 
@@ -91,8 +116,8 @@ public final class LayoutViewClassUtils {
       return false; // not public
     }
     boolean isPublic = modifierList.hasModifierProperty(PsiModifier.PUBLIC);
-    boolean isRestricted = modifierList.findAnnotation(RESTRICT_TO_ANNOTATION.oldName()) != null ||
-                           modifierList.findAnnotation(RESTRICT_TO_ANNOTATION.newName()) != null;
+    boolean isRestricted = modifierList.hasAnnotation(RESTRICT_TO_ANNOTATION.oldName()) ||
+                           modifierList.hasAnnotation(RESTRICT_TO_ANNOTATION.newName());
     return isPublic && !isRestricted;
   }
 }

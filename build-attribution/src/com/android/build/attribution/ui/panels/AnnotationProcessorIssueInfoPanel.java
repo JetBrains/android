@@ -16,13 +16,13 @@
 package com.android.build.attribution.ui.panels;
 
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.warningIcon;
-import static com.android.build.attribution.ui.panels.BuildAttributionPanelsKt.htmlTextLabel;
+import static com.android.build.attribution.ui.panels.BuildAttributionPanelsKt.htmlTextLabelWithLinesWrap;
 
+import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks;
 import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel;
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics;
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData;
 import com.android.utils.HtmlBuilder;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
 import java.awt.GridBagConstraints;
@@ -34,7 +34,6 @@ public class AnnotationProcessorIssueInfoPanel extends JBPanel {
   private static final String DESCRIPTION = "This annotation processor is non-incremental and causes the JavaCompile task " +
                                             "to always run non-incrementally. " +
                                             "Consider switching to using an incremental annotation processor.";
-  private static final String HELP_LINK = "https://d.android.com/r/tools/build-attribution/non-incremental-ap";
 
   private final BuildAttributionUiAnalytics myAnalytics;
 
@@ -76,8 +75,12 @@ public class AnnotationProcessorIssueInfoPanel extends JBPanel {
       .getHtml();
 
     JLabel iconLabel = new JLabel(warningIcon());
-    JComponent issueDescription = new DescriptionWithHelpLinkLabel(descriptionHtml, HELP_LINK, myAnalytics);
-    JBLabel recommendation = htmlTextLabel(recommendationHtml);
+    JComponent issueDescription = new DescriptionWithHelpLinkLabel(
+      descriptionHtml,
+      BuildAnalyzerBrowserLinks.NON_INCREMENTAL_ANNOTATION_PROCESSORS,
+      myAnalytics
+    );
+    JComponent recommendation = htmlTextLabelWithLinesWrap(recommendationHtml);
 
     JBPanel<JBPanel> panel = new JBPanel<>(new GridBagLayout());
     GridBagConstraints c = new GridBagConstraints();

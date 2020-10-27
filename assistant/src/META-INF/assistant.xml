@@ -15,6 +15,8 @@
   -->
 <idea-plugin>
   <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.idea.assistant.navlistener"
+                    interface="com.android.tools.idea.assistant.AssistNavListener"/>
     <extensionPoint qualifiedName="com.android.tools.idea.assistant.actionHandler"
                     interface="com.android.tools.idea.assistant.AssistActionHandler"/>
     <extensionPoint qualifiedName="com.android.tools.idea.assistant.actionStateManager"

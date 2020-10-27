@@ -26,9 +26,6 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author Eugene.Kudelevsky
- */
 @SuppressWarnings("UnusedDeclaration")
 public class AndroidApplicationArtifactProperties extends ArtifactProperties<AndroidApplicationArtifactProperties> {
   private AndroidArtifactSigningMode mySigningMode = AndroidArtifactSigningMode.RELEASE_UNSIGNED;

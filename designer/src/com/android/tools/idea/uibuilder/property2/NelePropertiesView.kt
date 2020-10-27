@@ -22,11 +22,13 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.property2.inspector.AllAttributesInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.CommonAttributesInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.ComponentActionsInspectorBuilder
+import com.android.tools.idea.uibuilder.property2.inspector.ConstraintLayoutHelperInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.DeclaredAttributesInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.FavoritesInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.IdInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.LayoutInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.SelectedComponentBuilder
+import com.android.tools.idea.uibuilder.property2.inspector.TransformsAttributesInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
 import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider
 
@@ -47,9 +49,13 @@ class NelePropertiesView(model : NelePropertiesModel) : PropertiesView<NelePrope
       tab.builders.add(ComponentActionsInspectorBuilder(model))
     }
     tab.builders.add(IdInspectorBuilder(editorProvider))
+    tab.builders.add(ConstraintLayoutHelperInspectorBuilder(editorProvider))
     tab.builders.add(DeclaredAttributesInspectorBuilder(model, enumSupportProvider))
     tab.builders.add(LayoutInspectorBuilder(model.facet.module.project, editorProvider))
     tab.builders.add(FavoritesInspectorBuilder(model, enumSupportProvider))
+    if (StudioFlags.NELE_TRANSFORM_PANEL.get()) {
+      tab.builders.add(TransformsAttributesInspectorBuilder(model, enumSupportProvider))
+    }
     tab.builders.add(CommonAttributesInspectorBuilder(model.project, editorProvider))
     tab.builders.add(AllAttributesInspectorBuilder(model, controlTypeProvider, editorProvider))
   }
