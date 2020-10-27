@@ -32,7 +32,6 @@ import com.intellij.openapi.project.Project
 import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.image.BufferedImage
-import kotlin.math.min
 
 // TODO: find a way to indicate that this is a api 29+ model without having to specify an image on a subnode
 fun model(project: Project = mock(), body: InspectorModelDescriptor.() -> Unit) =
@@ -162,8 +161,7 @@ class InspectorViewDescriptor(private val drawId: Long,
           result.drawChildren.add(DrawViewChild(viewNode))
         }
         is InspectorImageDescriptor -> {
-          val image = it.image.getSubimage(0, 0, min(result.width, it.image.width), min(result.height, it.image.height)) ?: it.image
-          result.drawChildren.add(DrawViewImage(image, result))
+          result.drawChildren.add(DrawViewImage(it.image, result))
         }
       }
     }
