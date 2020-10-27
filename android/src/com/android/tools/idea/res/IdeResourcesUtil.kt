@@ -127,9 +127,9 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiRecursiveElementVisitor
 import com.intellij.psi.PsiReferenceExpression
 import com.intellij.psi.ResolveResult
+import com.intellij.psi.SyntaxTraverser
 import com.intellij.psi.XmlElementFactory
 import com.intellij.psi.impl.PsiModificationTrackerImpl
-import com.intellij.psi.search.PsiElementProcessor.FindFilteredElement
 import com.intellij.psi.util.InheritanceUtil
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlAttribute
@@ -2378,10 +2378,7 @@ fun getIdDeclarationAttribute(project: Project, idResource: ResourceItem): XmlAt
   val psiFile = getItemPsiFile(project, idResource) as? XmlFile ?: return null
   val resourceName = idResource.name
   // TODO(b/113646219): find the right one, if there are multiple, not the first one.
-  val processor = FindFilteredElement<XmlAttribute> { element ->
-    if (element !is XmlAttribute) {
-      false
-    } else {
+  return SyntaxTraverser.psiTraverser(psiFile).filter(XmlAttribute::class.java).filter{ element ->
       val attrValue = element.value
       if (isIdDeclaration(attrValue)) {
         val resourceUrl = ResourceUrl.parse(attrValue!!)
@@ -2390,10 +2387,7 @@ fun getIdDeclarationAttribute(project: Project, idResource: ResourceItem): XmlAt
       else {
         false
       }
-    }
-  }
-  PsiTreeUtil.processElements(psiFile, processor)
-  return processor.foundElement as XmlAttribute?
+  }.first()
 }
 
 /**
