@@ -21,6 +21,8 @@ import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.adb.AdbService
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
 import com.android.tools.idea.layoutinspector.SkiaParser
@@ -76,6 +78,7 @@ import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.UIUtil
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
+import kotlinx.coroutines.CoroutineDispatcher
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import java.awt.Component
 import java.awt.event.ActionEvent
@@ -103,7 +106,8 @@ class DefaultInspectorClient(
   private val project = model.project
   private val stats = model.stats
   private val client = TransportClient(channelNameForTest)
-  private val streamManager = TransportStreamManager.createManager(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
+  private val streamManager = TransportStreamManager.createManager(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100),
+                                                                   AndroidDispatchers.workerThread)
 
   @VisibleForTesting
   val processManager = DefaultProcessManager(client.transportStub, AppExecutorUtil.getAppScheduledExecutorService(), streamManager, this)

@@ -23,8 +23,8 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectio
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createRawAppInspectionEvent
-import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
+import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.appinspection.test.createCreateInspectorResponse
 import com.android.tools.idea.appinspection.test.createRawResponse
 import com.android.tools.idea.protobuf.ByteString
@@ -104,9 +104,6 @@ class AppInspectorConnectionTest {
     val connection = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
     appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(byteArrayOf(0x12, 0x15)))
 
-    assertThat(connection.eventFlow.take(1).single()).isEqualTo(byteArrayOf(0x12, 0x15))
-
-    // Verify the flow is cold.
     assertThat(connection.eventFlow.take(1).single()).isEqualTo(byteArrayOf(0x12, 0x15))
 
     // Verify flow collection when inspector is disposed.

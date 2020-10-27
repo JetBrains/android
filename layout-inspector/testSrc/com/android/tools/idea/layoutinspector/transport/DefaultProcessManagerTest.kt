@@ -27,6 +27,7 @@ import com.android.tools.profiler.proto.Common
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.testFramework.DisposableRule
 import io.grpc.ManagedChannel
+import kotlinx.coroutines.asCoroutineDispatcher
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -58,8 +59,9 @@ class DefaultProcessManagerTest {
   @Before
   fun before() {
     client = TransportClient(grpcServer!!.name)
-    streamManager = TransportStreamManager.createManager(client!!.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
+    streamManager = TransportStreamManager.createManager(client!!.transportStub, TimeUnit.MILLISECONDS.toNanos(100),
+                                                         executor.asCoroutineDispatcher())
     processManager = DefaultProcessManager(client!!.transportStub, executor, streamManager!!, disposableRule.disposable)
   }
 

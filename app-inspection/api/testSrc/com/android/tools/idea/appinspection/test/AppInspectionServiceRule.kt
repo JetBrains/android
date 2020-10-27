@@ -92,13 +92,14 @@ class AppInspectionServiceRule(
 
   override fun before(description: Description) {
     client = TransportClient(grpcServer.name)
-    streamManager = TransportStreamManager.createManager(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
-    streamChannel = TransportStreamChannel(stream, streamManager.poller)
     executorService = Executors.newSingleThreadExecutor()
+    streamManager = TransportStreamManager.createManager(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100),
+                                                         executorService.asCoroutineDispatcher())
+    streamChannel = TransportStreamChannel(stream, streamManager.poller, client.transportStub, executorService.asCoroutineDispatcher())
     scope = CoroutineScope(executorService.asCoroutineDispatcher() + SupervisorJob())
-    transport = AppInspectionTransport(client, stream, process, executorService.asCoroutineDispatcher(), streamChannel)
+    transport = AppInspectionTransport(client, stream, process, streamChannel)
     jarCopier = AppInspectionTestUtils.TestTransportJarCopier
-    targetManager = AppInspectionTargetManager(client, scope, executorService.asCoroutineDispatcher())
+    targetManager = AppInspectionTargetManager(client, scope)
     processNotifier = AppInspectionProcessDiscovery(executorService.asCoroutineDispatcher(), streamManager)
     apiServices = DefaultAppInspectionApiServices(targetManager, { jarCopier }, processNotifier as AppInspectionProcessDiscovery)
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, defaultAttachHandler)
@@ -108,7 +109,6 @@ class AppInspectionServiceRule(
     TransportStreamManager.unregisterManager(streamManager)
     scope.coroutineContext[Job]!!.cancelAndJoin()
     executorService.shutdownNow()
-    client.shutdown()
     timer.currentTimeNs += 1
     client.shutdown()
   }
