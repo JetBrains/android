@@ -32,7 +32,6 @@ import com.intellij.openapi.project.Project
 import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.image.BufferedImage
-import kotlin.math.min
 
 // TODO: find a way to indicate that this is a api 29+ model without having to specify an image on a subnode
 fun model(project: Project = mock(), body: InspectorModelDescriptor.() -> Unit) =
