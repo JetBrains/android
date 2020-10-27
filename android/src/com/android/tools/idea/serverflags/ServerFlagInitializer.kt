@@ -17,26 +17,15 @@ package com.android.tools.idea.serverflags
 
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.idea.ServerFlagData
-import com.android.tools.idea.ServerFlagList
 import com.google.common.hash.Hashing
-import com.google.common.io.ByteStreams
-import com.intellij.openapi.application.ApplicationInfo
-import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
-import java.io.File
-import java.io.IOException
-import java.net.MalformedURLException
-import java.net.URL
 import java.nio.file.Path
 import kotlin.math.abs
 
+private const val ENABLED_OVERRIDE_KEY = "studio.server.flags.enabled.override"
+private const val BASE_URL_OVERRIDE_KEY = "studio.server.flags.baseurl.override"
+private const val DEFAULT_BASE_URL = "https://dl.google.com/android/studio/server_flags/"
 
-const val FILE_NAME = "serverflaglist.protobuf"
-const val DIRECTORY_PREFIX = "serverflags"
-const val DEFAULT_BASE_URL = "https://dl.google.com/android/studio/server_flags/"
-const val BASE_URL_OVERRIDE_KEY = "studio.server.flags.baseurl.override"
-const val VERSION_OVERRIDE_KEY = "studio.server.flags.version.override"
-const val ENABLED_OVERRIDE_KEY = "studio.server.flags.enabled.override"
 
 /**
  * ServerFlagInitializer initializes the ServerFlagService.instance field.
@@ -49,11 +38,9 @@ class ServerFlagInitializer {
     @JvmStatic
     fun initializeService() {
       val baseUrl = System.getProperty(BASE_URL_OVERRIDE_KEY, DEFAULT_BASE_URL)
-      val localPath = File(PathManager.getSystemPath()).toPath().resolve(DIRECTORY_PREFIX)
-      val version = System.getProperty(VERSION_OVERRIDE_KEY, ApplicationInfo.getInstance().versionString)
       val experiments = System.getProperty(ENABLED_OVERRIDE_KEY)?.split(',') ?: emptyList()
 
-      initializeService(baseUrl, localPath, version, experiments)
+      initializeService(baseUrl, localCacheDirectory, flagsVersion, experiments)
 
       val logger = Logger.getInstance(ServerFlagInitializer::class.java)
       val names = ServerFlagService.instance.names
@@ -64,81 +51,30 @@ class ServerFlagInitializer {
     /**
      * Initialize the server flag service
      * @param baseUrl: The base url where the download files are located.
-     * @param localPath: The local directory to store the most recent download.
+     * @param localCacheDirectory: The local directory to store the most recent download.
      * @param version: The current version of Android Studio. This is used to construct the full paths from the first two parameters.
-     * @param experiments: An optional set of experiment names to be enabled. If empty, the percentEnabled field will determine whether
+     * @param enabled: An optional set of experiment names to be enabled. If empty, the percentEnabled field will determine whether
      * a given flag is enabled.
      */
     @JvmStatic
-    fun initializeService(baseUrl: String, localPath: Path, version: String, experiments: Collection<String>) {
-      val localFilePath = localPath.resolve(version).resolve(FILE_NAME)
-      val url = buildUrl(baseUrl, version)
+    fun initializeService(baseUrl: String, localCacheDirectory: Path, version: String, enabled: Collection<String>) {
+      ServerFlagDownloader.downloadServerFlagList(baseUrl, localCacheDirectory, version)
 
-      val serverFlagList = url?.let { downloadServerFlagList(it, localFilePath) } ?: loadLocalFlagList(localFilePath)
+      val localFilePath = buildLocalFilePath(localCacheDirectory, version)
+      val serverFlagList = unmarshalFlagList(localFilePath.toFile())
       val configurationVersion = serverFlagList?.configurationVersion ?: -1
       val list = serverFlagList?.serverFlagsList ?: emptyList()
 
-      val filter = if (experiments.isEmpty()) {
+      val filter = if (enabled.isEmpty()) {
         { flag: ServerFlagData -> flag.isEnabled }
       }
       else {
-        { flag: ServerFlagData -> experiments.contains(flag.name) }
+        { flag: ServerFlagData -> enabled.contains(flag.name) }
       }
 
       val map = list.filter(filter).map { it.name to it.serverFlag }.toMap()
       ServerFlagService.instance = ServerFlagServiceImpl(configurationVersion, map)
     }
-
-    private fun downloadServerFlagList(url: URL, localFilePath: Path): ServerFlagList? {
-      val tempFile = downloadFile(url) ?: return null
-      try {
-        val serverFlagList = unmarshalFlagList(tempFile)
-        tempFile.copyTo(localFilePath.toFile(), true)
-        return serverFlagList
-      }
-      finally {
-        try {
-          tempFile.delete()
-        }
-        catch (e: IOException) {
-        }
-      }
-    }
-
-    private fun buildUrl(baseUrl: String, version: String): URL? {
-      try {
-        return URL("$baseUrl/$version/$FILE_NAME")
-      }
-      catch (e: MalformedURLException) {
-        return null
-      }
-    }
-
-    private fun downloadFile(url: URL): File? {
-      try {
-        val tempFile = File.createTempFile(DIRECTORY_PREFIX, "")
-        url.openStream().use { inputStream ->
-          tempFile.outputStream().use { outputStream ->
-            ByteStreams.copy(inputStream, outputStream)
-          }
-        }
-        return tempFile
-      }
-      catch (e: IOException) {
-        return null
-      }
-    }
-
-    private fun loadLocalFlagList(localFilePath: Path): ServerFlagList? {
-      try {
-        return unmarshalFlagList(localFilePath.toFile())
-      }
-      catch (e: IOException) {
-        return null
-      }
-    }
-
-    private fun unmarshalFlagList(file: File): ServerFlagList = file.inputStream().use { ServerFlagList.parseFrom(it) }
   }
 }
 
@@ -149,11 +85,3 @@ private val ServerFlagData.isEnabled: Boolean
     return (abs(hash.asLong()) % 100).toInt() < this.serverFlag.percentEnabled
   }
 
-private val ApplicationInfo.versionString: String
-  get() {
-    val major = majorVersion ?: return ""
-    val minor = minorVersion ?: return ""
-    val micro = microVersion ?: return ""
-    val patch = patchVersion ?: return ""
-    return "$major.$minor.$micro.$patch"
-  }
