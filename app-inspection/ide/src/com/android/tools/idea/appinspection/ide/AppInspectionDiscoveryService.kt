@@ -22,6 +22,7 @@ import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.transport.DeployableFile
 import com.android.tools.idea.transport.TransportClient
@@ -57,7 +58,8 @@ class AppInspectionDiscoveryService : Disposable {
   }
 
   private val client = TransportClient(TransportService.CHANNEL_NAME)
-  private val streamManager = TransportStreamManager.createManager(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
+  private val streamManager = TransportStreamManager.createManager(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100),
+                                                                   AndroidDispatchers.workerThread)
 
   private val applicationMessageBus = ApplicationManager.getApplication().messageBus.connect(this)
 

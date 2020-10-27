@@ -25,7 +25,6 @@ import com.android.tools.idea.concurrency.getCompletedOrNull
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.manager.TransportStreamChannel
 import com.google.common.annotations.VisibleForTesting
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -37,8 +36,7 @@ import java.util.concurrent.ConcurrentHashMap
 @AnyThread
 internal class AppInspectionTargetManager internal constructor(
   private val transportClient: TransportClient,
-  parentScope: CoroutineScope,
-  private val workerDispatcher: CoroutineDispatcher
+  parentScope: CoroutineScope
 ) : ProcessListener {
   private val scope = parentScope.createChildScope(true)
 
@@ -61,8 +59,7 @@ internal class AppInspectionTargetManager internal constructor(
     val targetInfo = targets.computeIfAbsent(processDescriptor) {
       val processDescriptor = processDescriptor.toTransportImpl()
       val targetDeferred = scope.async {
-        val transport = AppInspectionTransport(transportClient, processDescriptor.stream, processDescriptor.process, workerDispatcher,
-                                               streamChannel)
+        val transport = AppInspectionTransport(transportClient, processDescriptor.stream, processDescriptor.process, streamChannel)
         attachAppInspectionTarget(transport, jarCopier, scope)
       }
       TargetInfo(targetDeferred, projectName)

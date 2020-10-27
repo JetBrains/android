@@ -22,7 +22,37 @@ import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.google.common.annotations.VisibleForTesting
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.flow.transform
 import java.util.concurrent.Executor
+import java.util.concurrent.atomic.AtomicBoolean
+
+const val DELAY_MILLIS = 100L
+
+/**
+ * Represents stream connection activity.
+ */
+sealed class StreamActivity(val streamChannel: TransportStreamChannel)
+
+/**
+ * Represents a stream connect activity.
+ */
+class StreamConnected(streamChannel: TransportStreamChannel) : StreamActivity(streamChannel)
+
+/**
+ * Represents a stream disconnect activity.
+ */
+class StreamDisconnected(streamChannel: TransportStreamChannel) : StreamActivity(streamChannel)
+
+/**
+ * This simply wraps [Common.Event] and represents an event from a stream channel.
+ */
+class StreamEvent(val event: Common.Event)
 
 /**
  * Listener interface for stream events.
@@ -39,6 +69,16 @@ interface TransportStreamListener {
   fun onStreamDisconnected(streamChannel: TransportStreamChannel)
 }
 
+private fun TransportServiceGrpc.TransportServiceBlockingStub.eventGroupFlow(
+  pollPeriodMs: Long = DELAY_MILLIS,
+  requestBuilder: () -> GetEventGroupsRequest
+): Flow<GetEventGroupsResponse> = flow {
+  while (true) {
+    emit(getEventGroups(requestBuilder()))
+    delay(pollPeriodMs)
+  }
+}
+
 /**
  * Manages STREAM events from the transport pipeline. Users can add themselves as a [TransportStreamListener] to be notified of new streams or when
  * an existing stream is disconnected.
@@ -47,7 +87,11 @@ interface TransportStreamListener {
  * automatically associating them with the stream.
  */
 @AnyThread
-class TransportStreamManager private constructor(@VisibleForTesting val poller: TransportPoller) {
+class TransportStreamManager private constructor(
+  private val client: TransportServiceGrpc.TransportServiceBlockingStub,
+  @VisibleForTesting val poller: TransportPoller,
+  private val dispatcher: CoroutineDispatcher
+) {
   private val streamLock = Any()
 
   @GuardedBy("streamLock")
@@ -76,11 +120,12 @@ class TransportStreamManager private constructor(@VisibleForTesting val poller: 
         synchronized(streamLock) {
           if (isConnected) {
             streams.computeIfAbsent(streamId) {
-              val streamChannel = TransportStreamChannel(latestEvent.stream.streamConnected.stream, poller)
+              val streamChannel = TransportStreamChannel(latestEvent.stream.streamConnected.stream, poller, client, dispatcher)
               streamListeners.forEach { it.value.execute { it.key.onStreamConnected(streamChannel) } }
               streamChannel
             }
-          } else {
+          }
+          else {
             streams.remove(streamId)?.let { channel ->
               channel.cleanUp()
               streamListeners.forEach { it.value.execute { it.key.onStreamDisconnected(channel) } }
@@ -90,6 +135,43 @@ class TransportStreamManager private constructor(@VisibleForTesting val poller: 
       }
       return false
     }
+  }
+
+  fun streamActivityFlow(): Flow<StreamActivity> {
+    val streams = mutableMapOf<Long, TransportStreamChannel>()
+    // Get all streams of all types.
+    val request = GetEventGroupsRequest.newBuilder()
+      .setStreamId(-1) // DataStoreService.DATASTORE_RESERVED_STREAM_ID
+      .setKind(Common.Event.Kind.STREAM)
+      .build()
+    return client
+      .eventGroupFlow { request }
+      .transform { response ->
+        for (group in response.groupsList) {
+          if (group.eventsCount <= 0) continue
+          val streamId = group.groupId
+          // sort list by timestamp in descending order
+          // the latest event may signal the stream is alive or dead:
+          // 1) alive - if stream is new, add stream and notify listeners. otherwise do nothing
+          // 2) dead - if stream is dead and manager knows it from before, then remove it and notify listeners. Otherwise do nothing.
+          val latestEvent = group.eventsList.maxBy { it.timestamp } ?: continue
+          val isConnected = latestEvent.stream.hasStreamConnected()
+          if (isConnected) {
+            if (!streams.containsKey(streamId)) {
+              val streamChannel = TransportStreamChannel(latestEvent.stream.streamConnected.stream, poller, client, dispatcher)
+              emit(StreamConnected(streamChannel))
+              streams[streamId] = streamChannel
+            }
+          }
+          else {
+            streams.remove(streamId)?.let { channel ->
+              channel.cleanUp()
+              emit(StreamDisconnected(channel))
+            }
+          }
+        }
+      }
+      .flowOn(dispatcher)
   }
 
   /**
@@ -105,9 +187,13 @@ class TransportStreamManager private constructor(@VisibleForTesting val poller: 
   companion object {
     private val managers = mutableListOf<TransportStreamManager>()
 
-    fun createManager(client: TransportServiceGrpc.TransportServiceBlockingStub, pollPeriodNs: Long): TransportStreamManager {
+    fun createManager(
+      client: TransportServiceGrpc.TransportServiceBlockingStub,
+      pollPeriodNs: Long,
+      dispatcher: CoroutineDispatcher
+    ): TransportStreamManager {
       val poller = TransportPoller.createPoller(client, pollPeriodNs)
-      val manager = TransportStreamManager(poller)
+      val manager = TransportStreamManager(client, poller, dispatcher)
       poller.registerPollingTask(manager.streamsPollingTask)
       managers.add(manager)
       return manager
@@ -125,15 +211,19 @@ class TransportStreamManager private constructor(@VisibleForTesting val poller: 
  * [TransportStreamEventListener] with the stream and creates a new [StreamEventPollingTask] and adds it to poller for execution.
  */
 @AnyThread
-class TransportStreamChannel(val stream: Common.Stream, val poller: TransportPoller) {
+class TransportStreamChannel(
+  val stream: Common.Stream,
+  val poller: TransportPoller,
+  val client: TransportServiceGrpc.TransportServiceBlockingStub,
+  private val dispatcher: CoroutineDispatcher
+) {
 
   private val listenersLock = Any()
 
   @GuardedBy("listenersLock")
   private val listeners = mutableMapOf<TransportStreamEventListener, StreamEventPollingTask>()
 
-  @GuardedBy("listenersLock")
-  private var isClosed = false
+  private val isClosed = AtomicBoolean(false)
 
   /**
    * Once a [TransportStreamEventListener] is added, a [StreamEventPollingTask] will be created based on it and added to the poller for
@@ -141,7 +231,7 @@ class TransportStreamChannel(val stream: Common.Stream, val poller: TransportPol
    */
   fun registerStreamEventListener(streamEventListener: TransportStreamEventListener) {
     synchronized(listenersLock) {
-      if (isClosed) {
+      if (isClosed.get()) {
         // It is expected we will hit this case due to timing/race, so we do nothing and quietly return.
         return
       }
@@ -159,10 +249,40 @@ class TransportStreamChannel(val stream: Common.Stream, val poller: TransportPol
     }
   }
 
+  /**
+   * Creates and returns a flow based on the filtering criteria indicated by [eventQuery].
+   */
+  fun eventFlow(query: StreamEventQuery): Flow<StreamEvent> {
+    var lastTimeStamp = query.startTime?.invoke() ?: Long.MIN_VALUE
+    return client
+      .eventGroupFlow {
+        val builder = GetEventGroupsRequest.newBuilder()
+          .setStreamId(stream.streamId)
+          .setKind(query.eventKind)
+          .setFromTimestamp(lastTimeStamp)
+          .setToTimestamp(query.endTime())
+        query.processId?.invoke()?.let { builder.pid = it }
+        query.groupId?.invoke()?.let { builder.groupId = it }
+        builder.build()
+      }
+      .takeWhile { !isClosed.get() }
+      .transform { response ->
+        if (response != GetEventGroupsResponse.getDefaultInstance()) {
+          val filtered = response.groupsList
+            .flatMap { group -> group.eventsList }
+            .sortedWith(query.sortOrder)
+            .filter { event -> event.timestamp >= lastTimeStamp && query.filter(event) }
+          filtered.forEach { event -> emit(StreamEvent(event)) }
+          val maxTimeEvent = filtered.maxBy { it.timestamp }
+          maxTimeEvent?.let { lastTimeStamp = kotlin.math.max(lastTimeStamp, it.timestamp + 1) }
+        }
+      }
+      .flowOn(dispatcher)
+  }
+
   internal fun cleanUp() {
     synchronized(listenersLock) {
-      if (!isClosed) {
-        isClosed = true
+      if (isClosed.compareAndSet(false, true)) {
         listeners.values.forEach { poller.unregisterPollingTask(it) }
         listeners.clear()
       }
