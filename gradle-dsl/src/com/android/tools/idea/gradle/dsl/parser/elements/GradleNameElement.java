@@ -34,10 +34,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public final class GradleNameElement {
+public class GradleNameElement {
   /**
    * This regex is used to extract indexes out from a dereferenced map or list property.
    * Example properties would be:

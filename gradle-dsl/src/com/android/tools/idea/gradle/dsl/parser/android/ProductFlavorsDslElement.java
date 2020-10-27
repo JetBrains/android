@@ -21,9 +21,10 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
-import java.util.ArrayList;
-import java.util.List;
+import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public final class ProductFlavorsDslElement extends AbstractFlavorTypeCollectionDslElement implements GradleDslNamedDomainContainer {
   public static final PropertiesElementDescription<ProductFlavorsDslElement> PRODUCT_FLAVORS =
@@ -45,7 +46,7 @@ public final class ProductFlavorsDslElement extends AbstractFlavorTypeCollection
 
   @NotNull
   public List<ProductFlavorModel> get() {
-    List<ProductFlavorModel> result = new ArrayList<>();
+    List<ProductFlavorModel> result = Lists.newArrayList();
     for (ProductFlavorDslElement dslElement : getValues(ProductFlavorDslElement.class)) {
       if (!KNOWN_METHOD_NAMES.contains(dslElement.getName())) {
         result.add(new ProductFlavorModelImpl(dslElement));

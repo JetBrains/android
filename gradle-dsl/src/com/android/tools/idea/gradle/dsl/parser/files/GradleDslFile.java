@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.dsl.parser.files;
 
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.tools.idea.Projects;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
@@ -47,9 +47,9 @@ import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElem
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
@@ -78,11 +78,10 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
  * Provides Gradle specific abstraction over a {@link GroovyFile}.
  */
 public abstract class GradleDslFile extends GradlePropertiesDslElement {
-  private static final Logger LOG = Logger.getInstance(GradleDslFile.class);
   @NotNull private final ElementList myGlobalProperties = new ElementList();
   @NotNull private final VirtualFile myFile;
   @NotNull private final Project myProject;
-  @NotNull private final Set<GradleDslFile> myChildModuleDslFiles = new HashSet<GradleDslFile>();
+  @NotNull private final Set<GradleDslFile> myChildModuleDslFiles = Sets.newHashSet();
   @NotNull private final GradleDslWriter myGradleDslWriter;
   @NotNull private final GradleDslParser myGradleDslParser;
 
@@ -121,26 +120,23 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
 
     Application application = ApplicationManager.getApplication();
     PsiFile psiFile = application.runReadAction((Computable<PsiFile>)() -> PsiManager.getInstance(myProject).findFile(myFile));
-    List<GradleDslConverterFactory> extensionList = EXTENSION_POINT_NAME.getExtensionList();
 
-    GradleDslParser parser = null;
-    GradleDslWriter writer = null;
-    for(GradleDslConverterFactory factory: extensionList) {
-      if (factory.canConvert(psiFile)) {
-        parser = factory.createParser(psiFile, this);
-        writer = factory.createWriter();
-        setPsiElement(psiFile);
-        break;
-      }
+    // Pick the language that should be used by this GradleDslFile, we do this by selecting the parser implementation.
+    if (psiFile instanceof GroovyFile) {
+      GroovyFile groovyPsiFile = (GroovyFile)psiFile;
+      myGradleDslParser = new GroovyDslParser(groovyPsiFile, this);
+      myGradleDslWriter = new GroovyDslWriter();
+      setPsiElement(groovyPsiFile);
     }
-
-    if(parser !=null) {
-      myGradleDslParser = parser;
-      myGradleDslWriter = writer;
-    } else {
+    else if (psiFile instanceof KtFile && StudioFlags.KOTLIN_DSL_PARSING.get()) {
+      KtFile ktFile = (KtFile)psiFile;
+      myGradleDslParser = new KotlinDslParser(ktFile, this);
+      myGradleDslWriter = new KotlinDslWriter();
+      setPsiElement(ktFile);
+    }
+    else {
       // If we don't support the language we ignore the PsiElement and set stubs for the writer and parser.
       // This means this file will produce an empty model.
-      LOG.warn("cannot find converter factory for " + psiFile.getName() + "(" + psiFile.getClass().getCanonicalName() + ")");
       myGradleDslParser = new GradleDslParser.Adapter();
       myGradleDslWriter = new GradleDslWriter.Adapter();
     }
@@ -333,5 +329,4 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
     }
     return null;
   }
-
 }
