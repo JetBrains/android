@@ -13,15 +13,14 @@ import com.intellij.packaging.impl.ui.DelegatedPackagingElementPresentation;
 import com.intellij.packaging.ui.ArtifactEditorContext;
 import com.intellij.packaging.ui.PackagingElementPresentation;
 import com.intellij.util.xmlb.annotations.Attribute;
-import java.util.Collection;
-import java.util.Collections;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-/**
- * @author Eugene.Kudelevsky
- */
+
+import java.util.Collection;
+import java.util.Collections;
+
 public class AndroidFinalPackageElement extends PackagingElement<AndroidFinalPackageElement.AndroidFinalPackageElementState>
   implements FacetBasedPackagingElement, ModuleOutputPackagingElement {
 

@@ -1,0 +1,6 @@
+val ver10 by extra("1.0")
+val ver20 by extra("2.0")
+val otherVer by extra("3.0")
+val nonVer by extra("something")
+val nonString by extra(123)
+val inTheMap by extra(mapOf("itemVer10" to "1.0", "itemVer11" to "1.1", "other" to true))

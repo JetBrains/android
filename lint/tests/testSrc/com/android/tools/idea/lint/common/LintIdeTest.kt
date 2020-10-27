@@ -120,6 +120,11 @@ class LintIdeTest : UsefulTestCase() {
                   "Replace with valueOf()", "/src/test/pkg/UseValueOf.java", "java")
   }
 
+  fun testUseValueOfSuppress() {
+    doTestWithFix(AndroidLintUseValueOfInspection(),
+                  "Suppress: Add @SuppressLint(\"UseValueOf\") annotation", "/src/test/pkg/UseValueOf.java", "java")
+  }
+
   fun testWrongQuote() {
     doTestWithFix(AndroidLintNotInterpolatedInspection(),
                   "Replace single quotes with double quotes", "build.gradle", "gradle")
@@ -135,6 +140,12 @@ class LintIdeTest : UsefulTestCase() {
     addCallSuper()
     doTestWithFix(AndroidLintMissingSuperCallInspection(),
                   "Add super call", "/src/p1/p2/SuperTest.kt", "kt")
+  }
+
+  fun testAddSuperCallSuppress() {
+    addCallSuper()
+    doTestWithFix(AndroidLintMissingSuperCallInspection(),
+                  "Suppress: Add @SuppressLint(\"MissingSuperCall\") annotation", "/src/p1/p2/SuperTest.kt", "kt")
   }
 
   fun testAddSuperCallExpression() {
@@ -200,6 +211,14 @@ class LintIdeTest : UsefulTestCase() {
   fun testLintInJavaFile() {
     myFixture.copyFileToProject("$globalTestDir/MyActivity.java", "src/p1/p2/MyActivity.java")
     doGlobalInspectionTest(AndroidLintUseValueOfInspection())
+  }
+
+  fun testLintNonAndroid() {
+    // Make sure that we include the lint implementation checks themselves outside of Android contexts
+    val issues = LintIdeIssueRegistry()
+    val issue = issues.getIssue("LintImplDollarEscapes")!!
+    val support = object : LintIdeSupport() { }
+    assertEquals(support.getPlatforms(), issue.platforms)
   }
 
   private fun doGlobalInspectionTest(inspection: AndroidLintInspectionBase) {

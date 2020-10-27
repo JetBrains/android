@@ -52,30 +52,26 @@ public class GradleSyncStateTest extends PlatformTestCase {
     super.setUp();
     initMocks(this);
 
-    MessageBus messageBus = mock(MessageBus.class);
+    new IdeComponents(myProject).replaceProjectService(ProjectStructure.class, myProjectStructure);
 
     new IdeComponents(myProject).replaceProjectService(GradleFiles.class, myGradleFiles);
-    mySyncState = new GradleSyncState(myProject, AndroidProjectInfo.getInstance(myProject), GradleProjectInfo.getInstance(myProject),
-                                      messageBus, myProjectStructure, myChangeNotification);
+    mySyncState = new GradleSyncState(myProject, myChangeNotification);
 
-    when(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)).thenReturn(myGradleSyncListener);
+    myProject.getMessageBus().connect().subscribe(GRADLE_SYNC_TOPIC, myGradleSyncListener);
   }
 
   public void testSyncStartedUserNotification() {
     assertFalse(mySyncState.isSyncInProgress());
 
-    boolean syncStarted = mySyncState.syncStarted(new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED), null);
+    boolean syncStarted = mySyncState.syncStarted(new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED));
     assertTrue(syncStarted);
     assertTrue(mySyncState.isSyncInProgress());
 
     verify(myChangeNotification, times(1)).notifyStateChanged();
-    verify(myGradleSyncListener, times(1)).syncStarted(myProject);
   }
 
   public void testSyncSkipped() {
-    long timestamp = -1231231231299L; // Some random number
-
-    mySyncState.syncSkipped(timestamp, null);
+    mySyncState.syncSkipped(null);
 
     assertThat(mySyncState.getLastSyncFinishedTimeStamp()).isNotEqualTo(-1L);
     verify(myChangeNotification, never()).notifyStateChanged();
@@ -83,10 +79,8 @@ public class GradleSyncStateTest extends PlatformTestCase {
   }
 
   public void testSyncSkippedAfterSyncStarted() {
-    long timestamp = -1231231231299L; // Some random number
-
-    mySyncState.syncStarted(new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED), null);
-    mySyncState.syncSkipped(timestamp, null);
+    mySyncState.syncStarted(new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED));
+    mySyncState.syncSkipped(null);
     assertFalse(mySyncState.isSyncInProgress());
   }
 
@@ -121,12 +115,6 @@ public class GradleSyncStateTest extends PlatformTestCase {
     mySyncState.setSyncStartedTimeStamp(-1, TRIGGER_TEST_REQUESTED);
     mySyncState.syncSucceeded();
     verify(myGradleSyncListener, never()).syncSucceeded(myProject);
-  }
-
-  public void testSetupStarted() {
-    mySyncState.setupStarted();
-
-    verify(myGradleSyncListener, times(1)).setupStarted(myProject);
   }
 
   public void testGetSyncTimesSuccess() {
@@ -237,7 +225,7 @@ public class GradleSyncStateTest extends PlatformTestCase {
    * Check that myExternalSystemTaskId is set to null (if it was ever set) when sync finishes
    */
   public void testExternalSystemTaskIdEnded() {
-    mySyncState.syncStarted(new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED), null);
+    mySyncState.syncStarted(new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED));
     mySyncState.setExternalSystemTaskId(myTaskId);
     assertEquals(myTaskId, mySyncState.getExternalSystemTaskId());
     mySyncState.syncSucceeded();
@@ -248,13 +236,10 @@ public class GradleSyncStateTest extends PlatformTestCase {
    * Check that myExternalSystemTaskId is set to null (if it was ever set) when sync finishes
    */
   public void testExternalSystemTaskIdSkipped() {
-    long timestamp = -1231231231299L; // Some random number
-
-    // TODO Add trigger for testing?
-    mySyncState.syncStarted(new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED), null);
+    mySyncState.syncStarted(new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED));
     mySyncState.setExternalSystemTaskId(myTaskId);
     assertEquals(myTaskId, mySyncState.getExternalSystemTaskId());
-    mySyncState.syncSkipped(timestamp, null);
+    mySyncState.syncSkipped(null);
     assertNull(mySyncState.getExternalSystemTaskId());
   }
 

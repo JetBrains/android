@@ -15,10 +15,13 @@
  */
 package com.android.tools.profilers.memory;
 
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BORDER_COLOR;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
 import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
-import static com.android.tools.profilers.memory.adapters.MemoryObject.INVALID_VALUE;
+import static com.android.tools.profilers.memory.SimpleColumnRenderer.makeIntColumn;
+import static com.android.tools.profilers.memory.SimpleColumnRenderer.makeSizeColumn;
+import static com.android.tools.profilers.memory.SimpleColumnRenderer.onSubclass;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
@@ -27,37 +30,47 @@ import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.adtui.stdui.StandardColors;
+import com.android.tools.profilers.CloseButton;
 import com.android.tools.profilers.ContextMenuInstaller;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute;
-import com.android.tools.profilers.memory.adapters.ClassSet;
-import com.android.tools.profilers.memory.adapters.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.FieldObject;
-import com.android.tools.profilers.memory.adapters.HeapSet;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.android.tools.profilers.memory.adapters.ReferenceObject;
 import com.android.tools.profilers.memory.adapters.ValueObject;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.instanceviewers.BitmapViewer;
 import com.android.tools.profilers.memory.instanceviewers.InstanceViewer;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.StackTraceView;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ui.components.JBCheckBox;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBPanel;
+import com.intellij.util.ui.JBEmptyBorder;
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.event.ItemEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.LongFunction;
+import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTree;
 import javax.swing.SortOrder;
@@ -76,16 +89,14 @@ import org.jetbrains.annotations.Nullable;
  * information is available. If no detailed information can be obtained from the InstanceObject, this UI is responsible
  * for automatically hiding itself.
  */
-final class MemoryInstanceDetailsView extends AspectObserver {
+public final class MemoryInstanceDetailsView extends AspectObserver {
+  private static final String TITLE_TAB_FIELDS = "Fields";
   private static final String TITLE_TAB_REFERENCES = "References";
   private static final String TITLE_TAB_ALLOCATION_CALLSTACK = "Allocation Call Stack";
   private static final String TITLE_TAB_DEALLOCATION_CALLSTACK = "Deallocation Call Stack";
   private static final int LABEL_COLUMN_WIDTH = 500;
-  private static final int DEFAULT_COLUMN_WIDTH = 80;
 
-  @NotNull private final MemoryProfilerStage myStage;
-
-  @NotNull private final StreamingTimeline myTimeline;
+  @NotNull private final MemoryCaptureSelection mySelection;
 
   @NotNull private final IdeProfilerComponents myIdeProfilerComponents;
 
@@ -99,134 +110,106 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
   @Nullable private JTree myReferenceTree;
 
+  @NotNull private final JBCheckBox myGCRootCheckBox = new JBCheckBox("Show nearest GC root only", false);
+
+  @NotNull private final JPanel myRefPanel = new JPanel(new BorderLayout());
+
+  @NotNull private final JBLabel myTitle = new JBLabel();
+
+  @NotNull private final JBPanel myPanel = new JBPanel(new BorderLayout());
+
   @NotNull private final Map<InstanceAttribute, AttributeColumn> myAttributeColumns = new HashMap<>();
 
   @NotNull private final List<InstanceViewer> myInstanceViewers = new ArrayList<>();
 
-  MemoryInstanceDetailsView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
-    myStage = stage;
-    myTimeline = myStage.getTimeline();
-    myStage.getAspect().addDependency(this)
-      .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::instanceChanged)
-      .onChange(MemoryProfilerAspect.CURRENT_FIELD_PATH, this::instanceChanged);
+  MemoryInstanceDetailsView(@NotNull MemoryCaptureSelection selection,
+                            @NotNull IdeProfilerComponents ideProfilerComponents,
+                            @NotNull StreamingTimeline timeline) {
+    mySelection = selection;
+    mySelection.getAspect().addDependency(this)
+      .onChange(CaptureSelectionAspect.CURRENT_INSTANCE, this::instanceChanged)
+      .onChange(CaptureSelectionAspect.CURRENT_FIELD_PATH, this::instanceChanged);
     myIdeProfilerComponents = ideProfilerComponents;
 
     myTabsPanel = new CommonTabbedPane();
     myTabsPanel.addChangeListener(this::trackActiveTab);
-    myAllocationStackTraceView = ideProfilerComponents.createStackView(stage.getAllocationStackTraceModel());
-    myDeallocationStackTraceView = ideProfilerComponents.createStackView(stage.getDeallocationStackTraceModel());
+    myAllocationStackTraceView = ideProfilerComponents.createStackView(selection.getAllocationStackTraceModel());
+    myDeallocationStackTraceView = ideProfilerComponents.createStackView(selection.getDeallocationStackTraceModel());
+
+    JPanel titleWrapper = new JPanel(new BorderLayout());
+    titleWrapper.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, DEFAULT_BORDER_COLOR));
+    myTitle.setBorder(new JBEmptyBorder(4, 4, 4, 0));
+    titleWrapper.add(myTitle, BorderLayout.CENTER);
+    titleWrapper.add(new CloseButton(e -> mySelection.selectInstanceObject(null)), BorderLayout.EAST);
+    myPanel.add(myTabsPanel, BorderLayout.CENTER);
+    if (selection.getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
+      myPanel.add(titleWrapper, BorderLayout.NORTH);
+    }
+    myPanel.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, DEFAULT_BORDER_COLOR));
 
     myInstanceViewers.add(new BitmapViewer());
+
+    myGCRootCheckBox.addItemListener(e -> {
+      instanceChanged();
+      myTabsPanel.setSelectedComponent(myRefPanel);
+      if (e.getStateChange() == ItemEvent.SELECTED) {
+        repeatedlyExpandFirstReference();
+      }
+    });
+
+    LongFunction<String> timeFormatter = t ->
+      TimeFormatter.getSemiSimplifiedClockString(timeline.convertToRelativeTimeUs(t));
 
     myAttributeColumns.put(
       InstanceAttribute.LABEL,
       new AttributeColumn<ValueObject>(
         "Reference",
         () -> new SimpleColumnRenderer<ValueObject>(
-          node -> {
-            StringBuilder builder = new StringBuilder();
-            if (node.getAdapter() instanceof ReferenceObject) {
-              builder.append(node.getAdapter().getName());
-              builder.append(" in ");
-            }
-            builder.append(node.getAdapter().getValueText());
-            return builder.toString();
-          },
+          onSubclass(ReferenceObject.class,
+                     v -> v.getName() + " in " + v.getValueText(),
+                     ValueObject::getValueText),
           value -> MemoryProfilerStageView.getValueObjectIcon(value.getAdapter()),
           SwingConstants.LEFT),
         SwingConstants.LEFT,
         LABEL_COLUMN_WIDTH,
         SortOrder.ASCENDING,
-        Comparator.comparing(o -> (o.getAdapter()).getName())));
+        Comparator.comparing(o -> o.getAdapter().getName())));
     myAttributeColumns.put(
       InstanceAttribute.DEPTH,
-      new AttributeColumn<ValueObject>(
-        "Depth",
-        () -> new SimpleColumnRenderer<ValueObject>(value -> {
-          int depth = value.getAdapter().getDepth();
-          if (depth >= 0 && depth < Integer.MAX_VALUE) {
-            return NumberFormatter.formatInteger(depth);
-          }
-          return "";
-        }, value -> null, SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.ASCENDING,
-        Comparator.comparingInt(o -> o.getAdapter().getDepth())));
+      makeIntColumn("Depth",
+                    150,
+                    ValueObject.class,
+                    ValueObject::getDepth,
+                    d -> 0 <= d && d < Integer.MAX_VALUE,
+                    NumberFormatter::formatInteger,
+                    SortOrder.ASCENDING));
     myAttributeColumns.put(
       InstanceAttribute.ALLOCATION_TIME,
-      new AttributeColumn<>(
-        "Alloc Time",
-        () -> new SimpleColumnRenderer<>(value -> {
-          MemoryObject node = value.getAdapter();
-          if (node instanceof InstanceObject) {
-            InstanceObject instanceObject = (InstanceObject)node;
-            if (instanceObject.getAllocTime() > Long.MIN_VALUE) {
-              return TimeFormatter.getSemiSimplifiedClockString(myTimeline.convertToRelativeTimeUs(instanceObject.getAllocTime()));
-            }
-          }
-          return "";
-        }, value -> null, SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.ASCENDING,
-        Comparator.comparingLong(o -> ((InstanceObject)o.getAdapter()).getAllocTime())));
+      makeIntColumn("Alloc Time",
+                    100,
+                    InstanceObject.class,
+                    InstanceObject::getAllocTime,
+                    t -> t > Long.MIN_VALUE,
+                    timeFormatter,
+                    SortOrder.ASCENDING));
     myAttributeColumns.put(
       InstanceAttribute.DEALLOCATION_TIME,
-      new AttributeColumn<>(
-        "Dealloc Time",
-        () -> new SimpleColumnRenderer<>(value -> {
-          MemoryObject node = value.getAdapter();
-          if (node instanceof InstanceObject) {
-            InstanceObject instanceObject = (InstanceObject)node;
-            if (instanceObject.getDeallocTime() < Long.MAX_VALUE) {
-              return TimeFormatter.getSemiSimplifiedClockString(myTimeline.convertToRelativeTimeUs(instanceObject.getDeallocTime()));
-            }
-          }
-          return "";
-        }, value -> null, SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.DESCENDING,
-        Comparator.comparingLong(o -> ((InstanceObject)o.getAdapter()).getDeallocTime())));
+      makeIntColumn("Dealloc Time",
+                    120,
+                    InstanceObject.class,
+                    InstanceObject::getDeallocTime,
+                    t -> t < Long.MAX_VALUE,
+                    timeFormatter,
+                    SortOrder.DESCENDING));
     myAttributeColumns.put(
       InstanceAttribute.NATIVE_SIZE,
-      new AttributeColumn<ValueObject>(
-        "Native Size",
-        () -> new SimpleColumnRenderer<ValueObject>(
-          value -> value.getAdapter().getNativeSize() != INVALID_VALUE
-                   ? NumberFormatter.formatInteger(value.getAdapter().getNativeSize())
-                   : "",
-          value -> null, SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.DESCENDING,
-        Comparator.comparingLong(o -> o.getAdapter().getNativeSize())));
+      makeSizeColumn("Native Size", 110, ValueObject::getNativeSize));
     myAttributeColumns.put(
       InstanceAttribute.SHALLOW_SIZE,
-      new AttributeColumn<ValueObject>(
-        "Shallow Size",
-        () -> new SimpleColumnRenderer<ValueObject>(
-          value -> value.getAdapter().getShallowSize() != INVALID_VALUE
-                   ? NumberFormatter.formatInteger(value.getAdapter().getShallowSize())
-                   : "",
-          value -> null, SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.DESCENDING,
-        Comparator.comparingInt(o -> o.getAdapter().getShallowSize())));
+      makeSizeColumn("Shallow Size", 120, ValueObject::getShallowSize));
     myAttributeColumns.put(
       InstanceAttribute.RETAINED_SIZE,
-      new AttributeColumn<ValueObject>(
-        "Retained Size",
-        () -> new SimpleColumnRenderer<ValueObject>(
-          value -> value.getAdapter().getRetainedSize() != INVALID_VALUE ? NumberFormatter
-            .formatInteger(value.getAdapter().getRetainedSize()) : "",
-          value -> null, SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.DESCENDING,
-        Comparator.comparingLong(o -> o.getAdapter().getRetainedSize())));
+      makeSizeColumn("Retained Size", 130, ValueObject::getRetainedSize));
 
     // Fires the handler once at the beginning to ensure we are sync'd with the latest selection state in the MemoryProfilerStage.
     instanceChanged();
@@ -237,7 +220,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       return;
     }
 
-    FeatureTracker featureTracker = myStage.getStudioProfilers().getIdeServices().getFeatureTracker();
+    FeatureTracker featureTracker = mySelection.getIdeServices().getFeatureTracker();
     switch (myTabsPanel.getTitleAt(myTabsPanel.getSelectedIndex())) {
       case TITLE_TAB_REFERENCES:
         featureTracker.trackSelectMemoryReferences();
@@ -254,7 +237,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
   @NotNull
   JComponent getComponent() {
-    return myTabsPanel;
+    return myPanel;
   }
 
   @VisibleForTesting
@@ -269,18 +252,24 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     return myReferenceColumnTree;
   }
 
+  @VisibleForTesting
+  JBCheckBox getGCRootCheckBox() {
+    return myGCRootCheckBox;
+  }
+
   private void instanceChanged() {
-    CaptureObject capture = myStage.getSelectedCapture();
-    InstanceObject instance = myStage.getSelectedInstanceObject();
-    List<FieldObject> fieldPath = myStage.getSelectedFieldObjectPath();
+    CaptureObject capture = mySelection.getSelectedCapture();
+    InstanceObject instance = mySelection.getSelectedInstanceObject();
+    List<FieldObject> fieldPath = mySelection.getSelectedFieldObjectPath();
 
     if (capture == null || instance == null) {
       myReferenceTree = null;
       myReferenceColumnTree = null;
-      myTabsPanel.setVisible(false);
+      getComponent().setVisible(false);
       return;
     }
 
+    myTitle.setText("Instance Details - " + (instance.getName().isEmpty() ? instance.getValueText() : instance.getName()));
     myTabsPanel.removeAll();
     boolean hasContent = false;
 
@@ -291,10 +280,22 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       }
     }
 
+    // Populate fields
+    if (mySelection.getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled() &&
+        instance.getFieldCount() > 0) {
+      JTree fieldTree = buildFieldTree(instance);
+      JComponent fieldColumnTree = buildFieldColumnTree(fieldTree, capture, instance);
+      myTabsPanel.addTab(TITLE_TAB_FIELDS, fieldColumnTree);
+      hasContent = true;
+    }
+
     // Populate references
     myReferenceColumnTree = buildReferenceColumnTree(capture, instance);
     if (myReferenceColumnTree != null) {
-      myTabsPanel.addTab(TITLE_TAB_REFERENCES, myReferenceColumnTree);
+      myRefPanel.removeAll();
+      myRefPanel.add(myReferenceColumnTree, BorderLayout.CENTER);
+      myRefPanel.add(myGCRootCheckBox, BorderLayout.NORTH);
+      myTabsPanel.addTab(TITLE_TAB_REFERENCES, myRefPanel);
       hasContent = true;
     }
 
@@ -325,7 +326,92 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       }
     });
 
-    myTabsPanel.setVisible(hasContent);
+    getComponent().setVisible(hasContent);
+  }
+
+  private JComponent buildFieldColumnTree(@NotNull JTree tree, @NotNull CaptureObject captureObject, @NotNull InstanceObject instance) {
+    // Add the columns for the tree and take special care of the default sorted column.
+    List<InstanceAttribute> supportedAttributes = captureObject.getInstanceAttributes();
+    InstanceAttribute sortAttribute = Collections.max(supportedAttributes, Comparator.comparingInt(InstanceAttribute::getWeight));
+    ColumnTreeBuilder builder = new ColumnTreeBuilder(tree);
+    for (InstanceAttribute attribute : supportedAttributes) {
+      final AttributeColumn<MemoryObject> column = // TODO(philnguyen) refactor
+        attribute == InstanceAttribute.LABEL ?
+        new AttributeColumn<>(
+          "Instance",
+          ValueColumnRenderer::new,
+          SwingConstants.LEFT,
+          LABEL_COLUMN_WIDTH,
+          SortOrder.ASCENDING,
+          Comparator.comparing(onSubclass(ValueObject.class,
+                                          o -> o.getName().isEmpty() ? o.getValueText() : o.getName(),
+                                          o -> ""))) :
+        myAttributeColumns.get(attribute);
+      ColumnTreeBuilder.ColumnBuilder columnBuilder = column.getBuilder();
+      if (sortAttribute == attribute) {
+        columnBuilder.setInitialOrder(attribute.getSortOrder());
+      }
+      builder.addColumn(columnBuilder);
+    }
+    return builder
+      .setHoverColor(StandardColors.HOVER_COLOR)
+      .setBackground(ProfilerColors.DEFAULT_BACKGROUND)
+      .setBorder(DEFAULT_TOP_BORDER)
+      .setShowVerticalLines(true)
+      .setTableIntercellSpacing(new Dimension())
+      .setShowHeaderTooltips(true)
+      .build();
+  }
+
+  private JTree buildFieldTree(@NotNull InstanceObject instance) {
+    LazyMemoryObjectTreeNode<InstanceObject> fieldTreeRoot = new InstanceDetailsTreeNode(instance);
+    DefaultTreeModel fieldTreeModel = new DefaultTreeModel(fieldTreeRoot);
+    fieldTreeRoot.setTreeModel(fieldTreeModel);
+    fieldTreeRoot.expandNode();
+
+    // Use JTree instead of IJ's tree, because IJ's tree does not happen border's Insets.
+    JTree tree = new JTree();
+    int defaultFontHeight = tree.getFontMetrics(tree.getFont()).getHeight();
+    tree.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
+    tree.setBorder(TABLE_ROW_BORDER);
+    tree.setRootVisible(false);
+    tree.setShowsRootHandles(true);
+    tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+
+    // Not all nodes have been populated during buildTree. Here we capture the TreeExpansionEvent to check whether any children
+    // under the expanded node need to be populated.
+    tree.addTreeExpansionListener(new TreeExpansionListener() {
+      @Override
+      public void treeExpanded(TreeExpansionEvent event) {
+        TreePath path = event.getPath();
+
+        assert path.getLastPathComponent() instanceof LazyMemoryObjectTreeNode;
+        LazyMemoryObjectTreeNode treeNode = (LazyMemoryObjectTreeNode)path.getLastPathComponent();
+        // children under root have already been expanded (check in case this gets called on the root)
+        if (treeNode != fieldTreeRoot) {
+          treeNode.expandNode();
+          fieldTreeModel.nodeStructureChanged(treeNode);
+        }
+      }
+
+      @Override
+      public void treeCollapsed(TreeExpansionEvent event) {
+        // No-op. TODO remove unseen children?
+      }
+    });
+
+    tree.addFocusListener(new FocusAdapter() {
+      @Override
+      public void focusGained(FocusEvent e) {
+        if (tree.getSelectionCount() == 0 && tree.getRowCount() != 0) {
+          tree.setSelectionRow(0);
+        }
+      }
+    });
+
+    tree.setModel(fieldTreeModel);
+
+    return tree;
   }
 
   @Nullable
@@ -335,7 +421,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       return null;
     }
 
-    myReferenceTree = buildTree(instance);
+    myReferenceTree = buildReferenceTree(instance);
     ColumnTreeBuilder builder = new ColumnTreeBuilder(myReferenceTree);
     for (InstanceAttribute attribute : captureObject.getInstanceAttributes()) {
       ColumnTreeBuilder.ColumnBuilder column = myAttributeColumns.get(attribute).getBuilder();
@@ -358,12 +444,13 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     builder.setBorder(DEFAULT_TOP_BORDER);
     builder.setShowVerticalLines(true);
     builder.setTableIntercellSpacing(new Dimension());
+    builder.setShowHeaderTooltips(true);
     return builder.build();
   }
 
   @VisibleForTesting
   @NotNull
-  JTree buildTree(@NotNull InstanceObject instance) {
+  JTree buildReferenceTree(@NotNull InstanceObject instance) {
     Comparator<MemoryObjectTreeNode<ValueObject>> comparator = null;
     if (myReferenceTree != null && myReferenceTree.getModel() != null && myReferenceTree.getModel().getRoot() != null) {
       Object root = myReferenceTree.getModel().getRoot();
@@ -372,7 +459,9 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       }
     }
 
-    final ReferenceTreeNode treeRoot = new ReferenceTreeNode(instance);
+    final ReferenceTreeNode treeRoot = myGCRootCheckBox.isSelected()
+                                       ? new NearestGCRootTreeNode(instance)
+                                       : new ReferenceTreeNode(instance);
     treeRoot.expandNode();
 
     if (comparator != null) {
@@ -407,7 +496,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     });
 
     ContextMenuInstaller contextMenuInstaller = myIdeProfilerComponents.createContextMenuInstaller();
-    contextMenuInstaller.installNavigationContextMenu(tree, myStage.getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
+    contextMenuInstaller.installNavigationContextMenu(tree, mySelection.getIdeServices().getCodeNavigator(), () -> {
       TreePath selection = tree.getSelectionPath();
       if (selection == null) {
         return null;
@@ -443,12 +532,12 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
       @Override
       public void run() {
-        CaptureObject captureObject = myStage.getSelectedCapture();
+        CaptureObject captureObject = mySelection.getSelectedCapture();
         TreePath selection = tree.getSelectionPath();
         assert captureObject != null && selection != null;
         MemoryObject memoryObject = ((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
         if (memoryObject instanceof InstanceObject) {
-          assert memoryObject == myStage.getSelectedInstanceObject();
+          assert memoryObject == mySelection.getSelectedInstanceObject();
           // don't do anything because the only instance object in the tree is the one already selected
         }
         else {
@@ -456,20 +545,11 @@ final class MemoryInstanceDetailsView extends AspectObserver {
           InstanceObject targetInstance = ((ReferenceObject)memoryObject).getReferenceInstance();
           HeapSet heapSet = captureObject.getHeapSet(targetInstance.getHeapId());
           assert heapSet != null;
-          myStage.selectHeapSet(heapSet);
+          mySelection.selectHeapSet(heapSet);
           ClassifierSet classifierSet = heapSet.findContainingClassifierSet(targetInstance);
           assert classifierSet instanceof ClassSet;
-          myStage.selectClassSet((ClassSet)classifierSet);
-          myStage.selectInstanceObject(targetInstance);
-        }
-      }
-    });
-
-    tree.addFocusListener(new FocusAdapter() {
-      @Override
-      public void focusGained(FocusEvent e) {
-        if (tree.getSelectionCount() == 0 && tree.getRowCount() != 0) {
-          tree.setSelectionRow(0);
+          mySelection.selectClassSet((ClassSet)classifierSet);
+          mySelection.selectInstanceObject(targetInstance);
         }
       }
     });
@@ -477,42 +557,16 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     return tree;
   }
 
-  private static final class ReferenceTreeNode extends LazyMemoryObjectTreeNode<ValueObject> {
-    @Nullable
-    private List<ReferenceObject> myReferenceObjects = null;
-
-    private ReferenceTreeNode(@NotNull ValueObject valueObject) {
-      super(valueObject, false);
+  private void repeatedlyExpandFirstReference() {
+    assert myReferenceTree != null;
+    ReferenceTreeNode node = (ReferenceTreeNode)myReferenceTree.getModel().getRoot();
+    node.expandNode();
+    while (!node.myChildren.isEmpty()) {
+      node = (ReferenceTreeNode)node.myChildren.get(0);
+      node.expandNode();
     }
-
-    @Override
-    public int computeChildrenCount() {
-      if (myReferenceObjects == null) {
-        if (getAdapter() instanceof InstanceObject) {
-          myReferenceObjects = ((InstanceObject)getAdapter()).getReferences();
-        }
-        else if (getAdapter() instanceof ReferenceObject) {
-          myReferenceObjects = ((ReferenceObject)getAdapter()).getReferenceInstance().getReferences();
-        }
-        else {
-          myReferenceObjects = Collections.emptyList();
-        }
-      }
-
-      return myReferenceObjects.size();
-    }
-
-    @Override
-    public void expandNode() {
-      getChildCount(); // ensure we grab all the references
-      assert myReferenceObjects != null;
-      if (myMemoizedChildrenCount != myChildren.size()) {
-        myReferenceObjects.forEach(reference -> {
-          ReferenceTreeNode node = new ReferenceTreeNode(reference);
-          node.setTreeModel(getTreeModel());
-          add(node);
-        });
-      }
-    }
+    TreePath path = new TreePath(node.getPathToRoot().toArray());
+    myReferenceTree.expandPath(path);
+    myReferenceTree.setSelectionPath(path);
   }
 }

@@ -49,15 +49,15 @@ public class CpuCaptureMinimapModel {
     myCaptureRange = cpuCapture.getRange();
     myCpuUsage = new CpuUsage(profilers, myCaptureRange, myCaptureRange, cpuCapture);
 
-    // Set initial selection to the entire capture range.
-    myRangeSelectionModel = new RangeSelectionModel(selectionRange);
+    // Copy capture range as view range
+    myRangeSelectionModel = new RangeSelectionModel(selectionRange, new Range(myCaptureRange));
     // Confine selection to the capture range.
     myRangeSelectionModel.addConstraint(new DurationDataModel<>(new RangedSeries<>(myCaptureRange, new DataSeries<CpuTraceInfo>() {
       @Override
       public List<SeriesData<CpuTraceInfo>> getDataForRange(Range range) {
         // An ad-hoc data series with just the current capture.
         List<SeriesData<CpuTraceInfo>> seriesData = new ArrayList<>();
-        if (!myCaptureRange.getIntersection(range).isEmpty()) {
+        if (myCaptureRange.intersectsWith(range)) {
           CpuTraceInfo traceInfo = new CpuTraceInfo(
             Cpu.CpuTraceInfo.newBuilder()
               .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myCaptureRange.getMin()))
@@ -68,6 +68,7 @@ public class CpuCaptureMinimapModel {
         return seriesData;
       }
     })));
+    // Set initial selection to the entire capture range.
     myRangeSelectionModel.set(myCaptureRange.getMin(), myCaptureRange.getMax());
   }
 

@@ -19,12 +19,14 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
+import com.android.tools.idea.profilers.perfetto.traceprocessor.TraceProcessorServiceImpl;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigService;
 import com.android.tools.idea.profilers.stacktrace.IntelliJNativeFrameSymbolizer;
 import com.android.tools.idea.profilers.stacktrace.IntellijCodeNavigator;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
@@ -35,6 +37,7 @@ import com.android.tools.profilers.Notification;
 import com.android.tools.profilers.ProfilerPreferences;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
 import com.google.common.collect.ImmutableList;
@@ -61,6 +64,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.AllClassesSearch;
 import com.intellij.util.Query;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -73,10 +77,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import javax.swing.Icon;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
@@ -227,12 +231,25 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
       @Override
+      public int getNativeMemorySamplingRateForCurrentConfig() {
+        RunnerAndConfigurationSettings settings = RunManager.getInstance(myProject).getSelectedConfiguration();
+        if (settings != null && settings.getConfiguration() instanceof AndroidRunConfigurationBase) {
+          AndroidRunConfigurationBase runConfig = (AndroidRunConfigurationBase)settings.getConfiguration();
+          return runConfig.getProfilerState().NATIVE_MEMORY_SAMPLE_RATE_BYTES;
+        }
+        return ProfilerState.DEFAULT_NATIVE_MEMORY_SAMPLE_RATE_BYTES;
+      }
+
+      @Override
       public boolean isCpuApiTracingEnabled() {
         return StudioFlags.PROFILER_CPU_API_TRACING.get();
       }
 
       @Override
       public boolean isCpuCaptureStageEnabled() { return StudioFlags.PROFILER_CPU_CAPTURE_STAGE.get(); }
+
+      @Override
+      public boolean isNativeMemorySampleEnabled() { return StudioFlags.PROFILER_ENABLE_NATIVE_SAMPLE.get(); }
 
       @Override
       public boolean isCpuNewRecordingWorkflowEnabled() {
@@ -265,15 +282,9 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
       }
 
       @Override
-      public boolean isPerfettoEnabled() { return StudioFlags.PROFILER_USE_PERFETTO.get(); }
-
-      @Override
       public boolean isPerformanceMonitoringEnabled() {
         return StudioFlags.PROFILER_PERFORMANCE_MONITORING.get();
       }
-
-      @Override
-      public boolean isAuditsEnabled() { return StudioFlags.PROFILER_AUDITS.get(); }
 
       @Override
       public boolean isStartupCpuProfilingEnabled() {
@@ -286,8 +297,18 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
       }
 
       @Override
+      public boolean isUseTraceProcessor() {
+        return StudioFlags.PROFILER_USE_TRACEPROCESSOR.get();
+      }
+
+      @Override
       public boolean isCustomEventVisualizationEnabled() {
         return StudioFlags.PROFILER_CUSTOM_EVENT_VISUALIZATION.get();
+      }
+
+      @Override
+      public boolean isSeparateHeapDumpUiEnabled() {
+        return StudioFlags.PROFILER_HEAPDUMP_SEPARATE.get();
       }
     };
   }
@@ -311,12 +332,13 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   }
 
   @Override
+  @Nullable
   public <T> T openListBoxChooserDialog(@NotNull String title,
                                         @Nullable String message,
-                                        @NotNull T[] options,
+                                        @NotNull List<T> options,
                                         @NotNull Function<T, String> listBoxPresentationAdapter) {
 
-    Object[] selectedValue = new Object[1];
+    AtomicReference<T> selectedValue = new AtomicReference<>();
     Supplier<T> dialog = () -> {
       ListBoxChooserDialog<T> listBoxDialog = new ListBoxChooserDialog<>(title, message, options, listBoxPresentationAdapter);
       listBoxDialog.show();
@@ -324,7 +346,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     };
     // Check if we are on a thread that is able to dispatch ui events. If we are show the dialog, otherwise invoke the dialog later.
     if (SwingUtilities.isEventDispatchThread()) {
-      selectedValue[0] = dialog.get();
+      selectedValue.set(dialog.get());
     }
     else {
       // Object to control communication between the render thread and the capture thread.
@@ -333,7 +355,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
         // Tell UI thread that we want to show a dialog then block capture thread
         // until user has made a selection.
         ApplicationManager.getApplication().invokeLater(() -> {
-          selectedValue[0] = dialog.get();
+          selectedValue.set(dialog.get());
           latch.countDown();
         });
         //noinspection WaitNotInLoop
@@ -343,7 +365,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
         // If our wait was interrupted continue.
       }
     }
-    return (T)selectedValue[0];
+    return selectedValue.get();
   }
 
   /**
@@ -357,11 +379,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     if (!archToDirectories.containsKey(arch)) {
       return Collections.emptyList();
     }
-    return archToDirectories.get(arch).stream().map(file -> file.getAbsolutePath()).collect(Collectors.toList());
+    return ContainerUtil.map(archToDirectories.get(arch), file -> file.getAbsolutePath());
   }
 
   @Override
-  public List<ProfilingConfiguration> getUserCpuProfilerConfigs() {
+  public List<ProfilingConfiguration> getUserCpuProfilerConfigs(int apiLevel) {
     CpuProfilerConfigsState configsState = CpuProfilerConfigsState.getInstance(myProject);
     CpuProfilingConfigService oldService = CpuProfilingConfigService.getInstance(myProject);
 
@@ -371,18 +393,17 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     // We don't need configurations from |oldService| anymore, so clear it.
     oldService.setConfigurations(Collections.emptyList());
 
-    return CpuProfilerConfigConverter.toProto(configsState.getUserConfigs())
-      .stream()
-      .map(ProfilingConfiguration::fromProto)
-      .collect(Collectors.toList());
+    return ContainerUtil.map(
+      CpuProfilerConfigConverter.toProto(configsState.getUserConfigs(), apiLevel),
+      ProfilingConfiguration::fromProto);
   }
 
   @Override
-  public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs() {
-    return CpuProfilerConfigConverter.toProto(CpuProfilerConfigsState.getDefaultConfigs())
-      .stream()
-      .map(ProfilingConfiguration::fromProto)
-      .collect(Collectors.toList());
+  public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs(int apiLevel) {
+    return ContainerUtil.map(
+      CpuProfilerConfigConverter.toProto(CpuProfilerConfigsState.getDefaultConfigs(), apiLevel),
+      ProfilingConfiguration::fromProto
+    );
   }
 
   @Override
@@ -425,5 +446,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
       AndroidNotification.getInstance(myProject)
         .showBalloon(notification.getTitle(), notification.getText(), type, AndroidNotification.BALLOON_GROUP);
     }
+  }
+
+  @NotNull
+  @Override
+  public TraceProcessorService getTraceProcessorService() {
+    return TraceProcessorServiceImpl.getInstance();
   }
 }

@@ -52,7 +52,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -89,7 +88,6 @@ class NavigationTest {
     check(AUTO_URI, DERIVE_CONSTRAINTS_FROM, CONSTRAINTSET, SCENE_FILE, 67, "<ConstraintSet android:id=\"@+id/base\">")
   }
 
-  @Ignore("Feature not ready in 4.0")
   @Test
   fun testConstraintSetWithResolveUsingRepos() {
     StudioFlags.RESOLVE_USING_REPOS.override(true)

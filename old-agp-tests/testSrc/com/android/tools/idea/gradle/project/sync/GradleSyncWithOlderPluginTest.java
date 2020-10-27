@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync;
 import static com.android.tools.idea.gradle.project.sync.LibraryDependenciesSubject.libraryDependencies;
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
 import static com.android.tools.idea.testing.HighlightInfos.getHighlightInfos;
+import static com.android.tools.idea.testing.TestModuleUtil.findModule;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH1_DOT5;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PRE30;
@@ -36,6 +37,7 @@ import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrad
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.idea.Bombed;
 import com.intellij.openapi.module.Module;
@@ -91,7 +93,7 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
 
   public void testGetOutputFileWithPluginOneDotFive() throws Exception {
     loadProjectWithOlderPlugin(PROJECT_WITH1_DOT5);
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
     assertNotNull(androidModel);
     @SuppressWarnings("deprecation")
@@ -102,34 +104,34 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
 
   public void testWithInterAndroidModuleDependencies() throws Exception {
     loadProjectWithOlderPlugin(TRANSITIVE_DEPENDENCIES_PRE30);
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     // 'app' -> 'library2'
     // Verify app module has library2 as module dependency and exporting it to consumer modules.
-    assertAbout(moduleDependencies()).that(appModule).hasDependency("library2", COMPILE, true);
+    assertAbout(moduleDependencies()).that(appModule).hasDependency(findModule(getProject(), "library2").getName(), COMPILE, true);
   }
 
   public void testWithInterJavaModuleDependencies() throws Exception {
     loadProjectWithOlderPlugin(TRANSITIVE_DEPENDENCIES_PRE30);
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     // 'app' -> 'lib'
     // dependency should be set on the module not the compiled jar.
-    assertAbout(moduleDependencies()).that(appModule).hasDependency("javalib1", COMPILE, true);
+    assertAbout(moduleDependencies()).that(appModule).hasDependency(findModule(getProject(), "javalib1").getName(), COMPILE, true);
     assertAbout(libraryDependencies()).that(appModule).doesNotContain("javalib1", COMPILE);
   }
 
   public void testJavaLibraryDependenciesFromJavaModule() throws Exception {
     loadProjectWithOlderPlugin(TRANSITIVE_DEPENDENCIES_PRE30);
-    Module javaLibModule = myModules.getModule("javalib1");
+    Module javaLibModule = findModule(getProject(), "javalib1");
     // 'app' -> 'javalib1' -> 'guava'
     // For older versions of plugin, app might not directly contain guava as library dependency.
     // Make sure lib has guava as library dependency, and exported is set to true, so that app has access to guava.
     assertAbout(libraryDependencies()).that(javaLibModule).containsMatching(true, ".*guava.*", COMPILE, PROVIDED);
-    assertAbout(moduleDependencies()).that(javaLibModule).hasDependency("javalib2", COMPILE, true);
+    assertAbout(moduleDependencies()).that(javaLibModule).hasDependency(findModule(getProject(), "javalib2").getName(), COMPILE, true);
   }
 
   public void testLocalJarDependenciesFromAndroidModule() throws Exception {
     loadProjectWithOlderPlugin(TRANSITIVE_DEPENDENCIES_PRE30);
-    Module androidLibModule = myModules.getModule("library2");
+    Module androidLibModule = findModule(getProject(), "library2");
     // 'app' -> 'library2' -> 'fakelib.jar'
     // Make sure library2 has fakelib as library dependency, and exported is set to true, so that app has access to fakelib.
     assertAbout(libraryDependencies()).that(androidLibModule).containsMatching(true, ".*fakelib.*", COMPILE);
@@ -137,7 +139,7 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
 
   public void testJavaLibraryDependenciesFromAndroidModule() throws Exception {
     loadProjectWithOlderPlugin(TRANSITIVE_DEPENDENCIES_PRE30);
-    Module androidLibModule = myModules.getModule("library2");
+    Module androidLibModule = findModule(getProject(), "library2");
     // 'app' -> 'library2' -> 'gson'
     // Make sure library2 has gson as library dependency, and exported is set to true, so that app has access to gson.
     assertAbout(libraryDependencies()).that(androidLibModule).containsMatching(true, ".*gson.*", COMPILE);
@@ -145,14 +147,14 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
 
   public void testAndroidModuleDependenciesFromAndroidModule() throws Exception {
     loadProjectWithOlderPlugin(TRANSITIVE_DEPENDENCIES_PRE30);
-    Module androidLibModule = myModules.getModule("library2");
+    Module androidLibModule = findModule(getProject(), "library2");
     // 'app' -> 'library2' -> 'library1'
-    assertAbout(moduleDependencies()).that(androidLibModule).hasDependency("library1", COMPILE, true);
+    assertAbout(moduleDependencies()).that(androidLibModule).hasDependency(findModule(getProject(), "library1").getName(), COMPILE, true);
   }
 
   public void testAndroidLibraryDependenciesFromAndroidModule() throws Exception {
     loadProjectWithOlderPlugin(TRANSITIVE_DEPENDENCIES_PRE30);
-    Module androidLibModule = myModules.getModule("library1");
+    Module androidLibModule = findModule(getProject(), "library1");
     // 'app' -> 'library2' -> 'library1' -> 'commons-io'
     assertAbout(libraryDependencies()).that(androidLibModule).containsMatching(true, ".*commons-io.*", COMPILE);
   }

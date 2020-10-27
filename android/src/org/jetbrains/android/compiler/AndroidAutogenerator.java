@@ -1,4 +1,3 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.compiler;
 
 
@@ -38,6 +37,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -54,11 +54,8 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 @SuppressWarnings("deprecation")
-public final class AndroidAutogenerator {
+public class AndroidAutogenerator {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.compiler.AndroidAutogenerator");
 
   private AndroidAutogenerator() {
@@ -628,7 +625,7 @@ public final class AndroidAutogenerator {
     return genFolder.getPath() + '/' + relativePath;
   }
 
-  private static final class AptAutogenerationItem {
+  private static class AptAutogenerationItem {
     final String myPackage;
     final String myOutputDirOsPath;
     final Map<String, String> myGenFileRelPath2package;
@@ -642,7 +639,7 @@ public final class AndroidAutogenerator {
     }
   }
 
-  private static final class IdlAutogenerationItem {
+  private static class IdlAutogenerationItem {
     final VirtualFile myFile;
     final IAndroidTarget myTarget;
     final String myOutFileOsPath;
@@ -665,7 +662,7 @@ public final class AndroidAutogenerator {
     }
   }
 
-  private static final class RenderscriptAutogenerationItem {
+  private static class RenderscriptAutogenerationItem {
     final String mySdkLocation;
     final IAndroidTarget myTarget;
     final String myGenDirPath;
@@ -682,7 +679,7 @@ public final class AndroidAutogenerator {
     }
   }
 
-  private static final class BuildconfigAutogenerationItem {
+  private static class BuildconfigAutogenerationItem {
     final String myPackage;
     final String mySourceRootOsPath;
 

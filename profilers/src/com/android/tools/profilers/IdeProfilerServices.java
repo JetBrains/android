@@ -18,6 +18,7 @@ package com.android.tools.profilers;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.TracePreProcessor;
+import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
 import java.io.File;
@@ -138,20 +139,25 @@ public interface IdeProfilerServices {
    * @param listBoxPresentationAdapter adapter that takes in an option and returns a string to be presented to the user.
    * @return The option the user selected. If the user cancels the return value will be null.
    */
+  @Nullable
   <T> T openListBoxChooserDialog(@NotNull String title,
                                  @Nullable String message,
-                                 @NotNull T[] options,
+                                 @NotNull List<T> options,
                                  @NotNull Function<T, String> listBoxPresentationAdapter);
 
   /**
    * Returns the profiling configurations saved by the user for a project.
+   * apiLevel is the Android API level for the selected device, so that it return only
+   * the appropriate configurations that are available to run on a particular device.
    */
-  List<ProfilingConfiguration> getUserCpuProfilerConfigs();
+  List<ProfilingConfiguration> getUserCpuProfilerConfigs(int apiLevel);
 
   /**
-   * @return default profiling configurations.
+   * Returns the default profiling configurations.
+   * apiLevel is the Android API level for the selected device, so that it return only
+   * the appropriate configurations that are available to run on a particular device.
    */
-  List<ProfilingConfiguration> getDefaultCpuProfilerConfigs();
+  List<ProfilingConfiguration> getDefaultCpuProfilerConfigs(int apiLevel);
 
   /**
    * Whether a native CPU profiling configuration is preferred over a Java one.
@@ -170,4 +176,10 @@ public interface IdeProfilerServices {
    */
   @NotNull
   List<String> getNativeSymbolsDirectories();
+
+  /**
+   * Returns a instance for the {@link TraceProcessorService} to be used to communicate with the TraceProcessor daemon in order to
+   * parse and query Perfetto traces.
+   */
+  @NotNull TraceProcessorService getTraceProcessorService();
 }

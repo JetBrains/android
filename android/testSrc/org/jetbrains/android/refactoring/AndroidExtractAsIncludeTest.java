@@ -4,9 +4,6 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidExtractAsIncludeTest extends AndroidTestCase {
   private static final String BASE_PATH = "refactoring/extractAsInclude/";
 

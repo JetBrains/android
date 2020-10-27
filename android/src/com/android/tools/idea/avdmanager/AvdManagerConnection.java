@@ -17,7 +17,9 @@ package com.android.tools.idea.avdmanager;
 
 import static com.android.SdkConstants.ANDROID_HOME_ENV;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_SETTINGS_FILE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_TAG_ID;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
 
@@ -42,7 +44,9 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode;
+import com.android.tools.idea.emulator.EmulatorSettings;
 import com.android.tools.idea.log.LogWrapper;
+import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.utils.ILogger;
@@ -61,6 +65,7 @@ import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.icons.AllIcons;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
@@ -74,6 +79,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.messages.MessageBus;
 import com.intellij.util.net.HttpConfigurable;
 import java.awt.*;
 import java.io.BufferedWriter;
@@ -91,13 +97,14 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
  * A wrapper class for communicating with {@link AvdManager} and exposing helper functions
- * for dealing with {@link AvdInfo} objects inside Android studio.
+ * for dealing with {@link AvdInfo} objects inside Android Studio.
  */
 public class AvdManagerConnection {
   private static final Logger IJ_LOG = Logger.getInstance(AvdManagerConnection.class);
@@ -433,21 +440,22 @@ public class AvdManagerConnection {
   }
 
   @NotNull
-  private ListenableFuture<IDevice> continueToStartAvd(@Nullable Project project, @NotNull AvdInfo info, @NotNull List<String> parameters) {
+  private ListenableFuture<IDevice> continueToStartAvd(@Nullable Project project, @NotNull AvdInfo avd, @NotNull List<String> parameters) {
     final File emulatorBinary = getEmulatorBinary();
     if (emulatorBinary == null) {
       IJ_LOG.error("No emulator binary found!");
       return Futures.immediateFailedFuture(new RuntimeException("No emulator binary found"));
     }
 
-    String avdName = info.getName();
+    avd = reloadAvd(avd); // Reload the AVD in case it was modified externally.
+    String avdName = avd.getName();
 
     // TODO: The emulator stores pid of the running process inside the .lock file (userdata-qemu.img.lock in Linux and
     // userdata-qemu.img.lock/pid on Windows). We should detect whether those lock files are stale and if so, delete them without showing
     // this error. Either the emulator provides a command to do that, or we learn about its internals (qemu/android/utils/filelock.c) and
     // perform the same action here. If it is not stale, then we should show this error and if possible, bring that window to the front.
-    if (myAvdManager.isAvdRunning(info, SDK_LOG)) {
-      myAvdManager.logRunningAvdInfo(info, SDK_LOG);
+    if (myAvdManager.isAvdRunning(avd, SDK_LOG)) {
+      myAvdManager.logRunningAvdInfo(avd, SDK_LOG);
       String baseFolder;
       try {
         baseFolder = myAvdManager.getBaseAvdFolder().getAbsolutePath();
@@ -464,7 +472,8 @@ public class AvdManagerConnection {
       return Futures.immediateFailedFuture(new RuntimeException(message));
     }
 
-    EmulatorRunner runner = new EmulatorRunner(newEmulatorCommand(emulatorBinary, info, parameters), info);
+    GeneralCommandLine commandLine = newEmulatorCommand(project, emulatorBinary, avd, parameters);
+    EmulatorRunner runner = new EmulatorRunner(commandLine, avd);
     addListeners(runner);
 
     final ProcessHandler processHandler;
@@ -475,6 +484,8 @@ public class AvdManagerConnection {
       IJ_LOG.error("Error launching emulator", e);
       return Futures.immediateFailedFuture(new RuntimeException(String.format("Error launching emulator %1$s ", avdName), e));
     }
+
+    notifyIfLaunchedStandalone(project, avd);
 
     // If we're using qemu2, it has its own progress bar, so put ours in the background. Otherwise show it.
     final ProgressWindow p = hasQEMU2Installed()
@@ -507,15 +518,22 @@ public class AvdManagerConnection {
       }
     });
 
-    return EmulatorConnectionListener.getDeviceForEmulator(project, info.getName(), processHandler, 5, TimeUnit.MINUTES);
+    // Send notification that the device has been launched.
+    MessageBus messageBus = project != null ? project.getMessageBus() : ApplicationManager.getApplication().getMessageBus();
+    messageBus.syncPublisher(AvdLaunchListener.TOPIC).avdLaunched(avd, commandLine, project);
+
+    return EmulatorConnectionListener.getDeviceForEmulator(project, avd.getName(), processHandler, 5, TimeUnit.MINUTES);
   }
 
   @NotNull
-  private GeneralCommandLine newEmulatorCommand(@NotNull File emulator, @NotNull AvdInfo device, @NotNull List<String> parameters) {
+  private GeneralCommandLine newEmulatorCommand(@Nullable Project project,
+                                                @NotNull File emulator,
+                                                @NotNull AvdInfo device,
+                                                @NotNull List<String> parameters) {
     GeneralCommandLine command = new GeneralCommandLine();
 
     command.setExePath(emulator.getPath());
-    addParameters(device, command);
+    addParameters(project, device, command);
 
     CharSequence arguments = System.getenv("studio.emu.params");
 
@@ -529,16 +547,44 @@ public class AvdManagerConnection {
   }
 
   /**
+   * Notifies user if the AVD is launched standalone despite being configured to start in the Emulator tool window.
+   */
+  private static void notifyIfLaunchedStandalone(@Nullable Project project, @NotNull AvdInfo avd) {
+    if (project == null || !isEmulatorToolWindowAvailable(project) || shouldBeLaunchedEmbedded(project, avd)) {
+      return;
+    }
+
+    EmulatorSettings settings = EmulatorSettings.getInstance();
+    boolean foldable = isFoldable(avd);
+    boolean show =
+        foldable ? settings.getShowLaunchedStandaloneNotificationForFoldable() : settings.getShowLaunchedStandaloneNotification();
+    if (!show) {
+      return; // Notified before.
+    }
+
+    String reason = foldable ? "to support folding" : "to be able to use extended controls";
+    String text = avd.getDisplayName() + " was launched standalone " + reason;
+    AndroidNotification.getInstance(project).showBalloon("AVD Launched Standalone", text, NotificationType.INFORMATION);
+    if (foldable) {
+      settings.setShowLaunchedStandaloneNotificationForFoldable(false);
+    }
+    else {
+      settings.setShowLaunchedStandaloneNotification(false);
+    }
+  }
+
+  /**
    * Allow subclasses to add listeners before starting the emulator.
    */
-  protected void addListeners(EmulatorRunner runner) {
-
+  protected void addListeners(@NotNull EmulatorRunner runner) {
   }
 
   /**
    * Adds necessary parameters to {@code commandLine}.
    */
-  protected void addParameters(@NotNull AvdInfo info, @NotNull GeneralCommandLine commandLine) {
+  protected void addParameters(@Nullable Project project,
+                               @NotNull AvdInfo info,
+                               @NotNull GeneralCommandLine commandLine) {
     Map<String, String> properties = info.getProperties();
     String netDelay = properties.get(AvdWizardUtils.AVD_INI_NETWORK_LATENCY);
     String netSpeed = properties.get(AvdWizardUtils.AVD_INI_NETWORK_SPEED);
@@ -573,6 +619,27 @@ public class AvdManagerConnection {
     writeParameterFile(commandLine);
 
     commandLine.addParameters("-avd", info.getName());
+    if (shouldBeLaunchedEmbedded(project, info)) {
+      commandLine.addParameters("-no-window", "-gpu", "auto-no-window", "-grpc-use-token", "-idle-grpc-timeout", "300"); // Launch headless.
+    }
+  }
+
+  private static boolean shouldBeLaunchedEmbedded(@Nullable Project project, @NotNull AvdInfo avd) {
+    // In order for an AVD to be launched in a tool window the corresponding option should be
+    // enabled in Emulator settings and the AVD should not be foldable, TV, or Android Auto.
+    return isEmulatorToolWindowAvailable(project) && // Emulator tool window is available only for Android projects.
+           !isFoldable(avd) &&
+           !"android-tv".equals(avd.getProperty(AVD_INI_TAG_ID)) &&
+           !"android-automotive".equals(avd.getProperty(AVD_INI_TAG_ID));
+  }
+
+  public static boolean isEmulatorToolWindowAvailable(@Nullable Project project) {
+    return EmulatorSettings.getInstance().getLaunchInToolWindow() && project != null && AndroidUtils.hasAndroidFacets(project);
+  }
+
+  public static boolean isFoldable(@NotNull AvdInfo avd) {
+    String displayRegionWidth = avd.getProperty("hw.displayRegion.0.1.width");
+    return displayRegionWidth != null && !"0".equals(displayRegionWidth);
   }
 
   /**
@@ -801,7 +868,7 @@ public class AvdManagerConnection {
   }
 
   @NotNull
-  private ListenableFuture<AccelerationErrorCode> checkAccelerationAsync() {
+  public ListenableFuture<AccelerationErrorCode> checkAccelerationAsync() {
     return MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE).submit(this::checkAcceleration);
   }
 
@@ -854,6 +921,10 @@ public class AvdManagerConnection {
       hardwareProperties.put(HardwareProperties.HW_INITIAL_ORIENTATION,
                              StringUtil.toLowerCase(ScreenOrientation.LANDSCAPE.getShortDisplayValue()));
     }
+    if (device.getId().equals("13.5in Freeform")) {
+      hardwareProperties.put(AVD_INI_DISPLAY_SETTINGS_FILE, "freeform");
+    }
+
     if (currentInfo != null && !avdName.equals(currentInfo.getName()) && removePrevious) {
       boolean success = myAvdManager.moveAvd(currentInfo, avdName, currentInfo.getDataFolderPath(), SDK_LOG);
       if (!success) {
@@ -933,7 +1004,20 @@ public class AvdManagerConnection {
     }
   }
 
-  public AvdInfo reloadAvd(@NotNull AvdInfo avdInfo) throws AndroidLocation.AndroidLocationException {
+  @Nullable
+  public AvdInfo reloadAvd(@NotNull String avdId) {
+    if (initIfNecessary()) {
+      assert myAvdManager != null;
+      AvdInfo avd = myAvdManager.getAvd(avdId, false);
+      if (avd != null) {
+        return reloadAvd(avd);
+      }
+    }
+    return null;
+  }
+
+  @NotNull
+  public AvdInfo reloadAvd(@NotNull AvdInfo avdInfo) {
     return myAvdManager.reloadAvd(avdInfo, SDK_LOG);
   }
 

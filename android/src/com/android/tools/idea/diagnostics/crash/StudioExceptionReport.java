@@ -22,6 +22,7 @@ import com.android.tools.idea.diagnostics.crash.exception.NoPiiException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
+import com.intellij.execution.filters.CompositeFilter;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.ide.plugins.PluginUtil;
@@ -35,7 +36,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 
-public final class StudioExceptionReport extends BaseStudioReport {
+public class StudioExceptionReport extends BaseStudioReport {
   /**
    * {@link Throwable} classes with messages expected to be useful for debugging and not to contain PII.
    */

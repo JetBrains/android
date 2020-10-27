@@ -16,18 +16,21 @@
 package com.android.tools.idea.layoutinspector.transport
 
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
+import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.TreeLoader
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.properties.EmptyPropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
+import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Event.EventGroupIds
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
 
 /**
@@ -67,21 +70,27 @@ interface InspectorClient {
   /**
    * Disconnect from the current process.
    */
-  fun disconnect()
+  fun disconnect(): Future<*>
 
   /**
    * Send a command to the agent.
    */
   fun execute(command: LayoutInspectorCommand)
 
-  /**stud
+  /**
    * Send simple command to agent without arguments.
    */
   fun execute(commandType: LayoutInspectorCommand.Type) {
     execute(LayoutInspectorCommand.newBuilder().setType(commandType).build())
   }
 
+  /**
+   * Log events for Studio stats
+   */
+  fun logEvent(type: DynamicLayoutInspectorEventType)
+
   val treeLoader: TreeLoader
+
   /**
    * True, if a connection to a device is currently open.
    */
@@ -109,18 +118,17 @@ interface InspectorClient {
 
   companion object {
     /**
-     * Provide a way for tests to generate a mock client.
-     * Be sure to set it back afterward!
+     * Prove a way for tests to generate a mock client.
      */
     @VisibleForTesting
-    var clientFactory: (model: InspectorModel, parentDisposable: Disposable) -> InspectorClient = { model, parentDisposable ->
-      DefaultInspectorClient(model, parentDisposable)
+    var clientFactory: (model: InspectorModel, parentDisposable: Disposable) -> List<InspectorClient> = { model, parentDisposable ->
+      listOf(DefaultInspectorClient(model, parentDisposable), LegacyClient(model.resourceLookup, parentDisposable))
     }
 
     /**
      * Use this method to create a new client.
      */
-    fun createInstance(model: InspectorModel, parentDisposable: Disposable): InspectorClient = clientFactory(model, parentDisposable)
+    fun createInstances(model: InspectorModel, parentDisposable: Disposable): List<InspectorClient> = clientFactory(model, parentDisposable)
   }
 }
 
@@ -137,8 +145,9 @@ object DisconnectedClient : InspectorClient {
   override fun getProcesses(stream: Common.Stream): Sequence<Common.Process> = emptySequence()
   override fun attachIfSupported(preferredProcess: LayoutInspectorPreferredProcess): Future<*>? = null
   override fun attach(stream: Common.Stream, process: Common.Process) {}
-  override fun disconnect() {}
+  override fun disconnect(): Future<Nothing> = CompletableFuture.completedFuture(null)
   override fun execute(command: LayoutInspectorCommand) {}
+  override fun logEvent(type: DynamicLayoutInspectorEventType) {}
   override val isConnected = false
   override val selectedStream: Common.Stream = Common.Stream.getDefaultInstance()
   override val selectedProcess: Common.Process = Common.Process.getDefaultInstance()

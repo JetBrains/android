@@ -54,6 +54,7 @@ class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
     }
   }
 
+  // TODO(b/150800193) refactor to use createAdHocSqliteDatabase instead of this.
   fun createTestSqliteDatabase(
     dbName: String = "sqlite-database",
     tableName: String = "tab",
@@ -65,6 +66,38 @@ class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
       // Note: We need to close the connection so the database file handle is released by the Sqlite engine.
       openSqliteDatabase(file).use { connection ->
         fillConfigurableTestDB(connection, tableName, columns, primaryKeys, withoutRowId)
+      }
+
+      // File as changed on disk, refresh virtual file cached data
+      file.refresh(false, false)
+    }
+  }
+
+  fun createAdHocSqliteDatabase(
+    dbName: String = "sqlite-database",
+    createStatement: String,
+    insertStatement: String
+  ): VirtualFile = runWriteAction {
+    createEmptyTempSqliteDatabase(dbName).also { file ->
+      // Note: We need to close the connection so the database file handle is released by the Sqlite engine.
+      openSqliteDatabase(file).use { connection ->
+        fillAdHocDatabase(connection, createStatement, insertStatement)
+      }
+
+      // File as changed on disk, refresh virtual file cached data
+      file.refresh(false, false)
+    }
+  }
+
+  fun createTestSqliteDatabaseWithConfigurableTypes(
+    dbName: String = "sqlite-database",
+    tableName: String = "tab",
+    types: List<String> = emptyList()
+  ): VirtualFile = runWriteAction {
+    createEmptyTempSqliteDatabase(dbName).also { file ->
+      // Note: We need to close the connection so the database file handle is released by the Sqlite engine.
+      openSqliteDatabase(file).use { connection ->
+        createTestDBWithConfigurableTypes(connection, tableName, types)
       }
 
       // File as changed on disk, refresh virtual file cached data
@@ -147,6 +180,26 @@ class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
       repeat(primaryKeys.size) { preparedStatement.setInt(index, index); index+=1 }
       repeat(columns.size) { preparedStatement.setString(index, "val $index"); index+=1 }
       preparedStatement.execute()
+    }
+  }
+
+  private fun fillAdHocDatabase(connection: Connection, createStatement: String, insertStatement: String) {
+    connection.createStatement().use { statement ->
+      statement.executeUpdate(createStatement)
+    }
+
+    connection.createStatement().use { statement ->
+      statement.execute(insertStatement)
+    }
+  }
+
+  private fun createTestDBWithConfigurableTypes(connection: Connection, tableName: String, types: List<String>) {
+    connection.createStatement().use { stmt ->
+
+      val columns = types.mapIndexed { index, type -> "column$index $type" }.joinToString(",")
+
+      val sql = "CREATE TABLE $tableName ( $columns );"
+      stmt.executeUpdate(sql)
     }
   }
 

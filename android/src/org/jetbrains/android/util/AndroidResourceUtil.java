@@ -152,7 +152,7 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression;
 /**
  * @author Eugene.Kudelevsky
  */
-public final class AndroidResourceUtil {
+public class AndroidResourceUtil {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.util.AndroidResourceUtil");
 
   public static final Set<ResourceType> VALUE_RESOURCE_TYPES = EnumSet.of(DRAWABLE, COLOR, DIMEN,

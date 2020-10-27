@@ -44,13 +44,13 @@ public abstract class MemoryProfilerTestBase {
   @Before
   public void setupBase() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
-    myProfilers = new StudioProfilers(new ProfilerClient(getGrpcChannel().getName()), myIdeProfilerServices, myTimer);
+    myProfilers = new StudioProfilers(new ProfilerClient(getGrpcChannel().getChannel()), myIdeProfilerServices, myTimer);
     myProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     onProfilersCreated(myProfilers);
 
     myMockLoader = new FakeCaptureObjectLoader();
     myStage = new MemoryProfilerStage(myProfilers, myMockLoader);
-    myAspectObserver = new MemoryAspectObserver(myStage.getAspect());
+    myAspectObserver = new MemoryAspectObserver(myStage.getAspect(), myStage.getCaptureSelection().getAspect());
 
     // Advance the clock to make sure StudioProfilers has a chance to select device + process.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);

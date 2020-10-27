@@ -15,17 +15,24 @@
  */
 package org.jetbrains.android.refactoring
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.DisposerExplorer
 import com.android.tools.idea.testing.TestProjectPaths.MIGRATE_TO_ANDROID_X
 import com.android.tools.idea.testing.TestProjectPaths.MIGRATE_TO_ANDROID_X_KTS
+import com.google.common.truth.Truth
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.fileEditor.TextEditor
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.ThrowableRunnable
+import com.intellij.util.Time
 import kotlin.text.Regex.Companion.escapeReplacement
 
 /**
@@ -42,7 +49,22 @@ private fun String.replaceCompileSdkWith(version: String, isGroovy: Boolean) =
  * This class tests Migration to AndroidX for a Gradle project.
  */
 class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
-  private fun doTestMigrationRefactoring(mainBuildScript: String, appBuildScript: String, activityMain: String, expectedSequence: String) {
+  // Temporary instrumentation for b/148676784.
+  override fun tearDown() {
+    super.tearDown()
+    val leak1 = DisposerExplorer.findFirst {
+      it is TextEditor
+    }
+    Truth.assertThat(leak1).isNull()
+
+    val leak2 = DisposerExplorer.findFirst {
+      it.javaClass.name.startsWith("com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider")
+    }
+    Truth.assertThat(leak2).isNull()
+  }
+
+  private fun doTestMigrationRefactoring(
+    mainBuildScript: String, appBuildScript: String, activityMain: String, mainActivityPath: String, expectedSequence: String) {
     runProcessor()
 
     val activityMain = getTextForFile(activityMain)
@@ -61,7 +83,7 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
 
     assertEquals(expectedSequence.trimIndent(), implementationLines)
 
-    val mainActivityKt = getTextForFile("app/src/main/java/com/example/google/migratetoandroidx/MainActivity.kt")
+    val mainActivityKt = getTextForFile(mainActivityPath)
     assertFalse(mainActivityKt.contains("android.support"))
     assertFalse(activityMain.contains("android.support"))
     val gradleProperties = getTextForFile("gradle.properties")
@@ -75,6 +97,7 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
     val activityMain = "app/src/main/res/layout/activity_main.xml"
     val mainBuildScript = "build.gradle"
     val appBuildScript = "app/build.gradle"
+    val mainActivityKt = "app/src/main/java/com/example/google/migratetoandroidx/MainActivity.kt"
     val expectedSequence = """
     def testVariable = 'com.google.android.material:material:V.V.V'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:+"
@@ -82,7 +105,7 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
     implementation 'androidx.constraintlayout:constraintlayout:V.V.V'
     implementation testVariable
       """
-    doTestMigrationRefactoring(mainBuildScript, appBuildScript, activityMain, expectedSequence)
+    doTestMigrationRefactoring(mainBuildScript, appBuildScript, activityMain,mainActivityKt, expectedSequence)
   }
 
   fun testMigrationRefactoringKts() {
@@ -90,6 +113,7 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
     val activityMain = "app/src/main/res/layout/activity_main.xml"
     val mainBuildScript = "build.gradle.kts"
     val appBuildScript = "app/build.gradle.kts"
+    val mainActivityKt = "app/src/main/java/com/example/google/migratetoandroidxkts/MainActivity.kt"
     val expectedSequence = """
     val testVariable = "com.google.android.material:material:V.V.V"
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:+")
@@ -97,14 +121,15 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
     implementation("androidx.constraintlayout:constraintlayout:V.V.V")
     implementation(testVariable)
       """
-    doTestMigrationRefactoring(mainBuildScript, appBuildScript, activityMain, expectedSequence)
+    doTestMigrationRefactoring(mainBuildScript, appBuildScript, activityMain, mainActivityKt, expectedSequence)
   }
 
   private fun doTestExistingGradleProperties() {
-    loadProject(MIGRATE_TO_ANDROID_X_KTS)
 
     runWriteAction {
-      val gradlePropertiesFile = PlatformTestUtil.getOrCreateProjectBaseDir(project).createChildData(this, "gradle.properties")
+      // gradle.properties is created by test framework. We do not care about its content here since we never sync the project again
+      // so we can simply overwrite it.
+      val gradlePropertiesFile = PlatformTestUtil.getOrCreateProjectBaseDir(project).findChild("gradle.properties")!!
       gradlePropertiesFile.setBinaryContent("""
       # Preserve this comment and variable
       random.variable=true
@@ -119,6 +144,7 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
     assertTrue(gradleProperties.contains("# Preserve this comment and variable") &&
                gradleProperties.contains("random.variable=true"))
   }
+
 
   fun testExistingGradlePropertiesGroovy() {
     loadProject(MIGRATE_TO_ANDROID_X_KTS)

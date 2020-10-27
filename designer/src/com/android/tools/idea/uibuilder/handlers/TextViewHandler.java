@@ -23,7 +23,7 @@ import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.handlers.actions.PickTextAppearanceViewAction;
 import com.android.tools.idea.uibuilder.handlers.assistant.TextViewAssistant;
-import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
+import com.android.tools.idea.uibuilder.assistant.ComponentAssistantFactory;
 import com.android.xml.XmlBuilder;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;

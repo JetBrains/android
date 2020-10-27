@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu.analysis;
 
 import com.android.tools.adtui.common.StudioColorsKt;
+import com.android.tools.profilers.StudioProfilersView;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,11 +25,18 @@ import org.jetbrains.annotations.NotNull;
  * of the child view type to do proper type checking. An example of a child tab is the {@link CpuAnalysisSummaryTab}.
  */
 public class CpuAnalysisTab<T extends CpuAnalysisTabModel> extends JComponent {
-  private final T myModel;
+  @NotNull private final StudioProfilersView myProfilersView;
+  @NotNull private final T myModel;
 
-  public CpuAnalysisTab(@NotNull T model) {
+  public CpuAnalysisTab(@NotNull StudioProfilersView profilersView, @NotNull T model) {
+    myProfilersView = profilersView;
     myModel = model;
     setBackground(StudioColorsKt.getPrimaryContentBackground());
+  }
+
+  @NotNull
+  public StudioProfilersView getProfilersView() {
+    return myProfilersView;
   }
 
   @NotNull

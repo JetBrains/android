@@ -43,7 +43,7 @@ public final class DragMenuItemsFromPaletteToComponentTreeTest {
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/menu/menu.xml");
 
-    NlEditorFixture layoutEditor = editor.getLayoutEditor(false);
+    NlEditorFixture layoutEditor = editor.getLayoutEditor();
     layoutEditor.waitForRenderToFinish();
 
     JListFixture list = layoutEditor.getPalette().getItemList("");

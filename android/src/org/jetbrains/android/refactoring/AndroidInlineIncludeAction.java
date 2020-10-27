@@ -14,9 +14,6 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidInlineIncludeAction extends AndroidBaseXmlRefactoringAction {
   private final AndroidInlineTestConfig myTestConfig;
 

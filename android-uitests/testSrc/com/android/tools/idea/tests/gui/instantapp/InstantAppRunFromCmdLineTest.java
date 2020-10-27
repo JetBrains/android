@@ -101,7 +101,7 @@ public class InstantAppRunFromCmdLineTest {
   @Test
   @RunIn(TestGroup.FAST_BAZEL)
   public void runFromCmdLine() throws Exception {
-    guiTest.importProject("TopekaInstantApp");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("TopekaInstantApp", Wait.seconds(TimeUnit.MINUTES.toSeconds(5)));
     GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TimeUnit.MINUTES.toSeconds(5)));
 
     // TODO: Move these adb commands over to DeviceQueries and AndroidDebugBridgeUtils

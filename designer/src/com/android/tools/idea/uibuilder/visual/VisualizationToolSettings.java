@@ -64,11 +64,20 @@ public class VisualizationToolSettings implements PersistentStateComponent<Visua
   }
 
   public static class GlobalState {
+    private boolean myFirstTimeOpen = true;
     private boolean myVisible = false;
     private double myScale = 0.25;
     private boolean myShowDecoration = false;
     @NotNull private String myConfigurationSetName = ConfigurationSet.PIXEL_DEVICES.name();
     @NotNull private List<CustomConfigurationAttribute> myCustomConfigurationAttributes = new ArrayList<>();
+
+    public boolean isFirstTimeOpen() {
+      return myFirstTimeOpen;
+    }
+
+    public void setFirstTimeOpen(boolean firstTimeOpen) {
+      myFirstTimeOpen = firstTimeOpen;
+    }
 
     public boolean isVisible() {
       return myVisible;

@@ -18,21 +18,18 @@ package com.android.tools.idea.common.surface;
 import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
 
 import com.android.annotations.NonNull;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ScrollHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.event.MouseWheelEvent;
-import java.util.EventObject;
-import javax.swing.JScrollPane;
-import javax.swing.JViewport;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -91,16 +88,16 @@ public class ScrollInteraction extends Interaction {
   }
 
   @Override
-  public void begin(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
-    assert event instanceof MouseWheelEvent;
-    MouseWheelEvent mouseEvent = (MouseWheelEvent) event;
+  public void begin(@NotNull InteractionEvent event) {
+    assert event instanceof MouseWheelMovedEvent;
+    MouseWheelEvent mouseEvent = ((MouseWheelMovedEvent)event).getEventObject();
     begin(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
   }
 
   @Override
-  public void update(@NotNull EventObject event, @NotNull InteractionInformation interactionInformation) {
-    if (event instanceof MouseWheelEvent) {
-      MouseWheelEvent mouseWheelEvent = (MouseWheelEvent)event;
+  public void update(@NotNull InteractionEvent event) {
+    if (event instanceof MouseWheelMovedEvent) {
+      MouseWheelEvent mouseWheelEvent = ((MouseWheelMovedEvent)event).getEventObject();
       int x = mouseWheelEvent.getX();
       int y = mouseWheelEvent.getY();
       int scrollAmount = mouseWheelEvent.getScrollType() == WHEEL_UNIT_SCROLL ? mouseWheelEvent.getUnitsToScroll()
@@ -121,10 +118,8 @@ public class ScrollInteraction extends Interaction {
       }
 
       if (!canScroll(scrollAmount)) {
-        JScrollPane scrollPane = surface.getScrollPane();
-        JViewport viewport = scrollPane.getViewport();
-        Dimension extentSize = viewport.getExtentSize();
-        Dimension viewSize = viewport.getViewSize();
+        Dimension extentSize = surface.getExtentSize();
+        Dimension viewSize = surface.getViewSize();
         if (viewSize.width > extentSize.width || viewSize.height > extentSize.height) {
           mouseWheelEvent.getComponent().getParent().dispatchEvent(mouseWheelEvent);
           return;
@@ -134,8 +129,7 @@ public class ScrollInteraction extends Interaction {
     }
   }
 
-  @Override
-  public void scroll(@SwingCoordinate int x, @SwingCoordinate int y, int scrollAmount) {
+  private void scroll(@SwingCoordinate int x, @SwingCoordinate int y, int scrollAmount) {
     short currentScrollSign = (short)(scrollAmount < 0 ? -1 : 0);
 
     if (myLastScrollSign != currentScrollSign) {
@@ -157,9 +151,9 @@ public class ScrollInteraction extends Interaction {
   }
 
   @Override
-  public void commit(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+  public void commit(@NotNull InteractionEvent event) {
     //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-    end(interactionInformation.getX(), interactionInformation.getY(), interactionInformation.getModifiersEx());
+    end(event.getInfo().getX(), event.getInfo().getY(), event.getInfo().getModifiersEx());
   }
 
   @Override
@@ -171,9 +165,9 @@ public class ScrollInteraction extends Interaction {
   }
 
   @Override
-  public void cancel(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+  public void cancel(@NotNull InteractionEvent event) {
     //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-    cancel(interactionInformation.getX(), interactionInformation.getY(), interactionInformation.getModifiersEx());
+    cancel(event.getInfo().getX(), event.getInfo().getY(), event.getInfo().getModifiersEx());
   }
 
   @Override

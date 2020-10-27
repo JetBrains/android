@@ -27,9 +27,8 @@ import com.android.tools.idea.common.analytics.CommonUsageTrackerImpl;
 import com.android.tools.idea.common.analytics.CommonUsageTrackerKt;
 import com.android.tools.idea.common.analytics.UsageTrackerUtil;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
+import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
@@ -87,8 +86,11 @@ public class NlUsageTrackerImpl implements NlUsageTracker {
       myCommonTracker = new CommonUsageTrackerImpl(executor, surface, eventLogger);
     }
     else {
+      final String applicationId = CommonUsageTrackerKt.getApplicationId(surface.getModel().getFacet());
       Consumer<AndroidStudioEvent.Builder> builder = delegatingBuilder -> {
-        CommonUsageTrackerKt.setApplicationId(delegatingBuilder, surface.getModel().getFacet());
+        if (applicationId != null) {
+          delegatingBuilder.setRawProjectId(applicationId).setProjectId(AnonymizerUtil.anonymizeUtf8(applicationId));
+        }
         eventLogger.accept(delegatingBuilder);
       };
       myCommonTracker = new CommonUsageTrackerImpl(executor, surface, builder);
@@ -107,21 +109,6 @@ public class NlUsageTrackerImpl implements NlUsageTracker {
       .setSearchOption(convertFilterMatches(filterMatches));
     myCommonTracker.logStudioEvent(LayoutEditorEvent.LayoutEditorEventType.DROP_VIEW_FROM_PALETTE,
                                    (event) -> event.setPaletteEvent(builder));
-  }
-
-  @Override
-  public void logPropertyChange(@NotNull NlProperty property,
-                                @NotNull PropertiesViewMode propertiesMode,
-                                int filterMatches) {
-    LayoutAttributeChangeEvent.Builder builder = LayoutAttributeChangeEvent.newBuilder()
-      .setAttribute(UsageTrackerUtil.convertAttribute(property))
-      .setSearchOption(convertFilterMatches(filterMatches))
-      .setViewType(convertPropertiesMode(propertiesMode));
-    for (NlComponent component : property.getComponents()) {
-      builder.addView(convertTagName(component.getTagName()));
-    }
-    myCommonTracker.logStudioEvent(LayoutEditorEvent.LayoutEditorEventType.ATTRIBUTE_CHANGE,
-                                   (event) -> event.setAttributeChangeEvent(builder));
   }
 
   @Override
@@ -203,6 +190,8 @@ public class NlUsageTrackerImpl implements NlUsageTracker {
         return LayoutPaletteEvent.ViewGroup.APP_COMPAT;
       case "Legacy":
         return LayoutPaletteEvent.ViewGroup.LEGACY;
+      case "Helpers":
+        return LayoutPaletteEvent.ViewGroup.HELPERS;
       default:
         return LayoutPaletteEvent.ViewGroup.CUSTOM;
     }
@@ -225,17 +214,6 @@ public class NlUsageTrackerImpl implements NlUsageTracker {
 
       default:
         return LayoutPaletteEvent.ViewOption.NORMAL;
-    }
-  }
-
-  @NotNull
-  static LayoutAttributeChangeEvent.ViewType convertPropertiesMode(@NotNull PropertiesViewMode propertiesMode) {
-    switch (propertiesMode) {
-      case TABLE:
-        return LayoutAttributeChangeEvent.ViewType.PROPERTY_TABLE;
-      case INSPECTOR:
-      default:
-        return LayoutAttributeChangeEvent.ViewType.INSPECTOR;
     }
   }
 

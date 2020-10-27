@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector;
 
 import com.android.testutils.JarTestSuiteRunner;
+import com.android.tools.idea.layoutinspector.ui.DeviceViewPanelTest;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.android.tools.tests.LeakCheckerRule;
 import org.junit.ClassRule;
@@ -29,7 +30,5 @@ public class LayoutInspectorTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static final LeakCheckerRule checker = new LeakCheckerRule();
 
   static {
-    symlinkToIdeaHome("tools/adt/idea/layout-inspector/testData",
-                      "tools/idea/java");
   }
 }

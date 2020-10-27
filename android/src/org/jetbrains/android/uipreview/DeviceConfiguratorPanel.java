@@ -96,9 +96,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public abstract class DeviceConfiguratorPanel extends JPanel {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.uipreview.DeviceConfiguratorPanel");
 
@@ -645,7 +642,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
   }
 
-  private final class MyScreenSizeEditor extends MyEnumBasedEditor<ScreenSizeQualifier, ScreenSize> {
+  private class MyScreenSizeEditor extends MyEnumBasedEditor<ScreenSizeQualifier, ScreenSize> {
     private MyScreenSizeEditor() {
       super(ScreenSize.class);
     }
@@ -675,7 +672,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
   }
 
-  private final class MyScreenOrientationEditor extends MyEnumBasedEditor<ScreenOrientationQualifier, ScreenOrientation> {
+  private class MyScreenOrientationEditor extends MyEnumBasedEditor<ScreenOrientationQualifier, ScreenOrientation> {
     private MyScreenOrientationEditor() {
       super(ScreenOrientation.class);
     }
@@ -705,7 +702,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
   }
 
-  private final class MyScreenRatioEditor extends MyEnumBasedEditor<ScreenRatioQualifier, ScreenRatio> {
+  private class MyScreenRatioEditor extends MyEnumBasedEditor<ScreenRatioQualifier, ScreenRatio> {
     private MyScreenRatioEditor() {
       super(ScreenRatio.class);
     }
@@ -780,7 +777,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
   }
 
-  private final class MyDensityEditor extends MyEnumBasedEditor<DensityQualifier, Density> {
+  private class MyDensityEditor extends MyEnumBasedEditor<DensityQualifier, Density> {
     private MyDensityEditor() {
       super(Density.class);
     }
@@ -815,7 +812,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
   }
 
-  private final class MyTouchScreenEditor extends MyEnumBasedEditor<TouchScreenQualifier, TouchScreen> {
+  private class MyTouchScreenEditor extends MyEnumBasedEditor<TouchScreenQualifier, TouchScreen> {
     private MyTouchScreenEditor() {
       super(TouchScreen.class);
     }
@@ -845,7 +842,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
   }
 
-  private final class MyKeyboardStateEditor extends MyEnumBasedEditor<KeyboardStateQualifier, KeyboardState> {
+  private class MyKeyboardStateEditor extends MyEnumBasedEditor<KeyboardStateQualifier, KeyboardState> {
     private MyKeyboardStateEditor() {
       super(KeyboardState.class);
     }
@@ -875,7 +872,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
   }
 
-  private final class MyTextInputMethodEditor extends MyEnumBasedEditor<TextInputMethodQualifier, Keyboard> {
+  private class MyTextInputMethodEditor extends MyEnumBasedEditor<TextInputMethodQualifier, Keyboard> {
     private MyTextInputMethodEditor() {
       super(Keyboard.class);
     }
@@ -905,7 +902,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
   }
 
-  private final class MyNavigationStateEditor extends MyEnumBasedEditor<NavigationStateQualifier, NavigationState> {
+  private class MyNavigationStateEditor extends MyEnumBasedEditor<NavigationStateQualifier, NavigationState> {
 
     private MyNavigationStateEditor() {
       super(NavigationState.class);
@@ -936,7 +933,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
   }
 
-  private final class MyNavigationMethodEditor extends MyEnumBasedEditor<NavigationMethodQualifier, Navigation> {
+  private class MyNavigationMethodEditor extends MyEnumBasedEditor<NavigationMethodQualifier, Navigation> {
     private MyNavigationMethodEditor() {
       super(Navigation.class);
     }
@@ -966,7 +963,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
   }
 
-  private final class MyLayoutDirectionEditor extends MyEnumBasedEditor<LayoutDirectionQualifier, LayoutDirection> {
+  private class MyLayoutDirectionEditor extends MyEnumBasedEditor<LayoutDirectionQualifier, LayoutDirection> {
     private MyLayoutDirectionEditor() {
       super(LayoutDirection.class);
     }
@@ -1109,7 +1106,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
   }
 
-  private final class MyUiModeEditor extends MyEnumBasedEditor<UiModeQualifier, UiMode> {
+  private class MyUiModeEditor extends MyEnumBasedEditor<UiModeQualifier, UiMode> {
     private MyUiModeEditor() {
       super(UiMode.class);
     }
@@ -1388,7 +1385,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
   }
 
-  private final class MySmallestScreenWidthEditor extends MySizeEditorBase<SmallestScreenWidthQualifier> {
+  private class MySmallestScreenWidthEditor extends MySizeEditorBase<SmallestScreenWidthQualifier> {
     private MySmallestScreenWidthEditor() {
       super("Smallest screen width:");
     }
@@ -1410,7 +1407,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
   }
 
-  private final class MyScreenWidthEditor extends MySizeEditorBase<ScreenWidthQualifier> {
+  private class MyScreenWidthEditor extends MySizeEditorBase<ScreenWidthQualifier> {
     private MyScreenWidthEditor() {
       super("Screen width:");
     }
@@ -1432,7 +1429,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
   }
 
-  private final class MyScreenHeightEditor extends MySizeEditorBase<ScreenHeightQualifier> {
+  private class MyScreenHeightEditor extends MySizeEditorBase<ScreenHeightQualifier> {
     private MyScreenHeightEditor() {
       super("Screen height:");
     }

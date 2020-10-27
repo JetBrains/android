@@ -57,12 +57,12 @@ public class NlEditorTest {
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
 
-    NlEditorFixture layout = editor.getLayoutEditor(false);
+    NlEditorFixture layout = editor.getLayoutEditor();
     layout.waitForRenderToFinish();
 
     // Find and click the first text view
     NlComponentFixture textView = layout.findView("TextView", 0);
-    textView.click();
+    textView.getSceneComponent().click();
 
     // It should be selected now
     assertThat(layout.getSelection()).containsExactly(textView.getComponent());
@@ -74,9 +74,9 @@ public class NlEditorTest {
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     EditorFixture editor = ideFrame.getEditor()
       .open("app/src/main/res/layout/empty_absolute.xml", EditorFixture.Tab.DESIGN);
-    NlEditorFixture layout = editor.getLayoutEditor(true);
-    DesignSurface surface = (DesignSurface)layout.getSurface().target();
-    Dimension screenViewSize = surface.getFocusedSceneView().getSize();
+    NlEditorFixture layout = editor.getLayoutEditor();
+    DesignSurface surface = layout.getSurface().target();
+    Dimension screenViewSize = surface.getFocusedSceneView().getScaledContentSize();
     // Drag components to areas that are safe to click (not out of bounds) and that not overlap to prevent them from overlapping each
     // other and interfering with clicking.
     // We use the middle point and put the components in midpoint +/- 25% of the screen view size.
@@ -91,7 +91,8 @@ public class NlEditorTest {
 
     // Find and click the checkBox
     NlComponentFixture checkBox = layout.findView("CheckBox", 0);
-    checkBox.click();
+    checkBox.getSceneComponent().click();
+    assertEquals("CheckBox", layout.getSelection().get(0).getTagName());
 
     // It should be selected now
     assertEquals(3, layout.getAllComponents().size()); // 3 = root layout + the 2 widgets added
@@ -100,9 +101,9 @@ public class NlEditorTest {
     assertThat(layout.getSelection()).isEmpty();
     assertEquals(2, layout.getAllComponents().size());
 
-    layout.findView("Button", 0).click();
+    layout.findView("Button", 0).getSceneComponent().click();
     ideFrame.invokeMenuPath("Edit", "Paste");
-    layout.findView("CheckBox", 0).click();
+    layout.findView("CheckBox", 0).getSceneComponent().click();
     ideFrame.invokeMenuPath("Edit", "Copy");
     ideFrame.invokeMenuPath("Edit", "Paste");
     assertEquals(4, layout.getAllComponents().size());
@@ -115,7 +116,7 @@ public class NlEditorTest {
     EditorFixture editor = ideFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
 
-    NlEditorFixture nele = editor.getLayoutEditor(true);
+    NlEditorFixture nele = editor.getLayoutEditor();
     nele.waitForRenderToFinish();
 
     // Test zoom in with mouse wheel
@@ -146,13 +147,11 @@ public class NlEditorTest {
     guiTest.importSimpleApplication()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .dragComponentToSurface("Text", "TextInputLayout");
-    MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency").clickOk();
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-
-    ideFrame
-      .waitForGradleProjectSyncToFinish()
+    guiTest.ideFrame()
+      .actAndWaitForGradleProjectSyncToFinish(
+        it -> MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency").clickOk())
       .getEditor()
       .open("app/build.gradle")
       .moveBetween("implementation 'com.android.support:design", "")
@@ -161,9 +160,7 @@ public class NlEditorTest {
       .awaitNotification(
         "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.");
 
-    ideFrame
-      .requestProjectSync()
-      .waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().requestProjectSyncAndWaitForSyncToFinish();
   }
 
   @Test
@@ -176,13 +173,13 @@ public class NlEditorTest {
       IdeFrameFixture ideFrame = guiTest.ideFrame();
       EditorFixture editor = ideFrame.getEditor()
         .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
-      NlEditorFixture layout = editor.getLayoutEditor(true)
+      NlEditorFixture layout = editor.getLayoutEditor()
         .waitForRenderToFinish();
 
       // Test click on a suggestion
       NlComponentFixture textView = layout.findView("TextView", 0);
-      textView.rightClick();
-      textView.invokeContextMenuAction("Convert view...");
+      textView.getSceneComponent().rightClick();
+      textView.getSceneComponent().invokeContextMenuAction("Convert view...");
       MorphDialogFixture fixture = layout.findMorphDialog();
       fixture.getTextField().click();
       assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
@@ -195,7 +192,7 @@ public class NlEditorTest {
 
       // Test enter text manually
       NlComponentFixture button = layout.findView("Button", 0);
-      button.rightClick();
+      button.getSceneComponent().rightClick();
       layout.invokeContextMenuAction("Convert view...");
       fixture = layout.findMorphDialog();
       fixture.getTextField().click();
@@ -222,7 +219,7 @@ public class NlEditorTest {
       IdeFrameFixture ideFrame = guiTest.ideFrame();
       EditorFixture editor = ideFrame.getEditor()
         .open("app/src/main/res/layout/absolute.xml", EditorFixture.Tab.DESIGN);
-      NlEditorFixture layout = editor.getLayoutEditor(true).waitForRenderToFinish();
+      NlEditorFixture layout = editor.getLayoutEditor().waitForRenderToFinish();
 
       // Right click on AbsoluteLayout in the component tree
       NlComponentFixture root = layout.findView("AbsoluteLayout", 0);
@@ -322,10 +319,10 @@ public class NlEditorTest {
       guiTest.importSimpleApplication();
       IdeFrameFixture ideFrame = guiTest.ideFrame();
       EditorFixture editor = ideFrame.getEditor().open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
-      editor.getLayoutEditor(true).waitForRenderToFinish();
+      editor.getLayoutEditor().waitForRenderToFinish();
       editor.switchToTab("Text");
       ideFrame.getEditor().open("app/src/main/res/layout/absolute.xml", EditorFixture.Tab.DESIGN);
-      editor.getLayoutEditor(true).waitForRenderToFinish();
+      editor.getLayoutEditor().waitForRenderToFinish();
       editor.switchToTab("Text");
 
       // Switch to the previous layout and verify we are still editing the text.
@@ -350,7 +347,7 @@ public class NlEditorTest {
     EditorFixture editor = ideFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
 
-    NlEditorFixture nlEditorFixture = editor.getLayoutEditor(true);
+    NlEditorFixture nlEditorFixture = editor.getLayoutEditor();
     nlEditorFixture.rightClick();
     nlEditorFixture.invokeContextMenuAction("Go to XML");
     assertThat(editor.getSelectedTab()).isEqualTo("Text");
@@ -362,7 +359,7 @@ public class NlEditorTest {
     NlEditorFixture layoutEditor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
       .getEditor()
       .open("app/src/main/res/layout/scroll.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(true);
+      .getLayoutEditor();
     Point surfacePosition = layoutEditor
       .waitForRenderToFinish()
       .showOnlyDesignView()

@@ -15,33 +15,30 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import static com.android.SdkConstants.ANDROIDX_DATA_BINDING_LIB_ARTIFACT;
-import static com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
+import static com.android.tools.idea.gradle.project.model.AndroidModelSourceProviderUtils.convertVersion;
+import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getGenericBuiltArtifact;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.GradleUtil.dependsOn;
 import static com.android.tools.lint.client.api.LintClient.getGradleDesugaring;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
-import static com.intellij.util.ArrayUtil.contains;
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toMap;
 
 import com.android.builder.model.AaptOptions;
-import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.ApiVersion;
 import com.android.builder.model.BuildTypeContainer;
-import com.android.builder.model.Dependencies;
 import com.android.builder.model.JavaCompileOptions;
 import com.android.builder.model.ProductFlavor;
 import com.android.builder.model.ProductFlavorContainer;
-import com.android.builder.model.ProjectSyncIssues;
 import com.android.builder.model.SourceProvider;
-import com.android.builder.model.SourceProviderContainer;
 import com.android.builder.model.SyncIssue;
 import com.android.builder.model.TestOptions;
 import com.android.builder.model.Variant;
+import com.android.ide.common.build.GenericBuiltArtifacts;
 import com.android.ide.common.gradle.model.GradleModelConverterUtil;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
@@ -52,58 +49,49 @@ import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
-import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
+import com.android.tools.idea.gradle.util.GenericBuiltArtifactsWithTimestamp;
+import com.android.tools.idea.gradle.util.LastBuildOrSyncService;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.lint.detector.api.Desugaring;
-import com.android.tools.lint.detector.api.Lint;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.serialization.PropertyMapping;
 import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.android.facet.AndroidFacetProperties;
 
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
 public class AndroidModuleModel implements AndroidModel, ModuleModel {
-  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 4L;
-
-  private static final String[] TEST_ARTIFACT_NAMES = {ARTIFACT_UNIT_TEST, ARTIFACT_ANDROID_TEST};
+  // Placeholder application id if the project is never built before, there is no way to get application id.
+  public static final String UNINITIALIZED_APPLICATION_ID = "uninitialized.application.id";
   private static final AndroidVersion NOT_SPECIFIED = new AndroidVersion(0, null);
+  private final static String ourAndroidSyncVersion = "2020-05-21/2";
+
+  @Nullable private transient Module myModule;
 
   @NotNull private ProjectSystemId myProjectSystemId;
+  @NotNull private String myAndroidSyncVersion;
   @NotNull private String myModuleName;
   @NotNull private File myRootDirPath;
   @NotNull private IdeAndroidProject myAndroidProject;
@@ -115,10 +103,12 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Nullable private Boolean myOverridesManifestPackage;
   @Nullable private transient AndroidVersion myMinSdkVersion;
 
-  @NotNull private Map<String, BuildTypeContainer> myBuildTypesByName = new HashMap<>();
-  @NotNull private Map<String, ProductFlavorContainer> myProductFlavorsByName = new HashMap<>();
-  @NotNull private Map<String, IdeVariant> myVariantsByName = new HashMap<>();
-  @NotNull private Set<File> myExtraGeneratedSourceFolders = new HashSet<>();
+  @NotNull private final transient Map<String, BuildTypeContainer> myBuildTypesByName;
+  @NotNull private final transient Map<String, ProductFlavorContainer> myProductFlavorsByName;
+  @NotNull final transient Map<String, IdeVariant> myVariantsByName;
+
+  @GuardedBy("myGenericBuiltArtifactsMap")
+  @NotNull private final transient Map<String, GenericBuiltArtifactsWithTimestamp> myGenericBuiltArtifactsMap;
 
   @Nullable
   public static AndroidModuleModel get(@NotNull Module module) {
@@ -137,14 +127,14 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
                                           @NotNull AndroidProject androidProject,
                                           @NotNull String selectedVariantName,
                                           @NotNull IdeDependenciesFactory dependenciesFactory) {
-    return create(moduleName, rootDirPath, androidProject, selectedVariantName, dependenciesFactory, null, null);
+    return create(moduleName, rootDirPath, androidProject, selectedVariantName, dependenciesFactory, null, emptyList(), emptyList());
   }
 
   public static AndroidModuleModel create(@NotNull String moduleName,
                                           @NotNull File rootDirPath,
                                           @NotNull IdeAndroidProject androidProject,
                                           @NotNull String variantName) {
-    return new AndroidModuleModel(moduleName, rootDirPath, androidProject, variantName);
+    return new AndroidModuleModel(ourAndroidSyncVersion, moduleName, rootDirPath, androidProject, variantName);
   }
 
   /**
@@ -154,6 +144,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
    * @param variantName         the name of selected variant.
    * @param dependenciesFactory the factory instance to create {@link IdeDependencies}.
    * @param variantsToAdd       list of variants to add that were requested but not present in the {@link AndroidProject}.
+   * @param cachedVariants      list of IdeVariants to add that were cached from previous Gradle Sync.
    * @param syncIssues          Model containing all sync issues that were produced by Gradle.
    */
   public static AndroidModuleModel create(@NotNull String moduleName,
@@ -162,61 +153,46 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
                                           @NotNull String variantName,
                                           @NotNull IdeDependenciesFactory dependenciesFactory,
                                           @Nullable Collection<Variant> variantsToAdd,
-                                          @Nullable ProjectSyncIssues syncIssues) {
+                                          @NotNull Collection<IdeVariant> cachedVariants,
+                                          @NotNull Collection<SyncIssue> syncIssues) {
     IdeAndroidProject ideAndroidProject = IdeAndroidProjectImpl.create(androidProject, dependenciesFactory, variantsToAdd, syncIssues);
-    return new AndroidModuleModel(moduleName, rootDirPath, ideAndroidProject, variantName);
+    ideAndroidProject.addVariants(cachedVariants);
+    return new AndroidModuleModel(ourAndroidSyncVersion, moduleName, rootDirPath, ideAndroidProject, variantName);
   }
 
-  @PropertyMapping({"myModuleName", "myRootDirPath", "myAndroidProject", "mySelectedVariantName"})
+  @PropertyMapping({"myAndroidSyncVersion", "myModuleName", "myRootDirPath", "myAndroidProject", "mySelectedVariantName"})
   @VisibleForTesting
-  AndroidModuleModel(@NotNull String moduleName,
+  AndroidModuleModel(@NotNull String androidSyncVersion,
+                     @NotNull String moduleName,
                      @NotNull File rootDirPath,
                      @NotNull IdeAndroidProject androidProject,
                      @NotNull String variantName) {
     myAndroidProject = androidProject;
-
+    if (!androidSyncVersion.equals(ourAndroidSyncVersion)) {
+      throw new IllegalArgumentException(
+        String.format("Attempting to deserialize a model of incompatible version (%s)", androidSyncVersion));
+    }
+    myAndroidSyncVersion = ourAndroidSyncVersion;
     myProjectSystemId = GRADLE_SYSTEM_ID;
     myModuleName = moduleName;
     myRootDirPath = rootDirPath;
     parseAndSetModelVersion();
     myFeatures = new AndroidModelFeatures(myModelVersion);
-
-    populateBuildTypesByName();
-    populateProductFlavorsByName();
-    populateVariantsByName();
+    myBuildTypesByName = myAndroidProject.getBuildTypes().stream().collect(toMap(it -> it.getBuildType().getName(), it -> it));
+    myProductFlavorsByName = myAndroidProject.getProductFlavors().stream().collect(toMap(it -> it.getProductFlavor().getName(), it -> it));
+    myVariantsByName = myAndroidProject.getVariants().stream().map(it -> (IdeVariant)it).collect(toMap(it -> it.getName(), it -> it));
 
     mySelectedVariantName = findVariantToSelect(variantName);
-  }
-
-
-  private void populateBuildTypesByName() {
-    for (BuildTypeContainer container : myAndroidProject.getBuildTypes()) {
-      String name = container.getBuildType().getName();
-      myBuildTypesByName.put(name, container);
-    }
-  }
-
-  private void populateProductFlavorsByName() {
-    for (ProductFlavorContainer container : myAndroidProject.getProductFlavors()) {
-      String name = container.getProductFlavor().getName();
-      myProductFlavorsByName.put(name, container);
-    }
-  }
-
-  private void populateVariantsByName() {
-    myAndroidProject.forEachVariant(variant -> myVariantsByName.put(variant.getName(), variant));
+    myGenericBuiltArtifactsMap = new HashMap<>();
   }
 
   /**
-   * @deprecated Use {@link #getSelectedMainCompileLevel2Dependencies()}
+   * Sets the IDE module this model is for, this should always be set on creation or re-attachement of the module to the project.
+   * @param module
    */
-  @SuppressWarnings("DeprecatedIsStillUsed")
-  @Deprecated
-  @NotNull
-  public Dependencies getSelectedMainCompileDependencies() {
-    AndroidArtifact mainArtifact = getMainArtifact();
-    return mainArtifact.getDependencies();
-  }
+   public void setModule(@NotNull Module module) {
+    myModule = module;
+   }
 
   /**
    * @return Instance of {@link IdeDependencies} from main artifact.
@@ -262,168 +238,58 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @NotNull
   public List<SourceProvider> getActiveSourceProviders() {
-    return getMainSourceProviders(mySelectedVariantName);
-  }
-
-  @NotNull
-  private List<SourceProvider> getMainSourceProviders(@NotNull String variantName) {
-    Variant variant = myVariantsByName.get(variantName);
-    if (variant == null) {
-      getLogger().error("Unknown variant name '" + variantName + "' found in the module '" + myModuleName + "'");
-      return ImmutableList.of();
-    }
-
-    List<SourceProvider> providers = new ArrayList<>();
-    // Main source provider.
-    providers.add(getDefaultSourceProvider());
-    // Flavor source providers.
-    for (String flavor : variant.getProductFlavors()) {
-      ProductFlavorContainer productFlavor = findProductFlavor(flavor);
-      assert productFlavor != null;
-      providers.add(productFlavor.getSourceProvider());
-    }
-
-    // Multi-flavor source provider.
-    AndroidArtifact mainArtifact = variant.getMainArtifact();
-    SourceProvider multiFlavorProvider = mainArtifact.getMultiFlavorSourceProvider();
-    if (multiFlavorProvider != null) {
-      providers.add(multiFlavorProvider);
-    }
-
-    // Build type source provider.
-    BuildTypeContainer buildType = findBuildType(variant.getBuildType());
-    assert buildType != null;
-    providers.add(buildType.getSourceProvider());
-
-    // Variant  source provider.
-    SourceProvider variantProvider = mainArtifact.getVariantSourceProvider();
-    if (variantProvider != null) {
-      providers.add(variantProvider);
-    }
-
-    return providers;
-  }
-
-  @NotNull
-  public Collection<SourceProvider> getTestSourceProviders(@NotNull Iterable<SourceProviderContainer> containers) {
-    return getSourceProvidersForArtifacts(containers, TEST_ARTIFACT_NAMES);
-  }
-
-  @NotNull
-  public List<SourceProvider> getTestSourceProviders() {
-    return getTestSourceProviders(mySelectedVariantName, TEST_ARTIFACT_NAMES);
+    return AndroidModelSourceProviderUtils.collectMainSourceProviders(this, getSelectedVariant());
   }
 
   @NotNull
   public List<SourceProvider> getUnitTestSourceProviders() {
-    return getTestSourceProviders(mySelectedVariantName, ARTIFACT_UNIT_TEST);
+    return AndroidModelSourceProviderUtils.collectUnitTestSourceProviders(this, getSelectedVariant());
   }
 
   @NotNull
   public List<SourceProvider> getAndroidTestSourceProviders() {
-    return getTestSourceProviders(mySelectedVariantName, ARTIFACT_ANDROID_TEST);
+    return AndroidModelSourceProviderUtils.collectAndroidTestSourceProviders(this, getSelectedVariant());
   }
 
   @NotNull
   public List<SourceProvider> getTestSourceProviders(@NotNull String artifactName) {
-    return getTestSourceProviders(mySelectedVariantName, artifactName);
-  }
-
-  @NotNull
-  private List<SourceProvider> getTestSourceProviders(@NotNull String variantName, @NotNull String... testArtifactNames) {
-    validateTestArtifactNames(testArtifactNames);
-
-    // Collect the default config test source providers.
-    Collection<SourceProviderContainer> extraSourceProviders = getAndroidProject().getDefaultConfig().getExtraSourceProviders();
-    List<SourceProvider> providers = new ArrayList<>(getSourceProvidersForArtifacts(extraSourceProviders, testArtifactNames));
-
-    Variant variant = myVariantsByName.get(variantName);
-    assert variant != null;
-
-    // Collect the product flavor test source providers.
-    for (String flavor : variant.getProductFlavors()) {
-      ProductFlavorContainer productFlavor = findProductFlavor(flavor);
-      assert productFlavor != null;
-      providers.addAll(getSourceProvidersForArtifacts(productFlavor.getExtraSourceProviders(), testArtifactNames));
+    switch (artifactName) {
+      case ARTIFACT_ANDROID_TEST:
+        return AndroidModelSourceProviderUtils.collectAndroidTestSourceProviders(this, getSelectedVariant());
+      case ARTIFACT_UNIT_TEST:
+        return AndroidModelSourceProviderUtils.collectUnitTestSourceProviders(this, getSelectedVariant());
     }
-
-    // Collect the build type test source providers.
-    BuildTypeContainer buildType = findBuildType(variant.getBuildType());
-    assert buildType != null;
-    providers.addAll(getSourceProvidersForArtifacts(buildType.getExtraSourceProviders(), testArtifactNames));
-
-    // TODO: Does it make sense to add multi-flavor test source providers?
-    // TODO: Does it make sense to add variant test source providers?
-    return providers;
-  }
-
-  private static void validateTestArtifactNames(@NotNull String[] testArtifactNames) {
-    for (String name : testArtifactNames) {
-      if (!isTestArtifact(name)) {
-        String msg = String.format("'%1$s' is not a test artifact", name);
-        throw new IllegalArgumentException(msg);
-      }
-    }
-  }
-
-  private static boolean isTestArtifact(@Nullable String artifactName) {
-    return contains(artifactName, TEST_ARTIFACT_NAMES);
+    return ImmutableList.of();
   }
 
   /**
    * @return true if the variant model with given name has been requested before.
    */
   public boolean variantExists(@NotNull String variantName) {
-    for (Variant variant : myAndroidProject.getVariants()) {
-      if (variantName.equals(variant.getName())) {
-        return true;
-      }
-    }
-    return false;
+    return myVariantsByName.containsKey(variantName);
   }
 
   @NotNull
   public List<SourceProvider> getAllSourceProviders() {
-    Collection<Variant> variants = myAndroidProject.getVariants();
-    List<SourceProvider> providers = new ArrayList<>();
+    return AndroidModelSourceProviderUtils.collectAllSourceProviders(this);
+  }
 
-    // Add main source set
-    providers.add(getDefaultSourceProvider());
+  @NotNull
+  public List<SourceProvider> getAllUnitTestSourceProviders() {
+    return AndroidModelSourceProviderUtils.collectAllUnitTestSourceProviders(this);
+  }
 
-    // Add all flavors
-    Collection<ProductFlavorContainer> flavors = myAndroidProject.getProductFlavors();
-    for (ProductFlavorContainer flavorContainer : flavors) {
-      providers.add(flavorContainer.getSourceProvider());
-    }
-
-    // Add the multi-flavor source providers
-    for (Variant variant : variants) {
-      SourceProvider provider = variant.getMainArtifact().getMultiFlavorSourceProvider();
-      if (provider != null) {
-        providers.add(provider);
-      }
-    }
-
-    // Add all the build types
-    Collection<BuildTypeContainer> buildTypes = myAndroidProject.getBuildTypes();
-    for (BuildTypeContainer btc : buildTypes) {
-      providers.add(btc.getSourceProvider());
-    }
-
-    // Add all the variant source providers
-    for (Variant variant : variants) {
-      SourceProvider provider = variant.getMainArtifact().getVariantSourceProvider();
-      if (provider != null) {
-        providers.add(provider);
-      }
-    }
-
-    return providers;
+  @NotNull
+  public List<SourceProvider> getAllAndroidTestSourceProviders() {
+    return AndroidModelSourceProviderUtils.collectAllAndroidTestSourceProviders(this);
   }
 
   @Override
   @NotNull
   public String getApplicationId() {
+    if (myFeatures.isBuildOutputFileSupported()) {
+      return getApplicationIdUsingCache(mySelectedVariantName);
+    }
     return getSelectedVariant().getMainArtifact().getApplicationId();
   }
 
@@ -432,8 +298,8 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   public Set<String> getAllApplicationIds() {
     Set<String> ids = new HashSet<>();
     for (Variant variant : myAndroidProject.getVariants()) {
-      String applicationId = variant.getMergedFlavor().getApplicationId();
-      if (applicationId != null) {
+      String applicationId = getApplicationIdUsingCache(variant.getName());
+      if (applicationId != UNINITIALIZED_APPLICATION_ID) {
         ids.add(applicationId);
       }
     }
@@ -448,6 +314,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     }
     return null;
   }
+
 
   /**
    * Returns the {@code minSdkVersion} specified by the user (in the default config or product flavors).
@@ -480,7 +347,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
           }
         }
       }
-      myMinSdkVersion = minSdkVersion != null ? Lint.convertVersion(minSdkVersion, null) : NOT_SPECIFIED;
+      myMinSdkVersion = minSdkVersion != null ? convertVersion(minSdkVersion, null) : NOT_SPECIFIED;
     }
 
     return myMinSdkVersion != NOT_SPECIFIED ? myMinSdkVersion : null;
@@ -490,14 +357,14 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Nullable
   public AndroidVersion getRuntimeMinSdkVersion() {
     ApiVersion minSdkVersion = getSelectedVariant().getMergedFlavor().getMinSdkVersion();
-    return minSdkVersion != null ? Lint.convertVersion(minSdkVersion, null) : null;
+    return minSdkVersion != null ? convertVersion(minSdkVersion, null) : null;
   }
 
   @Override
   @Nullable
   public AndroidVersion getTargetSdkVersion() {
     ApiVersion targetSdkVersion = getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
-    return targetSdkVersion != null ? Lint.convertVersion(targetSdkVersion, null) : null;
+    return targetSdkVersion != null ? convertVersion(targetSdkVersion, null) : null;
   }
 
   /**
@@ -568,11 +435,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return myAndroidProject;
   }
 
-  @NotNull
-  private static Logger getLogger() {
-    return Logger.getInstance(AndroidModuleModel.class);
-  }
-
   /**
    * @return the selected build variant.
    */
@@ -581,6 +443,21 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     IdeVariant selected = myVariantsByName.get(mySelectedVariantName);
     assert selected != null;
     return selected;
+  }
+
+  /**
+   * Returns the selected variant name
+   */
+  public String getSelectedVariantName() {
+    return mySelectedVariantName;
+  }
+
+  /**
+   * @return a list of synced build variants.
+   */
+  @NotNull
+  public ImmutableList<IdeVariant> getVariants() {
+    return ImmutableList.copyOf(myVariantsByName.values());
   }
 
   @Nullable
@@ -616,21 +493,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
       newVariantName = sorted.get(0);
     }
     return newVariantName;
-  }
-
-  @NotNull
-  private static Collection<SourceProvider> getSourceProvidersForArtifacts(@NotNull Iterable<SourceProviderContainer> containers,
-                                                                           @NotNull String... artifactNames) {
-    Set<SourceProvider> providers = new LinkedHashSet<>();
-    for (SourceProviderContainer container : containers) {
-      for (String artifactName : artifactNames) {
-        if (artifactName.equals(container.getArtifactName())) {
-          providers.add(container.getSourceProvider());
-          break;
-        }
-      }
-    }
-    return providers;
   }
 
   @NotNull
@@ -684,23 +546,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return myOverridesManifestPackage.booleanValue();
   }
 
-  /**
-   * Registers the path of a source folder that has been incorrectly generated outside of the default location (${buildDir}/generated.)
-   *
-   * @param folderPath the path of the generated source folder.
-   */
-  public void registerExtraGeneratedSourceFolder(@NotNull File folderPath) {
-    myExtraGeneratedSourceFolders.add(folderPath);
-  }
-
-  /**
-   * @return the paths of generated sources placed at the wrong location (not in ${build}/generated.)
-   */
-  @NotNull
-  public File[] getExtraGeneratedSourceFolderPaths() {
-    return myExtraGeneratedSourceFolders.toArray(new File[0]);
-  }
-
   @Nullable
   public Collection<SyncIssue> getSyncIssues() {
     if (getFeatures().isIssueReportingSupported()) {
@@ -734,53 +579,9 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return null;
   }
 
-  private void writeObject(ObjectOutputStream out) throws IOException {
-    out.writeObject(myProjectSystemId);
-    out.writeObject(myModuleName);
-    out.writeObject(myRootDirPath);
-    out.writeObject(myAndroidProject);
-    out.writeObject(mySelectedVariantName);
-  }
-
-  private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-    myProjectSystemId = (ProjectSystemId)in.readObject();
-    myModuleName = (String)in.readObject();
-    myRootDirPath = (File)in.readObject();
-    myAndroidProject = (IdeAndroidProject)in.readObject();
-    String variantName = (String)in.readObject();
-
-    parseAndSetModelVersion();
-    myFeatures = new AndroidModelFeatures(myModelVersion);
-
-    myBuildTypesByName = new HashMap<>();
-    myProductFlavorsByName = new HashMap<>();
-    myVariantsByName = new HashMap<>();
-    myExtraGeneratedSourceFolders = new HashSet<>();
-
-    populateBuildTypesByName();
-    populateProductFlavorsByName();
-    populateVariantsByName();
-
-    setSelectedVariantName(variantName);
-  }
-
   private void parseAndSetModelVersion() {
     // Old plugin versions do not return model version.
     myModelVersion = GradleVersion.tryParse(myAndroidProject.getModelVersion());
-  }
-
-  /**
-   * Returns the source provider for the current build type, which will never be {@code null} for a project backed by an
-   * {@link AndroidProject}, and always {@code null} for a legacy Android project.
-   *
-   * @return the build type source set or {@code null}.
-   */
-  @NotNull
-  public SourceProvider getBuildTypeSourceProvider() {
-    Variant selectedVariant = getSelectedVariant();
-    BuildTypeContainer buildType = findBuildType(selectedVariant.getBuildType());
-    assert buildType != null;
-    return buildType.getSourceProvider();
   }
 
   /**
@@ -788,7 +589,9 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
    * {@link AndroidProject}, and always {@code null} for a legacy Android project.
    *
    * @return the flavor source providers or {@code null} in legacy projects.
+   * @deprecated no reason to use just a subset of source providers outside of Gradle project system.
    */
+  @Deprecated
   @NotNull
   public List<SourceProvider> getFlavorSourceProviders() {
     Variant selectedVariant = getSelectedVariant();
@@ -822,40 +625,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     state.COMPILE_JAVA_TEST_TASK_NAME = "";
   }
 
-  /**
-   * Returns the source provider specific to the flavor combination, if any.
-   *
-   * @return the source provider or {@code null}.
-   */
-  @Nullable
-  public SourceProvider getMultiFlavorSourceProvider() {
-    AndroidArtifact mainArtifact = getSelectedVariant().getMainArtifact();
-    return mainArtifact.getMultiFlavorSourceProvider();
-  }
-
-  /**
-   * Returns the source provider specific to the variant, if any.
-   *
-   * @return the source provider or {@code null}.
-   */
-  @Nullable
-  public SourceProvider getVariantSourceProvider() {
-    AndroidArtifact mainArtifact = getSelectedVariant().getMainArtifact();
-    return mainArtifact.getVariantSourceProvider();
-  }
-
-  @Override
-  @NotNull
-  public DataBindingMode getDataBindingMode() {
-    if (dependsOn(this, ANDROIDX_DATA_BINDING_LIB_ARTIFACT)) {
-      return DataBindingMode.ANDROIDX;
-    }
-    if (dependsOn(this, DATA_BINDING_LIB_ARTIFACT)) {
-      return DataBindingMode.SUPPORT;
-    }
-    return DataBindingMode.NONE;
-  }
-
   @Override
   @NotNull
   public ClassJarProvider getClassJarProvider() {
@@ -864,45 +633,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @Override
   public boolean isClassFileOutOfDate(@NotNull Module module, @NotNull String fqcn, @NotNull VirtualFile classFile) {
-    return testIsClassFileOutOfDate(module, fqcn, classFile);
-  }
-
-  public static boolean testIsClassFileOutOfDate(@NotNull Module module, @NotNull String fqcn, @NotNull VirtualFile classFile) {
-    Project project = module.getProject();
-    GlobalSearchScope scope = module.getModuleWithDependenciesScope();
-    VirtualFile sourceFile =
-      ApplicationManager.getApplication().runReadAction((Computable<VirtualFile>)() -> {
-        PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(fqcn, scope);
-        if (psiClass == null) {
-          return null;
-        }
-        PsiFile psiFile = psiClass.getContainingFile();
-        if (psiFile == null) {
-          return null;
-        }
-        return psiFile.getVirtualFile();
-      });
-
-    if (sourceFile == null) {
-      return false;
-    }
-
-    // Edited but not yet saved?
-    if (FileDocumentManager.getInstance().isFileModified(sourceFile)) {
-      return true;
-    }
-
-    // Check timestamp
-    long sourceFileModified = sourceFile.getTimeStamp();
-
-    // User modifications on the source file might not always result on a new .class file.
-    // We use the project modification time instead to display the warning more reliably.
-    long lastBuildTimestamp = classFile.getTimeStamp();
-    Long projectBuildTimestamp = PostProjectBuildTasksExecutor.getInstance(project).getLastBuildTimestamp();
-    if (projectBuildTimestamp != null) {
-      lastBuildTimestamp = projectBuildTimestamp;
-    }
-    return sourceFileModified > lastBuildTimestamp && lastBuildTimestamp > 0L;
+    return ClassFileUtil.isClassSourceFileNewerThanClassClassFile(module, fqcn, classFile);
   }
 
   @NotNull
@@ -925,17 +656,32 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Override
   @NotNull
   public Map<String, DynamicResourceValue> getResValues() {
-    Variant selectedVariant = getSelectedVariant();
+    return GradleModelConverterUtil.classFieldsToDynamicResourceValues(getSelectedVariant().getMainArtifact().getResValues());
+  }
 
-    // flavors and default config:
-    Map<String, DynamicResourceValue> result =
-      new HashMap<>(GradleModelConverterUtil.classFieldsToDynamicResourceValues(selectedVariant.getMergedFlavor().getResValues()));
+  @NotNull
+  private String getApplicationIdUsingCache(@NotNull String variantName) {
+    synchronized (myGenericBuiltArtifactsMap) {
+      GenericBuiltArtifactsWithTimestamp artifactsWithTimestamp = myGenericBuiltArtifactsMap.get(variantName);
+      long lastSyncOrBuild = Long.MAX_VALUE; // If we don't have a module default to MAX which will always trigger a re-compute.
+      if (myModule != null) {
+        lastSyncOrBuild = ServiceManager.getService(myModule.getProject(), LastBuildOrSyncService.class).getLastBuildOrSyncTimeStamp();
+      } else {
+        Logger.getInstance(AndroidModuleModel.class).warn("No module set on model named: " + myModuleName);
+      }
+      if (artifactsWithTimestamp == null || lastSyncOrBuild >= artifactsWithTimestamp.getTimeStamp()) {
+        // Cache is invalid
+        artifactsWithTimestamp =
+          new GenericBuiltArtifactsWithTimestamp(getGenericBuiltArtifact(this, variantName), System.currentTimeMillis());
+        myGenericBuiltArtifactsMap.put(variantName, artifactsWithTimestamp);
+      }
 
-    BuildTypeContainer buildType = findBuildType(selectedVariant.getBuildType());
-    if (buildType != null) {
-      result.putAll(GradleModelConverterUtil.classFieldsToDynamicResourceValues(buildType.getBuildType().getResValues()));
+      GenericBuiltArtifacts artifacts = artifactsWithTimestamp.getGenericBuiltArtifacts();
+      if (artifacts == null) {
+        return UNINITIALIZED_APPLICATION_ID;
+      }
+
+      return artifacts.getApplicationId();
     }
-
-    return result;
   }
 }

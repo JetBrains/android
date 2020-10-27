@@ -42,13 +42,11 @@ object ColorBlindModeModelsProvider : VisualizationModelsProvider {
 
     val models = mutableListOf<NlModel>()
     for (mode in ColorBlindMode.values()) {
-      models.add(NlModel.create(
-        parent,
-        mode.displayName,
-        facet,
-        virtualFile,
-        defaultConfig,
-        Consumer<NlComponent> { NlComponentHelper.registerComponent(it) }))
+      models.add(NlModel.builder(facet, virtualFile, defaultConfig)
+                   .withParentDisposable(parent)
+                   .withModelDisplayName(mode.displayName)
+                   .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
+                   .build())
     }
     return models
   }

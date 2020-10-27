@@ -40,9 +40,8 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.android.facet.SourceProviderManager;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.*;
@@ -56,12 +55,13 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.projectsystem.SourceProvidersKt.findByFile;
+import static com.android.tools.idea.projectsystem.SourceProvidersKt.isManifestFile;
 import static com.android.xml.AndroidManifest.ATTRIBUTE_GLESVERSION;
 import static org.jetbrains.android.dom.attrs.ToolsAttributeUtil.ATTR_NODE;
 import static org.jetbrains.android.dom.attrs.ToolsAttributeUtil.ATTR_REMOVE;
-import static org.jetbrains.android.facet.IdeaSourceProviderUtil.isManifestFile;
 
-public final class ManifestUtils {
+public class ManifestUtils {
 
   private ManifestUtils() {
   }
@@ -231,7 +231,7 @@ public final class ManifestUtils {
 
   @Nullable/*this file is not from the main module*/
   public static NamedIdeaSourceProvider findManifestSourceProvider(@NotNull AndroidFacet facet, @NotNull VirtualFile manifestFile) {
-    return IdeaSourceProviderUtil.findByFile(SourceProviderManager.getInstance(facet).getCurrentSourceProviders(), manifestFile);
+    return findByFile(SourceProviderManager.getInstance(facet).getCurrentSourceProviders(), manifestFile);
   }
 
   public static @NotNull XmlFile getMainManifest(@NotNull AndroidFacet facet) {
@@ -277,7 +277,7 @@ public final class ManifestUtils {
       throw new IllegalArgumentException("should not have namespace as it's always tools");
     }
     ApplicationManager.getApplication().assertWriteAccessAllowed();
-    AndroidResourceUtil.ensureNamespaceImported(manifest, TOOLS_URI, null);
+    IdeResourcesUtil.ensureNamespaceImported(manifest, TOOLS_URI, null);
     XmlTag parent = null;
     XmlTag[] manifestTags = new XmlTag[]{manifest.getRootTag()};
     for (Element tag : getPath(item)) {

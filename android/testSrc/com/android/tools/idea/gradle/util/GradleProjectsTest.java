@@ -15,16 +15,11 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
-
-import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
-import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
-import static org.easymock.EasyMock.*;
 
 /**
  * Tests for {@link GradleProjects}.

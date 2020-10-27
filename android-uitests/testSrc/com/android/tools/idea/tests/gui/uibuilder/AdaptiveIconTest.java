@@ -40,7 +40,7 @@ public class AdaptiveIconTest {
       guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
         .getEditor()
         .open("app/src/main/res/mipmap-anydpi-v26/ic_launcher_adaptive.xml")
-        .getLayoutEditor(true)
+        .getLayoutEditor()
         .waitForRenderToFinish();
     Point adaptiveIconTopLeftCorner = editor.getAdaptiveIconTopLeftCorner();
     NlConfigurationToolbarFixture<NlEditorFixture> toolbar = editor.getConfigToolbar();
@@ -74,7 +74,7 @@ public class AdaptiveIconTest {
       guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
         .getEditor()
         .open("app/src/main/res/mipmap-anydpi-v26/ic_launcher_adaptive.xml")
-        .getLayoutEditor(true)
+        .getLayoutEditor()
         .waitForRenderToFinish();
     Point adaptiveIconTopLeftCorner = editor.getAdaptiveIconTopLeftCorner();
     NlConfigurationToolbarFixture<NlEditorFixture> toolbar = editor.getConfigToolbar();
@@ -109,7 +109,7 @@ public class AdaptiveIconTest {
       guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
         .getEditor()
         .open("app/src/main/res/mipmap-anydpi-v26/ic_theme_adaptive.xml")
-        .getLayoutEditor(true)
+        .getLayoutEditor()
         .waitForRenderToFinish();
     NlConfigurationToolbarFixture<NlEditorFixture> toolbar = editor.getConfigToolbar();
     toolbar.openThemeSelectionDialog()

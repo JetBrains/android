@@ -2,9 +2,6 @@ package org.jetbrains.android.util;
 
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidNativeLibData {
   private final String myPath;
   private final String myArchitecture;

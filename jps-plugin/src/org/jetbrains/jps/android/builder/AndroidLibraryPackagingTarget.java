@@ -1,4 +1,3 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android.builder;
 
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
@@ -20,9 +19,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidLibraryPackagingTarget extends AndroidBuildTarget {
   public AndroidLibraryPackagingTarget(@NotNull JpsModule module) {
     super(MyTargetType.INSTANCE, module);
@@ -62,7 +58,7 @@ public class AndroidLibraryPackagingTarget extends AndroidBuildTarget {
     return new File(dir, AndroidBuildCommonUtils.CLASSES_JAR_FILE_NAME);
   }
 
-  public static final class MyTargetType extends AndroidBuildTargetType<AndroidLibraryPackagingTarget> {
+  public static class MyTargetType extends AndroidBuildTargetType<AndroidLibraryPackagingTarget> {
     public static final MyTargetType INSTANCE = new MyTargetType();
 
     private MyTargetType() {

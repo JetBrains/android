@@ -25,7 +25,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.ResourceExplorerFixtur
 import com.android.tools.idea.tests.gui.framework.fixture.ResourcePickerDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture
-import com.android.tools.idea.uibuilder.property.assistant.AssistantPopupPanel
+import com.android.tools.idea.uibuilder.assistant.AssistantPopupPanel
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.KeyPressInfo
 import org.fest.swing.fixture.JButtonFixture
@@ -76,15 +76,10 @@ class ResourceExplorerTest {
   @Test
   fun resourceExplorerUiTest() {
     val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("ResourceManagerApp")
-
-    val goToDeclarationKeyInfo = KeyPressInfo.keyCode(KeyEvent.VK_B).apply { modifiers(InputEvent.CTRL_MASK) }
-    ide.editor.open("app/src/main/java/com/example/resourcemanagerapp/MainActivity.kt")
-      .moveBetween("R.layout.activity", "_main")
-      .pressAndReleaseKey(goToDeclarationKeyInfo)
+    val layoutEditor = ide.editor.open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.DESIGN).layoutEditor
 
     // 1. On a resource file, press "ctrl + shift + t" to open and select the resource in the resource manager.
     val showInResourceManagerKeyInfo = KeyPressInfo.keyCode(KeyEvent.VK_T).apply { modifiers(InputEvent.CTRL_MASK, InputEvent.SHIFT_MASK) }
-    val layoutEditor = ide.editor.getLayoutEditor(false)
     layoutEditor.waitForRenderToFinish().pressAndReleaseKey(showInResourceManagerKeyInfo).findResourceExplorer()
 
     // 2. Add a Drawable resource through the VectorAsset action.
@@ -105,7 +100,7 @@ class ResourceExplorerTest {
     ide.closeResourceManager()
 
     // 4. Invoke the Resource Picker to set SampleData for the previously created ImageView.
-    layoutEditor.findView("ImageView", 0).rightClick()
+    layoutEditor.findView("ImageView", 0).sceneComponent!!.rightClick()
     // Open the 'Set Sample Data' panel, then click 'Browse' to open the Resource Picker.
     ide.invokeMenuPath("Set Sample Data")
     val finder = ide.robot().finder()

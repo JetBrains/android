@@ -16,27 +16,36 @@
 
 package com.android.tools.adtui;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.instructions.*;
+import com.android.tools.adtui.instructions.GapInstruction;
+import com.android.tools.adtui.instructions.IconInstruction;
+import com.android.tools.adtui.instructions.InstructionsRenderer;
+import com.android.tools.adtui.instructions.NewRowInstruction;
+import com.android.tools.adtui.instructions.RenderInstruction;
+import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtilities;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Stroke;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A label component that updates its value based on the reporting series passed to it.
@@ -229,7 +238,9 @@ public class LegendComponent extends AnimatedComponent {
         name += ": ";
       }
 
-      myInstructions.add(new TextInstruction(UIUtilities.getFontMetrics(this, getFont()), name));
+      if (StringUtil.isNotEmpty(name)) {
+        myInstructions.add(new TextInstruction(UIUtilities.getFontMetrics(this, getFont()), name));
+      }
       if (StringUtil.isNotEmpty(value)) {
         TextInstruction valueInstruction = new TextInstruction(UIUtilities.getFontMetrics(this, getFont()), value);
         myInstructions.add(valueInstruction);

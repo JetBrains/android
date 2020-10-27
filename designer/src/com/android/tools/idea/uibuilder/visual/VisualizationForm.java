@@ -29,13 +29,11 @@ import com.android.tools.editor.ActionToolbarUtil;
 import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.rendering.RenderSettings;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
-import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.surface.GridSurfaceLayoutManager;
+import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.tools.idea.uibuilder.visual.analytics.MultiViewMetricTrackerKt;
@@ -71,7 +69,6 @@ import java.awt.event.AdjustmentEvent;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Supplier;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -82,10 +79,6 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Form of layout visualization which offers multiple previews for different devices in the same time. It provides a
  * convenient way to user to preview the layout in different devices.
- * <p>
- * This class is inspired by {@link NlPreviewForm}.<br>
- * Most of the codes are copied from {@link NlPreviewForm} instead of sharing, because {@link NlPreviewForm} is being
- * removed after we enable split editor.
  */
 public class VisualizationForm implements Disposable, ConfigurationSetListener, PanZoomListener {
 
@@ -114,8 +107,6 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
 
   @Nullable private Runnable myCancelPreviousAddModelsRequestTask = null;
 
-  @Nullable private List<NlModel> myModels = null;
-
   /**
    * Contains the editor that is currently being loaded.
    * Once the file is loaded, myPendingEditor will be null.
@@ -142,15 +133,14 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
       .setIsPreview(false)
       .setEditable(true)
       .setSceneManagerProvider((surface, model) -> {
-        Supplier<RenderSettings> renderSettingsProvider = () -> {
-          RenderSettings settings = RenderSettings.getProjectSettings(model.getProject());
-          boolean showDecoration = VisualizationToolSettings.getInstance().getGlobalState().getShowDecoration();
-          // 0.0f makes it spend 50% memory. See document in RenderTask#MIN_DOWNSCALING_FACTOR.
-          return settings.copy(0.0f, false, showDecoration);
-        };
-        return new LayoutlibSceneManager(model, surface, renderSettingsProvider);
+        LayoutlibSceneManager sceneManager = new LayoutlibSceneManager(model, surface);
+        sceneManager.setShowDecorations(VisualizationToolSettings.getInstance().getGlobalState().getShowDecoration());
+        sceneManager.setUseImagePool(false);
+        // 0.0f makes it spend 50% memory. See document in RenderTask#MIN_DOWNSCALING_FACTOR.
+        sceneManager.setQuality(0.0f);
+        return sceneManager;
       })
-      .setActionManagerProvider((surface) -> new VisualizationActionManager((NlDesignSurface) surface))
+      .setActionManagerProvider((surface) -> new VisualizationActionManager((NlDesignSurface) surface, () -> myCurrentModelsProvider))
       .setInteractionHandlerProvider((surface) -> new VisualizationInteractionHandler(surface, () -> myCurrentModelsProvider ))
       .setLayoutManager(new GridSurfaceLayoutManager(DEFAULT_SCREEN_OFFSET_X,
                                                      DEFAULT_SCREEN_OFFSET_Y,
@@ -163,7 +153,6 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
 
     updateScreenMode();
     Disposer.register(this, mySurface);
-    mySurface.setCentered(true);
     mySurface.setName(VISUALIZATION_DESIGN_SURFACE);
 
     myWorkBench = new WorkBench<>(myProject, "Visualization", null, this);
@@ -254,10 +243,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
   @Override
   public void dispose() {
     deactivate();
-    if (myModels != null) {
-      removeAndDisposeModels(myModels);
-      myModels = null;
-    }
+    removeAndDisposeModels(mySurface.getModels());
   }
 
   private void removeAndDisposeModels(@NotNull List<NlModel> models) {
@@ -275,7 +261,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
    * @return true on success. False if the preview update is not possible (e.g. the file for the editor cannot be found).
    */
   public boolean setNextEditor(@NotNull FileEditor editor) {
-    if (ResourceHelper.getFolderType(editor.getFile()) != ResourceFolderType.LAYOUT) {
+    if (IdeResourcesUtil.getFolderType(editor.getFile()) != ResourceFolderType.LAYOUT) {
       return false;
     }
     myPendingEditor = editor;
@@ -392,7 +378,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
               return CompletableFuture.completedFuture(null);
             }
             else {
-              return mySurface.addModel(model);
+              return mySurface.addAndRenderModel(model);
             }
           });
         }
@@ -406,7 +392,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
             if (!mySurface.setScale(lastScaling)) {
               // Update scroll area because the scaling doesn't change, which keeps the old scroll area and may not suitable to new
               // configuration set.
-              mySurface.updateScrolledAreaSize();
+              mySurface.revalidateScrollArea();
             }
             myWorkBench.showContent();
           }
@@ -440,10 +426,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
 
     myWorkBench.setFileEditor(null);
 
-    if (myModels != null) {
-      removeAndDisposeModels(myModels);
-      myModels = null;
-    }
+    removeAndDisposeModels(mySurface.getModels());
   }
 
   private void activeModels(@NotNull List<NlModel> models) {
@@ -462,7 +445,6 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
       }
       myWorkBench.setFileEditor(myEditor);
     }
-    myModels = models;
   }
 
   @NotNull
@@ -590,7 +572,13 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
       VisualizationToolSettings.getInstance().getGlobalState().setShowDecoration(state);
       myWorkBench.hideContent();
       myWorkBench.showLoading(RENDERING_MESSAGE);
-      mySurface.forceUserRequestedRefresh().thenRun(() -> {
+
+      mySurface.getModels().stream()
+        .map(model -> mySurface.getSceneManager(model))
+        .filter(manager -> manager instanceof LayoutlibSceneManager)
+        .forEach(manager -> ((LayoutlibSceneManager)manager).setShowDecorations(state));
+
+      mySurface.requestRender().thenRun(() -> {
         if (!Disposer.isDisposed(myWorkBench)) {
           myWorkBench.showContent();
         }
@@ -598,7 +586,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
     }
   }
 
-  private static final class VisualizationTraversalPolicy extends DefaultFocusTraversalPolicy {
+  private static class VisualizationTraversalPolicy extends DefaultFocusTraversalPolicy {
     @NotNull private DesignSurface mySurface;
 
     private VisualizationTraversalPolicy(@NotNull DesignSurface surface) {

@@ -20,9 +20,10 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.ActionBarHandler;
 import com.android.tools.idea.rendering.LayoutlibCallbackImpl;
-import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.PsiFile;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +31,9 @@ import org.w3c.dom.Document;
 
 import java.util.Collections;
 
+import static com.android.SdkConstants.NAVIGATION_VIEW;
 import static com.android.tools.idea.rendering.parsers.LayoutPullParsers.createEmptyParser;
+import static com.android.tools.idea.util.DependencyManagementUtil.mapAndroidxName;
 
 /**
  * Renderer which creates a preview of menus and renders them into a layout XML element hierarchy.
@@ -40,7 +43,7 @@ import static com.android.tools.idea.rendering.parsers.LayoutPullParsers.createE
  * http://developer.android.com/guide/topics/ui/menus.html
  * http://developer.android.com/guide/topics/resources/menu-resource.html
  */
-final class MenuLayoutParserFactory {
+class MenuLayoutParserFactory {
   @NotNull
   private static final String FRAME_LAYOUT_XML =
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -64,7 +67,8 @@ final class MenuLayoutParserFactory {
       ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(psiFile);
       if (repositoryManager != null) {
         ResourceReference menuResource =
-            new ResourceReference(repositoryManager.getNamespace(), ResourceType.MENU, ResourceHelper.getResourceName(psiFile));
+            new ResourceReference(repositoryManager.getNamespace(), ResourceType.MENU,
+                                  SdkUtils.fileNameToResourceName(psiFile.getName()));
         actionBarHandler.setMenuIds(Collections.singletonList(menuResource));
       }
     }
@@ -73,12 +77,13 @@ final class MenuLayoutParserFactory {
 
   @NotNull
   public static ILayoutPullParser createInNavigationView(@NotNull PsiFile file) {
+    String navViewTag = mapAndroidxName(ModuleUtilCore.findModuleForPsiElement(file), NAVIGATION_VIEW);
     @Language("XML")
-    String xml = "<android.support.design.widget.NavigationView xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+    String xml = "<" + navViewTag + " xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                  "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
                  "    android:layout_width=\"wrap_content\"\n" +
                  "    android:layout_height=\"match_parent\"\n" +
-                 "    app:menu=\"@menu/" + ResourceHelper.getResourceName(file) + "\" />\n";
+                 "    app:menu=\"@menu/" + SdkUtils.fileNameToResourceName(file.getName()) + "\" />\n";
 
     Document document = XmlUtils.parseDocumentSilently(xml, true);
     return document == null ? createEmptyParser() : DomPullParser.createFromDocument(document);

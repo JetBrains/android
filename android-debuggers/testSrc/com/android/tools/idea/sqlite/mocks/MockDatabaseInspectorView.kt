@@ -16,18 +16,21 @@
 package com.android.tools.idea.sqlite.mocks
 
 import com.android.tools.idea.sqlite.controllers.TabId
-import com.android.tools.idea.sqlite.model.SqliteDatabase
-import com.android.tools.idea.sqlite.model.SqliteSchema
-import com.android.tools.idea.sqlite.model.SqliteTable
+import com.android.tools.idea.sqlite.ui.mainView.DatabaseDiffOperation
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView.Listener
+import com.android.tools.idea.sqlite.ui.mainView.SchemaDiffOperation
+import com.android.tools.idea.sqlite.ui.mainView.ViewDatabase
 import org.mockito.Mockito.mock
 import java.util.ArrayList
+import javax.swing.Icon
 import javax.swing.JComponent
 
 open class MockDatabaseInspectorView : DatabaseInspectorView {
   val viewListeners = ArrayList<Listener>()
   var lastDisplayedResultSetTabId: TabId? = null
+
+  val errorInvocations = mutableListOf<Pair<String, Throwable?>>()
 
   override fun addListener(listener: Listener) {
     viewListeners.add(listener)
@@ -43,12 +46,12 @@ open class MockDatabaseInspectorView : DatabaseInspectorView {
 
   override fun stopLoading() { }
 
-  override fun addDatabaseSchema(database: SqliteDatabase, schema: SqliteSchema, index: Int) { }
+  override fun updateDatabases(databaseDiffOperations: List<DatabaseDiffOperation>) { }
 
-  override fun removeDatabaseSchema(database: SqliteDatabase) { }
+  override fun updateDatabaseSchema(viewDatabase: ViewDatabase, diffOperations: List<SchemaDiffOperation>) { }
 
-  override fun openTab(tableId: TabId, tabName: String, component: JComponent) {
-    lastDisplayedResultSetTabId = tableId
+  override fun openTab(tabId: TabId, tabName: String, tabIcon: Icon, component: JComponent) {
+    lastDisplayedResultSetTabId = tabId
   }
 
   override fun reportSyncProgress(message: String) {}
@@ -57,7 +60,9 @@ open class MockDatabaseInspectorView : DatabaseInspectorView {
 
   override fun closeTab(tabId: TabId) { }
 
-  override fun reportError(message: String, t: Throwable) { }
+  override fun updateKeepConnectionOpenButton(keepOpen: Boolean) { }
 
-  override fun updateDatabase(database: SqliteDatabase, toAdd: List<SqliteTable>) { }
+  override fun reportError(message: String, throwable: Throwable?) {
+    errorInvocations.add(Pair(message, throwable))
+  }
 }

@@ -21,6 +21,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.VfsTestUtil;
+import java.io.File;
 import java.util.Arrays;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -60,10 +61,10 @@ public class UnusedResourcesTest extends AndroidTestCase {
                  " Found usages (2 usages)\n" +
                  "  Android resource file (2 usages)\n" +
                  "   app (2 usages)\n" +
-                 "    res/drawable-hdpi (1 usage)\n" +
+                 "    res" + File.separatorChar +  "drawable-hdpi (1 usage)\n" +
                  "     ic_action_custom.png (1 usage)\n" +
                  "      Android resource file drawable-hdpi/ic_action_custom.png\n" +
-                 "    res/raw (1 usage)\n" +
+                 "    res" + File.separatorChar +  "raw (1 usage)\n" +
                  "     foo.bin (1 usage)\n" +
                  "      Android resource file raw/foo.bin\n");
   }

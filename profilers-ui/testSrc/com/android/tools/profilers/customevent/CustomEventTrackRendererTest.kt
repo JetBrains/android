@@ -16,7 +16,6 @@
 package com.android.tools.profilers.customevent
 
 import com.android.tools.adtui.AxisComponent
-import com.android.tools.adtui.LegendComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.chart.linechart.LineChart
 import com.android.tools.adtui.model.FakeTimer
@@ -42,13 +41,12 @@ class CustomEventTrackRendererTest {
 
   @get:Rule
   var grpcChannel = FakeGrpcChannel("CustomEventTrackTestChannel", FakeCpuService(), FakeProfilerService(timer), transportService)
-  private val profilerClient = ProfilerClient(grpcChannel.name)
 
   private lateinit var profilers: StudioProfilers
 
   @Before
   fun setUp() {
-    profilers = StudioProfilers(profilerClient, services, timer)
+    profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
   }
 
   @Test

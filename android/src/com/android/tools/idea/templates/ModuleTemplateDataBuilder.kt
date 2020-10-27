@@ -21,34 +21,37 @@ import com.android.SdkConstants.FD_UNIT_TEST
 import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes.P
-import com.android.tools.idea.gradle.util.DynamicAppUtils
+import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
+import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
+import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.npw.ThemeHelper
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
-import com.android.tools.idea.npw.template.hasAndroidxSupport
 import com.android.tools.idea.projectsystem.AndroidModulePaths
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_THEME_APP_BAR_OVERLAY
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_THEME_NO_ACTION_BAR
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_THEME_POPUP_OVERLAY
+import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ApiTemplateData
+import com.android.tools.idea.wizard.template.ApiVersion
 import com.android.tools.idea.wizard.template.BaseFeature
 import com.android.tools.idea.wizard.template.FormFactor
+import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.PackageName
-import com.android.tools.idea.wizard.template.ThemesData
-import com.intellij.openapi.module.Module
 import com.android.tools.idea.wizard.template.ThemeData
-import com.android.tools.idea.wizard.template.Version
+import com.android.tools.idea.wizard.template.ThemesData
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.facet.SourceProviderManager
+import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.sdk.AndroidPlatform
 import java.io.File
 
@@ -67,7 +70,7 @@ private fun getRelativePath(base: File, file: File): String? =
  *
  * Extracts information from various data sources.
  */
-class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateDataBuilder) {
+class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateDataBuilder, val isNew: Boolean) {
   var srcDir: File? = null
   var resDir: File? = null
   var manifestDir: File? = null
@@ -75,8 +78,6 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
   var unitTestDir: File? = null
   var aidlDir: File? = null
   var rootDir: File? = null
-  var themeExists: Boolean = false
-  var isNew: Boolean? = null
   var hasApplicationTheme: Boolean = true
   var name: String? = null
   var isLibrary: Boolean? = null
@@ -87,7 +88,7 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
   var apis: ApiTemplateData? = null
 
   /**
-   * Adds common module roots template values like [projectOut], [srcDir], etc
+   * Adds common module roots template values like [rootDir], [srcDir], etc
    * @param paths       Project paths
    * @param packageName Package Name for the module
    */
@@ -118,19 +119,20 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
 
     val target = AndroidPlatform.getInstance(facet.module)?.target
     val moduleInfo = AndroidModuleInfo.getInstance(facet)
+    val targetSdkVersion = moduleInfo.targetSdkVersion
+    val buildSdkVersion = moduleInfo.buildSdkVersion ?: targetSdkVersion
     val minSdkVersion = moduleInfo.minSdkVersion
 
     apis = ApiTemplateData(
-      minSdkVersion.apiString,
-      minSdkVersion.featureLevel,
-      target?.version?.featureLevel?.coerceIfNeeded(facet.module.project),
-      moduleInfo.targetSdkVersion.apiLevel,
-      moduleInfo.targetSdkVersion.codename,
-      target?.version?.toApiString(),
-      if (target?.version?.isPreview == true) target.revision else 0
+      buildApi = ApiVersion(buildSdkVersion.featureLevel, buildSdkVersion.apiString),
+      targetApi = ApiVersion(targetSdkVersion.featureLevel, targetSdkVersion.apiString),
+      minApi = ApiVersion(minSdkVersion.featureLevel, minSdkVersion.apiString),
+      // The highest supported/recommended appCompact version is P(28)
+      appCompatVersion = targetSdkVersion.featureLevel.coerceAtMost(P),
+      // Note: target is null for a non-preview release, see VersionItem.getAndroidTarget()
+      buildApiRevision = if (target?.version?.isPreview == true) target.revision else 0
     )
 
-    isNew = false
     isLibrary = facet.configuration.isLibraryProject
 
     val appTheme = MergedManifestManager.getMergedManifestSupplier(facet.module).now
@@ -173,18 +175,16 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
    */
   fun setBuildVersion(buildVersion: AndroidVersionsInfo.VersionItem, project: Project) {
     projectTemplateDataBuilder.setBuildVersion(buildVersion, project)
-    isNew = true
-    themeExists = true // New modules always have a theme (unless its a library, but it will have no activity)
+    themesData = ThemesData(appName = getAppNameForTheme(project.name)) // New modules always have a theme (unless its a library, but it will have no activity)
 
     apis = ApiTemplateData(
-      buildVersion.minApiLevelStr,
-      buildVersion.minApiLevel,
-      buildVersion.buildApiLevel.coerceIfNeeded(project),
-      buildVersion.targetApiLevel,
-      buildVersion.targetApiLevelStr,
-      buildVersion.buildApiLevelStr,
-      // Note here that the target is null for a non-preview release, see VersionItem.getAndroidTarget()
-      buildVersion.androidTarget?.revision ?: 0
+      buildApi = ApiVersion(buildVersion.buildApiLevel, buildVersion.buildApiLevelStr),
+      targetApi = ApiVersion(buildVersion.targetApiLevel, buildVersion.targetApiLevelStr),
+      minApi = ApiVersion(buildVersion.minApiLevel, buildVersion.minApiLevelStr),
+      // The highest supported/recommended appCompact version is P(28)
+      appCompatVersion = buildVersion.buildApiLevel.coerceAtMost(P),
+      // Note: target is null for a non-preview release, see VersionItem.getAndroidTarget()
+      buildApiRevision = buildVersion.androidTarget?.revision ?: 0
     )
   }
 
@@ -208,22 +208,20 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
       return ThemeData(fullThemeName, exists)
     }
 
+    val noActionBar = "NoActionBar"
+    val appBarOverlay = "AppBarOverlay"
+    val popupOverlay = "PopupOverlay"
     ApplicationManager.getApplication().runReadAction {
       val hasActionBar = ThemeHelper.hasActionBar(configuration, themeName)
       themesData = ThemesData(
-        ThemeData(themeName, true),
-        getDerivedTheme(themeName, ATTR_APP_THEME_NO_ACTION_BAR, hasActionBar == false),
-        getDerivedTheme(themeName, ATTR_APP_THEME_APP_BAR_OVERLAY, false),
-        getDerivedTheme(themeName, ATTR_APP_THEME_POPUP_OVERLAY, false)
+        appName = getAppNameForTheme(module.project.name),
+        main = ThemeData(themeName, true),
+        noActionBar = getDerivedTheme(themeName, noActionBar, hasActionBar == false),
+        appBarOverlay = getDerivedTheme(themeName, appBarOverlay, false),
+        popupOverlay = getDerivedTheme(themeName, popupOverlay, false)
       )
     }
   }
-
-  private fun Version.coerceIfNeeded(project: Project, isNewProject: Boolean = false) =
-    if (project.hasAndroidxSupport(isNewProject))
-      this
-    else
-      this.coerceAtMost(P) // The highest supported/recommended appCompact version is P(28)
 
   fun build() = ModuleTemplateData(
     projectTemplateDataBuilder.build(),
@@ -234,14 +232,13 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
     unitTestDir ?: srcDir!!.resolve(FD_UNIT_TEST),
     aidlDir!!,
     rootDir!!,
-    themeExists,
-    isNew!!,
+    isNew,
     hasApplicationTheme,
     name!!,
     isLibrary!!,
     packageName!!,
     formFactor!!,
-    themesData ?: ThemesData(),
+    themesData ?: ThemesData(appName = getAppNameForTheme(projectTemplateDataBuilder.applicationName!!)),
     baseFeature,
     apis!!
   )
@@ -252,3 +249,37 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
  */
 fun AndroidVersion.toApiString(): String =
   if (isPreview) AndroidTargetHash.getPlatformHashString(this) else apiString
+
+// Note: New projects are always created with androidx dependencies
+fun Project?.hasAndroidxSupport(isNewProject: Boolean) = this == null || isNewProject || this.isAndroidx()
+
+fun getDummyModuleTemplateDataBuilder(project: Project): ModuleTemplateDataBuilder {
+  val projectStateBuilder = ProjectTemplateDataBuilder(true).apply {
+    androidXSupport = true
+    setProjectDefaults(project)
+    language = Language.Java
+    topOut = project.guessProjectDir()!!.toIoFile()
+    debugKeyStoreSha1 = KeystoreUtils.getSha1DebugKeystoreSilently(null)
+    applicationPackage = ""
+    overridePathCheck = false
+  }
+
+  return ModuleTemplateDataBuilder(projectStateBuilder, true).apply {
+    name = "Fake module state"
+    packageName = ""
+    val paths = GradleAndroidModuleTemplate.createDefaultTemplateAt(project.basePath!!, name!!).paths
+    setModuleRoots(paths, projectTemplateDataBuilder.topOut!!.path, name!!, packageName!!)
+    isLibrary = false
+    formFactor = FormFactor.Mobile
+    themesData = ThemesData(appName = getAppNameForTheme(project.name))
+    apis = ApiTemplateData(
+      buildApi = ApiVersion(HIGHEST_KNOWN_STABLE_API, HIGHEST_KNOWN_STABLE_API.toString()),
+      targetApi = ApiVersion(HIGHEST_KNOWN_STABLE_API, HIGHEST_KNOWN_STABLE_API.toString()),
+      minApi = ApiVersion(LOWEST_ACTIVE_API, LOWEST_ACTIVE_API.toString()),
+      // The highest supported/recommended appCompact version is P(28)
+      appCompatVersion = HIGHEST_KNOWN_STABLE_API.coerceAtMost(P),
+      buildApiRevision = null
+    )
+  }
+}
+

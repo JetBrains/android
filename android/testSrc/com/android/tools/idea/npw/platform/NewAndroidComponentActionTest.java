@@ -21,7 +21,6 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API;
-import static com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.ANDROIDX;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -32,13 +31,16 @@ import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.android.tools.idea.wizard.template.Category;
+import com.android.tools.idea.wizard.template.TemplateConstraint;
 import com.intellij.facet.FacetManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
-import java.util.EnumSet;
+import java.util.ArrayList;
+import java.util.Collection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.junit.Before;
 import org.junit.Rule;
@@ -82,14 +84,14 @@ public final class NewAndroidComponentActionTest {
 
   @Test
   public void nonInstantAppPresentationShouldBeEnabled() {
-    new NewAndroidComponentAction("templateCategory", "templateName", 0).update(myActionEvent);
+    new NewAndroidComponentAction(Category.Other, "templateName", 0).update(myActionEvent);
 
     assertThat(myActionEvent.getPresentation().isEnabled()).isTrue();
   }
 
   @Test
   public void lowMinSdkApiPresentationShouldBeDisabled() {
-    new NewAndroidComponentAction("templateCategory", "templateName", HIGHEST_KNOWN_API + 1).update(myActionEvent);
+    new NewAndroidComponentAction(Category.Other, "templateName", HIGHEST_KNOWN_API + 1).update(myActionEvent);
 
     assertThat(myActionEvent.getPresentation().isEnabled()).isFalse();
     assertThat(myActionEvent.getPresentation().getText()).contains("Requires minSdk");
@@ -97,7 +99,7 @@ public final class NewAndroidComponentActionTest {
 
   @Test
   public void lowMinBuildSdkApiPresentationShouldBeDisabled() {
-    new NewAndroidComponentAction("templateCategory", "templateName", 0, HIGHEST_KNOWN_API + 1).update(myActionEvent);
+    new NewAndroidComponentAction(Category.Other, "templateName", 0, HIGHEST_KNOWN_API + 1).update(myActionEvent);
 
     assertThat(myActionEvent.getPresentation().isEnabled()).isFalse();
     assertThat(myActionEvent.getPresentation().getText()).contains("Requires compileSdkVersion");
@@ -106,7 +108,9 @@ public final class NewAndroidComponentActionTest {
 
   @Test
   public void noAndroidXSupportPresentationShouldBeDisabled() {
-    new NewAndroidComponentAction("templateCategory", "templateName", 0, 0, EnumSet.of(ANDROIDX)).update(myActionEvent);
+    Collection<TemplateConstraint> constraints = new ArrayList<>();
+    constraints.add(TemplateConstraint.AndroidX);
+    new NewAndroidComponentAction(Category.Other, "templateName", 0, 0, constraints).update(myActionEvent);
 
     assertThat(myActionEvent.getPresentation().isEnabled()).isFalse();
     assertThat(myActionEvent.getPresentation().getText()).contains("Requires AndroidX support");
@@ -116,7 +120,7 @@ public final class NewAndroidComponentActionTest {
   public void appTypePresentationShouldBeEnabledForIapp() {
     mySelectedAndroidFacet.getConfiguration().setProjectType(PROJECT_TYPE_APP);
 
-    new NewAndroidComponentAction("templateCategory", "templateName", 0).update(myActionEvent);
+    new NewAndroidComponentAction(Category.Other, "templateName", 0).update(myActionEvent);
 
     assertThat(myActionEvent.getPresentation().isEnabled()).isTrue();
   }
@@ -125,7 +129,7 @@ public final class NewAndroidComponentActionTest {
   public void instantTypePresentationShouldBeDisabledForIapp() {
     mySelectedAndroidFacet.getConfiguration().setProjectType(PROJECT_TYPE_INSTANTAPP);
 
-    new NewAndroidComponentAction("templateCategory", "templateName", 0).update(myActionEvent);
+    new NewAndroidComponentAction(Category.Other, "templateName", 0).update(myActionEvent);
 
     assertThat(myActionEvent.getPresentation().isEnabled()).isFalse();
   }
@@ -134,7 +138,7 @@ public final class NewAndroidComponentActionTest {
   public void libraryTypePresentationShouldBeEnabledForIapp() {
     mySelectedAndroidFacet.getConfiguration().setProjectType(PROJECT_TYPE_LIBRARY);
 
-    new NewAndroidComponentAction("templateCategory", "templateName", 0).update(myActionEvent);
+    new NewAndroidComponentAction(Category.Other, "templateName", 0).update(myActionEvent);
 
     assertThat(myActionEvent.getPresentation().isEnabled()).isTrue();
   }
@@ -143,7 +147,7 @@ public final class NewAndroidComponentActionTest {
   public void testTypePresentationShouldBeEnabledForIapp() {
     mySelectedAndroidFacet.getConfiguration().setProjectType(PROJECT_TYPE_TEST);
 
-    new NewAndroidComponentAction("templateCategory", "templateName", 0).update(myActionEvent);
+    new NewAndroidComponentAction(Category.Other, "templateName", 0).update(myActionEvent);
 
     assertThat(myActionEvent.getPresentation().isEnabled()).isTrue();
   }
@@ -152,7 +156,7 @@ public final class NewAndroidComponentActionTest {
   public void featureTypePresentationShouldBeEnabledForIapp() {
     mySelectedAndroidFacet.getConfiguration().setProjectType(PROJECT_TYPE_FEATURE);
 
-    new NewAndroidComponentAction("templateCategory", "templateName", 0).update(myActionEvent);
+    new NewAndroidComponentAction(Category.Other, "templateName", 0).update(myActionEvent);
 
     assertThat(myActionEvent.getPresentation().isEnabled()).isTrue();
   }

@@ -17,17 +17,10 @@ package com.android.tools.profilers.memory;
 
 public enum MemoryProfilerAspect {
   TRACKING_ENABLED,
-  CLASS_GROUPING,
-  CURRENT_CAPTURE_ELAPSED_TIME,
-  CURRENT_LOADING_CAPTURE,
-  CURRENT_LOADED_CAPTURE,
-  CURRENT_HEAP,
-  CURRENT_HEAP_UPDATING,
-  CURRENT_HEAP_UPDATED,
-  CURRENT_HEAP_CONTENTS,
-  CURRENT_CLASS,
-  CURRENT_INSTANCE,
-  CURRENT_FIELD_PATH,
-  CURRENT_FILTER,
+  LIVE_ALLOCATION_STATUS,  // the status of live allocation being ready or not
   LIVE_ALLOCATION_SAMPLING_MODE,
+  // These aspects are fired at the start and end of taking heap dump, which are distinct events from
+  // parsing and analyzing the heap dump that's already saved
+  HEAP_DUMP_STARTED,
+  HEAP_DUMP_FINISHED,
 }

@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.ide.common.repository.GradleVersion
 import com.android.repository.Revision
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallNdkHyperlink
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixNdkVersionProcessor
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.LocalProperties
 import com.android.tools.idea.sdk.IdeSdks
+import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.actionSystem.DataProvider
@@ -32,6 +35,8 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.util.concurrent.CompletableFuture
+import java.util.function.Consumer
+import java.util.regex.Pattern
 
 private const val VERSION_PATTERN = "(?<version>([0-9]+)(?:\\.([0-9]+)(?:\\.([0-9]+))?)?([\\s-]*)?(?:(rc|alpha|beta|\\.)([0-9]+))?)"
 private val PREFERRED_VERSION_PATTERNS = listOf(
@@ -41,6 +46,7 @@ private val PREFERRED_VERSION_PATTERNS = listOf(
 class MissingNdkIssueChecker: GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = errorMessage(issueData) ?: return null
+
     val preferredVersion = tryExtractPreferredNdkDownloadVersion(message)
     val quickFixes = mutableListOf<BuildIssueQuickFix>()
     var description = "$message\n"
@@ -53,11 +59,21 @@ class MissingNdkIssueChecker: GradleIssueChecker {
     else if (matchesNdkNotConfigured(message) ||
           matchesKnownLocatorIssue(message) ||
           matchesTriedInstall(message)) {
+
       // Error message matches but it does not contain a preferred version, find highest version available locally.
       localRevision = (ideSdks.getHighestLocalNdkPackage( /* No previews first */false) ?:
                        ideSdks.getHighestLocalNdkPackage(true /* Then previews */))?.version?.toString()
     }
     else {
+      return null
+    }
+
+    val gradleVersion = issueData.buildEnvironment?.gradle?.gradleVersion;
+
+    if (gradleVersion != null && GradleVersion.parse(gradleVersion).compareIgnoringQualifiers("6.2") <= 0) {
+      // If the version of AGP is too old to support android.ndkVersion then don't offer to download an NDK.
+      // We can't know the AGP version when sync has failed so use older gradle version as a proxy.
+      // Older AGP don't support android.ndkVersion so don't offer a hyperlink to set that value.
       return null
     }
 
@@ -76,6 +92,18 @@ class MissingNdkIssueChecker: GradleIssueChecker {
       override val quickFixes: List<BuildIssueQuickFix> = quickFixes
       override fun getNavigatable(project: Project): Navigatable? = null
     }
+  }
+
+  override fun consumeBuildOutputFailureMessage(message: String,
+                                                failureCause: String,
+                                                stacktrace: String?,
+                                                location: FilePosition?,
+                                                parentEventId: Any,
+                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+    return tryExtractPreferredNdkDownloadVersion(failureCause) != null ||
+           matchesNdkNotConfigured(failureCause) ||
+           matchesKnownLocatorIssue(failureCause) ||
+           matchesTriedInstall(failureCause)
   }
 
   private fun appendQuickFix(quickFixes: MutableList<BuildIssueQuickFix>,

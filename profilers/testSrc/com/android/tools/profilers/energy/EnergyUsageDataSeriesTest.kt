@@ -55,7 +55,7 @@ class EnergyUsageDataSeriesTest {
 
   @Before
   fun setup() {
-    dataSeries = EnergyUsageDataSeries(ProfilerClient(grpcChannel.name), ProfilersTestData.SESSION_DATA)
+    dataSeries = EnergyUsageDataSeries(ProfilerClient(grpcChannel.channel), ProfilersTestData.SESSION_DATA)
   }
 
   @Test

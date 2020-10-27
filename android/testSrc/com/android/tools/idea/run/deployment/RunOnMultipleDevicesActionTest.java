@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,69 +21,91 @@ import static org.junit.Assert.assertTrue;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.project.Project;
 import java.util.Collections;
-import org.junit.Before;
+import java.util.List;
+import java.util.Optional;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
 
+@RunWith(JUnit4.class)
 public final class RunOnMultipleDevicesActionTest {
+  private final Presentation myPresentation = new Presentation();
+
   @Rule
   public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
-
-  private AnAction myAction;
-  private Presentation myPresentation;
-  private AnActionEvent myEvent;
-
-  @Before
-  public void mockEvent() {
-    myPresentation = new Presentation();
-
-    myEvent = Mockito.mock(AnActionEvent.class);
-    Mockito.when(myEvent.getPresentation()).thenReturn(myPresentation);
-  }
 
   @Test
   public void updateProjectIsNull() {
     // Arrange
-    myAction = new RunOnMultipleDevicesAction();
+    RunManager manager = mockRunManager(AndroidRunConfigurationType.ID);
+    AsyncDevicesGetter getter = mockAsyncDevicesGetter(Collections.emptyList());
+
+    AnAction action = new RunOnMultipleDevicesAction(project -> manager, project -> getter, () -> false);
+    AnActionEvent event = mockEvent(myPresentation, null);
 
     // Act
-    myAction.update(myEvent);
+    action.update(event);
+
+    // Assert
+    assertFalse(myPresentation.isEnabledAndVisible());
+  }
+
+  @Test
+  public void updateConfigurationAndSettingsIsNull() {
+    // Arrange
+    RunManager manager = Mockito.mock(RunManager.class);
+    AsyncDevicesGetter getter = mockAsyncDevicesGetter(Collections.emptyList());
+
+    AnAction action = new RunOnMultipleDevicesAction(project -> manager, project -> getter, () -> false);
+    AnActionEvent event = mockEvent(myPresentation, myRule.getProject());
+
+    // Act
+    action.update(event);
 
     // Assert
     assertFalse(myPresentation.isEnabled());
   }
 
   @Test
-  public void updateSettingsAreNull() {
+  public void updateCaseAndroidTestRunConfigurationType() {
     // Arrange
-    myAction = new RunOnMultipleDevicesAction();
-    Mockito.when(myEvent.getProject()).thenReturn(myRule.getProject());
+    RunManager manager = mockRunManager(AndroidBuildCommonUtils.ANDROID_TEST_RUN_CONFIGURATION_TYPE);
+    AsyncDevicesGetter getter = mockAsyncDevicesGetter(Collections.emptyList());
+
+    AnAction action = new RunOnMultipleDevicesAction(project -> manager, project -> getter, () -> false);
+    AnActionEvent event = mockEvent(myPresentation, myRule.getProject());
 
     // Act
-    myAction.update(myEvent);
+    action.update(event);
 
     // Assert
     assertFalse(myPresentation.isEnabled());
   }
 
   @Test
-  public void updateWithNonSupportedRunConfigurationTypeShouldDisableAction() {
+  public void updateDefault() {
     // Arrange
-    RunnerAndConfigurationSettings settings = Mockito.mock(RunnerAndConfigurationSettings.class);
-    Mockito.when(settings.getType()).thenReturn(Mockito.mock(ConfigurationType.class));
+    RunManager manager = mockRunManager("AndroidJUnit");
+    AsyncDevicesGetter getter = mockAsyncDevicesGetter(Collections.emptyList());
 
-    myAction = new RunOnMultipleDevicesAction(project -> settings, project -> Collections.emptyList());
-    Mockito.when(myEvent.getProject()).thenReturn(myRule.getProject());
+    AnAction action = new RunOnMultipleDevicesAction(project -> manager, project -> getter, () -> false);
+    AnActionEvent event = mockEvent(myPresentation, myRule.getProject());
 
     // Act
-    myAction.update(myEvent);
+    action.update(event);
 
     // Assert
     assertFalse(myPresentation.isEnabled());
@@ -92,14 +114,14 @@ public final class RunOnMultipleDevicesActionTest {
   @Test
   public void updateDevicesIsEmpty() {
     // Arrange
-    RunnerAndConfigurationSettings settings = Mockito.mock(RunnerAndConfigurationSettings.class);
-    Mockito.when(settings.getType()).thenReturn(AndroidRunConfigurationType.getInstance());
+    RunManager manager = mockRunManager(AndroidRunConfigurationType.ID);
+    AsyncDevicesGetter getter = mockAsyncDevicesGetter(Collections.emptyList());
 
-    myAction = new RunOnMultipleDevicesAction(project -> settings, project -> Collections.emptyList());
-    Mockito.when(myEvent.getProject()).thenReturn(myRule.getProject());
+    AnAction action = new RunOnMultipleDevicesAction(project -> manager, project -> getter, () -> false);
+    AnActionEvent event = mockEvent(myPresentation, myRule.getProject());
 
     // Act
-    myAction.update(myEvent);
+    action.update(event);
 
     // Assert
     assertFalse(myPresentation.isEnabled());
@@ -108,22 +130,54 @@ public final class RunOnMultipleDevicesActionTest {
   @Test
   public void update() {
     // Arrange
-    RunnerAndConfigurationSettings settings = Mockito.mock(RunnerAndConfigurationSettings.class);
-    Mockito.when(settings.getType()).thenReturn(AndroidRunConfigurationType.getInstance());
+    RunManager manager = mockRunManager(AndroidRunConfigurationType.ID);
 
     Device device = new VirtualDevice.Builder()
-      .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29"))
+      .setName("Pixel 4 API 29")
+      .setKey(new Key("Pixel_4_API_29"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    myAction = new RunOnMultipleDevicesAction(project -> settings, project -> Collections.singletonList(device));
-    Mockito.when(myEvent.getProject()).thenReturn(myRule.getProject());
+    AsyncDevicesGetter getter = mockAsyncDevicesGetter(Collections.singletonList(device));
+
+    AnAction action = new RunOnMultipleDevicesAction(project -> manager, project -> getter, () -> false);
+    AnActionEvent event = mockEvent(myPresentation, myRule.getProject());
 
     // Act
-    myAction.update(myEvent);
+    action.update(event);
 
     // Assert
     assertTrue(myPresentation.isEnabled());
+  }
+
+  private static @NotNull RunManager mockRunManager(@NotNull String id) {
+    ConfigurationType type = Mockito.mock(ConfigurationType.class);
+    Mockito.when(type.getId()).thenReturn(id);
+
+    RunnerAndConfigurationSettings configurationAndSettings = Mockito.mock(RunnerAndConfigurationSettings.class);
+    Mockito.when(configurationAndSettings.getType()).thenReturn(type);
+
+    RunManager manager = Mockito.mock(RunManager.class);
+    Mockito.when(manager.getSelectedConfiguration()).thenReturn(configurationAndSettings);
+
+    return manager;
+  }
+
+  private static @NotNull AsyncDevicesGetter mockAsyncDevicesGetter(@NotNull List<@NotNull Device> devices) {
+    AsyncDevicesGetter getter = Mockito.mock(AsyncDevicesGetter.class);
+    Mockito.when(getter.get()).thenReturn(Optional.of(devices));
+
+    return getter;
+  }
+
+  private static @NotNull AnActionEvent mockEvent(@NotNull Presentation presentation, @Nullable Project project) {
+    AnActionEvent event = Mockito.mock(AnActionEvent.class);
+    Mockito.when(event.getPresentation()).thenReturn(presentation);
+
+    if (project != null) {
+      Mockito.when(event.getProject()).thenReturn(project);
+    }
+
+    return event;
   }
 }

@@ -39,6 +39,11 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.psi.*;
 import com.intellij.psi.xml.*;
 import com.intellij.util.messages.MessageBusConnection;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.annotation.concurrent.GuardedBy;
 import org.intellij.images.fileTypes.ImageFileTypeManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
@@ -319,7 +324,7 @@ public class ResourceNotificationManager {
    * A {@linkplain ModuleEventObserver} registers listeners for various module-specific events (such as
    * resource folder manager changes) and then notifies {@link #notice(Reason)} when it sees an event
    */
-  private final class ModuleEventObserver implements ModificationTracker, ResourceFolderManager.ResourceFolderListener {
+  private class ModuleEventObserver implements ModificationTracker, ResourceFolderManager.ResourceFolderListener {
     private final AndroidFacet myFacet;
     private long myGeneration;
     private final Object myListenersLock = new Object();
@@ -410,19 +415,13 @@ public class ResourceNotificationManager {
     // ---- Implements ResourceFolderManager.ResourceFolderListener ----
 
     @Override
-    public void mainResourceFoldersChanged(@NotNull AndroidFacet facet,
-                                           @NotNull List<? extends VirtualFile> folders,
-                                           @NotNull Collection<? extends VirtualFile> added,
-                                           @NotNull Collection<? extends VirtualFile> removed) {
+    public void mainResourceFoldersChanged(@NotNull AndroidFacet facet, @NotNull List<? extends VirtualFile> folders) {
       myModificationCount++;
       notice(Reason.GRADLE_SYNC);
     }
 
     @Override
-    public void testResourceFoldersChanged(@NotNull AndroidFacet facet,
-                                           @NotNull List<? extends VirtualFile> folders,
-                                           @NotNull Collection<? extends VirtualFile> added,
-                                           @NotNull Collection<? extends VirtualFile> removed) {
+    public void testResourceFoldersChanged(@NotNull AndroidFacet facet, @NotNull List<? extends VirtualFile> folders) {
       myModificationCount++;
       notice(Reason.GRADLE_SYNC);
     }
@@ -460,7 +459,7 @@ public class ResourceNotificationManager {
     }
   }
 
-  private final class ProjectPsiTreeObserver implements PsiTreeChangeListener {
+  private class ProjectPsiTreeObserver implements PsiTreeChangeListener {
 
     private ProjectPsiTreeObserver() {
     }
@@ -670,7 +669,7 @@ public class ResourceNotificationManager {
       }
 
       if ((child instanceof PsiWhiteSpace || child instanceof XmlText || parent instanceof XmlText)
-          && ResourceHelper.getFolderType(event.getFile()) != ResourceFolderType.VALUES) {
+          && IdeResourcesUtil.getFolderType(event.getFile()) != ResourceFolderType.VALUES) {
         // Editing text or whitespace has no effect outside of values files
         return true;
       }
@@ -702,7 +701,7 @@ public class ResourceNotificationManager {
     }
   }
 
-  private final class FileEventObserver implements BulkFileListener {
+  private class FileEventObserver implements BulkFileListener {
     private List<ResourceChangeListener> myListeners = Lists.newArrayListWithExpectedSize(2);
     private Module myModule;
     private MessageBusConnection myMessageBusConnection;
@@ -762,7 +761,7 @@ public class ResourceNotificationManager {
     }
   }
 
-  private final class ConfigurationEventObserver implements ConfigurationListener {
+  private class ConfigurationEventObserver implements ConfigurationListener {
     private final Configuration myConfiguration;
     private List<ResourceChangeListener> myListeners = Lists.newArrayListWithExpectedSize(2);
 
@@ -808,47 +807,6 @@ public class ResourceNotificationManager {
     }
   }
 
-  /*
-    final MessageBusConnection connection = project.getMessageBus().connect();
-    connection.subscribe(ProjectTopics.PROJECT_ROOTS, new MyAndroidPlatformListener(project));
-
-  private class MyAndroidPlatformListener implements ModuleRootListener {
-    private final Map<Module, Sdk> myModule2Sdk = new HashMap<Module, Sdk>();
-    private final Project myProject;
-
-    private MyAndroidPlatformListener(@NotNull Project project) {
-      myProject = project;
-      updateMap();
-    }
-
-    @Override
-    public void rootsChanged(ModuleRootEvent event) {
-      final PsiFile file = myToolWindowForm.getFile();
-      if (file != null) {
-        final Module module = ModuleUtilCore.findModuleForPsiElement(file);
-        if (module != null) {
-          final Sdk prevSdk = myModule2Sdk.get(module);
-          final Sdk newSdk = ModuleRootManager.getInstance(module).getSdk();
-          if (newSdk != null &&
-              (newSdk.getSdkType() instanceof AndroidSdkType || (prevSdk != null && prevSdk.getSdkType() instanceof AndroidSdkType)) &&
-              !newSdk.equals(prevSdk)) {
-            notice(Reason.SDK_CHANGED);
-          }
-        }
-      }
-
-      updateMap();
-    }
-
-    private void updateMap() {
-      myModule2Sdk.clear();
-      for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-        myModule2Sdk.put(module, ModuleRootManager.getInstance(module).getSdk());
-      }
-    }
-  }
-  */
-
   /**
    * Interface which should be implemented by clients interested in resource edits and events that affect resources
    */
@@ -865,7 +823,7 @@ public class ResourceNotificationManager {
    * A version timestamp of the resources. This snapshot version is immutable, so you can hold on
    * to it and compare it with your most recent version.
    */
-  public static final class ResourceVersion {
+  public static class ResourceVersion {
     private final long myResourceGeneration;
     private final long myFileGeneration;
     private final long myConfigurationGeneration;

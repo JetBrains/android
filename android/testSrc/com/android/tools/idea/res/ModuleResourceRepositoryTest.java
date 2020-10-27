@@ -435,7 +435,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
   // Unit test support methods
 
   static void assertItemIsInDir(VirtualFile dir, ResourceItem item) {
-    VirtualFile source = ResourceHelper.getSourceAsVirtualFile(item);
+    VirtualFile source = IdeResourcesUtil.getSourceAsVirtualFile(item);
     assertNotNull(source);
     assertEquals(dir, source.getParent().getParent());
   }

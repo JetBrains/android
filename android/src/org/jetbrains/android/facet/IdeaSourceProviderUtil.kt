@@ -17,76 +17,9 @@
 
 package org.jetbrains.android.facet
 
-import com.android.tools.idea.projectsystem.IdeaSourceProvider
-import com.intellij.openapi.vfs.VfsUtilCore.isAncestor
+import com.android.tools.idea.projectsystem.getManifestFiles
 import com.intellij.openapi.vfs.VirtualFile
 
-/**
- * Returns true if this SourceProvider has one or more source folders contained by (or equal to)
- * the given folder.
- */
-fun IdeaSourceProvider.containsFile(file: VirtualFile): Boolean {
-  if (manifestFiles.contains(file) || manifestDirectories.contains(file)) {
-    return true
-  }
-
-  for (container in allSourceFolders) {
-    // Don't do ancestry checking if this file doesn't exist
-    if (!container.exists()) {
-      continue
-    }
-
-    if (isAncestor(container, file, false /* allow them to be the same */)) {
-      return true
-    }
-  }
-  return false
-}
-
-fun <T: IdeaSourceProvider> Iterable<T>.findByFile(file: VirtualFile): T? = firstOrNull { it.containsFile(file) }
-
-fun isTestFile(facet: AndroidFacet, candidate: VirtualFile): Boolean {
-  return SourceProviderManager.getInstance(facet).unitTestSources.containsFile(candidate) ||
-         SourceProviderManager.getInstance(facet).androidTestSources.containsFile(candidate)
-}
-
-/** Returns true if the given candidate file is a manifest file in the given module  */
-fun isManifestFile(facet: AndroidFacet, candidate: VirtualFile): Boolean {
-  return SourceProviderManager.getInstance(facet).sources.manifestFiles.contains(candidate)
-}
-
 /** Returns the manifest files in the given module  */
-fun getManifestFiles(facet: AndroidFacet): List<VirtualFile> {
-  return SourceProviderManager.getInstance(facet).sources.manifestFiles.toList()
-}
-
-val IdeaSourceProvider.allSourceFolders: Sequence<VirtualFile>
-  get() =
-    arrayOf(
-      javaDirectories,
-      resDirectories,
-      aidlDirectories,
-      renderscriptDirectories,
-      assetsDirectories,
-      jniDirectories,
-      jniLibsDirectories
-    )
-      .asSequence()
-      .flatten()
-
-
-val IdeaSourceProvider.allSourceFolderUrls: Sequence<String>
-  get() =
-    arrayOf(
-      javaDirectoryUrls,
-      resDirectoryUrls,
-      aidlDirectoryUrls,
-      renderscriptDirectoryUrls,
-      assetsDirectoryUrls,
-      jniDirectoryUrls,
-      jniLibsDirectoryUrls
-    )
-      .asSequence()
-      .flatten()
-
+fun getManifestFiles(facet: AndroidFacet): List<VirtualFile> = facet.getManifestFiles()
 

@@ -24,9 +24,11 @@ import com.android.tools.profilers.FakeFeatureTracker;
 import com.android.tools.profilers.stacktrace.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.EmptyRunnable;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -37,6 +39,7 @@ import java.util.stream.Collectors;
 
 import static com.google.common.truth.Truth.assertThat;
 
+@RunsInEdt
 public class IntelliJStackTraceViewTest {
   private static final String STACK_STRING =
     "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:274)\n" +
@@ -52,6 +55,9 @@ public class IntelliJStackTraceViewTest {
   private static final List<CodeLocation> CODE_LOCATIONS = Arrays.stream(STACK_STRING.split("\\n")).map(
     line -> new StackFrameParser(line).toCodeLocation())
     .collect(Collectors.toList());
+
+  @Rule
+  public final EdtRule myEdtRule = new EdtRule();
 
   private IntelliJStackTraceView myStackView;
 
@@ -146,7 +152,6 @@ public class IntelliJStackTraceViewTest {
     assertThat(list.getSelectedValue()).isNull();
   }
 
-  @Ignore("b/110185274")
   @Test
   public void doubleClickingStackViewNavigatesToSelectedElement() throws InvocationTargetException, InterruptedException {
     FakeUi fakeUi = new FakeUi(myStackView.getComponent());
@@ -163,12 +168,10 @@ public class IntelliJStackTraceViewTest {
     assertThat(myStackView.getModel().getCodeLocations().size()).isEqualTo(CODE_LOCATIONS.size());
 
     fakeUi.mouse.doubleClick(5, 5); // First row
-    SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE);
     assertThat(list.getSelectedValue()).isInstanceOf(FakeCodeElement.class);
     assertThat(invocationCount[0]).isEqualTo(1);
   }
 
-  @Ignore("b/110185274")
   @Test
   public void rightClickingStackTraceView() throws InvocationTargetException, InterruptedException {
     FakeUi fakeUi = new FakeUi(myStackView.getComponent());
@@ -185,11 +188,9 @@ public class IntelliJStackTraceViewTest {
     assertThat(myStackView.getModel().getCodeLocations().size()).isEqualTo(CODE_LOCATIONS.size());
 
     fakeUi.mouse.click(5, 5, FakeMouse.Button.RIGHT); // First row
-    SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE);
     assertThat(list.getSelectedValue()).isInstanceOf(FakeCodeElement.class);
   }
 
-  @Ignore("b/110185274")
   @Test
   public void pressingEnterOnStackViewNavigatesToSelectedElement() throws Exception {
     FakeUi fakeUi = new FakeUi(myStackView.getComponent());
@@ -206,7 +207,6 @@ public class IntelliJStackTraceViewTest {
     assertThat(myStackView.getModel().getCodeLocations().size()).isEqualTo(CODE_LOCATIONS.size());
 
     fakeUi.mouse.click(5, 5); // First row
-    SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE);
     assertThat(list.getSelectedValue()).isInstanceOf(FakeCodeElement.class);
     assertThat(invocationCount[0]).isEqualTo(0);
 

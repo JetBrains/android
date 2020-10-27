@@ -15,32 +15,29 @@
  */
 package com.android.tools.idea.sdk;
 
-import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
-import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createAndAddSDK;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.sync.hyperlink.DownloadAndroidStudioHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.DownloadJdk8Hyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.UseEmbeddedJdkHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.UseJavaHomeAsJdkHyperlink;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.serviceContainer.NonInjectable;
+import com.intellij.pom.java.LanguageLevel;
+import com.intellij.serviceContainer.NonInjectable;
+import com.intellij.util.SystemProperties;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,6 +63,7 @@ public final class Jdks {
   }
 
   @NonInjectable
+  @VisibleForTesting
   public Jdks(@NotNull IdeInfo ideInfo) {
     myIdeInfo = ideInfo;
   }
@@ -122,48 +120,6 @@ public final class Jdks {
     return null;
   }
 
-  public void setJdk(@NotNull Project project, @NotNull Sdk jdk) {
-    applyJdkToProject(project, jdk);
-  }
-
-  @NotNull
-  public List<NotificationHyperlink> getWrongJdkQuickFixes(@NotNull Project project) {
-    List<NotificationHyperlink> quickFixes = new ArrayList<>();
-
-    if (myIdeInfo.isAndroidStudio()) {
-      IdeSdks ideSdks = IdeSdks.getInstance();
-      if (!ideSdks.isUsingJavaHomeJdk()) {
-        String javaHome = getJdkFromJavaHome();
-        if (javaHome != null) {
-          if (ideSdks.validateJdkPath(new File(javaHome)) != null) {
-            NotificationHyperlink useJavaHomeHyperlink = UseJavaHomeAsJdkHyperlink.create();
-            if (useJavaHomeHyperlink != null) {
-              quickFixes.add(useJavaHomeHyperlink);
-            }
-          }
-        }
-      }
-      if (quickFixes.isEmpty()) {
-        File embeddedJdkPath = EmbeddedDistributionPaths.getInstance().tryToGetEmbeddedJdkPath();
-        if (embeddedJdkPath != null && isJdkRunnableOnPlatform(embeddedJdkPath.getAbsolutePath())) {
-          quickFixes.add(new UseEmbeddedJdkHyperlink());
-        }
-        else {
-          quickFixes.add(new DownloadAndroidStudioHyperlink());
-        }
-      }
-    }
-
-    quickFixes.add(new DownloadJdk8Hyperlink());
-
-    NotificationHyperlink selectJdkHyperlink = SelectJdkFromFileSystemHyperlink.create(project);
-    if (selectJdkHyperlink != null) {
-      quickFixes.add(selectJdkHyperlink);
-    }
-
-    return quickFixes;
-  }
-
   public static boolean isJdkRunnableOnPlatform(@NotNull Sdk jdk) {
     if (!(jdk.getSdkType() instanceof JavaSdk)) {
       return false;
@@ -180,7 +136,7 @@ public final class Jdks {
     return runAndCheckJVM(javaExecutablePath);
   }
 
-  private static boolean isJdkRunnableOnPlatform(@NotNull String jdkHome) {
+  public static boolean isJdkRunnableOnPlatform(@NotNull String jdkHome) {
     return runAndCheckJVM(FileUtil.join(jdkHome, "bin", "java"));
   }
 

@@ -18,18 +18,24 @@ package com.android.tools.idea.gradle.structure.model.meta
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
-import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import com.android.tools.idea.gradle.structure.GradleFileModelTestCase
+import com.android.tools.idea.gradle.structure.MODEL_SIMPLE_PROPERTY_IMPL_PROPERTY_INITIALIZER
+import com.android.tools.idea.gradle.structure.MODEL_SIMPLE_PROPERTY_IMPL_PROPERTY_VALUES
+import com.android.tools.idea.gradle.structure.MODEL_SIMPLE_PROPERTY_IMPL_REBIND_RESOLVED_PROPERTY
+import com.android.tools.idea.gradle.structure.MODEL_SIMPLE_PROPERTY_IMPL_REBIND_RESOLVED_PROPERTY_EXPECTED
+import com.android.tools.idea.gradle.structure.MODEL_SIMPLE_PROPERTY_IMPL_RESOLVED_VALUE_MATCHING
+import com.android.tools.idea.gradle.structure.MODEL_SIMPLE_PROPERTY_IMPL_WRITE_PROPERTY_VALUES
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.helpers.parseBoolean
 import com.android.tools.idea.gradle.structure.model.helpers.parseInt
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
+import com.intellij.testFramework.RunsInEdt
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Assume
-import org.junit.Assume.assumeTrue
 import org.junit.Test
 
+@RunsInEdt
 class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
 
   object Model : ModelDescriptor<Model, Model, Model> {
@@ -64,19 +70,7 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
 
   @Test
   fun testPropertyValues() {
-    assumeTrue(isGroovy())
-    val text = """
-               ext {
-                 propValue = 'value'
-                 prop25 = 25
-                 propTrue = true
-                 propRef = propValue
-                 propInterpolated = "${'$'}{prop25}th"
-                 propUnresolved = unresolvedReference
-                 propOtherExpression1 = z(1)
-                 propOtherExpression2 = 1 + 2
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(MODEL_SIMPLE_PROPERTY_IMPL_PROPERTY_VALUES)
 
     val extModel = gradleBuildModel.ext()
 
@@ -109,15 +103,7 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
 
   @Test
   fun testResolvedValueMatching() {
-    assumeTrue(isGroovy())
-    val text = """
-               ext {
-                 propValue = 'value'
-                 prop25 = 25
-                 propTrue = true
-                 propRef = propValue
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(MODEL_SIMPLE_PROPERTY_IMPL_RESOLVED_VALUE_MATCHING)
 
     val extModel = gradleBuildModel.ext()
 
@@ -135,17 +121,7 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
 
   @Test
   fun testWritePropertyValues() {
-    assumeTrue(isGroovy())
-    val text = """
-               ext {
-                 propValue = 'value'
-                 prop25 = 25
-                 propTrue = true
-                 propInterpolated = "${'$'}{prop25}th"
-                 propUnresolved = unresolvedReference
-                 propRef = propValue
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(MODEL_SIMPLE_PROPERTY_IMPL_WRITE_PROPERTY_VALUES)
 
     val extModel = gradleBuildModel.ext()
 
@@ -192,12 +168,7 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
 
   @Test
   fun testRebindResolvedProperty() {
-    assumeTrue(isGroovy())
-    val text = """
-               ext {
-                 prop25 = 25
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(MODEL_SIMPLE_PROPERTY_IMPL_REBIND_RESOLVED_PROPERTY)
 
     val buildModelInstance = gradleBuildModel
     val extModel = buildModelInstance.ext()
@@ -219,22 +190,12 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
     assertThat(newResolvedProperty.getValue(INTEGER_TYPE), equalTo(1))
 
     applyChangesAndReparse(buildModelInstance)
-
-    val expected = """
-               ext {
-                 prop25 = 25
-                 newVar = 1
-               }""".trimIndent()
-    verifyFileContents(myBuildFile, expected)
+    verifyFileContents(buildFile, MODEL_SIMPLE_PROPERTY_IMPL_REBIND_RESOLVED_PROPERTY_EXPECTED)
   }
 
   @Test
   fun testPropertyInitializer() {
-    val text = """
-               ext {
-                 prop25 = 25
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(MODEL_SIMPLE_PROPERTY_IMPL_PROPERTY_INITIALIZER)
 
     val buildModelInstance = gradleBuildModel
     val extModel = buildModelInstance.ext()

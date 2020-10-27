@@ -82,6 +82,11 @@ class GenericFileFilter(private val project: Project, private val localFileSyste
             if (pathEndIndex - pathStartIndex < PATH_MIN) return false
 
             val path = line.substring(pathStartIndex, pathEndIndex)
+            if (path == "/") {
+              // Ignore single slashes, as these are probably referring to something
+              // other than the file system root (e.g. progress indicators like "[10 / 1,000]").
+              return false
+            }
             val file = try {
               localFileSystem.findFileByPathIfCached(path)
             } catch (t: Throwable) {

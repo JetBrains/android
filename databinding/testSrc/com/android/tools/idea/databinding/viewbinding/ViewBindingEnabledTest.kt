@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -72,13 +73,15 @@ class ViewBindingEnabledTest {
   fun enablingViewBindingEnablesLightBindingClassGeneration() {
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
     lateinit var buildFile: File
-    projectRule.load(TestDataPaths.PROJECT_FOR_VIEWBINDING) { projectRoot ->
-      buildFile = File(projectRoot, "app/build.gradle")
-      enableViewBinding(buildFile, false)
-    }
+    projectRule.load(
+      projectPath = TestDataPaths.PROJECT_FOR_VIEWBINDING,
+      preLoad = { projectRoot ->
+        buildFile = File(projectRoot, "app/build.gradle")
+        enableViewBinding(buildFile, false)
+      })
 
     // Trigger resource repository initialization
-    val facet = projectRule.androidFacet
+    val facet = projectRule.androidFacet(":app")
     ResourceRepositoryManager.getAppResources(facet)
 
     // Context needed for searching for light classes

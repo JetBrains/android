@@ -6,6 +6,7 @@ import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
 import com.android.SdkConstants;
 import com.android.tools.idea.apk.viewer.ApkFileSystem;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.projectsystem.SourceProvidersKt;
 import com.android.xml.AndroidManifest;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -14,14 +15,10 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.LightVirtualFileBase;
 import com.intellij.util.xml.DomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author yole
- */
 public class ManifestDomFileDescription extends DomFileDescription<Manifest> {
   public ManifestDomFileDescription() {
     super(Manifest.class, AndroidManifest.NODE_MANIFEST);
@@ -60,7 +57,7 @@ public class ManifestDomFileDescription extends DomFileDescription<Manifest> {
 
   public static boolean isManifestFile(@NotNull XmlFile file, @NotNull AndroidFacet facet) {
     return file.getName().equals(FN_ANDROID_MANIFEST_XML) ||
-           AndroidModel.isRequired(facet) && file.getVirtualFile() != null && IdeaSourceProviderUtil.isManifestFile(facet, file.getVirtualFile());
+           AndroidModel.isRequired(facet) && file.getVirtualFile() != null && SourceProvidersKt.isManifestFile(facet, file.getVirtualFile());
   }
 
   @Override

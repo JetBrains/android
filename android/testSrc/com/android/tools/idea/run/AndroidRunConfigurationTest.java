@@ -16,16 +16,16 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.run.editor.NoApksProvider;
 import com.android.tools.idea.run.tasks.ActivityLaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.util.ReflectionUtil;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mockito;
-
-import java.util.stream.Collectors;
 
 public class AndroidRunConfigurationTest extends AndroidTestCase {
   private AndroidRunConfiguration myRunConfiguration;
@@ -45,7 +45,7 @@ public class AndroidRunConfigurationTest extends AndroidTestCase {
    */
   public void testPersistentFieldNames() {
     assertContainsElements(
-      ReflectionUtil.collectFields(myRunConfiguration.getClass()).stream().map(f ->f.getName()).collect(Collectors.toList()),
+      ContainerUtil.map(ReflectionUtil.collectFields(myRunConfiguration.getClass()), f -> f.getName()),
       "CLEAR_LOGCAT", "SHOW_LOGCAT_AUTOMATICALLY", "SKIP_NOOP_APK_INSTALLATIONS", "FORCE_STOP_RUNNING_APP",
       "DEPLOY", "DEPLOY_APK_FROM_BUNDLE", "ARTIFACT_NAME", "PM_INSTALL_OPTIONS", "DYNAMIC_FEATURES_DISABLED_LIST",
       "ACTIVITY_EXTRA_FLAGS", "MODE");
@@ -59,7 +59,7 @@ public class AndroidRunConfigurationTest extends AndroidTestCase {
                                                                                               myFacet,
                                                                                               "--start-profiling",
                                                                                               false,
-                                                                                              launchStatus);
+                                                                                              launchStatus, new NoApksProvider());
 
     assertEquals("am start -n \"com.example.mypackage/MyActivity\" " +
                  "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER " +
@@ -74,7 +74,7 @@ public class AndroidRunConfigurationTest extends AndroidTestCase {
                                                                                               myFacet,
                                                                                               "",
                                                                                               false,
-                                                                                              launchStatus);
+                                                                                              launchStatus, new NoApksProvider());
     assertEquals("am start -n \"com.example.mypackage/MyActivity\" " +
                  "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER",
                  task.getStartActivityCommand(myDevice, launchStatus, Mockito.mock(ConsolePrinter.class)));

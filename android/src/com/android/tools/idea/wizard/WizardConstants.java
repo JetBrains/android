@@ -70,7 +70,4 @@ public class WizardConstants {
   public static final Key<String> KEY_JDK_LOCATION = createKey("wizard.jdk.location", WIZARD, String.class);
   // TODO: change this an IntProperty, see com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep#checkForUpgrades
   public static final Key<Integer> NEWLY_INSTALLED_API_KEY = createKey("newly.installed.api.level", WIZARD, Integer.class);
-
-  public static final String MODULE_TEMPLATE_NAME = "NewAndroidModule";
-  public static final String PROJECT_TEMPLATE_NAME = "NewAndroidProject";
 }

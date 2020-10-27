@@ -119,7 +119,7 @@ public class ShowLicensesUsedAction extends DumbAwareAction {
 
       String text = "<html>" + myLicenseText + "</html>";
       JTextPane label = new JTextPane();
-      label.setContentType(UIUtil.HTML_MIME);
+      label.setEditorKit(UIUtil.getHTMLEditorKit());
       label.setText(text);
       JBScrollPane pane = new JBScrollPane(label);
 

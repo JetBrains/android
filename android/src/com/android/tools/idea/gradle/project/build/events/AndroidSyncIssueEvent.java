@@ -15,30 +15,41 @@
  */
 package com.android.tools.idea.gradle.project.build.events;
 
-import com.intellij.build.events.MessageEvent;
+import com.intellij.build.events.BuildIssueEvent;
 import com.intellij.build.events.MessageEventResult;
 import com.intellij.build.events.impl.AbstractBuildEvent;
+import com.intellij.build.issue.BuildIssue;
+import com.intellij.build.issue.BuildIssueQuickFix;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import com.intellij.pom.Navigatable;
+import java.util.List;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidSyncIssueEvent extends AbstractBuildEvent implements MessageEvent {
+public class AndroidSyncIssueEvent extends AbstractBuildEvent implements BuildIssueEvent {
 
   @NotNull private final Kind myKind;
   @NotNull private final String myGroup;
   @NotNull private final AndroidSyncIssueEventResult myResult;
+  @NotNull private final BuildIssue myBuildIssue;
   @Nullable private final Navigatable myNavigatable;
 
-  public AndroidSyncIssueEvent(@NotNull Object parentId, @NotNull NotificationData notificationData, @NotNull String title) {
+  public AndroidSyncIssueEvent(@NotNull Object parentId, @NotNull NotificationData notificationData, @NotNull String title,
+                               @NotNull List<? extends BuildIssueQuickFix> fixes) {
     super(new Object(), parentId, System.currentTimeMillis(), title);
     myKind = convertCategory(notificationData.getNotificationCategory());
     myNavigatable = notificationData.getNavigatable();
     myResult = new AndroidSyncIssueEventResult(notificationData);
     myGroup = notificationData.getTitle();
+    myBuildIssue = new AndroidSyncIssue(title, notificationData, fixes);
+  }
+
+  @Override
+  public @NotNull BuildIssue getIssue() {
+    return myBuildIssue;
   }
 
   @Contract(pure = true)

@@ -41,7 +41,7 @@ public class CreateNewProjectWithNoActivityTest {
       .enterName("NoActivityApp")
       .enterPackageName("dev.tools")
       .wizard()
-      .clickFinish();
+      .clickFinishAndWaitForSyncToFinish();
 
     // Verification
     String buildContent = guiTest.getProjectFileText("app/build.gradle");

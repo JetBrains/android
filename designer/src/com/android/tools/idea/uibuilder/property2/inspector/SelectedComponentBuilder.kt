@@ -19,12 +19,18 @@ import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.TAG_DEEP_LINK
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
-import com.android.tools.idea.uibuilder.property2.model.SelectedComponentModel
-import com.android.tools.idea.uibuilder.property2.ui.SelectedComponentPanel
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
+import com.android.tools.property.panel.api.SelectedComponentModel
+import com.android.tools.property.panel.api.SelectedComponentPanel
+import com.intellij.util.text.nullize
+import icons.StudioIcons
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
+import javax.swing.Icon
+
+private const val UNNAMED_COMPONENT = "<unnamed>"
+private const val MULTIPLE_COMPONENTS = "<multiple>"
 
 class SelectedComponentBuilder : InspectorBuilder<NelePropertyItem> {
   private val hiddenTags = setOf(TAG_DEEP_LINK, TAG_ARGUMENT)
@@ -39,11 +45,28 @@ class SelectedComponentBuilder : InspectorBuilder<NelePropertyItem> {
       return
     }
 
-    val id = properties.getOrNull(ANDROID_URI, ATTR_ID)
-    val qualifiedTagName = if (components.size == 1) components[0].tagName else ""
+    val idProperty = properties.getOrNull(ANDROID_URI, ATTR_ID)
+    val idValue: String
+    val iconValue: Icon?
+    val qualifiedTagName: String
+    if (components.size == 1) {
+      idValue = idProperty?.value.nullize() ?: UNNAMED_COMPONENT
+      iconValue = components[0].mixin?.icon ?: StudioIcons.LayoutEditor.Palette.VIEW
+      qualifiedTagName = components[0].tagName
+    }
+    else {
+      idValue = MULTIPLE_COMPONENTS
+      // TODO: Get another icon for multiple components
+      iconValue = StudioIcons.LayoutEditor.Palette.VIEW_SWITCHER
+      qualifiedTagName = ""
+    }
     val tagName = qualifiedTagName.substring(qualifiedTagName.lastIndexOf('.') + 1)
-    val panel = SelectedComponentPanel(SelectedComponentModel(id, components, tagName))
-    val lineModel = inspector.addComponent(panel, null)
-    panel.lineModel = lineModel
+    val model = object : SelectedComponentModel {
+      override val id = idValue
+      override val icon = iconValue
+      override val description = tagName
+    }
+    val panel = SelectedComponentPanel(model)
+    inspector.addComponent(panel, null)
   }
 }

@@ -10,11 +10,17 @@ import com.intellij.navigation.ItemPresentationProviders;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.roots.impl.LibraryScopeCache;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.Iconable;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.HierarchicalMethodSignature;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiClassInitializer;
@@ -45,7 +51,9 @@ import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.PsiUtil;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -58,11 +66,9 @@ import org.jetbrains.kotlin.analyzer.ModuleInfo;
 import org.jetbrains.kotlin.idea.UserDataModuleInfoKt;
 import org.jetbrains.kotlin.idea.caches.resolve.util.KotlinResolveScopeEnlarger;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public abstract class AndroidLightClassBase extends LightElement implements PsiClass, SyntheticElement {
   private static final boolean KOTLIN_PLUGIN_AVAILABLE = AndroidStudioKotlinPluginUtils.isKotlinPluginAvailable();
+  private static final Key<Library> LIBRARY = Key.create(AndroidLightClassBase.class.getName() + ".LIBRARY");
 
   private final LightModifierList myPsiModifierList;
 
@@ -95,6 +101,8 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
    * plugin knows how to handle this light class.
    */
   protected void setModuleInfo(@NotNull Library library) {
+    putUserData(LIBRARY, library);
+
     if (KOTLIN_PLUGIN_AVAILABLE) {
       PsiFile containingFile = getContainingFile();
       if (containingFile != null) {
@@ -267,7 +275,13 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
   @NotNull
   @Override
   public PsiMethod[] findMethodsByName(@NonNls String name, boolean checkBases) {
-    return PsiMethod.EMPTY_ARRAY;
+    List<PsiMethod> methods = new ArrayList<>();
+    for (PsiMethod method : getMethods()) {
+      if (method.getName().equals(name)) {
+        methods.add(method);
+      }
+    }
+    return methods.isEmpty() ? PsiMethod.EMPTY_ARRAY : methods.toArray(PsiMethod.EMPTY_ARRAY);
   }
 
   @NotNull
@@ -384,6 +398,32 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
   @NotNull
   @Override
   public SearchScope getUseScope() {
+    // For the common case of a public light class, getMemberUseScope below cannot determine the owning module and falls back to using the
+    // entire project. Here we compute a more accurate scope, see ResolveScopeManagerImpl#getUseScope.
+    PsiModifierList modifierList = getModifierList();
+    if (modifierList != null) {
+      if (PsiUtil.getAccessLevel(modifierList) == PsiUtil.ACCESS_LEVEL_PUBLIC) {
+        Module module = ModuleUtilCore.findModuleForPsiElement(this); // see setModuleInfo.
+        if (module != null) {
+          if (getScopeType() == ScopeType.MAIN) {
+            return GlobalSearchScope.moduleWithDependentsScope(module);
+          }
+          else {
+            return GlobalSearchScope.moduleTestsWithDependentsScope(module);
+          }
+        }
+
+        Library library= getUserData(LIBRARY);
+        if (library != null) {
+          VirtualFile root = ArrayUtil.getFirstElement(library.getFiles(OrderRootType.CLASSES));
+          if (root != null) {
+            List<OrderEntry> orderEntries = ProjectFileIndex.getInstance(getProject()).getOrderEntriesForFile(root);
+            return LibraryScopeCache.getInstance(getProject()).getLibraryUseScope(orderEntries);
+          }
+        }
+      }
+    }
+
     return PsiImplUtil.getMemberUseScope(this);
   }
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.surface;
 
+import com.android.annotations.concurrency.UiThread;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.common.model.NlComponent;
@@ -30,6 +31,7 @@ public interface DesignSurfaceListener {
   default void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection) {}
 
   /** The current model changed */
+  @UiThread
   default void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {}
 
   /** Ask the tools to activate an editor for the component specified, return true if such an editor is found */

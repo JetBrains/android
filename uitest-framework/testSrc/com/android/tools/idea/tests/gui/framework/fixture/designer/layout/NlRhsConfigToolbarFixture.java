@@ -19,10 +19,12 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowi
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
 
 import com.android.tools.idea.common.actions.IssueNotificationAction;
+import com.android.tools.idea.actions.DesignerActions;
+import com.android.tools.idea.common.error.IssuePanel;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.google.common.collect.Iterables;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.keymap.MacKeymapUtil;
@@ -59,9 +61,7 @@ public class NlRhsConfigToolbarFixture {
       robot, myToolBar.getComponent(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
         @Override
         protected boolean isMatching(@NotNull ActionButton component) {
-          String text = component.getAction().getTemplatePresentation().getText();
-          return text != null && (text.equals(IssueNotificationAction.SHOW_ISSUE)
-                                  || text.equals(IssueNotificationAction.NO_ISSUE));
+          return component.getAction() == ActionManager.getInstance().getAction(DesignerActions.ACTION_TOGGLE_ISSUE_PANEL);
         }
       });
     new ActionButtonFixture(robot, button).click();

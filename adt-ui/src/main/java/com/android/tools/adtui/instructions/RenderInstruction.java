@@ -15,12 +15,16 @@
  */
 package com.android.tools.adtui.instructions;
 
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.util.function.Consumer;
+import javax.swing.JComponent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Base class for instructions used in updating state and rendering elements.
@@ -54,8 +58,16 @@ public abstract class RenderInstruction {
     cursor.x += size.width;
   }
 
-  public void render(@NotNull JComponent c, @NotNull Graphics2D g2d, @NotNull Rectangle bounds) {
+  /**
+   * Returns the cursor icon that should show if the mouse hovers over the control rendered by this
+   * instruction, or null if this shouldn't cause any icon to be set.
+   */
+  @Nullable
+  public Cursor getCursorIcon() {
+    return null;
   }
+
+  public void render(@NotNull JComponent c, @NotNull Graphics2D g2d, @NotNull Rectangle bounds) {}
 
   /**
    * A helper method to retrieve the bounds that contain this instruction.

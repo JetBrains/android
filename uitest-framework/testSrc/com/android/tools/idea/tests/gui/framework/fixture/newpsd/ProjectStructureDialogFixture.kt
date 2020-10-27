@@ -20,7 +20,9 @@ import com.android.tools.idea.tests.gui.framework.DialogContainerFixture
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.finder
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
+import com.android.tools.idea.tests.gui.framework.fixupWaiting
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
+import com.android.tools.idea.tests.gui.framework.waitForIdle
 import org.fest.swing.core.Robot
 import org.fest.swing.fixture.JListFixture
 import org.fest.swing.timing.Wait
@@ -41,9 +43,8 @@ class ProjectStructureDialogFixture(
   }
 
   fun clickOk() {
-    clickOkAndWaitDialogDisappear()
     // Changing the project structure can cause a Gradle build and Studio re-indexing.
-    waitForSyncToFinish()
+    waitForSyncToFinish { clickOkAndWaitDialogDisappear() }
   }
 
   fun clickOkExpectConfirmation(): ErrorsReviewConfirmationDialogFixture {
@@ -58,13 +59,12 @@ class ProjectStructureDialogFixture(
   }
 
   fun clickOk(waitForSync: Wait) {
-    clickOkAndWaitDialogDisappear()
     // Changing the project structure can cause a Gradle build and Studio re-indexing.
-    ideFrameFixture.waitForGradleProjectSyncToFinish(waitForSync).also { waitForIdle() }
+    ideFrameFixture.actAndWaitForGradleProjectSyncToFinish(waitForSync) { clickOkAndWaitDialogDisappear() }.also { waitForIdle() }
   }
 
-  fun waitForSyncToFinish() {
-    ideFrameFixture.waitForGradleProjectSyncToFinish().also { waitForIdle() }
+  fun waitForSyncToFinish(actions: () -> Unit) {
+    ideFrameFixture.actAndWaitForGradleProjectSyncToFinish { actions() }.also { waitForIdle() }
   }
 
   fun selectConfigurable(viewName: String): ProjectStructureDialogFixture {
@@ -88,8 +88,6 @@ class ProjectStructureDialogFixture(
     }
   }
 }
-
-private fun Robot.fixupWaiting() = ReliableRobot(this)
 
 fun IdeFrameFixture.openPsd(): ProjectStructureDialogFixture {
   waitAndInvokeMenuPath("File", "Project Structure...")

@@ -26,9 +26,7 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.type.DesignerTypeRegistrar;
-import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.ImmutableList;
-import com.intellij.codeInsight.hint.ImplementationViewComponent;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.event.CaretEvent;
@@ -37,6 +35,7 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.fileEditor.TextEditor;
+import com.intellij.openapi.fileEditor.impl.text.QuickDefinitionProvider;
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
@@ -45,9 +44,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
-import java.util.Arrays;
 import java.util.List;
-import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -55,15 +52,10 @@ import org.jetbrains.annotations.NotNull;
  * accepted, creating the editor using {@link #createEditor(Project, VirtualFile)}, and specifying their ID via {@link #getEditorTypeId()}.
  * This parent class in turn is responsible for registering the accepted types against {@link DesignerTypeRegistrar}.
  */
-public abstract class DesignerEditorProvider implements FileEditorProvider, DumbAware {
+public abstract class DesignerEditorProvider implements FileEditorProvider, QuickDefinitionProvider, DumbAware {
 
   @NotNull
   private final List<DesignerEditorFileType> myAcceptedTypes;
-  /**
-   * Name of the class that handles the quick definition feature in IntelliJ.
-   * This class should be used by quick definition only.
-   */
-  private static final String CALLER_NAME_OF_QUICK_DEFINITION = ImplementationViewComponent.class.getName();
 
   protected DesignerEditorProvider(@NotNull List<DesignerEditorFileType> acceptedTypes) {
     myAcceptedTypes = acceptedTypes;
@@ -84,14 +76,11 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Dumb
   @Override
   public final FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
     DesignerEditor designEditor = createDesignEditor(project, file);
-    if (!StudioFlags.NELE_SPLIT_EDITOR.get()) {
-      return designEditor;
-    }
     DesignerEditorPanel editorPanel = designEditor.getComponent();
     TextEditor textEditor = (TextEditor)TextEditorProvider.getInstance().createEditor(project, file);
     addCaretListener(textEditor, designEditor);
     editorPanel.getSurface().setFileEditorDelegate(textEditor);
-    DesignToolsSplitEditor splitEditor = new DesignToolsSplitEditor(textEditor, designEditor, "Design", project);
+    DesignToolsSplitEditor splitEditor = new DesignToolsSplitEditor(textEditor, designEditor, project);
     editorPanel.getWorkBench().setFileEditor(splitEditor);
     DataManager.registerDataProvider(editorPanel, splitEditor);
     return splitEditor;
@@ -145,21 +134,7 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Dumb
   @NotNull
   @Override
   public FileEditorPolicy getPolicy() {
-    if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
-      // When using the split editor, we hide the default one since the split editor already includes the text-only view.
-      return FileEditorPolicy.HIDE_DEFAULT_EDITOR;
-    }
-
-    if (AndroidEditorSettings.getInstance().getGlobalState().isPreferXmlEditor()) {
-      return FileEditorPolicy.PLACE_AFTER_DEFAULT_EDITOR;
-    }
-    if (Arrays.stream(Thread.currentThread().getStackTrace())
-      .anyMatch(element -> CALLER_NAME_OF_QUICK_DEFINITION.equals(element.getClassName()))) {
-      // This function is called by quick definition, make the default editor as preferred editor.
-      // This is a hack fixed for http://b/37050828
-      return FileEditorPolicy.PLACE_AFTER_DEFAULT_EDITOR;
-    }
-
-    return FileEditorPolicy.PLACE_BEFORE_DEFAULT_EDITOR;
+    // We hide the default one since the split editor already includes the text-only view.
+    return FileEditorPolicy.HIDE_DEFAULT_EDITOR;
   }
 }

@@ -46,23 +46,21 @@ class ComposeColorAnnotatorTest : AndroidTestCase() {
       //language=kotlin
       """
       package androidx.ui.graphics
-      class Color(value: Double) {
-      }
-      fun Color(color: Int): Color? = Color(rgb.toDouble())
-      fun Color(color: Long): Color? = Color(1)
+      fun Color(color: Int): Long = 1L
+      fun Color(color: Long): Long = 1L
       fun Color(
-          red: Int,
-          green: Int,
-          blue: Int,
-          alpha: Int = 0xFF
-      ): Color? = Color(1)
+        red: Int,
+        green: Int,
+        blue: Int,
+        alpha: Int = 0xFF
+      ): Long = 1L
       fun Color(
-          red: Float,
-          green: Float,
-          blue: Float,
-          alpha: Float = 1f,
-          colorSpace: ColorSpace? = nul
-      ): Color? = Color(1)
+        red: Float,
+        green: Float,
+        blue: Float,
+        alpha: Float = 1f,
+        colorSpace: ColorSpace? = null
+      ): Long = 1L
       """.trimIndent())
   }
 
@@ -154,7 +152,7 @@ class ComposeColorAnnotatorTest : AndroidTestCase() {
   private fun setNewColor(window: String, newColor: Color) {
     val element = myFixture.moveCaret(window)
     val annotationHolder = AnnotationHolderImpl(AnnotationSession(myFixture.file))
-    ComposeColorAnnotator().annotate(element.parentOfType<KtCallExpression>()!! as PsiElement, annotationHolder)
+    annotationHolder.runAnnotatorWithContext(element.parentOfType<KtCallExpression>()!! as PsiElement, ComposeColorAnnotator())
     val iconRenderer = annotationHolder[0].gutterIconRenderer as ColorIconRenderer
     iconRenderer.setColorToAttribute(newColor)
   }

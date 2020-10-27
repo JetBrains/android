@@ -105,6 +105,6 @@ public final class TestGrpcService extends ExternalResource {
 
   public Channel getChannel() {
     return ClientInterceptors.intercept(
-      InProcessChannelBuilder.forName(myGrpcName).usePlaintext(true).build(), new TestClientInterceptor(myRpcFile));
+      InProcessChannelBuilder.forName(myGrpcName).usePlaintext().build(), new TestClientInterceptor(myRpcFile));
   }
 }

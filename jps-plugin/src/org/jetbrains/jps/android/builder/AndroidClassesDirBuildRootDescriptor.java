@@ -8,9 +8,6 @@ import org.jetbrains.jps.builders.impl.BuildRootDescriptorImpl;
 import java.io.File;
 import java.io.FileFilter;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidClassesDirBuildRootDescriptor extends BuildRootDescriptorImpl {
   public AndroidClassesDirBuildRootDescriptor(@NotNull BuildTarget target, @NotNull File root) {
     super(target, root);

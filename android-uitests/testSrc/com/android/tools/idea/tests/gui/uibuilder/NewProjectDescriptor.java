@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
-import static com.android.tools.idea.npw.platform.Language.JAVA;
+import static com.android.tools.idea.wizard.template.Language.Java;
 
+import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 class NewProjectDescriptor {
   private String myActivity = "MainActivity";
   private String myPkg = "com.android.test.app";
-  private int myMinSdkApi = 15;
+  private int myMinSdkApi = SdkVersionInfo.LOWEST_ACTIVE_API;
   private String myName = "TestProject";
   private String myDomain = "com.android";
 
@@ -91,16 +92,15 @@ class NewProjectDescriptor {
       .clickNext()
       .getConfigureNewAndroidProjectStep()
       .enterName(myName)
-      .setSourceLanguage(JAVA)
+      .setSourceLanguage(Java)
       .enterPackageName(myPkg)
       .selectMinimumSdkApi(myMinSdkApi)
       .wizard()
-      .clickFinish();
-
-    guiTest.ideFrame()
-      .waitForGradleProjectSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish()
       // Hide Gradle tool window if needed, as it takes too much space at the right of the editors and might grab the focus (b/138841171)
       .getGradleToolWindow().hide();
+
+    guiTest.waitForBackgroundTasks();
     return guiTest.ideFrame();
   }
 }

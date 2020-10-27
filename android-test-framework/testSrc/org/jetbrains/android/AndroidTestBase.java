@@ -18,6 +18,7 @@ package org.jetbrains.android;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.mockito.MockitoThreadLocalsCleaner;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.testing.DisposerExplorer;
 import com.android.tools.idea.testing.Sdks;
@@ -29,6 +30,7 @@ import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.application.ex.PathManagerEx;
 import com.intellij.openapi.application.impl.ApplicationImpl;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.impl.ModuleImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -102,6 +104,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
           disposable.toString().startsWith("services of " + ApplicationImpl.class.getName()) ||
           disposable instanceof Application ||
           (disposable instanceof Module && ((Module)disposable).getName().equals(LightProjectDescriptor.TEST_MODULE_NAME)) ||
+          disposable.toString().startsWith("services of " + ModuleImpl.class.getName()) ||
           disposable instanceof PsiReferenceContributor) {
         // Ignore application services and light projects and modules that are not disposed by tearDown.
         return DisposerExplorer.VisitResult.SKIP_CHILDREN;
@@ -234,7 +237,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
    */
   public static void appendSourceDescription(@NotNull StringBuilder sb, @Nullable PsiFile file, int offset, @Nullable Segment segment) {
     if (file != null && segment != null) {
-      if (ResourceHelper.getFolderType(file) != null) {
+      if (IdeResourcesUtil.getFolderType(file) != null) {
         assertNotNull(file.getParent());
         sb.append(file.getParent().getName());
         sb.append("/");

@@ -21,7 +21,8 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.ProfilerCombobox;
 import com.android.tools.profilers.ProfilerComboboxCellRenderer;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.HeapSet;
+import com.android.tools.profilers.memory.adapters.classifiers.AllHeapSet;
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,25 +32,25 @@ import java.util.Collection;
 import java.util.Objects;
 
 public class MemoryHeapView extends AspectObserver {
-  @NotNull private final MemoryProfilerStage myStage;
+  @NotNull private final MemoryCaptureSelection mySelection;
 
   @NotNull private JPanel myHeapToolbar = new JPanel(createToolbarLayout());
   @NotNull private JComboBox<HeapSet> myHeapComboBox = new ProfilerCombobox<>();
 
   @Nullable private CaptureObject myCaptureObject = null;
 
-  MemoryHeapView(@NotNull MemoryProfilerStage stage) {
-    myStage = stage;
+  MemoryHeapView(@NotNull MemoryCaptureSelection selection) {
+    mySelection = selection;
 
-    myStage.getAspect().addDependency(this)
-      .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::setNewCapture)
-      .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::updateCaptureState)
-      .onChange(MemoryProfilerAspect.CURRENT_HEAP, this::refreshHeap);
+    mySelection.getAspect().addDependency(this)
+      .onChange(CaptureSelectionAspect.CURRENT_LOADING_CAPTURE, this::setNewCapture)
+      .onChange(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE, this::updateCaptureState)
+      .onChange(CaptureSelectionAspect.CURRENT_HEAP, this::refreshHeap);
 
     myHeapComboBox.addActionListener(e -> {
       Object item = myHeapComboBox.getSelectedItem();
       if (item instanceof HeapSet) {
-        myStage.selectHeapSet((HeapSet)item);
+        mySelection.selectHeapSet((HeapSet)item);
       }
     });
     myHeapToolbar.add(myHeapComboBox);
@@ -70,14 +71,14 @@ public class MemoryHeapView extends AspectObserver {
   }
 
   private void setNewCapture() {
-    myCaptureObject = myStage.getSelectedCapture();
+    myCaptureObject = mySelection.getSelectedCapture();
     myHeapComboBox.setModel(new DefaultComboBoxModel<>());
     myHeapComboBox.setRenderer(new HeapListCellRenderer());
-    myStage.selectHeapSet(null); // Clear the heap such that views lower in the hierarchy has a chance to repopulate themselves.
+    mySelection.selectHeapSet(null); // Clear the heap such that views lower in the hierarchy has a chance to repopulate themselves.
   }
 
   private void updateCaptureState() {
-    CaptureObject captureObject = myStage.getSelectedCapture();
+    CaptureObject captureObject = mySelection.getSelectedCapture();
     if (myCaptureObject != captureObject) {
       return;
     }
@@ -95,7 +96,7 @@ public class MemoryHeapView extends AspectObserver {
   }
 
   void refreshHeap() {
-    HeapSet heapSet = myStage.getSelectedHeapSet();
+    HeapSet heapSet = mySelection.getSelectedHeapSet();
     Object selectedObject = myHeapComboBox.getSelectedItem();
     if (!Objects.equals(heapSet, selectedObject)) {
       myHeapComboBox.setSelectedItem(heapSet);
@@ -111,7 +112,7 @@ public class MemoryHeapView extends AspectObserver {
                                          boolean selected,
                                          boolean hasFocus) {
       if (value != null) {
-        append(value.getName() + " heap");
+        append("View " + (value instanceof AllHeapSet ? "all heaps" : value.getName() + " heap"));
       }
     }
   }

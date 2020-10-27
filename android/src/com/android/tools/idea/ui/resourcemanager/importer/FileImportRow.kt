@@ -35,7 +35,7 @@ class FileImportRow(val viewModel: FileImportRowViewModel) : JPanel(BorderLayout
     horizontalAlignment = JBLabel.CENTER
   }
 
-  private val previewWrapper = ChessBoardPanel(BorderLayout()).apply {
+  private val previewWrapper = ChessBoardPanel().apply {
     preferredSize = PREVIEW_SIZE
     maximumSize = PREVIEW_SIZE
     border = JBUI.Borders.customLine(JBColor.border(), 1)

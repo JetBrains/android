@@ -72,7 +72,7 @@ public class ProjectStructure {
     return project.getService(ProjectStructure.class);
   }
 
-  public ProjectStructure(@NotNull Project project) {
+  private ProjectStructure(@NotNull Project project) {
     myProject = project;
   }
 

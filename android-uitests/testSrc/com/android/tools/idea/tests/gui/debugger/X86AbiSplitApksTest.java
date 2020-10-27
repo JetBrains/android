@@ -21,12 +21,10 @@ import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.ProcessRunningDialogFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.File;
 import java.util.Arrays;
@@ -44,7 +42,7 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
 
   private static final int TIMEOUT_SECONDS = 120;
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES).settingNdkPath();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES).settingNdkPath();
 
   private FakeAdbServer fakeAdbServer;
 
@@ -108,8 +106,8 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
   @Test
   @RunIn(TestGroup.SANITY_BAZEL)
   public void x86AbiSplitApks() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importProject("debugger/BasicCmakeAppForUI");
-    ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(TIMEOUT_SECONDS));
+    IdeFrameFixture ideFrame =
+      guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/BasicCmakeAppForUI", Wait.seconds(TIMEOUT_SECONDS));
 
     DebuggerTestUtil.setDebuggerType(ideFrame, DebuggerTestUtil.NATIVE);
 
@@ -119,14 +117,13 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
       .enterText("\n\nandroid.splits.abi.enable true")
       .invokeAction(EditorFixture.EditorAction.SAVE);
 
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(TIMEOUT_SECONDS));
+    ideFrame.requestProjectSyncAndWaitForSyncToFinish(Wait.seconds(TIMEOUT_SECONDS));
 
     String expectedApkName = "app-x86-debug.apk";
 
-    ideFrame.debugApp("app", "Google Nexus 5X");
-
-    // Wait for build to complete:
-    GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TIMEOUT_SECONDS));
+    // Request debugging and wait for build to complete.
+    ideFrame.actAndWaitForBuildToFinish(Wait.seconds(TIMEOUT_SECONDS), it ->
+      it.debugApp("app", "Google Nexus 5X"));
 
     // TODO: Handle the case when app installation failed: "Application Installation Failed" dialog shows up.
     // Currently, cannot reproduce this issue locally to get the screenshot with the "Application Installation Failed" dialog shows up.
@@ -135,15 +132,16 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
     File expectedPathOfApk = new File(projectRoot, "app/build/outputs/apk/debug/" + expectedApkName);
     Wait.seconds(30).expecting("Apk file to be generated.")
       .until(() -> expectedPathOfApk.exists());
-
-    ideFrame.closeProjectWithPrompt();
-    ProcessRunningDialogFixture.find(ideFrame).clickTerminate();
   }
 
   @After
   public void shutdownFakeAdb() throws Exception {
     AndroidDebugBridge.terminate();
     AndroidDebugBridge.disableFakeAdbServerMode();
-    fakeAdbServer.close();
+
+    try {
+      fakeAdbServer.awaitServerTermination(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    } catch (InterruptedException ignored) {
+    }
   }
 }

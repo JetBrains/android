@@ -17,11 +17,12 @@ package com.android.tools.idea.compose.documentation
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.compose.preview.PREVIEW_ANNOTATION_FQN
-import com.android.tools.idea.compose.preview.PREVIEW_NAME
-import com.android.tools.idea.compose.preview.PreviewConfiguration
-import com.android.tools.idea.compose.preview.PreviewElement
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
+import com.android.tools.idea.compose.preview.util.PREVIEW_ANNOTATION_FQN
+import com.android.tools.idea.compose.preview.util.PREVIEW_NAME
+import com.android.tools.idea.compose.preview.util.PreviewConfiguration
+import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
+import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.getClassName
 import com.android.utils.reflection.qualifiedName
@@ -94,7 +95,7 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
       }
     }
       .thenApply {
-        if (!element.isValid) return@thenApply null
+        if (!ReadAction.compute<Boolean, Throwable> { element.isValid }) return@thenApply null
         val originalDoc = getOriginalDoc(element, originalElement)
         if (it == null) {
           return@thenApply originalDoc
@@ -124,10 +125,14 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
   private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null)
 
   private fun previewFromMethodName(fqName: String) =
-    PreviewElement(
-      displayName = "",
-      groupName = null,
+    SinglePreviewElementInstance(
       composableMethodFqn = fqName,
+      displaySettings = PreviewDisplaySettings(
+        name = "",
+        group = null,
+        showBackground = false,
+        showDecoration = false,
+        backgroundColor = null),
       previewElementDefinitionPsi = null,
       previewBodyPsi = null,
       configuration = nullConfiguration
@@ -141,7 +146,7 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
   private fun getPreviewElement(element: PsiElement): KtNamedFunction? = ReadAction.compute<KtNamedFunction?, Throwable> {
     val docComment = (element as? KtNamedFunction)?.docComment ?: return@compute null
     val sampleTag = docComment.getDefaultSection().findTagByName("sample") ?: return@compute null
-    val sample = PsiTreeUtil.findChildOfType<KDocName>(sampleTag, KDocName::class.java)?.mainReference?.resolve() ?: return@compute null
+    val sample = PsiTreeUtil.findChildOfType(sampleTag, KDocName::class.java)?.mainReference?.resolve() ?: return@compute null
     return@compute if (sample.isPreview()) sample as KtNamedFunction else null
   }
 
@@ -176,15 +181,26 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
   }
 
   /**
+   * Provides image for element's documentation. The method will return a [CompletableFuture]. The image might still
+   * be loading.
+   *
+   * Before actual loading image from source swing tries to load image from cache.
+   * Intellij provides such a cache for documentation by DocumentationManager.getElementImage that uses getLocalImageForElement.
+   */
+  @VisibleForTesting
+  fun getLocalImageForElementAsync(element: PsiElement): CompletableFuture<BufferedImage?> {
+    val previewPsiElement = getPreviewElement(element) as? PsiElement ?: return CompletableFuture.completedFuture(null)
+    return previewPsiElement.getUserData(previewImageKey)
+             ?.value
+           ?: return CompletableFuture.completedFuture(null)
+  }
+
+  /**
    * Provides image for element's documentation.
    *
    * Before actual loading image from source swing tries to load image from cache.
    * Intellij provides such a cache for documentation by DocumentationManager.getElementImage that uses getLocalImageForElement.
    */
-  override fun getLocalImageForElement(element: PsiElement, imageSpec: String): Image? {
-    val previewPsiElement = getPreviewElement(element) as? PsiElement ?: return null
-    val future: CompletableFuture<BufferedImage?> = previewPsiElement.getUserData(
-      previewImageKey)?.value ?: return null
-    return future.getNow(null)
-  }
+  override fun getLocalImageForElement(element: PsiElement, imageSpec: String): Image? =
+    getLocalImageForElementAsync(element).getNow(null)
 }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project
 
-import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.gradle.project.ProjectImportUtil.findGradleTarget
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.util.toPathString
@@ -46,8 +46,10 @@ internal class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
   override fun doOpenProject(virtualFile: VirtualFile, projectToClose: Project?, forceOpenInNewFrame: Boolean): Project? {
     if (!canOpenProject(virtualFile)) return null
 
-    val importTarget = ProjectImportUtil.findImportTarget(virtualFile)
-    val adjustedOpenTarget = if (importTarget.isDirectory) importTarget else importTarget.parent
+    val importTarget = findGradleTarget(virtualFile) ?: virtualFile
+    val adjustedOpenTarget =
+        if (importTarget.isDirectory)importTarget
+        else importTarget.parent
 
     if (!canOpenAsExistingProject(adjustedOpenTarget)) {
       if (!forceOpenInNewFrame) {
@@ -58,7 +60,7 @@ internal class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
 
       val gradleImporter = GradleProjectImporter.getInstance()
       val projectFolder = if (virtualFile.isDirectory) virtualFile else virtualFile.parent
-      return gradleImporter.importProjectCore(projectFolder, null)
+      return gradleImporter.importAndOpenProjectCore(projectToClose, forceOpenInNewFrame, projectFolder)
     }
     return ProjectManagerEx.getInstanceEx().openProject(adjustedOpenTarget.toNioPath(), OpenProjectTask(forceOpenInNewFrame = forceOpenInNewFrame, projectToClose = projectToClose))
   }

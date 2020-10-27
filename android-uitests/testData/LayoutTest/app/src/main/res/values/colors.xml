@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <color name="back1">@color/color2</color>
+  <color name="color2">#FF0000</color>
+  <color name="green">#44CC44</color>
+</resources>

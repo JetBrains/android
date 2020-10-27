@@ -26,7 +26,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SourceProviderManager;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
@@ -58,7 +58,7 @@ public final class ResourcesUtil {
   public static boolean checkDrawableExist(@NotNull String drawableName,
                                            @NotNull String drawableType,
                                            @NotNull AndroidFacet facet) {
-    List<VirtualFile> drawableSubDirs = AndroidResourceUtil.getResourceSubdirs(
+    List<VirtualFile> drawableSubDirs = IdeResourcesUtil.getResourceSubdirs(
       ResourceFolderType.DRAWABLE,
       ResourceRepositoryManager.getModuleResources(facet).getResourceDirs());
 
@@ -72,7 +72,7 @@ public final class ResourcesUtil {
   }
 
   /**
-   * Creates a new drawable in the first folder returned by {@link AndroidResourceUtil#getResourceSubdirs}
+   * Creates a new drawable in the first folder returned by {@link IdeResourcesUtil#getResourceSubdirs}
    * @param drawableName The name of the drawable to create
    * @param drawableType The extension of the drawable file
    * @param doneCallback The callback to call when the creation is done
@@ -91,7 +91,7 @@ public final class ResourcesUtil {
     AndroidFacet facet = model.getFacet();
 
     // Create a new file in the res/drawable folder
-    List<VirtualFile> drawableSubDirs = AndroidResourceUtil.getResourceSubdirs(
+    List<VirtualFile> drawableSubDirs = IdeResourcesUtil.getResourceSubdirs(
       ResourceFolderType.DRAWABLE,
       ResourceRepositoryManager.getModuleResources(facet).getResourceDirs());
 

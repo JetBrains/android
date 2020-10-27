@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.res.psi
 
+import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.createAndroidProjectBuilder
 import com.google.common.truth.Truth
 import com.intellij.ide.util.gotoByName.GotoSymbolModel2
 import com.intellij.navigation.NavigationItem
@@ -39,7 +39,7 @@ import org.junit.Test
  */
 @RunsInEdt
 class GoToAndroidResourceContributorTest {
-  val projectRule = AndroidProjectRule.withAndroidModel(createAndroidProjectBuilder())
+  val projectRule = AndroidProjectRule.withAndroidModel(AndroidProjectBuilder())
 
   @get:Rule
   val chain = RuleChain(projectRule, EdtRule())

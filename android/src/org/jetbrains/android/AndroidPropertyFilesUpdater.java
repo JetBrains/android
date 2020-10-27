@@ -17,6 +17,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
@@ -53,16 +54,13 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 // This class supports JPS projects and relies on APIs which should not be used in AS otherwise. We suppress related warnings to
 // avoid cluttering of the build output.
 @SuppressWarnings("deprecation")
 @Service
 public final class AndroidPropertyFilesUpdater implements Disposable {
   private static final NotificationGroup PROPERTY_FILES_UPDATING_NOTIFICATION =
-    NotificationGroup.balloonGroup("Android Property Files Updating");
+    NotificationGroup.balloonGroup("Android Property Files Updating", PluginId.getId("org.jetbrains.android"));
   private static final Key<List<Object>> ANDROID_PROPERTIES_STATE_KEY = Key.create("ANDROID_PROPERTIES_STATE");
   private Notification myNotification;
   private final SingleAlarm myAlarm;

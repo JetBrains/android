@@ -39,7 +39,6 @@ import com.android.tools.idea.model.AndroidModel;
 import com.google.common.collect.Lists;
 import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -61,7 +60,6 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
   @Mock private File myTestApkFile;
 
   private GradleApkProvider myApkProvider;
-  private AndroidFacetConfiguration myConfiguration;
 
   @Override
   protected void setUp() throws Exception {
@@ -70,29 +68,18 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
 
     AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
     BestOutputFinder bestOutputFinder = mock(BestOutputFinder.class);
-    OutputFile outputFile1 = mock(OutputFile.class);
-    OutputFile outputFile2 = mock(OutputFile.class);
-    OutputFile testOutputFile1 = mock(OutputFile.class);
-    OutputFile testOutputFile2 = mock(OutputFile.class);
 
     when(myVariant.getName()).thenReturn("myVariant");
-
-    when(outputFile1.getOutputFile()).thenReturn(myApkFile);
-    when(testOutputFile1.getOutputFile()).thenReturn(myTestApkFile);
-
-    List<OutputFile> bestFoundOutput = Arrays.asList(outputFile1, outputFile2);
-    List<OutputFile> testBestFoundOutput = Arrays.asList(testOutputFile1, testOutputFile2);
-
     when(androidModel.getFeatures()).thenReturn(myModelFeatures);
 
-    myConfiguration = new AndroidFacetConfiguration();
-    myAndroidFacet = new AndroidFacet(myModule, AndroidFacet.NAME, myConfiguration);
+    AndroidFacetConfiguration configuration = new AndroidFacetConfiguration();
+    myAndroidFacet = new AndroidFacet(myModule, AndroidFacet.NAME, configuration);
     AndroidModel.set(myAndroidFacet, androidModel);
 
     List<AndroidArtifactOutput> mainOutputs = Lists.newArrayList(mock(AndroidArtifactOutput.class));
     List<AndroidArtifactOutput> testOutputs = Lists.newArrayList(mock(AndroidArtifactOutput.class));
-    List<OutputFile> mainOutputs2 = Lists.transform(mainOutputs, input -> (OutputFile)input);
-    List<OutputFile> testOutputs2 = Lists.transform(testOutputs, input -> (OutputFile)input);
+    List<OutputFile> mainOutputs2 = Lists.transform(mainOutputs, input -> input);
+    List<OutputFile> testOutputs2 = Lists.transform(testOutputs, input -> input);
 
     IdeAndroidArtifact mainArtifact = mock(IdeAndroidArtifact.class);
     IdeAndroidArtifact testArtifact = mock(IdeAndroidArtifact.class);
@@ -102,13 +89,13 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
     when(myVariant.getMainArtifact()).thenReturn(mainArtifact);
     when(myVariant.getAndroidTestArtifact()).thenReturn(testArtifact);
 
-    when(bestOutputFinder.findBestOutput(myVariant, myDevice, mainOutputs)).thenReturn(bestFoundOutput);
-    when(bestOutputFinder.findBestOutput(myVariant, myDevice, mainOutputs2)).thenReturn(bestFoundOutput);
-    when(bestOutputFinder.findBestOutput(myVariant, myDevice, testOutputs)).thenReturn(testBestFoundOutput);
-    when(bestOutputFinder.findBestOutput(myVariant, myDevice, testOutputs2)).thenReturn(testBestFoundOutput);
+    when(bestOutputFinder.findBestOutput(myVariant, myDevice, mainOutputs)).thenReturn(myApkFile);
+    when(bestOutputFinder.findBestOutput(myVariant, myDevice, mainOutputs2)).thenReturn(myApkFile);
+    when(bestOutputFinder.findBestOutput(myVariant, myDevice, testOutputs)).thenReturn(myTestApkFile);
+    when(bestOutputFinder.findBestOutput(myVariant, myDevice, testOutputs2)).thenReturn(myTestApkFile);
 
     myApkProvider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), myOutputModelProvider,
-                                          bestOutputFinder, true, () -> GradleApkProvider.OutputKind.Default);
+                                          bestOutputFinder, true, it -> GradleApkProvider.OutputKind.Default);
 
     when(myOutputModelProvider.getPostBuildModel()).thenReturn(myPostBuildModel);
 

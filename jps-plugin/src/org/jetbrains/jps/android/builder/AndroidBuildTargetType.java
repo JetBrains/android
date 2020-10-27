@@ -14,9 +14,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-/**
-* @author Eugene.Kudelevsky
-*/
 public abstract class AndroidBuildTargetType<T extends AndroidBuildTarget> extends BuildTargetType<T> {
 
   private final String myPresentableName;

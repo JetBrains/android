@@ -15,14 +15,21 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.google.common.truth.Truth.assertThat;
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
+import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
-import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.text.StringUtil;
@@ -31,30 +38,24 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.util.CollectionQuery;
 import icons.AndroidIcons;
 import icons.StudioIcons;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import static com.android.SdkConstants.LINEAR_LAYOUT;
-import static com.google.common.truth.Truth.assertThat;
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @RunWith(JUnit4.class)
 public class NlPaletteModelTest {
@@ -77,8 +78,10 @@ public class NlPaletteModelTest {
   }
 
   @After
-  public void tearDown() throws Exception {
+  public void tearDown() {
       model = null;
+      facet = null;
+      fixture = null;
   }
 
   @Test
@@ -103,7 +106,11 @@ public class NlPaletteModelTest {
 
     Palette.Group thirdParty = getProjectGroup(palette);
     assertThat(thirdParty).isNotNull();
-    assertThat(thirdParty.getItems().size()).isEqualTo(2);
+    List<Palette.Item> items = thirdParty.getItems().stream()
+      .map(item -> (Palette.Item)item)
+      .sorted(Comparator.comparing(Palette.Item::getTagName))
+      .collect(Collectors.toList());
+    assertThat(items.size()).isEqualTo(2);
 
     @Language("XML")
     String expectedViewXml = "<com.example.FakeCustomView\n" +
@@ -114,21 +121,19 @@ public class NlPaletteModelTest {
                                   "    android:layout_width=\"match_parent\"\n" +
                                   "    android:layout_height=\"match_parent\" />\n";
 
-/* b/146019767
-    Palette.Item item1 = (Palette.Item)thirdParty.getItem(0);
+    Palette.Item item1 = items.get(0);
     assertThat(item1.getTagName()).isEqualTo(CUSTOM_VIEW_CLASS);
     assertThat(item1.getIcon()).isEqualTo(StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW);
     assertThat(item1.getTitle()).isEqualTo(CUSTOM_VIEW);
     assertThat(item1.getGradleCoordinateId()).isEmpty();
     assertThat(item1.getXml()).isEqualTo(expectedViewXml);
 
-    Palette.Item item2 = (Palette.Item)thirdParty.getItem(1);
+    Palette.Item item2 = items.get(1);
     assertThat(item2.getTagName()).isEqualTo(CUSTOM_VIEW_GROUP_CLASS);
     assertThat(item2.getIcon()).isEqualTo(StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW);
     assertThat(item2.getTitle()).isEqualTo(CUSTOM_VIEW_GROUP);
     assertThat(item2.getGradleCoordinateId()).isEmpty();
     assertThat(item2.getXml()).isEqualTo(expectedViewGroupXml);
-b/146019767 */
 
     ViewHandler handler = ViewHandlerManager.get(facet).getHandler(CUSTOM_VIEW_CLASS);
     assertThat(handler).isNotNull();

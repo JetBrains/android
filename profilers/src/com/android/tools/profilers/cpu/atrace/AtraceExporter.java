@@ -15,15 +15,11 @@
  */
 package com.android.tools.profilers.cpu.atrace;
 
-import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.zip.DataFormatException;
 import java.util.zip.DeflaterOutputStream;
+import org.jetbrains.annotations.NotNull;
 import trebuchet.io.DataSlice;
 
 /**
@@ -41,8 +37,6 @@ public final class AtraceExporter {
     TrebuchetBufferProducer buffer;
     if (AtraceProducer.verifyFileHasAtraceHeader(file)) {
       buffer = new AtraceProducer();
-    } else if (PerfettoProducer.verifyFileHasPerfettoTraceHeader(file)) {
-      buffer = new PerfettoProducer();
     }
     else {
       throw new IOException("Unable to verify file type for export: " + file.getAbsolutePath());

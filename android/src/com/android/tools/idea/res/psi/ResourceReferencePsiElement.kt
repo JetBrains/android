@@ -20,17 +20,24 @@ import com.android.SdkConstants.ATTR_NAME
 import com.android.builder.model.AaptOptions
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.ide.common.resources.FileResourceNameValidator
 import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceType
+import com.android.resources.ResourceType.STYLEABLE
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.res.AndroidRClassBase
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.ResourceRepositoryRClass
+import com.android.tools.idea.res.SmallAarRClass
+import com.android.tools.idea.res.TransitiveAarRClass
 import com.android.tools.idea.res.getFolderType
-import com.android.tools.idea.res.getResourceName
+import com.android.tools.idea.res.getResourceTypeForResourceTag
+import com.android.tools.idea.res.isInResourceSubdirectory
 import com.android.tools.idea.res.isValueBased
 import com.android.tools.idea.res.resolve
 import com.android.tools.idea.res.resourceNamespace
 import com.android.tools.idea.util.androidFacet
+import com.android.utils.SdkUtils
 import com.android.utils.reflection.qualifiedName
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler
 import com.intellij.find.findUsages.FindUsagesHandler
@@ -45,19 +52,17 @@ import com.intellij.psi.PsiPolyVariantReference
 import com.intellij.psi.PsiReference
 import com.intellij.psi.impl.FakePsiElement
 import com.intellij.psi.impl.compiled.ClsFieldImpl
-import com.intellij.psi.search.SearchScope
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlTag
 import com.intellij.refactoring.rename.RenameHandler
+import com.intellij.usageView.UsageViewLongNameLocation
 import com.intellij.usageView.UsageViewTypeLocation
 import icons.StudioIcons
-import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.augment.StyleableAttrLightField
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper
-import org.jetbrains.android.util.AndroidResourceUtil
 import javax.swing.Icon
 
 /**
@@ -82,14 +87,14 @@ class ResourceReferencePsiElement(
   companion object {
 
     @JvmField val RESOURCE_ICON: Icon =  StudioIcons.Shell.ToolWindows.VISUAL_ASSETS
-    @JvmField val RESOURCE_CONTEXT_SCOPE: Key<SearchScope> = Key.create<SearchScope>(::RESOURCE_CONTEXT_SCOPE.qualifiedName)
     @JvmField val RESOURCE_CONTEXT_ELEMENT: Key<PsiElement> = Key.create<PsiElement>(::RESOURCE_CONTEXT_ELEMENT.qualifiedName)
 
     @JvmStatic
     fun create(element: PsiElement): ResourceReferencePsiElement? {
       return when (element) {
         is ResourceReferencePsiElement -> element
-        is AndroidLightField -> convertAndroidLightField(element)
+        is ResourceLightField -> convertResourceLightField(element)
+        is StyleableAttrLightField -> convertStyleableAttrLightField(element)
         is ClsFieldImpl -> convertClsFieldImpl(element)
         is XmlAttributeValue -> convertXmlAttributeValue(element)
         is PsiFile -> convertPsiFile(element)
@@ -99,34 +104,53 @@ class ResourceReferencePsiElement(
     }
 
     private fun convertPsiFile(element: PsiFile): ResourceReferencePsiElement? {
-      if (!AndroidResourceUtil.isInResourceSubdirectory(element, null)) {
+      if (!isInResourceSubdirectory(element)) {
         return null
       }
       val resourceFolderType = getFolderType(element) ?: return null
       val resourceType = FolderTypeRelationship.getNonIdRelatedResourceType(resourceFolderType)
       val resourceNamespace = element.resourceNamespace ?: return null
-      val resourceName = getResourceName(element)
+      if (FileResourceNameValidator.getErrorTextForFileResource(element.name, resourceFolderType) != null) return null
+      val resourceName = SdkUtils.fileNameToResourceName(element.name)
       return ResourceReferencePsiElement(ResourceReference(resourceNamespace, resourceType, resourceName), element.manager)
     }
 
-    private fun convertAndroidLightField(element: AndroidLightField) : ResourceReferencePsiElement? {
+    private fun convertStyleableAttrLightField(element: StyleableAttrLightField): ResourceReferencePsiElement? {
       val grandClass = element.containingClass.containingClass as? AndroidRClassBase ?: return null
-      val resourceClassName = AndroidResourceUtil.getResourceClassName(element) ?: return null
-      val resourceType = ResourceType.fromClassName(resourceClassName) ?: return null
       val facet = element.androidFacet
       val namespacing = facet?.let { ResourceRepositoryManager.getInstance(it).namespacing }
-      val resourceNamespace = if (AaptOptions.Namespacing.DISABLED == namespacing) {
-        ResourceNamespace.RES_AUTO
-      }
-      else {
+      val resourceNamespace = if (AaptOptions.Namespacing.REQUIRED == namespacing) {
         ResourceNamespace.fromPackageName(StringUtil.getPackageName(grandClass.qualifiedName!!))
       }
-      val resourceName = when (element) {
-        is ResourceLightField -> element.getResourceName()
-        is StyleableAttrLightField -> element.name
+      else {
+        ResourceNamespace.RES_AUTO
+      }
+      return ResourceReferencePsiElement(ResourceReference(resourceNamespace, STYLEABLE, element.name), element.manager)
+    }
+
+    private fun convertResourceLightField(element: ResourceLightField): ResourceReferencePsiElement? {
+      val grandClass = element.containingClass.containingClass as? AndroidRClassBase ?: return null
+      return when (grandClass) {
+        is ResourceRepositoryRClass -> {
+          val facet = element.androidFacet
+          val namespacing = facet?.let { ResourceRepositoryManager.getInstance(it).namespacing }
+          val resourceNamespace = if (AaptOptions.Namespacing.REQUIRED == namespacing) {
+            ResourceNamespace.fromPackageName(StringUtil.getPackageName(grandClass.qualifiedName!!))
+          }
+          else {
+            ResourceNamespace.RES_AUTO
+          }
+          ResourceReferencePsiElement(ResourceReference(resourceNamespace, element.resourceType, element.resourceName), element.manager)
+        }
+        is TransitiveAarRClass -> {
+          ResourceReferencePsiElement(ResourceReference(ResourceNamespace.RES_AUTO, element.resourceType, element.resourceName), element.manager)
+        }
+        is SmallAarRClass -> {
+          val resourceNamespace = ResourceNamespace.fromPackageName(StringUtil.getPackageName(grandClass.qualifiedName!!))
+          ResourceReferencePsiElement(ResourceReference(resourceNamespace, element.resourceType, element.resourceName), element.manager)
+        }
         else -> null
-      } ?: return null
-      return ResourceReferencePsiElement(ResourceReference(resourceNamespace, resourceType, resourceName), element.manager)
+      }
     }
 
     /**
@@ -158,7 +182,7 @@ class ResourceReferencePsiElement(
         // Instances of value resources
         val tag = element.parentOfType<XmlTag>() ?: return null
         if ((element.parent as XmlAttribute).name != ATTR_NAME) return null
-        val type = AndroidResourceUtil.getResourceTypeForResourceTag(tag) ?: return null
+        val type = getResourceTypeForResourceTag(tag) ?: return null
         val resourceReference = if (type == ResourceType.ATTR) {
           ResourceUrl.parseAttrReference(element.value)?.resolve(element) ?: return null
         } else {
@@ -172,6 +196,8 @@ class ResourceReferencePsiElement(
   }
 
   override fun getIcon(open: Boolean): Icon = RESOURCE_ICON
+
+  override fun getPresentableText(): String? = resourceReference.resourceUrl.toString()
 
   override fun getManager(): PsiManager = psiManager
 
@@ -199,6 +225,7 @@ class ResourceReferencePsiElement(
       val resourceReference = (element as? ResourceReferencePsiElement)?.resourceReference ?: return null
       return when (location) {
         is UsageViewTypeLocation -> "${resourceReference.resourceType.displayName} Resource"
+        is UsageViewLongNameLocation -> element.presentableText
         else -> resourceReference.name
       }
     }

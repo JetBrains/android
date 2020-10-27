@@ -25,11 +25,6 @@ import org.junit.runner.RunWith;
 @JarTestSuiteRunner.ExcludeClasses(LintIdeTestSuite.class)  // a suite mustn't contain itself
 public class LintIdeTestSuite extends IdeaTestSuiteBase {
   static {
-    symlinkToIdeaHome(
-      "tools/adt/idea/android/annotations",
-      "tools/adt/idea/android/testData",
-      "tools/adt/idea/lint/tests/testData",
-      "tools/idea/java");
   }
 
   @ClassRule public static LeakCheckerRule checker = new LeakCheckerRule();

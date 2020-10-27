@@ -15,17 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.build;
 
-import static com.android.tools.idea.gradle.util.BuildMode.CLEAN;
-import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
-import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
-
-import com.android.tools.idea.gradle.project.BuildSettings;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
-import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -37,39 +29,35 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class GradleProjectBuilder {
   @NotNull private final Project myProject;
+  @NotNull private final AndroidProjectInfo myAndroidProjectInfo;
+  @NotNull private final GradleBuildInvoker myBuildInvoker;
 
   @NotNull
   public static GradleProjectBuilder getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, GradleProjectBuilder.class);
   }
 
-  public GradleProjectBuilder(@NotNull Project project) {
+  // FIXME-ank4: annotate as non-injectable, and add project-only constructor
+
+  public GradleProjectBuilder(@NotNull Project project,
+                              @NotNull AndroidProjectInfo androidProjectInfo,
+                              @NotNull GradleBuildInvoker buildInvoker) {
     myProject = project;
+    myAndroidProjectInfo = androidProjectInfo;
+    myBuildInvoker = buildInvoker;
   }
 
   public void compileJava() {
-    if (AndroidProjectInfo.getInstance(myProject).requiresAndroidModel()) {
-      if (GradleProjectInfo.getInstance(myProject).isDirectGradleBuildEnabled()) {
-        Module[] modules = ModuleManager.getInstance(myProject).getModules();
-        GradleBuildInvoker.getInstance(myProject).compileJava(modules, TestCompileType.ALL);
-        return;
-      }
-      buildProjectWithJps(COMPILE_JAVA);
+    if (myAndroidProjectInfo.requiresAndroidModel()) {
+      Module[] modules = ModuleManager.getInstance(myProject).getModules();
+      myBuildInvoker.compileJava(modules, TestCompileType.ALL);
     }
   }
 
   public void clean() {
-    if (AndroidProjectInfo.getInstance(myProject).requiresAndroidModel()) {
-      if (GradleProjectInfo.getInstance(myProject).isDirectGradleBuildEnabled()) {
-        GradleBuildInvoker.getInstance(myProject).cleanProject();
-        return;
-      }
-      buildProjectWithJps(CLEAN);
+    if (myAndroidProjectInfo.requiresAndroidModel()) {
+      myBuildInvoker.cleanProject();
     }
-  }
-
-  public void cleanAndGenerateSources() {
-    doGenerateSources(true /* clean project */);
   }
 
   public void generateSources() {
@@ -77,21 +65,12 @@ public final class GradleProjectBuilder {
   }
 
   private void doGenerateSources(boolean cleanProject) {
-    if (AndroidProjectInfo.getInstance(myProject).requiresAndroidModel()) {
-      if (GradleProjectInfo.getInstance(myProject).isDirectGradleBuildEnabled()) {
-        if (cleanProject) {
-          GradleBuildInvoker.getInstance(myProject).cleanAndGenerateSources();
-          return;
-        }
-        GradleBuildInvoker.getInstance(myProject).generateSources();
+    if (myAndroidProjectInfo.requiresAndroidModel()) {
+      if (cleanProject) {
+        myBuildInvoker.cleanAndGenerateSources();
         return;
       }
-      buildProjectWithJps(SOURCE_GEN);
+      myBuildInvoker.generateSources();
     }
-  }
-
-  private void buildProjectWithJps(@NotNull BuildMode buildMode) {
-    BuildSettings.getInstance(myProject).setBuildMode(buildMode);
-    CompilerManager.getInstance(myProject).make(null);
   }
 }

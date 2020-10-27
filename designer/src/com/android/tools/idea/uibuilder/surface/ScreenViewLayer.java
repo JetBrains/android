@@ -27,6 +27,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.scale.ScaleContext;
+import com.intellij.util.JBHiDPIScaledImage;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.*;
@@ -127,12 +128,17 @@ public class ScreenViewLayer extends Layer {
       // has a border layer. Screen views without a border layer might contain transparent images, e.g. a drawable, and reusing the buffer
       // might cause the unexpected effect of parts of the old image being rendered on the transparent parts of the new one. Therefore, we
       // need to force the creation of a new image in this case.
-      image = existingBuffer;
+      if (existingBuffer instanceof JBHiDPIScaledImage) {
+        image = (BufferedImage)((JBHiDPIScaledImage)existingBuffer).getDelegate();
+      } else {
+        image = existingBuffer;
+      }
       clearBackground = true;
     }
     else {
       image = configuration.createCompatibleImage(screenViewVisibleSize.width, screenViewVisibleSize.height, Transparency.TRANSLUCENT);
       assert image != null;
+      existingBuffer = image;
       // No need to clear the background for a new image
       clearBackground = false;
     }
@@ -147,12 +153,12 @@ public class ScreenViewLayer extends Layer {
     cacheImageGraphics.drawImage(renderedImage, 0, 0, image.getWidth(), image.getHeight(), sx1, sy1, sx2, sy2, null);
     cacheImageGraphics.dispose();
 
-    return image;
+    return existingBuffer;
   }
 
   @Override
   public void paint(@NotNull Graphics2D graphics2D) {
-    myScreenView.getSize(myScreenViewSize);
+    myScreenView.getScaledContentSize(myScreenViewSize);
     // Calculate the portion of the screen view that it's visible
     myScreenViewVisibleRect.setBounds(myScreenView.getX(), myScreenView.getY(),
                                       myScreenViewSize.width, myScreenViewSize.height);
@@ -183,7 +189,7 @@ public class ScreenViewLayer extends Layer {
     double currentScale = myScreenView.getScale();
     //noinspection FloatingPointEquality
     if (drawNewImg || currentScale != myLastScale || !myScreenViewVisibleRect.equals(myCachedScreenViewDisplayRect)) {
-      if (myLastRenderResult != null && myLastRenderResult.hasImage()) {
+      if (myLastRenderResult != null) {
         BufferedImage renderedImage = myLastRenderResult.getRenderedImage().getCopy();
         if (renderedImage != null) {
           int resultImageWidth = renderedImage.getWidth();
@@ -194,7 +200,8 @@ public class ScreenViewLayer extends Layer {
           double xScaleFactor = (double)resultImageWidth / myScreenViewSize.width;
           double yScaleFactor = (double)resultImageHeight / myScreenViewSize.height;
           cancelHighQualityScaleRequests();
-          if (xScaleFactor > 1.2 && yScaleFactor > 1.2) {
+          // There is no point in requesting high quality image while in animated mode
+          if (xScaleFactor > 1.2 && yScaleFactor > 1.2 && !myScreenView.isAnimated()) {
             // This means that the result image is bigger than the ScreenView by more than a 20%. For this cases, we need to scale down the
             // result image to make it fit in the ScreenView and we use a higher quality (but slow) process. We will issue a request to obtain
             // the high quality version but paint the low quality version below. Once it's ready, we'll repaint.
@@ -217,7 +224,7 @@ public class ScreenViewLayer extends Layer {
       if (screenShape != null) {
         g.clip(screenShape);
       }
-      UIUtil.drawImage(g, cachedVisibleImage, myScreenViewVisibleRect.x, myScreenViewVisibleRect.y, null);
+      StartupUiUtil.drawImage(g, cachedVisibleImage, myScreenViewVisibleRect.x, myScreenViewVisibleRect.y, null);
     }
     g.dispose();
   }
@@ -233,7 +240,7 @@ public class ScreenViewLayer extends Layer {
    * @return false if renderResult is null or the same as the previous one or if no image is available, true otherwise
    */
   private boolean newRenderImageAvailable(@Nullable RenderResult renderResult) {
-    return renderResult != null && renderResult.hasImage() && renderResult != myLastRenderResult;
+    return renderResult != null && renderResult != myLastRenderResult;
   }
 
   private void cancelHighQualityScaleRequests() {
@@ -352,7 +359,7 @@ public class ScreenViewLayer extends Layer {
    *
    * @see ImageUtils#scale(BufferedImage, double)
    */
-  private static final class RescaleRunnable implements Runnable {
+  private static class RescaleRunnable implements Runnable {
     @NotNull private final Consumer<BufferedImage> myOnReadyCallback;
     private final Object lock = new Object();
     private BufferedImage mySourceImage;

@@ -18,6 +18,7 @@ package com.android.tools.idea.ui.resourcemanager.explorer
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.ui.resourcemanager.model.TypeFilter
+import com.android.tools.idea.ui.resourcemanager.rendering.SlowResource.Companion.isSlowResource
 import com.android.utils.usLocaleCapitalize
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.*
@@ -41,10 +42,11 @@ private const val FILTERS_BUTTON_LABEL = "Filter displayed resources"
 private const val MODULE_PREFIX = "Module: "
 
 private val MIN_FIELD_SIZE = JBUI.scale(40)
-private val PREF_FIELD_SIZE = JBUI.scale(300)
-private val MAX_FIELD_SIZE = JBUI.scale(400)
+private val PREF_FIELD_SIZE = JBUI.scale(125)
+private val MAX_FIELD_SIZE = JBUI.scale(150)
 private val BUTTON_SIZE = JBUI.size(20)
 private val GAP_SIZE = JBUI.scale(10)
+private val ACTION_BTN_SIZE get() = JBUI.scale(32)
 
 /**
  * Toolbar displayed at the top of the resource explorer which allows users
@@ -56,6 +58,10 @@ class ResourceExplorerToolbar private constructor(
   : JPanel(), DataProvider by toolbarViewModel {
 
   private val searchAction = createSearchField()
+  private val refreshActionToolbar = ActionManager.getInstance().createActionToolbar("ResourceExplorer",
+                                                                                     DefaultActionGroup(RefreshAction(toolbarViewModel)),
+                                                                                     true)
+  private val refreshActionComponent = refreshActionToolbar.component
 
   init {
     layout = GroupLayout(this)
@@ -66,14 +72,15 @@ class ResourceExplorerToolbar private constructor(
 
     val sequentialGroup = groupLayout.createSequentialGroup()
       .addFixedSizeComponent(addAction, true)
+      .addComponent(refreshActionComponent, ACTION_BTN_SIZE, ACTION_BTN_SIZE, ACTION_BTN_SIZE)
       .addFixedSizeComponent(separator)
       .addComponent(moduleSelectionCombo, MIN_FIELD_SIZE, PREF_FIELD_SIZE, MAX_FIELD_SIZE)
-      .addComponent(searchAction, MIN_FIELD_SIZE, PREF_FIELD_SIZE, MAX_FIELD_SIZE)
-      .addGap(GAP_SIZE, GAP_SIZE, Int.MAX_VALUE) // Align the rest of the components to the right
+      .addComponent(searchAction, MIN_FIELD_SIZE, PREF_FIELD_SIZE, Int.MAX_VALUE)
       .addFixedSizeComponent(filterAction)
 
     val verticalGroup = groupLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
       .addComponent(addAction)
+      .addComponent(refreshActionComponent)
       .addComponent(separator)
       .addComponent(moduleSelectionCombo)
       .addComponent(searchAction)
@@ -89,6 +96,7 @@ class ResourceExplorerToolbar private constructor(
 
   private fun update() {
     moduleSelectionCombo.selectedItem = toolbarViewModel.currentModuleName
+    refreshActionToolbar.updateActionsImmediately()
   }
 
   private fun createSearchField() = SearchTextField(true).apply {
@@ -152,6 +160,32 @@ private class AddAction internal constructor(val viewModel: ResourceExplorerTool
     if (importersActions.isNotEmpty()) {
       add(Separator())
       addAll(importersActions)
+    }
+  }
+}
+
+/**
+ * Action to refresh the previews of a particular type of resources.
+ */
+private class RefreshAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
+  : AnAction("Refresh previews", "Refresh previews for ${viewModel.resourceType.displayName}s", AllIcons.Actions.Refresh) {
+  override fun actionPerformed(e: AnActionEvent) {
+    // TODO: update tracking to support this action.
+    viewModel.refreshResourcesPreviewsCallback()
+  }
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    if (viewModel.resourceType.isSlowResource()) {
+      e.presentation.text = templatePresentation.text
+      e.presentation.description = templatePresentation.description
+      e.presentation.isEnabled = true
+    }
+    else {
+      val text = "${viewModel.resourceType.displayName}s refresh automatically"
+      e.presentation.text = text // Used for tooltips
+      e.presentation.description = text
+      e.presentation.isEnabled = false
     }
   }
 }
@@ -225,10 +259,12 @@ private class TypeFilterAction internal constructor(val viewModel: ResourceExplo
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
+    if (state) {
+      ResourceManagerTracking.logTypeFilterEnabled(viewModel.resourceType)
+    }
     typeFilters.forEach { typeFilter ->
       viewModel.typeFiltersModel.setEnabled(viewModel.resourceType, typeFilter, state)
     }
-    // TODO: Update tracking.
   }
 }
 

@@ -27,7 +27,7 @@ import com.android.resources.ResourceUrl
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
 import com.android.tools.idea.lint.common.LintIdeQuickFix
 import com.android.tools.idea.res.ResourceRepositoryManager
-import com.android.tools.idea.templates.TemplateUtils
+import com.android.tools.idea.util.EditorUtil
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.VfsUtil
@@ -69,9 +69,9 @@ class GenerateMotionSceneFix(val url: ResourceUrl) : LintIdeQuickFix {
         val xmlDir = createChildDirectoryIfNotExist(project, primaryResourceDir, FD_RES_XML)
         val resFile = xmlDir.createChildData(project, "${url.name}$DOT_XML")
         VfsUtil.saveText(resFile, generateMotionSceneContent(widgetId))
-        TemplateUtils.reformatAndRearrange(project, resFile)
-        TemplateUtils.openEditor(project, resFile)
-        TemplateUtils.selectEditor(project, resFile)
+        EditorUtil.reformatAndRearrange(project, resFile)
+        EditorUtil.openEditor(project, resFile)
+        EditorUtil.selectEditor(project, resFile)
         motionTag?.setAttribute(ATTR_CONSTRAINT_LAYOUT_DESCRIPTION, AUTO_URI, url.toString())
       }
       catch (ex: IOException) {

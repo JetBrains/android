@@ -59,7 +59,7 @@ import org.jetbrains.annotations.Nullable;
  * descriptor to remove extra padding around the images which is contained in the normal
  * device images and used by the screenshot action.
  */
-public final class DeviceArtPainter {
+public class DeviceArtPainter {
   @NotNull private static final DeviceArtPainter ourInstance = new DeviceArtPainter();
   @Nullable private static volatile String ourSystemPath;
   @NotNull private Map<Device,DeviceData> myDeviceData = Maps.newHashMap();
@@ -553,7 +553,7 @@ public final class DeviceArtPainter {
   /** Information for a particular frame picture of a device (e.g. either landscape or portrait). It can also be the half
    * size of a named larger version (if {@link #myDouble} points to an outer image). */
   @VisibleForTesting
-  static final class FrameData {
+  static class FrameData {
     @NotNull private final DeviceData myDeviceData;
     @NotNull private final ScreenOrientation myOrientation;
     private final int myX;

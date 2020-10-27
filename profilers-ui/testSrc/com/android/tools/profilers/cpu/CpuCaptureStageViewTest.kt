@@ -29,13 +29,16 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
-import com.android.tools.profilers.StudioMonitorStage
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel
 import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip
+import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.JBSplitter
 import org.junit.Before
 import org.junit.Rule
@@ -45,25 +48,35 @@ import java.awt.Point
 import javax.swing.JLabel
 import javax.swing.SwingUtilities
 
+@RunsInEdt
 class CpuCaptureStageViewTest {
   private val cpuService = FakeCpuService()
   private val timer = FakeTimer()
 
-  @Rule
-  @JvmField
+  @get:Rule
   val grpcChannel = FakeGrpcChannel("FramesTest", cpuService, FakeTransportService(timer), FakeProfilerService(timer))
+
+  @get:Rule
+  val edtRule = EdtRule()
+
+  /**
+   * For initializing [com.intellij.ide.HelpTooltip].
+   */
+  @get:Rule
+  val appRule = ApplicationRule()
+
   private lateinit var stage: CpuCaptureStage
   private lateinit var profilersView: StudioProfilersView
   private val services = FakeIdeProfilerServices()
 
   @Before
   fun setUp() {
-    val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), services, timer)
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
     profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
-                                   TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.VALID_TRACE_PATH))
+                                   TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.VALID_TRACE_PATH), 123L)
   }
 
   @Test
@@ -99,8 +112,6 @@ class CpuCaptureStageViewTest {
     val labels = treeWalker.descendants().filterIsInstance<JLabel>().toList()
     // Title label
     assertThat(labels[0].text).isEqualTo("Threads (3)")
-    // Title info icon
-    assertThat(labels[1].toolTipText).ignoringCase().contains("double-click on the thread name to expand/collapse it")
   }
 
   @Test
@@ -154,29 +165,34 @@ class CpuCaptureStageViewTest {
   @Test
   fun showTrackGroupTooltip() {
     // Load Atrace
-    services.enablePerfetto(true)
     val stage = CpuCaptureStage.create(profilersView.studioProfilers, ProfilersTestData.DEFAULT_CONFIG,
-                                       TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_PID1_PATH))
+                                       TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH), 123L)
     val stageView = CpuCaptureStageView(profilersView, stage)
     stage.enter()
-    stageView.component.setBounds(0, 0, 500, 500)
-    val ui = FakeUi(stageView.component)
     val trackGroups = stageView.trackGroupList.trackGroups
+    trackGroups.forEach { it.overlay.setBounds(0, 0, 500, 100) }
 
     // Initial state
     assertThat(stageView.trackGroupList.activeTooltip).isNull()
 
     // Frame tooltip
-    val frameTracks = trackGroups[0].trackList
-    val frameTracksOrigin = SwingUtilities.convertPoint(frameTracks, Point(0, 0), stageView.component)
-    ui.mouse.moveTo(frameTracksOrigin.x, frameTracksOrigin.y)
+    val displayTrackUi = FakeUi(trackGroups[0].overlay)
+    displayTrackUi.mouse.moveTo(0, 0)
     assertThat(stageView.trackGroupList.activeTooltip).isInstanceOf(CpuFrameTooltip::class.java)
+    val surfaceflingerTrackPos = trackGroups[0].trackList.indexToLocation(1)
+    displayTrackUi.mouse.moveTo(surfaceflingerTrackPos.x, surfaceflingerTrackPos.y)
+    assertThat(stageView.trackGroupList.activeTooltip).isInstanceOf(SurfaceflingerTooltip::class.java)
+    val vsyncTrackPos = trackGroups[0].trackList.indexToLocation(2)
+    displayTrackUi.mouse.moveTo(vsyncTrackPos.x, vsyncTrackPos.y)
+    assertThat(stageView.trackGroupList.activeTooltip).isInstanceOf(VsyncTooltip::class.java)
 
     // Thread tooltip
     // TODO: cell renderer has width=0 in this test, causing the in-cell tooltip switching logic to fail.
 
     // CPU core tooltip
-    // TODO: use a trace with CPU cores data
+    val coreTrackUi = FakeUi(trackGroups[1].overlay)
+    coreTrackUi.mouse.moveTo(0, 0)
+    assertThat(stageView.trackGroupList.activeTooltip).isInstanceOf(CpuKernelTooltip::class.java)
   }
 
   @Test
@@ -189,31 +205,26 @@ class CpuCaptureStageViewTest {
     assertThat(profilersView.zoomToSelectionButton.isEnabled).isFalse()
     stage.multiSelectionModel.setSelection(setOf(CaptureNodeAnalysisModel(captureNode, stage.capture)))
     assertThat(profilersView.zoomToSelectionButton.isEnabled).isTrue()
-    assertThat(profilersView.stageView.zoomToSelectionRange.isSameAs(Range(0.0, 10.0))).isTrue()
+    assertThat(profilersView.stageView.stage.timeline.selectionRange.isSameAs(Range(0.0, 10.0))).isTrue()
   }
 
   @Test
   fun deselectAllLabel() {
     profilersView.studioProfilers.stage = stage
+    val stageView = profilersView.stageView as CpuCaptureStageView
     val captureNode = CaptureNode(FakeCaptureNodeModel("Foo", "Bar", "123"))
-    profilersView.deselectAllLabel.setBounds(0, 0, 100, 100)
-    val ui = FakeUi(profilersView.deselectAllLabel)
+    stageView.deselectAllLabel.setBounds(0, 0, 100, 100)
+    val ui = FakeUi(stageView.deselectAllLabel)
 
     // Label should be visible when selection changes.
-    assertThat(profilersView.deselectAllToolbar.isVisible).isFalse()
+    assertThat(stageView.deselectAllToolbar.isVisible).isFalse()
     stage.multiSelectionModel.setSelection(setOf(CaptureNodeAnalysisModel(captureNode, stage.capture)))
-    assertThat(profilersView.deselectAllToolbar.isVisible).isTrue()
+    assertThat(stageView.deselectAllToolbar.isVisible).isTrue()
 
     // Clicking the label should clear the selection.
     ui.mouse.click(0, 0)
     assertThat(stage.multiSelectionModel.isEmpty).isTrue()
-    assertThat(profilersView.deselectAllToolbar.isVisible).isFalse()
-
-    // The label should be gone after we navigate away from the capture stage.
-    stage.multiSelectionModel.setSelection(setOf(CaptureNodeAnalysisModel(captureNode, stage.capture)))
-    assertThat(profilersView.deselectAllToolbar.isVisible).isTrue()
-    profilersView.studioProfilers.stage = StudioMonitorStage(profilersView.studioProfilers)
-    assertThat(profilersView.deselectAllToolbar.isVisible).isFalse()
+    assertThat(stageView.deselectAllToolbar.isVisible).isFalse()
   }
 
   @Test

@@ -1,8 +1,9 @@
 // Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.dom.converters;
 
+import static com.android.tools.idea.projectsystem.SourceProvidersKt.isTestFile;
+
 import com.android.tools.idea.AndroidTextUtils;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder;
 import com.intellij.codeInsight.daemon.EmptyResolveMessageProvider;
@@ -48,9 +49,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -151,7 +152,7 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
     if (manifestPackage == null && myUseManifestBasePackage) {
       Module module = context.getModule();
       if (module != null) {
-        manifestPackage = MergedManifestManager.getSnapshot(module).getPackage();
+        manifestPackage = AndroidManifestUtils.getPackageName(module);
       }
     }
     return manifestPackage;
@@ -253,7 +254,7 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
     AndroidFacet facet = AndroidFacet.getInstance(context);
     // If the source XML file is contained within the test folders, we'll also allow to resolve test classes
     VirtualFile file = element.getContainingFile().getVirtualFile();
-    final boolean isTestFile = facet != null && file != null && IdeaSourceProviderUtil.isTestFile(facet, file);
+    final boolean isTestFile = facet != null && file != null && isTestFile(facet, file);
 
     if (strValue.isEmpty()) {
       return PsiReference.EMPTY_ARRAY;
@@ -387,7 +388,7 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
     return qName;
   }
 
-  private static final class MyReference extends PsiReferenceBase<PsiElement> implements EmptyResolveMessageProvider, LocalQuickFixProvider {
+  private static class MyReference extends PsiReferenceBase<PsiElement> implements EmptyResolveMessageProvider, LocalQuickFixProvider {
     private final int myStart;
     private final String myManifestPackage;
     private final String[] myExtraBasePackages;

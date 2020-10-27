@@ -24,11 +24,10 @@ import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
-import com.android.tools.idea.npw.platform.Language
-import com.android.tools.idea.npw.template.KotlinVersionProvider
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.wizard.template.FormFactor
+import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.PackageName
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.intellij.openapi.application.runReadAction
@@ -49,7 +48,7 @@ val log: Logger get() = logger<ProjectTemplateDataBuilder>()
  *
  * Extracts information from various data sources.
  */
-class ProjectTemplateDataBuilder(private val isNew: Boolean) {
+class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   var androidXSupport: Boolean? = null
   var gradlePluginVersion: GradleVersion? = null
   var javaVersion: JavaVersion? = null
@@ -63,13 +62,15 @@ class ProjectTemplateDataBuilder(private val isNew: Boolean) {
   val includedFormFactorNames = mutableMapOf<FormFactor, MutableList<String>>()
   var debugKeyStoreSha1: String? = null
   var overridePathCheck: Boolean? = null
+  var applicationName: String? = null
 
   internal fun setEssentials(project: Project) {
+    applicationName = project.name
     kotlinVersion = KotlinVersionProvider.getInstance().kotlinVersionForGradle
     gradlePluginVersion = determineGradlePluginVersion(project)
     javaVersion = determineJavaVersion(project)
     // If we create a new project, then we have a checkbox for androidX support
-    if (!isNew) {
+    if (!isNewProject) {
       androidXSupport = project.isAndroidx()
     }
   }
@@ -128,7 +129,7 @@ class ProjectTemplateDataBuilder(private val isNew: Boolean) {
   /** Find the most appropriated Gradle Plugin version for the specified project. */
   private fun determineGradlePluginVersion(project: Project?): GradleVersion {
     val defaultGradleVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
-    if (project == null || isNew) {
+    if (project == null || isNewProject) {
       return defaultGradleVersion
     }
 
@@ -142,14 +143,15 @@ class ProjectTemplateDataBuilder(private val isNew: Boolean) {
     gradlePluginVersion!!.toString(),
     javaVersion!!.toString(),
     sdkDir,
-    com.android.tools.idea.wizard.template.Language.valueOf(language!!.toString()),
+    Language.valueOf(language!!.toString()),
     kotlinVersion!!,
     buildToolsVersion!!.toString(),
     topOut!!,
     applicationPackage,
     includedFormFactorNames,
     debugKeyStoreSha1,
-    overridePathCheck
+    overridePathCheck,
+    isNewProject
   )
 }
 

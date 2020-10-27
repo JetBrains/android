@@ -20,7 +20,7 @@ package com.android.tools.idea.run.tasks;
  * one another. For example, connecting a debugger typically lasts five times longer than
  * launching an activity.
  */
-public final class LaunchTaskDurations {
+public class LaunchTaskDurations {
   private LaunchTaskDurations() {}
 
   public static final int ASYNC_TASK = 1;

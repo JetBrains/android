@@ -26,7 +26,7 @@ import com.android.tools.idea.rendering.FlagManager;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -105,19 +105,6 @@ public class LocaleMenuAction extends DropDownAction {
       add(new RtlAction(myRenderContext));
     }
 
-    /* TODO: Restore multi-configuration editing
-    group.addSeparator();
-    RenderPreviewMode currentMode = RenderPreviewMode.getCurrent();
-    if (currentMode != RenderPreviewMode.LOCALES && currentMode != RenderPreviewMode.RTL) {
-      if (locales.size() >= 1) {
-        ConfigurationMenuAction.addLocalePreviewAction(myRenderContext, group, true);
-      }
-      ConfigurationMenuAction.addRtlPreviewAction(myRenderContext, group);
-    } else {
-      ConfigurationMenuAction.addRemovePreviewsAction(myRenderContext, group);
-    }
-    */
-
     return true;
   }
 
@@ -155,7 +142,7 @@ public class LocaleMenuAction extends DropDownAction {
     // only lock down this layout to the current locale if the layout only exists for this
     // locale.
     if (specificLocale != null) {
-      List<VirtualFile> variations = ResourceHelper.getResourceVariations(configuration.getFile(), false);
+      List<VirtualFile> variations = IdeResourcesUtil.getResourceVariations(configuration.getFile(), false);
       for (VirtualFile variation : variations) {
         FolderConfiguration config = FolderConfiguration.getConfigForFolder(variation.getParent().getName());
         if (config != null && config.getLocaleQualifier() == null) {

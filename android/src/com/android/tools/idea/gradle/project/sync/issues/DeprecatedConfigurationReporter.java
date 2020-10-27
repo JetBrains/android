@@ -16,45 +16,13 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static com.android.builder.model.SyncIssue.TYPE_DEPRECATED_CONFIGURATION;
 
 public class DeprecatedConfigurationReporter extends SimpleDeduplicatingSyncIssueReporter {
   @Override
   int getSupportedIssueType() {
-    return TYPE_DEPRECATED_CONFIGURATION;
-  }
-
-  @Override
-  @NotNull
-  protected OpenFileHyperlink createModuleLink(@NotNull Project project,
-                                               @NotNull Module module,
-                                               @NotNull ProjectBuildModel projectBuildModel,
-                                               @NotNull List<SyncIssue> syncIssues,
-                                               @NotNull VirtualFile buildFile) {
-    assert !syncIssues.isEmpty();
-    String config = extractConfigurationName(syncIssues.get(0));
-    GradleBuildModel buildModel = projectBuildModel.getModuleBuildModel(buildFile);
-    // Find first configuration matching 'config' so we can jump to it
-    DependencyModel dependencyModel =
-      buildModel.dependencies().all().stream().filter(model -> model.configurationName().equals(config)).findFirst().orElse(null);
-    if (dependencyModel == null) {
-      return super.createModuleLink(project, module, projectBuildModel, syncIssues, buildFile);
-    }
-    int lineNumber = getLineNumberForElement(project, dependencyModel.getPsiElement());
-
-    return new OpenFileHyperlink(buildFile.getPath(), module.getName(), lineNumber, -1);
+    return SyncIssue.TYPE_DEPRECATED_CONFIGURATION;
   }
 
   @Override

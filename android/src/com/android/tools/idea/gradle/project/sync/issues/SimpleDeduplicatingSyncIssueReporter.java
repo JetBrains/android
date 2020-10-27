@@ -16,12 +16,13 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
+import static com.android.tools.idea.gradle.util.AndroidGradleUtil.getDisplayNameForModule;
 import static com.android.tools.idea.project.messages.MessageType.INFO;
+import static com.android.tools.idea.project.messages.MessageType.WARNING;
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 
 import com.android.builder.model.SyncIssue;
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueQuickFix;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
@@ -40,6 +41,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -106,7 +108,8 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
                                                boolean isError,
                                                @NotNull SyncIssueUsageReporter usageReporter) {
     GradleSyncMessages messages = GradleSyncMessages.getInstance(project);
-    MessageType type = isError ? ERROR : INFO;
+    // All errors are displayed as warnings and all warnings displayed as info.
+    MessageType type = isError ? WARNING : INFO;
 
     assert !syncIssues.isEmpty();
     NotificationData notification = setupNotificationData(project, syncIssues, affectedModules, buildFileMap, type);
@@ -120,15 +123,18 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
     SyncIssueUsageReporterUtils.collect(usageReporter, syncIssues.get(0).getType(), customLinks);
     String message = notification.getMessage().trim();
 
-    ProjectBuildModel projectBuildModel = ProjectBuildModel.getOrLog(project);
-
     // Add links to each of the affected modules
-    if (projectBuildModel != null && shouldIncludeModuleLinks() && !affectedModules.isEmpty()) {
+    ArrayList<AndroidSyncIssueQuickFix> buildIssueLinks = new ArrayList<>();
+    buildIssueLinks.addAll(ContainerUtil.map(customLinks, it -> new AndroidSyncIssueQuickFix(it)));
+    if (shouldIncludeModuleLinks() && !affectedModules.isEmpty()) {
       builder.append("\nAffected Modules: ");
       for (Iterator<Module> it = affectedModules.iterator(); it.hasNext(); ) {
         Module m = it.next();
         if (m != null) {
-          doCreateModuleLink(project, notification, builder, m, projectBuildModel, syncIssues, buildFileMap.get(m));
+          NotificationHyperlink link = doCreateModuleLink(project, notification, builder, m, syncIssues, buildFileMap.get(m));
+          if (link != null) {
+            buildIssueLinks.add(new AndroidSyncIssueQuickFix(link));
+          }
           if (it.hasNext()) {
             builder.append(", ");
           }
@@ -138,24 +144,25 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
     message += builder.toString();
 
     notification.setMessage(message);
-    messages.report(notification);
+    messages.report(notification, buildIssueLinks);
   }
 
-  private void doCreateModuleLink(@NotNull Project project,
+  private NotificationHyperlink doCreateModuleLink(@NotNull Project project,
                                   @NotNull NotificationData notification,
                                   @NotNull StringBuilder builder,
                                   @NotNull Module module,
-                                  @NotNull ProjectBuildModel projectBuildModel,
                                   @NotNull List<SyncIssue> syncIssues,
                                   @Nullable VirtualFile buildFile) {
     if (buildFile == null) {
       // No build file found, just include the name of the module.
-      builder.append(module.getName());
+      builder.append(getDisplayNameForModule(module));
+      return null;
     }
     else {
-      OpenFileHyperlink link = createModuleLink(project, module, projectBuildModel, syncIssues, buildFile);
+      OpenFileHyperlink link = createModuleLink(project, module, syncIssues, buildFile);
       builder.append(link.toHtml());
       notification.setListener(link.getUrl(), new QuickFixNotificationListener(project, link));
+      return link;
     }
   }
 
@@ -166,17 +173,16 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
    *
    * @param project           the project.
    * @param module            the module this link should be created for.
-   * @param projectBuildModel build model for this project, this prevent each link from having to create their own.
    * @param syncIssues        list of all the sync issues in this group, this list will contain at least one element.
    * @param buildFile         the build file for the provided module.
    */
   @NotNull
   protected OpenFileHyperlink createModuleLink(@NotNull Project project,
                                                @NotNull Module module,
-                                               @NotNull ProjectBuildModel projectBuildModel,
                                                @NotNull List<SyncIssue> syncIssues,
                                                @NotNull VirtualFile buildFile) {
-    return new OpenFileHyperlink(buildFile.getPath(), module.getName(), -1, -1);
+
+    return new OpenFileHyperlink(buildFile.getPath(), getDisplayNameForModule(module), -1, -1);
   }
 
   /**
@@ -185,7 +191,9 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
    * method should be stateless.
    */
   @NotNull
-  protected abstract Object getDeduplicationKey(@NotNull SyncIssue issue);
+  protected Object getDeduplicationKey(@NotNull SyncIssue issue) {
+    return (issue.getData() == null) ? issue : issue.getData();
+  }
 
   /**
    * @return whether or not links to each of the effected modules should be appended to the SyncIssue message.

@@ -19,7 +19,7 @@ import com.android.testutils.TestUtils
 import java.io.File
 
 enum class RestartPolicy {
-  IDE_ERROR_OR_JUNIT_TIMEOUT, TEST_FAILURE, EACH_TEST;
+  NEVER, JUNIT_TIMEOUT, IDE_ERROR_OR_JUNIT_TIMEOUT, TEST_FAILURE, EACH_TEST;
 }
 
 object GuiTestOptions {

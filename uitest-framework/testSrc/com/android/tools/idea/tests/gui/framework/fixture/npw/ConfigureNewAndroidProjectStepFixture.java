@@ -17,15 +17,14 @@ package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.npw.FormFactor;
-import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
+import com.android.tools.idea.wizard.template.Language;
+import javax.swing.JComboBox;
+import javax.swing.JRootPane;
+import javax.swing.text.JTextComponent;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.text.JTextComponent;
 
 public class ConfigureNewAndroidProjectStepFixture<W extends AbstractWizardFixture>
   extends AbstractWizardStepFixture<ConfigureNewAndroidProjectStepFixture, W> {
@@ -64,20 +63,26 @@ public class ConfigureNewAndroidProjectStepFixture<W extends AbstractWizardFixtu
   }
 
   @NotNull
-  public ConfigureNewAndroidProjectStepFixture<W> selectMinimumSdkApi(@NotNull FormFactor formFactor, int minSdkApi) {
-    String name = formFactor.id + ".minSdk";
-    new ApiLevelComboBoxFixture(robot(), robot().finder().findByName(target(), name, JComboBox.class)).selectApiLevel(minSdkApi);
-    return this;
-  }
-
-  @NotNull
   public ConfigureNewAndroidProjectStepFixture<W> selectMinimumSdkApi(int minSdkApi) {
-    return selectMinimumSdkApi(FormFactor.MOBILE, minSdkApi);
+    new ApiLevelComboBoxFixture(robot(), robot().finder().findByName(target(), "minSdkComboBox", JComboBox.class)).selectApiLevel(minSdkApi);
+    return this;
   }
 
   @NotNull
   public ConfigureNewAndroidProjectStepFixture<W> setPairWithPhoneApp(boolean select) {
     selectCheckBoxWithText("Pair with Empty Phone app", select);
+    return this;
+  }
+
+  @NotNull
+  public ConfigureNewAndroidProjectStepFixture<W> setPairWithCompanionPhoneApp(boolean select) {
+    selectCheckBoxWithText("Pair with companion Phone app", select);
+    return this;
+  }
+
+  @NotNull
+  public ConfigureNewAndroidProjectStepFixture<W> setUseKtsBuildFiles(boolean select) {
+    selectCheckBoxWithText("Use Kotlin script (.kts) for Gradle build files", select);
     return this;
   }
 }

@@ -248,8 +248,8 @@ public class ResourceAsserts {
       String actualValue = actual().getValue();
       String expectedValue = expected.getValue();
       if (actual() instanceof BasicFileResourceItem && expected instanceof BasicFileResourceItem) {
-        PathString actualPath = ResourceHelper.toFileResourcePathString(actualValue);
-        PathString expectedPath = ResourceHelper.toFileResourcePathString(expectedValue);
+        PathString actualPath = IdeResourcesUtil.toFileResourcePathString(actualValue);
+        PathString expectedPath = IdeResourcesUtil.toFileResourcePathString(expectedValue);
         if (!areEquivalentSources(actualPath, expectedPath)) {
           failWithoutActual(fact("expected value", expectedValue), fact("but was", actualValue));
         }

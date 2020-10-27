@@ -24,7 +24,6 @@ import org.fest.swing.edt.GuiTask
 import org.fest.swing.fixture.JPanelFixture
 import org.fest.swing.fixture.JTreeFixture
 import java.awt.event.KeyEvent
-import java.util.regex.Pattern
 import javax.swing.JPanel
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
@@ -37,9 +36,19 @@ class BuildAttributionViewFixture(robot: Robot, target: JPanel) : JPanelFixture(
       return JPanelFixture(robot(), finder().findByName(infoPanelContainer, "infoPage", JPanel::class.java, true))
     }
 
-  fun findHyperlabelByTextContainsAndClick(text: String) =
+  fun findHyperlabelByTextContainsAndClick(text: String) {
     HyperlinkLabelFixture(robot(), finder().find(visiblePage.target()) { it is HyperlinkLabel && it.text.contains(text) } as HyperlinkLabel)
       .clickLink(text)
+  }
+
+  fun requireWarningPanelsExistOnPage(vararg expectedWarningPanelNames: String) {
+    GuiTask.execute {
+      val warningPanelNames = finder()
+        .findAll(visiblePage.target()) { c -> c?.name?.startsWith("warning-") ?: false }
+        .map { c -> c.name }
+      assertThat(warningPanelNames).isEqualTo(expectedWarningPanelNames.map { "warning-$it" })
+    }
+  }
 
   fun checkInitState() {
     tree.requireSelectedNodeNameContain("Plugins with tasks determining this build's duration")
@@ -57,15 +66,20 @@ class BuildAttributionViewFixture(robot: Robot, target: JPanel) : JPanelFixture(
     tree.requireSelectedNodeContainInOrder(expectedChildren)
   }
 
-  fun requireOpenedPagePathAndHeader(selectedTreePath: String, pageHeaderPattern: String) {
+  fun requireOpenedPagePathAndHeader(selectedTreePath: String, pageHeaderText: String) {
     tree.requireSelection(selectedTreePath)
-    visiblePage.label("pageHeader").requireText(Pattern.compile(pageHeaderPattern))
+    visiblePage.label("pageHeader").requireText(pageHeaderText)
   }
 
   fun selectAndCheckBuildSummaryNode() {
     tree.selectRow(0)
-    tree.requireSelectedNodeNameContain("Build: finished at \\d\\d?/\\d\\d?/\\d\\d \\d?\\d:\\d\\d (AM|PM)")
-    visiblePage.label("pageHeader").requireText(Pattern.compile("Build finished at \\d\\d?/\\d\\d?/\\d\\d \\d?\\d:\\d\\d (AM|PM)"))
+    GuiTask.execute {
+      val headerText = visiblePage.label("pageHeader").text()
+      val headerTextExpectedPrefix = "Build finished at "
+      assertThat(headerText).startsWith(headerTextExpectedPrefix)
+      val dateTimeText = headerText!!.substring(headerTextExpectedPrefix.length)
+      tree.requireSelectedNodeNameContain("Build: finished at $dateTimeText")
+    }
   }
 
   fun selectPageByPath(treePath: String, expectedPageHeaderPattern: String) {
@@ -121,3 +135,4 @@ class BuildAttributionViewFixture(robot: Robot, target: JPanel) : JPanelFixture(
       tree.convertValueToText(node, false, false, false, 0, false)
   }
 }
+

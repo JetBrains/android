@@ -55,9 +55,7 @@ public class CaptureModel {
     CaptureDetails.Type.TOP_DOWN, FeatureTracker::trackSelectCaptureTopDown,
     CaptureDetails.Type.BOTTOM_UP, FeatureTracker::trackSelectCaptureBottomUp,
     CaptureDetails.Type.CALL_CHART, FeatureTracker::trackSelectCaptureCallChart,
-    CaptureDetails.Type.FLAME_CHART, FeatureTracker::trackSelectCaptureFlameChart,
-    // We don't track usage for experimental features
-    CaptureDetails.Type.RENDER_AUDIT, tracker -> {}
+    CaptureDetails.Type.FLAME_CHART, FeatureTracker::trackSelectCaptureFlameChart
   );
 
   @NotNull
@@ -78,7 +76,7 @@ public class CaptureModel {
   private Filter myFilter = Filter.EMPTY_FILTER;
 
   @NotNull
-  private FilterResult myFilterResult = new FilterResult();
+  private FilterResult myFilterResult = FilterResult.EMPTY_RESULT;
 
   @Nullable
   private CaptureDetails myDetails;

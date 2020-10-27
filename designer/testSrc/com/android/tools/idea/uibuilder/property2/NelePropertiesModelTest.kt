@@ -126,7 +126,8 @@ class NelePropertiesModelTest: LayoutTestCase() {
     model.addListener(listener)
 
     nlModel.resourcesChanged(EnumSet.of(ResourceNotificationManager.Reason.EDIT))
-    nlModel.flushUpdateQueue()
+    // FIXME-ank4: nlModel.flushUpdateQueue() not needed?
+    nlModel.updateQueue.flush()
     LaterInvocator.dispatchPendingFlushes()
     verify(listener).propertyValuesChanged(model)
   }
@@ -358,6 +359,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
     // This code makes sure that the last scheduled worker thread is finished,
     // then we also need to wait for events on the UI thread.
     fun waitUntilLastSelectionUpdateCompleted(model: NelePropertiesModel) {
+      model.updateQueue.flush()
       if (model.lastSelectionUpdate.get()) {
         while (!model.lastUpdateCompleted) {
           LaterInvocator.dispatchPendingFlushes()

@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.SdkConstants.FN_LOCAL_PROPERTIES
 import com.android.builder.model.SyncIssue
-import com.android.builder.model.SyncIssue.TYPE_SDK_NOT_SET
 import com.android.tools.idea.gradle.project.sync.hyperlink.SetSdkDirHyperlink
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.project.messages.MessageType
@@ -35,7 +34,7 @@ class MissingSdkIssueReporter : SimpleDeduplicatingSyncIssueReporter() {
     return if (localPropertiesPaths.isEmpty()) mutableListOf() else mutableListOf(SetSdkDirHyperlink(project, localPropertiesPaths))
   }
 
-  override fun getSupportedIssueType(): Int = TYPE_SDK_NOT_SET
+  override fun getSupportedIssueType(): Int = SyncIssue.TYPE_SDK_NOT_SET
 
   // All issues of this type should be grouped together
   override fun getDeduplicationKey(issue: SyncIssue): Any = supportedIssueType

@@ -448,7 +448,7 @@ public class DrawConnectionUtils {
    * @param length
    * @param archLen
    */
-  public static void drawRound(GeneralPath path, @SwingCoordinate int[] xPoints, @SwingCoordinate int[] yPoints, int length, int archLen) {
+  public static void drawRound(Path2D.Float path, @SwingCoordinate int[] xPoints, @SwingCoordinate int[] yPoints, int length, int archLen) {
     int[] arches = new int[xPoints.length - 1];
     for (int i = 0; i < arches.length; i++) {
       arches[i] = archLen;
@@ -687,7 +687,9 @@ public class DrawConnectionUtils {
    * @param length
    * @param arches
    */
-  public static void drawRound(GeneralPath path, @SwingCoordinate int[] xPoints, @SwingCoordinate int[] yPoints, int length, int[] arches) {
+  public static void drawRound(Path2D.Float path,
+                               @SwingCoordinate int[] xPoints, @SwingCoordinate int[] yPoints,
+                               int length, int[] arches) {
     int lastx = xPoints[0];
     int lasty = yPoints[0];
     int p = 1;

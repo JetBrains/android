@@ -31,18 +31,20 @@ public class MemoryAspectObserver extends AspectObserver {
   protected int myCurrentInstanceAspectCount;
   protected int myCurrentFieldPathAspectCount;
 
-  public MemoryAspectObserver(@NotNull AspectModel<MemoryProfilerAspect> model) {
+  public MemoryAspectObserver(@NotNull AspectModel<MemoryProfilerAspect> model,
+                              @NotNull AspectModel<CaptureSelectionAspect> selectionModel) {
     resetCounts();
 
     model.addDependency(this)
-      .onChange(MemoryProfilerAspect.TRACKING_ENABLED, () -> ++myAllocationAspectCount)
-      .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, () -> ++myCurrentLoadingCaptureAspectCount)
-      .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, () -> ++myCurrentLoadedCaptureAspectCount)
-      .onChange(MemoryProfilerAspect.CLASS_GROUPING, () -> ++myCurrentGroupingAspectCount)
-      .onChange(MemoryProfilerAspect.CURRENT_HEAP, () -> ++myCurrentHeapAspectCount)
-      .onChange(MemoryProfilerAspect.CURRENT_CLASS, () -> ++myCurrentClassAspectCount)
-      .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, () -> ++myCurrentInstanceAspectCount)
-      .onChange(MemoryProfilerAspect.CURRENT_FIELD_PATH, () -> ++myCurrentFieldPathAspectCount);
+      .onChange(MemoryProfilerAspect.TRACKING_ENABLED, () -> ++myAllocationAspectCount);
+    selectionModel.addDependency(this)
+      .onChange(CaptureSelectionAspect.CURRENT_LOADING_CAPTURE, () -> ++myCurrentLoadingCaptureAspectCount)
+      .onChange(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE, () -> ++myCurrentLoadedCaptureAspectCount)
+      .onChange(CaptureSelectionAspect.CLASS_GROUPING, () -> ++myCurrentGroupingAspectCount)
+      .onChange(CaptureSelectionAspect.CURRENT_HEAP, () -> ++myCurrentHeapAspectCount)
+      .onChange(CaptureSelectionAspect.CURRENT_CLASS, () -> ++myCurrentClassAspectCount)
+      .onChange(CaptureSelectionAspect.CURRENT_INSTANCE, () -> ++myCurrentInstanceAspectCount)
+      .onChange(CaptureSelectionAspect.CURRENT_FIELD_PATH, () -> ++myCurrentFieldPathAspectCount);
   }
 
   public void assertAndResetCounts(int legacyAllocationAspect,

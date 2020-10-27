@@ -56,7 +56,7 @@ class FixNdkVersionProcessorTest : AndroidGradleTestCase() {
     val processor = FixNdkVersionProcessor(project, ImmutableList.of(file), "77.7.7")
     val usages = processor.findUsages()
     assertSize(1, usages)
-    assertEquals("\"21.0.6113669\"", usages[0].element!!.text)
+    assertEquals("\"21.1.6352462\"", usages[0].element!!.text)
   }
 
   @Test
@@ -69,7 +69,8 @@ class FixNdkVersionProcessorTest : AndroidGradleTestCase() {
     val usages = processor.findUsages()
     var synced = false
     GradleSyncState.subscribe(project, object : GradleSyncListener {
-      override fun syncStarted(project: Project) {
+      override fun syncFailed(project: Project, errorMessage: String) {
+        // It fails with 77.7.7.
         synced = true
       }
     })

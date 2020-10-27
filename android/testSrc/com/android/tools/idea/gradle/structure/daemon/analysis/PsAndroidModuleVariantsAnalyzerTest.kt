@@ -77,8 +77,8 @@ class PsAndroidModuleVariantsAnalyzerTest : DependencyTestCase() {
 
     val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
     assertThat(result, equalTo(listOf(
-      "ERROR: No build type in module '<mainModule> [./Build Variants/Build Types]' " +
-      "matches build type '<app/Build Variants/Build Types/newBuildType> [.]'."
+      "ERROR: No build type in module '<:mainModule> [./Build Variants/Build Types]' " +
+      "matches build type '<:app/Build Variants/Build Types/newBuildType> [.]'."
     )))
   }
 
@@ -208,9 +208,9 @@ class PsAndroidModuleVariantsAnalyzerTest : DependencyTestCase() {
 
     val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
     assertThat(result, equalTo(listOf(
-      "ERROR: No product flavor in module '<mainModule> [./Build Variants/Product Flavors]' " +
-      "matches product flavor '<app/Build Variants/Product Flavors/newProductFlavor> [.]' " +
-      "in dimension '<app/Build Variants/Product Flavors/foo> [.]'."
+      "ERROR: No product flavor in module '<:mainModule> [./Build Variants/Product Flavors]' " +
+      "matches product flavor '<:app/Build Variants/Product Flavors/newProductFlavor> [.]' " +
+      "in dimension '<:app/Build Variants/Product Flavors/foo> [.]'."
     )))
   }
 
@@ -276,10 +276,10 @@ class PsAndroidModuleVariantsAnalyzerTest : DependencyTestCase() {
 
     val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
     assertThat(result, equalTo(listOf(
-      "ERROR: No flavor dimension in module '<app> [./Build Variants/Product Flavors]' " +
-      "matches dimension '<mainModule/Build Variants/Product Flavors/foo> [.]' " +
-      "from module <mainModule> [./Build Variants/Product Flavors] " +
-      "on which module '<app> [./Dependencies/mainModule]' depends."
+      "ERROR: No flavor dimension in module '<:app> [./Build Variants/Product Flavors]' " +
+      "matches dimension '<:mainModule/Build Variants/Product Flavors/foo> [.]' " +
+      "from module <:mainModule> [./Build Variants/Product Flavors] " +
+      "on which module '<:app> [./Dependencies/mainModule]' depends."
     )))
   }
 
@@ -337,7 +337,7 @@ class PsAndroidModuleVariantsAnalyzerTest : DependencyTestCase() {
 
     val result = analyzeProductFlavors(appModule, pathRenderer).map { it.toString() }.toList()
     assertThat(result, equalTo(listOf(
-      "ERROR: Flavor '<app/Build Variants/Product Flavors/newProductFlavor> [.]' has no flavor dimension."
+      "ERROR: Flavor '<:app/Build Variants/Product Flavors/newProductFlavor> [.]' has no flavor dimension."
     )))
   }
 
@@ -354,7 +354,7 @@ class PsAndroidModuleVariantsAnalyzerTest : DependencyTestCase() {
 
     val result = analyzeProductFlavors(appModule, pathRenderer).map { it.toString() }.toList()
     assertThat(result, equalTo(listOf(
-      "ERROR: Flavor '<app/Build Variants/Product Flavors/newProductFlavor> [.]' has unknown dimension 'foo'."
+      "ERROR: Flavor '<:app/Build Variants/Product Flavors/newProductFlavor> [.]' has unknown dimension 'foo'."
     )))
   }
 }

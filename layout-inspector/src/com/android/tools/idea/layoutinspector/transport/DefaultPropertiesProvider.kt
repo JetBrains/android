@@ -23,6 +23,7 @@ import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyI
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertySection
+import com.android.tools.idea.layoutinspector.properties.addInternalProperties
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.res.colorToString
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.FlagValue
@@ -70,6 +71,11 @@ class DefaultPropertiesProvider(
     if (!client.isConnected) {
       lastRequestedView = null
       firePropertiesProvided(view, PropertiesTable.emptyTable())
+      return Futures.immediateFuture(null)
+    }
+    if (!view.hasProperties) {
+      val generator = Generator(PropertyEvent.getDefaultInstance(), view, resourceLookup)
+      firePropertiesProvided(view, PropertiesTable.create(generator.generate()))
       return Futures.immediateFuture(null)
     }
     lastRequestedView = view
@@ -122,8 +128,8 @@ class DefaultPropertiesProvider(
           Type.GRAVITY,
           Type.INT_FLAG -> fromFlags(property.flagValue)
           Type.BOOLEAN -> fromBoolean(property)?.toString()
+          Type.CHAR -> fromChar(property)?.toString()
           Type.BYTE,
-          Type.CHAR,
           Type.INT16,
           Type.INT32 -> fromInt32(property)?.toString()
           Type.INT64 -> fromInt64(property)?.toString()
@@ -139,11 +145,15 @@ class DefaultPropertiesProvider(
           Type.INTERPOLATOR -> SOME_UNKNOWN_INTERPOLATOR_VALUE
           else -> ""
         }
+        var type = property.type
+        if ((type == Type.INT32 || type == Type.FLOAT) && resourceLookup.isDimension(view, name)) {
+          type = if (type == Type.INT32) Type.DIMENSION else Type.DIMENSION_FLOAT
+        }
         // TODO: Handle attribute namespaces i.e. the hardcoded ANDROID_URI below
-        add(
-          InspectorPropertyItem(ANDROID_URI, name, name, property.type, value, group, source, view, resourceLookup))
+        add(InspectorPropertyItem(ANDROID_URI, name, type, value, group, source, view, resourceLookup))
       }
       ApplicationManager.getApplication().runReadAction { generateItemsForResolutionStack() }
+      addInternalProperties(table, view, resourceLookup)
       return table
     }
 
@@ -178,23 +188,23 @@ class DefaultPropertiesProvider(
           Type.ANIM,
           Type.ANIMATOR,
           Type.INTERPOLATOR,
-          Type.DRAWABLE -> stringTable[property.int32Value]
+          Type.DRAWABLE -> stringTable[property.int32Value].ifEmpty { null }
           else -> null  // TODO offer information from other object types
         }
-        val value: String? = when (property.type) {
+        val initialValue: String? = when (property.type) {
           // Attempt to find the drawable value from source code, since it is impossible to get from the agent.
           Type.ANIM,
           Type.ANIMATOR,
-          Type.DRAWABLE -> item.source?.let { resourceLookup.findAttributeValue(item, it) } ?: item.value
+          Type.DRAWABLE -> item.source?.let { resourceLookup.findAttributeValue(item, it) } ?: item.initialValue
           Type.INTERPOLATOR  -> item.source?.let { resourceLookup.findAttributeValue(item, it) } ?: valueFromInterpolatorClass(className)
-          else -> item.value
+          else -> item.initialValue
         }
         val classLocation = className?.let { resourceLookup.resolveClassNameAsSourceLocation(it) }
-        if (map.isNotEmpty() || item.source != null || className != null || value != item.value) {
+        if (map.isNotEmpty() || item.source != null || className != null || initialValue != item.initialValue) {
           add(InspectorGroupPropertyItem(ANDROID_URI,
                                          name,
-                                         property.type,
-                                         value,
+                                         item.type,
+                                         initialValue,
                                          classLocation,
                                          item.group,
                                          item.source,
@@ -218,6 +228,11 @@ class DefaultPropertiesProvider(
     private fun fromBoolean(property: Property): Boolean? {
       val intValue = fromInt32(property) ?: return null
       return intValue != 0
+    }
+
+    private fun fromChar(property: Property): Char? {
+      val intValue = fromInt32(property) ?: return null
+      return intValue.toChar()
     }
 
     private fun fromInt32(property: Property): Int? {

@@ -88,7 +88,7 @@ public class NetworkProfilerStage extends StreamingStage implements CodeNavigato
 
     myStackTraceModel = new StackTraceModel(profilers.getIdeServices().getCodeNavigator());
 
-    myRangeSelectionModel = new RangeSelectionModel(getTimeline().getSelectionRange());
+    myRangeSelectionModel = new RangeSelectionModel(getTimeline().getSelectionRange(), getTimeline().getViewRange());
     profilers.addDependency(myAspectObserver)
       .onChange(ProfilerAspect.AGENT, () -> myRangeSelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
     myRangeSelectionModel.setSelectionEnabled(profilers.isAgentAttached());

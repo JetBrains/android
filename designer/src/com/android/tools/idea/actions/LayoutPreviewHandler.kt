@@ -22,5 +22,5 @@ val LAYOUT_PREVIEW_HANDLER_KEY = DataKey.create<LayoutPreviewHandler>(LayoutPrev
 
 /** Interface for components that can render and manage previews from a Layout file. */
 interface LayoutPreviewHandler {
-  var previewWithToolsAttributes: Boolean
+  var previewWithToolsVisibilityAndPosition: Boolean
 }

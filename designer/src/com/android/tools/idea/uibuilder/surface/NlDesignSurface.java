@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import static com.android.tools.idea.actions.DesignerDataKeys.DESIGN_SURFACE;
+import static com.android.tools.idea.actions.DesignerDataKeys.LAYOUT_VALIDATOR_KEY;
+import static com.android.tools.idea.flags.StudioFlags.NELE_LAYOUT_VALIDATOR_IN_EDITOR;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA;
 
+import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.actions.LayoutPreviewHandler;
 import com.android.tools.idea.actions.LayoutPreviewHandlerKt;
@@ -37,8 +41,7 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.InteractionHandler;
-import com.android.tools.idea.common.surface.Layer;
-import com.android.tools.idea.common.surface.SceneLayer;
+import com.android.tools.idea.common.surface.PositionableContentLayoutManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -57,18 +60,29 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
+import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
+import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
+import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
+import com.android.tools.idea.validator.ValidatorResult;
 import com.android.utils.ImmutableCollectors;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.Update;
 import java.awt.*;
 import java.util.ArrayList;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Rectangle;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -86,12 +100,58 @@ import org.jetbrains.annotations.Nullable;
 @SuppressWarnings("ClassWithOnlyPrivateConstructors")
 public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.AccessoryPanelVisibility, LayoutPreviewHandler {
 
-  private boolean myPreviewWithToolsAttributes = true;
+  private boolean myPreviewWithToolsVisibilityAndPosition = true;
 
   private static final double DEFAULT_MIN_SCALE = 0.1;
   private static final double DEFAULT_MAX_SCALE = 10;
 
-  public static final class Builder {
+  /**
+   * See {@link Builder#setDelegateDataProvider(DataProvider)}
+   */
+  @Nullable private final DataProvider myDelegateDataProvider;
+
+  private static class NlDesignSurfacePositionableContentLayoutManager extends PositionableContentLayoutManager {
+    private final NlDesignSurface myDesignSurface;
+    private final SurfaceLayoutManager myLayoutManager;
+
+    NlDesignSurfacePositionableContentLayoutManager(@NotNull NlDesignSurface surface, @NotNull SurfaceLayoutManager surfaceLayoutManager) {
+      myDesignSurface = surface;
+      myLayoutManager = surfaceLayoutManager;
+    }
+
+    @Override
+    public void layoutContent(@NotNull Collection<? extends PositionableContent> content) {
+      Dimension extentSize = myDesignSurface.getExtentSize();
+      int availableWidth = extentSize.width;
+      int availableHeight = extentSize.height;
+      myLayoutManager.layout(content, availableWidth, availableHeight, myDesignSurface.isCanvasResizing());
+    }
+
+    @Override
+    public Dimension preferredLayoutSize(Container parent) {
+      Dimension extentSize = myDesignSurface.getExtentSize();
+      int availableWidth = extentSize.width;
+      int availableHeight = extentSize.height;
+      Dimension dimension = myLayoutManager.getRequiredSize(myDesignSurface.getPositionableContent(), availableWidth, availableHeight, null);
+
+      if (dimension.width >= 0 && dimension.height >= 0) {
+        dimension.setSize(dimension.width + 2 * DEFAULT_SCREEN_OFFSET_X, dimension.height + 2 * DEFAULT_SCREEN_OFFSET_Y);
+      }
+      else {
+        // The layout manager returned an invalid layout
+        dimension.setSize(0, 0);
+      }
+
+      dimension.setSize(
+        Math.max(myDesignSurface.myScrollableViewMinSize.width, dimension.width),
+        Math.max(myDesignSurface.myScrollableViewMinSize.height, dimension.height)
+      );
+
+      return dimension;
+    }
+  }
+
+  public static class Builder {
     private final Project myProject;
     private final Disposable myParentDisposable;
     private boolean myIsPreview = false;
@@ -101,9 +161,14 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     private boolean myIsEditable = true;
     private SurfaceLayoutManager myLayoutManager;
     private NavigationHandler myNavigationHandler;
-    @NotNull private State myDefaultSurfaceState = State.FULL;
     private double myMinScale = DEFAULT_MIN_SCALE;
     private double myMaxScale = DEFAULT_MAX_SCALE;
+    @NotNull private ZoomType myOnChangeZoom = ZoomType.FIT_INTO;
+    /**
+     * An optional {@link DataProvider} that allows users of the surface to provide additional information associated
+     * with this surface.
+     */
+    @Nullable private DataProvider myDelegateDataProvider = null;
 
     /**
      * Factory to create an action manager for the NlDesignSurface
@@ -115,6 +180,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
      * Factory to create an {@link InteractionHandler} for the {@link DesignSurface}.
      */
     private Function<DesignSurface, InteractionHandler> myInteractionHandlerProvider = NlDesignSurface::defaultInteractionHandlerProvider;
+    private Function<DesignSurface, DesignSurfaceActionHandler> myActionHandlerProvider = NlDesignSurface::defaultActionHandlerProvider;
 
     private Builder(@NotNull Project project, @NotNull Disposable parentDisposable) {
       myProject = project;
@@ -199,16 +265,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     /**
-     * Specify the default {@link State} of this {@link NlDesignSurface}, which will be set for newly created files or if the {@link State}
-     * is not overridden somewhere else (e.g. {@link State} saved before closing the file).
-     */
-    @NotNull
-    public Builder setDefaultSurfaceState(@NotNull State surfaceState) {
-      myDefaultSurfaceState = surfaceState;
-      return this;
-    }
-
-    /**
      * When the surface is clicked, it can delegate navigation related task to the given handler.
      * @param navigationHandler handles the navigation when the surface is clicked.
      */
@@ -250,6 +306,35 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       return this;
     }
 
+    /**
+     * Set zoom type to apply to surface on configuration changes.
+     * @param onChangeZoom {@link ZoomType} to be applied on configuration change
+     * @return this {@link Builder}
+     */
+    public Builder setOnConfigurationChangedZoom(@NotNull ZoomType onChangeZoom) {
+      myOnChangeZoom = onChangeZoom;
+      return this;
+    }
+
+    /**
+     * Sets the {@link DesignSurfaceActionHandler} provider for this surface.
+     */
+    @NotNull
+    public Builder setActionHandler(@NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider) {
+      myActionHandlerProvider = actionHandlerProvider;
+      return this;
+    }
+
+    /**
+     * Sets a delegate {@link DataProvider} that allows users of the surface to provide additional information associated
+     * with this surface.
+     */
+    @NotNull
+    public Builder setDelegateDataProvider(@NotNull DataProvider dataProvider) {
+      myDelegateDataProvider = dataProvider;
+      return this;
+    }
+
     @NotNull
     public NlDesignSurface build() {
       SurfaceLayoutManager layoutManager = myLayoutManager != null ? myLayoutManager : createDefaultSurfaceLayoutManager();
@@ -265,10 +350,12 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                                  layoutManager,
                                  myActionManagerProvider,
                                  myInteractionHandlerProvider,
-                                 myDefaultSurfaceState,
                                  myNavigationHandler,
                                  myMinScale,
-                                 myMaxScale);
+                                 myMaxScale,
+                                 myOnChangeZoom,
+                                 myActionHandlerProvider,
+                                 myDelegateDataProvider);
     }
   }
 
@@ -276,19 +363,22 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    * Optional navigation helper for when the surface is clicked.
    */
   public interface NavigationHandler extends Disposable {
-
     /**
-     * Returns true if the file name passed is handled by the navigation handler. False otherwise.
+     * Triggered when preview in the design surface is clicked, returns true if the navigation was handled by this handler.
+     * This method receives the x and y coordinates of the click. You will usually only need the coordinates if your navigation can
+     * be different within a same {@link SceneComponent}.
+     *
+     * @param sceneView {@link SceneView} for which the navigation request is being issued
+     * @param sceneComponent {@link SceneComponent} for which the navigation request is being issued
+     * @param x X coordinate within the {@link SceneView} where the click action was initiated
+     * @param y y coordinate within the {@link SceneView} where the click action was initiated
+     * @param requestFocus true if the navigation should focus the editor
      */
-    @NotNull boolean isFileHandled(String filename);
-
-    /**
-     * Triggered when preview in the design surface is clicked.
-     */
-    void handleNavigate(SceneView view,
-                        ImmutableList<NlModel> models,
-                        boolean editor,
-                        @Nullable NlComponent component);
+    boolean handleNavigate(@NotNull SceneView sceneView,
+                           @NotNull SceneComponent sceneComponent,
+                           @SwingCoordinate int x,
+                           @SwingCoordinate int y,
+                           boolean requestFocus);
   }
 
   @NotNull private SceneMode mySceneMode = SceneMode.Companion.loadPreferredMode();
@@ -296,7 +386,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   private boolean myShowModelNames = false;
   private boolean myMockupVisible;
   private MockupEditor myMockupEditor;
-  private boolean myCentered;
   private final boolean myIsInPreview;
   private ShapeMenuAction.AdaptiveIconShape myAdaptiveIconShape = ShapeMenuAction.AdaptiveIconShape.getDefaultShape();
   private final RenderListener myRenderListener = this::modelRendered;
@@ -318,6 +407,10 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   private boolean myIsRenderingSynchronously = false;
   private boolean myIsAnimationScrubbing = false;
 
+  private final Dimension myScrollableViewMinSize = new Dimension();
+  @Nullable private NlLayoutValidator myValidator;
+  @Nullable private LayoutValidatorControl myValidatorControl;
+
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
                           boolean isInPreview,
@@ -327,11 +420,15 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           @NotNull SurfaceLayoutManager layoutManager,
                           @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
                           @NotNull Function<DesignSurface, InteractionHandler> interactionHandlerProvider,
-                          @NotNull State defaultSurfaceState,
                           @Nullable NavigationHandler navigationHandler,
                           double minScale,
-                          double maxScale) {
-    super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, defaultSurfaceState, isEditable);
+                          double maxScale,
+                          @NotNull ZoomType onChangeZoom,
+                          @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider,
+                          @Nullable DataProvider delegateDataProvider) {
+    super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, isEditable, onChangeZoom,
+          (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, layoutManager),
+          actionHandlerProvider);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     myIsInPreview = isInPreview;
@@ -346,6 +443,13 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
     myMinScale = minScale;
     myMaxScale = maxScale;
+
+    if (NELE_LAYOUT_VALIDATOR_IN_EDITOR.get()) {
+      myValidator = new NlLayoutValidator(myIssueModel, this);
+      myValidatorControl = new NlLayoutValidatorControl(this, myValidator);
+    }
+
+    myDelegateDataProvider = delegateDataProvider;
   }
 
   /**
@@ -353,7 +457,12 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    */
   @NotNull
   public static LayoutlibSceneManager defaultSceneManagerProvider(@NotNull NlDesignSurface surface, @NotNull NlModel model) {
-    return new LayoutlibSceneManager(model, surface, () -> RenderSettings.getProjectSettings(model.getProject()));
+    LayoutlibSceneManager sceneManager = new LayoutlibSceneManager(model, surface);
+    RenderSettings settings = RenderSettings.getProjectSettings(model.getProject());
+    sceneManager.setShowDecorations(settings.getShowDecorations());
+    sceneManager.setUseImagePool(settings.getUseLiveRendering());
+    sceneManager.setQuality(settings.getQuality());
+    return sceneManager;
   }
 
   @NotNull
@@ -375,6 +484,14 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @NotNull
   public static NlInteractionHandler defaultInteractionHandlerProvider(@NotNull DesignSurface surface) {
     return new NlInteractionHandler(surface);
+  }
+
+  /**
+   * Default {@link NlDesignSurfaceActionHandler} provider.
+   */
+  @NotNull
+  public static NlDesignSurfaceActionHandler defaultActionHandlerProvider(@NotNull DesignSurface surface) {
+    return new NlDesignSurfaceActionHandler(surface);
   }
 
   @NotNull
@@ -409,6 +526,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    */
   public void setResizeMode(boolean isResizing) {
     myIsCanvasResizing = isResizing;
+    // When in resize mode, allow the scrollable surface autoscroll so it follow the mouse.
+    myScrollPane.setAutoscrolls(isResizing);
   }
 
   /**
@@ -438,7 +557,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   public void setScreenMode(@NotNull SceneMode sceneMode, boolean setAsDefault) {
-
     if (setAsDefault) {
       SceneMode.Companion.savePreferredMode(sceneMode);
     }
@@ -453,9 +571,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       }
       if (!contentResizeSkipped()) {
         zoomToFit();
+        revalidateScrollArea();
       }
-      layoutContent();
-      updateScrolledAreaSize();
     }
   }
 
@@ -480,13 +597,10 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    * @param value if true, force painting
    */
   public void forceLayersPaint(boolean value) {
-    for (Layer layer : getLayers()) {
-      if (layer instanceof SceneLayer) {
-        SceneLayer sceneLayer = (SceneLayer)layer;
-        sceneLayer.setTemporaryShow(value);
-        repaint();
-      }
+    for (SceneView view : getSceneViews()) {
+      view.setForceLayersRepaint(value);
     }
+    repaint();
   }
 
   @Override
@@ -503,17 +617,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     return view;
   }
 
-  @NotNull
-  @Override
-  public Rectangle getRenderableBoundsForInvisibleComponents(@NotNull SceneView sceneView, @Nullable Rectangle rectangle) {
-    return myLayoutManager.getRenderableBoundsForInvisibleComponents(sceneView,
-                                                                     getSceneViews(),
-                                                                     myScrollPane.getWidth(),
-                                                                     myScrollPane.getHeight(),
-                                                                     myScrollPane.getViewport().getViewRect(),
-                                                                     rectangle);
-  }
-
   /**
    * Return the ScreenView under the given position
    *
@@ -522,38 +625,31 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Nullable
   @Override
   public SceneView getHoverSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
-    List<SceneView> sceneViews = getSceneViews();
+    Collection<SceneView> sceneViews = getSceneViews();
     for (SceneView view : sceneViews) {
-      if (view.getX() <= x && x <= (view.getX() + view.getSize().width) && view.getY() <= y && y <= (view.getY() + view.getSize().height)) {
+      if (view.getX() <= x && x <= (view.getX() + view.getScaledContentSize().width) && view.getY() <= y && y <= (view.getY() + view.getScaledContentSize().height)) {
         return view;
       }
     }
     return null;
   }
 
+  @Override
   @NotNull
-  private ImmutableList<SceneView> getSceneViews() {
+  protected ImmutableCollection<SceneView> getSceneViews() {
     ImmutableList.Builder<SceneView> builder = new ImmutableList.Builder<>();
+
+    // Add all primary SceneViews
+    builder.addAll(super.getSceneViews());
+
+    // Add secondary SceneViews
     for (SceneManager manager : getSceneManagers()) {
-      SceneView view = manager.getSceneView();
-      builder.add(view);
       SceneView secondarySceneView = ((LayoutlibSceneManager)manager).getSecondarySceneView();
       if (secondarySceneView != null) {
         builder.add(secondarySceneView);
       }
     }
     return builder.build();
-  }
-
-  @Override
-  public Dimension getScrolledAreaSize() {
-    List<SceneView> sceneViews = getSceneViews();
-    Dimension dimension = myLayoutManager.getRequiredSize(sceneViews, myScrollPane.getWidth(), myScrollPane.getHeight(), null);
-    if (dimension.width <= 0 || dimension.height <= 0) {
-      return null;
-    }
-    dimension.setSize(dimension.width + 2 * DEFAULT_SCREEN_OFFSET_X, dimension.height + 2 * DEFAULT_SCREEN_OFFSET_Y);
-    return dimension;
   }
 
   public void setAdaptiveIconShape(@NotNull ShapeMenuAction.AdaptiveIconShape adaptiveIconShape) {
@@ -582,10 +678,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     showInspectorAccessoryPanel(show);
   }
 
-  public void setCentered(boolean centered) {
-    myCentered = centered;
-  }
-
   @Override
   public float getScreenScalingFactor() {
     return JBUIScale.sysScale(this);
@@ -595,16 +687,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Override
   public ActionManager<NlDesignSurface> getActionManager() {
     return (ActionManager<NlDesignSurface>)super.getActionManager();
-  }
-
-  @Override
-  public void layoutContent() {
-    int availableWidth = myScrollPane.getWidth();
-    int availableHeight = myScrollPane.getHeight();
-    myLayoutManager.layout(getSceneViews(), availableWidth, availableHeight, myIsCanvasResizing);
-
-    revalidate();
-    repaint();
   }
 
   @Override
@@ -631,8 +713,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @NotNull
   @Override
   protected Dimension getPreferredContentSize(@SwingCoordinate int availableWidth, @SwingCoordinate int availableHeight) {
-    List<SceneView> sceneViews = getSceneViews();
-    return myLayoutManager.getPreferredSize(sceneViews, myScrollPane.getWidth(), myScrollPane.getHeight(), null);
+    Collection<SceneView> sceneViews = getSceneViews();
+    Dimension extent = getExtentSize();
+    return myLayoutManager.getPreferredSize(sceneViews, extent.width, extent.height, null);
   }
 
   @Override
@@ -704,6 +787,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
         if (result == null) {
           return;
         }
+        if (NELE_LAYOUT_VALIDATOR_IN_EDITOR.get() && !getModels().isEmpty()) {
+          myValidator.validateAndUpdateLint(result, getModels().get(0));
+        }
 
         Project project = getProject();
         if (project.isDisposed()) {
@@ -735,20 +821,14 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   private void modelRendered() {
     updateErrorDisplay();
-    repaint();
-    layoutContent();
+    // modelRendered might be called in the Layoutlib Render thread and revalidateScrollArea needs to be called on the UI thread.
+    UIUtil.invokeLaterIfNeeded(() -> revalidateScrollArea());
   }
 
   @NotNull
   @Override
   public CompletableFuture<Void> forceUserRequestedRefresh() {
-    ArrayList<CompletableFuture<Void>> refreshFutures = new ArrayList<>();
-    for (SceneManager sceneManager : getSceneManagers()) {
-      LayoutlibSceneManager layoutlibSceneManager = (LayoutlibSceneManager)sceneManager;
-      refreshFutures.add(layoutlibSceneManager.requestUserInitiatedRender());
-    }
-
-    return CompletableFuture.allOf(refreshFutures.toArray(new CompletableFuture[refreshFutures.size()]));
+    return requestSequentialRender(manager -> ((LayoutlibSceneManager)manager).requestUserInitiatedRender());
   }
 
   @Override
@@ -811,7 +891,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       return;
     }
 
-    @SwingCoordinate Dimension swingViewportSize = getScrollPane().getViewport().getExtentSize();
+    @SwingCoordinate Dimension swingViewportSize = getExtentSize();
     @SwingCoordinate int targetSwingX = (int)areaToCenter.getCenterX();
     @SwingCoordinate int targetSwingY = (int)areaToCenter.getCenterY();
     // Center to position.
@@ -828,12 +908,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   protected void notifySelectionListeners(@NotNull List<NlComponent> newSelection) {
     super.notifySelectionListeners(newSelection);
     scrollToCenter(newSelection);
-  }
-
-  @NotNull
-  @Override
-  protected DesignSurfaceActionHandler createActionHandler() {
-    return new NlDesignSurfaceActionHandler(this);
   }
 
   @NotNull
@@ -873,23 +947,40 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   public boolean isInAnimationScrubbing() { return myIsAnimationScrubbing; }
 
+  /**
+   * Sets the min size allowed for the scrollable surface. This is useful in cases where we have an interaction that needs
+   * to extend the available space.
+   */
+  public void setScrollableViewMinSize(@NotNull Dimension dimension) {
+    myScrollableViewMinSize.setSize(dimension);
+  }
+
   @Override
-  public Object getData(@NotNull String dataId) {
-    if (LayoutPreviewHandlerKt.LAYOUT_PREVIEW_HANDLER_KEY.is(dataId)) {
+  public final Object getData(@NotNull String dataId) {
+    Object data = myDelegateDataProvider != null ? myDelegateDataProvider.getData(dataId) : null;
+    if (data != null) {
+      return data;
+    }
+
+    if (LayoutPreviewHandlerKt.LAYOUT_PREVIEW_HANDLER_KEY.is(dataId) ) {
       return this;
     }
+    else if(LAYOUT_VALIDATOR_KEY.is(dataId)) {
+      return myValidatorControl;
+    }
+
     return super.getData(dataId);
   }
 
   @Override
-  public boolean getPreviewWithToolsAttributes() {
-    return myPreviewWithToolsAttributes;
+  public boolean getPreviewWithToolsVisibilityAndPosition() {
+    return myPreviewWithToolsVisibilityAndPosition;
   }
 
   @Override
-  public void setPreviewWithToolsAttributes(boolean isPreviewWithToolsAttributes) {
-    if (myPreviewWithToolsAttributes != isPreviewWithToolsAttributes) {
-      myPreviewWithToolsAttributes = isPreviewWithToolsAttributes;
+  public void setPreviewWithToolsVisibilityAndPosition(boolean isPreviewWithToolsVisibilityAndPosition) {
+    if (myPreviewWithToolsVisibilityAndPosition != isPreviewWithToolsVisibilityAndPosition) {
+      myPreviewWithToolsVisibilityAndPosition = isPreviewWithToolsVisibilityAndPosition;
       forceUserRequestedRefresh();
     }
   }

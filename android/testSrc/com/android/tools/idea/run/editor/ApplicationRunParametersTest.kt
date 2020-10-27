@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.editor
 
-import com.android.tools.idea.run.AndroidAppRunConfigurationBase
+import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.BASIC
 import com.intellij.execution.ui.ConfigurationModuleSelector
@@ -27,7 +27,7 @@ import org.mockito.Mockito.mock
 import java.awt.event.ActionEvent
 
 class ApplicationRunParametersTest : AndroidGradleTestCase() {
-  private lateinit var myApplicationRunParameters: ApplicationRunParameters<AndroidAppRunConfigurationBase>
+  private lateinit var myApplicationRunParameters: ApplicationRunParameters<AndroidRunConfiguration>
   private lateinit var myModule : Module
   private lateinit var myModuleSelector : ConfigurationModuleSelector
 

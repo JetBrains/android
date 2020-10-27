@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">MigrateToAndroidX</string>
+    <string name="app_name">MigrateToAndroidXKts</string>
     <string name="action_settings">Settings</string>
 </resources>

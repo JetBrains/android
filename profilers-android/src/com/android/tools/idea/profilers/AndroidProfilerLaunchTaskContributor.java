@@ -47,9 +47,11 @@ import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
+import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
@@ -167,14 +169,65 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
                                               @NotNull ProfilerClient client,
                                               @NotNull IDevice device,
                                               @NotNull Common.Device profilerDevice) {
-    if (!StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get()) {
-      return "";
+    if (profilerState.isCpuStartupProfilingEnabled()) {
+      return triggerCpuStartupProfilingAndReturnArtParams(profilerState, appPackageName, project, client, device, profilerDevice);
+    }
+    if (profilerState.isNativeMemoryStartupProfilingEnabled()) {
+      triggerMemoryStartupProfiling(profilerState, appPackageName, project, client, device, profilerDevice);
+    }
+    return "";
+  }
+
+  private static void triggerMemoryStartupProfiling(@NotNull ProfilerState profilerState,
+                                                    @NotNull String appPackageName,
+                                                    @NotNull Project project,
+                                                    @NotNull ProfilerClient client,
+                                                    @NotNull IDevice device,
+                                                    @NotNull Common.Device profilerDevice) {
+    if (!isAtLeast(device, AndroidVersion.VersionCodes.Q)) {
+      AndroidNotification.getInstance(project).showBalloon("Startup Native Memory Profiling",
+                                                           "Starting a native memory sampling trace recording on startup is only " +
+                                                           "supported on devices with API levels 28 and higher.",
+                                                           NotificationType.WARNING);
+      return;
+    }
+    if (device.getAbis().isEmpty()) {
+      AndroidNotification.getInstance(project).showBalloon("Startup Native Memory Profiling",
+                                                           "Unable to detect device abi for startup memory profiling.",
+                                                           NotificationType.WARNING);
+      return;
     }
 
-    if (!profilerState.STARTUP_CPU_PROFILING_ENABLED) {
-      return "";
+    if (device.getAbis().contains("x86") || device.getAbis().contains("x86_64")) {
+      AndroidNotification.getInstance(project).showBalloon("Startup Native Memory Profiling",
+                                                           "Native memory profiling not supported on x86 and x86_64 devices.",
+                                                           NotificationType.WARNING);
+      return;
     }
+    String abi = device.getAbis().get(0);
+    StudioFeatureTracker featureTracker = new StudioFeatureTracker(project);
+    featureTracker.trackRecordAllocations();
+    String traceFilePath = String.format(Locale.US, "%s/%s.trace", DAEMON_DEVICE_DIR_PATH, appPackageName);
+    Commands.Command sampleCommand = Commands.Command.newBuilder()
+      .setStreamId(profilerDevice.getDeviceId())
+      .setType(Commands.Command.CommandType.START_NATIVE_HEAP_SAMPLE)
+      .setStartNativeSample(Memory.StartNativeSample.newBuilder()
+                              .setSamplingIntervalBytes(profilerState.NATIVE_MEMORY_SAMPLE_RATE_BYTES)
+                              .setSharedMemoryBufferBytes(64 * 1024 * 1024)
+                              .setAbiCpuArch(abi)
+                              .setTempPath(traceFilePath)
+                              .setAppName(appPackageName))
+      .build();
+    Transport.ExecuteResponse response =
+      client.getTransportClient().execute(Transport.ExecuteRequest.newBuilder().setCommand(sampleCommand).build());
+  }
 
+  private static String triggerCpuStartupProfilingAndReturnArtParams(@NotNull ProfilerState profilerState,
+                                                                     @NotNull String appPackageName,
+                                                                     @NotNull Project project,
+                                                                     @NotNull ProfilerClient client,
+                                                                     @NotNull IDevice device,
+                                                                     @NotNull Common.Device profilerDevice) {
     String configName = profilerState.STARTUP_CPU_PROFILING_CONFIGURATION_NAME;
     if (configName == null) {
       return "";
@@ -184,21 +237,19 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     if (startupConfig == null) {
       return "";
     }
-
-    if (!isAtLeastO(device)) {
+    if (!isAtLeast(device, AndroidVersion.VersionCodes.O)) {
       AndroidNotification.getInstance(project).showBalloon("Startup CPU Profiling",
                                                            "Starting a method trace recording on startup is only " +
                                                            "supported on devices with API levels 26 and higher.",
                                                            NotificationType.WARNING);
       return "";
     }
-
     String cpuAbi = "";
     switch (startupConfig.getTechnology()) {
       case SAMPLED_NATIVE:
         cpuAbi = getAbiDependentLibraryName("simpleperf", "simpleperf", device);
         break;
-      case ATRACE:
+      case SYSTEM_TRACE:
         cpuAbi = getAbiDependentLibraryName("perfetto", "perfetto", device);
         break;
       default:
@@ -207,7 +258,8 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
     // TODO b/133321803 switch back to having daemon generates and provides the path.
     String traceFilePath = String.format(Locale.US, "%s/%s-%d.trace", DAEMON_DEVICE_DIR_PATH, appPackageName, System.nanoTime());
-    Cpu.CpuTraceConfiguration.UserOptions traceOptions = CpuProfilerConfigConverter.toProto(startupConfig);
+    Cpu.CpuTraceConfiguration.UserOptions traceOptions =
+      CpuProfilerConfigConverter.toProto(startupConfig, device.getVersion().getFeatureLevel());
     Cpu.CpuTraceConfiguration configuration = Cpu.CpuTraceConfiguration.newBuilder()
       .setAppName(appPackageName)
       .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_STARTUP)
@@ -223,15 +275,17 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
           .setStartCpuTrace(Cpu.StartCpuTrace.newBuilder().setConfiguration(configuration).build())
           .build();
         // TODO handle async error statuses.
-        client.getTransportClient().execute(Transport.ExecuteRequest.newBuilder()
-                                              .setCommand(startCommand)
-                                              .build());
+        // TODO(b/150503095)
+        Transport.ExecuteResponse response = client.getTransportClient().execute(Transport.ExecuteRequest.newBuilder()
+                                                                                   .setCommand(startCommand)
+                                                                                   .build());
       }
       else {
         CpuProfiler.StartupProfilingRequest.Builder requestBuilder = CpuProfiler.StartupProfilingRequest.newBuilder()
           .setDeviceId(profilerDevice.getDeviceId())
           .setConfiguration(configuration);
-        client.getCpuClient().startStartupProfiling(requestBuilder.build());
+        // TODO(b/150503095)
+        CpuProfiler.StartupProfilingResponse response = client.getCpuClient().startStartupProfiling(requestBuilder.build());
       }
     }
     catch (StatusRuntimeException exception) {
@@ -254,8 +308,8 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     return argsBuilder.toString();
   }
 
-  private static boolean isAtLeastO(@NotNull IDevice device) {
-    return device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.O;
+  private static boolean isAtLeast(@NotNull IDevice device, int version) {
+    return device.getVersion().getFeatureLevel() >= version;
   }
 
   /**
@@ -313,7 +367,8 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
    */
   @NotNull
   private static Common.Device getProfilerDevice(@NotNull IDevice device, @NotNull ProfilerClient client) {
-    List<Common.Device> devices = StudioProfilers.getUpToDateDevices(StudioFlags.PROFILER_UNIFIED_PIPELINE.get(), client, null);
+    List<Common.Device> devices = StudioProfilers.getUpToDateDevices(
+      StudioFlags.PROFILER_UNIFIED_PIPELINE.get(), client, null, null);
     for (Common.Device profilerDevice : devices) {
       if (profilerDevice.getSerial().equals(device.getSerialNumber()) && profilerDevice.getState() == Common.Device.State.ONLINE) {
         return profilerDevice;
@@ -409,9 +464,8 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
             window.setShowStripeButton(true);
 
             String deviceName = AndroidProfilerToolWindow.getDeviceDisplayName(device);
-            AndroidProfilerToolWindow.PreferredProcessInfo preferredProcessInfo =
-              new AndroidProfilerToolWindow.PreferredProcessInfo(deviceName, myTargetProcessName,
-                                                                 p -> p.getStartTimestampNs() >= currentDeviceTimeNs);
+            PreferredProcessInfo preferredProcessInfo =
+              new PreferredProcessInfo(deviceName, myTargetProcessName, p -> p.getStartTimestampNs() >= currentDeviceTimeNs);
             // If the window is currently not shown, either if the users click on Run/Debug or if they manually collapse/hide the window,
             // then we shouldn't start profiling the launched app.
             boolean profileStarted = false;

@@ -3,12 +3,12 @@ package org.jetbrains.android.formatter;
 
 import com.intellij.application.options.XmlCodeStyleSettingsProvider;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
-import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationsConfiguration;
 import com.intellij.notification.impl.NotificationsConfigurationImpl;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.TextEditor;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -24,9 +24,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Provider<AndroidCodeStyleNotificationProvider.MyPanel> {
   private static final Key<MyPanel> KEY = Key.create("android.xml.code.style.notification");
 
@@ -47,7 +44,7 @@ public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Pr
   @Nullable
   @Override
   public MyPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor, @NotNull Project project) {
-    if (file.getFileType() != XmlFileType.INSTANCE ||
+    if (file.getFileType() != StdFileTypes.XML ||
         !(fileEditor instanceof TextEditor)) {
       return null;
     }

@@ -29,9 +29,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.util.ui.UIUtil;
-import icons.AndroidIcons;
-import java.awt.*;
-import javax.swing.*;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -137,8 +135,7 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
    */
   private class ToggleCrop extends ToggleAction {
     public ToggleCrop() {
-      // TODO: add new Icons to StudioIcons and replace this.
-      getTemplatePresentation().setIcon(AndroidIcons.Mockup.Crop);
+      getTemplatePresentation().setIcon(StudioIcons.Common.CROP);
     }
 
     @Override
@@ -166,8 +163,7 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
     public static final String TITLE = "Match component ratio";
 
     public MatchComponentRatio() {
-      // TODO: add new Icons to StudioIcons and replace this.
-      super(TITLE, TITLE, AndroidIcons.Mockup.AspectRatio);
+      super(TITLE, TITLE, StudioIcons.LayoutEditor.Toolbar.EXPAND_TO_FIT);
     }
 
     @Override

@@ -50,6 +50,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
 
   private SystemImageDescription myGapiImageDescription;
   private SystemImageDescription myGapi29ImageDescription;
+  private SystemImageDescription myGapi30ImageDescription;
   private SystemImageDescription myPsImageDescription;
   private SystemImageDescription myWearImageDescription;
   private SystemImageDescription myWear29ImageDescription;
@@ -62,6 +63,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
   private Device mySmallTablet;
   private Device myWearDevice;
   private Device myAutomotiveDevice;
+  private Device myFreeform;
 
   @Override
   public void setUp() throws Exception {
@@ -94,6 +96,19 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     pkgGapi29.setTypeDetails((TypeDetails) detailsGapi29);
     pkgGapi29.setInstalledPath(new File(SDK_LOCATION, "29-Q-x86"));
     fileOp.recordExistingFile(new File(pkgGapi29.getLocation(), SystemImageManager.SYS_IMG_NAME));
+
+    // Google API 30 image
+    String gapi30Path = "system-images;android-30;google_apis;x86";
+    FakePackage.FakeLocalPackage pkgGapi30 = new FakePackage.FakeLocalPackage(gapi30Path);
+    DetailsTypes.SysImgDetailsType detailsGapi30 =
+      AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    detailsGapi30.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    detailsGapi30.setAbi("x86");
+    detailsGapi30.setVendor(IdDisplay.create("google", "Google"));
+    detailsGapi30.setApiLevel(30);
+    pkgGapi30.setTypeDetails((TypeDetails)detailsGapi30);
+    pkgGapi30.setInstalledPath(new File(SDK_LOCATION, "30-R-x86"));
+    fileOp.recordExistingFile(new File(pkgGapi30.getLocation(), SystemImageManager.SYS_IMG_NAME));
 
     // Play Store image
     String psPath = "system-images;android-24;google_apis_playstore;x86";
@@ -160,7 +175,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     pkgAutomotive.setInstalledPath(new File(SDK_LOCATION, "28-automotive-x86"));
     fileOp.recordExistingFile(new File(pkgAutomotive.getLocation(), SystemImageManager.SYS_IMG_NAME));
 
-    packages.setLocalPkgInfos(ImmutableList.of(pkgGapi, pkgGapi29, pkgPs, pkgWear, pkgWear29, pkgCnWear, pkgAutomotive));
+    packages.setLocalPkgInfos(ImmutableList.of(pkgGapi, pkgGapi29, pkgGapi30, pkgPs, pkgWear, pkgWear29, pkgCnWear, pkgAutomotive));
 
     RepoManager mgr = new FakeRepoManager(new File(SDK_LOCATION), packages);
 
@@ -174,6 +189,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       sdkHandler.getLocalPackage(gapiPath, progress).getLocation());
     ISystemImage gapi29Image = systemImageManager.getImageAt(
       sdkHandler.getLocalPackage(gapi29Path, progress).getLocation());
+    ISystemImage gapi30Image = systemImageManager.getImageAt(
+      sdkHandler.getLocalPackage(gapi30Path, progress).getLocation());
     ISystemImage playStoreImage = systemImageManager.getImageAt(
       sdkHandler.getLocalPackage(psPath, progress).getLocation());
     ISystemImage wearImage = systemImageManager.getImageAt(
@@ -187,6 +204,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
 
     myGapiImageDescription = new SystemImageDescription(gapiImage);
     myGapi29ImageDescription = new SystemImageDescription(gapi29Image);
+    myGapi30ImageDescription = new SystemImageDescription(gapi30Image);
     myPsImageDescription = new SystemImageDescription(playStoreImage);
     myWearImageDescription = new SystemImageDescription(wearImage);
     myWear29ImageDescription = new SystemImageDescription(wear29Image);
@@ -212,6 +230,9 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
 
     // Get an Automotive device
     myAutomotiveDevice = devMgr.getDevice("automotive_1024p_landscape", "Google");
+
+    // Get a Freeform device
+    myFreeform = devMgr.getDevice("13.5in Freeform", "Generic");
   }
 
   public void testClassificationFromParts() {
@@ -249,6 +270,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     assertFalse(DeviceDefinitionList.isTablet(myBigPhone));
     assertFalse(DeviceDefinitionList.isTablet(myFoldable));
     assertTrue(DeviceDefinitionList.isTablet(mySmallTablet));
+    assertTrue(DeviceDefinitionList.isTablet(myFreeform));
   }
 
   public void testImageChosenForDevice() {
@@ -256,6 +278,11 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       assertFalse(systemImageMatchesDevice(myWear29ImageDescription, myFoldable));
       assertFalse(systemImageMatchesDevice(myGapiImageDescription, myFoldable));
       assertTrue(systemImageMatchesDevice(myGapi29ImageDescription, myFoldable));
+      assertFalse(systemImageMatchesDevice(myWearImageDescription, myFreeform));
+      assertFalse(systemImageMatchesDevice(myWear29ImageDescription, myFreeform));
+      assertFalse(systemImageMatchesDevice(myGapiImageDescription, myFreeform));
+      assertFalse(systemImageMatchesDevice(myGapi29ImageDescription, myFreeform));
+      assertTrue(systemImageMatchesDevice(myGapi30ImageDescription, myFreeform));
   }
 
   public void testDeviceType() {
@@ -266,5 +293,6 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     assertEquals("Tablet", DeviceDefinitionList.getCategory(mySmallTablet));
     assertEquals("Wear OS", DeviceDefinitionList.getCategory(myWearDevice));
     assertEquals("Automotive", DeviceDefinitionList.getCategory(myAutomotiveDevice));
+    assertEquals("Tablet", DeviceDefinitionList.getCategory(myFreeform));
   }
 }

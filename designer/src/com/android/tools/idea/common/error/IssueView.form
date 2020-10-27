@@ -59,7 +59,7 @@
             </constraints>
             <properties>
               <editable value="false"/>
-              <font size="12"/>
+              <font/>
               <opaque value="false"/>
             </properties>
           </component>

@@ -521,12 +521,17 @@ class ImagePoolImpl implements ImagePool {
     }
 
     @Override
-    @NotNull
+    @Nullable
     public BufferedImage getCopy(@Nullable GraphicsConfiguration gc, int x, int y, int w, int h) {
-      assertIfDisposed();
       myLock.readLock().lock();
-      try {
 
+      if (myBuffer == null) {
+        // The image was already disposed
+        LOG.debug("getCopy for already disposed image");
+        return null;
+      }
+
+      try {
         if (x + w > myWidth) {
           throw new IndexOutOfBoundsException(String.format("x (%d) + y (%d) is out bounds (image width is = %d)", x, y, myWidth));
         }
@@ -559,10 +564,16 @@ class ImagePoolImpl implements ImagePool {
     }
 
     @Override
-    @NotNull
+    @Nullable
     public BufferedImage getCopy() {
-      assertIfDisposed();
       myLock.readLock().lock();
+
+      if (myBuffer == null) {
+        // The image was already disposed
+        LOG.debug("getCopy for already disposed image");
+        return null;
+      }
+
       try {
         WritableRaster raster = myBuffer.copyData(myBuffer.getRaster().createCompatibleWritableRaster(0, 0, myWidth, myHeight));
         //noinspection UndesirableClassUsage
@@ -588,6 +599,16 @@ class ImagePoolImpl implements ImagePool {
       }
       finally {
         myLock.writeLock().unlock();
+      }
+    }
+
+    @Override
+    public boolean isValid() {
+      myLock.readLock().lock();
+      try {
+        return myBuffer != null;
+      } finally {
+        myLock.readLock().unlock();
       }
     }
 

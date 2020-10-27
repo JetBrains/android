@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 
+import java.awt.event.KeyEvent;
 import javax.swing.*;
 import java.awt.Color;
 import java.awt.Component;
@@ -71,6 +72,17 @@ public class BaseCreatePanel extends JPanel {
 
   BaseCreatePanel() {
     super(new GridBagLayout());
+    setFocusCycleRoot(true);
+    setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
+    KeyStroke escapeKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false);
+    Action escapeAction = new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        dismissPopup();
+      }
+    };
+    getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(escapeKeyStroke, "ESCAPE");
+    getActionMap().put("ESCAPE", escapeAction);
   }
 
   protected static void grid(GridBagConstraints gbc, int x, int y) {

@@ -37,7 +37,6 @@ import com.intellij.notification.Notifications;
 import com.intellij.notification.NotificationsAdapter;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.LanguageLevelModuleExtension;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
@@ -101,14 +100,16 @@ public class NewProjectTest {
     // Insert resValue statements which should not add warnings (since they are generated files; see
     // https://code.google.com/p/android/issues/detail?id=76715
     String inspectionResults = guiTest.ideFrame()
-      .getEditor()
-      .open("app/build.gradle", EditorFixture.Tab.EDITOR)
-      .moveBetween("", "applicationId")
-      .enterText("resValue \"string\", \"foo\", \"Typpo Here\"\n")
-      .awaitNotification(
-        "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
-      .performAction("Sync Now")
-      .waitForGradleProjectSyncToFinish()
+      .actAndWaitForGradleProjectSyncToFinish(
+        it ->
+          it.getEditor()
+            .open("app/build.gradle", EditorFixture.Tab.EDITOR)
+            .moveBetween("", "applicationId")
+            .enterText("resValue \"string\", \"foo\", \"Typpo Here\"\n")
+            .awaitNotification(
+              "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
+            .performAction("Sync Now")
+      )
       .openFromMenu(InspectCodeDialogFixture::find, "Analyze", "Inspect Code...")
       .clickOk()
       .getResults();
@@ -167,6 +168,7 @@ public class NewProjectTest {
       });
   }
 
+  @RunIn(TestGroup.UNRELIABLE) // b/149463420
   @Test
   public void testLanguageLevelForApi21() {
     newProject("Test Application").withBriefNames().withMinSdk(21).create(guiTest);
@@ -178,12 +180,11 @@ public class NewProjectTest {
     assertThat(version.getApiString()).named("minSdkVersion API").isEqualTo("21");
     assertThat(appAndroidModel.getJavaLanguageLevel()).named("Gradle Java language level").isSameAs(LanguageLevel.JDK_1_7);
     LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(guiTest.ideFrame().getProject());
-    assertThat(projectExt.getLanguageLevel()).named("Project Java language level").isSameAs(LanguageLevel.JDK_1_7);
-    for (Module module : ModuleManager.getInstance(guiTest.ideFrame().getProject()).getModules()) {
-      LanguageLevelModuleExtension moduleExt = LanguageLevelModuleExtensionImpl.getInstance(module);
-      assertThat(moduleExt.getLanguageLevel()).named("Gradle Java language level in module " + module.getName())
-        .isSameAs(LanguageLevel.JDK_1_7);
-    }
+    assertThat(projectExt.getLanguageLevel()).named("Project Java language level").isSameAs(LanguageLevel.JDK_1_8);
+    Module appModule = guiTest.ideFrame().getModule("app");
+    LanguageLevelModuleExtension moduleExt = LanguageLevelModuleExtensionImpl.getInstance(appModule);
+    assertThat(moduleExt.getLanguageLevel()).named("Gradle Java language level in module " + appModule.getName())
+      .isSameAs(LanguageLevel.JDK_1_7);
   }
 
   @Test
@@ -216,7 +217,7 @@ public class NewProjectTest {
 
     ideFrameFixture.getEditor()
       .open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .waitForRenderToFinish()
       .dragComponentToSurface("Containers", "RecyclerView");
 

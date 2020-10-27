@@ -17,10 +17,10 @@ package com.android.tools.idea.gradle.variant.conflict
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.testing.JavaModuleModelBuilder.Companion.rootModuleBuilder
+import com.android.tools.idea.testing.findAppModule
+import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.truth.Truth.assertThat
-import com.google.common.truth.TruthJUnit.assume
-import com.intellij.openapi.module.ModuleManager
 import java.io.File
 
 
@@ -34,27 +34,27 @@ class ConflictResolutionTest : ConflictsTestCase() {
       libModuleBuilder()
     )
 
-    val appModule = ModuleManager.getInstance(project).findModuleByName("app")!!
-    val libModule = ModuleManager.getInstance(project).findModuleByName("lib")!!
+    val appModule = project.findAppModule()
+    val libModule = project.findModule("lib")
 
-    assume().that(AndroidModuleModel.get(appModule)!!.selectedVariant.name).isEqualTo("release")
-    assume().that(AndroidModuleModel.get(libModule)!!.selectedVariant.name).isEqualTo("debug")
+    assertThat(AndroidModuleModel.get(appModule)!!.selectedVariant.name).isEqualTo("release")
+    assertThat(AndroidModuleModel.get(libModule)!!.selectedVariant.name).isEqualTo("debug")
 
     var conflicts = ConflictSet.findConflicts(project).selectionConflicts
-    assume().that(conflicts).hasSize(1)
+    assertThat(conflicts).hasSize(1)
 
     // Source is the :lib module, which has "debug".
     val conflict = conflicts[0]
-    assume().that(conflict.source).isSameAs(libModule)
-    assume().that(conflict.selectedVariant).isEqualTo("debug")
+    assertThat(conflict.source).isSameAs(libModule)
+    assertThat(conflict.selectedVariant).isEqualTo("debug")
 
     val affectedModules = conflict.affectedModules
-    assume().that(affectedModules).hasSize(1)
+    assertThat(affectedModules).hasSize(1)
 
     // Affected is the :app module, which has "release".
     val affectedModule = affectedModules[0]
-    assume().that(affectedModule.target).isSameAs(appModule)
-    assume().that(affectedModule.expectedVariant).isEqualTo("release")
+    assertThat(affectedModule.target).isSameAs(appModule)
+    assertThat(affectedModule.expectedVariant).isEqualTo("release")
 
     // We should fix the "source" (i.e., ":lib") and make it "release".
     assertThat(ConflictResolution.solveSelectionConflict(conflict)).isTrue()

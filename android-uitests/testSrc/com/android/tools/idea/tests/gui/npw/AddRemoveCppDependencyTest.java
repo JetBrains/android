@@ -15,34 +15,33 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
+import static com.android.tools.idea.tests.gui.npw.NewCppProjectTestUtil.assertAndroidPanePath;
+import static com.android.tools.idea.tests.gui.npw.NewCppProjectTestUtil.createCppProject;
+import static com.android.tools.idea.tests.gui.npw.NewCppProjectTestUtil.getExternalNativeBuildRegExp;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.externalNativeBuild.CMakeOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
-import com.android.tools.idea.npw.cpp.CppStandardType;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.CppStandardType;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.LinkCppProjectFixture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static com.android.tools.idea.tests.gui.npw.NewCppProjectTestUtil.assertAndroidPanePath;
-import static com.android.tools.idea.tests.gui.npw.NewCppProjectTestUtil.createCppProject;
-import static com.android.tools.idea.tests.gui.npw.NewCppProjectTestUtil.getExternalNativeBuildRegExp;
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class AddRemoveCppDependencyTest {
@@ -134,19 +133,20 @@ public class AddRemoveCppDependencyTest {
       .getEditor()
       .open("app/build.gradle")
       .getIdeFrame()
-      .requestProjectSync()
-      .waitForGradleProjectSyncToFinish();
+      .requestProjectSyncAndWaitForSyncToFinish();
 
     // verify that the project's app/cpp files are gone but app/java remains
     assertAndroidPanePath(false, guiTest, "app", "cpp", "native-lib.cpp");
     assertAndroidPanePath(true, guiTest, "app", "java");
 
     ideFixture
-      .openFromMenu(LinkCppProjectFixture::find, "File", "Link C++ Project with Gradle")
-      .selectCMakeBuildSystem()
-      .enterCMakeListsPath(guiTest.getProjectPath("app/src/main/cpp/CMakeLists.txt").getAbsolutePath())
-      .clickOk()
-      .waitForGradleProjectSyncToFinish()
+      .actAndWaitForGradleProjectSyncToFinish(
+        it ->
+          it.openFromMenu(LinkCppProjectFixture::find, "File", "Link C++ Project with Gradle")
+            .selectCMakeBuildSystem()
+            .enterCMakeListsPath(guiTest.getProjectPath("app/src/main/cpp/CMakeLists.txt").getAbsolutePath())
+            .clickOk()
+      )
       .getEditor()
       .select(getExternalNativeBuildRegExp()); // externalNativeBuild section of build.gradle reappears with cmake.path CMakeLists.txt
 

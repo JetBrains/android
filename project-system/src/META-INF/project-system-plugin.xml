@@ -18,6 +18,8 @@
     <extensionPoint qualifiedName="com.android.project.projectsystem"
                     interface="com.android.tools.idea.projectsystem.AndroidProjectSystemProvider"
                     area="IDEA_PROJECT"/>
+    <extensionPoint qualifiedName="com.android.androidStartupActivity"
+                    interface="com.android.tools.idea.AndroidStartupActivity"/>
   </extensionPoints>
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceImplementation="com.android.tools.idea.projectsystem.ProjectSystemService"/>

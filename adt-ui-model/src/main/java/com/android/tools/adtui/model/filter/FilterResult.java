@@ -26,9 +26,7 @@ public class FilterResult {
   private final int myTotalCount;
   private final boolean myIsFilterEnabled;
 
-  public FilterResult() {
-    this(0, 0, false);
-  }
+  public static final FilterResult EMPTY_RESULT = new FilterResult(0, 0, false);
 
   public FilterResult(int matchCount, int totalCount, boolean isFilterEnabled) {
     assert matchCount >= 0;

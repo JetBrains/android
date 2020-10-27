@@ -26,7 +26,6 @@ import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * @author Eugene.Kudelevsky
  * @since Aug 28, 2009
  */
 public class AndroidTestConsoleProperties extends SMTRunnerConsoleProperties {

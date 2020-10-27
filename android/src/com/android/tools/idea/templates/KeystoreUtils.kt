@@ -23,6 +23,8 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.utils.StdLogger
 import com.google.common.base.Strings
 import com.google.common.io.BaseEncoding
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import java.io.File
@@ -37,6 +39,8 @@ import java.security.cert.Certificate
  * Functions for dealing with singing configurations and keystore files.
  */
 object KeystoreUtils {
+  private val log: Logger get() = logger<KeystoreUtils>()
+
   @Throws(KeytoolException::class, AndroidLocationException::class)
   @JvmStatic
   fun getOrCreateDefaultDebugKeystore(): File {
@@ -63,6 +67,18 @@ object KeystoreUtils {
     return debugLocation
   }
 
+  fun getSha1DebugKeystoreSilently(androidFacet: AndroidFacet?, valueIfNotFound: String = "YOUR_SHA1_KEY_STORE") : String {
+    try {
+      val sha1File = androidFacet?.let { getDebugKeystore(it) } ?: getOrCreateDefaultDebugKeystore()
+      return sha1(sha1File)
+    }
+    catch (ex: Exception) {
+      log.warn(ex)
+    }
+
+    return valueIfNotFound
+  }
+
   /**
    * Get the debug keystore path.
    *
@@ -77,7 +93,7 @@ object KeystoreUtils {
     }
 
     val state = facet.configuration.state
-    return if (state != null && !Strings.isNullOrEmpty(state.CUSTOM_DEBUG_KEYSTORE_PATH))
+    return if (!Strings.isNullOrEmpty(state.CUSTOM_DEBUG_KEYSTORE_PATH))
       File(state.CUSTOM_DEBUG_KEYSTORE_PATH)
     else
       getOrCreateDefaultDebugKeystore()

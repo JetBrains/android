@@ -16,6 +16,7 @@
 package com.android.tools.idea.refactoring.modularize;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
@@ -42,7 +43,7 @@ public class AndroidModularizeHandlerTest extends AndroidTestCase {
     myFixture.copyDirectoryToProject(BASE_PATH + "/src", "src/");
     myFixture.copyFileToProject(BASE_PATH + "/" + SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML);
 
-    Module feature = ModuleManager.getInstance(getProject()).findModuleByName("feature");
+    Module feature = TestModuleUtil.findModule(getProject(), "feature");
     ModuleRootModificationUtil.addDependency(feature, myModule);
 
     myProcessor = new AndroidModularizeHandler()
@@ -63,7 +64,7 @@ public class AndroidModularizeHandlerTest extends AndroidTestCase {
   }
 
   public void testPullUpDependency() {
-    myProcessor.setTargetModule(ModuleManager.getInstance(getProject()).findModuleByName("feature"));
+    myProcessor.setTargetModule(TestModuleUtil.findModule(getProject(), "feature"));
 
     AndroidCodeAndResourcesGraph graph = myProcessor.getReferenceGraph();
     assertTrue("Util class is referenced from Other",
@@ -73,7 +74,7 @@ public class AndroidModularizeHandlerTest extends AndroidTestCase {
   }
 
   public void testPushDownDependency() {
-    myProcessor.setTargetModule(ModuleManager.getInstance(getProject()).findModuleByName("base"));
+    myProcessor.setTargetModule(TestModuleUtil.findModule(getProject(), "base"));
 
     AndroidCodeAndResourcesGraph graph = myProcessor.getReferenceGraph();
     assertTrue("Util class is referenced from Other",

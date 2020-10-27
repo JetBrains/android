@@ -20,15 +20,14 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import java.awt.Container;
+import java.lang.reflect.Field;
+import javax.swing.Icon;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-import java.lang.reflect.Field;
 
 public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, ActionButton> {
   @NotNull
@@ -98,6 +97,35 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
       () -> target().getAction().getTemplatePresentation().isEnabledAndVisible()
             && target().isShowing() && target().isVisible() && target().isEnabled()));
     return this;
+  }
+
+  @NotNull
+  public static ActionButtonFixture findByActionClass(
+    @NotNull Class<? extends AnAction> actionClass,
+    @NotNull Robot robot,
+    @NotNull Container container
+  ) {
+    return findByMatcher(new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull ActionButton component) {
+        AnAction action = component.getAction();
+        return action != null && actionClass.equals(action.getClass());
+      }
+    }, robot, container);
+  }
+
+  @NotNull
+  public static ActionButtonFixture findByActionInstance(
+    @NotNull AnAction actionInstance,
+    @NotNull Robot robot,
+    @NotNull Container container
+  ) {
+    return findByMatcher(new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull ActionButton component) {
+        return actionInstance == component.getAction();
+      }
+    }, robot, container);
   }
 
   @NotNull

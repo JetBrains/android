@@ -23,15 +23,17 @@ import org.junit.Test;
 
 public class RangeSelectionModelTest {
   private Range mySelection;
+  private Range myViewRange;
 
   @Before
   public void setUp() throws Exception {
     mySelection = new Range();
+    myViewRange = new Range();
   }
 
   @Test
   public void testSetWithNoConstraints() {
-    RangeSelectionModel selection = new RangeSelectionModel(mySelection);
+    RangeSelectionModel selection = new RangeSelectionModel(mySelection, myViewRange);
     selection.set(10, 20);
     assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(10);
     assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(20);
@@ -39,7 +41,7 @@ public class RangeSelectionModelTest {
 
   @Test
   public void testSetWithPartialConstraint() {
-    RangeSelectionModel selection = new RangeSelectionModel(mySelection);
+    RangeSelectionModel selection = new RangeSelectionModel(mySelection, myViewRange);
     selection.addConstraint(createConstraint(false, true, 0, 5, 15, 20, 35, 40));
 
     selection.set(10, 18);
@@ -50,7 +52,7 @@ public class RangeSelectionModelTest {
 
   @Test
   public void testSetWithPartialConstraintEmpty() {
-    RangeSelectionModel selection = new RangeSelectionModel(mySelection);
+    RangeSelectionModel selection = new RangeSelectionModel(mySelection, myViewRange);
     selection.addConstraint(createConstraint(false, true, 0, 5, 15, 20, 35, 40));
 
     selection.set(10, 12);
@@ -60,7 +62,7 @@ public class RangeSelectionModelTest {
 
   @Test
   public void testSelectionPrefersCurrentOne() {
-    RangeSelectionModel selection = new RangeSelectionModel(mySelection);
+    RangeSelectionModel selection = new RangeSelectionModel(mySelection, myViewRange);
     selection.addConstraint(createConstraint(false, true, 0, 5, 15, 20, 35, 40));
     selection.set(18, 20);
     assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(18);
@@ -79,7 +81,7 @@ public class RangeSelectionModelTest {
 
   @Test
   public void testFullSelection() {
-    RangeSelectionModel selection = new RangeSelectionModel(mySelection);
+    RangeSelectionModel selection = new RangeSelectionModel(mySelection, myViewRange);
     selection.addConstraint(createConstraint(false, false, 0, 5, 15, 20, 35, 40));
 
     selection.set(10, 18);
@@ -90,7 +92,7 @@ public class RangeSelectionModelTest {
 
   @Test
   public void canSelectWithConstraints() {
-    RangeSelectionModel selection = new RangeSelectionModel(mySelection);
+    RangeSelectionModel selection = new RangeSelectionModel(mySelection, myViewRange);
     selection.addConstraint(createConstraint(false, false, 0, 5, 15, 20));
     assertThat(selection.canSelectRange(new Range(15, 15))).isTrue();
     assertThat(selection.canSelectRange(new Range(14, 14))).isFalse();
@@ -98,14 +100,14 @@ public class RangeSelectionModelTest {
 
   @Test
   public void canSelectWithOutConstraints() {
-    RangeSelectionModel selection = new RangeSelectionModel(mySelection);
+    RangeSelectionModel selection = new RangeSelectionModel(mySelection, myViewRange);
     assertThat(selection.canSelectRange(new Range(15, 15))).isTrue();
     assertThat(selection.canSelectRange(new Range(14, 14))).isTrue();
   }
 
   @Test
   public void testNestedFullConstraints() {
-    RangeSelectionModel selection = new RangeSelectionModel(mySelection);
+    RangeSelectionModel selection = new RangeSelectionModel(mySelection, myViewRange);
     selection.addConstraint(createConstraint(false, false, 2, 3, 18, 19, 38, 39));
     selection.addConstraint(createConstraint(false, false, 0, 5, 15, 20, 35, 40));
 
@@ -136,7 +138,7 @@ public class RangeSelectionModelTest {
 
   @Test
   public void testFullWithNestedPartialConstraints() {
-    RangeSelectionModel selection = new RangeSelectionModel(mySelection);
+    RangeSelectionModel selection = new RangeSelectionModel(mySelection, myViewRange);
     selection.addConstraint(createConstraint(false, true, 2, 3, 18, 19, 38, 39));
     selection.addConstraint(createConstraint(false, false, 0, 5, 15, 20, 35, 40));
 
@@ -167,7 +169,7 @@ public class RangeSelectionModelTest {
 
   @Test
   public void testPartialWithNestedFullConstraints() {
-    RangeSelectionModel selection = new RangeSelectionModel(mySelection);
+    RangeSelectionModel selection = new RangeSelectionModel(mySelection, myViewRange);
     selection.addConstraint(createConstraint(false, true, 0, 5, 15, 20, 35, 40));
     selection.addConstraint(createConstraint(false, false, 2, 3, 18, 19, 38, 39));
 
@@ -202,7 +204,7 @@ public class RangeSelectionModelTest {
 
   @Test
   public void testAspectFiresWhenSelectionChanges() {
-    RangeSelectionModel model = new RangeSelectionModel(mySelection);
+    RangeSelectionModel model = new RangeSelectionModel(mySelection, myViewRange);
     AspectObserver observer = new AspectObserver();
 
     int[] aspectFiredCount = new int[]{0};
@@ -238,7 +240,7 @@ public class RangeSelectionModelTest {
 
   @Test
   public void testListenersFiredAsExpected() {
-    RangeSelectionModel model = new RangeSelectionModel(mySelection);
+    RangeSelectionModel model = new RangeSelectionModel(mySelection, myViewRange);
 
     final int SELECTION_CREATED = 0;
     final int SELECTION_CLEARED = 1;
@@ -354,7 +356,7 @@ public class RangeSelectionModelTest {
 
   @Test
   public void testSelectionClearOnRangeChange() {
-    RangeSelectionModel model = new RangeSelectionModel(mySelection);
+    RangeSelectionModel model = new RangeSelectionModel(mySelection, myViewRange);
     model.addConstraint(createConstraint(false, false, 2, 3, 18, 19, 38, 39));
 
     final int CREATED = 0;
@@ -405,7 +407,7 @@ public class RangeSelectionModelTest {
 
   @Test
   public void testListenersFireEvenWhenModifyingUnderlyingRangeDirectly() {
-    RangeSelectionModel model = new RangeSelectionModel(mySelection);
+    RangeSelectionModel model = new RangeSelectionModel(mySelection, myViewRange);
 
     final int SELECTION_CREATED = 0;
     final int SELECTION_CLEARED = 1;
@@ -444,7 +446,7 @@ public class RangeSelectionModelTest {
 
   @Test
   public void testCanSelectUnfinishedDurationData() {
-    RangeSelectionModel selection = new RangeSelectionModel(mySelection);
+    RangeSelectionModel selection = new RangeSelectionModel(mySelection, myViewRange);
     selection.addConstraint(createConstraint(false, true, 0, Long.MAX_VALUE));
     selection.set(10, 12);
     assertThat(mySelection.isEmpty()).isTrue();
@@ -452,7 +454,7 @@ public class RangeSelectionModelTest {
 
   @Test
   public void testCannotSelectUnfinishedDurationData() {
-    RangeSelectionModel selection = new RangeSelectionModel(mySelection);
+    RangeSelectionModel selection = new RangeSelectionModel(mySelection, myViewRange);
     selection.addConstraint(createConstraint(true, true, 0, Long.MAX_VALUE));
     selection.set(10, 12);
     assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(10);

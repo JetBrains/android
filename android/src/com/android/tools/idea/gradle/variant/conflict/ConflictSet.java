@@ -24,6 +24,10 @@ import static com.intellij.openapi.module.ModuleUtilCore.getAllDependentModules;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 import com.android.builder.model.level2.Library;
+import com.android.ide.common.gradle.model.IdeAndroidArtifact;
+import com.android.ide.common.gradle.model.IdeBaseArtifact;
+import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
@@ -43,6 +47,20 @@ import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.VARIANT_SELECTION_CONFLICTS;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
+import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
+import static com.intellij.openapi.module.ModuleUtilCore.getAllDependentModules;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 /**
  * Set of all variant-selection-related conflicts. We classify these conflicts in 2 groups:
@@ -67,7 +85,7 @@ public class ConflictSet {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
       AndroidModuleModel currentAndroidModel = AndroidModuleModel.get(module);
-      if (currentAndroidModel == null || currentAndroidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_APP ) {
+      if (currentAndroidModel == null || currentAndroidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_APP) {
         continue;
       }
       String gradlePath = getGradlePath(module);
@@ -118,12 +136,21 @@ public class ConflictSet {
 
   @Nullable
   private static String getExpectedVariant(@NotNull AndroidModuleModel dependentAndroidModel, @NotNull String dependencyGradlePath) {
-    List<Library> dependencies = getModuleDependencies(dependentAndroidModel.getSelectedVariant());
-    for (Library dependency : dependencies) {
+    IdeVariant variant = dependentAndroidModel.getSelectedVariant();
+    for (Library dependency : variant.getMainArtifact().getLevel2Dependencies().getModuleDependencies()) {
       if (dependencyGradlePath.equals(dependency.getProjectPath())) {
         return dependency.getVariant();
       }
     }
+
+    for (IdeBaseArtifact testArtifact : variant.getTestArtifacts()) {
+      for (Library dependency : testArtifact.getLevel2Dependencies().getModuleDependencies()) {
+        if (dependencyGradlePath.equals(dependency.getProjectPath())) {
+          return dependency.getVariant();
+        }
+      }
+    }
+
     return null;
   }
 
@@ -131,7 +158,9 @@ public class ConflictSet {
   @NotNull private final ImmutableList<Conflict> mySelectionConflicts;
   @NotNull private final ImmutableList<Conflict> myStructureConflicts;
 
-  ConflictSet(@NotNull Project project, @NotNull Collection<Conflict> selectionConflicts, @NotNull Collection<Conflict> structureConflicts) {
+  ConflictSet(@NotNull Project project,
+              @NotNull Collection<Conflict> selectionConflicts,
+              @NotNull Collection<Conflict> structureConflicts) {
     myProject = project;
     mySelectionConflicts = ImmutableList.copyOf(selectionConflicts);
     myStructureConflicts = ImmutableList.copyOf(structureConflicts);

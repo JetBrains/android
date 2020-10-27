@@ -17,21 +17,27 @@ package com.android.tools.idea.sqlite.annotator
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServices
+import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
-import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
+import com.android.tools.idea.sqlite.controllers.SqliteParameter
+import com.android.tools.idea.sqlite.controllers.SqliteParameterValue
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.mocks.MockPopupChooserBuilder
-import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
-import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteStatementType
+import com.android.tools.idea.sqlite.utils.toSqliteValues
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.caret
-import com.intellij.ide.highlighter.JavaFileType
+import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
+import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.awt.RelativePoint
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -45,21 +51,25 @@ import java.awt.event.MouseEvent
 class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCase() {
   private lateinit var ideComponents: IdeComponents
   private lateinit var mockDatabaseInspectorProjectService: DatabaseInspectorProjectService
-  private lateinit var sqliteDatabase1: SqliteDatabase
-  private lateinit var sqliteDatabase2: SqliteDatabase
+  private lateinit var sqliteDatabaseId1: SqliteDatabaseId
+  private lateinit var sqliteDatabaseId2: SqliteDatabaseId
   private lateinit var anActionEvent: AnActionEvent
   private lateinit var mouseEvent: MouseEvent
   private lateinit var anAction: RunSqliteStatementGutterIconAction
   private lateinit var viewFactory: MockDatabaseInspectorViewsFactory
+  private lateinit var mockAppInspectionIdeServices: AppInspectionIdeServices
 
   override fun setUp() {
     super.setUp()
 
-    sqliteDatabase1 = LiveSqliteDatabase("db1", mock(DatabaseConnection::class.java))
-    sqliteDatabase2 = LiveSqliteDatabase("db2", mock(DatabaseConnection::class.java))
+    sqliteDatabaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
+    sqliteDatabaseId2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
 
     ideComponents = IdeComponents(myFixture)
     mockDatabaseInspectorProjectService = ideComponents.mockProjectService(DatabaseInspectorProjectService::class.java)
+
+    mockAppInspectionIdeServices = mock(AppInspectionIdeServices::class.java)
+    `when`(mockDatabaseInspectorProjectService.getIdeServices()).thenReturn(mockAppInspectionIdeServices)
 
     mouseEvent = mock(MouseEvent::class.java)
     `when`(mouseEvent.component).thenReturn(mock(Component::class.java))
@@ -72,32 +82,50 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     // Prepare
     `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(false)
 
-    buildAction("select * from Foo")
+    buildActionFromJavaFile("select * from Foo")
 
     // Act
     anAction.actionPerformed(anActionEvent)
 
     // Assert
-    verify(mockDatabaseInspectorProjectService, times(0)).runSqliteStatement(eq(sqliteDatabase1), any(SqliteStatement::class.java))
+    verify(mockDatabaseInspectorProjectService, times(0)).runSqliteStatement(eq(sqliteDatabaseId1), any(SqliteStatement::class.java))
   }
 
   fun testRunSqliteStatementWhenDatabaseIsOpen() {
     // Prepare
     `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(setOf(sqliteDatabase1))
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
 
-    buildAction("select * from Foo")
+    buildActionFromJavaFile("select * from Foo")
 
     // Act
     anAction.actionPerformed(anActionEvent)
 
     // Assert
-    verify(mockDatabaseInspectorProjectService).runSqliteStatement(sqliteDatabase1, SqliteStatement("select * from Foo"))
+    verify(mockDatabaseInspectorProjectService).runSqliteStatement(
+      sqliteDatabaseId1, SqliteStatement(SqliteStatementType.SELECT, "select * from Foo")
+    )
+  }
+
+  fun testRunSqliteStatementWhenDatabaseIsOpenKotlin() {
+    // Prepare
+    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+
+    buildActionFromKotlinFile("select * from Foo")
+
+    // Act
+    anAction.actionPerformed(anActionEvent)
+
+    // Assert
+    verify(mockDatabaseInspectorProjectService).runSqliteStatement(
+      sqliteDatabaseId1, SqliteStatement(SqliteStatementType.SELECT, "select * from Foo")
+    )
   }
 
   fun testMultipleDatabaseShowsPopUp() {
     // Prepare
-    val databases = sortedSetOf(Comparator.comparing { database: SqliteDatabase -> database.name }, sqliteDatabase1, sqliteDatabase2)
+    val databases = listOf(sqliteDatabaseId1, sqliteDatabaseId2).sortedBy { database -> database.name }
     val mockJBPopupFactory = ideComponents.mockApplicationService(JBPopupFactory::class.java)
     val spyPopupChooserBuilder = spy(MockPopupChooserBuilder::class.java)
     `when`(mockJBPopupFactory.createPopupChooserBuilder(databases.toList())).thenReturn(spyPopupChooserBuilder)
@@ -105,11 +133,11 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(databases)
     `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
 
-    buildAction("select * from Foo")
+    buildActionFromJavaFile("select * from Foo")
 
     // Act
     anAction.actionPerformed(anActionEvent)
-    spyPopupChooserBuilder.callback?.consume(sqliteDatabase1)
+    spyPopupChooserBuilder.callback?.consume(sqliteDatabaseId1)
 
     // Assert
     assertNotNull(spyPopupChooserBuilder.callback)
@@ -117,135 +145,447 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     verify(mockJBPopupFactory).createPopupChooserBuilder(databases.toList())
     verify(spyPopupChooserBuilder).createPopup()
     verify(spyPopupChooserBuilder.mockPopUp).show(any(RelativePoint::class.java))
-    verify(mockDatabaseInspectorProjectService).runSqliteStatement(sqliteDatabase1, SqliteStatement("select * from Foo"))
+    verify(mockDatabaseInspectorProjectService).runSqliteStatement(
+      sqliteDatabaseId1, SqliteStatement(SqliteStatementType.SELECT, "select * from Foo")
+    )
+  }
+
+  fun testSqlStatementWithNoPositionalParameters() {
+    // Prepare
+    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+
+    buildActionFromJavaFile("select * from Foo where id = 42")
+
+    // Act
+    anAction.actionPerformed(anActionEvent)
+
+    // Assert
+    verify(mockDatabaseInspectorProjectService).runSqliteStatement(
+      sqliteDatabaseId1, SqliteStatement(SqliteStatementType.SELECT, "select * from Foo where id = 42")
+    )
+  }
+
+  fun testSqlStatementContainsPositionalParameters() {
+    // Prepare
+    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+
+    buildActionFromJavaFile("select * from Foo where id = ?")
+
+    // Act
+    anAction.actionPerformed(anActionEvent)
+
+    val listener = viewFactory.parametersBindingDialogView.listeners.first()
+    listener.bindingCompletedInvoked(mapOf(
+      SqliteParameter("id") to SqliteParameterValue.fromAny("1")
+    ))
+
+    // Assert
+    verify(mockDatabaseInspectorProjectService).runSqliteStatement(
+      sqliteDatabaseId1,
+      SqliteStatement(
+        SqliteStatementType.SELECT,
+        "select * from Foo where id = ?",
+        listOf("1").toSqliteValues(),
+        "select * from Foo where id = '1'"
+      )
+    )
+  }
+
+  fun testSqlStatementContainsMultiplePositionalParameters() {
+    // Prepare
+    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+
+    buildActionFromJavaFile("select * from Foo where id = ? and name = ?")
+
+    // Act
+    anAction.actionPerformed(anActionEvent)
+
+    val listener = viewFactory.parametersBindingDialogView.listeners.first()
+    listener.bindingCompletedInvoked(mapOf(
+      SqliteParameter("id") to SqliteParameterValue.fromAny("1"),
+      SqliteParameter("name") to SqliteParameterValue.fromAny("name")
+    ))
+
+    // Assert
+    verify(mockDatabaseInspectorProjectService)
+      .runSqliteStatement(
+        sqliteDatabaseId1,
+        SqliteStatement(
+          SqliteStatementType.SELECT,
+          "select * from Foo where id = ? and name = ?",
+          listOf("1", "name").toSqliteValues(),
+          "select * from Foo where id = '1' and name = 'name'"
+        )
+      )
+  }
+
+  fun testSqlStatementContainsMultiplePositionalNumberedParameters() {
+    // Prepare
+    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+
+    buildActionFromJavaFile("select * from Foo where id = ?1 and name = ?2")
+
+    // Act
+    anAction.actionPerformed(anActionEvent)
+
+    val listener = viewFactory.parametersBindingDialogView.listeners.first()
+    listener.bindingCompletedInvoked(mapOf(
+      SqliteParameter("id") to SqliteParameterValue.fromAny("1"),
+      SqliteParameter("name") to SqliteParameterValue.fromAny("name")
+    ))
+
+    // Assert
+    verify(mockDatabaseInspectorProjectService).runSqliteStatement(
+      sqliteDatabaseId1,
+      SqliteStatement(
+        SqliteStatementType.SELECT,
+        "select * from Foo where id = ? and name = ?",
+        listOf("1", "name").toSqliteValues(),
+        "select * from Foo where id = '1' and name = 'name'"
+      )
+    )
+  }
+
+  fun testSqlStatementContainsPositionalParametersInComparison() {
+    // Prepare
+    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+
+    buildActionFromJavaFile("select * from Foo where id > ?")
+
+    // Act
+    anAction.actionPerformed(anActionEvent)
+
+    val listener = viewFactory.parametersBindingDialogView.listeners.first()
+    listener.bindingCompletedInvoked(mapOf(
+      SqliteParameter("id") to SqliteParameterValue.fromAny("1")
+    ))
+
+    // Assert
+    verify(mockDatabaseInspectorProjectService).runSqliteStatement(
+      sqliteDatabaseId1,
+      SqliteStatement(
+        SqliteStatementType.SELECT,
+        "select * from Foo where id > ?",
+        listOf("1").toSqliteValues(),
+        "select * from Foo where id > '1'")
+    )
+  }
+
+  fun testSqlStatementContainsPositionalParametersInExpressionAndComparison() {
+    // Prepare
+    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+
+    buildActionFromJavaFile("select * from Foo where id = (? >> name)")
+
+    // Act
+    anAction.actionPerformed(anActionEvent)
+
+    val listener = viewFactory.parametersBindingDialogView.listeners.first()
+    listener.bindingCompletedInvoked(mapOf(
+      SqliteParameter("id") to SqliteParameterValue.fromAny("1")
+    ))
+
+    // Assert
+    verify(mockDatabaseInspectorProjectService).runSqliteStatement(
+      sqliteDatabaseId1,
+      SqliteStatement(
+        SqliteStatementType.SELECT,
+        "select * from Foo where id = (? >> name)",
+        listOf("1").toSqliteValues(),
+        "select * from Foo where id = ('1' >> name)"
+      )
+    )
   }
 
   fun testSqlStatementContainsNamedParameters1() {
     // Prepare
     `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(setOf(sqliteDatabase1))
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
 
-    buildAction("select * from Foo where id = :anId")
+    buildActionFromJavaFile("select * from Foo where id = :anId")
 
     // Act
     anAction.actionPerformed(anActionEvent)
 
     val listener = viewFactory.parametersBindingDialogView.listeners.first()
-    listener.bindingCompletedInvoked(mapOf(":anId" to "1"))
+    listener.bindingCompletedInvoked(mapOf(
+      SqliteParameter(":anId") to SqliteParameterValue.fromAny("1")
+    ))
 
     // Assert
-    verify(mockDatabaseInspectorProjectService)
-      .runSqliteStatement(sqliteDatabase1, SqliteStatement("select * from Foo where id = ?", listOf("1")))
+    verify(mockDatabaseInspectorProjectService).runSqliteStatement(
+      sqliteDatabaseId1,
+      SqliteStatement(
+        SqliteStatementType.SELECT,
+        "select * from Foo where id = ?",
+        listOf("1").toSqliteValues(),
+        "select * from Foo where id = '1'"
+      )
+    )
   }
 
   fun testSqlStatementContainsMultipleNamedParameters() {
     // Prepare
     `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(setOf(sqliteDatabase1))
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
 
-    buildAction("select * from Foo where id = :anId and name = :aName")
+    buildActionFromJavaFile("select * from Foo where id = :anId and name = :aName")
 
     // Act
     anAction.actionPerformed(anActionEvent)
 
     val listener = viewFactory.parametersBindingDialogView.listeners.first()
-    listener.bindingCompletedInvoked(mapOf(":anId" to "1", ":aName" to "name"))
+    listener.bindingCompletedInvoked(mapOf(
+      SqliteParameter(":anId") to SqliteParameterValue.fromAny("1"),
+      SqliteParameter(":aName") to SqliteParameterValue.fromAny("name")
+    ))
 
     // Assert
-    verify(mockDatabaseInspectorProjectService)
-      .runSqliteStatement(sqliteDatabase1, SqliteStatement("select * from Foo where id = ? and name = ?", listOf("1", "name")))
+    verify(mockDatabaseInspectorProjectService).runSqliteStatement(
+      sqliteDatabaseId1,
+      SqliteStatement(
+        SqliteStatementType.SELECT,
+        "select * from Foo where id = ? and name = ?",
+        listOf("1", "name").toSqliteValues(),
+        "select * from Foo where id = '1' and name = 'name'"
+      )
+    )
   }
 
   fun testSqlStatementContainsNamedParameters2() {
     // Prepare
     `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(setOf(sqliteDatabase1))
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
 
-    buildAction("select * from Foo where id = ?1")
+    buildActionFromJavaFile("select * from Foo where id = ?1")
 
     // Act
     anAction.actionPerformed(anActionEvent)
 
     val listener = viewFactory.parametersBindingDialogView.listeners.first()
-    listener.bindingCompletedInvoked(mapOf("?1" to "1"))
+    listener.bindingCompletedInvoked(mapOf(
+      SqliteParameter("id") to SqliteParameterValue.fromAny("1")
+    ))
 
     // Assert
-    verify(mockDatabaseInspectorProjectService)
-      .runSqliteStatement(sqliteDatabase1, SqliteStatement("select * from Foo where id = ?", listOf("1")))
+    verify(mockDatabaseInspectorProjectService).runSqliteStatement(
+      sqliteDatabaseId1,
+      SqliteStatement(
+        SqliteStatementType.SELECT,
+        "select * from Foo where id = ?",
+        listOf("1").toSqliteValues(),
+        "select * from Foo where id = '1'"
+      )
+    )
   }
 
   fun testSqlStatementContainsNamedParameters3() {
     // Prepare
     `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(setOf(sqliteDatabase1))
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
 
-    buildAction("select * from Foo where id = ?")
+    buildActionFromJavaFile("select * from Foo where id = ?")
 
     // Act
     anAction.actionPerformed(anActionEvent)
 
     val listener = viewFactory.parametersBindingDialogView.listeners.first()
-    listener.bindingCompletedInvoked(mapOf("?" to "1"))
+    listener.bindingCompletedInvoked(mapOf(
+      SqliteParameter("id") to SqliteParameterValue.fromAny("1")
+    ))
 
     // Assert
-    verify(mockDatabaseInspectorProjectService)
-      .runSqliteStatement(sqliteDatabase1, SqliteStatement("select * from Foo where id = ?", listOf("1")))
+    verify(mockDatabaseInspectorProjectService).runSqliteStatement(
+      sqliteDatabaseId1,
+      SqliteStatement(
+        SqliteStatementType.SELECT,
+        "select * from Foo where id = ?",
+        listOf("1").toSqliteValues(),
+        "select * from Foo where id = '1'"
+      )
+    )
   }
 
   fun testSqlStatementContainsNamedParameters4() {
     // Prepare
     `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(setOf(sqliteDatabase1))
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
 
-    buildAction("select * from Foo where id = @anId")
+    buildActionFromJavaFile("select * from Foo where id = @anId")
 
     // Act
     anAction.actionPerformed(anActionEvent)
 
     val listener = viewFactory.parametersBindingDialogView.listeners.first()
-    listener.bindingCompletedInvoked(mapOf("@anId" to "1"))
+    listener.bindingCompletedInvoked(mapOf(
+      SqliteParameter("@anId") to SqliteParameterValue.fromAny("1")
+    ))
 
     // Assert
-    verify(mockDatabaseInspectorProjectService)
-      .runSqliteStatement(sqliteDatabase1, SqliteStatement("select * from Foo where id = ?", listOf("1")))
+    verify(mockDatabaseInspectorProjectService).runSqliteStatement(
+      sqliteDatabaseId1,
+      SqliteStatement(
+        SqliteStatementType.SELECT,
+        "select * from Foo where id = ?",
+        listOf("1").toSqliteValues(),
+        "select * from Foo where id = '1'"
+      )
+    )
   }
 
   fun testSqlStatementContainsNamedParameters5() {
     // Prepare
     `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(setOf(sqliteDatabase1))
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
 
-    buildAction("select * from Foo where id = \$anId")
+    buildActionFromJavaFile("select * from Foo where id = \$anId")
 
     // Act
     anAction.actionPerformed(anActionEvent)
 
     val listener = viewFactory.parametersBindingDialogView.listeners.first()
-    listener.bindingCompletedInvoked(mapOf("\$anId" to "1"))
+    listener.bindingCompletedInvoked(mapOf(
+      SqliteParameter("\$anId") to SqliteParameterValue.fromAny("1")
+    ))
 
     // Assert
-    verify(mockDatabaseInspectorProjectService)
-      .runSqliteStatement(sqliteDatabase1, SqliteStatement("select * from Foo where id = ?", listOf("1")))
+    verify(mockDatabaseInspectorProjectService).runSqliteStatement(
+      sqliteDatabaseId1,
+      SqliteStatement(
+        SqliteStatementType.SELECT,
+        "select * from Foo where id = ?",
+        listOf("1").toSqliteValues(),
+        "select * from Foo where id = '1'"
+      )
+    )
   }
 
-  private fun buildAction(sqlStatement: String) {
+  fun testRunSqliteStatementOnSingleDBAnalytics() {
+    // Prepare
+    val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
+    project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
+
+    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+
+    buildActionFromJavaFile("select * from Foo where id")
+
+    // Act
+    anAction.actionPerformed(anActionEvent)
+
+    // Assert
+    verify(mockTrackerService).trackStatementExecuted(AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT)
+  }
+
+  fun testRunSqliteStatementOnMultipleDBAnalytics() {
+    // Prepare
+    val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
+    project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
+
+    val databases = listOf(sqliteDatabaseId1, sqliteDatabaseId2).sortedBy { database -> database.name }
+    val mockJBPopupFactory = ideComponents.mockApplicationService(JBPopupFactory::class.java)
+    val spyPopupChooserBuilder = spy(MockPopupChooserBuilder::class.java)
+    `when`(mockJBPopupFactory.createPopupChooserBuilder(databases.toList())).thenReturn(spyPopupChooserBuilder)
+
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(databases)
+    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+
+    buildActionFromJavaFile("select * from Foo")
+
+    // Act
+    anAction.actionPerformed(anActionEvent)
+    spyPopupChooserBuilder.callback?.consume(sqliteDatabaseId1)
+
+    // Assert
+    verify(mockTrackerService).trackStatementExecuted(AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT)
+  }
+
+  fun testRunFromGutterIconOpensToolWindowDirectly() {
+    // Prepare
+    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+
+    buildActionFromJavaFile("select * from Foo where id = 1")
+
+    // Act
+    anAction.actionPerformed(anActionEvent)
+
+    // Assert
+    verify(mockAppInspectionIdeServices).showToolWindow()
+  }
+
+  fun testRunFromGutterIconOpensToolWindowFromDialog() {
+    // Prepare
+    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+
+    buildActionFromJavaFile("select * from Foo where id = :anId")
+
+    // Act
+    anAction.actionPerformed(anActionEvent)
+
+    val listener = viewFactory.parametersBindingDialogView.listeners.first()
+    listener.bindingCompletedInvoked(mapOf(
+      SqliteParameter(":anId") to SqliteParameterValue.fromAny("1")
+    ))
+
+    // Assert
+    verify(mockAppInspectionIdeServices).showToolWindow()
+  }
+
+  private fun buildActionFromJavaFile(sqlStatement: String) {
+    setUpJavaFixture(sqlStatement)
+    setUpAction()
+  }
+
+  private fun buildActionFromKotlinFile(sqlStatement: String) {
+    setUpKotlinFixture(sqlStatement)
+    setUpAction()
+  }
+
+  private fun setUpAction() {
+    val hostElement = myFixture.file.findElementAt(myFixture.caretOffset)!!.parent
+    anAction = RunSqliteStatementGutterIconAction(hostElement.project, hostElement, viewFactory, mockDatabaseInspectorProjectService)
+    anActionEvent = TestActionEvent.createFromAnAction(anAction, mouseEvent, "", DataContext.EMPTY_CONTEXT)
+  }
+
+  private fun setUpJavaFixture(sqlStatement: String) {
     myFixture.configureByText(
-      JavaFileType.INSTANCE,
+      StdFileTypes.JAVA,
       // language=java
+      """
+          package com.example;
+          class Foo {
+            void bar() {
+              // language=RoomSql
+              String query = $caret"$sqlStatement";
+            }
+          }
+          """.trimIndent()
+    )
+  }
+
+  private fun setUpKotlinFixture(sqlStatement: String) {
+    val psiFile = myFixture.addFileToProject(
+      "Foo.kt",
+      // language=kotlin
       """
         package com.example;
         class Foo {
-          void bar() {
+          fun bar() {
             // language=RoomSql
-            String query = $caret"$sqlStatement";
+            val query = $caret"$sqlStatement"
           }
         }
         """.trimIndent()
     )
 
-    val hostElement = myFixture.file.findElementAt(myFixture.caretOffset)!!.parent
-
-    anAction = RunSqliteStatementGutterIconAction(hostElement.project, hostElement, viewFactory)
-    anActionEvent = TestActionEvent.createFromAnAction(anAction, mouseEvent, "", DataContext.EMPTY_CONTEXT)
+    myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
   }
 }

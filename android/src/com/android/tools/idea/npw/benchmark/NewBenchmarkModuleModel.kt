@@ -29,7 +29,7 @@ import com.intellij.util.lang.JavaVersion
 
 class NewBenchmarkModuleModel(
   project: Project, projectSyncInvoker: ProjectSyncInvoker
-) : ModuleModel(null, "benchmark", "New Benchmark Module", true, ExistingProjectModelData(project, projectSyncInvoker)) {
+) : ModuleModel("benchmark", "New Benchmark Module", true, ExistingProjectModelData(project, projectSyncInvoker)) {
   override val renderer = object : ModuleTemplateRenderer() {
     override val recipe: Recipe get() = { td: TemplateData -> generateBenchmarkModule(td as ModuleTemplateData) }
     override val loggingEvent: AndroidStudioEvent.TemplateRenderer

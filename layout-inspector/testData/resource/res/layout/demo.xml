@@ -17,6 +17,13 @@
       framework:textAppearance="@style/MyTextStyle.Extra"
       framework:textColor="@color/textRedIndirect"/>
 
+  <Button
+      framework:id="@+id/button"
+      framework:layout_width="wrap_content"
+      framework:layout_height="wrap_content"
+      framework:text="@string/hello"
+      framework:background="@color/textBlue"/>
+
   <TextView
       framework:layout_width="wrap_content"
       framework:layout_height="wrap_content"

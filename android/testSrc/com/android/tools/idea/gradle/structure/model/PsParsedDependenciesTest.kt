@@ -16,27 +16,19 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
-import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import com.android.tools.idea.gradle.structure.GradleFileModelTestCase
+import com.android.tools.idea.gradle.structure.PS_PARSED_DEPENDENCIES_FIND_LIBRARIES
+import com.android.tools.idea.gradle.structure.PS_PARSED_DEPENDENCIES_PARSED_DEPENDENCIES
+import com.intellij.testFramework.RunsInEdt
 import org.hamcrest.CoreMatchers.hasItems
 import org.junit.Assert.assertThat
-import org.junit.Assume
 import org.junit.Test
 
+@RunsInEdt
 class PsParsedDependenciesTest : GradleFileModelTestCase() {
   @Test
   fun testParsedDependencies() {
-    Assume.assumeTrue(isGroovy())
-    writeToBuildFile(
-      """
-        dependencies {
-          api 'com.android.support:appcompat-v7:+'
-          api fileTree(dir: 'libs', include: ['*.jar'])
-          implementation 'com.example.libs:lib1:1.0'
-          debugImplementation 'com.example.libs:lib1:1.0'
-          releaseImplementation 'com.example.libs:lib1:0.9.1'
-        }"""
-    )
-
+    writeToBuildFile(PS_PARSED_DEPENDENCIES_PARSED_DEPENDENCIES)
     val parsedDependencies = PsParsedDependencies(gradleBuildModel)
     val dependencies = mutableListOf<ArtifactDependencyModel>()
     parsedDependencies.forEachLibraryDependency { dependencies.add(it) }
@@ -53,18 +45,7 @@ class PsParsedDependenciesTest : GradleFileModelTestCase() {
 
   @Test
   fun testFindLibraries() {
-    Assume.assumeTrue(isGroovy())
-    writeToBuildFile(
-      """
-        dependencies {
-          api 'com.android.support:appcompat-v7:+'
-          api fileTree(dir: 'libs', include: ['*.jar'])
-          implementation 'com.example.libs:lib1:1.0'
-          debugImplementation 'com.example.libs:lib1:1.0'
-          releaseImplementation 'com.example.libs:lib1:0.9.1'
-        }"""
-    )
-
+    writeToBuildFile(PS_PARSED_DEPENDENCIES_FIND_LIBRARIES)
     val parsedDependencies = PsParsedDependencies(gradleBuildModel)
     val lib1 = parsedDependencies.findLibraryDependencies("com.example.libs", "lib1")
     assertThat(

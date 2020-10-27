@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.model;
 
+import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
@@ -71,7 +72,7 @@ public class DefaultDataSeries<E> implements DataSeries<E> {
   }
 
   public int getNearestXIndex(long x) {
-    int index = Collections.binarySearch(mSeriesList.stream().map(data -> data.x).collect(Collectors.toList()), x);
+    int index = Collections.binarySearch(ContainerUtil.map(mSeriesList, data -> data.x), x);
 
     if (index < 0) {
       // No exact match, returns position to the left of the insertion point.

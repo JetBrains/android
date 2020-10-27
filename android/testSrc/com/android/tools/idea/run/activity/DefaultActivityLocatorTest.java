@@ -15,10 +15,22 @@
  */
 package com.android.tools.idea.run.activity;
 
+import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryActivitiesFromManifestIndex;
+import static com.android.tools.idea.run.activity.DefaultActivityLocator.getActivitiesFromMergedManifest;
+import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ACTIVITY;
+import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ALIAS;
+import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_DEFAULT;
+import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ENABLED;
+import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_MANIFESTS;
+import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_TV;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.SdkConstants;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.flags.StudioFlags.DefaultActivityLocatorStrategy;
+import com.android.tools.idea.model.ActivitiesAndAliases;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestModificationListener;
 import com.intellij.openapi.application.ApplicationManager;
@@ -32,11 +44,6 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.tools.idea.run.activity.DefaultActivityLocator.getActivitiesFromMergedManifest;
-import static com.android.tools.idea.testing.TestProjectPaths.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link DefaultActivityLocator}.
@@ -224,7 +231,35 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
     myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
 
-    List<DefaultActivityLocator.ActivityWrapper> activities = getActivitiesFromMergedManifest(myFacet);
-    assertSame(activities, getActivitiesFromMergedManifest(myFacet));
+    ActivitiesAndAliases activities = queryActivitiesFromManifestIndex(myFacet);
+    assertSame(activities, queryActivitiesFromManifestIndex(myFacet));
+  }
+
+  public void testIndexStrategy_valid() {
+    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.INDEX);
+    MergedManifestModificationListener.ensureSubscribed(getProject());
+
+    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",
+                                "src/com/example/unittest/Launcher.java");
+
+    DefaultActivityLocator defaultActivityLocator = new DefaultActivityLocator(myFacet);
+    try {
+      defaultActivityLocator.validate();
+    } catch (ActivityLocator.ActivityLocatorException e) {
+      fail("A launchable activity registration is present in the manifest, but none was detected.");
+    }
+  }
+
+  public void testIndexStrategy_invalid() {
+    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.INDEX);
+    myFixture.copyFileToProject(RUN_CONFIG_MANIFESTS + "/InvalidCategory.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    DefaultActivityLocator defaultActivityLocator = new DefaultActivityLocator(myFacet);
+    try {
+      defaultActivityLocator.validate();
+    } catch (ActivityLocator.ActivityLocatorException e) {
+      return;
+    }
+    fail("No launchable activity registration is present in the manifest, but one was detected");
   }
 }

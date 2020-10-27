@@ -193,6 +193,11 @@ public final class ImageDiffUtil {
       return AdtUiUtils.DEFAULT_FONT;
     }
   }
+
+  /**
+   * Asserts that the given image is similar to the golden one contained in the given file.
+   * If the golden image file does not exist, it is created and the test fails.
+   */
   public static void assertImageSimilar(@NotNull File goldenFile,
                                         @NotNull BufferedImage actual,
                                         double maxPercentDifferent) throws IOException {
@@ -301,6 +306,7 @@ public final class ImageDiffUtil {
         boolean deleted = output.delete();
         assertTrue(deleted);
       }
+      output.mkdirs();
       ImageIO.write(deltaImage, "PNG", output);
       error += " - see details in archived file " + output.getPath();
       System.out.println(error);

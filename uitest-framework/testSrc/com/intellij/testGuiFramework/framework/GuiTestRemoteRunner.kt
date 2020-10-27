@@ -15,7 +15,7 @@
  */
 package com.intellij.testGuiFramework.framework
 
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.UseBleak
+import com.android.tools.idea.bleak.UseBleak
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Ref
 import com.intellij.testGuiFramework.impl.GuiTestStarter

@@ -27,53 +27,55 @@ import com.android.tools.profilers.cpu.analysis.CpuAnalysisChartModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
+import com.android.tools.profilers.cpu.analysis.CpuThreadAnalysisSummaryTabModel;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltip;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Track model for CPU threads in CPU capture stage. Consists of thread states and trace events.
  */
 public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
-  private final StateChartModel<CpuProfilerStage.ThreadState> myThreadStateChartModel;
-  private final CaptureDetails.CallChart myCallChartModel;
-  private final CpuCapture myCapture;
-  private final Range mySelectionRange;
-  private final CpuThreadInfo myThreadInfo;
+  @NotNull private final StateChartModel<ThreadState> myThreadStateChartModel;
+  @NotNull private final CaptureDetails.CallChart myCallChartModel;
+  @NotNull private final CpuCapture myCapture;
+  @NotNull private final Timeline myTimeline;
+  @NotNull private final CpuThreadInfo myThreadInfo;
   @NotNull private final CpuThreadsTooltip myThreadStateTooltip;
   @NotNull private final Function<CaptureNode, CpuCaptureNodeTooltip> myTraceEventTooltipBuilder;
   @NotNull private final MultiSelectionModel<CpuAnalyzable> myMultiSelectionModel;
+  @Nullable private final DataSeries<ThreadState> myThreadStateSeries;
 
-  public CpuThreadTrackModel(@NotNull Range range,
-                             @NotNull CpuCapture capture,
+  public CpuThreadTrackModel(@NotNull CpuCapture capture,
                              @NotNull CpuThreadInfo threadInfo,
                              @NotNull Timeline timeline,
                              @NotNull MultiSelectionModel<CpuAnalyzable> multiSelectionModel) {
     myThreadStateChartModel = new StateChartModel<>();
     myThreadStateTooltip = new CpuThreadsTooltip(timeline);
-    if (capture.getType() == Cpu.CpuTraceType.ATRACE) {
-      DataSeries<CpuProfilerStage.ThreadState> threadStateDataSeries =
-        new AtraceDataSeries<>((AtraceCpuCapture)capture, atraceCapture -> atraceCapture.getThreadStatesForThread(threadInfo.getId()));
-      myThreadStateChartModel.addSeries(new RangedSeries<>(range, threadStateDataSeries));
-      myThreadStateTooltip.setThread(threadInfo.getName(), threadStateDataSeries);
-    }
-
-    myCallChartModel = new CaptureDetails.CallChart(range, Collections.singletonList(capture.getCaptureNode(threadInfo.getId())), capture);
+    myCallChartModel =
+      new CaptureDetails.CallChart(timeline.getViewRange(), Collections.singletonList(capture.getCaptureNode(threadInfo.getId())), capture);
     myCapture = capture;
-    mySelectionRange = range;
     myThreadInfo = threadInfo;
-
-    myTraceEventTooltipBuilder = captureNode -> new CpuCaptureNodeTooltip(timeline, captureNode);
-
+    myTimeline = timeline;
     myMultiSelectionModel = multiSelectionModel;
+
+    if (capture.getType() == Cpu.CpuTraceType.ATRACE || capture.getType() == Cpu.CpuTraceType.PERFETTO) {
+      myThreadStateSeries = new LazyDataSeries<>(() -> capture.getThreadStatesForThread(threadInfo.getId()));
+      myThreadStateChartModel.addSeries(new RangedSeries<>(timeline.getViewRange(), myThreadStateSeries));
+      myThreadStateTooltip.setThread(threadInfo.getName(), myThreadStateSeries);
+    }
+    else {
+      myThreadStateSeries = null;
+    }
+    myTraceEventTooltipBuilder = captureNode -> new CpuCaptureNodeTooltip(timeline, captureNode);
   }
 
   @NotNull
-  public StateChartModel<CpuProfilerStage.ThreadState> getThreadStateChartModel() {
+  public StateChartModel<ThreadState> getThreadStateChartModel() {
     return myThreadStateChartModel;
   }
 
@@ -90,20 +92,32 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
   @NotNull
   @Override
   public CpuAnalysisModel<CpuThreadTrackModel> getAnalysisModel() {
-    CpuAnalysisChartModel<CpuThreadTrackModel> flameChart =
-      new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.FLAME_CHART, mySelectionRange, myCapture, CpuThreadTrackModel::getCaptureNode);
-    CpuAnalysisChartModel<CpuThreadTrackModel> topDown =
-      new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.TOP_DOWN, mySelectionRange, myCapture, CpuThreadTrackModel::getCaptureNode);
-    CpuAnalysisChartModel<CpuThreadTrackModel> bottomUp =
-      new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.BOTTOM_UP, mySelectionRange, myCapture, CpuThreadTrackModel::getCaptureNode);
-    flameChart.getDataSeries().add(this);
-    topDown.getDataSeries().add(this);
-    bottomUp.getDataSeries().add(this);
-
     CpuAnalysisModel<CpuThreadTrackModel> model = new CpuAnalysisModel<>(myThreadInfo.getName(), "%d threads");
+    Range selectionRange = myTimeline.getSelectionRange().isEmpty() ? myTimeline.getViewRange() : myTimeline.getSelectionRange();
+
+    // Summary
+    CpuThreadAnalysisSummaryTabModel summary = new CpuThreadAnalysisSummaryTabModel(myCapture.getRange(), selectionRange);
+    summary.getDataSeries().add(this);
+    model.addTabModel(summary);
+
+    // Flame Chart
+    CpuAnalysisChartModel<CpuThreadTrackModel> flameChart =
+      new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.FLAME_CHART, selectionRange, myCapture, CpuThreadTrackModel::getCaptureNode);
+    flameChart.getDataSeries().add(this);
     model.addTabModel(flameChart);
+
+    // Top Down
+    CpuAnalysisChartModel<CpuThreadTrackModel> topDown =
+      new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.TOP_DOWN, selectionRange, myCapture, CpuThreadTrackModel::getCaptureNode);
+    topDown.getDataSeries().add(this);
     model.addTabModel(topDown);
+
+    // Bottom Up
+    CpuAnalysisChartModel<CpuThreadTrackModel> bottomUp =
+      new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.BOTTOM_UP, selectionRange, myCapture, CpuThreadTrackModel::getCaptureNode);
+    bottomUp.getDataSeries().add(this);
     model.addTabModel(bottomUp);
+
     return model;
   }
 
@@ -131,6 +145,19 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
   @NotNull
   public MultiSelectionModel<CpuAnalyzable> getMultiSelectionModel() {
     return myMultiSelectionModel;
+  }
+
+  @NotNull
+  public CpuThreadInfo getThreadInfo() {
+    return myThreadInfo;
+  }
+
+  /**
+   * @return data series of thread states, if the capture contains thread state data (e.g. SysTrace). Null otherwise.
+   */
+  @Nullable
+  public DataSeries<ThreadState> getThreadStateSeries() {
+    return myThreadStateSeries;
   }
 
   private Collection<CaptureNode> getCaptureNode() {

@@ -15,10 +15,17 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.compose.preview.util.COMPOSABLE_ANNOTATION_FQN
+import com.android.tools.idea.compose.preview.util.HEIGHT_PARAMETER
+import com.android.tools.idea.compose.preview.util.MAX_HEIGHT
+import com.android.tools.idea.compose.preview.util.MAX_WIDTH
+import com.android.tools.idea.compose.preview.util.PREVIEW_ANNOTATION_FQN
+import com.android.tools.idea.compose.preview.util.PREVIEW_PARAMETER_FQN
+import com.android.tools.idea.compose.preview.util.WIDTH_PARAMETER
+import com.android.tools.idea.compose.preview.util.isValidPreviewLocation
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.findValueArgument
-import com.android.tools.idea.kotlin.getQualifiedName
+import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.util.androidFacet
 import com.intellij.codeInspection.LocalInspectionToolSession
 import com.intellij.codeInspection.ProblemHighlightType
@@ -27,8 +34,12 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
-import org.jetbrains.kotlin.psi.*
-import org.jetbrains.kotlin.psi.psiUtil.containingClass
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtImportDirective
+import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtParameter
+import org.jetbrains.kotlin.psi.KtValueArgument
+import org.jetbrains.kotlin.psi.KtVisitorVoid
 
 /**
  * Base class for inspection that depend on methods annotated with `@Preview`.
@@ -47,8 +58,7 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
    */
   abstract fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
-                                             previewAnnotation: KtAnnotationEntry,
-                                             functionAnnotations: Map<String, KtAnnotationEntry>)
+                                             previewAnnotation: KtAnnotationEntry)
 
   final override fun buildVisitor(holder: ProblemsHolder,
                                   isOnTheFly: Boolean,
@@ -62,6 +72,12 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
           isPreviewFile = isPreviewFile || PREVIEW_ANNOTATION_FQN == importDirective.importedFqName?.asString()
         }
 
+        override fun visitAnnotationEntry(annotationEntry: KtAnnotationEntry) {
+          super.visitAnnotationEntry(annotationEntry)
+
+          isPreviewFile = isPreviewFile || annotationEntry.fqNameMatches(PREVIEW_ANNOTATION_FQN)
+        }
+
         override fun visitNamedFunction(function: KtNamedFunction) {
           super.visitNamedFunction(function)
 
@@ -69,13 +85,8 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
             return
           }
 
-          val annotationNames = function.annotationEntries
-            .filter { it.getQualifiedName() != null }
-            .associateBy { it.getQualifiedName()!! }
-
-          val previewAnnotation = annotationNames[PREVIEW_ANNOTATION_FQN] ?: return
-
-          visitPreviewAnnotatedFunction(holder, function, previewAnnotation, annotationNames)
+          val previewAnnotation = function.annotationEntries.firstOrNull { it.fqNameMatches(PREVIEW_ANNOTATION_FQN) } ?: return
+          visitPreviewAnnotatedFunction(holder, function, previewAnnotation)
         }
       }
     }
@@ -85,18 +96,49 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
 }
 
 /**
+ * Returns whether the [KtParameter] can be used in the preview. This will return true if the parameter
+ * has a default value or a value provider.
+ */
+private fun KtParameter.isAcceptableForPreview(): Boolean =
+  hasDefaultValue() ||
+  // When data sources are enabled, we also accept parameters with the @PreviewParameter annotation
+  (StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.get() && annotationEntries.any { it.fqNameMatches(PREVIEW_PARAMETER_FQN) })
+
+/**
  * Inspection that checks that any function annotated with `@Preview` does not have parameters.
  */
 class PreviewAnnotationInFunctionWithParametersInspection : BasePreviewAnnotationInspection() {
   override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
-                                             previewAnnotation: KtAnnotationEntry,
-                                             functionAnnotations: Map<String, KtAnnotationEntry>) {
-    if (function.valueParameters.isNotEmpty()) {
+                                             previewAnnotation: KtAnnotationEntry) {
+    if (function.valueParameters.any { !it.isAcceptableForPreview() }) {
+      val description = if (StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.get())
+        message("inspection.no.parameters.or.provider.description")
+      else
+        message("inspection.no.parameters.description")
       holder.registerProblem(previewAnnotation.psiOrParent as PsiElement,
-                             message("inspection.no.parameters.description"),
+                             description,
                              ProblemHighlightType.ERROR)
     }
+  }
+}
+
+/**
+ * Inspection that checks that any `@Preview` function only has at most one `@PreviewParameter`.
+ */
+class PreviewMultipleParameterProvidersInspection : BasePreviewAnnotationInspection() {
+  override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
+                                             function: KtNamedFunction,
+                                             previewAnnotation: KtAnnotationEntry) {
+    // Find the second PreviewParameter annotation if any
+    val secondPreviewParameter = function.valueParameters.mapNotNull {
+      it.annotationEntries.firstOrNull { annotation -> annotation.fqNameMatches(PREVIEW_PARAMETER_FQN) }
+    }.drop(1).firstOrNull() ?: return
+
+    // Flag the second annotation as the error
+    holder.registerProblem(secondPreviewParameter as PsiElement,
+                           message("inspection.no.multiple.preview.provider.description"),
+                           ProblemHighlightType.ERROR)
   }
 }
 
@@ -106,9 +148,9 @@ class PreviewAnnotationInFunctionWithParametersInspection : BasePreviewAnnotatio
 class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspection() {
   override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
-                                             previewAnnotation: KtAnnotationEntry,
-                                             functionAnnotations: Map<String, KtAnnotationEntry>) {
-    if (!functionAnnotations.contains(COMPOSABLE_ANNOTATION_FQN)) {
+                                             previewAnnotation: KtAnnotationEntry) {
+    val nonComposable = function.annotationEntries.none { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQN) }
+    if (nonComposable) {
       holder.registerProblem(previewAnnotation.psiOrParent as PsiElement,
                              message("inspection.no.composable.description"),
                              ProblemHighlightType.ERROR)
@@ -121,25 +163,10 @@ class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspecti
  * This is to avoid `@Preview` methods to be instance methods of classes that we can not instantiate.
  */
 class PreviewMustBeTopLevelFunction : BasePreviewAnnotationInspection() {
-  private fun KtClass.hasDefaultConstructor(): Boolean =
-    allConstructors.isEmpty()
-      .or(allConstructors.any { it.getValueParameters().isEmpty() })
-
   override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
-                                             previewAnnotation: KtAnnotationEntry,
-                                             functionAnnotations: Map<String, KtAnnotationEntry>) {
-    if (function.isTopLevel) {
-      return
-    }
-
-    val containingClass = function.containingClass()
-    if (containingClass != null) {
-      // We allow functions that are not top level defined in top level classes that have a default (no parameter) constructor.
-      if (containingClass.isTopLevel() && containingClass.hasDefaultConstructor()) {
-        return
-      }
-    }
+                                             previewAnnotation: KtAnnotationEntry) {
+    if (function.isValidPreviewLocation()) return
 
     holder.registerProblem(previewAnnotation.psiOrParent as PsiElement,
                            message("inspection.top.level.function"),
@@ -154,8 +181,7 @@ class PreviewMustBeTopLevelFunction : BasePreviewAnnotationInspection() {
 class PreviewDimensionRespectsLimit : BasePreviewAnnotationInspection() {
   override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
-                                             previewAnnotation: KtAnnotationEntry,
-                                             functionAnnotations: Map<String, KtAnnotationEntry>) {
+                                             previewAnnotation: KtAnnotationEntry) {
     previewAnnotation.findValueArgument(WIDTH_PARAMETER)?.let {
       if (it.exceedsLimit(MAX_WIDTH)) {
         holder.registerProblem(it.psiOrParent as PsiElement,

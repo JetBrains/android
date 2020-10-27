@@ -160,7 +160,9 @@ class BuildAttributionTreeView(
           else {
             // CardLayout.show does not trigger validation when there is just one component.
             panel.validate()
-            uiAnalytics.initFirstPage(selectedNode.nodeId, selectedNode.pageType)
+            uiAnalytics.initFirstPage(
+              BuildAttributionUiAnalytics.AnalyticsPageId(selectedNode.pageType, selectedNode.nodeId)
+            )
           }
         }
       }

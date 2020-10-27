@@ -15,26 +15,32 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import static javax.swing.SortOrder.ASCENDING;
+import static javax.swing.SortOrder.DESCENDING;
+
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.profilers.memory.ClassGrouping;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
+import com.android.tools.profilers.memory.adapters.instancefilters.ActivityFragmentLeakInstanceFilter;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
-import java.util.Collections;
-import java.util.Set;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListenableFutureTask;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.stream.Stream;
-
-import static javax.swing.SortOrder.ASCENDING;
-import static javax.swing.SortOrder.DESCENDING;
+import javax.swing.SortOrder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface CaptureObject extends MemoryObject {
   String DEFAULT_HEAP_NAME = "default";
@@ -42,6 +48,7 @@ public interface CaptureObject extends MemoryObject {
   String ZYGOTE_HEAP_NAME = "zygote";
   String APP_HEAP_NAME = "app";
   String JNI_HEAP_NAME = "JNI";
+  String NATIVE_HEAP_NAME = "Native";
 
   int DEFAULT_HEAP_ID = 0;
   // ID for JNI pseudo-heap, it should not overlap with real Android heaps
@@ -61,7 +68,11 @@ public interface CaptureObject extends MemoryObject {
     TOTAL_COUNT(3, DESCENDING),
     NATIVE_SIZE(4, DESCENDING),
     SHALLOW_SIZE(5, DESCENDING),
-    RETAINED_SIZE(6, DESCENDING);
+    RETAINED_SIZE(6, DESCENDING),
+    ALLOCATIONS_SIZE(7, DESCENDING),
+    DEALLOCATIONS_SIZE(8, DESCENDING),
+    REMAINING_SIZE(9, DESCENDING),
+    MODULE(10, ASCENDING);
 
     private final int myWeight;
 
@@ -185,20 +196,59 @@ public interface CaptureObject extends MemoryObject {
     return Collections.EMPTY_SET;
   }
 
+  /**
+   * @return the filter of leaked activities and fragments if that is supported, or null otherwise
+   * An implementation of this method should only return a filter in `getSupportedInstanceFilters`
+   */
+  @Nullable
+  default ActivityFragmentLeakInstanceFilter getActivityFragmentLeakFilter() {
+    return null;
+  }
+
   @NotNull
   default Set<CaptureObjectInstanceFilter> getSelectedInstanceFilters() {
     return Collections.EMPTY_SET;
   }
 
-  default void addInstanceFilter(@NotNull CaptureObjectInstanceFilter filter, @NotNull Executor analyzeJoiner) {}
+  default ListenableFuture<Void> addInstanceFilter(@NotNull CaptureObjectInstanceFilter filter,
+                                                   @NotNull Executor analyzeJoiner) {
+    return CaptureObjectUtils.makeEmptyTask();
+  }
 
-  default void removeInstanceFilter(@NotNull CaptureObjectInstanceFilter filter, @NotNull Executor analyzeJoiner) {}
+  default ListenableFuture<Void> removeInstanceFilter(@NotNull CaptureObjectInstanceFilter filter,
+                                                      @NotNull Executor analyzeJoiner) {
+    return CaptureObjectUtils.makeEmptyTask();
+  }
 
-  default void setSingleFilter(@NotNull CaptureObjectInstanceFilter filter, @NotNull Executor analyzeJoiner) {}
+  default ListenableFuture<Void> setSingleFilter(@NotNull CaptureObjectInstanceFilter filter,
+                                                 @NotNull Executor analyzeJoiner) {
+    return CaptureObjectUtils.makeEmptyTask();
+  }
 
-  default void removeAllFilters(@NotNull Executor analyzeJoiner) {}
+  default ListenableFuture<Void> removeAllFilters(@NotNull Executor analyzeJoiner) {
+    return CaptureObjectUtils.makeEmptyTask();
+  }
+
+  default boolean isGroupingSupported(ClassGrouping grouping) {
+    switch (grouping) {
+      case ARRANGE_BY_CLASS:
+      case ARRANGE_BY_PACKAGE:
+      case ARRANGE_BY_CALLSTACK:
+        return true;
+      case NATIVE_ARRANGE_BY_ALLOCATION_METHOD:
+      case NATIVE_ARRANGE_BY_CALLSTACK:
+      default:
+        return false;
+    }
+  }
 
   default boolean canSafelyLoad() {
     return true;
+  }
+}
+
+class CaptureObjectUtils {
+  static ListenableFutureTask<Void> makeEmptyTask() {
+    return ListenableFutureTask.create(() -> null);
   }
 }

@@ -1,4 +1,3 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.resourceManagers;
 
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -74,7 +73,7 @@ public abstract class FilteredAttributeDefinitions implements AttributeDefinitio
     return myWrappee.getAttrGroup(attr);
   }
 
-  private final class MyStyleableDefinition implements StyleableDefinition {
+  private class MyStyleableDefinition implements StyleableDefinition {
     private final StyleableDefinition myWrappee;
 
     private MyStyleableDefinition(@NotNull StyleableDefinition wrappee) {

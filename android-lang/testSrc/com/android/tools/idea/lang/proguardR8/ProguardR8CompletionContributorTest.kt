@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lang.proguardR8
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.CodeShrinker
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -66,7 +65,7 @@ class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
     var keys = myFixture.completeBasic()
 
     // don't appear outside class specification header
-    assertThat(keys).isEmpty()
+    assertThat(keys.map { it.lookupString }.toList()).containsNoneOf("class", "interface", "enum")
 
     myFixture.configureByText(ProguardR8FileType.INSTANCE, """
         -keep $caret
@@ -76,7 +75,7 @@ class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
 
     // after keep flags
     assertThat(keys).isNotEmpty()
-    assertThat(keys.map { it.lookupString }.toList()).containsExactly("class", "interface", "enum")
+    assertThat(keys.map { it.lookupString }.toList()).containsAllOf("class", "interface", "enum")
 
 
     myFixture.configureByText(ProguardR8FileType.INSTANCE, """
@@ -87,13 +86,13 @@ class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
 
     // after if flag
     assertThat(keys).isNotEmpty()
-    assertThat(keys.map { it.lookupString }.toList()).containsExactly("class", "interface", "enum")
+    assertThat(keys.map { it.lookupString }.toList()).containsAllOf("class", "interface", "enum")
   }
 
 
   fun testFieldMethodWildcardsCompletion() {
     // Don't appear outside class specification body.
-    myFixture.configureByText(ProguardR8FileType.INSTANCE, "${caret}")
+    myFixture.configureByText(ProguardR8FileType.INSTANCE, caret)
 
     var keys = myFixture.completeBasic()
 
@@ -465,18 +464,92 @@ class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).doesNotContain("static")
   }
+
+  fun testCompletionForInnerClass() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      public class MyClass {
+        class InnerClass {}
+      }
+    """.trimIndent()
+    )
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE, """
+        -keep class test.MyClass${"$"}${caret} {
+        }
+    """.trimIndent()
+    )
+
+    val classes = myFixture.completeBasic()
+    assertThat(classes).isNotEmpty()
+    assertThat(classes.map { it.lookupString }).containsExactly("InnerClass")
+
+
+    // Test that ProguardR8CompletionContributor doesn't duplicate static classes.
+    // Static classes are provided by JavaClassReferenceCompletionContributor
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      public class MyClass2 {
+        static class StaticInnerClass {}
+      }
+    """.trimIndent()
+    )
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE, """
+        -keep class test.MyClass2${"$"}${caret} {
+        }
+    """.trimIndent()
+    )
+
+    assertThat(myFixture.completeBasic()).hasLength(1)
+  }
+
+  fun testKeepModifierOption() {
+    // Suggest after FLAG + COMMA.
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -keep,<caret>
+      """.trimIndent()
+    )
+
+    myFixture.completeBasic()
+    var modifiers = myFixture.lookupElementStrings
+
+    assertThat(modifiers).containsAllOf("includedescriptorclasses",
+                                        "includecode",
+                                        "allowshrinking",
+                                        "allowoptimization",
+                                        "allowobfuscation")
+
+    // Suggest after KEEP_OPTION_MODIFIER + COMMA.
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -keep, includecode, allowobfuscation, <caret>
+      """.trimIndent()
+    )
+
+    myFixture.completeBasic()
+    modifiers = myFixture.lookupElementStrings
+
+    assertThat(modifiers).containsAllOf("includedescriptorclasses",
+                                        "includecode",
+                                        "allowshrinking",
+                                        "allowoptimization",
+                                        "allowobfuscation")
+  }
 }
 
 class ProguardR8FlagsCodeCompletion : AndroidTestCase() {
-  override fun setUp() {
-    StudioFlags.R8_SUPPORT_ENABLED.override(true)
-    super.setUp()
-  }
-
-  override fun tearDown() {
-    StudioFlags.R8_SUPPORT_ENABLED.clearOverride()
-    super.tearDown()
-  }
 
   fun testFlagSuggestionRegardinShrinkerType() {
     (myModule.getModuleSystem() as DefaultModuleSystem).codeShrinker = CodeShrinker.R8

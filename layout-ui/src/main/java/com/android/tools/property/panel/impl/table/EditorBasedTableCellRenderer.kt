@@ -27,7 +27,6 @@ import com.android.tools.property.ptable2.PTableCellRenderer
 import com.android.tools.property.ptable2.PTableColumn
 import com.android.tools.property.ptable2.PTableGroupItem
 import com.android.tools.property.ptable2.PTableItem
-import com.android.tools.property.ptable2.PTableVariableHeightCellEditor
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
@@ -66,6 +65,9 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
     model.property = property
     model.isUsedInRendererWithSelection = isSelected && hasFocus
     model.isExpandedTableItem = (item as? PTableGroupItem)?.let { table.isExpanded(it) } ?: false
+    if (model.isCustomHeight) {
+      table.updateRowHeight(item, column, editor.preferredSize.height, false)
+    }
     return editor
   }
 
@@ -85,7 +87,7 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
     val panel = VariableHeightPanel(editor)
     panel.border = createBorder(column, depth, editor, gridLineColor)
     val result = Pair(model, panel)
-    if (!panel.isCustomHeight) {
+    if (!model.isCustomHeight) {
       componentCache[key] = result
     }
     return result
@@ -106,17 +108,12 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
       else -> editor.insets.left
     }
 
-  private class VariableHeightPanel(private val editor: JComponent): JPanel(BorderLayout()), PTableVariableHeightCellEditor {
+  private class VariableHeightPanel(editor: JComponent): JPanel(BorderLayout()) {
 
     init {
       add(editor, BorderLayout.CENTER)
       background = UIUtil.TRANSPARENT_COLOR
     }
-
-    override val isCustomHeight: Boolean
-      get() = editor is PTableVariableHeightCellEditor && editor.isCustomHeight
-
-    override var updateRowHeight = {}
   }
 
   private data class ControlKey(val type: ControlType, val hasBrowseButton: Boolean)

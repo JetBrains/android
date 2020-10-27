@@ -49,7 +49,7 @@ class CpuProfilerConfigModelTest {
 
   @Before
   fun setup() {
-    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), myServices, myTimer)
+    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), myServices, myTimer)
     myProfilerStage = CpuProfilerStage(myProfilers!!)
     model = CpuProfilerConfigModel(myProfilers!!, myProfilerStage!!)
   }
@@ -177,7 +177,7 @@ class CpuProfilerConfigModelTest {
   }
 
   private fun isDefault(configuration: ProfilingConfiguration) = myServices
-    .defaultCpuProfilerConfigs
+    .getDefaultCpuProfilerConfigs(0)
     .any { configuration.name == it.name }
 
   private fun setDevice(featureLevel: Int) {

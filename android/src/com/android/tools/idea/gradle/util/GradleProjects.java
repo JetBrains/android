@@ -15,27 +15,21 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
-import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
+import static com.android.tools.idea.gradle.project.ProjectImportUtil.findGradleTarget;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.model.AndroidModel;
-import com.intellij.ide.impl.OpenProjectTask;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Objects;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,17 +57,6 @@ public final class GradleProjects {
         ProjectRootManagerEx.getInstanceEx(project).mergeRootsChangesDuring(changes);
       }
     }));
-  }
-
-  /**
-   * Opens the given project in the IDE.
-   *
-   * @param project the project to open.
-   */
-  public static void open(@NotNull Project project) {
-    Path projectDir = Paths.get(Objects.requireNonNull(project.getBasePath()));
-    updateLastProjectLocation(projectDir);
-    ProjectManagerEx.getInstanceEx().openProject(projectDir, OpenProjectTask.withCreatedProject(project));
   }
 
   public static boolean isOfflineBuildModeEnabled(@NotNull Project project) {
@@ -128,9 +111,9 @@ public final class GradleProjects {
    * @return {@code true} if the project can be imported as a Gradle project, {@code false} otherwise.
    */
   public static boolean canImportAsGradleProject(@NotNull VirtualFile importSource) {
-    VirtualFile target = findImportTarget(importSource);
-    return (GradleConstants.EXTENSION.equals(target.getExtension()) ||
-            target.getName().endsWith(GradleConstants.KOTLIN_DSL_SCRIPT_EXTENSION));
+    VirtualFile target = findGradleTarget(importSource);
+    return target != null && (GradleConstants.EXTENSION.equals(target.getExtension()) ||
+                              target.getName().endsWith(GradleConstants.KOTLIN_DSL_SCRIPT_EXTENSION));
   }
 
   public static void setSyncRequestedDuringBuild(@NotNull Project project, @Nullable Boolean value) {

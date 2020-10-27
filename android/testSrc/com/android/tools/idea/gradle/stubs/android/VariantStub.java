@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.JavaArtifact;
 import com.android.builder.model.ProductFlavor;
 import com.android.builder.model.TestedTargetVariant;
-import com.android.ide.common.gradle.model.IdeAndroidArtifact;
-import com.android.ide.common.gradle.model.IdeBaseArtifact;
-import com.android.ide.common.gradle.model.IdeJavaArtifact;
-import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,9 +29,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class VariantStub implements IdeVariant {
+public class VariantStub implements Variant {
   @NotNull private final List<String> myProductFlavors = new ArrayList<>();
 
   @NotNull private final String myName;
@@ -52,15 +49,22 @@ public class VariantStub implements IdeVariant {
    * @param buildType     the name of the build type.
    * @param fileStructure the file structure of the Gradle project this variant belongs to.
    */
-  VariantStub(@NotNull String name, @NotNull String buildType, @NotNull FileStructure fileStructure) {
+  public VariantStub(@NotNull String name,
+                     @NotNull String buildType,
+                     @NotNull FileStructure fileStructure,
+                     @NotNull AndroidArtifactStub mainArtifact) {
     myName = name;
     myBuildType = buildType;
-    myMainArtifact = new AndroidArtifactStub(AndroidProject.ARTIFACT_MAIN, buildType, buildType, fileStructure);
+    myMainArtifact = mainArtifact;
     myInstrumentationTestArtifact = new AndroidArtifactStub(AndroidProject.ARTIFACT_ANDROID_TEST, "androidTest/" + buildType,
                                                             buildType, fileStructure);
     myExtraAndroidArtifacts.add(myInstrumentationTestArtifact);
     myUnitTestArtifact = new JavaArtifactStub(AndroidProject.ARTIFACT_UNIT_TEST, "test/" + buildType, buildType, fileStructure);
     myExtraJavaArtifacts.add(myUnitTestArtifact);
+  }
+
+  VariantStub(@NotNull String name, @NotNull String buildType, @NotNull FileStructure fileStructure) {
+    this(name, buildType, fileStructure, new AndroidArtifactStub(AndroidProject.ARTIFACT_MAIN, buildType, buildType, fileStructure));
   }
 
   @Override
@@ -84,12 +88,6 @@ public class VariantStub implements IdeVariant {
   @NotNull
   public AndroidArtifactStub getInstrumentTestArtifact() {
     return myInstrumentationTestArtifact;
-  }
-
-  @Override
-  @NotNull
-  public Collection<AndroidArtifact> getExtraAndroidArtifacts() {
-    return myExtraAndroidArtifacts;
   }
 
   @Override
@@ -126,34 +124,18 @@ public class VariantStub implements IdeVariant {
     myProductFlavors.addAll(Arrays.asList(flavorNames));
   }
 
-  @Nullable
+  @NonNull
   @Override
-  public IdeAndroidArtifact getAndroidTestArtifact() {
-    for (AndroidArtifact artifact : myExtraAndroidArtifacts) {
-      if (artifact instanceof IdeAndroidArtifact) {
-        IdeAndroidArtifact ideArtifact = (IdeAndroidArtifact)artifact;
-        if (ideArtifact.isTestArtifact()) {
-          return ideArtifact;
-        }
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public IdeJavaArtifact getUnitTestArtifact() {
-    return null;
-  }
-
-  @NotNull
-  @Override
-  public Collection<IdeBaseArtifact> getTestArtifacts() {
-    return Collections.emptyList();
+  public Collection<AndroidArtifact> getExtraAndroidArtifacts() {
+    return myExtraAndroidArtifacts;
   }
 
   @Override
   public boolean isInstantAppCompatible() {
     return false;
   }
+
+  @NotNull
+  @Override
+  public List<String> getDesugaredMethods() { return Collections.emptyList(); }
 }

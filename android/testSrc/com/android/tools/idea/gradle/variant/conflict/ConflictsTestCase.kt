@@ -20,21 +20,21 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
-import com.android.tools.idea.testing.createAndroidProjectBuilder
+import com.android.tools.idea.testing.AndroidProjectBuilder
 import org.jetbrains.android.AndroidTestCase
 
 abstract class ConflictsTestCase : AndroidTestCase() {
   protected fun appModuleBuilder(selectedVariant: String = "debug", dependOnVariant: String? = "debug") = AndroidModuleModelBuilder(
     ":app",
     selectedVariant,
-    createAndroidProjectBuilder(androidModuleDependencyList = { listOf(AndroidModuleDependency(":lib", dependOnVariant)) })
+    AndroidProjectBuilder(androidModuleDependencyList = { listOf(AndroidModuleDependency(":lib", dependOnVariant)) })
   )
 
   protected fun libModuleBuilder(selectedVariant: String = "debug") =
     AndroidModuleModelBuilder(
       ":lib",
       selectedVariant,
-      createAndroidProjectBuilder(projectType = { AndroidProjectTypes.PROJECT_TYPE_LIBRARY })
+      AndroidProjectBuilder(projectType = { AndroidProjectTypes.PROJECT_TYPE_LIBRARY })
     )
 
   override fun setUp() {

@@ -64,7 +64,7 @@ import org.jetbrains.annotations.Nullable;
  *   <li><b>Directories</b>: Folders that contain a list of images
  * </ul>
  */
-public final class SampleDataResourceRepository extends LocalResourceRepository implements SingleNamespaceResourceRepository, Disposable {
+public class SampleDataResourceRepository extends LocalResourceRepository implements SingleNamespaceResourceRepository, Disposable {
   private static final Logger LOG = Logger.getInstance(SampleDataResourceRepository.class);
 
   @NotNull private final AndroidFacet myAndroidFacet;
@@ -200,7 +200,7 @@ public final class SampleDataResourceRepository extends LocalResourceRepository 
   /**
    * Service which caches instances of {@link SampleDataResourceRepository} by their associated {@link AndroidFacet}.
    */
-  static final class SampleDataRepositoryManager extends AndroidFacetScopedService {
+  static class SampleDataRepositoryManager extends AndroidFacetScopedService {
     private static final Key<SampleDataRepositoryManager> KEY = Key.create(SampleDataRepositoryManager.class.getName());
     private final Object repositoryLock = new Object();
     @GuardedBy("repositoryLock")

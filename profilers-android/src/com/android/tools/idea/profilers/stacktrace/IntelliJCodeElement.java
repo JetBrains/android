@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers.stacktrace;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.common.base.Strings;
 import com.intellij.openapi.project.Project;
@@ -80,6 +81,11 @@ public final class IntelliJCodeElement implements CodeElement {
 
   @Override
   public boolean isInUserCode() {
+    if (IdeInfo.isGameTool()) {
+      // For standalone game tools, source code navigation is not supported at this moment.
+      return false;
+    }
+
     VirtualFile sourceFile = myCodeLocation.isNativeCode() ? findSourceFile() : findClassFile();
     return sourceFile != null && ProjectFileIndex.SERVICE.getInstance(myProject).isInSource(sourceFile);
   }

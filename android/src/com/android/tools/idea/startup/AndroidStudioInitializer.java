@@ -16,8 +16,6 @@
 package com.android.tools.idea.startup;
 
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.startup.Actions.hideAction;
-import static com.android.tools.idea.startup.Actions.replaceAction;
 import static com.intellij.openapi.actionSystem.IdeActions.ACTION_COMPILE;
 import static com.intellij.openapi.actionSystem.IdeActions.ACTION_COMPILE_PROJECT;
 import static com.intellij.openapi.actionSystem.IdeActions.ACTION_MAKE_MODULE;
@@ -29,6 +27,9 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.run.deployment.ModifyDeviceSetAction;
+import com.android.tools.idea.run.deployment.MultipleDevicesAction;
+import com.android.tools.idea.run.deployment.RunOnMultipleDevicesAction;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.GcPauseWatcher;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
@@ -45,6 +46,7 @@ import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
@@ -65,6 +67,10 @@ import java.io.File;
 import java.util.Arrays;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.kotlin.kapt.idea.KaptProjectResolverExtension;
+import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer;
+import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer;
+import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
 
 /**
  * Performs Android Studio specific initialization tasks that are build-system-independent.
@@ -73,25 +79,28 @@ import org.jetbrains.annotations.NotNull;
  * {@link GradleSpecificInitializer} instead.
  * </p>
  */
-public class AndroidStudioInitializer implements Runnable {
+public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
   @Override
-  public void run() {
+  public void customize(@NotNull ActionManager actionManager) {
     checkInstallation();
-    setUpNewFilePopupActions();
-    setUpMakeActions();
+    setUpNewFilePopupActions(actionManager);
+    setUpMakeActions(actionManager);
     disableGroovyLanguageInjection();
 
     if (StudioFlags.CUSTOM_JAVA_NEW_CLASS_DIALOG.get()) {
-      replaceNewClassDialog();
+      replaceNewClassDialog(actionManager);
     }
 
     setupAnalytics();
-    disableIdeaJUnitConfigurations();
-    hideRarelyUsedIntellijActions();
-    setupResourceManagerActions();
+    disableIdeaJUnitConfigurations(actionManager);
+    disableKaptImportHandlers();
+    hideRarelyUsedIntellijActions(actionManager);
+    setupResourceManagerActions(actionManager);
     if (StudioFlags.TWEAK_COLOR_SCHEME.get()) {
       tweakDefaultColorScheme();
     }
+
+    setUpDeviceComboBoxActions(actionManager);
   }
 
   private static void tweakDefaultColorScheme() {
@@ -103,13 +112,23 @@ public class AndroidStudioInitializer implements Runnable {
     xmlTagAttributes.setBackgroundColor(textAttributes.getBackgroundColor());
   }
 
-  private static void setupResourceManagerActions() {
-    hideAction("Images.ShowThumbnails");
+  private static void setUpDeviceComboBoxActions(@NotNull ActionManager manager) {
+    if (StudioFlags.RUN_ON_MULTIPLE_DEVICES_ACTION_ENABLED.get()) {
+      Actions.hideAction(manager, MultipleDevicesAction.ID);
+      Actions.hideAction(manager, ModifyDeviceSetAction.ID);
+    }
+    else {
+      Actions.hideAction(manager, RunOnMultipleDevicesAction.ID);
+    }
+  }
+
+  private static void setupResourceManagerActions(ActionManager actionManager) {
+    Actions.hideAction(actionManager, "Images.ShowThumbnails");
     // Move the ShowServicesAction to the end of the queue by re-registering it, since it will always consume the shortcut event.
     // TODO(144579193): Remove this workaround when it's no longer necessary.
     //  Eg: When ShowServicesAction can decide whether it's enabled or not.
-    AnAction servicesAction = ActionManager.getInstance().getAction("ServiceView.ShowServices");
-    replaceAction("ServiceView.ShowServices", servicesAction);
+    AnAction servicesAction = actionManager.getAction("ServiceView.ShowServices");
+    Actions.replaceAction(actionManager, "ServiceView.ShowServices", servicesAction);
   }
 
   /*
@@ -130,7 +149,7 @@ public class AndroidStudioInitializer implements Runnable {
       // and no metrics are ever sent.
       if (!application.isUnitTestMode() && !application.isHeadlessEnvironment() &&
         !Boolean.getBoolean("disable.android.analytics.consent.dialog.for.test")) {
-        AppUIUtil.showConsentsAgreementIfNeeded(getLog());
+        ApplicationManager.getApplication().invokeLater(() -> AppUIUtil.showConsentsAgreementIfNeeded(getLog()));
       }
     }
 
@@ -185,34 +204,34 @@ public class AndroidStudioInitializer implements Runnable {
   }
 
   // Remove popup actions that we don't use
-  private static void setUpNewFilePopupActions() {
-    hideAction("NewHtmlFile");
-    hideAction("NewPackageInfo");
+  private static void setUpNewFilePopupActions(ActionManager actionManager) {
+    Actions.hideAction(actionManager, "NewHtmlFile");
+    Actions.hideAction(actionManager, "NewPackageInfo");
 
     // Hide designer actions
-    hideAction("NewForm");
-    hideAction("NewDialog");
-    hideAction("NewFormSnapshot");
+    Actions.hideAction(actionManager, "NewForm");
+    Actions.hideAction(actionManager, "NewDialog");
+    Actions.hideAction(actionManager, "NewFormSnapshot");
 
     // Hide individual actions that aren't part of a group
-    hideAction("Groovy.NewClass");
-    hideAction("Groovy.NewScript");
+    Actions.hideAction(actionManager, "Groovy.NewClass");
+    Actions.hideAction(actionManager, "Groovy.NewScript");
   }
 
   // The original actions will be visible only on plain IDEA projects.
-  private static void setUpMakeActions() {
+  private static void setUpMakeActions(ActionManager actionManager) {
     // 'Build' > 'Make Project' action
-    hideAction("CompileDirty");
+    Actions.hideAction(actionManager, "CompileDirty");
 
     // 'Build' > 'Make Modules' action
     // We cannot simply hide this action, because of a NPE.
-    replaceAction(ACTION_MAKE_MODULE, new MakeIdeaModuleAction());
+    Actions.replaceAction(actionManager, ACTION_MAKE_MODULE, new MakeIdeaModuleAction());
 
     // 'Build' > 'Rebuild' action
-    hideAction(ACTION_COMPILE_PROJECT);
+    Actions.hideAction(actionManager, ACTION_COMPILE_PROJECT);
 
     // 'Build' > 'Compile Modules' action
-    hideAction(ACTION_COMPILE);
+    Actions.hideAction(actionManager, ACTION_COMPILE);
   }
 
   // Fix https://code.google.com/p/android/issues/detail?id=201624
@@ -233,8 +252,8 @@ public class AndroidStudioInitializer implements Runnable {
     });
   }
 
-  private static void replaceNewClassDialog() {
-    replaceAction("NewClass", new CreateClassAction());
+  private static void replaceNewClassDialog(ActionManager actionManager) {
+    Actions.replaceAction(actionManager, "NewClass", new CreateClassAction());
 
     // Update the text for the file creation templates.
     FileTemplateManager fileTemplateManager = FileTemplateManager.getDefaultInstance();
@@ -244,12 +263,20 @@ public class AndroidStudioInitializer implements Runnable {
     }
   }
 
+  private static void disableKaptImportHandlers() {
+    ExtensionPoint<GradleProjectResolverExtension> resolverExtensionPoint = GradleProjectResolverExtension.EP_NAME.getPoint(null);
+    resolverExtensionPoint.unregisterExtension(KaptProjectResolverExtension.class);
+  }
+
   // JUnit original Extension JUnitConfigurationType is disabled so it can be replaced by its child class AndroidJUnitConfigurationType
-  private static void disableIdeaJUnitConfigurations() {
+  private static void disableIdeaJUnitConfigurations(ActionManager actionManager) {
     // First we unregister the ConfigurationProducers, and after the ConfigurationType
 
     //noinspection rawtypes: RunConfigurationProducer.EP_NAME uses raw types.
     ExtensionPoint<RunConfigurationProducer> configurationProducerExtensionPoint = RunConfigurationProducer.EP_NAME.getPoint();
+    configurationProducerExtensionPoint.unregisterExtension(AllInPackageGradleConfigurationProducer.class);
+    configurationProducerExtensionPoint.unregisterExtension(TestClassGradleConfigurationProducer.class);
+    configurationProducerExtensionPoint.unregisterExtension(TestClassGradleConfigurationProducer.class);
 
     //noinspection rawtypes: RunConfigurationProducer.EP_NAME uses raw types.
     for (RunConfigurationProducer runConfigurationProducer : configurationProducerExtensionPoint.getExtensions()) {
@@ -269,13 +296,13 @@ public class AndroidStudioInitializer implements Runnable {
     }
 
     // We hide actions registered by the JUnit plugin and instead we use those registered in android-junit.xml
-    hideAction("excludeFromSuite");
-    hideAction("AddToISuite");
+    Actions.hideAction(actionManager, "excludeFromSuite");
+    Actions.hideAction(actionManager, "AddToISuite");
   }
 
-  private static void hideRarelyUsedIntellijActions() {
+  private static void hideRarelyUsedIntellijActions(ActionManager actionManager) {
     // Hide the Save File as Template action due to its rare use in Studio.
-    hideAction("SaveFileAsTemplate");
+    Actions.hideAction(actionManager, "SaveFileAsTemplate");
   }
 
   @NotNull

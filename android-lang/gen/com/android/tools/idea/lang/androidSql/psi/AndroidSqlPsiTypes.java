@@ -65,6 +65,7 @@ public interface AndroidSqlPsiTypes {
   IElementType EQUIVALENCE_EXPRESSION = new AndroidSqlAstNodeType("EQUIVALENCE_EXPRESSION");
   IElementType ERROR_MESSAGE = new AndroidSqlAstNodeType("ERROR_MESSAGE");
   IElementType EXISTS_EXPRESSION = new AndroidSqlAstNodeType("EXISTS_EXPRESSION");
+  IElementType EXPLAIN_PREFIX = new AndroidSqlAstNodeType("EXPLAIN_PREFIX");
   IElementType EXPRESSION = new AndroidSqlAstNodeType("EXPRESSION");
   IElementType FOREIGN_KEY_CLAUSE = new AndroidSqlAstNodeType("FOREIGN_KEY_CLAUSE");
   IElementType FOREIGN_TABLE = new AndroidSqlAstNodeType("FOREIGN_TABLE");
@@ -408,6 +409,9 @@ public interface AndroidSqlPsiTypes {
       }
       else if (type == EXISTS_EXPRESSION) {
         return new AndroidSqlExistsExpressionImpl(node);
+      }
+      else if (type == EXPLAIN_PREFIX) {
+        return new AndroidSqlExplainPrefixImpl(node);
       }
       else if (type == FOREIGN_KEY_CLAUSE) {
         return new AndroidSqlForeignKeyClauseImpl(node);

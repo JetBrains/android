@@ -18,11 +18,11 @@ package com.android.tools.profilers.sessions
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.NullMonitorStage
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioMonitorStage
@@ -65,11 +65,10 @@ class SessionItemTest(newPipeline: Boolean) {
     FakeNetworkService.newBuilder().build()
   )
 
-  private val myProfilerClient = ProfilerClient(myGrpcChannel.name)
   private val myIdeServices = FakeIdeProfilerServices().apply {
     enableEventsPipeline(newPipeline)
   }
-  private val myProfilers = StudioProfilers(myProfilerClient, myIdeServices, myTimer)
+  private val myProfilers by lazy { StudioProfilers(ProfilerClient(myGrpcChannel.channel), myIdeServices, myTimer) }
 
   @Test
   fun testNavigateToStudioMonitorStage() {
@@ -115,7 +114,7 @@ class SessionItemTest(newPipeline: Boolean) {
     Truth.assertThat(myProfilers.stageClass).isEqualTo(NullMonitorStage::class.java)
 
     val sessionsManager = myProfilers.sessionsManager
-    val session = sessionsManager.createImportedSessionLegacy("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 0, 0, 0)
+    val session = sessionsManager.createImportedSessionLegacy("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 1, 2, 0)
     sessionsManager.update()
     sessionsManager.setSession(session)
     Truth.assertThat(myProfilers.stageClass).isEqualTo(MemoryProfilerStage::class.java)

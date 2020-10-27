@@ -10,9 +10,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidApkBuilderConfigState implements ValidityState {
   private final String myOutputApkPath;
   private final String myCustomKeystorePath;

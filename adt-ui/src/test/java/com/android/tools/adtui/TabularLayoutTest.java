@@ -18,15 +18,21 @@ package com.android.tools.adtui;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import com.intellij.ui.scale.JBUIScale;
 import java.awt.Component;
 import java.awt.Dimension;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JPanel;
+import org.junit.Rule;
 import org.junit.Test;
 
+@RunsInEdt
 public final class TabularLayoutTest {
+  @Rule public final EdtRule myEdtRule = new EdtRule();
+
   @Test
   public void columnCountMatchesLayoutDefinition() {
     TabularLayout layout = new TabularLayout("Fit-,*,123px");

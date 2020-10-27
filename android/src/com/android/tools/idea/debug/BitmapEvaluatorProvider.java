@@ -36,7 +36,7 @@ import java.util.List;
  * Evaluator in the name BitmapEvaluatorProvider implies the use of the debugger evaluation mechanism to query the app for the desired
  * values.
  */
-public final class BitmapEvaluatorProvider implements BitmapDecoder.BitmapDataProvider {
+public final class BitmapEvaluatorProvider implements BitmapDecoder.BitmapDataProvider, AutoCloseable {
   /**
    * Maximum height or width of image beyond which we scale it on the device before retrieving.
    */
@@ -45,6 +45,7 @@ public final class BitmapEvaluatorProvider implements BitmapDecoder.BitmapDataPr
   @NotNull private EvaluationContextImpl myEvaluationContext;
 
   @NotNull private ObjectReference myBitmap;
+  private boolean isGcDisabledOnBitmap = false;
 
   public BitmapEvaluatorProvider(@NotNull Value bitmap, @NotNull EvaluationContextImpl evaluationContext) {
     myEvaluationContext = evaluationContext;
@@ -56,6 +57,7 @@ public final class BitmapEvaluatorProvider implements BitmapDecoder.BitmapDataPr
       if (actualBitmap == null) {
         throw new RuntimeException("Unable to obtain bitmap from drawable");
       }
+
       myBitmap = (ObjectReference)actualBitmap;
     }
     else if (!BitmapDecoder.BITMAP_FQCN.equals(fqcn)) {
@@ -108,10 +110,15 @@ public final class BitmapEvaluatorProvider implements BitmapDecoder.BitmapDataPr
     Value dstWidth = DebuggerUtilsEx.createValue(vm, "int", (int)(currentDimensions.getWidth() / s));
     Value dstHeight = DebuggerUtilsEx.createValue(vm, "int", (int)(currentDimensions.getHeight() / s));
     Value filter = DebuggerUtilsEx.createValue(vm, "boolean", Boolean.FALSE);
-    Value result = debugProcess
-      .invokeMethod(myEvaluationContext, myBitmap, createScaledBitmapMethod, Arrays.asList(myBitmap, dstWidth, dstHeight, filter));
+    Value result = debugProcess.invokeMethod(
+      myEvaluationContext, myBitmap, createScaledBitmapMethod, Arrays.asList(myBitmap, dstWidth, dstHeight, filter));
     if (result != null) {
+      // Enable GC on old bitmap object, if it was disabled (i.e., if it was also a temporary). This allows calling
+      // downsizeBitmap() multiple times.
+      enableGarbageCollection();
       myBitmap = (ObjectReference)result;
+      // Disable GC on the new temporary bitmap object so that it does not get collected while we need it.
+      disableGarbageCollection();
     }
     return result != null;
   }
@@ -124,7 +131,7 @@ public final class BitmapEvaluatorProvider implements BitmapDecoder.BitmapDataPr
     Field bufferField = myBitmap.referenceType().fieldByName("mBuffer");
     if (bufferField != null) {
       // if the buffer field is available, we can directly copy over the values
-      Value bufferValue = (myBitmap).getValue(bufferField);
+      Value bufferValue = myBitmap.getValue(bufferField);
       if (!(bufferValue instanceof ArrayReference)) {
         throw new RuntimeException("Image Buffer is not an array");
       }
@@ -218,6 +225,36 @@ public final class BitmapEvaluatorProvider implements BitmapDecoder.BitmapDataPr
     }
     catch (EvaluateException ignored) {
       return null;
+    }
+  }
+
+  /**
+   * Cleans up internal resources allocated in {@link #downsizeBitmap(Dimension)}.
+   */
+  @Override
+  public void close() {
+    enableGarbageCollection();
+  }
+
+  /**
+   * Disables garbage collection on the myBitmap object, making sure that any subsequent method invocations with that object via JDI will
+   * not throw {@link ObjectCollectedException}. This method should be invoked only on ObjectReferences to Bitmap objects created by JDI VM
+   * (e.g., the Bitmap object created by {@link #downsizeBitmap(Dimension)} method). Actual objects (e.g., the original Bitmap passed into
+   * the constructor) inside the target app do not require disabling garbage collection.
+   */
+  private void disableGarbageCollection() {
+    DebuggerUtilsEx.disableCollection(myBitmap);
+    isGcDisabledOnBitmap = true;
+  }
+
+  /**
+   * Re-enables garbage collection on the myBitmap object, making sure that a Bitmap object created by {@link #downsizeBitmap(Dimension)}
+   * does not leak.
+   */
+  private void enableGarbageCollection() {
+    if (isGcDisabledOnBitmap) {
+      DebuggerUtilsEx.enableCollection(myBitmap);
+      isGcDisabledOnBitmap = false;
     }
   }
 }

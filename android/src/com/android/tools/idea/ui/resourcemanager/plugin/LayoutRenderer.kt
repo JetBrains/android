@@ -43,8 +43,6 @@ const val DOWNSCALE_FACTOR = 0.25f
 
 private val LAYOUT_KEY = Key.create<LayoutRenderer>(LayoutRenderer::class.java.name)
 
-typealias RenderTaskProvider = (AndroidFacet, XmlFile, Configuration) -> CompletableFuture<RenderTask?>
-
 private fun createRenderTask(facet: AndroidFacet,
                              xmlFile: XmlFile,
                              configuration: Configuration): CompletableFuture<RenderTask?> {
@@ -66,7 +64,7 @@ class LayoutRenderer
 @VisibleForTesting
 constructor(
   facet: AndroidFacet,
-  private val renderTaskProvider: RenderTaskProvider,
+  private val renderTaskProvider: (AndroidFacet, XmlFile, Configuration) -> CompletableFuture<RenderTask?>,
   private val futuresManager: ImageFuturesManager<VirtualFile>
 ) : AndroidFacetScopedService(facet) {
 

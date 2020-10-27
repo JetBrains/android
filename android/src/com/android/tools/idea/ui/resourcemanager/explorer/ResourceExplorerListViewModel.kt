@@ -20,6 +20,7 @@ import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.ResourceSection
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.ui.speedSearch.SpeedSearch
@@ -45,7 +46,11 @@ interface ResourceExplorerListViewModel {
      * Resource Type of the model has changed, after this, the view should reset back to showing the list of resources if it was in any
      * other state, like showing resource configurations.
      */
-    RESOURCE_TYPE_CHANGED
+    RESOURCE_TYPE_CHANGED,
+    /**
+     * The Image Cache has changed, it might be necessary to repaint.
+     */
+    IMAGE_CACHE_CHANGED
   }
 
   /**
@@ -76,6 +81,13 @@ interface ResourceExplorerListViewModel {
   val filterOptions: FilterOptions
 
   val externalActions: Collection<ActionGroup>
+
+  /**
+   * Clears the cached image for all resources being currently displayed for the [currentResourceType].
+   *
+   * This considers the fields in [FilterOptions], except for [FilterOptions.searchString].
+   */
+  fun clearCacheForCurrentResources()
 
   /**
    * Clears the cached image for the given [DesignAsset].

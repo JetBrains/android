@@ -158,7 +158,11 @@ public class MTagImp implements MTag, MTag.TagWriter {
 
   @Override
   public String getAttributeValue(String attribute) {
+    System.out.println(Debug.getLocation()+ " test  ---- attribute =  " + attribute);
+
     for (Attribute value : mAttrList.values()) {
+      System.out.println(Debug.getLocation()+ " test  ----  " + value.mAttribute);
+
       if (value.mAttribute.equals(attribute)) {
         return value.mValue;
       }

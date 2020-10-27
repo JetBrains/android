@@ -15,20 +15,25 @@
  */
 package com.android.tools.idea.sqlite.databaseConnection.jdbc
 
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.concurrency.executeAsync
+import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
-import com.android.tools.idea.sqlite.model.RowIdName
+import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteTable
+import com.android.tools.idea.sqlite.model.getRowIdName
+import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.SequentialTaskExecutor
 import java.sql.Connection
-import java.sql.JDBCType
 import java.util.concurrent.Executor
 
 /**
@@ -38,6 +43,7 @@ import java.util.concurrent.Executor
  * operations are executed sequentially, to avoid concurrency issues with the JDBC objects.
  */
 class JdbcDatabaseConnection(
+  parentDisposable: Disposable,
   private val connection: Connection,
   private val sqliteFile: VirtualFile,
   pooledExecutor: Executor
@@ -46,9 +52,11 @@ class JdbcDatabaseConnection(
     private val logger: Logger = Logger.getInstance(JdbcDatabaseConnection::class.java)
   }
 
-  val sequentialTaskExecutor = FutureCallbackExecutor.wrap(
-    SequentialTaskExecutor.createSequentialApplicationPoolExecutor("Sqlite JDBC service", pooledExecutor)
-  )
+  init {
+    Disposer.register(parentDisposable, this)
+  }
+
+  val sequentialTaskExecutor = SequentialTaskExecutor.createSequentialApplicationPoolExecutor("Sqlite JDBC service", pooledExecutor)
 
   override fun close(): ListenableFuture<Unit> = sequentialTaskExecutor.executeAsync {
     connection.close()
@@ -60,17 +68,7 @@ class JdbcDatabaseConnection(
     val sqliteTables = mutableListOf<SqliteTable>()
     while (tables.next()) {
       val columns = readColumnDefinitions(connection, tables.getString("TABLE_NAME"))
-      // if the db has an integer primary key there's no need to use rowid.
-      // otherwise we need to find the correct alias to use for the rowid column.
-      val hasIntegerPrimaryKey = columns.any { it.inPrimaryKey && it.type == JDBCType.INTEGER }
-      val rowIdName = when {
-        hasIntegerPrimaryKey -> null
-        columns.none { it.name == RowIdName._ROWID_.stringName } -> RowIdName._ROWID_
-        columns.none { it.name == RowIdName.ROWID.stringName } -> RowIdName.ROWID
-        columns.none { it.name == RowIdName.OID.stringName } -> RowIdName.OID
-        else -> null
-      }
-
+      val rowIdName = getRowIdName(columns)
       sqliteTables.add(
         SqliteTable(
           tables.getString("TABLE_NAME"),
@@ -84,31 +82,49 @@ class JdbcDatabaseConnection(
     SqliteSchema(sqliteTables).apply { logger.info("Successfully read database schema: ${sqliteFile.path}") }
   }
 
-  private fun readColumnDefinitions(connection: Connection, tableName: String): List<SqliteColumn> {
-    val columnsSet = connection.metaData.getColumns(null, null, tableName, null)
-    val keyColumnsNames = connection.getColumnNamesInPrimaryKey(tableName)
-
-    return columnsSet.map {
-      val columnName = columnsSet.getString("COLUMN_NAME")
-      SqliteColumn(
-        columnName,
-        JDBCType.valueOf(columnsSet.getInt("DATA_TYPE")),
-        keyColumnsNames.contains(columnName)
+  override fun query(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> {
+    val resultSet = when (sqliteStatement.statementType) {
+      SqliteStatementType.SELECT -> PagedJdbcSqliteResultSet(this.sequentialTaskExecutor, connection, sqliteStatement)
+      SqliteStatementType.EXPLAIN,
+      SqliteStatementType.PRAGMA_QUERY -> LazyJdbcSqliteResultSet(this.sequentialTaskExecutor, connection, sqliteStatement)
+      else -> throw IllegalArgumentException(
+        "SqliteStatement must be of type SELECT, EXPLAIN or PRAGMA, but is ${sqliteStatement.statementType}"
       )
-    }.toList()
+    }
+    Disposer.register(this, resultSet)
+    return Futures.immediateFuture(resultSet)
   }
 
-  override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet?> {
+  override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     return sequentialTaskExecutor.executeAsync {
-      val preparedStatement = connection.resolvePreparedStatement(sqliteStatement)
-      val hasResultSet = preparedStatement.execute().also {
-        logger.info("SQL statement \"${sqliteStatement.sqliteStatementText}\" executed with success.")
+      connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
+        preparedStatement.executeUpdate().also {
+          logger.info("SQL statement \"${sqliteStatement.sqliteStatementText}\" executed with success.")
+        }
       }
+      Unit
+    }
+  }
 
-      if (hasResultSet) {
-        JdbcSqliteResultSet(this, connection, sqliteStatement)
-      } else {
-        null
+  private fun readColumnDefinitions(connection: Connection, tableName: String): List<SqliteColumn> {
+    connection.createStatement().use { statement ->
+      statement.executeQuery("PRAGMA table_info(${AndroidSqlLexer.getValidName(tableName)})").use {
+        return it.map {
+          val columnName = getString(2)
+          val columnType = getString(3)
+          val colNotNull = getString(4)
+          val colPk = getString(6)
+
+          SqliteColumn(
+            columnName,
+            SqliteAffinity.fromTypename(columnType),
+            colNotNull == "0",
+            // The number in table_info for primary key is an integer that corresponds
+            // to the position of the column in the primary key constraint.
+            // Or 0 if the column is not in the primary key.
+            colPk.toInt() > 0
+          )
+        }.toList()
       }
     }
   }

@@ -19,10 +19,10 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.GutterIconCache;
-import com.android.tools.idea.res.ResourceHelper;
-import com.intellij.ide.highlighter.XmlFileType;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -30,6 +30,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -101,7 +102,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
         // Inline color
         assert (element.getColor() != null);
         Color color = element.getColor();
-        gutterIconRenderer = new AndroidAnnotatorUtil.ColorRenderer(element.getPsiElement(), color, null, true, configuration);
+        gutterIconRenderer = new AndroidAnnotatorUtil.ColorRenderer(element.getPsiElement(), color, resolver, null, true, configuration);
       }
       if (gutterIconRenderer != null) {
         rendererMap.put(element.getPsiElement(), gutterIconRenderer);
@@ -121,29 +122,47 @@ public abstract class AndroidResourceExternalAnnotatorBase
       return getColorGutterIconRenderer(resolver, reference, facet, element, configuration);
     }
     else {
-      assert type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP;
-      return getDrawableGutterIconRenderer(resolver, reference, facet, configuration);
+      assert type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP || type == ResourceType.ATTR;
+      return getDrawableGutterIconRenderer(element, resolver, reference, facet, configuration);
     }
   }
 
   @Nullable
-  private static GutterIconRenderer getDrawableGutterIconRenderer(@NotNull ResourceResolver resourceResolver,
+  private static GutterIconRenderer getDrawableGutterIconRenderer(@NotNull PsiElement element,
+                                                                  @NotNull ResourceResolver resourceResolver,
                                                                   @NotNull ResourceReference reference,
                                                                   @NotNull AndroidFacet facet,
                                                                   @NotNull Configuration configuration) {
-    ResourceValue drawable = resourceResolver.getResolvedResource(reference);
+    ResourceValue drawable = null;
+    if (reference.getResourceType() == ResourceType.ATTR) {
+      // Resolve the theme attribute
+      ResourceValue resolvedAttribute = resourceResolver.findItemInTheme(reference);
+      if (resolvedAttribute == null || resolvedAttribute.getValue() == null) {
+        return null;
+      }
+      ResourceUrl resolvedAttributeUrl = ResourceUrl.parse(resolvedAttribute.getValue());
+      if (resolvedAttributeUrl == null) {
+        return null;
+      }
+      ResourceType resolvedAttributeType = resolvedAttributeUrl.type;
+      if (resolvedAttributeType == ResourceType.DRAWABLE || resolvedAttributeType == ResourceType.MIPMAP) {
+        drawable = resolvedAttribute;
+      }
+    }
+    else if (reference.getResourceType() == ResourceType.DRAWABLE || reference.getResourceType() == ResourceType.MIPMAP) {
+      // Resolve the Drawable/MipMap
+      drawable = resourceResolver.getResolvedResource(reference);
+    }
     if (drawable == null) {
       return null;
     }
     VirtualFile bitmap = AndroidAnnotatorUtil.resolveDrawableFile(drawable, resourceResolver, facet);
     bitmap = AndroidAnnotatorUtil.pickBestBitmap(bitmap);
-    if (bitmap == null) {
-      return null;
+    if (bitmap != null) {
+      // Updating the GutterIconCache in the background thread to include the icon.
+      GutterIconCache.getInstance().getIcon(bitmap, resourceResolver, facet);
     }
-    // Updating the GutterIconCache in the background thread to include the icon.
-    GutterIconCache.getInstance().getIcon(bitmap, resourceResolver, facet);
-    return new com.android.tools.idea.rendering.GutterIconRenderer(resourceResolver, facet, bitmap,
-                                                                   configuration);
+    return new com.android.tools.idea.rendering.GutterIconRenderer(element, resourceResolver, facet, bitmap, configuration);
   }
 
   @Nullable
@@ -153,7 +172,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
                                                                @NotNull PsiElement element,
                                                                @NotNull Configuration configuration) {
     ResourceValue colorValue = resourceResolver.getResolvedResource(reference);
-    Color color = ResourceHelper.resolveColor(resourceResolver, colorValue, facet.getModule().getProject());
+    Color color = IdeResourcesUtil.resolveColor(resourceResolver, colorValue, facet.getModule().getProject());
     if (color == null) {
       return null;
     }
@@ -161,8 +180,8 @@ public abstract class AndroidResourceExternalAnnotatorBase
     // For xml files, we want to open raw color and color resource picker.
     // For java and kotlin files, we should open color resource picker only and set R.color.[resource_name] to the field.
     // TODO: Open color resource picker for java and kotlin files.
-    boolean isClickable = AndroidAnnotatorUtil.getFileType(element) == XmlFileType.INSTANCE;
-    return new AndroidAnnotatorUtil.ColorRenderer(element, color, reference, isClickable, configuration);
+    boolean isClickable = AndroidAnnotatorUtil.getFileType(element) == StdFileTypes.XML;
+    return new AndroidAnnotatorUtil.ColorRenderer(element, color, resourceResolver, reference, isClickable, configuration);
   }
 
   @Override

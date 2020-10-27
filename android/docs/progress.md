@@ -29,7 +29,7 @@ common way of checking for cancellation is calling the static method `ProgressMa
 so just doing anything with PSI means you're already using the progress system.
 
 By default the IDE cancels certain operations if they take too long, e.g. code completion. If you want to disable this for debugging, start
-the IDE with `-Didea.ProcessCanceledException=false` or use the "Disable ProcessCanceledException"
+the IDE with `-Didea.ProcessCanceledException=disabled` or use the "Disable ProcessCanceledException"
 [internal action](../../../../idea/platform/platform-impl/src/com/intellij/internal/DisablePCEAction.java).
 
 You can look at `checkCancelled` as a form of cooperative multitasking: your thread gives the IDE a chance to either throw an exception

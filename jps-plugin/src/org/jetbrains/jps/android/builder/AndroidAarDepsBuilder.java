@@ -29,9 +29,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.jar.JarOutputStream;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidAarDepsBuilder extends AndroidTargetBuilder<BuildRootDescriptor, AndroidAarDepsBuildTarget> {
   @NonNls private static final String BUILDER_NAME = "Android AAR Dependencies Packaging";
 

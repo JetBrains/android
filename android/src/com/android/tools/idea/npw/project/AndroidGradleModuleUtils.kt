@@ -21,7 +21,7 @@ package com.android.tools.idea.npw.project
 import com.android.SdkConstants
 import com.android.builder.model.SourceProvider
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
-import com.android.tools.idea.templates.Parameter
+import com.android.tools.idea.wizard.template.Parameter
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex

@@ -73,4 +73,8 @@ class SourceProviderAdapter(private val name: String, private val paths: Android
   override fun getShadersDirectories(): Collection<File> {
     return emptyList()
   }
+
+  override fun getMlModelsDirectories(): Collection<File> {
+    return emptyList()
+  }
 }

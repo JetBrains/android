@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res.psi
 
+import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.ResourceItem
@@ -41,7 +42,8 @@ import com.intellij.psi.xml.XmlElement
 import com.intellij.util.containers.toArray
 import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidResourceUtil
+import com.android.tools.idea.res.getDeclaringAttributeValue
+import com.intellij.psi.impl.ResolveScopeManager
 
 object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
   override fun getGotoDeclarationFileBasedTargets(resourceReference: ResourceReference, context: PsiElement): Array<PsiFile> {
@@ -60,7 +62,7 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
       resource.getSourceAsVirtualFile()?.let(PsiManager.getInstance(project)::findFile)
     }
     else {
-      AndroidResourceUtil.getDeclaringAttributeValue(project, resource)
+      getDeclaringAttributeValue(project, resource)
     }
   }
 
@@ -134,12 +136,36 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
   }
 
   override fun getGotoDeclarationTargets(resourceReference: ResourceReference, context: PsiElement): Array<out PsiElement> {
+    return getGotoDeclarationElements(resourceReference, context).toTypedArray()
+  }
+
+  override fun getGotoDeclarationTargetsWithDynamicFeatureModules(resourceReference: ResourceReference,
+                                                                  context: PsiElement): Array<PsiElement> {
+    val mainResources = getGotoDeclarationElements(resourceReference, context)
+    val dynamicFeatureResources = getGotoDeclarationElementsFromDynamicFeatureModules(resourceReference, context)
+    return (mainResources + dynamicFeatureResources).toTypedArray()
+  }
+
+  private fun getGotoDeclarationElements(resourceReference: ResourceReference, context: PsiElement): List<PsiElement> {
     return ResourceRepositoryManager.getInstance(context)
       ?.allResources
       ?.getResources(resourceReference)
       ?.mapNotNull { resolveToDeclaration(it, context.project) }
       .orEmpty()
-      .toTypedArray()
+  }
+
+  private fun getGotoDeclarationElementsFromDynamicFeatureModules(
+    resourceReference: ResourceReference,
+    context: PsiElement
+  ): List<PsiElement> {
+    val resourceList = mutableListOf<PsiElement>()
+    val moduleSystem = context.getModuleSystem() ?: return emptyList()
+    val dynamicFeatureModules = moduleSystem.getDynamicFeatureModules()
+    for (module in dynamicFeatureModules) {
+      val moduleResources = ResourceRepositoryManager.getModuleResources(module) ?: continue
+      resourceList.addAll(moduleResources.getResources(resourceReference).mapNotNull { resolveToDeclaration(it, context.project) })
+    }
+    return resourceList
   }
 
   /**
@@ -151,10 +177,11 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
    * @param context           [PsiElement] context element from which an action is being performed.
    * @return [SearchScope] a scope that contains the files of the project which can reference same resource as context element.
    */
+  @Slow
   @JvmStatic
   fun getResourceSearchScope(resourceReference: ResourceReference, context: PsiElement): SearchScope {
     val gotoDeclarationTargets = getGotoDeclarationTargets(resourceReference, context)
-    val allScopes = gotoDeclarationTargets.mapNotNull { ModuleUtilCore.findModuleForPsiElement(it)?.moduleWithDependentsScope }
+    val allScopes = gotoDeclarationTargets.map { ResolveScopeManager.getElementUseScope(it) }
     return if (allScopes.isEmpty()) {
       ProjectScope.getAllScope(context.project)
     }

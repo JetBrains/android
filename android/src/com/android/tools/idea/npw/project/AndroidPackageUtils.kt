@@ -21,23 +21,24 @@
 
 package com.android.tools.idea.npw.project
 
-import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.toIoFile
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
+import java.lang.RuntimeException
 
 /**
  * Return the top-level package associated with this project.
  */
-fun AndroidFacet.getPackageForApplication(): String = AndroidModel.get(this)!!.applicationId
+fun AndroidFacet.getPackageForApplication(): String? = getPackageName(this)
 
 /**
  * Return the package associated with the target directory.
  */
-fun AndroidFacet.getPackageForPath(moduleTemplates: List<NamedModuleTemplate>, targetDirectory: VirtualFile): String {
+fun AndroidFacet.getPackageForPath(moduleTemplates: List<NamedModuleTemplate>, targetDirectory: VirtualFile): String? {
   if (moduleTemplates.isEmpty()) {
     return this.getPackageForApplication()
   }

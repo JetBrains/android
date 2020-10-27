@@ -17,8 +17,6 @@ package com.android.tools.adtui.common
 
 import java.awt.geom.Point2D
 
-private const val SEPARATOR = 'x'
-
 /**
  * Represents a point position in swing space
  * defined by [SwingX] and [SwingY] coordinates
@@ -31,14 +29,7 @@ inline class SwingPoint(val value: Point2D.Float) {
 
   val y: SwingY
     get() = SwingY(value.y)
-
-  override fun toString() = "${this.value.x}$SEPARATOR${this.value.y}"
 }
 
 fun distance(a: SwingPoint, b: SwingPoint): SwingLength =
   hypotenuse(a.x - b.x, a.y - b.y)
-
-fun String.toSwingPoint(): SwingPoint {
-  val (x, y) = this.split(SEPARATOR)
-  return SwingPoint(x.toSwingX(), y.toSwingY())
-}

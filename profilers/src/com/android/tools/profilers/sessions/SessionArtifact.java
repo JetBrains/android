@@ -20,7 +20,6 @@ import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.idea.protobuf.GeneratedMessageV3;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.StudioProfilers;
-import com.google.common.annotations.VisibleForTesting;
 import java.io.OutputStream;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface SessionArtifact<T extends GeneratedMessageV3> extends Updatable {
 
-  @VisibleForTesting String CAPTURING_SUBTITLE = "Recording...";
+  String CAPTURING_SUBTITLE = "Recording...";
 
   /**
    * @return the {@link StudioProfilers} instance.

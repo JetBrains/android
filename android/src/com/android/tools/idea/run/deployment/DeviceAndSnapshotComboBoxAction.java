@@ -19,60 +19,33 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.MultimapBuilder;
-import com.google.common.collect.Multimaps;
-import com.intellij.execution.DefaultExecutionTarget;
-import com.intellij.execution.ExecutionTarget;
-import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.RunManager;
-import com.intellij.execution.RunnerAndConfigurationSettings;
-import com.intellij.execution.configurations.RunProfile;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.popup.JBPopup;
-import com.intellij.openapi.util.UserDataHolder;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.ui.JBUI;
 import java.awt.*;
-import java.time.Clock;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.IntUnaryOperator;
 import java.util.function.Supplier;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 import javax.swing.*;
 import javax.swing.GroupLayout.Group;
-import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
-  @VisibleForTesting
-  static final String SELECTED_DEVICE = "DeviceAndSnapshotComboBoxAction.selectedDevice";
-
-  private static final String SELECTION_TIME = "DeviceAndSnapshotComboBoxAction.selectionTime";
-
+public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   /**
    * Run configurations that aren't {@link AndroidRunConfiguration} or {@link AndroidTestRunConfiguration} can use this key
    * to express their applicability for DeviceAndSnapshotComboBoxAction by setting it to true in their user data.
@@ -80,38 +53,131 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   public static final com.intellij.openapi.util.Key<Boolean> DEPLOYS_TO_LOCAL_DEVICE =
     com.intellij.openapi.util.Key.create("DeviceAndSnapshotComboBoxAction.deploysToLocalDevice");
 
+  @NotNull
   private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
+
+  @NotNull
   private final Function<Project, AsyncDevicesGetter> myDevicesGetterGetter;
 
   @NotNull
-  private final Function<Project, PropertiesComponent> myGetProperties;
+  private final Function<Project, DevicesSelectedService> myDevicesSelectedServiceGetInstance;
 
-  private final AnAction myRunOnMultipleDevicesAction;
-  private final AnAction myOpenAvdManagerAction;
-  private final Clock myClock;
+  @NotNull
+  private final Function<Project, ExecutionTargetService> myExecutionTargetServiceGetInstance;
+
+  @NotNull
+  private final BiFunction<Project, List<Device>, DialogWrapper> myNewModifyDeviceSetDialog;
+
+  @NotNull
+  private final Function<Project, RunManager> myGetRunManager;
+
+  @VisibleForTesting
+  static final class Builder {
+    @Nullable
+    private Supplier<Boolean> mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
+
+    @Nullable
+    private Function<Project, AsyncDevicesGetter> myDevicesGetterGetter;
+
+    @Nullable
+    private Function<Project, DevicesSelectedService> myDevicesSelectedServiceGetInstance;
+
+    @Nullable
+    private Function<Project, ExecutionTargetService> myExecutionTargetServiceGetInstance;
+
+    @Nullable
+    private BiFunction<Project, List<Device>, DialogWrapper> myNewModifyDeviceSetDialog;
+
+    @Nullable
+    private Function<Project, RunManager> myGetRunManager;
+
+    Builder() {
+      mySelectDeviceSnapshotComboBoxSnapshotsEnabled = () -> false;
+      myDevicesGetterGetter = project -> null;
+      myDevicesSelectedServiceGetInstance = project -> null;
+      myExecutionTargetServiceGetInstance = project -> null;
+      myNewModifyDeviceSetDialog = (project, devices) -> null;
+      myGetRunManager = project -> null;
+    }
+
+    @NotNull
+    Builder setSelectDeviceSnapshotComboBoxSnapshotsEnabled(@NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxSnapshotsEnabled) {
+      mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
+      return this;
+    }
+
+    @NotNull
+    Builder setDevicesGetterGetter(@NotNull Function<Project, AsyncDevicesGetter> devicesGetterGetter) {
+      myDevicesGetterGetter = devicesGetterGetter;
+      return this;
+    }
+
+    @NotNull
+    Builder setDevicesSelectedServiceGetInstance(@NotNull Function<Project, DevicesSelectedService> devicesSelectedServiceGetInstance) {
+      myDevicesSelectedServiceGetInstance = devicesSelectedServiceGetInstance;
+      return this;
+    }
+
+    @NotNull
+    Builder setExecutionTargetServiceGetInstance(@NotNull Function<Project, ExecutionTargetService> executionTargetServiceGetInstance) {
+      myExecutionTargetServiceGetInstance = executionTargetServiceGetInstance;
+      return this;
+    }
+
+    @NotNull
+    Builder setNewModifyDeviceSetDialog(@NotNull BiFunction<Project, List<Device>, DialogWrapper> newModifyDeviceSetDialog) {
+      myNewModifyDeviceSetDialog = newModifyDeviceSetDialog;
+      return this;
+    }
+
+    @NotNull
+    Builder setGetRunManager(@NotNull Function<Project, RunManager> getRunManager) {
+      myGetRunManager = getRunManager;
+      return this;
+    }
+
+    @NotNull
+    DeviceAndSnapshotComboBoxAction build() {
+      return new DeviceAndSnapshotComboBoxAction(this);
+    }
+  }
 
   @SuppressWarnings("unused")
   private DeviceAndSnapshotComboBoxAction() {
-    this(() -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED.get(),
-         project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
-         PropertiesComponent::getInstance,
-         Clock.systemDefaultZone());
+    this(new Builder()
+           .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED::get)
+           .setDevicesGetterGetter(AsyncDevicesGetter::getInstance)
+           .setDevicesSelectedServiceGetInstance(DevicesSelectedService::getInstance)
+           .setExecutionTargetServiceGetInstance(ExecutionTargetService::getInstance)
+           .setNewModifyDeviceSetDialog(ModifyDeviceSetDialog::new)
+           .setGetRunManager(RunManager::getInstance));
   }
 
-  @VisibleForTesting
-  public DeviceAndSnapshotComboBoxAction(@NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxSnapshotsEnabled,
-                                         @NotNull Function<Project, AsyncDevicesGetter> devicesGetterGetter,
-                                         @NotNull Function<Project, PropertiesComponent> getProperties,
-                                         @NotNull Clock clock) {
-    mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
+  @NonInjectable
+  private DeviceAndSnapshotComboBoxAction(@NotNull Builder builder) {
+    assert builder.mySelectDeviceSnapshotComboBoxSnapshotsEnabled != null;
+    mySelectDeviceSnapshotComboBoxSnapshotsEnabled = builder.mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
 
-    myDevicesGetterGetter = devicesGetterGetter;
-    myGetProperties = getProperties;
+    assert builder.myDevicesGetterGetter != null;
+    myDevicesGetterGetter = builder.myDevicesGetterGetter;
 
-    myRunOnMultipleDevicesAction = new RunOnMultipleDevicesAction();
-    myOpenAvdManagerAction = ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID);
+    assert builder.myDevicesSelectedServiceGetInstance != null;
+    myDevicesSelectedServiceGetInstance = builder.myDevicesSelectedServiceGetInstance;
 
-    myClock = clock;
+    assert builder.myExecutionTargetServiceGetInstance != null;
+    myExecutionTargetServiceGetInstance = builder.myExecutionTargetServiceGetInstance;
+
+    assert builder.myNewModifyDeviceSetDialog != null;
+    myNewModifyDeviceSetDialog = builder.myNewModifyDeviceSetDialog;
+
+    assert builder.myGetRunManager != null;
+    myGetRunManager = builder.myGetRunManager;
+  }
+
+  @NotNull
+  static DeviceAndSnapshotComboBoxAction getInstance() {
+    // noinspection CastToConcreteClass
+    return (DeviceAndSnapshotComboBoxAction)ActionManager.getInstance().getAction("DeviceAndSnapshotComboBox");
   }
 
   boolean areSnapshotsEnabled() {
@@ -119,108 +185,82 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   }
 
   @NotNull
-  @VisibleForTesting
-  final AnAction getRunOnMultipleDevicesAction() {
-    return myRunOnMultipleDevicesAction;
-  }
+  Optional<List<Device>> getDevices(@NotNull Project project) {
+    Optional<List<Device>> optionalDevices = myDevicesGetterGetter.apply(project).get();
 
-  @NotNull
-  @VisibleForTesting
-  final AnAction getOpenAvdManagerAction() {
-    return myOpenAvdManagerAction;
-  }
+    if (optionalDevices.isPresent()) {
+      List<Device> devices = optionalDevices.get();
+      devices.sort(new DeviceComparator());
 
-  @NotNull
-  List<Device> getDevices(@NotNull Project project) {
-    List<Device> devices = myDevicesGetterGetter.apply(project).get();
-    devices.sort(new DeviceComparator());
+      return Optional.of(devices);
+    }
 
-    return devices;
+    return optionalDevices;
   }
 
   @Nullable
-  final Device getSelectedDevice(@NotNull Project project) {
-    return getSelectedDevice(project, getDevices(project));
+  @VisibleForTesting
+  Device getSelectedDevice(@NotNull Project project) {
+    List<Device> devices = getDevices(project).orElse(Collections.emptyList());
+    return myDevicesSelectedServiceGetInstance.apply(project).getDeviceSelectedWithComboBox(devices);
   }
 
-  @Nullable
-  private Device getSelectedDevice(@NotNull Project project, @NotNull List<Device> devices) {
-    if (devices.isEmpty()) {
-      return null;
-    }
-
-    PropertiesComponent properties = myGetProperties.apply(project);
-    String keyAsString = properties.getValue(SELECTED_DEVICE);
-
-    Object key = keyAsString == null ? null : new Key(keyAsString);
-
-    Optional<Device> optionalSelectedDevice = devices.stream()
-      .filter(device -> device.getKey().equals(key))
-      .findFirst();
-
-    if (!optionalSelectedDevice.isPresent()) {
-      return devices.get(0);
-    }
-
-    Device selectedDevice = optionalSelectedDevice.get();
-
-    Optional<Device> optionalConnectedDevice = devices.stream()
-      .filter(Device::isConnected)
-      .findFirst();
-
-    if (optionalConnectedDevice.isPresent()) {
-      Device connectedDevice = optionalConnectedDevice.get();
-
-      Instant connectionTime = connectedDevice.getConnectionTime();
-      assert connectionTime != null : "connected device \"" + connectedDevice + "\" has a null connection time";
-
-      if (getSelectionTime(selectedDevice, properties).isBefore(connectionTime)) {
-        return connectedDevice;
-      }
-    }
-
-    return selectedDevice;
+  void setSelectedDevice(@NotNull Project project, @NotNull Device selectedDevice) {
+    myDevicesSelectedServiceGetInstance.apply(project).setDeviceSelectedWithComboBox(selectedDevice);
+    myExecutionTargetServiceGetInstance.apply(project).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(selectedDevice));
   }
 
   @NotNull
-  private static Instant getSelectionTime(@NotNull Device device, @NotNull PropertiesComponent properties) {
-    CharSequence time = properties.getValue(SELECTION_TIME);
+  List<Device> getSelectedDevices(@NotNull Project project) {
+    DevicesSelectedService service = myDevicesSelectedServiceGetInstance.apply(project);
+    List<Device> devices = getDevices(project).orElse(Collections.emptyList());
 
-    if (time == null) {
-      // I don't know why this happens
-      Logger.getInstance(DeviceAndSnapshotComboBoxAction.class).warn("selected device \"" + device + "\" has a null selection time string");
-
-      return Instant.MIN;
+    if (service.isMultipleDevicesSelectedInComboBox()) {
+      return service.getDevicesSelectedWithDialog(devices);
     }
 
-    return Instant.parse(time);
+    Device device = service.getDeviceSelectedWithComboBox(devices);
+
+    if (device == null) {
+      return Collections.emptyList();
+    }
+
+    return Collections.singletonList(device);
   }
 
-  final void setSelectedDevice(@NotNull Project project, @Nullable Device selectedDevice) {
-    PropertiesComponent properties = myGetProperties.apply(project);
+  void setMultipleDevicesSelected(@NotNull Project project, boolean multipleDevicesSelected) {
+    myDevicesSelectedServiceGetInstance.apply(project).setMultipleDevicesSelectedInComboBox(multipleDevicesSelected);
 
-    if (selectedDevice == null) {
-      properties.unsetValue(SELECTED_DEVICE);
-      properties.unsetValue(SELECTION_TIME);
-    }
-    else {
-      properties.setValue(SELECTED_DEVICE, selectedDevice.getKey().toString());
-      properties.setValue(SELECTION_TIME, myClock.instant().toString());
+    List<Device> devices = getSelectedDevices(project);
+    myExecutionTargetServiceGetInstance.apply(project).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(devices));
+  }
+
+  void modifyDeviceSet(@NotNull Project project) {
+    List<Device> devices = myDevicesGetterGetter.apply(project).get().orElseThrow(AssertionError::new);
+
+    if (!myNewModifyDeviceSetDialog.apply(project, devices).showAndGet()) {
+      return;
     }
 
-    updateExecutionTargetManager(project, selectedDevice);
+    setMultipleDevicesSelected(project, !myDevicesSelectedServiceGetInstance.apply(project).isDialogSelectionEmpty());
   }
 
   @NotNull
   @Override
-  public final JComponent createCustomComponent(@NotNull Presentation presentation, @NotNull String place) {
+  public JComponent createCustomComponent(@NotNull Presentation presentation, @NotNull String place) {
+    return createCustomComponent(presentation, JBUI::scale);
+  }
+
+  @NotNull
+  @VisibleForTesting
+  JComponent createCustomComponent(@NotNull Presentation presentation, @NotNull IntUnaryOperator scale) {
     JComponent panel = new JPanel(null);
     GroupLayout layout = new GroupLayout(panel);
     Component button = createComboBoxButton(presentation);
 
     Group horizontalGroup = layout.createSequentialGroup()
-      .addComponent(button, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-      .addGap(JBUI.scale(3));
+      .addComponent(button, 0, GroupLayout.DEFAULT_SIZE, scale.applyAsInt(250))
+      .addGap(scale.applyAsInt(3));
 
     Group verticalGroup = layout.createParallelGroup()
       .addComponent(button);
@@ -234,7 +274,7 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @NotNull
   @Override
-  protected final ComboBoxButton createComboBoxButton(@NotNull Presentation presentation) {
+  protected ComboBoxButton createComboBoxButton(@NotNull Presentation presentation) {
     ComboBoxButton button = new ComboBoxButton(presentation) {
       @Override
       protected JBPopup createPopup(@NotNull Runnable runnable) {
@@ -248,133 +288,27 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   }
 
   @Override
-  protected final boolean shouldShowDisabledActions() {
+  protected boolean shouldShowDisabledActions() {
     return true;
   }
 
   @NotNull
   @Override
-  protected final DefaultActionGroup createPopupActionGroup(@NotNull JComponent button) {
+  protected DefaultActionGroup createPopupActionGroup(@NotNull JComponent button) {
     throw new UnsupportedOperationException();
   }
 
   @NotNull
   @Override
-  protected final DefaultActionGroup createPopupActionGroup(@NotNull JComponent button, @NotNull DataContext context) {
-    DefaultActionGroup group = new DefaultActionGroup();
-
+  protected DefaultActionGroup createPopupActionGroup(@NotNull JComponent button, @NotNull DataContext context) {
     Project project = context.getData(CommonDataKeys.PROJECT);
     assert project != null;
 
-    Collection<AnAction> actions = mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get()
-                                   ? newSelectDeviceActionsIncludeSnapshots(project)
-                                   : newSelectDeviceActions(project);
-
-    group.addAll(actions);
-
-    if (!actions.isEmpty()) {
-      group.addSeparator();
-    }
-
-    group.add(myRunOnMultipleDevicesAction);
-    group.add(myOpenAvdManagerAction);
-
-    AnAction action = ActionManager.getInstance().getAction("DeveloperServices.ConnectionAssistant");
-
-    if (action == null) {
-      return group;
-    }
-
-    group.addSeparator();
-    group.add(action);
-
-    return group;
-  }
-
-  @NotNull
-  private Collection<AnAction> newSelectDeviceActions(@NotNull Project project) {
-    Map<Boolean, List<Device>> connectednessToDeviceMap = getDevices(project).stream().collect(Collectors.groupingBy(Device::isConnected));
-
-    Collection<Device> connectedDevices = connectednessToDeviceMap.getOrDefault(true, Collections.emptyList());
-    Collection<Device> disconnectedDevices = connectednessToDeviceMap.getOrDefault(false, Collections.emptyList());
-
-    boolean connectedDevicesPresent = !connectedDevices.isEmpty();
-    Collection<AnAction> actions = new ArrayList<>(connectedDevices.size() + disconnectedDevices.size() + 3);
-
-    if (connectedDevicesPresent) {
-      actions.add(new Heading("Running devices"));
-    }
-
-    connectedDevices.stream()
-      .map(device -> SelectDeviceAction.newSelectDeviceAction(this, project, device))
-      .forEach(actions::add);
-
-    boolean disconnectedDevicesPresent = !disconnectedDevices.isEmpty();
-
-    if (connectedDevicesPresent && disconnectedDevicesPresent) {
-      actions.add(Separator.create());
-    }
-
-    if (disconnectedDevicesPresent) {
-      actions.add(new Heading("Available devices"));
-    }
-
-    disconnectedDevices.stream()
-      .map(device -> SelectDeviceAction.newSelectDeviceAction(this, project, device))
-      .forEach(actions::add);
-
-    return actions;
-  }
-
-  @NotNull
-  private Collection<AnAction> newSelectDeviceActionsIncludeSnapshots(@NotNull Project project) {
-    ListMultimap<String, Device> multimap = getDeviceKeyToDeviceMultimap(project);
-    Collection<String> deviceKeys = multimap.keySet();
-    Collection<AnAction> actions = new ArrayList<>(deviceKeys.size() + 1);
-
-    if (!deviceKeys.isEmpty()) {
-      actions.add(new Heading("Available devices"));
-    }
-
-    deviceKeys.stream()
-      .map(multimap::get)
-      .map(devices -> newAction(devices, project))
-      .forEach(actions::add);
-
-    return actions;
-  }
-
-  @NotNull
-  private ListMultimap<String, Device> getDeviceKeyToDeviceMultimap(@NotNull Project project) {
-    Collection<Device> devices = myDevicesGetterGetter.apply(project).get();
-
-    // noinspection UnstableApiUsage
-    Collector<Device, ?, ListMultimap<String, Device>> collector =
-      Multimaps.toMultimap(device -> device.getKey().getDeviceKey(), device -> device, () -> buildListMultimap(devices.size()));
-
-    return devices.stream().collect(collector);
-  }
-
-  @NotNull
-  private static ListMultimap<String, Device> buildListMultimap(int expectedKeyCount) {
-    // noinspection UnstableApiUsage
-    return MultimapBuilder
-      .hashKeys(expectedKeyCount)
-      .arrayListValues()
-      .build();
-  }
-
-  @NotNull
-  private AnAction newAction(@NotNull List<Device> devices, @NotNull Project project) {
-    if (devices.size() == 1) {
-      return SelectDeviceAction.newSelectDeviceAction(this, project, devices.get(0));
-    }
-
-    return new SnapshotActionGroup(devices, this, project);
+    return new PopupActionGroup(getDevices(project).orElseThrow(AssertionError::new), this);
   }
 
   @Override
-  public final void update(@NotNull AnActionEvent event) {
+  public void update(@NotNull AnActionEvent event) {
     Presentation presentation = event.getPresentation();
     Project project = event.getProject();
 
@@ -383,118 +317,28 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       return;
     }
 
-    if (!AndroidUtils.hasAndroidFacets(project)) {
-      presentation.setVisible(false);
-      return;
-    }
+    Optional<List<Device>> devices = getDevices(project);
 
-    updatePresentation(presentation, RunManager.getInstance(project).getSelectedConfiguration());
-
-    List<Device> devices = getDevices(project);
-    Device device = getSelectedDevice(project, devices);
-
-    if (event.getPlace().equals(ActionPlaces.MAIN_MENU)) {
-      presentation.setIcon(null);
-      presentation.setText("Select Device...");
-    }
-    else if (devices.isEmpty()) {
-      presentation.setIcon(null);
-      presentation.setText("No Devices");
-    }
-    else {
-      assert device != null;
-
-      presentation.setIcon(device.getIcon());
-      presentation.setText(getText(device, devices, mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get()), false);
-    }
-
-    updateExecutionTargetManager(project, device);
-  }
-
-  @VisibleForTesting
-  static void updatePresentation(@NotNull Presentation presentation, @Nullable RunnerAndConfigurationSettings settings) {
-    if (settings == null) {
-      presentation.setDescription("Add a run/debug configuration");
+    if (!devices.isPresent()) {
       presentation.setEnabled(false);
+      presentation.setText("Loading Devices...");
 
       return;
     }
 
-    RunProfile configuration = settings.getConfiguration();
+    Updater updater = new Updater.Builder()
+      .setProject(project)
+      .setPresentation(presentation)
+      .setPlace(event.getPlace())
+      .setDevicesSelectedService(myDevicesSelectedServiceGetInstance.apply(project))
+      .setDevices(devices.get())
+      .setConfigurationAndSettings(myGetRunManager.apply(project).getSelectedConfiguration())
+      .setSnapshotsEnabled(mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get())
+      .build();
 
-    // Run configurations can explicitly specify they target a local device through DEPLOY_TO_LOCAL_DEVICE.
-    if (configuration instanceof UserDataHolder) {
-      Boolean deploysToLocalDevice = ((UserDataHolder)configuration).getUserData(DEPLOYS_TO_LOCAL_DEVICE);
-      if (deploysToLocalDevice != null && deploysToLocalDevice.booleanValue()) {
-        presentation.setDescription(Presentation.NULL_STRING);
-        presentation.setEnabled(true);
+    updater.update();
 
-        return;
-      }
-    }
-
-    if (!(configuration instanceof AndroidRunConfiguration || configuration instanceof AndroidTestRunConfiguration)) {
-      presentation.setDescription("Not applicable for the \"" + configuration.getName() + "\" configuration");
-      presentation.setEnabled(false);
-
-      return;
-    }
-
-    presentation.setDescription(Presentation.NULL_STRING);
-    presentation.setEnabled(true);
-  }
-
-  /**
-   * Formats the selected device for display in the drop down button. If there's another device with the same name, the text will have the
-   * selected device's key appended to it to disambiguate it from the other one. If the SNAPSHOTS_ENABLED flag is on and the device has a
-   * nondefault snapshot, the text will have the snapshot's name appended to it. Finally, if the {@link
-   * com.android.tools.idea.run.LaunchCompatibilityChecker LaunchCompatibilityChecker} found issues with the device, the text will have the
-   * issue appended to it.
-   *
-   * @param device           the selected device
-   * @param devices          the devices to check if any other has the same name as the selected device. The selected device may be in the
-   *                         collection.
-   * @param snapshotsEnabled the value of the SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED flag. Passed this way for testability.
-   */
-  @NotNull
-  @VisibleForTesting
-  static String getText(@NotNull Device device, @NotNull Collection<Device> devices, boolean snapshotsEnabled) {
-    boolean anotherDeviceHasSameName = Devices.containsAnotherDeviceWithSameName(devices, device);
-    return Devices.getText(device, anotherDeviceHasSameName ? device.getKey() : null, snapshotsEnabled ? device.getSnapshot() : null);
-  }
-
-  private static void updateExecutionTargetManager(@NotNull Project project, @Nullable Device device) {
-    ExecutionTarget target = ExecutionTargetManager.getInstance(project).getActiveTarget();
-
-    // Skip updating ExecutionTargetManager if the Device has not meaningfully changed.
-    if (device == null && target == DefaultExecutionTarget.INSTANCE ||
-        target instanceof DeviceAndSnapshotExecutionTargetProvider.Target &&
-        Objects.equals(device, ((DeviceAndSnapshotExecutionTargetProvider.Target)target).getDevice())) {
-      return;
-    }
-
-    // In certain test scenarios, this action may get updated in the main test thread instead of the EDT thread (is this correct?).
-    // So we'll just make sure the following gets run on the EDT thread and wait for its result.
-    ApplicationManager.getApplication().invokeAndWait(() -> {
-      RunManager runManager = RunManager.getInstance(project);
-      RunnerAndConfigurationSettings settings = runManager.getSelectedConfiguration();
-
-      // There is a bug in {@link com.intellij.execution.impl.RunManagerImplKt#clear(boolean)} where it's possible the selected setting's
-      // RunConfiguration is be non-existent in the RunManager. This happens when temporary/shared RunnerAndConfigurationSettings are
-      // cleared from the list of RunnerAndConfigurationSettings, and the selected RunnerAndConfigurationSettings is temporary/shared and
-      // left dangling.
-      if (settings == null || runManager.findSettings(settings.getConfiguration()) == null) {
-        return;
-      }
-
-      ExecutionTargetManager manager = ExecutionTargetManager.getInstance(project);
-
-      for (ExecutionTarget availableTarget : manager.getTargetsFor(settings.getConfiguration())) {
-        if (availableTarget instanceof DeviceAndSnapshotExecutionTargetProvider.Target) {
-          manager.setActiveTarget(availableTarget);
-          break;
-        }
-      }
-    });
+    List<Device> selectedDevices = getSelectedDevices(project);
+    myExecutionTargetServiceGetInstance.apply(project).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(selectedDevices));
   }
 }

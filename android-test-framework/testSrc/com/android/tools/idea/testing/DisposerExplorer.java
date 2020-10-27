@@ -32,7 +32,7 @@ import org.jetbrains.annotations.TestOnly;
  * Collection of methods for accessing {@link Disposer}'s tree.
  */
 @TestOnly
-public final class DisposerExplorer {
+public class DisposerExplorer {
   private static final Object treeLock = getTreeLock();
 
   /**
@@ -118,6 +118,18 @@ public final class DisposerExplorer {
     synchronized (treeLock) {
       Object objectNode = getObjectNode(disposable);
       return objectNode != null && !getObjectNodeChildren(objectNode).isEmpty();
+    }
+  }
+
+  /**
+   * If Disposer.isDebugMode() is true and the given disposable is a root, then this returns
+   * the trace from when the disposable was first registered. Otherwise it returns null.
+   */
+  @Nullable
+  public static Throwable getTrace(@NotNull Disposable disposable) {
+    synchronized (treeLock) {
+      Object objectNode = getObjectNode(disposable);
+      return objectNode != null ? getObjectNodeTrace(objectNode) : null;
     }
   }
 
@@ -252,6 +264,11 @@ public final class DisposerExplorer {
   @NotNull
   private static Disposable getObjectNodeDisposable(@NotNull Object objectNode) {
     return getFieldValue(objectNode, "myObject");
+  }
+
+  @Nullable
+  private static Throwable getObjectNodeTrace(@NotNull Object objectNode) {
+    return getFieldValue(objectNode, "myTrace");
   }
 
   // TODO: Replace reflection by a test-only class in the same package as Disposer.

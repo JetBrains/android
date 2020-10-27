@@ -61,12 +61,11 @@ object LocaleModelsProvider: VisualizationModelsProvider {
     // The layout file used when there is no particular layout for device's locale.
     val defaultFile = ConfigurationMatcher.getBetterMatch(currentFileConfig, null, null, Locale.ANY, null) ?: currentFile
     val defaultLocaleConfig = Configuration.create(currentFileConfig, defaultFile).apply { locale = Locale.ANY}
-    models.add(NlModel.create(parentDisposable,
-                              "Default (no locale)",
-                              facet,
-                              defaultFile,
-                              defaultLocaleConfig,
-                              Consumer<NlComponent> { NlComponentHelper.registerComponent(it) }))
+    models.add(NlModel.builder(facet, defaultFile, defaultLocaleConfig)
+                 .withParentDisposable(parentDisposable)
+                 .withModelDisplayName("Default (no locale)")
+                 .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
+                 .build())
 
     val locales = ResourceRepositoryManager.getInstance(facet).localesInProject.sortedWith(Locale.LANGUAGE_CODE_COMPARATOR)
 
@@ -75,12 +74,11 @@ object LocaleModelsProvider: VisualizationModelsProvider {
       val config = Configuration.create(defaultLocaleConfig, betterFile)
       config.locale = locale
       val label = LocaleMenuAction.getLocaleLabel(locale, false)
-      models.add(NlModel.create(parentDisposable,
-                                label,
-                                facet,
-                                betterFile,
-                                config,
-                                Consumer<NlComponent> { NlComponentHelper.registerComponent(it) }))
+      models.add(NlModel.builder(facet, betterFile, config)
+                   .withParentDisposable(parentDisposable)
+                   .withModelDisplayName(label)
+                   .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
+                   .build())
     }
     return models
   }

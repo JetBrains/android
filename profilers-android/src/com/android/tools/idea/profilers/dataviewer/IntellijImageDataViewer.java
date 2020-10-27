@@ -25,7 +25,7 @@ import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class IntellijImageDataViewer implements ImageDataViewer {
+public class IntellijImageDataViewer implements ImageDataViewer {
   @NotNull
   private final BufferedImage myImage;
   @NotNull

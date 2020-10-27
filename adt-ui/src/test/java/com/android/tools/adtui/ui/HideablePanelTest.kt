@@ -18,6 +18,9 @@ package com.android.tools.adtui.ui
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Rule
 import org.junit.Test
 import java.util.regex.Pattern
 import javax.swing.JButton
@@ -25,7 +28,11 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JSeparator
 
+@RunsInEdt
 class HideablePanelTest {
+
+  @get:Rule
+  val edtRule = EdtRule()
 
   @Test
   fun testExpandChangesChildVisibility() {

@@ -21,6 +21,7 @@ import static com.android.SdkConstants.TAG_ISSUES;
 import static com.android.SdkConstants.TOOLS_URI;
 
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.lint.client.api.DefaultConfiguration;
 import com.android.tools.lint.detector.api.Lint;
 import com.intellij.lang.injection.InjectedLanguageManager;
@@ -60,13 +61,9 @@ import org.jetbrains.android.dom.converters.ConstantFieldConverter;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.resources.ResourceNameConverter;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
   private final MyResourceReferenceTokenizer myResourceReferenceTokenizer = new MyResourceReferenceTokenizer();
 
@@ -155,7 +152,7 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
   public Tokenizer getAttributeValueTokenizer(PsiElement element) {
     assert element instanceof XmlAttributeValue;
 
-    if (AndroidResourceUtil.isIdDeclaration((XmlAttributeValue)element)) {
+    if (IdeResourcesUtil.isIdDeclaration((XmlAttributeValue)element)) {
       return myAttributeValueRenamingTokenizer;
     }
     PsiElement parent = element.getParent();
@@ -277,33 +274,8 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
         return;
       }
 
-      // The super implementation already filters out hex color definitions like #001122, but it's limited to RGB colors, not ARGB.
-      if (isColorString(element.getValue())) {
-        return;
-      }
-
       super.tokenize(element, consumer);
     }
-  }
-
-  private static boolean isColorString(@NotNull String s) {
-    int length = s.length();
-    // #rgb to #aarrggbb
-    if (length < 4 || length > 9) {
-      return false;
-    }
-
-    int i = 0;
-    if (s.charAt(i++) != '#') {
-      return false;
-    }
-
-    for (; i < length; i++) {
-      if (!StringUtil.isHexDigit(s.charAt(i))) {
-        return false;
-      }
-    }
-    return true;
   }
 
   private static final AaptXmlTextSplitter AAPT_SPLITTER = new AaptXmlTextSplitter();

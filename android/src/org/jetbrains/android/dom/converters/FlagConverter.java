@@ -14,9 +14,6 @@ import org.jetbrains.annotations.Nullable;
 import java.text.MessageFormat;
 import java.util.*;
 
-/**
- * @author coyote
- */
 public class FlagConverter extends DelimitedListConverter<String> {
   private final Set<String> myValues = new HashSet<>();
   private final ResolvingConverter<String> additionalConverter;

@@ -6,9 +6,6 @@ import org.jetbrains.jps.model.JpsElementChildRole;
 import org.jetbrains.jps.model.ex.JpsElementBase;
 import org.jetbrains.jps.model.ex.JpsElementChildRoleBase;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class JpsAndroidDexCompilerConfigurationImpl extends JpsElementBase<JpsAndroidDexCompilerConfigurationImpl>
   implements JpsAndroidDexCompilerConfiguration {
 

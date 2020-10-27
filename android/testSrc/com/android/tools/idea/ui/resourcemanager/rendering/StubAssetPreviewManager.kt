@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcemanager.rendering
 
 import com.android.resources.ResourceType
+import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.intellij.util.ui.EmptyIcon
@@ -36,7 +37,7 @@ class StubAssetPreviewManager(
 class StubAssetIconProvider(var icon: Icon = EmptyIcon.ICON_18) : AssetIconProvider {
   override val supportsTransparency = false
 
-  override fun getIcon(assetToRender: DesignAsset,
+  override fun getIcon(assetToRender: Asset,
                        width: Int,
                        height: Int,
                        refreshCallback: () -> Unit,

@@ -13,9 +13,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class VirtualFolderWrapper implements IAbstractFolder {
   private final Project myProject;
   private final VirtualFile myFolder;

@@ -32,6 +32,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Dependencies
+import com.android.tools.idea.uibuilder.property2.NelePropertiesModelTest.Companion.waitUntilLastSelectionUpdateCompleted
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.AndroidAttributeFact
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
@@ -66,12 +67,10 @@ private const val RECYCLER_VIEW_V7_ID = "recyclerview-v7"
 
 @RunsInEdt
 class TypeResolverSdkTest {
-  @JvmField
-  @Rule
+  @get:Rule
   val projectRule = AndroidProjectRule.withSdk()
 
-  @JvmField
-  @Rule
+  @get:Rule
   val edtRule = EdtRule()
 
   @Test
@@ -178,6 +177,7 @@ class TypeResolverSdkTest {
   private fun checkViewAttributes(tagName: String, report: Report) {
     val util = SupportTestUtil(projectRule, tagName, parentTag = FRAME_LAYOUT,
                                fileName = "${tagName.substringAfter('.')}$DOT_XML")
+    waitUntilLastSelectionUpdateCompleted(util.model)
     val tag = util.components.first().backend.tag!!
     checkAttributes(tag, report)
   }

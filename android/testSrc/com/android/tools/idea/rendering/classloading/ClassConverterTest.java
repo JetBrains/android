@@ -25,11 +25,14 @@ import static com.android.tools.idea.rendering.classloading.ClassConverter.getMi
 import static com.android.tools.idea.rendering.classloading.ClassConverter.isValidClassFile;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.jdkToClassVersion;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.rewriteClass;
+import static com.android.tools.idea.rendering.classloading.UtilKt.multiTransformOf;
+import static com.google.common.truth.Truth.assertThat;
 import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_PROTECTED;
 import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_SUPER;
 import static org.jetbrains.org.objectweb.asm.Opcodes.ALOAD;
 import static org.jetbrains.org.objectweb.asm.Opcodes.ASM5;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ASM7;
 import static org.jetbrains.org.objectweb.asm.Opcodes.GETFIELD;
 import static org.jetbrains.org.objectweb.asm.Opcodes.ICONST_0;
 import static org.jetbrains.org.objectweb.asm.Opcodes.ICONST_1;
@@ -49,6 +52,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.org.objectweb.asm.ClassReader;
@@ -106,7 +110,7 @@ public class ClassConverterTest extends TestCase {
     // Compile
     //     public class Test { public static int test() { return 42; } }
     // then compile with javac Test.java and take the binary contents of Test.class
-    byte[] data = new byte[] {
+    byte[] data = new byte[]{
       (byte)202, (byte)254, (byte)186, (byte)190, (byte)0, (byte)0, (byte)0, (byte)50, (byte)0, (byte)15,
       (byte)10, (byte)0, (byte)3, (byte)0, (byte)12, (byte)7, (byte)0, (byte)13, (byte)7, (byte)0,
       (byte)14, (byte)1, (byte)0, (byte)6, (byte)60, (byte)105, (byte)110, (byte)105, (byte)116, (byte)62,
@@ -156,7 +160,7 @@ public class ClassConverterTest extends TestCase {
     result = clz.getMethod("test").invoke(null);
     assertEquals(Integer.valueOf(42), result);
 
-    data = rewriteClass(data,visitor -> new VersionClassTransform(visitor, Integer.MAX_VALUE, 52)); // latest known
+    data = rewriteClass(data, visitor -> new VersionClassTransform(visitor, Integer.MAX_VALUE, 52)); // latest known
     assertEquals(52, getMajorVersion(data));
     classLoader = new TestClassLoader(data);
     clz = classLoader.loadClass("Test");
@@ -178,9 +182,11 @@ public class ClassConverterTest extends TestCase {
       if (getCurrentClassVersion() < 52) {
         fail("Expected class loading error");
       }
-    } catch (UnsupportedClassVersionError e) {
+    }
+    catch (UnsupportedClassVersionError e) {
       // pass
-    } catch (Throwable t) {
+    }
+    catch (Throwable t) {
       fail("Expected class loading error");
     }
   }
@@ -205,7 +211,7 @@ public class ClassConverterTest extends TestCase {
   //
   // The binary dump was created by using ASMifier running:
   // java -classpath asm-debug-all-5.0.2.jar:. org.objectweb.asm.util.ASMifier TestView.class
-  private static byte[] dumpTestViewClass () {
+  private static byte[] dumpTestViewClass() {
     ClassWriter cw = new ClassWriter(0);
     MethodVisitor mv;
 
@@ -294,7 +300,7 @@ public class ClassConverterTest extends TestCase {
     };
     Class<?> clazz = loader.loadClass("FirstClass");
     Object o = clazz.newInstance();
-    int outValue = (Integer) clazz.getMethod("test").invoke(o);
+    int outValue = (Integer)clazz.getMethod("test").invoke(o);
     assertEquals(1, outValue);
     clazz = loader.loadClass("SecondClass");
     o = clazz.newInstance();
@@ -319,12 +325,39 @@ public class ClassConverterTest extends TestCase {
     };
     clazz = loader.loadClass("FirstClass");
     o = clazz.newInstance();
-    outValue = (Integer) clazz.getMethod("test").invoke(o);
+    outValue = (Integer)clazz.getMethod("test").invoke(o);
     assertEquals(1, outValue);
     clazz = loader.loadClass("SecondClass");
     o = clazz.newInstance();
     outValue = (Integer)clazz.getMethod("test").invoke(o);
     assertEquals(2, outValue);
+  }
+
+  /**
+   * Ensure that {@link UtilKt#multiTransformOf} produces a valid visitor that calls all the other ones.
+   */
+  public void testMultiTransform() {
+    byte[] data = ClassConverterTest.dumpTestViewClass();
+
+    {
+      Set<String> called = new HashSet<>();
+      rewriteClass(data, multiTransformOf(
+        visitor -> new TestVisitor(visitor, name -> called.add("Visitor1")),
+        visitor -> new TestVisitor(visitor, name -> called.add("Visitor2"))
+      ));
+      assertThat(called).containsExactly("Visitor1", "Visitor2");
+    }
+
+    {
+      Set<String> called = new HashSet<>();
+      rewriteClass(data, multiTransformOf(visitor -> new TestVisitor(visitor, name -> called.add("Visitor1"))));
+      assertThat(called).containsExactly("Visitor1");
+    }
+
+    {
+      // Check that this does not cause any problems
+      rewriteClass(data, multiTransformOf());
+    }
   }
 
   private static byte[] getFirstOnMeasureClass() {
@@ -420,6 +453,7 @@ public class ClassConverterTest extends TestCase {
 
   private static class TestClassLoader extends RenderClassLoader {
     final byte[] myData;
+
     public TestClassLoader(byte[] data) {
       super(null);
       myData = data;
@@ -437,6 +471,26 @@ public class ClassConverterTest extends TestCase {
       Class<?> clz = loadClass(name, myData);
       assertNotNull(clz);
       return clz;
+    }
+  }
+
+  /**
+   * Visitor that records the {@link ClassVisitor#visit(int, int, String, String, String, String[])} visits by calling {@link onVisited}.
+   */
+  private static class TestVisitor extends ClassVisitor {
+    private final Consumer<String> onVisited;
+
+    private TestVisitor(ClassVisitor classVisitor, Consumer<String> onVisited) {
+      super(ASM7, classVisitor);
+
+      this.onVisited = onVisited;
+    }
+
+    @Override
+    public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+      onVisited.accept(name);
+
+      super.visit(version, access, name, signature, superName, interfaces);
     }
   }
 }

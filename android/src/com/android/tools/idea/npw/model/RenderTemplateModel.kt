@@ -17,49 +17,34 @@ package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.device.FormFactor
 import com.android.tools.idea.hasAnyKotlinModules
-import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
-import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.getPackageForApplication
-import com.android.tools.idea.npw.template.TemplateHandle
-import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.AndroidModulePaths
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
-import com.android.tools.idea.templates.KeystoreUtils
-import com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore
-import com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore
+import com.android.tools.idea.templates.KeystoreUtils.getSha1DebugKeystoreSilently
 import com.android.tools.idea.templates.ModuleTemplateDataBuilder
 import com.android.tools.idea.templates.ProjectTemplateDataBuilder
-import com.android.tools.idea.templates.Template
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_APPLICATION_PACKAGE
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LAUNCHER
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_SOURCE_PROVIDER_NAME
 import com.android.tools.idea.templates.TemplateUtils
-import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
-import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor2
+import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
+import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
-import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.Language
+import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.WizardParameterData
-import com.intellij.ide.scratch.ScratchFileService
-import com.intellij.ide.scratch.ScratchRootType
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.fileTypes.PlainTextLanguage
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VfsUtilCore
-import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
-import com.android.tools.idea.wizard.template.Template as Template2
 
 private val log = logger<RenderTemplateModel>()
 
@@ -68,34 +53,30 @@ class ExistingNewModuleModelData(
 ) : ModuleModelData, ProjectModelData by existingProjectModelData {
   override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(template)
   override val moduleName: StringValueProperty = StringValueProperty(facet.module.name)
-  override val moduleTemplateValues: MutableMap<String, Any> = mutableMapOf()
-  override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(ProjectTemplateDataBuilder(false))
+  override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(ProjectTemplateDataBuilder(false), false)
 
-  override val formFactor: ObjectValueProperty<FormFactor> get() = TODO("not implemented")
+  override val formFactor: ObjectValueProperty<FormFactor> get() =
+    throw UnsupportedOperationException("We cannot reliably know formFactor of an existing module")
   override val isLibrary: Boolean = false
-  override var templateFile: File? = null
   override val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty.absent()
 }
 
 /**
- * A model responsible for instantiating a FreeMarker [Template] into the current project representing an Android component.
+ * A model responsible for instantiating a [Template] into the current project representing an Android component.
  */
 class RenderTemplateModel private constructor(
   moduleModelData: ModuleModelData,
   val androidFacet: AndroidFacet?,
-  var templateHandle: TemplateHandle? = null,
   private val commandName: String,
   private val shouldOpenFiles: Boolean,
-  /** Populated in [Template.render] */
   val createdFiles: MutableList<File> = arrayListOf()
 ) : WizardModel(), ModuleModelData by moduleModelData {
   /**
    * The target template we want to render. If null, the user is skipping steps that would instantiate a template and this model shouldn't
    * try to render anything.
    */
-  val templateValues = hashMapOf<String, Any>()
-  private lateinit var wizardParameterData: WizardParameterData
-  var newTemplate: Template2 = Template2.NoActivity
+  lateinit var wizardParameterData: WizardParameterData
+  var newTemplate: Template = Template.NoActivity
   set(value) {
     field = value
     wizardParameterData = WizardParameterData(
@@ -114,22 +95,17 @@ class RenderTemplateModel private constructor(
   val module: Module?
     get() = androidFacet?.module
 
-  val hasActivity: Boolean
-    get() = templateHandle != null || newTemplate != Template2.NoActivity
-
-  val isNew: Boolean
-    get() = templateHandle == null && newTemplate != Template2.NoActivity
+  val hasActivity: Boolean get() = newTemplate != Template.NoActivity
 
   public override fun handleFinished() {
-    multiTemplateRenderer.requestRender(FreeMarkerTemplateRenderer())
+    multiTemplateRenderer.requestRender(TemplateRenderer())
   }
 
   public override fun handleSkipped() {
     multiTemplateRenderer.skipRender()
   }
 
-  private inner class FreeMarkerTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
-    internal val filesToReformat: MutableList<File> = mutableListOf()
+  private inner class TemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
     private var renderSuccess: Boolean = false
 
     @WorkerThread
@@ -140,54 +116,29 @@ class RenderTemplateModel private constructor(
         return
       }
 
-      templateValues.putAll(moduleTemplateValues)
+      moduleTemplateDataBuilder.apply {
+        // sourceProviderName = template.get().name TODO(qumeric) there is no sourcesProvider (yet?)
+        projectTemplateDataBuilder.setProjectDefaults(project)
+        formFactor = newTemplate.formFactor
+        moduleTemplateDataBuilder.setModuleRoots(
+          paths, projectLocation.get(), moduleName.get(), this@RenderTemplateModel.packageName.get()
+        )
 
-      if (StudioFlags.NPW_NEW_ACTIVITY_TEMPLATES.get() && isNew) {
-        moduleTemplateDataBuilder.apply {
-          // sourceProviderName = template.get().name TODO(qumeric) there is no sourcesProvider (yet?)
-          projectTemplateDataBuilder.setProjectDefaults(project)
-          formFactor = newTemplate.formFactor
-          moduleTemplateDataBuilder.setModuleRoots(
-            paths, projectLocation.get(), moduleName.get(), this@RenderTemplateModel.packageName.get()
-          )
+        projectTemplateDataBuilder.language = language.value
 
-          projectTemplateDataBuilder.language = language.value
+        projectTemplateDataBuilder.debugKeyStoreSha1 = getSha1DebugKeystoreSilently(androidFacet)
 
-          val sha1File = androidFacet?.let { getDebugKeystore(it) } ?: getOrCreateDefaultDebugKeystore()
-          projectTemplateDataBuilder.debugKeyStoreSha1 = KeystoreUtils.sha1(sha1File)
-
-          if (androidFacet == null) {
-            return@apply
-          }
-
-          setFacet(androidFacet)
-
-          // Register application-wide settings
-          val applicationPackage = androidFacet.getPackageForApplication()
-          if (this@RenderTemplateModel.packageName.get() != applicationPackage) {
-            projectTemplateDataBuilder.applicationPackage = androidFacet.getPackageForApplication()
-          }
+        if (androidFacet == null) {
+          return@apply
         }
-      }
 
-      templateValues[ATTR_SOURCE_PROVIDER_NAME] = template.get().name
-      if (module == null) { // New Module
-        templateValues[ATTR_IS_LAUNCHER] = true
-      }
+        setFacet(androidFacet)
 
-      val templateInjector = TemplateValueInjector(templateValues)
-        .setModuleRoots(paths, projectLocation.get(), moduleName.get(), packageName.get())
-
-      if (androidFacet == null) {
-        return
-      }
-      templateInjector.setFacet(androidFacet)
-      templateInjector.setLanguage(language.value) // Note: For new projects/modules we have a different UI.
-
-      // Register application-wide settings
-      val applicationPackage = androidFacet.getPackageForApplication()
-      if (packageName.get() != applicationPackage) {
-        templateValues[ATTR_APPLICATION_PACKAGE] = androidFacet.getPackageForApplication()
+        // Register application-wide settings
+        val applicationPackage = androidFacet.getPackageForApplication()
+        if (this@RenderTemplateModel.packageName.get() != applicationPackage) {
+          projectTemplateDataBuilder.applicationPackage = androidFacet.getPackageForApplication()
+        }
       }
     }
 
@@ -197,7 +148,7 @@ class RenderTemplateModel private constructor(
         return true
       }
 
-      return renderTemplate(true, project, template.get().paths, null, null)
+      return renderTemplate(true, project, template.get().paths)
     }
 
     @WorkerThread
@@ -205,7 +156,7 @@ class RenderTemplateModel private constructor(
       val paths = template.get().paths
 
       try {
-        renderSuccess = renderTemplate(false, project, paths, createdFiles, filesToReformat)
+        renderSuccess = renderTemplate(false, project, paths)
       }
       catch (t: Throwable) {
         log.warn(t)
@@ -220,79 +171,53 @@ class RenderTemplateModel private constructor(
     }
 
     private fun renderTemplate(
-      dryRun: Boolean, project: Project, paths: AndroidModulePaths, filesToOpen: MutableList<File>?, filesToReformat: MutableList<File>?
+      dryRun: Boolean, project: Project, paths: AndroidModulePaths
     ): Boolean {
       paths.moduleRoot ?: return false
 
-      if (StudioFlags.NPW_NEW_ACTIVITY_TEMPLATES.get() && isNew) {
-        val context = RenderingContext2(
-          project = project,
-          module = module,
-          commandName = commandName,
-          templateData = moduleTemplateDataBuilder.build(), // FIXME
-          moduleRoot = paths.moduleRoot!!,
-          dryRun = dryRun,
-          showErrors = true
-        )
+      val context = RenderingContext(
+        project = project,
+        module = module,
+        commandName = commandName,
+        templateData = moduleTemplateDataBuilder.build(), // FIXME
+        moduleRoot = paths.moduleRoot!!,
+        dryRun = dryRun,
+        showErrors = true
+      )
 
-        val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
+      val executor = if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)
 
-        return newTemplate.render(context, executor).also {
-          createdFiles.addAll(context.filesToOpen)
-        }
+      return newTemplate.render(context, executor).also {
+        createdFiles.addAll(context.filesToOpen)
       }
-
-      val template = templateHandle!!.template
-
-      if (!dryRun && StudioFlags.NPW_DUMP_TEMPLATE_VARS.get() && filesToOpen != null) {
-        toScratchFile(project)?.run {
-          filesToOpen.add(VfsUtilCore.virtualToIoFile(this))
-        }
-      }
-
-      val context = RenderingContext.Builder.newContext(template, project)
-        .withCommandName(commandName)
-        .withDryRun(dryRun)
-        .withShowErrors(true)
-        .withModuleRoot(paths.moduleRoot!!)
-        .withModule(module)
-        .withParams(templateValues)
-        .intoOpenFiles(filesToOpen)
-        .intoTargetFiles(filesToReformat)
-        .build()
-      return template.render(context, dryRun)
     }
   }
-
-  // For ease of debugging add a scratch file containing the template values.
-  private fun toScratchFile(project: Project?): VirtualFile? = ScratchRootType.getInstance().createScratchFile(
-    project, "templateVars.txt", PlainTextLanguage.INSTANCE,
-    templateValues.map { (key, value) -> "$key=$value" }.joinToString(System.lineSeparator()),
-    ScratchFileService.Option.create_new_always)
 
   companion object {
     private const val PROPERTIES_RENDER_LANGUAGE_KEY = "SAVED_RENDER_LANGUAGE"
 
     @JvmStatic
     fun fromFacet(
-      facet: AndroidFacet, templateHandle: TemplateHandle?, initialPackageSuggestion: String, template: NamedModuleTemplate,
-      commandName: String, projectSyncInvoker: ProjectSyncInvoker, shouldOpenFiles: Boolean
+      facet: AndroidFacet,
+      initialPackageSuggestion: String?,
+      template: NamedModuleTemplate,
+      commandName: String,
+      projectSyncInvoker: ProjectSyncInvoker,
+      shouldOpenFiles: Boolean
     ) = RenderTemplateModel(
       moduleModelData = ExistingNewModuleModelData(
-        ExistingProjectModelData(facet.module.project, projectSyncInvoker).apply { packageName.set(initialPackageSuggestion) },
+        ExistingProjectModelData(facet.module.project, projectSyncInvoker).apply { initialPackageSuggestion?.let { packageName.set(it) }},
         facet, template),
       androidFacet = facet,
-      templateHandle = templateHandle,
       commandName = commandName,
       shouldOpenFiles = shouldOpenFiles)
 
     @JvmStatic
     fun fromModuleModel(
-      moduleModel: NewAndroidModuleModel, templateHandle: TemplateHandle?, commandName: String = moduleModel.formFactor.get().id
+      moduleModel: NewAndroidModuleModel, commandName: String = moduleModel.formFactor.get().id
     ) = RenderTemplateModel(
       moduleModelData = moduleModel,
       androidFacet = null,
-      templateHandle = templateHandle,
       commandName = commandName,
       shouldOpenFiles = true
     ).apply { multiTemplateRenderer.incrementRenders() }
@@ -304,9 +229,9 @@ class RenderTemplateModel private constructor(
      */
     fun getInitialSourceLanguage(project: Project?): Language {
       return if (project != null && project.hasAnyKotlinModules())
-        Language.fromName(PropertiesComponent.getInstance().getValue(PROPERTIES_RENDER_LANGUAGE_KEY), Language.KOTLIN)
+        Language.fromName(PropertiesComponent.getInstance().getValue(PROPERTIES_RENDER_LANGUAGE_KEY), Language.Kotlin)
       else
-        Language.JAVA
+        Language.Java
     }
   }
 }

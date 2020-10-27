@@ -1,10 +1,10 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.Client;
-import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.run.deployable.SwappableProcessHandler;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.ExecutionTarget;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class AndroidSessionInfo {
+public class AndroidSessionInfo {
   public static final Key<AndroidSessionInfo> KEY = new Key<>("KEY");
   public static final Key<Client> ANDROID_DEBUG_CLIENT = new Key<>("ANDROID_DEBUG_CLIENT");
   public static final Key<AndroidVersion> ANDROID_DEVICE_API_LEVEL = new Key<>("ANDROID_DEVICE_API_LEVEL");
@@ -160,19 +160,10 @@ public final class AndroidSessionInfo {
   private static boolean checkIfIDeviceRunningInProcessHandler(@NotNull RunConfiguration runConfiguration,
                                                                @NotNull AndroidExecutionTarget executionTarget,
                                                                @NotNull ProcessHandler processHandler) {
-    IDevice iDevice = executionTarget.getIDevice();
-    if (processHandler instanceof AndroidProcessHandler) {
-      if (iDevice == null) {
-        return false;
-      }
-      if (((AndroidProcessHandler)processHandler).isAssociated(iDevice)) {
-        return true;
-      }
-      return false;
+    if (processHandler instanceof SwappableProcessHandler) {
+      return ((SwappableProcessHandler)processHandler).isRunningWith(runConfiguration, executionTarget);
     }
-    else if (processHandler instanceof AndroidRemoteDebugProcessHandler) {
-      return ((AndroidRemoteDebugProcessHandler)processHandler).isRunningWith(runConfiguration, executionTarget);
-    }
+
     return false;
   }
 }

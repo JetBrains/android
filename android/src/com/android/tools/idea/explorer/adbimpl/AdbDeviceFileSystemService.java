@@ -49,7 +49,7 @@ import org.jetbrains.ide.PooledThreadExecutor;
  * long running operations either raise events or return a Future.
  */
 @UiThread
-public final class AdbDeviceFileSystemService implements DeviceFileSystemService<AdbDeviceFileSystem>, Disposable {
+public final class AdbDeviceFileSystemService implements Disposable, DeviceFileSystemService<AdbDeviceFileSystem> {
   @NotNull
   public static AdbDeviceFileSystemService getInstance(Project project) {
     return ServiceManager.getService(project, AdbDeviceFileSystemService.class);
@@ -68,7 +68,7 @@ public final class AdbDeviceFileSystemService implements DeviceFileSystemService
   @Nullable private File myAdb;
   @NotNull private SettableFuture<Void> myStartServiceFuture = SettableFuture.create();
 
-  public AdbDeviceFileSystemService() {
+  private AdbDeviceFileSystemService() {
     myEdtExecutor = new FutureCallbackExecutor(EdtExecutorService.getInstance());
     myTaskExecutor = new FutureCallbackExecutor(PooledThreadExecutor.INSTANCE);
   }
@@ -79,6 +79,7 @@ public final class AdbDeviceFileSystemService implements DeviceFileSystemService
     AndroidDebugBridge.removeDebugBridgeChangeListener(myDebugBridgeChangeListener);
     myBridge = null;
     myDevices.clear();
+    myListeners.clear();
   }
 
   public enum State {

@@ -38,7 +38,10 @@ import java.util.concurrent.CompletableFuture
 class SVGAssetRenderer : DesignAssetRenderer {
   override fun isFileSupported(file: VirtualFile): Boolean = "svg".equals(file.extension, true)
 
-  override fun getImage(file: VirtualFile, module: Module?, dimension: Dimension): CompletableFuture<out BufferedImage?> =
+  override fun getImage(file: VirtualFile,
+                        module: Module?,
+                        dimension: Dimension,
+                        context: Any?): CompletableFuture<out BufferedImage?> =
     CompletableFuture.supplyAsync {
       try {
         SVGLoader(file.inputStream, dimension.height, dimension.width).createImage()

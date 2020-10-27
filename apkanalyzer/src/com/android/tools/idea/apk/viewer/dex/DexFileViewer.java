@@ -36,6 +36,7 @@ import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
@@ -90,8 +91,10 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
   private boolean myDeobfuscateNames;
   private ListenableFuture<DexReferences> myDexReferences;
 
-  @NotNull public static final NotificationGroup LOGGING_NOTIFICATION = NotificationGroup.logOnlyGroup("APK Analyzer (Info)");
-  @NotNull public static final NotificationGroup BALLOON_NOTIFICATION = NotificationGroup.balloonGroup("APK Analyzer (Important)");
+  @NotNull public static final NotificationGroup LOGGING_NOTIFICATION =
+    NotificationGroup.logOnlyGroup("APK Analyzer (Info)", PluginId.getId("org.jetbrains.android"));
+  @NotNull public static final NotificationGroup BALLOON_NOTIFICATION =
+    NotificationGroup.balloonGroup("APK Analyzer (Important)", PluginId.getId("org.jetbrains.android"));
 
   public DexFileViewer(@NotNull Project project, @NotNull Path[] dexFiles, @Nullable VirtualFile apkFolder) {
     myDexFiles = dexFiles;

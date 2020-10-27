@@ -17,9 +17,6 @@ import java.util.Map;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
-/**
-* @author Eugene.Kudelevsky
-*/
 class ClassesAndJarsValidityState implements ValidityState {
   private Map<String, Long> myFiles;
 

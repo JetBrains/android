@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sqlite.mocks
 
-import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.intellij.openapi.project.Project
@@ -36,13 +36,9 @@ open class MockSqliteEvaluatorView : SqliteEvaluatorView {
 
   override fun showSqliteStatement(sqliteStatement: String) {  }
 
-  override fun addDatabase(database: SqliteDatabase, index: Int) { }
+  override fun setDatabases(databaseIds: List<SqliteDatabaseId>, selected: SqliteDatabaseId?) { }
 
-  override fun removeDatabase(index: Int) { }
+  override fun schemaChanged(databaseId: SqliteDatabaseId) { }
 
-  override fun selectDatabase(database: SqliteDatabase) { }
-
-  override fun getActiveDatabase(): SqliteDatabase { TODO("not implemented") }
-
-  override fun getSqliteStatement(): String { TODO("not implemented") }
+  override fun setRunSqliteStatementEnabled(enabled: Boolean) { }
 }

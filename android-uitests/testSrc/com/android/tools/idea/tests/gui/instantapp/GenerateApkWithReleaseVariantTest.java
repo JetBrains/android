@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
@@ -62,8 +63,7 @@ public class GenerateApkWithReleaseVariantTest {
     NewModuleWizardFixture.find(ideFrame)
       .clickNextToAndroidLibrary()
       .wizard()
-      .clickFinish();
-    ideFrame.waitForGradleProjectSyncToFinish();
+      .clickFinishAndWaitForSyncToFinish();
 
     ideFrame.getEditor()
       .open("app/build.gradle")
@@ -74,10 +74,11 @@ public class GenerateApkWithReleaseVariantTest {
       .open("mylibrary/build.gradle")
       .moveBetween("release {", "")
       .enterText("\nshrinkResources true");
-    ideFrame.requestProjectSync();
+    ideFrame.requestProjectSyncAndWaitForSyncToFinish(Wait.seconds(20));
 
-    ideFrame.waitForGradleProjectSyncToFail(Wait.seconds(20));
-
+    JTreeFixture treeFixture = ideFrame.getBuildToolWindow().getGradleSyncEventTree();
+    // Focus the first warning so it's text is displayed in the console view
+    treeFixture.clickRow(2);
     assertThat(ideFrame.getBuildToolWindow().getSyncConsoleViewText()).contains("Resource shrinker cannot be used for libraries.");
   }
 }

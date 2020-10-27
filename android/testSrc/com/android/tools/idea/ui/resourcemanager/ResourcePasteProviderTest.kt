@@ -62,6 +62,7 @@ private const val DEFAULT_KOTLIN_FILE_CONTENT = "package com.example.myapplicati
                                           "    override fun onCreate(savedInstanceState: Bundle?) {\n" +
                                           "        super.onCreate(savedInstanceState)\n" +
                                           "        setContentView(R.layout.activity_main)\n" +
+                                          "        val color = R.color.my_color\n" +
                                           "    }\n" +
                                           "}"
 
@@ -103,6 +104,18 @@ internal class ResourcePasteProviderTest {
   fun pasteOnKotlinMethodCall() {
     testPasteOnKotlinFile(stringToMoveCaret = "ContentView",
                           expectedChange = "setContentView(R.layout.activity_main,namespace.R.drawable.my_resource)")
+  }
+
+  @Test
+  fun pasteOnKotlinPropertyInitialization() {
+    testPasteOnKotlinFile(stringToMoveCaret = "my_color",
+                          expectedChange = "val color = namespace.R.drawable.my_resource")
+  }
+
+  @Test
+  fun pasteOnKotlinPropertyInitialization2() {
+    testPasteOnKotlinFile(stringToMoveCaret = " color = ",
+                          expectedChange = "val color = namespace.R.drawable.my_resource")
   }
 
   @Test

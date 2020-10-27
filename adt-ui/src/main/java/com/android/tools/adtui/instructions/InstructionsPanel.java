@@ -15,37 +15,63 @@
  */
 package com.android.tools.adtui.instructions;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.EaseOutModel;
+import com.android.tools.adtui.util.SwingUtil;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A custom panel that renders a list of {@link RenderInstruction} and optionally fades out after a certain time period.
  */
-public final class InstructionsPanel extends JPanel {
+public class InstructionsPanel extends JPanel {
+  public enum Mode {
+    /**
+     * If floating, the instructions will appear in a small, floating panel that's sized to fit
+     * tightly around them. The rest of the panel will be transparent.
+     *
+     * This option is good for showing instructions that temporarily block but still allow the user
+     * to see some underlying UI.
+     */
+    FLOATING,
+
+    /**
+     * If filled, the whole panel will be opaque, with instructions centered in the middle of it.
+     */
+    FILL_PANEL,
+  }
 
   @Nullable private final EaseOutModel myEaseOutModel;
   @Nullable private AspectObserver myObserver;
   @Nullable private Consumer<InstructionsPanel> myEaseOutCompletionCallback;
 
   private InstructionsPanel(@NotNull Builder builder) {
-    super(new TabularLayout("*,Fit-,*", "*,Fit-,*"));
+    // Aim for layout as described in https://jetbrains.github.io/ui/principles/empty_state/
+    super(new TabularLayout("*,Fit-,*", "45*,Fit-,55*"));
 
-    setOpaque(false);
+    if (builder.myMode == Mode.FLOATING) {
+      setOpaque(false);
+    }
     setBackground(builder.myBackgroundColor);
     setForeground(builder.myForegroundColor);
     InstructionsComponent component = new InstructionsComponent(builder);
@@ -79,6 +105,23 @@ public final class InstructionsPanel extends JPanel {
     return instructionsComponent.getRenderInstructions();
   }
 
+  @VisibleForTesting
+  @NotNull
+  public InstructionsRenderer getRenderer() {
+    InstructionsRenderer renderer = null;
+    for (int i = 0; i < getComponentCount(); i++) {
+      Component c = getComponent(i);
+      if (c instanceof InstructionsComponent) {
+        renderer = ((InstructionsComponent)c).myRenderer;
+        break;
+      }
+    }
+    // Assert is OK because this is a test-only method. In production, this would only fail if
+    // someone externally removed our children.
+    assert (renderer != null);
+    return renderer;
+  }
+
   private static class InstructionsComponent extends AnimatedComponent {
     private final int myHorizontalPadding;
     private final int myVerticalPadding;
@@ -88,7 +131,17 @@ public final class InstructionsPanel extends JPanel {
     @Nullable private EaseOutModel myEaseOutModel;
     @NotNull private final InstructionsRenderer myRenderer;
 
+    /**
+     * This will be set to the most recent instruction found under the mouse cursor, or null if
+     * the mouse cursor isn't over any of them.
+     *
+     * @see {@link #delegateMouseEvent(MouseEvent)}
+     */
+    @Nullable private RenderInstruction myFocusInstruction;
+
     public InstructionsComponent(@NotNull Builder builder) {
+      setBackground(builder.myMode == Mode.FLOATING ? builder.myBackgroundColor : null);
+
       myEaseOutModel = builder.myEaseOutModel;
       myHorizontalPadding = builder.myHorizontalPadding;
       myVerticalPadding = builder.myVerticalPadding;
@@ -101,7 +154,14 @@ public final class InstructionsPanel extends JPanel {
         myEaseOutModel.addDependency(myAspectObserver).onChange(EaseOutModel.Aspect.EASING, this::modelChanged);
       }
 
-      // TODO handler cursor updates
+      addMouseMotionListener(new MouseMotionAdapter() {
+        @Override
+        public void mouseMoved(MouseEvent e) {
+          RenderInstruction instruction = delegateMouseEvent(e);
+          setCursor((instruction != null) ? instruction.getCursorIcon() : null);
+        }
+      });
+
       addMouseListener(new MouseAdapter() {
         @Override
         public void mouseClicked(MouseEvent e) {
@@ -117,6 +177,18 @@ public final class InstructionsPanel extends JPanel {
         public void mouseReleased(MouseEvent e) {
           delegateMouseEvent(e);
         }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+          // When the cursor moves off this component, we're 100% sure it won't be over any
+          // instruction, so no use calling delegateMouseEvent. Instead, just direct the event
+          // to the last instruction we were over.
+          if (myFocusInstruction != null) {
+            handleMouseEvent(myFocusInstruction, e);
+            myFocusInstruction = null;
+            setCursor(null); // Reset cursor in case it was set by `mouseMoved` above
+          }
+        }
       });
     }
 
@@ -129,8 +201,11 @@ public final class InstructionsPanel extends JPanel {
     /**
      * When a mouse event occurs on this {@link InstructionsComponent} instance, redirects to the correct {@link RenderInstruction}
      * to handle the event.
+     *
+     * @return the instruction which handled the event, or null if there was no instruction associated with the mouse event.
      */
-    private void delegateMouseEvent(@NotNull MouseEvent event) {
+    @Nullable
+    private RenderInstruction delegateMouseEvent(@NotNull MouseEvent event) {
       // Adjusts the event's point based on this renderer's padding
       event.translatePoint(-myHorizontalPadding, -myVerticalPadding);
 
@@ -138,16 +213,39 @@ public final class InstructionsPanel extends JPanel {
       // instruction for handling.
       Point position = event.getPoint();
       Point cursor = new Point(myRenderer.getStartX(0), 0);
+      RenderInstruction focusInstruction = null;
       for (RenderInstruction instruction : myRenderer.getInstructions()) {
         Rectangle bounds = instruction.getBounds(myRenderer, cursor);
         if (bounds.contains(position)) {
           // Transforms the point into the instruction's frame.
           event.translatePoint(-bounds.x, -bounds.y);
-          instruction.handleMouseEvent(event);
+          focusInstruction = instruction;
           break;
         }
         instruction.moveCursor(myRenderer, cursor);
       }
+
+      if (myFocusInstruction != focusInstruction) {
+        // Normally, Swing generates EXITED events automatically when you move focus between
+        // components. However, we are emulating child components, since really we're just this
+        // single large component, so we have to generate this exit event manually.
+        if (myFocusInstruction != null) {
+          handleMouseEvent(myFocusInstruction, SwingUtil.convertMouseEventID(event, MouseEvent.MOUSE_EXITED));
+        }
+        myFocusInstruction = focusInstruction;
+      }
+
+      if (myFocusInstruction != null) {
+        handleMouseEvent(myFocusInstruction, event);
+      }
+
+      return myFocusInstruction;
+    }
+
+    private void handleMouseEvent(@NotNull RenderInstruction instruction, @NotNull MouseEvent e) {
+      // Some instructions change visually after mouse events, so repaint just in case
+      instruction.handleMouseEvent(e);
+      repaint();
     }
 
     private void modelChanged() {
@@ -179,9 +277,9 @@ public final class InstructionsPanel extends JPanel {
       g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, myAlpha));
 
       // Draw the background round rectangle for the instruction panel.
-      Color background = getBackground();
+      Color background = isBackgroundSet() ? getBackground() : null;
       if (background != null) {
-        g2d.setColor(getBackground());
+        g2d.setColor(background);
         Dimension size = getPreferredSize();
         g2d.fillRoundRect(0, 0, size.width, size.height, myArcWidth, myArcHeight);
       }
@@ -194,6 +292,8 @@ public final class InstructionsPanel extends JPanel {
   }
 
   public static final class Builder {
+    private Mode myMode = Mode.FLOATING;
+
     /**
      * The overlay instruction background is slightly transparent to not block the data being rendered below.
      */
@@ -217,11 +317,17 @@ public final class InstructionsPanel extends JPanel {
       myInstructions = Arrays.asList(instructions);
     }
 
+    @NotNull
+    public Builder setMode(Mode mode) {
+      myMode = mode;
+      return this;
+    }
+
     /**
      * @param foregroundColor color to be used for instructions rendering texts.
      * @param backgroundColor color to be used for the rectangle wrapping the instructions. By default, the instructions are wrapped with a
      *                        rounded rectangle with a bg {@link #INSTRUCTIONS_BACKGROUND}. Set this to null if the wrapping rectangle is
-     *                        unnecessary/undesirable.
+     *                        unnecessary/undesirable, or if you want to default to the default system color.
      */
     @NotNull
     public Builder setColors(@NotNull Color foregroundColor, @Nullable Color backgroundColor) {

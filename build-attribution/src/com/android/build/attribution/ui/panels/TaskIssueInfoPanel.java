@@ -18,7 +18,7 @@ package com.android.build.attribution.ui.panels;
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.durationString;
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.issueIcon;
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.percentageString;
-import static com.android.build.attribution.ui.panels.BuildAttributionPanelsKt.htmlTextLabel;
+import static com.android.build.attribution.ui.panels.BuildAttributionPanelsKt.htmlTextLabelWithLinesWrap;
 
 import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel;
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics;
@@ -28,7 +28,6 @@ import com.android.build.attribution.ui.data.PluginSourceType;
 import com.android.build.attribution.ui.data.TaskIssueUiData;
 import com.android.build.attribution.ui.data.TaskUiData;
 import com.android.utils.HtmlBuilder;
-import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.panels.VerticalLayout;
@@ -109,9 +108,7 @@ public class TaskIssueInfoPanel extends JBPanel {
   protected JComponent createRecommendation() {
     JPanel panel = new JPanel(new VerticalLayout(5));
     panel.add(new JBLabel("Recommendation").withFont(JBFont.label().asBold()));
-    // Have to add empty 2px left border in order to align text with the following HyperlinkLabel.
     JLabel recommendation = createRecommendationTextLabel();
-    recommendation.setBorder(JBUI.Borders.emptyLeft(2));
     panel.add(recommendation);
     if (myTaskData.getSourceType() != PluginSourceType.BUILD_SRC) {
       panel.add(createReportLinkLabel());
@@ -123,14 +120,8 @@ public class TaskIssueInfoPanel extends JBPanel {
     return new JBLabel(myIssue.getBuildSrcRecommendation());
   }
 
-  private HyperlinkLabel createReportLinkLabel() {
-    HyperlinkLabel recommendationLabel = new HyperlinkLabel();
-    recommendationLabel.addHyperlinkListener(e -> {
-      myAnalytics.bugReportLinkClicked();
-      myIssueReporter.reportIssue(myIssue);
-    });
-    recommendationLabel.setHyperlinkText("Consider filing a bug to report this issue to the plugin developer. ", "Generate report.", "");
-    return recommendationLabel;
+  private JComponent createReportLinkLabel() {
+    return BuildAttributionPanelsKt.generateReportLinkLabel(myAnalytics, myIssueReporter, myTaskData);
   }
 
   protected JComponent createTaskInfo() {
@@ -180,6 +171,6 @@ public class TaskIssueInfoPanel extends JBPanel {
       .add(taskData.getExecutedIncrementally() ? "Yes" : "No")
       .closeHtmlBody()
       .getHtml();
-    return htmlTextLabel(text);
+    return htmlTextLabelWithLinesWrap(text);
   }
 }

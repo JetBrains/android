@@ -15,6 +15,21 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.ARRAY;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.BOOLEAN;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.BYTE;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.CHAR;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.CLASS;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.DOUBLE;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.FLOAT;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.INT;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.LONG;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.NULL;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.OBJECT;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.SHORT;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.STRING;
+import static org.junit.Assert.assertEquals;
+
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
@@ -24,24 +39,22 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profilers.FakeFeatureTracker;
 import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.memory.MemoryCaptureSelection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Executor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Executor;
-
-import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.*;
-import static org.junit.Assert.assertEquals;
 
 public class HeapDumpInstanceObjectTest {
   private static final String MOCK_CLASS = "MockClass";
@@ -53,11 +66,12 @@ public class HeapDumpInstanceObjectTest {
   @Before
   public void setup() {
     FakeIdeProfilerServices profilerServices = new FakeIdeProfilerServices();
-    ProfilerClient profilerClient = new ProfilerClient(myGrpcChannel.getName());
+    ProfilerClient profilerClient = new ProfilerClient(myGrpcChannel.getChannel());
     StudioProfilers profilers = new StudioProfilers(profilerClient, profilerServices, new FakeTimer());
     MemoryProfilerStage stage = new MemoryProfilerStage(new StudioProfilers(profilerClient, profilerServices, new FakeTimer()),
                                                         new FakeCaptureObjectLoader());
-    myCaptureObject = new FakeHeapDumpCaptureObject(profilers.getClient(), stage);
+    myCaptureObject = new FakeHeapDumpCaptureObject(profilers.getClient(),
+                                                    stage.getStudioProfilers().getIdeServices());
   }
 
   /**
@@ -266,9 +280,9 @@ public class HeapDumpInstanceObjectTest {
     private Map<Instance, HeapDumpInstanceObject> myInstanceObjectMap = new HashMap<>();
 
     public FakeHeapDumpCaptureObject(@NotNull ProfilerClient client,
-                                     MemoryProfilerStage stage) {
+                                     IdeProfilerServices ideProfilerServices) {
       super(client, Common.Session.getDefaultInstance(), HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build(), null,
-            new FakeFeatureTracker(), stage);
+            new FakeFeatureTracker(), ideProfilerServices);
     }
 
     public void addInstance(@NotNull Instance instance, @NotNull HeapDumpInstanceObject instanceObject) {

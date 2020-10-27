@@ -16,7 +16,7 @@
 package com.android.tools.idea.ui.resourcemanager.explorer
 
 import com.android.resources.ResourceType
-import com.android.tools.idea.ui.resourcemanager.ImageCacheRule
+import com.android.tools.idea.ui.resourcemanager.rendering.ImageCacheRule
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.rendering.StubAssetPreviewManager

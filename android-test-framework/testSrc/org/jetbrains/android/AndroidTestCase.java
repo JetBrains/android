@@ -95,9 +95,11 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     IdeaTestFixtureFactory.getFixtureFactory().registerFixtureBuilder(
       AndroidModuleFixtureBuilder.class, AndroidModuleFixtureBuilderImpl.class);
-    TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
-
-    myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
+    AndroidTempDirTestFixture tempDirFixture = new AndroidTempDirTestFixture(getName());
+    TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
+      IdeaTestFixtureFactory.getFixtureFactory()
+        .createFixtureBuilder(getName(), tempDirFixture.getProjectDir().getParentFile().toPath(), true);
+    myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture(), tempDirFixture);
     AndroidModuleFixtureBuilder moduleFixtureBuilder = projectBuilder.addModule(AndroidModuleFixtureBuilder.class);
     initializeModuleFixtureBuilderWithSrcAndGen(moduleFixtureBuilder, myFixture.getTempDirPath());
 
@@ -455,6 +457,10 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
   public <T> void registerProjectService(@NotNull Class<T> key, @NotNull T instance) {
     myProjectComponentStack.registerServiceInstance(key, instance);
+  }
+
+  public <T> void replaceApplicationService(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
+    myIdeComponents.replaceApplicationService(serviceType, newServiceInstance);
   }
 
   public <T> void replaceProjectService(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {

@@ -22,8 +22,8 @@ import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
+import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.JavaModuleModelBuilder
-import com.android.tools.idea.testing.createAndroidProjectBuilder
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.truth.Truth
 import com.intellij.testFramework.PlatformTestCase
@@ -111,7 +111,7 @@ class ProjectStructureTest : PlatformTestCase() {
       gradlePath,
       agpVersion = agpVersion,
       selectedBuildVariant = "debug",
-      projectBuilder = createAndroidProjectBuilder(
+      projectBuilder = AndroidProjectBuilder(
         projectType = { projectType },
         dynamicFeatures = { dynamicFeatures },
         androidModuleDependencyList = { moduleDependencies.map { AndroidModuleDependency(it, "debug") } }

@@ -26,9 +26,6 @@ import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 class AndroidSdkConfigurableForm {
   private JComboBox myInternalJdkComboBox;
   private JPanel myContentPanel;

@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.android;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.testFramework.TestDataPath;
 import org.jetbrains.kotlin.test.JUnit3RunnerWithInners;
 import org.jetbrains.kotlin.test.KotlinTestUtils;
@@ -27,6 +28,8 @@ public class AndroidLayoutRenameTestGenerated extends AbstractAndroidLayoutRenam
 
     @TestMetadata("simple")
     public void testSimple() throws Exception {
+        // Renaming synthetic elements is no longer supported when renaming resources.
+        if (StudioFlags.RESOLVE_USING_REPOS.get()) { return; }
         String fileName = KotlinTestUtils.navigationMetadata("android-extensions-idea/testData/android/renameLayout/simple/");
         doTest(fileName);
     }

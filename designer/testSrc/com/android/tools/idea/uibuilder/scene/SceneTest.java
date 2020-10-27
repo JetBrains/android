@@ -19,9 +19,9 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.SceneMouseInteraction;
 import com.android.tools.idea.rendering.RenderTestUtil;
-import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.uibuilder.MinApiLayoutTestCase;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.intellij.openapi.util.Disposer;
@@ -33,13 +33,21 @@ import java.util.Arrays;
 /**
  * Base class for Scene tests
  */
-public abstract class SceneTest extends LayoutTestCase {
+public abstract class SceneTest extends MinApiLayoutTestCase {
 
   protected SyncNlModel myModel;
   protected Scene myScene;
   protected SceneManager mySceneManager;
   protected ScreenFixture myScreen;
   protected SceneMouseInteraction myInteraction;
+
+  public SceneTest() {
+    super(true);
+  }
+
+  public SceneTest(boolean provideManifest) {
+    super(provideManifest);
+  }
 
   @Override
   protected void setUp() throws Exception {

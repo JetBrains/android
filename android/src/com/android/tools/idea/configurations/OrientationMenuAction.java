@@ -24,7 +24,7 @@ import com.android.tools.adtui.actions.DropDownAction;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Toggleable;
 import org.jetbrains.android.intentions.OverrideResourceAction;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -124,7 +124,7 @@ public class OrientationMenuAction extends DropDownAction {
       }
       Project project = module.getProject();
 
-      List<VirtualFile> variations = ResourceHelper.getResourceVariations(virtualFile, true);
+      List<VirtualFile> variations = IdeResourcesUtil.getResourceVariations(virtualFile, true);
       if (variations.size() > 1) {
         for (VirtualFile file : variations) {
           String title = String.format("Switch to %1$s", file.getParent().getName());
@@ -133,7 +133,7 @@ public class OrientationMenuAction extends DropDownAction {
         addSeparator();
       }
 
-      ResourceFolderType folderType = ResourceHelper.getFolderType(configuration.getFile());
+      ResourceFolderType folderType = IdeResourcesUtil.getFolderType(configuration.getFile());
       if (folderType == ResourceFolderType.LAYOUT) {
         boolean haveLandscape = false;
         boolean haveTablet = false;
@@ -193,7 +193,7 @@ public class OrientationMenuAction extends DropDownAction {
   }
 
   @VisibleForTesting
-  static final class SetDeviceStateAction extends ConfigurationAction {
+  static class SetDeviceStateAction extends ConfigurationAction {
     @NotNull private final State myState;
 
     private SetDeviceStateAction(@NotNull ConfigurationHolder renderContext,
@@ -211,7 +211,7 @@ public class OrientationMenuAction extends DropDownAction {
     }
   }
 
-  private static final class SetUiModeAction extends ConfigurationAction {
+  private static class SetUiModeAction extends ConfigurationAction {
     @NotNull private final UiMode myUiMode;
 
     private SetUiModeAction(@NotNull ConfigurationHolder renderContext, @NotNull String title, @NotNull UiMode uiMode, boolean checked) {
@@ -226,7 +226,7 @@ public class OrientationMenuAction extends DropDownAction {
     }
   }
 
-  private static final class SetNightModeAction extends ConfigurationAction {
+  private static class SetNightModeAction extends ConfigurationAction {
     @NotNull private final NightMode myNightMode;
 
     private SetNightModeAction(@NotNull ConfigurationHolder renderContext,

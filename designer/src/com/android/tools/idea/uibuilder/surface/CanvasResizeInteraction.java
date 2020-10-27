@@ -28,8 +28,10 @@ import com.android.sdklib.devices.State;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.surface.Interaction;
-import com.android.tools.idea.common.surface.InteractionInformation;
+import com.android.tools.idea.common.surface.InteractionEvent;
 import com.android.tools.idea.common.surface.Layer;
+import com.android.tools.idea.common.surface.MouseDraggedEvent;
+import com.android.tools.idea.common.surface.MousePressedEvent;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -40,6 +42,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.reference.SoftReference;
 import com.intellij.util.ui.ImageUtil;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
@@ -50,7 +53,6 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.EventObject;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -105,6 +107,12 @@ public class CanvasResizeInteraction extends Interaction {
   private int myCurrentX;
   private int myCurrentY;
   @Nullable private DeviceSizeList.DeviceSize myLastSnappedDevice;
+
+  /**
+   * Threshold used to force a resize of the surface when getting close to the border. If the mouse gets closer than
+   * 2*myResizeTriggerThreshold to the border of the surface, the surface will be extended by myResizeTriggerThreshold
+   */
+  private final int myResizeTriggerThreshold = JBUI.scale(200);
 
   public CanvasResizeInteraction(@NotNull NlDesignSurface designSurface,
                                  @NotNull ScreenView screenView,
@@ -161,9 +169,9 @@ public class CanvasResizeInteraction extends Interaction {
   }
 
   @Override
-  public void begin(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
-    if (event instanceof MouseEvent) {
-      MouseEvent mouseEvent = (MouseEvent) event;
+  public void begin(@NotNull InteractionEvent event) {
+    if (event instanceof MousePressedEvent) {
+      MouseEvent mouseEvent = ((MousePressedEvent)event).getEventObject();
       begin(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
     }
   }
@@ -200,9 +208,9 @@ public class CanvasResizeInteraction extends Interaction {
   }
 
   @Override
-  public void update(@NotNull EventObject event, @NotNull InteractionInformation interactionInformation) {
-    if (event instanceof MouseEvent) {
-      MouseEvent mouseEvent = (MouseEvent) event;
+  public void update(@NotNull InteractionEvent event) {
+    if (event instanceof MouseDraggedEvent) {
+      MouseEvent mouseEvent = ((MouseDraggedEvent)event).getEventObject();
       update(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
     }
   }
@@ -224,13 +232,16 @@ public class CanvasResizeInteraction extends Interaction {
     snapToDevice(x, y);
     super.update(myCurrentX, myCurrentY, modifiersEx);
 
-    JComponent layeredPane = myDesignSurface.getLayeredPane();
+    Dimension viewSize = myDesignSurface.getViewSize();
     int maxX = Coordinates.getSwingX(myScreenView, myMaxSize) + NlConstants.DEFAULT_SCREEN_OFFSET_X;
     int maxY = Coordinates.getSwingY(myScreenView, myMaxSize) + NlConstants.DEFAULT_SCREEN_OFFSET_Y;
-    if (myCurrentX < maxX && myCurrentY < maxY && (myCurrentX > layeredPane.getWidth() || myCurrentY > layeredPane.getHeight())) {
-      Dimension d = layeredPane.getPreferredSize();
-      layeredPane.setPreferredSize(new Dimension(Math.max(d.width, myCurrentX), Math.max(d.height, myCurrentY)));
-      layeredPane.revalidate();
+    if (myCurrentX < maxX &&
+        myCurrentY < maxY &&
+        (myCurrentX + myResizeTriggerThreshold * 2 > viewSize.getWidth() ||
+         myCurrentY + myResizeTriggerThreshold * 2 > viewSize.getHeight())) {
+      // Extend the scrollable area of the surface to accommodate for the resize
+      myDesignSurface.setScrollableViewMinSize(new Dimension(myCurrentX + myResizeTriggerThreshold, myCurrentY + myResizeTriggerThreshold));
+      myDesignSurface.validateScrollArea();
       myUpdateQueue.queue(myLayerUpdate);
     }
 
@@ -253,15 +264,16 @@ public class CanvasResizeInteraction extends Interaction {
   }
 
   @Override
-  public void commit(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+  public void commit(@NotNull InteractionEvent event) {
     //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-    end(interactionInformation.getX(), interactionInformation.getY(), interactionInformation.getModifiersEx());
+    end(event.getInfo().getX(), event.getInfo().getY(), event.getInfo().getModifiersEx());
   }
 
   @Override
   public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
     // Set the surface in resize mode so it doesn't try to re-center the screen views all the time
     myDesignSurface.setResizeMode(false);
+    myDesignSurface.setScrollableViewMinSize(new Dimension(0, 0));
 
     int androidX = Coordinates.getAndroidX(myScreenView, x);
     int androidY = Coordinates.getAndroidY(myScreenView, y);
@@ -282,9 +294,9 @@ public class CanvasResizeInteraction extends Interaction {
   }
 
   @Override
-  public void cancel(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+  public void cancel(@NotNull InteractionEvent event) {
     //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-    cancel(interactionInformation.getX(), interactionInformation.getY(), interactionInformation.getModifiersEx());
+    cancel(event.getInfo().getX(), event.getInfo().getY(), event.getInfo().getModifiersEx());
   }
 
   @Override
@@ -406,10 +418,8 @@ public class CanvasResizeInteraction extends Interaction {
 
       if (image == null) {
         myLastOrientation = currentOrientation;
-        JComponent layeredPane = myDesignSurface.getLayeredPane();
-        JScrollPane scrollPane = myDesignSurface.getScrollPane();
-        int height = layeredPane.getHeight() - scrollPane.getHorizontalScrollBar().getHeight();
-        int width = layeredPane.getWidth() - scrollPane.getVerticalScrollBar().getWidth();
+        int height = myDesignSurface.getExtentSize().height;
+        int width = myDesignSurface.getExtentSize().width;
         int x0 = myScreenView.getX();
         int y0 = myScreenView.getY();
         int maxDim = Math.max(width, height);
@@ -472,10 +482,8 @@ public class CanvasResizeInteraction extends Interaction {
     private int myTotalWidth;
 
     public SizeBucketLayer() {
-      JScrollPane scrollPane = myDesignSurface.getScrollPane();
-      JComponent layeredPane = myDesignSurface.getLayeredPane();
-      myTotalHeight = layeredPane.getHeight() - scrollPane.getHorizontalScrollBar().getHeight();
-      myTotalWidth = layeredPane.getWidth() - scrollPane.getVerticalScrollBar().getWidth();
+      myTotalHeight = myDesignSurface.getExtentSize().height;
+      myTotalWidth = myDesignSurface.getExtentSize().width;
       myFontMetrics = myDesignSurface.getFontMetrics(myDesignSurface.getFont());
       int screenSizeNumbers = ScreenSize.values().length;
       myPortraitBuckets = Maps.newHashMapWithExpectedSize(screenSizeNumbers);
@@ -587,10 +595,8 @@ public class CanvasResizeInteraction extends Interaction {
     }
 
     public synchronized void reset() {
-      JScrollPane scrollPane = myDesignSurface.getScrollPane();
-      JComponent layeredPane = myDesignSurface.getLayeredPane();
-      myTotalHeight = layeredPane.getHeight() - scrollPane.getHorizontalScrollBar().getHeight();
-      myTotalWidth = layeredPane.getWidth() - scrollPane.getVerticalScrollBar().getWidth();
+      myTotalHeight = myDesignSurface.getExtentSize().height;
+      myTotalWidth = myDesignSurface.getExtentSize().width;
       myPortraitBuckets.clear();
       myLandscapeBuckets.clear();
     }

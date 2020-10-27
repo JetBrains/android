@@ -16,12 +16,11 @@
 package com.android.tools.idea.rendering
 
 import com.android.testutils.TestUtils
-import com.android.tools.idea.compose.preview.PreviewElement
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
+import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
-import com.google.common.collect.LinkedListMultimap
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.project.guessProjectDir
@@ -30,9 +29,9 @@ import org.junit.After
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import java.time.Instant
 
 private const val NUMBER_OF_WARM_UP = 2
 private const val NUMBER_OF_SAMPLES = 40
@@ -93,13 +92,14 @@ class PerfgateComposeTest {
     }
   }
 
+  @Ignore("b/151096668")
   @Test
   fun baselinePerf() {
     composeTimeBenchmark.measureOperation(listOf(
       ElapsedTimeMeasurement(Metric("default_template_render_time")),
       MemoryUseMeasurement(Metric("default_template_memory_use")))) {
-      val defaultRender = renderPreviewElement(projectRule.androidFacet,
-                                               PreviewElement.forTesting("google.simpleapplication.MainActivityKt.DefaultPreview")).get()
+      val defaultRender = renderPreviewElement(projectRule.androidFacet(":app"),
+                                               SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.DefaultPreview")).get()
       assertNotNull(defaultRender)
     }
   }

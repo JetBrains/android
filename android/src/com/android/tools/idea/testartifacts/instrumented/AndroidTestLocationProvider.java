@@ -30,9 +30,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidTestLocationProvider implements SMTestLocator {
   public static final String PROTOCOL_ID = "android";
 

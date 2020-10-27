@@ -16,23 +16,50 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.annotations.NonNull;
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModelExtensionKt;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModelExtensionKt;
+import com.android.tools.idea.gradle.util.GradleVersions;
+import com.android.tools.idea.res.IdeResourcesUtil;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiExpression;
+import com.intellij.psi.PsiExpressionList;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiJavaCodeReferenceElement;
+import com.intellij.psi.PsiMethodCallExpression;
+import com.intellij.psi.PsiMigration;
+import com.intellij.psi.PsiPackage;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.JavaClassReference;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.*;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.xml.XmlTagValue;
 import com.intellij.usageView.UsageInfo;
-import org.jetbrains.android.refactoring.AppCompatMigrationEntry.*;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.AttributeMigrationEntry;
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.AttributeValueMigrationEntry;
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.ClassMigrationEntry;
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.GradleDependencyMigrationEntry;
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.GradleMigrationEntry;
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.MethodMigrationEntry;
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.PackageMigrationEntry;
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.ReplaceMethodCallMigrationEntry;
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.UpdateGradleDependencyVersionMigrationEntry;
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.XmlTagMigrationEntry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
@@ -384,7 +411,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
       PsiFile file = element.getContainingFile();
       assert file instanceof XmlFile;
       if (!StringUtil.isEmpty(myEntry.myNewNamespace)) {
-        String prefixUsed = AndroidResourceUtil.ensureNamespaceImported((XmlFile)file, myEntry.myNewNamespace, null);
+        String prefixUsed = IdeResourcesUtil.ensureNamespaceImported((XmlFile)file, myEntry.myNewNamespace, null);
         xmlTag.setName(prefixUsed + ":" + myEntry.myNewTagName);
       }
       else {
@@ -415,7 +442,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
         currentAttr.setName(myEntry.myNewAttributeName);
       }
       else {
-        String prefixUsed = AndroidResourceUtil.ensureNamespaceImported((XmlFile)file, myEntry.myNewNamespace, null);
+        String prefixUsed = IdeResourcesUtil.ensureNamespaceImported((XmlFile)file, myEntry.myNewNamespace, null);
         currentAttr.setName(prefixUsed + ":" + myEntry.myNewAttributeName);
       }
       return null;
@@ -727,7 +754,8 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
     @Nullable
     @Override
     public PsiElement applyChange(@NotNull PsiMigration migration) {
-      RepositoriesModelExtensionKt.addGoogleMavenRepository(myRepositoriesModel, getProject());
+      RepositoriesModelExtensionKt.addGoogleMavenRepository(myRepositoriesModel,
+        GradleVersions.getInstance().getGradleVersionOrDefault(getProject(), new GradleVersion(1, 0)));
       myProjectBuildModel.applyChanges();
       return getElement();
     }

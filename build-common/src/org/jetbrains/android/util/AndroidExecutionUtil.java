@@ -23,8 +23,6 @@ import java.util.*;
 
 /**
  * Abstract external tool for compiler.
- *
- * @author Alexey Efimov
  */
 public final class AndroidExecutionUtil {
 

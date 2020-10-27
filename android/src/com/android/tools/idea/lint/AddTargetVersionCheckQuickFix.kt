@@ -32,8 +32,8 @@ import com.intellij.psi.PsiExpression
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiStatement
 import com.intellij.psi.codeStyle.JavaCodeStyleManager
+import com.intellij.psi.util.PsiEditorUtil
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.psi.util.PsiUtilBase
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -42,6 +42,7 @@ import org.jetbrains.kotlin.idea.codeInsight.surroundWith.statement.KotlinIfSurr
 import org.jetbrains.kotlin.idea.core.ShortenReferences
 import org.jetbrains.kotlin.idea.inspections.findExistingEditor
 import org.jetbrains.kotlin.psi.KtBlockExpression
+import org.jetbrains.kotlin.psi.KtClassInitializer
 import org.jetbrains.kotlin.psi.KtContainerNode
 import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
 import org.jetbrains.kotlin.psi.KtElement
@@ -117,7 +118,7 @@ class AddTargetVersionCheckQuickFix(private val api: Int) : LintIdeQuickFix {
 
   private fun handleJava(element: PsiElement) {
     val expression = PsiTreeUtil.getParentOfType(element, PsiExpression::class.java, false) ?: return
-    val editor = PsiUtilBase.findEditor(expression) ?: return
+    val editor = PsiEditorUtil.findEditor(expression) ?: return
     val anchorStatement = PsiTreeUtil.getParentOfType(expression, PsiStatement::class.java) ?: return
     val file = expression.containingFile
     val project = expression.project
@@ -182,7 +183,9 @@ class AddTargetVersionCheckQuickFix(private val api: Int) : LintIdeQuickFix {
            this is KtPropertyAccessor ||
            this is KtProperty ||
            this is KtReturnExpression ||
-           this is KtDestructuringDeclaration
+           this is KtDestructuringDeclaration ||
+           this is KtClassInitializer
+
   }
 
   companion object {

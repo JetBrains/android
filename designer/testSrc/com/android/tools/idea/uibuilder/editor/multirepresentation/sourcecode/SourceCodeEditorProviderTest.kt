@@ -27,7 +27,6 @@ class SourceCodeEditorProviderTest : LightJavaCodeInsightFixtureTestCase(){
     super.setUp()
 
     provider = SourceCodeEditorProvider()
-    StudioFlags.NELE_SOURCE_CODE_EDITOR.override(true)
   }
 
   fun testOffIfDisabled() {

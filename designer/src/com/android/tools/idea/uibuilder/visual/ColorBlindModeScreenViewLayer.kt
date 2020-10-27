@@ -44,7 +44,6 @@ class ColorBlindModeScreenViewLayer(screenView: ScreenView, val mode: ColorBlind
       return
     }
 
-    colorConverter.init()
     val original = result?.renderedImage ?: return
     val copied = original.copy ?: return
     colorConverter.convert(copied, copied)

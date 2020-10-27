@@ -31,7 +31,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.ArgumentMatchers.argThat
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
@@ -65,7 +64,7 @@ class AndroidProcessHandlerTest {
   fun setUp() {
     initMocks(this)
 
-    `when`(mockProject.getService(eq(ExecutionTargetManager::class.java), anyBoolean()))
+    `when`(mockProject.getService(eq(ExecutionTargetManager::class.java)))
       .thenReturn(mockExecutionTargetManager)
     `when`(mockExecutionTargetManager.activeTarget).thenReturn(mockExecutionTarget)
 
@@ -179,9 +178,10 @@ class AndroidProcessHandlerTest {
 
   @Test
   fun canKillProcess_returnsTrueWhenThereIsAnyAssociatedDevice() {
+    val nonAssociatedDevice = mock(IDevice::class.java)
     val associatedDevice = mock(IDevice::class.java)
 
-    `when`(mockExecutionTarget.iDevice).thenReturn(associatedDevice)
+    `when`(mockExecutionTarget.devices).thenReturn(listOf(nonAssociatedDevice, associatedDevice))
     `when`(mockMonitorManager.isAssociated(associatedDevice)).thenReturn(true)
 
     assertThat(handler.canKillProcess()).isTrue()
@@ -189,9 +189,10 @@ class AndroidProcessHandlerTest {
 
   @Test
   fun canKillProcess_returnsFalseWhenThereAreNoAssociatedDevices() {
-    val nonAssociatedDevice = mock(IDevice::class.java)
+    val nonAssociatedDevice1 = mock(IDevice::class.java)
+    val nonAssociatedDevice2 = mock(IDevice::class.java)
 
-    `when`(mockExecutionTarget.iDevice).thenReturn(nonAssociatedDevice)
+    `when`(mockExecutionTarget.devices).thenReturn(listOf(nonAssociatedDevice1, nonAssociatedDevice2))
 
     assertThat(handler.canKillProcess()).isFalse()
   }

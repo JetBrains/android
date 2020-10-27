@@ -2,9 +2,6 @@ package org.jetbrains.android.database;
 
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 class AndroidRemoteDbInfo {
   private final String myDeviceId;
   private final String myPackageName;

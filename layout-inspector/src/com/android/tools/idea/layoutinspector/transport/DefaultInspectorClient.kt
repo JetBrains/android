@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.layoutinspector.transport
 
+import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.adb.AdbService
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
 import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.isDeviceMatch
@@ -29,6 +31,7 @@ import com.android.tools.idea.stats.AndroidStudioUsageTracker
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.idea.transport.TransportService
+import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.idea.transport.poller.TransportEventPoller
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
@@ -43,7 +46,9 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE
 import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.Disposable
@@ -73,7 +78,6 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import javax.swing.AbstractAction
 import javax.swing.JLabel
-import kotlin.properties.Delegates
 
 private const val MAX_RETRY_COUNT = 60
 
@@ -85,9 +89,10 @@ class DefaultInspectorClient(
 ) : InspectorClient, Disposable {
   private val project = model.project
   private val client = TransportClient(channelNameForTest)
+  private val streamManager = TransportStreamManager.createManager(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
 
   @VisibleForTesting
-  val processManager = DefaultProcessManager(AppExecutorUtil.getAppScheduledExecutorService(), client)
+  val processManager = DefaultProcessManager(client.transportStub, AppExecutorUtil.getAppScheduledExecutorService(), streamManager, this)
 
   @VisibleForTesting
   var transportPoller = TransportEventPoller.createPoller(client.transportStub,
@@ -95,11 +100,14 @@ class DefaultInspectorClient(
                                                           Comparator.comparing(Common.Event::getTimestamp).reversed(),
                                                           scheduler)
 
-  override var selectedStream: Common.Stream by Delegates.observable(Common.Stream.getDefaultInstance()) { _, old, new ->
-    if (old != new) {
-      loggedInitialRender = false
+  override var selectedStream: Common.Stream = Common.Stream.getDefaultInstance()
+    private set(value) {
+      if (value != field) {
+        loggedInitialRender = false
+      }
+      field = value
     }
-  }
+
   override var selectedProcess: Common.Process = Common.Process.getDefaultInstance()
 
   private val listeners: MutableList<TransportEventListener> = mutableListOf()
@@ -109,7 +117,9 @@ class DefaultInspectorClient(
   private var loggedInitialRender = false
 
   private val processChangedListeners: MutableList<() -> Unit> = ContainerUtil.createConcurrentList()
-  private val lastResponseTimePerGroup = mutableMapOf<Long, Long>()
+
+  // Map of message group id to map of root view drawId to timestamp
+  private val lastResponseTimePerGroup = mutableMapOf<Long, MutableMap<Long?, Long>>()
   private var adb: ListenableFuture<AndroidDebugBridge>? = null
   private var adbBridge: AndroidDebugBridge? = null
 
@@ -135,6 +145,7 @@ class DefaultInspectorClient(
 
   init {
     registerProcessEnded()
+    // TODO: this doesn't seem to be needed now that this is a Disposable
     registerProjectClosed(project)
     // TODO: retry getting adb if it fails the first time
     adb = AndroidSdkUtils.getAdb(project)?.let { AdbService.getInstance()?.getDebugBridge(it) } ?:
@@ -146,6 +157,8 @@ class DefaultInspectorClient(
     disconnectNow()
     listeners.clear()
     TransportEventPoller.stopPoller(transportPoller)
+    TransportStreamManager.unregisterManager(streamManager)
+    client.shutdown()
   }
 
   // TODO: detect when a connection is dropped
@@ -158,16 +171,24 @@ class DefaultInspectorClient(
       streamId = { selectedStream.streamId },
       groupId = { groupId.number.toLong() },
       processId = { selectedProcess.pid }) {
+      val groupLastResponseTimes = lastResponseTimePerGroup.getOrPut(it.groupId, ::mutableMapOf)
+      val rootId = it.layoutInspectorEvent?.tree?.root?.drawId
       if (selectedStream != Common.Stream.getDefaultInstance() &&
           selectedProcess != Common.Process.getDefaultInstance() && isConnected &&
-          it.timestamp > lastResponseTimePerGroup.getOrDefault(it.groupId, Long.MIN_VALUE)) {
+          it.timestamp > groupLastResponseTimes.getOrDefault(rootId, Long.MIN_VALUE)) {
         try {
           callback(it.layoutInspectorEvent)
         }
         catch (ex: Exception) {
           Logger.getInstance(DefaultInspectorClient::class.java.name).warn(ex)
         }
-        lastResponseTimePerGroup[it.groupId] = it.timestamp
+        groupLastResponseTimes[rootId] = it.timestamp
+        if (rootId != null) {
+          // Remove entries corresponding to windows we no longer know about (but keep any that we don't know about now but will in the
+          // future, if we happen to process messages out of order).
+          groupLastResponseTimes.entries.removeIf { (viewId, timestamp) ->
+            viewId !in it.layoutInspectorEvent.tree.allWindowIdsList && timestamp < it.timestamp }
+        }
       }
       false
     })
@@ -186,18 +207,13 @@ class DefaultInspectorClient(
   }
 
   private fun registerProcessEnded() {
-    listeners.add(TransportEventListener(
-      eventKind = Common.Event.Kind.PROCESS,
-      executor = MoreExecutors.directExecutor(),
-      streamId = { selectedStream.streamId },
-      groupId = { selectedProcess.pid.toLong() },
-      processId = { selectedProcess.pid }) {
+    processManager.processListeners.add {
       if (selectedStream != Common.Stream.getDefaultInstance() &&
-          selectedProcess != Common.Process.getDefaultInstance() && isConnected && it.isEnded) {
+          selectedProcess != Common.Process.getDefaultInstance() &&
+          !processManager.isProcessActive(selectedStream, selectedProcess)) {
         disconnect(sendStopCommand = false)
       }
-      false
-    })
+    }
   }
 
   private fun registerProjectClosed(project: Project) {
@@ -210,6 +226,19 @@ class DefaultInspectorClient(
     ProjectManager.getInstance().addProjectManagerListener(project, projectManagerListener)
   }
 
+  override fun execute(commandType: LayoutInspectorCommand.Type) {
+    if (commandType == LayoutInspectorCommand.Type.START) {
+      execute(LayoutInspectorCommand.newBuilder().apply {
+        type = commandType
+        composeMode = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT.get()
+      }.build())
+    }
+    else {
+      super.execute(commandType)
+    }
+  }
+
+  @Slow
   override fun execute(command: LayoutInspectorCommand) {
     if (selectedStream == Common.Stream.getDefaultInstance() ||
         selectedProcess == Common.Process.getDefaultInstance() ||
@@ -222,7 +251,8 @@ class DefaultInspectorClient(
       .setStreamId(selectedStream.streamId)
       .setPid(selectedProcess.pid)
       .build()
-    client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(transportCommand).build())
+    // TODO(b/150503095)
+    val response = client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(transportCommand).build())
 
     when (command.type) {
       LayoutInspectorCommand.Type.STOP -> isCapturing = false
@@ -231,6 +261,7 @@ class DefaultInspectorClient(
     }
   }
 
+  @Slow
   fun getPayload(id: Int): ByteArray {
     val bytesRequest = Transport.BytesRequest.newBuilder()
       .setStreamId(selectedStream.streamId)
@@ -244,9 +275,10 @@ class DefaultInspectorClient(
 
   override fun getProcesses(stream: Common.Stream): Sequence<Common.Process> = processManager.getProcesses(stream)
 
+  @Slow
   override fun attach(stream: Common.Stream, process: Common.Process) {
     if (attachListener == null) {
-      logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_REQUEST, stream)
+      logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST, stream)
     }
     // Remove existing listener if we're retrying
     attachListener?.let { transportPoller.unregisterListener(it) }
@@ -275,12 +307,13 @@ class DefaultInspectorClient(
       filter = { it.agentData.status == Common.AgentData.Status.ATTACHED }
     ) {
       synchronized(SELECTION_LOCK) {
-        logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_SUCCESS, stream)
+        logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS, stream)
         isConnected = true
         selectedStream = stream
         selectedProcess = process
         processChangedListeners.forEach { it() }
         setDebugViewAttributes(selectedStream, true)
+        listeners.forEach { transportPoller.registerListener(it) }
         execute(LayoutInspectorCommand.Type.START)
       }
       // TODO: verify that capture started successfully
@@ -288,9 +321,9 @@ class DefaultInspectorClient(
       true // Remove the listener after this callback
     }
     attachListener?.let { transportPoller.registerListener(it) }
-    listeners.forEach { transportPoller.registerListener(it) }
 
-    client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build())
+    // TODO(b/150503095)
+    val response = client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build())
   }
 
   /**
@@ -305,15 +338,25 @@ class DefaultInspectorClient(
     return ApplicationManager.getApplication().executeOnPooledThread { attachWithRetry(preferredProcess, 0) }
   }
 
-  fun logInitialRender(containsPicture: Boolean) {
-    if (!loggedInitialRender) {
-      logEvent(if (containsPicture) INITIAL_RENDER else INITIAL_RENDER_NO_PICTURE, selectedStream)
+  override fun logEvent(type: DynamicLayoutInspectorEventType) {
+    if (!isRenderEvent(type)) {
+      logEvent(type, selectedStream)
+    }
+    else if (!loggedInitialRender) {
+      logEvent(type, selectedStream)
       loggedInitialRender = true
     }
   }
 
+  private fun isRenderEvent(type: DynamicLayoutInspectorEventType): Boolean =
+    when (type) {
+      INITIAL_RENDER,
+      INITIAL_RENDER_NO_PICTURE,
+      INITIAL_RENDER_BITMAPS -> true
+      else -> false
+    }
 
-  private fun logEvent(eventType: DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType, stream: Common.Stream) {
+  private fun logEvent(eventType: DynamicLayoutInspectorEventType, stream: Common.Stream) {
     adb?.let { future ->
       Futures.addCallback(future, object : FutureCallback<AndroidDebugBridge> {
         override fun onFailure(t: Throwable) {
@@ -337,6 +380,7 @@ class DefaultInspectorClient(
     }
   }
 
+  @Slow
   private fun attachWithRetry(preferredProcess: LayoutInspectorPreferredProcess, timesAttempted: Int) {
     if (isConnected) {
       return
@@ -364,12 +408,12 @@ class DefaultInspectorClient(
     }
   }
 
-  override fun disconnect() {
-    disconnect(sendStopCommand = true)
+  override fun disconnect(): Future<*> {
+    return disconnect(sendStopCommand = true)
   }
 
-  private fun disconnect(sendStopCommand: Boolean) {
-    ApplicationManager.getApplication().executeOnPooledThread {
+  private fun disconnect(sendStopCommand: Boolean): Future<*> {
+    return ApplicationManager.getApplication().executeOnPooledThread {
       if (sendStopCommand) {
         execute(LayoutInspectorCommand.Type.STOP)
       }
@@ -461,6 +505,7 @@ class DefaultInspectorClient(
     }
   }
 
+  @Slow
   private fun setDebugViewAttributes(bridge: AndroidDebugBridge, stream: Common.Stream, enable: Boolean): Boolean {
     try {
       val device = findDevice(bridge, stream) ?: return false

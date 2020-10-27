@@ -1,0 +1,2 @@
+rootProject.name = "simpleApplication_corrupted_missing_iml_40"
+include ':app'

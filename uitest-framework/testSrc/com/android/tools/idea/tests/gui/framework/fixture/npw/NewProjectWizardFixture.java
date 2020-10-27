@@ -16,10 +16,10 @@
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
-import static com.android.tools.idea.tests.gui.framework.fixture.newpsd.UiTestUtilsKt.waitForIdle;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.project.ProjectManager;
@@ -56,7 +56,7 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
 
   @NotNull
   public ConfigureCppStepFixture<NewProjectWizardFixture> getConfigureCppStepFixture() {
-    JRootPane rootPane = findStepWithTitle("Customize C++ Support", 30);
+    JRootPane rootPane = findStepWithTitle("Native C++", 30);
     return new ConfigureCppStepFixture<>(this, rootPane);
   }
 
@@ -72,7 +72,24 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
   }
 
   @NotNull
-  public NewProjectWizardFixture clickFinish() {
-    return clickFinish(Wait.seconds(15), Wait.seconds(120));
+  public IdeFrameFixture clickFinishAndWaitForSyncToFinish() {
+    return IdeFrameFixture.actAndWaitForGradleProjectSyncToFinish(Wait.seconds(120), () -> clickFinishAndGetIdeFrame());
+  }
+
+  @NotNull
+  public IdeFrameFixture clickFinishAndWaitForSyncToFinish(@NotNull Wait waitSync) {
+    return IdeFrameFixture.actAndWaitForGradleProjectSyncToFinish(waitSync, () -> clickFinishAndGetIdeFrame());
+  }
+
+  private IdeFrameFixture clickFinishAndGetIdeFrame() {
+    clickFinish();
+    IdeFrameFixture ideFrameFixture = IdeFrameFixture.find(robot());
+    ideFrameFixture.requestFocusIfLost();
+    return ideFrameFixture;
+  }
+
+  @NotNull
+  private NewProjectWizardFixture clickFinish() {
+    return clickFinish(Wait.seconds(15), Wait.seconds(240));
   }
 }

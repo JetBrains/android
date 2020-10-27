@@ -15,6 +15,11 @@
  */
 package com.android.tools.profilers.network;
 
+import static com.android.tools.profilers.ProfilersTestData.SESSION_DATA;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
@@ -25,9 +30,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.android.tools.profilers.ProfilersTestData.SESSION_DATA;
-import static org.junit.Assert.*;
-
 public class NetworkProfilerTest {
   private final FakeNetworkService myService = FakeNetworkService.newBuilder().build();
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("NetworkProfilerTest", myService);
@@ -36,7 +38,7 @@ public class NetworkProfilerTest {
 
   @Before
   public void setUp() {
-    myProfiler = new NetworkProfiler(new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), new FakeIdeProfilerServices(), new FakeTimer()));
+    myProfiler = new NetworkProfiler(new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), new FakeIdeProfilerServices(), new FakeTimer()));
   }
 
   @Test

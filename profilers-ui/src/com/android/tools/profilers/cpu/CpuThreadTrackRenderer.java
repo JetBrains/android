@@ -27,12 +27,16 @@ import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.adtui.util.SwingUtil;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTrackRendererType;
+import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer;
+import com.android.tools.profilers.cpu.capturedetails.CodeNavigationHandler;
+import com.android.tools.profilers.stacktrace.CodeNavigator;
 import java.awt.Color;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
@@ -48,7 +52,12 @@ import org.jetbrains.annotations.Nullable;
  * Track renderer for CPU threads in CPU capture stage.
  */
 public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel, ProfilerTrackRendererType> {
-  private final AspectObserver myObserver = new AspectObserver();
+  @NotNull private final AspectObserver myObserver = new AspectObserver();
+  @NotNull private final StudioProfilersView myProfilersView;
+
+  public CpuThreadTrackRenderer(@NotNull StudioProfilersView profilersView) {
+    myProfilersView = profilersView;
+  }
 
   @NotNull
   @Override
@@ -70,7 +79,7 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
       }
     });
 
-    StateChart<CpuProfilerStage.ThreadState> threadStateChart = createStateChart(trackModel.getDataModel().getThreadStateChartModel());
+    StateChart<ThreadState> threadStateChart = createStateChart(trackModel.getDataModel().getThreadStateChartModel());
     JPanel panel = new JPanel();
     if (trackModel.isCollapsed() || threadStateChart == null) {
       // Don't show thread states if we don't have the chart for it or if the track is collapsed.
@@ -110,7 +119,7 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
       });
       panel.addMouseListener(new MouseAdapter() {
         @Override
-        public void mouseClicked(MouseEvent e) {
+        public void mousePressed(MouseEvent e) {
           if (traceEventChart.contains(e.getPoint())) {
             // Translate mouse point to be relative of the tree chart component.
             Point p = e.getPoint();
@@ -133,19 +142,19 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
   }
 
   @Nullable
-  private static StateChart<CpuProfilerStage.ThreadState> createStateChart(@NotNull StateChartModel<CpuProfilerStage.ThreadState> model) {
+  private static StateChart<ThreadState> createStateChart(@NotNull StateChartModel<ThreadState> model) {
     if (model.getSeries().isEmpty()) {
       // No thread state data, don't create chart.
       return null;
     }
-    StateChart<CpuProfilerStage.ThreadState> threadStateChart = new StateChart<>(model, new CpuThreadColorProvider());
+    StateChart<ThreadState> threadStateChart = new StateChart<>(model, new CpuThreadColorProvider());
     threadStateChart.setHeightGap(0.0f);
     return threadStateChart;
   }
 
-  private static HTreeChart<CaptureNode> createHChart(@NotNull CaptureDetails.CallChart callChartModel,
-                                                      @NotNull Range captureRange,
-                                                      boolean isCollapsed) {
+  private HTreeChart<CaptureNode> createHChart(@NotNull CaptureDetails.CallChart callChartModel,
+                                               @NotNull Range captureRange,
+                                               boolean isCollapsed) {
     CaptureNode node = callChartModel.getNode();
     Range selectionRange = callChartModel.getRange();
 
@@ -156,17 +165,32 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
         .setRootVisible(false)
         .setNodeSelectionEnabled(true);
     if (isCollapsed) {
-      builder.setCustomNodeHeightPx(1).setNodeYPaddingPx(0);
+      return builder.setCustomNodeHeightPx(1).setNodeYPaddingPx(0).build();
     }
-    return builder.build();
+    HTreeChart<CaptureNode> chart = builder.build();
+    // Add context menu for source navigation.
+    Cpu.CpuTraceType traceType = callChartModel.getCapture().getType();
+    if (traceType != Cpu.CpuTraceType.ATRACE && traceType != Cpu.CpuTraceType.PERFETTO) {
+      CodeNavigator navigator = myProfilersView.getStudioProfilers().getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
+      CodeNavigationHandler handler = new CodeNavigationHandler(chart, navigator);
+      chart.addMouseListener(handler);
+      myProfilersView.getIdeProfilerComponents().createContextMenuInstaller()
+        .installNavigationContextMenu(chart, navigator, handler::getCodeLocation);
+    }
+    if (node != null) {
+      // Force the call chart to update when a filter is applied to the root node. By setting the root to the same node we're not changing
+      // the tree model but just triggering a model-changed event.
+      node.getAspectModel().addDependency(myObserver).onChange(CaptureNode.Aspect.FILTER_APPLIED, () -> chart.setHTree(node));
+    }
+    return chart;
   }
 
-  private static class CpuThreadColorProvider extends StateChartColorProvider<CpuProfilerStage.ThreadState> {
-    private EnumColors<CpuProfilerStage.ThreadState> myEnumColors = ProfilerColors.THREAD_STATES.build();
+  private static class CpuThreadColorProvider extends StateChartColorProvider<ThreadState> {
+    private final EnumColors<ThreadState> myEnumColors = ProfilerColors.THREAD_STATES.build();
 
     @NotNull
     @Override
-    public Color getColor(boolean isMouseOver, @NotNull CpuProfilerStage.ThreadState value) {
+    public Color getColor(boolean isMouseOver, @NotNull ThreadState value) {
       myEnumColors.setColorIndex(isMouseOver ? 1 : 0);
       return myEnumColors.getColor(value);
     }

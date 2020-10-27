@@ -44,7 +44,7 @@ class DataVisualizationColorsTest(private val isDarkMode: Boolean) {
   fun setUp() {
     wasDarkMode = !JBColor.isBright()
     JBColor.setDark(isDarkMode)
-    DataVisualizationColors.initialize(FileInputStream(TestResources.getFile(javaClass, "/palette/data-colors.json")))
+    DataVisualizationColors.doInitialize(FileInputStream(TestResources.getFile(javaClass, "/palette/data-colors.json")))
   }
 
   @After

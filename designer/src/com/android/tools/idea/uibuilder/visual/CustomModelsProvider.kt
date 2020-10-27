@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.visual
 import com.android.resources.NightMode
 import com.android.resources.ScreenOrientation
 import com.android.resources.UiMode
-import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.Configuration
@@ -29,6 +28,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelper
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
@@ -52,6 +52,13 @@ data class CustomConfigurationAttribute(var name: String = "",
                                         var theme: String? = null,
                                         var uiMode: UiMode? = null,
                                         var nightMode: NightMode? = null)
+
+private object CustomModelDataContext: DataContext {
+  override fun getData(dataId: String): Any? = when (dataId) {
+    IS_CUSTOM_MODEL.name -> true
+    else -> false
+  }
+}
 
 /**
  * This class provides the [NlModel]s with custom [Configuration] for [VisualizationForm].<br>
@@ -98,12 +105,11 @@ class CustomModelsProvider(private val configurationSetListener: ConfigurationSe
     val models = mutableListOf<NlModel>()
 
     // Default layout file. (Based on current configuration in Layout Editor)
-    models.add(NlModel.create(parentDisposable,
-                              "Default (Current File)",
-                              facet,
-                              currentFile,
-                              currentFileConfig,
-                              Consumer<NlComponent> { NlComponentHelper.registerComponent(it) }))
+    models.add(NlModel.builder(facet, currentFile, currentFileConfig)
+      .withParentDisposable(parentDisposable)
+      .withModelDisplayName("Default (Current File)")
+      .withComponentRegistrar(Consumer { NlComponentHelper.registerComponent(it) })
+      .build())
 
     // Custom Configurations
     for (attributes in configurationAttributes) {
@@ -116,12 +122,12 @@ class CustomModelsProvider(private val configurationSetListener: ConfigurationSe
                                                            config.locale,
                                                            config.target) ?: currentFile
 
-      val model = NlModel.create(parentDisposable,
-                                 customConfig.name,
-                                 facet,
-                                 betterFile,
-                                 config,
-                                 Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
+      val model = NlModel.builder(facet, betterFile, config)
+        .withParentDisposable(parentDisposable)
+        .withModelDisplayName(customConfig.name)
+        .withComponentRegistrar(Consumer { NlComponentHelper.registerComponent(it) })
+        .withDataContext(CustomModelDataContext)
+        .build()
       models.add(model)
       Disposer.register(model, config)
       configurationToConfigurationAttributesMap[config] = attributes

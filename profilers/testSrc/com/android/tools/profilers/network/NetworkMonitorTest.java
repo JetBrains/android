@@ -59,7 +59,7 @@ public class NetworkMonitorTest {
   @Before
   public void setUp() {
     myTimer = new FakeTimer();
-    myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), new FakeIdeProfilerServices(), myTimer);
+    myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), new FakeIdeProfilerServices(), myTimer);
     myMonitor = new NetworkMonitor(myProfilers);
     myMonitor.getTimeline().getViewRange().set(0, TimeUnit.SECONDS.toMicros(10));
     myMonitor.enter();

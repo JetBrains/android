@@ -30,10 +30,7 @@ import java.io.OutputStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
-public final class BufferingFileWrapper implements IAbstractFile {
+public class BufferingFileWrapper implements IAbstractFile {
   private final File myFile;
 
   public BufferingFileWrapper(@NotNull File file) {

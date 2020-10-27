@@ -57,14 +57,14 @@ import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.sdk.AndroidTargetData;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility methods for style resolution.
  */
-public final class ResolutionUtils {
+public class ResolutionUtils {
   private static final Logger LOG = Logger.getInstance(ResolutionUtils.class);
 
   // Utility methods class isn't meant to be constructed, all methods are static.
@@ -238,7 +238,7 @@ public final class ResolutionUtils {
         // not an android value
         return -1;
       }
-      return apiLookup.getFieldVersion("android/R$" + resUrl.type, AndroidResourceUtil.getFieldNameByResourceName(resUrl.name));
+      return apiLookup.getFieldVersion("android/R$" + resUrl.type, IdeResourcesUtil.getFieldNameByResourceName(resUrl.name));
     }
   }
 
@@ -279,13 +279,19 @@ public final class ResolutionUtils {
   public static ResourceType getAttrType(@NotNull StyleItemResourceValue item, @NotNull Configuration configuration) {
     ResourceResolver resolver = configuration.getResourceResolver();
     assert resolver != null;
+    return getAttrType(item, resolver, configuration.getModule());
+  }
+
+  @Nullable
+  public static ResourceType getAttrType(@NotNull StyleItemResourceValue item, @NotNull ResourceResolver resolver, @NotNull Module module) {
     ResourceValue resolvedValue = resolver.resolveResValue(item);
     ResourceType attrType = resolvedValue.getResourceType();
     if (attrType != null) {
       return attrType;
     }
     else {
-      AttributeDefinition def = getAttributeDefinition(configuration, item);
+      ResourceReference attr = item.getAttr();
+      AttributeDefinition def = attr == null ? null : getAttributeDefinition(module, attr);
       if (def != null) {
         for (AttributeFormat attrFormat : def.getFormats()) {
           attrType = AndroidDomUtil.getResourceType(attrFormat);

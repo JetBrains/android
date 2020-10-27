@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
@@ -25,9 +26,13 @@ import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.transport.TransportService
+import com.android.tools.idea.ui.enableLiveLayoutInspector
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
+import com.intellij.ide.DataManager
 import com.intellij.ide.startup.ServiceNotReadyException
+import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.wm.ToolWindow
@@ -42,6 +47,8 @@ const val LAYOUT_INSPECTOR_TOOL_WINDOW_ID = "Layout Inspector"
 
 private val LAYOUT_INSPECTOR = Key.create<LayoutInspector>("LayoutInspector")
 
+val LAYOUT_INSPECTOR_DATA_KEY = DataKey.create<LayoutInspector>(LayoutInspector::class.java.name)
+
 /**
  * Get the [LayoutInspector] for the specified layout inspector [toolWindow].
  */
@@ -52,6 +59,8 @@ fun lookupLayoutInspector(toolWindow: ToolWindow): LayoutInspector? =
  * ToolWindowFactory: For creating a layout inspector tool window for the project.
  */
 internal class LayoutInspectorToolWindowFactory : ToolWindowFactory {
+
+  override fun isApplicable(project: Project): Boolean = enableLiveLayoutInspector
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     // Ensure the transport service is started
@@ -73,6 +82,12 @@ internal class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     contentPanel.add(workbench, BorderLayout.CENTER)
     val content = contentManager.factory.createContent(contentPanel, "", true)
     content.putUserData(LAYOUT_INSPECTOR, layoutInspector)
+    DataManager.registerDataProvider(workbench, DataProvider { dataId ->
+      if (LAYOUT_INSPECTOR_DATA_KEY.`is`(dataId)) {
+        return@DataProvider layoutInspector
+      }
+      null
+    })
     contentManager.addContent(content)
     project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, LayoutInspectorToolWindowManagerListener(project))
   }

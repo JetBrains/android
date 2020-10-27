@@ -7,9 +7,6 @@ import com.intellij.util.xml.Required;
 import org.jetbrains.android.dom.converters.QuietResourceReferenceConverter;
 import org.jetbrains.android.dom.converters.StaticEnumConverter;
 
-/**
- * @author Eugene.Kudelevsky
- */
 @Convert(QuietResourceReferenceConverter.class)
 public interface PluralsItem extends GenericDomValue, StyledText {
   class QuantityConverter extends StaticEnumConverter {

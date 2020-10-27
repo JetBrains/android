@@ -17,25 +17,37 @@ package com.android.tools.idea.gradle.util;
 
 import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile;
-import static com.intellij.openapi.util.io.FileUtil.copyDirContent;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtilRt.extensionEquals;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByURL;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_SHA_256_SUM;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.util.PropertiesFiles;
+import com.android.tools.idea.wizard.template.TemplateData;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
+import com.google.common.io.Resources;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.impl.PsiManagerEx;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -63,21 +75,36 @@ public final class GradleWrapper {
   }
 
   @NotNull
-  public static GradleWrapper get(@NotNull File propertiesFilePath) {
-    return new GradleWrapper(propertiesFilePath, null);
+  public static GradleWrapper get(@NotNull File propertiesFilePath, @Nullable Project project) {
+    return new GradleWrapper(propertiesFilePath, project);
   }
 
   /**
    * Creates the Gradle wrapper, using the latest supported version of Gradle, in the project at the given directory.
    *
    * @param projectPath the project's root directory.
+   * @param project     the project, if available, or null if this is not in the context of an existing project.
    * @return an instance of {@code GradleWrapper} if the project already has the wrapper or the wrapper was successfully created;
-   * {@code null} if the wrapper was not created (e.g. the template files for the wrapper were not found.)
    * @throws IOException any unexpected I/O error.
    * @see SdkConstants#GRADLE_LATEST_VERSION
    */
-  public static GradleWrapper create(@NotNull File projectPath) throws IOException {
-    return create(projectPath, GRADLE_LATEST_VERSION);
+  @NotNull
+  public static GradleWrapper create(@NotNull VirtualFile projectPath, @Nullable Project project) throws IOException {
+    return create(projectPath, GRADLE_LATEST_VERSION, project);
+  }
+
+  /**
+   * Creates the Gradle wrapper, using the latest supported version of Gradle, in the project at the given directory.
+   *
+   * @param projectPath the project's root directory.
+   * @param project     the project, if available, or null if this is not in the context of an existing project.
+   * @return an instance of {@code GradleWrapper} if the project already has the wrapper or the wrapper was successfully created;
+   * @throws IOException any unexpected I/O error.
+   * @see SdkConstants#GRADLE_LATEST_VERSION
+   */
+  @NotNull
+  public static GradleWrapper create(@NotNull File projectPath, @Nullable Project project) throws IOException {
+    return create(projectPath, GRADLE_LATEST_VERSION, project);
   }
 
   /**
@@ -85,35 +112,63 @@ public final class GradleWrapper {
    *
    * @param projectPath   the project's root directory.
    * @param gradleVersion the version of Gradle to use.
+   * @param project       the project, if available, or null if this is not in the context of an existing project.
    * @return an instance of {@code GradleWrapper} if the project already has the wrapper or the wrapper was successfully created;
-   * {@code null} if the wrapper was not created (e.g. the template files for the wrapper were not found.)
    * @throws IOException any unexpected I/O error.
    * @see SdkConstants#GRADLE_LATEST_VERSION
    */
-  public static GradleWrapper create(@NotNull File projectPath, @NotNull String gradleVersion) throws IOException {
-    File wrapperFolderPath = new File(projectPath, FD_GRADLE_WRAPPER);
-    if (!wrapperFolderPath.isDirectory()) {
-      File srcFolderPath = new File(TemplateManager.getTemplateRootFolder(), FD_GRADLE_WRAPPER);
-      if (!srcFolderPath.exists()) {
-        for (File root : TemplateManager.getExtraTemplateRootFolders()) {
-          srcFolderPath = new File(root, FD_GRADLE_WRAPPER);
-          if (srcFolderPath.exists()) {
-            break;
-          }
-          else {
-            srcFolderPath = null;
-          }
+  @NotNull
+  public static GradleWrapper create(@NotNull File projectPath, @NotNull String gradleVersion, @Nullable Project project)
+    throws IOException {
+    VirtualFile projectDirVirtualFile = findFileByIoFile(projectPath, true);
+    if (projectDirVirtualFile == null) throw new IOException("Not existent project path: " + projectPath);
+    return create(projectDirVirtualFile, gradleVersion, project);
+  }
+
+  /**
+   * Creates the Gradle wrapper in the project at the given directory.
+   *
+   * @param projectPath   the project's root directory.
+   * @param gradleVersion the version of Gradle to use.
+   * @param project       the project, if available, or null if this is not in the context of an existing project.
+   * @return an instance of {@code GradleWrapper} if the project already has the wrapper or the wrapper was successfully created;
+   * @throws IOException any unexpected I/O error.
+   * @see SdkConstants#GRADLE_LATEST_VERSION
+   */
+  @NotNull
+  public static GradleWrapper create(@NotNull VirtualFile projectPath,
+                                     @NotNull String gradleVersion,
+                                     @Nullable Project project) throws IOException {
+    WriteAction.computeAndWait(() -> {
+      if (projectPath.findFileByRelativePath(FD_GRADLE_WRAPPER) == null) {
+        VirtualFile wrapperVf = getWrapperLocation();
+        String sourceRootUrl = wrapperVf.getUrl();
+        VfsUtil.copyDirectory(GradleWrapper.class, wrapperVf, projectPath, it ->
+          projectPath.findFileByRelativePath(it.getUrl().substring(sourceRootUrl.length())) == null
+        );
+        VirtualFile gradlewDest = projectPath.findChild(FN_GRADLE_WRAPPER_UNIX);
+        boolean madeExecutable = gradlewDest != null && new File(gradlewDest.getPath()).setExecutable(true);
+        if (!madeExecutable) {
+          Logger.getInstance(GradleWrapper.class).warn("Unable to make gradlew executable");
         }
       }
-      if (srcFolderPath == null) {
-        return null;
-      }
-      copyDirContent(srcFolderPath, projectPath);
-    }
-    File propertiesFilePath = getDefaultPropertiesFilePath(projectPath);
-    GradleWrapper gradleWrapper = get(propertiesFilePath);
+      return null;
+    });
+    File propertiesFilePath = getDefaultPropertiesFilePath(new File(projectPath.getPath()));
+    GradleWrapper gradleWrapper = get(propertiesFilePath, project);
     gradleWrapper.updateDistributionUrl(gradleVersion);
     return gradleWrapper;
+  }
+
+  @NotNull
+  private static VirtualFile getWrapperLocation() {
+    File resource = new File("templates/project/wrapper");
+    String resourceName = "/" + resource.getPath().replace('\\', '/');
+    URL wrapperUrl = Resources.getResource(TemplateData.class, resourceName);
+    VirtualFile wrapperVf = findFileByURL(wrapperUrl);
+    assert wrapperVf != null;
+    wrapperVf.refresh(false, true);
+    return wrapperVf;
   }
 
   private GradleWrapper(@NotNull File propertiesFilePath, @Nullable Project project) {
@@ -140,7 +195,7 @@ public final class GradleWrapper {
    * Updates the 'distributionUrl' in the Gradle wrapper properties file. An unexpected errors that occur while updating the file will be
    * displayed in an error dialog.
    *
-   * @param gradleVersion  the Gradle version to update the property to.
+   * @param gradleVersion the Gradle version to update the property to.
    * @return {@code true} if the property was updated, or {@code false} if no update was necessary because the property already had the
    * correct value.
    */
@@ -148,10 +203,6 @@ public final class GradleWrapper {
     try {
       boolean updated = updateDistributionUrl(gradleVersion);
       if (updated) {
-        VirtualFile virtualFile = findFileByIoFile(myPropertiesFilePath, true);
-        if (virtualFile != null) {
-          virtualFile.refresh(false, false);
-        }
         return true;
       }
     }
@@ -166,20 +217,20 @@ public final class GradleWrapper {
   /**
    * Updates the 'distributionUrl' in the given Gradle wrapper properties file.
    *
-   * @param gradleVersion  the Gradle version to update the property to.
+   * @param gradleVersion the Gradle version to update the property to.
    * @return {@code true} if the property was updated, or {@code false} if no update was necessary because the property already had the
    * correct value.
    * @throws IOException if something goes wrong when saving the file.
    */
   public boolean updateDistributionUrl(@NotNull String gradleVersion) throws IOException {
     Properties properties = getProperties();
-    String distributionUrl = getDistributionUrl(gradleVersion, false);
+    String distributionUrl = getDistributionUrl(gradleVersion, true);
     String property = properties.getProperty(DISTRIBUTION_URL_PROPERTY);
     if (property != null && (property.equals(distributionUrl) || property.equals(getDistributionUrl(gradleVersion, true)))) {
       return false;
     }
     properties.setProperty(DISTRIBUTION_URL_PROPERTY, distributionUrl);
-    savePropertiesToFile(properties, myPropertiesFilePath, null);
+    saveProperties(properties, myPropertiesFilePath, myProject);
     return true;
   }
 
@@ -191,19 +242,39 @@ public final class GradleWrapper {
    * correct value.
    * @throws IOException if something goes wrong when saving the file.
    */
-  public void updateDistributionUrl(@NotNull File gradleDistribution) throws IOException {
+  public boolean updateDistributionUrl(@NotNull File gradleDistribution) throws IOException {
     String path = gradleDistribution.getPath();
     if (!extensionEquals(path, "zip")) {
       throw new IllegalArgumentException("'" + path + "' should be a zip file");
     }
     Properties properties = getProperties();
     properties.setProperty(DISTRIBUTION_URL_PROPERTY, gradleDistribution.toURI().toURL().toString());
-    savePropertiesToFile(properties, myPropertiesFilePath, null);
+    saveProperties(properties, myPropertiesFilePath, myProject);
+    return true;
   }
 
   @NotNull
   public Properties getProperties() throws IOException {
     return PropertiesFiles.getProperties(myPropertiesFilePath);
+  }
+
+  private static void saveProperties(@NotNull Properties properties, @NotNull File file, @Nullable Project project) throws IOException {
+    savePropertiesToFile(properties, file, null);
+    VirtualFile virtualFile = findFileByIoFile(file, true);
+    if (virtualFile != null) {
+      virtualFile.refresh(false, false);
+      if (project != null) {
+        PsiDocumentManager manager = PsiDocumentManager.getInstance(project);
+        PsiFile psiFile = PsiManagerEx.getInstanceEx(project).findFile(virtualFile);
+        if (psiFile != null) {
+          Document document = manager.getDocument(psiFile);
+          if (document != null) {
+            Application app = ApplicationManager.getApplication();
+            app.invokeAndWait(() -> app.runWriteAction(() -> manager.commitDocument(document)));
+          }
+        }
+      }
+    }
   }
 
   @Nullable

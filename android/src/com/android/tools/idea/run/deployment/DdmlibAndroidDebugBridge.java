@@ -21,10 +21,13 @@ import com.google.common.util.concurrent.FluentFuture;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 
 final class DdmlibAndroidDebugBridge implements AndroidDebugBridge {
@@ -37,6 +40,31 @@ final class DdmlibAndroidDebugBridge implements AndroidDebugBridge {
   DdmlibAndroidDebugBridge(@NotNull File adb) {
     myAdb = adb;
     myListeningExecutorService = MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService());
+  }
+
+  @Override
+  public boolean isConnected() {
+    Future<com.android.ddmlib.AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(myAdb);
+
+    if (future.isCancelled()) {
+      return false;
+    }
+
+    if (!future.isDone()) {
+      return false;
+    }
+
+    try {
+      return future.get().isConnected();
+    }
+    catch (InterruptedException exception) {
+      Thread.currentThread().interrupt();
+      return false;
+    }
+    catch (ExecutionException exception) {
+      Logger.getInstance(DdmlibAndroidDebugBridge.class).warn(exception);
+      return false;
+    }
   }
 
   @NotNull

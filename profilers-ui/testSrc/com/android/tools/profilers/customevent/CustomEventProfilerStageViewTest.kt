@@ -51,7 +51,7 @@ class CustomEventProfilerStageViewTest {
   @Before
   fun setUp() {
     val services = FakeIdeProfilerServices().apply { enableCustomEventVisualization(true) }
-    val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), services, timer)
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     transportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE)
     stage = CustomEventProfilerStage(profilers)
     profilers.stage = stage

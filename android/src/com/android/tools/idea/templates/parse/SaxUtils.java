@@ -44,19 +44,6 @@ public final class SaxUtils {
   }
 
   /**
-   * Retrieve the named parameter from the attribute list, or a default value if no match is found.
-   *
-   * @param attributes   the map of attributes
-   * @param name         the name of the attribute to retrieve
-   * @param defaultValue the value to use if the named parameter isn't present
-   */
-  @NotNull
-  public static String attrOrDefault(@NotNull Attributes attributes, @NotNull String name, @NotNull String defaultValue) {
-    String value = attributes.getValue(name);
-    return (value != null) ? value : defaultValue;
-  }
-
-  /**
    * Retrieve the named parameter from the attribute list and ensure it is set to a non-empty value, or throw an exception.
    *
    * @param tag        the name of the tag these attributes are part of, required for the error string.
@@ -69,7 +56,7 @@ public final class SaxUtils {
     if (result == null) {
       throw new RuntimeException(
         String.format("Required attribute \"%1$s\" not found in element <%2$s %3$s>", name, tag, attrsToString(attributes)));
-    } else if ("".equals(result.trim())) {
+    } else if (result.trim().isEmpty()) {
       throw new RuntimeException(
         String.format("Required attribute \"%1$s\" found, but empty in element <%2$s %3$s>", name, tag, attrsToString(attributes)));
     }
@@ -92,5 +79,4 @@ public final class SaxUtils {
     builder.append(']');
     return builder.toString();
   }
-
 }

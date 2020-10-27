@@ -43,10 +43,10 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.CardLayout;
+import java.awt.Dimension;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -213,8 +213,7 @@ public abstract class ChartDetailsView extends CaptureDetailsView {
     private void callChartRangeChanged() {
       CaptureNode node = myCallChart.getNode();
       assert node != null;
-      Range intersection = myCallChart.getRange().getIntersection(new Range(node.getStart(), node.getEnd()));
-      switchCardLayout(myPanel, intersection.isEmpty() || intersection.getLength() == 0);
+      switchCardLayout(myPanel, myCallChart.getRange().getIntersectionLength(node.getStart(), node.getEnd()) == 0.0);
     }
 
     private static AxisComponent createAxis(@NotNull Range range, @NotNull Range globalRange) {
@@ -288,55 +287,6 @@ public abstract class ChartDetailsView extends CaptureDetailsView {
       switchCardLayout(myPanel, myFlameChart.getNode() == null);
       myChart.setHTree(myFlameChart.getNode());
       myMasterRange.set(myFlameChart.getRange());
-    }
-  }
-
-  private static class CodeNavigationHandler extends MouseAdapter {
-    @NotNull private final HTreeChart<CaptureNode> myChart;
-    private Point myLastPopupPoint;
-
-    CodeNavigationHandler(@NotNull HTreeChart<CaptureNode> chart, @NotNull CodeNavigator navigator) {
-      myChart = chart;
-      new DoubleClickListener() {
-        @Override
-        protected boolean onDoubleClick(@NotNull MouseEvent event) {
-          setLastPopupPoint(event);
-          CodeLocation codeLocation = getCodeLocation();
-          if (codeLocation != null) {
-            navigator.navigate(codeLocation);
-          }
-          return false;
-        }
-      }.installOn(chart);
-    }
-
-    @Override
-    public void mousePressed(MouseEvent e) {
-      handlePopup(e);
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e) {
-      handlePopup(e);
-    }
-
-    private void handlePopup(MouseEvent e) {
-      if (e.isPopupTrigger()) {
-        setLastPopupPoint(e);
-      }
-    }
-
-    private void setLastPopupPoint(MouseEvent e) {
-      myLastPopupPoint = e.getPoint();
-    }
-
-    @Nullable
-    private CodeLocation getCodeLocation() {
-      CaptureNode n = myChart.getNodeAt(myLastPopupPoint);
-      if (n == null) {
-        return null;
-      }
-      return modelToCodeLocation(n.getData());
     }
   }
 }

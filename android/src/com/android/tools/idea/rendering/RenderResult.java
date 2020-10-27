@@ -20,6 +20,7 @@ import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.PsiFile;
@@ -32,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 
 public class RenderResult {
+  private static Logger LOG = Logger.getInstance(RenderResult.class);
+
   @NotNull private final PsiFile myFile;
   @NotNull private final RenderLogger myLogger;
   @NotNull private final ImmutableList<ViewInfo> myRootViews;
@@ -43,6 +46,7 @@ public class RenderResult {
   @NotNull private final Map<Object, String> myDefaultStyles;
   @NotNull private final Module myModule;
   private final ReadWriteLock myDisposeLock = new ReentrantReadWriteLock();
+  @Nullable private final Object myValidatorResult;
   private boolean isDisposed;
 
   protected RenderResult(@NotNull PsiFile file,
@@ -54,7 +58,8 @@ public class RenderResult {
                          @NotNull ImmutableList<ViewInfo> systemRootViews,
                          @NotNull ImagePool.Image image,
                          @NotNull Map<Object, Map<ResourceReference, ResourceValue>> defaultProperties,
-                         @NotNull Map<Object, String> defaultStyles) {
+                         @NotNull Map<Object, String> defaultStyles,
+                         @Nullable Object validatorResult) {
     myRenderTask = renderTask;
     myModule = module;
     myFile = file;
@@ -65,6 +70,7 @@ public class RenderResult {
     myImage = image;
     myDefaultProperties = defaultProperties;
     myDefaultStyles = defaultStyles;
+    myValidatorResult = validatorResult;
   }
 
   public void dispose() {
@@ -90,7 +96,7 @@ public class RenderResult {
     List<ViewInfo> systemRootViews = session.getSystemRootViews();
     Map<Object, Map<ResourceReference, ResourceValue>> defaultProperties = session.getDefaultNamespacedProperties();
     Map<Object, String> defaultStyles = session.getDefaultStyles();
-    return new RenderResult(
+    RenderResult result = new RenderResult(
       file,
       renderTask.getContext().getModule(),
       logger,
@@ -100,7 +106,14 @@ public class RenderResult {
       systemRootViews != null ? ImmutableList.copyOf(systemRootViews) : ImmutableList.of(),
       image, // image might be ImagePool.NULL_POOL_IMAGE if there is no rendered image (as in layout())
       defaultProperties != null ? ImmutableMap.copyOf(defaultProperties) : ImmutableMap.of(),
-      defaultStyles != null ? ImmutableMap.copyOf(defaultStyles) : ImmutableMap.of());
+      defaultStyles != null ? ImmutableMap.copyOf(defaultStyles) : ImmutableMap.of(),
+      session.getValidationData());
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(result.toString());
+    }
+
+    return result;
   }
 
   /**
@@ -113,7 +126,7 @@ public class RenderResult {
                                                               @Nullable Throwable throwable) {
     Module module = logger.getModule();
     assert module != null;
-    return new RenderResult(
+    RenderResult result = new RenderResult(
       file,
       module, // do not use renderTask.getModule as a disposed renderTask could be the reason we are here
       logger,
@@ -123,7 +136,14 @@ public class RenderResult {
       ImmutableList.of(),
       ImagePool.NULL_POOLED_IMAGE,
       ImmutableMap.of(),
-      ImmutableMap.of());
+      ImmutableMap.of(),
+      null);
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(result.toString());
+    }
+
+    return result;
   }
 
   /**
@@ -152,7 +172,7 @@ public class RenderResult {
   private static RenderResult createErrorResult(@NotNull PsiFile file, @NotNull Result errorResult, @Nullable RenderLogger logger) {
     Module module = ModuleUtilCore.findModuleForPsiElement(file);
     assert module != null;
-    return new RenderResult(
+    RenderResult result = new RenderResult(
       file,
       module,
       logger != null ? logger : new RenderLogger(null, module),
@@ -162,7 +182,14 @@ public class RenderResult {
       ImmutableList.of(),
       ImagePool.NULL_POOLED_IMAGE,
       ImmutableMap.of(),
-      ImmutableMap.of());
+      ImmutableMap.of(),
+      null);
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(result.toString());
+    }
+
+    return result;
   }
 
   @NotNull
@@ -180,15 +207,6 @@ public class RenderResult {
     myDisposeLock.readLock().lock();
     try {
       return !isDisposed ? myImage : ImagePool.NULL_POOLED_IMAGE;
-    } finally {
-      myDisposeLock.readLock().unlock();
-    }
-  }
-
-  public boolean hasImage() {
-    myDisposeLock.readLock().lock();
-    try {
-      return !isDisposed && myImage != ImagePool.NULL_POOLED_IMAGE;
     } finally {
       myDisposeLock.readLock().unlock();
     }
@@ -217,6 +235,11 @@ public class RenderResult {
   @NotNull
   public ImmutableList<ViewInfo> getSystemRootViews() {
     return mySystemRootViews;
+  }
+
+  @Nullable
+  public Object getValidatorResult() {
+    return myValidatorResult;
   }
 
   /**

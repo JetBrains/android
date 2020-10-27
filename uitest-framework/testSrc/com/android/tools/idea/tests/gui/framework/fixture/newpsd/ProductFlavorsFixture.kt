@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
+import com.android.tools.idea.tests.gui.framework.clickToolButton
+import com.android.tools.idea.tests.gui.framework.dragAndClickItem
+import com.android.tools.idea.tests.gui.framework.getList
+import com.android.tools.idea.tests.gui.framework.waitForIdle
 import org.fest.swing.core.Robot
 import org.fest.swing.fixture.JListFixture
 import java.awt.Container

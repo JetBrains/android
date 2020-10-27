@@ -60,6 +60,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
@@ -315,6 +316,20 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     myDataModel.categorySelectionChanged(newSelection);
     myLastSelectedGroup = newSelection;
     myItemList.setSelectedIndex(0);
+    myItemList.setEmptyText(generateEmptyText(newSelection));
+  }
+
+  @NotNull
+  private static Pair<String, String> generateEmptyText(@NotNull Palette.Group group) {
+    if (group == DataModel.COMMON) {
+      return Pair.create("No favorites", "Right click to add");
+    }
+    else if (group == DataModel.RESULTS) {
+      return Pair.create("No matches found", "");
+    }
+    else {
+      return Pair.create("Empty group", "");
+    }
   }
 
   @NotNull
@@ -464,7 +479,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     }
   }
 
-  private final class ItemTransferHandler extends TransferHandler {
+  private class ItemTransferHandler extends TransferHandler {
     private final PreviewProvider myPreviewProvider;
     private final Supplier<Palette.Item> myItemSupplier;
 
@@ -552,7 +567,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     }
   }
 
-  private final class AddToDesignAction extends AnAction {
+  private class AddToDesignAction extends AnAction {
 
     private AddToDesignAction() {
       super("Add to Design");
@@ -609,7 +624,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     }
   }
 
-  private final class FavoriteAction extends ToggleAction {
+  private class FavoriteAction extends ToggleAction {
 
     private FavoriteAction() {
       super("Favorite");
@@ -635,7 +650,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     }
   }
 
-  private final class MaterialDocAction extends AnAction {
+  private class MaterialDocAction extends AnAction {
     private static final String MATERIAL_DEFAULT_REFERENCE = "https://material.io/guidelines/material-design/introduction.html";
 
     private MaterialDocAction() {

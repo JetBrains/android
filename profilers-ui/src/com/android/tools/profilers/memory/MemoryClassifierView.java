@@ -15,6 +15,11 @@
  */
 package com.android.tools.profilers.memory;
 
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
+import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_CLASS;
+
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.NewRowInstruction;
@@ -26,8 +31,21 @@ import com.android.tools.profilers.ContextMenuInstaller;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
-import com.android.tools.profilers.memory.adapters.*;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute;
+import com.android.tools.profilers.memory.adapters.FieldObject;
+import com.android.tools.profilers.memory.adapters.InstanceObject;
+import com.android.tools.profilers.memory.adapters.MemoryObject;
+import com.android.tools.profilers.memory.adapters.classifiers.AllHeapSet;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
+import com.android.tools.profilers.memory.adapters.classifiers.MethodSet;
+import com.android.tools.profilers.memory.adapters.classifiers.NativeAllocationMethodSet;
+import com.android.tools.profilers.memory.adapters.classifiers.NativeCallStackSet;
+import com.android.tools.profilers.memory.adapters.classifiers.PackageSet;
+import com.android.tools.profilers.memory.adapters.classifiers.ThreadSet;
+import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
@@ -39,30 +57,40 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.UIUtilities;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.function.ToLongFunction;
+import java.util.stream.Collectors;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTree;
+import javax.swing.SortOrder;
+import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableColumnModel;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-import java.awt.*;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.util.*;
-import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
-import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
-import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
-import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
-
-final class MemoryClassifierView extends AspectObserver {
+public final class MemoryClassifierView extends AspectObserver implements CapturePanelTabContainer {
   private static final int LABEL_COLUMN_WIDTH = 800;
-  private static final int DEFAULT_COLUMN_WIDTH = 80;
+  private static final int MODULE_COLUMN_WIDTH = 100;
   private static final int HEAP_UPDATING_DELAY_MS = 250;
   private static final int MIN_COLUMN_WIDTH = 16;
 
@@ -71,8 +99,9 @@ final class MemoryClassifierView extends AspectObserver {
     "Select a valid range in the timeline where the Java memory is changing to view allocations and deallocations.";
   private static final String HELP_TIP_HEADER_EXPLICIT_CAPTURE = "Selected capture has no contents";
   private static final String HELP_TIP_DESCRIPTION_EXPLICIT_CAPTURE = "There are no allocations in the selected capture.";
+  private static final String HELP_TIP_HEADER_FILTER_NO_MATCH = "Selected filters have no match";
 
-  @NotNull private final MemoryProfilerStage myStage;
+  @NotNull private final MemoryCaptureSelection mySelection;
 
   @NotNull private final ContextMenuInstaller myContextMenuInstaller;
 
@@ -106,22 +135,22 @@ final class MemoryClassifierView extends AspectObserver {
 
   @Nullable private Comparator<MemoryObjectTreeNode<ClassifierSet>> myInitialComparator;
 
-  public MemoryClassifierView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
-    myStage = stage;
+  MemoryClassifierView(@NotNull MemoryCaptureSelection selection, @NotNull IdeProfilerComponents ideProfilerComponents) {
+    mySelection = selection;
     myContextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
     myLoadingPanel = ideProfilerComponents.createLoadingPanel(HEAP_UPDATING_DELAY_MS);
     myLoadingPanel.setLoadingText("");
 
-    myStage.getAspect().addDependency(this)
-           .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::loadCapture)
-           .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refreshCapture)
-           .onChange(MemoryProfilerAspect.CURRENT_HEAP, this::refreshHeapSet)
-           .onChange(MemoryProfilerAspect.CURRENT_HEAP_UPDATING, this::startHeapLoadingUi)
-           .onChange(MemoryProfilerAspect.CURRENT_HEAP_UPDATED, this::stopHeapLoadingUi)
-           .onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, this::refreshTree)
-           .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::refreshClassSet)
-           .onChange(MemoryProfilerAspect.CLASS_GROUPING, this::refreshGrouping)
-           .onChange(MemoryProfilerAspect.CURRENT_FILTER, this::refreshFilter);
+    mySelection.getAspect().addDependency(this)
+      .onChange(CaptureSelectionAspect.CURRENT_LOADING_CAPTURE, this::loadCapture)
+      .onChange(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE, this::refreshCapture)
+      .onChange(CaptureSelectionAspect.CURRENT_HEAP, this::refreshHeapSet)
+      .onChange(CaptureSelectionAspect.CURRENT_HEAP_UPDATING, this::startHeapLoadingUi)
+      .onChange(CaptureSelectionAspect.CURRENT_HEAP_UPDATED, this::stopHeapLoadingUi)
+      .onChange(CaptureSelectionAspect.CURRENT_HEAP_CONTENTS, this::refreshTree)
+      .onChange(CaptureSelectionAspect.CURRENT_CLASS, this::refreshClassSet)
+      .onChange(CaptureSelectionAspect.CLASS_GROUPING, this::refreshGrouping)
+      .onChange(CaptureSelectionAspect.CURRENT_FILTER, this::refreshFilter);
 
     myAttributeColumns.put(
       ClassifierAttribute.LABEL,
@@ -129,83 +158,105 @@ final class MemoryClassifierView extends AspectObserver {
         "Class Name", this::getNameColumnRenderer, SwingConstants.LEFT, LABEL_COLUMN_WIDTH, SortOrder.ASCENDING,
         createTreeNodeComparator(Comparator.comparing(ClassifierSet::getName), Comparator.comparing(ClassSet::getName))));
     myAttributeColumns.put(
-      ClassifierAttribute.ALLOCATIONS,
+      ClassifierAttribute.MODULE,
       new AttributeColumn<>(
-        "Allocations",
-        () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> NumberFormatter.formatInteger(value.getAdapter().getDeltaAllocationCount()),
-          value -> null,
-          SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.DESCENDING,
-        createTreeNodeComparator(Comparator.comparingInt(ClassifierSet::getDeltaAllocationCount),
-                                 Comparator.comparingInt(ClassSet::getDeltaAllocationCount))));
+        "Module Name", this::getModuleColumnRenderer, SwingConstants.LEFT, MODULE_COLUMN_WIDTH, SortOrder.ASCENDING,
+        createTreeNodeComparator(Comparator.comparing(NativeCallStackSet::getModuleName))));
+    myAttributeColumns.put(
+      ClassifierAttribute.ALLOCATIONS,
+      makeColumn("Allocations", 110, ClassifierSet::getDeltaAllocationCount));
     myAttributeColumns.put(
       ClassifierAttribute.DEALLOCATIONS,
-      new AttributeColumn<>(
-        "Deallocations",
-        () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> NumberFormatter.formatInteger(value.getAdapter().getDeltaDeallocationCount()),
-          value -> null,
-          SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.DESCENDING,
-        createTreeNodeComparator(Comparator.comparingInt(ClassifierSet::getDeltaDeallocationCount),
-                                 Comparator.comparingInt(ClassSet::getDeltaDeallocationCount))));
+      makeColumn("Deallocations", 130, ClassifierSet::getDeltaDeallocationCount));
     myAttributeColumns.put(
       ClassifierAttribute.TOTAL_COUNT,
-      new AttributeColumn<>(
-        "Total Count",
-        () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> NumberFormatter.formatInteger(value.getAdapter().getTotalObjectCount()),
-          value -> null,
-          SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.DESCENDING,
-        createTreeNodeComparator(Comparator.comparingInt(ClassifierSet::getTotalObjectCount),
-                                 Comparator.comparingInt(ClassSet::getTotalObjectCount))));
+      makeColumn("Total Count", 110, ClassifierSet::getTotalObjectCount));
     myAttributeColumns.put(
       ClassifierAttribute.NATIVE_SIZE,
-      new AttributeColumn<>(
-        "Native Size",
-        () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> NumberFormatter.formatInteger(value.getAdapter().getTotalNativeSize()),
-          value -> null, SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.DESCENDING,
-        createTreeNodeComparator(Comparator.comparingLong(ClassSet::getTotalNativeSize))));
+      makeColumn("Native Size", 110, ClassifierSet::getTotalNativeSize, Comparator.comparing(ClassifierSet::getName)));
     myAttributeColumns.put(
       ClassifierAttribute.SHALLOW_SIZE,
-      new AttributeColumn<>(
-        "Shallow Size",
-        () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> NumberFormatter.formatInteger(value.getAdapter().getTotalShallowSize()),
-          value -> null, SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.DESCENDING,
-        createTreeNodeComparator(Comparator.comparingLong(ClassSet::getTotalShallowSize))));
+      makeColumn("Shallow Size", 120, ClassifierSet::getTotalShallowSize, Comparator.comparing(ClassifierSet::getName)));
     myAttributeColumns.put(
       ClassifierAttribute.RETAINED_SIZE,
-      new AttributeColumn<>(
-        "Retained Size",
-        () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> NumberFormatter.formatInteger(value.getAdapter().getTotalRetainedSize()),
-          value -> null, SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.DESCENDING,
-        createTreeNodeComparator(Comparator.comparingLong(ClassifierSet::getTotalRetainedSize),
-                                 Comparator.comparingLong(ClassSet::getTotalRetainedSize))));
+      makeColumn("Retained Size", 130, ClassifierSet::getTotalRetainedSize));
+    myAttributeColumns.put(
+      ClassifierAttribute.ALLOCATIONS_SIZE,
+      makeColumn("Allocations Size", 160, ClassifierSet::getAllocationSize));
+    myAttributeColumns.put(
+      ClassifierAttribute.DEALLOCATIONS_SIZE,
+      makeColumn("Deallocations Size", 180, ClassifierSet::getDeallocationSize));
+    myAttributeColumns.put(
+      ClassifierAttribute.REMAINING_SIZE,
+      makeColumn("Remaining Size", 140, ClassifierSet::getTotalRemainingSize));
+  }
+
+  /**
+   * Make right-aligned, descending column displaying integer property with custom order for non-ClassSet values
+   */
+  private AttributeColumn<ClassifierSet> makeColumn(@NotNull String name,
+                                                    int width,
+                                                    @NotNull ToLongFunction<ClassifierSet> prop,
+                                                    @NotNull Comparator<ClassifierSet> comp) {
+
+    Function<MemoryObjectTreeNode<ClassifierSet>, String> textGetter = node ->
+      NumberFormatter.formatInteger(prop.applyAsLong(node.getAdapter()));
+    final Supplier<ColoredTreeCellRenderer> renderer;
+    if (mySelection.getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
+      // Progress-bar style background that reflects percentage contribution
+      renderer = () -> new PercentColumnRenderer<>(
+        textGetter, v -> null, SwingConstants.RIGHT,
+        node -> {
+          MemoryObjectTreeNode<ClassifierSet> parent = node.myParent;
+          if (parent == null) {
+            return 0;
+          }
+          else {
+            assert myTreeRoot != null;
+            // Compute relative contribution with respect to top-most parent
+            long myVal = prop.applyAsLong(node.getAdapter());
+            ClassifierSet root = myTreeRoot.getAdapter();
+            long parentVal = prop.applyAsLong(root);
+            return parentVal == 0 ? 0 : (int)(myVal * 100 / parentVal);
+          }
+        }
+      );
+    }
+    else {
+      // Legacy renderer
+      renderer = () -> new SimpleColumnRenderer<>(textGetter, v -> null, SwingConstants.RIGHT);
+    }
+
+    int preferredWidth = Math.max(SimpleColumnRenderer.DEFAULT_COLUMN_WIDTH, width);
+    int maxWidth = preferredWidth * 4;
+
+    return new AttributeColumn<>(
+      name,
+      renderer,
+      SwingConstants.RIGHT,
+      preferredWidth,
+      maxWidth,
+      SortOrder.DESCENDING,
+      createTreeNodeComparator(comp, Comparator.comparingLong(prop))
+    );
+  }
+
+  /**
+   * Make right-aligned, descending column displaying integer property
+   */
+  private AttributeColumn<ClassifierSet> makeColumn(String name, int width, ToLongFunction<ClassifierSet> prop) {
+    return makeColumn(name, width, prop, Comparator.comparingLong(prop));
   }
 
   @NotNull
-  JComponent getComponent() {
+  @Override
+  public JComponent getComponent() {
     return myPanel;
+  }
+
+  @Override
+  public void onSelectionChanged(boolean selected) {
+    // Default
   }
 
   @VisibleForTesting
@@ -245,12 +296,13 @@ final class MemoryClassifierView extends AspectObserver {
     myTree = null;
     myTreeRoot = null;
     myTreeModel = null;
+    myTableColumnModel = null;
     myPanel.removeAll();
-    myStage.selectClassSet(null);
+    mySelection.selectClassSet(null);
   }
 
   private void loadCapture() {
-    if (myStage.getSelectedCapture() == null || myCaptureObject != myStage.getSelectedCapture()) {
+    if (mySelection.getSelectedCapture() == null || myCaptureObject != mySelection.getSelectedCapture()) {
       reset();
     }
   }
@@ -262,7 +314,7 @@ final class MemoryClassifierView extends AspectObserver {
   }
 
   private void refreshCapture() {
-    myCaptureObject = myStage.getSelectedCapture();
+    myCaptureObject = mySelection.getSelectedCapture();
     if (myCaptureObject == null) {
       reset();
       return;
@@ -301,19 +353,30 @@ final class MemoryClassifierView extends AspectObserver {
 
       if (classifierNode.getAdapter() instanceof ClassSet && myClassSet != classifierNode.getAdapter()) {
         myClassSet = (ClassSet)classifierNode.getAdapter();
-        myStage.selectClassSet(myClassSet);
+        mySelection.selectClassSet(myClassSet);
       }
     });
 
-    myContextMenuInstaller.installNavigationContextMenu(myTree, myStage.getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
+    myContextMenuInstaller.installNavigationContextMenu(myTree, mySelection.getIdeServices().getCodeNavigator(), () -> {
       TreePath selection = myTree.getSelectionPath();
       if (selection == null || !(selection.getLastPathComponent() instanceof MemoryObjectTreeNode)) {
         return null;
       }
 
-      if (((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter() instanceof ClassSet) {
-        ClassSet classSet = (ClassSet)((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
+      MemoryObject treeNodeAdapter = ((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
+      if (treeNodeAdapter instanceof ClassSet) {
+        ClassSet classSet = (ClassSet)treeNodeAdapter;
         return new CodeLocation.Builder(classSet.getClassEntry().getClassName()).build();
+      }
+      if (treeNodeAdapter instanceof NativeCallStackSet) {
+        NativeCallStackSet nativeSet = (NativeCallStackSet)treeNodeAdapter;
+        if (!Strings.isNullOrEmpty(nativeSet.getFileName())) {
+          return new CodeLocation.Builder(nativeSet.getName()) // Expects class name but we don't have that so we use the function.
+            .setMethodName(nativeSet.getName())
+            .setFileName(nativeSet.getFileName())
+            .setLineNumber(nativeSet.getLineNumber() - 1) // Line numbers from symbolizer are 1 based UI is 0 based.
+            .build();
+        }
       }
       return null;
     });
@@ -352,25 +415,19 @@ final class MemoryClassifierView extends AspectObserver {
     builder.setTableIntercellSpacing(new Dimension());
     myColumnTree = builder.build();
 
-    if (myStage.getSelectedCapture().isExportable()) {
-      myHelpTipPanel = new InstructionsPanel.Builder(
-        new TextInstruction(UIUtilities.getFontMetrics(myClassifierPanel, ProfilerFonts.H3_FONT), HELP_TIP_HEADER_EXPLICIT_CAPTURE),
-        new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-        new TextInstruction(UIUtilities.getFontMetrics(myClassifierPanel, ProfilerFonts.STANDARD_FONT),
-                            HELP_TIP_DESCRIPTION_EXPLICIT_CAPTURE))
-        .setColors(JBColor.foreground(), null)
-        .build();
-    }
-    else {
-      myHelpTipPanel = new InstructionsPanel.Builder(
-        new TextInstruction(UIUtilities.getFontMetrics(myClassifierPanel, ProfilerFonts.H3_FONT), HELP_TIP_HEADER_LIVE_ALLOCATION),
-        new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-        new TextInstruction(UIUtilities.getFontMetrics(myClassifierPanel, ProfilerFonts.STANDARD_FONT),
-                            HELP_TIP_DESCRIPTION_LIVE_ALLOCATION))
-        .setColors(JBColor.foreground(), null)
-        .build();
-    }
+    myHelpTipPanel = mySelection.getSelectedCapture().isExportable() ?
+                     makeInstructionsPanel(HELP_TIP_HEADER_EXPLICIT_CAPTURE, HELP_TIP_DESCRIPTION_EXPLICIT_CAPTURE) :
+                     makeInstructionsPanel(HELP_TIP_HEADER_LIVE_ALLOCATION, HELP_TIP_DESCRIPTION_LIVE_ALLOCATION);
     myPanel.add(myClassifierPanel, BorderLayout.CENTER);
+  }
+
+  private InstructionsPanel makeInstructionsPanel(String header, String desc) {
+    return new InstructionsPanel.Builder(
+      new TextInstruction(UIUtilities.getFontMetrics(myClassifierPanel, ProfilerFonts.H3_FONT), header),
+      new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
+      new TextInstruction(UIUtilities.getFontMetrics(myClassifierPanel, ProfilerFonts.STANDARD_FONT), desc))
+      .setColors(JBColor.foreground(), null)
+      .build();
   }
 
   private void startHeapLoadingUi() {
@@ -399,7 +456,18 @@ final class MemoryClassifierView extends AspectObserver {
     assert myTreeRoot != null && myColumnTree != null && myHelpTipPanel != null;
     myClassifierPanel.removeAll();
     if (myTreeRoot.getAdapter().isEmpty()) {
-      myClassifierPanel.add(myHelpTipPanel, BorderLayout.CENTER);
+      if (myCaptureObject != null && !myCaptureObject.getSelectedInstanceFilters().isEmpty()) {
+        List<String> filterNames = myCaptureObject.getSelectedInstanceFilters().stream()
+          .map(CaptureObjectInstanceFilter::getDisplayName)
+          .collect(Collectors.toList());
+        String msg = String.format("There are no allocations satisfying selected filter%s: %s",
+                                   filterNames.size() > 1 ? "s" : "",
+                                   String.join(", ", filterNames));
+        myClassifierPanel.add(makeInstructionsPanel(HELP_TIP_HEADER_FILTER_NO_MATCH, msg), BorderLayout.CENTER);
+      }
+      else {
+        myClassifierPanel.add(myHelpTipPanel, BorderLayout.CENTER);
+      }
     }
     else {
       myClassifierPanel.add(myColumnTree, BorderLayout.CENTER);
@@ -439,7 +507,7 @@ final class MemoryClassifierView extends AspectObserver {
       }
     }
 
-    if (!myStage.getFilterHandler().getFilter().isEmpty()) {
+    if (!mySelection.getFilterHandler().getFilter().isEmpty()) {
       MemoryClassifierTreeNode treeNode = myTreeRoot;
       while (treeNode != null) {
         if (treeNode.getAdapter().getIsMatched()) {
@@ -465,7 +533,7 @@ final class MemoryClassifierView extends AspectObserver {
   private void refreshHeapSet() {
     assert myCaptureObject != null && myTree != null;
 
-    HeapSet heapSet = myStage.getSelectedHeapSet();
+    HeapSet heapSet = mySelection.getSelectedHeapSet();
     if (heapSet == myHeapSet) {
       return;
     }
@@ -475,18 +543,33 @@ final class MemoryClassifierView extends AspectObserver {
     if (myHeapSet != null) {
       refreshGrouping();
     }
+
+    // When the root is "all"-heap, hide it
+    if (myHeapSet instanceof AllHeapSet) {
+      myTree.setRootVisible(false);
+      myTree.setShowsRootHandles(true);
+    }
+    else {
+      myTree.setRootVisible(true);
+      myTree.setShowsRootHandles(false);
+    }
   }
 
   /**
    * Refreshes the view based on the "group by" selection from the user.
    */
   private void refreshGrouping() {
-    assert myCaptureObject != null && myTree != null;
+    HeapSet heapSet = mySelection.getSelectedHeapSet();
+    // This gets called when a capture is loading, or we change the profiler configuration.
+    // During a loading capture we adjust which configurations are available and reset set the selection to the first one.
+    // This triggers this callback to be fired before we have a heapset. In this scenario we just early exit.
+    if (heapSet == null || myCaptureObject == null || myTree == null) {
+      return;
+    }
 
     Comparator<MemoryObjectTreeNode<ClassifierSet>> comparator = myTreeRoot == null ? myInitialComparator : myTreeRoot.getComparator();
-    HeapSet heapSet = myStage.getSelectedHeapSet();
-    assert heapSet != null;
-    heapSet.setClassGrouping(myStage.getConfiguration().getClassGrouping());
+
+    heapSet.setClassGrouping(mySelection.getClassGrouping());
     myTreeRoot = new MemoryClassifierTreeNode(heapSet);
     myTreeRoot.expandNode(); // Expand it once to get all the children, since we won't display the tree root (HeapSet) by default.
     if (comparator != null) {
@@ -499,23 +582,28 @@ final class MemoryClassifierView extends AspectObserver {
     // Rename class column depending on group by mechanism
     assert myColumnTree != null;
     String headerName = null;
-    switch (myStage.getConfiguration().getClassGrouping()) {
+    switch (mySelection.getClassGrouping()) {
       case ARRANGE_BY_CLASS:
         headerName = "Class Name";
         break;
       case ARRANGE_BY_CALLSTACK:
+      case NATIVE_ARRANGE_BY_CALLSTACK:
         headerName = "Callstack Name";
         break;
       case ARRANGE_BY_PACKAGE:
         headerName = "Package Name";
+        break;
+      case NATIVE_ARRANGE_BY_ALLOCATION_METHOD:
+        headerName = "Allocation function";
+        break;
     }
     assert myTableColumnModel != null;
     myTableColumnModel.getColumn(0).setHeaderValue(headerName);
 
     // Attempt to reselect the previously selected ClassSet node or FieldPath.
-    ClassSet selectedClassSet = myStage.getSelectedClassSet();
-    InstanceObject selectedInstance = myStage.getSelectedInstanceObject();
-    List<FieldObject> fieldPath = myStage.getSelectedFieldObjectPath();
+    ClassSet selectedClassSet = mySelection.getSelectedClassSet();
+    InstanceObject selectedInstance = mySelection.getSelectedInstanceObject();
+    List<FieldObject> fieldPath = mySelection.getSelectedFieldObjectPath();
 
     refreshClassifierPanel();
 
@@ -532,7 +620,7 @@ final class MemoryClassifierView extends AspectObserver {
     }
 
     if (nodeToSelect == null || !(nodeToSelect.getAdapter() instanceof ClassSet)) {
-      myStage.selectClassSet(null);
+      mySelection.selectClassSet(null);
       return;
     }
 
@@ -542,9 +630,9 @@ final class MemoryClassifierView extends AspectObserver {
     myTree.expandPath(treePath.getParentPath());
     myTree.setSelectionPath(treePath);
     myTree.scrollPathToVisible(treePath);
-    myStage.selectClassSet(myClassSet);
-    myStage.selectInstanceObject(selectedInstance);
-    myStage.selectFieldObjectPath(fieldPath);
+    mySelection.selectClassSet(myClassSet);
+    mySelection.selectInstanceObject(selectedInstance);
+    mySelection.selectFieldObjectPath(fieldPath);
   }
 
   /**
@@ -575,11 +663,11 @@ final class MemoryClassifierView extends AspectObserver {
    * Refreshes the view based on the selected {@link ClassSet}.
    */
   private void refreshClassSet() {
-    if (myTreeRoot == null || myTreeModel == null || myTree == null || myClassSet == myStage.getSelectedClassSet()) {
+    if (myTreeRoot == null || myTreeModel == null || myTree == null || myClassSet == mySelection.getSelectedClassSet()) {
       return;
     }
 
-    myClassSet = myStage.getSelectedClassSet();
+    myClassSet = mySelection.getSelectedClassSet();
     if (myClassSet != null && !myClassSet.isEmpty()) {
       MemoryObjectTreeNode<ClassifierSet> node = findSmallestSuperSetNode(myTreeRoot, myClassSet);
       if (node != null) {
@@ -590,7 +678,7 @@ final class MemoryClassifierView extends AspectObserver {
       }
       else {
         myClassSet = null;
-        myStage.selectClassSet(null);
+        mySelection.selectClassSet(null);
       }
     }
 
@@ -601,8 +689,61 @@ final class MemoryClassifierView extends AspectObserver {
   }
 
   @NotNull
-  private ColoredTreeCellRenderer getNameColumnRenderer() {
+  @VisibleForTesting
+  ColoredTreeCellRenderer getModuleColumnRenderer() {
     return new ColoredTreeCellRenderer() {
+      @Override
+      public void customizeCellRenderer(@NotNull JTree tree,
+                                        Object value,
+                                        boolean selected,
+                                        boolean expanded,
+                                        boolean leaf,
+                                        int row,
+                                        boolean hasFocus) {
+        if (!(value instanceof MemoryObjectTreeNode)) {
+          return;
+        }
+        MemoryObjectTreeNode node = (MemoryObjectTreeNode)value;
+        if (node.getAdapter() instanceof NativeCallStackSet) {
+          NativeCallStackSet set = (NativeCallStackSet)node.getAdapter();
+          String name = set.getModuleName();
+          if (!Strings.isNullOrEmpty(name) && name.contains("/")) {
+            name = name.substring(name.lastIndexOf("/") + 1);
+            append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
+          }
+        }
+        setTextAlign(SwingConstants.LEFT);
+      }
+    };
+  }
+
+  @NotNull
+  @VisibleForTesting
+  ColoredTreeCellRenderer getNameColumnRenderer() {
+    return new ColoredTreeCellRenderer() {
+      private long myLeakCount = 0;
+
+      @Override
+      protected void paintComponent(Graphics g) {
+        if (myLeakCount > 0) {
+          int width = getWidth();
+          int height = getHeight();
+
+          String text = String.valueOf(myLeakCount);
+          ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+          int textWidth = g.getFontMetrics().stringWidth(text);
+
+          Icon i = StudioIcons.Common.WARNING;
+          int iconWidth = i.getIconWidth();
+          int iconHeight = i.getIconHeight();
+          i.paintIcon(this, g, width - iconWidth - textWidth - 6, (height - iconHeight) / 2);
+
+          g.drawString(text, width - textWidth - 4, (height + iconHeight) / 2 - 2);
+        }
+        // paint real content last
+        super.paintComponent(g);
+      }
+
       @Override
       public void customizeCellRenderer(@NotNull JTree tree,
                                         Object value,
@@ -624,10 +765,10 @@ final class MemoryClassifierView extends AspectObserver {
           String className = classSet.getClassEntry().getSimpleClassName();
           String packageName = classSet.getClassEntry().getPackageName();
           append(className, SimpleTextAttributes.REGULAR_ATTRIBUTES, className);
-          if (myStage.getConfiguration().getClassGrouping() == ARRANGE_BY_CLASS) {
+          if (mySelection.getClassGrouping() == ARRANGE_BY_CLASS) {
             if (!packageName.isEmpty()) {
               String packageText = " (" + packageName + ")";
-              append(packageText, SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES, packageText);
+              append(packageText, SimpleTextAttributes.GRAY_ATTRIBUTES, packageText);
             }
           }
         }
@@ -649,7 +790,7 @@ final class MemoryClassifierView extends AspectObserver {
 
           if (!Strings.isNullOrEmpty(className)) {
             String classNameText = " (" + className + ")";
-            append(classNameText, SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES, classNameText);
+            append(classNameText, SimpleTextAttributes.GRAY_ATTRIBUTES, classNameText);
           }
         }
         else if (node.getAdapter() instanceof ThreadSet) {
@@ -663,8 +804,43 @@ final class MemoryClassifierView extends AspectObserver {
           String name = set.getName() + " heap";
           append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
         }
+        else if (node.getAdapter() instanceof NativeCallStackSet) {
+          ClassifierSet set = (ClassifierSet)node.getAdapter();
+          setIcon(StudioIcons.Profiler.Overlays.METHOD_STACK);
+          String name = set.getName();
+          append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
+        }
+        else if (node.getAdapter() instanceof NativeAllocationMethodSet) {
+          ClassifierSet set = (ClassifierSet)node.getAdapter();
+          setIcon(StudioIcons.Profiler.Overlays.ARRAY_STACK);
+          String name = set.getName();
+          append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
+        }
 
+        if (node.getAdapter() instanceof ClassifierSet) {
+          CaptureObjectInstanceFilter leakFilter = myCaptureObject.getActivityFragmentLeakFilter();
+          myLeakCount = leakFilter != null ?
+                        ((ClassifierSet)node.getAdapter()).getInstanceFilterMatchCount(leakFilter) :
+                        0;
+          setToolTipText(myLeakCount > 1 ? "There are " + myLeakCount + " leaks" :
+                         myLeakCount > 0 ? "There is 1 leak" :
+                         null);
+        }
         setTextAlign(SwingConstants.LEFT);
+      }
+    };
+  }
+
+  private static Comparator<MemoryObjectTreeNode<ClassifierSet>> createTreeNodeComparator(
+    @NotNull Comparator<NativeCallStackSet> comparator) {
+    return (o1, o2) -> {
+      ClassifierSet firstArg = o1.getAdapter();
+      ClassifierSet secondArg = o2.getAdapter();
+      if (firstArg instanceof NativeCallStackSet && secondArg instanceof NativeCallStackSet) {
+        return comparator.compare((NativeCallStackSet)firstArg, (NativeCallStackSet)secondArg);
+      }
+      else {
+        return 0;
       }
     };
   }
@@ -676,8 +852,8 @@ final class MemoryClassifierView extends AspectObserver {
    * @return a {@link Comparator} that order all non-{@link ClassSet}s before {@link ClassSet}s, and orders according to the given
    * two params when the base class is the same
    */
-  private static Comparator<MemoryObjectTreeNode<ClassifierSet>> createTreeNodeComparator(@NotNull Comparator<ClassifierSet> classifierSetComparator,
-                                                                                          @NotNull Comparator<ClassSet> classSetComparator) {
+  private static Comparator<MemoryObjectTreeNode<ClassifierSet>> createTreeNodeComparator(
+    @NotNull Comparator<ClassifierSet> classifierSetComparator, @NotNull Comparator<ClassSet> classSetComparator) {
     return (o1, o2) -> {
       int compareResult;
       ClassifierSet firstArg = o1.getAdapter();
@@ -698,14 +874,7 @@ final class MemoryClassifierView extends AspectObserver {
     };
   }
 
-  /**
-   * Convenience method for {@link #createTreeNodeComparator(Comparator, Comparator)}.
-   */
-  private static Comparator<MemoryObjectTreeNode<ClassifierSet>> createTreeNodeComparator(@NotNull Comparator<ClassSet> classObjectComparator) {
-    return createTreeNodeComparator(Comparator.comparing(ClassifierSet::getName), classObjectComparator);
-  }
-
-  private static final class MemoryClassifierTreeNode extends LazyMemoryObjectTreeNode<ClassifierSet> {
+  private static class MemoryClassifierTreeNode extends LazyMemoryObjectTreeNode<ClassifierSet> {
     private MemoryClassifierTreeNode(@NotNull ClassifierSet classifierSet) {
       super(classifierSet, false);
     }

@@ -11,12 +11,9 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.run.PostBuildModel;
-import com.android.tools.idea.gradle.run.PostBuildModelProvider;
-import com.android.tools.idea.gradle.util.DynamicAppUtils;
-import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.gradle.run.AndroidDeviceSpecUtil;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
@@ -49,12 +46,10 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.WriteExternalException;
-import com.intellij.util.xmlb.annotations.Transient;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -87,11 +82,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   private final DeployTargetContext myDeployTargetContext = new DeployTargetContext();
   private final AndroidDebuggerContext myAndroidDebuggerContext = new AndroidDebuggerContext(AndroidJavaDebugger.ID);
-
-  @NotNull
-  @Transient
-  // This is needed instead of having the output model directly because the apk providers can be created before getting the model.
-  protected transient final DefaultPostBuildModelProvider myOutputProvider = new DefaultPostBuildModelProvider();
 
   public AndroidRunConfigurationBase(final Project project, final ConfigurationFactory factory, boolean androidTests) {
     super(new JavaRunConfigurationModule(project, false), factory);
@@ -186,7 +176,13 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
     errors.addAll(getDeployTargetContext().getCurrentDeployTargetState().validate(facet));
 
-    errors.addAll(getApkProvider(facet, getApplicationIdProvider(facet), new ArrayList<>()).validate());
+    ApkProvider apkProvider = getApkProvider(facet, null);
+    if (apkProvider != null) {
+      errors.addAll(apkProvider.validate());
+    }
+    else {
+      errors.add(ValidationError.fatal(AndroidBundle.message("android.run.configuration.not.supported", getId())));
+    }
 
     errors.addAll(checkConfiguration(facet));
     AndroidDebuggerState androidDebuggerState = myAndroidDebuggerContext.getAndroidDebuggerState();
@@ -321,11 +317,14 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       launchOptions.addExtraOptions(((LaunchOptionsProvider)executor).getLaunchOptions());
     }
 
-    ApkProvider apkProvider = getApkProvider(facet, applicationIdProvider, deviceFutures.getDevices());
+    // NOTE: getApkProvider() ignores the second argument and operates on the device specification passes to getApks() method later.
+    ApkProvider apkProvider = getApkProvider(facet, null);
+    if (apkProvider == null) return null;
     AndroidLaunchTasksProvider launchTasksProvider =
       new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions.build());
 
-    return new AndroidRunState(env, getName(), module, applicationIdProvider, getConsoleProvider(), deviceFutures, launchTasksProvider);
+    return new AndroidRunState(env, getName(), module, applicationIdProvider,
+                               getConsoleProvider(deviceFutures.getDevices().size() > 1), deviceFutures, launchTasksProvider);
   }
 
   private static String canDebug(@NotNull DeviceFutures deviceFutures, @NotNull AndroidFacet facet, @NotNull String moduleName) {
@@ -388,11 +387,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return null;
     }
 
-    final Project project = module.getProject();
-    if (AndroidProjectInfo.getInstance(project).requiredAndroidModelMissing()) {
-      return null;
-    }
-
     final AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null) {
       return null;
@@ -408,44 +402,27 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @NotNull
   public ApplicationIdProvider getApplicationIdProvider(@NotNull AndroidFacet facet) {
-    if (AndroidModel.get(facet) != null && AndroidModel.get(facet) instanceof AndroidModuleModel) {
-      return new GradleApplicationIdProvider(facet, myOutputProvider);
-    }
-    return new NonGradleApplicationIdProvider(facet);
+    return ProjectSystemUtil.getModuleSystem(facet).getApplicationIdProvider(this);
   }
 
-  @NotNull
-  protected abstract ApkProvider getApkProvider(@NotNull AndroidFacet facet,
-                                                @NotNull ApplicationIdProvider applicationIdProvider,
-                                                @NotNull List<AndroidDevice> targetDevices);
+  @Nullable
+  protected ApkProvider getApkProvider(@NotNull AndroidFacet facet, @Nullable AndroidDeviceSpec targetDeviceSpec) {
+    return ProjectSystemUtil.getModuleSystem(facet).getApkProvider(this, targetDeviceSpec);
+  }
+
+  public abstract boolean isTestConfiguration();
 
   @NotNull
-  protected abstract ConsoleProvider getConsoleProvider();
+  protected abstract ConsoleProvider getConsoleProvider(boolean runOnMultipleDevices);
 
   @Nullable
   protected abstract LaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
                                                          @NotNull AndroidFacet facet,
                                                          @NotNull String contributorsAmStartOptions,
                                                          boolean waitForDebugger,
-                                                         @NotNull LaunchStatus launchStatus);
+                                                         @NotNull LaunchStatus launchStatus,
+                                                         @NotNull ApkProvider apkProvider);
 
-  @NotNull
-  protected ApkProvider createGradleApkProvider(@NotNull AndroidFacet facet,
-                                                @NotNull ApplicationIdProvider applicationIdProvider,
-                                                boolean test,
-                                                @NotNull List<AndroidDevice> targetDevices) {
-    Computable<GradleApkProvider.OutputKind> outputKindProvider = () -> {
-      if (DynamicAppUtils.useSelectApksFromBundleBuilder(facet.getModule(), this, targetDevices)) {
-        return GradleApkProvider.OutputKind.AppBundleOutputModel;
-      }
-      else {
-        return GradleApkProvider.OutputKind.Default;
-      }
-    };
-    return new GradleApkProvider(facet, applicationIdProvider, myOutputProvider, test, outputKindProvider);
-  }
-
-  @NotNull
   public final DeviceCount getDeviceCount(boolean debug) {
     return DeviceCount.fromBoolean(supportMultipleDevices() && !debug);
   }
@@ -457,10 +434,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   public void updateExtraRunStats(RunStats runStats) {
 
-  }
-
-  public void setOutputModel(@NotNull PostBuildModel outputModel) {
-    myOutputProvider.setOutputModel(outputModel);
   }
 
   @Override
@@ -516,19 +489,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return myProfilerState;
   }
 
-  private static class DefaultPostBuildModelProvider implements PostBuildModelProvider {
-    @Nullable
-    @Transient
-    private transient PostBuildModel myBuildOutputs = null;
-
-    public void setOutputModel(@NotNull PostBuildModel postBuildModel) {
-      myBuildOutputs = postBuildModel;
-    }
-
-    @Nullable
-    @Override
-    public PostBuildModel getPostBuildModel() {
-      return myBuildOutputs;
-    }
+  /**
+   * Returns whether this configuration can run in Android Profiler.
+   */
+  public boolean isProfilable() {
+    return true;
   }
 }

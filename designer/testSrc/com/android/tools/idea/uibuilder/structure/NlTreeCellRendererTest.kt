@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.structure
 import com.android.tools.idea.common.util.XmlTagUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.MockNlComponent
+import com.android.tools.idea.uibuilder.util.MockNlComponent
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleUtilCore
@@ -55,7 +56,8 @@ class NlTreeCellRendererTest {
   @Test
   fun displayButton() {
     val badgeHandler = mock(NlTreeBadgeHandler::class.java)
-    val tree = NlComponentTree(projectRule.project, null)
+    val panel = mock(NlVisibilityGutterPanel::class.java)
+    val tree = NlComponentTree(projectRule.project, null, panel)
     UIUtil.putClientProperty(tree, ExpandableItemsHandler.EXPANDED_RENDERER, true)
     val button = MockNlComponent.create(
       ApplicationManager.getApplication().runReadAction<XmlTag> {

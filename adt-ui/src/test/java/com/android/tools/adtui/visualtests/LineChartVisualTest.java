@@ -101,8 +101,8 @@ public class LineChartVisualTest extends VisualTest {
 
     List<Updatable> componentsList = new ArrayList<>();
 
-    RangeSelectionModel selection = new RangeSelectionModel(new Range(0, 0));
-    myRangeSelectionComponent = new RangeSelectionComponent(selection, timeGlobalRangeUs);
+    RangeSelectionModel selection = new RangeSelectionModel(new Range(0, 0), timeGlobalRangeUs);
+    myRangeSelectionComponent = new RangeSelectionComponent(selection);
     myOverlayComponent = new OverlayComponent(myRangeSelectionComponent);
 
     // Add the scene components to the list

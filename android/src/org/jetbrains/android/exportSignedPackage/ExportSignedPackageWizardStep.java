@@ -21,9 +21,6 @@ import com.intellij.ide.wizard.StepAdapter;
 
 import javax.swing.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public abstract class ExportSignedPackageWizardStep extends StepAdapter {
   private int previousStepIndex = -1;
 

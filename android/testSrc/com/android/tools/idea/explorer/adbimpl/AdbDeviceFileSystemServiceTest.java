@@ -30,6 +30,7 @@ import com.android.tools.idea.testing.Sdks;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.util.Disposer;
 import java.io.File;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -38,7 +39,6 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 
 public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
-
   private Supplier<File> adbSupplier = () -> AndroidSdkUtils.getAdb(getProject());
   private IdeComponents ideComponents;
 
@@ -57,18 +57,14 @@ public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    try {
-      // We need this call so that we don't leak a thread (the ADB Monitor thread)
-      AdbService.getInstance().terminateDdmlib();
-    }
-    finally {
-      super.tearDown();
-    }
+    super.tearDown();
+    // This assumes that ADB is terminated on project close
+    assertNull("AndroidDebugBridge should have been terminated", AndroidDebugBridge.getBridge());
   }
 
   public void testStartService() throws InterruptedException, ExecutionException, TimeoutException {
     // Prepare
-    AdbDeviceFileSystemService service = new AdbDeviceFileSystemService();
+    AdbDeviceFileSystemService service = AdbDeviceFileSystemService.getInstance(getProject());
 
     // Act
     pumpEventsAndWaitForFuture(service.start(adbSupplier));
@@ -79,9 +75,24 @@ public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
     assertNotNull(pumpEventsAndWaitForFuture(service.getDevices()));
   }
 
+  public void testDebugBridgeListenersRemovedOnDispose() {
+    // Prepare
+    AdbDeviceFileSystemService service = AdbDeviceFileSystemService.getInstance(getProject());
+    pumpEventsAndWaitForFuture(service.start(adbSupplier));
+    assertEquals(1, AndroidDebugBridge.getDebugBridgeChangeListenerCount());
+    assertEquals(1, AndroidDebugBridge.getDeviceChangeListenerCount());
+
+    // Act
+    Disposer.dispose(service);
+
+    // Assert
+    assertEquals(0, AndroidDebugBridge.getDebugBridgeChangeListenerCount());
+    assertEquals(0, AndroidDebugBridge.getDeviceChangeListenerCount());
+  }
+
   public void testStartAlreadyStartedService() throws InterruptedException, ExecutionException, TimeoutException {
     // Prepare
-    AdbDeviceFileSystemService service = new AdbDeviceFileSystemService();
+    AdbDeviceFileSystemService service = AdbDeviceFileSystemService.getInstance(getProject());
 
     // Act
     service.start(adbSupplier);
@@ -95,7 +106,7 @@ public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
 
   public void testStartServiceFailsIfAdbIsNull() {
     // Prepare
-    AdbDeviceFileSystemService service = new AdbDeviceFileSystemService();
+    AdbDeviceFileSystemService service = AdbDeviceFileSystemService.getInstance(getProject());
 
     // Act
     Throwable throwable = pumpEventsAndWaitForFutureException(service.start(() -> null));
@@ -106,7 +117,7 @@ public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
 
   public void testRestartService() throws InterruptedException, ExecutionException, TimeoutException {
     // Prepare
-    AdbDeviceFileSystemService service = new AdbDeviceFileSystemService();
+    AdbDeviceFileSystemService service = AdbDeviceFileSystemService.getInstance(getProject());
     pumpEventsAndWaitForFuture(service.start(adbSupplier));
 
     // Act
@@ -120,7 +131,7 @@ public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
 
   public void testRestartNonStartedService() throws InterruptedException, ExecutionException, TimeoutException {
     // Prepare
-    AdbDeviceFileSystemService service = new AdbDeviceFileSystemService();
+    AdbDeviceFileSystemService service = AdbDeviceFileSystemService.getInstance(getProject());
 
     // Act
     pumpEventsAndWaitForFuture(service.restart(adbSupplier));
@@ -137,10 +148,11 @@ public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
     when(mockAdbService.getDebugBridge(any(File.class))).thenReturn(Futures.immediateFuture(mock(AndroidDebugBridge.class)));
     doThrow(new RuntimeException()).when(mockAdbService).terminateDdmlib();
 
-    AdbDeviceFileSystemService service = new AdbDeviceFileSystemService();
+    AdbDeviceFileSystemService service = AdbDeviceFileSystemService.getInstance(getProject());
     pumpEventsAndWaitForFuture(service.start(adbSupplier));
 
     // Act
+    //noinspection ThrowableNotThrown
     Throwable t = pumpEventsAndWaitForFutureException(service.restart(adbSupplier));
 
     doNothing().when(mockAdbService).terminateDdmlib();
@@ -148,7 +160,7 @@ public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
 
   public void testGetDebugBridgeFailure() {
     // Prepare
-    AdbDeviceFileSystemService service = new AdbDeviceFileSystemService();
+    AdbDeviceFileSystemService service = AdbDeviceFileSystemService.getInstance(getProject());
 
     AdbService mockAdbService = ideComponents.mockApplicationService(AdbService.class);
     when(mockAdbService.getDebugBridge(any(File.class))).thenReturn(Futures.immediateFailedFuture(new RuntimeException("test fail")));
@@ -162,12 +174,13 @@ public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
 
   public void testGetDebugBridgeFailureNoMessage() {
     // Prepare
-    AdbDeviceFileSystemService service = new AdbDeviceFileSystemService();
+    AdbDeviceFileSystemService service = AdbDeviceFileSystemService.getInstance(getProject());
 
     AdbService mockAdbService = ideComponents.mockApplicationService(AdbService.class);
     when(mockAdbService.getDebugBridge(any(File.class))).thenReturn(Futures.immediateFailedFuture(new RuntimeException()));
 
     // Act
+    //noinspection ThrowableNotThrown
     pumpEventsAndWaitForFutureException(service.start(adbSupplier));
   }
 }

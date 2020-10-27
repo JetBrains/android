@@ -15,12 +15,12 @@
  */
 package com.android.tools.profilers.memory;
 
-import static com.android.tools.profilers.memory.MemoryClassSetView.InstanceTreeNode;
-import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CALLSTACK;
-import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
-import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
+import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_CALLSTACK;
+import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_CLASS;
+import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_PACKAGE;
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildClassSetWithName;
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildWithPredicate;
+import static com.android.tools.profilers.memory.adapters.MemoryObject.INVALID_VALUE;
 import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.OBJECT;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotNull;
@@ -29,26 +29,26 @@ import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.ClassSet;
-import com.android.tools.profilers.memory.adapters.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject;
 import com.android.tools.profilers.memory.adapters.FakeFieldObject;
 import com.android.tools.profilers.memory.adapters.FakeInstanceObject;
 import com.android.tools.profilers.memory.adapters.FakeInstanceObject.Builder;
 import com.android.tools.profilers.memory.adapters.FieldObject;
-import com.android.tools.profilers.memory.adapters.HeapSet;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.intellij.util.containers.ImmutableList;
 import java.util.ArrayList;
@@ -92,7 +92,7 @@ public class MemoryClassSetViewTest {
 
   @Before
   public void before() {
-    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), new FakeIdeProfilerServices(), myTimer);
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), new FakeIdeProfilerServices(), myTimer);
     StudioProfilersView profilersView = new StudioProfilersView(profilers, myFakeIdeProfilerComponents);
 
     FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
@@ -112,7 +112,7 @@ public class MemoryClassSetViewTest {
 
     myStage.selectCaptureDuration(
       new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myCaptureObject)), null);
-    myStage.selectHeapSet(myCaptureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID));
+    myStage.getCaptureSelection().selectHeapSet(myCaptureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID));
 
     myClassifierSetTree = myStageView.getClassifierView().getTree();
     assertNotNull(myClassifierSetTree);
@@ -125,7 +125,7 @@ public class MemoryClassSetViewTest {
     myClassSetView = myStageView.getClassSetView();
     ClassifierSet classifierSet = myClassifierSetHeapNode.getAdapter().findContainingClassifierSet(myInstanceObjects.get(0));
     assertThat(classifierSet).isInstanceOf(ClassSet.class);
-    myStage.selectClassSet((ClassSet)classifierSet);
+    myStage.getCaptureSelection().selectClassSet((ClassSet)classifierSet);
 
     myClassSetTree = myClassSetView.getTree();
     assertNotNull(myClassSetTree);
@@ -150,7 +150,7 @@ public class MemoryClassSetViewTest {
   @Test
   public void testSelectInstanceToShowInInstanceView() {
     assertThat(myClassSetTree.getSelectionCount()).isEqualTo(0);
-    myStage.selectInstanceObject(myInstanceObjects.get(0));
+    myStage.getCaptureSelection().selectInstanceObject(myInstanceObjects.get(0));
     assertThat(myClassSetTree.getSelectionCount()).isEqualTo(1);
     assertThat(myClassSetTree.getLastSelectedPathComponent()).isInstanceOf(MemoryObjectTreeNode.class);
     assertThat(((MemoryObjectTreeNode)myClassSetTree.getLastSelectedPathComponent()).getAdapter()).isEqualTo(myInstanceObjects.get(0));
@@ -158,7 +158,7 @@ public class MemoryClassSetViewTest {
 
   @Test
   public void testTreeSelectionTriggersInstanceSelection() {
-    MemoryAspectObserver observer = new MemoryAspectObserver(myStage.getAspect());
+    MemoryAspectObserver observer = new MemoryAspectObserver(myStage.getAspect(),  myStage.getCaptureSelection().getAspect());
 
     // Selects the first instance object.
     MemoryObjectTreeNode firstNode = (MemoryObjectTreeNode)((MemoryObjectTreeNode)myClassSetTree.getModel().getRoot()).getChildAt(0);
@@ -188,14 +188,21 @@ public class MemoryClassSetViewTest {
       InstanceObject instance = myInstanceObjects.get(2 - i);
       treeInfo.verifyRendererValues(root.getChildAt(i),
                                     new String[]{instance.getName(), null, instance.getValueText(), null, instance.getToStringText()},
-                                    new String[]{""},
-                                    new String[]{""},
+                                    new String[]{"-"},
+                                    new String[]{"-"},
                                     new String[]{(instance.getDepth() >= 0 && instance.getDepth() < Integer.MAX_VALUE) ?
-                                                 NumberFormatter.formatInteger(instance.getDepth()) : ""},
-                                    new String[]{NumberFormatter.formatInteger(instance.getNativeSize())},
-                                    new String[]{NumberFormatter.formatInteger(instance.getShallowSize())},
-                                    new String[]{NumberFormatter.formatInteger(instance.getRetainedSize())});
+                                                 NumberFormatter.formatInteger(instance.getDepth()) : "-"},
+                                    new String[]{formatSize(instance.getNativeSize())},
+                                    new String[]{formatSize(instance.getShallowSize())},
+                                    new String[]{formatSize(instance.getRetainedSize())});
     }
+  }
+
+  /**
+   * Return text representation of the size, except nothing when it is the special "invalid" value
+   */
+  private static String formatSize(long size) {
+    return size == INVALID_VALUE ? "-" : NumberFormatter.formatInteger(size);
   }
 
   @Test
@@ -204,7 +211,7 @@ public class MemoryClassSetViewTest {
     final String TEST_CLASS_NAME = "com.Foo";
     final String TEST_FIELD_NAME = "com.Field";
 
-    MemoryAspectObserver aspectObserver = new MemoryAspectObserver(myStage.getAspect());
+    MemoryAspectObserver aspectObserver = new MemoryAspectObserver(myStage.getAspect(), myStage.getCaptureSelection().getAspect());
 
     CodeLocation codeLocationFoo = new CodeLocation.Builder("Foo").setMethodName("fooMethod1").setLineNumber(5).build();
     CodeLocation codeLocationBar = new CodeLocation.Builder("Bar").setMethodName("barMethod1").setLineNumber(20).build();
@@ -253,18 +260,18 @@ public class MemoryClassSetViewTest {
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
                              null);
 
-    assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
-    assertThat(myStage.getSelectedHeapSet()).isNotNull();
-    assertThat(myStage.getSelectedHeapSet().getId()).isEqualTo(FakeCaptureObject.DEFAULT_HEAP_ID);
-    myStage.selectClassSet(findChildClassSetWithName(myStage.getSelectedHeapSet(), TEST_CLASS_NAME));
-    myStage.selectInstanceObject(instanceFoo);
-    myStage.selectFieldObjectPath(Collections.singletonList(fieldFoo));
+    assertThat(myStage.getCaptureSelection().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
+    assertThat(myStage.getCaptureSelection().getSelectedHeapSet()).isNotNull();
+    assertThat(myStage.getCaptureSelection().getSelectedHeapSet().getId()).isEqualTo(FakeCaptureObject.DEFAULT_HEAP_ID);
+    myStage.getCaptureSelection().selectClassSet(findChildClassSetWithName(myStage.getCaptureSelection().getSelectedHeapSet(), TEST_CLASS_NAME));
+    myStage.getCaptureSelection().selectInstanceObject(instanceFoo);
+    myStage.getCaptureSelection().selectFieldObjectPath(Collections.singletonList(fieldFoo));
     aspectObserver.assertAndResetCounts(0, 1, 1, 0, 2, 2, 1, 1);
 
-    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_CALLSTACK);
+    myStage.getCaptureSelection().setClassGrouping(ARRANGE_BY_CALLSTACK);
     aspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 1, 2, 2);
-    assertThat(myStage.getSelectedInstanceObject()).isEqualTo(instanceFoo);
-    assertThat(myStage.getSelectedFieldObjectPath()).isEqualTo(Collections.singletonList(fieldFoo));
+    assertThat(myStage.getCaptureSelection().getSelectedInstanceObject()).isEqualTo(instanceFoo);
+    assertThat(myStage.getCaptureSelection().getSelectedFieldObjectPath()).isEqualTo(Collections.singletonList(fieldFoo));
 
     myClassSetTree = myClassSetView.getTree();
     assertThat(myClassSetTree).isNotNull();
@@ -276,10 +283,10 @@ public class MemoryClassSetViewTest {
     findChildWithPredicate(findChildWithPredicate(myClassSetRootNode, instance -> instance == instanceFoo),
                            field -> Objects.equals(field, fieldFoo));
 
-    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
+    myStage.getCaptureSelection().setClassGrouping(ARRANGE_BY_PACKAGE);
     aspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 1, 2, 2);
-    assertThat(myStage.getSelectedInstanceObject()).isEqualTo(instanceFoo);
-    assertThat(myStage.getSelectedFieldObjectPath()).isEqualTo(Collections.singletonList(fieldFoo));
+    assertThat(myStage.getCaptureSelection().getSelectedInstanceObject()).isEqualTo(instanceFoo);
+    assertThat(myStage.getCaptureSelection().getSelectedFieldObjectPath()).isEqualTo(Collections.singletonList(fieldFoo));
 
     Supplier<CodeLocation> codeLocationSupplier = myFakeIdeProfilerComponents.getCodeLocationSupplier(myClassSetTree);
 
@@ -297,21 +304,30 @@ public class MemoryClassSetViewTest {
 
   @Test
   public void testInstanceTreeNodeExpansion() {
-    InstanceTreeNode instanceTreeNode0 = new InstanceTreeNode(myInstanceObjects.get(0));
-    InstanceTreeNode instanceTreeNode1 = new InstanceTreeNode(myInstanceObjects.get(1));
-    InstanceTreeNode instanceTreeNode2 = new InstanceTreeNode(myInstanceObjects.get(2));
-    assertThat(instanceTreeNode0.getBuiltChildren().size()).isEqualTo(0);
-    assertThat(instanceTreeNode1.getBuiltChildren().size()).isEqualTo(0);
-    assertThat(instanceTreeNode2.getBuiltChildren().size()).isEqualTo(0);
-    instanceTreeNode0.expandNode();
-    instanceTreeNode1.expandNode();
-    instanceTreeNode2.expandNode();
-    assertThat(instanceTreeNode0.getBuiltChildren().size()).isEqualTo(0);
-    assertThat(instanceTreeNode0.getBuiltChildren().stream().allMatch(node -> node.getAdapter() instanceof FieldObject)).isTrue();
-    assertThat(instanceTreeNode1.getBuiltChildren().size()).isEqualTo(1);
-    assertThat(instanceTreeNode1.getBuiltChildren().stream().allMatch(node -> node.getAdapter() instanceof FieldObject)).isTrue();
-    assertThat(instanceTreeNode2.getBuiltChildren().size()).isEqualTo(5);
-    assertThat(instanceTreeNode2.getBuiltChildren().stream().allMatch(node -> node.getAdapter() instanceof FieldObject)).isTrue();
+    InstanceDetailsTreeNode instanceTreeNode0 = new InstanceDetailsTreeNode(myInstanceObjects.get(0));
+    InstanceDetailsTreeNode instanceTreeNode1 = new InstanceDetailsTreeNode(myInstanceObjects.get(1));
+    InstanceDetailsTreeNode instanceTreeNode2 = new InstanceDetailsTreeNode(myInstanceObjects.get(2));
+    List<InstanceDetailsTreeNode> nodes = Arrays.asList(instanceTreeNode0, instanceTreeNode1, instanceTreeNode2);
+    nodes.forEach(n -> assertChildCount(n, 0));
+    nodes.forEach(LazyMemoryObjectTreeNode::expandNode);
+    assertChildCount(instanceTreeNode0, 0);
+    assertChildCount(instanceTreeNode1, 1);
+    assertChildCount(instanceTreeNode2, 5);
+    nodes.forEach(n -> assertThat(n.getBuiltChildren().stream().allMatch(c -> c.getAdapter() instanceof FieldObject)).isTrue());
+  }
+
+  @Test
+  public void testLeafNodeExpansion() {
+    myInstanceObjects.forEach(o -> {
+      LeafNode<InstanceObject> node = new LeafNode<>(o);
+      assertChildCount(node, 0);
+      node.expandNode();
+      assertChildCount(node, 0);
+    });
+  }
+
+  private static void assertChildCount(LazyMemoryObjectTreeNode<?> node, int count) {
+    assertThat(node.getBuiltChildren().size()).isEqualTo(count);
   }
 
   @Test
@@ -329,7 +345,7 @@ public class MemoryClassSetViewTest {
     myStage.selectCaptureDuration(
       new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myCaptureObject)),
       null);
-    myStage.selectHeapSet(myCaptureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID));
+    myStage.getCaptureSelection().selectHeapSet(myCaptureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID));
 
     myClassifierSetTree = myStageView.getClassifierView().getTree();
     assertThat(myClassifierSetTree).isNotNull();
@@ -341,7 +357,7 @@ public class MemoryClassSetViewTest {
 
     ClassifierSet classifierSet = myClassifierSetHeapNode.getAdapter().findContainingClassifierSet(fakeInstances.get(0));
     assertThat(classifierSet).isInstanceOf(ClassSet.class);
-    myStage.selectClassSet((ClassSet)classifierSet);
+    myStage.getCaptureSelection().selectClassSet((ClassSet)classifierSet);
 
     myClassSetTree = myClassSetView.getTree();
     assertThat(myClassSetTree).isNotNull();
@@ -374,17 +390,17 @@ public class MemoryClassSetViewTest {
     ClassSet classSet = (ClassSet)myClassSetRootNode.getAdapter();
 
     // Select MockInstance1
-    myStage.selectInstanceObject(myInstanceObjects.get(0));
-    assertThat(myStage.getSelectedInstanceObject()).isEqualTo(myInstanceObjects.get(0));
+    myStage.getCaptureSelection().selectInstanceObject(myInstanceObjects.get(0));
+    assertThat(myStage.getCaptureSelection().getSelectedInstanceObject()).isEqualTo(myInstanceObjects.get(0));
 
     // Remove MockInstance2 and refresh selected heap, myStage should still select MockInstance1
     classSet.removeAddedDeltaInstanceObject(myInstanceObjects.get(1));
-    myStage.refreshSelectedHeap();
-    assertThat(myStage.getSelectedInstanceObject()).isEqualTo(myInstanceObjects.get(0));
+    myStage.getCaptureSelection().refreshSelectedHeap();
+    assertThat(myStage.getCaptureSelection().getSelectedInstanceObject()).isEqualTo(myInstanceObjects.get(0));
 
     // Remove MockInstance1 and refresh selected heap, myStage should not select any InstanceObject
     classSet.removeAddedDeltaInstanceObject(myInstanceObjects.get(0));
-    myStage.refreshSelectedHeap();
-    assertThat(myStage.getSelectedInstanceObject()).isNull();
+    myStage.getCaptureSelection().refreshSelectedHeap();
+    assertThat(myStage.getCaptureSelection().getSelectedInstanceObject()).isNull();
   }
 }

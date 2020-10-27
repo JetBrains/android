@@ -57,6 +57,11 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
   }
 
   @NotNull
+  public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> clickNextWearModule() {
+    clickNextToStep(message("android.wizard.module.new.wear"), message("android.wizard.module.new.wear"));
+    return new ConfigureAndroidModuleStepFixture<>(this, target().getRootPane());
+  }
+  @NotNull
   public ConfigureDynamicFeatureStepFixture<NewModuleWizardFixture> clickNextToDynamicFeature() {
     clickNextToStep(message("android.wizard.module.new.dynamic.module"), message("android.wizard.module.config.title"));
     return new ConfigureDynamicFeatureStepFixture<>(this, target().getRootPane());
@@ -76,13 +81,19 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
 
   @NotNull
   public ConfigureLibraryStepFixture<NewModuleWizardFixture> clickNextToJavaLibrary() {
-    clickNextToStep(message("android.wizard.module.new.java.or.kotlin.library"), message("android.wizard.module.config.title"));
+    clickNextToStep(
+      message("android.wizard.module.new.java.or.kotlin.library"),
+      message("android.wizard.module.new.java.or.kotlin.library")
+    );
     return new ConfigureLibraryStepFixture<>(this, target().getRootPane());
   }
 
   @NotNull
   public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> clickNextToBenchmarkModule() {
-    clickNextToStep(message("android.wizard.module.new.benchmark.module.app"), message("android.wizard.module.config.title"));
+    clickNextToStep(
+      message("android.wizard.module.new.benchmark.module.app"),
+      message("android.wizard.module.new.benchmark.module.app")
+    );
     return new ConfigureAndroidModuleStepFixture<>(this, target().getRootPane());
   }
 
@@ -103,11 +114,17 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
       () -> robot().finder().findAll(target(), JLabelMatcher.withText(nextStepTitle).andShowing()).size() == 1);
   }
 
-  @NotNull
-  public IdeFrameFixture clickFinish() {
+  private void clickFinish() {
     super.clickFinish(Wait.seconds(10));
-    GuiTests.waitForProjectIndexingToFinish(myIdeFrameFixture.getProject());
+  }
 
-    return myIdeFrameFixture;
+  @NotNull
+  public IdeFrameFixture clickFinishAndWaitForSyncToFinish() {
+    return myIdeFrameFixture.actAndWaitForGradleProjectSyncToFinish(it -> clickFinish());
+  }
+
+  @NotNull
+  public IdeFrameFixture clickFinishAndWaitForSyncToFinish(@NotNull Wait waitSync) {
+    return myIdeFrameFixture.actAndWaitForGradleProjectSyncToFinish(waitSync, it -> clickFinish());
   }
 }

@@ -17,13 +17,14 @@ package com.android.tools.idea.npw.template.components
 
 import com.android.tools.idea.observable.AbstractProperty
 import com.android.tools.idea.observable.ui.SelectedProperty
-import com.android.tools.idea.templates.Parameter
+import com.android.tools.idea.wizard.template.BooleanParameter
+import com.android.tools.idea.wizard.template.Parameter
 import javax.swing.JCheckBox
 
 /**
- * Provides a checkbox well suited for handling [Parameter.Type.BOOLEAN] parameters.
+ * Provides a checkbox well suited for handling [BooleanParameter].
  */
-class CheckboxProvider(parameter: Parameter) : ParameterComponentProvider<JCheckBox>(parameter) {
-  override fun createComponent(parameter: Parameter): JCheckBox = JCheckBox(parameter.name)
+class CheckboxProvider(parameter: BooleanParameter) : ParameterComponentProvider<JCheckBox>(parameter) {
+  override fun createComponent(parameter: Parameter<*>): JCheckBox = JCheckBox(parameter.name)
   override fun createProperty(component: JCheckBox): AbstractProperty<*>? = SelectedProperty(component)
 }

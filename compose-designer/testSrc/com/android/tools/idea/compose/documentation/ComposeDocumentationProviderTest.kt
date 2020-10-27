@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.compose.documentation
 
-import com.android.testutils.TestUtils
 import com.android.tools.adtui.imagediff.ImageDiffUtil
+import com.android.tools.idea.compose.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.rendering.NoSecurityManagerRenderService
-import com.android.tools.idea.rendering.RenderService
-import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VfsUtil
@@ -29,38 +26,26 @@ import com.intellij.psi.PsiManager
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.junit.After
-import org.junit.Assert
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.awt.image.BufferedImage
 import java.io.File
-import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class ComposeDocumentationProviderTest {
   @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
 
   @Before
   fun setUp() {
     StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
     StudioFlags.COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION.override(true)
-
-    RenderService.shutdownRenderExecutor(5)
-    RenderService.initializeRenderExecutor()
-    RenderService.setForTesting(projectRule.project, NoSecurityManagerRenderService(projectRule.project))
-    projectRule.fixture.testDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/compose-designer/testData").path
-    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH)
-    projectRule.requestSyncAndWait()
-
-    Assert.assertTrue("The project must compile correctly for the test to pass",
-                      projectRule.invokeTasks("compileDebugSources").isBuildSuccessful)
   }
 
   @After
   fun tearDown() {
-    RenderService.setForTesting(projectRule.project, null)
     StudioFlags.COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION.clearOverride()
     StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
   }
@@ -71,7 +56,6 @@ class ComposeDocumentationProviderTest {
     val activityFile = VfsUtil.findRelativeFile("app/src/main/java/google/simpleapplication/MainActivity.kt",
                                                 ProjectRootManager.getInstance(project).contentRoots[0])!!
 
-    val executor = Executors.newSingleThreadExecutor()
     val composeDocProvider = ComposeDocumentationProvider()
     val previewMethod = ReadAction.compute<KtNamedFunction, Throwable> {
       val ktFile = PsiManager.getInstance(project).findFile(activityFile) as KtFile
@@ -85,7 +69,7 @@ class ComposeDocumentationProviderTest {
     // Check that we've correctly generated the preview tag
     assertTrue(generatedDoc.contains("<img src='file://DefaultPreview' alt='preview:DefaultPreview' width='\\d+' height='\\d+'>".toRegex()))
 
-    val previewImage = composeDocProvider.getLocalImageForElement(previewMethod, "DefaultPreview") as BufferedImage
+    val previewImage = composeDocProvider.getLocalImageForElementAsync(previewMethod).get(5, TimeUnit.SECONDS) as BufferedImage
     ImageDiffUtil.assertImageSimilar(File("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender.png"),
                                      previewImage,
                                      0.0)

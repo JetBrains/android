@@ -21,9 +21,6 @@ import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.android.tools.adtui.validation.Validator.Severity.WARNING;
 import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static com.android.tools.idea.npw.platform.AndroidVersionsInfoKt.getSdkManagerLocalPath;
-import static com.android.tools.idea.npw.ui.ActivityGallery.getCppIcon;
-import static com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.ANDROIDX;
-import static com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.KOTLIN;
 import static com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
 import static java.lang.String.format;
@@ -34,12 +31,12 @@ import com.android.repository.api.UpdatablePackage;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.idea.npw.FormFactor;
+import com.android.tools.idea.device.FormFactor;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.NewProjectModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem;
-import com.android.tools.idea.npw.platform.Language;
-import com.android.tools.idea.npw.template.TemplateHandle;
+import com.android.tools.idea.npw.template.components.BytecodeLevelComboProvider;
 import com.android.tools.idea.npw.template.components.LanguageComboProvider;
 import com.android.tools.idea.npw.ui.ActivityGallery;
 import com.android.tools.idea.npw.ui.TemplateIcon;
@@ -62,6 +59,8 @@ import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.android.tools.idea.wizard.template.BytecodeLevel;
+import com.android.tools.idea.wizard.template.Language;
 import com.android.tools.idea.wizard.template.Template;
 import com.android.tools.idea.wizard.template.TemplateConstraint;
 import com.google.common.collect.Lists;
@@ -78,8 +77,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -112,6 +109,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JBLabel myTemplateIconTitle;
   private JBLabel myTemplateIconDetail;
   private JPanel myFormFactorSdkControlsPanel;
+  private JBCheckBox myGradleKtsCheck;
   private FormFactorSdkControls myFormFactorSdkControls;
 
   public ConfigureAndroidProjectStep(@NotNull NewProjectModuleModel newProjectModuleModel, @NotNull NewProjectModel projectModel) {
@@ -170,6 +168,12 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myBindings.bindTwoWay(new SelectedItemProperty<>(myProjectLanguage), myProjectModel.getLanguage());
     myBindings.bindTwoWay(myProjectModel.getUseAppCompat(), new SelectedProperty(myAppCompatCheck));
+    if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()) {
+      myBindings.bindTwoWay(myProjectModel.getUseGradleKts(), new SelectedProperty(myGradleKtsCheck));
+    }
+    else {
+      myGradleKtsCheck.setVisible(false);
+    }
 
     myValidatorPanel.registerValidator(myProjectModel.getApplicationName(), new ProjectNameValidator());
 
@@ -189,7 +193,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myProjectLocation.addBrowseFolderListener(null, null, null, createSingleFolderDescriptor());
 
-    myListeners.listenAll(getModel().formFactor, myProjectModel.getEnableCppSupport()).withAndFire(() -> {
+    myListeners.listenAndFire(getModel().formFactor, () -> {
       FormFactor formFactor = getModel().formFactor.get();
 
       myFormFactorSdkControls.showStatsPanel(formFactor == FormFactor.MOBILE);
@@ -197,34 +201,24 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       myTvCheck.setVisible(formFactor == FormFactor.TV);
     });
 
-    myListeners.listenAndFire(androidSdkInfo, () -> updateAppCompatCheckBox());
-    myListeners.listenAndFire(androidSdkInfo, sender -> updateAppCompatCheckBox());
+    myListeners.listen(androidSdkInfo, () -> updateAppCompatCheckBox());
   }
 
   @Override
   protected void onEntering() {
     FormFactor formFactor = getModel().formFactor.get();
-    TemplateHandle templateHandle = getModel().renderTemplateHandle.getValueOrNull();
-    Template newTemplate = getModel().newRenderTemplate.getValueOrNull();
-    assert(templateHandle == null || newTemplate == null);
+    Template newTemplate = getModel().newRenderTemplate.getValue();
 
-    int minSdk = templateHandle == null
-      ? newTemplate == null ? formFactor.getMinOfflineApiLevel() : newTemplate.getMinSdk()
-      : templateHandle.getMetadata().getMinSdk();
+    int minSdk = newTemplate.getMinSdk();
 
     myFormFactorSdkControls.startDataLoading(formFactor, minSdk);
     boolean isKotlinOnly;
-    if (newTemplate != null) {
-      setTemplateThumbnail(newTemplate);
-      isKotlinOnly = newTemplate.getConstraints().contains(TemplateConstraint.Kotlin);
-    } else {
-      setTemplateThumbnail(templateHandle);
-      isKotlinOnly = templateHandle != null && templateHandle.getMetadata().getConstraints().contains(KOTLIN);
-    }
+    setTemplateThumbnail(newTemplate);
+    isKotlinOnly = newTemplate.getConstraints().contains(TemplateConstraint.Kotlin);
 
     myProjectLanguage.setEnabled(!isKotlinOnly);
     if (isKotlinOnly) {
-      myProjectModel.getLanguage().setValue(Language.KOTLIN);
+      myProjectModel.getLanguage().setValue(Language.Kotlin);
     }
     updateAppCompatCheckBox();
   }
@@ -283,30 +277,18 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     return projectDirectory.getPath();
   }
 
-  private void setTemplateThumbnail(@Nullable TemplateHandle templateHandle) {
-    setTemplateThumbnail(
-      ActivityGallery.getTemplateIcon(templateHandle),
-      ActivityGallery.getTemplateImageLabel(templateHandle),
-      ActivityGallery.getTemplateDescription(templateHandle)
-    );
-  }
-
   private void setTemplateThumbnail(@NotNull Template template) {
     setTemplateThumbnail(ActivityGallery.getTemplateIcon(template), template.getName(), template.getDescription());
   }
 
-  private void setTemplateThumbnail(@Nullable TemplateIcon defaultIcon, @NotNull String name, @NotNull String description) {
-    boolean isCppTemplate = myProjectModel.getEnableCppSupport().get();
-    TemplateIcon icon = isCppTemplate ? getCppIcon() : defaultIcon;
+  private void setTemplateThumbnail(@Nullable TemplateIcon icon, @NotNull String name, @NotNull String description) {
     if (icon != null) {
       icon.cropBlankWidth();
       icon.setHeight(256);
       myTemplateIconTitle.setIcon(icon);
-      myTemplateIconTitle.setText(isCppTemplate ? message("android.wizard.gallery.item.add.cpp") : name);
+      myTemplateIconTitle.setText(name);
 
-      myTemplateIconDetail.setText(
-        "<html>" + (isCppTemplate ? message("android.wizard.gallery.item.add.cpp.Desc") : description) + "</html>"
-      );
+      myTemplateIconDetail.setText("<html>" + description + "</html>");
     }
     myTemplateIconTitle.setVisible(icon != null);
     myTemplateIconDetail.setVisible(icon != null);
@@ -314,18 +296,10 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
   private void updateAppCompatCheckBox() {
     VersionItem androidVersion = getModel().androidSdkInfo().getValueOrNull();
+    Template template = getModel().newRenderTemplate.getValueOrNull();
+
     boolean isAndroidxApi = androidVersion != null && androidVersion.getMinApiLevel() >= Q; // No more app-compat after Q
-
-    TemplateHandle templateHandle = getModel().renderTemplateHandle.getValueOrNull();
-    Template newTemplate = getModel().newRenderTemplate.getValueOrNull();
-    assert(templateHandle == null || newTemplate == null);
-
-    boolean hasAndroidxConstraint;
-    if (newTemplate != null) {
-      hasAndroidxConstraint = newTemplate.getConstraints().contains(TemplateConstraint.AndroidX);
-    } else {
-      hasAndroidxConstraint = templateHandle != null && templateHandle.getMetadata().getConstraints().contains(ANDROIDX);
-    }
+    boolean hasAndroidxConstraint = template != null && template.getConstraints().contains(TemplateConstraint.AndroidX);
 
     if (isAndroidxApi || hasAndroidxConstraint) {
       myAppCompatCheck.setSelected(false);

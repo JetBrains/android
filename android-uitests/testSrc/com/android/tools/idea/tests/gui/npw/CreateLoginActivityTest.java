@@ -67,9 +67,7 @@ public class CreateLoginActivityTest {
            .enterName("LoginActApp")
            .enterPackageName("dev.tools")
            .wizard()
-           .clickFinish();
-
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+           .clickFinishAndWaitForSyncToFinish();
 
     // Verification.
     EditorFixture editorFixture = guiTest.ideFrame().getEditor();

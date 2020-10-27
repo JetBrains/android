@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.uibuilder;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -28,16 +27,12 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.designer.NlPropertyInspectorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.IssuePanelFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import java.awt.event.KeyEvent;
 import java.io.IOException;
 import javax.swing.JButton;
 import javax.swing.JLabel;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,17 +42,6 @@ public class IssuePanelTest {
 
   @Rule public final GuiTestRule myGuiTest = new GuiTestRule();
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
-
-  @Before
-  public void setUp() {
-    // Temporary: until this test can run with new properties panel
-    StudioFlags.NELE_NEW_PROPERTY_PANEL.override(false);
-  }
-
-  @After
-  public void tearDown() {
-    StudioFlags.NELE_NEW_PROPERTY_PANEL.clearOverride();
-  }
 
   /**
    * Scenario:
@@ -79,12 +63,12 @@ public class IssuePanelTest {
     EditorFixture editor = myGuiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
-    NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
+    NlEditorFixture layoutEditor = editor.getLayoutEditor();
 
     NlComponentFixture textView = layoutEditor
       .showOnlyDesignView()
       .findView("TextView", 0);
-    textView.click();
+    textView.getSceneComponent().click();
 
     layoutEditor.waitForRenderToFinish();
     IssuePanelFixture panelFixture = layoutEditor.getIssuePanel();
@@ -92,10 +76,15 @@ public class IssuePanelTest {
     panelFixture.requireVisible();
     assertEquals("No issues", panelFixture.getTitle());
 
-    NlPropertyInspectorFixture propertyPanel = layoutEditor.getPropertiesPanel();
-    propertyPanel.focusAndWaitForFocusGainInProperty("text", null);
-    propertyPanel.pressKeyInUnknownProperty(KeyEvent.VK_B);
-    textView.click();
+    layoutEditor.getAttributesPanel()
+      .waitForId("<unnamed>")
+      .findSectionByName("Common Attributes")
+      .findEditorOf("text")
+      .getTextField()
+      .selectAll()
+      .enterText("Hello My World!");
+
+    textView.getSceneComponent().click();
 
     layoutEditor.waitForRenderToFinish();
     assertEquals("1 Warning", panelFixture.getTitle().trim());
@@ -124,7 +113,7 @@ public class IssuePanelTest {
     editor.enterText("<fragment android:layout_width=\"match_parent\" android:layout_height=\"match_parent\"/>\n");
     editor.switchToTab("Design");
 
-    NlEditorFixture layout = editor.getLayoutEditor(false);
+    NlEditorFixture layout = editor.getLayoutEditor();
     layout.waitForRenderToFinish();
     layout.getRhsConfigToolbar().clickIssuePanelButton();
     IssuePanelFixture panelFixture = layout.getIssuePanel();
@@ -146,7 +135,7 @@ public class IssuePanelTest {
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/layout/fragment_empty.xml", EditorFixture.Tab.DESIGN);
 
-    NlEditorFixture layout = editor.getLayoutEditor(false);
+    NlEditorFixture layout = editor.getLayoutEditor();
     layout.waitForRenderToFinish();
     layout.getRhsConfigToolbar().clickIssuePanelButton();
     IssuePanelFixture panelFixture = layout.getIssuePanel();

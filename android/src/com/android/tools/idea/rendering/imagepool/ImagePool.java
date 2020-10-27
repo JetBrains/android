@@ -56,6 +56,12 @@ public interface ImagePool {
 
     @Override
     public void dispose() {}
+
+    @Override
+    public boolean isValid() {
+      // The content of this image is never valid
+      return false;
+    }
   };
 
   /**
@@ -210,5 +216,11 @@ public interface ImagePool {
      * speed up the collection process to avoid generating extra images.
      */
     void dispose();
+
+    /**
+     * Returns true if the image is valid. It will return false after the image has been disposed
+     * or the content is not valid anymore.
+     */
+    boolean isValid();
   }
 }

@@ -387,8 +387,8 @@ public final class AvdDeviceData {
     if (skin == null) {
       return null;
     }
-    int height = StringUtil.parseInt(skin.get("parts.device.display.height"), -1);
-    int width = StringUtil.parseInt(skin.get("parts.device.display.width"), -1);
+    int height = StringUtil.parseInt(skin.getValue("parts.device.display.height"), -1);
+    int width = StringUtil.parseInt(skin.getValue("parts.device.display.width"), -1);
     if (height <= 0 || width <= 0) {
       return null;
     }

@@ -28,7 +28,7 @@ class IssuePanelSplitter(
 
   init {
     val issuePanel = surface.issuePanel
-    issuePanel.setMinimizeListener(createIssuePanelMinimizeListener(issuePanel))
+    issuePanel.addMinimizeListener(createIssuePanelMinimizeListener(issuePanel))
     setHonorComponentsMinimumSize(true)
     firstComponent = content
     secondComponent = issuePanel

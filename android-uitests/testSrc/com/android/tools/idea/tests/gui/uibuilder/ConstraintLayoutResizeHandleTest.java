@@ -61,16 +61,16 @@ public class ConstraintLayoutResizeHandleTest {
 
     NlEditorFixture design = ideFrameFixture.getEditor()
       .open("app/src/main/res/layout/constraint.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(false)
+      .getLayoutEditor()
       .dragComponentToSurface("Buttons", "Button")
       .waitForRenderToFinish();
 
     NlComponentFixture textView = design.findView("Button", 0);
-    int width = textView.getWidth();
-    int height = textView.getHeight();
+    int width = textView.getSceneComponent().getWidth();
+    int height = textView.getSceneComponent().getHeight();
     textView.resizeBy(10, 10);
     design.waitForRenderToFinish();
-    assertThat(textView.getWidth()).isGreaterThan(width);
-    assertThat(textView.getHeight()).isGreaterThan(height);
+    assertThat(textView.getSceneComponent().getWidth()).isGreaterThan(width);
+    assertThat(textView.getSceneComponent().getHeight()).isGreaterThan(height);
   }
 }

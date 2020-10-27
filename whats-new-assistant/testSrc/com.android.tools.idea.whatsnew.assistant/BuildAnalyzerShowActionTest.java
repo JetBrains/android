@@ -22,6 +22,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.android.build.attribution.BuildAttributionStateReporter;
@@ -77,7 +78,6 @@ public final class BuildAnalyzerShowActionTest {
   private WhatsNewBundleCreator myBundleCreator;
   private BuildAttributionUiManager myBuildAttributionUiManagerMock;
   private BuildAttributionStateReporter myBuildAttributionStateReporterMock;
-  private ToolWindow myBuildToolWindowMock;
   private GradleBuildInvoker myBuildInvoker;
 
   @Before
@@ -108,16 +108,6 @@ public final class BuildAnalyzerShowActionTest {
     myBuildAttributionStateReporterMock = mock(BuildAttributionStateReporter.class);
     ServiceContainerUtil.registerServiceInstance(myRule.getProject(), BuildAttributionUiManager.class, myBuildAttributionUiManagerMock);
     when(myBuildAttributionUiManagerMock.getStateReporter()).thenReturn(myBuildAttributionStateReporterMock);
-
-    ToolWindowManager toolWindowManagerMock = mock(ToolWindowManager.class);
-    myBuildToolWindowMock = mock(ToolWindow.class);
-    when(toolWindowManagerMock.getToolWindow(eq(ToolWindowId.BUILD))).thenReturn(myBuildToolWindowMock);
-    ServiceContainerUtil.registerComponentInstance(
-      myRule.getProject(),
-      ToolWindowManager.class,
-      toolWindowManagerMock,
-      myRule.fixture.getTestRootDisposable()
-    );
 
     myBundleCreator.getBundle(ProjectManager.getInstance().getDefaultProject());
 
@@ -271,11 +261,6 @@ public final class BuildAnalyzerShowActionTest {
   @Test
   public void testClickTriggerWindowWhenDataExist() {
     when(myBuildAttributionStateReporterMock.currentState()).thenReturn(State.REPORT_DATA_READY);
-    doAnswer(invocation -> {
-               invocation.<Runnable>getArgument(0).run();
-               return null;
-             }
-    ).when(myBuildToolWindowMock).show(any());
 
     StatefulButton statefulButton = getOpenBuildAnalyzerButton();
     StatefulButton.ActionButton button = getActionButton(statefulButton);
@@ -286,21 +271,13 @@ public final class BuildAnalyzerShowActionTest {
     button.doClick();
 
     verify(myBuildAttributionUiManagerMock).openTab(eq(BuildAttributionUiAnalytics.TabOpenEventSource.WNA_BUTTON));
-    verify(myBuildToolWindowMock).show(any(Runnable.class));
   }
 
 
   @RunsInEdt
   @Test
-  public void testClickTriggerBuildAndOpensWindowAfterBuild() {
+  public void testClickTriggerBuildWhenNoData() {
     when(myBuildAttributionStateReporterMock.currentState()).thenReturn(State.NO_DATA);
-    doAnswer(invocation -> {
-               invocation.<Runnable>getArgument(0).run();
-               return null;
-             }
-    ).when(myBuildToolWindowMock).show(any());
-    MessageBus messageBus = myRule.getProject().getMessageBus();
-    Topic<BuildAttributionStateReporter.Notifier> topic = BuildAttributionStateReporter.Companion.getFEATURE_STATE_TOPIC();
 
     StatefulButton statefulButton = getOpenBuildAnalyzerButton();
     StatefulButton.ActionButton button = getActionButton(statefulButton);
@@ -310,21 +287,8 @@ public final class BuildAnalyzerShowActionTest {
 
     button.doClick();
 
-    verify(myBuildAttributionUiManagerMock, never()).openTab(eq(BuildAttributionUiAnalytics.TabOpenEventSource.WNA_BUTTON));
-    verify(myBuildToolWindowMock, never()).show(any(Runnable.class));
     verify(myBuildInvoker).assemble(any(), eq(TestCompileType.ALL));
-
-    when(myBuildAttributionStateReporterMock.currentState()).thenReturn(State.NO_DATA_BUILD_RUNNING);
-    messageBus.syncPublisher(topic).stateUpdated(State.NO_DATA_BUILD_RUNNING);
-
-    verify(myBuildAttributionUiManagerMock, never()).openTab(eq(BuildAttributionUiAnalytics.TabOpenEventSource.WNA_BUTTON));
-    verify(myBuildToolWindowMock, never()).show(any(Runnable.class));
-
-    when(myBuildAttributionStateReporterMock.currentState()).thenReturn(State.REPORT_DATA_READY);
-    messageBus.syncPublisher(topic).stateUpdated(State.REPORT_DATA_READY);
-
-    verify(myBuildAttributionUiManagerMock).openTab(eq(BuildAttributionUiAnalytics.TabOpenEventSource.WNA_BUTTON));
-    verify(myBuildToolWindowMock).show(any(Runnable.class));
+    verify(myBuildAttributionUiManagerMock).requestOpenTabWhenDataReady(eq(BuildAttributionUiAnalytics.TabOpenEventSource.WNA_BUTTON));
   }
 
   /**

@@ -24,9 +24,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidSdkConfigurable implements AdditionalDataConfigurable {
   private final AndroidSdkConfigurableForm myForm;
 

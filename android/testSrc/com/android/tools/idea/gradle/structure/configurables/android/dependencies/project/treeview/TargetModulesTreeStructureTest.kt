@@ -87,6 +87,7 @@ class TargetModulesTreeStructureTest: DependencyTestCase() {
                   (by) implementation
               release
                   (by) implementation
+                  (by) releaseImplementation
               debug (androidTest)
               debug (test)
               release (test)""".trimIndent()
@@ -136,6 +137,7 @@ class TargetModulesTreeStructureTest: DependencyTestCase() {
               release
                   (via) lib1:0.9.1 (com.example.libs)
                       (by) implementation
+                      (by) releaseImplementation
               debug (androidTest)
                   (via) lib1:0.9.1 (com.example.libs)
               debug (test)
@@ -211,6 +213,7 @@ class TargetModulesTreeStructureTest: DependencyTestCase() {
                       (via) lib2:0.9.1 (com.example.libs)
                           (via) lib1:0.9.1 (com.example.libs)
                               (by) implementation
+                              (by) releaseImplementation
               debug (androidTest)
                   (via) lib3:1.0 (com.example.jlib)
                       (via) lib2:0.9.1 (com.example.libs)

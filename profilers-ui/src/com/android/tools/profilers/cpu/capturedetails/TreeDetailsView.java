@@ -18,7 +18,7 @@ package com.android.tools.profilers.cpu.capturedetails;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
 import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_CELL_INSETS;
-import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_CELL_SPARKLINE_LEFT_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_CELL_SPARKLINE_RIGHT_PADDING;
 import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_CELL_SPARKLINE_TOP_BOTTOM_PADDING;
 import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_HEADER_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_RIGHT_ALIGNED_CELL_INSETS;
@@ -362,7 +362,7 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
 
     DoubleValueCellRendererWithSparkline(Function<CpuTreeNode, Double> getter, boolean showPercentage, int alignment) {
       super(getter, showPercentage, alignment);
-      mySparkLineColor = ProfilerColors.CPU_CAPTURE_SPARKLINE;
+      mySparkLineColor = ProfilerColors.CAPTURE_SPARKLINE;
       myPercentage = Double.NEGATIVE_INFINITY;
     }
 
@@ -381,17 +381,18 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
         // and what we want to display is what percentage of all our childrens time do we consume.
         myPercentage = getGetter().apply(node) / getNode(tree.getModel().getRoot()).getGlobalChildrenTotal();
       }
-      mySparkLineColor = selected ? ProfilerColors.CPU_CAPTURE_SPARKLINE_SELECTED : ProfilerColors.CPU_CAPTURE_SPARKLINE;
+      mySparkLineColor = selected ? ProfilerColors.CAPTURE_SPARKLINE_SELECTED : ProfilerColors.CAPTURE_SPARKLINE;
     }
 
     @Override
     protected void paintComponent(Graphics g) {
       if (myPercentage > 0) {
         g.setColor(mySparkLineColor);
-        // The sparkline starts from the left side of the cell and is proportional to the value, occupying the full cell.
-        g.fillRect(TABLE_COLUMN_CELL_SPARKLINE_LEFT_PADDING,
+        // The sparkline aligns to the right of the cell and is proportional to the value, occupying the full cell.
+        int sparkLineWidth = (int)(myPercentage * (getWidth() - TABLE_COLUMN_CELL_SPARKLINE_RIGHT_PADDING));
+        g.fillRect(getWidth() - sparkLineWidth - TABLE_COLUMN_CELL_SPARKLINE_RIGHT_PADDING,
                    TABLE_COLUMN_CELL_SPARKLINE_TOP_BOTTOM_PADDING,
-                   (int)(myPercentage * (getWidth() - TABLE_COLUMN_CELL_SPARKLINE_LEFT_PADDING)),
+                   sparkLineWidth,
                    getHeight() - TABLE_COLUMN_CELL_SPARKLINE_TOP_BOTTOM_PADDING * 2);
       }
       super.paintComponent(g);

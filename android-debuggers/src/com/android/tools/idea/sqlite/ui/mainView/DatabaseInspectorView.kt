@@ -16,11 +16,12 @@
 package com.android.tools.idea.sqlite.ui.mainView
 
 import com.android.tools.idea.sqlite.controllers.TabId
-import com.android.tools.idea.sqlite.model.FileSqliteDatabase
-import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteColumn
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView.Listener
+import javax.swing.Icon
 import javax.swing.JComponent
 
 /**
@@ -42,42 +43,63 @@ interface DatabaseInspectorView {
   fun stopLoading()
 
   /**
-   * Adds a new [SqliteSchema] at a specific position among other schemas.
-   * @param database The database containing the schema.
-   * @param schema The schema to add.
-   * @param index The index at which the schema should be added.
+   * Updates the UI by applying [DatabaseDiffOperation]s.
    */
-  fun addDatabaseSchema(database: SqliteDatabase, schema: SqliteSchema, index: Int)
+  fun updateDatabases(databaseDiffOperations: List<DatabaseDiffOperation>)
 
   /**
-   * Updates the UI for an existing database, by adding and removing tables from its schema.
-   * @param database The database that needs to be updated.
-   * @param toAdd The list of [SqliteTable] belonging to the database schema.
+   * Updates the UI for an existing database, by adding and removing tables from its schema and columns from its tables.
+   * @param viewDatabase The database that needs to be updated.
+   * @param diffOperations List of operations to perform the diff of [viewDatabase]'s schema in the view.
    */
-  fun updateDatabase(database: SqliteDatabase, toAdd: List<SqliteTable>)
+  fun updateDatabaseSchema(viewDatabase: ViewDatabase, diffOperations: List<SchemaDiffOperation>)
 
-  /**
-   * Removes the [SqliteSchema] corresponding to the [SqliteDatabase] passed as argument.
-   */
-  fun removeDatabaseSchema(database: SqliteDatabase)
-  fun openTab(tableId: TabId, tabName: String, component: JComponent)
+  fun openTab(tabId: TabId, tabName: String, tabIcon: Icon, component: JComponent)
   fun focusTab(tabId: TabId)
   fun closeTab(tabId: TabId)
 
+  fun updateKeepConnectionOpenButton(keepOpen: Boolean)
+
   fun reportSyncProgress(message: String)
 
-  fun reportError(message: String, t: Throwable)
+  fun reportError(message: String, throwable: Throwable?)
 
   interface Listener {
     /** Called when the user wants to open a table */
-    fun tableNodeActionInvoked(database: SqliteDatabase, table: SqliteTable)
+    fun tableNodeActionInvoked(databaseId: SqliteDatabaseId, table: SqliteTable)
     /** Called when the user wants to close a tab */
     fun closeTabActionInvoked(tabId: TabId)
     /** Called when the user wants to open the evaluator tab */
     fun openSqliteEvaluatorTabActionInvoked()
-    /** Called when the user wants to remove a database from the list of open databases */
-    fun removeDatabaseActionInvoked(database: SqliteDatabase)
-    /** Called when the user wants to sync a database */
-    fun reDownloadDatabaseFileActionInvoked(database: FileSqliteDatabase)
+    /** Called when the user wants to refresh the schema of all open databases */
+    fun refreshAllOpenDatabasesSchemaActionInvoked()
+    /** Called to request the on-device inspector to force database connections to remain open */
+    fun toggleKeepConnectionOpenActionInvoked()
   }
 }
+
+
+/**
+ * Class containing a [SqliteTable] and its index among other tables in the schema.
+ */
+data class IndexedSqliteTable(val sqliteTable: SqliteTable, val index: Int)
+
+/**
+ * Class containing a [SqliteColumn] and its index among other columns in the table.
+ */
+data class IndexedSqliteColumn(val sqliteColumn: SqliteColumn, val index: Int)
+
+/** Subclasses of this class represent operations to do in the UI in order to perform the diff of a database's schema */
+sealed class SchemaDiffOperation
+data class AddTable(val indexedSqliteTable: IndexedSqliteTable, val columns: List<IndexedSqliteColumn>) : SchemaDiffOperation()
+data class RemoveTable(val tableName: String) : SchemaDiffOperation()
+data class AddColumns(val tableName: String, val columns: List<IndexedSqliteColumn>, val newTable: SqliteTable) : SchemaDiffOperation()
+data class RemoveColumns(val tableName: String, val columnsToRemove: List<SqliteColumn>, val newTable: SqliteTable) : SchemaDiffOperation()
+
+/** Subclasses of this class represent operations to do in the UI in order to perform the diff of visible databases */
+sealed class DatabaseDiffOperation {
+  data class AddDatabase(val viewDatabase: ViewDatabase, val schema: SqliteSchema?, val index: Int) : DatabaseDiffOperation()
+  data class RemoveDatabase(val viewDatabase: ViewDatabase) : DatabaseDiffOperation()
+}
+
+data class ViewDatabase(val databaseId: SqliteDatabaseId, val isOpen: Boolean)

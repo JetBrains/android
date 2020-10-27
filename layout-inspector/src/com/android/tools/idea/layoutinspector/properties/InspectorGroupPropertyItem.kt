@@ -40,7 +40,7 @@ class InspectorGroupPropertyItem(
   group: PropertySection,
   source: ResourceReference?,
   view: ViewNode,
-  resourceLookup: ResourceLookup?,
+  resourceLookup: ResourceLookup,
   stack: Map<ResourceReference, String?>
 ): InspectorPropertyItem(namespace, name, name, type, value, group, source, view, resourceLookup), PTableGroupItem {
   override val children: List<InspectorPropertyItem> =

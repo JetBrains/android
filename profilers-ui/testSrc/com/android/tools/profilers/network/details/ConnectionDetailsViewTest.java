@@ -41,6 +41,8 @@ import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.StackTrace;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
 import com.android.tools.profilers.stacktrace.StackTraceView;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import java.awt.Component;
 import java.util.Collections;
 import java.util.List;
@@ -55,6 +57,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+@RunsInEdt
 public class ConnectionDetailsViewTest {
   private static final String fakeTrace = "com.google.downloadUrlToStream(ImageFetcher.java:274)";
   private static final HttpData DEFAULT_DATA =
@@ -82,6 +85,8 @@ public class ConnectionDetailsViewTest {
     new FakeGrpcChannel("StudioProfilerTestChannel", myTransportService, new FakeProfilerService(myTimer),
                         FakeNetworkService.newBuilder().setHttpDataList(Collections.singletonList(DEFAULT_DATA)).build());
 
+  @Rule public final EdtRule myEdtRule = new EdtRule();
+
   /**
    * Will throw an exception if no match is found.
    */
@@ -100,7 +105,7 @@ public class ConnectionDetailsViewTest {
   @Before
   public void before() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
-    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeProfilerServices, myTimer);
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, myTimer);
     NetworkProfilerStage stage = new NetworkProfilerStage(profilers);
     StudioProfilersView view = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     profilers.setStage(stage);

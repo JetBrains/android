@@ -25,6 +25,7 @@ import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
+import com.android.utils.FileUtils
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.project.Project
 import org.gradle.tooling.events.ProgressEvent
@@ -52,11 +53,17 @@ class BuildAttributionManagerImpl(private val project: Project) : BuildAttributi
 
     BuildAttributionAnalyticsManager(buildSessionId, project).use { analyticsManager ->
       analyticsManager.logBuildAttributionPerformanceStats(buildFinishedTimestamp - analyzersProxy.getBuildFinishedTimestamp()) {
-        val attributionData = AndroidGradlePluginAttributionData.load(attributionFileDir)
-        if (attributionData != null) {
-          taskContainer.updateTasksData(attributionData)
+        try {
+          val attributionData = AndroidGradlePluginAttributionData.load(attributionFileDir)
+          if (attributionData != null) {
+            taskContainer.updateTasksData(attributionData)
+            pluginContainer.updatePluginsData(attributionData)
+          }
+          analyzersWrapper.onBuildSuccess(attributionData)
         }
-        analyzersWrapper.onBuildSuccess(attributionData)
+        finally {
+          FileUtils.deleteRecursivelyIfExists(attributionFileDir)
+        }
       }
 
       analyticsManager.logAnalyzersData(analyzersProxy)
@@ -68,6 +75,7 @@ class BuildAttributionManagerImpl(private val project: Project) : BuildAttributi
 
   override fun onBuildFailure() {
     analyzersWrapper.onBuildFailure()
+    BuildAttributionUiManager.getInstance(project).onBuildFailure(UUID.randomUUID().toString())
   }
 
   override fun statusChanged(event: ProgressEvent?) {

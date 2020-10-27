@@ -38,7 +38,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Utility class for static methods which are used in different classes of theme editor
  */
-public final class ThemeEditorUtils {
+public class ThemeEditorUtils {
   private ThemeEditorUtils() {
   }
 

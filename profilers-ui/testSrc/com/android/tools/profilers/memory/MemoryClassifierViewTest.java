@@ -16,15 +16,18 @@
 package com.android.tools.profilers.memory;
 
 import static com.android.tools.profiler.proto.Memory.AllocationStack;
-import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CALLSTACK;
-import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
-import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
+import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_CALLSTACK;
+import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_CLASS;
+import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_PACKAGE;
+import static com.android.tools.profilers.memory.ClassGrouping.NATIVE_ARRANGE_BY_ALLOCATION_METHOD;
+import static com.android.tools.profilers.memory.ClassGrouping.NATIVE_ARRANGE_BY_CALLSTACK;
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildClassSetNodeWithClassName;
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildClassSetWithName;
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildWithName;
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildWithPredicate;
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.verifyNode;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
 
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.adtui.instructions.InstructionsPanel;
@@ -34,6 +37,7 @@ import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
@@ -42,18 +46,26 @@ import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.ClassSet;
-import com.android.tools.profilers.memory.adapters.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.ClassDb;
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject;
 import com.android.tools.profilers.memory.adapters.FakeInstanceObject;
-import com.android.tools.profilers.memory.adapters.HeapSet;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
-import com.android.tools.profilers.memory.adapters.MethodSet;
+import com.android.tools.profilers.memory.adapters.NativeAllocationInstanceObject;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
+import com.android.tools.profilers.memory.adapters.classifiers.Classifier;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
+import com.android.tools.profilers.memory.adapters.classifiers.MethodSet;
+import com.android.tools.profilers.memory.adapters.classifiers.NativeAllocationMethodSet;
+import com.android.tools.profilers.memory.adapters.classifiers.NativeCallStackSet;
+import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.util.containers.ImmutableList;
+import icons.StudioIcons;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -72,6 +84,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 public class MemoryClassifierViewTest {
   private final FakeTimer myTimer = new FakeTimer();
@@ -80,7 +93,6 @@ public class MemoryClassifierViewTest {
     new FakeGrpcChannel("MEMORY_TEST_CHANNEL", new FakeTransportService(myTimer), new FakeProfilerService(myTimer),
                         new FakeMemoryService());
 
-  private FakeIdeProfilerServices myFakeIdeProfilerServices;
   private FakeIdeProfilerComponents myFakeIdeProfilerComponents;
   private MemoryProfilerStage myStage;
   private MemoryClassifierView myClassifierView;
@@ -89,12 +101,13 @@ public class MemoryClassifierViewTest {
   public void before() {
     FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
     loader.setReturnImmediateFuture(true);
-    myFakeIdeProfilerServices = new FakeIdeProfilerServices();
+    FakeIdeProfilerServices fakeIdeProfilerServices = new FakeIdeProfilerServices();
     myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
     myStage =
-      new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myFakeIdeProfilerServices, new FakeTimer()),
-                              loader);
-    myClassifierView = new MemoryClassifierView(myStage, myFakeIdeProfilerComponents);
+      new MemoryProfilerStage(
+        new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), fakeIdeProfilerServices, new FakeTimer()),
+        loader);
+    myClassifierView = new MemoryClassifierView(myStage.getCaptureSelection(), myFakeIdeProfilerComponents);
   }
 
   /**
@@ -145,9 +158,9 @@ public class MemoryClassifierViewTest {
 
     HeapSet heapSet = captureObject.getHeapSet(instanceFoo0.getHeapId());
     assertThat(heapSet).isNotNull();
-    myStage.selectHeapSet(heapSet);
+    myStage.getCaptureSelection().selectHeapSet(heapSet);
 
-    assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
+    assertThat(myStage.getCaptureSelection().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
     assertThat(myClassifierView.getTree()).isNotNull();
     JTree classifierTree = myClassifierView.getTree();
 
@@ -163,7 +176,7 @@ public class MemoryClassifierViewTest {
     assertThat(selectedClassifier).isInstanceOf(ClassSet.class);
 
     // Check if group by package is grouping as expected.
-    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
+    myStage.getCaptureSelection().setClassGrouping(ARRANGE_BY_PACKAGE);
 
     TableColumnModel tableColumnModel = myClassifierView.getTableColumnModel();
     assertThat(tableColumnModel.getColumn(0).getHeaderValue()).isEqualTo("Package Name");
@@ -207,7 +220,7 @@ public class MemoryClassifierViewTest {
     assertThat(bazSet.getAdapter().findContainingClassifierSet(instanceBaz3)).isEqualTo(bazSet.getAdapter());
 
     // Check if flat list is correct.
-    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_CLASS);
+    myStage.getCaptureSelection().setClassGrouping(ARRANGE_BY_CLASS);
 
     tableColumnModel = myClassifierView.getTableColumnModel();
     assertThat(tableColumnModel.getColumn(0).getHeaderValue()).isEqualTo("Class Name");
@@ -294,10 +307,10 @@ public class MemoryClassifierViewTest {
 
     HeapSet heapSet = captureObject.getHeapSet(instanceFoo0.getHeapId());
     assertThat(heapSet).isNotNull();
-    myStage.selectHeapSet(heapSet);
+    myStage.getCaptureSelection().selectHeapSet(heapSet);
 
-    assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
-    assertThat(myStage.getSelectedClassSet()).isNull();
+    assertThat(myStage.getCaptureSelection().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
+    assertThat(myStage.getCaptureSelection().getSelectedClassSet()).isNull();
     assertThat(myClassifierView.getTree()).isNotNull();
 
     JTree classifierTree = myClassifierView.getTree();
@@ -312,11 +325,11 @@ public class MemoryClassifierViewTest {
     assertThat(childrenOfRoot.size()).isEqualTo(3);
     classifierTree.setSelectionPath(new TreePath(new Object[]{root, childrenOfRoot.get(0)}));
     MemoryObjectTreeNode<ClassifierSet> selectedClassNode = childrenOfRoot.get(0);
-    assertThat(myStage.getSelectedClassSet()).isEqualTo(selectedClassNode.getAdapter());
+    assertThat(myStage.getCaptureSelection().getSelectedClassSet()).isEqualTo(selectedClassNode.getAdapter());
     assertThat(classifierTree.getSelectionPath().getLastPathComponent()).isEqualTo(selectedClassNode);
 
     // Check that after changing to ARRANGE_BY_PACKAGE, the originally selected item is reselected.
-    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
+    myStage.getCaptureSelection().setClassGrouping(ARRANGE_BY_PACKAGE);
 
     TableColumnModel tableColumnModel = myClassifierView.getTableColumnModel();
     assertThat(tableColumnModel.getColumn(0).getHeaderValue()).isEqualTo("Package Name");
@@ -337,14 +350,14 @@ public class MemoryClassifierViewTest {
     assertThat(selectedClassNode.getAdapter().isSupersetOf(((MemoryObjectTreeNode<ClassSet>)reselected).getAdapter())).isTrue();
 
     // Clear the selection from the model. The Tree's selection should get cleared as well.
-    myStage.selectClassSet(null);
+    myStage.getCaptureSelection().selectClassSet(null);
     assertThat(classifierTree.getSelectionPath()).isNull();
 
     // Try selecting a package -- this should not result in any changes to the state.
     MemoryObjectTreeNode<? extends ClassifierSet> comPackage = findChildWithName(rootNode, "com");
-    ClassSet selectedClass = myStage.getSelectedClassSet();
+    ClassSet selectedClass = myStage.getCaptureSelection().getSelectedClassSet();
     classifierTree.setSelectionPath(new TreePath(new Object[]{root, comPackage}));
-    assertThat(myStage.getSelectedClassSet()).isEqualTo(selectedClass);
+    assertThat(myStage.getCaptureSelection().getSelectedClassSet()).isEqualTo(selectedClass);
   }
 
   @Test
@@ -436,10 +449,10 @@ public class MemoryClassifierViewTest {
 
     HeapSet heapSet = captureObject.getHeapSet(CaptureObject.DEFAULT_HEAP_ID);
     assertThat(heapSet).isNotNull();
-    myStage.selectHeapSet(heapSet);
+    myStage.getCaptureSelection().selectHeapSet(heapSet);
 
-    assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
-    assertThat(myStage.getSelectedClassSet()).isNull();
+    assertThat(myStage.getCaptureSelection().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
+    assertThat(myStage.getCaptureSelection().getSelectedClassSet()).isNull();
 
     JTree classifierTree = myClassifierView.getTree();
     assertThat(classifierTree).isNotNull();
@@ -457,7 +470,7 @@ public class MemoryClassifierViewTest {
     MemoryObjectTreeNode<ClassSet> intNode = findChildClassSetNodeWithClassName(rootNode, CLASS_NAME_2);
     assertThat(intNode.getAdapter().hasStackInfo()).isFalse();
 
-    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
+    myStage.getCaptureSelection().setClassGrouping(ARRANGE_BY_PACKAGE);
 
     TableColumnModel tableColumnModel = myClassifierView.getTableColumnModel();
     assertThat(tableColumnModel.getColumn(0).getHeaderValue()).isEqualTo("Package Name");
@@ -579,10 +592,10 @@ public class MemoryClassifierViewTest {
 
     HeapSet heapSet = captureObject.getHeapSet(CaptureObject.DEFAULT_HEAP_ID);
     assertThat(heapSet).isNotNull();
-    myStage.selectHeapSet(heapSet);
+    myStage.getCaptureSelection().selectHeapSet(heapSet);
 
-    assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
-    assertThat(myStage.getSelectedClassSet()).isNull();
+    assertThat(myStage.getCaptureSelection().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
+    assertThat(myStage.getCaptureSelection().getSelectedClassSet()).isNull();
 
     TableColumnModel tableColumnModel = myClassifierView.getTableColumnModel();
     assertThat(tableColumnModel.getColumn(0).getHeaderValue()).isEqualTo("Class Name");
@@ -596,7 +609,7 @@ public class MemoryClassifierViewTest {
     MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
     assertThat(rootNode.getChildCount()).isEqualTo(3);
 
-    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_CALLSTACK);
+    myStage.getCaptureSelection().setClassGrouping(ARRANGE_BY_CALLSTACK);
 
     tableColumnModel = myClassifierView.getTableColumnModel();
     assertThat(tableColumnModel.getColumn(0).getHeaderValue()).isEqualTo("Callstack Name");
@@ -645,7 +658,7 @@ public class MemoryClassifierViewTest {
     MemoryObjectTreeNode<? extends ClassifierSet> nodeToSelect =
       findChildClassSetNodeWithClassName((MemoryObjectTreeNode<ClassifierSet>)methodSet4Node, CLASS_NAME_0);
     classifierTree.setSelectionPath(new TreePath(new Object[]{root, methodSet4Node, nodeToSelect}));
-    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_CLASS);
+    myStage.getCaptureSelection().setClassGrouping(ARRANGE_BY_CLASS);
 
     tableColumnModel = myClassifierView.getTableColumnModel();
     assertThat(tableColumnModel.getColumn(0).getHeaderValue()).isEqualTo("Class Name");
@@ -658,6 +671,39 @@ public class MemoryClassifierViewTest {
     assertThat(((MemoryObjectTreeNode)selectedObject).getAdapter()).isInstanceOf(ClassSet.class);
     //noinspection unchecked
     assertThat(((MemoryObjectTreeNode<ClassSet>)selectedObject).getAdapter().isSupersetOf(nodeToSelect.getAdapter())).isTrue();
+  }
+
+  @Test
+  public void testNamingNodeForNativeCallStackSet() {
+    final String ALLOCATION_FUNCTION = "Test Function";
+    ColoredTreeCellRenderer renderer = myClassifierView.getNameColumnRenderer();
+    MemoryObjectTreeNode<NativeCallStackSet> node = mock(MemoryObjectTreeNode.class);
+    Mockito.when(node.getAdapter())
+      .thenReturn(new NativeCallStackSet(AllocationStack.StackFrame.newBuilder().setMethodName(ALLOCATION_FUNCTION).build(), 0));
+    CaptureObject captureObject = new FakeCaptureObject.Builder().build();
+    myStage
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
+                             null);
+    myStage.getCaptureSelection().selectHeapSet(new FakeHeapSet());
+    renderer.customizeCellRenderer(myClassifierView.getTree(), node, false, false, false, 0, false);
+    assertThat(renderer.getFragmentTag(0)).isEqualTo(ALLOCATION_FUNCTION);
+    assertThat(renderer.getIcon()).isEqualTo(StudioIcons.Profiler.Overlays.METHOD_STACK);
+  }
+
+  @Test
+  public void testNamingNodeForNativeAllocationMethodSet() {
+    final String ALLOCATION_FUNCTION = "Test Function";
+    ColoredTreeCellRenderer renderer = myClassifierView.getNameColumnRenderer();
+    MemoryObjectTreeNode<NativeAllocationMethodSet> node = mock(MemoryObjectTreeNode.class);
+    Mockito.when(node.getAdapter()).thenReturn(new NativeAllocationMethodSet(ALLOCATION_FUNCTION));
+    CaptureObject captureObject = new FakeCaptureObject.Builder().build();
+    myStage
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
+                             null);
+    myStage.getCaptureSelection().selectHeapSet(new FakeHeapSet());
+    renderer.customizeCellRenderer(myClassifierView.getTree(), node, false, false, false, 0, false);
+    assertThat(renderer.getFragmentTag(0)).isEqualTo(ALLOCATION_FUNCTION);
+    assertThat(renderer.getIcon()).isEqualTo(StudioIcons.Profiler.Overlays.ARRAY_STACK);
   }
 
   @Test
@@ -676,9 +722,9 @@ public class MemoryClassifierViewTest {
 
     HeapSet heapSet = captureObject.getHeapSet(CaptureObject.DEFAULT_HEAP_ID);
     assertThat(heapSet).isNotNull();
-    myStage.selectHeapSet(heapSet);
+    myStage.getCaptureSelection().selectHeapSet(heapSet);
 
-    assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
+    assertThat(myStage.getCaptureSelection().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
 
     JTree classifierTree = myClassifierView.getTree();
     assertThat(classifierTree).isNotNull();
@@ -690,9 +736,9 @@ public class MemoryClassifierViewTest {
     MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
     assertThat(rootNode.getChildCount()).isEqualTo(1);
 
-    assertThat(myStage.getSelectedClassSet()).isNull();
-    myStage.selectClassSet(findChildClassSetWithName(rootNode.getAdapter(), TEST_CLASS_NAME));
-    myStage.selectInstanceObject(instance1);
+    assertThat(myStage.getCaptureSelection().getSelectedClassSet()).isNull();
+    myStage.getCaptureSelection().selectClassSet(findChildClassSetWithName(rootNode.getAdapter(), TEST_CLASS_NAME));
+    myStage.getCaptureSelection().selectInstanceObject(instance1);
 
     Supplier<CodeLocation> codeLocationSupplier = myFakeIdeProfilerComponents.getCodeLocationSupplier(classifierTree);
 
@@ -706,6 +752,51 @@ public class MemoryClassifierViewTest {
     myStage.getStudioProfilers().getIdeServices().getCodeNavigator().navigate(codeLocation);
     myStage.getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(myStage);
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
+  }
+
+  @Test
+  public void nativeNavigationTest() {
+    final String ALLOCATION_FUNCTION = "Test Function";
+    final String FILE_NAME = "/some/file/path";
+    final int LINE_NUMBER = 1234;
+    AllocationStack.StackFrame stack = AllocationStack.StackFrame.newBuilder().setMethodName(ALLOCATION_FUNCTION)
+      .setFileName(FILE_NAME)
+      .setLineNumber(LINE_NUMBER).build();
+    MemoryObjectTreeNode<NativeCallStackSet> node = mock(MemoryObjectTreeNode.class);
+    Mockito.when(node.getAdapter()).thenReturn(new NativeCallStackSet(stack, 1));
+    CaptureObject captureObject = new FakeCaptureObject.Builder().build();
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<>(new Object(), () -> captureObject)), null);
+    myStage.getCaptureSelection().setClassGrouping(NATIVE_ARRANGE_BY_CALLSTACK);
+    NativeMemoryHeapSet heapSet = new NativeMemoryHeapSet(captureObject);
+    heapSet.addDeltaInstanceObject(new NativeAllocationInstanceObject(Memory.AllocationEvent.Allocation.getDefaultInstance(),
+                                                                      new ClassDb.ClassEntry(0, 0, ""),
+                                                                      AllocationStack.newBuilder().setFullStack(
+                                                                        AllocationStack.StackFrameWrapper.newBuilder().addFrames(stack))
+                                                                        .build(),
+                                                                      1));
+    myStage.getCaptureSelection().selectHeapSet(heapSet);
+
+    JTree classifierTree = myClassifierView.getTree();
+    assertThat(classifierTree).isNotNull();
+
+    Object root = classifierTree.getModel().getRoot();
+    assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
+    assertThat(((MemoryObjectTreeNode)root).getAdapter()).isInstanceOf(HeapSet.class);
+    //noinspection unchecked
+    MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
+    assertThat(rootNode.getChildCount()).isEqualTo(1);
+
+    assertThat(myStage.getCaptureSelection().getSelectedClassSet()).isNull();
+    classifierTree.setSelectionRow(1);
+
+    Supplier<CodeLocation> codeLocationSupplier = myFakeIdeProfilerComponents.getCodeLocationSupplier(classifierTree);
+
+    assertThat(codeLocationSupplier).isNotNull();
+    CodeLocation codeLocation = codeLocationSupplier.get();
+    assertThat(codeLocation).isNotNull();
+    assertThat(codeLocation.getMethodName()).isEqualTo(ALLOCATION_FUNCTION);
+    assertThat(codeLocation.getFileName()).isEqualTo(FILE_NAME);
+    assertThat(codeLocation.getLineNumber()).isEqualTo(LINE_NUMBER - 1); // Correct for the base 0
   }
 
   @Test
@@ -731,7 +822,7 @@ public class MemoryClassifierViewTest {
 
     HeapSet heapSet = captureObject.getHeapSet(CaptureObject.DEFAULT_HEAP_ID);
     assertThat(heapSet).isNotNull();
-    myStage.selectHeapSet(heapSet);
+    myStage.getCaptureSelection().selectHeapSet(heapSet);
 
     JTree tree = myClassifierView.getTree();
     assertThat(tree).isNotNull();
@@ -739,7 +830,8 @@ public class MemoryClassifierViewTest {
     assertThat(columnTreePane).isNotNull();
     ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(tree, columnTreePane);
     treeInfo
-      .verifyColumnHeaders("Class Name", "Allocations", "Deallocations", "Total Count", "Native Size", "Shallow Size", "Retained Size");
+      .verifyColumnHeaders("Class Name", "Allocations", "Deallocations", "Total Count", "Native Size", "Shallow Size", "Retained Size",
+                           "Allocations Size", "Deallocations Size", "Remaining Size", "Module Name");
 
     Object root = tree.getModel().getRoot();
     assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
@@ -747,16 +839,14 @@ public class MemoryClassifierViewTest {
     //noinspection unchecked
     MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
     assertThat(rootNode.getChildCount()).isEqualTo(3);
-
     List<InstanceObject> instanceObjects = Arrays.asList(instance1, instance2, instance3);
     List<String> classNames = Arrays.asList(CLASS_NAME_0, CLASS_NAME_1, CLASS_NAME_2);
-
     for (int i = 0; i < rootNode.getChildCount(); i++) {
       ClassSet classSet = findChildClassSetWithName(rootNode.getAdapter(), classNames.get(i));
       assertThat(classSet.findContainingClassifierSet(instanceObjects.get(i))).isEqualTo(classSet);
       MemoryObjectTreeNode<? extends ClassifierSet> node = findChildClassSetNodeWithClassName(rootNode, classNames.get(i));
       assertThat(node.getAdapter()).isEqualTo(classSet);
-      treeInfo.verifyRendererValues(rootNode.getChildAt(i),
+      treeInfo.verifyRendererValues(node,
                                     new String[]{classSet.getClassEntry().getSimpleClassName(),
                                       classSet.getClassEntry().getPackageName().isEmpty()
                                       ? null
@@ -766,7 +856,11 @@ public class MemoryClassifierViewTest {
                                     new String[]{Integer.toString(classSet.getTotalObjectCount())},
                                     new String[]{Long.toString(classSet.getTotalNativeSize())},
                                     new String[]{Long.toString(classSet.getTotalShallowSize())},
-                                    new String[]{Long.toString(classSet.getTotalRetainedSize())});
+                                    new String[]{Long.toString(classSet.getTotalRetainedSize())},
+                                    new String[]{Long.toString(classSet.getAllocationSize())},
+                                    new String[]{Long.toString(classSet.getDeallocationSize())},
+                                    new String[]{Long.toString(classSet.getTotalRemainingSize())},
+                                    new String[]{null});
     }
   }
 
@@ -777,7 +871,7 @@ public class MemoryClassifierViewTest {
     // LiveAllocationCaptureObject assumes a valid, non-empty range.
     selectionRange.set(0, 0);
 
-    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()),
+    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getChannel()),
                                                                           ProfilersTestData.SESSION_DATA,
                                                                           captureStartTime,
                                                                           MoreExecutors.newDirectExecutorService(),
@@ -787,9 +881,9 @@ public class MemoryClassifierViewTest {
     myStage.getRangeSelectionModel().clearListeners();
     myStage.selectCaptureDuration(new CaptureDurationData<>(Long.MAX_VALUE, true, true, new CaptureEntry<>(capture, () -> capture)),
                                   MoreExecutors.directExecutor());
-    myStage.selectHeapSet(capture.getHeapSet(CaptureObject.DEFAULT_HEAP_ID));
+    myStage.getCaptureSelection().selectHeapSet(capture.getHeapSet(CaptureObject.DEFAULT_HEAP_ID));
     // Changed to group by package so we can test nested node cases.
-    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
+    myStage.getCaptureSelection().setClassGrouping(ARRANGE_BY_PACKAGE);
 
     JTree tree = myClassifierView.getTree();
     assertThat(tree).isNotNull();
@@ -872,7 +966,7 @@ public class MemoryClassifierViewTest {
     // LiveAllocationCaptureObject assumes a valid, non-empty range.
     selectionRange.set(0, 0);
 
-    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()),
+    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getChannel()),
                                                                           ProfilersTestData.SESSION_DATA,
                                                                           captureStartTime,
                                                                           MoreExecutors.newDirectExecutorService(),
@@ -882,9 +976,9 @@ public class MemoryClassifierViewTest {
     myStage.getRangeSelectionModel().clearListeners();
     myStage.selectCaptureDuration(new CaptureDurationData<>(Long.MAX_VALUE, true, true, new CaptureEntry<>(capture, () -> capture)),
                                   MoreExecutors.directExecutor());
-    myStage.selectHeapSet(capture.getHeapSet(CaptureObject.DEFAULT_HEAP_ID));
+    myStage.getCaptureSelection().selectHeapSet(capture.getHeapSet(CaptureObject.DEFAULT_HEAP_ID));
     // Changed to group by package so we can test nested node cases.
-    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
+    myStage.getCaptureSelection().setClassGrouping(ARRANGE_BY_PACKAGE);
 
     JTree tree = myClassifierView.getTree();
     assertThat(tree).isNotNull();
@@ -918,7 +1012,7 @@ public class MemoryClassifierViewTest {
     assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
 
     // Add a filter to remove That.is.Bar
-    myStage.getFilterHandler().setFilter(new Filter("Foo"));
+    myStage.getCaptureSelection().getFilterHandler().setFilter(new Filter("Foo"));
 
     expected_0_to_4 = new LinkedList<>();
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 2, 1, 1, 1, 1));
@@ -958,7 +1052,7 @@ public class MemoryClassifierViewTest {
     assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
 
     // Changed to group by callstack and update the rootNode
-    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_CALLSTACK);
+    myStage.getCaptureSelection().setClassGrouping(ARRANGE_BY_CALLSTACK);
     root = tree.getModel().getRoot();
     assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
     assertThat(((MemoryObjectTreeNode)root).getAdapter()).isInstanceOf(HeapSet.class);
@@ -984,7 +1078,7 @@ public class MemoryClassifierViewTest {
     assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
 
     // Apply an invalid filter
-    myStage.getFilterHandler().setFilter(new Filter("BLAH"));
+    myStage.getCaptureSelection().getFilterHandler().setFilter(new Filter("BLAH"));
     Queue<MemoryObjectTreeNodeTestData> expect_none = new LinkedList<>();
     expect_none.add(new MemoryObjectTreeNodeTestData(0, "default heap", 0, 0, 0, 0, 0));
     verifyLiveAllocRenderResult(treeInfo, rootNode, expect_none, 0);
@@ -999,7 +1093,7 @@ public class MemoryClassifierViewTest {
     // LiveAllocationCaptureObject assumes a valid, non-empty range.
     selectionRange.set(0, 0);
 
-    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()),
+    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getChannel()),
                                                                           ProfilersTestData.SESSION_DATA,
                                                                           captureStartTime,
                                                                           MoreExecutors.newDirectExecutorService(),
@@ -1009,9 +1103,9 @@ public class MemoryClassifierViewTest {
     myStage.getRangeSelectionModel().clearListeners();
     myStage.selectCaptureDuration(new CaptureDurationData<>(Long.MAX_VALUE, true, true, new CaptureEntry<>(capture, () -> capture)),
                                   MoreExecutors.directExecutor());
-    myStage.selectHeapSet(capture.getHeapSet(CaptureObject.DEFAULT_HEAP_ID));
+    myStage.getCaptureSelection().selectHeapSet(capture.getHeapSet(CaptureObject.DEFAULT_HEAP_ID));
     // Changed to group by package so we can test nested node cases.
-    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
+    myStage.getCaptureSelection().setClassGrouping(ARRANGE_BY_PACKAGE);
 
     JTree tree = myClassifierView.getTree();
     assertThat(tree).isNotNull();
@@ -1048,11 +1142,11 @@ public class MemoryClassifierViewTest {
     tree.setSelectionPath(new TreePath(new Object[]{root, childThat, childThatIs, childThatIsBar}));
 
     InstanceObject selectedInstance = childThatIsBar.getAdapter().getInstancesStream().collect(Collectors.toList()).get(0);
-    myStage.selectInstanceObject(selectedInstance);
-    assertThat(myStage.getSelectedInstanceObject()).isEqualTo(selectedInstance);
+    myStage.getCaptureSelection().selectInstanceObject(selectedInstance);
+    assertThat(myStage.getCaptureSelection().getSelectedInstanceObject()).isEqualTo(selectedInstance);
 
     assertThat(childThatIsBar.getAdapter()).isInstanceOf(ClassSet.class);
-    assertThat(myStage.getSelectedClassSet()).isEqualTo(childThatIsBar.getAdapter());
+    assertThat(myStage.getCaptureSelection().getSelectedClassSet()).isEqualTo(childThatIsBar.getAdapter());
     assertThat(tree.getSelectionPath().getLastPathComponent()).isInstanceOf(MemoryObjectTreeNode.class);
     MemoryObjectTreeNode<ClassifierSet> selectedNode = (MemoryObjectTreeNode<ClassifierSet>)tree.getSelectionPath().getLastPathComponent();
     assertThat(selectedNode).isEqualTo(childThatIsBar);
@@ -1077,8 +1171,8 @@ public class MemoryClassifierViewTest {
     assertThat(tree.getSelectionPath().getLastPathComponent()).isInstanceOf(MemoryObjectTreeNode.class);
     selectedNode = (MemoryObjectTreeNode<ClassifierSet>)tree.getSelectionPath().getLastPathComponent();
     assertThat(selectedNode.getAdapter()).isEqualTo(childThatIsBar.getAdapter());
-    assertThat(myStage.getSelectedClassSet()).isEqualTo(childThatIsBar.getAdapter());
-    assertThat(myStage.getSelectedInstanceObject()).isEqualTo(selectedInstance);
+    assertThat(myStage.getCaptureSelection().getSelectedClassSet()).isEqualTo(childThatIsBar.getAdapter());
+    assertThat(myStage.getCaptureSelection().getSelectedInstanceObject()).isEqualTo(selectedInstance);
 
     // Shrink left to 4
     selectionRange.setMin(captureStartTime + TimeUnit.SECONDS.toMicros(4));
@@ -1100,15 +1194,48 @@ public class MemoryClassifierViewTest {
     assertThat(tree.getSelectionPath().getLastPathComponent()).isInstanceOf(MemoryObjectTreeNode.class);
     selectedNode = (MemoryObjectTreeNode<ClassifierSet>)tree.getSelectionPath().getLastPathComponent();
     assertThat(selectedNode.getAdapter()).isEqualTo(childThatIsBar.getAdapter());
-    assertThat(myStage.getSelectedClassSet()).isEqualTo(childThatIsBar.getAdapter());
-    assertThat(myStage.getSelectedInstanceObject()).isEqualTo(selectedInstance);
+    assertThat(myStage.getCaptureSelection().getSelectedClassSet()).isEqualTo(childThatIsBar.getAdapter());
+    // If the old instance isn't part of the instances anymore, it shouldn't be selected!!
+    InstanceObject reselectedInstance = capture.getInstances().filter(selectedInstance::equals).findAny().orElse(null);
+    assertThat(myStage.getCaptureSelection().getSelectedInstanceObject()).isEqualTo(reselectedInstance);
+
+    // Shrink to empty range and make sure class-set and instance are unselected
+    double oldMin = selectionRange.getMin();
+    double oldMax = selectionRange.getMax();
+    selectionRange.setMin(0);
+    selectionRange.setMax(0);
+    assertThat(capture.getInstances().count()).isEqualTo(0);
+    assertThat(myStage.getCaptureSelection().getSelectedClassSet()).isEqualTo(ClassSet.EMPTY_SET);
+    assertThat(myStage.getCaptureSelection().getSelectedInstanceObject()).isNull();
+    selectionRange.setMin(oldMin);
+    selectionRange.setMax(oldMax);
 
     // Apply an invalid filter
-    myStage.getFilterHandler().setFilter(new Filter("BLAH"));
+    myStage.getCaptureSelection().getFilterHandler().setFilter(new Filter("BLAH"));
     // No path is selected and selected ClassSet is set to EMPTY_CLASS_SET
     assertThat(tree.getSelectionPath()).isNull();
-    assertThat(myStage.getSelectedClassSet()).isEqualTo(ClassSet.EMPTY_SET);
-    assertThat(myStage.getSelectedInstanceObject()).isNull();
+    assertThat(myStage.getCaptureSelection().getSelectedClassSet()).isEqualTo(ClassSet.EMPTY_SET);
+    assertThat(myStage.getCaptureSelection().getSelectedInstanceObject()).isNull();
+  }
+
+  @Test
+  public void testClassifierHeaders() {
+    CaptureObject captureObject = new FakeCaptureObject.Builder().build();
+    myStage
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
+                             null);
+    myStage.getCaptureSelection().selectHeapSet(new FakeHeapSet());
+    TableColumnModel tableColumnModel = myClassifierView.getTableColumnModel();
+    myStage.getCaptureSelection().setClassGrouping(ARRANGE_BY_CLASS);
+    assertThat(tableColumnModel.getColumn(0).getHeaderValue()).isEqualTo("Class Name");
+    myStage.getCaptureSelection().setClassGrouping(ARRANGE_BY_CALLSTACK);
+    assertThat(tableColumnModel.getColumn(0).getHeaderValue()).isEqualTo("Callstack Name");
+    myStage.getCaptureSelection().setClassGrouping(ARRANGE_BY_PACKAGE);
+    assertThat(tableColumnModel.getColumn(0).getHeaderValue()).isEqualTo("Package Name");
+    myStage.getCaptureSelection().setClassGrouping(NATIVE_ARRANGE_BY_ALLOCATION_METHOD);
+    assertThat(tableColumnModel.getColumn(0).getHeaderValue()).isEqualTo("Allocation function");
+    myStage.getCaptureSelection().setClassGrouping(NATIVE_ARRANGE_BY_CALLSTACK);
+    assertThat(tableColumnModel.getColumn(0).getHeaderValue()).isEqualTo("Callstack Name");
   }
 
   private static int countClassSets(@NotNull MemoryObjectTreeNode<ClassifierSet> node) {
@@ -1122,6 +1249,19 @@ public class MemoryClassifierViewTest {
       }
     }
     return classSetCount;
+  }
+
+  private class FakeHeapSet extends HeapSet {
+    public FakeHeapSet() {
+      super(new FakeCaptureObject.Builder().build(), "Fake Heap", 0);
+    }
+
+    @NotNull
+    @Override
+    public Classifier createSubClassifier() {
+      // Support all classifier sets returning a default.
+      return ClassSet.createDefaultClassifier();
+    }
   }
 
   private static boolean verifyMethodSet(@NotNull MethodSet methodSet, @NotNull String className, @NotNull String methodName) {

@@ -1,4 +1,18 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+/*
+ * Copyright 2000-2010 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.android.dom.resources;
 
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
@@ -12,15 +26,12 @@ import com.android.utils.HashCodes;
 import com.intellij.lang.java.lexer.JavaLexer;
 import com.intellij.pom.java.LanguageLevel;
 import java.util.Objects;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author yole
- */
-public final class ResourceValue {
+public class ResourceValue {
   private static final String PLUS_ID = "+id";
   /** The resource type portion in a resource URL ({@code @+id/}) but without the leading @. */
   private String myValue;
@@ -198,7 +209,7 @@ public final class ResourceValue {
     return AndroidUtils.isIdentifier(myResourceName)
            // Value resources are allowed to contain . and : in the names
            || FolderTypeRelationship.getRelatedFolders(type).contains(ResourceFolderType.VALUES)
-              && AndroidUtils.isIdentifier(AndroidResourceUtil.getFieldNameByResourceName(myResourceName));
+              && AndroidUtils.isIdentifier(IdeResourcesUtil.getFieldNameByResourceName(myResourceName));
   }
 
   @Nullable
@@ -236,7 +247,7 @@ public final class ResourceValue {
 
     String name = myResourceName;
     if (FolderTypeRelationship.getRelatedFolders(type).contains(ResourceFolderType.VALUES)) {
-      name = AndroidResourceUtil.getFieldNameByResourceName(name);
+      name = IdeResourcesUtil.getFieldNameByResourceName(name);
     }
 
     if (!AndroidUtils.isIdentifier(name)) {

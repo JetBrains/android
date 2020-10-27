@@ -24,7 +24,6 @@ class SchedulingSliceFragment(override val state: SchedulingState, override val 
         : SchedSlice {
     override var endTime: Double = Double.MAX_VALUE
     override var cpuTime: Double = 0.0
-    var blockedReason: String? = null
 
     class Builder {
         private val _slices = mutableListOf<SchedulingSliceFragment>()

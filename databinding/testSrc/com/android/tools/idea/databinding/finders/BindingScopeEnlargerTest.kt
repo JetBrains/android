@@ -16,8 +16,9 @@
 package com.android.tools.idea.databinding.finders
 
 import com.android.tools.idea.databinding.DataBindingMode
-import com.android.tools.idea.databinding.ModuleDataBinding
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.findClass
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.DumbServiceImpl
@@ -60,12 +61,12 @@ class BindingScopeEnlargerTest {
       //language=XML
       """
       <?xml version="1.0" encoding="utf-8"?>
-      <manifest  package="test.db">
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
         <application />
       </manifest>
     """.trimIndent())
 
-    ModuleDataBinding.getInstance(facet).dataBindingMode = DataBindingMode.ANDROIDX
+    LayoutBindingModuleCache.getInstance(facet).dataBindingMode = DataBindingMode.ANDROIDX
   }
 
   @Test
@@ -95,7 +96,7 @@ class BindingScopeEnlargerTest {
     dumbService.isDumb = false
     val enlargedScope = activityClass.resolveScope
 
-    val moduleCache = ModuleDataBinding.getInstance(facet)
+    val moduleCache = LayoutBindingModuleCache.getInstance(facet)
     assertThat(moduleCache.bindingLayoutGroups.map { it.mainLayout.qualifiedClassName })
       .containsExactly("test.db.databinding.ActivityMainBinding")
 

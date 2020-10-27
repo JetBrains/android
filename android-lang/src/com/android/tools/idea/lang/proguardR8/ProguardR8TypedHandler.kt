@@ -27,8 +27,8 @@ class ProguardR8TypedHandler : TypedHandlerDelegate() {
     if (file is ProguardR8PsiFile) {
       // Allow to start autocompletion without pressing Ctrl+Space.
       // By default AutoPopup appears only if typed character is digit or letter.
-      // '-' for flags; '<' for <methods>, <fields> ,...
-      if (charTyped == '-' || charTyped == '<') {
+      // '-' for flags; '<' for <methods>, <fields> ,... ; '$' for inner classes
+      if (charTyped == '-' || charTyped == '<' || charTyped == '$') {
         AutoPopupController.getInstance(project).scheduleAutoPopup(editor)
         return Result.STOP
       }

@@ -74,7 +74,7 @@ public final class GradleModuleImporter extends ModuleImporter {
   @Nullable private final Project myProject;
   private final boolean myIsWizard;
 
-  public GradleModuleImporter(@NotNull WizardContext context) {
+  private GradleModuleImporter(@NotNull WizardContext context) {
     this(context.getProject(), true);
   }
 
@@ -326,6 +326,14 @@ public final class GradleModuleImporter extends ModuleImporter {
         path = new File(mySourceDir, path.getPath());
       }
       return findFileByIoFile(path, true);
+    }
+  }
+
+  public static class GradleAndroidModuleImporter implements AndroidModuleImporter {
+    @NotNull
+    @Override
+    public ModuleImporter create(@NotNull WizardContext context) {
+      return new GradleModuleImporter(context);
     }
   }
 }

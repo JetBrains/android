@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw
 
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture
 import org.fest.swing.core.Robot
 import org.fest.swing.timing.Wait
@@ -28,5 +29,12 @@ class ConfigureTemplateParametersWizardFixture(robot: Robot, dialog: JDialog)
 
   }
 
-  fun clickFinish() = super.clickFinish(Wait.seconds(5))
+  private fun clickFinish() = super.clickFinish(Wait.seconds(5))
+
+  fun clickFinishAndWaitForSyncToFinish(): IdeFrameFixture {
+    return IdeFrameFixture.actAndWaitForGradleProjectSyncToFinish {
+      clickFinish()
+      IdeFrameFixture.find(robot()).also { it.requestFocusIfLost() }
+    }
+  }
 }

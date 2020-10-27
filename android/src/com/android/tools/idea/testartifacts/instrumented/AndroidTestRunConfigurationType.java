@@ -16,9 +16,8 @@
 
 package com.android.tools.idea.testartifacts.instrumented;
 
-import static com.android.tools.idea.help.StudioHelpManagerImpl.STUDIO_HELP_PREFIX;
-
-import com.android.tools.idea.run.AndroidRunConfigurationType;
+import com.android.tools.idea.help.AndroidWebHelpProvider;
+import com.android.tools.idea.run.AndroidRunConfigurationFactoryBase;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.ConfigurationTypeUtil;
@@ -45,7 +44,12 @@ public final class AndroidTestRunConfigurationType implements ConfigurationType 
     }
   };
 
-  private final ConfigurationFactory myFactory = new AndroidRunConfigurationType.AndroidRunConfigurationFactory(this, "Android Instrumented Tests") {
+  private final ConfigurationFactory myFactory = new AndroidRunConfigurationFactoryBase(this) {
+    @Override
+    public @NotNull String getId() {
+      return "Android Instrumented Tests";
+    }
+
     @NotNull
     @Override
     public RunConfiguration createTemplateConfiguration(@NotNull Project project) {
@@ -86,7 +90,7 @@ public final class AndroidTestRunConfigurationType implements ConfigurationType 
 
   @Override
   public String getHelpTopic() {
-    return STUDIO_HELP_PREFIX + "reference.dialogs.rundebug.AndroidTestRunConfigurationType";
+    return AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/rundebugconfig.html";
   }
 
   public ConfigurationFactory getFactory() {

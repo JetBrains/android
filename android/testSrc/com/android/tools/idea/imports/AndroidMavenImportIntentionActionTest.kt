@@ -27,8 +27,9 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 
 class AndroidMavenImportIntentionActionTest : AndroidGradleTestCase() {
-
-  fun testUnresolvedSymbolInKotlin() {
+  // Disabled because of b/144188081
+  // Most likely this can be resolved by using a project that is configured to use Kotlin
+  fun disabled_testUnresolvedSymbolInKotlin() {
     // In a project not using AndroidX, add a new file which contains an unresolved
     // symbol "RecyclerView"; check that the unresolved action applies to it, has
     // the right label and when invoked adds a com.android.support:recyclerview

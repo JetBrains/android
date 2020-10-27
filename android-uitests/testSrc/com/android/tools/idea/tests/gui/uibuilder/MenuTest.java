@@ -81,13 +81,14 @@ public final class MenuTest {
   public void dragCastButtonIntoActionBar() {
     NlComponentFixture settingsItem = myEditor.open(MENU_MAIN_XML_RELATIVE_PATH)
       .replaceText(MENU_MAIN_XML_CONTENTS)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .waitForRenderToFinish()
       .findView("item", 0);
-    dragAndDrop("Cast Button", settingsItem.getLeftCenterPoint());
-
-    MessagesFixture.findByTitle(myGuiTest.robot(), "Add Project Dependency").clickOk();
-    myGuiTest.ideFrame().waitForGradleProjectSyncToFinish();
+    dragAndDrop("Cast Button", settingsItem.getSceneComponent().getLeftCenterPoint());
+    myGuiTest.ideFrame().actAndWaitForGradleProjectSyncToFinish(
+      it ->
+        MessagesFixture.findByTitle(myGuiTest.robot(), "Add Project Dependency")
+          .clickOk());
 
     myEditor.open(MENU_MAIN_XML_RELATIVE_PATH, Tab.EDITOR);
 
@@ -113,10 +114,10 @@ public final class MenuTest {
   @Test
   public void dragMenuItemIntoActionBar() {
     NlComponentFixture settingsItem = myEditor.open(MENU_MAIN_XML_RELATIVE_PATH)
-      .getLayoutEditor(false)
+      .getLayoutEditor()
       .waitForRenderToFinish()
       .findView("item", 0);
-    dragAndDrop("Menu Item", settingsItem.getTopCenterPoint());
+    dragAndDrop("Menu Item", settingsItem.getSceneComponent().getTopCenterPoint());
     myEditor.open(MENU_MAIN_XML_RELATIVE_PATH, Tab.EDITOR);
 
     @Language("XML")
@@ -141,10 +142,10 @@ public final class MenuTest {
   public void dragSearchItemIntoActionBar() {
     NlComponentFixture settingsItem = myEditor.open(MENU_MAIN_XML_RELATIVE_PATH)
       .replaceText(MENU_MAIN_XML_CONTENTS)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .waitForRenderToFinish()
       .findView("item", 0);
-    dragAndDrop("Search Item", settingsItem.getLeftCenterPoint());
+    dragAndDrop("Search Item", settingsItem.getSceneComponent().getLeftCenterPoint());
     myEditor.open(MENU_MAIN_XML_RELATIVE_PATH, Tab.EDITOR);
 
     @Language("XML")
@@ -174,7 +175,7 @@ public final class MenuTest {
   }
 
   private void dragAndDrop(@NotNull String item, @NotNull Point point) {
-    NlEditorFixture editor = myEditor.getLayoutEditor(false);
+    NlEditorFixture editor = myEditor.getLayoutEditor();
     editor.waitForRenderToFinish();
 
     JListFixture list = editor.getPalette().getItemList("");

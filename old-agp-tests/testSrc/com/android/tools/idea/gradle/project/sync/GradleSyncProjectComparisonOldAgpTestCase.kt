@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.tools.idea.gradle.project.sync.snapshots.GradleSyncProjectComparisonTest
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
@@ -45,9 +46,12 @@ abstract class GradleSyncProjectComparisonOldAgpTestCase(singleVariantSync: Bool
   class SingleVariantGradleSyncProjectComparisonOldAgpTest : GradleSyncProjectComparisonOldAgpTestCase(singleVariantSync = true)
 
   fun testSimpleApplicationWithAgp3_3_2() {
-    val text = importSyncAndDumpProject(TestProjectPaths.SIMPLE_APPLICATION) {
-      AndroidGradleTests.defaultPatchPreparedProject(it, "5.5", "3.3.2")
-    }
+    val text = importSyncAndDumpProject(
+      projectDir = TestProjectPaths.SIMPLE_APPLICATION,
+      patch = {
+        AndroidGradleTests.defaultPatchPreparedProject(it, "5.5", "3.3.2")
+      }
+    )
     assertIsEqualToSnapshot(text)
   }
 }

@@ -64,8 +64,7 @@ public class InferNullityTest {
   @Test
   @RunIn(TestGroup.FAT_BAZEL)
   public void inferNullity() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importProject("Nullity");
-    ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(120));
+    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("Nullity", Wait.seconds(120));
     guiTest.waitForBackgroundTasks();
 
     ideFrame.invokeMenuPath("Analyze", "Infer Nullity...");

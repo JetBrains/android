@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property2.testutil
 
-import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -103,6 +102,7 @@ class MotionAttributeRule(
     componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager!!)
     Mockito.`when`(fileManager!!.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
       .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
+    Mockito.`when`(fileManager!!.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
   }
 
   fun checkEditor(fileName: String, lineNumber: Int, text: String) {

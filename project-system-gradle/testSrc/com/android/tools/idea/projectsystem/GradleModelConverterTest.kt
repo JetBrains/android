@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
+import java.lang.RuntimeException
 
 /**
  * Tests for [GradleModelConverter]. The setup time for these tests are quite slow since it needs to perform a Gradle sync.
@@ -134,7 +135,7 @@ class GradleModelConverterTest : AndroidGradleTestCase() {
       val variantPathList = configTable.schema.allVariantPaths().toList()
       // (release, debug) * (x86, arm) * (free, pro) = 2 * 2 * 2 = 8
       assertThat(variantPathList.size).isEqualTo(8)
-      val originalVariant = firstVariant()
+      val originalVariant = variantByName("freeX86Debug")
       val originalTestArtifact = originalVariant.extraAndroidArtifacts.iterator().next()!!
       val originalArtifact = originalVariant.mainArtifact
 
@@ -172,13 +173,13 @@ class GradleModelConverterTest : AndroidGradleTestCase() {
     }
   }
 
-  private fun firstVariant(): IdeVariant {
-    var originalVariantVar: IdeVariant? = null
+  private fun variantByName(name: String): IdeVariant {
+    var match: IdeVariant? = null
     project.forEachVariant {
-      if (originalVariantVar == null) {
-        originalVariantVar = it
+      if (it.name == name) {
+        match = it
       }
     }
-    return originalVariantVar!!
+    return match ?: throw RuntimeException("Could not find variant named $name")
   }
 }

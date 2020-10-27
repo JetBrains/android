@@ -127,7 +127,6 @@ class DependencyManagerTest : AndroidTestCase() {
     // The project has no dependencies and NELE_USE_ANDROIDX_DEFAULT is set to true
     assertTrue(dependencyManager!!.useAndroidXDependencies())
 
-/* b/145854905
     val gradlePropertiesFile = ApplicationManager.getApplication().runWriteAction(Computable<VirtualFile> {
       val projectDir = VfsUtil.findFileByIoFile(File(project.basePath), true)!!
       projectDir.createChildData(null, FN_GRADLE_PROPERTIES)
@@ -152,7 +151,6 @@ class DependencyManagerTest : AndroidTestCase() {
     simulateProjectSync()
     assertTrue(dependencyManager!!.useAndroidXDependencies())
     assertEquals(2, dependencyUpdateCount)
-b/145854905 */
   }
 
   fun testNoNotificationOnProjectSyncBeforeSetPalette() {

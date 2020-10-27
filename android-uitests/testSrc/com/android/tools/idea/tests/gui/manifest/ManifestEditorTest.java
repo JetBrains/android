@@ -72,9 +72,9 @@ public class ManifestEditorTest {
     mergedManifestFixture.checkAllRowsColored();
     mergedManifestFixture.requireText("Manifest Sources \n" +
                                       "\n" +
-                                      "app main manifest (this file)\n" +
+                                      projectFrame.getModule("app").getName() + " main manifest (this file)\n" +
                                       "\n" +
-                                      "library manifest\n" +
+                                      projectFrame.getModule("library").getName() + " manifest\n" +
                                       "\n" +
                                       "build.gradle injection", false);
     editor.selectEditorTab(EditorFixture.Tab.EDITOR);

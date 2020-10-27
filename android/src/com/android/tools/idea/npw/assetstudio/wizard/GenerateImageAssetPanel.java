@@ -21,7 +21,7 @@ import com.android.resources.Density;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.npw.assetstudio.DrawableRenderer;
+import com.android.tools.idea.rendering.DrawableRenderer;
 import com.android.tools.idea.npw.assetstudio.GeneratedIcon;
 import com.android.tools.idea.npw.assetstudio.GeneratedImageIcon;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
@@ -44,6 +44,8 @@ import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
+import com.android.tools.idea.ui.wizard.CheckeredBackgroundPanel;
+import com.android.tools.idea.ui.wizard.WrappedFlowLayout;
 import com.android.utils.Pair;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -117,7 +119,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   private JPanel myRootPanel;
   private JComboBox<AndroidIconType> myIconTypeCombo;
   private JPanel myConfigureIconPanels;
-  private Map<AndroidIconType, ConfigureIconView> myConfigureIconViews = new TreeMap<>();
+  private final Map<AndroidIconType, ConfigureIconView> myConfigureIconViews = new TreeMap<>();
   private CheckeredBackgroundPanel myOutputPreviewPanel;
   private TitledSeparator myOutputPreviewLabel;
   private JBScrollPane myOutputPreviewScrollPane;
@@ -135,10 +137,10 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   private JPanel myPreviewContentsPanel;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer
   private JPanel myOutputIconTypePanel;
-  private SelectedProperty myShowGridProperty;
-  private SelectedProperty myShowSafeZoneProperty;
-  private AbstractProperty<Density> myPreviewDensityProperty;
-  private JBLoadingPanel myLoadingPanel;
+  private final SelectedProperty myShowGridProperty;
+  private final SelectedProperty myShowSafeZoneProperty;
+  private final AbstractProperty<Density> myPreviewDensityProperty;
+  private final JBLoadingPanel myLoadingPanel;
 
   @NotNull private AndroidModulePaths myPaths;
   @NotNull private final IconGenerationProcessor myIconGenerationProcessor = new IconGenerationProcessor();
@@ -455,7 +457,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   /**
    * Executes the given runnable after a double 'invokeLater' delay.
    */
-  private static void invokeVeryLate(@NotNull Runnable runnable, @NotNull ModalityState state, @NotNull Condition expired) {
+  private static void invokeVeryLate(@NotNull Runnable runnable, @NotNull ModalityState state, @NotNull Condition<?> expired) {
     Application application = ApplicationManager.getApplication();
     application.invokeLater(() -> application.invokeLater(runnable, state, expired), state, expired);
   }

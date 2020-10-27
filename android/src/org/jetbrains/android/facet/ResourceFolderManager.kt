@@ -58,17 +58,13 @@ class ResourceFolderManager(val module: Module) : ModificationTracker, Disposabl
     /** The resource folders in this project has changed  */
     fun mainResourceFoldersChanged(
       facet: AndroidFacet,
-      folders: List<VirtualFile>,
-      added: Collection<VirtualFile>,
-      removed: Collection<VirtualFile>
+      folders: List<VirtualFile>
     )
 
     /** The resource folders in this project has changed  */
     fun testResourceFoldersChanged(
       facet: AndroidFacet,
-      folders: List<VirtualFile>,
-      added: Collection<VirtualFile>,
-      removed: Collection<VirtualFile>
+      folders: List<VirtualFile>
     )
   }
 
@@ -85,21 +81,20 @@ class ResourceFolderManager(val module: Module) : ModificationTracker, Disposabl
   override fun getModificationCount() = generation
 
   override fun dispose() {
-    val buildVariantUpdater = module.project.serviceIfCreated<BuildVariantUpdater>()
-    buildVariantUpdater?.removeSelectionChangeListener(listener)
+    BuildVariantUpdater.getInstance(module.project).removeSelectionChangeListener(listener)
   }
 
   /**
    * Returns main (production) resource directories, in increasing precedence order.
    *
-   * @see SourceProviders.currentSourceProviders
+   * @see com.android.tools.idea.projectsystem.SourceProviders.currentSourceProviders
    */
   val folders get() = mainAndTestFolders.main
 
   /**
    * Returns test resource directories, in the overlay order.
    *
-   * @see SourceProviders.currentTestSourceProviders
+   * @see com.android.tools.idea.projectsystem.SourceProviders.currentAndroidTestSourceProviders
    */
   val testFolders get() = mainAndTestFolders.test
 
@@ -136,22 +131,14 @@ class ResourceFolderManager(val module: Module) : ModificationTracker, Disposabl
     before: Folders,
     after: Folders,
     filesToCheck: Folders.() -> List<VirtualFile>,
-    callback: ResourceFolderListener.(AndroidFacet, List<VirtualFile>, Collection<VirtualFile>, Collection<VirtualFile>) -> Unit
+    callback: ResourceFolderListener.(AndroidFacet, List<VirtualFile>) -> Unit
   ) {
     val filesBefore = before.filesToCheck()
     val filesAfter = after.filesToCheck()
     if (filesBefore != filesAfter) {
       generation++
-      val added = HashSet<VirtualFile>(after.main.size)
-      added.addAll(after.main)
-      added.removeAll(before.main)
-
-      val removed = HashSet<VirtualFile>(before.main.size)
-      removed.addAll(before.main)
-      removed.removeAll(after.main)
-
       val facet = module.androidFacet ?: return
-      module.messageBus.syncPublisher(TOPIC).callback(facet, after.filesToCheck(), added, removed)
+      module.messageBus.syncPublisher(TOPIC).callback(facet, after.filesToCheck())
     }
   }
 
@@ -168,7 +155,7 @@ class ResourceFolderManager(val module: Module) : ModificationTracker, Disposabl
   }
 
   private fun readFromFacetState(facet: AndroidFacet): Folders {
-    val state = facet.configuration.state ?: return emptyFolders
+    val state = facet.configuration.state
     val mainFolders = state.RES_FOLDERS_RELATIVE_PATH
     return if (mainFolders != null) {
       // We have state saved in the facet.

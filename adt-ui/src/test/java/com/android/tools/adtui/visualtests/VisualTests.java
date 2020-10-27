@@ -54,6 +54,7 @@ public class VisualTests {
     SwingUtilities.invokeAndWait(() -> {
       VisualTestsDialog dialog = new VisualTestsDialog();
       dialog.addTest(new SelectionVisualTest());
+      dialog.addTest(new BoxSelectionVisualTest());
       dialog.addTest(new TooltipVisualTest());
       dialog.addTest(new LineChartVisualTest());
       dialog.addTest(new FlameGraphVisualTest());

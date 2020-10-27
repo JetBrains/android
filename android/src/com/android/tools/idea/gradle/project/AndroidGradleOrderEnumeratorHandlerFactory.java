@@ -35,8 +35,6 @@ import static com.intellij.openapi.util.io.FileUtil.join;
  * Non-android gradle modules don't have such restriction (there will always be fully resolved dependency graph as a flat list)
  * and should not be affected by the recursive enumeration.
  * Which can lead to unexpected runtime classpath and performance degradation.
- *
- * @author Vladislav.Soroka
  */
 public class AndroidGradleOrderEnumeratorHandlerFactory extends FactoryImpl {
   @NotNull private static final String CLASSES_FOLDER_NAME = "classes";

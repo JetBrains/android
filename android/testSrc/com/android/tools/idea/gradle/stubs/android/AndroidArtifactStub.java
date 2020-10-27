@@ -106,9 +106,9 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
   }
 
   @Override
-  @Nullable
+  @NonNull
   public Set<String> getAbiFilters() {
-    return null;
+    return Collections.emptySet();
   }
 
   @Override
@@ -117,13 +117,10 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
     return myNativeLibraries;
   }
 
-  @Override
-  @NotNull
-  public Map<String, ClassField> getBuildConfigFields() {
-    return Collections.emptyMap();
-  }
-
-  @Override
+  /**
+   * Removed from the model in 4.1.0
+   */
+  @Deprecated
   @NotNull
   public Map<String, ClassField> getResValues() {
     return Collections.emptyMap();

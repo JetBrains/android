@@ -21,11 +21,14 @@ import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.ui.AdtUiCursors;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
+import com.intellij.util.Producer;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -39,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A component for performing/rendering selection.
  */
-public final class RangeSelectionComponent extends AnimatedComponent {
+public class RangeSelectionComponent extends AnimatedComponent {
   private static final Color DRAG_BAR_COLOR = new JBColor(new Color(0x260478DA, true), new Color(0x3374B7FF, true));
 
   private static final int DEFAULT_DRAG_BAR_HEIGHT = 26;
@@ -101,9 +104,6 @@ public final class RangeSelectionComponent extends AnimatedComponent {
   @NotNull
   private final RangeSelectionModel myModel;
 
-  @NotNull
-  private final Range myViewRange;
-
   /**
    * Flag to tell the component to render the grab bar if the mouse is over the selection component.
    */
@@ -116,23 +116,39 @@ public final class RangeSelectionComponent extends AnimatedComponent {
 
   private int myDragBarHeight = DEFAULT_DRAG_BAR_HEIGHT;
 
-  public RangeSelectionComponent(@NotNull RangeSelectionModel model, @NotNull Range viewRange) {
-    this(model, viewRange, false);
+  @NotNull private Producer<Boolean> myRangeOcclusionTest = () -> false;
+
+  public RangeSelectionComponent(@NotNull RangeSelectionModel model) {
+    this(model, false);
   }
 
-  public RangeSelectionComponent(@NotNull RangeSelectionModel model, @NotNull Range viewRange, boolean isPointSelectionReplaced) {
+  public RangeSelectionComponent(@NotNull RangeSelectionModel model, boolean isPointSelectionReplaced) {
     myModel = model;
-    myViewRange = viewRange;
     myMode = Mode.NONE;
     myIsPointSelectionReplaced = isPointSelectionReplaced;
     setFocusable(true);
     initListeners();
 
     myModel.addDependency(myAspectObserver).onChange(RangeSelectionModel.Aspect.SELECTION, this::opaqueRepaint);
-    myViewRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::opaqueRepaint);
+    myModel.getViewRange().addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::opaqueRepaint);
   }
 
-  private void initListeners() {
+  /**
+   * @param rangeOcclusionTest A test of the current state whether the mouse is on top of an item occluding the range
+   */
+  public void setRangeOcclusionTest(@NotNull Producer<Boolean> rangeOcclusionTest) {
+    myRangeOcclusionTest = rangeOcclusionTest;
+  }
+
+  protected void initListeners() {
+    this.addHierarchyListener(new HierarchyListener() {
+      @Override
+      public void hierarchyChanged(HierarchyEvent e) {
+        if (!RangeSelectionComponent.this.isDisplayable() || !RangeSelectionComponent.this.isShowing()) {
+          resetMouse();
+        }
+      }
+    });
     this.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
@@ -163,7 +179,7 @@ public final class RangeSelectionComponent extends AnimatedComponent {
         if (SwingUtilities.isLeftMouseButton(e)) {
           if (myIsPointSelectionReplaced && myModel.getSelectionRange().getLength() == 0) {
             Range range = myModel.getSelectionRange();
-            double delta = myViewRange.getLength() * CLICK_RANGE_RATIO;
+            double delta = myModel.getViewRange().getLength() * CLICK_RANGE_RATIO;
             myModel.set(range.getMin() - delta, range.getMax() + delta);
           }
 
@@ -179,8 +195,7 @@ public final class RangeSelectionComponent extends AnimatedComponent {
 
       @Override
       public void mouseExited(MouseEvent e) {
-        setCursor(Cursor.getDefaultCursor());
-        myIsMouseOverComponent = false;
+        resetMouse();
       }
 
       @Override
@@ -268,16 +283,21 @@ public final class RangeSelectionComponent extends AnimatedComponent {
     });
   }
 
+  private void resetMouse() {
+    setCursor(Cursor.getDefaultCursor());
+    myIsMouseOverComponent = false;
+  }
+
   private void shiftModel(ShiftDirection direction, boolean zeroMin, boolean zeroMax) {
     double min = myModel.getSelectionRange().getMin();
     double max = myModel.getSelectionRange().getMax();
-    double rangeDelta = myViewRange.getLength() * SELECTION_MOVE_PERCENT;
+    double rangeDelta = myModel.getViewRange().getLength() * SELECTION_MOVE_PERCENT;
     rangeDelta = (direction == ShiftDirection.LEFT) ? rangeDelta * -1 : rangeDelta;
     double minDelta = zeroMin ? 0 : rangeDelta;
     double maxDelta = zeroMax ? 0 : rangeDelta;
     // If we don't have a selection attempt to put the selection in the center off the screen.
     if (max < min) {
-      max = min = myViewRange.getLength() / 2.0 + myViewRange.getMin();
+      max = min = myModel.getViewRange().getLength() / 2.0 + myModel.getViewRange().getMin();
     }
 
     myModel.beginUpdate();
@@ -285,18 +305,20 @@ public final class RangeSelectionComponent extends AnimatedComponent {
     myModel.endUpdate();
   }
 
-  private double xToRange(int x) {
-    Range range = myViewRange;
-    return x / getSize().getWidth() * range.getLength() + range.getMin();
+  protected double xToRange(int x) {
+    return x / getSize().getWidth() * getModel().getViewRange().getLength() + getModel().getViewRange().getMin();
   }
 
-  private float rangeToX(double value, Dimension dim) {
-    Range range = myViewRange;
+  protected float rangeToX(double value, double width) {
     // Clamp the range to the edge of the screen. This prevents fill artifacts when zoomed in, and improves performance.
     // If we do not clamp the selection to the screen then during painting java attempts to fill a rectangle several
     // thousand pixels off screen in both directions. This results in lots of computation that isn't required as well as,
     // lots of artifacts in the selection itself.
-    return Math.min(Math.max((float)(dim.getWidth() * ((value - range.getMin()) / (range.getMax() - range.getMin()))), 0), dim.width);
+    return (float)Math.min(
+      Math.max(
+        width * (value - getModel().getViewRange().getMin()) / (getModel().getViewRange().getMax() - getModel().getViewRange().getMin()),
+        0),
+      width);
   }
 
   /**
@@ -317,9 +339,8 @@ public final class RangeSelectionComponent extends AnimatedComponent {
       return Mode.CREATE;
     }
 
-    Dimension size = getSize();
-    double startXPos = rangeToX(myModel.getSelectionRange().getMin(), size);
-    double endXPos = rangeToX(myModel.getSelectionRange().getMax(), size);
+    double startXPos = rangeToX(myModel.getSelectionRange().getMin(), getWidth());
+    double endXPos = rangeToX(myModel.getSelectionRange().getMax(), getWidth());
     if (startXPos - HANDLE_HITBOX_WIDTH < x && x < startXPos + HANDLE_WIDTH) {
       return Mode.ADJUST_MIN;
     }
@@ -333,6 +354,10 @@ public final class RangeSelectionComponent extends AnimatedComponent {
   }
 
   private void updateCursor(Mode newMode, int newX) {
+    if (myRangeOcclusionTest.produce()) {
+      setCursor(Cursor.getDefaultCursor());
+      return;
+    }
     switch (newMode) {
       case ADJUST_MIN:
         setCursor(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
@@ -385,6 +410,11 @@ public final class RangeSelectionComponent extends AnimatedComponent {
     return myMode;
   }
 
+  @NotNull
+  public RangeSelectionModel getModel() {
+    return myModel;
+  }
+
   /**
    * @return true if the blue seek component from {@link RangeTooltipComponent} should be visible.
    * @see {@link RangeTooltipComponent#myShowSeekComponent}
@@ -404,11 +434,13 @@ public final class RangeSelectionComponent extends AnimatedComponent {
   protected void draw(Graphics2D g, Dimension dim) {
     // Draws if the selection range is fully visible or partially visible; and hide if it is empty or not visible.
     Range selectionRange = myModel.getSelectionRange();
-    if (selectionRange.isEmpty() || selectionRange.getMin() > myViewRange.getMax() || selectionRange.getMax() < myViewRange.getMin()) {
+    if (selectionRange.isEmpty() ||
+        selectionRange.getMin() > myModel.getViewRange().getMax() ||
+        selectionRange.getMax() < myModel.getViewRange().getMin()) {
       return;
     }
-    float startXPos = rangeToX(selectionRange.getMin(), dim);
-    float endXPos = rangeToX(selectionRange.getMax(), dim);
+    float startXPos = rangeToX(selectionRange.getMin(), dim.getWidth());
+    float endXPos = rangeToX(selectionRange.getMax(), dim.getWidth());
     float handleDistance = endXPos - startXPos - HANDLE_WIDTH * 2;
     if (handleDistance < MIN_HANDLE_DISTANCE) {
       // When handles are too close to each other, keep a minimum distance and adjust handle position from the mid-point.
@@ -427,7 +459,7 @@ public final class RangeSelectionComponent extends AnimatedComponent {
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     // Draw selection area.
-    g.setColor(StudioColorsKt.getContentSelectionBackground());
+    g.setColor(StudioColorsKt.getSelectionOverlayBackground());
     Rectangle2D.Float rect = new Rectangle2D.Float(startXPos + HANDLE_WIDTH, 0, handleDistance, dim.height);
     g.fill(rect);
 

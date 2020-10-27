@@ -16,6 +16,8 @@
 package com.android.tools.idea.tests.gui.naveditor
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
+import com.android.tools.idea.tests.gui.framework.RunIn
+import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ResourcePickerDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlDesignSurfaceFixture
@@ -32,15 +34,16 @@ class HostPanelTest {
   @JvmField
   val guiTest = GuiTestRule()
 
+  @RunIn(TestGroup.UNRELIABLE) // b/152646640
   @Test
   fun testUpdateHostPanel() {
-    val frame = guiTest.importProject("Navigation").waitForGradleProjectSyncToFinish()
+    val frame = guiTest.importProjectAndWaitForProjectSyncToFinish("Navigation")
 
     // Open file as XML and switch to design tab, wait for successful render
     val hostPanel = frame
       .editor
       .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .waitForRenderToFinish()
       .hostPanel()
       .waitForHostList()
@@ -50,7 +53,7 @@ class HostPanelTest {
     frame
       .editor
       .open("app/src/main/res/layout/activity_main.xml")
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .dragComponentToSurface("Containers", "NavHostFragment")
 
     val dialog = ResourcePickerDialogFixture.find(guiTest.robot())
@@ -61,7 +64,7 @@ class HostPanelTest {
     frame
       .editor
       .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .waitForRenderToFinish()
 
     assertThat(hostPanel.waitForHostList().components).isNotEmpty()
@@ -69,16 +72,16 @@ class HostPanelTest {
     val nlFixture = frame
       .editor
       .open("app/src/main/res/layout/activity_main.xml")
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .surface as NlDesignSurfaceFixture
 
-    nlFixture.findView("fragment", 0).click()
+    nlFixture.findView("fragment", 0).sceneComponent!!.click()
     guiTest.robot().pressAndReleaseKey(VK_DELETE, 0)
 
     frame
       .editor
       .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .waitForRenderToFinish()
 
     assertThat(hostPanel.waitForHostList().components).isEmpty()

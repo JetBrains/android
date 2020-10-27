@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.npw.template.components
 
-import com.android.tools.idea.templates.Parameter
 import com.android.tools.idea.ui.wizard.WizardUtils
+import com.android.tools.idea.wizard.template.Parameter
+import com.google.common.base.Strings
 import javax.swing.JComponent
 
 /**
  * A class responsible for converting a [Parameter] to a [JComponent]. Any parameter
- * that represents a value (most of them, except for e.g. [Parameter.Type.SEPARATOR]) should
+ * that represents a value (most of them, except for e.g. SEPARATOR should
  * be sure to also create an appropriate Swing property to control the component.
  */
-abstract class ParameterComponentProvider<T : JComponent> protected constructor(private val parameter: Parameter) : ComponentProvider<T>() {
+abstract class ParameterComponentProvider<T : JComponent> protected constructor(private val parameter: Parameter<*>) : ComponentProvider<T>() {
   override fun createComponent(): T = createComponent(parameter).apply {
     toolTipText = WizardUtils.toHtmlString(parameter.help ?: "")
   }
 
-  protected abstract fun createComponent(parameter: Parameter): T
+  protected abstract fun createComponent(parameter: Parameter<*>): T
 }

@@ -30,7 +30,7 @@ import java.awt.geom.Path2D;
  * The paint methods here are extract from the private method equivalents inside {@link javax.swing.plaf.basic.BasicMenuUI} and
  * {@link javax.swing.plaf.basic.BasicMenuItemUI}.
  */
-public final class CommonMenuPaintHelper {
+public class CommonMenuPaintHelper {
 
   private CommonMenuPaintHelper() {
   }

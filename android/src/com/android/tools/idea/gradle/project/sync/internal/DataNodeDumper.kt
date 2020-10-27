@@ -20,6 +20,8 @@ package com.android.tools.idea.gradle.project.sync.internal
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
+import com.android.tools.idea.gradle.project.model.NdkModuleModel
+import com.android.tools.idea.gradle.project.model.NdkVariant
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -66,7 +68,6 @@ fun <T : Any> DataNode<T>.dump(): String = buildString {
       isBuildable = ${isBuildable}
       languageLevel = ${javaLanguageLevel}
       buildFolderPath = ${buildFolderPath}
-      isAndroidModuleWithoutVariants = ${isAndroidModuleWithoutVariants}
       contentRoots = ${contentRoots}
       javaModuleDependencies = ${javaModuleDependencies}
       jarLibraryDependencies = ${jarLibraryDependencies}
@@ -75,6 +76,7 @@ fun <T : Any> DataNode<T>.dump(): String = buildString {
       configurations = ${configurations}
       """.replaceIndent("    ")
     is AndroidModuleModel -> format()
+    is NdkModuleModel -> format()
     else -> toString()
   }
 
@@ -90,9 +92,31 @@ fun <T : Any> DataNode<T>.dump(): String = buildString {
   this@dump.dumpNode()
 }
 
+fun NdkModuleModel.format(): String = "\n" + """
+    moduleName = ${moduleName}
+    rootDirPath = ${rootDirPath}
+    androidProject = ${androidProject.format()}
+    variantAbi = ${variantAbi.format()}
+    variants = ${variants.format{ format()}}
+    features = ${features.format()}
+    selectedVariant = ${selectedVariant.format()}
+  """
+
+fun <T> Collection<T>.format(format: T.() -> String): String = """[
+${this.joinToString(separator = "\n") { "      " + (it?.format() ?: "") }.prependIndent("    ")}
+    ]
+  """
+
+fun NdkVariant.format(): String = """{
+        name = ${name}
+        sourceFolders = ${sourceFolders}
+        artifacts = ${artifacts.format("          ")}
+    }
+  """
+
+@Suppress("DEPRECATION")
 fun AndroidModuleModel.format(): String = "\n" + """
     androidProject = ${androidProject.format()}
-    selectedMainCompileDependencies = ${selectedMainCompileDependencies.format()}
     selectedMainCompileLevel2Dependencies = ${selectedMainCompileLevel2Dependencies.format()}
     selectedAndroidTestCompileDependencies = ${selectedAndroidTestCompileDependencies?.format()}
     features = ${features.format()}
@@ -121,15 +145,10 @@ fun AndroidModuleModel.format(): String = "\n" + """
     variantNames = ${variantNames.format()}
     javaLanguageLevel = $javaLanguageLevel
     overridesManifestPackage = ${overridesManifestPackage()}
-    extraGeneratedSourceFolderPaths = ${extraGeneratedSourceFolderPaths.format()}
     syncIssues = ${syncIssues?.format()}
     artifactForAndroidTest = ${artifactForAndroidTest?.format()}
     testExecutionStrategy = $testExecutionStrategy
-    buildTypeSourceProvider = ${buildTypeSourceProvider.format()}
     flavorSourceProviders = ${flavorSourceProviders.format()}
-    multiFlavorSourceProvider = ${multiFlavorSourceProvider?.format()}
-    variantSourceProvider = ${variantSourceProvider?.format()}
-    dataBindingMode = $dataBindingMode
     classJarProvider = $classJarProvider
     namespacing = $namespacing
     desugaring = $desugaring

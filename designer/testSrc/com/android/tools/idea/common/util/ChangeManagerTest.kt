@@ -62,7 +62,7 @@ private class ChangeTracker {
   /**
    * Called when a non-code change happens an a refresh would be required.
    */
-  fun onRefresh() {
+  fun onRefresh(lastUpdatedNanos: Long) {
     refreshCounter++
   }
 

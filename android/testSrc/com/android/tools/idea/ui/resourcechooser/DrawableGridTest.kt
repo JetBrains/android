@@ -30,6 +30,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.registerExtension
 import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.UIUtil
 import org.junit.BeforeClass
@@ -145,7 +146,8 @@ class StubRenderer : DesignAssetRenderer {
 
   override fun getImage(file: VirtualFile,
                         module: Module?,
-                        dimension: Dimension): CompletableFuture<out BufferedImage?> = future
+                        dimension: Dimension,
+                        context: Any?): CompletableFuture<out BufferedImage?> = future
 
   fun simulateRender(image: BufferedImage?) {
     future.complete(image)

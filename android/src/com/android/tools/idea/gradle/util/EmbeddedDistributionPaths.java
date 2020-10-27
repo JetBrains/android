@@ -100,7 +100,7 @@ public class EmbeddedDistributionPaths {
   }
 
   @NotNull
-  public File findEmbeddedProfilerTransform(@NotNull AndroidVersion version) {
+  public File findEmbeddedProfilerTransform() {
     String path = "plugins/android/resources/profilers-transform.jar";
     File file = new File(PathManager.getHomePath(), path);
     if (file.exists()) {

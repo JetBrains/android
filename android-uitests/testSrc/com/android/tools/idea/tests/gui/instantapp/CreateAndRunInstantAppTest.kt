@@ -105,10 +105,10 @@ class CreateAndRunInstantAppTest {
   @Test
   @RunIn(TestGroup.SANITY_BAZEL)
   fun createAndRun() {
-    val runConfigName = "app"
+    val runConfigName = "My_Application.app"
     val avdName = avdTestRule.myAvd?.name ?: throw IllegalStateException("AVD does not have a name")
 
-    guiTest
+    val ideFrame = guiTest
       .welcomeFrame()
       .createNewProject()
       .clickNext()
@@ -116,18 +116,17 @@ class CreateAndRunInstantAppTest {
       .enterPackageName(projectApplicationId)
       .selectMinimumSdkApi(23)
       .wizard()
-      .clickFinish()
-
-    val ideFrame = guiTest.ideFrame()
-    // TODO remove the following workaround wait for http://b/72666461
-    ideFrame.waitForGradleProjectSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish()
 
     ideFrame.projectView
       .selectAndroidPane()
       .clickPath("app")
       .invokeMenuPath("Refactor", "Enable Instant Apps Support...")
-    EnableInstantAppSupportDialogFixture.find(ideFrame)
-      .clickOk()
+
+    ideFrame.actAndWaitForGradleProjectSyncToFinish {
+      EnableInstantAppSupportDialogFixture.find(ideFrame).clickOk()
+      // Wait for Gradle sync to finish, then the Run -> Edit Configurations... will be enabled.
+    }
 
     // The project is not deployed as an instant app by default anymore. Enable
     // deploying the project as an instant app:
@@ -142,7 +141,7 @@ class CreateAndRunInstantAppTest {
     runWindow.activate()
     val runWindowContent = runWindow.findContent(runConfigName)
 
-    val runOutputPattern = Pattern.compile(".*Connected to process.*", Pattern.DOTALL)
+    val runOutputPattern = Pattern.compile(".*Instant app started.*", Pattern.DOTALL)
     runWindowContent.waitForOutput(PatternTextMatcher(runOutputPattern), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS)
 
     runWindowContent.waitForStopClick()

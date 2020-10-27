@@ -15,8 +15,13 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.annotations.concurrency.Slow
+import com.android.repository.Revision
+import com.android.repository.api.LocalPackage
 import com.android.repository.api.RepoManager
 import com.android.repository.api.RepoPackage
+import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.InspectorView
 import com.android.tools.idea.layoutinspector.proto.SkiaParser
 import com.android.tools.idea.layoutinspector.proto.SkiaParserServiceGrpc
@@ -51,7 +56,6 @@ import java.awt.image.DirectColorModel
 import java.awt.image.Raster
 import java.awt.image.SinglePixelPackedSampleModel
 import java.io.File
-import java.io.FileReader
 import java.nio.ByteOrder
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
@@ -60,14 +64,12 @@ import javax.xml.bind.annotation.XmlAttribute
 import javax.xml.bind.annotation.XmlElement
 import javax.xml.bind.annotation.XmlRootElement
 import kotlin.math.max
+import kotlin.math.min
 
 private const val PARSER_PACKAGE_NAME = "skiaparser"
 private const val INITIAL_DELAY_MILLI_SECONDS = 10L
 private const val MAX_DELAY_MILLI_SECONDS = 1000L
 private const val MAX_TIMES_TO_RETRY = 10
-
-// enable for debugging purposes
-private const val DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER = false
 
 class InvalidPictureException : Exception()
 class UnsupportedPictureVersionException(val version: Int) : Exception()
@@ -79,15 +81,22 @@ interface SkiaParserService {
   fun shutdownAll()
 }
 
+// The minimum version of a skia parser component required by this version of studio.
+// It's the parser's responsibility to be compatible with all supported studio versions.
+private val minimumRevisions = mapOf(
+  "skiaparser;1" to Revision(1)
+)
+
 object SkiaParser : SkiaParserService {
   private val unmarshaller = JAXBContext.newInstance(VersionMap::class.java).createUnmarshaller()
   private val devbuildServerInfo = ServerInfo(null, -1, -1)
-
   private var supportedVersionMap: Map<Int?, ServerInfo>? = null
+  private var latestPackagePath: String? = null
   private val mapLock = Any()
   private const val VERSION_MAP_FILE_NAME = "version-map.xml"
   private val progressIndicator = StudioLoggerProgressIndicator(SkiaParser::class.java)
 
+  @Slow
   @Throws(InvalidPictureException::class)
   override fun getViewTree(data: ByteArray, isInterrupted: () -> Boolean): InspectorView? {
     val server = runServer(data) ?: throw UnsupportedPictureVersionException(getSkpVersion(data))
@@ -102,6 +111,7 @@ object SkiaParser : SkiaParserService {
     }
   }
 
+  @Slow
   override fun shutdownAll() {
     supportedVersionMap?.values?.forEach { it.shutdown() }
     devbuildServerInfo.shutdown()
@@ -130,6 +140,10 @@ object SkiaParser : SkiaParserService {
     return res
   }
 
+  /**
+   * Run a server that can parse the given [data], or null if no appropriate server version is available.
+   */
+  @Slow
   private fun runServer(data: ByteArray): ServerInfo? {
     val server = findServerInfoForSkpVersion(getSkpVersion(data)) ?: return null
     server.runServer()
@@ -153,9 +167,12 @@ object SkiaParser : SkiaParserService {
     return skpVersion
   }
 
-  private fun findServerInfoForSkpVersion(skpVersion: Int): ServerInfo? {
-    // TODO: try devbuild first if appropriate
-    if (DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER) {
+  /**
+   * Get the [ServerInfo] for a server that can render SKPs of the given [skpVersion], or null if no valid server is found.
+   */
+  @VisibleForTesting
+  fun findServerInfoForSkpVersion(skpVersion: Int): ServerInfo? {
+    if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER.get()) {
       return devbuildServerInfo
     }
     if (supportedVersionMap == null) {
@@ -164,8 +181,15 @@ object SkiaParser : SkiaParserService {
 
     var serverInfo = findVersionInMap(skpVersion)
     // If we didn't find it in the map, maybe we have an old map. Download the latest and look again.
-    if (serverInfo == null && downloadLatestVersion()) {
-      serverInfo = findVersionInMap(skpVersion)
+    if (serverInfo == null) {
+      val latest = getLatestParserPackage(AndroidSdks.getInstance().tryToChooseSdkHandler())
+      if (latest?.path?.equals(latestPackagePath) != true) {
+        readVersionMapping()
+        serverInfo = findVersionInMap(skpVersion)
+      }
+      if (serverInfo == null && downloadLatestVersion()) {
+        serverInfo = findVersionInMap(skpVersion)
+      }
     }
 
     return serverInfo
@@ -179,6 +203,7 @@ object SkiaParser : SkiaParserService {
     }
   }
 
+  @Slow
   private fun downloadLatestVersion(): Boolean {
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
     val sdkManager = sdkHandler.getSdkManager(progressIndicator)
@@ -187,7 +212,7 @@ object SkiaParser : SkiaParserService {
                                  StudioDownloader(), StudioSettingsController.getInstance())
 
     val latestRemote = sdkHandler.getLatestRemotePackageForPrefix(
-      PARSER_PACKAGE_NAME, true, progressIndicator) ?: return false
+      PARSER_PACKAGE_NAME, null, true, progressIndicator) ?: return false
     val maybeNewPackage = latestRemote.path
     val updatablePackage = sdkManager.packages.consolidatedPkgs[maybeNewPackage] ?: return false
     if (updatablePackage.hasLocal() && !updatablePackage.isUpdate) {
@@ -212,12 +237,13 @@ object SkiaParser : SkiaParserService {
   }
 
   private fun readVersionMapping() {
-    val latestPackage = AndroidSdks.getInstance().tryToChooseSdkHandler().getLatestLocalPackageForPrefix(
-      PARSER_PACKAGE_NAME, { true }, true, progressIndicator)
+    val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
+    val latestPackage = getLatestParserPackage(sdkHandler)
     if (latestPackage != null) {
       val mappingFile = File(latestPackage.location, VERSION_MAP_FILE_NAME)
       try {
-        val map = unmarshaller.unmarshal(FileReader(mappingFile)) as VersionMap
+        val mapInputStream = sdkHandler.fileOp.newFileInputStream(mappingFile)
+        val map = unmarshaller.unmarshal(mapInputStream) as VersionMap
         synchronized(mapLock) {
           val newMap = mutableMapOf<Int?, ServerInfo>()
           for (spec in map.servers) {
@@ -230,6 +256,7 @@ object SkiaParser : SkiaParserService {
             }
           }
           supportedVersionMap = newMap
+          latestPackagePath = latestPackage.path
         }
       }
       catch (e: Exception) {
@@ -237,13 +264,18 @@ object SkiaParser : SkiaParserService {
       }
     }
   }
+
+  private fun getLatestParserPackage(sdkHandler: AndroidSdkHandler): LocalPackage? {
+    return sdkHandler.getLatestLocalPackageForPrefix(PARSER_PACKAGE_NAME, { true }, true, progressIndicator)
+  }
 }
 
 /**
  * Metadata for a skia parser server version. May or may not correspond to a server on disk, but has the capability to download it if not.
  * If [serverVersion] is null, corresponds to the locally-built1 server (in a dev build).
  */
-private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
+@VisibleForTesting
+class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
   private val serverName = "skia-grpc-server" + if (isWindows) ".exe" else ""
 
   val skpVersionRange: IntRange = IntRange(skpStart, skpEnd ?: Int.MAX_VALUE)
@@ -263,7 +295,20 @@ private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
     }
     else {
       val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-      val serverPackage = sdkHandler.getLocalPackage(packagePath, progressIndicator) ?: return null
+      var serverPackage = sdkHandler.getLocalPackage(packagePath, progressIndicator) ?: return null
+      // If the path isn't in the map at all, it's newer than this version of studio.
+      if (minimumRevisions.getOrDefault(serverPackage.path, Revision(0)) > serverPackage.version) {
+        // Current version is too old, try to update
+        val updatablePackage = sdkHandler.getSdkManager(progressIndicator).packages.consolidatedPkgs[packagePath] ?: return null
+        if (updatablePackage.isUpdate) {
+          SdkQuickfixUtils.createDialogForPackages(null, listOf(updatablePackage), listOf(), false)?.show()
+        }
+        serverPackage = sdkHandler.getLocalPackage(packagePath, progressIndicator) ?: return null
+        // we didn't update successfully
+        if (minimumRevisions.getOrDefault(serverPackage.path, Revision(0)) > serverPackage.version) {
+          return null
+        }
+      }
       File(serverPackage.location, serverName)
     }
   }
@@ -275,6 +320,7 @@ private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
    * Note that this will be a sub process of Android Studio and will terminate when
    * Android Studio process is terminated.
    */
+  @Slow
   fun runServer() {
     if (client != null && channel?.isShutdown != true && channel?.isTerminated != true && handler?.process?.isAlive == true) {
       // already started
@@ -293,12 +339,12 @@ private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
 
     channel = NettyChannelBuilder
       .forAddress("localhost", localPort)
-      .usePlaintext(true)
-      .maxMessageSize(512 * 1024 * 1024 - 1)
+      .usePlaintext()
+      .maxInboundMessageSize(512 * 1024 * 1024 - 1)
       .build()
     client = SkiaParserServiceGrpc.newBlockingStub(channel)
 
-    handler = OSProcessHandler(GeneralCommandLine(realPath.absolutePath, localPort.toString()))
+    handler = OSProcessHandler.Silent(GeneralCommandLine(realPath.absolutePath, localPort.toString()))
     handler!!.addProcessListener(object : ProcessAdapter() {
       override fun processTerminated(event: ProcessEvent) {
         // TODO(b/151639359) // We get a 137 when we terminate the server. Silence this error.
@@ -321,6 +367,7 @@ private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
     handler?.startNotify()
   }
 
+  @Slow
   fun shutdown() {
     channel?.shutdownNow()
     channel?.awaitTermination(1, TimeUnit.SECONDS)
@@ -330,6 +377,7 @@ private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
     handler = null
   }
 
+  @Slow
   private fun tryDownload(): Boolean {
     if (serverVersion == null) {
       // devbuild, can't download
@@ -356,12 +404,14 @@ private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
     return newPackage.hasLocal() && !newPackage.isUpdate
   }
 
+  @Slow
   fun getViewTree(data: ByteArray): SkiaParser.GetViewTreeResponse? {
     ping()
     return getViewTreeImpl(data)
   }
 
   // TODO: add ping functionality to the server?
+  @Slow
   fun ping() {
     getViewTreeImpl(ByteArray(1))
   }
@@ -385,7 +435,7 @@ private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
         }
         Thread.sleep(delay)
         tries++
-        delay = max(2 * delay, MAX_DELAY_MILLI_SECONDS)
+        delay = min(2 * delay, MAX_DELAY_MILLI_SECONDS)
         lastException = ex
       }
     }

@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.build.events;
 import static com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEvent.convertCategory;
 
 import com.intellij.build.events.Failure;
-import com.intellij.build.events.FailureResult;
 import com.intellij.build.events.MessageEvent.Kind;
 import com.intellij.build.events.MessageEventResult;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
@@ -32,7 +31,7 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEvent.convertCategory;
 
-public class AndroidSyncIssueEventResult implements MessageEventResult, FailureResult {
+public class AndroidSyncIssueEventResult implements MessageEventResult {
 
   @NotNull private final List<Failure> myFailures;
   @NotNull private final Kind myKind;
@@ -47,7 +46,6 @@ public class AndroidSyncIssueEventResult implements MessageEventResult, FailureR
   }
 
   @NotNull
-  @Override
   public List<? extends Failure> getFailures() {
     return myFailures;
   }

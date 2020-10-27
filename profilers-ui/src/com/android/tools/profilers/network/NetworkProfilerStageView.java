@@ -184,9 +184,9 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   private JPanel buildMonitorUi() {
     StudioProfilers profilers = getStage().getStudioProfilers();
     StreamingTimeline timeline = getStage().getTimeline();
-    RangeSelectionComponent selection = new RangeSelectionComponent(getStage().getRangeSelectionModel(), timeline.getViewRange());
+    RangeSelectionComponent selection = new RangeSelectionComponent(getStage().getRangeSelectionModel());
     selection.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
-    RangeTooltipComponent tooltip = new RangeTooltipComponent(getStage().getTimeline(),
+    RangeTooltipComponent tooltip = new RangeTooltipComponent(timeline,
                                                               getTooltipPanel(),
                                                               getProfilersView().getComponent(),
                                                               () -> selection.shouldShowSeekComponent());

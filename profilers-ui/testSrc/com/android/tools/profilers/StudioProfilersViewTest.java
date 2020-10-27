@@ -22,6 +22,7 @@ import static com.android.tools.idea.transport.faketransport.FakeTransportServic
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.testutils.TestUtils;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.FakeTimer;
@@ -30,10 +31,14 @@ import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profilers.cpu.CpuCaptureStage;
 import com.android.tools.profilers.cpu.CpuMonitorTooltip;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.cpu.CpuProfilerUITestUtils;
 import com.android.tools.profilers.energy.EnergyMonitorTooltip;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
+import com.android.tools.profilers.memory.FakeCaptureObjectLoader;
+import com.android.tools.profilers.memory.HeapDumpStage;
 import com.android.tools.profilers.memory.MemoryMonitorTooltip;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.network.NetworkMonitorTooltip;
@@ -42,6 +47,9 @@ import com.android.tools.profilers.sessions.SessionsView;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.truth.Truth;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
+import com.intellij.testFramework.ApplicationRule;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import icons.StudioIcons;
 import java.awt.Point;
 import java.util.ArrayList;
@@ -56,6 +64,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+@RunsInEdt
 public class StudioProfilersViewTest {
   private static final Common.Session SESSION_O = Common.Session.newBuilder().setSessionId(2).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS)
     .setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS * 2).build();
@@ -65,8 +74,12 @@ public class StudioProfilersViewTest {
   private final FakeTimer myTimer = new FakeTimer();
   private final FakeTransportService myService = new FakeTransportService(myTimer);
   private final FakeProfilerService myProfilerService = new FakeProfilerService(myTimer);
+
   @Rule public FakeGrpcServer myGrpcChannel =
     FakeGrpcServer.createFakeGrpcServer("StudioProfilerTestChannel", myService, myProfilerService);
+  @Rule public final EdtRule myEdtRule = new EdtRule();
+  @Rule public final ApplicationRule myAppRule = new ApplicationRule();  // For initializing HelpTooltip.
+
   private StudioProfilers myProfilers;
   private FakeIdeProfilerServices myProfilerServices = new FakeIdeProfilerServices();
   private StudioProfilersView myView;
@@ -75,7 +88,7 @@ public class StudioProfilersViewTest {
   @Before
   public void setUp() {
     myProfilerServices.enableEnergyProfiler(true);
-    myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myProfilerServices, myTimer);
+    myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myProfilerServices, myTimer);
     myProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     // We setup and profile a process, we assume that process has an agent attached by default.
     myService.setAgentStatus(Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build());
@@ -234,7 +247,7 @@ public class StudioProfilersViewTest {
 
     // Fake a collapse action and re-create the StudioProfilerView, the session UI should now remain collapsed.
     myView.getSessionsView().getCollapseButton().doClick();
-    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myProfilerServices, myTimer);
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myProfilerServices, myTimer);
     StudioProfilersView profilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     assertThat(profilersView.getSessionsView().getCollapsed()).isTrue();
 
@@ -246,7 +259,7 @@ public class StudioProfilersViewTest {
     FakeUi ui = new FakeUi(splitter);
     myUi.mouse.drag(splitter.getFirstSize(), 0, 10, 0);
 
-    profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myProfilerServices, myTimer);
+    profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myProfilerServices, myTimer);
     profilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     assertThat(profilersView.getSessionsView().getCollapsed()).isFalse();
     assertThat(((ThreeComponentsSplitter)profilersView.getComponent().getComponent(0)).getFirstSize()).isEqualTo(splitter.getFirstSize());
@@ -498,6 +511,27 @@ public class StudioProfilersViewTest {
     myProfilers.setProcess(device, process);
     assertThat(myView.getStageViewComponent().isVisible()).isTrue();
     assertThat(myView.getStageLoadingComponent().isVisible()).isFalse();
+  }
+
+  @Test
+  public void nonTimelineStageHidesRightToolbar_timelineStageShowsRightToolbar() {
+    myProfilers.setStage(new HeapDumpStage(myProfilers, new FakeCaptureObjectLoader(), null, null));
+    assertThat(myView.getRightToolbar().isVisible()).isFalse();
+
+    myProfilers.setStage(new MemoryProfilerStage(myProfilers));
+    assertThat(myView.getRightToolbar().isVisible()).isTrue();
+  }
+
+  @Test
+  public void captureCpuStageGoesBackToCpuStageThenBackToMonitorStage() {
+    myProfilers.setStage(CpuCaptureStage.create(myProfilers,
+                                                ProfilersTestData.DEFAULT_CONFIG,
+                                                TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.VALID_TRACE_PATH),
+                                                ProfilersTestData.SESSION_DATA.getSessionId()));
+    myView.getBackButton().doClick();
+    assertThat(myProfilers.getStage()).isInstanceOf(CpuProfilerStage.class);
+    myView.getBackButton().doClick();
+    assertThat(myProfilers.getStage()).isInstanceOf(StudioMonitorStage.class);
   }
 
   public void transitionStage(Stage stage) throws Exception {

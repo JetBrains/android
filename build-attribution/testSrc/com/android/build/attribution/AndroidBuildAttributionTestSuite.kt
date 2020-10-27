@@ -24,15 +24,8 @@ import org.junit.runner.RunWith
 class AndroidBuildAttributionTestSuite : IdeaTestSuiteBase() {
   companion object {
     init {
-      symlinkToIdeaHome(
-        "prebuilts/studio/jdk",
-        "prebuilts/studio/sdk",
-        "tools/adt/idea/android/testData",
-        "tools/base/templates",
-        "tools/idea/java")
-
-      IdeaTestSuiteBase.setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository")
-      IdeaTestSuiteBase.setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo")
+      unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip")
+      unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip")
     }
   }
 }

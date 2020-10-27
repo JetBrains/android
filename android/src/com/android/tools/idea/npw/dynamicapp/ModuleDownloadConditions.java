@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.dynamicapp;
 
 import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.collections.ObservableList;
 import com.android.tools.idea.observable.core.BoolValueProperty;
@@ -32,7 +33,7 @@ import javax.swing.*;
 import static com.android.tools.idea.help.StudioHelpManagerImpl.STUDIO_HELP_URL;
 
 public class ModuleDownloadConditions {
-  private static final String myLinkUrl = STUDIO_HELP_URL + "r/studio-ui/dynamic-delivery/conditional-delivery";
+  private static final String myLinkUrl = AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/dynamic-delivery/conditional-delivery";
   public JPanel myRootPanel;
   private JPanel myDeviceFeaturesContainer;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.

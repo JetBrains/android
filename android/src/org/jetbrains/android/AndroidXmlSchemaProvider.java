@@ -33,7 +33,7 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.lang.xml.XMLLanguage;
@@ -51,7 +51,6 @@ import java.util.Set;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
 import org.jetbrains.android.dom.xml.XmlResourceDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -86,7 +85,7 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
     final XmlFile originalFile = (XmlFile)f;
 
     return ReadAction.compute(() -> {
-      if (AndroidResourceUtil.isInResourceSubdirectory(originalFile, null)) {
+      if (IdeResourcesUtil.isInResourceSubdirectory(originalFile, null)) {
         PsiDirectory parent = originalFile.getParent();
         if (parent == null) {
           return false;
@@ -113,7 +112,7 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
       if (ManifestDomFileDescription.isManifestFile(file)) {
         result.add(DIST_URI);
       }
-      ResourceFolderType type = ResourceHelper.getFolderType(file.getOriginalFile());
+      ResourceFolderType type = IdeResourcesUtil.getFolderType(file.getOriginalFile());
       if (type != ResourceFolderType.MIPMAP && type != ResourceFolderType.RAW) {
         if (type == ResourceFolderType.DRAWABLE) {
           result.add(AAPT_URI);

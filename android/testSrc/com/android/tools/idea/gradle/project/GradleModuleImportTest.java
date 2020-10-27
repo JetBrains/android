@@ -43,6 +43,7 @@ import com.intellij.openapi.project.impl.ProjectManagerImpl;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.ProjectRule;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
@@ -388,11 +389,13 @@ b/145809317 */
             ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
             projectManager.forceCloseProject(project);
             if (projectManager instanceof ProjectManagerImpl) {
+              projectManager.forceCloseProject(project);
               Collection<Project> projectsStillOpen = Arrays.asList(projectManager.getOpenProjects());
               if (!projectsStillOpen.isEmpty()) {
                 Project project = projectsStillOpen.iterator().next();
                 projectsStillOpen.clear();
-                throw new AssertionError("Test project is not disposed: " + project + ";\n created in: " + ((ProjectEx)project).getCreationTrace());
+                throw new AssertionError("Test project is not disposed: " + project + ";\n created in: " +
+                                         ProjectRule.getCreationPlace(project));
               }
             }
           }

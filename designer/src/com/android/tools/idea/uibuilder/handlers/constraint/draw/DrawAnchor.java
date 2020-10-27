@@ -78,10 +78,6 @@ public class DrawAnchor extends DrawRegion {
     myType = type;
   }
 
-  private static int getPulseAlpha(int deltaT) {
-    return (int)Animation.EaseInOutinterpolator(Math.abs((deltaT) - 500) / 500.0, 0, 255);
-  }
-
   @Override
   public int getLevel() {
     if (myMode == Mode.OVER || myMode == Mode.DELETE) {
@@ -187,79 +183,6 @@ public class DrawAnchor extends DrawRegion {
       // Fill when anchor is connected.
       g.fillRoundRect(ovalX + delta, ovalY + delta, ovalW - delta2, ovalH - delta2, ovalH - delta2, ovalH - delta2);
       g.drawRoundRect(ovalX + delta, ovalY + delta, ovalW - delta2, ovalH - delta2, ovalH - delta2, ovalH - delta2);
-    }
-  }
-
-  /**
-   * Adds a pulsing effect to the anchor. Used to highlight a particular mode of the anchor.
-   */
-  private void paintPulsingAnchor(Graphics2D g, SceneContext sceneContext) {
-    ColorSet colorSet = sceneContext.getColorSet();
-    if (myMode == Mode.CAN_CONNECT) {
-      int alpha = getPulseAlpha((int)(sceneContext.getTime() % 1000));
-      Composite comp = g.getComposite();
-      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha / 255f));
-      g.setColor(colorSet.getAnchorConnectionCircle().darker());
-      g.fillRoundRect(x, y, width, height, width, height);
-      sceneContext.repaint();
-      g.setComposite(comp);
-    }
-
-    if (myMode == Mode.CANNOT_CONNECT) {
-      int alpha = getPulseAlpha((int)(sceneContext.getTime() % 1000));
-      Composite comp = g.getComposite();
-      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha / 255f));
-      g.setColor(colorSet.getAnchorDisconnectionCircle());
-      g.fillRoundRect(x, y, width, height, width, height);
-      sceneContext.repaint();
-      g.setComposite(comp);
-    }
-
-    if (myMode == Mode.OVER) {
-      int alpha = getPulseAlpha((int)(sceneContext.getTime() % 1000));
-      Composite comp = g.getComposite();
-      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha / 255f));
-      if (myIsConnected) {
-        g.setColor(colorSet.getAnchorDisconnectionCircle());
-      }
-      else {
-        g.setColor(colorSet.getAnchorConnectionCircle());
-      }
-      g.fillRoundRect(x, y, width, height, width, height);
-      sceneContext.repaint();
-      g.setComposite(comp);
-    }
-  }
-
-  /**
-   * Adds a pulsing effect to a baseline anchor. Used to highlight a particular mode of the anchor.
-   */
-  private void paintPulsingBaselineAnchor(Graphics2D g, SceneContext sceneContext, int ovalX, int ovalW) {
-    ColorSet colorSet = sceneContext.getColorSet();
-    if (myMode == Mode.CAN_CONNECT) {
-      int alpha = getPulseAlpha((int)(sceneContext.getTime() % 1000));
-      Composite comp = g.getComposite();
-      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha / 255f));
-      g.setColor(colorSet.getAnchorConnectionCircle());
-      g.fillRoundRect(ovalX, y, ovalW, height, height, height);
-      g.drawRoundRect(ovalX, y, ovalW, height, height, height);
-      sceneContext.repaint();
-      g.setComposite(comp);
-    }
-    if (myMode == Mode.OVER) {
-      int alpha = getPulseAlpha((int)(sceneContext.getTime() % 1000));
-      Composite comp = g.getComposite();
-      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha / 255f));
-      if (myIsConnected) {
-        g.setColor(colorSet.getAnchorDisconnectionCircle());
-      }
-      else {
-        g.setColor(colorSet.getAnchorConnectionCircle());
-      }
-      g.fillRoundRect(ovalX, y, ovalW, height, height, height);
-      g.drawRoundRect(ovalX, y, ovalW, height, height, height);
-      sceneContext.repaint();
-      g.setComposite(comp);
     }
   }
 

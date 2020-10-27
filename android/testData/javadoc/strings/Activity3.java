@@ -1,4 +1,4 @@
-package com.foo;
+package p1.p2;
 
 import android.app.Activity;
 import android.os.Bundle;

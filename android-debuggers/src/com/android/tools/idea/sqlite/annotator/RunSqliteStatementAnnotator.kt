@@ -19,7 +19,6 @@ import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
 import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactoryImpl
-import com.intellij.icons.AllIcons
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.injection.InjectedLanguageManager
@@ -27,6 +26,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.psi.PsiElement
 import com.intellij.util.ui.EmptyIcon
+import icons.StudioIcons
 import javax.swing.Icon
 
 /**
@@ -63,18 +63,14 @@ private data class RunSqliteStatementGutterIconRenderer(private val element: Psi
 
   override fun getIcon(): Icon {
     return if (sqliteExplorerProjectService.hasOpenDatabase()) {
-      AllIcons.RunConfigurations.TestState.Run
+      StudioIcons.DatabaseInspector.NEW_QUERY
     } else {
       EmptyIcon.ICON_0
     }
   }
 
   override fun getTooltipText(): String {
-    return if (sqliteExplorerProjectService.hasOpenDatabase()) {
-      "Run Sqlite statement in Database Inspector"
-    } else {
-      ""
-    }
+    return "Run Sqlite statement in Database Inspector"
   }
 
   override fun isNavigateAction(): Boolean {
@@ -82,8 +78,6 @@ private data class RunSqliteStatementGutterIconRenderer(private val element: Psi
   }
 
   override fun getClickAction(): AnAction? {
-    if (!sqliteExplorerProjectService.hasOpenDatabase()) return null
-
     return RunSqliteStatementGutterIconAction(element.project, element, DatabaseInspectorViewsFactoryImpl.getInstance())
   }
 }

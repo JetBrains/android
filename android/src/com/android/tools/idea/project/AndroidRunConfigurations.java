@@ -31,7 +31,9 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.util.PathUtil;
 import java.util.List;
+import kotlin.text.StringsKt;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,7 +63,9 @@ public class AndroidRunConfigurations {
   public void addRunConfiguration(@NotNull AndroidFacet facet, @Nullable TargetSelectionMode targetSelectionMode) {
     Module module = facet.getModule();
     RunManager runManager = RunManager.getInstance(module.getProject());
-    RunnerAndConfigurationSettings settings = runManager.createConfiguration(module.getName(), AndroidRunConfigurationType.class);
+    String projectNameInExternalSystemStyle = PathUtil.suggestFileName(module.getProject().getName(), true, false);
+    String configurationName = StringsKt.removePrefix(module.getName(), projectNameInExternalSystemStyle + ".");
+    RunnerAndConfigurationSettings settings = runManager.createConfiguration(configurationName, AndroidRunConfigurationType.class);
     AndroidRunConfiguration configuration = (AndroidRunConfiguration)settings.getConfiguration();
     configuration.setModule(module);
 

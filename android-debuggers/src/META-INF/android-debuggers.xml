@@ -27,12 +27,9 @@
         serviceInterface="com.android.tools.idea.sqlite.DatabaseInspectorProjectService"
         serviceImplementation="com.android.tools.idea.sqlite.DatabaseInspectorProjectServiceImpl" />
 
-    <facet.toolWindow id="Database Inspector"
-                      facetIdList="android"
-                      anchor="bottom"
-                      secondary="true"
-                      icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
-                      factoryClass="com.android.tools.idea.sqlite.DatabaseInspectorToolWindowFactory"/>
+    <projectService
+        serviceInterface="com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker"
+        serviceImplementation="com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTrackerImpl" />
 
     <notificationGroup id="Sqlite Viewer" displayType="BALLOON"/>
   </extensions>
@@ -42,5 +39,9 @@
   </extensions>
   <extensions defaultExtensionNs="com.android.tools.idea.lang">
     <androidSql.contextProvider implementation="com.android.tools.idea.sqlite.sqlLanguage.SqliteSchemaContext$Provider" />
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.appinspection">
+    <inspector.ide.appInspectorTabProvider implementation="com.android.tools.idea.sqlite.DatabaseInspectorTabProvider" />
   </extensions>
 </idea-plugin>

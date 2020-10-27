@@ -130,6 +130,27 @@ public class RenderLoggerTest {
   }
 
   /**
+   * Check that very long {@link StackOverflowError} exceptions are correctly summarized to not waste memory when reported as part
+   * of a broken class load.
+   */
+  @Test
+  public void testStackOverflowSummarizingOnBrokenClasses() {
+    RenderLogger logger = new RenderLogger(null, null, null);
+    try {
+      generateLongStackOverflowException(STACK_OVERFLOW_TRACE_LIMIT + 200);
+    }
+    catch (StackOverflowError e) {
+      logger.addBrokenClass("TestClass", e);
+    }
+
+    StackOverflowError overflowError = (StackOverflowError)Iterables.getOnlyElement(logger.getBrokenClasses().values());
+    // Ensure that the omitted trace has been generated
+    assertTrue(Iterables.any(Arrays.asList(overflowError.getStackTrace()), element -> "omitted".equals(element.getClassName()) &&
+                                                                                      "omitted".equals(element.getMethodName()) &&
+                                                                                      "omitted".equals(element.getFileName())));
+  }
+
+  /**
    * Check that the number of {@link RenderProblem}s is limited in the render logger. When the limit is hit, we just log one extra
    * problem indicating that more problems were found.
    */

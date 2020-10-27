@@ -91,7 +91,7 @@ class EnergyEventsCountDataSeriesTest {
 
   @get:Rule
   val grpcChannel = FakeGrpcChannel("EnergyEventsDataSeriesTest", myTransportService, myEnergyService)
-  private val myProfilerClient = ProfilerClient(grpcChannel.name)
+  private val myProfilerClient by lazy { ProfilerClient(grpcChannel.channel) }
 
   private val locationPredicate = { kind: EnergyDuration.Kind -> kind == EnergyDuration.Kind.LOCATION }
   private val wakelockPredicate = { kind: EnergyDuration.Kind -> kind == EnergyDuration.Kind.WAKE_LOCK }

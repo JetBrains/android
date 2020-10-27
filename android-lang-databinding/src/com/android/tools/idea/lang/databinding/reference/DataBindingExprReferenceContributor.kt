@@ -17,7 +17,11 @@ package com.android.tools.idea.lang.databinding.reference
 
 import com.android.SdkConstants
 import com.android.tools.idea.databinding.index.BindingXmlIndex
-import com.android.tools.idea.databinding.util.*
+import com.android.tools.idea.databinding.util.DataBindingUtil
+import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil
+import com.android.tools.idea.databinding.util.findIdAttribute
+import com.android.tools.idea.databinding.util.findImportTag
+import com.android.tools.idea.databinding.util.findVariableTag
 import com.android.tools.idea.lang.databinding.JAVA_LANG
 import com.android.tools.idea.lang.databinding.config.DbFileType
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
@@ -26,14 +30,34 @@ import com.android.tools.idea.lang.databinding.model.PsiModelClass.MemberAccess.
 import com.android.tools.idea.lang.databinding.model.PsiModelField
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod
 import com.android.tools.idea.lang.databinding.model.toModelClassResolvable
-import com.android.tools.idea.lang.databinding.psi.*
+import com.android.tools.idea.lang.databinding.psi.DbTokenTypes
+import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr
+import com.android.tools.idea.lang.databinding.psi.PsiDbExpr
+import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
+import com.android.tools.idea.lang.databinding.psi.PsiDbInferredFormalParameter
+import com.android.tools.idea.lang.databinding.psi.PsiDbInferredFormalParameterList
+import com.android.tools.idea.lang.databinding.psi.PsiDbLambdaParameters
+import com.android.tools.idea.lang.databinding.psi.PsiDbLiteralExpr
+import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
+import com.android.tools.idea.lang.databinding.psi.PsiDbResourcesExpr
 import com.android.tools.idea.lang.databinding.resolveScopeWithResources
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.patterns.PlatformPatterns
-import com.intellij.psi.*
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.LambdaUtil
+import com.intellij.psi.PsiClassType
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiModifier
+import com.intellij.psi.PsiPackage
+import com.intellij.psi.PsiReference
+import com.intellij.psi.PsiReferenceContributor
+import com.intellij.psi.PsiReferenceProvider
+import com.intellij.psi.PsiReferenceRegistrar
+import com.intellij.psi.PsiType
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.util.ProcessingContext
@@ -94,7 +118,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
     private fun getBindingIndexEntries(module: Module, element: PsiElement): Iterable<BindingXmlIndex.Entry>? {
       AndroidFacet.getInstance(module)?.takeIf { facet -> DataBindingUtil.isDataBindingEnabled(facet) } ?: return null
       var topLevelFile = InjectedLanguageManager.getInstance(element.project).getTopLevelFile(element) ?: return null
-      if (topLevelFile.fileType === DbFileType.INSTANCE) {
+      if (topLevelFile === DbFileType.INSTANCE) {
         // If this is a DbFileType file, it's probably contained in another (XML) file that's
         // our real top-level file.
         topLevelFile.context?.containingFile?.let { topLevelFile = it }
@@ -129,7 +153,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
           }
 
           val attribute = bindingData.viewIds
-            .firstOrNull { simpleName == DataBindingUtil.convertToJavaFieldName(it.id) }
+            .firstOrNull { simpleName == DataBindingUtil.convertAndroidIdToJavaFieldName(it.id) }
             ?.let { xmlFile.findIdAttribute(it.id) }
           if (attribute != null) {
             return arrayOf(XmlAttributeReference(element, attribute))
@@ -440,14 +464,14 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
        * Example: `text` in `@text/zero` -> `string` in `<string name="zero">there are <b>zero</b></string>`
        */
       private val DATA_BINDING_RESOURCE_TO_XML_DECLARATION = mutableMapOf<String, String>().apply {
-        put("colorStateList", "color")
-        put("dimenOffset", "dimen")
-        put("dimenSize", "dimen")
-        put("intArray", "array")
-        put("stateListAnimator", "animator")
-        put("stringArray", "array")
-        put("text", "string")
-        put("typedArray", "array")
+        put("colorStateList", "color");
+        put("dimenOffset", "dimen");
+        put("dimenSize", "dimen");
+        put("intArray", "array");
+        put("stateListAnimator", "animator");
+        put("stringArray", "array");
+        put("text", "string");
+        put("typedArray", "array");
       }
     }
 

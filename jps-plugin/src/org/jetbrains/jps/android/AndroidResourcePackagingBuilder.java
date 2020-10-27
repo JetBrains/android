@@ -33,9 +33,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidResourcePackagingBuilder extends AndroidTargetBuilder<BuildRootDescriptor, AndroidResourcePackagingBuildTarget> {
   @NonNls private static final String BUILDER_NAME = "Android Resource Packaging";
 

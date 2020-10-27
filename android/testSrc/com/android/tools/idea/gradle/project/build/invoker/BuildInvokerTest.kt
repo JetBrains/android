@@ -33,6 +33,9 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import java.io.File
 import java.nio.file.Path
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 /**
  * Tests for making sure that [org.gradle.tooling.BuildAction] is run when passed to [GradleBuildInvoker].
@@ -43,7 +46,8 @@ class BuildInvokerTest : AndroidGradleTestCase() {
   fun testBuildWithBuildAction() {
     var enabled = false
 
-    var buildFinishedEventReceived = false
+    val lock = ReentrantLock()
+    var buildFinishedEventReceived = lock.newCondition()
     var gradleBuildInvokedExecutedPostBuildTasks = false
     var gradleBuildStateBuildStartedNotificationReceived = false
     var gradleBuildStateBuildFinishedNotificationReceived = false
@@ -64,7 +68,9 @@ class BuildInvokerTest : AndroidGradleTestCase() {
               }
             }
             is FinishBuildEvent -> {
-              buildFinishedEventReceived = true
+              lock.withLock {
+                buildFinishedEventReceived.signal()
+              }
             }
           }
         }
@@ -94,8 +100,9 @@ class BuildInvokerTest : AndroidGradleTestCase() {
     // Run a slow build task which will run for 30 seconds unless cancelled.
     invoker.executeTasks(tasks, BuildMode.ASSEMBLE, emptyList(), SlowTestBuildAction())
 
-    // Once the build ends (either normally or by being cancelled) verify that all callbacks were called and messages sent.
-    assertThat(buildFinishedEventReceived).isTrue()
+    lock.withLock {
+      buildFinishedEventReceived.await(1, TimeUnit.SECONDS)
+    }
     assertThat(gradleBuildStateBuildStartedNotificationReceived).isTrue()
     assertThat(gradleBuildStateBuildFinishedNotificationReceived).isTrue()
 /* b/145809317

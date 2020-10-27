@@ -42,6 +42,8 @@ public final class SeriesLegend implements Legend {
   @NotNull private final String myName;
   @NotNull private final Interpolatable<Long, Double> myInterpolator;
   @NotNull private final Predicate<Range> myDisplayFilter;
+  private boolean myCachingLastValue;
+  @NotNull private String myLastValue = UNAVAILABLE_MESSAGE;
 
   public SeriesLegend(@NotNull RangedContinuousSeries series, @NotNull BaseAxisFormatter formatter, @NotNull Range range) {
     this(series, formatter, range, Interpolatable.SegmentInterpolator);
@@ -96,9 +98,22 @@ public final class SeriesLegend implements Legend {
     List<SeriesData<Long>> data = mySeries.getSeriesForRange(range);
     if (data.isEmpty()) {
       // SeriesLegend should always show up, even when data is absent.
-      return UNAVAILABLE_MESSAGE;
+      return myLastValue;
     }
-    return myFormatter.getFormattedString(mySeries.getYRange().getLength(), getInterpolatedValueAt(time, data), true);
+    String value = myFormatter.getFormattedString(mySeries.getYRange().getLength(), getInterpolatedValueAt(time, data), true);
+    if (myCachingLastValue) {
+      myLastValue = value;
+    }
+    return value;
+  }
+
+  @VisibleForTesting
+  boolean isCachingLastValue() {
+    return myCachingLastValue;
+  }
+
+  public void setCachingLastValue(boolean cachingLastValue) {
+    myCachingLastValue = cachingLastValue;
   }
 
   private double getInterpolatedValueAt(double time, @NotNull List<SeriesData<Long>> data) {

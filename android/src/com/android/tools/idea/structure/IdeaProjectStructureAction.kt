@@ -28,6 +28,7 @@ import com.intellij.openapi.ui.DialogWrapper
  * Action to open IDEA's project structure dialog, this can be useful when debugging the structure of a project as seen by IDEA.
  */
 class IdeaProjectStructureAction : AnAction("IDEA Project Structure Dialog") {
+
   override fun actionPerformed(e: AnActionEvent) =
     showDialog(e.project ?: ProjectManager.getInstance().defaultProject)
 

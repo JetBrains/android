@@ -18,10 +18,13 @@ package com.android.tools.idea.uibuilder.property2.support
 import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
+import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.api.HeaderEnumValue
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestCase
+import java.util.concurrent.Callable
 
 @Language("JAVA")
 private const val MAIN_ACTIVITY = """
@@ -89,42 +92,49 @@ private const val THIRD_ACTIVITY = """
   }
 """
 
-
 class OnClickEnumSupportTest: AndroidTestCase() {
 
   fun testWithNoActivities() {
     val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW, parentTag = FRAME_LAYOUT)
     val support = OnClickEnumSupport(util.nlModel)
-    assertThat(support.values).isEmpty()
+    val app = ApplicationManager.getApplication()
+    val values = app.executeOnPooledThread(Callable<List<EnumValue>> { support.values }).get()
+    assertThat(values).isEmpty()
   }
 
   fun testWithFullyQualifiedActivityName() {
-    val support = findEnumSupportFor("p1.p2.MainActivity").values
-    assertThat((support[0] as HeaderEnumValue).header).isEqualTo("MainActivity")
-    val values = support.subList(1, support.size)
+    val support = findEnumSupportFor("p1.p2.MainActivity")
+    val app = ApplicationManager.getApplication()
+    val allValues = app.executeOnPooledThread(Callable<List<EnumValue>> { support.values }).get()
+    assertThat((allValues[0] as HeaderEnumValue).header).isEqualTo("MainActivity")
+    val values = allValues.subList(1, allValues.size)
     assertThat(values.map { it.display }).containsExactly("help", "onClick").inOrder()
     assertThat(values.map { it.value }).containsExactly("help", "onClick").inOrder()
   }
 
   fun testWithDotInActivityName() {
-    val support = findEnumSupportFor(".MainActivity").values
-    assertThat((support[0] as HeaderEnumValue).header).isEqualTo("MainActivity")
-    val values = support.subList(1, support.size)
+    val support = findEnumSupportFor(".MainActivity")
+    val app = ApplicationManager.getApplication()
+    val allValues = app.executeOnPooledThread(Callable<List<EnumValue>> { support.values }).get()
+    assertThat((allValues[0] as HeaderEnumValue).header).isEqualTo("MainActivity")
+    val values = allValues.subList(1, allValues.size)
     assertThat(values.map { it.display }).containsExactly("help", "onClick").inOrder()
     assertThat(values.map { it.value }).containsExactly("help", "onClick").inOrder()
   }
 
   fun testWithNoActivityName() {
-    val support = findEnumSupportFor("").values
-    assertThat((support[0] as HeaderEnumValue).header).isEqualTo("MainActivity")
-    val mainValues = support.subList(1, 3)
-    assertThat((support[3] as HeaderEnumValue).header).isEqualTo("OtherActivity")
-    val otherValues = support.subList(4, 6)
+    val support = findEnumSupportFor("")
+    val app = ApplicationManager.getApplication()
+    val allValues = app.executeOnPooledThread(Callable<List<EnumValue>> { support.values }).get()
+    assertThat((allValues[0] as HeaderEnumValue).header).isEqualTo("MainActivity")
+    val mainValues = allValues.subList(1, 3)
+    assertThat((allValues[3] as HeaderEnumValue).header).isEqualTo("OtherActivity")
+    val otherValues = allValues.subList(4, 6)
     assertThat(mainValues.map { it.display }).containsExactly("help", "onClick").inOrder()
     assertThat(mainValues.map { it.value }).containsExactly("help", "onClick").inOrder()
     assertThat(otherValues.map { it.display }).containsExactly("onClick", "startProcessing").inOrder()
     assertThat(otherValues.map { it.value }).containsExactly("onClick", "startProcessing").inOrder()
-    assertThat(support.size).isEqualTo(6)
+    assertThat(allValues.size).isEqualTo(6)
   }
 
   private fun findEnumSupportFor(activityName: String): OnClickEnumSupport {

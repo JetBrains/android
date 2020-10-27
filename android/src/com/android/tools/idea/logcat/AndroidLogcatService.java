@@ -410,6 +410,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
 
       if (connectors.isEmpty()) {
         stopReceiving(device);
+        myDeviceToListenerMultimap.removeAll(device);
       }
     }
   }

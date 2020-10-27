@@ -34,6 +34,12 @@ public class RangeSelectionModel extends AspectModel<RangeSelectionModel.Aspect>
   private final Range mySelectionRange;
 
   /**
+   * The range where selection can be made within.
+   */
+  @NotNull
+  private final Range myViewRange;
+
+  /**
    * The previous selection range, which we need to check against in order to fire selection events
    * indirectly (when someone modifies our underlying range externally instead of through this
    * class's API).
@@ -58,8 +64,9 @@ public class RangeSelectionModel extends AspectModel<RangeSelectionModel.Aspect>
   @Nullable
   private Consumer<RangeSelectionListener> myEventToFire;
 
-  public RangeSelectionModel(@NotNull Range selection) {
-    mySelectionRange = selection;
+  public RangeSelectionModel(@NotNull Range selectionRange, @NotNull Range viewRange) {
+    mySelectionRange = selectionRange;
+    myViewRange = viewRange;
     myPreviousSelectionRange = new Range(mySelectionRange);
     mySelectionEnabled = true;
 
@@ -97,7 +104,8 @@ public class RangeSelectionModel extends AspectModel<RangeSelectionModel.Aspect>
     }
 
     if (myEventToFire != null) {
-      myListeners.forEach(myEventToFire);
+      // `myEventToFire` may indirectly modify `myListeners`, so we iterate over a copy instead, e.g., b/157022496
+      new ArrayList<>(myListeners).forEach(myEventToFire);
       myEventToFire = null;
     }
   }
@@ -204,10 +212,10 @@ public class RangeSelectionModel extends AspectModel<RangeSelectionModel.Aspect>
         long dataMax = duration == Long.MAX_VALUE ? duration : data.x + duration;
         Range r = new Range(data.x, dataMax);
         // Check if this constraint intersects the proposedRange.
-        if (!r.getIntersection(proposedRange).isEmpty()) {
+        if (r.intersectsWith(proposedRange)) {
           result = new ConstrainedRangeResult(r, data.value);
           // If this constraint already intersects the current range, use it.
-          if (!r.getIntersection(mySelectionRange).isEmpty()) {
+          if (r.intersectsWith(mySelectionRange)) {
             found = true;
             break;
           }
@@ -233,11 +241,20 @@ public class RangeSelectionModel extends AspectModel<RangeSelectionModel.Aspect>
     return mySelectionRange;
   }
 
+  @NotNull
+  public Range getViewRange() {
+    return myViewRange;
+  }
+
   /**
    * If set, selection cannot be set. Note that if a previous selection exist, it will NOT be cleared.
    */
   public void setSelectionEnabled(boolean enabled) {
     mySelectionEnabled = enabled;
+  }
+
+  public boolean isSelectionEnabled() {
+    return mySelectionEnabled;
   }
 
   /**

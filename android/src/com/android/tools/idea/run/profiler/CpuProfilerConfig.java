@@ -139,7 +139,7 @@ public class CpuProfilerConfig {
         return "Sample C/C++ Functions";
       }
     },
-    ATRACE {
+    SYSTEM_TRACE {
       @NotNull
       @Override
       public String getName() {

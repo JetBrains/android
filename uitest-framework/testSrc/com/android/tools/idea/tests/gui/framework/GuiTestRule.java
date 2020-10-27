@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.refreshFiles;
+import static com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture.actAndWaitForGradleProjectSyncToFinish;
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.io.Files.asCharSource;
 import static com.google.common.truth.Truth.assertAbout;
@@ -28,6 +29,7 @@ import static org.fest.reflect.core.Reflection.type;
 
 import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.bleak.Bleak;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -161,6 +163,7 @@ public class GuiTestRule implements TestRule {
       return new Statement() {
         @Override
         public void evaluate() throws Throwable {
+          restartIdeIfLostProgressIndicators();
           if (!TestUtils.runningFromBazel()) {
             restartIdeIfWelcomeFrameNotShowing();
           }
@@ -197,6 +200,14 @@ public class GuiTestRule implements TestRule {
       welcomeFrameNotShowing = true;
     }
     if (welcomeFrameNotShowing || GuiTests.windowsShowing().size() != 1) {
+      GuiTestThread.Companion.getClient().send(new RestartIdeMessage());
+    }
+  }
+
+  private void restartIdeIfLostProgressIndicators() {
+    String indicators = GuiTests.progressIndicators();
+    if (!indicators.isEmpty()) {
+      System.out.println("Restarting IDEA due to lost progress indicators: " + indicators);
       GuiTestThread.Companion.getClient().send(new RestartIdeMessage());
     }
   }
@@ -299,11 +310,9 @@ public class GuiTestRule implements TestRule {
   }
 
   @NotNull
-  public Project openProject(@NotNull String projectDirName) throws Exception {
+  public Project openProjectAndWaitForIndexingToFinish(@NotNull String projectDirName) throws Exception {
     File projectDir = copyProjectBeforeOpening(projectDirName);
-    VirtualFile fileToSelect = VfsUtil.findFileByIoFile(projectDir, true);
-    ProjectManager.getInstance().loadAndOpenProject(fileToSelect.getPath());
-
+    ApplicationManager.getApplication().invokeAndWait(() -> ProjectUtil.openOrImport(projectDir.getAbsolutePath(), null, true));
     Wait.seconds(5).expecting("Project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length == 1);
 
     Project project = ProjectManager.getInstance().getOpenProjects()[0];
@@ -324,26 +333,26 @@ public class GuiTestRule implements TestRule {
 
   @NotNull
   public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
-    importProject(projectDirName);
-    return ideFrame().waitForGradleProjectSyncToFinish();
-  }
-
-  @NotNull
-  public IdeFrameFixture importProject(@NotNull String projectDirName) throws IOException {
     File projectDir = setUpProject(projectDirName);
-    return openProject(projectDir);
+    return openProjectAndWaitForProjectSyncToFinish(projectDir);
   }
 
   @NotNull
-  public IdeFrameFixture openProject(@NotNull File projectDir) {
+  public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @NotNull Wait waitForSync) throws IOException {
+    File projectDir = setUpProject(projectDirName);
+    return openProjectAndWaitForProjectSyncToFinish(projectDir, waitForSync);
+  }
+
+  @NotNull
+  public IdeFrameFixture openProjectAndWaitForProjectSyncToFinish(@NotNull File projectDir) {
+    return openProjectAndWaitForProjectSyncToFinish(projectDir, Wait.seconds(60));
+  }
+
+  @NotNull
+  public IdeFrameFixture openProjectAndWaitForProjectSyncToFinish(@NotNull File projectDir, @NotNull Wait waitForSync) {
     ApplicationManager.getApplication().invokeAndWait(() -> ProjectUtil.openOrImport(projectDir.getAbsolutePath(), null, true));
-
     Wait.seconds(5).expecting("Project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length != 0);
-
-    // After the project is opened there will be an Index and a Gradle Sync phase, and these can happen in any order.
-    // Waiting for indexing to finish, makes sure Sync will start next or all Sync was done already.
-    GuiTests.waitForProjectIndexingToFinish(ProjectManager.getInstance().getOpenProjects()[0]);
-    return ideFrame();
+    return actAndWaitForGradleProjectSyncToFinish(waitForSync, () -> ideFrame());
   }
 
   /**
@@ -388,7 +397,7 @@ public class GuiTestRule implements TestRule {
   }
 
   protected boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
-    GradleWrapper wrapper = GradleWrapper.create(projectDirPath, gradleVersion);
+    GradleWrapper wrapper = GradleWrapper.create(projectDirPath, gradleVersion, null);
     File path = TestUtils.runningFromBazel() ?
                 getWorkspaceFile("tools/external/gradle/gradle-" + gradleVersion + "-bin.zip") :
                 EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);
@@ -505,5 +514,9 @@ public class GuiTestRule implements TestRule {
     myInnerTimeout = new DebugFriendlyTimeout(timeout, timeUnits).withThreadDumpOnTimeout();
     myOuterTimeout = new DebugFriendlyTimeout(timeUnits.toSeconds(timeout) + 120, TimeUnit.SECONDS);
     return this;
+  }
+
+  public void runWithBleak(Runnable scenario) {
+    Bleak.runWithBleak(UiTestBleakOptions.INSTANCE.getDefaults(), scenario);
   }
 }

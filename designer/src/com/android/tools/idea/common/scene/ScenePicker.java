@@ -35,12 +35,10 @@ public class ScenePicker {
 
   private int mObjectCount = 0;
   private final static int OBJECT_LINE = 0;
-  private final static int OBJECT_POINT = 1;
-  private final static int OBJECT_CURVE = 2;
-  private final static int OBJECT_RECTANGLE = 3;
-  private final static int OBJECT_CIRCLE = 4;
+  private final static int OBJECT_CURVE = 1;
+  private final static int OBJECT_RECTANGLE = 2;
+  private final static int OBJECT_CIRCLE = 3;
   LineSelectionEngine mLine = new LineSelectionEngine();
-  PointSelectionEngine mPoint = new PointSelectionEngine();
   CurveToSelectionEngine mCurve = new CurveToSelectionEngine();
   RectangleSelectionEngine mRectangle = new RectangleSelectionEngine();
   CircleSelectionEngine mCircle = new CircleSelectionEngine();
@@ -48,7 +46,6 @@ public class ScenePicker {
 
   {
     myEngines[OBJECT_LINE] = mLine;
-    myEngines[OBJECT_POINT] = mPoint;
     myEngines[OBJECT_CURVE] = mCurve;
     myEngines[OBJECT_RECTANGLE] = mRectangle;
     myEngines[OBJECT_CIRCLE] = mCircle;
@@ -172,18 +169,6 @@ public class ScenePicker {
   }
 
   /**
-   * Add a Point
-   *
-   * @param e
-   * @param range
-   * @param x1
-   * @param y1
-   */
-  public void addPoint(Object e, int range, int x1, int y1) {
-    mPoint.add(e, range, x1, y1);
-  }
-
-  /**
    * Add a Circle
    *
    * @param e
@@ -215,10 +200,6 @@ public class ScenePicker {
     mCurve.add(e, range, x1, y1, x2, y2, x3, y3, x4, y4, width);
   }
 
-  /*-----------------------------------------------------------------------*/
-  // Support point Selection
-  /*-----------------------------------------------------------------------*/
-
   /**
    * Base class for all selection
    */
@@ -248,40 +229,6 @@ public class ScenePicker {
     abstract protected boolean inRange();
 
     abstract double distance();
-  }
-
-  /*-----------------------------------------------------------------------*/
-  // Support point Selection
-  /*-----------------------------------------------------------------------*/
-
-  class PointSelectionEngine extends SelectionEngine {
-    public void add(Object select, int range, int x1, int y1) {
-      resizeTables();
-      mTypes[mObjectCount] = OBJECT_POINT;
-      mObjectOffset[mObjectCount] = mObjectDataUsed;
-      mObjectData[mObjectDataUsed++] = range;
-      mObjectData[mObjectDataUsed++] = x1;
-      mObjectData[mObjectDataUsed++] = y1;
-      mObjects[mObjectCount] = select;
-      addRect(x1 - range, y1 - range, x1 + range, y1 + range);
-      mObjectCount++;
-    }
-
-    double mDistance;
-
-    @Override
-    protected boolean inRange() {
-      double range = mObjectData[mDataOffset];
-      double x = mObjectData[mDataOffset + 1];
-      double y = mObjectData[mDataOffset + 2];
-      mDistance = Math.hypot(x - mMouseX, y - mMouseY);
-      return mDistance < range;
-    }
-
-    @Override
-    double distance() {
-      return mDistance;
-    }
   }
 
   /*-----------------------------------------------------------------------*/

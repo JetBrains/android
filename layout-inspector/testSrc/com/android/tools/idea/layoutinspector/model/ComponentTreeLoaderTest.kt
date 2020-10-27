@@ -28,10 +28,10 @@ import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
@@ -64,8 +64,8 @@ class ComponentTreeLoaderTest {
             package_name: 3
             sub_view {
               draw_id: 3
-              x: 10
-              y: 10
+              x: 20
+              y: 20
               width: 20
               height: 50
               class_name: 2
@@ -192,7 +192,7 @@ class ComponentTreeLoaderTest {
     assertThat(tree.imageType).isEqualTo(PNG_AS_REQUESTED)
     ImageDiffUtil.assertImageSimilar(imageFile, tree.imageBottom as BufferedImage, 0.0)
     assertThat(tree.flatten().minus(tree).mapNotNull { it.imageBottom }).isEmpty()
-    verify(client).logInitialRender(true)
+    verify(client).logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
   }
 
   @Test
@@ -209,7 +209,7 @@ class ComponentTreeLoaderTest {
     verify(client).requestScreenshotMode()
     assertThat(banner.text.text).isEqualTo("No renderer supporting SKP version 123 found. Rotation disabled.")
     // Metrics shouldn't be logged until we come back with a screenshot
-    verify(client, Times(0)).logInitialRender(ArgumentMatchers.anyBoolean())
+    verify(client, Times(0)).logEvent(any(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType::class.java))
   }
 
   @Test
@@ -226,6 +226,24 @@ class ComponentTreeLoaderTest {
     verify(client).requestScreenshotMode()
     assertThat(banner.text.text).isEqualTo("Invalid picture data received from device. Rotation disabled.")
     // Metrics shouldn't be logged until we come back with a screenshot
-    verify(client, Times(0)).logInitialRender(ArgumentMatchers.anyBoolean())
+    verify(client, Times(0)).logEvent(any(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType::class.java))
   }
+
+  @Test
+  fun testOtherProblem() {
+    val banner = InspectorBanner(projectRule.project)
+    val client = mock(DefaultInspectorClient::class.java)
+    val payload = "samplepicture".toByteArray()
+    `when`(client.getPayload(111)).thenReturn(payload)
+
+    val skiaParser = mock(SkiaParserService::class.java)
+    `when`(skiaParser.getViewTree(eq(payload), any())).thenAnswer { throw Exception() }
+
+    ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)
+    verify(client).requestScreenshotMode()
+    assertThat(banner.text.text).isEqualTo("Problem launching renderer. Rotation disabled.")
+    // Metrics shouldn't be logged until we come back with a screenshot
+    verify(client, Times(0)).logEvent(any(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType::class.java))
+  }
+
 }

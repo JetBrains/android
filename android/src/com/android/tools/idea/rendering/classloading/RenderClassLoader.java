@@ -16,7 +16,6 @@
 package com.android.tools.idea.rendering.classloading;
 
 import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
-import static com.android.tools.idea.rendering.classloading.ClassConverter.getCurrentClassVersion;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.isValidClassFile;
 
 import com.android.SdkConstants;
@@ -28,6 +27,7 @@ import com.intellij.util.lang.UrlClassLoader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -43,32 +43,31 @@ import org.jetbrains.org.objectweb.asm.ClassVisitor;
 public abstract class RenderClassLoader extends ClassLoader {
   protected static final Logger LOG = Logger.getInstance(RenderClassLoader.class);
 
-  /**
-   * Classes are rewritten by applying the following transformations:
-   * <ul>
-   *   <li>Updates the class file version with a version runnable in the current JDK
-   *   <li>Replaces onDraw, onMeasure and onLayout for custom views
-   * </ul>
-   * Note that it does not attempt to handle cases where class file constructs cannot
-   * be represented in the target version. This is intended for uses such as for example
-   * the Android R class, which is simple and can be converted to pretty much any class file
-   * version, which makes it possible to load it in an IDE layout render execution context
-   * even if it has been compiled for a later version.
-   * <p/>
-   * For custom views (classes that inherit from android.view.View or any widget in android.widget.*)
-   * the onDraw, onMeasure and onLayout methods are replaced with methods that capture any exceptions thrown.
-   * This way we avoid custom views breaking the rendering.
-   */
-  private static final Function<ClassVisitor, ClassVisitor> DEFAULT_TRANSFORMS = visitor ->
-    new ViewMethodWrapperTransform(new VersionClassTransform(visitor, getCurrentClassVersion(), 0));
-
+  private final Function<ClassVisitor, ClassVisitor> myTransformationProvider;
   private final Object myJarClassLoaderLock = new Object();
   @GuardedBy("myJarClassLoaderLock")
   private Supplier<UrlClassLoader> myJarClassLoader = Suppliers.memoize(() -> createJarClassLoader(getExternalJars()));
   protected boolean myInsideJarClassLoader;
 
-  public RenderClassLoader(@Nullable ClassLoader parent) {
+  /**
+   * Creates a new {@link RenderClassLoader}.
+   *
+   * @param parent the parent {@link ClassLoader}
+   * @param transformationProvider a {@link Function} that given a {@link ClassVisitor} returns a new one applying any desired
+   *                               transformation.
+   */
+  public RenderClassLoader(@Nullable ClassLoader parent, @NotNull Function<ClassVisitor, ClassVisitor> transformationProvider) {
     super(parent);
+    myTransformationProvider = transformationProvider;
+  }
+
+  /**
+   * Creates a new {@link RenderClassLoader} with no transformations.
+   *
+   * @param parent the parent {@link ClassLoader}.
+   */
+  public RenderClassLoader(@Nullable ClassLoader parent) {
+    this(parent, Function.identity());
   }
 
   protected abstract List<URL> getExternalJars();
@@ -85,11 +84,13 @@ public abstract class RenderClassLoader extends ClassLoader {
 
   @NotNull
   private UrlClassLoader createJarClassLoader(@NotNull List<URL> urls) {
-    return UrlClassLoader.build()
-      .parent(this)
-      .urls(urls)
-      .setLogErrorOnMissingJar(false)
-      .get();
+    return new UrlClassLoader(UrlClassLoader.build().parent(this).urls(urls).setLogErrorOnMissingJar(false)) {
+      // TODO(b/151089727): Fix this (see RenderClassLoader#getResources)
+      @Override
+      public Enumeration<URL> getResources(String name) throws IOException {
+        return findResources(name);
+      }
+    };
   }
 
   @NotNull
@@ -109,7 +110,7 @@ public abstract class RenderClassLoader extends ClassLoader {
       if (!isValidClassFile(data)) {
         throw new ClassFormatError(name);
       }
-      byte[] rewritten = ClassConverter.rewriteClass(data, DEFAULT_TRANSFORMS);
+      byte[] rewritten = ClassConverter.rewriteClass(data, myTransformationProvider);
       return defineClassAndPackage(name, rewritten, 0, rewritten.length);
     }
     catch (IOException | ClassNotFoundException e) {
@@ -142,7 +143,7 @@ public abstract class RenderClassLoader extends ClassLoader {
       throw new ClassFormatError(fqcn);
     }
 
-    byte[] rewritten = ClassConverter.rewriteClass(data, DEFAULT_TRANSFORMS);
+    byte[] rewritten = ClassConverter.rewriteClass(data, myTransformationProvider);
     try {
       if (LOG.isDebugEnabled()) {
         LOG.debug(String.format("Defining class '%s' from disk file", anonymizeClassName(fqcn)));
@@ -182,5 +183,18 @@ public abstract class RenderClassLoader extends ClassLoader {
 
     return currentDependencies.containsAll(updatedDependencies);
 
+  }
+
+  // TODO(b/151089727): Fix this
+  // Technically, this is incorrect and we should never override getResources method. However, we can not handle dependencies properly
+  // in studio project and cannot properly isolate layoutlib class/resource loader from the libraries available in Android plugin. This
+  // allows us to ignore all the resources from the Android plugin and use only resource from the Android project module dependencies.
+  // In theory we are actually "loosing" resource from standard library and layoutlib, though we are currently not expecting any to be
+  // there. All the rest (from other dependencies of core plugin, android plugin etc.) should never be accessible from here.
+  @Override
+  public Enumeration<URL> getResources(String name) throws IOException {
+    synchronized (myJarClassLoaderLock) {
+      return myJarClassLoader.get().getResources(name);
+    }
   }
 }

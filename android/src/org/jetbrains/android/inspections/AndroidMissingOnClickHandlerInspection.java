@@ -1,7 +1,7 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.inspections;
 
 import com.android.resources.ResourceType;
+import com.android.utils.SdkUtils;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
 import com.intellij.codeInspection.InspectionManager;
 import com.intellij.codeInspection.LocalInspectionTool;
@@ -46,15 +46,14 @@ import org.jetbrains.android.intentions.AndroidCreateOnClickHandlerAction;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.android.util.AndroidBundle;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.asJava.LightClassUtilsKt;
 import org.jetbrains.kotlin.psi.KtClass;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool {
   @NotNull
   private static Collection<PsiClass> findRelatedActivities(@NotNull XmlFile file,
@@ -99,8 +98,8 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
   @NotNull
   private static Set<PsiClass> findRelatedActivitiesForMenu(@NotNull XmlFile file, @NotNull AndroidFacet facet) {
     final String resType = ResourceType.MENU.getName();
-    final String resourceName = AndroidBuildCommonUtils.getResourceName(resType, file.getName());
-    final PsiField[] fields = AndroidResourceUtil.findResourceFields(facet, resType, resourceName, true);
+    final String resourceName = SdkUtils.fileNameToResourceName(file.getName());
+    final PsiField[] fields = IdeResourcesUtil.findResourceFields(facet, resType, resourceName, true);
 
     if (fields.length == 0) {
       return Collections.emptySet();
@@ -160,7 +159,7 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
     return visitor.myResult.toArray(ProblemDescriptor.EMPTY_ARRAY);
   }
 
-  private static final class MyVisitor extends XmlRecursiveElementVisitor {
+  private static class MyVisitor extends XmlRecursiveElementVisitor {
     private final InspectionManager myInspectionManager;
     private final boolean myOnTheFly;
     private final Collection<PsiClass> myRelatedActivities;
@@ -272,7 +271,7 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
     }
   }
 
-  public static final class MyQuickFix extends AbstractIntentionAction implements LocalQuickFix {
+  public static class MyQuickFix extends AbstractIntentionAction implements LocalQuickFix {
     private final String myMethodName;
     private final OnClickConverter myConverter;
     private final PsiClass myClass;

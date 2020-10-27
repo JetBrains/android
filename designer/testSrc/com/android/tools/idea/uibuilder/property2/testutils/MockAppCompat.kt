@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property2.testutils
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.uibuilder.MOST_RECENT_API_LEVEL
 import com.google.common.collect.ImmutableList
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
@@ -151,7 +152,7 @@ object MockAppCompat {
 
   fun setUp(facet: AndroidFacet, fixture: JavaCodeInsightTestFixture) {
     val gradleVersion = GradleVersion.parse(String.format("%1\$d.0.0",
-        MOST_RECENT_API_LEVEL
+                                                          MOST_RECENT_API_LEVEL
     ))
     val appCompatCoordinate = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate(gradleVersion.toString())
     val projectSystem = TestProjectSystem(facet.module.project, ImmutableList.of(appCompatCoordinate))

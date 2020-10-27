@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.databinding
 
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
@@ -80,7 +81,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
       </manifest>
     """.trimIndent())
 
-    ModuleDataBinding.getInstance(androidFacet).dataBindingMode = mode
+    LayoutBindingModuleCache.getInstance(androidFacet).dataBindingMode = mode
   }
 
   @Test
@@ -223,6 +224,6 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
 
     fixture.configureFromExistingVirtualFile(modelFile.virtualFile)
     fixture.completeBasic()
-    assertThat(fixture.lookupElementStrings!!).containsExactly("innerTextView")
+    assertThat(fixture.lookupElementStrings!!).contains("innerTextView")
   }
 }

@@ -21,7 +21,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.naveditor.NavTestUtil;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
@@ -29,6 +28,7 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDocumentManager;
@@ -65,10 +65,12 @@ public class NavigationSchemaTest extends AndroidTestCase {
     myFixture.copyDirectoryToProject("navschematest", "src");
 
     for (String prebuiltPath : NavTestUtil.getNavEditorAarPaths().keySet()) {
-      File aar = new File(PathManager.getHomePath(), prebuiltPath);
+      File aar = new File(prebuiltPath);
       File tempDir = FileUtil.createTempDirectory("NavigationSchemaTest", null);
       ZipUtil.extract(aar, tempDir, null);
-      PsiTestUtil.addLibrary(myFixture.getModule(), new File(tempDir, "classes.jar").getPath());
+      String path = new File(tempDir, "classes.jar").getPath();
+      LocalFileSystem.getInstance().refreshAndFindFileByPath(path);
+      PsiTestUtil.addLibrary(myFixture.getModule(), path);
     }
     NavigationSchema.createIfNecessary(myModule);
   }
@@ -288,14 +290,12 @@ public class NavigationSchemaTest extends AndroidTestCase {
   }
 
   public void testQuickValidateAddTag() throws Exception {
-/* b/146019726
     testQuickValidate("import androidx.navigation.*;\n" +
                       "public class QuickValidateAddTag extends ActivityNavigator {}\n",
                       "import androidx.navigation.*;\n" +
                       "@Navigator.Name(\"fragment_sub\")\n" +
                       "public class QuickValidateAddTag extends ActivityNavigator {}\n",
                       false);
-b/146019726 */
   }
 
   public void testQuickValidateRemoveTag() throws Exception {

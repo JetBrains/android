@@ -23,7 +23,6 @@ import static com.android.SdkConstants.TOOLS_URI;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.tools.idea.common.property.NlProperty;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidAttribute;
 import com.google.wireless.android.sdk.stats.AndroidView;
@@ -36,7 +35,7 @@ import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class UsageTrackerUtil {
+public class UsageTrackerUtil {
 
   // Identifies a custom tag name or attribute name i.e. a placeholder for a name we do NOT want to log.
   @VisibleForTesting
@@ -44,19 +43,6 @@ public final class UsageTrackerUtil {
 
   // Prevent instantiation
   private UsageTrackerUtil() {
-  }
-
-  @NotNull
-  public static AndroidAttribute convertAttribute(@NotNull NlProperty property) {
-    AndroidFacet facet = property.getModel().getFacet();
-    AttributeDefinition definition = property.getDefinition();
-    String libraryName = definition != null ? definition.getLibraryName() : null;
-    AndroidAttribute.AttributeNamespace namespace = convertNamespace(property.getNamespace());
-
-    return AndroidAttribute.newBuilder()
-      .setAttributeName(convertAttributeName(property.getName(), namespace, libraryName, facet))
-      .setAttributeNamespace(namespace)
-      .build();
   }
 
   @NotNull

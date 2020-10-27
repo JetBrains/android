@@ -7,7 +7,6 @@ iml_module(
     srcs = ["src/main/java"],
     iml_files = ["intellij.android.adt.swingp.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    test_coverage = True,
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

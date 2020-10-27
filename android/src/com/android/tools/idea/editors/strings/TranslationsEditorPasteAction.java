@@ -58,7 +58,7 @@ final class TranslationsEditorPasteAction extends TextComponentEditorAction {
       Component component = editor.getComponent();
 
       if (component instanceof JTextComponent) {
-        component.setFont(StringResourceEditor.getFont(((JTextComponent)component).getText(), component.getFont()));
+        component.setFont(StringResourceEditor.getFont(component.getFont()));
       }
     }
   }

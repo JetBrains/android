@@ -70,7 +70,7 @@ public class ImageAssetGradleTest {
       .clickFinish()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .waitForRenderToFinish()
       .dragComponentToSurface("Buttons", "Button");
 
@@ -78,7 +78,7 @@ public class ImageAssetGradleTest {
       .selectEditorTab(EditorFixture.Tab.EDITOR)
       .moveBetween("<Button", "")
       .enterText("\nandroid:background=\"@drawable/local_library\"")
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .waitForRenderToFinish()
       .findView("Button", 0);
     assertThat(button.getComponent().getAttribute(SdkConstants.ANDROID_URI, "background"))

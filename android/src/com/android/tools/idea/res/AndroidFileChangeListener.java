@@ -276,7 +276,7 @@ public class AndroidFileChangeListener implements Disposable {
    * When an event happens on a file within a folder with a corresponding
    * {@link ResourceFolderRepository}, the event is delegated to it.
    */
-  static final class MyVfsListener implements BulkFileListener {
+  static class MyVfsListener implements BulkFileListener {
 
     private final ResourceFolderRegistry myRegistry;
 
@@ -319,7 +319,10 @@ public class AndroidFileChangeListener implements Disposable {
         else if (event instanceof VFilePropertyChangeEvent &&
                  ((VFilePropertyChangeEvent)event).getPropertyName().equals(VirtualFile.PROP_NAME)) {
           VFilePropertyChangeEvent renameEvent = (VFilePropertyChangeEvent)event;
-          onFileOrDirectoryCreated(renameEvent.getFile().getParent(), (String)renameEvent.getNewValue());
+          VirtualFile parentFile = renameEvent.getFile().getParent();
+          if (parentFile != null) {
+            onFileOrDirectoryCreated(parentFile, (String)renameEvent.getNewValue());
+          }
         }
         else if (event instanceof VFileContentChangeEvent) {
           // Content changes are not handled at the VFS level but either in fileWithNoDocumentChanged, documentChanged or MyPsiListener.
@@ -379,7 +382,7 @@ public class AndroidFileChangeListener implements Disposable {
     }
   }
 
-  static final class MyFileDocumentManagerListener implements FileDocumentManagerListener {
+  static class MyFileDocumentManagerListener implements FileDocumentManagerListener {
     private final ResourceFolderRegistry myRegistry;
 
     private MyFileDocumentManagerListener(ResourceFolderRegistry registry) {
@@ -392,7 +395,7 @@ public class AndroidFileChangeListener implements Disposable {
     }
   }
 
-  static final class MyDocumentListener implements DocumentListener {
+  static class MyDocumentListener implements DocumentListener {
     private final FileDocumentManager myFileDocumentManager;
     private final PsiDocumentManager myPsiDocumentManager;
     private final ResourceFolderRegistry myRegistry;

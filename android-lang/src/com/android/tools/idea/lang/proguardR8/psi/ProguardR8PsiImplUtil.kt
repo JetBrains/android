@@ -30,6 +30,8 @@ import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiType
 import com.intellij.psi.impl.source.PsiClassReferenceType
+import com.intellij.psi.impl.source.resolve.reference.impl.providers.FileReference
+import com.intellij.psi.impl.source.resolve.reference.impl.providers.FileReferenceSet
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.JavaClassReferenceProvider
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.JavaClassReferenceSet
 import com.intellij.psi.impl.source.tree.CompositeElement
@@ -39,7 +41,7 @@ import com.intellij.psi.util.PsiTreeUtil
 
 private class ProguardR8JavaClassReferenceProvider(
   val scope: GlobalSearchScope,
-  val isAllowDollar: Boolean
+  val treatDollarAsSeparator: Boolean
 ) : JavaClassReferenceProvider() {
 
   override fun getScope(project: Project): GlobalSearchScope = scope
@@ -49,11 +51,11 @@ private class ProguardR8JavaClassReferenceProvider(
       PsiReference.EMPTY_ARRAY
     }
     else {
-      object : JavaClassReferenceSet(str, position, offsetInPosition, true, this) {
-        // Allows inner classes be separated by a dollar sign "$", e.g.java.lang.Thread$State
-        // We can't just use ALLOW_DOLLAR_NAMES flag because to make JavaClassReferenceSet work in the way we want;
-        // language of PsiElement that we parse should be instanceof XMLLanguage.
-        override fun isAllowDollarInNames() = isAllowDollar
+      object : JavaClassReferenceSet(str, position, offsetInPosition, false, this) {
+        // If true allows inner classes to be separated by a dollar sign "$", e.g.java.lang.Thread$State
+        // We can't just use ALLOW_DOLLAR_NAMES flag because to make JavaClassReferenceSet work in the way we want
+        // language of PsiElement that we parse should be instance of XMLLanguage.
+        override fun isAllowDollarInNames() = treatDollarAsSeparator
 
       }.allReferences as Array<PsiReference>
     }
@@ -68,7 +70,7 @@ fun getReferences(className: ProguardR8QualifiedName): Array<PsiReference> {
   val provider = ProguardR8JavaClassReferenceProvider(className.resolveScope, true)
   var referenceSet = provider.getReferencesByElement(className)
   if (className.lastChild.textContains('$')) {
-    // If there is $ in last part we want to add reference for a name_with_dollar.
+    // If there is a '$' in the last part we want to add reference for a name_with_dollar.
     // We already have references for class + inner class. See [isAllowDollarInNames] and [JavaClassReferenceSet.reparse]
     referenceSet += ProguardR8JavaClassReferenceProvider(className.resolveScope, false).getReferencesByElement(className).last()
   }
@@ -77,7 +79,12 @@ fun getReferences(className: ProguardR8QualifiedName): Array<PsiReference> {
 
 fun resolveToPsiClass(className: ProguardR8QualifiedName): PsiClass? {
   // We take last reference because it corresponds to PsiClass (or not), previous are for packages
-  val lastElement = className.references.lastOrNull()?.resolve()
+  var lastElement = className.references.lastOrNull()?.resolve()
+  if (lastElement == null && className.lastChild.textContains('$')) {
+    // If there is a '$' in the last part, in `references` last element is corresponding for class_name_with_$, it means
+    // there could be references corresponding to inner class name at `references.size - 2` position. See getReference() implementation.
+    lastElement = className.references.getOrNull(className.references.size - 2)?.resolve()
+  }
   return lastElement as? PsiClass
 }
 
@@ -87,14 +94,14 @@ fun resolveToPsiClass(className: ProguardR8QualifiedName): PsiClass? {
  * Example: for "-keep myClass1, myClass2 extends myClass3" returns "myClass1", "myClass2"
  */
 fun resolvePsiClasses(classSpecificationHeader: ProguardR8ClassSpecificationHeader): List<PsiClass> {
-  return classSpecificationHeader.classNameList.mapNotNull { it.qualifiedName?.resolveToPsiClass() }
+  return classSpecificationHeader.classNameList.mapNotNull { it.qualifiedName.resolveToPsiClass() }
 }
 
 /**
  * Returns classes in header that specified after "extends"/"implements" key words.
  */
 fun resolveSuperPsiClasses(classSpecificationHeader: ProguardR8ClassSpecificationHeader): List<PsiClass> {
-  return classSpecificationHeader.superClassNameList.mapNotNull { it.qualifiedName?.resolveToPsiClass() }
+  return classSpecificationHeader.superClassNameList.mapNotNull { it.qualifiedName.resolveToPsiClass() }
 }
 
 fun getPsiPrimitive(proguardR8JavaPrimitive: ProguardR8JavaPrimitive): PsiPrimitiveType? {
@@ -219,3 +226,20 @@ fun toPsiModifier(modifier: ProguardR8Modifier) = when {
 }
 
 fun getType(fullyQualifiedNameConstructor: ProguardR8FullyQualifiedNameConstructor): ProguardR8Type? = null
+
+fun isQuoted(file: ProguardR8File): Boolean {
+  return file.singleQuotedString != null ||
+         file.unterminatedSingleQuotedString != null ||
+         file.doubleQuotedString != null ||
+         file.unterminatedDoubleQuotedString != null
+}
+
+fun getReferences(file: ProguardR8File): Array<FileReference> {
+  return if (file.isQuoted) {
+    val lastIndex = if (file.singleQuotedString != null || file.doubleQuotedString != null) file.text.length - 1 else file.text.length
+    FileReferenceSet(file.text.substring(1, lastIndex), file, 1, null, true).allReferences
+  }
+  else {
+    FileReferenceSet(file).allReferences
+  }
+}

@@ -41,8 +41,8 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
       myIcon = icon;
     }
 
-    @Override
-    public String toString() {
+    @NotNull
+    public String getDisplayName() {
       return myDisplayName;
     }
 
@@ -97,6 +97,7 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
     private boolean myShowLint = false;
     private EditorMode myPreferredEditorMode;
     private EditorMode myPreferredDrawableEditorMode;
+    private boolean myEnableComposeInsertHandler = true;
 
     public boolean isRetina() {
       return myRetina;
@@ -168,6 +169,14 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
 
     public void setPreferredDrawableEditorMode(EditorMode preferredDrawableEditorMode) {
       myPreferredDrawableEditorMode = preferredDrawableEditorMode;
+    }
+
+    public boolean isComposeInsertHandlerEnabled() {
+      return myEnableComposeInsertHandler;
+    }
+
+    public void setComposeInsertHandlerEnabled(boolean value) {
+      myEnableComposeInsertHandler = value;
     }
   }
 }

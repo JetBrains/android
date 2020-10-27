@@ -16,7 +16,9 @@
 package com.android.tools.idea.model;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.UNINITIALIZED_APPLICATION_ID;
 import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
+import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryApplicationDebuggableFromManifestIndex;
 import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryMinSdkAndTargetSdkFromManifestIndex;
 
 import com.android.sdklib.AndroidVersion;
@@ -29,8 +31,10 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.IndexNotReadyException;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.util.concurrency.SameThreadExecutor;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -47,7 +51,7 @@ import org.jetbrains.annotations.TestOnly;
  * either obtain it from {@link AndroidModuleInfo} if the information is also available in the gradle model
  * (e.g. minSdk, targetSdk, packageName, etc), or use {@link MergedManifestManager#getSnapshot(Module)}.
  */
-public final class AndroidModuleInfo extends AndroidFacetScopedService {
+public class AndroidModuleInfo extends AndroidFacetScopedService {
   private static final Logger LOG = Logger.getInstance(AndroidModuleInfo.class);
   @VisibleForTesting
   static final Key<AndroidModuleInfo> KEY = Key.create(AndroidModuleInfo.class.getName());
@@ -96,7 +100,7 @@ public final class AndroidModuleInfo extends AndroidFacetScopedService {
   }
 
   /**
-   * Obtains the applicationId name for the current variant, or if not specified, from the primary manifest.
+   * Obtains the applicationId name for the current variant, or if not initialized, from the primary manifest.
    * This method will return the applicationId from gradle, even if the manifest merger fails.
    */
   @Nullable
@@ -104,11 +108,14 @@ public final class AndroidModuleInfo extends AndroidFacetScopedService {
     AndroidFacet facet = getFacet();
     AndroidModel androidModel = AndroidModel.get(facet);
     if (androidModel != null) {
-      return androidModel.getApplicationId();
+      String applicationId = androidModel.getApplicationId();
+      if (!UNINITIALIZED_APPLICATION_ID.equals(applicationId)) {
+        return applicationId;
+      }
     }
 
     // Read from the manifest: Not overridden in the configuration
-    return MergedManifestManager.getSnapshot(facet).getApplicationId();
+    return AndroidManifestUtils.getPackageName(facet);
   }
 
   @NotNull
@@ -120,31 +127,6 @@ public final class AndroidModuleInfo extends AndroidFacetScopedService {
       return Futures.immediateFuture(getter.apply(cachedManifest));
     }
     return Futures.transform(manifestSupplier.get(), getter, SameThreadExecutor.INSTANCE);
-  }
-
-  /**
-   * Returns the minSdkVersion that we pass to the runtime. This is normally the same as
-   * {@link #getMinSdkVersion()}, but with preview platforms the minSdkVersion, targetSdkVersion
-   * and compileSdkVersion are all coerced to the same preview platform value. This method
-   * should be used by launch code for example or packaging code.
-   *
-   * @deprecated To avoid blocking on merged manifest computations (especially on the EDT since
-   * this freezes the UI), add a callback to the future returned by {@link #getRuntimeMinSdkVersion()}
-   * instead.
-   */
-  @Deprecated
-  @NotNull
-  public AndroidVersion getRuntimeMinSdkVersionSynchronously() {
-    AndroidFacet facet = getFacet();
-    AndroidModel androidModel = AndroidModel.get(facet);
-    if (androidModel != null) {
-      AndroidVersion minSdkVersion = androidModel.getRuntimeMinSdkVersion();
-      if (minSdkVersion != null) {
-        return minSdkVersion;
-      }
-      // Else: not specified in gradle files; fall back to manifest
-    }
-    return MergedManifestManager.getSnapshot(facet).getMinSdkVersion();
   }
 
   /**
@@ -164,6 +146,14 @@ public final class AndroidModuleInfo extends AndroidFacetScopedService {
       }
       // Else: not specified in gradle files; fall back to manifest
     }
+
+    Project project = facet.getModule().getProject();
+    if (AndroidManifestIndex.indexEnabled() && !DumbService.isDumb(project)) {
+      AndroidVersion minSdkVersion = DumbService.getInstance(project)
+        .runReadActionInSmartMode(() -> queryMinSdkAndTargetSdkFromManifestIndex(facet).getMinSdk());
+      return Futures.immediateFuture(minSdkVersion);
+    }
+
     return getFromMergedManifest(facet, MergedManifestSnapshot::getMinSdkVersion);
   }
 
@@ -189,7 +179,7 @@ public final class AndroidModuleInfo extends AndroidFacetScopedService {
         // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
         //  We need to refactor the callers of this to require a *smart*
         //  read action, at which point we can remove this try-catch.
-        LOG.info(e);
+        AndroidManifestIndexQueryUtils.logManifestIndexQueryError(e);
       }
     }
 
@@ -218,7 +208,7 @@ public final class AndroidModuleInfo extends AndroidFacetScopedService {
         // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
         //  We need to refactor the callers of this to require a *smart*
         //  read action, at which point we can remove this try-catch.
-        LOG.info(e);
+        AndroidManifestIndexQueryUtils.logManifestIndexQueryError(e);
       }
     }
 
@@ -249,6 +239,19 @@ public final class AndroidModuleInfo extends AndroidFacetScopedService {
       Boolean debuggable = androidModel.isDebuggable();
       if (debuggable != null) {
         return debuggable;
+      }
+    }
+
+    if (AndroidManifestIndex.indexEnabled()) {
+      try {
+        return DumbService.getInstance(facet.getModule().getProject())
+          .runReadActionInSmartMode(() -> queryApplicationDebuggableFromManifestIndex(facet));
+      }
+      catch (IndexNotReadyException e) {
+        // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+        //  We need to refactor the callers of this to require a *smart*
+        //  read action, at which point we can remove this try-catch.
+        AndroidManifestIndexQueryUtils.logManifestIndexQueryError(e);
       }
     }
 

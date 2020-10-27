@@ -17,18 +17,16 @@ package com.android.tools.idea.tests.gui.dynamicfeature
 
 import com.android.tools.idea.npw.dynamicapp.DeviceFeatureKind
 import com.android.tools.idea.npw.dynamicapp.DownloadInstallKind
-import com.android.tools.idea.npw.platform.Language
-import com.android.tools.idea.npw.platform.Language.JAVA
-import com.android.tools.idea.npw.platform.Language.KOTLIN
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.RunIn
-import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureDynamicFeatureDeliveryStepFixture
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureDynamicFeatureStepFixture
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
+import com.android.tools.idea.wizard.template.Language
+import com.android.tools.idea.wizard.template.Language.Java
+import com.android.tools.idea.wizard.template.Language.Kotlin
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.matcher.JLabelMatcher
@@ -39,8 +37,7 @@ import org.junit.runner.RunWith
 
 @RunWith(GuiTestRemoteRunner::class)
 class AddDynamicFeatureTest {
-  @Rule
-  @JvmField
+  @get:Rule
   val guiTest = GuiTestRule()
 
   /**
@@ -136,7 +133,7 @@ class AddDynamicFeatureTest {
   fun addDynamicModuleWithConditionalDelivery_includeAtInstallTime() {
     val ideFrame = guiTest.importSimpleApplication()
 
-    createDynamicModule(ideFrame, KOTLIN, DownloadInstallKind.INCLUDE_AT_INSTALL_TIME)
+    createDynamicModule(ideFrame, Kotlin, DownloadInstallKind.INCLUDE_AT_INSTALL_TIME)
 
     guiTest.getProjectFileText("MyDynamicFeature/src/main/AndroidManifest.xml").run {
       assertThat(this).contains("""<dist:delivery>""")
@@ -158,7 +155,7 @@ class AddDynamicFeatureTest {
   fun addDynamicModuleWithConditionalDelivery_installOnDemandOnly() {
     val ideFrame = guiTest.importSimpleApplication()
 
-    createDynamicModule(ideFrame, JAVA, DownloadInstallKind.ON_DEMAND_ONLY)
+    createDynamicModule(ideFrame, Java, DownloadInstallKind.ON_DEMAND_ONLY)
 
     guiTest.getProjectFileText("MyDynamicFeature/src/main/AndroidManifest.xml").run {
       assertThat(this).contains("""<dist:delivery>""")
@@ -180,7 +177,7 @@ class AddDynamicFeatureTest {
   fun addDynamicModuleWithConditionalDelivery_installOnDemandWithMinSdk() {
     val ideFrame = guiTest.importSimpleApplication()
 
-    createDynamicModule(ideFrame, JAVA, DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS)
+    createDynamicModule(ideFrame, Java, DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS)
 
     guiTest.getProjectFileText("MyDynamicFeature/src/main/AndroidManifest.xml").run {
       assertThat(this).contains("""<dist:delivery>""")
@@ -206,7 +203,7 @@ class AddDynamicFeatureTest {
   fun addDynamicModuleWithConditionalDelivery_installOnDemandDeviceFeatures() {
     val ideFrame = guiTest.importSimpleApplication()
 
-    createDynamicModule(ideFrame, JAVA, DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS) {
+    createDynamicModule(ideFrame, Java, DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS) {
       addConditionalDeliveryFeature(DeviceFeatureKind.NAME, "test")
       addConditionalDeliveryFeature(DeviceFeatureKind.NAME, "test2")
       addConditionalDeliveryFeature(DeviceFeatureKind.GL_ES_VERSION, "0x2000000")
@@ -215,7 +212,8 @@ class AddDynamicFeatureTest {
 
     guiTest.getProjectFileText("MyDynamicFeature/src/main/AndroidManifest.xml").run {
 
-      val expected = """|<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      val expected = """|<?xml version="1.0" encoding="utf-8"?>
+                        |<manifest xmlns:android="http://schemas.android.com/apk/res/android"
                         |    xmlns:dist="http://schemas.android.com/apk/distribution"
                         |    package="com.example.mydynamicfeature">
                         |
@@ -270,11 +268,10 @@ class AddDynamicFeatureTest {
   fun addLoginActivityToDynamicModule() {
     val ideFrame = guiTest.importSimpleApplication()
 
-    createDynamicModule(ideFrame, JAVA)
+    createDynamicModule(ideFrame, Java)
       .invokeMenuPath("File", "New", "Activity", "Login Activity")
     NewActivityWizardFixture.find(ideFrame)
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish()
 
     guiTest.getProjectFileText("app/src/main/res/values/strings.xml").run {
       assertThat(this).contains("title_activity_login")
@@ -314,21 +311,23 @@ class AddDynamicFeatureTest {
       assertThat(this).contains("implementation 'androidx.constraintlayout:constraintlayout:")
     }
 
-    createDynamicModule(ideFrame, JAVA)
+    createDynamicModule(ideFrame, Java)
       .invokeMenuPath("File", "New", "Google", "Google Maps Activity")
     NewActivityWizardFixture.find(ideFrame)
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish()
 
     guiTest.getProjectFileText("MyDynamicFeature/build.gradle").run {
       assertThat(this).doesNotContain("play-services-maps")
+      assertThat(this).contains("implementation 'androidx.appcompat:appcompat:")
+      assertThat(this).contains("implementation 'androidx.constraintlayout:constraintlayout:")
     }
 
     guiTest.getProjectFileText("app/build.gradle").run {
       assertThat(this).contains("api 'com.google.android.gms:play-services-maps")
-      assertThat(this).contains("api 'androidx.appcompat:appcompat:")  // "implementation" re-written as "api"
-      assertThat(this).contains("api 'androidx.constraintlayout:constraintlayout:")
+      assertThat(this).contains("implementation 'androidx.appcompat:appcompat:")
+      assertThat(this).doesNotContain("api 'androidx.constraintlayout:constraintlayout:")
     }
+
   }
 
   /**
@@ -349,8 +348,7 @@ class AddDynamicFeatureTest {
   fun checkWarningLabelIsHiddenWhenBaseIsInstant() {
     val ideFrame = guiTest.importSimpleApplication()
     writeDistModuleToBaseManifest(true)
-    ideFrame.invokeMenuPath("File", "Sync Project with Gradle Files")
-    ideFrame.waitForGradleProjectSyncToFinish()
+    ideFrame.actAndWaitForGradleProjectSyncToFinish { it.invokeMenuPath("File", "Sync Project with Gradle Files") }
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     val fixture = NewModuleWizardFixture.find(ideFrame)
       .clickNextToInstantDynamicFeature()
@@ -377,13 +375,13 @@ class AddDynamicFeatureTest {
   fun checkWarningLabelIsVisibleWhenBaseIsNotInstant() {
     val ideFrame = guiTest.importSimpleApplication()
     writeDistModuleToBaseManifest(false)
-    ideFrame.invokeMenuPath("File", "Sync Project with Gradle Files")
-    ideFrame.waitForGradleProjectSyncToFinish()
+    ideFrame.actAndWaitForGradleProjectSyncToFinish { it.invokeMenuPath("File", "Sync Project with Gradle Files") }
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     val fixture = NewModuleWizardFixture.find(ideFrame)
       .clickNextToInstantDynamicFeature()
 
-    validateInstantizeBaseManifestWarningIsVisible(fixture)
+    // TODO(qumeric): this icon was temporarily removed. It will be added after redesign. See b/139475118
+    // validateInstantizeBaseManifestWarningIsVisible(fixture)
     fixture.wizard().clickCancel()
   }
 
@@ -422,7 +420,7 @@ class AddDynamicFeatureTest {
       .setSourceLanguage(lang)
       .enterFeatureModuleName("MyDynamicFeature")
       .enterPackageName("com.example.mydynamicfeature")
-      .selectBaseApplication("app")
+      .selectBaseApplication(ideFrame.getModule("app").name)
       .selectMinimumSdkApi(26)
       .clickNextToConfigureConditionalDelivery()
       .enterName("My Dynamic Feature Title")
@@ -430,8 +428,7 @@ class AddDynamicFeatureTest {
       .setDownloadInstallKind(downloadInstallKind)
       .setFeatures()
       .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish()
       .projectView
       .selectAndroidPane()
       .clickPath("MyDynamicFeature")
@@ -449,7 +446,7 @@ class AddDynamicFeatureTest {
       .clickNextToInstantDynamicFeature()
       .checkFusingCheckbox()
       .wizard()
-      .clickFinish()
+      .clickFinishAndWaitForSyncToFinish()
 
     return ideFrame
   }

@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.memory;
 
+import static org.junit.Assert.assertEquals;
+
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
@@ -26,15 +28,12 @@ import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertEquals;
 
 public class HeapDumpSampleDataSeriesTest {
 
@@ -60,7 +59,7 @@ public class HeapDumpSampleDataSeriesTest {
   @Before
   public void setUp() {
     myStage =
-      new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeProfilerServices, new FakeTimer()),
+      new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, new FakeTimer()),
                               new FakeCaptureObjectLoader());
   }
 
@@ -78,8 +77,9 @@ public class HeapDumpSampleDataSeriesTest {
                                           .build());
 
     HeapDumpSampleDataSeries series =
-      new HeapDumpSampleDataSeries(new ProfilerClient(myGrpcChannel.getName()), ProfilersTestData.SESSION_DATA,
-                                   myIdeProfilerServices.getFeatureTracker(), myStage);
+      new HeapDumpSampleDataSeries(new ProfilerClient(myGrpcChannel.getChannel()), ProfilersTestData.SESSION_DATA,
+                                   myIdeProfilerServices.getFeatureTracker(),
+                                   myStage.getStudioProfilers().getIdeServices());
     List<SeriesData<CaptureDurationData<CaptureObject>>> dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
 
     assertEquals(2, dataList.size());
@@ -106,8 +106,9 @@ public class HeapDumpSampleDataSeriesTest {
     myService.addExplicitHeapDumpInfo(INFO2);
 
     HeapDumpSampleDataSeries series =
-      new HeapDumpSampleDataSeries(new ProfilerClient(myGrpcChannel.getName()), ProfilersTestData.SESSION_DATA,
-                                   myIdeProfilerServices.getFeatureTracker(), myStage);
+      new HeapDumpSampleDataSeries(new ProfilerClient(myGrpcChannel.getChannel()), ProfilersTestData.SESSION_DATA,
+                                   myIdeProfilerServices.getFeatureTracker(),
+                                   myStage.getStudioProfilers().getIdeServices());
     List<SeriesData<CaptureDurationData<CaptureObject>>> dataList =
       series.getDataForRange(new Range(0, Double.MAX_VALUE));
 

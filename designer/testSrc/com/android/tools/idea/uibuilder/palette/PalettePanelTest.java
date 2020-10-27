@@ -33,7 +33,6 @@ import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import com.android.ide.common.repository.GradleCoordinate;
@@ -61,6 +60,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPopupMenu;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
@@ -124,6 +124,16 @@ public class PalettePanelTest extends LayoutTestCase {
     registerApplicationService(PropertiesComponent.class, new PropertiesComponentMock());
     //registerApplicationService(ActionManager.class, myActionManager);  // ActionManager is too complex to be mocked in a heavy test
     registerProjectService(GradleDependencyManager.class, myGradleDependencyManager);
+    // Some IntelliJ platform code might ask for actions during the initialization. Mock a generic one.
+    when(myActionManager.getAction(anyString())).thenReturn(new AnAction("Empty") {
+      @Override
+      public boolean isDumbAware() {
+        return true;
+      }
+
+      @Override
+      public void actionPerformed(@NotNull AnActionEvent e) { }
+    });
     when(myActionManager.createActionPopupMenu(anyString(), any(ActionGroup.class))).thenReturn(myPopupMenu);
     when(myPopupMenu.getComponent()).thenReturn(myPopupMenuComponent);
     myPanel = new PalettePanel(getProject(), myDependencyManager, getProject());
@@ -295,19 +305,20 @@ public class PalettePanelTest extends LayoutTestCase {
   }
 
   public void testDragAndDropInDumbMode() throws Exception {
+    StatusBarEx statusBar = registerMockStatusBar();
+    myTrackingDesignSurface = setUpLayoutDesignSurface();
+    myPanel.setToolContext(myTrackingDesignSurface);
+    myPanel.getCategoryList().setSelectedIndex(4); // Layouts
+    myPanel.getItemList().setSelectedIndex(0);     // ConstraintLayout (to avoid preview)
+    MouseEvent event = mock(MouseEvent.class);
+    when(event.getPoint()).thenReturn(new Point(50, 50));
+    JList<Palette.Item> list = myPanel.getItemList();
+    TransferHandler handler = list.getTransferHandler();
     try {
       DumbServiceImpl.getInstance(getProject()).setDumb(true);
-      StatusBarEx statusBar = registerMockStatusBar();
-      myTrackingDesignSurface = setUpLayoutDesignSurface();
-      myPanel.setToolContext(myTrackingDesignSurface);
-      myPanel.getCategoryList().setSelectedIndex(4); // Layouts
-      myPanel.getItemList().setSelectedIndex(0);     // ConstraintLayout (to avoid preview)
-      MouseEvent event = mock(MouseEvent.class);
-      when(event.getPoint()).thenReturn(new Point(50, 50));
-      JList<Palette.Item> list = myPanel.getItemList();
-      TransferHandler handler = list.getTransferHandler();
       assertFalse(imitateDragAndDrop(handler, list));
-      verify(statusBar).notifyProgressByBalloon(eq(MessageType.WARNING), eq("Dragging from the Palette is not available while indices are updating."));
+      verify(statusBar)
+        .notifyProgressByBalloon(eq(MessageType.WARNING), eq("Dragging from the Palette is not available while indices are updating."));
     }
     finally {
       DumbServiceImpl.getInstance(getProject()).setDumb(false);
@@ -384,7 +395,7 @@ public class PalettePanelTest extends LayoutTestCase {
 
   public void testAddToDesignUpdateDoesNotCauseDependencyDialog() {
     setUpLayoutDesignSurface();
-    myPanel.getCategoryList().setSelectedIndex(6); // Google
+    myPanel.getCategoryList().setSelectedIndex(7); // Google
     myPanel.getItemList().setSelectedIndex(0);     // AdView
     assertThat(myPanel.getItemList().getSelectedValue().getTagName()).isEqualTo(AD_VIEW);
 
@@ -421,15 +432,29 @@ public class PalettePanelTest extends LayoutTestCase {
   }
 
   public void testPopupMenuWithPreferences() {
-    ActionManager actionManager = mock(ActionManager.class);
-    registerApplicationService(ActionManager.class, actionManager);
-
     setUpPreferenceDesignSurface();
     ItemList itemList = myPanel.getItemList();
     itemList.dispatchEvent(new MouseEvent(itemList, MouseEvent.MOUSE_RELEASED, 0, InputEvent.CTRL_DOWN_MASK, 10, 10, 1, true));
 
-    // There are no items in the common group for preferences, so no popup should be shown:
-    verifyZeroInteractions(actionManager);
+
+    // Popup shown for first item in the item list:
+    verify(myPopupMenuComponent).show(eq(itemList), eq(10), eq(10));
+    assertThat(itemList.getSelectedIndex()).isEqualTo(0);
+  }
+
+  public void testEmptyText() {
+    setUpLayoutDesignSurface();
+    ItemList itemList = myPanel.getItemList();
+    assertThat(itemList.getEmptyText().getText()).isEqualTo("No favorites");
+    assertThat(itemList.getEmptyText().getSecondaryComponent().getCharSequence(false)).isEqualTo("Right click to add");
+
+    myPanel.getCategoryList().setSelectedIndex(BUTTON_CATEGORY_INDEX);
+    assertThat(itemList.getEmptyText().getText()).isEqualTo("Empty group");
+    assertThat(itemList.getEmptyText().getSecondaryComponent().getCharSequence(false)).isEqualTo("");
+
+    myPanel.setFilter("<NOT-FOUND>!!");
+    assertThat(itemList.getEmptyText().getText()).isEqualTo("No matches found");
+    assertThat(itemList.getEmptyText().getSecondaryComponent().getCharSequence(false)).isEqualTo("");
   }
 
   @NotNull
@@ -437,7 +462,7 @@ public class PalettePanelTest extends LayoutTestCase {
     WindowManager windowManager = mock(WindowManagerEx.class);
     IdeFrame frame = mock(IdeFrame.class);
     StatusBarEx statusBar = mock(StatusBarEx.class);
-    registerApplicationComponent(WindowManager.class, windowManager);
+    registerApplicationService(WindowManager.class, windowManager);
     when(windowManager.getIdeFrame(getProject())).thenReturn(frame);
     when(frame.getStatusBar()).thenReturn(statusBar);
     return statusBar;

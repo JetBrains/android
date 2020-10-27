@@ -29,9 +29,6 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidSynchronizeHandler extends SynchronizeHandler {
   private static final Logger LOG = Logger.getInstance(AndroidSynchronizeHandler.class);
 

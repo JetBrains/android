@@ -84,8 +84,7 @@ public class GradleTasksTest {
     //   3. Stop the task
     //   4. Ensure that the task is really finished
     guiTest.importSimpleApplication();
-    guiTest.ideFrame().requestProjectSync();
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().requestProjectSyncAndWaitForSyncToFinish();
 
     final Pattern buildSuccessfulPattern = Pattern.compile(".*BUILD SUCCESSFUL.*", DOTALL);
     runTask(
@@ -108,8 +107,7 @@ public class GradleTasksTest {
         document.insertString(document.getTextLength(), textToAdd);
       });
 
-    guiTest.ideFrame().requestProjectSync();
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().requestProjectSyncAndWaitForSyncToFinish();
   }
 
   private void runTask(@NotNull String taskName, @NotNull Consumer<ExecutionToolWindowFixture.ContentFixture> closure) {

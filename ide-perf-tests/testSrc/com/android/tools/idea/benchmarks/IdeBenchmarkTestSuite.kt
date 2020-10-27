@@ -16,22 +16,46 @@
 package com.android.tools.idea.benchmarks
 
 import com.android.testutils.JarTestSuiteRunner
+import com.android.tools.perflogger.PerfData
+import com.android.tools.tests.GradleDaemonsRule
 import com.android.tools.tests.IdeaTestSuiteBase
+import org.junit.ClassRule
 import org.junit.runner.RunWith
 
 @RunWith(JarTestSuiteRunner::class)
 @JarTestSuiteRunner.ExcludeClasses(IdeBenchmarkTestSuite::class)
 class IdeBenchmarkTestSuite : IdeaTestSuiteBase() {
   companion object {
+    @get:ClassRule
+    val gradleDaemonCleanup = GradleDaemonsRule()
+
     init {
       try {
-        symlinkToIdeaHome(
-          "tools/adt/idea/android/testData",
-          "tools/base/templates",
-          "tools/idea/java")
+        // SantaTracker.
+        setUpSourceZip(
+          "prebuilts/studio/buildbenchmarks/SantaTracker.181be75/src.zip",
+          "tools/adt/idea/ide-perf-tests/testData/SantaTracker",
+          DiffSpec("prebuilts/studio/buildbenchmarks/SantaTracker.181be75/setupForIdeTest.diff", 2))
+        unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/SantaTracker.181be75/repo.zip")
 
-        setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo")
-        setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository")
+        // Updated SantaTracker project with Kotlin sources
+        setUpSourceZip(
+          "prebuilts/studio/buildbenchmarks/SantaTrackerKotlin/src.zip",
+          "tools/adt/idea/ide-perf-tests/testData/SantaTrackerKotlin",
+          DiffSpec("prebuilts/studio/buildbenchmarks/SantaTrackerKotlin/setupForIdeTest.diff", 0))
+        unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/SantaTrackerKotlin/repo.zip")
+
+        unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip")
+        unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip")
+
+        // Write Perfgate metadata (e.g. benchmark descriptions).
+        val perfData = PerfData()
+        perfData.addBenchmark(SimpleHighlightingBenchmark.benchmark)
+        perfData.addBenchmark(MlModelBindingBenchmark.benchmark)
+        perfData.addBenchmark(FullProjectBenchmark.highlightingBenchmark)
+        perfData.addBenchmark(FullProjectBenchmark.layoutCompletionBenchmark)
+        perfData.addBenchmark(FullProjectBenchmark.completionBenchmark)
+        perfData.commit()
       }
       catch (e: Throwable) {
         System.err.println("ERROR: Failed to initialize test suite, tests will likely fail following this error")

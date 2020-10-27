@@ -16,20 +16,27 @@
 package com.android.tools.idea.uibuilder.handlers.relative
 
 import com.android.SdkConstants
-import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.scene.SceneComponent
-import com.android.tools.idea.common.scene.SceneInteraction
-import com.android.tools.idea.common.scene.target.Target
-import com.android.tools.idea.uibuilder.api.DragHandler
 import com.android.tools.idea.common.api.DragType
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.NlAttributesHolder
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SceneInteraction
 import com.android.tools.idea.common.scene.target.AnchorTarget
+import com.android.tools.idea.common.scene.target.Target
+import com.android.tools.idea.uibuilder.api.DragHandler
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler
 import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
 import com.android.tools.idea.uibuilder.api.actions.ViewAction
-import com.android.tools.idea.uibuilder.handlers.relative.targets.*
+import com.android.tools.idea.uibuilder.api.actions.ViewActionUtils.getToggleSizeActions
+import com.android.tools.idea.uibuilder.api.actions.ViewActionUtils.getViewOptionsAction
+import com.android.tools.idea.uibuilder.handlers.relative.targets.RELATIVE_LAYOUT_ATTRIBUTES
+import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeAnchorTarget
+import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeDragTarget
+import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeParentTarget
+import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeResizeTarget
+import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeWidgetTarget
 import com.android.tools.idea.uibuilder.model.getBaseline
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 import com.android.tools.idea.uibuilder.surface.ScreenView
@@ -96,7 +103,8 @@ class RelativeLayoutHandler : ViewGroupHandler() {
   }
 
   override fun addToolbarActions(actions: MutableList<ViewAction>) {
-    super.addToolbarActions(actions)
+    actions.add(getViewOptionsAction())
+    actions.addAll(getToggleSizeActions())
     actions.add(ToggleAutoConnectAction())
   }
 

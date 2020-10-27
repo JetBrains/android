@@ -82,9 +82,6 @@ import org.jetbrains.jps.model.module.JpsModuleDependency;
 import org.jetbrains.jps.model.module.JpsModuleSourceRoot;
 import org.jetbrains.jps.service.JpsServiceManager;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
   private static final Logger LOG = Logger.getInstance(AndroidSourceGeneratingBuilder.class);
 
@@ -1548,7 +1545,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     return result.toString();
   }
 
-  private static final class MyModuleData {
+  private static class MyModuleData {
     private final AndroidPlatform myPlatform;
     private final JpsAndroidModuleExtension myAndroidExtension;
     private final File myManifestFileForCompiler;

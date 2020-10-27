@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.android.AndroidBuildScriptsGroupNode;
 import com.android.tools.idea.navigator.nodes.ndk.ExternalBuildFilesGroupNode;
-import com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -45,8 +44,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+import static com.android.tools.idea.navigator.nodes.ndk.NdkModuleNodeKt.containedInIncludeFolders;
 
 public class AndroidViewProjectNode extends ProjectViewNode<Project> {
   private final AndroidProjectViewPane myProjectViewPane;
@@ -64,6 +63,12 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
     assert myProject != null;
     ViewSettings settings = getSettings();
     AndroidProjectSystem projectSystem = ProjectSystemService.getInstance(myProject).getProjectSystem();
+    // Android project view cannot build its usual structure without build models available and instead builds a special fallback
+    // view when they are no available.  Doing so too soon results in re-loadig the tree view twice while opening a project and losing
+    // the state of the tree persisted when closing the project last time.  Therefore we delay responding to getChildren() request
+    // until models are available or an attempt to sync has failed.  Since this code run in a read action we respect any attempts to
+    // begin a write action while waiting.
+    AndroidViewProjectNodeUtil.maybeWaitForAnySyncOutcomeInterruptibly(projectSystem.getSyncManager());
     List<AbstractTreeNode<?>> children =
       ModuleNodeUtils.createChildModuleNodes(myProject, projectSystem.getSubmodules(), myProjectViewPane, settings);
 
@@ -123,13 +128,11 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
       return true;
     }
 
-    if (ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT.get()) {
-      // Include files may be out-of-project so check for them.
-      for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-        NdkFacet ndkFacet = NdkFacet.getInstance(module);
-        if (ndkFacet != null && ndkFacet.getNdkModuleModel() != null) {
-          return NdkModuleNode.containedInIncludeFolders(ndkFacet.getNdkModuleModel(), file);
-        }
+    // Include files may be out-of-project so check for them.
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      NdkFacet ndkFacet = NdkFacet.getInstance(module);
+      if (ndkFacet != null && ndkFacet.getNdkModuleModel() != null) {
+        return containedInIncludeFolders(ndkFacet.getNdkModuleModel(), file);
       }
     }
     return false;

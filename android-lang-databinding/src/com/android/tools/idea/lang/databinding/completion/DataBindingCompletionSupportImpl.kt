@@ -212,7 +212,7 @@ class DataBindingCompletionSupportImpl : DataBindingCompletionSupport {
    */
   @Contract("!null -> !null; null -> null")
   private fun getRealContainingFile(file: PsiFile?): PsiFile? {
-    if (file?.fileType == DbFileType.INSTANCE) {
+    if (file?.fileElementType == DbFileType.INSTANCE) {
       return file?.context?.containingFile
     }
     return file

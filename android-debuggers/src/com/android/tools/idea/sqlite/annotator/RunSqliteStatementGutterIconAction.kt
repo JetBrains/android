@@ -16,26 +16,23 @@
 package com.android.tools.idea.sqlite.annotator
 
 import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
-import com.android.tools.idea.lang.androidSql.psi.AndroidSqlBindParameter
-import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes
-import com.android.tools.idea.lang.androidSql.psi.AndroidSqlVisitor
-import com.android.tools.idea.sqlite.controllers.ParametersBindingController
-import com.android.tools.idea.sqlite.model.SqliteDatabase
-import com.android.tools.idea.sqlite.model.SqliteStatement
-import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
+import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
+import com.android.tools.idea.sqlite.controllers.ParametersBindingController
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
+import com.android.tools.idea.sqlite.model.createSqliteStatement
+import com.android.tools.idea.sqlite.sqlLanguage.needsBinding
+import com.android.tools.idea.sqlite.sqlLanguage.replaceNamedParametersWithPositionalParameters
+import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
+import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.icons.AllIcons
-import com.intellij.lang.ASTFactory
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiElement
-import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.util.ui.JBUI
 import java.awt.Component
@@ -58,10 +55,11 @@ import javax.swing.border.EmptyBorder
 class RunSqliteStatementGutterIconAction(
   private val project: Project,
   private val element: PsiElement,
-  private val viewFactory: DatabaseInspectorViewsFactory
+  private val viewFactory: DatabaseInspectorViewsFactory,
+  private val databaseInspectorProjectService: DatabaseInspectorProjectService = DatabaseInspectorProjectService.getInstance(project)
 ) : AnAction() {
   override fun actionPerformed(actionEvent: AnActionEvent) {
-    val openDatabases = DatabaseInspectorProjectService.getInstance(project).getOpenDatabases()
+    val openDatabases = databaseInspectorProjectService.getOpenDatabases()
 
     if (openDatabases.isEmpty()) return
 
@@ -69,10 +67,8 @@ class RunSqliteStatementGutterIconAction(
                             .orEmpty()
                             .firstOrNull { it.first.language == AndroidSqlLanguage.INSTANCE }?.first ?: return
 
-    val (sqliteStatement, parametersNames) = replaceNamedParametersWithPositionalParameters(injectedPsiFile)
-
     if (openDatabases.size == 1) {
-      runSqliteStatement(openDatabases.first(), sqliteStatement, parametersNames)
+      runSqliteStatement(openDatabases.first(), injectedPsiFile)
     }
     else if (openDatabases.size > 1) {
       val popupChooserBuilder = JBPopupFactory.getInstance().createPopupChooserBuilder(openDatabases.toList())
@@ -83,7 +79,7 @@ class RunSqliteStatementGutterIconAction(
         .withHintUpdateSupply()
         .setResizable(true)
         .setItemChosenCallback {
-          runSqliteStatement(it, sqliteStatement, parametersNames)
+          runSqliteStatement(it, injectedPsiFile)
         }
         .createPopup()
 
@@ -97,14 +93,21 @@ class RunSqliteStatementGutterIconAction(
     }
   }
 
-  private fun runSqliteStatement(database: SqliteDatabase, sqliteStatement: String, parametersNames: List<String>) {
-    if (parametersNames.isEmpty()) {
-      DatabaseInspectorProjectService.getInstance(project).runSqliteStatement(database, SqliteStatement(sqliteStatement))
+  private fun runSqliteStatement(databaseId: SqliteDatabaseId, sqliteStatementPsi: PsiElement) {
+    DatabaseInspectorAnalyticsTracker.getInstance(project).trackStatementExecuted(
+      AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT
+    )
+
+    if (!needsBinding(sqliteStatementPsi)) {
+      val (sqliteStatement, _) = replaceNamedParametersWithPositionalParameters(sqliteStatementPsi)
+      databaseInspectorProjectService.runSqliteStatement(databaseId, createSqliteStatement(project, sqliteStatement))
+      databaseInspectorProjectService.getIdeServices()?.showToolWindow()
     }
     else {
-      val view = viewFactory.createParametersBindingView(project)
-      ParametersBindingController(view, sqliteStatement, parametersNames) {
-        DatabaseInspectorProjectService.getInstance(project).runSqliteStatement(database, it)
+      val view = viewFactory.createParametersBindingView(project, sqliteStatementPsi.text)
+      ParametersBindingController(view, sqliteStatementPsi) {
+        databaseInspectorProjectService.runSqliteStatement(databaseId, it)
+        databaseInspectorProjectService.getIdeServices()?.showToolWindow()
       }.also {
         it.setUp()
         it.show()
@@ -113,43 +116,12 @@ class RunSqliteStatementGutterIconAction(
     }
   }
 
-  override fun update(e: AnActionEvent) {
-    super.update(e)
-    e.presentation.isEnabledAndVisible = DatabaseInspectorProjectService.getInstance(project).hasOpenDatabase()
-  }
-
-  /**
-   * Returns a SQLite statement where named parameters have been replaced with positional parameters (?)
-   * and the list of named parameters in the original statement.
-   * @param psiElement The [PsiElement] corresponding to a SQLite statement.
-   * @return The text of the SQLite statement with positional parameters and the list of named parameters.
-   */
-  private fun replaceNamedParametersWithPositionalParameters(psiElement: PsiElement): Pair<String, List<String>> {
-    val psiElementCopy = psiElement.copy()
-    val parametersNames = mutableListOf<String>()
-
-    invokeAndWaitIfNeeded {
-      runUndoTransparentWriteAction {
-        val visitor = object : AndroidSqlVisitor() {
-          override fun visitBindParameter(parameter: AndroidSqlBindParameter) {
-            parametersNames.add(parameter.text)
-            parameter.node.replaceChild(parameter.node.firstChildNode, ASTFactory.leaf(AndroidSqlPsiTypes.NUMBERED_PARAMETER, "?"))
-          }
-        }
-
-        PsiTreeUtil.processElements(psiElementCopy) { it.accept(visitor); true }
-      }
-    }
-    return Pair(psiElementCopy.text, parametersNames)
-  }
-
   private class SqliteQueryListCellRenderer : DefaultListCellRenderer() {
     companion object {
       private val cellInsets = JBUI.insets(2, 6)
     }
 
-    private val border = EmptyBorder(
-      cellInsets)
+    private val border = EmptyBorder(cellInsets)
 
     override fun getBorder(): Border = border
 
@@ -163,7 +135,7 @@ class RunSqliteStatementGutterIconAction(
                                               isSelected: Boolean,
                                               cellHasFocus: Boolean): Component {
       val component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
-      if (value is SqliteDatabase) {
+      if (value is SqliteDatabaseId) {
         text = value.name
       }
 

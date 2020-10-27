@@ -22,8 +22,6 @@ import com.intellij.ide.dnd.DnDNativeTarget
 import com.intellij.ide.dnd.FileCopyPasteUtil
 import com.intellij.openapi.util.SystemInfo
 import org.jetbrains.android.facet.AndroidFacet
-import java.awt.Image
-import java.awt.Point
 import java.awt.datatransfer.Transferable
 import java.io.File
 
@@ -35,9 +33,6 @@ class ResourceImportDragTarget(
   var facet: AndroidFacet,
   private val importersProvider: ImportersProvider
 ) : DnDNativeTarget, ImportResourceDelegate {
-
-  override fun cleanUpOnLeave() {
-  }
 
   override fun update(event: DnDEvent): Boolean {
     // Returns if parent should handle the event. I.e: Returns false when the import can be handled here.
@@ -85,9 +80,6 @@ class ResourceImportDragTarget(
     val assetSets = files.findAllDesignAssets(importersProvider)
     ResourceManagerTracking.logAssetAddedViaDnd()
     ResourceImportDialog(facet, assetSets).show()
-  }
-
-  override fun updateDraggedImage(image: Image?, dropPoint: Point?, imageOffset: Point?) {
   }
 }
 

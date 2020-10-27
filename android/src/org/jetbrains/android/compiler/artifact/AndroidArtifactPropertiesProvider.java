@@ -5,9 +5,6 @@ import com.intellij.packaging.artifacts.ArtifactPropertiesProvider;
 import com.intellij.packaging.artifacts.ArtifactType;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidArtifactPropertiesProvider extends ArtifactPropertiesProvider {
 
   public static final String ANDROID_PROPERTIES_ID = "android-properties";

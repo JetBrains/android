@@ -20,6 +20,7 @@ import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.StudioColorsKt;
+import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.MultiSelectionModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangeSelectionModel;
@@ -49,9 +50,12 @@ import com.android.tools.profilers.event.UserEventTooltip;
 import com.android.tools.profilers.event.UserEventTooltipView;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.intellij.ui.HoverHyperlinkLabel;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -79,7 +83,6 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
    */
   private static final double TIMELINE_PAN_FACTOR = 0.1;
   private static final double TIMELINE_DRAG_FACTOR = 0.001;
-  private static final ProfilerTrackRendererFactory TRACK_RENDERER_FACTORY = new ProfilerTrackRendererFactory();
 
   /**
    * Key binding keys.
@@ -91,9 +94,12 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   private static final String PANNING_MODE_ON_KEY = "panning_mode_on";
   private static final String PANNING_MODE_OFF_KEY = "panning_mode_off";
 
+  private final ProfilerTrackRendererFactory myTrackRendererFactory;
   private final TrackGroupListPanel myTrackGroupList;
   private final CpuAnalysisPanel myAnalysisPanel;
   private final JScrollPane myScrollPane;
+  private final HoverHyperlinkLabel myDeselectAllLabel;
+  private final JPanel myDeselectAllToolbar;
 
   /**
    * To avoid conflict with drag-and-drop, we need a keyboard modifier (e.g. VK_SPACE) to toggle panning mode.
@@ -102,11 +108,14 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
 
   public CpuCaptureStageView(@NotNull StudioProfilersView view, @NotNull CpuCaptureStage stage) {
     super(view, stage);
+    myTrackRendererFactory = new ProfilerTrackRendererFactory(getProfilersView());
     myTrackGroupList = createTrackGroupListPanel();
     myScrollPane = new JBScrollPane(myTrackGroupList.getComponent(),
                                     ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                     ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
     myAnalysisPanel = new CpuAnalysisPanel(view, stage);
+    myDeselectAllToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
+    myDeselectAllLabel = createDeselectAllLabel();
 
     // Tooltip used in the stage
     getTooltipBinder().bind(CpuCaptureStageCpuUsageTooltip.class, CpuCaptureStageCpuUsageTooltipView::new);
@@ -118,6 +127,8 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     myTrackGroupList.getTooltipBinder().bind(CpuKernelTooltip.class, CpuKernelTooltipView::new);
     myTrackGroupList.getTooltipBinder().bind(UserEventTooltip.class, UserEventTooltipView::new);
     myTrackGroupList.getTooltipBinder().bind(LifecycleTooltip.class, LifecycleTooltipView::new);
+    myTrackGroupList.getTooltipBinder().bind(SurfaceflingerTooltip.class, SurfaceflingerTooltipView::new);
+    myTrackGroupList.getTooltipBinder().bind(VsyncTooltip.class, VsyncTooltipView::new);
 
     stage.getAspect().addDependency(this).onChange(CpuCaptureStage.Aspect.STATE, this::updateComponents);
     stage.getMultiSelectionModel().addDependency(this)
@@ -127,39 +138,13 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
 
   @Override
   public JComponent getToolbar() {
-    return new JPanel();
-  }
-
-  @Override
-  public boolean shouldEnableZoomToSelection() {
-    // Zoom to Selection only works for trace event (i.e. CaptureNodeAnalysisModel) selection.
-    ImmutableList<CpuAnalyzable> selection = getStage().getMultiSelectionModel().getSelection();
-    return !selection.isEmpty() && selection.get(0) instanceof CaptureNodeAnalysisModel;
-  }
-
-  @NotNull
-  @Override
-  public Range getZoomToSelectionRange() {
-    assert shouldEnableZoomToSelection();
-    // Zoom to Selection works on the range of the selected trace event.
-    CaptureNodeAnalysisModel selectedNode = (CaptureNodeAnalysisModel)getStage().getMultiSelectionModel().getSelection().get(0);
-    return selectedNode.getNodeRange();
-  }
-
-  @Override
-  public void addTimelineControlUpdater(@NotNull Runnable timelineControlUpdater) {
-    getStage().getMultiSelectionModel().addDependency(getProfilersView()).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION,
-                                                                                   timelineControlUpdater);
-  }
-
-  @Override
-  public boolean shouldShowDeselectAllLabel() {
-    return !getStage().getMultiSelectionModel().getSelection().isEmpty();
-  }
-
-  @Override
-  public void onDeselectAllAction() {
-    getStage().getMultiSelectionModel().clearSelection();
+    // The Deselect All toolbar is only visible when something is selected.
+    JPanel panel = new JPanel(new BorderLayout());
+    myDeselectAllToolbar.add(myDeselectAllLabel);
+    myDeselectAllToolbar.add(new FlatSeparator());
+    myDeselectAllToolbar.setVisible(false);
+    panel.add(myDeselectAllToolbar, BorderLayout.EAST);
+    return panel;
   }
 
   private void updateComponents() {
@@ -186,6 +171,10 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   private void registerAnalyzingEvents() {
     getStage().getMinimapModel().getRangeSelectionModel().addDependency(this)
       .onChange(RangeSelectionModel.Aspect.SELECTION, this::updateTrackGroupList);
+
+    // Repaint track groups when the root nodes' filters changed.
+    getStage().getCapture().getCaptureNodes().forEach(node -> node.getAspectModel().addDependency(this)
+      .onChange(CaptureNode.Aspect.FILTER_APPLIED, this::updateTrackGroupList));
   }
 
   /**
@@ -193,6 +182,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
    */
   private void unregisterAnalyzingEvents() {
     getStage().getMinimapModel().getRangeSelectionModel().removeDependencies(this);
+    getStage().getCapture().getCaptureNodes().forEach(node -> node.getAspectModel().removeDependencies(this));
   }
 
   private JComponent createAnalyzingComponents() {
@@ -280,7 +270,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
 
   @NotNull
   private TrackGroupListPanel createTrackGroupListPanel() {
-    TrackGroupListPanel trackGroupListPanel = new TrackGroupListPanel(TRACK_RENDERER_FACTORY);
+    TrackGroupListPanel trackGroupListPanel = new TrackGroupListPanel(myTrackRendererFactory);
     MouseAdapter mouseListener = new MouseAdapter() {
       private int myLastX = 0;
 
@@ -345,6 +335,14 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     return axisPanel;
   }
 
+  private HoverHyperlinkLabel createDeselectAllLabel() {
+    HoverHyperlinkLabel label = new HoverHyperlinkLabel("Clear selection");
+    label.addHyperlinkListener(event -> getStage().getMultiSelectionModel().clearSelection());
+    label.setBorder(new JBEmptyBorder(0, 0, 0, 4));
+    label.setToolTipText("Click to deselect all threads/events");
+    return label;
+  }
+
   private void updateTrackGroupList() {
     // Force track group list to validate its children.
     myTrackGroupList.getComponent().updateUI();
@@ -368,6 +366,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     }
 
     // Merge all selected items' analysis models and provide one combined model to the analysis panel.
+    ImmutableList<CpuAnalyzable> selection = getStage().getMultiSelectionModel().getSelection();
     getStage().getMultiSelectionModel().getSelection().stream()
       .map(CpuAnalyzable::getAnalysisModel)
       .reduce(CpuAnalysisModel::mergeWith)
@@ -375,6 +374,19 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
 
     // Now update track groups.
     updateTrackGroupList();
+
+    // Update selection range
+    if (selection.isEmpty()) {
+      getStage().getTimeline().getSelectionRange().clear();
+    }
+    else if (selection.get(0) instanceof CaptureNodeAnalysisModel) {
+      // Use the first item to determine selection type as all items in the selection model are of the same type.
+      Range selectedNodeRange = ((CaptureNodeAnalysisModel)selection.get(0)).getNodeRange();
+      getStage().getTimeline().getSelectionRange().set(selectedNodeRange);
+    }
+
+    // Show/hide "Deselect All" label.
+    myDeselectAllToolbar.setVisible(!selection.isEmpty());
   }
 
   @VisibleForTesting
@@ -387,5 +399,15 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   @NotNull
   protected final CpuAnalysisPanel getAnalysisPanel() {
     return myAnalysisPanel;
+  }
+
+  @VisibleForTesting
+  HoverHyperlinkLabel getDeselectAllLabel() {
+    return myDeselectAllLabel;
+  }
+
+  @VisibleForTesting
+  JPanel getDeselectAllToolbar() {
+    return myDeselectAllToolbar;
   }
 }

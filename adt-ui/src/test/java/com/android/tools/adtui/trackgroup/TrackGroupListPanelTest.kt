@@ -27,16 +27,23 @@ import com.android.tools.adtui.model.trackgroup.TrackGroupModel
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Rule
 import org.junit.Test
 import java.awt.Point
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.SwingUtilities
 
+@RunsInEdt
 class TrackGroupListPanelTest {
   companion object {
     val TRACK_RENDERER_FACTORY = TestTrackRendererFactory()
   }
+
+  @get:Rule
+  val edtRule = EdtRule()
 
   @Test
   fun loadTrackGroups() {
@@ -128,13 +135,12 @@ class TrackGroupListPanelTest {
     trackGroupModel.addTrackModel(TrackModel.newBuilder(true, TestTrackRendererType.BOOLEAN, "Foo").setDefaultTooltipModel(TestTooltip()))
     trackGroupListPanel.tooltipBinder.bind(TestTooltip::class.java, ::TestTooltipView)
     trackGroupListPanel.loadTrackGroups(listOf(trackGroupModel))
-    trackGroupListPanel.component.setBounds(0, 0, 500, 500)
-    val ui = FakeUi(trackGroupListPanel.component)
-    val trackList = trackGroupListPanel.trackGroups[0].trackList
-    val trackListOrigin = SwingUtilities.convertPoint(trackList, Point(0, 0), trackGroupListPanel.component)
 
     assertThat(trackGroupListPanel.activeTooltip).isNull()
-    ui.mouse.moveTo(trackListOrigin.x, trackListOrigin.y)
+    val trackGroupOverlay = trackGroupListPanel.trackGroups[0].overlay
+    trackGroupOverlay.setBounds(0, 0, 500, 100)
+    val ui = FakeUi(trackGroupOverlay)
+    ui.mouse.moveTo(1, 1)
     assertThat(trackGroupListPanel.activeTooltip).isInstanceOf(TestTooltip::class.java)
   }
 

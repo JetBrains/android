@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
 import static com.android.builder.model.SyncIssue.SEVERITY_WARNING;
+import static com.android.builder.model.SyncIssue.TYPE_ANDROID_X_PROPERTY_NOT_ENABLED;
 import static com.android.builder.model.SyncIssue.TYPE_BUILD_TOOLS_TOO_LOW;
 import static com.android.builder.model.SyncIssue.TYPE_DEPENDENCY_INTERNAL_CONFLICT;
 import static com.android.builder.model.SyncIssue.TYPE_DEPRECATED_CONFIGURATION;
@@ -46,6 +47,7 @@ import com.android.annotations.Nullable;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -90,7 +92,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
     SyncIssuesReporter reporter = new SyncIssuesReporter(myStrategy1, myStrategy2);
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     VirtualFile buildFile = getGradleBuildFile(appModule);
     reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue)));
 
@@ -114,7 +116,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
     SyncIssuesReporter reporter = new SyncIssuesReporter(myStrategy1, myStrategy2);
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     VirtualFile buildFile = getGradleBuildFile(appModule);
     reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue)));
 
@@ -174,13 +176,14 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     when(mySyncIssue.getType()).thenReturn(TYPE_GRADLE_TOO_OLD);
     when(mySyncIssue.getSeverity()).thenReturn(SEVERITY_ERROR);
     when(mySyncIssue.getMessage()).thenReturn("");
+    when(mySyncIssue.getData()).thenReturn("");
 
     when(myStrategy2.getSupportedIssueType()).thenReturn(TYPE_UNRESOLVED_DEPENDENCY);
 
     SyncIssuesReporter reporter = new SyncIssuesReporter(myStrategy1, myStrategy2);
 
-    Module appModule = myModules.getModule("app");
-    Module libModule = myModules.getModule("lib");
+    Module appModule = TestModuleUtil.findAppModule(getProject());
+    Module libModule = TestModuleUtil.findModule(getProject(), "lib");
     VirtualFile buildFile = getGradleBuildFile(appModule);
     reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue), libModule, Lists.newArrayList(syncIssue2)));
 
@@ -188,7 +191,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     assertSize(1, mySyncMessagesStub.getNotifications());
     NotificationData message = mySyncMessagesStub.getNotifications().get(0);
     assertNotNull(message);
-    assertThat(message.getNotificationCategory()).isEqualTo(NotificationCategory.ERROR);
+    assertThat(message.getNotificationCategory()).isEqualTo(NotificationCategory.WARNING);
 
     verify(myStrategy1, never())
       .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)),
@@ -203,14 +206,14 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     mySyncMessagesStub.removeAllMessages();
 
     SyncIssuesReporter reporter = SyncIssuesReporter.getInstance();
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
 
     BaseSyncIssuesReporter strategy = reporter.getDefaultMessageFactory();
     assertThat(strategy).isInstanceOf(UnhandledIssuesReporter.class);
     assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     Map<Integer, BaseSyncIssuesReporter> strategies = reporter.getStrategies();
-    assertThat(strategies).hasSize(11);
+    assertThat(strategies).hasSize(12);
 
     strategy = strategies.get(TYPE_UNRESOLVED_DEPENDENCY);
     assertThat(strategy).isInstanceOf(UnresolvedDependenciesReporter.class);
@@ -255,6 +258,10 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     strategy = strategies.get(TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION);
     assertThat(strategy).isInstanceOf(CxxConfigurationIssuesReporter.class);
     assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
+
+    strategy = strategies.get(TYPE_ANDROID_X_PROPERTY_NOT_ENABLED);
+    assertThat(strategy).isInstanceOf(AndroidXUsedReporter.class);
+    assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
   }
 
   public void testReportErrorBeforeWarning() throws Exception {
@@ -278,7 +285,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
     SyncIssuesReporter reporter = new SyncIssuesReporter(myStrategy1, myStrategy2);
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     reporter.report(ImmutableMap.of(appModule, ImmutableList.of(mySyncIssue, syncIssue2, syncIssue3)));
 
     InOrder inOrder = inOrder(myStrategy1, myStrategy2);

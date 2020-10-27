@@ -16,6 +16,8 @@
 package com.android.tools.componenttree.impl
 
 import com.android.SdkConstants.FQCN_TEXT_VIEW
+import com.android.tools.adtui.common.ColoredIconGenerator
+import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.componenttree.api.ContextPopupHandler
 import com.android.tools.componenttree.api.DoubleClickHandler
 import com.android.tools.componenttree.impl.ViewTreeCellRenderer.ColoredViewRenderer
@@ -24,7 +26,6 @@ import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.IconLoader
-import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.AbstractExpandableItemsHandler
 import com.intellij.ui.ExpandableItemsHandler
 import com.intellij.ui.ExpandableItemsHandlerFactory
@@ -75,12 +76,11 @@ class ViewTreeCellRendererTest {
 
   @Before
   fun setUp() {
-/* b/144925492
-    appRule.testApplication.registerServiceInstance(ExpandableItemsHandlerFactory::class.java, TestExpandableItemsHandlerFactory())
-(This should probably be moved to testFragmentsWithLessThanOptimalSpaceAndRowExpanded.) */
+    appRule.testApplication.registerService(
+      ExpandableItemsHandlerFactory::class.java, TestExpandableItemsHandlerFactory(), appRule.testRootDisposable)
     doAnswer { focusOwner }.`when`<KeyboardFocusManager>(focusManager!!).focusOwner
     KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
-    tree = TreeImpl(model, contextPopupHandler, doubleClickHandler, emptyList())
+    tree = TreeImpl(model, contextPopupHandler, doubleClickHandler, emptyList(), "testComponentTree")
   }
 
   @After
@@ -152,7 +152,6 @@ class ViewTreeCellRendererTest {
 
   @Test
   fun testFragmentsWithLessThanOptimalSpaceAndRowExpanded() {
-/* b/144925492
     (tree?.expandableItemsHandler as TestTreeExpansionHandler).expandedRow = TEST_ROW
     tree?.overrideHasApplicationFocus = { true }
     val item = Item(FQCN_TEXT_VIEW, "@+id/text", "Hello", Palette.TEXT_VIEW)
@@ -161,7 +160,6 @@ class ViewTreeCellRendererTest {
     component.setBounds(0, 0, size.width - 3, size.height)
     component.adjustForPainting()
     checkFragments(component, Fragment("text", bold), Fragment(" - \"Hello\"", grey))
-b/144925492 */
   }
 
   @Test
@@ -209,10 +207,19 @@ b/144925492 */
     val item = Item(FQCN_TEXT_VIEW, "@+id/text", "Hello", Palette.TEXT_VIEW)
     assertThat(getIcon(item, selected = false, hasFocus = false)).isEqualTo(Palette.TEXT_VIEW)
     assertThat(getIcon(item, selected = false, hasFocus = true)).isEqualTo(Palette.TEXT_VIEW)
-    assertThat(getIcon(item, selected = true, hasFocus = false).toString()).isEqualTo(Palette.TEXT_VIEW.toString())
-    assertThat(getIcon(item, selected = true, hasFocus = true).toString()).isEqualTo(Palette.TEXT_VIEW.toString())
+    assertIconsEqual(getIcon(item, selected = true, hasFocus = false)!!, ColoredIconGenerator.generateWhiteIcon(Palette.TEXT_VIEW))
+    assertIconsEqual(getIcon(item, selected = true, hasFocus = true)!!, ColoredIconGenerator.generateWhiteIcon(Palette.TEXT_VIEW))
     assertThat(hasNonWhiteColors(getIcon(item, selected = true, hasFocus = false)!!)).isFalse()
     assertThat(hasNonWhiteColors(getIcon(item, selected = true, hasFocus = true)!!)).isFalse()
+  }
+
+  @Suppress("UndesirableClassUsage")
+  private fun assertIconsEqual(actual: Icon, expected: Icon) {
+    val expectedImage = BufferedImage(expected.iconWidth, expected.iconHeight, BufferedImage.TYPE_INT_ARGB)
+    expected.paintIcon(null, expectedImage.createGraphics(), 0, 0)
+    val actualImage = BufferedImage(actual.iconWidth, actual.iconHeight, BufferedImage.TYPE_INT_ARGB)
+    actual.paintIcon(null, actualImage.createGraphics(), 0, 0)
+    ImageDiffUtil.assertImageSimilar("icon", expectedImage, actualImage, 0.0)
   }
 
   @Test

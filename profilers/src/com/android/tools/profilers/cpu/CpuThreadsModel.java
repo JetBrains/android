@@ -30,7 +30,7 @@ import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
+import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -196,32 +196,32 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
     fireContentsChanged(this, 0, size());
   }
 
-  protected static CpuProfilerStage.ThreadState getState(Cpu.CpuThreadData.State state, boolean captured) {
+  protected static ThreadState getState(Cpu.CpuThreadData.State state, boolean captured) {
     switch (state) {
       case RUNNING:
-        return captured ? CpuProfilerStage.ThreadState.RUNNING_CAPTURED : CpuProfilerStage.ThreadState.RUNNING;
+        return captured ? ThreadState.RUNNING_CAPTURED : ThreadState.RUNNING;
       case DEAD:
-        return captured ? CpuProfilerStage.ThreadState.DEAD_CAPTURED : CpuProfilerStage.ThreadState.DEAD;
+        return captured ? ThreadState.DEAD_CAPTURED : ThreadState.DEAD;
       case SLEEPING:
-        return captured ? CpuProfilerStage.ThreadState.SLEEPING_CAPTURED : CpuProfilerStage.ThreadState.SLEEPING;
+        return captured ? ThreadState.SLEEPING_CAPTURED : ThreadState.SLEEPING;
       case WAITING:
-        return captured ? CpuProfilerStage.ThreadState.WAITING_CAPTURED : CpuProfilerStage.ThreadState.WAITING;
+        return captured ? ThreadState.WAITING_CAPTURED : ThreadState.WAITING;
       default:
         // TODO: Use colors that have been agreed in design review.
-        return CpuProfilerStage.ThreadState.UNKNOWN;
+        return ThreadState.UNKNOWN;
     }
   }
 
   public class RangedCpuThread implements DragAndDropModelListElement, Comparable<RangedCpuThread> {
     @NotNull private final CpuThreadInfo myThreadInfo;
     private final Range myRange;
-    private final StateChartModel<CpuProfilerStage.ThreadState> myModel;
+    private final StateChartModel<ThreadState> myModel;
     /**
      * If the thread is imported from a trace file (excluding an atrace one), we use a {@link ImportedTraceThreadDataSeries} to represent
      * its data. Otherwise, we use a {@link MergeCaptureDataSeries} that will combine the sampled {@link DataSeries} pulled from perfd, and
-     * {@link AtraceCpuCapture}, populated when an atrace capture is parsed.
+     * {@link SystemTraceCpuCapture}, populated when an atrace capture is parsed.
      */
-    private DataSeries<CpuProfilerStage.ThreadState> mySeries;
+    private DataSeries<ThreadState> mySeries;
 
     public RangedCpuThread(Range range, int threadId, String name) {
       this(range, threadId, name, null);
@@ -229,9 +229,9 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
 
     /**
      * When a not-null {@link CpuCapture} is passed, it means the thread is imported from a trace file. If the {@link CpuCapture} passed is
-     * null, it means that we are in a profiling session. Default behavior is to obtain the {@link CpuProfilerStage.ThreadState} data from
+     * null, it means that we are in a profiling session. Default behavior is to obtain the {@link ThreadState} data from
      * perfd. When a capture is selected applyCapture is called and on atrace captures a {@link MergeCaptureDataSeries} is used to collect
-     * data from perfd as well as the {@link AtraceCpuCapture}.
+     * data from perfd as well as the {@link SystemTraceCpuCapture}.
      */
     public RangedCpuThread(Range range, int threadId, String name, @Nullable CpuCapture capture) {
       myRange = range;
@@ -250,8 +250,7 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
         assert capture != null;
         isMainThread = threadId == capture.getMainThreadId();
         if (capture.getType() == Cpu.CpuTraceType.ATRACE) {
-          mySeries =
-            new AtraceDataSeries<>((AtraceCpuCapture)capture, (atraceCapture) -> atraceCapture.getThreadStatesForThread(threadId));
+          mySeries = new LazyDataSeries<>(() -> capture.getThreadStatesForThread(threadId));
         }
         else {
           // If thread is created from an imported trace (excluding atrace), we should use an ImportedTraceThreadDataSeries
@@ -268,10 +267,8 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
                    new LegacyCpuThreadStateDataSeries(myProfilers.getClient().getCpuClient(), mySession, threadId, capture);
         // If we have an Atrace capture selected then we need to create a MergeCaptureDataSeries
         if (capture != null && capture.getType() == Cpu.CpuTraceType.ATRACE) {
-          AtraceCpuCapture atraceCpuCapture = (AtraceCpuCapture)capture;
-          AtraceDataSeries<CpuProfilerStage.ThreadState> atraceDataSeries =
-            new AtraceDataSeries<>(atraceCpuCapture, (atraceCapture) -> atraceCapture.getThreadStatesForThread(threadId));
-          mySeries = new MergeCaptureDataSeries<>(capture, mySeries, atraceDataSeries);
+          mySeries = new MergeCaptureDataSeries<>(
+            capture, mySeries, new LazyDataSeries<>(() -> capture.getThreadStatesForThread(threadId)));
         }
         // For non-imported traces, the main thread ID is equal to the process ID of the current session
         isMainThread = threadId == mySession.getPid();
@@ -290,11 +287,11 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
       return myThreadInfo.getName();
     }
 
-    public StateChartModel<CpuProfilerStage.ThreadState> getModel() {
+    public StateChartModel<ThreadState> getModel() {
       return myModel;
     }
 
-    public DataSeries<CpuProfilerStage.ThreadState> getStateSeries() {
+    public DataSeries<ThreadState> getStateSeries() {
       return mySeries;
     }
 

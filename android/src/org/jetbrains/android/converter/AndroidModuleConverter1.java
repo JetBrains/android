@@ -33,9 +33,6 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.model.serialization.module.JpsModuleRootModelSerializer;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidModuleConverter1 extends ConversionProcessor<ModuleSettings> {
   private static final String PLATFORM_NAME_ATTRIBUTE = "PLATFORM_NAME";
 

@@ -31,12 +31,14 @@ import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.utils.FileUtils;
 import com.google.common.collect.Lists;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Test;
@@ -204,31 +206,20 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void getModuleDependencies() {
-    // Create mock objects.
-    IdeVariant variant = mock(IdeVariant.class);
-    IdeAndroidArtifact mainArtifact = mock(IdeAndroidArtifact.class);
-    IdeBaseArtifact testArtifact = mock(IdeBaseArtifact.class);
-    Library dependency1 = mock(Library.class);
-    Library dependency2 = mock(Library.class);
-    IdeDependencies mainArtifactLevel2Dependencies = mock(IdeDependencies.class);
-    IdeDependencies testArtifactLevel2Dependencies = mock(IdeDependencies.class);
+  public void isSafeArgGeneratedSourceFolder() {
+    myTempDir = createTempDir();
 
-    // Mock the main artifact calls.
-    when(variant.getMainArtifact()).thenReturn(mainArtifact);
-    when(mainArtifact.getLevel2Dependencies()).thenReturn(mainArtifactLevel2Dependencies);
-    when(mainArtifactLevel2Dependencies.getModuleDependencies()).thenReturn(Collections.singletonList(dependency1));
+    assertFalse(isRecognizedAsSafeArgClass("generated/source/navigation-args"));
 
-    // Mock the test artifact calls.
-    when(variant.getTestArtifacts()).thenReturn(Collections.singletonList(testArtifact));
-    when(testArtifact.getLevel2Dependencies()).thenReturn(testArtifactLevel2Dependencies);
-    when(testArtifactLevel2Dependencies.getModuleDependencies()).thenReturn(Arrays.asList(dependency1, dependency2));
+    StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(true);
+    // Ignore generated safe arg base-class directory...
+    assertTrue(isRecognizedAsSafeArgClass("generated/source/navigation-args"));
+    StudioFlags.NAV_SAFE_ARGS_SUPPORT.clearOverride();
+  }
 
-    // Call the method being tested.
-    List<Library> dependencies = GradleUtil.getModuleDependencies(variant);
-
-    // Verify the result. Repeated dependency1 object should be added only once.
-    assertThat(dependencies).containsExactlyElementsIn(Arrays.asList(dependency1, dependency2));
+  private boolean isRecognizedAsSafeArgClass(@NotNull String path) {
+    File dir = new File(myTempDir, FileUtils.toSystemDependentPath(path));
+    return GradleUtil.isSafeArgGeneratedSourcesFolder(dir, myTempDir);
   }
 
   @Test

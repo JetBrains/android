@@ -76,12 +76,11 @@ object PixelDeviceModelsProvider: VisualizationModelsProvider {
       if (size != null) {
         label = label + " (" + size.width + " x " + size.height + ")"
       }
-      models.add(NlModel.create(parentDisposable,
-                                label,
-                                facet,
-                                virtualFile,
-                                config,
-                                Consumer<NlComponent> { NlComponentHelper.registerComponent(it) }))
+      models.add(NlModel.builder(facet, virtualFile, config)
+                   .withParentDisposable(parentDisposable)
+                   .withModelDisplayName(label)
+                   .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
+                   .build())
     }
     return models
   }

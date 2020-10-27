@@ -117,31 +117,6 @@ public class ModuleFinder {
   }
 
   /**
-   * This method finds module based on gradle path. This method should only be called for pre-3.1 AGP.
-   * Use {@link #findModuleByModuleId(String)} for pre-3.1 AGP.
-   *
-   * @param gradlePath gradle path of a module.
-   * @return the module with given gradle path.
-   */
-  @Nullable
-  public Module findModuleByGradlePath(@NotNull String gradlePath) {
-    return myModulesByGradlePath.get(gradlePath);
-  }
-
-  /**
-   * This method finds module based on module id, as returned by {@link Modules#createUniqueModuleId(File, String)}.
-   * Use this method for AGP 3.1 and higher.
-   * Use {@link #findModuleByGradlePath(String)} for pre-3.1 AGP.
-   *
-   * @param moduleId the module id.
-   * @return the module with given module id.
-   */
-  @Nullable
-  public Module findModuleByModuleId(@NotNull String moduleId) {
-    return myModulesByModuleId.get(moduleId);
-  }
-
-  /**
    * Find module based on a Library for module dependency.
    *
    * @param library the library for module dependency.

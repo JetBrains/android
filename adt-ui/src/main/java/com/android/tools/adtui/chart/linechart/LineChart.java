@@ -24,6 +24,7 @@ import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.util.containers.ContainerUtil;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -197,7 +198,7 @@ public class LineChart extends AnimatedComponent {
       if (config.isStacked()) {
         if (lastStackedSeries == null) {
           // Create a new list of SeriesData to prevent modifying the backing data series, which could be cached.
-          lastStackedSeries = seriesList.stream().map(data -> new SeriesData<>(data.x, data.value)).collect(Collectors.toList());
+          lastStackedSeries = ContainerUtil.map(seriesList, data -> new SeriesData<>(data.x, data.value));
         }
         else {
           // If the current series is stacked, increment its value by the value of the last stacked

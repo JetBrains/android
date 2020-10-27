@@ -21,18 +21,44 @@ import com.android.tools.property.panel.impl.ui.EnumValueListCellRenderer
 import com.intellij.openapi.actionSystem.AnAction
 import javax.swing.ListCellRenderer
 
-class FakeEnumSupport(vararg elements: String, action: AnAction? = null) : EnumSupport {
+class FakeEnumSupport(vararg elements: String, action: AnAction? = null, private val delayed: Boolean = false) : EnumSupport {
 
-  override val values = mutableListOf<EnumValue>()
+  override val values: List<EnumValue>
+    get() {
+      if (delayed) {
+        synchronized(lock) {
+          lockCount++
+          lock.wait(2000L)
+        }
+      }
+      return enumValues
+    }
 
   override val renderer: ListCellRenderer<EnumValue> by lazy {
     EnumValueListCellRenderer()
   }
 
+  private val lock = Object()
+  private var lockCount = 0
+  private val enumValues = mutableListOf<EnumValue>()
+
+  fun releaseAll() {
+    synchronized(lock) {
+      var attempts = 0
+      while (lockCount == 0 && ++attempts < 10) {
+        lock.wait(200L)
+      }
+      if (!delayed || lockCount == 0) {
+        error("Nothing to release")
+      }
+      lock.notifyAll()
+    }
+  }
+
   init {
-    values.addAll(elements.map { EnumValue.item(it) })
+    enumValues.addAll(elements.map { EnumValue.item(it) })
     if (action != null) {
-      values.add(EnumValue.action(action))
+      enumValues.add(EnumValue.action(action))
     }
   }
 }

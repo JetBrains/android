@@ -4,6 +4,8 @@ import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_ADAPTER;
 import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_V7;
 import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_VIEW_HOLDER;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
+import static com.android.tools.idea.rendering.classloading.ClassConverter.getCurrentClassVersion;
+import static com.android.tools.idea.rendering.classloading.UtilKt.multiTransformOf;
 
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -18,6 +20,8 @@ import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.rendering.classloading.RenderClassLoader;
+import com.android.tools.idea.rendering.classloading.VersionClassTransform;
+import com.android.tools.idea.rendering.classloading.ViewMethodWrapperTransform;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
@@ -25,22 +29,33 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.idea.util.FileExtensions;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
+import com.android.utils.SdkUtils;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.org.objectweb.asm.ClassVisitor;
 
 /**
  * Render class loader responsible for loading classes in custom views and local and library classes
@@ -50,6 +65,38 @@ import org.jetbrains.annotations.Nullable;
 public final class ModuleClassLoader extends RenderClassLoader {
   private static final Logger LOG = Logger.getInstance(ModuleClassLoader.class);
 
+  /**
+   * Classes are rewritten by applying the following transformations:
+   * <ul>
+   *   <li>Updates the class file version with a version runnable in the current JDK
+   *   <li>Replaces onDraw, onMeasure and onLayout for custom views
+   * </ul>
+   * Note that it does not attempt to handle cases where class file constructs cannot
+   * be represented in the target version. This is intended for uses such as for example
+   * the Android R class, which is simple and can be converted to pretty much any class file
+   * version, which makes it possible to load it in an IDE layout render execution context
+   * even if it has been compiled for a later version.
+   * <p/>
+   * For custom views (classes that inherit from android.view.View or any widget in android.widget.*)
+   * the onDraw, onMeasure and onLayout methods are replaced with methods that capture any exceptions thrown.
+   * This way we avoid custom views breaking the rendering.
+   */
+  private static final Function<ClassVisitor, ClassVisitor> DEFAULT_TRANSFORMS = multiTransformOf(
+    visitor -> new ViewMethodWrapperTransform(visitor),
+    visitor -> new VersionClassTransform(visitor, getCurrentClassVersion(), 0)
+  );
+
+  /**
+   * A list of packages. Classes from these packages should be reloaded by this ClassLoader from the external jars
+   * in oppose to reusing those from the parent (studio) ClassLoader. This is done in order to prevent loading
+   * from a library with undesired version (which studio might depend on) or to make sure the defining ClassLoader
+   * of a Class is ModuleClassLoader (needed for e.g. coroutines in MainDispatcherLoader#loadMainDispatcher).
+   */
+  private static final String DEFAULT_OVERRIDE_MODULE_PACKAGES = "android.support.constraint.solver,kotlinx.coroutines,kotlin.coroutines";
+  private static final String[] OVERRIDE_MODULE_PACKAGES =
+    Arrays.stream(System.getProperty("android.module.override.packages", DEFAULT_OVERRIDE_MODULE_PACKAGES).split(","))
+      .map(String::trim).toArray(String[]::new);
+
   /** The base module to use as a render context; the class loader will consult the module dependencies and library dependencies
    * of this class as well to find classes */
   private final WeakReference<Module> myModuleReference;
@@ -58,6 +105,8 @@ public final class ModuleClassLoader extends RenderClassLoader {
   private Map<String, VirtualFile> myClassFiles;
   /** Map from fully qualified class name to the corresponding last modified info for each class loaded by this class loader */
   private Map<String, ClassModificationTimestamp> myClassFilesLastModified;
+
+  private final List<URL> mAdditionalLibraries;
 
   private static class ClassModificationTimestamp {
     public final long timestamp;
@@ -70,10 +119,36 @@ public final class ModuleClassLoader extends RenderClassLoader {
   }
 
   ModuleClassLoader(@Nullable ClassLoader parent, @NotNull Module module) {
-    super(parent);
+    super(parent, DEFAULT_TRANSFORMS);
     myModuleReference = new WeakReference<>(module);
+    mAdditionalLibraries = getAdditionalLibraries();
 
     registerResources(module);
+  }
+
+  private static boolean isFromOverriddenPackage(@NotNull String fqcn) {
+    for (int i = 0; i < OVERRIDE_MODULE_PACKAGES.length; ++i) {
+      if (fqcn.startsWith(OVERRIDE_MODULE_PACKAGES[i])) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @NotNull
+  private static List<URL> getAdditionalLibraries() {
+    String layoutlibDistributionPath = StudioEmbeddedRenderTarget.getEmbeddedLayoutLibPath();
+    if (layoutlibDistributionPath == null) {
+      return Collections.emptyList(); // Error is already logged by getEmbeddedLayoutLibPath
+    }
+
+    String relativeCoroutineLibPath = FileUtil.toSystemIndependentName("data/layoutlib-coroutines.jar");
+    try {
+      return Lists.newArrayList(SdkUtils.fileToUrl(new File(layoutlibDistributionPath, relativeCoroutineLibPath)));
+    } catch (MalformedURLException e) {
+      LOG.error("Failed to find layoutlib-coroutines library", e);
+      return Collections.emptyList();
+    }
   }
 
   @Override
@@ -169,7 +244,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
     // FIXME: While testing this approach, we found an issue on some Windows machine where
     // class loading would be broken. Thus, we limit the fix to the impacted solver classes
     // for now, until we can investigate the problem more in depth on Windows.
-    boolean loadFromProject = name.startsWith("android.support.constraint.solver");
+    boolean loadFromProject = isFromOverriddenPackage(name);
     if (loadFromProject) {
       try {
         // Give priority to loading class from this Class Loader.
@@ -294,7 +369,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
     }
 
     AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
-    for (Library library : moduleSystem.getResolvedDependentLibraries()) {
+    for (Library library : moduleSystem.getResolvedLibraryDependencies()) {
       if (library instanceof ExternalLibrary && ((ExternalLibrary)library).hasResources()) {
         registerLibraryResources((ExternalLibrary)library, repositoryManager, classRegistry, idManager);
       }
@@ -367,7 +442,8 @@ public final class ModuleClassLoader extends RenderClassLoader {
   @Override
   @NotNull
   protected List<URL> getExternalJars() {
-    return ClassLoadingUtilsKt.getLibraryDependenciesJars(myModuleReference.get());
+    return Lists.newArrayList(
+      Iterables.concat(mAdditionalLibraries, ClassLoadingUtilsKt.getLibraryDependenciesJars(myModuleReference.get())));
   }
 
   /** Returns the path to a class file loaded for the given class, if any */

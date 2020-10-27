@@ -25,10 +25,4 @@ class UnhandledIssuesReporter extends SimpleDeduplicatingSyncIssueReporter {
     //noinspection MagicConstant
     return -1; // This factory does not handle any particular issue type.
   }
-
-  @NotNull
-  @Override
-  protected Object getDeduplicationKey(@NotNull SyncIssue issue) {
-    return issue;
-  }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
+import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.SkiaParserService
@@ -29,6 +30,7 @@ import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTre
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_SKP_TOO_LARGE
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.SKP
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.LowMemoryWatcher
@@ -81,6 +83,7 @@ private class ComponentTreeLoaderImpl(
       isInterrupted = true
     }, LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC)
 
+  @Slow
   fun loadComponentTree(client: InspectorClient, skiaParser: SkiaParserService, project: Project): ViewNode? {
     val defaultClient = client as? DefaultInspectorClient ?: throw UnsupportedOperationException(
       "ComponentTreeLoaderImpl requires a DefaultClient")
@@ -95,9 +98,9 @@ private class ComponentTreeLoaderImpl(
       if (bytes.isNotEmpty()) {
         try {
           when (tree.payloadType) {
-            PNG_AS_REQUESTED, PNG_SKP_TOO_LARGE -> processPng(bytes, rootView, defaultClient)
-            SKP -> processSkp(bytes, skiaParser, project, defaultClient, rootView)
-            else -> defaultClient.logInitialRender(false) // Shouldn't happen
+            PNG_AS_REQUESTED, PNG_SKP_TOO_LARGE -> processPng(bytes, rootView, client)
+            SKP -> processSkp(bytes, skiaParser, project, client, rootView)
+            else -> client.logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE) // Shouldn't happen
           }
         }
         catch (ex: Exception) {
@@ -127,18 +130,18 @@ private class ComponentTreeLoaderImpl(
       // metrics will be logged when we come back with a bitmap
     }
     else {
-      client.logInitialRender(true)
+      client.logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER)
       ComponentImageLoader(rootView, rootViewFromSkiaImage).loadImages()
     }
   }
 
   private fun processPng(bytes: ByteArray,
                          rootView: ViewNode,
-                         client: DefaultInspectorClient) {
+                         client: InspectorClient) {
     ImageIO.read(ByteArrayInputStream(bytes))?.let {
       rootView.imageBottom = it
     }
-    client.logInitialRender(true)
+    client.logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
   }
 
   private fun getViewTree(bytes: ByteArray, skiaParser: SkiaParserService): Pair<InspectorView?, String?> {
@@ -155,6 +158,10 @@ private class ComponentTreeLoaderImpl(
       errorMessage = "No renderer supporting SKP version ${ex.version} found. Rotation disabled."
       null
     }
+    catch (ex: Exception) {
+      errorMessage = "Problem launching renderer. Rotation disabled."
+      null
+    }
     return Pair(inspectorView, errorMessage)
   }
 
@@ -162,7 +169,7 @@ private class ComponentTreeLoaderImpl(
     resourceLookup?.updateConfiguration(tree.resources, stringTable)
     if (tree.hasRoot()) {
       try {
-        return loadView(tree.root, null)
+        return loadView(tree.root)
       }
       catch (interrupted: InterruptedException) {
         return null
@@ -171,23 +178,32 @@ private class ComponentTreeLoaderImpl(
     return null
   }
 
-  private fun loadView(view: LayoutInspectorProto.View, parent: ViewNode?): ViewNode {
+  private fun loadView(view: LayoutInspectorProto.View): ViewNode {
     if (isInterrupted) {
       throw InterruptedException()
     }
-    val qualifiedName = "${stringTable[view.packageName]}.${stringTable[view.className]}"
+    val qualifiedName = packagePrefix(stringTable[view.packageName]) + stringTable[view.className]
+    val methodName = packagePrefix(stringTable[view.composePackage]) + stringTable[view.composeInvocation]
+    val composeFileName = stringTable[view.composeFilename]
     val viewId = stringTable[view.viewId]
     val textValue = stringTable[view.textValue]
     val layout = stringTable[view.layout]
-    val x = view.x + (parent?.let { it.x - it.scrollX } ?: 0)
-    val y = view.y + (parent?.let { it.y - it.scrollY } ?: 0)
-    val node = ViewNode(view.drawId, qualifiedName, layout, x, y, view.scrollX, view.scrollY, view.width, view.height, viewId, textValue,
-                        view.layoutFlags)
-    view.subViewList.map { loadView(it, node) }.forEach {
+    val node = if (composeFileName.isEmpty()) {
+      ViewNode(view.drawId, qualifiedName, layout, view.x, view.y, view.width, view.height, viewId, textValue, view.layoutFlags)
+    }
+    else {
+      ComposeViewNode(view.drawId, qualifiedName, layout, view.x, view.y, view.width, view.height, viewId, textValue, view.layoutFlags,
+                      composeFileName, methodName, view.composeLineNumber)
+    }
+    view.subViewList.map { loadView(it) }.forEach {
       node.children.add(it)
       it.parent = node
     }
     return node
+  }
+
+  private fun packagePrefix(packageName: String): String {
+    return if (packageName.isEmpty()) "" else "$packageName."
   }
 
   private class ComponentImageLoader(root: ViewNode, viewRoot: InspectorView) {

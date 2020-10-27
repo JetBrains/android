@@ -42,7 +42,7 @@ public class MockupLayer extends Layer {
   public MockupLayer(ScreenView screenView) {
     assert screenView != null;
     myScreenView = screenView;
-    myScreenViewSize = myScreenView.getSize(myScreenViewSize);
+    myScreenViewSize = myScreenView.getScaledContentSize(myScreenViewSize);
     setNlModel(myScreenView.getModel());
     myMockups = Mockup.createAll(myNlModel);
   }
@@ -70,7 +70,7 @@ public class MockupLayer extends Layer {
       return;
     }
     final Composite composite = g.getComposite();
-    myScreenViewSize = myScreenView.getSize(myScreenViewSize);
+    myScreenViewSize = myScreenView.getScaledContentSize(myScreenViewSize);
 
     for (int i = 0; i < myMockups.size(); i++) {
       final Mockup mockup = myMockups.get(i);

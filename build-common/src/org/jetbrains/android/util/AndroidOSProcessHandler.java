@@ -25,9 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidOSProcessHandler extends BaseOSProcessHandler {
   @NonNls private static final String IGNORING = "ignoring";
   @NonNls private static final String SKIPPING = "skipping";

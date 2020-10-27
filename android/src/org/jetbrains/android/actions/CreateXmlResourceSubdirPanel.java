@@ -39,6 +39,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -163,7 +164,7 @@ public class CreateXmlResourceSubdirPanel {
   public void updateDirectories(boolean updateFileCombo, VirtualFile resourceDir) {
     List<VirtualFile> directories = Collections.emptyList();
     if (resourceDir != null) {
-      directories = AndroidResourceUtil.getResourceSubdirs(myFolderType, Collections.singleton(resourceDir));
+      directories = IdeResourcesUtil.getResourceSubdirs(myFolderType, Collections.singleton(resourceDir));
     }
 
     directories.sort((f1, f2) -> f1.getName().compareTo(f2.getName()));

@@ -19,8 +19,6 @@ import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.TaskIssueReporter
 import com.android.build.attribution.ui.controllers.TreeNodeSelector
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
-import com.android.build.attribution.ui.data.TaskIssueUiData
-import com.android.build.attribution.ui.panels.TreeLinkListener
 import com.intellij.ui.treeStructure.SimpleNode
 
 class RootNode(
@@ -29,21 +27,12 @@ class RootNode(
   override val issueReporter: TaskIssueReporter,
   override val nodeSelector: TreeNodeSelector
 ) : ControllersAwareBuildAttributionNode(null) {
-  val taskIssueLinkListener = object : TreeLinkListener<TaskIssueUiData> {
-    override fun clickedOn(target: TaskIssueUiData) {
-      children.asSequence()
-        .filterIsInstance<WarningsRootNode>()
-        .first()
-        .findIssueRoot(target.type)?.findNodeForIssue(target)?.let { nodeSelector.selectNode(it) }
-    }
-  }
 
   override fun buildChildren(): Array<SimpleNode> {
     val nodes = mutableListOf<SimpleNode>()
     nodes.add(BuildSummaryNode(reportData.buildSummary, this))
     nodes.add(CriticalPathPluginsRoot(reportData.criticalPathPlugins, this))
-    nodes.add(CriticalPathTasksRoot(reportData.criticalPathTasks, this,
-                                    taskIssueLinkListener))
+    nodes.add(CriticalPathTasksRoot(reportData.criticalPathTasks, this))
     // TODO(b/148275039): Re-enable plugin configuration
     // nodes.add(PluginConfigurationTimeRoot(reportData.configurationTime, this))
     nodes.add(WarningsRootNode(reportData, this))

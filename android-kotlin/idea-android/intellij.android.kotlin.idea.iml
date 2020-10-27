@@ -20,7 +20,7 @@
     <orderEntry type="module" module-name="intellij.xml.psi" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="library" name="Gradle" level="project" />
-    <orderEntry type="module" module-name="intellij.xml.psi.impl" />
+    <orderEntry type="library" name="kotlin-plugin" level="project" />
     <orderEntry type="module-library" scope="PROVIDED">
       <library>
         <CLASSES>
@@ -41,5 +41,6 @@
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.lint" />
+    <orderEntry type="module" module-name="android.sdktools.lint-checks" />
   </component>
 </module>

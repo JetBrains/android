@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
-import static com.android.SdkConstants.CLASS_COMPOSE;
+import static com.android.SdkConstants.CLASS_COMPOSE_INSPECTABLE;
 import static com.android.SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
@@ -29,6 +29,7 @@ import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.SessionParams.RenderingMode;
@@ -38,6 +39,7 @@ import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.ide.common.util.PathString;
 import com.android.resources.LayoutDirection;
 import com.android.resources.ResourceFolderType;
+import com.android.resources.ResourceType;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
@@ -49,7 +51,6 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.idea.model.ActivityAttributesSnapshot;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
@@ -59,11 +60,12 @@ import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.AssetRepositoryImpl;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
+import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ReadAction;
@@ -77,11 +79,16 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.awt.image.BufferedImage;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -90,8 +97,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.uipreview.ModuleClassLoader;
+import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -156,7 +166,8 @@ public class RenderTask {
   private boolean myShowDecorations = true;
   private boolean myShadowEnabled = true;
   private boolean myHighQualityShadow = true;
-  private boolean myShowWithToolsAttributes = true;
+  private boolean myEnableLayoutValidator = false;
+  private boolean myShowWithToolsVisibilityAndPosition = true;
   private AssetRepositoryImpl myAssetRepository;
   private long myTimeout;
   @NotNull private final Locale myLocale;
@@ -170,12 +181,14 @@ public class RenderTask {
   private final List<CompletableFuture<?>> myRunningFutures = new LinkedList<>();
   @NotNull private final AtomicBoolean isDisposed = new AtomicBoolean(false);
   @Nullable private XmlFile myXmlFile;
+  @NotNull private final Function<Module, MergedManifestSnapshot> myManifestProvider;
 
   /**
    * Don't create this task directly; obtain via {@link RenderService}
    *
    * @param quality Factor from 0 to 1 used to downscale the rendered image. A lower value means smaller images used
    *                during rendering at the expense of quality. 1 means that downscaling is disabled.
+   * @param privateClassLoader if true, this task should have its own ModuleClassLoader, if false it can use a shared one for the module
    */
   RenderTask(@NotNull AndroidFacet facet,
              @NotNull RenderService renderService,
@@ -189,7 +202,9 @@ public class RenderTask {
              @Nullable ILayoutPullParserFactory parserFactory,
              boolean isSecurityManagerEnabled,
              float quality,
-             @NotNull AllocationStackTrace allocationStackTraceElement) {
+             @NotNull StackTraceCapture stackTraceCaptureElement,
+             @NotNull Function<Module, MergedManifestSnapshot> manifestProvider,
+             boolean privateClassLoader) {
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
 
     if (!isSecurityManagerEnabled) {
@@ -212,7 +227,8 @@ public class RenderTask {
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
     Module module = facet.getModule();
     myLayoutlibCallback =
-        new LayoutlibCallbackImpl(this, myLayoutLib, appResources, module, facet, myLogger, myCredential, actionBarHandler, parserFactory);
+        new LayoutlibCallbackImpl(
+          this, myLayoutLib, appResources, module, facet, myLogger, myCredential, actionBarHandler, parserFactory, privateClassLoader);
     if (ResourceIdManager.get(module).finalIdsUsed()) {
       myLayoutlibCallback.loadAndParseRClass();
     }
@@ -225,8 +241,9 @@ public class RenderTask {
                                       renderService.getPlatform(facet));
     myDefaultQuality = quality;
     restoreDefaultQuality();
+    myManifestProvider = manifestProvider;
 
-    allocationStackTraceElement.bind(this);
+    stackTraceCaptureElement.bind(this);
   }
 
   public void setQuality(float quality) {
@@ -257,7 +274,7 @@ public class RenderTask {
 
   public void setXmlFile(@NotNull XmlFile file) {
     myXmlFile = file;
-    ReadAction.run(() -> getContext().setFolderType(ResourceHelper.getFolderType(file)));
+    ReadAction.run(() -> getContext().setFolderType(IdeResourcesUtil.getFolderType(file)));
   }
 
   @Nullable
@@ -279,8 +296,8 @@ public class RenderTask {
     return myShowDecorations;
   }
 
-  public boolean getShowWithToolsAttributes() {
-    return myShowWithToolsAttributes;
+  public boolean getShowWithToolsVisibilityAndPosition() {
+    return myShowWithToolsVisibilityAndPosition;
   }
 
   public boolean isDisposed() {
@@ -315,23 +332,34 @@ public class RenderTask {
     }
   }
 
-  // Workaround for http://b/153570299
-  private void clearCallbacks() {
+  private void clearHandlerCallbacks() {
     try {
       Class<?> handlerDelegateClass = myLayoutlibCallback.findClass("android.os.Handler_Delegate");
-      Field runnablesMapField = handlerDelegateClass.getDeclaredField("sRunnablesMap");
-      runnablesMapField.setAccessible(true);
-      RenderService.runAsyncRenderAction(() -> {
-        try {
-          WeakHashMap runnablesMap = (WeakHashMap)runnablesMapField.get(null);
-          runnablesMap.clear();
-        }
-        catch (IllegalAccessException e) {
-          LOG.debug(e);
-        }
-      });
+      Field runnableQueueField = handlerDelegateClass.getDeclaredField("sRunnablesQueues");
+      runnableQueueField.setAccessible(true);
+      WeakHashMap<?, ?> runnablesQueue = (WeakHashMap<?, ?>)runnableQueueField.get(null);
+      runnablesQueue.clear();
     } catch (Throwable t) {
-      LOG.debug(t);
+      LOG.warn(t);
+    }
+  }
+
+  // Workaround for http://b/155861985
+  private void clearComposeTables() {
+    if (!myLayoutlibCallback.hasLoadedClass(CLASS_COMPOSE_VIEW_ADAPTER)) {
+      // If Compose has not been loaded, we do not need to care about disposing it
+      return;
+    }
+
+    try {
+      Class<?> inspectableKt = myLayoutlibCallback.findClass(CLASS_COMPOSE_INSPECTABLE);
+      Field tablesField = inspectableKt.getDeclaredField("tables");
+      tablesField.setAccessible(true);
+      Set<?> tables = (Set<?>)tablesField.get(null);
+      tables.clear();
+    }
+    catch (Throwable e) {
+      // The tables field does not exist anymore in dev11
     }
   }
 
@@ -343,31 +371,22 @@ public class RenderTask {
     }
 
     try {
-      Class<?> composeClass = myLayoutlibCallback.findClass(CLASS_COMPOSE);
-      Field emittableRootField = composeClass.getDeclaredField("EMITTABLE_ROOT_COMPONENT");
-      Field viewGroupRootField = composeClass.getDeclaredField("VIEWGROUP_ROOT_COMPONENT");
+      Class<?> adapterClass = myLayoutlibCallback.findClass(CLASS_COMPOSE_VIEW_ADAPTER);
+      ClassLoader adapterClassClassLoader = adapterClass.getClassLoader();
+      if (!(adapterClassClassLoader instanceof ModuleClassLoader)) {
+        LOG.warn("Unexpected ClassLoader for " + CLASS_COMPOSE_VIEW_ADAPTER + ": " + adapterClassClassLoader);
+        return;
+      }
 
-      emittableRootField.setAccessible(true);
-      viewGroupRootField.setAccessible(true);
-
-      // Because we are clearing-up a ThreadLocal, the code must run on the Layoutlib Thread
-      RenderService.runAsyncRenderAction(() -> {
-        try {
-          WeakHashMap emittable = (WeakHashMap)emittableRootField.get(null);
-          emittable.clear();
-
-          WeakHashMap viewGroup = (WeakHashMap)viewGroupRootField.get(null);
-          viewGroup.clear();
-        }
-        catch (IllegalAccessException e) {
-          LOG.debug(e);
-        }
-      });
+      // Let ModuleClassLoaderManager know we are no longer using this ClassLoader
+      ModuleClassLoaderManager.get().release((ModuleClassLoader)adapterClassClassLoader);
     }
     catch (Throwable t) {
-      LOG.debug(t);
+      LOG.warn(t); // Failure detected here will most probably cause a memory leak
     }
   }
+
+
 
   /**
    * Disposes the RenderTask and releases the allocated resources. The execution of the dispose operation will run asynchronously.
@@ -378,6 +397,8 @@ public class RenderTask {
       assert false : "RenderTask was already disposed";
       return Futures.immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
     }
+
+    RenderTaskAllocationTrackerKt.captureDisposeStackTrace().bind(this);
 
     return ourDisposeService.submit(() -> {
       try {
@@ -396,7 +417,7 @@ public class RenderTask {
       myLayoutlibCallback.setLogger(IRenderLogger.NULL_LOGGER);
       if (myRenderSession != null) {
         try {
-          RenderService.runAsyncRenderAction(myRenderSession::dispose);
+          disposeRenderSession(myRenderSession);
           myRenderSession = null;
         }
         catch (Exception ignored) {
@@ -406,7 +427,6 @@ public class RenderTask {
       myAssetRepository = null;
 
       clearCompose();
-      clearCallbacks();
 
       return null;
     });
@@ -518,15 +538,23 @@ public class RenderTask {
   }
 
   /**
-   * Sets whether the rendering should use 'tools' namespaced attributes. Including substituting 'android' and 'app' attributes with their
-   * 'tools' variants.
+   * Sets the value of the  {@link com.android.layoutlib.bridge.android.RenderParamsFlags#FLAG_KEY_ENABLE_LAYOUT_VALIDATOR}
+   * which enables layout validation during the render process. The validation includes accessibility checks (whether the layout properly
+   * support accessibilty cases), and various other layout sanity checks.
+   */
+  public RenderTask setEnableLayoutValidator(boolean enableLayoutValidator) {
+    myEnableLayoutValidator = enableLayoutValidator;
+    return this;
+  }
+
+  /**
+   * Sets whether the rendering should use 'tools' namespaced 'visibility' and 'layout_editor_absoluteX/Y' attributes.
    * <p>
    * Default is {@code true}.
    */
-  @SuppressWarnings("UnusedReturnValue")
   @NotNull
-  public RenderTask setShowWithToolsAttributes(boolean showWithToolsAttributes) {
-    myShowWithToolsAttributes = showWithToolsAttributes;
+  public RenderTask setShowWithToolsVisibilityAndPosition(boolean showWithToolsVisibilityAndPosition) {
+    myShowWithToolsVisibilityAndPosition = showWithToolsVisibilityAndPosition;
     return this;
   }
 
@@ -543,6 +571,12 @@ public class RenderTask {
    */
   @Nullable
   private RenderResult createRenderSession(@NotNull IImageFactory factory) {
+    RenderTaskContext context = getContext();
+    Module module = context.getModule();
+    if (module.isDisposed()) {
+      return null;
+    }
+
     PsiFile psiFile = getXmlFile();
     if (psiFile == null) {
       throw new IllegalStateException("createRenderSession shouldn't be called on RenderTask without PsiFile");
@@ -551,7 +585,8 @@ public class RenderTask {
       return null;
     }
 
-    ResourceResolver resolver = ResourceResolver.copy(getContext().getConfiguration().getResourceResolver());
+    Configuration configuration = context.getConfiguration();
+    ResourceResolver resolver = ResourceResolver.copy(configuration.getResourceResolver());
     if (resolver == null) {
       // Abort the rendering if the resources are not found.
       return null;
@@ -566,23 +601,20 @@ public class RenderTask {
 
     if (modelParser instanceof LayoutPsiPullParser) {
       // For regular layouts, if we use appcompat, we have to emulat the app:srcCompat attribute behaviour.
-      boolean useSrcCompat = DependencyManagementUtil.dependsOn(getContext().getModule(), GoogleMavenArtifactId.APP_COMPAT_V7) ||
-                             DependencyManagementUtil.dependsOn(getContext().getModule(), GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
+      boolean useSrcCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7) ||
+                             DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
       ((LayoutPsiPullParser)modelParser).setUseSrcCompat(useSrcCompat);
       myLayoutlibCallback.setAaptDeclaredResources(((LayoutPsiPullParser)modelParser).getAaptDeclaredAttrs());
     }
-
 
     ILayoutPullParser includingParser = getIncludingLayoutParser(resolver, modelParser);
     if (includingParser != null) {
       modelParser = includingParser;
     }
 
-    RenderTaskContext context = getContext();
-    IAndroidTarget target = context.getConfiguration().getTarget();
+    IAndroidTarget target = configuration.getTarget();
     int simulatedPlatform = target instanceof CompatibilityRenderTarget ? target.getVersion().getApiLevel() : 0;
 
-    Module module = context.getModule();
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
     SessionParams params =
         new SessionParams(modelParser, myRenderingMode, module /* projectKey */, hardwareConfig, resolver,
@@ -597,7 +629,7 @@ public class RenderTask {
     params.setFlag(RenderParamsFlags.FLAG_KEY_RESULT_IMAGE_AUTO_SCALE, true);
     params.setFlag(RenderParamsFlags.FLAG_KEY_ENABLE_SHADOW, myShadowEnabled);
     params.setFlag(RenderParamsFlags.FLAG_KEY_RENDER_HIGH_QUALITY_SHADOW, myHighQualityShadow);
-
+    params.setFlag(RenderParamsFlags.FLAG_KEY_ENABLE_LAYOUT_VALIDATOR, myEnableLayoutValidator);
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request
@@ -606,9 +638,6 @@ public class RenderTask {
     // same session.
     params.setExtendedViewInfoMode(true);
 
-    MergedManifestSnapshot manifestInfo = MergedManifestManager.getSnapshot(module);
-
-    Configuration configuration = context.getConfiguration();
     LayoutDirectionQualifier qualifier = configuration.getFullConfig().getLayoutDirectionQualifier();
     if (qualifier != null && qualifier.getValue() == LayoutDirection.RTL && !getLayoutLib().isRtl(myLocale.toLocaleId())) {
       // We don't have a flag to force RTL regardless of locale, so just pick a RTL locale (note that
@@ -618,7 +647,8 @@ public class RenderTask {
       params.setLocale(myLocale.toLocaleId());
     }
     try {
-      params.setRtlSupport(manifestInfo.isRtlSupported());
+      @Nullable MergedManifestSnapshot manifestInfo = myManifestProvider.apply(module);
+      params.setRtlSupport(manifestInfo != null && manifestInfo.isRtlSupported());
     } catch (Exception e) {
       // ignore.
     }
@@ -630,12 +660,17 @@ public class RenderTask {
     }
     else {
       try {
-        ResourceValue appLabel = manifestInfo.getApplicationLabel();
-        params.setAppIcon(manifestInfo.getApplicationIcon());
+        @Nullable MergedManifestSnapshot manifestInfo = myManifestProvider.apply(module);
+        ResourceValue appLabel = manifestInfo != null
+                                 ? manifestInfo.getApplicationLabel()
+                                 : new ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.STRING, "appName", "");
+        if (manifestInfo != null)  {
+          params.setAppIcon(manifestInfo.getApplicationIcon());
+        }
         String activity = configuration.getActivity();
         if (activity != null) {
           params.setActivityName(activity);
-          ActivityAttributesSnapshot attributes = manifestInfo.getActivityAttributes(activity);
+          ActivityAttributesSnapshot attributes = manifestInfo != null ? manifestInfo.getActivityAttributes(activity) : null;
           if (attributes != null) {
             if (attributes.getLabel() != null) {
               appLabel = attributes.getLabel();
@@ -670,7 +705,7 @@ public class RenderTask {
       myLayoutlibCallback.setLogger(myLogger);
 
       RenderSecurityManager securityManager =
-          isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module, getContext().getPlatform()) : null;
+          isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module, context.getPlatform()) : null;
       if (securityManager != null) {
         securityManager.setActive(true, myCredential);
       }
@@ -710,7 +745,7 @@ public class RenderTask {
       throw new IllegalStateException("getIncludingLayoutParser shouldn't be called on RenderTask without PsiFile");
     }
 
-    if (!myShowWithToolsAttributes) {
+    if (!myShowWithToolsVisibilityAndPosition) {
       // Don't support 'showIn' when 'tools' attributes are ignored for rendering.
       return null;
     }
@@ -735,7 +770,7 @@ public class RenderTask {
 
       // Get the name of the layout actually being edited, without the extension
       // as it's what IXmlPullParser.getParser(String) will receive.
-      String queryLayoutName = ResourceHelper.getResourceName(xmlFile);
+      String queryLayoutName = SdkUtils.fileNameToResourceName(xmlFile.getName());
       myLayoutlibCallback.setLayoutParser(queryLayoutName, modelParser);
 
       // Attempt to read from PSI.
@@ -851,6 +886,43 @@ public class RenderTask {
   }
 
   /**
+   * Triggers execution of the Handler and frame callbacks in layoutlib
+   * @return a boolean future that is completed when callbacks are executed that is true if there are more callbacks to execute
+   */
+  @NotNull
+  public CompletableFuture<Boolean> executeCallbacks() {
+    if (myRenderSession == null) {
+      return CompletableFuture.completedFuture(false);
+    }
+
+    return runAsyncRenderAction(() -> {
+      myRenderSession.setSystemTimeNanos(System.nanoTime());
+      return myRenderSession.executeCallbacks(System.nanoTime());
+    });
+  }
+
+  /**
+   * Sets layoutlib system time (needed for the correct touch event handling) and informs layoutlib that there was a (mouse) touch event
+   * detected of a particular type at a particular point.
+   * @param touchEventType type of a touch event
+   * @param x horizontal android coordinate of the detected touch event
+   * @param y vertical android coordinate of the detected touch event
+   * @return a future that is completed when layoutlib handled the touch event
+   */
+  @NotNull
+  public CompletableFuture<Void> triggerTouchEvent(@NotNull RenderSession.TouchEventType touchEventType, int x, int y) {
+    if (myRenderSession == null) {
+      return CompletableFuture.completedFuture(null);
+    }
+
+    return runAsyncRenderAction(() -> {
+      myRenderSession.setSystemTimeNanos(System.nanoTime());
+      myRenderSession.triggerTouchEvent(touchEventType, x, y);
+      return null;
+    });
+  }
+
+  /**
    * Method used to report unhandled layoutlib exceptions to the crash reporter
    */
   private void reportException(@NotNull Throwable e) {
@@ -902,11 +974,10 @@ public class RenderTask {
           }
           return result;
         }).whenComplete((result, ex) -> {
-          // After render clean-up. Dispose the GapWorker cache and the Choreographer queued tasks.
+          clearComposeTables();
+          // After render clean-up. Dispose the GapWorker cache.
           clearGapWorkerCache();
-          RenderService.runAsyncRenderAction(() -> {
-            android.view.Choreographer.releaseInstance();
-          });
+          clearHandlerCallbacks();
         });
       }
       catch (Exception e) {
@@ -1123,7 +1194,7 @@ public class RenderTask {
               return CompletableFuture.completedFuture(map);
             }
             finally {
-              RenderService.runAsyncRenderAction(session::dispose);
+              disposeRenderSession(session);
             }
           }
 
@@ -1137,24 +1208,25 @@ public class RenderTask {
    *
    * @param tag the child to measure
    * @param filter the filter to apply to the attribute values
-   * @return a view info, if found
+   * @return a {@link CompletableFuture} that will return the {@link ViewInfo} if found.
    */
-  @Nullable
-  public ViewInfo measureChild(@NotNull XmlTag tag, @Nullable AttributeFilter filter) {
+  @NotNull
+  public CompletableFuture<ViewInfo> measureChild(@NotNull XmlTag tag, @Nullable AttributeFilter filter) {
     XmlTag parent = tag.getParentTag();
-    if (parent != null) {
-      // This should be asynchronous too
-      Map<XmlTag, ViewInfo> map = Futures.getUnchecked(measureChildren(parent, filter));
-      if (map != null) {
+    if (parent == null) {
+      return CompletableFuture.completedFuture(null);
+    }
+
+    return measureChildren(parent, filter)
+      .thenApply(map -> {
         for (Map.Entry<XmlTag, ViewInfo> entry : map.entrySet()) {
           if (entry.getKey() == tag) {
             return entry.getValue();
           }
         }
-      }
-    }
 
-    return null;
+        return null;
+      });
   }
 
   @Nullable
@@ -1182,11 +1254,8 @@ public class RenderTask {
     params.setLocale(myLocale.toLocaleId());
     params.setAssetRepository(myAssetRepository);
     params.setFlag(RenderParamsFlags.FLAG_KEY_RECYCLER_VIEW_SUPPORT, true);
-    MergedManifestSnapshot manifestInfo = MergedManifestManager.getSnapshot(module);
-    try {
-      params.setRtlSupport(manifestInfo.isRtlSupported());
-    } catch (Exception ignore) {
-    }
+    @Nullable MergedManifestSnapshot manifestInfo = myManifestProvider.apply(module);
+    params.setRtlSupport(manifestInfo != null && manifestInfo.isRtlSupported());
 
     try {
       myLayoutlibCallback.setLogger(myLogger);
@@ -1233,5 +1302,45 @@ public class RenderTask {
      */
     @Nullable
     String getAttribute(@NotNull XmlTag node, @Nullable String namespace, @NotNull String localName);
+  }
+
+  /**
+   * Properly disposes {@link RenderSession} as a single {@link RenderService} call.
+   * @param renderSession a session to be disposed of
+   */
+  private void disposeRenderSession(@NotNull RenderSession renderSession) {
+    Optional<Method> disposeMethod = Optional.empty();
+    try {
+      if (myLayoutlibCallback.hasLoadedClass(CLASS_COMPOSE_VIEW_ADAPTER)) {
+        Class<?> composeViewAdapter = myLayoutlibCallback.findClass(CLASS_COMPOSE_VIEW_ADAPTER);
+        // Kotlin bytecode generation converts dispose() method into dispose$ui_tooling() therefore we have to perform this filtering
+        disposeMethod = Arrays.stream(composeViewAdapter.getMethods()).filter(m -> m.getName().contains("dispose")).findFirst();
+      }
+    } catch (ClassNotFoundException ex) {
+      LOG.warn(CLASS_COMPOSE_VIEW_ADAPTER + " class not found", ex);
+    }
+    disposeMethod.ifPresent(m -> m.setAccessible(true));
+    Optional<Method> finalDisposeMethod = disposeMethod;
+    RenderService.runAsyncRenderAction(() -> {
+      finalDisposeMethod.ifPresent(m -> renderSession.getRootViews().forEach(v -> disposeIfCompose(v, m)));
+      renderSession.dispose();
+    });
+  }
+
+  /**
+   * Performs dispose() call against View object associated with {@link ViewInfo} if that object is an instance of ComposeViewAdapter
+   * @param viewInfo a {@link ViewInfo} associated with the View object to be potentially disposed of
+   * @param disposeMethod a dispose method to be executed against View object
+   */
+  private static void disposeIfCompose(@NotNull ViewInfo viewInfo, @NotNull Method disposeMethod) {
+    Object viewObject = viewInfo.getViewObject();
+    if (viewObject == null || !viewObject.getClass().getName().equals(CLASS_COMPOSE_VIEW_ADAPTER)) {
+      return;
+    }
+    try {
+      disposeMethod.invoke(viewObject);
+    } catch (IllegalAccessException | InvocationTargetException ex) {
+      LOG.warn( "Unexpected error while disposing compose view", ex);
+    }
   }
 }

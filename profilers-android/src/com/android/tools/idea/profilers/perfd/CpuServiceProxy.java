@@ -107,15 +107,15 @@ public class CpuServiceProxy extends ServiceProxy {
   @Override
   public ServerServiceDefinition getServiceDefinition() {
     Map<MethodDescriptor, ServerCallHandler> overrides = new HashMap<>();
-    overrides.put(CpuServiceGrpc.METHOD_START_PROFILING_APP,
+    overrides.put(CpuServiceGrpc.getStartProfilingAppMethod(),
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     startProfilingApp((CpuProfilingAppStartRequest)request, (StreamObserver)observer);
                   }));
-    overrides.put(CpuServiceGrpc.METHOD_STOP_PROFILING_APP,
+    overrides.put(CpuServiceGrpc.getStopProfilingAppMethod(),
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     stopProfilingApp((CpuProfilingAppStopRequest)request, (StreamObserver)observer);
                   }));
-    overrides.put(CpuServiceGrpc.METHOD_GET_TRACE_INFO,
+    overrides.put(CpuServiceGrpc.getGetTraceInfoMethod(),
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     getTraceInfo((GetTraceInfoRequest)request, (StreamObserver)observer);
                   }));

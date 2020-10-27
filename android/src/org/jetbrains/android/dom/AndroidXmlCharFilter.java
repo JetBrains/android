@@ -6,9 +6,6 @@ import com.intellij.psi.PsiFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidXmlCharFilter extends CharFilter {
   @Nullable
   @Override

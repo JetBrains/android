@@ -32,12 +32,14 @@ import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.completion.JavaClassNameCompletionContributor
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.codeInsight.lookup.PackageLookupItem
+import com.intellij.lang.jvm.JvmModifier
 import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.patterns.StandardPatterns.and
 import com.intellij.patterns.StandardPatterns.or
 import com.intellij.patterns.StandardPatterns.string
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.impl.source.tree.CompositeElement
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.ProcessingContext
@@ -49,6 +51,10 @@ import com.intellij.util.ProcessingContext
  */
 class ProguardR8CompletionContributor : CompletionContributor() {
   companion object {
+
+    private const val lowerCaseDummy = "lowercasedummy"
+
+    private const val beforeInnerClass = "\$$lowerCaseDummy"
 
     private val FIELD_METHOD_MODIFIERS = setOf(
       "abstract",
@@ -87,6 +93,14 @@ class ProguardR8CompletionContributor : CompletionContributor() {
       "float",
       "double",
       "void"
+    )
+
+    private val KEEP_OPTION_MODIFIER = setOf(
+      "includedescriptorclasses",
+      "includecode",
+      "allowshrinking",
+      "allowoptimization",
+      "allowobfuscation"
     )
 
     private val flagCompletionProvider = object : CompletionProvider<CompletionParameters>() {
@@ -151,7 +165,7 @@ class ProguardR8CompletionContributor : CompletionContributor() {
       ) {
         // If we already have package prefix there is no need to additional code complete,
         // we get completion from ProguardR8JavaClassReferenceProvider.
-        if ((parameters.position.parentOfType(ProguardR8QualifiedName::class)?.node as? CompositeElement)?.countChildren(
+        if ((parameters.position.parentOfType<ProguardR8QualifiedName>()?.node as? CompositeElement)?.countChildren(
             JAVA_IDENTIFIER_TOKENS) ?: 0 > 1) {
           return
         }
@@ -167,6 +181,29 @@ class ProguardR8CompletionContributor : CompletionContributor() {
         resultSet: CompletionResultSet
       ) {
         resultSet.addAllElements(PRIMITIVE_TYPE.map { LookupElementBuilder.create(it).bold() })
+      }
+    }
+
+    private val nonStaticInnerClassProvider = object : CompletionProvider<CompletionParameters>() {
+      override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, resultSet: CompletionResultSet) {
+        val originalClassName = parameters.position.parentOfType<ProguardR8QualifiedName>()!!.text.substringBefore(beforeInnerClass)
+        val project = parameters.position.project
+        val clazz = JavaPsiFacade.getInstance(project).findClass(originalClassName, GlobalSearchScope.allScope(project)) ?: return
+        resultSet.addAllElements(
+          clazz.innerClasses
+            .filter { !it.hasModifier(JvmModifier.STATIC) }
+            .map { JavaClassNameCompletionContributor.createClassLookupItem(it, false) }
+        )
+      }
+    }
+
+    private val keepOptionModifierCompletionProvider = object : CompletionProvider<CompletionParameters>() {
+      override fun addCompletions(
+        parameters: CompletionParameters,
+        processingContext: ProcessingContext,
+        resultSet: CompletionResultSet
+      ) {
+        resultSet.addAllElements(KEEP_OPTION_MODIFIER.map { LookupElementBuilder.create(it) })
       }
     }
 
@@ -250,12 +287,29 @@ class ProguardR8CompletionContributor : CompletionContributor() {
       ),
       primitiveTypeCompletionProvider
     )
+
+    // Add completion for non-static inner classes. Static inner classes provided by [JavaClassReferenceCompletionContributor].
+    extend(
+      CompletionType.BASIC,
+      psiElement().inside(psiElement(ProguardR8QualifiedName::class.java)).withText(string().endsWith(beforeInnerClass)),
+      nonStaticInnerClassProvider
+    )
+
+    // Add completion for [ProguardR8KeepOptionModifier].
+    extend(
+      CompletionType.BASIC,
+      or(
+        psiElement().afterLeaf(psiElement(ProguardR8PsiTypes.COMMA).afterLeaf(psiElement(ProguardR8PsiTypes.FLAG_TOKEN))),
+        psiElement().afterLeaf(psiElement(ProguardR8PsiTypes.COMMA).afterLeaf(psiElement().withText(string().oneOf(KEEP_OPTION_MODIFIER))))
+      ),
+      keepOptionModifierCompletionProvider
+    )
   }
 
   override fun beforeCompletion(context: CompletionInitializationContext) {
     if (context.file is ProguardR8PsiFile) {
       // We need lower case dummy because original ("IntellijIdeaRulezzz") breaks lexer for flags (flags can be only lowercase).
-      context.dummyIdentifier = "lowercasedummy"
+      context.dummyIdentifier = lowerCaseDummy
     }
     super.beforeCompletion(context)
   }

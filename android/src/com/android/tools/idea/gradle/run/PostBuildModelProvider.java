@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Provides a {@link PostBuildModel} containing the {@link ProjectBuildOutput} models.
  */
+@FunctionalInterface
 public interface PostBuildModelProvider {
   @Nullable
   PostBuildModel getPostBuildModel();

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.scene
 
-import com.android.tools.idea.common.model.AndroidDpCoordinate
 import java.awt.Rectangle
 
 open class DefaultHitProvider : HitProvider {

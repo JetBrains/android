@@ -15,9 +15,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class ApiVersionConverter extends ResolvingConverter<String> {
   @NotNull
   @Override

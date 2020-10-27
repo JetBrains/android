@@ -73,7 +73,7 @@ class CreateNewFlavorsTest {
   @Test
   @Throws(Exception::class)
   fun createNewFlavors() {
-    val ide = guiTest.importSimpleApplication()
+    val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication", Wait.seconds(120))
 
     ide.openPsd().run {
       selectBuildVariantsConfigurable().run {
@@ -119,8 +119,7 @@ class CreateNewFlavorsTest {
       .selectLauncherActivity()
       .setTargetSourceSet(FLAVOR1)
       .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish(Wait.seconds(120))
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(120))
   }
 }
 

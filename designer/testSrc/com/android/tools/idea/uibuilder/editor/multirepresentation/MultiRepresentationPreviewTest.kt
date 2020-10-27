@@ -281,6 +281,56 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     Mockito.verify(persistenceManager).setValue(endsWith("_selected"), eq("Accepting1"))
   }
 
+  fun testMultipleProviders_conditionallyAccepting() {
+    Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).thenReturn("ConditionallyAccepting")
+
+    val dummyFile = myFixture.addFileToProject("src/Preview.kt", "")
+
+    val conditionallyAccepting = object : PreviewRepresentationProvider {
+      var isAccept = false
+      override val displayName = "ConditionallyAccepting"
+      override fun accept(project: Project, virtualFile: VirtualFile) = isAccept
+      override fun createRepresentation(psiFile: PsiFile) = DummyPreviewRepresentation()
+    }
+
+    multiPreview = UpdatableMultiRepresentationPreview(
+      dummyFile,
+      listOf(
+        SimpleProvider("Accepting", true),
+        conditionallyAccepting),
+      persistenceManager)
+
+    TestCase.assertNull(multiPreview.currentRepresentation)
+    assertEmpty(multiPreview.representationNames)
+    TestCase.assertEquals("ConditionallyAccepting", multiPreview.currentRepresentationName)
+
+    multiPreview.forceUpdateRepresentations()
+
+    TestCase.assertNotNull(multiPreview.currentRepresentation)
+    UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting")
+    UsefulTestCase.assertDoesntContain(multiPreview.representationNames, "ConditionallyAccepting")
+    TestCase.assertEquals("Accepting", multiPreview.currentRepresentationName)
+    Mockito.verify(persistenceManager).setValue(endsWith("_selected"), eq("Accepting"))
+
+    conditionallyAccepting.isAccept = true
+    multiPreview.forceUpdateRepresentations()
+
+    UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting", "ConditionallyAccepting")
+
+    multiPreview.currentRepresentationName = "ConditionallyAccepting"
+
+    TestCase.assertEquals("ConditionallyAccepting", multiPreview.currentRepresentationName)
+    Mockito.verify(persistenceManager).setValue(endsWith("_selected"), eq("ConditionallyAccepting"))
+
+    conditionallyAccepting.isAccept = false
+    multiPreview.forceUpdateRepresentations()
+
+    UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting")
+    UsefulTestCase.assertDoesntContain(multiPreview.representationNames, "ConditionallyAccepting")
+    TestCase.assertEquals("Accepting", multiPreview.currentRepresentationName)
+    Mockito.verify(persistenceManager, times(2)).setValue(endsWith("_selected"), eq("Accepting"))
+  }
+
   fun testPreviewRepresentationShortcutsRegistered() {
     Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).thenReturn("initialRepresentation")
 
@@ -324,6 +374,53 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
 
     Mockito.verify(initiallyAcceptedRepresentation).registerShortcuts(shortcutsApplicableComponent)
     Mockito.verify(laterAcceptedRepresentation).registerShortcuts(shortcutsApplicableComponent)
+  }
+
+  fun testUpdateNotificationsPropagated() {
+    Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).then(returnsSecondArg<String>())
+
+    val representation1 = Mockito.mock(PreviewRepresentation::class.java)
+    Mockito.`when`(representation1.component).thenReturn(JPanel())
+    val acceptingProvider1 = object : PreviewRepresentationProvider {
+      override val displayName = "Accepting1"
+      override fun accept(project: Project, virtualFile: VirtualFile) = true
+      override fun createRepresentation(psiFile: PsiFile) = representation1
+    }
+
+    val representation2 = Mockito.mock(PreviewRepresentation::class.java)
+    Mockito.`when`(representation2.component).thenReturn(JPanel())
+    val acceptingProvider2 = object : PreviewRepresentationProvider {
+      override val displayName = "Accepting2"
+      override fun accept(project: Project, virtualFile: VirtualFile) = true
+      override fun createRepresentation(psiFile: PsiFile) = representation2
+    }
+
+    val representation3 = Mockito.mock(PreviewRepresentation::class.java)
+    Mockito.`when`(representation3.component).thenReturn(JPanel())
+    val nonAcceptingProvider = object : PreviewRepresentationProvider {
+      override val displayName = "NonAccepting"
+      override fun accept(project: Project, virtualFile: VirtualFile) = false
+      override fun createRepresentation(psiFile: PsiFile) = representation3
+    }
+
+    val dummyFile = myFixture.addFileToProject("src/Preview.kt", "")
+
+    multiPreview = UpdatableMultiRepresentationPreview(
+      dummyFile, listOf(acceptingProvider1, acceptingProvider2, nonAcceptingProvider), persistenceManager)
+
+    multiPreview.updateNotifications()
+
+    Mockito.verify(representation1, never()).updateNotifications(any())
+    Mockito.verify(representation2, never()).updateNotifications(any())
+    Mockito.verify(representation3, never()).updateNotifications(any())
+
+    multiPreview.forceUpdateRepresentations()
+
+    multiPreview.updateNotifications()
+
+    Mockito.verify(representation1).updateNotifications(multiPreview)
+    Mockito.verify(representation2).updateNotifications(multiPreview)
+    Mockito.verify(representation3, never()).updateNotifications(any())
   }
 }
 

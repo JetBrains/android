@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStu
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
 import java.nio.charset.Charset;
@@ -63,7 +64,7 @@ public class EncodingValidationStrategyTest extends AndroidGradleTestCase {
     AndroidProjectStub androidProject = new AndroidProjectStub("app");
     androidProject.getJavaCompileOptions().setEncoding(modelEncoding);
     when(androidModel.getAndroidProject())
-      .thenAnswer(invocation -> IdeAndroidProjectImpl.create(androidProject, new IdeDependenciesFactory(), null, null));
+      .thenAnswer(invocation -> IdeAndroidProjectImpl.create(androidProject, new IdeDependenciesFactory(), null, ImmutableList.of()));
 
     myStrategy.validate(mock(Module.class), androidModel);
 

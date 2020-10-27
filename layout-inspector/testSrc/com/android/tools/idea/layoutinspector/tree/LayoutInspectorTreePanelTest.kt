@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
-import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.LayoutInspectorTransportRule
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
@@ -24,13 +23,13 @@ import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
 import com.android.tools.idea.layoutinspector.util.CheckUtil
-import com.android.tools.idea.layoutinspector.util.InspectorBuilder
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
@@ -39,6 +38,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
@@ -46,26 +46,25 @@ import javax.swing.JTree
 
 @RunsInEdt
 class LayoutInspectorTreePanelTest {
+  private val inspectorRule = LayoutInspectorTransportRule(projectRule = AndroidProjectRule.withSdk())
+    .withDefaultDevice()
+    .withDemoLayout()
+    .attach()
+
+  @get:Rule
+  val ruleChain = RuleChain.outerRule(inspectorRule).around(EdtRule())!!
+
   private var componentStack: ComponentStack? = null
-
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.onDisk()
-
-  @JvmField
-  @Rule
-  val edtRule = EdtRule()
 
   @Before
   fun setUp() {
-    InspectorBuilder.setUpDemo(projectRule)
-    componentStack = ComponentStack(projectRule.project)
+    componentStack = ComponentStack(inspectorRule.project)
     componentStack!!.registerComponentInstance(FileEditorManager::class.java, Mockito.mock(FileEditorManager::class.java))
+    Mockito.`when`(FileEditorManager.getInstance(inspectorRule.project).openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
   }
 
   @After
   fun tearDown() {
-    InspectorBuilder.tearDownDemo()
     componentStack!!.restore()
     componentStack = null
   }
@@ -73,13 +72,13 @@ class LayoutInspectorTreePanelTest {
   @Test
   fun testGotoDeclaration() {
     val tree = LayoutInspectorTreePanel()
-    val inspector = InspectorBuilder.createLayoutInspectorForDemo(projectRule)
-
+    val model = inspectorRule.inspectorModel
+    val inspector = inspectorRule.inspector
     tree.setToolContext(inspector)
-    tree.componentTreeSelectionModel.selection = listOf(inspector.layoutInspectorModel["title"]!!)
+    model.selection = model["title"]
     val treeComponent = UIUtil.findComponentOfType(tree.component, JTree::class.java)
 
-    val fileManager = FileEditorManager.getInstance(projectRule.project)
+    val fileManager = FileEditorManager.getInstance(inspectorRule.project)
     val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
     Mockito.`when`(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
       .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
@@ -96,8 +95,8 @@ class LayoutInspectorTreePanelTest {
   @Test
   fun testMultiWindow() {
     val tree = LayoutInspectorTreePanel()
-    val model = InspectorModel(projectRule.project)
-    val inspector = LayoutInspector(model, projectRule.fixture.projectDisposable)
+    val model = inspectorRule.inspectorModel
+    val inspector = inspectorRule.inspector
     tree.setToolContext(inspector)
     val jtree = UIUtil.findComponentOfType(tree.component, JTree::class.java) as JTree
     model.update(view(ROOT) { view(VIEW1) }, ROOT, listOf(ROOT))

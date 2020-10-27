@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.assetstudio;
 
 import com.android.ide.common.vectordrawable.VdPreview;
+import com.android.tools.idea.rendering.DrawableRenderer;
 import com.android.utils.Pair;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;

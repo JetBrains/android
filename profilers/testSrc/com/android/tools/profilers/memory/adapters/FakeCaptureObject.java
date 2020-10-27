@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;

@@ -23,6 +23,8 @@ import static java.awt.RenderingHints.VALUE_ANTIALIAS_ON;
 import static java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR;
 import static java.awt.RenderingHints.VALUE_RENDER_QUALITY;
 import static java.awt.RenderingHints.VALUE_RENDER_SPEED;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 import com.android.annotations.concurrency.Slow;
 import com.intellij.ui.scale.JBUIScale;
@@ -38,6 +40,8 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.ImageObserver;
@@ -49,6 +53,8 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -129,6 +135,139 @@ public class ImageUtils {
     }
 
     return rotated;
+  }
+
+  /**
+   * Rotates the given image by the given number of quadrants.
+   *
+   * @param source the source image
+   * @param numQuadrants the number of quadrants to rotate by counterclockwise
+   * @return the rotated image
+   */
+  @NotNull
+  public static BufferedImage rotateByQuadrants(@NotNull BufferedImage source, int numQuadrants) {
+    if (numQuadrants % 4 == 0) {
+      return source;
+    }
+
+    while (numQuadrants < 0) {
+      numQuadrants += 4;
+    }
+    numQuadrants %= 4;
+
+    int w = source.getWidth();
+    int h = source.getHeight();
+
+    int rotatedW;
+    int rotatedH;
+    int shiftX;
+    int shiftY;
+    switch (numQuadrants) {
+      default:
+        rotatedW = w;
+        rotatedH = h;
+        shiftX = 0;
+        shiftY = 0;
+        break;
+
+      case 1:
+        rotatedW = h;
+        rotatedH = w;
+        shiftX = 0;
+        shiftY = w;
+        break;
+
+      case 2:
+        rotatedW = w;
+        rotatedH = h;
+        shiftX = w;
+        shiftY = h;
+        break;
+
+      case 3:
+        rotatedW = h;
+        rotatedH = w;
+        shiftX = h;
+        shiftY = 0;
+        break;
+    }
+
+    BufferedImage result = new BufferedImage(rotatedW, rotatedH, source.getType());
+    AffineTransform transform = new AffineTransform();
+    // Please notice that the transformations are applied in the reverse order, starting from rotation.
+    transform.translate(shiftX, shiftY);
+    transform.quadrantRotate(-numQuadrants);
+    AffineTransformOp transformOp = new AffineTransformOp(transform, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+    return transformOp.filter(source, result);
+  }
+
+  /**
+   * Rotates the given image by the given number of quadrants and scales it to the given dimensions.
+   *
+   * @param source the source image
+   * @param numQuadrants the number of quadrants to rotate by counterclockwise
+   * @param destinationWidth the width of the resulting image
+   * @param destinationHeight the height of the resulting image
+   * @return the rotated and scaled image
+   */
+  @NotNull
+  public static BufferedImage rotateByQuadrantsAndScale(
+      @NotNull BufferedImage source, int numQuadrants, int destinationWidth, int destinationHeight) {
+    if (numQuadrants % 4 == 0 && destinationWidth == source.getWidth() && destinationHeight == source.getHeight()) {
+      return source;
+    }
+
+    while (numQuadrants < 0) {
+      numQuadrants += 4;
+    }
+    numQuadrants %= 4;
+
+    int w = source.getWidth();
+    int h = source.getHeight();
+
+    double rotatedW;
+    double rotatedH;
+    int shiftX;
+    int shiftY;
+    switch (numQuadrants) {
+      case 0:
+      default:
+        rotatedW = w;
+        rotatedH = h;
+        shiftX = 0;
+        shiftY = 0;
+        break;
+
+      case 1:
+        rotatedW = h;
+        rotatedH = w;
+        shiftX = 0;
+        shiftY = destinationHeight;
+        break;
+
+      case 2:
+        rotatedW = w;
+        rotatedH = h;
+        shiftX = destinationWidth;
+        shiftY = destinationHeight;
+        break;
+
+      case 3:
+        rotatedW = h;
+        rotatedH = w;
+        shiftX = destinationWidth;
+        shiftY = 0;
+        break;
+    }
+
+    BufferedImage result = new BufferedImage(destinationWidth, destinationHeight, source.getType());
+    AffineTransform transform = new AffineTransform();
+    // Please notice that the transformations are applied in the reverse order, starting from rotation.
+    transform.translate(shiftX, shiftY);
+    transform.scale(destinationWidth / rotatedW, destinationHeight / rotatedH);
+    transform.quadrantRotate(-numQuadrants);
+    AffineTransformOp transformOp = new AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR);
+    return transformOp.filter(source, result);
   }
 
   public static boolean isRetinaImage(@Nullable BufferedImage image) {
@@ -302,8 +441,8 @@ public class ImageUtils {
                                     int rightMargin, int bottomMargin, @Nullable Shape clip) {
     int sourceWidth = source.getWidth();
     int sourceHeight = source.getHeight();
-    int destWidth = Math.max(1, (int)(xScale * sourceWidth));
-    int destHeight = Math.max(1, (int)(yScale * sourceHeight));
+    int destWidth = max(1, (int)(xScale * sourceWidth));
+    int destHeight = max(1, (int)(yScale * sourceHeight));
     int imageType = source.getType();
     if (imageType == BufferedImage.TYPE_CUSTOM
         || imageType == BufferedImage.TYPE_BYTE_INDEXED
@@ -453,8 +592,8 @@ public class ImageUtils {
                                                   int rightMargin, int bottomMargin, @Nullable Shape clip) {
     int sourceWidth = source.getWidth();
     int sourceHeight = source.getHeight();
-    int destWidth = Math.max(1, (int)(xScale * sourceWidth));
-    int destHeight = Math.max(1, (int)(yScale * sourceHeight));
+    int destWidth = max(1, (int)(xScale * sourceWidth));
+    int destHeight = max(1, (int)(yScale * sourceHeight));
     int imageType = source.getType();
     if (imageType == BufferedImage.TYPE_CUSTOM) {
       imageType = BufferedImage.TYPE_INT_ARGB;
@@ -607,10 +746,10 @@ public class ImageUtils {
     // First, determine the dimensions of the real image within the image.
     int x1, y1, x2, y2;
     if (initialCrop != null) {
-      x1 = initialCrop.x;
-      y1 = initialCrop.y;
-      x2 = initialCrop.x + initialCrop.width;
-      y2 = initialCrop.y + initialCrop.height;
+      x1 = max(initialCrop.x, 0);
+      y1 = max(initialCrop.y, 0);
+      x2 = min(initialCrop.x + initialCrop.width, image.getWidth());
+      y2 = min(initialCrop.y + initialCrop.height, image.getHeight());
     }
     else {
       x1 = 0;
@@ -695,9 +834,9 @@ public class ImageUtils {
    * @param initialCrop If not null, specifies a rectangle which contains an initial
    *                    crop to continue. This can be used to crop an image where you already
    *                    know about margins in the image
-   * @param imageType   the type of {@link BufferedImage} to create, or -1 if unknown
+   * @param imageType   the type of {@link BufferedImage} to create, or -1 to use the type of the original image
    * @return a cropped version of the source image, or null if the whole image was blank
-   * and cropping completely removed everything
+   *     and cropping completely removed everything
    */
   @Nullable
   public static BufferedImage crop(@Nullable BufferedImage image, @NotNull CropFilter filter, @Nullable Rectangle initialCrop,
@@ -710,6 +849,20 @@ public class ImageUtils {
     if (cropBounds == null) {
       return null;
     }
+
+    return getCroppedImage(image, cropBounds, imageType);
+  }
+
+  /**
+   * Returns a given image cropped by the given rectangle. The original image is preserved.
+   *
+   * @param image the image to be cropped
+   * @param cropBounds defines the part of the original image that is returned
+   * @param imageType the type of {@link BufferedImage} to create, or -1 to use the type of the original image
+   * @return the part of the original image located inside the {@code cropBounds} rectangle
+   */
+  @NotNull
+  public static BufferedImage getCroppedImage(@NotNull BufferedImage image, @NotNull Rectangle cropBounds, int imageType) {
     int x1 = cropBounds.x;
     int y1 = cropBounds.y;
     int width = cropBounds.width;
@@ -717,7 +870,7 @@ public class ImageUtils {
     int x2 = x1 + width;
     int y2 = y1 + height;
 
-    // Now extract the sub-image
+    // Now extract the sub-image.
     if (imageType == -1) {
       imageType = image.getType();
     }
@@ -765,7 +918,7 @@ public class ImageUtils {
    */
   public static double calcFullyDisplayZoomFactor(double viewHeight, double viewWidth, double imageHeight, double imageWidth) {
     assert (imageHeight != 0 && imageWidth != 0);
-    return Math.min((viewHeight / imageHeight / 1.1), (viewWidth / imageWidth / 1.1));
+    return min((viewHeight / imageHeight / 1.1), (viewWidth / imageWidth / 1.1));
   }
 
   /**
@@ -781,5 +934,21 @@ public class ImageUtils {
      * @return true if the pixel should be cropped (for example, is blank)
      */
     boolean crop(BufferedImage image, int x, int y);
+  }
+
+  /**
+   * Utility function to convert from an Icon to a BufferedImage.
+   */
+  public static BufferedImage iconToImage(Icon icon) {
+    if (icon instanceof ImageIcon) {
+      return ImageUtil.toBufferedImage(((ImageIcon)icon).getImage());
+    }
+    int w = icon.getIconWidth();
+    int h = icon.getIconHeight();
+    BufferedImage image = ImageUtil.createImage(w, h, BufferedImage.TYPE_4BYTE_ABGR);
+    Graphics2D g = image.createGraphics();
+    icon.paintIcon(null, g, 0, 0);
+    g.dispose();
+    return image;
   }
 }

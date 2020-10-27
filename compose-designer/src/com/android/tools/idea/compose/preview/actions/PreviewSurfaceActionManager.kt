@@ -15,18 +15,68 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.tools.idea.common.actions.CopyResultImageAction
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.IdeActions
+import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.actionSystem.ex.ActionManagerEx
+import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
 
 /**
  * [ActionManager] to be used by the Compose Preview.
  */
-internal class PreviewSurfaceActionManager(surface: DesignSurface): ActionManager<DesignSurface>(surface) {
-  override fun registerActionsShortcuts(component: JComponent) {}
-  override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup = DefaultActionGroup()
-  override fun getToolbarActions(component: NlComponent?, newSelection: MutableList<NlComponent>): DefaultActionGroup =
+internal class PreviewSurfaceActionManager(private val surface: DesignSurface) : ActionManager<DesignSurface>(surface) {
+  private val copyResultImageAction = CopyResultImageAction(
+    {
+      // Copy the model of the current selected object (if any)
+      surface.selectionModel.primary?.model?.let {
+        return@CopyResultImageAction surface.getSceneManager(it) as LayoutlibSceneManager
+      }
+
+      // If no model is selected, copy the image under the mouse
+      val mouseLocation = surface.getMousePosition(true) ?: return@CopyResultImageAction null
+      surface.getHoverSceneView(mouseLocation.x, mouseLocation.y)?.sceneManager as? LayoutlibSceneManager
+    })
+
+  override fun registerActionsShortcuts(component: JComponent) {
+    registerAction(copyResultImageAction, IdeActions.ACTION_COPY, component)
+  }
+
+  override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup = DefaultActionGroup().apply {
+    add(copyResultImageAction)
+  }
+
+  override fun getToolbarActions(selection: MutableList<NlComponent>): DefaultActionGroup =
     DefaultActionGroup()
+
+  override fun getSceneViewContextToolbar(sceneView: SceneView): JComponent? =
+    ActionManagerEx.getInstanceEx().createActionToolbar(
+      "sceneView",
+      DefaultActionGroup(
+        listOfNotNull(
+          Separator(),
+          if (StudioFlags.COMPOSE_ANIMATED_PREVIEW.get())
+            EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext }
+          else
+            null,
+          DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext }
+        )
+      ),
+      true,
+      false
+    ).apply {
+      // Do not allocate space for the "see more" chevron if not needed
+      setReservePlaceAutoPopupIcon(false)
+      setShowSeparatorTitles(true)
+    }.component.apply {
+      isOpaque = false
+      border = JBUI.Borders.empty()
+    }
 }

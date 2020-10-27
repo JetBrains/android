@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
-import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
+import com.android.tools.idea.wizard.template.Language;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JRootPane;
@@ -35,16 +35,24 @@ public class ConfigureAndroidModuleStepFixture<W extends AbstractWizardFixture>
 
   @NotNull
   public ConfigureAndroidModuleStepFixture<W> enterModuleName(@NotNull String text) {
-    new JTextComponentFixture(robot(), robot().finder().findByName(target(), "ModuleName", JTextField.class)).setText(text);
+    new JTextComponentFixture(robot(), robot().finder().findByLabel(target(), "Module name", JTextField.class)).setText(text);
     return this;
   }
 
   @NotNull
   public ConfigureAndroidModuleStepFixture<W> selectMinimumSdkApi(int minSdkApi) {
-    new ApiLevelComboBoxFixture(robot(), robot().finder().findByName(target(), "Mobile.minSdk", JComboBox.class))
+    new ApiLevelComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Minimum SDK", JComboBox.class))
       .selectApiLevel(minSdkApi);
     return this;
   }
+
+  @NotNull
+  public ConfigureAndroidModuleStepFixture<W> selectBytecodeLevel(@NotNull String bytecodeLevel) {
+    new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Bytecode Level", JComboBox.class))
+      .selectItem(bytecodeLevel);
+    return this;
+  }
+
 
   @NotNull
   public ConfigureAndroidModuleStepFixture<W> setSourceLanguage(@NotNull Language language) {

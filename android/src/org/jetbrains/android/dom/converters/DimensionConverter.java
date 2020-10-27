@@ -12,9 +12,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class DimensionConverter extends ResolvingConverter<String> implements AttributeValueDocumentationProvider {
   public static final DimensionConverter INSTANCE = new DimensionConverter();
 

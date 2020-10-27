@@ -28,9 +28,11 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.customevent.CustomEventProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
@@ -42,6 +44,7 @@ import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assume;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,16 +62,21 @@ public final class StudioProfilersTest {
   private final FakeProfilerService myProfilerService = new FakeProfilerService(myTimer);
   @Rule public FakeGrpcServer myGrpcServer =
     FakeGrpcServer.createFakeGrpcServer("StudioProfilerTestChannel", myTransportService, myProfilerService);
-  private final ProfilerClient myProfilerClient = new ProfilerClient(myGrpcServer.getName());
   private final FakeGrpcServer.CpuService myCpuService = myGrpcServer.getCpuService();
   private final FakeIdeProfilerServices myIdeProfilerServices;
-
   private final boolean myNewEventPipeline;
+
+  private ProfilerClient myProfilerClient;
 
   public StudioProfilersTest(boolean useNewEventPipeline) {
     myIdeProfilerServices = new FakeIdeProfilerServices();
     myIdeProfilerServices.enableEventsPipeline(useNewEventPipeline);
     myNewEventPipeline = useNewEventPipeline;
+  }
+
+  @Before
+  public void setUp() {
+    myProfilerClient = new ProfilerClient(myGrpcServer.getChannel());
   }
 
   @Test
@@ -533,6 +541,36 @@ public final class StudioProfilersTest {
     profilers.setProcess(device, null);
     assertThat(profilers.getProcess().getPid()).isEqualTo(21);
     assertThat(profilers.getProcess().getState()).isEqualTo(Common.Process.State.ALIVE);
+  }
+
+  @Test
+  public void shouldOpenMemoryProfileStageIfStartupProfilingStarted() {
+    StudioProfilers profilers = new StudioProfilers(myProfilerClient, myIdeProfilerServices, myTimer);
+    Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
+    Common.Process process = createProcess(device.getDeviceId(), 20, "FakeProcess", Common.Process.State.ALIVE);
+    myTransportService.addDevice(device);
+    myTransportService.addProcess(device, process);
+
+    myTransportService.addEventToStream(device.getDeviceId(), Common.Event.newBuilder()
+      .setPid(process.getPid())
+      .setCommandId(1)
+      .setKind(Common.Event.Kind.MEMORY_NATIVE_SAMPLE_STATUS)
+      .setTimestamp(myTimer.getCurrentTimeNs())
+      .setGroupId(myTimer.getCurrentTimeNs())
+      .setMemoryNativeTrackingStatus(Memory.MemoryNativeTrackingData.newBuilder()
+                                       .setStartTime(myTimer.getCurrentTimeNs())
+                                       .setStatus(Memory.MemoryNativeTrackingData.Status.SUCCESS)
+                                       .build())
+      .build());
+    // To make sure that StudioProfilers#update is called, which in a consequence polls devices and processes,
+    // and starts a new session with the preferred process name.
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    profilers.setProcess(device, process);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    assertThat(profilers.getProcess().getPid()).isEqualTo(20);
+    assertThat(profilers.getProcess().getState()).isEqualTo(Common.Process.State.ALIVE);
+    assertThat(profilers.getStage()).isInstanceOf(MemoryProfilerStage.class);
   }
 
   @Test
@@ -1544,7 +1582,7 @@ public final class StudioProfilersTest {
     }
   }
 
-  private static final class FakeStage extends StreamingStage {
+  private static class FakeStage extends StreamingStage {
     private FakeStage(@NotNull StudioProfilers profilers) {
       super(profilers);
     }

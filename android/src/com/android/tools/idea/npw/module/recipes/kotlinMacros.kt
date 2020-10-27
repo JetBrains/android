@@ -27,7 +27,7 @@ fun RecipeExecutor.addKotlinPlugins()  {
 
 fun RecipeExecutor.addKotlinDependencies(androidX: Boolean) {
   if (!hasKotlinStdlib()) {
-    addDependency("$stdlibBaseArtifact:\$kotlin_version")
+    addDependency("$stdlibBaseArtifact:\$${getKotlinVarName()}")
   }
 
   if (androidX) {
@@ -36,8 +36,8 @@ fun RecipeExecutor.addKotlinDependencies(androidX: Boolean) {
 }
 
 fun RecipeExecutor.setKotlinVersion(kotlinVersion: String) {
-    setExtVar("kotlin_version", kotlinVersion)
-    addClasspathDependency("org.jetbrains.kotlin:kotlin-gradle-plugin:\$kotlin_version")
+  setExtVar("${getKotlinVarName()}", kotlinVersion)
+  addClasspathDependency("org.jetbrains.kotlin:kotlin-gradle-plugin:\$${getKotlinVarName()}", null)
 }
 
 fun RecipeExecutor.addKotlinToBaseProject(language: Language, kotlinVersion: String, isNewProject: Boolean = false) {
@@ -58,3 +58,6 @@ private fun RecipeExecutor.hasKotlinStdlib(): Boolean {
   val stdlibSuffixes = setOf("", "-jdk7", "-jdk8")
   return stdlibSuffixes.any { hasDependency(stdlibBaseArtifact + it) }
 }
+
+private fun RecipeExecutor.getKotlinVarName(): String =
+  getClasspathDependencyVarName("org.jetbrains.kotlin:kotlin-gradle-plugin", "kotlin_version")

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sqlite.ui.sqliteEvaluator
 
-import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.intellij.openapi.project.Project
 import javax.swing.JComponent
@@ -39,29 +39,31 @@ interface SqliteEvaluatorView {
   fun removeListener(listener: Listener)
   fun showSqliteStatement(sqliteStatement: String)
 
-  /**
-   * Adds a new [SqliteDatabase] at a specific position among other databases.
-   * @param database The database to add.
-   * @param index The index at which the database should be added.
-   */
-  fun addDatabase(database: SqliteDatabase, index: Int)
-  fun selectDatabase(database: SqliteDatabase)
-  fun removeDatabase(index: Int)
+  fun setDatabases(databaseIds: List<SqliteDatabaseId>, selected: SqliteDatabaseId?)
 
   /**
-   * Returns the [SqliteDatabase] currently selected in the UI.
+   * Notifies the view that the schema associated with [databaseId] has changed.
    */
-  fun getActiveDatabase(): SqliteDatabase
+  fun schemaChanged(databaseId: SqliteDatabaseId)
 
   /**
-   * Returns the string corresponding to the SQLite statement currently visible in the UI.
+   * Toggles on and off the ability to run sqlite statements
    */
-  fun getSqliteStatement(): String
+  fun setRunSqliteStatementEnabled(enabled: Boolean)
 
   interface Listener {
     /**
+     * Invoked when a database is selected in the combobox
+     */
+    fun onDatabaseSelected(databaseId: SqliteDatabaseId) {}
+    /**
      * Method invoked when an sql statement needs to be evaluated.
      */
-    fun evaluateSqlActionInvoked(database: SqliteDatabase, sqliteStatement: String)
+    fun evaluateCurrentStatement() {}
+
+    /**
+     * Called when the sqlite statement changes
+     */
+    fun sqliteStatementTextChangedInvoked(newSqliteStatement: String) {}
   }
 }

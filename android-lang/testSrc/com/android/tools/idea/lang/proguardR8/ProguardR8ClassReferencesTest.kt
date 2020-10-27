@@ -173,7 +173,8 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
       package test;
 
       public class MyClass {
-        class InnerClass {}
+        // References provide completion only for static inner classes.
+        static class StaticInnerClass {}
       }
     """.trimIndent()
     )
@@ -187,7 +188,17 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
 
     val classes = myFixture.completeBasic()
     assertThat(classes).isNotEmpty()
-    assertThat(classes.map { it.lookupString }).containsExactly("InnerClass")
+    assertThat(classes.map { it.lookupString }).containsExactly("StaticInnerClass")
+
+    // Don't provide code completion for inner class after '.'.
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE, """
+        -keep class test.MyClass.${caret} {
+        }
+    """.trimIndent()
+    )
+
+    assertThat(myFixture.completeBasic()).isEmpty()
   }
 
   fun testCompletionForClass() {

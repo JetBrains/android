@@ -21,12 +21,22 @@ import org.junit.Test
 class FilterResultTest {
   @Test
   fun combine() {
-    val identity = FilterResult()
+    val identity = FilterResult.EMPTY_RESULT
     val result1 = FilterResult(1, 2, false)
     val result2 = FilterResult(3, 4, true)
 
     assertThat(result1.combine(identity)).isEqualTo(result1)
     assertThat(result2.combine(identity)).isEqualTo(result2)
     assertThat(result1.combine(result2)).isEqualTo(FilterResult(4, 6, true))
+  }
+
+  @Test
+  fun immutability() {
+    val result1 = FilterResult(1, 2, false)
+    val result2 = FilterResult(3, 4, true)
+
+    result1.combine(result2)
+    assertThat(result1).isEqualTo(FilterResult(1, 2, false))
+    assertThat(result2).isEqualTo(FilterResult(3, 4, true))
   }
 }

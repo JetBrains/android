@@ -16,7 +16,7 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.adtui.util.FormScalingUtil;
-import com.android.tools.idea.help.StudioHelpManagerImpl;
+import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.intellij.ide.actions.ElementCreator;
@@ -36,16 +36,33 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaCodeFragment;
+import com.intellij.psi.JavaCodeFragmentFactory;
+import com.intellij.psi.JavaDirectoryService;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiPackage;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.EditorTextField;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JSeparator;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CreateFileFromTemplateDialog extends DialogWrapper {
   private static final String ATTRIBUTE_INTERFACES = "INTERFACES";
@@ -54,7 +71,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
   private static final String ATTRIBUTE_FINAL = "FINAL";
   private static final String ATTRIBUTE_ABSTRACT = "ABSTRACT";
   private static final String ATTRIBUTE_IMPORT_BLOCK = "IMPORT_BLOCK";
-  private static final String HELP_ID = StudioHelpManagerImpl.STUDIO_HELP_PREFIX + "r/studio-ui/newjclass.html";
+  private static final String HELP_ID = AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/newjclass.html";
 
   private JPanel myPanel;
   private JLabel myNameLabel;
@@ -322,7 +339,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
   }
 
   private void addKind(@NotNull FileTemplate template) {
-    myKindCombo.addItem(template.getName(), JavaFileType.INSTANCE.getIcon(), template.getName());
+    myKindCombo.addItem(template.getName(), StdFileTypes.JAVA.getIcon(), template.getName());
   }
 
   PsiClass show(@NotNull final FileCreator creator) throws FailedToCreateFileException {
@@ -452,7 +469,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
     }
   }
 
-  private static final class PsiBackedType extends Type {
+  private static class PsiBackedType extends Type {
     private final PsiClass myPsiClass;
     private final PsiPackage myPsiPackage;
     private final JavaDirectoryService myJavaDirectoryService;
@@ -518,7 +535,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
     }
   }
 
-  private static final class StringBackedType extends Type {
+  private static class StringBackedType extends Type {
     private final String myPackage;
     private final String myClass;
 

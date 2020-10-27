@@ -16,58 +16,86 @@
 package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
+import com.android.tools.idea.concurrency.addCallback
+import com.android.tools.idea.concurrency.cancelOnDispose
+import com.android.tools.idea.concurrency.finallySync
+import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.concurrency.transformAsync
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
-import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
+import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
-import com.android.tools.idea.sqlite.model.SqliteColumn
+import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteTable
+import com.android.tools.idea.sqlite.model.SqliteValue
+import com.android.tools.idea.sqlite.model.transform
+import com.android.tools.idea.sqlite.repository.DatabaseRepository
+import com.android.tools.idea.sqlite.ui.tableView.OrderBy
+import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
+import com.android.tools.idea.sqlite.ui.tableView.ViewColumn
+import com.google.common.base.Functions
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
+import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.containers.ComparatorUtil.max
+import java.util.concurrent.CancellationException
+import java.util.concurrent.Executor
+import kotlin.math.min
 
 /**
- * Controller specialized in displaying rows and columns from a [SqliteResultSet].
- *
- * The ownership of the [SqliteResultSet] is transferred to the [TableController],
- * i.e. it is closed when [dispose] is called.
- *
- * The [SqliteResultSet] is not necessarily associated with a real table in the database, in those cases [table] will be null.
+ * Controller responsible for displaying data from a SQLite table.
  */
 @UiThread
 class TableController(
+  project: Project,
   private var rowBatchSize: Int = 50,
   private val view: TableView,
-  private val table: SqliteTable?,
-  private val databaseConnection: DatabaseConnection,
+  private val databaseId: SqliteDatabaseId,
+  private val tableSupplier: () -> SqliteTable?,
+  private val databaseRepository: DatabaseRepository,
   private val sqliteStatement: SqliteStatement,
-  private val edtExecutor: FutureCallbackExecutor
+  override val closeTabInvoked: () -> Unit,
+  private val edtExecutor: Executor,
+  private val taskExecutor: Executor
 ) : DatabaseInspectorController.TabController {
   private lateinit var resultSet: SqliteResultSet
   private val listener = TableViewListenerImpl()
-  private var orderBy: OrderBy? = null
-  private var start = 0
+  private var orderBy: OrderBy = OrderBy.NotOrdered
+  private var rowOffset = 0
 
-  private var lastExecutedQuery = sqliteStatement
+  private val databaseInspectorAnalyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
+
+  /**
+   * The list of columns currently shown in the view
+   */
+  private var currentCols = emptyList<ResultSetSqliteColumn>()
+
+  /**
+   * The list of rows that is currently shown in the view.
+   */
+  private var currentRows = emptyList<SqliteRow>()
+
+  /**
+   * Future corresponding to a [refreshData] operation. If the future is done, the refresh operation is over.
+   */
+  private var refreshDataFuture: ListenableFuture<Unit> = Futures.immediateFuture(Unit)
+
+  private var liveUpdatesEnabled = false
 
   fun setUp(): ListenableFuture<Unit> {
     view.startTableLoading()
-
-    return edtExecutor.transform(databaseConnection.execute(sqliteStatement)) { newResultSet ->
-      checkNotNull(newResultSet)
-      lastExecutedQuery = sqliteStatement
-
-      if (Disposer.isDisposed(this)) {
-        Disposer.dispose(newResultSet)
-        throw ProcessCanceledException()
-      }
-
+    return databaseRepository.runQuery(databaseId, sqliteStatement).transformAsync(edtExecutor) { newResultSet ->
+      view.setEditable(isEditable())
       view.showPageSizeValue(rowBatchSize)
       view.addListener(listener)
 
@@ -75,128 +103,194 @@ class TableController(
       Disposer.register(this, newResultSet)
 
       fetchAndDisplayTableData()
-
-      return@transform
-    }
+    }.cancelOnDispose(this)
   }
 
-  // TODO We should just reload the current page.
-  //  But live inspection doesn't support paging yet. So we need to reload everything.
   override fun refreshData(): ListenableFuture<Unit> {
-    Disposer.dispose(resultSet)
-
+    if (!refreshDataFuture.isDone) return refreshDataFuture
     view.startTableLoading()
+    refreshDataFuture = fetchAndDisplayTableData()
+    return refreshDataFuture
+  }
 
-    return edtExecutor.transform(databaseConnection.execute(lastExecutedQuery)) { newResultSet ->
-      checkNotNull(newResultSet)
-
-      if (Disposer.isDisposed(this)) {
-        Disposer.dispose(newResultSet)
-        throw ProcessCanceledException()
-      }
-
-      resultSet = newResultSet
-      Disposer.register(this, newResultSet)
-
-      fetchAndDisplayTableData()
-
-      return@transform
+  override fun notifyDataMightBeStale() {
+    // refresh the table, without showing a loading screen.
+    if (liveUpdatesEnabled && refreshDataFuture.isDone) {
+      refreshDataFuture = fetchAndDisplayTableData()
     }
   }
 
   override fun dispose() {
+    view.stopTableLoading()
     view.removeListener(listener)
   }
 
-  private fun fetchAndDisplayTableData() {
-    val fetchTableDataFuture = edtExecutor.transformAsync(resultSet.columns) { columns ->
+  /**
+   * Gets columns and rows from [resultSet] and updates the view.
+   *
+   * Callers of this method should take care of setting the view in a loading state.
+   */
+  private fun fetchAndDisplayTableData(): ListenableFuture<Unit> {
+    val fetchTableDataFuture = resultSet.columns.transformAsync(edtExecutor) { columns ->
       if (Disposer.isDisposed(this)) throw ProcessCanceledException()
-      view.showTableColumns(columns!!.filter { it.name != table?.rowIdName?.stringName })
-      view.setEditable(table != null)
+      if (columns != currentCols) {
+        // if the columns changed we cannot use the old list of rows as reference for doing the diff.
+        currentRows = emptyList()
+      }
+      currentCols = columns
+
+      val table = tableSupplier()
+      view.showTableColumns(columns.filter { it.name != table?.rowIdName?.stringName }.toViewColumns(table))
+      view.setEditable(isEditable())
 
       updateDataAndButtons()
-    }
+    }.cancelOnDispose(this)
 
     val futureCatching = handleFetchRowsError(fetchTableDataFuture)
 
-    edtExecutor.finallySync(futureCatching) {
-      if (Disposer.isDisposed(this)) throw ProcessCanceledException()
+    val future = futureCatching.finallySync(edtExecutor) {
       view.stopTableLoading()
-    }
+    }.cancelOnDispose(this)
+
+    return Futures.transform(future, Functions.constant(Unit), MoreExecutors.directExecutor())
   }
 
+  /**
+   * Calls [fetchAndDisplayRows] to fetch new data and updates the view.
+   *
+   * This method doesn't set the view in a loading state.
+   */
   private fun updateDataAndButtons(): ListenableFuture<Unit> {
     view.setFetchPreviousRowsButtonState(false)
     view.setFetchNextRowsButtonState(false)
 
-    return edtExecutor.transformAsync(fetchAndDisplayRows()) {
-      edtExecutor.transform(resultSet.rowCount) { rowCount ->
-        view.setFetchPreviousRowsButtonState(start > 0)
-        view.setFetchNextRowsButtonState(start+rowBatchSize < rowCount)
-        return@transform
+    return fetchAndDisplayRows()
+      .transformAsync(taskExecutor) {
+        resultSet.totalRowCount
+      }.transform(edtExecutor) { rowCount ->
+        view.setFetchPreviousRowsButtonState(rowOffset > 0)
+        view.setFetchNextRowsButtonState(rowOffset + rowBatchSize < rowCount)
       }
+  }
+
+  private fun updateDataAndButtonsWithLoadingScreens(): ListenableFuture<Unit> {
+    view.startTableLoading()
+    val updateDataFuture = updateDataAndButtons()
+    val future = updateDataFuture.finallySync(edtExecutor) {
+      if (Disposer.isDisposed(this@TableController)) throw ProcessCanceledException()
+      view.stopTableLoading()
     }
+
+    return handleFetchRowsError(future)
   }
 
   /**
-   * Fetches rows through the [SqliteResultSet].
+   * Fetches rows through the [resultSet] using [rowOffset] and [rowBatchSize].
+   * The view is updated through a list of [RowDiffOperation]. Compared to just recreating the view
+   * this approach has the advantage that the state is not lost. Eg. if the user is navigating the table
+   * using the keyboard we don't want to lose the navigation each time the data has to be updated.
    */
   private fun fetchAndDisplayRows() : ListenableFuture<Unit> {
-    return edtExecutor.transformAsync(resultSet.getRowBatch(start, rowBatchSize)) { rows ->
-      if (Disposer.isDisposed(this)) throw ProcessCanceledException()
+    return resultSet.getRowBatch(rowOffset, rowBatchSize).transform(edtExecutor) { newRows ->
+      val rowDiffOperations = mutableListOf<RowDiffOperation>()
 
-      if (rows!!.isEmpty()) {
-        view.removeRows()
-        Futures.immediateFuture(Unit)
-      } else {
-        view.removeRows()
-        view.showTableRowBatch(rows)
-        view.setEditable(table != null)
-        Futures.immediateFuture(Unit)
+      // Update the cells that already exist
+      for (rowIndex in 0 until min(currentRows.size, newRows.size)) {
+        val rowCellUpdates = performRowsDiff(currentRows[rowIndex], newRows[rowIndex], rowIndex)
+        rowDiffOperations.addAll(rowCellUpdates)
+      }
+
+      // add new rows
+      if (currentRows.size < newRows.size) {
+        rowDiffOperations.addAll(newRows.drop(currentRows.size).map { RowDiffOperation.AddRow(it) })
+      }
+      // remove extra rows
+      else if (currentRows.size > newRows.size) {
+        rowDiffOperations.add(RowDiffOperation.RemoveLastRows(newRows.size))
+      }
+
+      view.setRowOffset(rowOffset)
+      view.updateRows(rowDiffOperations)
+      view.setEditable(isEditable())
+
+      currentRows = newRows
+    }.cancelOnDispose(this)
+  }
+
+  /**
+   * Returns a list of [UpdateCell] commands.
+   * A command is added to the list if [oldRow] and [newRow] have different values in the same position.
+   */
+  private fun performRowsDiff(oldRow: SqliteRow, newRow: SqliteRow, rowIndex: Int): List<RowDiffOperation.UpdateCell> {
+    val cellUpdates = mutableListOf<RowDiffOperation.UpdateCell>()
+
+    for (colIndex in oldRow.values.indices) {
+      if (oldRow.values[colIndex] != newRow.values[colIndex]) {
+        cellUpdates.add(RowDiffOperation.UpdateCell(newRow.values[colIndex], rowIndex, colIndex))
       }
     }
+
+    return cellUpdates
   }
 
-  private fun handleFetchRowsError(future: ListenableFuture<Unit>): ListenableFuture<Any> {
-    return edtExecutor.catching(future, Throwable::class.java) { error ->
-      if (Disposer.isDisposed(this)) throw ProcessCanceledException()
-
-      val message = "Error retrieving rows ${if (table?.name != null) "for table \"${table.name}\"" else ""}"
-      view.reportError(message, error)
+  private fun handleFetchRowsError(future: ListenableFuture<Unit>): ListenableFuture<Unit> {
+    future.addCallback(edtExecutor, success = {}) { error ->
+      if (Disposer.isDisposed(this)) return@addCallback
+      view.resetView()
+      if (error !is CancellationException && error !is AppInspectionConnectionException) {
+        view.reportError("Error retrieving data from table.", error)
+      }
     }
+    return future
   }
+
+  private fun isEditable() = tableSupplier() != null && !liveUpdatesEnabled && !(tableSupplier()?.isView ?: false)
 
   private inner class TableViewListenerImpl : TableView.Listener {
-    override fun toggleOrderByColumnInvoked(sqliteColumn: SqliteColumn) {
-      if (orderBy != null && orderBy!!.column == sqliteColumn) {
-        orderBy = OrderBy(sqliteColumn, !orderBy!!.asc)
-      } else {
-        orderBy = OrderBy(sqliteColumn, true)
+    override fun toggleOrderByColumnInvoked(viewColumn: ViewColumn) {
+      orderBy = orderBy.nextState(viewColumn)
+
+      val order = when(orderBy) {
+        is OrderBy.Asc -> "ASC"
+        is OrderBy.Desc -> "DESC"
+        is OrderBy.NotOrdered -> ""
       }
 
-      val order = if (orderBy!!.asc) "ASC" else "DESC"
-      val newQuery =
-        "SELECT * FROM (${sqliteStatement.sqliteStatementText}) ORDER BY ${AndroidSqlLexer.getValidName(orderBy!!.column.name)} $order"
+      // TODO (b/157633844) move sqlite code into repository
+      val selectOrderByStatement = when (orderBy) {
+        is OrderBy.Asc, is OrderBy.Desc -> sqliteStatement.transform(SqliteStatementType.SELECT) {
+          "SELECT * FROM ($it) ORDER BY ${AndroidSqlLexer.getValidName(viewColumn.name)} $order"
+        }
+        is OrderBy.NotOrdered -> sqliteStatement
+      }
 
-      view.startTableLoading()
       Disposer.dispose(resultSet)
 
-      val selectStatement = SqliteStatement(newQuery, sqliteStatement.parametersValues)
-      edtExecutor.transform(databaseConnection.execute(selectStatement)) { newResultSet ->
-        checkNotNull(newResultSet)
-        lastExecutedQuery = selectStatement
+      view.startTableLoading()
+      databaseRepository
+        .runQuery(databaseId, selectOrderByStatement)
+        .transform(edtExecutor) { newResultSet ->
+          if (Disposer.isDisposed(this@TableController)) {
+            newResultSet.dispose()
+            throw ProcessCanceledException()
+          }
 
-        if (Disposer.isDisposed(this@TableController)) {
-          newResultSet.dispose()
-          throw ProcessCanceledException()
+          resultSet = newResultSet
+          Disposer.register(this@TableController, newResultSet)
+
+          rowOffset = 0
+          fetchAndDisplayTableData()
+        }.transform(edtExecutor) {
+          view.setColumnSortIndicator(orderBy)
         }
+    }
 
-        resultSet = newResultSet
-        Disposer.register(this@TableController, newResultSet)
-
-        start = 0
-        fetchAndDisplayTableData()
-      }
+    override fun cancelRunningStatementInvoked() {
+      databaseInspectorAnalyticsTracker.trackStatementExecutionCanceled(
+        AppInspectionEvent.DatabaseInspectorEvent.StatementContext.UNKNOWN_STATEMENT_CONTEXT
+      )
+      // Closing a tab triggers its dispose method, which cancels the future, stopping the running query.
+      closeTabInvoked()
     }
 
     override fun rowCountChanged(rowCount: Int) {
@@ -207,88 +301,86 @@ class TableController(
 
       rowBatchSize = rowCount
 
-      val future = updateDataAndButtons()
-      handleFetchRowsError(future)
+      updateDataAndButtonsWithLoadingScreens()
     }
 
     override fun loadPreviousRowsInvoked() {
-      start = max(0, start-rowBatchSize)
-
-      val future = updateDataAndButtons()
-      handleFetchRowsError(future)
+      rowOffset = max(0, rowOffset - rowBatchSize)
+      updateDataAndButtonsWithLoadingScreens()
     }
 
     override fun loadNextRowsInvoked() {
-      start += rowBatchSize
-
-      val future = updateDataAndButtons()
-      handleFetchRowsError(future)
+      rowOffset += rowBatchSize
+      updateDataAndButtonsWithLoadingScreens()
     }
 
     override fun loadFirstRowsInvoked() {
-      start = 0
-
-      val future = updateDataAndButtons()
-      handleFetchRowsError(future)
+      rowOffset = 0
+      updateDataAndButtonsWithLoadingScreens()
     }
 
     override fun loadLastRowsInvoked() {
-      edtExecutor.transformAsync(resultSet.rowCount) { rowCount ->
-        start = (rowCount!! / rowBatchSize) * rowBatchSize
+      resultSet.totalRowCount.transformAsync(edtExecutor) { rowCount ->
+        rowOffset = (rowCount / rowBatchSize) * rowBatchSize
 
-        if (start == rowCount) start -= rowBatchSize
-
-        val future = updateDataAndButtons()
-        handleFetchRowsError(future)
+        if (rowOffset == rowCount) rowOffset -= rowBatchSize
+        updateDataAndButtonsWithLoadingScreens()
       }
     }
 
     override fun refreshDataInvoked() {
+      databaseInspectorAnalyticsTracker.trackTargetRefreshed(AppInspectionEvent.DatabaseInspectorEvent.TargetType.TABLE_TARGET)
       refreshData()
     }
 
-    override fun updateCellInvoked(targetRow: SqliteRow, targetColumn: SqliteColumn, newValue: Any?) {
-      require(table != null) { "Table is null, can't update." }
+    override fun toggleLiveUpdatesInvoked() {
+      liveUpdatesEnabled = !liveUpdatesEnabled
+      view.setEditable(isEditable())
 
-      val rowIdColumnValue = targetRow.values.firstOrNull { it.column.name == table.rowIdName?.stringName }
-
-      val parametersValues = mutableListOf(newValue)
-
-      val whereExpression = if (rowIdColumnValue != null) {
-        parametersValues.add(rowIdColumnValue.value)
-        "${AndroidSqlLexer.getValidName(rowIdColumnValue.column.name)} = ?"
-      } else {
-        targetRow.values
-          .filter { it.column.inPrimaryKey }
-          .onEach { parametersValues.add(it.value) }
-          .joinToString(separator = " AND ") {
-            "${AndroidSqlLexer.getValidName(it.column.name)} = ?"
-          }
+      if (liveUpdatesEnabled) {
+        notifyDataMightBeStale()
       }
 
-      if (whereExpression.isEmpty()) {
-        view.reportError("Can't update. No primary keys or rowid column.", null)
+      databaseInspectorAnalyticsTracker.trackLiveUpdatedToggled(liveUpdatesEnabled)
+    }
+
+    override fun updateCellInvoked(targetRowIndex: Int, targetColumn: ViewColumn, newValue: SqliteValue) {
+      val targetTable = tableSupplier()
+      if (targetTable == null) {
+        view.reportError("Can't update. Table not found.", null)
         return
       }
 
-      val updateStatement =
-        "UPDATE ${AndroidSqlLexer.getValidName(table.name)} " +
-        "SET ${AndroidSqlLexer.getValidName(targetColumn.name)} = ? " +
-        "WHERE $whereExpression"
+      view.startTableLoading()
+      val targetRow = currentRows[targetRowIndex]
+      databaseRepository.updateTable(databaseId, targetTable, targetRow, targetColumn.name, newValue)
+        .addCallback(edtExecutor, object : FutureCallback<Unit> {
+          override fun onSuccess(result: Unit?) {
+            databaseInspectorAnalyticsTracker.trackTableCellEdited()
+            refreshData()
+          }
 
-      edtExecutor.addCallback(databaseConnection.execute(
-        SqliteStatement(updateStatement, parametersValues)
-      ), object : FutureCallback<SqliteResultSet?> {
-        override fun onSuccess(result: SqliteResultSet?) {
-          refreshData()
-        }
-
-        override fun onFailure(t: Throwable) {
-          view.reportError("Can't execute update", t)
-        }
-      })
+          override fun onFailure(t: Throwable) {
+            view.revertLastTableCellEdit()
+            view.stopTableLoading()
+            view.reportError("Can't execute update: ", t)
+          }
+        })
     }
   }
-}
 
-data class OrderBy(val column: SqliteColumn, val asc: Boolean)
+  private fun List<ResultSetSqliteColumn>.toViewColumns(table: SqliteTable? = null) = map { it.toViewColumn(table) }
+
+  /**
+   * Column information in [ResultSetSqliteColumn] can be incomplete.
+   * This method tries to overlap the information from the column with the information from the schema.
+   */
+  private fun ResultSetSqliteColumn.toViewColumn(table: SqliteTable? = null): ViewColumn {
+    val schemaColumn = table?.columns?.firstOrNull { it.name == name }
+    return ViewColumn(
+      name,
+      schemaColumn?.inPrimaryKey ?: inPrimaryKey ?: false,
+      schemaColumn?.isNullable ?: isNullable ?: true
+    )
+  }
+}

@@ -19,9 +19,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidFinalPackageElementType extends PackagingElementType<AndroidFinalPackageElement> {
   @NonNls public static final String TYPE_ID = "android-final-package";
 

@@ -22,11 +22,4 @@ import org.junit.runner.RunWith;
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses(AndroidRoomTestSuite.class)  // a suite mustn't contain itself
 public class AndroidRoomTestSuite extends IdeaTestSuiteBase {
-
-  static {
-    symlinkToIdeaHome(
-      "prebuilts/studio/sdk",
-      "tools/adt/idea/android/testData", // For AndroidManifest.xml used by AndroidTestCase
-      "tools/idea/java"); // For the mock JDK.
-  }
 }

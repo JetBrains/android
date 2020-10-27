@@ -44,6 +44,7 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.serviceContainer.NonInjectable;
@@ -125,7 +126,8 @@ public class GradleTaskFinder {
     }
 
     for (Module module : allModules) {
-      if (BUILD_SRC_FOLDER_NAME.equals(module.getName())) {
+      String modulePath = ExternalSystemModulePropertyManager.getInstance(module).getLinkedProjectId();
+      if (modulePath != null && modulePath.endsWith(":" + BUILD_SRC_FOLDER_NAME)) {
         // "buildSrc" is a special case handled automatically by Gradle.
         continue;
       }

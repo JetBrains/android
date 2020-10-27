@@ -41,9 +41,6 @@ import org.jetbrains.jps.model.java.JpsJavaExtensionService;
 import org.jetbrains.jps.model.java.compiler.JpsCompilerExcludes;
 import org.jetbrains.jps.model.module.JpsModule;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidPackagingBuilder extends AndroidTargetBuilder<BuildRootDescriptor, AndroidPackagingBuildTarget> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.jps.android.AndroidPackagingBuilder");
   private static final String BUILDER_NAME = "Android Packager";

@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.kotlin
 
+import com.android.tools.idea.AndroidPsiUtils
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiParameter
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.findFacadeClass
+import org.jetbrains.kotlin.asJava.toLightElements
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
@@ -27,10 +32,13 @@ import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtQualifiedExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
+import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForReceiver
 import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForSelector
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.constants.evaluate.ConstantExpressionEvaluator
@@ -50,9 +58,23 @@ fun KtProperty.hasBackingField(): Boolean {
   return analyze(BodyResolveMode.PARTIAL)[BindingContext.BACKING_FIELD_REQUIRED, propertyDescriptor] ?: false
 }
 
-/** Computes the qualified name of this [KtAnnotationEntry]. */
+/**
+ * Computes the qualified name of this [KtAnnotationEntry].
+ * Prefer to use [fqNameMatches], which checks the short name first and thus has better performance.
+ */
 fun KtAnnotationEntry.getQualifiedName(): String? {
   return analyze(BodyResolveMode.PARTIAL).get(BindingContext.ANNOTATION, this)?.fqName?.asString()
+}
+
+/**
+ * Determines whether this [KtAnnotationEntry] has the specified qualified name.
+ * Careful: this does *not* currently take into account Kotlin type aliases (https://kotlinlang.org/docs/reference/type-aliases.html).
+ *   Fortunately, type aliases are extremely uncommon for simple annotation types.
+ */
+fun KtAnnotationEntry.fqNameMatches(fqName: String): Boolean {
+  // For inspiration, see IDELightClassGenerationSupport.KtUltraLightSupportImpl.findAnnotation in the Kotlin plugin.
+  val shortName = shortName?.asString() ?: return false
+  return fqName.endsWith(shortName) && fqName == getQualifiedName()
 }
 
 /** Computes the qualified name for a Kotlin Class. Returns null if the class is a kotlin built-in. */
@@ -101,18 +123,32 @@ fun KtExpression.tryEvaluateConstant(): String? {
 }
 
 /**
- * When given an element in a qualified chain expression (eg. activity in R.layout.activity), this finds the previous element in the chain
- * (In this case layout).
+ * When given an element in a qualified chain expression (eg. `activity` in `R.layout.activity`), this finds the previous element in the
+ * chain (in this case `layout`).
  */
 fun KtExpression.getPreviousInQualifiedChain(): KtExpression? {
   val receiverExpression = getQualifiedExpressionForSelector()?.receiverExpression
   return (receiverExpression as? KtQualifiedExpression)?.selectorExpression ?: receiverExpression
 }
 
+/**
+ * When given an element in a qualified chain expression (eg. `R` in `R.layout.activity`), this finds the next element in the chain (in this
+ * case `layout`).
+ */
+fun KtExpression.getNextInQualifiedChain(): KtExpression? {
+  return getQualifiedExpressionForReceiver()?.selectorExpression
+         ?: getQualifiedExpressionForSelector()?.getQualifiedExpressionForReceiver()?.selectorExpression
+}
+
 fun KotlinType.getQualifiedName() = constructor.declarationDescriptor?.fqNameSafe
 
 fun KotlinType.isSubclassOf(className: String, strict: Boolean = false): Boolean {
-    return (!strict && getQualifiedName()?.asString() == className) || constructor.supertypes.any {
-      it.getQualifiedName()?.asString() == className || it.isSubclassOf(className, true)
-    }
+  return (!strict && getQualifiedName()?.asString() == className) || constructor.supertypes.any {
+    it.getQualifiedName()?.asString() == className || it.isSubclassOf(className, true)
+  }
 }
+
+val KtProperty.psiType get() = LightClassUtil.getLightClassBackingField(this)?.getType()
+val KtParameter.psiType get() = toLightElements().filterIsInstance(PsiParameter::class.java).firstOrNull()?.type
+val KtFunction.psiType get() = LightClassUtil.getLightClassMethod(this)?.returnType
+fun KtClass.toPsiType() = toLightElements().filterIsInstance(PsiClass::class.java).firstOrNull()?.let { AndroidPsiUtils.toPsiType(it) }

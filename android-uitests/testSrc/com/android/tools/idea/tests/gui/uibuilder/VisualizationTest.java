@@ -22,8 +22,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.Bleak;
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.UseBleak;
+import com.android.tools.idea.bleak.UseBleak;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
@@ -44,18 +43,11 @@ public class VisualizationTest {
   @Before
   public void setUp() {
     StudioFlags.NELE_VISUALIZATION.override(true);
-    StudioFlags.NELE_SPLIT_EDITOR.override(true);
   }
 
   @After
   public void tearDown() {
     StudioFlags.NELE_VISUALIZATION.clearOverride();
-    StudioFlags.NELE_SPLIT_EDITOR.clearOverride();
-  }
-
-  @Test
-  public void visualizationToolAvailableForLayoutFile() throws Exception {
-    openAndCloseVisualizationTool(guiTest.importSimpleApplication().getEditor());
   }
 
   @Test
@@ -63,10 +55,10 @@ public class VisualizationTest {
   @RunIn(TestGroup.PERFORMANCE)
   public void openAndCloseVisualizationToolWithBleak() throws Exception {
     EditorFixture editor = guiTest.importSimpleApplication().getEditor();
-    Bleak.runWithBleak(() -> openAndCloseVisualizationTool(editor));
+    guiTest.runWithBleak(() -> openAndCloseVisualizationTool(editor));
   }
 
-  private static void openAndCloseVisualizationTool(@NotNull EditorFixture editor) {
+  static void openAndCloseVisualizationTool(@NotNull EditorFixture editor) {
     final String file1 = "app/src/main/res/layout/frames.xml";
     final String file2 = "app/src/main/res/layout/activity_my.xml";
     final String file3 = "app/src/main/java/google/simpleapplication/MyActivity.java";

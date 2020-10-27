@@ -53,6 +53,7 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -97,7 +98,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
   private final JBScrollPane myScrollPane;
   private final DesignSurface mySurface;
   private final ColumnHeaderPanel myColumnHeaderView;
-  @Nullable private MinimizeListener myMinimizeListener;
+  private final List<MinimizeListener> myMinimizeListener = new ArrayList();
   @Nullable private IssueView mySelectedIssueView;
 
   /**
@@ -416,13 +417,15 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     revalidate();
     repaint();
 
-    if (myMinimizeListener != null) {
-      UIUtil.invokeLaterIfNeeded(() -> myMinimizeListener.onMinimizeChanged(isMinimized));
+    if (!myMinimizeListener.isEmpty()) {
+      UIUtil.invokeLaterIfNeeded(() -> myMinimizeListener.forEach(it ->
+        it.onMinimizeChanged(isMinimized)
+      ));
     }
   }
 
-  public void setMinimizeListener(@Nullable MinimizeListener listener) {
-    myMinimizeListener = listener;
+  public void addMinimizeListener(@Nullable MinimizeListener listener) {
+    myMinimizeListener.add(listener);
   }
 
   /**
@@ -430,7 +433,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
    */
   @Override
   public void dispose() {
-    myMinimizeListener = null;
+    myMinimizeListener.clear();
     myIssueModel.removeErrorModelListener(myIssueModelListener);
     UIManager.removePropertyChangeListener(this);
   }
@@ -565,7 +568,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
   /**
    * Action invoked by the user to minimize or restore the errors panel
    */
-  private final class MinimizeAction extends AnAction {
+  private class MinimizeAction extends AnAction {
     private static final String DESCRIPTION = "Hide the render errors panel";
 
     private MinimizeAction() {
@@ -578,7 +581,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     }
   }
 
-  private static final class ColumnHeaderPanel extends JPanel {
+  private static class ColumnHeaderPanel extends JPanel {
 
     private static final int HEIGHT = 15;
     private static final GradientPaint backgroundPaint =

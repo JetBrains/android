@@ -15,15 +15,25 @@
  */
 package com.android.tools.idea.layoutinspector.transport
 
-import com.android.tools.idea.transport.TransportClient
+import com.android.tools.idea.transport.manager.TransportStreamChannel
+import com.android.tools.idea.transport.manager.TransportStreamEventListener
+import com.android.tools.idea.transport.manager.TransportStreamListener
+import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.idea.util.ListenerCollection
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Common.Event.Kind.PROCESS
 import com.android.tools.profiler.proto.Transport
-import com.intellij.openapi.diagnostic.Logger
+import com.android.tools.profiler.proto.TransportServiceGrpc.TransportServiceBlockingStub
+import com.intellij.concurrency.JobScheduler
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
+import java.util.ArrayDeque
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.function.Consumer
 
 /**
  * A process manager that keeps track of the available processes for the Layout Inspector.
@@ -33,99 +43,121 @@ import java.util.concurrent.TimeoutException
  *
  * [processListeners] gives a notification whenever the data in [processes] is changed
  */
+// TODO(b/150618894): Investigate if this functionality should be shared with the App Inspector.
 class DefaultProcessManager(
-  private val executor: ExecutorService,
-  private val client: TransportClient
-) : InspectorProcessManager {
-  /**
-   * Actually not used in AS 4.0.
-   */
+  private val transportStub: TransportServiceBlockingStub,
+  executor: ExecutorService,
+  manager: TransportStreamManager,
+  parentDisposable: Disposable
+) : InspectorProcessManager, Disposable {
   override val processListeners = ListenerCollection.createWithDirectExecutor<() -> Unit>()
 
   /**
    * Contains the currently available process as: stream -> processId -> process
    */
-  private val processes = ConcurrentHashMap<Common.Stream, List<Common.Process>>()
+  private val processes = ConcurrentHashMap<Common.Stream, Map<Int, Common.Process>>()
+
+  private val scheduler: ScheduledExecutorService = JobScheduler.getScheduler()
 
   /**
-   * Actually not used in AS 4.0.
+   * Is true when a [handleNextStream] is scheduled to run or is running.
    */
+  private val validationScheduled = AtomicBoolean(false)
+
+  /**
+   * Contains the streams for which a process may have changed state.
+   */
+  private val invalidations = object : ArrayDeque<Common.Stream>() {
+    // Override add to make this Deque function as Set.
+    // i.e. multiple invalidation of the same stream should only cause a single update.
+    override fun add(element: Common.Stream): Boolean {
+      return !contains(element) && super.add(element)
+    }
+  }
+
+  private val streamListener = object : TransportStreamListener {
+    override fun onStreamConnected(streamChannel: TransportStreamChannel) {
+      if (streamFilter(streamChannel.stream)) {
+        addStream(streamChannel.stream)
+        streamChannel.registerStreamEventListener(
+          TransportStreamEventListener(eventKind = PROCESS, executor = executor) {
+            invalidateCache(streamChannel.stream)
+          }
+        )
+      }
+    }
+
+    override fun onStreamDisconnected(streamChannel: TransportStreamChannel) {
+      if (streamFilter(streamChannel.stream)) {
+        removeStream(streamChannel.stream)
+      }
+    }
+  }
+
+  init {
+    Disposer.register(parentDisposable, this)
+    manager.addStreamListener(streamListener, executor)
+  }
+
+  override fun dispose() {
+    //  It is not necessary to remove the stream listener since the TransportStreamManager will go away with the DefaultInspectorClient
+    //  manager.removeStreamListener(streamListener)
+  }
+
+  override fun getStreams(): Sequence<Common.Stream> = processes.keys.asSequence()
+
+  override fun getProcesses(stream: Common.Stream): Sequence<Common.Process> =
+    processes[stream]?.values?.asSequence() ?: emptySequence()
+
   override fun isProcessActive(stream: Common.Stream, process: Common.Process): Boolean =
-    error("Do not use...")
+    processes[stream]?.get(process.pid) == process
 
-  /**
-   * Get the known active devices with API 29 and above.
-   */
-  override fun getStreams(): Sequence<Common.Stream> {
+  private fun addStream(stream: Common.Stream) {
+    processes.getOrPut(stream, { emptyMap() })
+    fireProcessesChanged()
+  }
+
+  private fun removeStream(stream: Common.Stream) {
+    processes.remove(stream)
+    fireProcessesChanged()
+  }
+
+  private fun fireProcessesChanged() {
+    processListeners.forEach(Consumer { it() })
+  }
+
+  private fun streamFilter(stream: Common.Stream): Boolean =
+    stream.type == Common.Stream.Type.DEVICE && stream.device.featureLevel >= 29
+
+  private fun invalidateCache(stream: Common.Stream) {
+    invalidations.add(stream)
+    scheduleNext()
+  }
+
+  private fun scheduleNext() {
+    if (validationScheduled.compareAndSet(false, true)) {
+      scheduler.schedule({ handleNextStream() }, 250, TimeUnit.MILLISECONDS)
+    }
+  }
+
+  private fun handleNextStream() {
+    val stream = invalidations.poll()
     try {
-      val future = executor.submit<List<Common.Stream>> { loadDevices() }
-      return future.get(400, TimeUnit.MILLISECONDS).asSequence()
+      stream?.let { loadProcesses(it) }
     }
-    catch (ex: TimeoutException) {
-      return processes.keys.asSequence()
-    }
-    catch (ex: Exception) {
-      Logger.getInstance(DefaultProcessManager::class.java).error(ex)
-      return processes.keys.asSequence()
+    finally {
+      validationScheduled.set(false)
+      stream?.let { scheduleNext() }
     }
   }
 
-  override fun getProcesses(stream: Common.Stream): Sequence<Common.Process> {
-    try {
-      val future = executor.submit<List<Common.Process>> { loadProcesses(stream) }
-      return future.get(400, TimeUnit.MILLISECONDS).asSequence()
-    }
-    catch (ex: TimeoutException) {
-      return processes[stream]?.asSequence().orEmpty()
-    }
-    catch (ex: Exception) {
-      Logger.getInstance(DefaultProcessManager::class.java).error(ex)
-      return processes[stream]?.asSequence().orEmpty()
-    }
-  }
-
-  private fun loadDevices(): List<Common.Stream> {
-    // Query for current devices
-    val result = mutableListOf<Common.Stream>()
-    // Get all streams of all types.
-    val request = Transport.GetEventGroupsRequest.newBuilder()
-      .setStreamId(-1)  // DataStoreService.DATASTORE_RESERVED_STREAM_ID
-      .setKind(Common.Event.Kind.STREAM)
-      .build()
-    val response = client.transportStub.getEventGroups(request)
-    for (group in response.groupsList) {
-      val isStreamDead = group.getEvents(group.eventsCount - 1).isEnded
-      if (isStreamDead) {
-        // Ignore dead streams.
-        continue
-      }
-      val connectedEvent = getLastMatchingEvent(group) { e -> e.hasStream() && e.stream.hasStreamConnected() }
-                           ?: // Ignore stream event groups that do not have the connected event.
-                           continue
-      val stream = connectedEvent.stream.streamConnected.stream
-      // We only want streams of type device to get process information.
-      if (stream.type == Common.Stream.Type.DEVICE && stream.device.featureLevel >= 29) {
-        result.add(stream)
-      }
-    }
-    removeOldStreams(result)
-    return result
-  }
-
-  private fun removeOldStreams(knownStreams: List<Common.Stream>) {
-    processes.keys.retainAll(knownStreams)
-    val streams = knownStreams.toMutableSet()
-    streams.removeAll(processes.keys)
-    streams.forEach { processes.putIfAbsent(it, emptyList()) }
-  }
-
-  private fun loadProcesses(stream: Common.Stream): List<Common.Process> {
-    val processRequest = Transport.GetEventGroupsRequest.newBuilder()
-      .setStreamId(stream.streamId)
-      .setKind(Common.Event.Kind.PROCESS)
-      .build()
-    val processResponse = client.transportStub.getEventGroups(processRequest)
-    val processList = ArrayList<Common.Process>()
+  private fun loadProcesses(stream: Common.Stream) {
+    val processRequest = Transport.GetEventGroupsRequest.newBuilder().apply {
+      streamId = stream.streamId
+      kind = PROCESS
+    }.build()
+    val processResponse = transportStub.getEventGroups(processRequest)
+    val processMap = mutableMapOf<Int, Common.Process>()
     // A group is a collection of events that happened to a single process.
     for (groupProcess in processResponse.groupsList) {
       val isProcessDead = groupProcess.getEvents(groupProcess.eventsCount - 1).isEnded
@@ -133,20 +165,13 @@ class DefaultProcessManager(
         // Ignore dead processes.
         continue
       }
-      val aliveEvent = getLastMatchingEvent(groupProcess) { e -> e.hasProcess() && e.process.hasProcessStarted() }
+      val aliveEvent = groupProcess.eventsList.lastOrNull { e -> e.hasProcess() && e.process.hasProcessStarted() }
                        ?: // Ignore process event groups that do not have the started event.
                        continue
       val process = aliveEvent.process.processStarted.process
-      processList.add(process)
+      processMap[process.pid] = process
     }
-    processes[stream] = processList
-    return processList
-  }
-
-  /**
-   * Helper method to return the last even in an EventGroup that matches the input condition.
-   */
-  private fun getLastMatchingEvent(group: Transport.EventGroup, predicate: (Common.Event) -> Boolean): Common.Event? {
-    return group.eventsList.lastOrNull { predicate(it) }
+    processes[stream] = processMap
+    fireProcessesChanged()
   }
 }

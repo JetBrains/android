@@ -17,15 +17,15 @@ package com.android.tools.idea.uibuilder.property2.support
 
 import com.android.SdkConstants.CLASS_ACTIVITY
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
-import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.ClassInheritorsSearch
 import org.jetbrains.android.dom.converters.OnClickConverter
+import org.jetbrains.android.dom.manifest.getPackageName
 
 /**
  * [EnumSupport] for the "onClick" attribute.
@@ -37,41 +37,51 @@ class OnClickEnumSupport(val model: NlModel) : EnumSupport {
 
   override val values: List<EnumValue>
     get() {
-      val module = model.facet.module
-      val configuration = model.configuration
-      var activityClassName = configuration.activity
-      val facade = JavaPsiFacade.getInstance(module.project)
-      val classes: Collection<PsiClass>
-      if (activityClassName != null) {
-        if (activityClassName.startsWith(".")) {
-          val manifest = MergedManifestManager.getSnapshot(module)
-          val pkg = StringUtil.notNullize(manifest.`package`)
-          activityClassName = pkg + activityClassName
-        }
-        val activityClass = facade.findClass(activityClassName, module.moduleScope)
-        classes = if (activityClass != null) listOf(activityClass) else emptyList()
-      } else {
-        var scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false)
-        val activityClass = facade.findClass(CLASS_ACTIVITY, scope)
-        if (activityClass != null) {
-          scope = GlobalSearchScope.moduleScope(module)
-          classes = ClassInheritorsSearch.search(activityClass, scope, true).findAll()
-        } else {
-          classes = emptyList()
-        }
-      }
+      val app = ApplicationManager.getApplication()
+      val classes = app.runReadAction<Collection<PsiClass>> { findActivityClasses() }
       val sortedClasses = classes.sortedBy { it.name }
       val values = mutableListOf<EnumValue>()
       for (psiClass in sortedClasses) {
-        val methodNames = psiClass.methods
-          .filter { psiClass == it.containingClass && OnClickConverter.CONVERTER_FOR_LAYOUT.checkSignature(it) }
-          .map { it.name }
-          .sorted()
+        val methodNames = app.runReadAction<List<String>> { getMethodNames(psiClass) }
         if (methodNames.isNotEmpty()) {
-          values.add(EnumValue.header(psiClass.name ?: "class"))
-          methodNames.forEach { values.add(EnumValue.indented(it)) }
+          val className = app.runReadAction<String?> { psiClass.name }
+          values.add(EnumValue.header(className ?: "class"))
+          methodNames.sorted().forEach { values.add(EnumValue.indented(it)) }
         }
       }
       return values
     }
+
+  private fun findActivityClasses(): Collection<PsiClass> {
+    val module = model.facet.module
+    val configuration = model.configuration
+    var activityClassName = configuration.activity
+    val facade = JavaPsiFacade.getInstance(module.project)
+    val classes: Collection<PsiClass>
+    if (activityClassName != null) {
+      if (activityClassName.startsWith(".")) {
+        val pkg = getPackageName(module)
+        activityClassName = pkg + activityClassName
+      }
+      val activityClass = facade.findClass(activityClassName, module.moduleScope)
+      classes = if (activityClass != null) listOf(activityClass) else emptyList()
+    }
+    else {
+      var scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false)
+      val activityClass = facade.findClass(CLASS_ACTIVITY, scope)
+      if (activityClass != null) {
+        scope = GlobalSearchScope.moduleScope(module)
+        classes = ClassInheritorsSearch.search(activityClass, scope, true).findAll()
+      }
+      else {
+        classes = emptyList()
+      }
+    }
+    return classes
+  }
+
+  private fun getMethodNames(psiClass: PsiClass): List<String> =
+    psiClass.methods
+      .filter { psiClass == it.containingClass && OnClickConverter.CONVERTER_FOR_LAYOUT.checkSignature(it) }
+      .map { it.name }
 }

@@ -15,6 +15,7 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
+    <customUsageSearcher implementation="com.android.tools.idea.databinding.findusages.DataBindingResourceUsageSearcher"/>
     <java.shortNamesCache implementation="com.android.tools.idea.databinding.cache.BrShortNamesCache"/>
     <java.shortNamesCache implementation="com.android.tools.idea.databinding.cache.LayoutBindingShortNamesCache"/>
     <java.shortNamesCache implementation="com.android.tools.idea.databinding.cache.DataBindingComponentShortNamesCache"/>
@@ -26,7 +27,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.databinding.DataBindingModeTrackingService" />
     <applicationService serviceImplementation="com.android.tools.idea.databinding.ViewBindingEnabledTrackingService" />
     <automaticRenamerFactory implementation="com.android.tools.idea.databinding.renamer.DataBindingRenamerFactory"/>
-    <moduleService serviceImplementation="com.android.tools.idea.databinding.ModuleDataBinding" />
+    <moduleService serviceImplementation="com.android.tools.idea.databinding.module.LayoutBindingModuleCache" />
     <xml.elementDescriptorProvider implementation="com.android.tools.idea.databinding.xml.DataBindingDomElementDescriptorProvider" order="first"/>
     <projectService serviceInterface="com.android.tools.idea.databinding.analytics.api.DataBindingTracker"
                     serviceImplementation="com.android.tools.idea.databinding.analytics.LayoutBindingTracker"

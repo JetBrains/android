@@ -42,7 +42,7 @@ public final class DragPreferencesFromPaletteToComponentTreeTest {
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/xml/preference_screen.xml");
 
-    NlEditorFixture layoutEditor = editor.getLayoutEditor(false);
+    NlEditorFixture layoutEditor = editor.getLayoutEditor();
     layoutEditor.waitForRenderToFinish();
 
     JTreeFixture componentTree = layoutEditor.getComponentTree();

@@ -98,7 +98,7 @@ public class TransportService implements Disposable {
   @NotNull
   public Common.Stream registerStreamServer(Common.Stream.Type streamType, @NotNull EventStreamServer streamServer) {
     Common.Stream stream = Common.Stream.newBuilder().setStreamId(myCustomStreamId.incrementAndGet()).setType(streamType).build();
-    ManagedChannel channel = InProcessChannelBuilder.forName(streamServer.getServerName()).usePlaintext(true).directExecutor().build();
+    ManagedChannel channel = InProcessChannelBuilder.forName(streamServer.getServerName()).usePlaintext().directExecutor().build();
     myDataStoreService.connect(stream, channel);
 
     myStreamIdToServerMap.put(stream.getStreamId(), streamServer);

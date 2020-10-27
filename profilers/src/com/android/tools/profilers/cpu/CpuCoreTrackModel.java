@@ -15,10 +15,10 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,12 +29,12 @@ public class CpuCoreTrackModel {
   private final StateChartModel<CpuThreadSliceInfo> myStateChartModel;
   private final int myAppProcessId;
 
-  public CpuCoreTrackModel(@NotNull AtraceDataSeries<CpuThreadSliceInfo> dataSeries,
+  public CpuCoreTrackModel(@NotNull DataSeries<CpuThreadSliceInfo> dataSeries,
                            @NotNull Range range,
-                           @NotNull AtraceCpuCapture atraceCapture) {
+                           @NotNull CpuCapture cpuCapture) {
     myStateChartModel = new StateChartModel<>();
     myStateChartModel.addSeries(new RangedSeries<>(range, dataSeries));
-    myAppProcessId = atraceCapture.getMainThreadId();
+    myAppProcessId = cpuCapture.getMainThreadId();
   }
 
   public StateChartModel<CpuThreadSliceInfo> getStateChartModel() {

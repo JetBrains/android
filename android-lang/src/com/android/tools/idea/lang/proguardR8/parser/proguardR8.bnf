@@ -66,7 +66,7 @@
 
 root ::= (include_file|rule_)*
 
-include_file ::= '@' file_ {
+include_file ::= '@' file {
   recoverWhile=not_flag
   pin=1
 }
@@ -75,8 +75,10 @@ private rule_ ::= rule_with_class_specification | rule {recoverWhile=not_flag}
 rule ::= flag (flag_argument ("," flag_argument)*)?
 rule_with_class_specification ::= flag  ("," keep_option_modifier)* class_specification_header class_specification_body?
 
-private file_ ::= "!"?(FILE_NAME|SINGLE_QUOTED_STRING|DOUBLE_QUOTED_STRING|UNTERMINATED_SINGLE_QUOTED_STRING|UNTERMINATED_DOUBLE_QUOTED_STRING|ASTERISK)
-private file_list ::= file_ ((':'|';') file_)*
+file ::= "!"?(FILE_NAME|SINGLE_QUOTED_STRING|DOUBLE_QUOTED_STRING|UNTERMINATED_SINGLE_QUOTED_STRING|UNTERMINATED_DOUBLE_QUOTED_STRING|ASTERISK) {
+  methods=[getReferences isQuoted]
+}
+private file_list ::= file ((':'|';') file)*
 file_filter ::= file_list (',' file_list)*
 flag_argument ::= file_list ('(' file_filter ')')?
 

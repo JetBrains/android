@@ -17,7 +17,6 @@ package com.android.tools.idea.appinspection.api
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.internal.AppInspectionTransport
-import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createSuccessfulServiceResponse
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
@@ -33,10 +32,9 @@ import com.google.common.util.concurrent.Futures
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.junit.rules.Timeout
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
+private const val TEST_PROJECT_NAME = "TestProject"
 
 class AppInspectionTargetTest {
   private val timer = FakeTimer()
@@ -48,15 +46,12 @@ class AppInspectionTargetTest {
   @get:Rule
   val ruleChain = RuleChain.outerRule(gRpcServerRule).around(appInspectionRule)!!
 
-  @get:Rule
-  val timeoutRule = Timeout(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)
-
   @Test
   fun launchInspector() {
     val clientFuture = Futures.transformAsync(
       appInspectionRule.launchTarget(),
       AsyncFunction<AppInspectionTarget, TestInspectorClient> { target ->
-        target!!.launchInspector(INSPECTOR_ID, TEST_JAR) { commandMessenger ->
+        target!!.launchInspector(INSPECTOR_ID, TEST_JAR, TEST_PROJECT_NAME) { commandMessenger ->
           assertThat(appInspectionRule.jarCopier.copiedJar).isEqualTo(TEST_JAR)
           TestInspectorClient(commandMessenger)
         }
@@ -69,21 +64,20 @@ class AppInspectionTargetTest {
   fun launchInspectorReturnsCorrectConnection() {
     val target = appInspectionRule.launchTarget().get()
 
-    // Don't let command handler reply to any commands. We'll manually add events.
-    val latch = CountDownLatch(1)
+    // We set the App Inspection command handler to not do anything with commands, because the test will manually insert responses. This is
+    // done to better control the timing of events.
+    val commandsExecutedLatch = CountDownLatch(2)
     transportService.setCommandHandler(
       Commands.Command.CommandType.APP_INSPECTION,
       object : CommandHandler(timer) {
         override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
-          if (command.hasAppInspectionCommand() && command.appInspectionCommand.inspectorId == "connects_successfully") {
-            latch.countDown()
-          }
+          commandsExecutedLatch.countDown()
         }
       })
 
     // Launch an inspector connection that will never be established (if the test passes).
     val unsuccessfulConnection =
-      target.launchInspector("never_connects", TEST_JAR) { commandMessenger ->
+      target.launchInspector("never_connects", TEST_JAR, TEST_PROJECT_NAME) { commandMessenger ->
         TestInspectorClient(commandMessenger)
       }
 
@@ -93,12 +87,12 @@ class AppInspectionTargetTest {
       appInspectionRule.addAppInspectionResponse(createSuccessfulServiceResponse(12345))
 
       // Launch an inspector connection that will be successfully established.
-      val successfulConnection = target.launchInspector("connects_successfully", TEST_JAR) { commandMessenger ->
+      val successfulConnection = target.launchInspector("connects_successfully", TEST_JAR, TEST_PROJECT_NAME) { commandMessenger ->
         TestInspectorClient(commandMessenger)
       }
 
-      // Wait for command to be sent.
-      latch.await()
+      // Wait for launch inspector commands to be executed. Otherwise, target may not be in a testable state.
+      commandsExecutedLatch.await()
 
       // Manually generate correct response to the command.
       appInspectionRule.addAppInspectionResponse(

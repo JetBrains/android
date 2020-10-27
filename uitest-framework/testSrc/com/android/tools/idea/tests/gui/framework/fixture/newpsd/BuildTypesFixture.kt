@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
+import com.android.tools.idea.tests.gui.framework.clickToolButton
+import com.android.tools.idea.tests.gui.framework.waitForIdle
 import org.fest.swing.core.Robot
 import java.awt.Container
 

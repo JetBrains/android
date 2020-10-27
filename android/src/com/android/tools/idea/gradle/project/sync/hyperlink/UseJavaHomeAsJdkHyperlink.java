@@ -28,7 +28,7 @@ import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class UseJavaHomeAsJdkHyperlink extends NotificationHyperlink {
+public class UseJavaHomeAsJdkHyperlink extends NotificationHyperlink {
   @NotNull private String myJavaHome;
 
   @Nullable

@@ -17,10 +17,12 @@ package com.android.tools.idea.gradle.project.sync.issues.processor;
 
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_REPOSITORY_ADDED;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModelExtensionKt;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.util.GradleVersions;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -121,10 +123,11 @@ public class AddRepoProcessor extends BaseRefactoringProcessor {
       if (filePsiElement != null && elements.contains(filePsiElement)) {
         switch (myRepository) {
           case GOOGLE:
-            RepositoriesModelExtensionKt.addGoogleMavenRepository(buildModel.repositories(), myProject);
+            GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersionOrDefault(myProject, new GradleVersion(1, 0));
+            RepositoriesModelExtensionKt.addGoogleMavenRepository(buildModel.repositories(), gradleVersion);
             PsiElement buildScriptElement = buildModel.buildscript().getPsiElement();
             if (buildScriptElement != null) {
-              RepositoriesModelExtensionKt.addGoogleMavenRepository(buildModel.buildscript().repositories(), myProject);
+              RepositoriesModelExtensionKt.addGoogleMavenRepository(buildModel.buildscript().repositories(), gradleVersion);
             }
             break;
           default:

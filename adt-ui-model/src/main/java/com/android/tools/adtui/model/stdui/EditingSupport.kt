@@ -65,6 +65,14 @@ interface EditingSupport {
   val uiExecution: (runnable: Runnable) -> Unit
     get() = { it.run() }
 
+  /**
+   * Indicates whether the completion list should be refreshed on
+   * every keystroke.
+   */
+  @JvmDefault
+  val alwaysRefreshCompletions : Boolean
+    get() = false
+
   companion object {
     val INSTANCE: EditingSupport = DefaultEditingSupport()
   }
@@ -91,7 +99,7 @@ enum class EditingErrorCategory(val outline: String?) {
 typealias EditingValidation = (editedValue: String?) -> Pair<EditingErrorCategory, String>
 
 /** Completion callback */
-typealias EditorCompletion = () -> List<String>
+typealias EditorCompletion = (forText: String) -> List<String>
 
 /** Execute a longer running operation on a non UI thread */
 typealias PooledThreadExecution = (runnable: Runnable) -> Future<*>

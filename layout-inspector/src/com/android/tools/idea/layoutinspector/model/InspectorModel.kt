@@ -52,7 +52,7 @@ class InspectorModel(val project: Project) {
 
   private val roots = mutableMapOf<Any, ViewNode>()
   // dummy node to hold the roots of the current windows.
-  val root = ViewNode(-1, "root - hide", null, 0, 0, 0, 0, 0, 0, null, "", 0)
+  val root = ViewNode(-1, "root - hide", null, 0, 0, 0, 0, null, "", 0)
 
   var hasSubImages = false
     private set
@@ -84,7 +84,7 @@ class InspectorModel(val project: Project) {
     for (id in allIds) {
       val viewNode = roots[id] ?: continue
       if (viewNode.isDimBehind) {
-        val dimmer = ViewNode(-1, DIMMER_QNAME, null, 0, 0, 0, 0, maxWidth, maxHeight, null, "", 0)
+        val dimmer = ViewNode(-1, DIMMER_QNAME, null, 0, 0, maxWidth, maxHeight, null, "", 0)
         if (maxWidth > 0 && maxHeight > 0) {
           // TODO: subclass ViewNode so we don't have to create and hold on to this image
           val image = BufferedImage(maxWidth, maxHeight, BufferedImage.TYPE_INT_ARGB)
@@ -151,7 +151,7 @@ class InspectorModel(val project: Project) {
   fun notifyModified() = modificationListeners.forEach { it(root, root, false) }
 
   private class Updater(private val oldRoot: ViewNode, private val newRoot: ViewNode) {
-    private val oldNodes = oldRoot.flatten().associateBy { it.drawId }
+    private val oldNodes = oldRoot.flatten().asSequence().filter{ it.drawId != 0L }.associateBy { it.drawId }
 
     fun update(): Boolean {
       return update(oldRoot, oldRoot.parent, newRoot)
@@ -165,19 +165,27 @@ class InspectorModel(val project: Project) {
       oldNode.imageTop = newNode.imageTop
       oldNode.width = newNode.width
       oldNode.height = newNode.height
+      oldNode.qualifiedName = newNode.qualifiedName
+      oldNode.layout = newNode.layout
       oldNode.x = newNode.x
       oldNode.y = newNode.y
       oldNode.layoutFlags = newNode.layoutFlags
       oldNode.imageType = newNode.imageType
       oldNode.parent = parent
+      if (oldNode is ComposeViewNode && newNode is ComposeViewNode) {
+        oldNode.composeFilename = newNode.composeFilename
+        oldNode.composeMethod = newNode.composeMethod
+        oldNode.composeLineNumber = newNode.composeLineNumber
+      }
 
       oldNode.children.clear()
       for (newChild in newNode.children) {
         val oldChild = oldNodes[newChild.drawId]
-        if (oldChild != null) {
+        if (oldChild != null && oldChild.javaClass == newChild.javaClass) {
           modified = update(oldChild, oldNode, newChild) || modified
           oldNode.children.add(oldChild)
         } else {
+          modified = true
           oldNode.children.add(newChild)
           newChild.parent = oldNode
         }

@@ -17,13 +17,14 @@ package com.android.tools.idea.npw.assetstudio;
 
 import static com.android.ide.common.util.AssetUtil.NO_EFFECTS;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.roundToInt;
-import static com.android.tools.idea.npw.assetstudio.VectorDrawableTransformer.transform;
+import static com.android.tools.idea.rendering.VectorDrawableTransformer.transform;
 
 import com.android.ide.common.util.AssetUtil;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
+import com.android.tools.idea.rendering.Gravity;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.util.ExceptionUtil;
 import java.awt.Color;
@@ -35,6 +36,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.regex.Pattern;
 import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,6 +51,7 @@ public final class TransformedImageAsset {
   @Nullable private final Color myTint;
   private final double myOpacity;
   private final boolean myIsTrimmed;
+  @NotNull private final String myLineSeparator;
   @NotNull private final Dimension myTargetSize;
   @Nullable private Rectangle2D myTrimRectangle;
   @GuardedBy("myLock")
@@ -64,6 +67,8 @@ public final class TransformedImageAsset {
   @Nullable private BufferedImage myTrimmedImage;
   private final Object myLock = new Object();
 
+  private static final Pattern LINE_ENDING_PATTERN = Pattern.compile("(\r\n|\n)");
+
   /**
    * Initializes a new transformed image asset.
    *
@@ -72,12 +77,14 @@ public final class TransformedImageAsset {
    * @param scaleFactor the scale factor to be applied to the image
    * @param tint the tint to apply to the image, or null to preserve original colors
    * @param context the trim rectangle calculator
+   * @param lineSeparator the line separator the XML text should use
    */
   public TransformedImageAsset(@NotNull BaseAsset asset,
                                @NotNull Dimension targetSize,
                                double scaleFactor,
                                @Nullable Color tint,
-                               @NotNull GraphicGeneratorContext context) {
+                               @NotNull GraphicGeneratorContext context,
+                               @NotNull String lineSeparator) {
     myDrawableFuture = asset instanceof ImageAsset ? ((ImageAsset)asset).getXmlDrawable() :
                        asset instanceof TextAsset ? ((TextAsset)asset).getXmlDrawable() : null;
     myImageFuture = myDrawableFuture == null ? asset.toImage() : null;
@@ -88,6 +95,7 @@ public final class TransformedImageAsset {
     myScaleFactor = scaleFactor;
     myContext = context;
     myGravity = Gravity.CENTER;
+    myLineSeparator = lineSeparator;
   }
 
   @Nullable
@@ -141,6 +149,7 @@ public final class TransformedImageAsset {
           return null;
         }
         if (myTransformedDrawable == null) {
+          xmlDrawable = LINE_ENDING_PATTERN.matcher(xmlDrawable).replaceAll(myLineSeparator);
           Rectangle2D clipRectangle = myIsTrimmed ? getTrimRectangle(xmlDrawable) : null;
           myTransformedDrawable = transform(xmlDrawable, myTargetSize, myGravity, myScaleFactor, clipRectangle, myShift, myTint, myOpacity);
         }

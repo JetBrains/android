@@ -15,22 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.ide.common.rendering.HardwareConfigHelper;
-import com.android.ide.common.rendering.api.HardwareConfig;
-import com.android.sdklib.devices.Device;
-import com.android.sdklib.devices.State;
-import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.AndroidColorSet;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.intellij.util.ui.UIUtil;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Insets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,59 +32,33 @@ import org.jetbrains.annotations.Nullable;
  * This is actually painted by {@link ScreenViewLayer}.
  */
 abstract class ScreenViewBase extends SceneView {
-
-  private final ColorSet myColorSet = new AndroidColorSet();
   protected boolean myIsSecondary;
 
   // Use cached to avoid deriving same font multiple times.
   @NotNull private Font myLabelFont;
 
-  public ScreenViewBase(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
-    super(surface, manager);
+  protected ScreenViewBase(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager, @NotNull ShapePolicy shapePolicy) {
+    super(surface, manager, shapePolicy);
     myLabelFont = createLabelFont();
   }
 
+  @NotNull
   @Override
-  public int getNameLabelHeight() {
+  public Insets getMargin() {
     if (getSurface().isShowModelNames()) {
       Graphics graphics = getSurface().getGraphics();
       if (graphics != null) {
         FontMetrics metrics = graphics.getFontMetrics(myLabelFont);
-        return metrics.getHeight() + NlConstants.NAME_LABEL_BOTTOM_MARGIN_PX;
+        //noinspection UseDPIAwareInsets, this margin is not scaled
+        return new Insets(metrics.getHeight() + NlConstants.NAME_LABEL_BOTTOM_MARGIN_PX, 0, 0, 0);
       }
     }
-    return 0;
+    return NO_MARGIN;
   }
 
   @NotNull
   public Font getLabelFont() {
     return myLabelFont;
-  }
-
-  /**
-   * Returns the current preferred size for the view.
-   *
-   * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
-   *                  returned.
-   */
-  @Override
-  @NotNull
-  public Dimension getPreferredSize(@Nullable Dimension dimension) {
-    if (dimension == null) {
-      dimension = new Dimension();
-    }
-
-    Configuration configuration = getConfiguration();
-    Device device = configuration.getCachedDevice();
-    State state = configuration.getDeviceState();
-    if (device != null && state != null) {
-      HardwareConfig config =
-        new HardwareConfigHelper(device).setOrientation(state.getOrientation()).getConfig();
-
-      dimension.setSize(config.getScreenWidth(), config.getScreenHeight());
-    }
-
-    return dimension;
   }
 
   @NotNull
@@ -104,12 +71,6 @@ abstract class ScreenViewBase extends SceneView {
   @Override
   public NlDesignSurface getSurface() {
     return (NlDesignSurface)super.getSurface();
-  }
-
-  @Override
-  @NotNull
-  public ColorSet getColorSet() {
-    return myColorSet;
   }
 
   @Nullable

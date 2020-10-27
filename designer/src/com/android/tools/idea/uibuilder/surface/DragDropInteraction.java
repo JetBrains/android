@@ -27,7 +27,11 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.DragEnterEvent;
+import com.android.tools.idea.common.surface.DragOverEvent;
+import com.android.tools.idea.common.surface.DropEvent;
 import com.android.tools.idea.common.surface.Interaction;
+import com.android.tools.idea.common.surface.InteractionEvent;
 import com.android.tools.idea.common.surface.InteractionInformation;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
@@ -43,6 +47,7 @@ import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.handlers.common.CommonDragHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutGuidelineHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
+import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.intellij.openapi.project.Project;
@@ -154,11 +159,11 @@ public class DragDropInteraction extends Interaction {
   }
 
   @Override
-  public void begin(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
-    assert event instanceof DropTargetDragEvent;
-    DropTargetDragEvent dropEvent = (DropTargetDragEvent) event;
+  public void begin(@NotNull InteractionEvent event) {
+    assert event instanceof DragEnterEvent;
+    DropTargetDragEvent dropEvent = ((DragEnterEvent)event).getEventObject();
     //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-    begin(dropEvent.getLocation().x, dropEvent.getLocation().y, interactionInformation.getModifiersEx());
+    begin(dropEvent.getLocation().x, dropEvent.getLocation().y, event.getInfo().getModifiersEx());
   }
 
   @Override
@@ -169,9 +174,9 @@ public class DragDropInteraction extends Interaction {
   }
 
   @Override
-  public void update(@NotNull EventObject event, @NotNull InteractionInformation interactionInformation) {
-    if (event instanceof DropTargetDragEvent) {
-      DropTargetDragEvent dragEvent = (DropTargetDragEvent) event;
+  public void update(@NotNull InteractionEvent event) {
+    if (event instanceof DragOverEvent) {
+      DropTargetDragEvent dragEvent = ((DragOverEvent)event).getEventObject();
       Point location = dragEvent.getLocation();
       NlDropEvent nlDropEvent = new NlDropEvent(dragEvent);
 
@@ -182,7 +187,7 @@ public class DragDropInteraction extends Interaction {
       }
 
       //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-      update(location.x, location.y, interactionInformation.getModifiersEx());
+      update(location.x, location.y, event.getInfo().getModifiersEx());
 
       if (acceptsDrop()) {
         DragType dragType = dragEvent.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
@@ -213,21 +218,21 @@ public class DragDropInteraction extends Interaction {
   public boolean acceptsDrop() { return myDoesAcceptDropAtLastPosition; }
 
   @Override
-  public void commit(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
-    assert event instanceof DropTargetDropEvent;
-    DropTargetDropEvent dropEvent = (DropTargetDropEvent) event;
+  public void commit(@NotNull InteractionEvent event) {
+    assert event instanceof DropEvent;
+    DropTargetDropEvent dropEvent = ((DropEvent)event).getEventObject();
     NlDropEvent nlDropEvent = new NlDropEvent(dropEvent);
     Point location = dropEvent.getLocation();
 
     InsertType insertType = finishDropInteraction(location.x, location.y, dropEvent.getDropAction(), dropEvent.getTransferable());
     if (insertType != null) {
       //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-      end(dropEvent.getLocation().x, dropEvent.getLocation().y, interactionInformation.getModifiersEx());
+      end(dropEvent.getLocation().x, dropEvent.getLocation().y, event.getInfo().getModifiersEx());
       nlDropEvent.accept(insertType);
       nlDropEvent.complete();
     }
     else {
-      cancel(event, interactionInformation);
+      cancel(event);
       nlDropEvent.reject();
     }
   }
@@ -253,11 +258,11 @@ public class DragDropInteraction extends Interaction {
   }
 
   @Override
-  public void cancel(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+  public void cancel(@NotNull InteractionEvent event) {
     //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-    cancel(interactionInformation.getX(), interactionInformation.getY(), interactionInformation.getModifiersEx());
-    if (event instanceof DropTargetDropEvent) {
-      NlDropEvent nlDropEvent = new NlDropEvent((DropTargetDropEvent)event);
+    cancel(event.getInfo().getX(), event.getInfo().getY(), event.getInfo().getModifiersEx());
+    if (event instanceof DropEvent) {
+      NlDropEvent nlDropEvent = new NlDropEvent(((DropEvent)event).getEventObject());
       nlDropEvent.reject();
     }
   }
@@ -324,8 +329,19 @@ public class DragDropInteraction extends Interaction {
         String error = null;
         ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(project);
         for (NlComponent component : myDraggedComponents) {
-          if (SdkConstants.CLASS_CONSTRAINT_LAYOUT_GUIDELINE.isEquals(component.getTagName())
-              && (!(myCurrentHandler instanceof ConstraintLayoutHandler))) {
+          boolean constraintHelper =
+              SdkConstants.CLASS_CONSTRAINT_LAYOUT_GUIDELINE.isEquals(component.getTagName()) ||
+              SdkConstants.CLASS_CONSTRAINT_LAYOUT_BARRIER.isEquals(component.getTagName()) ||
+              SdkConstants.CLASS_CONSTRAINT_LAYOUT_FLOW.isEquals(component.getTagName()) ||
+              SdkConstants.CLASS_CONSTRAINT_LAYOUT_GROUP.isEquals(component.getTagName()) ||
+              SdkConstants.CLASS_CONSTRAINT_LAYOUT_LAYER.isEquals(component.getTagName()) ||
+              SdkConstants.CLASS_CONSTRAINT_LAYOUT_IMAGE_FILTER_VIEW.isEquals(component.getTagName()) ||
+              SdkConstants.CLASS_CONSTRAINT_LAYOUT_IMAGE_FILTER_BUTTON.isEquals(component.getTagName()) ||
+              SdkConstants.CLASS_CONSTRAINT_LAYOUT_MOCK_VIEW.isEquals(component.getTagName());
+          boolean acceptableHandler =
+              (myCurrentHandler instanceof ConstraintLayoutHandler) ||
+              (myCurrentHandler instanceof MotionLayoutHandler);
+          if (constraintHelper && !acceptableHandler) {
             error = String.format(
               "<%1$s> does not accept <%2$s> as a child", myDragReceiver.getNlComponent().getTagName(), component.getTagName());
             myDoesAcceptDropAtLastPosition = false;

@@ -1,4 +1,4 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.ui.resourcechooser;
 
 import com.android.tools.adtui.ui.ClickableLabel;
@@ -565,7 +565,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     return result;
   }
 
-  private static final class ColorSelectionPanel extends JPanel {
+  private static class ColorSelectionPanel extends JPanel {
     private SaturationBrightnessComponent mySaturationBrightnessComponent;
     private HueSlideComponent myHueComponent;
     private SlideComponent myOpacityComponent = null;
@@ -761,7 +761,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     }
   }
 
-  public static final class ColorPreviewComponent extends JComponent {
+  public static class ColorPreviewComponent extends JComponent {
     private static final Icon WARNING_ICON = AllIcons.General.BalloonWarning;
     private static final String TEXT = "Text";
     private static final int PADDING = JBUI.scale(18);
@@ -928,7 +928,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     }
   }
 
-  private static final class RecommendedColorsComponent extends JComponent {
+  private static class RecommendedColorsComponent extends JComponent {
     private static final int SPACE = JBUI.scale(3);
     private static final int CELL_SIZE = JBUI.scale(40);
     private static final int COLUMN_COUNT = 10;
@@ -1142,7 +1142,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     }
   }
 
-  private static final class ColorPipette implements ImageObserver {
+  private static class ColorPipette implements ImageObserver {
     private Dialog myPickerFrame;
     private final JComponent myParent;
     private Color myOldColor;

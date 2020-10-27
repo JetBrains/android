@@ -74,7 +74,7 @@ public final class AllocStatsDataSeriesTest {
   public void testGetDataForXRange() {
     myTransportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     StudioProfilers studioProfilers =
-      new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeProfilerServices, myTimer);
+      new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, myTimer);
     studioProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
 

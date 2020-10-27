@@ -39,6 +39,12 @@ public interface LightResourceClassService {
   Collection<? extends PsiClass> getLightRClassesAccessibleFromModule(@NotNull Module module, boolean includeTestClasses);
 
   /**
+   * Returns R classes defined by this module.
+   */
+  @NotNull
+  Collection<? extends PsiClass> getLightRClassesDefinedByModule(@NotNull Module module, boolean includeTestClasses);
+
+  /**
    * Returns all R classes that may contain resources from the given module.
    *
    * <p>This is used for finding resource usages, by looking for fields with the matching resource type and name.

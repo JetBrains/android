@@ -16,11 +16,14 @@
 package org.jetbrains.android.augment
 
 import com.android.SdkConstants
-import com.android.tools.idea.AndroidPsiUtils
+import com.android.tools.idea.model.MergedManifestModificationTracker
 import com.android.tools.idea.res.AndroidClassWithOnlyInnerClassesBase
+import com.android.tools.idea.res.getFieldNameByResourceName
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.util.ModificationTracker
+import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.module.ModulePointerManager
 import com.intellij.openapi.util.text.StringUtil.getShortName
 import com.intellij.psi.*
 import com.intellij.psi.search.GlobalSearchScope
@@ -28,12 +31,13 @@ import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.containers.isNullOrEmpty
+import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.LIGHT_CLASS_KEY
+import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.MODULE_POINTER_KEY
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.manifest.getCustomPermissionGroups
 import org.jetbrains.android.dom.manifest.getCustomPermissions
 import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidResourceUtil.getFieldNameByResourceName
 
 
 /**
@@ -51,6 +55,9 @@ class ManifestClass(
 
   init {
     setModuleInfo(facet.module, false)
+    val lightVirtualFile = myFile.viewProvider.virtualFile
+    lightVirtualFile.putUserData(MODULE_POINTER_KEY, ModulePointerManager.getInstance(project).create(facet.module))
+    lightVirtualFile.putUserData(LIGHT_CLASS_KEY, ManifestClass::class.java)
   }
 
   override fun getQualifiedName(): String? = getPackageName(facet)?.let { it + "." + SdkConstants.FN_MANIFEST_BASE }
@@ -69,10 +76,7 @@ class ManifestClass(
     return classes.toTypedArray()
   }
 
-  override fun getInnerClassesDependencies(): ModificationTracker {
-    // TODO(b/110188226): implement a ModificationTracker for the set of existing manifest files.
-    return AndroidPsiUtils.getXmlPsiModificationTracker(project)
-  }
+  override fun getInnerClassesDependencies() = MergedManifestModificationTracker.getInstance(facet.module)
 }
 
 /**
@@ -95,7 +99,7 @@ sealed class ManifestInnerClass(
   private val myFieldsCache: CachedValue<Array<PsiField>> = CachedValuesManager.getManager(project).createCachedValue {
     val manifest = Manifest.getMainManifest(myFacet)
     if (manifest == null) {
-      CachedValueProvider.Result.create(PsiField.EMPTY_ARRAY, AndroidPsiUtils.getXmlPsiModificationTracker(project))
+      CachedValueProvider.Result.create(PsiField.EMPTY_ARRAY, MergedManifestModificationTracker.getInstance(myFacet.module))
     }
     else {
       CachedValueProvider.Result.create<Array<PsiField>>(
@@ -110,7 +114,7 @@ sealed class ManifestInnerClass(
             initializer = factory.createExpressionFromText("\"$value\"", this)
           }
         }.toTypedArray(),
-        listOf(manifest.xmlElement?.containingFile ?: AndroidPsiUtils.getXmlPsiModificationTracker(project))
+        listOf(MergedManifestModificationTracker.getInstance(myFacet.module))
       )
     }
   }

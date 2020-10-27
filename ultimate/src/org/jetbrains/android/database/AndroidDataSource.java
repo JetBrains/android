@@ -21,9 +21,6 @@ import javax.swing.Icon;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 class AndroidDataSource extends LocalDataSource implements ModificationTracker {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.database.AndroidDataSource");
 

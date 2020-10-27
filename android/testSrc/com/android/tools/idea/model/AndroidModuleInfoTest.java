@@ -51,6 +51,10 @@ import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.w3c.dom.Element;
 
+import static com.android.tools.idea.gradle.adtimport.GradleImport.CURRENT_COMPILE_VERSION;
+import static com.android.tools.idea.testing.TestProjectPaths.*;
+import static com.google.common.truth.Truth.assertThat;
+
 public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   public void testDisabled() {
     // http://b/35788105

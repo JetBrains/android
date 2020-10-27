@@ -17,10 +17,12 @@ package com.android.tools.idea.uibuilder.palette;
 
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.ColoredIconGenerator;
+import com.intellij.openapi.util.Pair;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ExpandableItemsHandler;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StatusText;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
 import java.awt.event.MouseEvent;
@@ -54,6 +56,13 @@ public class ItemList extends ListWithMargin<Palette.Item> {
     setCellRenderer(new ItemCellRenderer());
   }
 
+  public void setEmptyText(@NotNull Pair<String, String> text) {
+    StatusText status = getEmptyText();
+    status.clear();
+    status.appendText(text.first);
+    status.appendSecondaryText(text.second, StatusText.DEFAULT_ATTRIBUTES, null);
+  }
+
   @Override
   protected int getRightMarginWidth() {
     return StudioIcons.LayoutEditor.Extras.PALETTE_DOWNLOAD.getIconWidth();
@@ -69,7 +78,7 @@ public class ItemList extends ListWithMargin<Palette.Item> {
            displayFittedTextIfNecessary(index);
   }
 
-  private static final class ItemCellRenderer implements ListCellRenderer<Palette.Item> {
+  private static class ItemCellRenderer implements ListCellRenderer<Palette.Item> {
     private final ItemPanelRenderer myPanel;
     private final JBLabel myDownloadIcon;
     private final TextCellRenderer myTextRenderer;
@@ -130,7 +139,7 @@ public class ItemList extends ListWithMargin<Palette.Item> {
     }
   }
 
-  private static final class ItemPanelRenderer extends JPanel {
+  private static class ItemPanelRenderer extends JPanel {
     private int myWidth;
     private int myHeight;
 

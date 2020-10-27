@@ -50,7 +50,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.templates.IdeGoogleMavenRepository;
+import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -134,7 +134,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
   /**
    * Dependency to add to build.gradle
    */
-  private static final class AppCompatLibraryDescriptor extends ExternalLibraryDescriptor {
+  private static class AppCompatLibraryDescriptor extends ExternalLibraryDescriptor {
     private AppCompatLibraryDescriptor(@Nullable String minVersion) {
       super(GoogleMavenArtifactId.APP_COMPAT_V7.getMavenGroupId(), GoogleMavenArtifactId.APP_COMPAT_V7.getMavenArtifactId(), minVersion,
             null);

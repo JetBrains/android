@@ -25,8 +25,9 @@ import com.android.tools.idea.transport.faketransport.commands.HeapDump;
 import com.android.tools.idea.transport.faketransport.commands.MemoryAllocTracking;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Memory;
-import com.android.tools.profilers.memory.adapters.ClassSet;
-import com.android.tools.profilers.memory.adapters.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
+import com.android.tools.profilers.memory.adapters.classifiers.Classifier;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import java.util.List;
@@ -38,7 +39,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class MemoryProfilerTestUtils {
   @NotNull
-  public static ClassSet findChildClassSetWithName(@NotNull ClassifierSet.Classifier classifier, @NotNull String className) {
+  public static ClassSet findChildClassSetWithName(@NotNull Classifier classifier, @NotNull String className) {
     List<ClassSet> classSets = classifier.getFilteredClassifierSets().stream()
       .filter(
         classifierSet -> classifierSet instanceof ClassSet && className.equals(((ClassSet)classifierSet).getClassEntry().getClassName()))

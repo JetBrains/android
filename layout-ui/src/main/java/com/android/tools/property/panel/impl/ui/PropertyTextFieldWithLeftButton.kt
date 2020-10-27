@@ -25,6 +25,7 @@ import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
+import java.awt.event.MouseListener
 import javax.swing.JComponent
 
 private const val ICON_LEFT_BORDER = 2
@@ -57,6 +58,10 @@ open class PropertyTextFieldWithLeftButton(
 
     editorModel.addListener(ValueChangedListener { updateFromModel() })
     setFromModel()
+  }
+
+  override fun addMouseListener(listener: MouseListener) {
+    textField.addMouseListener(listener)
   }
 
   override fun isFocusable(): Boolean {

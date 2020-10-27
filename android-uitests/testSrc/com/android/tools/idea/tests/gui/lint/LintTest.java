@@ -56,7 +56,6 @@ public class LintTest {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LintTest");
 
     EditorFixture editor = ideFrameFixture
-      .waitForGradleProjectSyncToFinish()
       .getEditor()
       .open("app/src/main/java/com/example/nishanthkumarg/myapplication/MainActivity.java", EditorFixture.Tab.EDITOR)
       .waitUntilErrorAnalysisFinishes();

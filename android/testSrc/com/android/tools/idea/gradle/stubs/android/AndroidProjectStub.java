@@ -35,6 +35,7 @@ import java.io.File;
 import java.util.*;
 import java.util.function.Consumer;
 
+import static com.intellij.openapi.util.text.StringUtil.capitalize;
 import static org.mockito.Mockito.mock;
 
 public class AndroidProjectStub implements AndroidProject {
@@ -42,7 +43,8 @@ public class AndroidProjectStub implements AndroidProject {
 
   @NotNull private final Map<String, BuildTypeContainer> myBuildTypes = Maps.newHashMap();
   @NotNull private final Map<String, ProductFlavorContainer> myProductFlavors = Maps.newHashMap();
-  @NotNull private final Map<String, IdeVariant> myVariants = Maps.newHashMap();
+  @NotNull private final Map<String, Variant> myVariants = Maps.newHashMap();
+  @NotNull private final List<VariantBuildInformation> myVariantsBuiltInformation = new ArrayList<>();
   @NotNull private final List<SigningConfig> mySigningConfigs = new ArrayList<>();
   @NotNull private final List<String> myFlavorDimensions = new ArrayList<>();
   @NotNull private final List<String> myVariantNames = new ArrayList<>();
@@ -71,7 +73,7 @@ public class AndroidProjectStub implements AndroidProject {
     this(name, new FileStructure(parentDir, name));
   }
 
-  private AndroidProjectStub(@NotNull String name, @NotNull FileStructure fileStructure) {
+  public AndroidProjectStub(@NotNull String name, @NotNull FileStructure fileStructure) {
     this.myName = name;
     myFileStructure = fileStructure;
     myBuildFolder = myFileStructure.createProjectDir("build");
@@ -94,8 +96,8 @@ public class AndroidProjectStub implements AndroidProject {
     return null;
   }
 
-  public void forEachVariant(@NotNull Consumer<IdeVariant> action) {
-    for (IdeVariant next : myVariants.values()) {
+  public void forEachVariant(@NotNull Consumer<Variant> action) {
+    for (Variant next : myVariants.values()) {
       action.accept(next);
     }
   }
@@ -199,17 +201,69 @@ public class AndroidProjectStub implements AndroidProject {
     return variant;
   }
 
-  private void addVariant(@NotNull VariantStub variant) {
+  public void addVariant(@NotNull VariantStub variant) {
     if (myFirstVariant == null) {
       myFirstVariant = variant;
     }
     myVariants.put(variant.getName(), variant);
+
+    myVariantsBuiltInformation.add(new VariantBuildInformation() {
+      @NotNull
+      @Override
+      public String getVariantName() {
+        return variant.getName();
+      }
+
+      @NotNull
+      @Override
+      public String getAssembleTaskName() {
+        return "assemble" + capitalize(variant.getName());
+      }
+
+      @NonNull
+      @Override
+      public String getAssembleTaskOutputListingFile() {
+        return new File(myFileStructure.getRootFolderPath(), "build/output/apk/" + variant.getName() + "/output.json").getAbsolutePath();
+      }
+
+      @Nullable
+      @Override
+      public String getBundleTaskName() {
+        return null;
+      }
+
+      @Nullable
+      @Override
+      public String getBundleTaskOutputListingFile() {
+        return new File(myFileStructure.getRootFolderPath(),
+                        "build/intermediates/bundle_ide_model/" + variant.getName() + "/output.json").getAbsolutePath();
+      }
+
+      @Nullable
+      @Override
+      public String getApkFromBundleTaskName() {
+        return null;
+      }
+
+      @Nullable
+      @Override
+      public String getApkFromBundleTaskOutputListingFile() {
+        return new File(myFileStructure.getRootFolderPath(),
+                        "build/intermediates/apk_from_bundle_ide_model/" + variant.getName() + "/output.json").getAbsolutePath();
+      }
+    });
   }
 
   @Override
   @NotNull
   public Collection<Variant> getVariants() {
     return new ArrayList<>(myVariants.values());
+  }
+
+  @NonNull
+  @Override
+  public Collection<VariantBuildInformation> getVariantsBuildInformation() {
+    return new ArrayList<>(myVariantsBuiltInformation);
   }
 
   public void clearVariants() {
@@ -283,29 +337,6 @@ public class AndroidProjectStub implements AndroidProject {
   @NotNull
   public AaptOptions getAaptOptions() {
     return new AaptOptions() {
-      @Nullable
-      @Override
-      public String getIgnoreAssets() {
-        return null;
-      }
-
-      @Nullable
-      @Override
-      public Collection<String> getNoCompress() {
-        return null;
-      }
-
-      @Override
-      public boolean getFailOnMissingConfigEntry() {
-        return false;
-      }
-
-      @NotNull
-      @Override
-      public List<String> getAdditionalParameters() {
-        return Collections.emptyList();
-      }
-
       @NotNull
       @Override
       public Namespacing getNamespacing() {
@@ -318,6 +349,12 @@ public class AndroidProjectStub implements AndroidProject {
   @NotNull
   public LintOptions getLintOptions() {
     return mock(LintOptions.class);
+  }
+
+  @NonNull
+  @Override
+  public List<File> getLintRuleJars() {
+    return Collections.emptyList();
   }
 
   @Override
@@ -354,6 +391,12 @@ public class AndroidProjectStub implements AndroidProject {
   @NotNull
   public String getBuildToolsVersion() {
     return "25";
+  }
+
+  @Override
+  @NotNull
+  public String getNdkVersion() {
+    return "21.0.0";
   }
 
   @Override

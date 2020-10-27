@@ -44,7 +44,7 @@ import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,9 +53,6 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class NewAndroidComponentDialog extends DialogWrapper {
   private JPanel myPanel;
   private JLabel myKindLabel;
@@ -206,7 +203,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
       final PsiCodeBlock body = onCreateMethod.getBody();
 
       if (body != null) {
-        final String fieldName = AndroidResourceUtil.getRJavaFieldName(FileUtil.getNameWithoutExtension(layoutFileName));
+        final String fieldName = IdeResourcesUtil.getRJavaFieldName(FileUtil.getNameWithoutExtension(layoutFileName));
         final String layoutFieldRef = appPackage + ".R.layout." + fieldName;
 
         if (activity) {

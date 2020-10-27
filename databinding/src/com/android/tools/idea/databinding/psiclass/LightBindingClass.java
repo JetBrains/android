@@ -20,10 +20,8 @@ import static com.android.SdkConstants.ATTR_ID;
 import static com.android.ide.common.resources.ResourcesUtil.stripPrefixFromId;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.databinding.BindingLayout;
 import com.android.tools.idea.databinding.BindingLayoutFile;
-import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider;
 import com.android.tools.idea.databinding.index.BindingLayoutType;
 import com.android.tools.idea.databinding.index.BindingXmlData;
 import com.android.tools.idea.databinding.index.ImportData;
@@ -34,11 +32,14 @@ import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil;
 import com.android.tools.idea.databinding.util.ViewBindingUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ScopeType;
+import com.android.tools.idea.psi.light.DeprecatableLightMethodBuilder;
+import com.android.tools.idea.psi.light.NullabilityLightFieldBuilder;
+import com.android.tools.idea.psi.light.NullabilityLightMethodBuilder;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.ide.highlighter.JavaFileType;
+import com.google.common.collect.ObjectArrays;
 import com.intellij.lang.Language;
 import com.intellij.lang.java.JavaLanguage;
-import com.intellij.openapi.module.Module;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
@@ -70,10 +71,6 @@ import com.intellij.psi.scope.ElementClassHint;
 import com.intellij.psi.scope.NameHint;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.util.CachedValue;
-import com.intellij.psi.util.CachedValueProvider;
-import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.util.ArrayList;
@@ -101,62 +98,52 @@ import org.jetbrains.annotations.Nullable;
  * be generated.
  */
 public class LightBindingClass extends AndroidLightClassBase {
-  private final Object myCacheLock = new Object();
+  private enum NullabilityType {
+    UNSPECIFIED,
+    NONNULL,
+    NULLABLE;
+
+    public boolean isNullable() { return this == NULLABLE; }
+  }
 
   @NotNull private final LightBindingClassConfig myConfig;
   @NotNull private final PsiJavaFile myBackingFile;
 
-  @NotNull private CachedValue<PsiMethod[]> myPsiMethodsCache;
-  @NotNull private CachedValue<PsiField[]> myPsiFieldsCache;
-
-  @Nullable private PsiReferenceList myExtendsList;
-  @Nullable private PsiClassType[] myExtendsListTypes;
+  @Nullable private PsiClass[] myPsiSupers; // Created lazily
+  @Nullable private PsiMethod[] myPsiConstructors; // Created lazily
+  @Nullable private PsiMethod[] myPsiAllMethods; // Created lazily
+  @Nullable private PsiMethod[] myPsiMethods; // Created lazily
+  @Nullable private PsiField[] myPsiFields; // Created lazily
+  @Nullable private PsiReferenceList myExtendsList; // Created lazily
+  @Nullable private PsiClassType[] myExtendsListTypes; // Created lazily
 
   public LightBindingClass(@NotNull PsiManager psiManager, @NotNull LightBindingClassConfig config) {
     super(psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL));
     myConfig = config;
 
     // Create a dummy, backing file to represent this binding class
-    PsiFileFactory factory = PsiFileFactory.getInstance(getProject());
-    myBackingFile = (PsiJavaFile)factory.createFileFromText(myConfig.getClassName() + ".java", JavaFileType.INSTANCE,
+    PsiFileFactory fileFactory = PsiFileFactory.getInstance(getProject());
+    myBackingFile = (PsiJavaFile)fileFactory.createFileFromText(myConfig.getClassName() + ".java", StdFileTypes.JAVA,
                                                             "// This class is generated on-the-fly by the IDE.");
     myBackingFile.setPackageName(StringUtil.getPackageName(myConfig.getQualifiedName()));
 
     setModuleInfo(myConfig.getFacet().getModule(), false);
+  }
 
-    CachedValuesManager cachedValuesManager = CachedValuesManager.getManager(getProject());
-    myPsiMethodsCache = cachedValuesManager.createCachedValue(
-      new ResourceCacheValueProvider<PsiMethod[]>(myConfig.getFacet(), myCacheLock,
-                                                  AndroidPsiUtils.getXmlPsiModificationTracker(getProject())) {
-        @Override
-        protected PsiMethod[] doCompute() {
-          List<PsiMethod> methods = new ArrayList<>();
+  private PsiMethod[] computeMethods() {
+    List<PsiMethod> methods = new ArrayList<>();
 
-          PsiMethod constructor = createConstructor();
-          methods.add(constructor);
+    createRootOverride(methods);
 
-          createRootOverride(methods);
+    for (Pair<VariableData, XmlTag> variableTag : myConfig.getVariableTags()) {
+      createVariableMethods(variableTag, methods);
+    }
 
-          for (Pair<VariableData, XmlTag> variableTag : myConfig.getVariableTags()) {
-            createVariableMethods(variableTag, methods);
-          }
+    if (myConfig.shouldGenerateGettersAndStaticMethods()) {
+      createStaticMethods(methods);
+    }
 
-          if (myConfig.shouldGenerateGettersAndStaticMethods()) {
-            PsiElementFactory factory = PsiElementFactory.getInstance(getProject());
-            createStaticMethods(factory.createType(LightBindingClass.this), methods);
-          }
-
-          return methods.toArray(PsiMethod.EMPTY_ARRAY);
-        }
-
-        @Override
-        protected PsiMethod[] defaultValue() {
-          return PsiMethod.EMPTY_ARRAY;
-        }
-      }, false);
-
-    myPsiFieldsCache = cachedValuesManager
-      .createCachedValue(() -> CachedValueProvider.Result.create(computeFields(), PsiModificationTracker.MODIFICATION_COUNT));
+    return methods.toArray(PsiMethod.EMPTY_ARRAY);
   }
 
   private PsiField[] computeFields() {
@@ -214,7 +201,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   private PsiMethod createConstructor() {
     LightMethodBuilder constructor = new LightMethodBuilder(this, JavaLanguage.INSTANCE);
     constructor.setConstructor(true);
-    constructor.addModifier("private");
+    constructor.addModifier(PsiModifier.PRIVATE);
     return constructor;
   }
 
@@ -233,7 +220,10 @@ public class LightBindingClass extends AndroidLightClassBase {
   @NotNull
   @Override
   public PsiField[] getFields() {
-    return myPsiFieldsCache.getValue();
+    if (myPsiFields == null) {
+      myPsiFields = computeFields();
+    }
+    return myPsiFields;
   }
 
   @NotNull
@@ -244,8 +234,38 @@ public class LightBindingClass extends AndroidLightClassBase {
 
   @NotNull
   @Override
+  public PsiMethod[] getConstructors() {
+    if (myPsiConstructors == null) {
+      myPsiConstructors = new PsiMethod[] {
+        createConstructor()
+      };
+    }
+    return myPsiConstructors;
+  }
+
+  @NotNull
+  @Override
   public PsiMethod[] getMethods() {
-    return myPsiMethodsCache.getValue();
+    if (myPsiMethods == null) {
+      myPsiMethods = computeMethods();
+    }
+    return myPsiMethods;
+  }
+
+  @NotNull
+  @Override
+  public PsiClass[] getSupers() {
+    if (myPsiSupers == null) {
+      PsiClass superClass = getSuperClass();
+      if (superClass != null) {
+        myPsiSupers = new PsiClass[] { superClass };
+      }
+      else {
+        // superClass shouldn't be null but we handle just in case
+        myPsiSupers = PsiClass.EMPTY_ARRAY;
+      }
+    }
+    return myPsiSupers;
   }
 
   @NotNull
@@ -288,14 +308,26 @@ public class LightBindingClass extends AndroidLightClassBase {
   @NotNull
   @Override
   public PsiMethod[] getAllMethods() {
-    return getMethods();
+    if (myPsiAllMethods == null) {
+      PsiClass superClass = getSuperClass();
+      if (superClass != null) {
+        myPsiAllMethods = ObjectArrays.concat(superClass.getAllMethods(), getMethods(), PsiMethod.class);
+      }
+      else {
+        // superClass shouldn't be null but we handle just in case
+        myPsiAllMethods = getMethods();
+      }
+    }
+
+    return myPsiAllMethods;
   }
 
   @NotNull
   @Override
   public PsiMethod[] findMethodsByName(@NonNls String name, boolean checkBases) {
     List<PsiMethod> matched = null;
-    for (PsiMethod method : getMethods()) {
+    PsiMethod[] methods = checkBases ? getAllMethods() : getMethods();
+    for (PsiMethod method : methods) {
       if (name.equals(method.getName())) {
         if (matched == null) {
           matched = new ArrayList<>();
@@ -399,7 +431,7 @@ public class LightBindingClass extends AndroidLightClassBase {
       return;
     }
 
-    String javaName = DataBindingUtil.convertToJavaFieldName(variable.getName());
+    String javaName = DataBindingUtil.convertVariableNameToJavaFieldName(variable.getName());
     String capitalizedName = StringUtil.capitalize(javaName);
     LightMethodBuilder setter = createPublicMethod("set" + capitalizedName, PsiType.VOID);
     setter.addParameter(javaName, type);
@@ -414,60 +446,53 @@ public class LightBindingClass extends AndroidLightClassBase {
     }
   }
 
-  private void createStaticMethods(@NotNull PsiClassType bindingType, @NotNull List<PsiMethod> outPsiMethods) {
+  private void createStaticMethods(@NotNull List<PsiMethod> outPsiMethods) {
     XmlFile xmlFile = myConfig.getTargetLayout().toXmlFile();
     if (xmlFile == null) {
       return;
     }
 
     Project project = getProject();
-    Module module = myConfig.getFacet().getModule();
     GlobalSearchScope moduleScope = getModuleScope();
+    PsiClassType bindingType = PsiElementFactory.getInstance(getProject()).createType(this);
     PsiClassType viewGroupType = PsiType.getTypeByName(SdkConstants.CLASS_VIEWGROUP, project, moduleScope);
-
-    PsiClassType nonNullBindingType = NullabilityUtils.annotateType(project, bindingType, true, this);
-    PsiClassType nonNullInflaterType =
-      NullabilityUtils.annotateType(project, PsiType.getTypeByName(SdkConstants.CLASS_LAYOUT_INFLATER, project, moduleScope), true, this);
-    PsiClassType nonNullViewGroupType = NullabilityUtils.annotateType(project, viewGroupType, true, this);
-    PsiClassType nullableViewGroupType = NullabilityUtils.annotateType(project, viewGroupType, false, this);
-    PsiClassType nonNullViewType =
-      NullabilityUtils.annotateType(project, PsiType.getTypeByName(SdkConstants.CLASS_VIEW, project, moduleScope), true, this);
-    PsiClassType nullableDataBindingComponent =
-      NullabilityUtils.annotateType(project, PsiType.getJavaLangObject(getManager(), moduleScope), false, this);
+    PsiClassType inflaterType = PsiType.getTypeByName(SdkConstants.CLASS_LAYOUT_INFLATER, project, moduleScope);
+    PsiClassType viewType = PsiType.getTypeByName(SdkConstants.CLASS_VIEW, project, moduleScope);
+    PsiClassType dataBindingComponentType = PsiType.getJavaLangObject(getManager(), moduleScope);
 
     List<PsiMethod> methods = new ArrayList<>();
     BindingXmlData xmlData = myConfig.getTargetLayout().getData();
 
     // Methods generated for data binding and view binding diverge a little
     if (xmlData.getLayoutType() == BindingLayoutType.DATA_BINDING_LAYOUT) {
-      DeprecatableLightMethodBuilder inflate4Params = createPublicStaticMethod("inflate", nonNullBindingType);
-      inflate4Params.addParameter("inflater", nonNullInflaterType);
-      inflate4Params.addParameter("root", nullableViewGroupType);
+      DeprecatableLightMethodBuilder inflate4Params = createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL);
+      inflate4Params.addNullabilityParameter("inflater", inflaterType, true);
+      inflate4Params.addNullabilityParameter("root", viewGroupType, false);
       inflate4Params.addParameter("attachToRoot", PsiType.BOOLEAN);
-      inflate4Params.addParameter("bindingComponent", nullableDataBindingComponent);
+      inflate4Params.addNullabilityParameter("bindingComponent", dataBindingComponentType, false);
       // Methods receiving DataBindingComponent are deprecated. see: b/116541301.
       inflate4Params.setDeprecated(true);
 
-      LightMethodBuilder inflate3Params = createPublicStaticMethod("inflate", nonNullBindingType);
-      inflate3Params.addParameter("inflater", nonNullInflaterType);
-      inflate3Params.addParameter("root", nullableViewGroupType);
+      NullabilityLightMethodBuilder inflate3Params = createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL);
+      inflate3Params.addNullabilityParameter("inflater", inflaterType, true);
+      inflate3Params.addNullabilityParameter("root", viewGroupType, false);
       inflate3Params.addParameter("attachToRoot", PsiType.BOOLEAN);
 
-      DeprecatableLightMethodBuilder inflate2Params = createPublicStaticMethod("inflate", nonNullBindingType);
-      inflate2Params.addParameter("inflater", nonNullInflaterType);
-      inflate2Params.addParameter("bindingComponent", nullableDataBindingComponent);
+      DeprecatableLightMethodBuilder inflate2Params = createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL);
+      inflate2Params.addNullabilityParameter("inflater", inflaterType, true);
+      inflate2Params.addNullabilityParameter("bindingComponent", dataBindingComponentType, false);
       // Methods receiving DataBindingComponent are deprecated. see: b/116541301.
       inflate2Params.setDeprecated(true);
 
-      LightMethodBuilder inflate1Param = createPublicStaticMethod("inflate", nonNullBindingType);
-      inflate1Param.addParameter("inflater", nonNullInflaterType);
+      NullabilityLightMethodBuilder inflate1Param = createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL);
+      inflate1Param.addNullabilityParameter("inflater", inflaterType, true);
 
-      LightMethodBuilder bind = createPublicStaticMethod("bind", nonNullBindingType);
-      bind.addParameter("view", nonNullViewType);
+      NullabilityLightMethodBuilder bind = createPublicStaticMethod("bind", bindingType, NullabilityType.NONNULL);
+      bind.addNullabilityParameter("view", viewType, true);
 
-      DeprecatableLightMethodBuilder bindWithComponent = createPublicStaticMethod("bind", nonNullBindingType);
-      bindWithComponent.addParameter("view", nonNullViewType);
-      bindWithComponent.addParameter("bindingComponent", nullableDataBindingComponent);
+      DeprecatableLightMethodBuilder bindWithComponent = createPublicStaticMethod("bind", bindingType, NullabilityType.NONNULL);
+      bindWithComponent.addNullabilityParameter("view", viewType, true);
+      bindWithComponent.addNullabilityParameter("bindingComponent", dataBindingComponentType, false);
       // Methods receiving DataBindingComponent are deprecated. see: b/116541301.
       bindWithComponent.setDeprecated(true);
 
@@ -484,27 +509,27 @@ public class LightBindingClass extends AndroidLightClassBase {
 
       // View Binding is a fresh start - don't show the deprecated methods for them
       if (!xmlData.getRootTag().equals(SdkConstants.VIEW_MERGE)) {
-        LightMethodBuilder inflate3Params = createPublicStaticMethod("inflate", nonNullBindingType);
-        inflate3Params.addParameter("inflater", nonNullInflaterType);
-        inflate3Params.addParameter("parent", nullableViewGroupType);
+        NullabilityLightMethodBuilder inflate3Params = createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL);
+        inflate3Params.addNullabilityParameter("inflater", inflaterType, true);
+        inflate3Params.addNullabilityParameter("parent", viewGroupType, false);
         inflate3Params.addParameter("attachToParent", PsiType.BOOLEAN);
 
-        LightMethodBuilder inflate1Param = createPublicStaticMethod("inflate", nonNullBindingType);
-        inflate1Param.addParameter("inflater", nonNullInflaterType);
+        NullabilityLightMethodBuilder inflate1Param = createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL);
+        inflate1Param.addNullabilityParameter("inflater", inflaterType, true);
 
         methods.add(inflate1Param);
         methods.add(inflate3Params);
       }
       else {
         // View Bindings with <merge> roots have a different set of inflate methods
-        LightMethodBuilder inflate2Params = createPublicStaticMethod("inflate", nonNullBindingType);
-        inflate2Params.addParameter("inflater", nonNullInflaterType);
-        inflate2Params.addParameter("parent", nonNullViewGroupType);
+        NullabilityLightMethodBuilder inflate2Params = createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL);
+        inflate2Params.addNullabilityParameter("inflater", inflaterType, true);
+        inflate2Params.addNullabilityParameter("parent", viewGroupType, true);
         methods.add(inflate2Params);
       }
 
-      LightMethodBuilder bind = createPublicStaticMethod("bind", nonNullBindingType);
-      bind.addParameter("view", nonNullViewType);
+      NullabilityLightMethodBuilder bind = createPublicStaticMethod("bind", bindingType, NullabilityType.NONNULL);
+      bind.addNullabilityParameter("view", viewType, true);
       methods.add(bind);
     }
 
@@ -515,31 +540,45 @@ public class LightBindingClass extends AndroidLightClassBase {
   }
 
   @NotNull
-  private DeprecatableLightMethodBuilder createPublicStaticMethod(@NotNull String name, @NotNull PsiType returnType) {
-    DeprecatableLightMethodBuilder method = createPublicMethod(name, returnType);
+  private DeprecatableLightMethodBuilder createPublicStaticMethod(@NotNull String name,
+                                                                  @NotNull PsiType returnType,
+                                                                  @NotNull NullabilityType nullabilityType) {
+    DeprecatableLightMethodBuilder method = createPublicMethod(name, returnType, nullabilityType);
     method.addModifier("static");
     return method;
   }
 
   @NotNull
   private DeprecatableLightMethodBuilder createPublicMethod(@NotNull String name, @NotNull PsiType returnType) {
+    return createPublicMethod(name, returnType, NullabilityType.UNSPECIFIED);
+  }
+
+  @NotNull
+  private DeprecatableLightMethodBuilder createPublicMethod(@NotNull String name,
+                                                            @NotNull PsiType returnType,
+                                                            @NotNull NullabilityType nullabilityType) {
     DeprecatableLightMethodBuilder method = new DeprecatableLightMethodBuilder(getManager(), JavaLanguage.INSTANCE, name);
     method.setContainingClass(this);
-    method.setMethodReturnType(returnType);
+    if (nullabilityType == NullabilityType.UNSPECIFIED) {
+      method.setMethodReturnType(returnType);
+    }
+    else {
+      method.setMethodReturnType(returnType, !nullabilityType.isNullable());
+    }
     method.addModifier("public");
     return method;
   }
 
   @Nullable
   private PsiField createPsiField(@NotNull ViewIdData viewIdData, boolean isNonNull) {
-    String name = DataBindingUtil.convertToJavaFieldName(viewIdData.getId());
+    String name = DataBindingUtil.convertAndroidIdToJavaFieldName(viewIdData.getId());
     PsiType type = LayoutBindingTypeUtil.resolveViewPsiType(viewIdData, this);
     if (type == null) {
       return null;
     }
 
-    LightFieldBuilder field = new NullabilityLightFieldBuilder(PsiManager.getInstance(getProject()), name, type, isNonNull);
-    field.setModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL);
+    LightFieldBuilder field = new NullabilityLightFieldBuilder(
+      PsiManager.getInstance(getProject()), name, type, isNonNull, PsiModifier.PUBLIC, PsiModifier.FINAL);
     return new LightDataBindingField(myConfig.getTargetLayout(), viewIdData, getManager(), field, this);
   }
 
@@ -615,9 +654,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   public static class LightDataBindingField extends LightField {
     private final BindingLayout myLayout;
     private final ViewIdData myViewIdData;
-
-    private final CachedValue<XmlTag> tagCache = CachedValuesManager.getManager(getProject())
-      .createCachedValue(() -> CachedValueProvider.Result.create(computeTag(), PsiModificationTracker.MODIFICATION_COUNT));
+    @Nullable private XmlTag myNavigationTag = null;
 
     public LightDataBindingField(@NotNull BindingLayout layout,
                                  @NotNull ViewIdData viewIdData,
@@ -664,7 +701,11 @@ public class LightBindingClass extends AndroidLightClassBase {
     @Override
     @NotNull
     public PsiElement getNavigationElement() {
-      return tagCache.getValue();
+      if (myNavigationTag != null) {
+        return myNavigationTag;
+      }
+      myNavigationTag = computeTag();
+      return (myNavigationTag != null) ? myNavigationTag : super.getNavigationElement();
     }
 
     @Override

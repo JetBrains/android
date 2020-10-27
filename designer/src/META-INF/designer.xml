@@ -55,6 +55,10 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
+    <keymapExtension implementation="com.android.tools.idea.DesignerKeymapExtension"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
     <projectService serviceImplementation="com.android.tools.idea.uibuilder.handlers.ViewHandlerManager" />
     <projectService serviceImplementation="com.android.tools.idea.uibuilder.editor.LayoutNavigationManager" />
     <projectService serviceImplementation="com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors" />
@@ -63,8 +67,82 @@
     <postStartupActivity implementation="com.android.tools.idea.uibuilder.editor.NlPreviewManager$NlPreviewManagerPostStartupActivity" />
   </extensions>
 
+
+  <!-- The design tool actions which the shortcuts are configurable. -->
+  <!-- The action ids should be listed in com.android.tools.idea.actions.DesignerActions.kt file  -->
+  <actions>
+    <!-- Shared actions across all design tools-->
+    <group id="Android.Designer.CommonActions"> <!-- Keymap group for Preferences -> Keymap -> Android Design Tools -->
+      <action id="Android.Designer.ForceRefreshPreview"
+              class="com.android.tools.idea.common.actions.RefreshRenderAction"
+              text="Force Refresh Layout"
+              description="Refresh preview(s)">
+        <keyboard-shortcut keymap="$default" first-keystroke="R"/>
+      </action>
+      <action id="Android.Designer.IssueNotificationAction"
+              icon="StudioIcons.Common.ERROR"
+              class="com.android.tools.idea.common.actions.IssueNotificationAction"
+              text="Toggle Issue Panel"
+              description="Toggle the visibility of Issue Panel">
+        <keyboard-shortcut keymap="$default" first-keystroke="E"/>
+      </action>
+
+      <reference ref="Adtui.ZoomInAction"/>
+      <reference ref="Adtui.ZoomOutAction"/>
+      <reference ref="Adtui.ZoomToActualAction"/>
+      <reference ref="Adtui.ZoomToFitAction"/>
+      <reference ref="Adtui.ZoomResetAction"/>
+    </group>
+
+    <group id="Android.Designer.ToolsActions"/> <!-- Keymap group for Preferences -> Keymap -> Android Design Tools -> [Tool_Name] -->
+
+    <!-- Layout Editor specific actions -->
+    <group id="Android.Designer.LayoutEditorActions" text="Layout Editor">
+      <action id="Android.Designer.SwitchDesignMode"
+              icon="StudioIcons.LayoutEditor.Toolbar.VIEW_MODE"
+              class="com.android.tools.idea.uibuilder.actions.SwitchDesignModeAction"
+              text="Switch Design Mode"
+              description="Switch the design mode cycling within Design, Blueprint, and Design + Blueprint">
+        <keyboard-shortcut keymap="$default" first-keystroke="B"/>
+      </action>
+      <action id="Android.Designer.ToggleDeviceOrientation"
+              icon="StudioIcons.LayoutEditor.Toolbar.ROTATE_BUTTON"
+              class="com.android.tools.idea.common.actions.ToggleDeviceOrientationAction"
+              text="Toggle Device Orientation"
+              description="Toggle the preview orientation between portrait and landscape">
+        <keyboard-shortcut keymap="$default" first-keystroke="O"/>
+      </action>
+      <action id="Android.Designer.NextDevice"
+              class="com.android.tools.idea.common.actions.NextDeviceAction"
+              text="Preview Next Device"
+              description="Change to next device in the device menu">
+        <keyboard-shortcut keymap="$default" first-keystroke="D"/>
+      </action>
+      <action id="Android.Designer.PreviousDevice"
+              class="com.android.tools.idea.common.actions.PreviousDeviceAction"
+              text="Preview Previous Device"
+              description="Change to previous device in the device menu">
+        <keyboard-shortcut keymap="$default" first-keystroke="shift D"/>
+      </action>
+      <!-- TODO (b/149212539): Migrate other shortcuts of Layout Editor -->
+
+      <add-to-group group-id="Android.Designer.ToolsActions"/>
+    </group>
+
+    <!-- TODO: add shortcuts and group for nav editor, multi-preview, custom view, compose, and split editor -->
+
+
+    <action id="Android.Designer.LayoutValidatorAction"
+            text="Run Layout Validator"
+            icon="StudioIcons.LayoutEditor.Toolbar.ACCESSIBILITY"
+            class="com.android.tools.idea.uibuilder.surface.LayoutValidatorAction">
+    </action>
+  </actions>
+
   <extensions defaultExtensionNs="com.intellij">
     <moduleService serviceImplementation="com.android.tools.idea.uibuilder.palette.NlPaletteModel" />
+    <!-- fixme-ank4: there is no assistant in idea yet -->
+    <navlistener implementation="com.android.tools.idea.uibuilder.actions.analytics.AssistantPanelNavListener" />
   </extensions>
 
 </idea-plugin>

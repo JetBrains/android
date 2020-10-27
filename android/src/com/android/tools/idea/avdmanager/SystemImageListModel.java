@@ -116,7 +116,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
     }
     myIndicator.onRefreshStart("Refreshing...");
     final List<SystemImageDescription> items = new ArrayList<>();
-    RepoManager.RepoLoadedCallback localComplete = packages ->
+    RepoManager.RepoLoadedListener localComplete = packages ->
       ApplicationManager.getApplication().invokeLater(() -> {
         // getLocalImages() doesn't use SdkPackages, so it's ok that we're not using what's passed in.
         items.addAll(getLocalImages());
@@ -125,7 +125,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
         // Assume the remote has not completed yet
         completedDownload("");
       }, ModalityState.any());
-    RepoManager.RepoLoadedCallback remoteComplete = packages ->
+    RepoManager.RepoLoadedListener remoteComplete = packages ->
       ApplicationManager.getApplication().invokeLater(() -> {
         List<SystemImageDescription> remotes = getRemoteImages(packages);
         if (remotes != null) {
@@ -287,7 +287,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
         JBLabel label = new JBLabel((String)value);
         if (isSelected) {
           if (image.isRemote()) {
-            panel.setBackground(UIUtil.getListUnfocusedSelectionBackground());
+            panel.setBackground(UIUtil.getListSelectionBackground(false));
           } else {
             panel.setBackground(table.getSelectionBackground());
             label.setBackground(table.getSelectionBackground());

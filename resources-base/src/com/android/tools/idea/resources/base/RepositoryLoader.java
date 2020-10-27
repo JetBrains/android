@@ -42,6 +42,7 @@ import static com.android.SdkConstants.TAG_PUBLIC_GROUP;
 import static com.android.SdkConstants.TAG_RESOURCES;
 import static com.android.SdkConstants.TAG_SKIP;
 import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.ide.common.resources.AndroidAaptIgnoreKt.ANDROID_AAPT_IGNORE;
 import static com.android.ide.common.resources.ResourceItem.ATTR_EXAMPLE;
 import static com.android.ide.common.resources.ResourceItem.XLIFF_G_TAG;
 import static com.android.ide.common.resources.ResourceItem.XLIFF_NAMESPACE_PREFIX;
@@ -54,6 +55,7 @@ import com.android.ide.common.rendering.api.DensityBasedResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
+import com.android.ide.common.resources.AndroidAaptIgnore;
 import com.android.ide.common.resources.PatternBasedFileFilter;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
@@ -82,6 +84,7 @@ import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.io.URLUtil;
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -106,7 +109,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.jetbrains.annotations.NotNull;
@@ -127,7 +129,8 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
       AttributeFormat.INTEGER,
       AttributeFormat.REFERENCE,
       AttributeFormat.STRING);
-  private final PatternBasedFileFilter myFileFilter = new PatternBasedFileFilter();
+  private final PatternBasedFileFilter myFileFilter
+    = new PatternBasedFileFilter(new AndroidAaptIgnore(System.getenv(ANDROID_AAPT_IGNORE)));
 
   @NotNull private final Map<ResourceType, Set<String>> myPublicResources = new EnumMap<>(ResourceType.class);
   @NotNull private final ListMultimap<String, BasicAttrResourceItem> myAttrs = ArrayListMultimap.create();
@@ -217,7 +220,7 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
 
       List<Path> sourceFilesAndFolders = myResourceFilesAndFolders == null ?
                                          ImmutableList.of(myResourceDirectoryOrFile) :
-                                         myResourceFilesAndFolders.stream().map(PathString::toPath).collect(Collectors.toList());
+                                         ContainerUtil.map(myResourceFilesAndFolders, PathString::toPath);
       List<PathString> resourceFiles = findResourceFiles(sourceFilesAndFolders);
       for (PathString file : resourceFiles) {
         loadResourceFile(file, repository, shouldParseResourceIds);
@@ -593,7 +596,7 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
   @NotNull
   private BasicFileResourceItem createFileResourceItem(
       @NotNull PathString file, @NotNull ResourceType resourceType, @NotNull RepositoryConfiguration configuration) {
-    String resourceName = getResourceName(file);
+    String resourceName = SdkUtils.fileNameToResourceName(file.getFileName());
     ResourceVisibility visibility = getVisibility(resourceType, resourceName);
     Density density = null;
     if (DensityBasedResourceValue.isDensityBasedResourceType(resourceType)) {
@@ -616,14 +619,6 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
     return density == null ?
            new BasicFileResourceItem(type, name, configuration, visibility, relativePath) :
            new BasicDensityBasedFileResourceItem(type, name, configuration, visibility, relativePath, density);
-  }
-
-  /**
-   * Resource name is the part of the file name before the first dot, e.g. for "tab_press.9.png" it is "tab_press".
-   */
-  @NotNull
-  protected static String getResourceName(@NotNull PathString file) {
-    return StringUtil.trimExtensions(file.getFileName());
   }
 
   @NotNull
@@ -1084,7 +1079,7 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
   @NotNull
   protected String getKeyForVisibilityLookup(@NotNull String resourceName) {
     // In public.txt all resource names are transformed by replacing dots, colons and dashes with underscores.
-    return ResourcesUtil.flattenResourceName(resourceName);
+    return ResourcesUtil.resourceNameToFieldName(resourceName);
   }
 
   @NotNull
@@ -1119,7 +1114,7 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
   /**
    * Information about a resource folder.
    */
-  protected static final class FolderInfo {
+  protected static class FolderInfo {
     @NotNull public final ResourceFolderType folderType;
     @NotNull public final FolderConfiguration configuration;
     @Nullable public final ResourceType resourceType;
@@ -1171,7 +1166,7 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
     }
   }
 
-  private static final class ResourceFileCollector implements FileVisitor<Path> {
+  private static class ResourceFileCollector implements FileVisitor<Path> {
     @NotNull final List<PathString> resourceFiles = new ArrayList<>();
     @NotNull final List<IOException> ioErrors = new ArrayList<>();
     @NotNull final FileFilter fileFilter;

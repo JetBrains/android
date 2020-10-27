@@ -39,8 +39,6 @@ import org.jetbrains.annotations.NotNull;
  * this information is obtained and persisted.
  */
 public class AndroidFacetConfiguration implements FacetConfiguration, PersistentStateComponent<AndroidFacetProperties> {
-  private static final FacetEditorTab[] NO_EDITOR_TABS = new FacetEditorTab[0];
-
   @NotNull private AndroidFacetProperties myProperties = new AndroidFacetProperties();
 
   /**
@@ -63,7 +61,7 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
         return new FacetEditorTab[]{editorTabProvider.createFacetEditorTab(editorContext, this)};
       }
     }
-    return NO_EDITOR_TABS;
+    return new FacetEditorTab[]{new NotEditableAndroidFacetEditorTab()};
   }
 
   public boolean isImportedProperty(@NotNull AndroidImportableProperty property) {

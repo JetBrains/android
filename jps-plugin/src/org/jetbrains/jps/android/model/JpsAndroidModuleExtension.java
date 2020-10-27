@@ -10,9 +10,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public interface JpsAndroidModuleExtension extends JpsElement {
   JpsModule getModule();
 

@@ -26,13 +26,26 @@ import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
 import java.io.File
 import java.util.function.Consumer
-import com.android.tools.idea.gradle.output.parser.androidPlugin.DataBindingOutputParser as PluginDataBindingOutputParser
 
 const val DATABINDING_GROUP = "Data Binding compiler"
+internal const val ERROR_LOG_PREFIX = "[databinding] "
+
+internal data class EncodedMessage(
+  @SerializedName("msg") val message: String,
+  @SerializedName("file") val filePath: String,
+  @SerializedName("pos") val locations: List<FileLocation>
+)
+
+internal data class FileLocation(
+  @SerializedName("line0") val startLine: Int,
+  @SerializedName("col0") val startCol: Int,
+  @SerializedName("line1") val endLine: Int,
+  @SerializedName("col1") val endCol: Int)
 
 /**
  * Parser for data binding output errors. This class supports parsing both JSON data binding
- * formats and a legacy hand-crafted format
+ * formats and a legacy hand-crafted format, as well as finding and reporting any errors found within the
+ * exception obtained through the Gradle tooling api.
  */
 class DataBindingOutputParser : BuildOutputParser {
 
@@ -58,7 +71,6 @@ class DataBindingOutputParser : BuildOutputParser {
   private class JsonDataBindingOutputParser : BuildOutputParser {
     companion object {
       private const val ERROR_LOG_HEADER = "Found data binding error(s):"
-      private const val ERROR_LOG_PREFIX = "[databinding] "
     }
 
     /**
@@ -103,18 +115,6 @@ class DataBindingOutputParser : BuildOutputParser {
         return false
       }
     }
-
-    private data class EncodedMessage(
-      @SerializedName("msg") val message: String,
-      @SerializedName("file") val filePath: String,
-      @SerializedName("pos") val locations: List<FileLocation>
-    )
-
-    private data class FileLocation(
-      @SerializedName("line0") val startLine: Int,
-      @SerializedName("col0") val startCol: Int,
-      @SerializedName("line1") val endLine: Int,
-      @SerializedName("col1") val endCol: Int)
   }
 
   /**

@@ -18,13 +18,13 @@ package com.android.tools.idea.npw.template.components
 import com.android.tools.adtui.LabelWithEditButton
 import com.android.tools.idea.observable.AbstractProperty
 import com.android.tools.idea.observable.ui.TextProperty
-import com.android.tools.idea.templates.Parameter
+import com.android.tools.idea.wizard.template.Parameter
+import com.android.tools.idea.wizard.template.StringParameter
 
 /**
- * Provides a [LabelWithEditButton] for more advanced [Parameter.Type.STRING]
- * parameters that only users who know what they're doing should modify.
+ * Provides a [LabelWithEditButton] for more advanced [StringParameter] that only users who know what they're doing should modify.
  */
-class LabelWithEditButtonProvider(parameter: Parameter) : ParameterComponentProvider<LabelWithEditButton>(parameter) {
-  override fun createComponent(parameter: Parameter): LabelWithEditButton = LabelWithEditButton()
+class LabelWithEditButtonProvider(parameter: StringParameter) : ParameterComponentProvider<LabelWithEditButton>(parameter) {
+  override fun createComponent(parameter: Parameter<*>): LabelWithEditButton = LabelWithEditButton()
   override fun createProperty(component: LabelWithEditButton): AbstractProperty<*> = TextProperty(component)
 }

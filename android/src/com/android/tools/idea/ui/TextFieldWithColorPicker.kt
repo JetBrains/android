@@ -17,7 +17,7 @@ package com.android.tools.idea.ui
 
 import com.android.tools.adtui.FocusableIcon
 import com.android.tools.adtui.LightCalloutPopup
-import com.android.tools.adtui.TextFieldWithIcon
+import com.android.tools.adtui.TextFieldWithLeftComponent
 import com.android.tools.adtui.canShowBelow
 import com.android.tools.idea.res.colorToString
 import com.android.tools.idea.res.parseColor
@@ -51,7 +51,7 @@ private const val ICON_SIZE = 15
 fun JTextField.wrapWithColorPickerIcon(defaultColor: Color?): JPanel {
   val initialColor = defaultColor ?: MaterialColors.RED_500
   val colorPickerIcon = FocusableIcon()
-  val textFieldWithIcon = TextFieldWithIcon(colorPickerIcon, this)
+  val textFieldWithIcon = TextFieldWithLeftComponent(colorPickerIcon, this)
 
   if (defaultColor == null) {
     // The Pipette Icon is the default Icon when there's no valid color.

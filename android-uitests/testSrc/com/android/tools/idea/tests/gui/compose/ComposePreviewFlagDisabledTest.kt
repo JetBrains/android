@@ -47,7 +47,6 @@ class ComposePreviewFlagDisabledTest {
   }
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE) // b/150637365
   fun noComposePreview() {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
     // Open the main compose activity and check that the preview is present
@@ -55,8 +54,7 @@ class ComposePreviewFlagDisabledTest {
     val file = "app/src/main/java/google/simpleapplication/MainActivity.kt"
     editor.open(file)
 
-    fixture.invokeMenuPath("Build", "Make Project")
-      .waitForBuildToFinish(BuildMode.ASSEMBLE)
+    fixture.invokeAndWaitForBuildAction("Build", "Make Project")
 
     // Either is not a split editor or the surface is not displaying
     assertTrue(!editor.isSplitEditor() || !editor.getSplitEditorFixture().hasDesignSurface)

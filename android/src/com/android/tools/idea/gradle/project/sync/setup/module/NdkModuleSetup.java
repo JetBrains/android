@@ -17,14 +17,13 @@ package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.BaseSetup;
-import com.android.tools.idea.gradle.project.sync.setup.module.ndk.ContentRootModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkFacetModuleSetupStep;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 public class NdkModuleSetup extends BaseSetup<NdkModuleSetupStep, NdkModuleModel> {
   public NdkModuleSetup() {
-    this(new NdkFacetModuleSetupStep(), new ContentRootModuleSetupStep());
+    this(new NdkFacetModuleSetupStep());
   }
 
   @VisibleForTesting

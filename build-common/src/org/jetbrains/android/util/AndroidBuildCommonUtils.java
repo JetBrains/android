@@ -58,10 +58,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
-public final class AndroidBuildCommonUtils {
+public class AndroidBuildCommonUtils {
   @NonNls public static final String PROGUARD_CFG_FILE_NAME = "proguard-project.txt";
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.util.AndroidCommonUtils");
 
@@ -298,17 +295,6 @@ public final class AndroidBuildCommonUtils {
       }
       jar.closeEntry();
     }
-  }
-
-  @NotNull
-  public static String getResourceName(@NotNull String resourceType, @NotNull String fileName) {
-    String s = FileUtil.getNameWithoutExtension(fileName);
-
-    return resourceType.equals("drawable") &&
-           s.endsWith(".9") &&
-           FileUtilRt.extensionEquals(fileName, PNG_EXTENSION)
-           ? s.substring(0, s.length() - 2)
-           : s;
   }
 
   @NotNull

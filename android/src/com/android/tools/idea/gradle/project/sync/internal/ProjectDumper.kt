@@ -21,8 +21,13 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfigurati
 import com.android.tools.idea.gradle.project.facet.java.JavaFacetConfiguration
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetConfiguration
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
+import com.android.tools.idea.run.AndroidRunConfigurationBase
+import com.android.tools.idea.run.profiler.CpuProfilerConfig
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.utils.FileUtils
+import com.intellij.execution.RunManagerEx
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -33,7 +38,20 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.*
+import com.intellij.openapi.roots.AnnotationOrderRootType
+import com.intellij.openapi.roots.CompilerModuleExtension
+import com.intellij.openapi.roots.ContentEntry
+import com.intellij.openapi.roots.ExcludeFolder
+import com.intellij.openapi.roots.InheritedJdkOrderEntry
+import com.intellij.openapi.roots.JavadocOrderRootType
+import com.intellij.openapi.roots.JdkOrderEntry
+import com.intellij.openapi.roots.LibraryOrderEntry
+import com.intellij.openapi.roots.ModuleRootManager
+import com.intellij.openapi.roots.ModuleRootModel
+import com.intellij.openapi.roots.OrderEntry
+import com.intellij.openapi.roots.OrderRootType
+import com.intellij.openapi.roots.ProjectRootManager
+import com.intellij.openapi.roots.SourceFolder
 import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.sanitizeFileName
@@ -58,6 +76,7 @@ class ProjectDumper(
   private val devBuildHome: File = getStudioSourcesLocation()
   private val adtHome: File = getAdtLocation()
   private val gradleCache: File = getGradleCacheLocation()
+  private val userM2: File = getUserM2Location()
 
   init {
     println("<DEV>         <== ${devBuildHome.absolutePath}")
@@ -79,7 +98,7 @@ class ProjectDumper(
   private val gradleDistStub = "x".repeat(25)
   private val gradleHashStub = "x".repeat(32)
   private val gradleLongHashStub = "x".repeat(40)
-  private val gradleDistPattern = Regex("/[0-9a-z]{${gradleDistStub.length}}/")
+  private val gradleDistPattern = Regex("/[0-9a-z]{${gradleDistStub.length - 3},${gradleDistStub.length}}/")
   private val gradleHashPattern = Regex("[0-9a-f]{${gradleHashStub.length}}")
   private val gradleLongHashPattern = Regex("[0-9a-f]{${gradleLongHashStub.length}}")
   private val gradleVersionPattern = Regex("gradle-.*${SdkConstants.GRADLE_LATEST_VERSION}")
@@ -123,6 +142,7 @@ class ProjectDumper(
       .replace(FileUtils.toSystemIndependentPath(androidSdk.absolutePath), "<ANDROID_SDK>", ignoreCase = false)
       .replace(FileUtils.toSystemIndependentPath(adtHome.absolutePath), "<DEV_ADT>", ignoreCase = false)
       .replace(FileUtils.toSystemIndependentPath(devBuildHome.absolutePath), "<DEV>", ignoreCase = false)
+      .replace(FileUtils.toSystemIndependentPath(userM2.absolutePath), "<USER_M2>", ignoreCase = false)
       .let {
         if (it.contains(gradleVersionPattern)) {
           it.replace(SdkConstants.GRADLE_LATEST_VERSION, "<GRADLE_VERSION>")
@@ -167,7 +187,12 @@ class ProjectDumper(
     println("<PROJECT>     <== ${currentRootDirectory}")
     head("PROJECT") { project.name }
     nest {
+      head("PROJECT_JDK") { ProjectRootManager.getInstance(project).projectSdk?.name }
+      nest {
+        prop("Version") { ProjectRootManager.getInstance(project).projectSdk?.versionString?.replaceJdkVersion() }
+      }
       ModuleManager.getInstance(project).modules.sortedBy { it.name }.forEach { dump(it) }
+      RunManagerEx.getInstanceEx(project).allConfigurationsList.sortedBy { it.name }.forEach { dump(it) }
     }
   }
 
@@ -202,6 +227,10 @@ private fun ProjectDumper.dump(module: Module) {
     prop("LinkedProjectPath") { externalPropertyManager.getLinkedProjectPath()?.toPrintablePath() }
     prop("RootProjectPath") { externalPropertyManager.getRootProjectPath()?.toPrintablePath() }
     prop("IsMavenized") { externalPropertyManager.isMavenized().takeIf { it }?.toString() }
+    val compilerModuleExtension = CompilerModuleExtension.getInstance(module)
+    if (compilerModuleExtension != null) {
+      dump(compilerModuleExtension)
+    }
 
     prop("ModuleFile") { moduleFile }
     prop("ModuleTypeName") { module.moduleTypeName }
@@ -215,6 +244,44 @@ private fun ProjectDumper.dump(module: Module) {
     moduleRootModel.orderEntries.sortedBy { it.presentableName.removeAndroidVersionsFromDependencyNames().replaceKnownPaths() }.forEach {
       dump(it)
     }
+  }
+}
+
+private fun ProjectDumper.dump(runConfiguration: RunConfiguration) {
+  head("RUN_CONFIGURATION") { runConfiguration.name }
+  nest {
+    prop("*class*") { runConfiguration.javaClass.simpleName }
+    when (runConfiguration) {
+      is AndroidRunConfigurationBase -> dump(runConfiguration)
+      else -> prop("**UNSUPPORTED**") { "*" }
+    }
+  }
+}
+
+private fun ProjectDumper.dump(runConfiguration: AndroidRunConfigurationBase) {
+  prop("ModuleName") { runConfiguration.configurationModule.moduleName }
+  prop("Module") { runConfiguration.configurationModule.module?.name }
+  prop("ClearLogcat") { runConfiguration.CLEAR_LOGCAT.takeUnless { it == false }?.toString() }
+  prop("ShowLogcatAutomatically") { runConfiguration.SHOW_LOGCAT_AUTOMATICALLY.takeUnless { it == false }?.toString() }
+  prop("SkipNoopApkInstallations") { runConfiguration.SKIP_NOOP_APK_INSTALLATIONS.takeUnless { it == true }?.toString() }
+  prop("ForceStopRunningApp") { runConfiguration.FORCE_STOP_RUNNING_APP.takeUnless { it == true }?.toString() }
+  if (runConfiguration is AndroidTestRunConfiguration) {
+    prop("TestingType") { runConfiguration.TESTING_TYPE.takeUnless { it == AndroidTestRunConfiguration.TEST_ALL_IN_MODULE }?.toString() }
+    prop("MethodName") { runConfiguration.METHOD_NAME }
+    prop("ClassName") { runConfiguration.CLASS_NAME }
+    prop("PackageName") { runConfiguration.PACKAGE_NAME }
+    prop("InstrumentationRunnerClass") { runConfiguration.INSTRUMENTATION_RUNNER_CLASS }
+    prop("ExtraOptions") { runConfiguration.EXTRA_OPTIONS }
+    prop("IncludeGradleExtraOptions") { runConfiguration.INCLUDE_GRADLE_EXTRA_OPTIONS.takeUnless { it == true }?.toString() }
+    prop("TargetSelectionMode") { runConfiguration.deployTargetContext.TARGET_SELECTION_MODE }
+    prop("DebuggerType") { runConfiguration.androidDebuggerContext.DEBUGGER_TYPE }
+  }
+  prop("AdvancedProfilingEnabled") { runConfiguration.profilerState.ADVANCED_PROFILING_ENABLED.takeUnless { it == false }?.toString() }
+  prop(
+    "StartupCpuProfilingEnabled") { runConfiguration.profilerState.STARTUP_CPU_PROFILING_ENABLED.takeUnless { it == false }?.toString() }
+  prop(
+    "StartupCpuProfilingConfigurationName") {
+    runConfiguration.profilerState.STARTUP_CPU_PROFILING_CONFIGURATION_NAME.takeUnless { it == CpuProfilerConfig.Technology.SAMPLED_JAVA.getName() }
   }
 }
 
@@ -257,17 +324,22 @@ private fun ProjectDumper.dump(library: Library, matchingName: String) {
   val orderRootTypes = OrderRootType.getAllPersistentTypes().toList() + OrderRootType.DOCUMENTATION
   orderRootTypes.forEach { type ->
     library
-        .getUrls(type)
-        .filter { file ->
-          !file.toPrintablePath().contains("<M2>") ||
-          (type != OrderRootType.DOCUMENTATION &&
-           type != OrderRootType.SOURCES &&
-           type != JavadocOrderRootType.getInstance())
-        }
-        .forEach { file ->
-          // TODO(b/124659827): Include source and JavaDocs artifacts when available.
-          prop("*" + type.name()) { file.toPrintablePath().replaceMatchingVersion(androidVersion) }
-        }
+      .getUrls(type)
+      .filter { file ->
+        !file.toPrintablePath().contains("<M2>") ||
+        (type != OrderRootType.DOCUMENTATION &&
+         type != OrderRootType.SOURCES &&
+         type != JavadocOrderRootType.getInstance())
+      }
+      .filter { file ->
+        !file.toPrintablePath().contains("<USER_M2>") || type != AnnotationOrderRootType.getInstance()
+      }
+      .map { file -> file.toPrintablePath().replaceMatchingVersion(androidVersion) }
+      .sorted()
+      .forEach { printerPath ->
+        // TODO(b/124659827): Include source and JavaDocs artifacts when available.
+        prop("*" + type.name()) { printerPath }
+      }
   }
 }
 
@@ -297,6 +369,7 @@ private fun ProjectDumper.dump(facet: Facet<*>) {
   head("FACET") { facet.name }
   nest {
     prop("TypeId") { facet.typeId.toString() }
+    prop("ExternalSource") { facet.externalSource?.id }
     val configuration = facet.configuration
     when (configuration) {
       is GradleFacetConfiguration -> dump(configuration)
@@ -453,6 +526,16 @@ private fun ProjectDumper.dump(compilerSettings: CompilerSettings) {
   }
 }
 
+private fun ProjectDumper.dump(compilerModuleExtension: CompilerModuleExtension) {
+  head("COMPILER_MODULE_EXTENSION") { null }
+  nest {
+    prop("compilerSourceOutputPath") { compilerModuleExtension.compilerOutputUrl?.toPrintablePath() }
+    prop("compilerTestOutputPath") { compilerModuleExtension.compilerOutputUrlForTests?.toPrintablePath() }
+    prop("isCompilerPathInherited") { compilerModuleExtension.isCompilerOutputPathInherited.toString() }
+    prop("isExcludeOutput") { compilerModuleExtension.isExcludeOutput.toString() }
+  }
+}
+
 private fun getGradleCacheLocation() = File(System.getProperty("gradle.user.home") ?:
                                             System.getenv("GRADLE_USER_HOME") ?:
                                             (System.getProperty("user.home") + "/.gradle"))
@@ -476,6 +559,8 @@ private fun getAdtLocation() : File {
 
 private fun getStudioSourcesLocation() = File(PathManager.getHomePath()).parentFile.parentFile!!
 
+private fun getUserM2Location() = File(System.getProperty("user.home") + "/.m2/repository")
+
 private fun getOfflineM2Repositories(): List<File> =
     (EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths())
         .map { File(FileUtil.toCanonicalPath(it.absolutePath)) }
@@ -487,7 +572,7 @@ private fun String.removeSuffix(suffix: String) =
  * Replaces artifact version in string containing artifact idslike com.android.group:artifact:28.7.8@aar with <VERSION>.
  */
 private val androidLibraryPattern =
-  Regex("(?:(?:com\\.android\\.)|(?:android\\.arch\\.))(?:(?:\\w|-)+(?:\\.(?:(?:\\w|-)+))*:(?:\\w|-)+:)(.*)(?:@aar|@jar)")
+  Regex("(?:(?:com\\.android\\.)|(?:android\\.arch\\.))(?:(?:\\w|-)+(?:\\.(?:(?:\\w|-)+))*:(?:\\w|-)+:)([^@ ]*)")
 
 private fun String.removeAndroidVersionsFromDependencyNames(): String =
     androidLibraryPattern.find(this)?.groups?.get(1)?.let {

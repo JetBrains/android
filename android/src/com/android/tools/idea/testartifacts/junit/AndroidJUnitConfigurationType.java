@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.junit;
 import static com.android.tools.idea.help.StudioHelpManagerImpl.STUDIO_HELP_PREFIX;
 
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.intellij.execution.configuration.ConfigurationFactoryEx;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.ConfigurationTypeUtil;
@@ -64,6 +65,12 @@ public class AndroidJUnitConfigurationType extends JUnitConfigurationType {
       }
 
       @Override
+      public @NotNull String getId() {
+        // This string must be non-localized.
+        return ANDROID_JUNIT_NAME;
+      }
+
+      @Override
       public void onNewConfigurationCreated(@NotNull RunConfiguration configuration) {
         ((ModuleBasedConfiguration)configuration).onNewConfigurationCreated();
       }
@@ -77,6 +84,7 @@ public class AndroidJUnitConfigurationType extends JUnitConfigurationType {
 
   @NotNull
   @Override
+  @NotNull
   public String getDisplayName() {
     return ANDROID_JUNIT_NAME;
   }
@@ -110,6 +118,6 @@ public class AndroidJUnitConfigurationType extends JUnitConfigurationType {
 
   @Override
   public String getHelpTopic() {
-    return STUDIO_HELP_PREFIX + "reference.dialogs.rundebug.AndroidJUnit";
+    return AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/rundebugconfig.html";
   }
 }

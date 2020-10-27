@@ -1,4 +1,18 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+/*
+ * Copyright 2000-2010 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.jetbrains.android.intentions;
 
@@ -45,7 +59,7 @@ import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -188,7 +202,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     String fileName;
     List<String> dirNames;
     if (resName != null && ApplicationManager.getApplication().isUnitTestMode()) {
-      fileName = AndroidResourceUtil.getDefaultResourceFileName(type);
+      fileName = IdeResourcesUtil.getDefaultResourceFileName(type);
       assert fileName != null;
       resourceDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
       assert resourceDir != null;
@@ -217,7 +231,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     String finalValue = value;
     String finalResName = resName;
 
-    if (AndroidResourceUtil.createValueResource(project, resourceDir, finalResName, type, fileName, dirNames, finalValue)) {
+    if (IdeResourcesUtil.createValueResource(project, resourceDir, finalResName, type, fileName, dirNames, finalValue)) {
       doAddStringResource(editor, file, finalResName, element, type, facet, aPackage);
       PsiDocumentManager.getInstance(project).commitAllDocuments();
       UndoUtil.markPsiFileForUndo(file);
@@ -335,7 +349,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
       getContainingInheritorOf(element, CLASS_V4_FRAGMENT.oldName()) != null ||
       getContainingInheritorOf(element, CLASS_V4_FRAGMENT.newName()) != null;
 
-    final String rJavaFieldName = AndroidResourceUtil.getRJavaFieldName(resName);
+    final String rJavaFieldName = IdeResourcesUtil.getRJavaFieldName(resName);
     final String field = aPackage + ".R." + resType.getName() + '.' + rJavaFieldName;
     final String methodName = getGetterNameForResourceType(resType, element);
     assert methodName != null;
@@ -453,7 +467,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     return null;
   }
 
-  private static final class MyVarOfTypeExpression extends VariableOfTypeMacro {
+  private static class MyVarOfTypeExpression extends VariableOfTypeMacro {
     private final String myDefaultValue;
 
     private MyVarOfTypeExpression(@NotNull String defaultValue) {

@@ -29,8 +29,8 @@ import com.android.tools.adtui.stdui.CommonComboBoxRenderer
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.SampleDataResourceItem
-import com.android.tools.idea.uibuilder.property.assistant.AssistantPopupPanel
-import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory.Context
+import com.android.tools.idea.uibuilder.assistant.AssistantPopupPanel
+import com.android.tools.idea.uibuilder.assistant.ComponentAssistantFactory.Context
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project

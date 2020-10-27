@@ -25,7 +25,6 @@ import com.android.tools.idea.lang.androidSql.psi.AndroidSqlNameElement
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlResultColumns
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlSelectCoreSelect
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlSelectedTableName
-import com.android.tools.idea.lang.androidSql.refactoring.AndroidSqlNameElementManipulator
 import com.android.tools.idea.lang.androidSql.sqlContext
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
@@ -177,6 +176,7 @@ class AndroidSqlDefinedTablePsiReference(
   override fun resolve(): PsiElement? = resolveSqlTable()?.resolveTo
 
   fun resolveSqlTable(): AndroidSqlTable? {
+    if (element.isInternalTable) return getInternalTable(element)
     val processor = FindTableByNameProcessor(element.nameAsString)
     processDefinedSqlTables(element, if (acceptViews) processor else IgnoreViewsProcessor(processor))
     return processor.foundValue

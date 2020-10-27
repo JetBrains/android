@@ -57,7 +57,7 @@ public class BorderLayer extends Layer {
       new RadialGradientPaint(SHADOW_SIZE, SHADOW_SIZE, SHADOW_SIZE, new float[]{0, 1}, new Color[]{COLOR_INSIDE, COLOR_OUTSIDE});
 
     public static void paint(@NotNull Graphics2D g2d, @NotNull SceneView screenView) {
-      Dimension size = screenView.getSize();
+      Dimension size = screenView.getScaledContentSize();
 
       int x = screenView.getX();
       int y = screenView.getY();

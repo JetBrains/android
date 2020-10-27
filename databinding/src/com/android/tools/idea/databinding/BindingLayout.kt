@@ -83,7 +83,7 @@ class BindingLayout private constructor(
   private fun computeBindingClassName(): BindingClassName {
     if (data.customBindingName.isNullOrEmpty()) {
       return BindingClassName("$modulePackage.databinding",
-                              DataBindingUtil.convertToJavaClassName(file.name) + "Binding")
+                              DataBindingUtil.convertFileNameToJavaClassName(file.name) + "Binding")
     }
     else {
       val customBindingName = data.customBindingName!!
@@ -126,9 +126,9 @@ class BindingLayout private constructor(
     return when {
       folderName.isEmpty() -> "Impl"
       folderName.startsWith("layout-") ->
-        DataBindingUtil.convertToJavaClassName(folderName.substringAfter("layout-")) + "Impl"
+        DataBindingUtil.convertFileNameToJavaClassName(folderName.substringAfter("layout-")) + "Impl"
       folderName.startsWith("layout") -> "Impl"
-      else -> DataBindingUtil.convertToJavaClassName(folderName) + "Impl"
+      else -> DataBindingUtil.convertFileNameToJavaClassName(folderName) + "Impl"
     }
   }
 

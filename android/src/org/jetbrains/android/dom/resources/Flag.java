@@ -16,8 +16,5 @@
 
 package org.jetbrains.android.dom.resources;
 
-/**
- * @author coyote
- */
 public interface Flag extends Enum {
 }

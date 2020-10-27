@@ -39,7 +39,9 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlView
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.HostPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.properties.PropertiesPanelFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.android.tools.idea.uibuilder.structure.BackNavigationComponent;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.actionSystem.ActionToolbar;
@@ -71,7 +73,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerEditorPanel> {
   private final DesignSurfaceFixture<? extends DesignSurfaceFixture, ? extends DesignSurface> myDesignSurfaceFixture;
-  private NlPropertyInspectorFixture myPropertyFixture;
+  private PropertiesPanelFixture<NelePropertyItem> myPropertiesFixture;
   private NlPaletteFixture myPaletteFixture;
   private WorkBenchLoadingPanelFixture myLoadingPanelFixture;
   private final ComponentDragAndDrop myDragAndDrop;
@@ -92,6 +94,11 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
     myDragAndDrop = new ComponentDragAndDrop(robot);
 
     myLoadingPanelFixture = new WorkBenchLoadingPanelFixture(robot, target().getWorkBench().getLoadingPanel());
+  }
+
+  @NotNull
+  public SceneFixture getScene() {
+    return myDesignSurfaceFixture.getScene();
   }
 
   @NotNull
@@ -157,7 +164,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   }
 
   @NotNull
-  public DesignSurfaceFixture getSurface() {
+  public DesignSurfaceFixture<? extends DesignSurfaceFixture, ? extends DesignSurface>  getSurface() {
     return myDesignSurfaceFixture;
   }
 
@@ -178,11 +185,11 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   }
 
   @NotNull
-  public NlPropertyInspectorFixture getPropertiesPanel() {
-    if (myPropertyFixture == null) {
-      myPropertyFixture = new NlPropertyInspectorFixture(robot(), NlPropertyInspectorFixture.create(robot()));
+  public PropertiesPanelFixture<NelePropertyItem> getAttributesPanel() {
+    if (myPropertiesFixture == null) {
+      myPropertiesFixture = PropertiesPanelFixture.Companion.findPropertiesPanelInContainer(target(), robot());
     }
-    return myPropertyFixture;
+    return myPropertiesFixture;
   }
 
   @NotNull
@@ -242,7 +249,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
     DesignSurface target = myDesignSurfaceFixture.target();
     SceneView sceneView = target.getFocusedSceneView();
 
-    dragComponentToSurface(group, item, sceneView.getSize().width / 2, sceneView.getSize().height / 2);
+    dragComponentToSurface(group, item, sceneView.getScaledContentSize().width / 2, sceneView.getScaledContentSize().height / 2);
     return this;
   }
 
@@ -258,7 +265,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
     DesignSurface surface = myDesignSurfaceFixture.target();
     SceneView screenView = surface.getFocusedSceneView();
 
-    Dimension size = screenView.getSize();
+    Dimension size = screenView.getScaledContentSize();
     robot().pressMouse(surface, new Point(screenView.getX() + size.width + 24, screenView.getY() + size.height + 24));
     return this;
   }
@@ -351,9 +358,11 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
     DesignSurface surface = myDesignSurfaceFixture.target();
 
     SceneView view = surface.getFocusedSceneView();
-    Dimension contentDimension = view.getSize();
+    Dimension contentDimension = view.getScaledContentSize();
     // The square icon is placed in the center of a portrait ImageView, shift the y-axis to make the position same as icon's.
-    return new Point(view.getX(), view.getY() + (contentDimension.height - contentDimension.width + 1) / 2);
+    int iconY = view.getY() + (contentDimension.height - contentDimension.width) / 2;
+    // Offset the point to make sure it is fully inside the icon
+    return new Point(view.getX() + 2, iconY + 2);
   }
 
   @NotNull
@@ -389,6 +398,11 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   @NotNull
   public List<NlComponentFixture> getAllComponents() {
     return myDesignSurfaceFixture.getAllComponents();
+  }
+
+  @NotNull
+  public List<SceneViewFixture> getAllSceneViews() {
+    return myDesignSurfaceFixture.getAllSceneViews();
   }
 
   @NotNull
@@ -441,5 +455,9 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
 
   public DestinationListFixture destinationList() {
     return DestinationListFixture.Companion.create(robot());
+  }
+
+  public ComponentTreeFixture<NlComponent> navComponentTree() {
+    return ComponentTreeFixture.Companion.create("navComponentTree", robot());
   }
 }

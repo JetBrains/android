@@ -29,6 +29,7 @@ import com.android.tools.idea.run.util.SwapInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -43,14 +44,14 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
   @NotNull private final AndroidFacet myFacet;
   @Nullable private final ExecutionEnvironment myEnvironment;
   @Nullable private final AndroidRunConfigurationBase myAndroidRunConfigurationBase;
-  @Nullable private final Set<String> mySupportedAbis;
+  @NotNull private final Set<String> mySupportedAbis;
 
   public LaunchCompatibilityCheckerImpl(@NotNull AndroidVersion minSdkVersion,
                                         @NotNull IAndroidTarget target,
                                         @NotNull AndroidFacet facet,
                                         @Nullable ExecutionEnvironment environment,
                                         @Nullable AndroidRunConfigurationBase androidRunConfigurationBase,
-                                        @Nullable Set<String> supportedAbis) {
+                                        @NotNull Set<String> supportedAbis) {
     assert (environment == null && androidRunConfigurationBase == null) || (environment != null && androidRunConfigurationBase != null);
     myMinSdkVersion = minSdkVersion;
     myProjectTarget = target;
@@ -58,23 +59,6 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
     myAndroidRunConfigurationBase = androidRunConfigurationBase;
     myFacet = facet;
     mySupportedAbis = supportedAbis;
-  }
-
-  /**
-   * Returns the required hardware features from a given {@link AndroidFacet}. This method can block since it relies on
-   * the {@link com.android.tools.idea.model.MergedManifestManager}.
-   */
-  @NotNull
-  private EnumSet<IDevice.HardwareFeature> getRequiredHardwareFeauters() {
-    // Currently, we only look at whether the device supports the watch feature.
-    // We may not want to search the device for every possible feature, but only a small subset of important
-    // features, starting with hardware type watch.
-    if (LaunchUtils.isWatchFeatureRequired(myFacet)) {
-      return EnumSet.of(IDevice.HardwareFeature.WATCH);
-    }
-    else {
-      return EnumSet.noneOf(IDevice.HardwareFeature.class);
-    }
   }
 
   /**
@@ -112,7 +96,24 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
       }
     }
 
-    return launchCompatibility.combine(device.canRun(myMinSdkVersion, myProjectTarget, getRequiredHardwareFeauters(), mySupportedAbis));
+    return launchCompatibility.combine(device.canRun(myMinSdkVersion, myProjectTarget, myFacet,
+                                                     LaunchCompatibilityCheckerImpl::getRequiredHardwareFeatures, mySupportedAbis));
+  }
+
+  /**
+   * Returns the required hardware features from a given {@link AndroidFacet}.
+   */
+  @NotNull
+  static EnumSet<IDevice.HardwareFeature> getRequiredHardwareFeatures(@NotNull AndroidFacet facet) {
+    // Currently, we only look at whether the device supports the watch feature.
+    // We may not want to search the device for every possible feature, but only a small subset of important
+    // features, starting with hardware type watch.
+    if (LaunchUtils.isWatchFeatureRequired(facet)) {
+      return EnumSet.of(IDevice.HardwareFeature.WATCH);
+    }
+    else {
+      return EnumSet.noneOf(IDevice.HardwareFeature.class);
+    }
   }
 
   public static LaunchCompatibilityChecker create(@NotNull AndroidFacet facet,
@@ -126,7 +127,7 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
     Set<String> supportedAbis = androidModuleModel != null ?
                                 androidModuleModel.getSelectedVariant().getMainArtifact().getAbiFilters() :
-                                null;
+                                Collections.emptySet();
     return new LaunchCompatibilityCheckerImpl(minSdkVersion, platform.getTarget(), facet, env, androidRunConfigurationBase, supportedAbis);
   }
 

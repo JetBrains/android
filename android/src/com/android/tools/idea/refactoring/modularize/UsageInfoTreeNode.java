@@ -16,7 +16,7 @@
 package com.android.tools.idea.refactoring.modularize;
 
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Iconable;
@@ -57,7 +57,7 @@ public class UsageInfoTreeNode extends DependencyTreeNode {
     SimpleTextAttributes inheritedAttributes = getTextAttributes();
     if (myPsiElement instanceof PsiFile) {
       renderer.append(((PsiFile)myPsiElement).getName(), inheritedAttributes);
-      renderQualifiers(ResourceHelper.getFolderConfiguration((PsiFile)myPsiElement), renderer, inheritedAttributes);
+      renderQualifiers(IdeResourcesUtil.getFolderConfiguration((PsiFile)myPsiElement), renderer, inheritedAttributes);
       renderReferenceCount(renderer, inheritedAttributes);
     }
     else if (myPsiElement instanceof PsiClass) {

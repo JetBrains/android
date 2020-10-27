@@ -38,6 +38,7 @@ import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
+import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputFileOrFolderFromListingFile;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
@@ -61,12 +62,8 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
-import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
-import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.BaseArtifact;
-import com.android.builder.model.MavenCoordinates;
-import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
@@ -76,11 +73,11 @@ import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -108,7 +105,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -166,17 +162,24 @@ public final class GradleUtil {
   }
 
   /**
-   * This is temporary, until the model returns more outputs per artifact.
-   * Deprecating since the model 0.13 provides multiple outputs per artifact if split apks are enabled.
+   * Get the main output APK file for the selected variant.
+   * The method uses output listing file if it is supported, in which case, the output file will be empty if the project is never built.
+   * If build output listing file is not supported, then AndroidArtifact::getOutputs will be used.
+   *
+   * @return the main output file for selected variant.
    */
-  @Deprecated
-  @NotNull
-  public static AndroidArtifactOutput getOutput(@NotNull AndroidArtifact artifact) {
-    Collection<AndroidArtifactOutput> outputs = artifact.getOutputs();
-    assert !outputs.isEmpty();
-    AndroidArtifactOutput output = getFirstItem(outputs);
-    assert output != null;
-    return output;
+  @Nullable
+  public static File getOutputFile(@NotNull AndroidModuleModel androidModel) {
+    if (androidModel.getFeatures().isBuildOutputFileSupported()) {
+      return getOutputFileOrFolderFromListingFile(androidModel, androidModel.getSelectedVariant().getName(), OutputType.Apk, false);
+    }
+    else {
+      Collection<AndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();
+      if (outputs.isEmpty()) return null;
+      AndroidArtifactOutput output = getFirstItem(outputs);
+      assert output != null;
+      return output.getMainOutputFile().getOutputFile();
+    }
   }
 
   @NotNull
@@ -185,7 +188,7 @@ public final class GradleUtil {
     if (androidModel != null) {
       return getAndroidModuleIcon(androidModel);
     }
-    return AndroidProjectInfo.getInstance(module.getProject()).requiresAndroidModel() ? AllIcons.Nodes.PpJdk : ANDROID_MODULE;
+    return AndroidProjectInfo.getInstance(module.getProject()).requiresAndroidModel() ? AllIcons.Nodes.Module : ANDROID_MODULE;
   }
 
   @NotNull
@@ -209,18 +212,6 @@ public final class GradleUtil {
       default:
         return ANDROID_MODULE;
     }
-  }
-
-  @Nullable
-  public static IdeAndroidProject getAndroidProject(@NotNull Module module) {
-    AndroidModuleModel gradleModel = AndroidModuleModel.get(module);
-    return gradleModel != null ? gradleModel.getAndroidProject() : null;
-  }
-
-  @Nullable
-  public static NativeAndroidProject getNativeAndroidProject(@NotNull Module module) {
-    NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
-    return ndkModuleModel != null ? ndkModuleModel.getAndroidProject() : null;
   }
 
   /**
@@ -249,25 +240,6 @@ public final class GradleUtil {
       }
     }
     return false;
-  }
-
-  /**
-   * @return list of the module dependencies in the given variant. This method checks dependencies in the main and test (as currently selected
-   * in the UI) artifacts. The returned list does not contain any duplicates.
-   */
-  @NotNull
-  public static List<Library> getModuleDependencies(@NotNull IdeVariant variant) {
-    List<Library> libraries = new ArrayList<>();
-
-    IdeAndroidArtifact mainArtifact = variant.getMainArtifact();
-    IdeDependencies dependencies = mainArtifact.getLevel2Dependencies();
-    libraries.addAll(dependencies.getModuleDependencies());
-
-    for (IdeBaseArtifact testArtifact : variant.getTestArtifacts()) {
-      dependencies = testArtifact.getLevel2Dependencies();
-      libraries.addAll(dependencies.getModuleDependencies());
-    }
-    return libraries.stream().distinct().collect(Collectors.toList());
   }
 
   @Nullable
@@ -363,7 +335,7 @@ public final class GradleUtil {
   }
 
   @Nullable
-  private static GradleModuleModel getGradleModuleModel(Module module) {
+  public static GradleModuleModel getGradleModuleModel(Module module) {
     GradleFacet gradleFacet = GradleFacet.getInstance(module);
     if (gradleFacet == null) {
       return null;
@@ -687,35 +659,6 @@ public final class GradleUtil {
   }
 
   /**
-   * Same as {@link #dependsOn(AndroidModuleModel, String)} but searches the list of Java Libraries
-   */
-  public static boolean dependsOnJavaLibrary(@NonNull AndroidModuleModel androidModel, @NonNull String artifact) {
-    IdeDependencies dependencies = androidModel.getSelectedMainCompileLevel2Dependencies();
-    for (Library library : dependencies.getJavaLibraries()) {
-      if (dependsOn(library, artifact)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Returns {@code true} if the androidTest artifact of the given Android model depends on the given artifact, which consists of a group id
-   * and an artifact id, such as {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
-   *
-   * @param androidModel the Android model to check
-   * @param artifact     the artifact
-   * @return {@code true} if the project depends on the given artifact (including transitively)
-   */
-  public static boolean dependsOnAndroidTest(@NonNull AndroidModuleModel androidModel, @NonNull String artifact) {
-    IdeDependencies dependencies = androidModel.getSelectedAndroidTestCompileDependencies();
-    if (dependencies == null) {
-      return false;
-    }
-    return dependsOnAndroidLibrary(dependencies, artifact);
-  }
-
-  /**
    * Returns {@code true} if the given dependencies include the given artifact, which consists of a group id and an artifact id, such as
    * {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
    *
@@ -730,40 +673,6 @@ public final class GradleUtil {
       }
     }
     return false;
-  }
-
-  /**
-   * Returns {@code true} if the given library depends on the given artifact, which consists a group id and an artifact id, such as
-   * {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
-   *
-   * @param library      the Gradle library to check
-   * @param artifact     the artifact
-   * @param transitively if {@code false}, checks only direct dependencies, otherwise checks transitively
-   * @return {@code true} if the project depends on the given artifact
-   */
-  public static boolean dependsOn(@NonNull AndroidLibrary library, @NonNull String artifact, boolean transitively) {
-    return getDependencyVersion(library, artifact, transitively) != null;
-  }
-
-  private static String getDependencyVersion(@NonNull AndroidLibrary library, @NonNull String artifact, boolean transitively) {
-    MavenCoordinates resolvedCoordinates = library.getResolvedCoordinates();
-    //noinspection ConstantConditions
-    if (resolvedCoordinates != null) {
-      if (artifact.endsWith(resolvedCoordinates.getArtifactId()) &&
-          artifact.equals(resolvedCoordinates.getGroupId() + ':' + resolvedCoordinates.getArtifactId())) {
-        return resolvedCoordinates.getVersion();
-      }
-    }
-
-    if (transitively) {
-      for (AndroidLibrary dependency : library.getLibraryDependencies()) {
-        String version = getDependencyVersion(dependency, artifact, true);
-        if (version != null) {
-          return version;
-        }
-      }
-    }
-    return null;
   }
 
   /**
@@ -968,6 +877,19 @@ public final class GradleUtil {
   }
 
   /**
+   * Checks if the given folder contains navigation arg classes by safe arg. When the IDE uses light safe arg classes,
+   * these folders are not marked as sources of the module.
+   */
+  public static boolean isSafeArgGeneratedSourcesFolder(@NotNull File folder, @NotNull File buildFolder) {
+    if (!StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) return false;
+
+    File generatedFolder = new File(buildFolder, FilenameConstants.GENERATED);
+    File safeArgClassSources = FileUtils.join(generatedFolder, FD_SOURCE_GEN, FilenameConstants.SAFE_ARG_CLASS_SOURCES);
+
+    return FileUtil.isAncestor(safeArgClassSources, folder, false);
+  }
+
+  /**
    * Wrapper around {@link BaseArtifact#getGeneratedSourceFolders()} that skips the aapt sources folder when light classes are used by the
    * IDE.
    */
@@ -977,6 +899,7 @@ public final class GradleUtil {
       .stream()
       .filter(folder -> !isAaptGeneratedSourcesFolder(folder, buildFolder))
       .filter(folder -> !isDataBindingGeneratedBaseClassesFolder(folder, buildFolder))
+      .filter(folder -> !isSafeArgGeneratedSourcesFolder(folder, buildFolder))
       .collect(Collectors.toList());
   }
 
@@ -997,17 +920,6 @@ public final class GradleUtil {
 
   public static boolean hasKtsBuildFiles(@NotNull Project project) {
     return projectBuildFilesTypes(project).contains(DOT_KTS);
-  }
-
-  public static boolean isKtsFile(@Nullable VirtualFile file) {
-    // We deal with the null case in this method for the callers convenience.
-    if (file == null) {
-      return false;
-    }
-
-    HashSet<String> result = new HashSet<>();
-    addBuildFileType(result, file);
-    return result.contains(DOT_KTS);
   }
 
   private static void addBuildFileType(@NotNull HashSet<String> result, @Nullable VirtualFile buildFile) {

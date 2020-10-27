@@ -26,6 +26,8 @@ import com.android.tools.lint.checks.ViewTypeDetector;
 import com.android.tools.lint.detector.api.Detector;
 import com.android.tools.lint.detector.api.Implementation;
 import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.Platform;
+import java.util.EnumSet;
 
 /**
  * Custom version of the {@link BuiltinIssueRegistry}. This
@@ -40,6 +42,11 @@ public class AndroidLintIdeIssueRegistry extends LintIdeIssueRegistry {
 
   @Override
   public boolean isRelevant(@NonNull Issue issue) {
+    EnumSet<Platform> platforms = issue.getPlatforms();
+    if (platforms.contains(Platform.JDK) && !platforms.contains(Platform.ANDROID) ) {
+      return false;
+    }
+
     Implementation implementation = issue.getImplementation();
     Class<? extends Detector> detectorClass = implementation.getDetectorClass();
     if (detectorClass == ViewTypeDetector.class) {

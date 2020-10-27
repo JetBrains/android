@@ -29,9 +29,6 @@ import org.junit.runners.Parameterized
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 
-/**
- * @author Sergey Karashevich
- */
 class GuiTestThread : Thread(GUI_TEST_THREAD_NAME) {
 
   private var testQueue: BlockingQueue<JUnitTestContainer> = LinkedBlockingQueue()

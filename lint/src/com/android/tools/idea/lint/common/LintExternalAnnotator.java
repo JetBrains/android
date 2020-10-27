@@ -33,8 +33,8 @@ import com.android.tools.lint.detector.api.LintFix;
 import com.android.tools.lint.detector.api.Scope;
 import com.google.common.collect.Sets;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
-import com.intellij.codeInsight.daemon.DaemonBundle;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
+import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.intention.HighPriorityAction;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.InspectionManager;
@@ -45,19 +45,12 @@ import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.codeInspection.SuppressQuickFix;
 import com.intellij.codeInspection.ex.CustomEditInspectionToolsSettingsAction;
 import com.intellij.codeInspection.ex.DisableInspectionToolAction;
-import com.intellij.ide.highlighter.JavaFileType;
-import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.lang.properties.PropertiesFileType;
-import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.keymap.Keymap;
-import com.intellij.openapi.keymap.KeymapManager;
-import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.DumbService;
@@ -71,7 +64,6 @@ import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
-import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.xml.util.XmlStringUtil;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -178,7 +170,7 @@ public class LintExternalAnnotator extends ExternalAnnotator<LintEditorResult, L
                                                Collections.singletonList(lintResult.getModule()), true /* incremental */);
       request.setScope(scope);
 
-      LintDriver lint = new LintDriver(LintIdeIssueRegistry.get(), client, request);
+      LintDriver lint = client.createDriver(request);
       lint.analyze();
 
       lint.setAnalysisStartTime(startTime);
@@ -266,27 +258,27 @@ public class LintExternalAnnotator extends ExternalAnnotator<LintEditorResult, L
                 displayLevel = configuredLevel;
               }
             }
-            // Convert from inspection severity to annotation severity
-            HighlightSeverity severity;
+
+            HighlightSeverity severity = displayLevel.getSeverity();
             ProblemHighlightType type;
-            if (displayLevel == HighlightDisplayLevel.ERROR) {
-              severity = HighlightSeverity.ERROR;
-              type = ProblemHighlightType.ERROR;
-            } else if (displayLevel == HighlightDisplayLevel.WARNING) {
-              severity = HighlightSeverity.WARNING;
-              type = ProblemHighlightType.WARNING;
-            } else if (displayLevel == HighlightDisplayLevel.WEAK_WARNING) {
-              severity = HighlightSeverity.WEAK_WARNING;
-              type = ProblemHighlightType.WEAK_WARNING;
-            } else if (displayLevel == HighlightDisplayLevel.INFO) {
-              severity = HighlightSeverity.INFO;
-              type = ProblemHighlightType.INFORMATION;
+            if (issue == DeprecationDetector.ISSUE ||
+                issue == GradleDetector.DEPRECATED ||
+                issue == GradleDetector.DEPRECATED_CONFIGURATION) {
+              type = ProblemHighlightType.LIKE_DEPRECATED;
             } else {
-              severity = HighlightSeverity.WARNING;
-              type = ProblemHighlightType.WARNING;
+              type = HighlightInfo.convertSeverityToProblemHighlight(severity);
             }
 
-            AnnotationBuilder builder = createAnnotation(holder, severity, message, range, issue);
+            // This description link is not displayed. It is parsed by IDEA to
+            // populate the "Show Inspection Description" action.
+            String descriptionLink = "<a href=\"" + LINK_PREFIX + issue.getId() + "\"></a>";
+            String tooltip = XmlStringUtil.wrapInHtml(descriptionLink + RAW.convertTo(message, HTML));
+
+            AnnotationBuilder builder = holder
+              .newAnnotation(severity, message)
+              .highlightType(type)
+              .range(range)
+              .tooltip(tooltip);
 
             LintIdeQuickFix[] fixes = inspection.getAllFixes(startElement, endElement, message, quickfixData, fixProviders, issue);
             for (LintIdeQuickFix fix : fixes) {
@@ -310,63 +302,22 @@ public class LintExternalAnnotator extends ExternalAnnotator<LintEditorResult, L
               builder = builder.withFix(new MyEditInspectionToolsSettingsAction(key, inspection));
             }
 
-            if (issue == DeprecationDetector.ISSUE ||
-                issue == GradleDetector.DEPRECATED ||
-                issue == GradleDetector.DEPRECATED_CONFIGURATION) {
-              type = ProblemHighlightType.LIKE_DEPRECATED;
-              builder = builder.highlightType(type);
-            }
-
             if (INCLUDE_IDEA_SUPPRESS_ACTIONS) {
               final SuppressQuickFix[] suppressActions = inspection.getBatchSuppressActions(startElement);
               for (SuppressQuickFix action : suppressActions) {
                 if (action.isAvailable(project, startElement)) {
-
                   ProblemDescriptor descriptor = InspectionManager.getInstance(project).createProblemDescriptor(
                     startElement, endElement, message, type, true, LocalQuickFix.EMPTY_ARRAY);
                   builder = builder.newLocalQuickFix(action, descriptor).key(key).registerFix();
                 }
               }
             }
+
             builder.create();
           }
         }
       }
     }
-  }
-
-  @NotNull
-  private AnnotationBuilder createAnnotation(@NotNull AnnotationHolder holder,
-                                             @NotNull HighlightSeverity severity, @NotNull String message,
-                                             @NotNull TextRange range,
-                                             @NotNull Issue issue) {
-    String link = " <a "
-                  + "href=\"" + LINK_PREFIX + issue.getId() + "\""
-                  + (StartupUiUtil.isUnderDarcula() ? " color=\"7AB4C9\" " : "")
-                  + ">" + DaemonBundle.message("inspection.extended.description")
-                  + "</a> " + getShowMoreShortCut();
-    String tooltip = XmlStringUtil.wrapInHtml(RAW.convertTo(message, HTML) + link);
-
-    return holder.newAnnotation(severity, message).range(range).tooltip(tooltip);
-  }
-
-  // Based on similar code in the LocalInspectionsPass constructor
-  private String myShortcutText;
-
-  private String getShowMoreShortCut() {
-    if (myShortcutText == null) {
-      final KeymapManager keymapManager = KeymapManager.getInstance();
-      if (keymapManager != null) {
-        final Keymap keymap = keymapManager.getActiveKeymap();
-        myShortcutText =
-          "(" + KeymapUtil.getShortcutsText(keymap.getShortcuts(IdeActions.ACTION_SHOW_ERROR_DESCRIPTION)) + ")";
-      }
-      else {
-        myShortcutText = "";
-      }
-    }
-
-    return myShortcutText;
   }
 
   @Nullable
@@ -402,7 +353,7 @@ public class LintExternalAnnotator extends ExternalAnnotator<LintEditorResult, L
     return Pair.create(inspection, errorLevel);
   }
 
-  private static final class MyDisableInspectionFix implements IntentionAction, Iconable {
+  private static class MyDisableInspectionFix implements IntentionAction, Iconable {
     private final DisableInspectionToolAction myDisableInspectionToolAction;
 
     private MyDisableInspectionFix(@NotNull HighlightDisplayKey key) {
@@ -487,7 +438,7 @@ public class LintExternalAnnotator extends ExternalAnnotator<LintEditorResult, L
     }
   }
 
-  private static final class MyEditInspectionToolsSettingsAction extends CustomEditInspectionToolsSettingsAction {
+  private static class MyEditInspectionToolsSettingsAction extends CustomEditInspectionToolsSettingsAction {
     private MyEditInspectionToolsSettingsAction(@NotNull HighlightDisplayKey key, @NotNull final AndroidLintInspectionBase inspection) {
       super(key, () -> "Edit '" + inspection.getDisplayName() + "' inspection settings");
     }

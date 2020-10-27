@@ -16,12 +16,13 @@
 package com.android.tools.idea.welcome.wizard
 
 import com.android.tools.idea.observable.BindingsManager
-import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel
-import com.android.tools.idea.welcome.wizard.ConfigureInstallationModel.InstallationType
-import com.android.tools.idea.welcome.wizard.ConfigureInstallationModel.InstallationType.STANDARD
+import com.android.tools.idea.welcome.wizard.FirstRunModel.InstallationType
 import com.android.tools.idea.wizard.model.ModelWizardStep
+import com.intellij.ui.layout.Cell
+import com.intellij.ui.layout.PropertyBinding
 import com.intellij.ui.layout.panel
+import com.intellij.ui.layout.withSelectedBinding
 import com.intellij.uiDesigner.core.Spacer
 import javax.swing.ButtonGroup
 import javax.swing.JComponent
@@ -30,13 +31,11 @@ import javax.swing.JRadioButton
 /**
  * Wizard step for selecting installation types
  */
-class InstallationTypeWizardStep(model: ConfigureInstallationModel) : ModelWizardStep<ConfigureInstallationModel>(model, "Install Type") {
-  private val standardRadioBtn = JRadioButton("Standard")
-  private val customRadioBtn = JRadioButton("Custom")
-  private val rootPanel = panel {
-    row {
-      Spacer()()
-    }
+class InstallationTypeWizardStep(model: FirstRunModel) : ModelWizardStep<FirstRunModel>(model, "Install Type") {
+  private lateinit var standardRadioBtn: JRadioButton
+  private lateinit var customRadioBtn : JRadioButton
+
+  private val panel = panel {
     row {
       label("Choose the type of setup you want for Android Studio:")
     }
@@ -44,22 +43,21 @@ class InstallationTypeWizardStep(model: ConfigureInstallationModel) : ModelWizar
       Spacer()()
     }
     row {
-      standardRadioBtn()
-    }
-    row {
-      label("Android Studio will be installed with the most common settings and options.")
-    }
-    row {
-      label("Recommended for most users.")
-    }
-    row {
-      customRadioBtn()
-    }
-    row {
-      label("You can customize installation settings and components installed.")
+      standardRadioBtn = installationTypeRadioButton(
+        "Standard",
+        "Android Studio will be installed with the most common settings and options.\nRecommended for most users.",
+        InstallationType.STANDARD
+      ).component
     }
     row {
       Spacer()()
+    }
+    row {
+      customRadioBtn = installationTypeRadioButton(
+        "Custom",
+        "You can customize installation settings and components installed.",
+        InstallationType.CUSTOM
+      ).component
     }
 
     ButtonGroup().apply {
@@ -68,22 +66,19 @@ class InstallationTypeWizardStep(model: ConfigureInstallationModel) : ModelWizar
     }
   }
 
-  private val root = StudioWizardStepPanel.wrappedWithVScroll(rootPanel)
+  private val rootPanel = StudioWizardStepPanel.wrappedWithVScroll(panel)
 
-  private val bindings = BindingsManager()
-
-  override fun onEntering() {
-    bindings.bindTwoWay(
-      SelectedRadioButtonProperty(STANDARD, InstallationType.values(), standardRadioBtn, customRadioBtn),
-      model.installationType
-    )
+  override fun onProceeding() {
+    panel.apply()
   }
 
   override fun getPreferredFocusComponent(): JComponent? = standardRadioBtn
 
-  override fun getComponent(): JComponent = root
+  override fun getComponent(): JComponent = rootPanel
 
-  override fun dispose() {
-    bindings.releaseAll()
-  }
+  private fun Cell.installationTypeRadioButton(text: String, comment: String, installationType: InstallationType) =
+    radioButton(text, comment).withSelectedBinding(PropertyBinding(
+      get = { model.installationType.get() == installationType },
+      set = { if (it) model.installationType.set(installationType) }
+    ))
 }

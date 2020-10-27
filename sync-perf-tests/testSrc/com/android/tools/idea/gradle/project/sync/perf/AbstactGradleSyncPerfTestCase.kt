@@ -248,7 +248,6 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
     if (gradleVersion != null) {
       scenarioName.append("_Gradle").append(gradleVersion)
     }
-    scenarioName.append("_Studio4.0")
     return scenarioName.toString()
   }
 }

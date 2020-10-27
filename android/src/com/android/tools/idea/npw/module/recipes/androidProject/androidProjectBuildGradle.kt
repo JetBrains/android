@@ -18,13 +18,14 @@ package com.android.tools.idea.npw.module.recipes.androidProject
 import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.renderIf
 
+private fun isEap(kotlinVersion: String) = setOf("rc", "eap", "-M").any { it in kotlinVersion }
+
 fun androidProjectBuildGradle(
   generateKotlin: Boolean,
   kotlinVersion: String,
-  includeKotlinEapRepo: Boolean,
   gradlePluginVersion: GradlePluginVersion
 ): String {
-  val kotlinEapRepoBlock = renderIf(includeKotlinEapRepo) { """maven { url "https://dl.bintray.com/kotlin/kotlin-eap"""" }
+  val kotlinEapRepoBlock = renderIf(isEap(kotlinVersion)) { """maven { url = "https://dl.bintray.com/kotlin/kotlin-eap" }""" }
 
   return """
     // Top-level build file where you can add configuration options common to all sub-projects/modules.
@@ -54,6 +55,45 @@ fun androidProjectBuildGradle(
 
     task clean (type: Delete) {
         delete rootProject.buildDir
+    }
+    """
+}
+
+fun androidProjectBuildGradleKts(
+  generateKotlin: Boolean,
+  kotlinVersion: String,
+  gradlePluginVersion: GradlePluginVersion
+): String {
+  val kotlinEapRepoBlock = renderIf(isEap(kotlinVersion)) { """maven { url = uri("https://dl.bintray.com/kotlin/kotlin-eap") }""" }
+
+  return """
+    // Top-level build file where you can add configuration options common to all sub-projects/modules.
+    buildscript {
+        ${renderIf(generateKotlin) { "val kotlin_version by extra(\"$kotlinVersion\")" }}
+        repositories {
+            google()
+            jcenter()
+            $kotlinEapRepoBlock
+        }
+        dependencies {
+            classpath("com.android.tools.build:gradle:$gradlePluginVersion")
+            ${renderIf(generateKotlin) { "classpath(\"org.jetbrains.kotlin:kotlin-gradle-plugin:\$kotlin_version\")" }}
+
+            // NOTE: Do not place your application dependencies here; they belong
+            // in the individual module build.gradle.kts files
+        }
+    }
+
+    allprojects {
+        repositories {
+            google()
+            jcenter()
+            $kotlinEapRepoBlock
+        }
+    }
+
+    tasks.register("clean", Delete::class) {
+        delete(rootProject.buildDir)
     }
     """
 }

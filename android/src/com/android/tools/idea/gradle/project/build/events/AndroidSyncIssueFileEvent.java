@@ -17,15 +17,18 @@ package com.android.tools.idea.gradle.project.build.events;
 
 import com.intellij.build.FilePosition;
 import com.intellij.build.events.FileMessageEvent;
+import com.intellij.build.issue.BuildIssueQuickFix;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidSyncIssueFileEvent extends AndroidSyncIssueEvent implements FileMessageEvent {
-  @NotNull private AndroidSyncIssueFileEventResult myResult;
+  @NotNull private final AndroidSyncIssueFileEventResult myResult;
 
-  public AndroidSyncIssueFileEvent(@NotNull Object parentId, @NotNull NotificationData notificationData, @NotNull String title) {
-    super(parentId, notificationData, title);
+  public AndroidSyncIssueFileEvent(@NotNull Object parentId, @NotNull NotificationData notificationData, @NotNull String title,
+                                   @NotNull List<? extends BuildIssueQuickFix> fixes) {
+    super(parentId, notificationData, title, fixes);
     myResult = new AndroidSyncIssueFileEventResult(notificationData);
   }
 

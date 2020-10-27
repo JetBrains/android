@@ -16,8 +16,8 @@
 package com.android.tools.idea.explorer
 
 import com.android.testutils.MockitoKt.eq
-import com.android.tools.idea.concurrency.AsyncTestUtils
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.deviceExplorer.FileHandler
 import com.android.tools.idea.explorer.mocks.MockDeviceFileEntry
@@ -102,7 +102,7 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
 
     // Act
     val downloadEntryFuture = myDeviceExplorerFileManager.downloadFileEntry(fooBar1Entry, fooBar1LocalPath, downloadProgress)
-    val (deviceFileId, virtualFile, additionalFiles) = AsyncTestUtils.pumpEventsAndWaitForFuture(downloadEntryFuture)
+    val (deviceFileId, virtualFile, additionalFiles) = pumpEventsAndWaitForFuture(downloadEntryFuture)
 
     // Assert
     assertEquals(deviceFileId.deviceId, mockDeviceFileSystem.name)
@@ -128,7 +128,7 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
 
     // Act
     val future = myDeviceExplorerFileManager.downloadFileEntry(fooBar1Entry, fooBar1LocalPath, downloadProgress)
-    val (_, _, additionalFiles) = AsyncTestUtils.pumpEventsAndWaitForFuture(future)
+    val (_, _, additionalFiles) = pumpEventsAndWaitForFuture(future)
 
     // Assert
     verify(mockFileHandler).getAdditionalDevicePaths(
@@ -156,7 +156,7 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
 
     // Act
     val future = myDeviceExplorerFileManager.downloadFileEntry(fooBar1Entry, fooBar1LocalPath, downloadProgress)
-    val (_, _, additionalFiles) = AsyncTestUtils.pumpEventsAndWaitForFuture(future)
+    val (_, _, additionalFiles) = pumpEventsAndWaitForFuture(future)
 
     // Assert
     assertTrue(Utils.VirtualFilePathArgumentMatcher("/foo2/bar1").matches(additionalFiles.first()))

@@ -15,19 +15,18 @@
  */
 package com.android.tools.profilers.memory;
 
+import static org.junit.Assert.assertEquals;
+
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
-import org.junit.Rule;
-import org.junit.Test;
-
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertEquals;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class LegacyGcStatsDataSeriesTest {
 
@@ -49,7 +48,7 @@ public class LegacyGcStatsDataSeriesTest {
     myService.setMemoryData(memoryData);
 
     LegacyGcStatsDataSeries
-      series = new LegacyGcStatsDataSeries(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(), ProfilersTestData.SESSION_DATA);
+      series = new LegacyGcStatsDataSeries(new ProfilerClient(myGrpcChannel.getChannel()).getMemoryClient(), ProfilersTestData.SESSION_DATA);
     List<SeriesData<GcDurationData>> dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
 
     assertEquals(2, dataList.size());

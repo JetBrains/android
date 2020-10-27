@@ -194,7 +194,7 @@ class RecordingInitiatorPaneTest(newPipeline: Boolean) {
     TreeWalker(RecordingInitiatorPane(stageView))
       .descendants()
       .filterIsInstance<HyperlinkLabel>()
-      .any { it.text == ProfilingTechnology.ATRACE.description }
+      .any { it.text == ProfilingTechnology.SYSTEM_TRACE.description }
       .let { assertThat(it).isTrue() }
   }
 

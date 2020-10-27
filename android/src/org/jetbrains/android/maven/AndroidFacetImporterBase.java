@@ -1,4 +1,18 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+/*
+ * Copyright 2000-2012 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.android.maven;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
@@ -101,9 +115,6 @@ import org.jetbrains.idea.maven.utils.MavenProgressIndicator;
 import org.jetbrains.jps.util.JpsPathUtil;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFacet, AndroidFacetConfiguration, AndroidFacetType> {
   private static final String DEX_CORE_LIBRARY_PROPERTY = "dexCoreLibrary";
 
@@ -1276,7 +1287,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     result.add(mavenProject.getGeneratedSourcesDirectory(false) + "/extracted-dependencies");
   }
 
-  private static final class MyResourceProcessor implements AndroidMavenProviderImpl.ResourceProcessor {
+  private static class MyResourceProcessor implements AndroidMavenProviderImpl.ResourceProcessor {
     private final String myResourceOutputPath;
     private final boolean myDirectory;
 

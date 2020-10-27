@@ -92,6 +92,7 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
 
   @Override
   public MTag commit(@Nullable String commandName) {
+    boolean tagCreated = false;
     if (deleteRun != null) {
       deleteRun.delete(commandName);
       deleteRun = null;
@@ -106,6 +107,7 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
     }
     else {
       myXmlTag = createTag(mType, this, root, commandName);
+      tagCreated = true;
     }
     MotionSceneTag result = new MotionSceneTag(myXmlTag, mParent);
     for (MTag child : myChildren) {
@@ -114,7 +116,7 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
         result.myChildren.add(tagWriter.commit(commandName));
       }
     }
-    if (!(mParent instanceof MotionSceneTagWriter)) {
+    if (tagCreated && !(mParent instanceof MotionSceneTagWriter)) {
       mParent.myChildren.add(result);
     }
     notifyListeners(result);

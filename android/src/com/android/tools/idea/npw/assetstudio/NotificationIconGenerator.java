@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.assetstudio;
 
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
+import com.android.tools.idea.rendering.DrawableRenderer;
 import com.intellij.openapi.project.Project;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -47,7 +48,7 @@ public class NotificationIconGenerator extends IconGenerator {
     if (asset != null) {
       double paddingFactor = asset.paddingPercent().get() / 100. + 1. / (ICON_SIZE.width - 1); // Add extra 1dp padding
       double scaleFactor = 1. / (1 + paddingFactor * 2);
-      options.image = new TransformedImageAsset(asset, ICON_SIZE, scaleFactor, Color.WHITE, getGraphicGeneratorContext());
+      options.image = new TransformedImageAsset(asset, ICON_SIZE, scaleFactor, Color.WHITE, getGraphicGeneratorContext(), myLineSeparator);
     }
 
     return options;

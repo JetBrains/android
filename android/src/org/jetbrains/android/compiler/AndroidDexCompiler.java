@@ -53,8 +53,6 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Android Dex compiler.
- *
- * @author Alexey Efimov
  */
 public class AndroidDexCompiler implements ClassPostProcessingCompiler {
 

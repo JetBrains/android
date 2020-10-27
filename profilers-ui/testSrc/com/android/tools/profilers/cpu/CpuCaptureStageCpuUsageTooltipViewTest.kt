@@ -19,7 +19,6 @@ import com.android.testutils.TestUtils
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
@@ -28,6 +27,7 @@ import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -40,19 +40,25 @@ class CpuCaptureStageCpuUsageTooltipViewTest {
     enableEventsPipeline(true)
   }
 
-  @Rule
-  @JvmField
+  @get:Rule
   val grpcChannel = FakeGrpcChannel("CaptureCpuUsageTooltipTest", FakeTransportService(timer), FakeProfilerService(timer))
+
+  /**
+   * For initializing [com.intellij.ide.HelpTooltip].
+   */
+  @get:Rule
+  val appRule = ApplicationRule()
+
   private lateinit var captureStage: CpuCaptureStage
   private lateinit var tooltipView: FakeCaptureCpuUsageTooltipView
 
   @Before
   fun setUp() {
-    val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), myIdeServices, timer)
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), myIdeServices, timer)
     profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
     val profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     captureStage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
-                                          TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.VALID_TRACE_PATH))
+                                          TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.VALID_TRACE_PATH), 123L)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     profilers.stage = captureStage
     val stageView = profilersView.stageView as CpuCaptureStageView

@@ -16,12 +16,14 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
+import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
 
+import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetup;
-import com.android.tools.idea.gradle.project.sync.setup.module.java.JavaModuleCleanupStep;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -34,20 +36,17 @@ import org.jetbrains.annotations.NotNull;
 public class JavaModuleModelDataService extends ModuleModelDataService<JavaModuleModel> {
   @NotNull private final ModuleSetupContext.Factory myModuleSetupContextFactory;
   @NotNull private final JavaModuleSetup myModuleSetup;
-  @NotNull private final JavaModuleCleanupStep myCleanupStep;
 
   @SuppressWarnings("unused") // Instantiated by IDEA
   public JavaModuleModelDataService() {
-    this(new ModuleSetupContext.Factory(), new JavaModuleSetup(), new JavaModuleCleanupStep());
+    this(new ModuleSetupContext.Factory(), new JavaModuleSetup());
   }
 
   @VisibleForTesting
   JavaModuleModelDataService(@NotNull ModuleSetupContext.Factory moduleSetupContextFactory,
-                             @NotNull JavaModuleSetup moduleSetup,
-                             @NotNull JavaModuleCleanupStep cleanupStep) {
+                             @NotNull JavaModuleSetup moduleSetup) {
     myModuleSetupContextFactory = moduleSetupContextFactory;
     myModuleSetup = moduleSetup;
-    myCleanupStep = cleanupStep;
   }
 
   @Override
@@ -68,13 +67,8 @@ public class JavaModuleModelDataService extends ModuleModelDataService<JavaModul
         myModuleSetup.setUpModule(context, javaModuleModel);
       }
       else {
-        onModelNotFound(module, modelsProvider);
-      }
+        ModifiableFacetModel facetModel = modelsProvider.getModifiableFacetModel(module);
+        removeAllFacets(facetModel, JavaFacet.getFacetTypeId());      }
     }
-  }
-
-  @Override
-  protected void onModelNotFound(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
-    myCleanupStep.cleanUpModule(module, modelsProvider);
   }
 }

@@ -26,12 +26,12 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.properties.InspectorPropertiesModel
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
-import com.android.tools.idea.layoutinspector.util.InspectorBuilder
+import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import com.google.common.truth.Truth.assertThat
@@ -40,28 +40,22 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.facet.AndroidFacet
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 
 @RunsInEdt
 class ResourceLookupResolverTest {
+  private val projectRule = AndroidProjectRule.withSdk()
 
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.withSdk()
-
-  @JvmField
-  @Rule
-  val edtRule = EdtRule()
+  @get:Rule
+  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   @Before
-  fun setUp() = InspectorBuilder.setUpDemo(projectRule)
-
-
-  @After
-  fun tearDown() = InspectorBuilder.tearDownDemo()
+  fun setUp() {
+    DemoExample.setUpDemo(projectRule.fixture)
+  }
 
   @Suppress("SameParameterValue")
   private fun createResourceLookupResolver(theme: String, vararg qualifiers: String): ResourceLookupResolver {
@@ -90,9 +84,9 @@ class ResourceLookupResolverTest {
     val locations = resolver.findFileLocations(data.textColor, data.demo, 10)
     checkLocation(locations[0], "demo.xml:18", "framework:textColor=\"@color/textRedIndirect\"")
     checkLocation(locations[1], "colors.xml:6", "<color name=\"textRedIndirect\">@color/textRed</color>")
-    checkLocation(locations[2], "colors.xml:5", "<color name=\"textRed\">#F32133</color>")
+    checkLocation(locations[2], "colors.xml:5", "<color name=\"textRed\">#FF0000</color>")
     assertThat(locations.size).isEqualTo(3)
-    assertThat(resolver.findAttributeValue(data.textColor, data.demo)).isEqualTo("#F32133")
+    assertThat(resolver.findAttributeValue(data.textColor, data.demo)).isEqualTo("#FF0000")
   }
 
   @Test
@@ -224,13 +218,27 @@ class ResourceLookupResolverTest {
     val resolver = createResourceLookupResolver(data.theme)
     val value1 = resolver.findAttributeValue(data.text1, data.demo)
     val value2 = resolver.findAttributeValue(data.text2, data.demo)
-    val value3 = resolver.findAttributeValue(data.text3, data.design_text)
+    val value3 = resolver.findAttributeValue(data.text3, data.designText)
     // We cannot determine a view without an ID in general:
     assertThat(value1).isNull()
     // Except if this view is the only child of a parent view with an ID, then we assume we have found it:
     assertThat(value2).isEqualTo("TextView without an ID")
     // or if this file only has 1 view, then we assume that view is what we are looking for:
     assertThat(value3).isEqualTo("Tab1")
+  }
+
+  @Test
+  fun testButtonWithBackgroundColor() {
+    val data = Data()
+    val resolver = createResourceLookupResolver(data.theme)
+    val background = InspectorPropertyItem(
+      ANDROID_URI, ATTR_BACKGROUND, ATTR_BACKGROUND, Type.COLOR, "", PropertySection.DECLARED, data.demo, data.button, data.resourceLookup)
+    val locations = resolver.findFileLocations(background, data.demo, 10)
+    checkLocation(locations[0], "demo.xml:25", "framework:background=\"@color/textBlue\"")
+    checkLocation(locations[1], "colors.xml:7", "<color name=\"textBlue\">#2122F8</color>")
+    assertThat(locations.size).isEqualTo(2)
+    assertThat(resolver.findAttributeValue(background, data.demo)).isEqualTo("#2122F8")
+    assertThat(resolver.findAttributeValue(background, data.myButtonStyle)).isEqualTo("@framework:drawable/btn_default_material")
   }
 
   @Test
@@ -258,23 +266,24 @@ class ResourceLookupResolverTest {
     val theme = "@style/AppTheme"
     val exampleNS = ResourceNamespace.fromPackageName("com.example")
     val demo = ResourceReference(exampleNS, ResourceType.LAYOUT, "demo")
-    val design_text = ResourceReference(exampleNS, ResourceType.LAYOUT, "design_tab_text")
+    val designText = ResourceReference(exampleNS, ResourceType.LAYOUT, "design_tab_text")
     val myTextStyle = ResourceReference(exampleNS, ResourceType.STYLE, "MyTextStyle")
     val myTextStyleExtra = ResourceReference(exampleNS, ResourceType.STYLE, "MyTextStyle.Extra")
     val textStyleMaterial = ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "TextAppearance.Material")
     val textStyleMaterialBody1 = ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "TextAppearance.Material.Body1")
+    val myButtonStyle = ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "Widget.Material.Button")
     val relativeId = ResourceReference(exampleNS, ResourceType.ID, "relativeLayout")
     val frameId = ResourceReference(exampleNS, ResourceType.ID, "frameLayout")
     val titleId = ResourceReference(exampleNS, ResourceType.ID, "title")
-    val model = InspectorPropertiesModel()
-    val inspectorModel = model.layoutInspector?.layoutInspectorModel
-    val resourceLookup = inspectorModel?.resourceLookup
-    val relativeLayout = ViewNode(1, "RelativeLayout", demo, 0, 0, 0, 0, 300, 900, relativeId, "", 0)
-    val title = ViewNode(2, "TextView", demo, 30, 60, 0, 0, 300, 100, titleId, "Hello Folks", 0)
-    val frameLayout = ViewNode(3, "RelativeLayout", demo, 0, 200, 0, 0, 300, 700, frameId, "", 0)
-    val textView1 = ViewNode(4, "TextView", demo, 400, 60, 0, 0, 300, 100, null, "TextView without an ID", 0)
-    val textView2 = ViewNode(5, "TextView", demo, 0, 200, 0, 0, 300, 700, null, "TextView without an ID", 0)
-    val singleTextView = ViewNode(1, "TextView", design_text, 0, 0, 0, 0, 400, 50, null, "Tab3", 0)
+    val buttonId = ResourceReference(exampleNS, ResourceType.ID, "button")
+    val resourceLookup: ResourceLookup = mock()
+    val relativeLayout = ViewNode(1, "RelativeLayout", demo, 0, 0, 300, 900, relativeId, "", 0)
+    val title = ViewNode(2, "TextView", demo, 30, 60, 300, 100, titleId, "Hello Folks", 0)
+    val frameLayout = ViewNode(3, "RelativeLayout", demo, 0, 200, 300, 700, frameId, "", 0)
+    val textView1 = ViewNode(4, "TextView", demo, 400, 60, 300, 100, null, "TextView without an ID", 0)
+    val textView2 = ViewNode(5, "TextView", demo, 0, 200, 300, 700, null, "TextView without an ID", 0)
+    val button = ViewNode(6, "Button", demo, 30, 400, 300, 100, buttonId, "OK", 0)
+    val singleTextView = ViewNode(1, "TextView", designText, 0, 0, 400, 50, null, "Tab3", 0)
     val textColor = InspectorPropertyItem(
       ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, "", PropertySection.DECLARED, demo, title, resourceLookup)
     val background = InspectorPropertyItem(
@@ -290,7 +299,7 @@ class ResourceLookupResolverTest {
     val text2 = InspectorPropertyItem(
       ANDROID_URI, ATTR_TEXT, ATTR_TEXT, Type.STRING, "", PropertySection.DECLARED, demo, textView2, resourceLookup)
     val text3 = InspectorPropertyItem(
-      ANDROID_URI, ATTR_TEXT, ATTR_TEXT, Type.STRING, "", PropertySection.DECLARED, design_text, singleTextView, resourceLookup)
+      ANDROID_URI, ATTR_TEXT, ATTR_TEXT, Type.STRING, "", PropertySection.DECLARED, designText, singleTextView, resourceLookup)
 
     init {
       setChildren(relativeLayout, title, textView1, frameLayout)

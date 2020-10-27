@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.editor.multirepresentation
 
-import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile

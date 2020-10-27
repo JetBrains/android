@@ -37,9 +37,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author yole
- */
 public class AndroidFileTemplateProvider implements FileTemplateGroupDescriptorFactory {
   @NonNls public static final String REMOTE_INTERFACE_TEMPLATE = "Remote_Interface.aidl";
   @NonNls public static final String ANDROID_MANIFEST_TEMPLATE = SdkConstants.FN_ANDROID_MANIFEST_XML;

@@ -15,11 +15,13 @@
  */
 package com.android.tools.profilers;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.FakeTracePreProcessor;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.TracePreProcessor;
+import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.FakeCodeNavigator;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
@@ -48,6 +50,8 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public static final String FAKE_ATRACE_NAME = "Atrace";
 
+  public static final String FAKE_PERFETTO_NAME = "Perfetto";
+
   public static final String FAKE_SYMBOL_DIR = "/fake/sym/dir/";
 
   public static final ProfilingConfiguration ART_SAMPLED_CONFIG = new ProfilingConfiguration(FAKE_ART_SAMPLED_NAME,
@@ -61,17 +65,15 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
                                                                                             Cpu.CpuTraceMode.SAMPLED);
   public static final ProfilingConfiguration ATRACE_CONFIG = new ProfilingConfiguration(FAKE_ATRACE_NAME,
                                                                                         Cpu.CpuTraceType.ATRACE,
-                                                                                        Cpu.CpuTraceMode.SAMPLED);
+                                                                                        Cpu.CpuTraceMode.INSTRUMENTED);
+  public static final ProfilingConfiguration PERFETTO_CONFIG = new ProfilingConfiguration(FAKE_PERFETTO_NAME,
+                                                                                        Cpu.CpuTraceType.PERFETTO,
+                                                                                        Cpu.CpuTraceMode.INSTRUMENTED);
 
   private final FeatureTracker myFakeFeatureTracker = new FakeFeatureTracker();
   private NativeFrameSymbolizer myFakeSymbolizer = (abi, nativeFrame) -> nativeFrame;
   private final CodeNavigator myFakeNavigationService = new FakeCodeNavigator(myFakeFeatureTracker);
   private final TracePreProcessor myFakeTracePreProcessor = new FakeTracePreProcessor();
-
-  /**
-   * Can toggle for tests via {@link #enablePerfetto(boolean)}, but each test starts with this defaulted to false.
-   */
-  private boolean myPerfettoEnabled = false;
 
   /**
    * Toggle for including an energy profiler in our profiler view.
@@ -134,14 +136,24 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myIsCaptureStageEnabled = false;
 
   /**
-   * Whether profiler audits should be generated
-   */
-  private boolean isAuditsEnabled = true;
-
-  /**
    * Whether custom event visualization should be visible
    */
   private boolean myCustomEventVisualizationEnabled = false;
+
+  /**
+   * Whether native memory sampling via heapprofd is enabled.
+   */
+  private boolean myNativeMemorySampleEnabled = false;
+
+  /**
+   * Whether we use TraceProcessor to parse Perfetto traces.
+   */
+  private boolean myUseTraceProcessor = false;
+
+  /**
+   * Whether separate heap-dump view is enabled
+   */
+  private boolean mySeparateHeapDumpUiEnabled = false;
 
   /**
    * List of custom CPU profiling configurations.
@@ -239,6 +251,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
       @Override
+      public int getNativeMemorySamplingRateForCurrentConfig() {
+        return 0;
+      }
+
+      @Override
       public boolean isCpuApiTracingEnabled() {
         return myIsCpuApiTracingEnabled;
       }
@@ -270,20 +287,17 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isNativeMemorySampleEnabled() { return myNativeMemorySampleEnabled; }
+
+      @Override
       public boolean isMemorySnapshotEnabled() {
         return myMemorySnapshotEnabled;
       }
 
       @Override
-      public boolean isPerfettoEnabled() { return myPerfettoEnabled; }
-
-      @Override
       public boolean isPerformanceMonitoringEnabled() {
         return false;
       }
-
-      @Override
-      public boolean isAuditsEnabled() { return isAuditsEnabled; }
 
       @Override
       public boolean isCustomEventVisualizationEnabled() {
@@ -298,6 +312,16 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isUnifiedPipelineEnabled() {
         return myEventsPipelineEnabled;
+      }
+
+      @Override
+      public boolean isUseTraceProcessor() {
+        return myUseTraceProcessor;
+      }
+
+      @Override
+      public boolean isSeparateHeapDumpUiEnabled() {
+        return mySeparateHeapDumpUiEnabled;
       }
     };
   }
@@ -320,12 +344,13 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
+  @Nullable
   public <T> T openListBoxChooserDialog(@NotNull String title,
                                         @Nullable String message,
-                                        @NotNull T[] options,
+                                        @NotNull List<T> options,
                                         @NotNull Function<T, String> listBoxPresentationAdapter) {
-    if (myListBoxOptionsIndex >= 0 && myListBoxOptionsIndex < options.length) {
-      return options[myListBoxOptionsIndex];
+    if (myListBoxOptionsIndex >= 0 && myListBoxOptionsIndex < options.size()) {
+      return options.get(myListBoxOptionsIndex);
     }
     return null;
   }
@@ -353,13 +378,18 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public List<ProfilingConfiguration> getUserCpuProfilerConfigs() {
+  public List<ProfilingConfiguration> getUserCpuProfilerConfigs(int apiLevel) {
     return myCustomProfilingConfigurations;
   }
 
   @Override
-  public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs() {
-    return ImmutableList.of(ART_SAMPLED_CONFIG, ART_INSTRUMENTED_CONFIG, SIMPLEPERF_CONFIG, ATRACE_CONFIG);
+  public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs(int apiLevel) {
+    if (apiLevel >= AndroidVersion.VersionCodes.P) {
+      return ImmutableList.of(ART_SAMPLED_CONFIG, ART_INSTRUMENTED_CONFIG, SIMPLEPERF_CONFIG, PERFETTO_CONFIG);
+    } else {
+      return ImmutableList.of(ART_SAMPLED_CONFIG, ART_INSTRUMENTED_CONFIG, SIMPLEPERF_CONFIG, ATRACE_CONFIG);
+    }
+
   }
 
   @Override
@@ -378,6 +408,12 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     return Collections.singletonList(FAKE_SYMBOL_DIR);
   }
 
+  @NotNull
+  @Override
+  public TraceProcessorService getTraceProcessorService() {
+    return new FakeTraceProcessorService();
+  }
+
   @Nullable
   public Notification getNotification() {
     return myNotification;
@@ -385,10 +421,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void setNativeProfilingConfigurationPreferred(boolean nativeProfilingConfigurationPreferred) {
     myNativeProfilingConfigurationPreferred = nativeProfilingConfigurationPreferred;
-  }
-
-  public void enablePerfetto(boolean enabled) {
-    myPerfettoEnabled = enabled;
   }
 
   public void enableEnergyProfiler(boolean enabled) {
@@ -421,7 +453,20 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     myLiveAllocationsSamplingEnabled = enabled;
   }
 
+  public void enableNativeMemorySampling(boolean enabled) {
+    myNativeMemorySampleEnabled = enabled;
+  }
+
   public void enableCpuCaptureStage(boolean enabled) { myIsCaptureStageEnabled = enabled; }
 
   public void enableCustomEventVisualization(boolean enabled) { myCustomEventVisualizationEnabled = enabled; }
+
+
+  public void enableUseTraceProcessor(boolean enabled) {
+    myUseTraceProcessor = enabled;
+  }
+
+  public void enableSeparateHeapDumpUi(boolean enabled) {
+    mySeparateHeapDumpUiEnabled = enabled;
+  }
 }

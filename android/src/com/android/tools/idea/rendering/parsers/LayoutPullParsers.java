@@ -63,7 +63,8 @@ import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.codeInsight.template.emmet.generators.LoremGenerator;
 import com.intellij.openapi.application.Application;
@@ -94,7 +95,7 @@ import org.w3c.dom.Element;
 /**
  * Methods for creating layout pull parsers for various different types of files.
  */
-public final class LayoutPullParsers {
+public class LayoutPullParsers {
   static final boolean DEBUG = false;
 
   private static final String[] VALID_XML_TAGS = {
@@ -137,7 +138,7 @@ public final class LayoutPullParsers {
   }
 
   public static boolean isSupported(@NotNull PsiFile file) {
-    ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+    ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
     if (folderType == null) {
       return false;
     }
@@ -179,7 +180,7 @@ public final class LayoutPullParsers {
         IRenderLogger logger = renderTask.getLogger();
         HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
         ResourceResolver resourceResolver = renderTask.getContext().getConfiguration().getResourceResolver();
-        boolean useToolsNamespace = renderTask.getShowWithToolsAttributes();
+        boolean useToolsNamespace = renderTask.getShowWithToolsVisibilityAndPosition();
         return LayoutPsiPullParser
           .create(file, logger, Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver, useToolsNamespace);
       }
@@ -231,11 +232,11 @@ public final class LayoutPullParsers {
     // menu rendering support in layoutlib to properly handle this.
     Document document = DomPullParser.createEmptyPlainDocument();
     assert document != null;
-    Element imageView = addRootElement(document, IMAGE_VIEW, ResourceHelper.getResourceNamespace(file));
+    Element imageView = addRootElement(document, IMAGE_VIEW, IdeResourcesUtil.getResourceNamespace(file));
     setAndroidAttr(imageView, ATTR_LAYOUT_WIDTH, VALUE_FILL_PARENT);
     setAndroidAttr(imageView, ATTR_LAYOUT_HEIGHT, VALUE_FILL_PARENT);
 
-    ResourceFolderType type = ResourceHelper.getFolderType(file);
+    ResourceFolderType type = IdeResourcesUtil.getFolderType(file);
     assert type != null;
 
     setAndroidAttr(imageView, ATTR_SRC, file.getVirtualFile().getPath());
@@ -292,7 +293,7 @@ public final class LayoutPullParsers {
 
     Document document = DomPullParser.createEmptyPlainDocument();
     assert document != null;
-    Element root = addRootElement(document, layout != null ? VIEW_INCLUDE : IMAGE_VIEW, ResourceHelper.getResourceNamespace(rootTag));
+    Element root = addRootElement(document, layout != null ? VIEW_INCLUDE : IMAGE_VIEW, IdeResourcesUtil.getResourceNamespace(rootTag));
     if (layout != null) {
       root.setAttribute(ATTR_LAYOUT, layout);
       setAndroidAttr(root, ATTR_LAYOUT_WIDTH, VALUE_FILL_PARENT);
@@ -323,17 +324,17 @@ public final class LayoutPullParsers {
 
     Document document = DomPullParser.createEmptyPlainDocument();
     assert document != null;
-    Element rootLayout = addRootElement(document, LINEAR_LAYOUT, ResourceHelper.getResourceNamespace(file));
+    Element rootLayout = addRootElement(document, LINEAR_LAYOUT, IdeResourcesUtil.getResourceNamespace(file));
     setAndroidAttr(rootLayout, ATTR_LAYOUT_WIDTH, VALUE_FILL_PARENT);
     setAndroidAttr(rootLayout, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
     setAndroidAttr(rootLayout, ATTR_ORIENTATION, VALUE_VERTICAL);
 
     String loremText = new LoremGenerator().generate(8, true);
 
-    ResourceFolderType type = ResourceHelper.getFolderType(file);
+    ResourceFolderType type = IdeResourcesUtil.getFolderType(file);
     assert type != null;
 
-    String fontRefName = PREFIX_RESOURCE_REF + type.getName() + "/" + ResourceHelper.getResourceName(file);
+    String fontRefName = PREFIX_RESOURCE_REF + type.getName() + "/" + SdkUtils.fileNameToResourceName(file.getName());
 
     XmlTag[] fontSubTags = rootTag.getSubTags();
     Stream<String[]> fontStream;
@@ -388,7 +389,7 @@ public final class LayoutPullParsers {
   }
 
   public static void saveFileIfNecessary(PsiFile psiFile) {
-    if (!needSave(ResourceHelper.getFolderType(psiFile.getVirtualFile()))) { // Avoid need for read lock in get parent
+    if (!needSave(IdeResourcesUtil.getFolderType(psiFile.getVirtualFile()))) { // Avoid need for read lock in get parent
       return;
     }
 

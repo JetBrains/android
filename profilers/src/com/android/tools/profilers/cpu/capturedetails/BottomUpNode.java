@@ -44,30 +44,28 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
     myIsRoot = true;
     myChildrenBuilt = true;
 
-    List<CaptureNode> allNodes = new ArrayList<>();
+    // We use a separate map for unmatched children, because we can not merge unmatched with matched,
+    // i.e all merged children should have the same {@link CaptureNode.FilterType};
+    Map<String, BottomUpNode> children = new HashMap<>();
+    Map<String, BottomUpNode> unmatchedChildren = new HashMap<>();
+
     // Pre-order traversal with Stack.
     // The traversal will sort nodes by CaptureNode#getStart(), if they'll be equal then ancestor will come first.
     Stack<CaptureNode> stack = new Stack<>();
     stack.add(node);
     while (!stack.isEmpty()) {
       CaptureNode curNode = stack.pop();
-      // If we don't have an Id then we exclude this node from being added as a child to the parent.
-      // The only known occurrence of this is the empty root node used to aggregate multiple selected objects.
-      if (!curNode.getData().getId().isEmpty()) {
-        allNodes.add(curNode);
-      }
       // Adding in reverse order so that the first child is processed first
       for (int i = curNode.getChildren().size() - 1; i >= 0; --i) {
         stack.add(curNode.getChildren().get(i));
       }
-    }
 
-    // We use a separate map for unmatched children, because we can not merge unmatched with matched,
-    // i.e all merged children should have the same {@link CaptureNode.FilterType};
-    Map<String, BottomUpNode> children = new HashMap<>();
-    Map<String, BottomUpNode> unmatchedChildren = new HashMap<>();
+      // If we don't have an Id then we exclude this node from being added as a child to the parent.
+      // The only known occurrence of this is the empty root node used to aggregate multiple selected objects.
+      if (curNode.getData().getId().isEmpty()) {
+        continue;
+      }
 
-    for (CaptureNode curNode : allNodes) {
       String curId = curNode.getData().getId();
 
       BottomUpNode child = curNode.isUnmatched() ? unmatchedChildren.get(curId) : children.get(curId);
@@ -152,7 +150,8 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
     for (CaptureNode node : myNodes) {
       // We use the root node to distinguish if two nodes share the same tree. In the event of multi-select we want to compute the bottom
       // up calculation independently for each tree then sum them after the fact.
-      CaptureNode root = findRootNode(node);
+      // TODO(153306735): Cache the root calculation, otherwise our update algorithm is going to be O(n*depth) instead of O(n)
+      CaptureNode root = node.findRootNode();
       CaptureNode outerSoFar = outerSoFarByParent.getOrDefault(root, null);
       if (outerSoFar == null || node.getEnd() > outerSoFar.getEnd()) {
         if (outerSoFar != null) {
@@ -173,14 +172,6 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
       myGlobalTotal += getIntersection(range, outerSoFar, ClockType.GLOBAL);
     }
     myGlobalChildrenTotal = myGlobalTotal - self;
-  }
-
-  @NotNull
-  private static CaptureNode findRootNode(@NotNull CaptureNode node) {
-    if (node.getParent() != null) {
-      return findRootNode(node.getParent());
-    }
-    return node;
   }
 
   @NotNull

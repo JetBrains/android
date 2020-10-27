@@ -28,9 +28,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-/**
-* @author Dmitry Avdeev
-*/
 public class AndroidDexCompilerSettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
   private final AndroidDexCompilerConfiguration myConfig;
   private final Project myProject;

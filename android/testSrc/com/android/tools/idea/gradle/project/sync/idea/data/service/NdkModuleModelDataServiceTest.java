@@ -41,7 +41,6 @@ import org.mockito.Mock;
  */
 public class NdkModuleModelDataServiceTest extends HeavyPlatformTestCase {
   @Mock private NdkModuleSetup myModuleSetup;
-  @Mock private NdkModuleCleanupStep myCleanupStep;
   @Mock private GradleSyncState mySyncState;
   @Mock private ModuleSetupContext.Factory myModuleSetupContextFactory;
   @Mock private ModuleSetupContext myModuleSetupContext;
@@ -57,7 +56,7 @@ public class NdkModuleModelDataServiceTest extends HeavyPlatformTestCase {
     ServiceContainerUtil
       .replaceService(getProject(), GradleSyncState.class, mySyncState, getTestRootDisposable());
     myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
-    myService = new NdkModuleModelDataService(myModuleSetupContextFactory, myModuleSetup, myCleanupStep);
+    myService = new NdkModuleModelDataService(myModuleSetupContextFactory, myModuleSetup);
   }
 
   public void testGetTargetDataKey() {
@@ -78,19 +77,5 @@ public class NdkModuleModelDataServiceTest extends HeavyPlatformTestCase {
     myService.importData(dataNodes, null, getProject(), myModelsProvider);
 
     verify(myModuleSetup).setUpModule(myModuleSetupContext, model);
-  }
-
-  public void testOnModelsNotFound() {
-    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
-    myService.onModelsNotFound(modelsProvider);
-    verify(myCleanupStep).cleanUpModule(myModule, modelsProvider);
-  }
-
-  public void testImportDataWithoutModels() {
-    Module appModule = createModule("app");
-    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
-
-    myService.importData(Collections.emptyList(), getProject(), modelsProvider, Collections.emptyMap());
-    verify(myCleanupStep).cleanUpModule(appModule, modelsProvider);
   }
 }

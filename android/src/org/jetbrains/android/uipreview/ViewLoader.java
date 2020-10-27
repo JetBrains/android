@@ -26,6 +26,8 @@ import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 import android.view.Gravity;
+import com.android.annotations.NonNull;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.layoutlib.bridge.MockView;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
@@ -62,6 +64,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
@@ -89,14 +92,29 @@ public class ViewLoader {
   @NotNull private final LayoutLibrary myLayoutLibrary;
   /** {@link IRenderLogger} used to log loading problems. */
   @NotNull private IRenderLogger myLogger;
-  @Nullable private ModuleClassLoader myModuleClassLoader;
+  @NotNull private final ModuleClassLoader myModuleClassLoader;
 
+  @VisibleForTesting
   public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull AndroidFacet facet, @NotNull IRenderLogger logger,
                     @Nullable Object credential) {
+    this(layoutLib, facet, logger, credential, ModuleClassLoaderManager.get()::getShared);
+  }
+
+  public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull AndroidFacet facet, @NotNull IRenderLogger logger,
+                    @Nullable Object credential,
+                    @NotNull BiFunction<? super ClassLoader, ? super Module, ModuleClassLoader> classLoaderFactory) {
     myLayoutLibrary = layoutLib;
     myModule = facet.getModule();
     myLogger = logger;
     myCredential = credential;
+    // Allow creating class loaders during rendering; may be prevented by the RenderSecurityManager
+    boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
+    try {
+      myModuleClassLoader = classLoaderFactory.apply(myLayoutLibrary.getClassLoader(), myModule);
+    }
+    finally {
+      RenderSecurityManager.exitSafeRegion(token);
+    }
   }
 
   /**
@@ -226,27 +244,20 @@ public class ViewLoader {
     return null;
   }
 
+  /**
+   * Checks if a class with this name was loaded by this loader.
+   * @param name binary name of a class, see {@link ClassLoader}
+   * @return true if a class with this name was loaded, false otherwise
+   */
+  public boolean isClassLoaded(@NonNull String name) {
+    return myLoadedClasses.containsKey(name);
+  }
+
   @NotNull
   private List<ViewLoaderExtension> getExtensions() {
     ExtensionsArea area = myModule.getProject().getExtensionArea();
     ExtensionPoint<ViewLoaderExtension> point = area.getExtensionPointIfRegistered(ViewLoaderExtension.EP_NAME.getName());
     return point == null ? Collections.emptyList() : point.getExtensionList();
-  }
-
-  @NotNull
-  private ModuleClassLoader getModuleClassLoader() {
-    if (myModuleClassLoader == null) {
-      // Allow creating class loaders during rendering; may be prevented by the RenderSecurityManager
-      boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
-      try {
-        myModuleClassLoader = ModuleClassLoaderManager.get().get(myLayoutLibrary.getClassLoader(), myModule);
-      }
-      finally {
-        RenderSecurityManager.exitSafeRegion(token);
-      }
-    }
-
-    return myModuleClassLoader;
   }
 
   /** Checks that the given class has not been edited since the last compilation (and if it has, logs a warning to the user) */
@@ -410,16 +421,14 @@ public class ViewLoader {
     }
 
     try {
-      ModuleClassLoader moduleClassLoader = getModuleClassLoader();
-
       for (ViewLoaderExtension extension : getExtensions()) {
-        Class<?> loadedClass = extension.loadClass(className, moduleClassLoader);
+        Class<?> loadedClass = extension.loadClass(className, myModuleClassLoader);
         if (loadedClass != null) {
           return loadedClass;
         }
       }
 
-      return moduleClassLoader.loadClass(className);
+      return myModuleClassLoader.loadClass(className);
     }
     catch (ClassNotFoundException e) {
       if (logError && !className.equals(VIEW_FRAGMENT)) {
@@ -541,21 +550,14 @@ public class ViewLoader {
         LOG.debug("  The R class is not loaded.");
       }
 
-      final ModuleClassLoader moduleClassLoader = getModuleClassLoader();
-      final boolean isClassLoaded = moduleClassLoader.isClassLoaded(className);
-      aClass = moduleClassLoader.loadClass(className);
+      final boolean isClassLoaded = myModuleClassLoader.isClassLoaded(className);
+      aClass = myModuleClassLoader.loadClass(className);
 
       if (!isClassLoaded) {
         if (LOG.isDebugEnabled()) {
           LOG.debug(String.format("  Class found in module %s, first time load.", anonymize(myModule)));
         }
 
-        // This is the first time we've found the resources. The dynamic R classes generated for aar libraries are now stale and must be
-        // regenerated. Clear the ModuleClassLoader and reload the R class.
-        myLoadedClasses.clear();
-        ModuleClassLoaderManager.get().clearCache(myModule);
-        myModuleClassLoader = null;
-        aClass = getModuleClassLoader().loadClass(className);
         idManager.resetDynamicIds();
       }
       else {
@@ -571,10 +573,8 @@ public class ViewLoader {
       myLogger.setHasLoadedClasses();
     }
 
-    AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    if (facet != null) {
-      idManager.loadCompiledIds(aClass);
-    }
+    idManager.loadCompiledIds(aClass);
+
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format("END loadAndParseRClass(%s)", anonymizeClassName(className)));
     }
@@ -584,6 +584,6 @@ public class ViewLoader {
    * Returns true if this ViewLoaded has loaded the given class.
    */
   public boolean hasLoadedClass(@NotNull String classFqn) {
-    return myModuleClassLoader != null && myModuleClassLoader.isClassLoaded(classFqn);
+    return myModuleClassLoader.isClassLoaded(classFqn);
   }
 }

@@ -49,8 +49,7 @@ public class AttributeResolveTest {
     File appBuildFile = new File(guiTest.ideFrame().getProjectPath(), join("app", FN_BUILD_GRADLE));
     assertAbout(file()).that(appBuildFile).isFile();
     appendToFile(appBuildFile, "\ndependencies { compile 'com.android.support:design:+' }\n");
-    guiTest.ideFrame().requestProjectSync();
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().requestProjectSyncAndWaitForSyncToFinish();
 
     editor.open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.EDITOR);
     editor.moveBetween("", "<TextView");

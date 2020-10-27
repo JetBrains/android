@@ -40,6 +40,7 @@ import java.awt.event.InputEvent
 import java.awt.event.MouseEvent
 import java.io.File
 import javax.swing.JComponent
+import javax.swing.JPanel
 import kotlin.test.assertTrue
 
 /**
@@ -106,9 +107,9 @@ fun AndroidProjectRule.getResourceItemFromPath(testFolderPath: String, fileName:
 
 private const val WAIT_TIMEOUT = 3000
 
-internal inline fun <reified T : JComponent> waitAndAssert(view: ResourceExplorerView, crossinline condition: (list: T?) -> Boolean) {
+internal inline fun <reified T : JComponent> waitAndAssert(container: JPanel, crossinline condition: (list: T?) -> Boolean) {
   val waitForComponentCondition = object : WaitFor(WAIT_TIMEOUT) {
-    public override fun condition() = condition(UIUtil.findComponentOfType(view, T::class.java))
+    public override fun condition() = condition(UIUtil.findComponentOfType(container, T::class.java))
   }
   assertTrue(waitForComponentCondition.isConditionRealized)
 }

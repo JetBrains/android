@@ -15,6 +15,8 @@
  */
 package com.android.build.attribution.ui.data
 
+import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
+
 /*
  * The set of interfaces in this file represents the build attribution report data model and is used for any data access from the UI.
  * These interfaces correspond to the tree structure of UI info panels and contain all data required for presentation.
@@ -25,6 +27,7 @@ package com.android.build.attribution.ui.data
  */
 
 interface BuildAttributionReportUiData {
+  val successfulBuild: Boolean
   val buildSummary: BuildSummary
   val criticalPathTasks: CriticalPathTasksUiData
   val criticalPathPlugins: CriticalPathPluginsUiData
@@ -136,7 +139,7 @@ enum class TaskIssueType(
   val level: IssueLevel
 ) {
   // Order is important and reflects sorting order on the UI.
-  ALWAYS_RUN_TASKS("Always-run Tasks", IssueLevel.WARNING),
+  ALWAYS_RUN_TASKS("Always-Run Tasks", IssueLevel.WARNING),
   TASK_SETUP_ISSUE("Task Setup Issues", IssueLevel.WARNING),
 
 }
@@ -147,7 +150,7 @@ interface TaskIssueUiData {
   val bugReportTitle: String
   val bugReportBriefDescription: String
   val explanation: String
-  val helpLink: String
+  val helpLink: BuildAnalyzerBrowserLinks
   val buildSrcRecommendation: String
 }
 

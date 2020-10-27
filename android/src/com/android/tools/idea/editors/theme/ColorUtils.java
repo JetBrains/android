@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.google.common.collect.ImmutableSet;
 import java.awt.Color;
 import java.util.Map;
@@ -89,7 +89,7 @@ public class ColorUtils {
       return 0;
     }
     int component = (255 * foregroundComponent - backgroundAlpha * backgroundComponent) / (255 - backgroundAlpha);
-    return ResourceHelper.clamp(component, 0, 255);
+    return IdeResourcesUtil.clamp(component, 0, 255);
   }
 
   /**

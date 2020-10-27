@@ -15,37 +15,57 @@
  */
 package com.android.tools.idea.sqlite.mocks
 
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServices
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
-import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
+import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
+import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.withContext
 import javax.naming.OperationNotSupportedException
 import javax.swing.JComponent
 
-open class MockDatabaseInspectorController(val model: DatabaseInspectorController.Model) : DatabaseInspectorController {
+open class MockDatabaseInspectorController(private val repository: DatabaseRepositoryImpl, val model: DatabaseInspectorModel) : DatabaseInspectorController {
 
   override val component: JComponent
     get() = throw OperationNotSupportedException()
 
   override fun setUp() { }
 
-  override fun addSqliteDatabase(sqliteDatabaseFuture: ListenableFuture<SqliteDatabase>): ListenableFuture<Unit> {
-    val database = sqliteDatabaseFuture.get()
-    model.add(database, SqliteSchema(emptyList()))
-    return Futures.immediateFuture(Unit)
+  override suspend fun addSqliteDatabase(deferredDatabaseId: Deferred<SqliteDatabaseId>) = withContext(uiThread) {
+    addSqliteDatabase(deferredDatabaseId.await())
   }
 
-  override fun runSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
-    return Futures.immediateFuture(Unit)
+  override suspend fun addSqliteDatabase(databaseId: SqliteDatabaseId) = withContext(uiThread) {
+    model.addDatabaseSchema(databaseId, SqliteSchema(emptyList()))
   }
 
-  override fun closeDatabase(database: SqliteDatabase): ListenableFuture<Unit> {
-    model.remove(database)
-    database.databaseConnection.close().get()
-    return Futures.immediateFuture(Unit)
+  override suspend fun runSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement) { }
+
+  override suspend fun closeDatabase(databaseId: SqliteDatabaseId): Unit = withContext(uiThread) {
+    repository.closeDatabase(databaseId)
+    model.removeDatabaseSchema(databaseId)
   }
+
+  override suspend fun databasePossiblyChanged() { }
+
+  override fun showError(message: String, throwable: Throwable?) { }
+
+  override fun restoreSavedState(previousState: SavedUiState?) {
+  }
+
+  override fun saveState(): SavedUiState {
+    return object: SavedUiState {}
+  }
+
+  override fun setDatabaseInspectorClientCommandsChannel(databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel?) {}
+
+  override fun setAppInspectionServices(appInspectionIdeServices: AppInspectionIdeServices?) { }
 
   override fun dispose() { }
 }
