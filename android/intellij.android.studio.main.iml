@@ -15,7 +15,7 @@
     <orderEntry type="module" module-name="intellij.platform.colorSchemes" />
     <orderEntry type="module" module-name="intellij.android.plugin" />
     <orderEntry type="module" module-name="intellij.java.plugin" scope="RUNTIME" />
-    <orderEntry type="module" module-name="intellij.android.android-layout-inspector" scope="RUNTIME" />
+    <orderEntry type="module" module-name="android-layout-inspector" scope="RUNTIME" />
     <orderEntry type="library" scope="RUNTIME" name="asm-tools" level="project" />
   </component>
 </module>
