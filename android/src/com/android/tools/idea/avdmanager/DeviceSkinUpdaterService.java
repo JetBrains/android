@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.annotations.Nullable;
 import com.android.annotations.concurrency.AnyThread;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.repository.api.ProgressIndicator;
@@ -63,6 +64,18 @@ final class DeviceSkinUpdaterService {
 
   @NotNull Executor getExecutor() {
     return myExecutorService;
+  }
+
+  @AnyThread
+  @SuppressWarnings("unused")
+  @NotNull ListenableFuture<@NotNull Path> updateSkins(@NotNull Path device) {
+    return updateSkins(device, null);
+  }
+
+  @AnyThread
+  @NotNull ListenableFuture<@NotNull Path> updateSkins(@NotNull Path device,
+                                                       @Nullable @SuppressWarnings("SameParameterValue") SystemImageDescription image) {
+    return myExecutorService.submit(() -> DeviceSkinUpdater.updateSkins(device, image));
   }
 
   @AnyThread

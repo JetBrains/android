@@ -15,105 +15,23 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.repository.Revision;
-import com.android.repository.api.RepoManager;
-import com.android.repository.impl.meta.RepositoryPackages;
-import com.android.repository.io.FileOp;
-import com.android.repository.io.FileOpUtils;
-import com.android.repository.testframework.FakePackage.FakeLocalPackage;
-import com.android.repository.testframework.FakeRepoManager;
-import com.android.repository.testframework.MockFileOp;
-import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.adtui.device.DeviceArtDescriptor;
-import com.android.tools.idea.sdk.AndroidSdks;
-import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.util.Pair;
-import com.intellij.testFramework.ApplicationRule;
-import java.util.Arrays;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
 import static com.android.SdkConstants.FD_EMULATOR;
 import static com.android.tools.idea.avdmanager.AvdWizardUtils.emulatorSupportsSnapshotManagement;
 import static com.android.tools.idea.avdmanager.AvdWizardUtils.emulatorSupportsWebp;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
+
+import com.android.repository.Revision;
+import com.android.repository.api.RepoManager;
+import com.android.repository.impl.meta.RepositoryPackages;
+import com.android.repository.testframework.FakePackage.FakeLocalPackage;
+import com.android.repository.testframework.FakeRepoManager;
+import com.android.repository.testframework.MockFileOp;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.google.common.collect.ImmutableList;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 public class AvdWizardUtilsTest {
-  @Rule
-  public TemporaryFolder myFolder = new TemporaryFolder();
-
-  @Rule
-  public ApplicationRule myApplicationRule = new ApplicationRule();
-
-  @Test
-  public void testConvertWebpSkinToPng() throws IOException {
-    DeviceArtDescriptor pixel = null;
-    List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
-    for (DeviceArtDescriptor spec : specs) {
-      if ("pixel".equals(spec.getId())) {
-        pixel = spec;
-        break;
-      }
-    }
-    assertThat(pixel).isNotNull();
-    File source = pixel.getBaseFolder();
-
-    FileOp fileOp = FileOpUtils.create();
-    assertThat(fileOp.exists(new File(source, "port_back.webp"))).isTrue();
-    assertThat(fileOp.exists(new File(source, "port_back.png"))).isFalse();
-    assertThat(fileOp.toString(new File(source, "layout"), Charsets.UTF_8)).contains(".webp");
-    assertThat(fileOp.toString(new File(source, "layout"), Charsets.UTF_8)).doesNotContain(".png");
-
-    File dest = myFolder.getRoot();
-    AvdWizardUtils.convertWebpSkinToPng(fileOp, dest, source);
-
-    assertThat(fileOp.exists(new File(dest, "port_back.webp"))).isFalse();
-    assertThat(fileOp.exists(new File(dest, "port_back.png"))).isTrue();
-    assertThat(fileOp.exists(new File(dest, "layout"))).isTrue();
-    assertThat(fileOp.toString(new File(dest, "layout"), Charsets.UTF_8)).contains(".png");
-    assertThat(fileOp.toString(new File(dest, "layout"), Charsets.UTF_8)).doesNotContain(".webp");
-  }
-
-  @Test
-  public void testConvertWebpSkinToPngFallthrough() throws IOException {
-    DeviceArtDescriptor wearSquare = null;
-    List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
-    for (DeviceArtDescriptor spec : specs) {
-      if ("wear_square".equals(spec.getId())) {
-        wearSquare = spec;
-        break;
-      }
-    }
-    assertThat(wearSquare).isNotNull();
-    File source = wearSquare.getBaseFolder();
-
-    FileOp fileOp = FileOpUtils.create();
-    assertThat(fileOp.exists(new File(source, "back.png"))).isTrue();
-    assertThat(fileOp.exists(new File(source, "back.webp"))).isFalse();
-    assertThat(fileOp.toString(new File(source, "layout"), Charsets.UTF_8)).contains(".png");
-    assertThat(fileOp.toString(new File(source, "layout"), Charsets.UTF_8)).doesNotContain(".webp");
-
-    File dest = myFolder.getRoot();
-    AvdWizardUtils.convertWebpSkinToPng(fileOp, dest, source);
-
-    assertThat(fileOp.exists(new File(dest, "back.webp"))).isFalse();
-    assertThat(fileOp.exists(new File(dest, "back.png"))).isTrue();
-    assertThat(fileOp.exists(new File(dest, "layout"))).isTrue();
-    assertThat(fileOp.toString(new File(dest, "layout"), Charsets.UTF_8)).contains(".png");
-    assertThat(fileOp.toString(new File(dest, "layout"), Charsets.UTF_8)).doesNotContain(".webp");
-  }
-
   @Test
   public void testEmulatorSupportsWebp() {
     assertThat(emulatorSupportsWebp(createMockSdk("24.0.0", FD_EMULATOR))).isFalse();
@@ -133,98 +51,6 @@ public class AvdWizardUtilsTest {
   public void testEmulatorSupportsSnapshotManagement() {
     assertThat(emulatorSupportsSnapshotManagement(createMockSdk("27.2.4", FD_EMULATOR))).isFalse();
     assertThat(emulatorSupportsSnapshotManagement(createMockSdk("27.2.5", FD_EMULATOR))).isTrue();
-  }
-
-  @Test
-  public void testEnsureSkinsAreCurrent() throws IOException {
-    DeviceArtDescriptor pixel = null;
-    List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
-    for (DeviceArtDescriptor spec : specs) {
-      if ("pixel".equals(spec.getId())) {
-        pixel = spec;
-        break;
-      }
-    }
-    assertThat(pixel).isNotNull();
-    File skinResource = pixel.getBaseFolder();
-
-    FileOp fileOp = FileOpUtils.create();
-    File resourceLayout = new File(skinResource, "layout");
-    assertThat(fileOp.exists(resourceLayout)).isTrue();
-    assertThat(fileOp.exists(new File(skinResource, "port_back.webp"))).isTrue();
-
-    String deviceName = skinResource.getName();
-    File deviceFile = new File(deviceName);
-    File skinDestinationBase = new File(myFolder.getRoot(), "skins");
-    File skinDestination = new File(skinDestinationBase, deviceName);
-
-    // No SDK skin: create new
-    File resultFile = AvdWizardUtils.ensureSkinsAreCurrent(skinResource, skinDestination, deviceFile, true, fileOp);
-    assertThat(resultFile).isEqualTo(skinDestination);
-
-    File destLayout = new File(skinDestination, "layout");
-    File destPortBack = new File(skinDestination, "port_back.webp");
-
-    assertThat(fileOp.exists(destLayout)).isTrue();
-    assertThat(fileOp.exists(destPortBack)).isTrue();
-
-    // SDK up to date: do nothing
-    fileOp.delete(destPortBack);
-    AvdWizardUtils.ensureSkinsAreCurrent(skinResource, skinDestination, deviceFile, true, fileOp);
-    assertThat(fileOp.exists(destLayout)).isTrue();
-    assertThat(fileOp.exists(destPortBack)).isFalse(); // Did not get re-copied
-
-    // SDK is old: re-create
-    fileOp.setLastModified(destLayout, resourceLayout.lastModified() - 10); // SDK is older
-
-    AvdWizardUtils.ensureSkinsAreCurrent(skinResource, skinDestination, deviceFile, true, fileOp);
-    assertThat(fileOp.exists(destLayout)).isTrue();
-    assertThat(fileOp.exists(destPortBack)).isTrue(); // Did get re-copied
-
-    // Create for non-WebP emulator
-    fileOp.setLastModified(destLayout, resourceLayout.lastModified() - 10); // SDK is older
-
-    AvdWizardUtils.ensureSkinsAreCurrent(skinResource, skinDestination, deviceFile, false, fileOp);
-    assertThat(fileOp.exists(destLayout)).isTrue();
-    assertThat(fileOp.exists(destPortBack)).isFalse(); // No WebP
-    assertThat(fileOp.exists(new File(skinDestination, "port_back.png"))).isTrue(); // Got copied as PNG
-
-    // No Studio resource
-    resultFile = AvdWizardUtils.ensureSkinsAreCurrent(null, skinDestination, deviceFile, true, fileOp);
-    assertThat(resultFile).isEqualTo(skinDestination);
-
-    // No destination path
-    resultFile = AvdWizardUtils.ensureSkinsAreCurrent(skinResource, null, deviceFile, true, fileOp);
-    assertThat(resultFile).isEqualTo(skinResource);
-
-    // No Studio resource, no destination path
-    resultFile = AvdWizardUtils.ensureSkinsAreCurrent(null, null, deviceFile, true, fileOp);
-    assertThat(resultFile).isEqualTo(deviceFile);
-  }
-
-  @Test
-  public void testWearOSResourcePathExists() {
-    AndroidSdkData sdkData = mock(AndroidSdkData.class);
-    MockFileOp fop = new MockFileOp();
-    File sdkRoot = new File("/sdk");
-    AndroidSdks androidSdks = spy(AndroidSdks.getInstance());
-    when(androidSdks.tryToChooseAndroidSdk()).thenReturn(sdkData);
-    when(sdkData.getLocation()).thenReturn(sdkRoot);
-    File skins = new File(sdkRoot, "skins");
-    fop.recordExistingFolder(skins);
-    when(sdkData.getSdkHandler()).thenReturn(createMockSdk("29.0.0", FD_EMULATOR));
-
-    List<Pair<String, String>> wearResources = Arrays
-      .asList(Pair.create("AndroidWearRound", "wear_round"), Pair.create("AndroidWearSquare", "wear_square"),
-              Pair.create("AndroidWearRoundChin320x290", "wear_round_chin_320_290"));
-
-    for (Pair<String, String> resourcePair : wearResources) {
-      String resourceName = resourcePair.first;
-      String assetName = resourcePair.second;
-      fop.recordExistingFile(new File(DeviceArtDescriptor.getBundledDescriptorsFolder(), assetName + "/layout"));
-      File skinPath = AvdWizardUtils.pathToUpdatedSkins(new File(resourceName), null, fop);
-      assertThat(fop.exists(new File(skinPath, "/layout"))).isTrue();
-    }
   }
 
   @NotNull
