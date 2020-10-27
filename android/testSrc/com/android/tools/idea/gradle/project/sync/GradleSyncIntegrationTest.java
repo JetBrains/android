@@ -245,7 +245,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     // https://youtrack.jetbrains.com/issue/IDEA-228545
     loadProject(CUSTOM_BUILD_SCRIPT_DEPS);
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
     assertNotNull(androidModel);
     Collection<SyncIssue> issues = androidModel.getSyncIssues();
@@ -867,7 +867,7 @@ b/154962759 */
   public void testProjectSyncIssuesAreCorrectlyReported() throws Exception {
     loadProject(HELLO_JNI);
 
-    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
     File appBuildFile = getBuildFilePath("app");
 
     // Set the ndkVersion to something that doesn't exist.
@@ -919,7 +919,7 @@ b/154962759 */
 
   public void testUnresolvedDependency() throws Exception {
     prepareProjectForImport(SIMPLE_APPLICATION_UNRESOLVED_DEPENDENCY, null, null);
-    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
 
     Project project = getProject();
     TestGradleSyncListener syncListener = EdtTestUtil.runInEdtAndGet(() -> {

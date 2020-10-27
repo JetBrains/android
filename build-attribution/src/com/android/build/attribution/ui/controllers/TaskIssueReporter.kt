@@ -20,9 +20,7 @@ import com.android.build.attribution.ui.BuildAttributionIssueReportingDialog
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.TaskIssueReportGenerator
-import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskUiData
-import com.android.tools.idea.actions.SendFeedbackAction
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.intellij.ide.actions.SendFeedbackAction
 import com.intellij.openapi.application.ApplicationManager

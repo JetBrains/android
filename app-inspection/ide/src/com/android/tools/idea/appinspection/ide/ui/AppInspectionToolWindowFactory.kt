@@ -22,6 +22,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.content.ContentFactory
+import icons.StudioIcons
 
 // This must match the toolwindow id in app-inspection.xml
 // TODO(b/152556591): Rename back to "App Inspection"

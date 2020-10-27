@@ -15,22 +15,24 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.ServiceContainerUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-
-import java.io.IOException;
-
 import static com.intellij.util.ThreeState.NO;
 import static com.intellij.util.ThreeState.YES;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+
+import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.ServiceContainerUtil;
+import java.io.IOException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
 /**
  * Tests for {@link GradleVersions}.

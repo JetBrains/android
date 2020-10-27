@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
-import com.android.tools.idea.compose.preview.message
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.AnActionButton
 import icons.StudioIcons
@@ -27,7 +27,7 @@ import icons.StudioIcons
  */
 class StopInteractivePreviewAction: AnActionButton(message("action.stop.interactive.title"),
                                                    message("action.stop.interactive.description"),
-                                                   StudioIcons.Compose.STOP_INTERACTIVE_MODE) {
+                                                   StudioIcons.Compose.Toolbar.STOP_INTERACTIVE_MODE) {
   override fun displayTextInToolbar(): Boolean = true
 
   override fun updateButton(e: AnActionEvent) {

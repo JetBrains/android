@@ -17,19 +17,17 @@ package com.android.tools.idea.assistant;
 
 import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.android.tools.idea.assistant.view.StatefulButtonMessage;
-import com.android.tools.idea.structure.services.DeveloperService;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBus;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Extension point to add state to action buttons. State should generally be based off of data available from a from an independent source.
@@ -79,6 +77,7 @@ public abstract class AssistActionStateManager {
   }
 
   public static List<Module> getAndroidModules(@NotNull Project project) {
+    // FIXME-ank: don't iterate all the modules. Use com.intellij.facet.ProjectFacetManager.getModulesWithFacet
     return Arrays.stream(ModuleManager.getInstance(project).getModules())
       .filter(module -> AndroidFacet.getInstance(module) != null)
       .collect(Collectors.toList());

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.runconfiguration
 
-import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.util.PREVIEW_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.util.isValidComposePreview
 import com.android.tools.idea.flags.StudioFlags
@@ -46,7 +46,7 @@ class ComposePreviewRunLineMarkerContributor : RunLineMarkerContributor() {
     if (element.getModuleSystem()?.module?.isNonLibraryAndroidModule() != true) return null
 
     (element.parent as? KtNamedFunction)?.takeIf { it.isValidComposePreview() }?.let {
-      return Info(StudioIcons.Compose.RUN_ON_DEVICE, ExecutorAction.getActions()) { _ -> message("run.line.marker.text", it.name!!) }
+      return Info(StudioIcons.Compose.Toolbar.RUN_ON_DEVICE, ExecutorAction.getActions()) { _ -> message("run.line.marker.text", it.name!!) }
     }
     return null
   }

@@ -395,7 +395,7 @@ b/145809317 */
                 Project project = projectsStillOpen.iterator().next();
                 projectsStillOpen.clear();
                 throw new AssertionError("Test project is not disposed: " + project + ";\n created in: " +
-                                         ProjectRule.getCreationPlace(project));
+                                         ((ProjectEx)project).getCreationTrace());
               }
             }
           }

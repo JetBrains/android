@@ -18,12 +18,13 @@ package com.android.tools.idea.emulator
 import com.intellij.testFramework.rules.TempDirectory
 import io.grpc.ManagedChannelBuilder
 import io.grpc.inprocess.InProcessChannelBuilder
+import org.junit.rules.ExternalResource
 import java.nio.file.Path
 
 /**
  * Allows tests to use [FakeEmulator] instead of the real one.
  */
-class FakeEmulatorRule : TempDirectory() {
+class FakeEmulatorRule(private val tempDirectory: TempDirectory) : ExternalResource()  {
   private val emulators = mutableListOf<FakeEmulator>()
   private var registrationDirectory: Path? = null
 
@@ -31,7 +32,7 @@ class FakeEmulatorRule : TempDirectory() {
     super.before()
     RuntimeConfigurationOverrider.overrideConfiguration(FakeEmulatorTestConfiguration())
     val emulatorCatalog = RunningEmulatorCatalog.getInstance()
-    registrationDirectory = newFolder("avd/running").toPath()
+    registrationDirectory = tempDirectory.newFolder("avd/running").toPath()
     emulatorCatalog.overrideRegistrationDirectory(registrationDirectory)
   }
 
@@ -56,7 +57,7 @@ class FakeEmulatorRule : TempDirectory() {
   private inner class FakeEmulatorTestConfiguration : RuntimeConfiguration() {
 
     override fun getDesktopOrUserHomeDirectory(): Path {
-      return root.toPath()
+      return tempDirectory.root.toPath()
     }
 
     override fun newGrpcChannelBuilder(host: String, port: Int): ManagedChannelBuilder<*> {

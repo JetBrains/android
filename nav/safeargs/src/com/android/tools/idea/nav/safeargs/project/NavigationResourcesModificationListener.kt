@@ -27,6 +27,7 @@ import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.util.LazyFileListenerSubscriber
 import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.intellij.AppTopics
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentEvent
@@ -115,8 +116,8 @@ class NavigationResourcesModificationListener(
    */
   private class SubscriptionComponent(
     val project: Project
-  ) : LazyFileListenerSubscriber<NavigationResourcesModificationListener>(
-    NavigationResourcesModificationListener(project), project),
+  ) : LazyFileListenerSubscriber<NavigationResourcesModificationListener>(NavigationResourcesModificationListener(project)),
+      Disposable,
       ProjectComponent {
     override fun projectOpened() {
       if (!StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) return
@@ -131,13 +132,17 @@ class NavigationResourcesModificationListener(
     override fun subscribe() {
       // To receive all changes happening in the VFS. File modifications may
       // not be picked up immediately if such changes are not saved on the disk yet
-      VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)
+      VirtualFileManager.getInstance().addVirtualFileListener(listener, this)
 
       // To receive all changes to documents that are open in an editor
-      EditorFactory.getInstance().eventMulticaster.addDocumentListener(listener, parent)
+      EditorFactory.getInstance().eventMulticaster.addDocumentListener(listener, this)
 
       // To receive notifications when any Documents are saved or reloaded from disk
       project.messageBus.connect().subscribe(AppTopics.FILE_DOCUMENT_SYNC, listener)
+    }
+
+    override fun dispose() {
+
     }
   }
 

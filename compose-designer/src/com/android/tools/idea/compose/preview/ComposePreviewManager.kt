@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import org.jetbrains.annotations.ApiStatus
 import javax.swing.Icon
 

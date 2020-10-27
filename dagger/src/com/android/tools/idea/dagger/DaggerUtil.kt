@@ -115,7 +115,8 @@ fun getDaggerProvidersFor(element: PsiElement): Collection<PsiModifierListOwner>
  * Returns all @Inject-annotated fields of [type] within given [scope].
  */
 private fun getInjectedFieldsForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiField> {
-  val annotationClass = JavaPsiFacade.getInstance(scope.project).findClass(INJECT_ANNOTATION, scope) ?: return emptyList()
+  val project = scope.project ?: return emptyList()
+  val annotationClass = JavaPsiFacade.getInstance(project).findClass(INJECT_ANNOTATION, scope) ?: return emptyList()
   return AnnotatedElementsSearch.searchPsiFields(annotationClass, scope).filter { it.type.unboxed == type.unboxed }
 }
 
@@ -185,7 +186,8 @@ private fun getDaggerBindsMethodsForType(type: PsiType, scope: GlobalSearchScope
  * Returns all methods with [annotationName] within [scope].
  */
 private fun getMethodsWithAnnotation(annotationName: String, scope: GlobalSearchScope): Query<PsiMethod> {
-  val annotationClass = JavaPsiFacade.getInstance(scope.project).findClass(annotationName, scope) ?: return EmptyQuery()
+  val project = scope.project ?: return EmptyQuery()
+  val annotationClass = JavaPsiFacade.getInstance(project).findClass(annotationName, scope) ?: return EmptyQuery()
   return AnnotatedElementsSearch.searchPsiMethods(annotationClass, scope)
 }
 
@@ -193,7 +195,8 @@ private fun getMethodsWithAnnotation(annotationName: String, scope: GlobalSearch
  * Returns all PsiParameters with [annotationName] within [scope].
  */
 private fun getParametersWithAnnotation(annotationName: String, scope: GlobalSearchScope): Query<PsiParameter> {
-  val annotationClass = JavaPsiFacade.getInstance(scope.project).findClass(annotationName, scope) ?: return EmptyQuery()
+  val project = scope.project ?: return EmptyQuery()
+  val annotationClass = JavaPsiFacade.getInstance(project).findClass(annotationName, scope) ?: return EmptyQuery()
   return AnnotatedElementsSearch.searchPsiParameters(annotationClass, scope)
 }
 

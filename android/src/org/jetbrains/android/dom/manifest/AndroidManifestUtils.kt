@@ -52,7 +52,6 @@ import com.intellij.util.xml.XmlName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
 
-private val LOG: Logger get() = logger(::LOG)
 /**
  * Returns the module's resource package name, or null if it could not be determined.
  *

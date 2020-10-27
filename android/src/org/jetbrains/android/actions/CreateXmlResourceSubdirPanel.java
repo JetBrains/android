@@ -38,7 +38,6 @@ import java.util.Map;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 

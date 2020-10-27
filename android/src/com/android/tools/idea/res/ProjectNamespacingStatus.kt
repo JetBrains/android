@@ -16,6 +16,7 @@
 package com.android.tools.idea.res
 
 import com.android.builder.model.AaptOptions
+import com.android.tools.idea.namespacing
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.util.androidFacet

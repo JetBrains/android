@@ -4,6 +4,7 @@ package com.android.tools.idea.gradle.dsl.api;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 
+// FIXME-ank4: this is not needed anymore
 public class BuildModelStudioCrashReporter implements BuildModelErrorReporter{
   @Override
   public void report(Throwable e) {

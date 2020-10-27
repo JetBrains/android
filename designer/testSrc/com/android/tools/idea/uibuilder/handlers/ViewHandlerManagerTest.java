@@ -31,7 +31,6 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.flexbox.FlexboxLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandler;
-import com.android.tools.idea.uibuilder.property.MockNlComponent;
 import com.android.tools.idea.uibuilder.util.MockNlComponent;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.ServiceContainerUtil;

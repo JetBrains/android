@@ -48,7 +48,7 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 private val LOG: Logger
-  get() = logger("#com.android.tools.idea.npw.assetstudio.AssetStudioUtils")
+  get() = Logger.getInstance("#com.android.tools.idea.npw.assetstudio.AssetStudioUtils")
 
 /**
  * Scales the given rectangle by the given scale factor.

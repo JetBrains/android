@@ -21,8 +21,6 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.gradle.tooling.BuildException;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
 public class AndroidBuildProcessParametersProvider extends BuildProcessParametersProvider {
 
   private static final @NotNull Logger LOG = Logger.getInstance(AndroidBuildProcessParametersProvider.class);

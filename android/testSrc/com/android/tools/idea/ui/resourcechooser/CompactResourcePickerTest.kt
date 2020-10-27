@@ -151,7 +151,7 @@ class CompactResourcePickerTest {
     waitAndAssert<JList<in Any>>(panel) {
       it != null && it.model.size > 0
     }
-    UIUtil.findComponentOfType(panel, JList::class.java)!!.ui = HeadlessListUI()
+    UIUtil.findComponentOfType(panel, JList::class.java)!!.setUI(HeadlessListUI())
     return panel
   }
 }

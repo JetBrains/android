@@ -29,7 +29,6 @@ import com.android.tools.profilers.cpu.nodemodel.SyscallModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.Graphics2DDelegate
-import com.intellij.util.ui.ImageUtil
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.ImageUtil
 import org.junit.Assert.fail

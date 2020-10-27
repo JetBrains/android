@@ -26,7 +26,7 @@ import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.MockFileOp;
 import com.google.common.collect.ImmutableList;
 import com.intellij.util.PathUtil;
-import java.awt.Component;
+import java.awt.*;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;

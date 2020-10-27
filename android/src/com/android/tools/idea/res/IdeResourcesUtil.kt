@@ -101,7 +101,6 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.command.WriteCommandAction.writeCommandAction
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileTypes.StdFileTypes
@@ -187,7 +186,7 @@ private const val RESOURCE_CLASS_SUFFIX = "." + AndroidUtils.R_CLASS_NAME
 private const val ROOT_TAG_PROPERTY = "ROOT_TAG"
 private const val LAYOUT_WIDTH_PROPERTY = "LAYOUT_WIDTH"
 private const val LAYOUT_HEIGHT_PROPERTY = "LAYOUT_HEIGHT"
-private val LOG: Logger = logger(::LOG)
+private val LOG: Logger = Logger.getInstance("#com.android.tools.idea.res.IdeResourcesUtil")
 private val RESOURCE_PROTOCOLS = arrayOf(ApkFileSystem.PROTOCOL, JAR_PROTOCOL, FILE_PROTOCOL)
 const val RESOURCE_ICON_SIZE = 16
 const val ALPHA_FLOATING_ERROR_FORMAT = "The alpha attribute in %1\$s/%2\$s does not resolve to a floating point number"

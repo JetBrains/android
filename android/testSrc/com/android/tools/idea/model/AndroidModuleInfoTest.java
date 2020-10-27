@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.model;
 
-import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_COMPILE_VERSION;
+import static com.android.tools.idea.gradle.adtimport.GradleImport.CURRENT_COMPILE_VERSION;
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.MODULE_INFO_BOTH;
 import static com.android.tools.idea.testing.TestProjectPaths.MODULE_INFO_FLAVORS;
@@ -50,10 +50,6 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.w3c.dom.Element;
-
-import static com.android.tools.idea.gradle.adtimport.GradleImport.CURRENT_COMPILE_VERSION;
-import static com.android.tools.idea.testing.TestProjectPaths.*;
-import static com.google.common.truth.Truth.assertThat;
 
 public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   public void testDisabled() {

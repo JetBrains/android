@@ -34,5 +34,7 @@
     <orderEntry type="module" module-name="intellij.android.apkanalyzer" />
     <orderEntry type="module" module-name="intellij.gradle.common" />
     <orderEntry type="module" module-name="intellij.gradle.dsl" />
+    <orderEntry type="module" module-name="intellij.gradle.dsl.impl" />
+    <orderEntry type="module" module-name="intellij.platform.core.ui" />
   </component>
 </module>

@@ -126,7 +126,7 @@ class TrackGroupTest {
 
     val ui = FakeUi(trackGroup.trackTitleOverlay)
     // Make sure test doesn't trip in a headless environment.
-    trackGroup.trackList.ui = HeadlessListUI()
+    trackGroup.trackList.setUI(HeadlessListUI())
     // Single-click caret icon.
     ui.mouse.press(2, 4)
     assertThat(trackGroupModel[0].isCollapsed).isTrue()
@@ -196,7 +196,7 @@ class TrackGroupTest {
     val trackGroup = TrackGroup(trackGroupModel, TRACK_RENDERER_FACTORY)
     trackGroup.component.setBounds(0, 0, 500, 100)
     // Make sure test doesn't trip in a headless environment.
-    trackGroup.trackList.ui = HeadlessListUI()
+    trackGroup.trackList.setUI(HeadlessListUI())
     val treeWalker = TreeWalker(trackGroup.component)
     treeWalker.descendantStream().forEach(Component::doLayout)
     val boxComponent = treeWalker.descendants().filterIsInstance(BoxSelectionComponent::class.java).first()

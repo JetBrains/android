@@ -24,6 +24,7 @@ import com.android.tools.idea.findDependenciesWithResources
 import com.android.tools.idea.projectsystem.LightResourceClassService
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.ModuleRClass.SourceSet
 import com.android.tools.idea.res.ModuleRClass.Transitivity
 import com.android.tools.idea.util.androidFacet

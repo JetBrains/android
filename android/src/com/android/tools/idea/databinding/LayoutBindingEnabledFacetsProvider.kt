@@ -82,9 +82,4 @@ class LayoutBindingEnabledFacetsProvider(val project: Project) : ModificationTra
   fun getViewBindingEnabledFacets(): List<AndroidFacet> = viewBindingEnabledModules.value
 
   override fun getModificationCount() = ModuleManager.getInstance(project).modificationCount
-
-  companion object {
-    @JvmStatic
-    fun getInstance(project: Project) : LayoutBindingProjectComponent = project.getService(LayoutBindingProjectComponent::class.java)
-  }
 }

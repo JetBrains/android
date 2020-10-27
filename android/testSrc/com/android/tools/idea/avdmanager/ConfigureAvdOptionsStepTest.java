@@ -27,7 +27,6 @@ import static com.android.tools.idea.avdmanager.ConfigureAvdOptionsStep.gpuOther
 import static com.android.tools.idea.avdmanager.ConfigureAvdOptionsStep.isGoogleApiTag;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.emulator.SnapshotOuterClass;
 import com.android.emulator.snapshot.SnapshotOuterClass;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.RepositoryPackages;

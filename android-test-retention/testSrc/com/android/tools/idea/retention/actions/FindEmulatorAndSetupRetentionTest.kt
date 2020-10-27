@@ -31,6 +31,7 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.rules.TempDirectory
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -44,9 +45,10 @@ import java.util.concurrent.TimeUnit
 @RunsInEdt
 class FindEmulatorAndSetupRetentionTest {
   private val projectRule = ProjectRule()
-  private val emulatorRule = FakeEmulatorRule()
+  private val tempDirectory = TempDirectory()
+  private val emulatorRule = FakeEmulatorRule(tempDirectory)
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
+  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(tempDirectory).around(emulatorRule).around(EdtRule())
   lateinit var tempFolder: Path
   lateinit var snapshotFile: File
   lateinit var emulator: FakeEmulator
@@ -56,8 +58,8 @@ class FindEmulatorAndSetupRetentionTest {
 
   @Before
   fun setUp() {
-    tempFolder = emulatorRule.root.toPath()
-    snapshotFile = emulatorRule.newFile()
+    tempFolder = tempDirectory.root.toPath()
+    snapshotFile = tempDirectory.newFile("temp")
     snapshotFile.writeText("file content")
 
     parentDataContext = DataContext { projectRule.project }

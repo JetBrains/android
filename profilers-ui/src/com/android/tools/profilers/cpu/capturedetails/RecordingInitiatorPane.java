@@ -107,7 +107,7 @@ class RecordingInitiatorPane extends CapturePane {
     // be an undesired space between learnMore and the arrow.
     // The trick here is to make the cell of "Learn more" a single-row-two-column nested table, so the
     // "Learn more" is aligned with |technologyDescription| and the arrow icon is properly placed.
-    JPanel learnMoreCell = new JPanel(new TabularLayout("Fit,*", "Fit").setVGap(JBUI.scale(10)));
+    JPanel learnMoreCell = new JPanel(new TabularLayout("Fit,*", "Fit").setVGap(JBUIScale.scale(10)));
     learnMoreCell.add(learnMore, new TabularLayout.Constraint(0, 0));
 
     content.add(label, new TabularLayout.Constraint(1, 1));

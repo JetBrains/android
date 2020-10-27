@@ -52,6 +52,5 @@ public class AidlClassNameAnnotator implements Annotator {
           .create();
       }
     }
-    builder.create();
   }
 }

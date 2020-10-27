@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.gradle.adtimport;
 
-import static com.android.tools.idea.gradle.eclipse.GradleImport.isAdtProjectDir;
+import static com.android.tools.idea.gradle.adtimport.GradleImport.isAdtProjectDir;
 import static com.android.tools.idea.gradle.util.GradleUtil.getDefaultPhysicalPathFromGradlePath;
 import static com.android.utils.BuildScriptUtil.findGradleBuildFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
-import com.android.tools.idea.gradle.eclipse.AdtImportBuilder;
-import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
-import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.adtimport.actions.AndroidImportProjectAction;
 import com.android.tools.idea.gradle.project.AndroidModuleImporter;
 import com.android.tools.idea.gradle.project.ModuleImporter;
@@ -44,12 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.idea.gradle.adtimport.GradleImport.isAdtProjectDir;
-import static com.android.tools.idea.gradle.util.GradleUtil.getDefaultPhysicalPathFromGradlePath;
-import static com.android.utils.BuildScriptUtil.findGradleBuildFile;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 /**
  * Creates new project modules from existing Android Eclipse projects.

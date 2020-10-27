@@ -16,6 +16,7 @@
 package com.android.tools.idea.testing
 
 import com.android.testutils.TestUtils
+import com.android.tools.idea.mockito.MockitoThreadLocalsCleaner
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.withAndroidModels
 import com.intellij.application.options.CodeStyle
@@ -24,7 +25,6 @@ import com.intellij.facet.FacetConfiguration
 import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetType
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
@@ -43,6 +43,7 @@ import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.intellij.testFramework.registerExtension
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidTempDirTestFixture
+import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
 import org.jetbrains.android.AndroidTestCase.initializeModuleFixtureBuilderWithSrcAndGen
@@ -51,7 +52,6 @@ import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import java.io.File
-import java.nio.file.Path
 
 /**
  * Rule that provides access to a [Project] containing one module configured

@@ -268,12 +268,6 @@ public class LightBindingClass extends AndroidLightClassBase {
     return myPsiSupers;
   }
 
-  @NotNull
-  @Override
-  public PsiClass[] getSupers() {
-    return new PsiClass[]{getSuperClass()};
-  }
-
   @Override
   public PsiClass getSuperClass() {
     return JavaPsiFacade.getInstance(getProject()).findClass(myConfig.getSuperName(), getModuleScope());

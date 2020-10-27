@@ -46,31 +46,30 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectType;
+import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.platform.PlatformProjectOpenProcessor;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.serviceContainer.NonInjectable;
 import java.io.File;
 import java.io.IOException;
-import org.gradle.util.GradleVersion;
+import java.nio.file.Paths;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.open.GradleProjectImportUtil;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
-import org.jetbrains.plugins.gradle.util.GradleJvmResolutionUtil;
 
 /**
  * Imports an Android-Gradle project without showing the "Import Project" Wizard UI.
  */
 public class GradleProjectImporter {
   public static final ProjectType ANDROID_PROJECT_TYPE = new ProjectType("Android");
-// A copy of a private constant from GradleJvmStartupActivity.
+  // A copy of a private constant from GradleJvmStartupActivity.
   @NonNls private static final String SHOW_UNLINKED_GRADLE_POPUP = "show.inlinked.gradle.project.popup";
   @NotNull private final SdkSync mySdkSync;
   @NotNull private final ProjectFolder.Factory myProjectFolderFactory;
@@ -107,13 +106,10 @@ public class GradleProjectImporter {
     File projectFolderPath = virtualToIoFile(projectFolder);
     try {
       setUpLocalProperties(projectFolderPath);
-      if (newProject == null) {
-        String projectName = projectFolder.getName();
-        newProject = createProject(projectName, projectFolderPath);
-      }
+      String projectName = projectFolder.getName();
+      newProject = createProject(projectName, projectFolderPath);
       importProjectNoSync(new Request(newProject));
-      PlatformProjectOpenProcessor.openExistingProject(
-        projectFolderPath.toPath(),
+      ProjectManagerEx.getInstanceEx().openProject(
         projectFolderPath.toPath(),
         new OpenProjectTask(
           forceOpenInNewFrame,
@@ -122,14 +118,12 @@ public class GradleProjectImporter {
           false,
           newProject,
           null,
-          false,
-          false,
           true,
           null,
           null,
-          null,
           -1,
-          -1));
+          -1, true, false, true, null, false, true, null, null, null
+          ));
     }
     catch (Throwable e) {
       if (ApplicationManager.getApplication().isUnitTestMode()) {
@@ -233,7 +227,8 @@ public class GradleProjectImporter {
     }
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
-    GradleProjectImportUtil.setupGradleSettings(projectSettings, externalProjectPath, newProject, null);
+    GradleProjectImportUtil.setupGradleSettings(gradleSettings);
+    GradleProjectImportUtil.setupGradleProjectSettings(projectSettings, Paths.get(externalProjectPath));
     gradleSettings.setStoreProjectFilesExternally(false);
     //noinspection unchecked
     ExternalSystemApiUtil.getSettings(newProject, SYSTEM_ID).linkProject(projectSettings);

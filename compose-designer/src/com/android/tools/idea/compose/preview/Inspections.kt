@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.util.COMPOSABLE_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.util.HEIGHT_PARAMETER
 import com.android.tools.idea.compose.preview.util.MAX_HEIGHT

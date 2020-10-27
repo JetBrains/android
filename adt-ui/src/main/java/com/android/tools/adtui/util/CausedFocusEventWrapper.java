@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * This class is to hide differences in FocusEvent implementations on JDK8 and JDK9+
  */
+// FIXME-ank4: this class is not needed anymore. just use Java 11 API
 public class CausedFocusEventWrapper {
   private final Enum<?> cause;
 

@@ -33,9 +33,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.UIUtil
 import java.util.function.Consumer
 
-object L {
-  val LOG: Logger get() = Logger.getInstance(L::class.java)
-}
+val LOG: Logger get() = Logger.getInstance("#com.android.tools.idea.util.SyncUtil")
 
 /**
  * Registers [listener] to be notified of any sync result broadcast on [PROJECT_SYSTEM_SYNC_TOPIC] on [project]'s message bus
@@ -85,7 +83,7 @@ fun Project.runWhenSmartAndSynced(parentDisposable: Disposable = this,
   // Because this might run at some point in the future, we need to check if the parent disposable was already disposed to avoid
   // causing leaks and exceptions.
   if (Disposer.isDisposed(parentDisposable)) {
-    L.LOG.warn("parentDisposable was already disposed, callback will not be called.")
+    LOG.warn("parentDisposable was already disposed, callback will not be called.")
     return
   }
 

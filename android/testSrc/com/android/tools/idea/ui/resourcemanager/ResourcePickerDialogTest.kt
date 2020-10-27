@@ -69,7 +69,7 @@ class ResourcePickerDialogTest {
     val list = UIUtil.findComponentOfType(explorerView, AssetListView::class.java)!!
     list.setUI(HeadlessListUI())
 
-    val point = list.indexToLocation(0)
+    var point = list.indexToLocation(0)
     simulateMouseClick(list, point, 1)
     assertThat(pickerDialog.resourceName).isEqualTo("@drawable/png")
 

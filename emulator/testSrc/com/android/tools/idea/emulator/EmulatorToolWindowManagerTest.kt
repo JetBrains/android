@@ -36,6 +36,7 @@ import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerServiceInstance
+import com.intellij.testFramework.rules.TempDirectory
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import org.junit.Before
 import org.junit.Rule
@@ -50,10 +51,11 @@ import java.util.concurrent.TimeUnit
 @RunsInEdt
 class EmulatorToolWindowManagerTest {
   private val projectRule = AndroidProjectRule.inMemory()
-  private val emulatorRule = FakeEmulatorRule()
+  private val tempDirectory = TempDirectory()
+  private val emulatorRule = FakeEmulatorRule(tempDirectory)
   private var nullableToolWindow: ToolWindow? = null
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
+  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(tempDirectory).around(emulatorRule).around(EdtRule())
 
   private val project
     get() = projectRule.project
@@ -80,7 +82,7 @@ class EmulatorToolWindowManagerTest {
     val contentManager = toolWindow.contentManager
     assertThat(contentManager.contents).isEmpty()
 
-    val tempFolder = emulatorRule.root.toPath()
+    val tempFolder = tempDirectory.root.toPath()
     val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554, standalone = false)
     val emulator2 = emulatorRule.newEmulator(FakeEmulator.createTabletAvd(tempFolder), 8555, standalone = true)
     val emulator3 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder), 8556, standalone = false)
@@ -156,7 +158,7 @@ class EmulatorToolWindowManagerTest {
     val contentManager = toolWindow.contentManager
     assertThat(contentManager.contents).isEmpty()
 
-    val tempFolder = emulatorRule.root.toPath()
+    val tempFolder = tempDirectory.root.toPath()
     val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554, standalone = false)
 
     toolWindow.show()

@@ -16,20 +16,19 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.testutils.PropertySetterRule
-import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
 import com.android.tools.idea.layoutinspector.model
-import com.android.tools.idea.layoutinspector.model.*
-import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
+import com.android.tools.idea.layoutinspector.model.ROOT
+import com.android.tools.idea.layoutinspector.model.VIEW1
+import com.android.tools.idea.layoutinspector.model.VIEW2
+import com.android.tools.idea.layoutinspector.model.VIEW3
+import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.util.AndroidTestPaths
 import com.intellij.testFramework.ProjectRule
 import junit.framework.TestCase.assertEquals
-import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -206,9 +205,6 @@ class DeviceViewContentPanelTest {
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(File(TEST_DATA_PATH, "testClip.png"), generatedImage, DIFF_THRESHOLD)
   }
-
-  // FIXME-ank2
-  private fun getTestFile(testFileName: String) = LayoutInspector::class.java.getResourceAsStream("/$testFileName")
 
   @Test
   fun testDrag() {

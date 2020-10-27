@@ -112,7 +112,7 @@ import com.android.builder.model.CodeShrinker as BuildModelCodeShrinker
 const val CHECK_DIRECT_GRADLE_DEPENDENCIES = false
 
 private val PACKAGE_NAME = Key.create<CachedValue<String?>>("merged.manifest.package.name")
-private val LOG: Logger get() = logger(::LOG)
+private val LOG: Logger get() = logger<GradleModuleSystem>()
 
 /** Creates a map for the given pairs, filtering out null values. */
 private fun <K, V> notNullMapOf(vararg pairs: Pair<K, V?>): Map<K, V> {
@@ -168,7 +168,7 @@ class GradleModuleSystem(
   override fun getDirectResourceModuleDependents(): List<Module> = ModuleManager.getInstance(module.project).getModuleDependentModules(
     module)
 
-  override fun getResolvedLibraryDependencies(includeExportedTransitiveDeps: Boolean): Collection<Library> {
+  override fun getResolvedDependentLibraries(includeExportedTransitiveDeps: Boolean): Collection<Library> {
     // TODO: b/129297171 When this bug is resolved we may not need getResolvedLibraryDependencies(Module)
     return getResolvedLibraryDependencies(module)
   }

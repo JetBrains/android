@@ -11,6 +11,7 @@ import javax.swing.JComponent
  * This class is to show single line of text to a user, saying that the project is imported, therefore facet editing is not allowed.
  * Otherwise users are confused by empty configuration tab for Android facet (i.e. [AndroidFacet])
  */
+// FIXME-ank4: this class is not used for some readon
 class NotEditableAndroidFacetEditorTab : FacetEditorTab() {
   override fun isModified() = false
 

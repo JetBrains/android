@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
-import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfiguration
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType
 import com.android.tools.idea.compose.preview.runconfiguration.isNonLibraryAndroidModule
@@ -31,7 +31,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import icons.StudioIcons.Compose.RUN_ON_DEVICE
+import icons.StudioIcons.Compose.Toolbar.RUN_ON_DEVICE
 import org.jetbrains.kotlin.idea.util.module
 
 /**
