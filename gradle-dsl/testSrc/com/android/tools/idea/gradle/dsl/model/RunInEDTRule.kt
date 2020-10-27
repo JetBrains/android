@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model
 
-import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.testFramework.EdtTestUtil
+import com.intellij.util.ThrowableRunnable
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
@@ -24,7 +25,7 @@ class RunInEDTRule : TestRule {
   override fun apply(base: Statement?, description: Description?): Statement {
     return object : Statement() {
       override fun evaluate() {
-        runInEdtAndWait { base?.evaluate() }
+        EdtTestUtil.runInEdtAndWait(ThrowableRunnable { base?.evaluate() })
       }
     }
   }

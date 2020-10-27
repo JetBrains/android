@@ -42,6 +42,7 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.intellij.extapi.psi.ASTDelegatePsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
@@ -1097,7 +1098,7 @@ public final class GroovyDslUtil {
       return Collections.emptyList();
     }
 
-    List<GradleReferenceInjection> injections = new ArrayList<>();
+    List<GradleReferenceInjection> injections = Lists.newArrayList();
     GrStringInjection[] grStringInjections = ((GrString)psiElement).getInjections();
     for (GrStringInjection injection : grStringInjections) {
       if (injection != null) {

@@ -15,25 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
-import static com.android.tools.idea.gradle.dsl.api.repositories.GoogleDefaultRepositoryModel.GOOGLE_DEFAULT_REPO_NAME;
-import static com.android.tools.idea.gradle.dsl.model.repositories.FlatDirRepositoryModel.FLAT_DIR_ATTRIBUTE_NAME;
-import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_DEFAULT_REPO_URL;
-import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_METHOD_NAME;
-import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.URL;
-import static com.android.tools.idea.gradle.dsl.model.repositories.JCenterDefaultRepositoryModel.JCENTER_METHOD_NAME;
-import static com.android.tools.idea.gradle.dsl.model.repositories.MavenCentralRepositoryModel.MAVEN_CENTRAL_METHOD_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement.FLAT_DIR;
-import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.JCENTER;
-import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.MAVEN;
-
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
@@ -63,7 +49,7 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
   @NotNull
   @Override
   public List<RepositoryModel> repositories() {
-    List<RepositoryModel> result = new ArrayList<>();
+    List<RepositoryModel> result = Lists.newArrayList();
     for (GradleDslElement element : myDslElement.getAllPropertyElements()) {
       if (element instanceof GradleDslMethodCall) {
         String methodName = ((GradleDslMethodCall)element).getMethodName();
@@ -209,4 +195,13 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
     return containsMavenRepositoryByUrl(GOOGLE_DEFAULT_REPO_URL);
   }
 
+  @Override
+  public void addGoogleMavenRepository(@NotNull GradleVersion gradleVersion) {
+    if (gradleVersion.compareIgnoringQualifiers("4.0") >= 0) {
+      addRepositoryByMethodName(GOOGLE_METHOD_NAME);
+    }
+    else {
+      addMavenRepositoryByUrl(GOOGLE_DEFAULT_REPO_URL, GOOGLE_DEFAULT_REPO_NAME);
+    }
+  }
 }

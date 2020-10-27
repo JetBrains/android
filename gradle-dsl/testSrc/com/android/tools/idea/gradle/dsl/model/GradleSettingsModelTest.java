@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import java.io.File;
-import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.SystemDependent;
 import org.junit.Test;
@@ -49,6 +48,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
     ProjectBuildModel projectModel = getProjectBuildModel();
     GradleBuildModel buildModel = projectModel.getModuleBuildModel(newModule);
+
     assertNotNull(buildModel);
   }
 
@@ -190,7 +190,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertEquals(ImmutableList.of(":", ":app", ":libs", ":libs:mylibrary", ":olibs", ":olibs:mylibrary", ":notamodule:deepmodule"),
                  settingsModel.modulePaths());
 
-    File rootDir = GradleUtil.getBaseDirPath(myProject);
+    File rootDir = getBaseDirPath(myProject);
     assertEquals(rootDir, settingsModel.moduleDirectory(":"));
     assertEquals(new File(rootDir, "app"), settingsModel.moduleDirectory("app"));
     assertEquals(new File(rootDir, "libs"), settingsModel.moduleDirectory(":libs"));
@@ -207,7 +207,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertEquals(ImmutableList.of(":", ":app", ":libs", ":libs:mylibrary", ":olibs", ":olibs:mylibrary", ":notamodule:deepmodule"),
                  settingsModel.modulePaths());
 
-    File rootDir = GradleUtil.getBaseDirPath(myProject);
+    File rootDir = getBaseDirPath(myProject);
     assertEquals(":", settingsModel.moduleWithDirectory(rootDir));
     assertEquals(":app", settingsModel.moduleWithDirectory(new File(rootDir, "app")));
     assertEquals(":libs", settingsModel.moduleWithDirectory(new File(rootDir, "libs")));
@@ -223,7 +223,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     GradleSettingsModel settingsModel = getGradleSettingsModel();
     assertEquals(ImmutableList.of(":", ":app", ":lib", ":olib"), settingsModel.modulePaths());
 
-    File rootDir = GradleUtil.getBaseDirPath(myProject);
+    File rootDir = getBaseDirPath(myProject);
     assertEquals(new File(rootDir, "build.gradle" + (isGroovy()?"":".kts")), settingsModel.buildFile(""));
     assertEquals(new File(rootDir, "app/build.gradle"), settingsModel.buildFile("app"));
     assertEquals(new File(rootDir, "lib/test.gradle" + (isGroovy()?"":".kts")), settingsModel.buildFile(":lib"));
@@ -310,9 +310,6 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     else {
       verifyFileContents(mySettingsFile, TestFile.SET_PROJECT_DIR_NON_RELATIVE_EXPECTED);
     }
-  }
-
-
   }
 
   @Test

@@ -36,10 +36,10 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,7 +58,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
   @NotNull
   @Override
   public List<String> modulePaths() {
-    List<String> result = new ArrayList<>();
+    List<String> result = Lists.newArrayList();
     result.add(":"); // Indicates the root module.
 
     IncludeDslElement includePaths = myGradleDslFile.getPropertyElement(INCLUDE);
@@ -124,11 +124,11 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
   /**
    * WARNING: This method does not write in the same format as it is read, this means that the changes from this method
    * WON'T be visible until the file as been re-parsed.
-   * <p>
+   *
    * For example:
-   * gradleSettingsModel.setModuleDirectory(":app", new File("/cool/file"))
-   * File moduleDir = gradleSettingModel.moduleDirectory(":app") // returns projectDir/app not /cool/file
-   * <p>
+   *   gradleSettingsModel.setModuleDirectory(":app", new File("/cool/file"))
+   *   File moduleDir = gradleSettingModel.moduleDirectory(":app") // returns projectDir/app not /cool/file
+   *
    * TODO: FIX THIS
    */
   @Override
@@ -278,7 +278,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     String projectKey = "project('" + modulePath + "')";
     ProjectPropertiesDslElement projectProperties = myGradleDslFile.getPropertyElement(projectKey, ProjectPropertiesDslElement.class);
     if (projectProperties != null) {
-      buildFileName = projectProperties.getLiteral(BUILD_FILE_NAME, String.class);
+      buildFileName =  projectProperties.getLiteral(BUILD_FILE_NAME, String.class);
     }
 
     // If the BUILD_FILE_NAME property doesn't exist, look for the default build file in the module.

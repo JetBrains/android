@@ -26,8 +26,6 @@ import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.dsl.parser.dependencies.GradleDependenciesComparatorKt.CONFIGURATION_ORDERING;
-
 public class DependenciesDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<DependenciesDslElement> DEPENDENCIES =
     new PropertiesElementDescription<>("dependencies", DependenciesDslElement.class, DependenciesDslElement::new);
@@ -126,9 +124,7 @@ public class DependenciesDslElement extends GradleDslBlockElement {
     )
   );
 
-
-
-private static final List<String> KNOWN_CONFIGURATIONS_IN_ORDER = ImmutableList.of(
+  private static final List<String> KNOWN_CONFIGURATIONS_IN_ORDER = ImmutableList.of(
     "feature", "api", "implementation", "compile",
     "testApi", "testImplementation", "testCompile",
     "androidTestApi", "androidTestImplementation", "androidTestCompile", "androidTestUtil"

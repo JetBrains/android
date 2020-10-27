@@ -35,10 +35,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.android.tools.idea.gradle.dsl.GradleUtil.GRADLE_PATH_SEPARATOR;
-import static com.android.tools.idea.gradle.dsl.GradleUtil.getPathSegments;
+import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.google.common.base.Splitter.on;
 
-public final class ModuleDependencyModelImpl extends DependencyModelImpl implements
+public class ModuleDependencyModelImpl extends DependencyModelImpl implements
                                                                    ModuleDependencyModel {
   @NonNls public static final String PROJECT = "project";
   @NonNls private static final String PATH = "path";

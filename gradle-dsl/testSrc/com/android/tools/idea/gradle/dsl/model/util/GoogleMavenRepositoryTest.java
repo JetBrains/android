@@ -30,7 +30,6 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
-import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModelExtensionKt;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl;
@@ -83,7 +82,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     assertThat(repositoriesModel.repositories()).isEmpty();
 
     // add repository
-    RepositoriesModelExtensionKt.addGoogleMavenRepository(GradleVersion.parse("3.5"));
+    repositoriesModel.addGoogleMavenRepository(GradleVersion.parse("3.5"));
     assertTrue(buildModel.isModified());
     runWriteCommandAction(getProject(), buildModel::applyChanges);
 
@@ -104,7 +103,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     assertThat(repositoriesModel.repositories()).isEmpty();
 
     // add repository
-    RepositoriesModelExtensionKt.addGoogleMavenRepository(GradleVersion.parse("4.0"));
+    repositoriesModel.addGoogleMavenRepository(GradleVersion.parse("4.0"));
     assertTrue(buildModel.isModified());
     runWriteCommandAction(getProject(), buildModel::applyChanges);
 
@@ -125,7 +124,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     assertThat(repositoriesModel.repositories()).hasSize(1);
 
     // add repository
-    RepositoriesModelExtensionKt.addGoogleMavenRepository(GradleVersion.parse("3.5"));
+    repositoriesModel.addGoogleMavenRepository(GradleVersion.parse("3.5"));
     assertTrue(buildModel.isModified());
     runWriteCommandAction(getProject(), buildModel::applyChanges);
 
@@ -147,7 +146,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     assertThat(repositoriesModel.repositories()).hasSize(1);
 
     // add repository
-    RepositoriesModelExtensionKt.addGoogleMavenRepository(GradleVersion.parse("4.0"));
+    repositoriesModel.addGoogleMavenRepository(GradleVersion.parse("4.0"));
 
     // Verify
     assertFalse(buildModel.isModified());

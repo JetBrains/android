@@ -22,10 +22,11 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
-import java.util.ArrayList;
+import com.google.common.collect.Lists;
 import java.util.Arrays;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public final class SigningConfigsDslElement extends GradleDslElementMap implements GradleDslNamedDomainContainer {
   public static final PropertiesElementDescription<SigningConfigsDslElement> SIGNING_CONFIGS =
@@ -54,7 +55,7 @@ public final class SigningConfigsDslElement extends GradleDslElementMap implemen
 
   @NotNull
   public List<SigningConfigModel> get() {
-    List<SigningConfigModel> result = new ArrayList<>();
+    List<SigningConfigModel> result = Lists.newArrayList();
     for (SigningConfigDslElement dslElement : getValues(SigningConfigDslElement.class)) {
       result.add(new SigningConfigModelImpl(dslElement));
     }

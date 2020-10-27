@@ -20,6 +20,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_OPTIONS_MO
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_OPTIONS_MODEL_EDIT_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_OPTIONS_MODEL_TEST_OPTIONS_TEXT;
 
+import com.android.builder.model.TestOptions;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.TestOptionsModel;
@@ -74,7 +75,7 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     TestOptionsModel testOptions = android.testOptions();
     testOptions.reportDir().setValue("reportDirectory");
     testOptions.resultsDir().setValue("resultsDirectory");
-    testOptions.execution().setValue("ANDROID_TEST_ORCHESTRATOR");
+    testOptions.execution().setValue(TestOptions.Execution.ANDROID_TEST_ORCHESTRATOR.name());
     testOptions.unitTests().returnDefaultValues().setValue(true);
 
     applyChangesAndReparse(buildModel);
@@ -117,7 +118,7 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     TestOptionsModel testOptions = android.testOptions();
     assertEquals("reportDir", "reportDirectory", testOptions.reportDir());
     assertEquals("resultsDir", "resultsDirectory", testOptions.resultsDir());
-    assertEquals("execution", "ANDROID_TEST_ORCHESTRATOR", testOptions.execution());
+    assertEquals("execution", TestOptions.Execution.ANDROID_TEST_ORCHESTRATOR.name(), testOptions.execution());
     assertEquals("unitTests.returnDefaultValues", Boolean.TRUE, testOptions.unitTests().returnDefaultValues());
   }
 

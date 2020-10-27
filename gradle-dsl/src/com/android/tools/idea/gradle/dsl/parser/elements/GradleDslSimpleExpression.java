@@ -44,7 +44,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
-import static com.android.tools.idea.gradle.dsl.GradleUtil.getBaseDirPath;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropertiesElementOrMap;
 import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT;
@@ -57,7 +56,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
  * Represents an expression element.
  */
 public abstract class GradleDslSimpleExpression extends GradleDslElementImpl implements GradleDslExpression {
-  @NotNull private static final String SINGLE_QUOTES = "'";
+  @NotNull private static final String SINGLE_QUOTES = "\'";
   @NotNull private static final String DOUBLE_QUOTES = "\"";
   private boolean myIsReference;
   @Nullable private PsiElement myUnsavedConfigBlock;

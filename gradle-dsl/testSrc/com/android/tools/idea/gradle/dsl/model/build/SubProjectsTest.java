@@ -28,8 +28,10 @@ import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.module.Module;
 import com.intellij.pom.java.LanguageLevel;
+import java.util.List;
 import org.junit.Test;
 
 
@@ -100,8 +102,8 @@ public class SubProjectsTest extends GradleFileModelTestCase {
     GradleBuildModel sub2Model = buildModel.getModuleBuildModel(otherSub);
     List<PluginModel> sub2Plugins = sub2Model.plugins();
 
-    assertSameElements(PluginModel.extractNames(mainPlugins), Set.of("foo"));
-    assertSameElements(PluginModel.extractNames(subPlugins), Set.of("bar", "baz"));
-    assertSameElements(PluginModel.extractNames(sub2Plugins), Set.of("bar", "quux"));
+    assertSameElements(PluginModel.extractNames(mainPlugins), ImmutableSet.of("foo"));
+    assertSameElements(PluginModel.extractNames(subPlugins), ImmutableSet.of("bar", "baz"));
+    assertSameElements(PluginModel.extractNames(sub2Plugins), ImmutableSet.of("bar", "quux"));
   }
 }

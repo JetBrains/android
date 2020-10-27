@@ -40,7 +40,6 @@ import org.jetbrains.annotations.Nullable;
  * file hundreds of times.
  */
 public class GradleDslFileCache {
-  public static final Logger LOG = Logger.getInstance(GradleDslFileCache.class);
   @NotNull private Project myProject;
   @NotNull private Map<String, GradleDslFile> myParsedBuildFiles = new HashMap<>();
   @NotNull private Deque<VirtualFile> myParsingStack = new ArrayDeque<>();
@@ -109,9 +108,7 @@ public class GradleDslFileCache {
   }
 
   @Nullable
-  public GradlePropertiesFile getOrCreatePropertiesFile(@NotNull VirtualFile file,
-                                                        @NotNull String moduleName,
-                                                        @NotNull BuildModelContext context) {
+  public GradlePropertiesFile getOrCreatePropertiesFile(@NotNull VirtualFile file, @NotNull String moduleName, @NotNull BuildModelContext context) {
     GradleDslFile dslFile = myParsedBuildFiles.get(file.getUrl());
     if (dslFile == null) {
       try {

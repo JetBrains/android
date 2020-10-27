@@ -101,7 +101,7 @@ internal fun KtCallExpression.isBlockElement(parent: GradlePropertiesDslElement)
   return zeroOrOneClosures && (namedDomainBlockReference || knownBlockForParent)
 }
 
-fun GradleDslFile.transitivelyApplies(file: GradleDslFile, seen: MutableSet<GradleDslFile> = mutableSetOf()): Boolean {
+internal fun GradleDslFile.transitivelyApplies(file: GradleDslFile, seen: MutableSet<GradleDslFile> = mutableSetOf()): Boolean {
   return when {
     file == this -> true
     seen.contains(this) -> false

@@ -763,4 +763,18 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertThat(thirdModel).isInstanceOf(MavenRepositoryModelImpl.class);
     assertEquals("file:/some/repo", ((MavenRepositoryModelImpl)thirdModel).url().toString());
   }
+
+  @Test
+  public void testMultipleGoogleRepos() throws IOException {
+    assumeTrue("KotlinScript parser does not recognize foo().run { ... } as foo() method call", !isKotlinScript()); // TODO(b/155156339)
+    writeToBuildFile(REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_WITH_WITH);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    RepositoriesModel repositoriesModel = buildModel.buildscript().repositories();
+
+    repositoriesModel.addGoogleMavenRepository(GradleVersion.tryParse("4.10.1"));
+    applyChangesAndReparse(buildModel);
+
+    verifyFileContents(myBuildFile, REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_WITH_WITH);
+  }
 }

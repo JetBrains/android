@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.api.repositories;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -35,4 +36,5 @@ public interface RepositoriesModel extends GradleDslModel {
 
   boolean hasGoogleMavenRepository();
 
+  void addGoogleMavenRepository(@NotNull GradleVersion gradleVersion);
 }

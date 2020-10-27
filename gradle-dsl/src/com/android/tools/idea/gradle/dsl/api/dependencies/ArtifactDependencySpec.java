@@ -40,6 +40,7 @@ public interface ArtifactDependencySpec {
                                        @Nullable String extension) {
     return new ArtifactDependencySpecImpl(name, group, version, classifier, extension);
   }
+
   boolean equalsIgnoreVersion(Object o);
 
   @NotNull
