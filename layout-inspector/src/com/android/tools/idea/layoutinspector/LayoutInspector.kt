@@ -80,19 +80,19 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel, parentDisposable
   }
 
   private fun loadComponentTree(event: Any) {
+    // TODO: this should only run once at a time. If more requests are made while one is being processed, the last request should be
+    // processed after the existing run is complete, and intermediate ones should be dropped.
     val time = System.currentTimeMillis()
     val allIds = currentClient.treeLoader.getAllWindowIds(event, currentClient)
     val (window, generation) = currentClient.treeLoader.loadComponentTree(event, layoutInspectorModel.resourceLookup,
                                                                           currentClient, layoutInspectorModel.project) ?: return
     if (allIds != null) {
-      ApplicationManager.getApplication().invokeLater {
-        synchronized(latestLoadTime) {
-          if (latestLoadTime.get() > time) {
-            return@invokeLater
-          }
-          latestLoadTime.set(time)
-          layoutInspectorModel.update(window, allIds, generation)
+      synchronized(latestLoadTime) {
+         if (latestLoadTime.get() > time) {
+          return
         }
+        latestLoadTime.set(time)
+        layoutInspectorModel.update(window, allIds, generation)
       }
     }
   }

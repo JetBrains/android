@@ -26,6 +26,7 @@ import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTre
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.UNKNOWN
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.application.ApplicationManager
 import java.awt.Image
 import java.awt.Rectangle
 import java.awt.Shape
@@ -172,7 +173,9 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
 
     val levelLists = mutableListOf<MutableList<LevelListItem>>()
     // Each window should start completely above the previous window, hence level = levelLists.size
-    root.drawChildren.forEach { buildLevelLists(it, levelLists, levelLists.size) }
+    ViewNode.readDrawChildren { drawChildren ->
+      root.drawChildren().forEach { buildLevelLists(it, levelLists, levelLists.size, drawChildren) }
+    }
     maxDepth = levelLists.size
 
     val newHitRects = mutableListOf<ViewDrawInfo>()
@@ -204,10 +207,10 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     modificationListeners.forEach { it() }
   }
 
-  // TODO: move this off the UI thread
   private fun buildLevelLists(root: DrawViewNode,
                               levelListCollector: MutableList<MutableList<LevelListItem>>,
-                              minLevel: Int) {
+                              minLevel: Int,
+                              drawChildren: ViewNode.() -> List<DrawViewNode>) {
     var newLevelIndex = levelListCollector.size
     if (root.owner.visible) {
       // Starting from the highest level and going down, find the first level where something intersects with this view. We'll put this view
@@ -228,20 +231,20 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
       levelList.add(LevelListItem(root, false))
       if (!root.canCollapse) {
         // Add leading images to this level
-        root.owner.drawChildren
+        root.owner.drawChildren()
           .takeWhile { it.canCollapse }
           .mapTo(levelList) { LevelListItem(it, true) }
       }
     }
     if (root is DrawViewChild) {
       var sawChild = false
-      for (drawChild in root.owner.drawChildren) {
+      for (drawChild in root.owner.drawChildren()) {
         if (!sawChild && drawChild is DrawViewImage) {
           // Skip leading images -- they're already added
           continue
         }
         sawChild = true
-        buildLevelLists(drawChild, levelListCollector, newLevelIndex)
+        buildLevelLists(drawChild, levelListCollector, newLevelIndex, drawChildren)
       }
     }
   }

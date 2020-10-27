@@ -97,7 +97,6 @@ private class ComponentTreeLoaderImpl(
       isInterrupted = true
     }, LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC)
 
-  @Slow
   fun loadComponentTree(client: InspectorClient, skiaParser: SkiaParserService, project: Project): AndroidWindow? {
     val defaultClient = client as? DefaultInspectorClient ?: throw UnsupportedOperationException(
       "ComponentTreeLoaderImpl requires a DefaultClient")
@@ -107,11 +106,10 @@ private class ComponentTreeLoaderImpl(
     }
     return try {
       val rootView = loadRootView() ?: return null
-      val window = AndroidWindow(rootView, rootView.drawId, tree.payloadType, tree.payloadId) { scale, window ->
+      val window = AndroidWindow(rootView, rootView.drawId, tree.payloadType, tree.payloadId) @Slow { scale, window ->
         val bytes = defaultClient.getPayload(window.payloadId)
         if (bytes.isNotEmpty()) {
           val root = window.root
-          root.flatten().forEach { it.drawChildren.clear() }
           try {
             when (window.imageType) {
               PNG_AS_REQUESTED, PNG_SKP_TOO_LARGE -> processPng(bytes, root, client)
@@ -164,16 +162,21 @@ private class ComponentTreeLoaderImpl(
     }
     else {
       client.logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER)
-      ComponentImageLoader(allNodes.associateBy { it.drawId }, rootViewFromSkiaImage).loadImages()
+      ViewNode.writeDrawChildren { drawChildren ->
+        rootView.flatten().forEach { it.drawChildren().clear() }
+        ComponentImageLoader(allNodes.associateBy { it.drawId }, rootViewFromSkiaImage).loadImages(drawChildren)
+      }
     }
   }
 
   private fun processPng(bytes: ByteArray, rootView: ViewNode, client: InspectorClient) {
     ImageIO.read(ByteArrayInputStream(bytes))?.let {
-      rootView.drawChildren.add(DrawViewImage(it, rootView))
+      ViewNode.writeDrawChildren { drawChildren ->
+        rootView.flatten().forEach { it.drawChildren().clear() }
+        rootView.drawChildren().add(DrawViewImage(it, rootView))
+        rootView.flatten().forEach { it.children.mapTo(it.drawChildren()) { child -> DrawViewChild(child) } }
+      }
     }
-    rootView.flatten().forEach { it.children.mapTo(it.drawChildren) { child -> DrawViewChild(child) } }
-
     client.logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
   }
 
@@ -208,11 +211,11 @@ private class ComponentTreeLoaderImpl(
   private fun loadRootView(): ViewNode? {
     resourceLookup?.updateConfiguration(tree.resources, stringTable)
     if (tree.hasRoot()) {
-      try {
-        return loadView(tree.root)
+      return try {
+        loadView(tree.root)
       }
       catch (interrupted: InterruptedException) {
-        return null
+        null
       }
     }
     return null
@@ -259,25 +262,25 @@ private class ComponentTreeLoaderImpl(
 class ComponentImageLoader(private val nodeMap: Map<Long, ViewNode>, skiaRoot: SkiaViewNode) {
   private val nonImageSkiaNodes = skiaRoot.flatten().filter { it.image == null }.associateBy {  it.id }
 
-  fun loadImages() {
-    for ((drawId, node) in nodeMap) {
-      val remainingChildren = LinkedHashSet(node.children)
-      val skiaNode = nonImageSkiaNodes[drawId]
-      if (skiaNode != null) {
-        for (childSkiaNode in skiaNode.children) {
-          val image = childSkiaNode.image
-          if (image != null) {
-            node.drawChildren.add(DrawViewImage(image, node))
-          }
-          else {
-            val viewForSkiaChild = nodeMap[childSkiaNode.id] ?: continue
-            val actualChild = viewForSkiaChild.parentSequence.find { remainingChildren.contains(it) } ?: continue
-            remainingChildren.remove(actualChild)
-            node.drawChildren.add(DrawViewChild(actualChild))
+  fun loadImages(drawChildren: ViewNode.() -> MutableList<DrawViewNode>) {
+      for ((drawId, node) in nodeMap) {
+        val remainingChildren = LinkedHashSet(node.children)
+        val skiaNode = nonImageSkiaNodes[drawId]
+        if (skiaNode != null) {
+          for (childSkiaNode in skiaNode.children) {
+            val image = childSkiaNode.image
+            if (image != null) {
+              node.drawChildren().add(DrawViewImage(image, node))
+            }
+            else {
+              val viewForSkiaChild = nodeMap[childSkiaNode.id] ?: continue
+              val actualChild = viewForSkiaChild.parentSequence.find { remainingChildren.contains(it) } ?: continue
+              remainingChildren.remove(actualChild)
+              node.drawChildren().add(DrawViewChild(actualChild))
+            }
           }
         }
+        remainingChildren.mapTo(node.drawChildren()) { DrawViewChild(it) }
       }
-      remainingChildren.mapTo(node.drawChildren) { DrawViewChild(it) }
-    }
   }
 }

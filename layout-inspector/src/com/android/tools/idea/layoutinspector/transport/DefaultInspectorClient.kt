@@ -27,6 +27,7 @@ import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.isDeviceMatch
 import com.android.tools.idea.layoutinspector.model.ComponentTreeLoader
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.stats.AndroidStudioUsageTracker
@@ -164,7 +165,7 @@ class DefaultInspectorClient(
   private val lowMemoryWatcher = LowMemoryWatcher.register(
     {
       model.root.children.clear()
-      model.root.drawChildren.clear()
+      ViewNode.writeDrawChildren { drawChildren -> model.root.drawChildren().clear() }
       requestScreenshotMode()
       InspectorBannerService.getInstance(project).setNotification("Low Memory. Rotation disabled.")
     }, LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC)
