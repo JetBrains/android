@@ -41,26 +41,26 @@ class AndroidGradleProjectFindUsagesTest : AndroidGradleTestCase() {
     val usages = AndroidResourcesFindUsagesTest.findUsages(myFixture.file.virtualFile, myFixture)
     val treeTextRepresentation = myFixture.getUsageViewTreeTextRepresentation(usages)
     assertThat(treeTextRepresentation)
-      .isEqualTo("Usage (4 usages)\n" +
-                 " Found usages (4 usages)\n" +
-                 "  Resource reference Android resources XML (2 usages)\n" +
-                 "   color (1 usage)\n" +
-                 "    abc_tint_default.xml (1 usage)\n" +
+      .isEqualTo("<root> (4)\n" +
+                 " Found usages (4)\n" +
+                 "  Resource reference Android resources XML (2)\n" +
+                 "   color (1)\n" +
+                 "    abc_tint_default.xml (1)\n" +
                  "     1<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                 "   color-v23 (1 usage)\n" +
-                 "    abc_tint_default.xml (1 usage)\n" +
+                 "   color-v23 (1)\n" +
+                 "    abc_tint_default.xml (1)\n" +
                  "     1<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                 "  Resource reference in code (2 usages)\n" +
-                 "   testResourceDefinedInAarUsingModuleRClass.app (1 usage)\n" +
-                 "    com.example.google.androidx (1 usage)\n" +
-                 "     MainActivity.kt (1 usage)\n" +
-                 "      MainActivity (1 usage)\n" +
-                 "       onCreate (1 usage)\n" +
+                 "  Resource reference in code (2)\n" +
+                 "   testResourceDefinedInAarUsingModuleRClass.app (1)\n" +
+                 "    com.example.google.androidx (1)\n" +
+                 "     MainActivity.kt (1)\n" +
+                 "      MainActivity (1)\n" +
+                 "       onCreate (1)\n" +
                  "        12val color = R.color.abc_tint_default\n" +
-                 "   testResourceDefinedInAarUsingModuleRClass.library (1 usage)\n" +
-                 "    google.mylibrary (1 usage)\n" +
-                 "     Library (1 usage)\n" +
-                 "      foo() (1 usage)\n" +
+                 "   testResourceDefinedInAarUsingModuleRClass.library (1)\n" +
+                 "    google.mylibrary (1)\n" +
+                 "     Library (1)\n" +
+                 "      foo() (1)\n" +
                  "       6int color = R.color.abc_tint_default;\n")
   }
 
@@ -81,28 +81,28 @@ class AndroidGradleProjectFindUsagesTest : AndroidGradleTestCase() {
     val usages = AndroidResourcesFindUsagesTest.findUsages(myFixture.file.virtualFile, myFixture)
     val treeTextRepresentation = myFixture.getUsageViewTreeTextRepresentation(usages)
     assertThat(treeTextRepresentation)
-      .isEqualTo("Usage (6 usages)\n" +
-                 " Found usages (6 usages)\n" +
-                 "  Resource reference Android resources XML (2 usages)\n" +
-                 "   color (1 usage)\n" +
-                 "    abc_tint_default.xml (1 usage)\n" +
+      .isEqualTo("<root> (6)\n" +
+                 " Found usages (6)\n" +
+                 "  Resource reference Android resources XML (2)\n" +
+                 "   color (1)\n" +
+                 "    abc_tint_default.xml (1)\n" +
                  "     1<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                 "   color-v23 (1 usage)\n" +
-                 "    abc_tint_default.xml (1 usage)\n" +
+                 "   color-v23 (1)\n" +
+                 "    abc_tint_default.xml (1)\n" +
                  "     1<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                 "  Resource reference in code (4 usages)\n" +
-                 "   testResourceDefinedInAarUsingLibRClass.app (3 usages)\n" +
-                 "    com.example.google.androidx (3 usages)\n" +
-                 "     MainActivity.kt (3 usages)\n" +
-                 "      MainActivity (3 usages)\n" +
-                 "       onCreate (3 usages)\n" +
+                 "  Resource reference in code (4)\n" +
+                 "   testResourceDefinedInAarUsingLibRClass.app (3)\n" +
+                 "    com.example.google.androidx (3)\n" +
+                 "     MainActivity.kt (3)\n" +
+                 "      MainActivity (3)\n" +
+                 "       onCreate (3)\n" +
                  "        12val color = R.color.abc_tint_default\n" +
                  "        13com.example.google.androidx.R.color.abc_tint_default\n" +
                  "        14androidx.appcompat.R.color.abc_tint_default\n" +
-                 "   testResourceDefinedInAarUsingLibRClass.library (1 usage)\n" +
-                 "    google.mylibrary (1 usage)\n" +
-                 "     Library (1 usage)\n" +
-                 "      foo() (1 usage)\n" +
+                 "   testResourceDefinedInAarUsingLibRClass.library (1)\n" +
+                 "    google.mylibrary (1)\n" +
+                 "     Library (1)\n" +
+                 "      foo() (1)\n" +
                  "       6int color = R.color.abc_tint_default;\n")
   }
 }

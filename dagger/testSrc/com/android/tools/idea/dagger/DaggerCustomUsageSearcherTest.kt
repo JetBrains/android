@@ -85,12 +85,12 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
     assertThat(presentation).contains(
       """
-      | Found usages (1 usage)
-      |  Providers (1 usage)
-      |   ${module.name} (1 usage)
-      |    myExample (1 usage)
-      |     MyModule (1 usage)
-      |      provider() (1 usage)
+      | Found usages (1)
+      |  Providers (1)
+      |   ${module.name} (1)
+      |    myExample (1)
+      |     MyModule (1)
+      |      provider() (1)
       |       8@Provides String provider() {}
       """.trimMargin()
     )
@@ -150,13 +150,13 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
     assertThat(presentation).contains(
       """
-      | Found usages (3 usages)
-      |  Providers (3 usages)
-      |   ${module.name} (3 usages)
-      |     (3 usages)
-      |     MyClass.kt (3 usages)
-      |      MyModule (3 usages)
-      |       builder (1 usage)
+      | Found usages (3)
+      |  Providers (3)
+      |   ${module.name} (3)
+      |     (3)
+      |     MyClass.kt (3)
+      |      MyModule (3)
+      |       builder (1)
       |        12fun builder(@BindsInstance str:String) {}
       |       9@Provides fun provider():String {}
       |       11@BindsInstance fun bindsMethod():String {}
@@ -195,12 +195,12 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
     assertThat(presentation).contains(
       """
-      | Found usages (1 usage)
-      |  Providers (1 usage)
-      |   ${module.name} (1 usage)
-      |    myExample (1 usage)
-      |     MyProvider (1 usage)
-      |      MyProvider() (1 usage)
+      | Found usages (1)
+      |  Providers (1)
+      |   ${module.name} (1)
+      |    myExample (1)
+      |     MyProvider (1)
+      |      MyProvider() (1)
       |       6@Inject public MyProvider() {}
       """.trimMargin()
     )
@@ -232,12 +232,12 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
     assertThat(presentation).contains(
       """
-      | Found usages (1 usage)
-      |  Providers (1 usage)
-      |   ${module.name} (1 usage)
-      |     (1 usage)
-      |     MyProvider.kt (1 usage)
-      |      MyProvider (1 usage)
+      | Found usages (1)
+      |  Providers (1)
+      |   ${module.name} (1)
+      |     (1)
+      |     MyProvider.kt (1)
+      |      MyProvider (1)
       |       3class MyProvider @Inject constructor()
       """.trimMargin()
     )
@@ -276,12 +276,12 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
     assertThat(presentation).contains(
       """
-      | Found usages (1 usage)
-      |  Providers (1 usage)
-      |   ${module.name} (1 usage)
-      |    myExample (1 usage)
-      |     MyModule (1 usage)
-      |      bindsMethod(String) (1 usage)
+      | Found usages (1)
+      |  Providers (1)
+      |   ${module.name} (1)
+      |    myExample (1)
+      |     MyModule (1)
+      |      bindsMethod(String) (1)
       |       8@Binds abstract String bindsMethod(String s) {}
       """.trimMargin()
     )
@@ -322,12 +322,12 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
     assertThat(presentation).contains(
       """
-      | Found usages (1 usage)
-      |  Providers (1 usage)
-      |   ${module.name} (1 usage)
-      |     (1 usage)
-      |     MyClass.kt (1 usage)
-      |      MyModule (1 usage)
+      | Found usages (1)
+      |  Providers (1)
+      |   ${module.name} (1)
+      |     (1)
+      |     MyClass.kt (1)
+      |      MyModule (1)
       |       8@Binds abstract fun bindsMethod(s: String):String {}
       """.trimMargin()
     )
@@ -369,12 +369,12 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     var presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
     assertThat(presentation).contains(
       """
-      | Found usages (1 usage)
-      |  Providers (1 usage)
-      |   ${module.name} (1 usage)
-      |     (1 usage)
-      |     MyClass.kt (1 usage)
-      |      MyModule (1 usage)
+      | Found usages (1)
+      |  Providers (1)
+      |   ${module.name} (1)
+      |     (1)
+      |     MyClass.kt (1)
+      |      MyModule (1)
       |       8@Binds abstract fun bindsMethod(s: String):String {}
       """.trimMargin()
     )
@@ -393,12 +393,12 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
     assertThat(presentation).contains(
       """
-      | Found usages (1 usage)
-      |  Providers (1 usage)
-      |   ${module.name} (1 usage)
-      |     (1 usage)
-      |     MyClass.kt (1 usage)
-      |      MyModule (1 usage)
+      | Found usages (1)
+      |  Providers (1)
+      |   ${module.name} (1)
+      |     (1)
+      |     MyClass.kt (1)
+      |      MyModule (1)
       |       8@Binds abstract fun bindsMethod(s: String):String {}
       """.trimMargin()
     )
@@ -483,20 +483,20 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     val presentation = myFixture.getUsageViewTreeTextRepresentation(provider)
     assertThat(presentation).contains(
       """
-      | Found usages (4 usages)
-      |  Consumers (4 usages)
-      |   ${module.name} (4 usages)
-      |    example (4 usages)
-      |     MyClass (1 usage)
-      |      MyClass(MyProvider) (1 usage)
+      | Found usages (4)
+      |  Consumers (4)
+      |   ${module.name} (4)
+      |    example (4)
+      |     MyClass (1)
+      |      MyClass(MyProvider) (1)
       |       6@Inject public MyClass(MyProvider consumer) {}
-      |     MyClassWithInjectedField (1 usage)
+      |     MyClassWithInjectedField (1)
       |      6@Inject MyProvider consumer;
-      |     MyModule (1 usage)
-      |      provider(MyProvider) (1 usage)
+      |     MyModule (1)
+      |      provider(MyProvider) (1)
       |       8@Provides String provider(MyProvider consumer) {}
-      |     MyClassWithInjectedFieldKt.kt (1 usage)
-      |      MyClassWithInjectedFieldKt (1 usage)
+      |     MyClassWithInjectedFieldKt.kt (1)
+      |      MyClassWithInjectedFieldKt (1)
       |       6@Inject val consumer:MyProvider
       """.trimMargin()
     )
@@ -538,12 +538,12 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
     assertThat(presentation).contains(
       """
-      | Found usages (1 usage)
-      |  Providers (1 usage)
-      |   ${module.name} (1 usage)
-      |    test (1 usage)
-      |     MyClass (1 usage)
-      |      MyClass() (1 usage)
+      | Found usages (1)
+      |  Providers (1)
+      |   ${module.name} (1)
+      |    test (1)
+      |     MyClass (1)
+      |      MyClass() (1)
       |       6@Inject public MyClass() {}
       """.trimMargin()
     )
@@ -555,12 +555,12 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
     assertThat(presentation).contains(
       """
-      | Found usages (1 usage)
-      |  Exposed by components (1 usage)
-      |   ${module.name} (1 usage)
-      |    test (1 usage)
-      |     MyComponent (1 usage)
-      |      getMyClass() (1 usage)
+      | Found usages (1)
+      |  Exposed by components (1)
+      |   ${module.name} (1)
+      |    test (1)
+      |     MyComponent (1)
+      |      getMyClass() (1)
       |       6MyClass getMyClass();
       """.trimMargin()
     )
@@ -600,12 +600,12 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
     assertThat(presentation).contains(
       """
-      | Found usages (1 usage)
-      |  Providers (1 usage)
-      |   ${module.name} (1 usage)
-      |    test (1 usage)
-      |     MyClass (1 usage)
-      |      MyClass() (1 usage)
+      | Found usages (1)
+      |  Providers (1)
+      |   ${module.name} (1)
+      |    test (1)
+      |     MyClass (1)
+      |      MyClass() (1)
       |       6@Inject public MyClass() {}
       """.trimMargin()
     )
@@ -617,11 +617,11 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
     assertThat(presentation).contains(
       """
-      |  Exposed by entry points (1 usage)
-      |   ${module.name} (1 usage)
-      |    test (1 usage)
-      |     MyEntryPoint (1 usage)
-      |      getMyClassInEntryPoint() (1 usage)
+      |  Exposed by entry points (1)
+      |   ${module.name} (1)
+      |    test (1)
+      |     MyEntryPoint (1)
+      |      getMyClassInEntryPoint() (1)
       |       6MyClass getMyClassInEntryPoint();
       """.trimMargin()
     )
@@ -681,17 +681,17 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
     assertThat(presentation).contains(
       """
-      |  Included in components (2 usages)
-      |   ${myFixture.module.name} (2 usages)
-      |    test (2 usages)
-      |     MyComponent.java (1 usage)
+      |  Included in components (2)
+      |   ${myFixture.module.name} (2)
+      |    test (2)
+      |     MyComponent.java (1)
       |      5public interface MyComponent {}
-      |     MyComponentKt.kt (1 usage)
+      |     MyComponentKt.kt (1)
       |      5interface MyComponentKt
-      |  Included in modules (1 usage)
-      |   ${myFixture.module.name} (1 usage)
-      |    test (1 usage)
-      |     MyModule2.java (1 usage)
+      |  Included in modules (1)
+      |   ${myFixture.module.name} (1)
+      |    test (1)
+      |     MyModule2.java (1)
       |      5class MyModule2 {}
       """.trimMargin()
     )
@@ -729,10 +729,10 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
     assertThat(presentation).contains(
       """
-      |  Parent components (1 usage)
-      |   ${myFixture.module.name} (1 usage)
-      |    test (1 usage)
-      |     MyDependantComponent.kt (1 usage)
+      |  Parent components (1)
+      |   ${myFixture.module.name} (1)
+      |    test (1)
+      |     MyDependantComponent.kt (1)
       |      5interface MyDependantComponent
       """.trimMargin()
     )
@@ -807,14 +807,14 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
     assertThat(presentation).contains(
       """
-      |  Parent components (3 usages)
-      |   ${myFixture.module.name} (3 usages)
-      |    test (3 usages)
-      |     MyComponent.java (1 usage)
+      |  Parent components (3)
+      |   ${myFixture.module.name} (3)
+      |    test (3)
+      |     MyComponent.java (1)
       |      5public interface MyComponent {}
-      |     MyParentSubcomponent.java (1 usage)
+      |     MyParentSubcomponent.java (1)
       |      5public interface MyParentSubcomponent {}
-      |     MyComponentKt.kt (1 usage)
+      |     MyComponentKt.kt (1)
       |      5interface MyComponentKt
       """.trimMargin()
     )
@@ -864,10 +864,10 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
     assertThat(presentation).contains(
       """
-      |  Subcomponents (1 usage)
-      |   ${myFixture.module.name} (1 usage)
-      |    test (1 usage)
-      |     MySubcomponent.java (1 usage)
+      |  Subcomponents (1)
+      |   ${myFixture.module.name} (1)
+      |    test (1)
+      |     MySubcomponent.java (1)
       |      5public interface MySubcomponent {}
       """.trimMargin()
     )
@@ -932,22 +932,22 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
     assertThat(presentation).contains(
       """
-      |  Subcomponents (2 usages)
-      |   ${myFixture.module.name} (2 usages)
-      |    test (2 usages)
-      |     MySubcomponent.java (1 usage)
+      |  Subcomponents (2)
+      |   ${myFixture.module.name} (2)
+      |    test (2)
+      |     MySubcomponent.java (1)
       |      5public interface MySubcomponent {
-      |     MySubcomponent2.kt (1 usage)
+      |     MySubcomponent2.kt (1)
       |      5interface MySubcomponent2
       """.trimMargin()
     )
 
     assertThat(presentation).contains(
       """
-      |  Modules included (1 usage)
-      |   ${myFixture.module.name} (1 usage)
-      |    test (1 usage)
-      |     MyModule.java (1 usage)
+      |  Modules included (1)
+      |   ${myFixture.module.name} (1)
+      |    test (1)
+      |     MyModule.java (1)
       |      6class MyModule { }
       """.trimMargin()
     )
@@ -983,10 +983,10 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
     assertThat(presentation).contains(
       """
-      |  Included in components (1 usage)
-      |   ${myFixture.module.name} (1 usage)
-      |    test (1 usage)
-      |     MyComponent.java (1 usage)
+      |  Included in components (1)
+      |   ${myFixture.module.name} (1)
+      |    test (1)
+      |     MyComponent.java (1)
       |      5public interface MyComponent {}
       """.trimMargin()
     )
@@ -1023,12 +1023,12 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
     assertThat(presentation).contains(
       """
-          | Found usages (1 usage)
-          |  Providers (1 usage)
-          |   ${myFixture.module.name} (1 usage)
-          |    example (1 usage)
-          |     MyModule (1 usage)
-          |      provider() (1 usage)
+          | Found usages (1)
+          |  Providers (1)
+          |   ${myFixture.module.name} (1)
+          |    example (1)
+          |     MyModule (1)
+          |      provider() (1)
           |       8@Provides String provider() {}
           """.trimMargin()
     )
@@ -1067,10 +1067,10 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
     assertThat(presentation).contains(
       """
-          |  Subcomponents (1 usage)
-          |   ${myFixture.module.name} (1 usage)
-          |    test (1 usage)
-          |     MySubcomponent.kt (1 usage)
+          |  Subcomponents (1)
+          |   ${myFixture.module.name} (1)
+          |    test (1)
+          |     MySubcomponent.kt (1)
           |      6interface MySubcomponent
       """.trimMargin()
     )
@@ -1107,10 +1107,10 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
     assertThat(presentation).contains(
       """
-      |  Included in components (1 usage)
-      |   ${myFixture.module.name} (1 usage)
-      |    test (1 usage)
-      |     MyComponent.kt (1 usage)
+      |  Included in components (1)
+      |   ${myFixture.module.name} (1)
+      |    test (1)
+      |     MyComponent.kt (1)
       |      6interface MyComponent
       """.trimMargin()
     )

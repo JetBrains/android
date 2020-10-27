@@ -85,25 +85,25 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
       "}\n");
     myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
     Collection<UsageInfo> references = findUsages(file.getVirtualFile(), myFixture, GlobalSearchScope.allScope(myFixture.getProject()));
-    assertEquals("Usage (4 usages)\n" +
+    assertEquals("<root> (4)\n" +
                  " Targets\n" +
                  "  @android:color/background_dark\n" +
-                 " Found usages (4 usages)\n" +
-                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                 "   values (1 usage)\n" +
-                 "    colors.xml (1 usage)\n" +
+                 " Found usages (4)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   values (1)\n" +
+                 "    colors.xml (1)\n" +
                  "     44<color name=\"background_dark\">#ff000000</color>\n" +
-                 "  Resource reference Android resources XML (2 usages)\n" +
-                 "   values (2 usages)\n" +
-                 "    colors.xml (1 usage)\n" +
+                 "  Resource reference Android resources XML (2)\n" +
+                 "   values (2)\n" +
+                 "    colors.xml (1)\n" +
                  "     48<color name=\"bright_foreground_light\">@android:color/background_dark</color>\n" +
-                 "    themes.xml (1 usage)\n" +
+                 "    themes.xml (1)\n" +
                  "     48<item name=\"colorBackground\">@color/background_dark</item>\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     MyTest (1 usage)\n" +
-                 "      MyTest() (1 usage)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     MyTest (1)\n" +
+                 "      MyTest() (1)\n" +
                  "       4int attribute = android.R.color.background_dark;\n", getUsageViewTreeTextRepresentation(references));
   }
 
@@ -112,25 +112,25 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "Class.java", "src/p1/p2/Class.java");
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "fu2_layout.xml", "res/layout/fu2_layout.xml");
     Collection<UsageInfo> references = findUsages(file, myFixture);
-    assertEquals("Usage (3 usages)\n" +
+    assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hello\n" +
-                 " Found usages (3 usages)\n" +
-                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                 "     strings.xml (1 usage)\n" +
+                 " Found usages (3)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     strings.xml (1)\n" +
                  "      2<string name=\"hello\">hello</string>\n" +
-                 "  Resource reference Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "layout (1 usage)\n" +
-                 "     fu2_layout.xml (1 usage)\n" +
+                 "  Resource reference Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "layout (1)\n" +
+                 "     fu2_layout.xml (1)\n" +
                  "      3<TextView android:text=\"@string/hello\"/>\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     Class1 (1 usage)\n" +
-                 "      f() (1 usage)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     Class1 (1)\n" +
+                 "      f() (1)\n" +
                  "       6int id2 = R.string.hello;\n", getUsageViewTreeTextRepresentation(references));
   }
 
@@ -146,20 +146,20 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
       "  }\n" +
       "}");
     Collection<UsageInfo> references = findUsages(file.getVirtualFile(), myFixture);
-    assertEquals("Usage (2 usages)\n" +
+    assertEquals("<root> (2)\n" +
                  " Targets\n" +
                  "  @font/new_font\n" +
-                 " Found usages (2 usages)\n" +
-                 "  Android resource file (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "font (1 usage)\n" +
-                 "     new_font.ttf (1 usage)\n" +
+                 " Found usages (2)\n" +
+                 "  Android resource file (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "font (1)\n" +
+                 "     new_font.ttf (1)\n" +
                  "      Android resource file font/new_font.ttf\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     Example (1 usage)\n" +
-                 "      f() (1 usage)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     Example (1)\n" +
+                 "      f() (1)\n" +
                  "       4int id1 = R.font.new_font;\n", getUsageViewTreeTextRepresentation(references));
   }
 
@@ -168,28 +168,28 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "Class.java", "src/p1/p2/Class.java");
     myFixture.copyFileToProject(BASE_PATH + "styles.xml", "res/values/styles.xml");
     Collection<UsageInfo> references = findUsages("fu1_layout.xml", myFixture, "res/layout/fu1_layout.xml");
-    assertEquals("Usage (4 usages)\n" +
+    assertEquals("<root> (4)\n" +
                  " Targets\n" +
                  "  @drawable/picture3\n" +
-                 " Found usages (4 usages)\n" +
-                 "  Android resource file (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "drawable (1 usage)\n" +
-                 "     picture3.gif (1 usage)\n" +
+                 " Found usages (4)\n" +
+                 "  Android resource file (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "drawable (1)\n" +
+                 "     picture3.gif (1)\n" +
                  "      Android resource file drawable/picture3.gif\n" +
-                 "  Resource reference Android resources XML (2 usages)\n" +
-                 "   app (2 usages)\n" +
-                 "    res" + File.separatorChar + "layout (1 usage)\n" +
-                 "     fu1_layout.xml (1 usage)\n" +
+                 "  Resource reference Android resources XML (2)\n" +
+                 "   app (2)\n" +
+                 "    res" + File.separatorChar + "layout (1)\n" +
+                 "     fu1_layout.xml (1)\n" +
                  "      3<TextView android:background=\"@drawable/picture3\"/>\n" +
-                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                 "     styles.xml (1 usage)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     styles.xml (1)\n" +
                  "      3<item name=\"android:windowBackground\">@drawable/picture3</item>\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     Class1 (1 usage)\n" +
-                 "      f() (1 usage)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     Class1 (1)\n" +
+                 "      f() (1)\n" +
                  "       5int id1 = R.drawable.picture3;\n", getUsageViewTreeTextRepresentation(references));
   }
 
@@ -205,18 +205,18 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout.xml");
     Collection<UsageInfo> references = findUsagesNoEditor("res/layout/layout.xml", myFixture);
     // Fixture Usage View tree is sufficient for file resources with no editor.
-    assertEquals("Usage (2 usages)\n" +
-                 " Found usages (2 usages)\n" +
-                 "  Resource reference Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "layout (1 usage)\n" +
-                 "     layout.xml (1 usage)\n" +
+    assertEquals("<root> (2)\n" +
+                 " Found usages (2)\n" +
+                 "  Resource reference Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "layout (1)\n" +
+                 "     layout.xml (1)\n" +
                  "      1<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     Foo (1 usage)\n" +
-                 "      f() (1 usage)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     Foo (1)\n" +
+                 "      f() (1)\n" +
                  "       5int id1 = R.layout.layout;\n", getUsageViewTreeTextRepresentation(references));
   }
 
@@ -224,44 +224,44 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values/strings.xml");
     myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout.xml");
     Collection<UsageInfo> references = findUsages("Fu3.java", myFixture, "src/p1/p2/Fu3.java");
-    assertEquals("Usage (3 usages)\n" +
+    assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @drawable/picture3\n" +
-                 " Found usages (3 usages)\n" +
-                 "  Android resource file (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "drawable (1 usage)\n" +
-                 "     picture3.gif (1 usage)\n" +
+                 " Found usages (3)\n" +
+                 "  Android resource file (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "drawable (1)\n" +
+                 "     picture3.gif (1)\n" +
                  "      Android resource file drawable/picture3.gif\n" +
-                 "  Resource reference Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "layout (1 usage)\n" +
-                 "     layout.xml (1 usage)\n" +
+                 "  Resource reference Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "layout (1)\n" +
+                 "     layout.xml (1)\n" +
                  "      3android:background=\"@drawable/picture3\">\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     Fu3 (1 usage)\n" +
-                 "      f() (1 usage)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     Fu3 (1)\n" +
+                 "      f() (1)\n" +
                  "       5int id1 = R.drawable.picture3;\n", getUsageViewTreeTextRepresentation(references));
   }
 
   public void testIdDeclarations() {
     Collection<UsageInfo> references = findUsages("fu12_layout.xml", myFixture, "res/layout/f12_layout.xml");
-    assertEquals("Usage (3 usages)\n" +
+    assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @id/second\n" +
-                 " Found usages (3 usages)\n" +
-                 "  Resource declaration in Android resources XML (2 usages)\n" +
-                 "   app (2 usages)\n" +
-                 "    res" + File.separatorChar + "layout (2 usages)\n" +
-                 "     f12_layout.xml (2 usages)\n" +
+                 " Found usages (3)\n" +
+                 "  Resource declaration in Android resources XML (2)\n" +
+                 "   app (2)\n" +
+                 "    res" + File.separatorChar + "layout (2)\n" +
+                 "     f12_layout.xml (2)\n" +
                  "      16android:id=\"@+id/second\"\n" +
                  "      26android:layout_below=\"@+id/second\"\n" +
-                 "  Resource reference Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "layout (1 usage)\n" +
-                 "     f12_layout.xml (1 usage)\n" +
+                 "  Resource reference Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "layout (1)\n" +
+                 "     f12_layout.xml (1)\n" +
                  "      27android:labelFor=\"@id/second\"\n", getUsageViewTreeTextRepresentation(references));
   }
 
@@ -269,25 +269,25 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values/strings.xml");
     myFixture.copyFileToProject(BASE_PATH + "Class.java", "src/p1/p2/Class.java");
     Collection<UsageInfo> references = findUsages("fu7_layout.xml", myFixture, "res/layout/fu7_layout.xml");
-    assertEquals("Usage (3 usages)\n" +
+    assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @id/anchor\n" +
-                 " Found usages (3 usages)\n" +
-                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "layout (1 usage)\n" +
-                 "     fu7_layout.xml (1 usage)\n" +
+                 " Found usages (3)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "layout (1)\n" +
+                 "     fu7_layout.xml (1)\n" +
                  "      4<EditText android:id=\"@+id/anchor\"/>\n" +
-                 "  Resource reference Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "layout (1 usage)\n" +
-                 "     fu7_layout.xml (1 usage)\n" +
+                 "  Resource reference Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "layout (1)\n" +
+                 "     fu7_layout.xml (1)\n" +
                  "      5<TextView android:layout_alignRight=\"@id/anchor\"/>\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     Class1 (1 usage)\n" +
-                 "      f() (1 usage)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     Class1 (1)\n" +
+                 "      f() (1)\n" +
                  "       8int id3 = R.id.anchor;\n", getUsageViewTreeTextRepresentation(references));
   }
 
@@ -295,25 +295,25 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values/strings.xml");
     myFixture.copyFileToProject(BASE_PATH + "Class.java", "src/p1/p2/Class.java");
     Collection<UsageInfo> references = findUsages("fu9_layout.xml", myFixture, "res/layout/fu9_layout.xml");
-    assertEquals("Usage (3 usages)\n" +
+    assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @id/anchor\n" +
-                 " Found usages (3 usages)\n" +
-                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "layout (1 usage)\n" +
-                 "     fu9_layout.xml (1 usage)\n" +
+                 " Found usages (3)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "layout (1)\n" +
+                 "     fu9_layout.xml (1)\n" +
                  "      4<EditText android:id=\"@+id/anchor\"/>\n" +
-                 "  Resource reference Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "layout (1 usage)\n" +
-                 "     fu9_layout.xml (1 usage)\n" +
+                 "  Resource reference Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "layout (1)\n" +
+                 "     fu9_layout.xml (1)\n" +
                  "      5<TextView android:layout_alignRight=\"@id/anchor\"/>\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     Class1 (1 usage)\n" +
-                 "      f() (1 usage)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     Class1 (1)\n" +
+                 "      f() (1)\n" +
                  "       8int id3 = R.id.anchor;\n", getUsageViewTreeTextRepresentation(references));
   }
 
@@ -321,25 +321,25 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values/strings.xml");
     myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout.xml");
     Collection<UsageInfo> references = findUsages("Fu8.java", myFixture, "src/p1/p2/Fu8.java");
-    assertEquals("Usage (3 usages)\n" +
+    assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @id/anchor\n" +
-                 " Found usages (3 usages)\n" +
-                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "layout (1 usage)\n" +
-                 "     layout.xml (1 usage)\n" +
+                 " Found usages (3)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "layout (1)\n" +
+                 "     layout.xml (1)\n" +
                  "      4<EditText android:id=\"@+id/anchor\"/>\n" +
-                 "  Resource reference Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "layout (1 usage)\n" +
-                 "     layout.xml (1 usage)\n" +
+                 "  Resource reference Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "layout (1)\n" +
+                 "     layout.xml (1)\n" +
                  "      7<TextView android:layout_alignRight=\"@id/anchor\"/>\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     Fu6 (1 usage)\n" +
-                 "      f() (1 usage)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     Fu6 (1)\n" +
+                 "      f() (1)\n" +
                  "       5int id1 = R.id.anchor;\n", getUsageViewTreeTextRepresentation(references));
   }
 
@@ -347,25 +347,25 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values/strings.xml");
     myFixture.copyFileToProject(BASE_PATH + "Class.java", "src/p1/p2/Class.java");
     Collection<UsageInfo> references = findUsages("stringArray.xml", myFixture, "res/layout/stringArray.xml");
-    assertEquals("Usage (3 usages)\n" +
+    assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @array/str_arr\n" +
-                 " Found usages (3 usages)\n" +
-                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                 "     strings.xml (1 usage)\n" +
+                 " Found usages (3)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     strings.xml (1)\n" +
                  "      4<string-array name=\"str_arr\"></string-array>\n" +
-                 "  Resource reference Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "layout (1 usage)\n" +
-                 "     stringArray.xml (1 usage)\n" +
+                 "  Resource reference Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "layout (1)\n" +
+                 "     stringArray.xml (1)\n" +
                  "      3<ListView android:entries=\"@array/str_arr\"/>\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     Class1 (1 usage)\n" +
-                 "      f() (1 usage)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     Class1 (1)\n" +
+                 "      f() (1)\n" +
                  "       9int id4 = R.array.str_arr;\n", getUsageViewTreeTextRepresentation(references));
   }
 
@@ -373,20 +373,20 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     createManifest();
     myFixture.copyFileToProject(BASE_PATH + "attrs.xml", "res/values/attrs.xml");
     Collection<UsageInfo> references = findUsages("MyView1.java", myFixture, "src/p1/p2/MyView.java");
-    assertEquals("Usage (3 usages)\n" +
+    assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @styleable/MyView\n" +
-                 " Found usages (3 usages)\n" +
-                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                 "     attrs.xml (1 usage)\n" +
+                 " Found usages (3)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     attrs.xml (1)\n" +
                  "      3<declare-styleable name=\"MyView\">\n" +
-                 "  Resource reference in code (2 usages)\n" +
-                 "   app (2 usages)\n" +
-                 "    p1.p2 (2 usages)\n" +
-                 "     MyView (2 usages)\n" +
-                 "      MyView(Context, AttributeSet, int) (2 usages)\n" +
+                 "  Resource reference in code (2)\n" +
+                 "   app (2)\n" +
+                 "    p1.p2 (2)\n" +
+                 "     MyView (2)\n" +
+                 "      MyView(Context, AttributeSet, int) (2)\n" +
                  "       13TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.MyView);\n" +
                  "       14int answer = a.getInt(R.styleable.MyView_answer, 0);\n",
                  getUsageViewTreeTextRepresentation(references));
@@ -397,34 +397,34 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     createManifest();
     myFixture.copyFileToProject(BASE_PATH + "attrs.xml", "res/values/attrs.xml");
     Collection<UsageInfo> references = findUsages("MyView2.java", myFixture, "src/p1/p2/MyView.java");
-    assertEquals("Usage (1 usage)\n" +
+    assertEquals("<root> (1)\n" +
                  " Targets\n" +
                  "  @styleable/MyView_answer\n" +
-                 " Found usages (1 usage)\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     MyView (1 usage)\n" +
-                 "      MyView(Context, AttributeSet, int) (1 usage)\n" +
+                 " Found usages (1)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     MyView (1)\n" +
+                 "      MyView(Context, AttributeSet, int) (1)\n" +
                  "       14int answer = a.getInt(R.styleable.MyView_answer, 0);\n",
                  getUsageViewTreeTextRepresentation(references));
   }
 
   public void testStyleInheritance() {
     Collection<UsageInfo> references = findUsages("fu10_values.xml", myFixture, "res/values/f10_values.xml");
-    assertEquals("Usage (4 usages)\n" +
+    assertEquals("<root> (4)\n" +
                  " Targets\n" +
                  "  @style/myStyle\n" +
-                 " Found usages (4 usages)\n" +
-                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                 "     f10_values.xml (1 usage)\n" +
+                 " Found usages (4)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     f10_values.xml (1)\n" +
                  "      2<style name=\"myStyle\">\n" +
-                 "  Resource reference Android resources XML (3 usages)\n" +
-                 "   app (3 usages)\n" +
-                 "    res" + File.separatorChar + "values (3 usages)\n" +
-                 "     f10_values.xml (3 usages)\n" +
+                 "  Resource reference Android resources XML (3)\n" +
+                 "   app (3)\n" +
+                 "    res" + File.separatorChar + "values (3)\n" +
+                 "     f10_values.xml (3)\n" +
                  "      6<style name=\"myStyle.s\">\n" +
                  "      10<style name=\"style1\" parent=\"myStyle\">\n" +
                  "      14<style name=\"myStyle.s.a\">\n", getUsageViewTreeTextRepresentation(references));
@@ -432,19 +432,19 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
 
   public void testStyleInheritance1() {
     Collection<UsageInfo> references = findUsages("fu11_values.xml", myFixture, "res/values/f11_values.xml");
-    assertEquals("Usage (4 usages)\n" +
+    assertEquals("<root> (4)\n" +
                  " Targets\n" +
                  "  @style/myStyle\n" +
-                 " Found usages (4 usages)\n" +
-                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                 "     f11_values.xml (1 usage)\n" +
+                 " Found usages (4)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     f11_values.xml (1)\n" +
                  "      2<style name=\"myStyle\">\n" +
-                 "  Resource reference Android resources XML (3 usages)\n" +
-                 "   app (3 usages)\n" +
-                 "    res" + File.separatorChar + "values (3 usages)\n" +
-                 "     f11_values.xml (3 usages)\n" +
+                 "  Resource reference Android resources XML (3)\n" +
+                 "   app (3)\n" +
+                 "    res" + File.separatorChar + "values (3)\n" +
+                 "     f11_values.xml (3)\n" +
                  "      6<style name=\"myStyle.s\">\n" +
                  "      10<style name=\"style1\" parent=\"myStyle\">\n" +
                  "      14<style name=\"myStyle.s.a\">\n", getUsageViewTreeTextRepresentation(references));
@@ -452,19 +452,19 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
 
   public void testStyleInheritance2() {
     Collection<UsageInfo> references = findUsages("fu14_values.xml", myFixture, "res/values/f14_values.xml");
-    assertEquals("Usage (4 usages)\n" +
+    assertEquals("<root> (4)\n" +
                  " Targets\n" +
                  "  @style/myStyle\n" +
-                 " Found usages (4 usages)\n" +
-                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                 "     f14_values.xml (1 usage)\n" +
+                 " Found usages (4)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     f14_values.xml (1)\n" +
                  "      2<style name=\"myStyle\">\n" +
-                 "  Resource reference Android resources XML (3 usages)\n" +
-                 "   app (3 usages)\n" +
-                 "    res" + File.separatorChar + "values (3 usages)\n" +
-                 "     f14_values.xml (3 usages)\n" +
+                 "  Resource reference Android resources XML (3)\n" +
+                 "   app (3)\n" +
+                 "    res" + File.separatorChar + "values (3)\n" +
+                 "     f14_values.xml (3)\n" +
                  "      6<style name=\"myStyle.s\">\n" +
                  "      10<style name=\"style1\" parent=\"myStyle\">\n" +
                  "      14<style name=\"myStyle.s.a\">\n", getUsageViewTreeTextRepresentation(references));
@@ -474,25 +474,25 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values/strings.xml");
     myFixture.copyFileToProject(BASE_PATH + "Class.java", "src/p1/p2/Class.java");
     Collection<UsageInfo> references = findUsages("fu5_layout.xml", myFixture, "res/layout/fu5_layout.xml");
-    assertEquals("Usage (3 usages)\n" +
+    assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hi\n" +
-                 " Found usages (3 usages)\n" +
-                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                 "     strings.xml (1 usage)\n" +
+                 " Found usages (3)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     strings.xml (1)\n" +
                  "      3<item name=\"hi\" type=\"string\"/>\n" +
-                 "  Resource reference Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "layout (1 usage)\n" +
-                 "     fu5_layout.xml (1 usage)\n" +
+                 "  Resource reference Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "layout (1)\n" +
+                 "     fu5_layout.xml (1)\n" +
                  "      3<TextView android:text=\"@string/hi\"/>\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     Class1 (1 usage)\n" +
-                 "      f() (1 usage)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     Class1 (1)\n" +
+                 "      f() (1)\n" +
                  "       7int id3 = R.string.hi;\n", getUsageViewTreeTextRepresentation(references));
   }
 
@@ -500,25 +500,25 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values/strings.xml");
     myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout.xml");
     Collection<UsageInfo> references = findUsages("Fu6.java", myFixture, "src/p1/p2/Fu6.java");
-    assertEquals("Usage (3 usages)\n" +
+    assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hi\n" +
-                 " Found usages (3 usages)\n" +
-                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                 "     strings.xml (1 usage)\n" +
+                 " Found usages (3)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     strings.xml (1)\n" +
                  "      3<item name=\"hi\" type=\"string\"/>\n" +
-                 "  Resource reference Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "layout (1 usage)\n" +
-                 "     layout.xml (1 usage)\n" +
+                 "  Resource reference Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "layout (1)\n" +
+                 "     layout.xml (1)\n" +
                  "      6<TextView android:text=\"@string/hi\"/>\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     Fu6 (1 usage)\n" +
-                 "      f() (1 usage)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     Fu6 (1)\n" +
+                 "      f() (1)\n" +
                  "       5int id1 = R.string.hi;\n", getUsageViewTreeTextRepresentation(references));
   }
 
@@ -526,25 +526,25 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values/strings.xml");
     myFixture.copyFileToProject(BASE_PATH + "Class.java", "src/p1/p2/Class.java");
     Collection<UsageInfo> references = findUsages("fu2_layout.xml", myFixture, "res/layout/fu2_layout.xml");
-    assertEquals("Usage (3 usages)\n" +
+    assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hello\n" +
-                 " Found usages (3 usages)\n" +
-                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                 "     strings.xml (1 usage)\n" +
+                 " Found usages (3)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     strings.xml (1)\n" +
                  "      2<string name=\"hello\">hello</string>\n" +
-                 "  Resource reference Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "layout (1 usage)\n" +
-                 "     fu2_layout.xml (1 usage)\n" +
+                 "  Resource reference Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "layout (1)\n" +
+                 "     fu2_layout.xml (1)\n" +
                  "      3<TextView android:text=\"@string/hello\"/>\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     Class1 (1 usage)\n" +
-                 "      f() (1 usage)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     Class1 (1)\n" +
+                 "      f() (1)\n" +
                  "       6int id2 = R.string.hello;\n", getUsageViewTreeTextRepresentation(references));
   }
 
@@ -552,25 +552,25 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "Class.java", "src/p1/p2/Class.java");
     myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout.xml");
     Collection<UsageInfo> references = findUsages("fu1_values.xml", myFixture, "res/values/fu1_values.xml");
-    assertEquals("Usage (3 usages)\n" +
+    assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hello\n" +
-                 " Found usages (3 usages)\n" +
-                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                 "     fu1_values.xml (1 usage)\n" +
+                 " Found usages (3)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     fu1_values.xml (1)\n" +
                  "      2<string name=\"hello\">hello</string>\n" +
-                 "  Resource reference Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "layout (1 usage)\n" +
-                 "     layout.xml (1 usage)\n" +
+                 "  Resource reference Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "layout (1)\n" +
+                 "     layout.xml (1)\n" +
                  "      5<TextView android:text=\"@string/hello\"/>\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     Class1 (1 usage)\n" +
-                 "      f() (1 usage)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     Class1 (1)\n" +
+                 "      f() (1)\n" +
                  "       6int id2 = R.string.hello;\n", getUsageViewTreeTextRepresentation(references));
   }
 
@@ -578,25 +578,25 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "Class.java", "src/p1/p2/Class.java");
     myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout.xml");
     Collection<UsageInfo> references = findUsages("fu2_values.xml", myFixture, "res/values/fu2_values.xml");
-    assertEquals("Usage (3 usages)\n" +
+    assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hello\n" +
-                 " Found usages (3 usages)\n" +
-                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                 "     fu2_values.xml (1 usage)\n" +
+                 " Found usages (3)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     fu2_values.xml (1)\n" +
                  "      2<string name=\"hello\">hello</string>\n" +
-                 "  Resource reference Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "layout (1 usage)\n" +
-                 "     layout.xml (1 usage)\n" +
+                 "  Resource reference Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "layout (1)\n" +
+                 "     layout.xml (1)\n" +
                  "      5<TextView android:text=\"@string/hello\"/>\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     Class1 (1 usage)\n" +
-                 "      f() (1 usage)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     Class1 (1)\n" +
+                 "      f() (1)\n" +
                  "       6int id2 = R.string.hello;\n", getUsageViewTreeTextRepresentation(references));
   }
 
@@ -604,25 +604,25 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "Class.java", "src/p1/p2/Class.java");
     myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout.xml");
     Collection<UsageInfo> references = findUsages("fu3_values.xml", myFixture, "res/values/fu3_values.xml");
-    assertEquals("Usage (3 usages)\n" +
+    assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hello\n" +
-                 " Found usages (3 usages)\n" +
-                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                 "     fu3_values.xml (1 usage)\n" +
+                 " Found usages (3)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     fu3_values.xml (1)\n" +
                  "      2<string name=\"hello\">hello</string>\n" +
-                 "  Resource reference Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "layout (1 usage)\n" +
-                 "     layout.xml (1 usage)\n" +
+                 "  Resource reference Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "layout (1)\n" +
+                 "     layout.xml (1)\n" +
                  "      5<TextView android:text=\"@string/hello\"/>\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     Class1 (1 usage)\n" +
-                 "      f() (1 usage)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     Class1 (1)\n" +
+                 "      f() (1)\n" +
                  "       6int id2 = R.string.hello;\n", getUsageViewTreeTextRepresentation(references));
   }
 
@@ -630,25 +630,25 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "Class.java", "src/p1/p2/Class.java");
     myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout.xml");
     Collection<UsageInfo> references = findUsages("fu4_values.xml", myFixture, "res/values/fu4_values.xml");
-    assertEquals("Usage (3 usages)\n" +
+    assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hello\n" +
-                 " Found usages (3 usages)\n" +
-                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                 "     fu4_values.xml (1 usage)\n" +
+                 " Found usages (3)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     fu4_values.xml (1)\n" +
                  "      2<string name=\"hello\">hello</string>\n" +
-                 "  Resource reference Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "layout (1 usage)\n" +
-                 "     layout.xml (1 usage)\n" +
+                 "  Resource reference Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "layout (1)\n" +
+                 "     layout.xml (1)\n" +
                  "      5<TextView android:text=\"@string/hello\"/>\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     Class1 (1 usage)\n" +
-                 "      f() (1 usage)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     Class1 (1)\n" +
+                 "      f() (1)\n" +
                  "       6int id2 = R.string.hello;\n", getUsageViewTreeTextRepresentation(references));
   }
 
@@ -656,25 +656,25 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "Class.java", "src/p1/p2/Class.java");
     myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout.xml");
     Collection<UsageInfo> references = findUsages("fu5_values.xml", myFixture, "res/values/fu5_values.xml");
-    assertEquals("Usage (3 usages)\n" +
+    assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hello\n" +
-                 " Found usages (3 usages)\n" +
-                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                 "     fu5_values.xml (1 usage)\n" +
+                 " Found usages (3)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     fu5_values.xml (1)\n" +
                  "      2<string name=\"hello\">hello</string>\n" +
-                 "  Resource reference Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "layout (1 usage)\n" +
-                 "     layout.xml (1 usage)\n" +
+                 "  Resource reference Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "layout (1)\n" +
+                 "     layout.xml (1)\n" +
                  "      5<TextView android:text=\"@string/hello\"/>\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     Class1 (1 usage)\n" +
-                 "      f() (1 usage)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     Class1 (1)\n" +
+                 "      f() (1)\n" +
                  "       6int id2 = R.string.hello;\n", getUsageViewTreeTextRepresentation(references));
   }
 
@@ -682,25 +682,25 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "Class.java", "src/p1/p2/Class.java");
     myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout.xml");
     Collection<UsageInfo> references = findUsages("fu6_values.xml", myFixture, "res/values/fu6_values.xml");
-    assertEquals("Usage (3 usages)\n" +
+    assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hello\n" +
-                 " Found usages (3 usages)\n" +
-                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                 "     fu6_values.xml (1 usage)\n" +
+                 " Found usages (3)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     fu6_values.xml (1)\n" +
                  "      2<string name=\"hello\">hello</string>\n" +
-                 "  Resource reference Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "layout (1 usage)\n" +
-                 "     layout.xml (1 usage)\n" +
+                 "  Resource reference Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "layout (1)\n" +
+                 "     layout.xml (1)\n" +
                  "      5<TextView android:text=\"@string/hello\"/>\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     Class1 (1 usage)\n" +
-                 "      f() (1 usage)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     Class1 (1)\n" +
+                 "      f() (1)\n" +
                  "       6int id2 = R.string.hello;\n", getUsageViewTreeTextRepresentation(references));
   }
 
@@ -708,25 +708,25 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "Class.java", "src/p1/p2/Class.java");
     myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout.xml");
     Collection<UsageInfo> references = findUsages("fu7_values.xml", myFixture, "res/values/fu7_values.xml");
-    assertEquals("Usage (3 usages)\n" +
+    assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hello\n" +
-                 " Found usages (3 usages)\n" +
-                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                 "     fu7_values.xml (1 usage)\n" +
+                 " Found usages (3)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     fu7_values.xml (1)\n" +
                  "      2<string name=\"hello\">hello</string>\n" +
-                 "  Resource reference Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "layout (1 usage)\n" +
-                 "     layout.xml (1 usage)\n" +
+                 "  Resource reference Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "layout (1)\n" +
+                 "     layout.xml (1)\n" +
                  "      5<TextView android:text=\"@string/hello\"/>\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     Class1 (1 usage)\n" +
-                 "      f() (1 usage)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     Class1 (1)\n" +
+                 "      f() (1)\n" +
                  "       6int id2 = R.string.hello;\n", getUsageViewTreeTextRepresentation(references));
   }
 
@@ -734,25 +734,25 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "Class.java", "src/p1/p2/Class.java");
     myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout.xml");
     Collection<UsageInfo> references = findUsages("fu8_values.xml", myFixture, "res/values/f8_values.xml");
-    assertEquals("Usage (3 usages)\n" +
+    assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hello\n" +
-                 " Found usages (3 usages)\n" +
-                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                 "     f8_values.xml (1 usage)\n" +
+                 " Found usages (3)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     f8_values.xml (1)\n" +
                  "      2<string name=\"hello\">hello</string>\n" +
-                 "  Resource reference Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "layout (1 usage)\n" +
-                 "     layout.xml (1 usage)\n" +
+                 "  Resource reference Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "layout (1)\n" +
+                 "     layout.xml (1)\n" +
                  "      5<TextView android:text=\"@string/hello\"/>\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     Class1 (1 usage)\n" +
-                 "      f() (1 usage)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     Class1 (1)\n" +
+                 "      f() (1)\n" +
                  "       6int id2 = R.string.hello;\n", getUsageViewTreeTextRepresentation(references));
   }
 
@@ -760,28 +760,28 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "Class.java", "src/p1/p2/Class.java");
     myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout.xml");
     Collection<UsageInfo> references = findUsages("fu13_values.xml", myFixture, "res/values/f13_values.xml");
-    assertEquals("Usage (4 usages)\n" +
+    assertEquals("<root> (4)\n" +
                  " Targets\n" +
                  "  @string/hello\n" +
-                 " Found usages (4 usages)\n" +
-                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                 "     f13_values.xml (1 usage)\n" +
+                 " Found usages (4)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     f13_values.xml (1)\n" +
                  "      4<string name=\"hello\">hello</string>\n" +
-                 "  Resource reference Android resources XML (2 usages)\n" +
-                 "   app (2 usages)\n" +
-                 "    res" + File.separatorChar + "layout (1 usage)\n" +
-                 "     layout.xml (1 usage)\n" +
+                 "  Resource reference Android resources XML (2)\n" +
+                 "   app (2)\n" +
+                 "    res" + File.separatorChar + "layout (1)\n" +
+                 "     layout.xml (1)\n" +
                  "      5<TextView android:text=\"@string/hello\"/>\n" +
-                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                 "     f13_values.xml (1 usage)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     f13_values.xml (1)\n" +
                  "      9<item>@string/hello</item>\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     Class1 (1 usage)\n" +
-                 "      f() (1 usage)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     Class1 (1)\n" +
+                 "      f() (1)\n" +
                  "       6int id2 = R.string.hello;\n", getUsageViewTreeTextRepresentation(references));
   }
 
@@ -789,25 +789,25 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values/strings.xml");
     myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout.xml");
     Collection<UsageInfo> references = findUsages("Fu4.java", myFixture, "src/p1/p2/Fu4.java");
-    assertEquals("Usage (3 usages)\n" +
+    assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hello\n" +
-                 " Found usages (3 usages)\n" +
-                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                 "     strings.xml (1 usage)\n" +
+                 " Found usages (3)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     strings.xml (1)\n" +
                  "      2<string name=\"hello\">hello</string>\n" +
-                 "  Resource reference Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "layout (1 usage)\n" +
-                 "     layout.xml (1 usage)\n" +
+                 "  Resource reference Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "layout (1)\n" +
+                 "     layout.xml (1)\n" +
                  "      5<TextView android:text=\"@string/hello\"/>\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     Fu4 (1 usage)\n" +
-                 "      f() (1 usage)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     Fu4 (1)\n" +
+                 "      f() (1)\n" +
                  "       5int id1 = R.string.hello;\n", getUsageViewTreeTextRepresentation(references));
   }
 
@@ -848,25 +848,25 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
       "    }\n" +
       "}\n");
     Collection<UsageInfo> references = findUsages(file.getVirtualFile(), myFixture);
-    assertEquals("Usage (3 usages)\n" +
+    assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @attr/newAttr\n" +
-                 " Found usages (3 usages)\n" +
-                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                 "     attrs.xml (1 usage)\n" +
+                 " Found usages (3)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     attrs.xml (1)\n" +
                  "      3<attr name=\"newAttr\" format=\"boolean\" />\n" +
-                 "  Resource reference Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                 "     style.xml (1 usage)\n" +
+                 "  Resource reference Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     style.xml (1)\n" +
                  "      3<item name=\"newAttr\">true</item>\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     MyView (1 usage)\n" +
-                 "      MyView(Context, AttributeSet, int) (1 usage)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     MyView (1)\n" +
+                 "      MyView(Context, AttributeSet, int) (1)\n" +
                  "       12int attribute = R.attr.newAttr;\n", getUsageViewTreeTextRepresentation(references));
   }
 
@@ -907,25 +907,25 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
       "}\n");
     myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
     Collection<UsageInfo> references = findUsages(file.getVirtualFile(), myFixture);
-    assertEquals("Usage (3 usages)\n" +
+    assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @attr/newAttr\n" +
-                 " Found usages (3 usages)\n" +
-                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                 "     attrs.xml (1 usage)\n" +
+                 " Found usages (3)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     attrs.xml (1)\n" +
                  "      3<attr name=\"newAttr\" format=\"boolean\" />\n" +
-                 "  Resource reference Android resources XML (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                 "     style.xml (1 usage)\n" +
+                 "  Resource reference Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     style.xml (1)\n" +
                  "      3<item name=\"newAttr\">true</item>\n" +
-                 "  Resource reference in code (1 usage)\n" +
-                 "   app (1 usage)\n" +
-                 "    p1.p2 (1 usage)\n" +
-                 "     MyView (1 usage)\n" +
-                 "      MyView(Context, AttributeSet, int) (1 usage)\n" +
+                 "  Resource reference in code (1)\n" +
+                 "   app (1)\n" +
+                 "    p1.p2 (1)\n" +
+                 "     MyView (1)\n" +
+                 "      MyView(Context, AttributeSet, int) (1)\n" +
                  "       12int attribute = R.attr.newAttr;\n", getUsageViewTreeTextRepresentation(references));
   }
 
@@ -944,15 +944,15 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
       "}\n");
     myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
     Collection<UsageInfo> references = findUsages(file.getVirtualFile(), myFixture);
-    String expected = "Usage (1 usage)\n" +
+    String expected = "<root> (1)\n" +
                       " Targets\n" +
                       "  foo()\n" +
-                      " Found usages (1 usage)\n" +
-                      "  Unclassified (1 usage)\n" +
-                      "   app (1 usage)\n" +
-                      "    p1.p2 (1 usage)\n" +
-                      "     Example (1 usage)\n" +
-                      "      bar() (1 usage)\n" +
+                      " Found usages (1)\n" +
+                      "  Unclassified (1)\n" +
+                      "   app (1)\n" +
+                      "    p1.p2 (1)\n" +
+                      "     Example (1)\n" +
+                      "      bar() (1)\n" +
                       "       6foo();\n";
     assertThat(getUsageViewTreeTextRepresentation(references)).isEqualTo(expected);
   }
@@ -972,16 +972,16 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
       "}\n");
     myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
     Collection<UsageInfo> references = findUsages(file.getVirtualFile(), myFixture);
-    String expected = "Usage (1 usage)\n" +
+    String expected = "<root> (1)\n" +
                       " Targets\n" +
                       "  foo()\n" +
-                      " Found usages (1 usage)\n" +
-                      "  Function call (1 usage)\n" +
-                      "   app (1 usage)\n" +
-                      "    p1.p2 (1 usage)\n" +
-                      "     Example.kt (1 usage)\n" +
-                      "      Example (1 usage)\n" +
-                      "       bar (1 usage)\n" +
+                      " Found usages (1)\n" +
+                      "  Function call (1)\n" +
+                      "   app (1)\n" +
+                      "    p1.p2 (1)\n" +
+                      "     Example.kt (1)\n" +
+                      "      Example (1)\n" +
+                      "       bar (1)\n" +
                       "        6foo();\n";
     assertThat(getUsageViewTreeTextRepresentation(references)).isEqualTo(expected);
   }

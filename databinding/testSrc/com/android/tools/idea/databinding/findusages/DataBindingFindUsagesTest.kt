@@ -120,37 +120,37 @@ class DataBindingFindUsagesTest() {
     val presentation = fixture.getUsageViewTreeTextRepresentation((targets.first() as PsiElementUsageTarget).element)
 
     assertThat(presentation).isEqualTo("""
-      Usage (5 usages)
+      <root> (5)
        Layout Resource
         @layout/activity_main
-       Found usages (5 usages)
-        Class static member access (1 usage)
-         app (1 usage)
-          java.test.db (1 usage)
-           MainActivity (1 usage)
-            onCreate(Bundle) (1 usage)
+       Found usages (5)
+        Class static member access (1)
+         app (1)
+          java.test.db (1)
+           MainActivity (1)
+            onCreate(Bundle) (1)
              12ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
-        Local variable declaration (1 usage)
-         app (1 usage)
-          java.test.db (1 usage)
-           MainActivity (1 usage)
-            onCreate(Bundle) (1 usage)
+        Local variable declaration (1)
+         app (1)
+          java.test.db (1)
+           MainActivity (1)
+            onCreate(Bundle) (1)
              12ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
-        Resource declaration in Android resources XML (1 usage)
-         app (1 usage)
-          res/layout (1 usage)
-           activity_main.xml (1 usage)
+        Resource declaration in Android resources XML (1)
+         app (1)
+          res/layout (1)
+           activity_main.xml (1)
             1<?xml version="1.0" encoding="utf-8"?>
-        Resource reference in code (1 usage)
-         app (1 usage)
-          java.test.db (1 usage)
-           MainActivity (1 usage)
-            onCreate(Bundle) (1 usage)
+        Resource reference in code (1)
+         app (1)
+          java.test.db (1)
+           MainActivity (1)
+            onCreate(Bundle) (1)
              15int value = R.layout.activity_main;
-        Usage in import (1 usage)
-         app (1 usage)
-          java.test.db (1 usage)
-           MainActivity (1 usage)
+        Usage in import (1)
+         app (1)
+          java.test.db (1)
+           MainActivity (1)
             6import test.db.databinding.ActivityMainBinding;
 
     """.trimIndent())
@@ -208,20 +208,20 @@ class DataBindingFindUsagesTest() {
     val presentation = fixture.getUsageViewTreeTextRepresentation((targets.first() as PsiElementUsageTarget).element)
 
     assertThat(presentation).isEqualTo("""
-      Usage (2 usages)
+      <root> (2)
        ID Resource
         @id/button
-       Found usages (2 usages)
-        Resource declaration in Android resources XML (1 usage)
-         app (1 usage)
-          res/layout (1 usage)
-           activity_main.xml (1 usage)
+       Found usages (2)
+        Resource declaration in Android resources XML (1)
+         app (1)
+          res/layout (1)
+           activity_main.xml (1)
             7android:id="@+id/button"
-        Unclassified (1 usage)
-         app (1 usage)
-          java.test.db (1 usage)
-           MainActivity (1 usage)
-            onCreate(Bundle) (1 usage)
+        Unclassified (1)
+         app (1)
+          java.test.db (1)
+           MainActivity (1)
+            onCreate(Bundle) (1)
              13System.out.println(binding.button.getId());
 
     """.trimIndent())
