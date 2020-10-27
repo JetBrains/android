@@ -33,5 +33,6 @@
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="android.sdktools.builder-model" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
+    <orderEntry type="library" name="kotlin-plugin" level="project" />
   </component>
 </module>
