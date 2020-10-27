@@ -44,6 +44,24 @@ val TEST_ARTIFACT = ArtifactCoordinate("test_group_id", "test_artifact_id", MIN_
 object AppInspectionTestUtils {
 
   /**
+   * Creates a list of [AppInspection.AppInspectionPayload] messages, containing the original
+   * [data] broken up into chunks of [chunkSize] bytes.
+   *
+   * This chunks should be sent, in order
+   */
+  fun createPayloadChunks(
+    data: ByteArray,
+    chunkSize: Int
+  ): List<AppInspection.AppInspectionPayload> {
+    val chunks = data.toList().chunked(chunkSize)
+    return chunks.map { chunk ->
+      AppInspection.AppInspectionPayload.newBuilder()
+        .setChunk(ByteString.copyFrom(chunk.toByteArray()))
+        .build()
+    }
+  }
+
+  /**
    * Creates an [AppInspectionEvent] with the provided [data] and inspector [name].
    */
   fun createRawAppInspectionEvent(
@@ -54,6 +72,23 @@ object AppInspectionTestUtils {
     .setRawEvent(
       AppInspection.RawEvent.newBuilder()
         .setContent(ByteString.copyFrom(data))
+        .build()
+    )
+    .build()
+
+  /**
+   * Creates an [AppInspectionEvent] with the provided inspector [name], along with a unique
+   * [payloadId] which will be used after this event is received to search a cache for some
+   * byte array data.
+   */
+  fun createRawAppInspectionEvent(
+    payloadId: Long,
+    name: String = INSPECTOR_ID
+  ): AppInspection.AppInspectionEvent = AppInspection.AppInspectionEvent.newBuilder()
+    .setInspectorId(name)
+    .setRawEvent(
+      AppInspection.RawEvent.newBuilder()
+        .setPayloadId(payloadId)
         .build()
     )
     .build()

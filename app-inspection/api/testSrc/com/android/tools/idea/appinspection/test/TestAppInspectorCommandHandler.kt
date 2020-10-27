@@ -141,3 +141,12 @@ fun createRawResponse(status: AppInspection.AppInspectionResponse.Status,
       .build()
   }
 }
+
+fun createRawResponse(payloadId: Long): () -> AppInspection.AppInspectionResponse {
+  return {
+    AppInspection.AppInspectionResponse.newBuilder()
+      .setRawResponse(AppInspection.RawResponse.newBuilder().setPayloadId(payloadId).build())
+      .setStatus(AppInspection.AppInspectionResponse.Status.SUCCESS) // Having a payload ID implies success
+      .build()
+  }
+}
