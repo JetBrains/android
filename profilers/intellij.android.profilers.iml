@@ -22,7 +22,7 @@
     <orderEntry type="module" module-name="intellij.android.profilers.atrace" />
     <orderEntry type="module" module-name="intellij.android.transportDatabase" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.ddmlib" />
-    <orderEntry type="module" module-name="android.sdktools.perf-logger" scope="TEST" />
+    <orderEntry type="module" module-name="perf-logger" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.transport" />
     <orderEntry type="library" name="studio-grpc" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />

@@ -4,10 +4,10 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="android.sdktools.db-baseLibrary" exported="" />
-    <orderEntry type="module" module-name="android.sdktools.db-baseLibrarySupport" exported="" />
+    <orderEntry type="module" module-name="db-baseLibrary" exported="" />
+    <orderEntry type="module" module-name="db-baseLibrarySupport" exported="" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
-    <orderEntry type="module" module-name="android.sdktools.db-compilerCommon" />
+    <orderEntry type="module" module-name="db-compilerCommon" />
     <orderEntry type="module-library">
       <library name="antlr4-runtime" type="repository">
         <properties maven-id="org.antlr:antlr4-runtime:4.5.3" />
