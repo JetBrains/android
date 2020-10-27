@@ -20,11 +20,9 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
-import com.android.tools.idea.appinspection.ide.resolver.gradle.AppInspectionGradleArtifactResolver
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
-import com.android.tools.idea.appinspection.inspector.ide.resolver.AppInspectionArtifactResolver
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.transport.DeployableFile
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportFileManager
@@ -32,6 +30,7 @@ import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.transport.TransportServiceProxy
 import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.profiler.proto.Common
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
@@ -40,6 +39,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
@@ -66,7 +66,8 @@ class AppInspectionDiscoveryService : Disposable {
   val apiServices: AppInspectionApiServices = AppInspectionApiServices.createDefaultAppInspectionApiServices(
     client, streamManager,
     scope,
-    AndroidDispatchers.workerThread) { device ->
+    // gRPC guarantees FIFO, so we want to poll gRPC messages sequentially
+    MoreExecutors.newSequentialExecutor(AndroidExecutors.getInstance().workerThreadExecutor).asCoroutineDispatcher()) { device ->
     val jarCopier = findDevice(device)?.createJarCopier()
     if (jarCopier == null) {
       logger.error(AppInspectionBundle.message("device.not.found", device.manufacturer, device.model, device.serial))
