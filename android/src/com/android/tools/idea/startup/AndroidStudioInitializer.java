@@ -31,6 +31,7 @@ import com.android.tools.idea.analytics.IdeBrandProviderKt;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.deployment.RunOnMultipleDevicesAction;
 import com.android.tools.idea.run.deployment.SelectMultipleDevicesAction;
+import com.android.tools.idea.serverflags.ServerFlagDownloader;
 import com.android.tools.idea.serverflags.ServerFlagInitializer;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.GcPauseWatcher;
@@ -108,6 +109,8 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     setupAnalytics();
     ScheduledExecutorService scheduler = JobScheduler.getScheduler();
     scheduler.execute(() -> {
+      // TODO: Move initializeService to main thread
+      ServerFlagDownloader.downloadServerFlagList();
       ServerFlagInitializer.initializeService();
       AndroidStudioUsageTracker.setupScheduledReports();
     });

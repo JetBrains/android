@@ -23,9 +23,6 @@ import java.nio.file.Path
 import kotlin.math.abs
 
 private const val ENABLED_OVERRIDE_KEY = "studio.server.flags.enabled.override"
-private const val BASE_URL_OVERRIDE_KEY = "studio.server.flags.baseurl.override"
-private const val DEFAULT_BASE_URL = "https://dl.google.com/android/studio/server_flags/"
-
 
 /**
  * ServerFlagInitializer initializes the ServerFlagService.instance field.
@@ -37,10 +34,9 @@ class ServerFlagInitializer {
   companion object {
     @JvmStatic
     fun initializeService() {
-      val baseUrl = System.getProperty(BASE_URL_OVERRIDE_KEY, DEFAULT_BASE_URL)
       val experiments = System.getProperty(ENABLED_OVERRIDE_KEY)?.split(',') ?: emptyList()
 
-      initializeService(baseUrl, localCacheDirectory, flagsVersion, experiments)
+      initializeService(localCacheDirectory, flagsVersion, experiments)
 
       val logger = Logger.getInstance(ServerFlagInitializer::class.java)
       val names = ServerFlagService.instance.names
@@ -50,16 +46,13 @@ class ServerFlagInitializer {
 
     /**
      * Initialize the server flag service
-     * @param baseUrl: The base url where the download files are located.
      * @param localCacheDirectory: The local directory to store the most recent download.
      * @param version: The current version of Android Studio. This is used to construct the full paths from the first two parameters.
      * @param enabled: An optional set of experiment names to be enabled. If empty, the percentEnabled field will determine whether
      * a given flag is enabled.
      */
     @JvmStatic
-    fun initializeService(baseUrl: String, localCacheDirectory: Path, version: String, enabled: Collection<String>) {
-      ServerFlagDownloader.downloadServerFlagList(baseUrl, localCacheDirectory, version)
-
+    fun initializeService(localCacheDirectory: Path, version: String, enabled: Collection<String>) {
       val localFilePath = buildLocalFilePath(localCacheDirectory, version)
       val serverFlagList = unmarshalFlagList(localFilePath.toFile())
       val configurationVersion = serverFlagList?.configurationVersion ?: -1
