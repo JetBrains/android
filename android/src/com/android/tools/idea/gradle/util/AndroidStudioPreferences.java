@@ -20,13 +20,11 @@ import static com.intellij.openapi.options.Configurable.PROJECT_CONFIGURABLE;
 import com.android.tools.idea.IdeInfo;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.extensions.ExtensionPoint;
-import com.intellij.openapi.extensions.ExtensionsArea;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public final class AndroidStudioPreferences {
   private static final List<String> PROJECT_PREFERENCES_TO_REMOVE = Lists.newArrayList(
@@ -45,8 +43,7 @@ public final class AndroidStudioPreferences {
       return;
     }
 
-    ExtensionsArea area = project.getExtensionArea();
-    ExtensionPoint<ConfigurableEP<Configurable>> projectConfigurable = area.getExtensionPoint(PROJECT_CONFIGURABLE);
+    ExtensionPoint<ConfigurableEP<Configurable>> projectConfigurable = PROJECT_CONFIGURABLE.getPoint(project);
 
     List<ConfigurableEP<Configurable>> nonStudioExtensions = Lists.newArrayList();
     for (ConfigurableEP<Configurable> extension : projectConfigurable.getExtensionList()) {
