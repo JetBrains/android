@@ -56,20 +56,18 @@
     <orderEntry type="library" name="jaxb-api" level="project" />
     <orderEntry type="library" name="jaxb-runtime" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-db-compilerCommon" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.compilerCommon:27.0.0.0" />
+      <library name="precompiled-db-compilerCommon-prod">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compilerCommon/27.0.0.0/studio.compilerCommon-27.0.0.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/data-binding/studio.compilerCommon.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-db-compilerCommon-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.compilerCommon_test:27.0.0.0" />
+      <library name="precompiled-db-compilerCommon-test">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compilerCommon_test/27.0.0.0/studio.compilerCommon_test-27.0.0.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/data-binding/studio.compilerCommon_test.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
