@@ -25,9 +25,6 @@ import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.locks.ReentrantLock
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import kotlin.properties.Delegates
 
 const val REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY = "android.ddms.notification.layoutinspector.reboot.live.inspector"
@@ -42,6 +39,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   var lastGeneration = 0
   var updating = false
 
+  @Suppress("unused")
   private val memoryProbe = InspectorMemoryProbe(this)
 
   var selection: ViewNode? by Delegates.observable(null as ViewNode?) { _, old, new ->
@@ -84,19 +82,21 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
    */
   private fun updateRoot(allIds: List<*>) {
     root.children.clear()
-    root.drawChildren.clear()
-    val maxWidth = windows.values.map { it.width }.max() ?: 0
-    val maxHeight = windows.values.map { it.height }.max() ?: 0
-    root.width = maxWidth
-    root.height = maxHeight
-    for (id in allIds) {
-      val window = windows[id] ?: continue
-      if (window.isDimBehind) {
-        root.drawChildren.add(Dimmer(root))
+    ViewNode.writeDrawChildren { drawChildren ->
+      root.drawChildren().clear()
+      val maxWidth = windows.values.map { it.width }.max() ?: 0
+      val maxHeight = windows.values.map { it.height }.max() ?: 0
+      root.width = maxWidth
+      root.height = maxHeight
+      for (id in allIds) {
+        val window = windows[id] ?: continue
+        if (window.isDimBehind) {
+          root.drawChildren().add(Dimmer(root))
+        }
+        root.drawChildren().add(DrawViewChild(window.root))
+        root.children.add(window.root)
+        window.root.parent = root
       }
-      root.children.add(window.root)
-      root.drawChildren.add(DrawViewChild(window.root))
-      window.root.parent = root
     }
   }
 
@@ -182,7 +182,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
       }
 
       oldNode.children.clear()
-      oldNode.drawChildren.clear()
+      ViewNode.writeDrawChildren { drawChildren -> oldNode.drawChildren().clear() }
       for (newChild in newNode.children) {
         val oldChild = oldNodes[newChild.drawId]
         if (oldChild != null && oldChild.javaClass == newChild.javaClass) {

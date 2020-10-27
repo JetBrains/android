@@ -78,23 +78,25 @@ object LegacyTreeLoader : TreeLoader {
     val (rootNode, hash) = parseLiveViewNode(hierarchyData, propertiesUpdater) ?: return null
     val imageHandler = CaptureByteArrayHandler(DebugViewDumpHandler.CHUNK_VUOP)
     ddmClient.captureView(windowName, hash, imageHandler)
-    try {
-      val imageData = imageHandler.getData()
-      if (imageData != null) {
-        rootNode.drawChildren.add(DrawViewImage(ImageIO.read(ByteArrayInputStream(imageData)), rootNode))
+    ViewNode.writeDrawChildren { drawChildren ->
+      try {
+        val imageData = imageHandler.getData()
+        if (imageData != null) {
+          rootNode.drawChildren().add(DrawViewImage(ImageIO.read(ByteArrayInputStream(imageData)), rootNode))
+        }
+      }
+      catch (e: IOException) {
+        // We didn't get an image, but still return the hierarchy and properties
+      }
+      rootNode.flatten().forEach { it.children.mapTo(it.drawChildren()) { child -> DrawViewChild(child) } }
+      if (rootNode.drawChildren().size != rootNode.children.size) {
+        client.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER)
+      }
+      else {
+        client.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER_NO_PICTURE)
       }
     }
-    catch (e: IOException) {
-      // We didn't get an image, but still return the hierarchy and properties
-    }
-    rootNode.flatten().forEach { it.children.mapTo(it.drawChildren) { child -> DrawViewChild(child) } }
 
-    if (rootNode.drawChildren.size != rootNode.children.size) {
-      client.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER)
-    }
-    else {
-      client.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER_NO_PICTURE)
-    }
     return AndroidWindow(rootNode, windowName, LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED)
   }
 

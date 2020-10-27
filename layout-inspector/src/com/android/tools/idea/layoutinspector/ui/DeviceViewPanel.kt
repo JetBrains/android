@@ -220,6 +220,7 @@ class DeviceViewPanel(
     // Zoom to fit on initial connect
     layoutInspector.layoutInspectorModel.modificationListeners.add { old, new, _ ->
       if (old == null) {
+        contentPanel.model.refresh()
         zoom(ZoomType.FIT)
       }
       else {
@@ -232,12 +233,14 @@ class DeviceViewPanel(
     var prevZoom = viewSettings.scalePercent
     viewSettings.modificationListeners.add {
       if (prevZoom != viewSettings.scalePercent) {
-        deviceViewPanelActionsToolbar.zoomChanged()
-        prevZoom = viewSettings.scalePercent
-        layoutInspector.layoutInspectorModel.windows.values.forEach {
-          it.refreshImages(viewSettings.scaleFraction)
+        ApplicationManager.getApplication().executeOnPooledThread {
+          deviceViewPanelActionsToolbar.zoomChanged()
+          prevZoom = viewSettings.scalePercent
+          layoutInspector.layoutInspectorModel.windows.values.forEach {
+            it.refreshImages(viewSettings.scaleFraction)
+          }
+          contentPanel.model.refresh()
         }
-        contentPanel.model.refresh()
       }
     }
   }

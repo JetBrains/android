@@ -50,9 +50,11 @@ fun window(windowId: Any,
   AndroidWindow(
     InspectorViewDescriptor(rootViewDrawId, rootViewQualifiedName, x, y, width, height, null, null, "", layoutFlags, null)
       .also(body).build(), windowId, imageType, 0) { _, window ->
-    window.root.flatten().forEach {
-      it.drawChildren.clear()
-      it.children.mapTo(it.drawChildren) { child -> DrawViewChild(child) }
+    ViewNode.writeDrawChildren { drawChildren ->
+      window.root.flatten().forEach {
+        it.drawChildren().clear()
+        it.children.mapTo(it.drawChildren()) { child -> DrawViewChild(child) }
+      }
     }
   }
 
@@ -153,15 +155,17 @@ class InspectorViewDescriptor(private val drawId: Long,
       if (composePackageHash == 0) ViewNode(drawId, qualifiedName, layout, x, y, width, height, bounds, viewId, textValue, layoutFlags)
       else ComposeViewNode(drawId, qualifiedName, null, x, y, width, height, null, textValue, 0,
                            composeFilename, composePackageHash, composeOffset, composeLineNumber)
-    children.forEach {
-      when (it) {
-        is InspectorViewDescriptor -> {
-          val viewNode = it.build()
-          result.children.add(viewNode)
-          result.drawChildren.add(DrawViewChild(viewNode))
-        }
-        is InspectorImageDescriptor -> {
-          result.drawChildren.add(DrawViewImage(it.image, result))
+    ViewNode.writeDrawChildren { drawChildren ->
+      children.forEach {
+        when (it) {
+          is InspectorViewDescriptor -> {
+            val viewNode = it.build()
+            result.children.add(viewNode)
+            result.drawChildren().add(DrawViewChild(viewNode))
+          }
+          is InspectorImageDescriptor -> {
+            result.drawChildren().add(DrawViewImage(it.image, result))
+          }
         }
       }
     }
@@ -201,9 +205,11 @@ class InspectorModelDescriptor(val project: Project) {
     val model = InspectorModel(project)
     val windowRoot = root?.build() ?: return model
     val newWindow = AndroidWindow(windowRoot, windowRoot.drawId) { _, window ->
-      window.root.flatten().forEach {
-        it.drawChildren.clear()
-        it.children.mapTo(it.drawChildren) { child -> DrawViewChild(child) }
+      ViewNode.writeDrawChildren { drawChildren ->
+        window.root.flatten().forEach {
+          it.drawChildren().clear()
+          it.children.mapTo(it.drawChildren()) { child -> DrawViewChild(child) }
+        }
       }
     }
     model.update(newWindow, listOf(windowRoot.drawId), 0)
