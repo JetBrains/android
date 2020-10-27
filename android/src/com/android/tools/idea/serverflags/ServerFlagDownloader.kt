@@ -22,12 +22,21 @@ import java.net.MalformedURLException
 import java.net.URL
 import java.nio.file.Path
 
+private const val BASE_URL_OVERRIDE_KEY = "studio.server.flags.baseurl.override"
+private const val DEFAULT_BASE_URL = "https://dl.google.com/android/studio/server_flags/"
+
 /**
  * ServerFlagDownloader downloads the protobuf file for the current version of Android Studio.
  * If it succeeds it will save the file to a local path.
  */
 class ServerFlagDownloader {
   companion object {
+    @JvmStatic
+    fun downloadServerFlagList() {
+      val baseUrl = System.getProperty(BASE_URL_OVERRIDE_KEY, DEFAULT_BASE_URL)
+      downloadServerFlagList(baseUrl, localCacheDirectory, flagsVersion)
+    }
+
     /**
      * Download the server flag list
      * @param baseUrl: The base url where the download files are located.
@@ -38,6 +47,7 @@ class ServerFlagDownloader {
     fun downloadServerFlagList(baseUrl: String, localCacheDirectory: Path, version: String) {
       val url = buildUrl(baseUrl, version) ?: return
       val tempFile = downloadFile(url) ?: return
+
       // check whether file is valid before saving
       unmarshalFlagList(tempFile) ?: return
 
@@ -45,18 +55,9 @@ class ServerFlagDownloader {
       saveFile(tempFile, localFilePath.toFile())
     }
 
-    private fun buildUrl(baseUrl: String, version: String): URL? {
-      return try {
-        URL("$baseUrl/$version/$FILE_NAME")
-      }
-      catch (e: MalformedURLException) {
-        null
-      }
-    }
-
     private fun downloadFile(url: URL): File? {
       return try {
-        val tempFile = File.createTempFile(DIRECTORY_PREFIX, "")
+        val tempFile = createTempFile()
         url.openStream().use { inputStream ->
           tempFile.outputStream().use { outputStream ->
             ByteStreams.copy(inputStream, outputStream)

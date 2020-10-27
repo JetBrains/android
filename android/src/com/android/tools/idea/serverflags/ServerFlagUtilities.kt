@@ -20,10 +20,12 @@ import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.PathManager
 import java.io.File
 import java.io.IOException
+import java.net.MalformedURLException
+import java.net.URL
 import java.nio.file.Path
 
-const val FILE_NAME = "serverflaglist.protobuf"
-const val DIRECTORY_PREFIX = "serverflags"
+private const val FILE_NAME = "serverflaglist.protobuf"
+private const val DIRECTORY_PREFIX = "serverflags"
 private const val VERSION_OVERRIDE_KEY = "studio.server.flags.version.override"
 
 val localCacheDirectory: Path
@@ -42,6 +44,17 @@ fun unmarshalFlagList(file: File): ServerFlagList? {
     null
   }
 }
+
+fun buildUrl(baseUrl: String, version: String): URL? {
+  return try {
+    URL("$baseUrl/$version/$FILE_NAME")
+  }
+  catch (e: MalformedURLException) {
+    null
+  }
+}
+
+fun createTempFile(): File = File.createTempFile(DIRECTORY_PREFIX, "")
 
 private val ApplicationInfo.versionString: String
   get() {
