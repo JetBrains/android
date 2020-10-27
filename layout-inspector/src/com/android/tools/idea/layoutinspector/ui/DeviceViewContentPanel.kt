@@ -55,7 +55,6 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
   )
 
   init {
-    inspectorModel.modificationListeners.add(::modelChanged)
     inspectorModel.selectionListeners.add { _, _ -> repaint() }
     inspectorModel.hoverListeners.add { _, _ -> repaint() }
     addComponentListener(object : ComponentAdapter() {
@@ -171,11 +170,5 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
     g2.setRenderingHints(HQ_RENDERING_HINTS)
     g2.transform = g2.transform.apply { concatenate(drawInfo.transform) }
     drawInfo.node.paint(g2, inspectorModel)
-  }
-
-  @Suppress("UNUSED_PARAMETER")
-  private fun modelChanged(old: AndroidWindow?, new: AndroidWindow?, structuralChange: Boolean) {
-    model.refresh()
-    repaint()
   }
 }

@@ -16,14 +16,15 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.SKP
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlTag
 import java.awt.Rectangle
 import java.awt.Shape
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 
 // This must have the same value as WindowManager.FLAG_DIM_BEHIND
 @VisibleForTesting
@@ -80,7 +81,11 @@ open class ViewNode(
 
   // Views and images that will be drawn.
   // TODO: Figure out whether order of child nodes here and in [children] will always be the same.
-  val drawChildren = mutableListOf<DrawViewNode>()
+  private val drawChildren = mutableListOf<DrawViewNode>()
+    get(): MutableList<DrawViewNode> {
+
+      return field
+    }
 
   var tag: XmlTag?
     get() = tagPointer?.element
@@ -99,5 +104,19 @@ open class ViewNode(
 
   fun flatten(): Sequence<ViewNode> {
     return children.asSequence().flatMap { it.flatten() }.plus(this)
+  }
+
+  companion object {
+    private val lock = ReentrantReadWriteLock()
+
+    fun <T> readDrawChildren(fn: (ViewNode.() -> List<DrawViewNode>) -> T): T =
+      lock.read {
+        fn(ViewNode::drawChildren)
+      }
+
+    fun writeDrawChildren(fn: (ViewNode.() -> MutableList<DrawViewNode>) -> Unit) =
+      lock.write {
+        fn(ViewNode::drawChildren)
+      }
   }
 }

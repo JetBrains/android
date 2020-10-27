@@ -80,6 +80,8 @@ class DeviceViewContentPanelTest {
       window(ROOT, ROOT, 0, 0, 100, 200) {
         view(VIEW1, 0, 0, 50, 50)
       }, listOf(ROOT), 0)
+    // This is usually handled by a listener registered in DeviceViewPanel
+    panel.model.refresh()
     assertEquals(Dimension(732, 820), panel.preferredSize)
   }
 

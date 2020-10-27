@@ -49,6 +49,8 @@ class AndroidWindow(
     hasSubImages = calculateHasSubimages()
   }
 
-  private fun calculateHasSubimages() =
-    root.flatten().minus(root).any { it.drawChildren.firstIsInstanceOrNull<DrawViewImage>() != null }
+  private fun calculateHasSubimages(): Boolean =
+    ViewNode.readDrawChildren { drawChildren ->
+      root.flatten().minus(root).any { it.drawChildren().firstIsInstanceOrNull<DrawViewImage>() != null }
+    }
 }
