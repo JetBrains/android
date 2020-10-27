@@ -484,7 +484,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   public void scrollTo(int offset) { }
 
   @Override
-  public void attachToProcess(ProcessHandler processHandler) {
+  public void attachToProcess(@NotNull ProcessHandler processHandler) {
     // Put this test suite view to the process handler as AndroidTestResultListener so the view
     // is notified the test results and to be updated.
     processHandler.putCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY, this);
@@ -536,6 +536,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   @Override
   public void allowHeavyFilters() { }
 
+  @NotNull
   @Override
   public JComponent getComponent() {
     return myComponentsSplitter;
