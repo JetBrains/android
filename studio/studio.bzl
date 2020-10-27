@@ -1,14 +1,14 @@
 load("//tools/base/bazel:merge_archives.bzl", "run_singlejar")
 load("//tools/base/bazel:functions.bzl", "create_option_file")
 
-def _zipper(ctx, desc, map, out):
+def _zipper(ctx, desc, map, out, deps = []):
     files = [f for (p, f) in map]
     zipper_files = [r + "=" + f.path + "\n" for r, f in map]
     zipper_args = ["cC" if ctx.attr.compress else "c", out.path]
     zipper_list = create_option_file(ctx, out.basename + ".res.lst", "".join(zipper_files))
     zipper_args += ["@" + zipper_list.path]
     ctx.actions.run(
-        inputs = files + [zipper_list],
+        inputs = files + [zipper_list] + deps,
         outputs = [out],
         executable = ctx.executable._zipper,
         arguments = zipper_args,
@@ -103,12 +103,28 @@ def _resource_deps(res_dirs, res, platform):
     return files
 
 def _studio_plugin_os(ctx, platform, module_deps, plugin_dir, out):
-    files = [(plugin_dir + "/lib/" + d, f) for (d, f) in module_deps]
+    spec = [(plugin_dir + "/lib/" + d, f) for (d, f) in module_deps]
 
     res = _resource_deps(ctx.attr.resources_dirs, ctx.attr.resources, platform)
-    files += [(plugin_dir + "/" + d, f) for (d, f) in res]
+    spec += [(plugin_dir + "/" + d, f) for (d, f) in res]
 
-    _zipper(ctx, "%s plugin" % platform.name, files, out)
+    files = [f for (p, f) in spec]
+    check_log = ctx.actions.declare_file(ctx.attr.name + ".%s.log" % platform.name)
+    check_args = ctx.actions.args()
+    check_args.add("--plugin_id", ctx.attr.name)
+    check_args.add("--out", check_log)
+    check_args.add_all("--files", files)
+
+    ctx.actions.run(
+        inputs = files,
+        outputs = [check_log],
+        executable = ctx.executable._check_plugin,
+        arguments = [check_args],
+        progress_message = "Analyzing %s plugin..." % ctx.attr.name,
+        mnemonic = "chkplugin",
+    )
+
+    _zipper(ctx, "%s plugin" % platform.name, spec, out, [check_log])
 
 def _studio_plugin_impl(ctx):
     plugin_dir = "plugins/" + ctx.attr.directory
@@ -142,6 +158,11 @@ _studio_plugin = rule(
         ),
         "_zipper": attr.label(
             default = Label("@bazel_tools//tools/zip:zipper"),
+            cfg = "host",
+            executable = True,
+        ),
+        "_check_plugin": attr.label(
+            default = Label("//tools/adt/idea/studio:check_plugin"),
             cfg = "host",
             executable = True,
         ),
