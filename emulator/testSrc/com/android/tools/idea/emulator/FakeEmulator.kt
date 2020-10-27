@@ -124,8 +124,10 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
   @Volatile private var clipboardStreamObserver: StreamObserver<ClipData>? = null
   @Volatile var extendedControlsVisible = false
-  /** Ids of snapshots that were marked "invalid" by calling the [markSnapshotInvalid] method. */
-  private val invalidSnapshots = ContainerUtil.newConcurrentSet<String>()
+
+  /** Ids of snapshots that were created by calling the [createIncompatibleSnapshot] method. */
+  private val incompatibleSnapshots = ContainerUtil.newConcurrentSet<String>()
+
   /** The ID of the last loaded snapshot. */
   private var lastLoadedSnapshot: String? = null
 
@@ -138,7 +140,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   init {
     val embeddedFlags = if (standalone) {
       ""
-    } else {
+    }
+    else {
       """ ${getEmulatorHiddenWindowFlag()} "-gpu" "auto-no-window" "-idle-grpc-timeout" "300""""
     }
 
@@ -167,7 +170,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           map["fastboot.forceChosenSnapshotBoot"] == "yes" -> map["fastboot.chosenSnapshotFile"]
           else -> null
         }
-        lastLoadedSnapshot = if (snapshotId == null || snapshotId in invalidSnapshots) null else snapshotId
+        lastLoadedSnapshot = if (snapshotId == null || snapshotId in incompatibleSnapshots) null else snapshotId
       }
 
       startTime = System.currentTimeMillis()
@@ -243,16 +246,12 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     grpcLock.unlock()
   }
 
-  fun markSnapshotInvalid(snapshotId: String) {
-    invalidSnapshots.add(snapshotId)
-  }
-
   private fun createGrpcServer(): Server {
     return InProcessServerBuilder.forName(grpcServerName(grpcPort))
-        .addService(ServerInterceptors.intercept(EmulatorControllerService(executor), LoggingInterceptor()))
-        .addService(ServerInterceptors.intercept(EmulatorSnapshotService(executor), LoggingInterceptor()))
-        .addService(ServerInterceptors.intercept(UiControllerService(executor), LoggingInterceptor()))
-        .build()
+      .addService(ServerInterceptors.intercept(EmulatorControllerService(executor), LoggingInterceptor()))
+      .addService(ServerInterceptors.intercept(EmulatorSnapshotService(executor), LoggingInterceptor()))
+      .addService(ServerInterceptors.intercept(UiControllerService(executor), LoggingInterceptor()))
+      .build()
   }
 
   private fun drawDisplayImage(width: Int, height: Int): BufferedImage {
@@ -316,9 +315,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
   }
 
-  fun createInvalidSnapshot(snapshotId: String) {
+  fun createIncompatibleSnapshot(snapshotId: String) {
     createSnapshot(snapshotId)
-    markSnapshotInvalid(snapshotId)
+    incompatibleSnapshots.add(snapshotId)
   }
 
   private fun sendEmptyResponse(responseObserver: StreamObserver<Empty>) {
@@ -457,10 +456,10 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
         val response = Image.newBuilder()
           .setImage(ByteString.copyFrom(imageBytes))
           .setFormat(ImageFormat.newBuilder()
-            .setFormat(ImgFormat.RGB888)
-            .setWidth(rotatedImage.width)
-            .setHeight(rotatedImage.height)
-            .setRotation(Rotation.newBuilder().setRotation(displayRotation))
+                       .setFormat(ImgFormat.RGB888)
+                       .setWidth(rotatedImage.width)
+                       .setHeight(rotatedImage.height)
+                       .setRotation(Rotation.newBuilder().setRotation(displayRotation))
           )
 
         sendStreamingResponse(responseObserver, response.build())
@@ -478,7 +477,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           Files.list(snapshotsFolder).use { stream ->
             stream.forEach { snapshotFolder ->
               val snapshotId = snapshotFolder.fileName.toString()
-              val invalid = snapshotId in invalidSnapshots
+              val invalid = snapshotId in incompatibleSnapshots
               if (request.statusFilter == SnapshotFilter.LoadStatus.All || !invalid) {
                 val snapshotProtoFile = snapshotFolder.resolve("snapshot.pb")
                 val snapshotMessage = Files.newInputStream(snapshotProtoFile).use {
@@ -512,10 +511,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
     override fun loadSnapshot(request: SnapshotPackage, responseObserver: StreamObserver<SnapshotPackage>) {
       executor.execute {
-        if (request.snapshotId !in invalidSnapshots) {
+        val success = request.snapshotId !in incompatibleSnapshots
+        if (success) {
           lastLoadedSnapshot = request.snapshotId
         }
-        sendDefaultSnapshotPackage(responseObserver)
+        sendResponse(responseObserver, SnapshotPackage.newBuilder().setSuccess(success).build())
       }
     }
 
@@ -530,8 +530,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     override fun saveSnapshot(request: SnapshotPackage, responseObserver: StreamObserver<SnapshotPackage>) {
       executor.execute {
         createSnapshot(request.snapshotId)
-        val response = SnapshotPackage.newBuilder().setSuccess(true).build()
-        sendResponse(responseObserver, response)
+        sendResponse(responseObserver, SnapshotPackage.newBuilder().setSuccess(true).build())
       }
     }
 
@@ -574,7 +573,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
                                              handler: ServerCallHandler<ReqT, RespT>): ServerCall.Listener<ReqT> {
       val callRecord = GrpcCallRecord(call.methodDescriptor.fullMethodName)
 
-      val forwardingCall = object: SimpleForwardingServerCall<ReqT, RespT>(call) {
+      val forwardingCall = object : SimpleForwardingServerCall<ReqT, RespT>(call) {
         override fun sendMessage(response: RespT) {
           grpcLock.withLock {
             callRecord.responseMessageCounter.add(Unit)
@@ -606,8 +605,10 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
   class GrpcCallRecord(val methodName: String) {
     lateinit var request: MessageOrBuilder
+
     /** One element is added to this queue for every response message sent to the client. */
     val responseMessageCounter = LinkedBlockingDeque<Unit>()
+
     /** Completed or cancelled when the gRPC call is completed or cancelled. */
     val completion: SettableFuture<Unit> = SettableFuture.create()
 
