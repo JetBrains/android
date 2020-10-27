@@ -2,7 +2,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/adt/idea/studio:studio.bzl", "studio_plugin", "android_studio")
 
 studio_plugin(
-    name = "intellij.android.plugin",
+    name = "org.jetbrains.android",
     directory = "android",
     modules = {
         "adt-ui.jar": [
@@ -189,7 +189,7 @@ studio_plugin(
 )
 
 studio_plugin(
-    name = "intellij.android.layoutlib",
+    name = "com.android.layoutlib.standard",
     directory = "android-layoutlib",
     modules = {
         "android-layoutlib.jar": ["//tools/adt/idea/layoutlib:intellij.android.layoutlib"],
@@ -289,10 +289,10 @@ android_studio(
     },
     platform = "//prebuilts/studio/intellij-sdk:studio-sdk.platform",
     plugins = [
-        ":intellij.android.plugin",
+        ":org.jetbrains.android",
         ":com.android.tools.apk",
         ":com.android.tools.ndk",
-        ":intellij.android.layoutlib",
+        ":com.android.layoutlib.standard",
         ":com.android.layoutlib.native",
         ":androidx.compose.plugins.idea",
         ":com.google.services.firebase",
@@ -402,6 +402,12 @@ py_binary(
 py_binary(
     name = "stamper",
     srcs = ["stamper.py"],
+    visibility = ["//visibility:public"],
+)
+
+py_binary(
+    name = "check_plugin",
+    srcs = ["check_plugin.py"],
     visibility = ["//visibility:public"],
 )
 
