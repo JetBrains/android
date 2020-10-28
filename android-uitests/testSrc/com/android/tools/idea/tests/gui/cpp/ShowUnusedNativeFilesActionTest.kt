@@ -49,20 +49,14 @@ class ShowUnusedNativeFilesActionTest {
 
     androidPane.doubleClickPath("app", "cpp")
 
-    // Check the file is shown since by default we show all unused files
-    Truth.assertThat(androidPane.hasPath("app", "cpp", "unused1.c")).isTrue()
-
     // Turn off show unused files
     projectView.showOptionsMenu()
     GuiTests.clickPopupMenuItem("Show Unused Native Files", ideFrame.target(), ideFrame.robot())
 
-    // Check the file is now hidden
-    Truth.assertThat(androidPane.hasPath("app", "cpp", "unused1.c")).isFalse()
-
     // Add a new file inside the IDE
     androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app", "cpp")
       .openFromContextualMenu(NewFilePopupFixture::find, "New", "File")
-      .setFilePath("unused2.c")
+      .setFilePath("unused.c")
       .pressEnter()
     androidPane.doubleClickPath("app", "cpp")
 
@@ -72,12 +66,18 @@ class ShowUnusedNativeFilesActionTest {
     GuiTests.waitForBackgroundTasks(ideFrame.robot())
 
     // Check that the new file is shown
-    Truth.assertThat(androidPane.hasPath("app", "cpp", "unused2.c")).isTrue()
+    Truth.assertThat(androidPane.hasPath("app", "cpp", "unused.c")).isTrue()
 
     // And the new file should be hidden after sync since it's not used.
     ideFrame.requestProjectSync()
     GuiTests.waitForBackgroundTasks(ideFrame.robot())
 
-    Truth.assertThat(androidPane.hasPath("app", "cpp", "unused2.c")).isFalse()
+    Truth.assertThat(androidPane.hasPath("app", "cpp", "unused.c")).isFalse()
+
+    // Turn on show unused files
+    projectView.showOptionsMenu()
+    GuiTests.clickPopupMenuItem("Show Unused Native Files", ideFrame.target(), ideFrame.robot())
+
+    Truth.assertThat(androidPane.hasPath("app", "cpp", "unused.c")).isTrue()
   }
 }
