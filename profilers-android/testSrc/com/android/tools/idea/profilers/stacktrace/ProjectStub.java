@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers.stacktrace;
 
 import com.intellij.openapi.extensions.ExtensionsArea;
+import com.intellij.openapi.extensions.PluginDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.UserDataHolderBase;
@@ -103,6 +104,12 @@ final class ProjectStub extends UserDataHolderBase implements Project {
   @Override
   public ExtensionsArea getExtensionArea() {
     throw new UnsupportedOperationException("getExtensionArea is not implement in : " + getClass());
+  }
+
+  @Override
+  public <T> Class<T> loadClass(@NotNull String className,
+                                @NotNull PluginDescriptor pluginDescriptor) throws ClassNotFoundException {
+    throw new ClassNotFoundException();
   }
 
   @Override
