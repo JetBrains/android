@@ -41,7 +41,7 @@ private val LITERAL_TEXT_ATTRIBUTE = TextAttributes(UIUtil.getActiveTextColor(),
 /**
  * Time used to coalesce multiple changes without triggering onLiteralsHaveChanged calls.
  */
-private const val DOCUMENT_CHANGE_COALESCE_TIME_MS = 200
+private val DOCUMENT_CHANGE_COALESCE_TIME_MS = StudioFlags.COMPOSE_LIVE_LITERALS_UPDATE_RATE
 
 /**
  * Project service to track live literals. The service, when [isEnabled] is true, will listen for changes of constants
@@ -58,7 +58,7 @@ class LiveLiteralsService(private val project: Project) : Disposable {
   /**
    * [ListenerCollection] for all the listeners that need to be notified when any live literal has changed value.
    */
-  private val onLiteralsChangedListeners = ListenerCollection.createWithExecutor<Runnable>(
+  private val onLiteralsChangedListeners = ListenerCollection.createWithExecutor<(List<LiteralReference>) -> Unit>(
     AppExecutorUtil.createBoundedApplicationPoolExecutor("Document changed listeners executor", 1))
 
   private val literalsManager = LiteralsManager()
@@ -71,7 +71,7 @@ class LiveLiteralsService(private val project: Project) : Disposable {
   private var activationDisposable: Disposable? = null
 
   private val updateMergingQueue = MergingUpdateQueue("Live literals change queue",
-                                                      DOCUMENT_CHANGE_COALESCE_TIME_MS,
+                                                      DOCUMENT_CHANGE_COALESCE_TIME_MS.get(),
                                                       true,
                                                       null,
                                                       this,
@@ -95,8 +95,8 @@ class LiveLiteralsService(private val project: Project) : Disposable {
   /**
    * Method called to notify the listeners than a constant has changed.
    */
-  private fun fireOnLiteralsChanged() = onLiteralsChangedListeners.forEach {
-    it.run()
+  private fun fireOnLiteralsChanged(changed : List<LiteralReference>) = onLiteralsChangedListeners.forEach {
+    it(changed)
   }
 
   /**
@@ -106,7 +106,7 @@ class LiveLiteralsService(private val project: Project) : Disposable {
    *  the listener will automatically be unregistered.
    * @param listener the code to be called when the literals change. This will run in a background thread.
    */
-  fun addOnLiteralsChangedListener(parentDisposable: Disposable, listener: () -> Unit) {
+  fun addOnLiteralsChangedListener(parentDisposable: Disposable, listener: (List<LiteralReference>) -> Unit) {
     onLiteralsChangedListeners.add(listener = listener)
     val listenerWeakRef = WeakReference(listener)
     Disposer.register(parentDisposable) {
@@ -116,7 +116,7 @@ class LiveLiteralsService(private val project: Project) : Disposable {
 
   @Synchronized
   private fun onDocumentsUpdated(document: Collection<Document>, @Suppress("UNUSED_PARAMETER") lastUpdateNanos: Long) {
-    var requestRefresh = false
+    var updateList = ArrayList<LiteralReference>();
     document.flatMap {
       documentSnapshots[it]?.modified ?: emptyList()
     }.forEach {
@@ -125,13 +125,14 @@ class LiveLiteralsService(private val project: Project) : Disposable {
         val constantModified = ConstantRemapperManager.getConstantRemapper().addConstant(
           null, elementPath, it.initialConstantValue, constantValue)
         log.debug("[${it.uniqueId}] Constant updated to ${it.text} path=${elementPath}")
-
-        requestRefresh = requestRefresh || constantModified
+        if (constantModified) {
+          updateList.add(it)
+        }
       }
     }
 
-    if (requestRefresh) {
-      fireOnLiteralsChanged()
+    if (!updateList.isEmpty()) {
+      fireOnLiteralsChanged(updateList)
     }
   }
 
@@ -219,9 +220,7 @@ class LiveLiteralsService(private val project: Project) : Disposable {
       Disposer.dispose(it)
     }
     activationDisposable = null
-    if (fireChangeListeners) {
-      fireOnLiteralsChanged()
-    }
+    fireOnLiteralsChanged(emptyList())
   }
 
   override fun dispose() {
