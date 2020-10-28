@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.tasks;
 
+import com.android.annotations.Nullable;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.deployer.Deployer;
@@ -26,6 +27,7 @@ import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,6 +35,9 @@ public class DeployTask extends AbstractDeployTask {
 
   private static final Logger LOG = Logger.getInstance(DeployTask.class);
   private static final String ID = "DEPLOY";
+
+  // TODO: May be the hooks to start live updates should be a task on it's own?
+  private final Runnable startLiveUpdate;
 
   private final String[] userInstallOptions;
   private final boolean installOnAllUsers;
@@ -45,6 +50,7 @@ public class DeployTask extends AbstractDeployTask {
    */
   public DeployTask(@NotNull Project project,
                     @NotNull Map<String, List<File>> packages,
+                    @Nullable Runnable startLiveUpdate,
                     String userInstallOptions,
                     boolean installOnAllUsers,
                     boolean alwaysInstallWithPm) {
@@ -56,6 +62,7 @@ public class DeployTask extends AbstractDeployTask {
       this.userInstallOptions = new String[0];
     }
     this.installOnAllUsers = installOnAllUsers;
+    this.startLiveUpdate = startLiveUpdate;
   }
 
   @NotNull
@@ -125,7 +132,14 @@ public class DeployTask extends AbstractDeployTask {
         installMode = Deployer.InstallMode.FULL;
     }
 
-    return deployer.install(applicationId, getPathsToInstall(files), options.build(), installMode);
+    Deployer.Result result = deployer.install(applicationId, getPathsToInstall(files), options.build(), installMode);
+
+    // If install fails, an Exception would have been thrown to prevent live updates from starting.
+    if (device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.R) && startLiveUpdate != null) {
+      // Needs Android 11 because of start-up agent.
+      startLiveUpdate.run();
+    }
+    return result;
   }
 
   @NotNull

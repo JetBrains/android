@@ -199,7 +199,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       case DEPLOY:
         tasks.add(new DeployTask(
           myProject,
-          packages.build(),
+          packages.build(), AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName),
           myLaunchOptions.getPmInstallOptions(device),
           myLaunchOptions.getInstallOnAllUsers(),
           myLaunchOptions.getAlwaysInstallWithPm()));
