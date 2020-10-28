@@ -100,7 +100,7 @@ class AppInspectionServiceRule(
     transport = AppInspectionTransport(client, stream, process, streamChannel)
     jarCopier = AppInspectionTestUtils.TestTransportJarCopier
     targetManager = AppInspectionTargetManager(client, scope)
-    processNotifier = AppInspectionProcessDiscovery(executorService.asCoroutineDispatcher(), streamManager)
+    processNotifier = AppInspectionProcessDiscovery(streamManager, scope)
     apiServices = DefaultAppInspectionApiServices(targetManager, { jarCopier }, processNotifier as AppInspectionProcessDiscovery)
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, defaultAttachHandler)
   }
