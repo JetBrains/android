@@ -117,6 +117,6 @@ public class FrameworkResJarCreator {
   }
 
   private static void printUsage(@NotNull String programName) {
-    System.out.println(String.format("Usage: %s <res_directory> <jar_file>", programName));
+    System.out.printf("Usage: %s <res_directory> <jar_file>%n", programName);
   }
 }
