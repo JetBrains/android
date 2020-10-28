@@ -26,5 +26,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="module" module-name="android.sdktools.flags" />
   </component>
 </module>

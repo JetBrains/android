@@ -4,7 +4,9 @@ import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
+import com.android.tools.idea.flags.StudioFlags.ENABLE_WORK_MANAGER_GRAPH_VIEW
 import com.intellij.icons.AllIcons
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
@@ -25,6 +27,11 @@ import javax.swing.JTable
  */
 class WorksContentView(private val tab: WorkManagerInspectorTab,
                        private val client: WorkManagerInspectorClient) : JPanel() {
+  private enum class Mode {
+    TABLE,
+    GRAPH
+  }
+
   private inner class CancelAction :
     AnAction(WorkManagerInspectorBundle.message("action.cancel.work"), "", AllIcons.Actions.Suspend) {
 
@@ -47,6 +54,10 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
       if (selectedTag != client.filterTag) {
         selectedTag = client.filterTag
         event.presentation.text = selectedTag ?: WorkManagerInspectorBundle.message("action.tag.all")
+      }
+      val isTableActive = (contentMode == Mode.TABLE)
+      if (event.presentation.isVisible != isTableActive) {
+        event.presentation.isVisible = isTableActive
       }
     }
 
@@ -76,8 +87,52 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
     }
   }
 
+  private inner class ListViewAction :
+    AnAction(WorkManagerInspectorBundle.message("action.show.list"), "", AllIcons.Graph.Grid) {
+
+    override fun actionPerformed(e: AnActionEvent) {
+      if (contentMode == Mode.GRAPH) {
+        contentMode = Mode.TABLE
+        contentScrollPane.setViewportView(buildContentViewportView())
+        contentScrollPane.revalidate()
+      }
+    }
+
+    override fun update(e: AnActionEvent) {
+      super.update(e)
+      e.presentation.isEnabled = contentMode == Mode.GRAPH
+    }
+  }
+
+  private inner class GraphViewAction :
+    AnAction(WorkManagerInspectorBundle.message("action.show.graph"), "", AllIcons.Graph.Layout) {
+
+    override fun actionPerformed(e: AnActionEvent) {
+      if (contentMode == Mode.TABLE) {
+        contentMode = Mode.GRAPH
+        client.filterTag = null
+        contentScrollPane.setViewportView(buildContentViewportView())
+        contentScrollPane.revalidate()
+      }
+    }
+
+    override fun update(e: AnActionEvent) {
+      super.update(e)
+      e.presentation.isEnabled = contentMode == Mode.TABLE && tab.selectedWork != null
+    }
+  }
+
+  private var contentMode = Mode.TABLE
+    set(value) {
+      if (field != value) {
+        field = value
+        ActivityTracker.getInstance().inc()
+      }
+    }
+
   private val contentScrollPane: JScrollPane
   private val tableView: JTable
+  private val graphView: WorkDependencyGraphView
 
   init {
     layout = TabularLayout("*", "Fit,*")
@@ -85,6 +140,10 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
 
     contentScrollPane = JBScrollPane()
     tableView = WorksTableView(tab, client)
+    graphView = WorkDependencyGraphView(client, tab) {
+      contentMode = Mode.TABLE
+      contentScrollPane.setViewportView(tableView)
+    }
     contentScrollPane.setViewportView(tableView)
     add(contentScrollPane, TabularLayout.Constraint(1, 0))
   }
@@ -94,10 +153,19 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
       add(CancelAction())
       addSeparator()
       add(TagsDropDownAction())
-      addSeparator()
+      if (ENABLE_WORK_MANAGER_GRAPH_VIEW.get()) {
+        addSeparator()
+        add(ListViewAction())
+        add(GraphViewAction())
+      }
     }
     val toolbar = ActionManager.getInstance().createActionToolbar("WorkManagerInspector", group, true)
     return toolbar.component
+  }
+
+  private fun buildContentViewportView(): JComponent = when (contentMode) {
+    Mode.TABLE -> tableView
+    Mode.GRAPH -> graphView
   }
 
   /**
