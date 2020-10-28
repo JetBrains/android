@@ -125,6 +125,11 @@ data class SqliteStatement(
   ) : this(statementType, sqliteStatement, emptyList<SqliteValue>(), sqliteStatement)
 }
 
+val SqliteStatement.isQueryStatement
+  get() = statementType == SqliteStatementType.SELECT ||
+          statementType == SqliteStatementType.EXPLAIN ||
+          statementType == SqliteStatementType.PRAGMA_QUERY
+
 /**
  * The type of a [SqliteStatement].
  */
