@@ -19,8 +19,13 @@ import com.intellij.ui.JBColor
 
 object WorkManagerInspectorColors {
   // TODO (b/166077440) Match text colors with the spec
+  // Details View
   val DATA_VALUE_TEXT_COLOR = JBColor(0x58AB5C, 0x65BB69)
   val DATA_TEXT_NULL_COLOR = JBColor(0x002FA6, 0x2B7DA2)
   val DATA_TEXT_AWAITING_COLOR = JBColor(0x787878, 0xC8C8C8)
   val EMPTY_CONTENT_COLOR = JBColor(0x787878, 0xC8C8C8)
+
+  // Dependency Graph
+  val SELECTED_WORK_BORDER_COLOR = JBColor(0xB2E5FF, 0xB2E5FF)
+  val GRAPH_LABEL_BACKGROUND_COLOR = JBColor(0xECF2FA, 0x323940)
 }

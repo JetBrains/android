@@ -96,7 +96,7 @@ class WorkManagerInspectorClient(private val messenger: AppInspectorMessenger, p
    */
   fun getOrderedWorkChain(id: String): List<WorkInfo> = synchronized(lock) {
     val workMap = works.associateBy { it.id }
-    val work = workMap.get(id) ?: return listOf()
+    val work = workMap[id] ?: return listOf()
     val connectedWorks = mutableListOf(work)
     val visitedWorks = mutableSetOf(work)
     val orderedWorks = mutableListOf<WorkInfo>()

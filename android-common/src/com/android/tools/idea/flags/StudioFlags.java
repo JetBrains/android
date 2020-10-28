@@ -1061,6 +1061,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> ENABLE_WORK_MANAGER_GRAPH_VIEW = Flag.create(
+    WORK_MANAGER_INSPECTOR, "enable.graph.view", "Enable WorkManager Graph View",
+    "Enables a Graph View for visualizing work dependencies in the WorkManager Inspector Tab",
+    false
+  );
+  // endregion
+
   //region Device Manager
   private static final FlagGroup DEVICE_MANAGER = new FlagGroup(FLAGS, "device.manager", "Device Manager");
   public static final Flag<Boolean> ENABLE_NEW_DEVICE_MANAGER_PANEL = Flag.create(
