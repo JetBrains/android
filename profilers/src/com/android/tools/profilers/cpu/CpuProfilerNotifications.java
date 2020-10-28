@@ -84,7 +84,7 @@ final class CpuProfilerNotifications {
                                                 boolean reportBug) {
     Notification.Builder builder = new Notification.Builder(title, text).setSeverity(severity);
     if (reportBug) {
-      builder.setUrl("https://issuetracker.google.com/issues/new?component=192754", "report a bug");
+      builder.setUrl("https://issuetracker.google.com/issues/new?component=192708", "report a bug");
     }
     return builder.build();
   }
