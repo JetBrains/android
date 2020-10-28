@@ -382,6 +382,7 @@ class AppInspectionViewTest {
 
     tabsAdded.join()
 
+    timer.currentTimeNs += 1
     transportService.stopProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
     tabsUpdated.join()
   }
@@ -433,6 +434,7 @@ class AppInspectionViewTest {
 
     tabsAdded.join()
 
+    timer.currentTimeNs += 1
     transportService.stopProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
     tabsUpdated.join()
   }
