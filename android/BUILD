@@ -136,11 +136,6 @@ iml_module(
             # TODO(b/167611852) remove after reducing its run time.
             "timeout": "eternal",
         },
-        "gradle.project.build.invoker.BuildOutputParsersIntegrationTest": {
-            # Broken on windows (b/171484686). Remove after fixing the bug.
-            "tags": ["no_windows"],
-            "test_filter": "com.android.tools.idea.gradle.project.build.invoker.BuildOutputParsersIntegrationTest",
-        },
         "gradle.structure": {
             "shard_count": 6,
             "test_filter": "com.android.tools.idea.gradle.structure",
