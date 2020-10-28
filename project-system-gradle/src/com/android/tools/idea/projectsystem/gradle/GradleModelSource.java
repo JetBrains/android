@@ -21,10 +21,12 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleModelProvider;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.model.GradleSettingsModelImpl;
 import com.android.tools.idea.gradle.dsl.model.ProjectBuildModelImpl;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -104,6 +106,28 @@ public final class GradleModelSource extends GradleModelProvider {
   @Override
   public GradleSettingsModel getSettingsModel(@NotNull VirtualFile settingsFile, @NotNull Project hostProject) {
     return parseSettingsFile(createContext(hostProject), settingsFile, hostProject, "settings");
+  }
+
+  @NotNull
+  @Override
+  public ArtifactDependencySpec getArtifactDependencySpec(@NotNull String name, @Nullable String group, @Nullable String version) {
+    return new ArtifactDependencySpecImpl(name, group, version);
+  }
+
+  @NotNull
+  @Override
+  public ArtifactDependencySpec getArtifactDependencySpec(@NotNull String name,
+                                                          @Nullable String group,
+                                                          @Nullable String version,
+                                                          @Nullable String classifier,
+                                                          @Nullable String extension) {
+    return new ArtifactDependencySpecImpl(name, group, version, classifier, extension);
+  }
+
+  @Nullable
+  @Override
+  public ArtifactDependencySpec getArtifactDependencySpec(@NotNull String notation) {
+    return ArtifactDependencySpecImpl.create(notation);
   }
 
   @NotNull
