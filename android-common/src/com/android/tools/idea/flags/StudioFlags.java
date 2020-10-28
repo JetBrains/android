@@ -709,6 +709,12 @@ public final class StudioFlags {
     "If enabled, the C/C++ content roots are displayed in Android View and Project View. Otherwise, each individual native target " +
     "is displayed.",
     false);
+
+  public static final Flag<Boolean> ENABLE_SHOW_UNUSED_NATIVE_FILES = Flag.create(
+    NDK, "ndk.projectview.showunusednativefiles", "Enable option to show unused native files",
+    "If enabled, for native projects, Android project view menu would show an option to `Show Unused Native Files`.",
+    true
+  );
   //endregion
 
   //region Editor
