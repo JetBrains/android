@@ -139,9 +139,13 @@ class BuildOutputParsersIntegrationTest: PlatformTestCase() {
     buildListener.onFailure(myTaskId, RuntimeException("test"))
     buildListener.onEnd(myTaskId)
 
-    assertThat(myTracker.usages).hasSize(1)
+    val buildOutputWindowEvents = myTracker.usages.filter {
+      it.studioEvent.hasBuildOutputWindowStats()
+    }
 
-    val messages = myTracker.usages.first().studioEvent.buildOutputWindowStats.buildErrorMessagesList
+    assertThat(buildOutputWindowEvents).hasSize(1)
+
+    val messages = buildOutputWindowEvents.first().studioEvent.buildOutputWindowStats.buildErrorMessagesList
     assertThat(messages).hasSize(4)
 
     messages.forEach {
@@ -182,9 +186,13 @@ class BuildOutputParsersIntegrationTest: PlatformTestCase() {
     buildListener.onFailure(myTaskId, RuntimeException("test"))
     buildListener.onEnd(myTaskId)
 
-    assertThat(myTracker.usages).hasSize(1)
+    val buildOutputWindowEvents = myTracker.usages.filter {
+      it.studioEvent.hasBuildOutputWindowStats()
+    }
 
-    val messages = myTracker.usages.first().studioEvent.buildOutputWindowStats.buildErrorMessagesList
+    assertThat(buildOutputWindowEvents).hasSize(1)
+
+    val messages = buildOutputWindowEvents.first().studioEvent.buildOutputWindowStats.buildErrorMessagesList
     assertThat(messages).isNotNull()
     assertThat(messages).hasSize(1)
 
