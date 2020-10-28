@@ -62,6 +62,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/android-transport:intellij.android.transport[module]",
         "//tools/adt/idea/.idea/libraries:sqlite-inspector-proto",
+        "//tools/adt/idea/.idea/libraries:kotlinx-coroutines-guava",
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/adt/idea/.idea/libraries:protobuf",

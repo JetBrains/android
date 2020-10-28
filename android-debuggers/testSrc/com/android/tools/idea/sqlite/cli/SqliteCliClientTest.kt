@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite.cli
 
+import com.android.tools.idea.sqlite.utils.toContentString
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
@@ -25,8 +26,6 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.ide.PooledThreadExecutor
 import java.lang.System.lineSeparator
 import java.nio.file.Path
-import java.util.Scanner
-import kotlin.text.Charsets.UTF_8
 
 class SqliteCliClientTest : LightPlatformTestCase() {
   private lateinit var client: SqliteCliClient
@@ -201,14 +200,14 @@ class SqliteCliClientTest : LightPlatformTestCase() {
       .also { assertThat(it.exitCode).isEqualTo(0) }
 
     // verify content no headers, separator=|
-    assertThat(readFile(outputFile1)).isEqualTo(
+    assertThat(outputFile1.toContentString()).isEqualTo(
       "1|2|3" + lineSeparator() +
       "4|5|6" + lineSeparator() +
       "7|8|9" + lineSeparator()
     )
 
     // verify content with headers, separator=;
-    assertThat(readFile(outputFile2)).isEqualTo(
+    assertThat(outputFile2.toContentString()).isEqualTo(
       "\"$column1\";\"$column2\";\"$column3\"" + lineSeparator() +
       "1;2;3" + lineSeparator() +
       "4;5;6" + lineSeparator() +
@@ -345,8 +344,4 @@ class SqliteCliClientTest : LightPlatformTestCase() {
     }
     assertThat(dump1).isEqualTo(dump2)
   }
-
-  private fun readFile(path: Path): String = sequence {
-    Scanner(path, UTF_8.name()).use { while (it.hasNextLine()) yield(it.nextLine()) }
-  }.joinToString(separator = lineSeparator(), postfix = lineSeparator())
 }
