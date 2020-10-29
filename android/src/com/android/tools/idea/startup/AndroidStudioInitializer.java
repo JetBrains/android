@@ -24,7 +24,6 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.analytics.IdeBrandProviderKt;
@@ -37,7 +36,6 @@ import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.GcPauseWatcher;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.analytics.AndroidStudioAnalytics;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.execution.actions.RunConfigurationProducer;
@@ -47,7 +45,6 @@ import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.ide.ApplicationLoadListener;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
-import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -69,13 +66,10 @@ import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.AppUIUtil;
 import java.io.File;
-import java.util.Arrays;
 import java.util.concurrent.ScheduledExecutorService;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.kapt.idea.KaptProjectResolverExtension;
-import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer;
-import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
 
 /**
@@ -106,15 +100,13 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
       replaceNewClassDialog(actionManager);
     }
 
-    setupAnalytics();
+    ServerFlagInitializer.initializeService();
     ScheduledExecutorService scheduler = JobScheduler.getScheduler();
     scheduler.execute(() -> {
-      // TODO: Move initializeService to main thread
       ServerFlagDownloader.downloadServerFlagList();
-      ServerFlagInitializer.initializeService();
-      AndroidStudioUsageTracker.setupScheduledReports();
     });
 
+    setupAnalytics();
     disableIdeaJUnitConfigurations(actionManager);
     disableKaptImportHandlers();
     hideRarelyUsedIntellijActions(actionManager);
@@ -177,7 +169,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     if (ApplicationManager.getApplication().isInternal()) {
       UsageTracker.setIdeaIsInternal(true);
     }
-    AndroidStudioUsageTracker.subscribeToEvents();
+    AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
     new GcPauseWatcher();
   }
 
