@@ -25,7 +25,7 @@ public class CpuCaptureFileType extends AndroidProfilerCaptureFileType {
 
   public static final String EXTENSION = "trace";
 
-  private static final CpuCaptureFileType myInstance = new CpuCaptureFileType();
+  private static final CpuCaptureFileType INSTANCE = new CpuCaptureFileType();
 
   @NotNull
   @Override
@@ -46,6 +46,6 @@ public class CpuCaptureFileType extends AndroidProfilerCaptureFileType {
   }
 
   public static FileType getInstance() {
-    return myInstance;
+    return INSTANCE;
   }
 }

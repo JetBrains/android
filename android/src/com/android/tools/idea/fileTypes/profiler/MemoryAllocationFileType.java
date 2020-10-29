@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,24 +19,24 @@ import com.intellij.openapi.fileTypes.FileType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents a heap dump file that can be imported into memory profiler.
+ * Represents an allocation file that can be imported into memory profiler.
  */
-public class MemoryCaptureFileType extends AndroidProfilerCaptureFileType {
+public class MemoryAllocationFileType extends AndroidProfilerCaptureFileType {
 
-  public static final String EXTENSION = "hprof";
+  public static final String EXTENSION = "alloc";
 
-  private static final MemoryCaptureFileType INSTANCE = new MemoryCaptureFileType();
+  private static final MemoryAllocationFileType INSTANCE = new MemoryAllocationFileType();
 
   @NotNull
   @Override
   public String getName() {
-    return "AndroidProfilerMemoryCapture";
+    return "AndroidProfilerMemoryAllocation";
   }
 
   @NotNull
   @Override
   public String getDescription() {
-    return "Android Profiler Memory capture file";
+    return "Android Profiler Memory allocation file";
   }
 
   @NotNull
