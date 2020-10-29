@@ -342,7 +342,12 @@ private fun EmulatorController.pushSnapshotSync(snapshotId: String, snapshotFile
             return@setOnReadyHandler
           }
           if (!snapshotIdSent) {
-            clientCallStreamObserver.onNext(SnapshotPackage.newBuilder().setSnapshotId(snapshotId).setFormat(format).build())
+            clientCallStreamObserver.onNext(SnapshotPackage
+                                              .newBuilder()
+                                              .setSnapshotId(snapshotId)
+                                              .setFormat(format)
+                                              .setPath(snapshotFile.absolutePath)
+                                              .build())
             snapshotIdSent = true;
           }
           var bytesRead = 0;
