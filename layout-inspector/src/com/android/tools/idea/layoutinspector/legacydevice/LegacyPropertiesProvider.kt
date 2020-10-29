@@ -27,6 +27,7 @@ import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.addInternalProperties
 import com.android.tools.property.panel.api.PropertiesTable
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.HashBasedTable
 import com.google.common.util.concurrent.Futures
 import java.util.concurrent.Future
@@ -40,7 +41,7 @@ internal const val ATTR_SCROLL_Y = "scrollY"
 internal const val ATTR_X = "x"
 internal const val ATTR_Y = "y"
 internal const val ATTR_Z = "z"
-internal const val ATTR_DIM_BEHIND = "dim_behind"
+@VisibleForTesting const val ATTR_DIM_BEHIND = "dim_behind"
 
 /**
  * A [PropertiesProvider] that can handle pre-api 29 devices.
@@ -109,7 +110,10 @@ class LegacyPropertiesProvider : PropertiesProvider {
       val url = table[SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID]?.value?.let { ResourceUrl.parse(it) }
       view.viewId = url?.let { ResourceReference(ResourceNamespace.TODO(), ResourceType.ID, it.name) }
       // TODO: add other layout flags if we care about them
-      view.layoutFlags = table.remove(SdkConstants.ANDROID_URI, ATTR_DIM_BEHIND)?.value?.let { PropertyMapper.toInt(it) } ?: 0
+      // TODO(171901393): since we're taking a screenshot rather than images of each view, disable setting layoutFlags for now, so we don't
+      // add a Dimmer DrawViewNode (with this API the captured image is already dimmed).
+      //view.layoutFlags =
+      table.remove(SdkConstants.ANDROID_URI, ATTR_DIM_BEHIND)?.value?.let { PropertyMapper.toInt(it) } ?: 0
 
       // Remove other attributes that we already have elsewhere:
       table.remove(SdkConstants.ANDROID_URI, ATTR_X)

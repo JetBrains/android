@@ -152,7 +152,10 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
     modificationListeners.forEach { it(oldWindow, windows[newWindow?.id], structuralChange) }
   }
 
-  fun notifyModified() = modificationListeners.forEach { it(null, null, false) }
+  fun notifyModified() =
+    if (windows.isEmpty()) modificationListeners.forEach { it(null, null, false) }
+    else windows.values.forEach { window -> modificationListeners.forEach { it(window, window, false) } }
+
 
   private class Updater(private val oldRoot: ViewNode, private val newRoot: ViewNode) {
     private val oldNodes = oldRoot.flatten().asSequence().filter{ it.drawId != 0L }.associateBy { it.drawId }

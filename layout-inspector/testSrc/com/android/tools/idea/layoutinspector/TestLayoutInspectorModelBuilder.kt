@@ -205,10 +205,25 @@ class InspectorModelDescriptor(val project: Project) {
     val model = InspectorModel(project)
     val windowRoot = root?.build() ?: return model
     val newWindow = AndroidWindow(windowRoot, windowRoot.drawId) { _, window ->
-      ViewNode.writeDrawChildren { drawChildren ->
+      ViewNode.writeDrawChildren { getDrawChildren ->
         window.root.flatten().forEach {
-          it.drawChildren().clear()
-          it.children.mapTo(it.drawChildren()) { child -> DrawViewChild(child) }
+          val drawChildren = it.getDrawChildren()
+          val children = it.children
+          if (drawChildren.any { drawChild -> drawChild is DrawViewImage }) {
+            // We can't support changes to the child list when there are also images, currently, since we can't know where in the order
+            // of children it should be, or if it should still be there at all.
+            if (drawChildren.filterIsInstance<DrawViewChild>().map { drawChild -> drawChild.owner } == children) {
+              // No changes, great.
+            }
+            else {
+              throw UnsupportedOperationException("TestLayoutInspectorModelBuilder doesn't support updating children of nodes with images.")
+            }
+          }
+          else {
+            // We don't have any images
+            drawChildren.clear()
+            children.mapTo(drawChildren) { child -> DrawViewChild(child) }
+          }
         }
       }
     }
