@@ -160,21 +160,6 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     GradleSettings.getInstance(project).setLinkedProjectsSettings(singletonList(projectSettings));
   }
 
-  @Override
-  public void tearDown() throws Exception {
-    try {
-      // Regression test: check the model doesn't hold on to dynamic proxies for Gradle Tooling API classes.
-      Object model = DataNodeCaches.getInstance(getProject()).getCachedProjectData();
-      if (model != null) {
-        LeakHunter.checkLeak(model, Proxy.class, o -> Arrays.stream(
-          o.getClass().getInterfaces()).anyMatch(clazz -> clazz.getName().contains("gradle.tooling")));
-      }
-    }
-    finally {
-      super.tearDown();
-    }
-  }
-
   // https://code.google.com/p/android/issues/detail?id=233038
   public void testLoadPlainJavaProject() throws Exception {
     prepareProjectForImport(PURE_JAVA_PROJECT);
