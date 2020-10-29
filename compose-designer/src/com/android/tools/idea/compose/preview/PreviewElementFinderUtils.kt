@@ -94,14 +94,14 @@ private fun UAnnotated.findAnnotation(fqName: Set<String>): UAnnotation? = uAnno
  * Reads the `@Preview` annotation parameters and returns a [PreviewConfiguration] containing the values.
  */
 private fun attributesToConfiguration(node: UAnnotation): PreviewConfiguration {
-  val apiLevel = node.findAttributeIntValue("apiLevel")
-  val theme = node.findAttributeValue("theme")?.evaluateString()?.nullize()
+  val apiLevel = node.findAttributeIntValue(PARAMETER_API_LEVEL)
+  val theme = node.findAttributeValue(PARAMETER_THEME)?.evaluateString()?.nullize()
   // Both width and height have to support old ("width") and new ("widthDp") conventions
-  val width = node.findAttributeIntValue("width") ?: node.findAttributeIntValue(WIDTH_PARAMETER)
-  val height = node.findAttributeIntValue("height") ?: node.findAttributeIntValue(HEIGHT_PARAMETER)
-  val fontScale = node.findAttributeFloatValue("fontScale")
-  val uiMode = node.findAttributeIntValue("uiMode")
-  val device = node.findAttributeValue("device")?.evaluateString()?.nullize()
+  val width = node.findAttributeIntValue(PARAMETER_WIDTH) ?: node.findAttributeIntValue(WIDTH_PARAMETER)
+  val height = node.findAttributeIntValue(PARAMETER_HEIGHT) ?: node.findAttributeIntValue(HEIGHT_PARAMETER)
+  val fontScale = node.findAttributeFloatValue(PARAMETER_FONT_SCALE)
+  val uiMode = node.findAttributeIntValue(PARAMETER_UI_MODE)
+  val device = node.findAttributeValue(PARAMETER_DEVICE)?.evaluateString()?.nullize()
 
   return PreviewConfiguration.cleanAndGet(apiLevel, theme, width, height, fontScale, uiMode, device)
 }
@@ -114,13 +114,13 @@ private fun previewAnnotationToPreviewElement(previewAnnotation: UAnnotation,
                                               overrideGroupName: String? = null): PreviewElement? {
   val uClass: UClass = annotatedMethod.uastParent as UClass
   val composableMethod = "${uClass.qualifiedName}.${annotatedMethod.name}"
-  val previewName = previewAnnotation.findDeclaredAttributeValue("name")?.evaluateString() ?: annotatedMethod.name
-  val groupName = overrideGroupName ?: previewAnnotation.findDeclaredAttributeValue("group")?.evaluateString()
-  val showDecorations = previewAnnotation.findDeclaredAttributeValue("showDecoration")?.evaluate() as? Boolean
-                        ?: previewAnnotation.findDeclaredAttributeValue("showSystemUi")?.evaluate() as? Boolean
+  val previewName = previewAnnotation.findDeclaredAttributeValue(PARAMETER_NAME)?.evaluateString() ?: annotatedMethod.name
+  val groupName = overrideGroupName ?: previewAnnotation.findDeclaredAttributeValue(PARAMETER_GROUP)?.evaluateString()
+  val showDecorations = previewAnnotation.findDeclaredAttributeValue(PARAMETER_SHOW_DECORATION)?.evaluate() as? Boolean
+                        ?: previewAnnotation.findDeclaredAttributeValue(PARAMETER_SHOW_SYSTEM_UI)?.evaluate() as? Boolean
                         ?: false
-  val showBackground = previewAnnotation.findDeclaredAttributeValue("showBackground")?.evaluate() as? Boolean ?: false
-  val backgroundColor = previewAnnotation.findDeclaredAttributeValue("backgroundColor")?.evaluate()
+  val showBackground = previewAnnotation.findDeclaredAttributeValue(PARAMETER_SHOW_BACKGROUND)?.evaluate() as? Boolean ?: false
+  val backgroundColor = previewAnnotation.findDeclaredAttributeValue(PARAMETER_BACKGROUND_COLOR)?.evaluate()
   val backgroundColorString = when(backgroundColor) {
     is Int -> backgroundColor.toString(16)
     is Long -> backgroundColor.toString(16)

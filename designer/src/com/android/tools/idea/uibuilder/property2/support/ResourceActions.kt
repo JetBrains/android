@@ -18,6 +18,8 @@ package com.android.tools.idea.uibuilder.property2.support
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import com.android.tools.adtui.actions.componentToRestoreFocusTo
+import com.android.tools.adtui.actions.locationFromEvent
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.res.colorToString
@@ -34,17 +36,13 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.actionSystem.KeyboardShortcut
-import com.intellij.openapi.actionSystem.PlatformDataKeys
 import icons.StudioIcons
 import org.jetbrains.annotations.TestOnly
 import java.awt.Color
 import java.awt.Component
 import java.awt.Point
-import java.awt.event.MouseEvent
 import java.util.Locale
 import javax.swing.JComponent
-import javax.swing.JTable
-import javax.swing.SwingUtilities
 
 const val PICK_A_RESOURCE = "Pick a Resource"
 
@@ -156,8 +154,8 @@ open class TestableColorSelectionAction(
       property.resolveValueAsColor(property.rawValue)
     }
     val initialColor = currentColor ?: Color.WHITE
-    val restoreFocusTo = componentToRestoreFocusTo(event)
-    selectFromColorDialog(locationFromEvent(event), actualProperty, initialColor, resourceReference, restoreFocusTo)
+    val restoreFocusTo = event.componentToRestoreFocusTo()
+    selectFromColorDialog(event.locationFromEvent(), actualProperty, initialColor, resourceReference, restoreFocusTo)
   }
 
   private fun selectFromColorDialog(location: Point,
@@ -175,28 +173,5 @@ open class TestableColorSelectionAction(
       { color -> property.value = colorToString(color) },
       { resourceString -> property.value = resourceString }
     )
-  }
-
-  private fun locationFromEvent(event: AnActionEvent): Point {
-    val source = componentFromEvent(event)
-    if (source is Component) {
-      val location = source.locationOnScreen
-      return Point(location.x + source.width / 2, location.y + source.height / 2)
-    }
-    val input = event.inputEvent
-    if (input is MouseEvent) {
-      return input.locationOnScreen
-    }
-    return Point(20, 20)
-  }
-
-  private fun componentFromEvent(event: AnActionEvent): Component? {
-    return PlatformDataKeys.CONTEXT_COMPONENT.getData(event.dataContext) ?: event.inputEvent?.component
-  }
-
-  private fun componentToRestoreFocusTo(event: AnActionEvent): Component? {
-    val component = componentFromEvent(event) ?: return null
-    val table = SwingUtilities.getAncestorOfClass(JTable::class.java, component)
-    return table ?: component
   }
 }

@@ -15,126 +15,20 @@
  */
 package com.android.tools.idea.compose.preview.pickers.properties
 
+import com.android.tools.idea.compose.preview.PARAMETER_BACKGROUND_COLOR
+import com.android.tools.idea.compose.preview.PARAMETER_FONT_SCALE
 import com.android.tools.idea.compose.preview.util.PreviewElement
-import com.android.tools.idea.kotlin.tryEvaluateConstant
-import com.android.tools.idea.kotlin.tryEvaluateConstantAsText
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
 import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
-import org.jetbrains.kotlin.idea.core.deleteElementAndCleanParent
-import org.jetbrains.kotlin.js.descriptorUtils.nameIfStandardType
-import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
-import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtPsiFactory
-import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedValueArgument
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
-import org.jetbrains.kotlin.resolve.source.getPsi
-
-
-/**
- * A [PsiPropertyItem] for a named parameter.
- *
- * @param project the [Project] the PSI belongs to.
- * @param model the [PsiCallPropertyModel] managing this property.
- * @param resolvedCall the parent [ResolvedCall] that contains this parameter.
- * @param descriptor the [ValueParameterDescriptor] of this parameter, containing the parameter metadata.
- * @param argumentExpression the initial [KtExpression] for the argument when this parameter was initialized.
- */
-class PsiCallParameterPropertyItem(
-  private val project: Project,
-  private val model: PsiCallPropertyModel,
-  private val resolvedCall: ResolvedCall<*>,
-  private val descriptor: ValueParameterDescriptor,
-  private var argumentExpression: KtExpression?) : PsiPropertyItem {
-
-  override var name: String
-    get() = descriptor.name.identifier
-    // We do not support editing property names.
-    set(_) {}
-
-  override val defaultValue: String? by lazy {
-    (descriptor.source.getPsi() as? KtParameter)?.defaultValue?.tryEvaluateConstantAsText()
-  }
-
-  override fun isSameProperty(qualifiedName: String): Boolean = false
-  override val namespace: String = ""
-
-  override var value: String? = null
-    get() = argumentExpression?.tryEvaluateConstantAsText() ?: defaultValue
-    set(value) {
-      if (value != field) {
-        field = value
-
-        writeNewValue(value)
-        model.firePropertyValuesChanged()
-      }
-    }
-
-  private fun writeNewValue(value: String?) {
-    if (value == null) {
-      WriteCommandAction.runWriteCommandAction(project) {
-        argumentExpression?.parent?.deleteElementAndCleanParent()
-        argumentExpression = null
-      }
-      return
-    }
-
-    val parameterString = if (descriptor.type.nameIfStandardType == Name.identifier("String")) {
-      "$name = \"$value\""
-    }
-    else {
-      "$name = $value"
-    }
-
-    WriteCommandAction.runWriteCommandAction(project) {
-      var newValueArgument = model.psiFactory.createArgument(parameterString)
-      val currentArgumentExpression = argumentExpression
-
-      if (currentArgumentExpression != null) {
-        newValueArgument = currentArgumentExpression.parent.replace(newValueArgument) as KtValueArgument
-      }
-      else {
-        if (resolvedCall.call.valueArgumentList == null) {
-          val newArgumentsList = model.psiFactory.createCallArguments("()").apply {
-            addArgument(newValueArgument)
-          }
-          newValueArgument = resolvedCall.call.callElement.add(newArgumentsList) as KtValueArgument
-        }
-        else {
-          newValueArgument = resolvedCall.call.valueArgumentList!!.addArgument(newValueArgument)
-        }
-      }
-      argumentExpression = newValueArgument.getArgumentExpression()
-    }
-  }
-}
-
-
-/**
- * Given a resolved called, this method returns the collection of editable [PsiPropertyItem]s.
- */
-private fun parserResolvedCallToPsiPropertyItems(project: Project,
-                                                 model: PsiCallPropertyModel,
-                                                 resolvedCall: ResolvedCall<*>): Collection<PsiPropertyItem> =
-  ReadAction.compute<Collection<PsiPropertyItem>, Throwable> {
-    return@compute resolvedCall.valueArguments.map { (descriptor, resolved) ->
-      PsiCallParameterPropertyItem(project,
-                                   model,
-                                   resolvedCall,
-                                   descriptor,
-                                   (resolved as? ExpressionValueArgument)?.valueArgument?.getArgumentExpression())
-    }.toList()
-  }
 
 /**
  * [PsiPropertyModel] for pickers handling calls. This is common in Compose where most pickers interact with method calls.
@@ -155,10 +49,11 @@ private fun parserResolvedCallToPsiPropertyItems(project: Project,
  */
 class PsiCallPropertyModel internal constructor(private val project: Project,
                                                 resolvedCall: ResolvedCall<*>) : PsiPropertyModel() {
-  private val psiPropertiesCollection = parserResolvedCallToPsiPropertyItems(
-    project, this, resolvedCall)
+  private val psiPropertiesCollection = parserResolvedCallToPsiPropertyItems(project, this, resolvedCall)
 
   val psiFactory: KtPsiFactory by lazy { KtPsiFactory(project, true) }
+
+  val ktFile = resolvedCall.call.callElement.containingKtFile
 
   override val properties: PropertiesTable<PsiPropertyItem> = PropertiesTable.create(
     HashBasedTable.create<String, String, PsiPropertyItem>().also { table ->
@@ -171,7 +66,25 @@ class PsiCallPropertyModel internal constructor(private val project: Project,
     fun fromPreviewElement(project: Project, previewElement: PreviewElement): PsiCallPropertyModel {
       val annotationEntry = previewElement.previewElementDefinitionPsi?.element as? KtAnnotationEntry
       val resolvedCall = annotationEntry?.getResolvedCall(annotationEntry.analyze(BodyResolveMode.FULL))!!
+      // TODO(154503873): Get the default values for the Preview annotation parameters from the Preview class.
       return PsiCallPropertyModel(project, resolvedCall)
     }
   }
 }
+
+/**
+ * Given a resolved call, this method returns the collection of editable [PsiPropertyItem]s.
+ */
+private fun parserResolvedCallToPsiPropertyItems(project: Project,
+                                                 model: PsiCallPropertyModel,
+                                                 resolvedCall: ResolvedCall<*>): Collection<PsiPropertyItem> =
+  ReadAction.compute<Collection<PsiPropertyItem>, Throwable> {
+    return@compute resolvedCall.valueArguments.map { (descriptor, resolved) ->
+      val argumentExpression = (resolved as? ExpressionValueArgument)?.valueArgument?.getArgumentExpression()
+      when (descriptor.name.asString()) {
+        PARAMETER_FONT_SCALE -> FloatPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression)
+        PARAMETER_BACKGROUND_COLOR -> ColorPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression)
+        else -> PsiCallParameterPropertyItem(project, model, resolvedCall, descriptor, argumentExpression)
+      }
+    }
+  }
