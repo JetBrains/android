@@ -778,7 +778,7 @@ fun parseColor(s: String?): Color? {
 }
 
 /**
- * Converts a color to hex-string representation, including alpha channel.
+ * Converts a color to hex-string representation: #AARRGGBB, including alpha channel.
  * If alpha is FF then the output is #RRGGBB with no alpha component.
  */
 fun colorToString(color: Color): String {
@@ -788,6 +788,15 @@ fun colorToString(color: Color): String {
     return String.format("#%08X", longColor)
   }
   return String.format("#%06X", longColor)
+}
+
+/**
+ * Converts a color to Java/Kotlin hex-string representation: 0xAARRGGBB, including alpha channel.
+ *
+ * The alpha channel is always included for this format.
+ */
+fun colorToStringWithAlpha(color: Color): String {
+  return String.format("0x%08X", (color.red shl 16 or (color.green shl 8) or color.blue).toLong() or (color.alpha.toLong() shl 24))
 }
 
 private fun extend(nibble: Long): Long {

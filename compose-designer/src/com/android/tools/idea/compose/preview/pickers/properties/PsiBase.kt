@@ -15,12 +15,19 @@
  */
 package com.android.tools.idea.compose.preview.pickers.properties
 
+import com.android.tools.idea.compose.preview.PARAMETER_BACKGROUND_COLOR
+import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
+import com.android.tools.idea.compose.preview.PARAMETER_FONT_SCALE
+import com.android.tools.idea.compose.preview.PARAMETER_SHOW_BACKGROUND
+import com.android.tools.idea.compose.preview.PARAMETER_SHOW_SYSTEM_UI
+import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
 import com.android.tools.idea.util.ListenerCollection
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumSupportProvider
+import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.NewPropertyItem
@@ -75,22 +82,47 @@ private class PsiPropertiesInspectorBuilder(private val editorProvider: EditorPr
  * A [PropertiesView] for editing [PsiPropertyModel]s.
  */
 internal class PsiPropertyView(model: PsiPropertyModel) : PropertiesView<PsiPropertyItem>(PSI_PROPERTIES_VIEW_NAME, model) {
-  object NopEnumProvider : EnumSupportProvider<PsiPropertyItem> {
-    override fun invoke(property: PsiPropertyItem): EnumSupport? = null
+  object PsiEnumProvider : EnumSupportProvider<PsiPropertyItem> {
+
+    override fun invoke(property: PsiPropertyItem): EnumSupport? =
+      when (property.name) {
+        PARAMETER_UI_MODE -> object : EnumSupport {
+          override val values: List<EnumValue> = UiMode.values().toList()
+          override fun createValue(stringValue: String): EnumValue =
+            UiMode.values().firstOrNull { stringValue == it.resolvedValue.toString() } ?: UiMode.NORMAL
+        }
+        PARAMETER_DEVICE -> object : EnumSupport {
+          override val values: List<EnumValue> = Device.values().toList()
+          override fun createValue(stringValue: String): EnumValue =
+            Device.values().firstOrNull { stringValue == it.resolvedValue } ?: Device.DEFAULT
+        }
+        PARAMETER_FONT_SCALE -> object : EnumSupport {
+          override val values: List<EnumValue> = FontScale.values().toList()
+        }
+        else -> null
+      }
   }
 
   /**
    * [ControlTypeProvider] for [PsiPropertyItem]s that provides a text editor for every property.
    */
-  inner class OnlyTextControlTypeProvider : ControlTypeProvider<PsiPropertyItem> {
-    override fun invoke(property: PsiPropertyItem): ControlType = ControlType.TEXT_EDITOR
+  inner class PsiPropertyItemControlTypeProvider : ControlTypeProvider<PsiPropertyItem> {
+    override fun invoke(property: PsiPropertyItem): ControlType =
+      when (property.name) {
+        PARAMETER_UI_MODE -> ControlType.DROPDOWN
+        PARAMETER_DEVICE -> ControlType.DROPDOWN
+        PARAMETER_BACKGROUND_COLOR -> ControlType.COLOR_EDITOR
+        PARAMETER_SHOW_SYSTEM_UI,
+        PARAMETER_SHOW_BACKGROUND -> ControlType.BOOLEAN
+        PARAMETER_FONT_SCALE -> ControlType.COMBO_BOX
+        else -> ControlType.TEXT_EDITOR
+      }
   }
 
   init {
     addTab("").apply {
       builders.add(PsiPropertiesInspectorBuilder(
-        EditorProvider.create(NopEnumProvider,
-                              OnlyTextControlTypeProvider())))
+        EditorProvider.create(PsiEnumProvider, PsiPropertyItemControlTypeProvider())))
     }
   }
 }

@@ -22,6 +22,7 @@ import com.android.tools.idea.compose.preview.pickers.properties.PsiCallProperty
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyModel
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.runReadAction
 import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -145,5 +146,32 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     } catch (expected: NoSuchElementException) {
     }
     assertEquals("@Preview", noParametersPreview.annotationText())
+  }
+
+  @Test
+  fun `supported parameters displayed correctly`() {
+    @Language("kotlin")
+    val fileContent = """
+      import $COMPOSABLE_ANNOTATION_FQN
+      import $PREVIEW_TOOLING_PACKAGE.Preview
+
+      @Composable
+      @Preview(name = "Test", fontScale = 1.2f, backgroundColor = 4294901760)
+      fun PreviewWithParemeters() {
+      }
+    """.trimIndent()
+
+    val file = fixture.configureByText("Test.kt", fileContent)
+    val preview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
+    val model = ReadAction.compute<PsiPropertyModel, Throwable> { PsiCallPropertyModel.fromPreviewElement(project, preview) }
+    assertNotNull(model.properties["", "backgroundColor"].colorButton)
+    assertEquals("1.20f", runReadAction { model.properties["", "fontScale"].value })
+    assertEquals("0xFFFF0000", runReadAction { model.properties["", "backgroundColor"].value })
+
+    model.properties["", "fontScale"].value = "0.5"
+    model.properties["", "backgroundColor"].value = "0x00FF00"
+
+    assertEquals("0.50f", runReadAction { model.properties["", "fontScale"].value })
+    assertEquals("0x0000FF00", runReadAction { model.properties["", "backgroundColor"].value })
   }
 }
