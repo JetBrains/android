@@ -62,6 +62,20 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
     addModuleWithAndroidFacet(projectBuilder, modules, "lib", PROJECT_TYPE_LIBRARY)
   }
 
+  companion object {
+    @JvmStatic
+    fun navigateToElementAtCaretFromDifferentFile(myFixture: JavaCodeInsightTestFixture) = with(myFixture) {
+      val element = GotoDeclarationAction.findTargetElement(project, editor, editor.caretModel.offset)
+      val destinationFile = element!!.navigationElement.containingFile.virtualFile
+      assertThat(destinationFile).isNotEqualTo(myFixture.file.virtualFile)
+
+      openFileInEditor(destinationFile)
+      (element as Navigatable).navigate(true)
+    }
+  }
+
+  protected val JavaCodeInsightTestFixture.elementAtCurrentOffset: PsiElement get() = file.findElementAt(editor.caretModel.offset)!!
+
   override fun setUp() {
     super.setUp()
     val libModule = myAdditionalModules[0]
@@ -836,7 +850,7 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
       ).virtualFile
     )
 
-    navigateToElementAtCaretFromDifferentFile()
+    navigateToElementAtCaretFromDifferentFile(myFixture)
     assertThat(elementAtCurrentOffset.text).isEqualTo("LibStyle")
     assertThat(elementAtCurrentOffset.parentOfType<XmlTag>()!!.text)
       .isEqualTo("""
@@ -877,7 +891,7 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
       ).virtualFile
     )
 
-    navigateToElementAtCaretFromDifferentFile()
+    navigateToElementAtCaretFromDifferentFile(myFixture)
     assertThat(elementAtCurrentOffset.text).isEqualTo("Theme.InputMethod")
     editor.caretModel.moveToOffset(editor.caretModel.offset + 35)
     assertThat(elementAtCurrentOffset.text).isEqualTo("Theme.Panel")
@@ -885,17 +899,6 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
     goToElementAtCaret()
     assertThat(elementAtCurrentOffset.parentOfType<XmlAttribute>()!!.text).isEqualTo("name=\"Theme.Panel\"")
   }
-
-  private fun navigateToElementAtCaretFromDifferentFile() = with(myFixture) {
-    val element = GotoDeclarationAction.findTargetElement(project, editor, editor.caretModel.offset)
-    val destinationFile = element!!.navigationElement.containingFile.virtualFile
-    assertThat(destinationFile).isNotEqualTo(myFixture.file.virtualFile)
-
-    openFileInEditor(destinationFile)
-    (element as Navigatable).navigate(true)
-  }
-
-  private val JavaCodeInsightTestFixture.elementAtCurrentOffset: PsiElement get() = file.findElementAt(editor.caretModel.offset)!!
 }
 
 class AndroidGotoDeclarationHandlerTestNamespaced : AndroidGotoDeclarationHandlerTestBase() {
