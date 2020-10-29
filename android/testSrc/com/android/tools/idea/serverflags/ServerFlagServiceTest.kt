@@ -18,6 +18,8 @@ package com.android.tools.idea.serverflags
 import com.android.tools.idea.ServerFlag
 import com.android.tools.idea.ServerFlagTest
 import com.google.common.truth.Truth.assertThat
+import com.google.protobuf.Any
+import com.google.protobuf.ByteString
 import org.junit.Test
 
 private val FLAGS = mapOf(
@@ -39,9 +41,9 @@ private val FLAGS = mapOf(
   }.build(),
   "proto" to ServerFlag.newBuilder().apply {
     percentEnabled = 100
-    protoValue = ServerFlagTest.newBuilder().apply {
+    protoValue = Any.pack(ServerFlagTest.newBuilder().apply {
       content = "content"
-    }.build().toByteString()
+    }.build())
   }.build()
 )
 
@@ -94,6 +96,21 @@ class ServerFlagServiceTest {
   }
 
   @Test
+  fun testInvalidProto() {
+    val proto = ServerFlag.newBuilder().apply {
+      percentEnabled = 100
+      protoValue = Any.newBuilder().apply {
+        value = ByteString.copyFromUtf8("some bytes")
+      }.build()
+    }.build()
+    
+    val map = mapOf("proto" to proto)
+    val service = ServerFlagServiceImpl(CONFIGURATION_VERSION, map)
+    val retrieved = service.getProtoMessage("proto", TEST_PROTO)
+    assertThat(retrieved).isEqualTo(TEST_PROTO)
+  }
+
+  @Test
   fun testEmptyService() {
     val service = ServerFlagServiceEmpty()
     assertThat(service.initialized).isFalse()
@@ -115,6 +132,7 @@ class ServerFlagServiceTest {
     val default = ServerFlagTest.newBuilder().apply {
       content = "default"
     }.build()
+
     assertThat((service.getProtoMessage("proto", default) as ServerFlagTest).content).isEqualTo("content")
     assertThat((service.getProtoMessage("missing", default) as ServerFlagTest).content).isEqualTo("default")
     assertThat(CONFIGURATION_VERSION).isEqualTo(service.configurationVersion)
@@ -169,7 +187,7 @@ Value: foo
   }
 
   private fun checkProto(service: ServerFlagService, name: String, expected: String) {
-    assertThat((service.getProtoMessage(name, TEST_PROTO) as ServerFlagTest).content).isEqualTo(expected)
+    assertThat(service.getProtoMessage(name, TEST_PROTO).content).isEqualTo(expected)
   }
 
   private fun <T> checkException(service: ServerFlagService, name: String, retrieve: (ServerFlagService, String) -> T?) {
@@ -177,7 +195,7 @@ Value: foo
     try {
       retrieve(service, name)
     }
-    catch(e: Exception) {
+    catch (e: Exception) {
       exception = e as? IllegalArgumentException
     }
     assertThat(exception).isNotNull()

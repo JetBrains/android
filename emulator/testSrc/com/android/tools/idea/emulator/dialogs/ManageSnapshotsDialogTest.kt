@@ -99,8 +99,8 @@ class ManageSnapshotsDialogTest {
   @Test
   fun testDialog() {
     EmulatorSettings.getInstance().snapshotAutoDeletionPolicy = SnapshotAutoDeletionPolicy.DO_NOT_DELETE
-    val invalidSnapshotId = "invalid_snapshot"
-    emulator.createInvalidSnapshot(invalidSnapshotId)
+    val incompatibleSnapshotId = "incompatible_snapshot"
+    emulator.createIncompatibleSnapshot(incompatibleSnapshotId)
 
     val dialog = showManageSnapshotsDialog()
     val rootPane = dialog.rootPane
@@ -115,8 +115,8 @@ class ManageSnapshotsDialogTest {
     val quickBootSnapshot = table.items[0]
     assertThat(quickBootSnapshot.isQuickBoot).isTrue()
     assertThat(quickBootSnapshot.isCreated).isFalse() // It hasn't been created yet.
-    val invalidSnapshot = table.items[1]
-    assertThat(invalidSnapshot.isValid).isFalse()
+    val incompatibleSnapshot = table.items[1]
+    assertThat(incompatibleSnapshot.isCompatible).isFalse()
     assertThat(isUseToBoot(table, 0)).isFalse() // The QuickBoot snapshot is not used to boot.
     assertThat(table.selectedObject).isEqualTo(quickBootSnapshot)
     assertThat(findPreviewImagePanel(ui)?.isVisible).isTrue()
@@ -200,12 +200,12 @@ class ManageSnapshotsDialogTest {
     assertThat(table.items.size == 3)
     assertThat(table.selectedRowCount).isEqualTo(1)
     selectedSnapshot = checkNotNull(table.selectedObject)
-    assertThat(selectedSnapshot.snapshotId).isEqualTo(invalidSnapshotId)
+    assertThat(selectedSnapshot.snapshotId).isEqualTo(incompatibleSnapshotId)
     assertThat(isPresentationEnabled(getLoadSnapshotAction(actionsPanel))).isFalse()
     assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.EDIT))).isFalse()
     assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE))).isTrue()
 
-    // Remove the invalid snapshot.
+    // Remove the incompatible snapshot.
     performAction(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE))
 
     assertThat(table.items.size == 2)
@@ -218,11 +218,13 @@ class ManageSnapshotsDialogTest {
 
     // Load the selected snapshot.
     emulator.clearGrpcCallLog()
-    performAction(getLoadSnapshotAction(actionsPanel))
     selectedSnapshot = checkNotNull(table.selectedObject)
+    assertThat(selectedSnapshot.isLoadedLast).isFalse()
+    performAction(getLoadSnapshotAction(actionsPanel))
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.SnapshotService/LoadSnapshot")
     assertThat(TextFormat.shortDebugString(call.request)).isEqualTo("""snapshot_id: "${selectedSnapshot.snapshotId}"""")
+    waitForCondition(200, TimeUnit.SECONDS, selectedSnapshot::isLoadedLast)
 
     assertThat(coldBootCheckBox.isSelected).isFalse()
     assertThat(isUseToBoot(table, 0)).isFalse()
@@ -255,10 +257,10 @@ class ManageSnapshotsDialogTest {
   }
 
   @Test
-  fun testInvalidSnapshotsConfirmedDeletion() {
+  fun testIncompatibleSnapshotsConfirmedDeletion() {
     emulator.createSnapshot("valid_snapshot")
-    emulator.createInvalidSnapshot("invalid_snapshot1")
-    emulator.createInvalidSnapshot("invalid_snapshot2")
+    emulator.createIncompatibleSnapshot("incompatible_snapshot1")
+    emulator.createIncompatibleSnapshot("incompatible_snapshot2")
     emulator.pauseGrpc() // Pause emulator's gRPC to prevent the nested dialog from opening immediately.
 
     val dialog = showManageSnapshotsDialog()
@@ -267,7 +269,7 @@ class ManageSnapshotsDialogTest {
     val table = ui1.getComponent<TableView<SnapshotInfo>>()
     /** The "Delete incompatible snapshots?" dialog opens when gRPC is resumed. */
     createModalDialogAndInteractWithIt(emulator::resumeGrpc) { confirmationDialog ->
-      assertThat(table.items).hasSize(4) // 1 QuickBoot + 1 valid + 2 invalid.
+      assertThat(table.items).hasSize(4) // 1 QuickBoot + 1 valid + 2 incompatible.
       val rootPane2 = confirmationDialog.rootPane
       val ui2 = FakeUi(rootPane2)
       val doNotAskCheckBox = ui2.getComponent<JCheckBox>()
@@ -277,22 +279,22 @@ class ManageSnapshotsDialogTest {
       ui2.clickOn(deleteButton)
     }
     assertThat(table.items).hasSize(2) // 1 QuickBoot + 1 valid.
-    assertThat(table.items.count { !it.isValid }).isEqualTo(0) // The two invalid snapshots were deleted.
+    assertThat(table.items.count { !it.isCompatible }).isEqualTo(0) // The two incompatible snapshots were deleted.
     // Close the "Manage Snapshots" dialog.
     ui1.clickOn(rootPane1.defaultButton)
 
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     val snapshots = SnapshotManager(emulatorView.emulator).fetchSnapshotList()
-    assertThat(snapshots.count { !it.isValid }).isEqualTo(0) // The two invalid snapshots were physically deleted.
+    assertThat(snapshots.count { !it.isCompatible }).isEqualTo(0) // The two incompatible snapshots were physically deleted.
     assertThat(EmulatorSettings.getInstance().snapshotAutoDeletionPolicy).isEqualTo(SnapshotAutoDeletionPolicy.DELETE_AUTOMATICALLY)
   }
 
   @Test
-  fun testInvalidSnapshotsDeclinedDeletion() {
+  fun testIncompatibleSnapshotsDeclinedDeletion() {
     emulator.createSnapshot("valid_snapshot")
-    emulator.createInvalidSnapshot("invalid_snapshot1")
-    emulator.createInvalidSnapshot("invalid_snapshot2")
+    emulator.createIncompatibleSnapshot("incompatible_snapshot1")
+    emulator.createIncompatibleSnapshot("incompatible_snapshot2")
     emulator.pauseGrpc() // Pause emulator's gRPC to prevent the nested dialog from opening immediately.
 
     val dialog = showManageSnapshotsDialog()
@@ -301,7 +303,7 @@ class ManageSnapshotsDialogTest {
     val table = ui1.getComponent<TableView<SnapshotInfo>>()
     /** The "Delete incompatible snapshots?" dialog opens when gRPC is resumed. */
     createModalDialogAndInteractWithIt(emulator::resumeGrpc) { confirmationDialog ->
-      assertThat(table.items).hasSize(4) // 1 QuickBoot + 1 valid + 2 invalid.
+      assertThat(table.items).hasSize(4) // 1 QuickBoot + 1 valid + 2 incompatible.
       val rootPane2 = confirmationDialog.rootPane
       val ui2 = FakeUi(rootPane2)
       val doNotAskCheckBox = ui2.getComponent<JCheckBox>()
@@ -310,8 +312,8 @@ class ManageSnapshotsDialogTest {
       val keepButton = ui2.getComponent<JButton> { it.text == "Keep" }
       ui2.clickOn(keepButton)
     }
-    assertThat(table.items).hasSize(4) // 1 QuickBoot + 1 valid + 2 invalid.
-    assertThat(table.items.count { !it.isValid }).isEqualTo(2) // The two invalid snapshots were preserved.
+    assertThat(table.items).hasSize(4) // 1 QuickBoot + 1 valid + 2 incompatible.
+    assertThat(table.items.count { !it.isCompatible }).isEqualTo(2) // The two incompatible snapshots were preserved.
     // Close the "Manage Snapshots" dialog.
     ui1.clickOn(rootPane1.defaultButton)
 
@@ -319,11 +321,11 @@ class ManageSnapshotsDialogTest {
   }
 
   @Test
-  fun testInvalidSnapshotsAutomaticDeletion() {
+  fun testIncompatibleSnapshotsAutomaticDeletion() {
     EmulatorSettings.getInstance().snapshotAutoDeletionPolicy = SnapshotAutoDeletionPolicy.DELETE_AUTOMATICALLY
     emulator.createSnapshot("valid_snapshot")
-    emulator.createInvalidSnapshot("invalid_snapshot1")
-    emulator.createInvalidSnapshot("invalid_snapshot2")
+    emulator.createIncompatibleSnapshot("incompatible_snapshot1")
+    emulator.createIncompatibleSnapshot("incompatible_snapshot2")
 
     val dialog = showManageSnapshotsDialog()
     val rootPane = dialog.rootPane
@@ -336,7 +338,7 @@ class ManageSnapshotsDialogTest {
     catch (e: TimeoutException) {
       Assertions.fail(e.javaClass.name + '\n' + threadDumpDescription())
     }
-    assertThat(table.items).hasSize(2) // The two invalid snapshots were deleted automatically.
+    assertThat(table.items).hasSize(2) // The two incompatible snapshots were deleted automatically.
     // Close the "Manage Snapshots" dialog.
     ui.clickOn(rootPane.defaultButton)
 
@@ -344,11 +346,11 @@ class ManageSnapshotsDialogTest {
   }
 
   @Test
-  fun testInvalidSnapshotsNoDeletion() {
+  fun testIncompatibleSnapshotsNoDeletion() {
     EmulatorSettings.getInstance().snapshotAutoDeletionPolicy = SnapshotAutoDeletionPolicy.DO_NOT_DELETE
     emulator.createSnapshot("valid_snapshot")
-    emulator.createInvalidSnapshot("invalid_snapshot1")
-    emulator.createInvalidSnapshot("invalid_snapshot2")
+    emulator.createIncompatibleSnapshot("incompatible_snapshot1")
+    emulator.createIncompatibleSnapshot("incompatible_snapshot2")
 
     val dialog = showManageSnapshotsDialog()
     val rootPane = dialog.rootPane

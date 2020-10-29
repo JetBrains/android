@@ -16,7 +16,7 @@
 package com.android.tools.idea.appinspection.ide
 
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
-import com.android.tools.idea.appinspection.inspector.api.launch.LibraryVersionResponse
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.FrameworkInspectorLaunchParams
@@ -60,12 +60,12 @@ class AppInspectorTabLaunchSupport(
     }
 
     return compatibilityResponse.map {
-      if (it.status == LibraryVersionResponse.Status.COMPATIBLE) {
-        AppInspectorTabLaunchParams(AppInspectorTabLaunchParams.Status.LAUNCH, artifactToProvider[it.targetLibrary]!!)
+      if (it.status == LibraryCompatbilityInfo.Status.COMPATIBLE) {
+        AppInspectorTabLaunchParams(AppInspectorTabLaunchParams.Status.LAUNCH, artifactToProvider[it.libraryCoordinate]!!)
       }
       else {
         AppInspectorTabLaunchParams(AppInspectorTabLaunchParams.Status.INCOMPATIBLE,
-                                    artifactToProvider[it.targetLibrary]!!)
+                                    artifactToProvider[it.libraryCoordinate]!!)
       }
     }
   }

@@ -17,6 +17,8 @@ package com.android.tools.idea.navigator.nodes.ndk
 
 import com.android.tools.idea.gradle.project.facet.ndk.NativeSourceRootType
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludesViewNodeV2
+import com.android.tools.idea.ndk.NativeWorkspaceService
+import com.android.tools.idea.util.toIoFile
 import com.intellij.ide.projectView.ViewSettings
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode
 import com.intellij.ide.util.treeView.AbstractTreeNode
@@ -32,7 +34,12 @@ fun getContentRootBasedNativeNodes(module: Module,
   val psiManager = PsiManager.getInstance(project)
   val sourceRootPsiDirs = sourceRoots.mapNotNull { sourceRoot -> psiManager.findDirectory(sourceRoot) }
 
-  var sourceRootNodes: Collection<AbstractTreeNode<*>> = sourceRootPsiDirs.map { PsiDirectoryNode(project, it, settings) }
+  val nativeWorkspaceService = NativeWorkspaceService.getInstance(module.project)
+  var sourceRootNodes: Collection<AbstractTreeNode<*>> = sourceRootPsiDirs.map {
+    PsiDirectoryNode(project, it, settings) { item ->
+      nativeWorkspaceService.shouldShowInProjectView(item.virtualFile.toIoFile())
+    }
+  }
   if (sourceRootNodes.size == 1) {
     sourceRootNodes = sourceRootNodes.first().children
   }

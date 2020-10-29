@@ -34,16 +34,16 @@ class RssMemoryTooltipViewTest {
     timeline.dataRange.set(0.0, TimeUnit.MILLISECONDS.toMicros(3).toDouble())
     timeline.tooltipRange.set(0.0, 0.0)
     assertThat(tooltipView.headingText).isEqualTo("00:00.000")
-    assertThat(tooltipView.descriptionLabel.text).startsWith("<html>mem.rss:")
-    assertThat(tooltipView.valueLabel.text).isEqualTo("Value: 0.0 B")
+    assertThat(tooltipView.descriptionLabel.text).contains("total")
+    assertThat(tooltipView.valueLabel.text).endsWith("0.0 B")
 
     timeline.tooltipRange.set(TimeUnit.MILLISECONDS.toMicros(1).toDouble() + 1.0, TimeUnit.MILLISECONDS.toMicros(1).toDouble() + 1.0)
     assertThat(tooltipView.headingText).isEqualTo("00:00.001")
-    assertThat(tooltipView.valueLabel.text).isEqualTo("Value: 1.0 KB")
+    assertThat(tooltipView.valueLabel.text).endsWith("1.0 KB")
 
     timeline.tooltipRange.set(TimeUnit.MILLISECONDS.toMicros(2).toDouble() + 1.0, TimeUnit.MILLISECONDS.toMicros(2).toDouble() + 1.0)
     assertThat(tooltipView.headingText).isEqualTo("00:00.002")
-    assertThat(tooltipView.valueLabel.text).isEqualTo("Value: 2.0 MB")
+    assertThat(tooltipView.valueLabel.text).endsWith("2.0 MB")
   }
 
   private companion object {

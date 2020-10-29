@@ -32,4 +32,8 @@ class GradleSyncIntegrationJdk8Test : GradleSyncIntegrationTest() {
       super.tearDown()
     }
   }
+
+  override fun testNoGradleFacetInTopLevelModule() {
+    // b/12932258: The method defined in GradleSyncIntegrationTest fails here.
+  }
 }

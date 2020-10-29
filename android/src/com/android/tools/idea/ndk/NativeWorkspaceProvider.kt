@@ -63,6 +63,8 @@ interface NativeWorkspaceProvider {
       EP_NAME.extensions().asSequence().flatMap {
         it.getCompilerSettings(project, filter).asSequence()
       }.asStream()
+
+    fun shouldShowInProjectView(project: Project, file: File): Boolean = EP_NAME.extensions().anyMatch { it.shouldShowInProjectView(project, file) }
   }
 
   /** Gets union of all include paths for all module/variant/abi that matches the given filter. */
@@ -70,5 +72,7 @@ interface NativeWorkspaceProvider {
 
   /** Gets all compiler settings for all module/variant/abi that matches the given filter. */
   fun getCompilerSettings(project: Project, filter: (ModuleVariantAbi) -> Boolean): Stream<NativeCompilerSetting>
+
+  fun shouldShowInProjectView(project: Project, file: File): Boolean
 }
 

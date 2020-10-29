@@ -28,7 +28,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
-import com.android.tools.idea.appinspection.inspector.api.launch.LibraryVersionResponse
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.idea.transport.manager.StreamEventQuery
@@ -102,13 +102,8 @@ internal class DefaultAppInspectionTarget(
         val launchMetadata = AppInspection.LaunchMetadata.newBuilder()
           .setLaunchedByName(params.projectName)
           .setForce(params.force)
-        if (params.libraryCoordinate != null) {
-          launchMetadata.setVersionParams(
-            AppInspection.VersionParams.newBuilder()
-              .setVersionFileName(params.libraryCoordinate!!.toVersionFileName())
-              .setMinVersion(params.libraryCoordinate!!.version)
-              .build()
-          ).build()
+        params.libraryCoordinate?.let {
+          launchMetadata.setMinLibrary(it.toArtifactCoordinateProto()).build()
         }
         val createInspectorCommand = CreateInspectorCommand.newBuilder()
           .setDexPath(fileDevicePath)
@@ -164,13 +159,12 @@ internal class DefaultAppInspectionTarget(
     messengers.clear()
   }
 
-  override suspend fun getLibraryVersions(libraryCoordinates: List<ArtifactCoordinate>): List<LibraryVersionResponse> {
-    val libraryVersions = libraryCoordinates.map {
-      AppInspection.VersionParams.newBuilder().setMinVersion(it.version).setVersionFileName(it.toVersionFileName()).build()
-    }
-    val getLibraryVersionsCommand = AppInspection.GetLibraryVersionsCommand.newBuilder().addAllTargetVersions(libraryVersions).build()
+  override suspend fun getLibraryVersions(libraryCoordinates: List<ArtifactCoordinate>): List<LibraryCompatbilityInfo> {
+    val libraryVersions = libraryCoordinates.map { it.toArtifactCoordinateProto() }
+    val getLibraryVersionsCommand = AppInspection.GetLibraryCompatibilityInfoCommand.newBuilder().addAllTargetLibraries(
+      libraryVersions).build()
     val commandId = AppInspectionTransport.generateNextCommandId()
-    val appInspectionCommand = AppInspectionCommand.newBuilder().setCommandId(commandId).setGetLibraryVersionsCommand(
+    val appInspectionCommand = AppInspectionCommand.newBuilder().setCommandId(commandId).setGetLibraryCompatibilityInfoCommand(
       getLibraryVersionsCommand).build()
     val streamQuery = StreamEventQuery(
       eventKind = APP_INSPECTION_RESPONSE,
@@ -178,9 +172,9 @@ internal class DefaultAppInspectionTarget(
     )
     val response = transport.executeCommand(appInspectionCommand, streamQuery)
     // The API call should always return a list of the same size.
-    assert(libraryCoordinates.size == response.appInspectionResponse.libraryVersionsResponse.responsesCount)
-    return response.appInspectionResponse.libraryVersionsResponse.responsesList.mapIndexed { i, result ->
-      result.toLibraryVersionResponse(libraryCoordinates[i])
+    assert(libraryCoordinates.size == response.appInspectionResponse.getLibraryCompatibilityResponse.responsesCount)
+    return response.appInspectionResponse.getLibraryCompatibilityResponse.responsesList.mapIndexed { i, result ->
+      result.toLibraryCompatibilityInfo(libraryCoordinates[i])
     }
   }
 }
@@ -208,17 +202,13 @@ private fun AppInspection.AppInspectionResponse.getException(inspectorId: String
 }
 
 @VisibleForTesting
-internal fun AppInspection.LibraryVersionResponse.toLibraryVersionResponse(artifactCoordinate: ArtifactCoordinate): LibraryVersionResponse {
+internal fun AppInspection.LibraryCompatibilityInfo.toLibraryCompatibilityInfo(
+  artifactCoordinate: ArtifactCoordinate): LibraryCompatbilityInfo {
   val responseStatus = when (status) {
-    AppInspection.LibraryVersionResponse.Status.COMPATIBLE -> LibraryVersionResponse.Status.COMPATIBLE
-    AppInspection.LibraryVersionResponse.Status.INCOMPATIBLE -> LibraryVersionResponse.Status.INCOMPATIBLE
-    AppInspection.LibraryVersionResponse.Status.LIBRARY_MISSING -> LibraryVersionResponse.Status.LIBRARY_MISSING
-    else -> LibraryVersionResponse.Status.ERROR
+    AppInspection.LibraryCompatibilityInfo.Status.COMPATIBLE -> LibraryCompatbilityInfo.Status.COMPATIBLE
+    AppInspection.LibraryCompatibilityInfo.Status.INCOMPATIBLE -> LibraryCompatbilityInfo.Status.INCOMPATIBLE
+    AppInspection.LibraryCompatibilityInfo.Status.LIBRARY_MISSING -> LibraryCompatbilityInfo.Status.LIBRARY_MISSING
+    else -> LibraryCompatbilityInfo.Status.ERROR
   }
-  return LibraryVersionResponse(artifactCoordinate, responseStatus, version, errorMessage)
+  return LibraryCompatbilityInfo(artifactCoordinate, responseStatus, version, errorMessage)
 }
-
-/**
- * Constructs the name of the version file located in an app's APK's META-INF folder.
- */
-private fun ArtifactCoordinate.toVersionFileName() = "${groupId}_${artifactId}.version"

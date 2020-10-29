@@ -206,12 +206,9 @@ class DrawViewImage(@VisibleForTesting val image: Image, owner: ViewNode) : Draw
       g2.composite = AlphaComposite.SrcOver.derive(0.6f)
     }
     val bounds = owner.transformedBounds.bounds
-    val rootBounds = owner.parentSequence.last().transformedBounds.bounds
     UIUtil.drawImage(
       g2, image,
-      Rectangle(max(bounds.x, 0), max(bounds.y, 0),
-                min(bounds.width, rootBounds.width - bounds.x),
-                min(bounds.height, rootBounds.height - bounds.y)),
+      Rectangle(max(bounds.x, 0), max(bounds.y, 0), bounds.width + min(bounds.x, 0), bounds.height + min(bounds.y, 0)),
       Rectangle(0, 0, image.getWidth(null), image.getHeight(null)), null)
     g2.composite = composite
   }

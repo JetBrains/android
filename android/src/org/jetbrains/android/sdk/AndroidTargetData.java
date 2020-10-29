@@ -17,6 +17,7 @@ package org.jetbrains.android.sdk;
 
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -161,6 +162,7 @@ public class AndroidTargetData {
     }
   }
 
+  @Slow
   @NotNull
   public synchronized LayoutLibrary getLayoutLibrary(@NotNull Project project) throws RenderingException {
     if (myLayoutLibrary == null || myLayoutLibrary.isDisposed()) {
@@ -186,6 +188,7 @@ public class AndroidTargetData {
   /**
    * The keys of the returned map are attr names. The values are maps defining numerical values of the corresponding enums or flags.
    */
+  @Slow
   @NotNull
   private Map<String, Map<String, Integer>> getFrameworkEnumValues() {
     ResourceRepository resources = getFrameworkResources(ImmutableSet.of());
@@ -260,6 +263,7 @@ public class AndroidTargetData {
    * @param languages the set of ISO 639 language codes
    * @return the repository of Android framework resources
    */
+  @Slow
   @Nullable
   public synchronized ResourceRepository getFrameworkResources(@NotNull Set<String> languages) {
     File resFolderOrJar = myTarget.getFile(IAndroidTarget.RESOURCES);

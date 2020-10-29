@@ -43,12 +43,14 @@ class V2NdkModelTest {
             override val sourceFlagsFile: File = tempDir.resolve("some-build-dir/debug/x86/compile_commands.json")
             override val symbolFolderIndexFile: File = tempDir.resolve("some-build-dir/debug/x86/symbol_folder_index.txt")
             override val buildFileIndexFile: File = tempDir.resolve("some-build-dir/debug/x86/build_file_index.txt")
+            override val additionalProjectFilesIndexFile: File = tempDir.resolve("some-build-dir/debug/x86/additional_project_files.txt")
           },
           object : NativeAbi {
             override val name: String = "arm64-v8a"
             override val sourceFlagsFile: File = tempDir.resolve("some-build-dir/debug/arm64-v8a/compile_commands.json")
             override val symbolFolderIndexFile: File = tempDir.resolve("some-build-dir/debug/arm64-v8a/symbol_folder_index.txt")
             override val buildFileIndexFile: File = tempDir.resolve("some-build-dir/debug/arm64-v8a/build_file_index.txt")
+            override val additionalProjectFilesIndexFile: File = tempDir.resolve("some-build-dir/debug/arm64-v8a/additional_project_files.txt")
           }
         )
       },
@@ -60,12 +62,14 @@ class V2NdkModelTest {
             override val sourceFlagsFile: File = tempDir.resolve("some-build-dir/release/x86/compile_commands.json")
             override val symbolFolderIndexFile: File = tempDir.resolve("some-build-dir/release/x86/symbol_folder_index.txt")
             override val buildFileIndexFile: File = tempDir.resolve("some-build-dir/release/x86/build_file_index.txt")
+            override val additionalProjectFilesIndexFile: File = tempDir.resolve("some-build-dir/release/x86/additional_project_files.txt")
           },
           object : NativeAbi {
             override val name: String = "arm64-v8a"
             override val sourceFlagsFile: File = tempDir.resolve("some-build-dir/release/arm64-v8a/compile_commands.json")
             override val symbolFolderIndexFile: File = tempDir.resolve("some-build-dir/release/arm64-v8a/symbol_folder_index.txt")
             override val buildFileIndexFile: File = tempDir.resolve("some-build-dir/release/arm64-v8a/build_file_index.txt")
+            override val additionalProjectFilesIndexFile: File = tempDir.resolve("some-build-dir/release/arm64-v8a/additional_project_files.txt")
           }
         )
       }

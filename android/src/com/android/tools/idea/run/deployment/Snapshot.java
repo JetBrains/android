@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.google.common.annotations.VisibleForTesting;
-import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
@@ -39,24 +37,18 @@ final class Snapshot implements Comparable<Snapshot> {
   @NotNull
   private final String myName;
 
-  Snapshot(@NotNull Path directory, @NotNull FileSystem fileSystem) {
-    this(directory, directory.equals(defaultBoot(fileSystem)) ? "Quickboot" : directory.toString());
+  Snapshot(@NotNull Path directory) {
+    this(directory, getName(directory));
+  }
+
+  private static @NotNull String getName(@NotNull Path directory) {
+    Object name = directory.getFileName();
+    return name.equals(directory.getFileSystem().getPath("default_boot")) ? "Quickboot" : name.toString();
   }
 
   Snapshot(@NotNull Path directory, @NotNull String name) {
     myDirectory = directory;
     myName = name;
-  }
-
-  @NotNull
-  static Snapshot quickboot(@NotNull FileSystem fileSystem) {
-    return new Snapshot(defaultBoot(fileSystem), "Quickboot");
-  }
-
-  @NotNull
-  @VisibleForTesting
-  static Path defaultBoot(@NotNull FileSystem fileSystem) {
-    return fileSystem.getPath("default_boot");
   }
 
   @NotNull

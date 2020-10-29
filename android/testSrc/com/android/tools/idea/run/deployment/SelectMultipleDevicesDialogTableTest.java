@@ -19,7 +19,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.run.AndroidDevice;
-import java.nio.file.FileSystems;
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
+import java.nio.file.FileSystem;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
@@ -167,11 +169,13 @@ public final class SelectMultipleDevicesDialogTableTest {
   @Test
   public void setModelDefaultSnapshot() {
     // Arrange
+    FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
+
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
       .setKey(new NonprefixedKey("Pixel_3_API_29/default_boot"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshot(Snapshot.quickboot(FileSystems.getDefault()))
+      .setSnapshot(new Snapshot(fileSystem.getPath("/home/juancnuno/.android/avd/Pixel_3_API_29.avd/snapshots/default_boot")))
       .build();
 
     TableModel model = new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device));

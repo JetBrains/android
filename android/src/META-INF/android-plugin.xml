@@ -364,8 +364,6 @@
                         serviceImplementation="org.jetbrains.android.facet.AndroidFacetEditorTab$Provider"/>
     <applicationService serviceInterface="com.android.tools.idea.util.CommonAndroidUtil"
                         serviceImplementation="org.jetbrains.android.util.AndroidUtils"/>
-    <projectService serviceImplementation="org.jetbrains.android.compose.AndroidComposeAutoDocumentation" />
-    <postStartupActivity implementation="org.jetbrains.android.compose.AndroidComposeAutoDocumentation$MyStartupActivity"/>
 
     <fileEditorProvider implementation="com.android.tools.idea.profiling.capture.CaptureEditorProvider" />
 
@@ -470,17 +468,8 @@
                             implementationClass="com.android.tools.idea.run.AndroidActivityAliasCompletionContributor"
                             order="first"/>
     <completion.contributor language="kotlin"
-                            implementationClass="org.jetbrains.android.compose.AndroidComposeCompletionContributor"
-                            order="first, before KotlinCompletionContributor"/>
-    <completion.contributor language="kotlin"
                             implementationClass="org.jetbrains.android.AndroidNonTransitiveRClassKotlinCompletionContributor"
                             order="first, after KotlinCompletionContributor"/>
-    <weigher key="completion"
-             implementationClass="org.jetbrains.android.compose.AndroidComposeCompletionWeigher"
-             id="android.compose"
-             order="first"/>
-    <lang.inspectionSuppressor language="kotlin" implementationClass="org.jetbrains.android.compose.AndroidComposeSuppressor" />
-
     <renamePsiElementProcessor implementation="org.jetbrains.android.refactoring.renaming.ResourceReferenceRenameProcessor" order="first"/>
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidApplicationPackageRenameProcessor" order="first"/>
 
@@ -874,6 +863,8 @@
                     interface="com.android.tools.idea.wizard.template.WizardTemplateProvider"/>
     <extensionPoint qualifiedName="com.android.tools.idea.ndk.nativeWorkspaceProvider"
                     interface="com.android.tools.idea.ndk.NativeWorkspaceProvider"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.analytics.ideBrandProvider"
+                    interface="com.android.tools.idea.analytics.IdeBrandProvider" />
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
@@ -934,10 +925,6 @@
 
   <extensions defaultExtensionNs="com.android.tools.idea.run.editor">
     <androidDebuggerInfoProvider implementation="com.android.tools.idea.run.editor.AndroidAppAndroidDebuggerInfoProvider" />
-  </extensions>
-
-  <extensions defaultExtensionNs="com.intellij">
-    <codeCompletionConfigurable instance="org.jetbrains.android.compose.ComposeCodeCompletionConfigurable"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.wizard.template">

@@ -45,6 +45,7 @@ studio_plugin(
             "//tools/adt/idea/app-inspection/inspectors/workmanager/view:intellij.android.app-inspection.inspectors.workmanager.view",
             "//tools/adt/idea/build-attribution:intellij.android.build-attribution",
             "//tools/adt/idea/compose-designer:intellij.android.compose-designer",
+            "//tools/adt/idea/intellij.android.compose-common:intellij.android.compose-common",
             "//tools/adt/idea/android:intellij.android.core",
             "//tools/adt/idea/dagger:intellij.android.dagger",
             "//tools/adt/idea/databinding:intellij.android.databinding",
@@ -347,7 +348,7 @@ android_studio(
     },
     searchable_options = "searchable-options",
     version_eap = True,
-    version_full = "{0}.{1} Dev 02",
+    version_full = "dev build",
     version_micro = 0,
     version_patch = 0,
 )
@@ -503,5 +504,31 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-textmate",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-changeReminder",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-yaml",
+    ],
+)
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.studio.tests",
+    iml_files = ["tests/intellij.android.studio.tests.iml"],
+    tags = [
+        "no_mac",
+        "no_windows",
+    ],
+    test_class = "com.android.testutils.JarTestSuite",
+    test_data = [
+        ":android-studio.linux.zip",
+        ":android-studio.mac.zip",
+        ":android-studio.win.zip",
+    ],
+    test_srcs = ["tests/testSrc"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8[test]",
+        "//tools/base/perf-logger:studio.perf-logger[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
     ],
 )

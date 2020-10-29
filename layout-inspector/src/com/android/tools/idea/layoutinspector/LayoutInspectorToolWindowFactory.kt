@@ -23,6 +23,7 @@ import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefin
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
+import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.ui.enableLiveLayoutInspector
 import com.google.common.annotations.VisibleForTesting
@@ -107,9 +108,11 @@ private class LayoutInspectorToolWindowManagerListener(private val project: Proj
     val windowVisibilityChanged = isWindowVisible != wasWindowVisible
     wasWindowVisible = isWindowVisible
     if (windowVisibilityChanged && isWindowVisible) {
-      UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT)
+      UsageTracker.log(AndroidStudioEvent.newBuilder()
+                         .setKind(AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT)
                          .setDynamicLayoutInspectorEvent(DynamicLayoutInspectorEvent.newBuilder()
-                                                    .setType(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.OPEN)))
+                                                           .setType(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.OPEN))
+                         .withProjectId(project))
     }
     val preferredProcess = getPreferredInspectorProcess(project) ?: return
     if (!windowVisibilityChanged || !isWindowVisible) {

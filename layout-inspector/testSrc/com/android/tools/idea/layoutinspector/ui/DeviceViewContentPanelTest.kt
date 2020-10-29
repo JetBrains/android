@@ -80,6 +80,8 @@ class DeviceViewContentPanelTest {
       window(ROOT, ROOT, 0, 0, 100, 200) {
         view(VIEW1, 0, 0, 50, 50)
       }, listOf(ROOT), 0)
+    // This is usually handled by a listener registered in DeviceViewPanel
+    panel.model.refresh()
     assertEquals(Dimension(732, 820), panel.preferredSize)
   }
 
@@ -392,7 +394,7 @@ class DeviceViewContentPanelTest {
   @Suppress("UndesirableClassUsage")
   @Test
   fun testPaintWithImagesBetweenChildren() {
-    val image1 = BufferedImage(100, 200, TYPE_INT_ARGB)
+    val image1 = BufferedImage(100, 100, TYPE_INT_ARGB)
     image1.graphics.run {
       color = Color.RED
       fillRect(25, 25, 50, 50)
@@ -402,7 +404,7 @@ class DeviceViewContentPanelTest {
       color = Color.BLUE
       fillRect(0, 0, 60, 60)
     }
-    val image3 = BufferedImage(100, 100, TYPE_INT_ARGB)
+    val image3 = BufferedImage(50, 50, TYPE_INT_ARGB)
     image3.graphics.run {
       color = Color.GREEN
       fillRect(0, 0, 50, 50)
@@ -540,5 +542,43 @@ class DeviceViewContentPanelTest {
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
       File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintTransformed_onlyUntransformed.png"), generatedImage, DIFF_THRESHOLD)
+  }
+
+  @Test
+  @Suppress("UndesirableClassUsage")
+  fun testPaintTransformedOutsideRoot() {
+    val image1 = BufferedImage(80, 150, TYPE_INT_ARGB)
+    (image1.graphics as Graphics2D).run {
+      paint = GradientPaint(0f, 0f, Color.RED, 80f, 100f, Color.BLUE)
+      fillRect(0, 0, 80, 100)
+    }
+
+    val model = model {
+      view(ROOT, 0, 0, 100, 100) {
+        view(VIEW1, 20, 20, 60, 60, bounds = Polygon(intArrayOf(-20, 80, 80, -20), intArrayOf(-50, -50, 150, 150), 4)) {
+          image(image1)
+        }
+      }
+    }
+
+    val generatedImage = BufferedImage(200, 200, TYPE_INT_ARGB)
+    var graphics = generatedImage.createGraphics()
+    graphics.font = ImageDiffTestUtil.getDefaultFont()
+
+    val settings = DeviceViewSettings(scalePercent = 75)
+    settings.drawLabel = false
+    val panel = DeviceViewContentPanel(model, settings)
+    panel.setSize(200, 200)
+
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintTransformedOutsideRoot.png"), generatedImage,
+                                     DIFF_THRESHOLD)
+
+    model.selection = model[VIEW1]
+    graphics = generatedImage.createGraphics()
+    graphics.font = ImageDiffTestUtil.getDefaultFont()
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(
+      File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintTransformedOutsideRoot_view1.png"), generatedImage, DIFF_THRESHOLD)
   }
 }

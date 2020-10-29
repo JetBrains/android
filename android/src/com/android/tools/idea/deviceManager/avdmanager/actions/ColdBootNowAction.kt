@@ -1,0 +1,60 @@
+/*
+ * Copyright (C) 2020 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.deviceManager.avdmanager.actions
+
+import com.android.sdklib.internal.avd.AvdInfo
+import com.android.tools.idea.avdmanager.EmulatorAdvFeatures
+import com.android.tools.idea.deviceManager.avdmanager.AvdManagerConnection
+import com.android.tools.idea.deviceManager.avdmanager.AvdManagerUtils
+import com.android.tools.idea.log.LogWrapper
+import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
+import com.google.common.util.concurrent.Futures
+import com.intellij.icons.AllIcons
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.util.concurrency.EdtExecutorService
+import java.awt.event.ActionEvent
+
+/**
+ * Launch the emulator now, forcing a cold boot.
+ * This does not change the general Cold/Fast selection.
+ */
+class ColdBootNowAction(avdInfoProvider: AvdInfoProvider) :
+  AvdUiAction(avdInfoProvider, "Cold Boot Now", "Force one cold boot", AllIcons.Actions.Menu_open) {
+
+  override fun actionPerformed(actionEvent: ActionEvent) {
+    val project = avdInfoProvider.project
+
+    val origAvdInfo = avdInfo ?: return
+    val origSystemImage = origAvdInfo.systemImage ?: return
+
+    val coldBootProperties = mutableMapOf<String, String>()
+    coldBootProperties.putAll(origAvdInfo.properties)
+    // TODO(b/171512149)
+    //coldBootProperties[USE_COLD_BOOT] = COLD_BOOT_ONCE_VALUE
+    val coldBootAvdInfo = AvdInfo(origAvdInfo.name, origAvdInfo.iniFile, origAvdInfo.dataFolderPath, origSystemImage, coldBootProperties)
+
+    val deviceFuture = AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, coldBootAvdInfo)
+    Futures.addCallback(deviceFuture, AvdManagerUtils.newCallback(project), EdtExecutorService.getInstance())
+  }
+
+  override fun isEnabled(): Boolean {
+    return avdInfo != null && EmulatorAdvFeatures.emulatorSupportsFastBoot(
+      AndroidSdks.getInstance().tryToChooseSdkHandler(),
+      StudioLoggerProgressIndicator(ColdBootNowAction::class.java),
+      LogWrapper(Logger.getInstance(AvdManagerConnection::class.java)))
+  }
+}

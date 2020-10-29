@@ -28,6 +28,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,12 +45,63 @@ public final class DeviceSkinUpdaterTest {
   private final Path mySdkSkins = myFileSystem.getPath("/home/juancnuno/Android/Sdk/skins");
 
   @Test
+  public void updateSkinsDeviceToStringIsEmpty() {
+    // Arrange
+    Path device = myFileSystem.getPath("");
+
+    // Act
+    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, Collections.emptyList(), null, null, myFileSystem, true);
+
+    // Assert
+    assertEquals(device, deviceSkins);
+  }
+
+  @Test
+  public void updateSkinsDeviceIsAbsolute() {
+    // Arrange
+    Path device = myFileSystem.getPath("/home/juancnuno/Android/Sdk/platforms/android-30/skins/HVGA");
+
+    // Act
+    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, Collections.emptyList(), null, null, myFileSystem, true);
+
+    // Assert
+    assertEquals(device, deviceSkins);
+  }
+
+  @Test
+  public void updateSkinsDeviceEqualsNoSkin() {
+    // Arrange
+    Path device = myFileSystem.getPath(AvdManagerUtils.NO_SKIN);
+
+    // Act
+    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, Collections.emptyList(), null, null, myFileSystem, true);
+
+    // Assert
+    assertEquals(device, deviceSkins);
+  }
+
+  @Test
+  public void updateSkinsImageSkinIsPresent() {
+    // Arrange
+    Path device = myFileSystem.getPath("AndroidWearRound480x480");
+
+    Path imageSkins =
+      myFileSystem.getPath("/home/juancnuno/Android/Sdk/system-images/android-28/android-wear/x86/skins/AndroidWearRound480x480");
+
+    // Act
+    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, Collections.singletonList(imageSkins), null, null, myFileSystem, true);
+
+    // Assert
+    assertEquals(imageSkins, deviceSkins);
+  }
+
+  @Test
   public void updateSkinsStudioSkinsIsNullAndSdkSkinsIsNull() {
     // Arrange
     Path device = myFileSystem.getPath("pixel_4");
 
     // Act
-    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, null, null, true);
+    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, Collections.emptyList(), null, null, myFileSystem, true);
 
     // Assert
     assertEquals(device, deviceSkins);
@@ -61,7 +113,7 @@ public final class DeviceSkinUpdaterTest {
     Path device = myFileSystem.getPath("pixel_4");
 
     // Act
-    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, null, mySdkSkins, true);
+    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, Collections.emptyList(), null, mySdkSkins, myFileSystem, true);
 
     // Assert
     assertEquals(mySdkSkins.resolve(device), deviceSkins);
@@ -73,7 +125,7 @@ public final class DeviceSkinUpdaterTest {
     Path device = myFileSystem.getPath("pixel_4");
 
     // Act
-    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, myStudioSkins, null, true);
+    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, Collections.emptyList(), myStudioSkins, null, myFileSystem, true);
 
     // Assert
     assertEquals(myStudioSkins.resolve(device), deviceSkins);
@@ -151,6 +203,20 @@ public final class DeviceSkinUpdaterTest {
 
     // Assert
     assertEquals(myStudioSkins.resolve("wear_round"), deviceSkins);
+  }
+
+  @Test
+  public void updateSkinsImplDeviceEqualsAndroidWearRoundChin320X290() {
+    // Arrange
+    Path device = myFileSystem.getPath("AndroidWearRoundChin320x290");
+
+    DeviceSkinUpdater updater = new DeviceSkinUpdater(myStudioSkins, mySdkSkins, true, myFileSystem, Mockito.mock(Converter.class));
+
+    // Act
+    Object deviceSkins = updater.updateSkinsImpl(device);
+
+    // Assert
+    assertEquals(myStudioSkins.resolve("wear_round_chin_320_290"), deviceSkins);
   }
 
   @Test

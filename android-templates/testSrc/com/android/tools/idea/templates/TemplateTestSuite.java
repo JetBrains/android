@@ -28,5 +28,6 @@ public class TemplateTestSuite extends IdeaTestSuiteBase {
     unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip");
     unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip");
     unzipIntoOfflineMavenRepo("tools/base/third_party/kotlin/kotlin-m2repository.zip");
+    unzipIntoOfflineMavenRepo("tools/data-binding/data_binding_runtime.zip");
   }
 }

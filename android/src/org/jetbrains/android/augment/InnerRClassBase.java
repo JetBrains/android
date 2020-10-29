@@ -1,5 +1,6 @@
 package org.jetbrains.android.augment;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -25,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.BiPredicate;
-import java.util.stream.Collectors;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -166,6 +166,7 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
     return myFieldsCache.getValue();
   }
 
+  @Slow
   @NotNull
   protected abstract PsiField[] doGetFields();
 

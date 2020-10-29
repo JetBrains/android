@@ -37,8 +37,11 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.imageio.ImageIO;
@@ -90,24 +93,69 @@ final class DeviceSkinUpdater {
   }
 
   /**
-   * Call this through {@link DeviceSkinUpdaterService#updateSkins}
+   * Usually returns the SDK skins path for the device (${HOME}/Android/Sdk/skins/pixel_4). This method also copies device skins from Studio
+   * to the SDK if the SDK ones are out of date and converts WebP skin images to PNG if the emulator doesn't support WebP images.
+   *
+   * @return the SDK skins path for the device. Returns device as is if it's empty, absolute, equal to _no_skin, or both the Studio skins
+   * path and SDK are not found. Returns the SDK skins path for the device if the Studio skins path is not found. Returns the Studio skins
+   * path for the device (${HOME}/android-studio/plugins/android/lib/device-art-resources/pixel_4) if the SDK is not found or an IOException
+   * is thrown.
+   * @see DeviceSkinUpdaterService
    */
   @Slow
   static @NotNull Path updateSkins(@NotNull Path device) {
+    return updateSkins(device, null);
+  }
+
+  @Slow
+  static @NotNull Path updateSkins(@NotNull Path device, @Nullable SystemImageDescription image) {
+    return updateSkins(device, image, FileSystems.getDefault());
+  }
+
+  @Slow
+  static @NotNull Path updateSkins(@NotNull Path device, @Nullable SystemImageDescription image, @NotNull FileSystem fileSystem) {
+    Collection<Path> imageSkins;
+
+    if (image == null) {
+      imageSkins = Collections.emptyList();
+    }
+    else {
+      imageSkins = Arrays.stream(image.getSkins())
+        .map(File::getPath)
+        .map(fileSystem::getPath)
+        .collect(Collectors.toList());
+    }
+
     File studioSkins = DeviceArtDescriptor.getBundledDescriptorsFolder();
     AndroidSdkData sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk();
 
     return updateSkins(device,
-                       studioSkins == null ? null : studioSkins.toPath(),
-                       sdk == null ? null : sdk.getLocation().toPath(),
+                       imageSkins,
+                       studioSkins == null ? null : fileSystem.getPath(studioSkins.getPath()),
+                       sdk == null ? null : fileSystem.getPath(sdk.getLocation().getPath()).resolve("skins"),
+                       fileSystem,
                        sdk != null && AvdWizardUtils.emulatorSupportsWebp(sdk.getSdkHandler()));
   }
 
   @VisibleForTesting
   static @NotNull Path updateSkins(@NotNull Path device,
+                                   @NotNull Collection<@NotNull Path> imageSkins,
                                    @Nullable Path studioSkins,
                                    @Nullable Path sdkSkins,
+                                   @NotNull FileSystem fileSystem,
                                    boolean emulatorSupportsWebP) {
+    if (device.toString().isEmpty() || device.isAbsolute() || device.equals(fileSystem.getPath(AvdManagerUtils.NO_SKIN))) {
+      return device;
+    }
+
+    Optional<Path> optionalImageSkin = imageSkins.stream()
+      .filter(skin -> skin.endsWith(device))
+      .findFirst();
+
+    if (optionalImageSkin.isPresent()) {
+      return optionalImageSkin.get();
+    }
+
     if (studioSkins == null && sdkSkins == null) {
       return device;
     }
@@ -120,18 +168,12 @@ final class DeviceSkinUpdater {
       return studioSkins.resolve(device);
     }
 
-    DeviceSkinUpdater updater = new DeviceSkinUpdater(studioSkins,
-                                                      sdkSkins,
-                                                      emulatorSupportsWebP,
-                                                      FileSystems.getDefault(),
-                                                      new Converter());
-
-    return updater.updateSkinsImpl(device);
+    return new DeviceSkinUpdater(studioSkins, sdkSkins, emulatorSupportsWebP, fileSystem, new Converter()).updateSkinsImpl(device);
   }
 
   @VisibleForTesting
   @NotNull Path updateSkinsImpl(@NotNull Path device) {
-    assert !device.toString().isEmpty() && !device.isAbsolute() && !device.equals(myFileSystem.getPath("_no_skin")) : device;
+    assert !device.toString().isEmpty() && !device.isAbsolute() && !device.equals(myFileSystem.getPath(AvdManagerUtils.NO_SKIN)) : device;
 
     Path sdkDeviceSkins = mySdkSkins.resolve(device);
     Path studioDeviceSkins = getStudioDeviceSkins(device);
@@ -161,6 +203,10 @@ final class DeviceSkinUpdater {
   private @NotNull Path getStudioDeviceSkins(@NotNull Path device) {
     if (device.equals(myFileSystem.getPath("AndroidWearRound"))) {
       return myStudioSkins.resolve("wear_round");
+    }
+
+    if (device.equals(myFileSystem.getPath("AndroidWearRoundChin320x290"))) {
+      return myStudioSkins.resolve("wear_round_chin_320_290");
     }
 
     if (device.equals(myFileSystem.getPath("AndroidWearSquare"))) {

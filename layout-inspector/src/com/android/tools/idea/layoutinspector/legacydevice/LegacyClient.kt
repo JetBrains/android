@@ -23,6 +23,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.stats.AndroidStudioUsageTracker
+import com.android.tools.idea.stats.withProjectId
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.profiler.proto.Common
 import com.google.common.annotations.VisibleForTesting
@@ -73,6 +74,8 @@ class LegacyClient(model: InspectorModel, parentDisposable: Disposable) : Inspec
 
   private val processManager = LegacyProcessManager(parentDisposable)
 
+  private val project = model.project
+
   override fun logEvent(type: DynamicLayoutInspectorEventType) {
     if (!isRenderEvent(type)) {
       logEvent(type, selectedStream)
@@ -91,6 +94,7 @@ class LegacyClient(model: InspectorModel, parentDisposable: Disposable) : Inspec
     val builder = AndroidStudioEvent.newBuilder()
       .setKind(AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT)
       .setDynamicLayoutInspectorEvent(inspectorEvent)
+      .withProjectId(project)
     processManager.findIDeviceFor(stream)?.let { builder.setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(it)) }
     UsageTracker.log(builder)
   }

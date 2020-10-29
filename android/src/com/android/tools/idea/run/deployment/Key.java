@@ -23,16 +23,24 @@ import org.jetbrains.annotations.NotNull;
  */
 public abstract class Key implements Comparable<Key> {
   static @NotNull Key newKey(@NotNull String string) {
+    if (string.startsWith(VirtualDevicePathAndSnapshotPath.PREFIX)) {
+      return VirtualDevicePathAndSnapshotPath.parse(string);
+    }
+
     if (string.startsWith(VirtualDevicePath.PREFIX)) {
-      return new VirtualDevicePath(string.substring(VirtualDevicePath.PREFIX.length()));
+      return VirtualDevicePath.parse(string);
+    }
+
+    if (string.startsWith(VirtualDeviceNameAndSnapshotPath.PREFIX)) {
+      return VirtualDeviceNameAndSnapshotPath.parse(string);
     }
 
     if (string.startsWith(VirtualDeviceName.PREFIX)) {
-      return new VirtualDeviceName(string.substring(VirtualDeviceName.PREFIX.length()));
+      return VirtualDeviceName.parse(string);
     }
 
     if (string.startsWith(SerialNumber.PREFIX)) {
-      return new SerialNumber(string.substring(SerialNumber.PREFIX.length()));
+      return SerialNumber.parse(string);
     }
 
     return new NonprefixedKey(string);

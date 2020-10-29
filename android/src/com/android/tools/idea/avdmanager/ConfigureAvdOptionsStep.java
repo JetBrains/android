@@ -79,6 +79,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.util.Consumer;
 import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
@@ -264,8 +265,15 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private ArrayList<SnapshotListItem> mySnapshotList;
 
   public ConfigureAvdOptionsStep(@Nullable Project project, @NotNull AvdOptionsModel model) {
+    this(project, model, new SkinChooser(project, true));
+  }
+
+  @VisibleForTesting
+  ConfigureAvdOptionsStep(@Nullable Project project, @NotNull AvdOptionsModel model, @NotNull SkinChooser skinComboBox) {
     super(model, "Android Virtual Device (AVD)");
     myModel = model;
+    initSkinComboBox(skinComboBox);
+
     myValidatorPanel = new ValidatorPanel(this, myRoot);
     myStudioWizardStepPanel = new StudioWizardStepPanel(myValidatorPanel, "Verify Configuration");
 
@@ -295,6 +303,16 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
     mySpeedCombo.setModel(new DefaultComboBoxModel(AvdNetworkSpeed.values()));
     myLatencyCombo.setModel(new DefaultComboBoxModel(AvdNetworkLatency.values()));
+  }
+
+  private void initSkinComboBox(@NotNull SkinChooser skinComboBox) {
+    mySkinComboBox = skinComboBox;
+
+    GridConstraints constraints = new GridConstraints();
+    constraints.setColumn(1);
+    constraints.setAnchor(GridConstraints.ANCHOR_WEST);
+
+    myCustomSkinPanel.add(skinComboBox, constraints);
   }
 
   private static void setupCameraComboBox(JComboBox comboBox, boolean withVirtualScene) {
@@ -1283,7 +1301,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myOrientationToggle.setForeground(JBColor.foreground());
     myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
     myHardwareSkinHelpLabel.setHyperlinkTarget(AvdWizardUtils.CREATE_SKIN_HELP_LINK);
-    mySkinComboBox = new SkinChooser(myProject, true);
   }
 
   private static final class NamedIcon {

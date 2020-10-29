@@ -48,18 +48,21 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
   // Setup the SimpleColoredRenderer for measuring the preferred size of the node.
   // Store enough of the values specified to make the necessary adjustments if the
   // renderer is used to paint.
-  override fun getTreeCellRendererComponent(tree: JTree,
-                                            value: Any?,
-                                            selected: Boolean,
-                                            expanded: Boolean,
-                                            leaf: Boolean,
-                                            row: Int,
-                                            hasFocus: Boolean): Component {
+  override fun getTreeCellRendererComponent(
+    tree: JTree,
+    value: Any?,
+    selected: Boolean,
+    expanded: Boolean,
+    leaf: Boolean,
+    row: Int,
+    hasFocus: Boolean
+  ): Component {
     renderer.reset()
     val node = type.clazz.cast(value) ?: return renderer
 
     renderer.currentTree = tree as? TreeImpl
     renderer.currentRow = row
+    renderer.currentDepth = renderer.currentTree?.model?.computeDepth(value) ?: 1
     renderer.selectedValue = selected
     // the "hasFocus" parameter is wrong when there are multiple selected nodes so check the tree instead:
     renderer.focusedValue = tree.hasFocus() && selected
@@ -82,6 +85,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
   @VisibleForTesting
   class ColoredViewRenderer : SimpleColoredRenderer() {
     var currentTree: TreeImpl? = null
+    var currentDepth: Int = 1
     var currentRow = -1
     var selectedValue = false
     var focusedValue = false
@@ -163,7 +167,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
      */
     @VisibleForTesting
     fun adjustForPainting() {
-      val maxWidth = width - x
+      val maxWidth = currentTree?.computeMaxRenderWidth(currentDepth) ?: 0
       if (preferredSize.width > maxWidth && currentTree?.isRowCurrentlyExpanded(currentRow) != true) {
         generate(maxWidth)
       }

@@ -1,5 +1,10 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Game Tools" type="Application" factoryName="Application">
+    <option name="ALTERNATIVE_JRE_PATH" value="11" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <envs>
+      <env name="ANDROID_SDK_ROOT" value="../../../prebuilts/studio/sdk/linux" />
+    </envs>
     <log_file alias="idea.log" path="$PROJECT_DIR$/system/log/idea.log" />
     <option name="MAIN_CLASS_NAME" value="com.intellij.idea.Main" />
     <module name="android.game-tools.main" />

@@ -532,9 +532,9 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   }
 
   private static class CacheFileNameGenerator {
-    private Path myLanguageNeutralFile;
-    private String myPrefix;
-    private String mySuffix;
+    private final Path myLanguageNeutralFile;
+    private final String myPrefix;
+    private final String mySuffix;
 
     CacheFileNameGenerator(@NotNull CachingData cachingData) {
       myLanguageNeutralFile = cachingData.getCacheFile();

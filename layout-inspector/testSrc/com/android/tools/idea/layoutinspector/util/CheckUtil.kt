@@ -24,6 +24,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
+import java.awt.image.BufferedImage
 
 /**
  * Various checks for tests.
@@ -46,8 +47,10 @@ object CheckUtil {
    */
   fun assertDrawTreesEqual(expected: ViewNode, actual: ViewNode) {
     assertEquals(expected.drawId, actual.drawId)
-    assertEquals("for node ${expected.drawId}", expected.drawChildren.size, actual.drawChildren.size)
-    expected.drawChildren.zip(actual.drawChildren).forEach { (expected, actual) -> checkTreesEqual(expected, actual) }
+    ViewNode.readDrawChildren { drawChildren ->
+      assertEquals("for node ${expected.drawId}", expected.drawChildren().size, actual.drawChildren().size)
+      expected.drawChildren().zip(actual.drawChildren()).forEach { (expected, actual) -> checkTreesEqual(expected, actual) }
+    }
   }
 
   private fun checkTreesEqual(expected: DrawViewNode, actual: DrawViewNode) {
@@ -55,7 +58,10 @@ object CheckUtil {
       assertDrawTreesEqual(expected.owner, actual.owner)
     }
     else if (expected is DrawViewImage && actual is DrawViewImage) {
-      ImageDiffUtil.assertImageSimilar("image", expected.image, actual.image, 0.0)
+      if (expected.image !is BufferedImage) {
+        fail("expected image should be a BufferedImage for id ${expected.owner.drawId}")
+      }
+      ImageDiffUtil.assertImageSimilar("image", expected.image as BufferedImage, actual.image, 0.0)
     }
     else {
       fail("$actual was expected to be a ${expected.javaClass.name}")

@@ -351,7 +351,7 @@ public class RenderErrorContributor {
   }
 
   private void reportMissingSizeAttributes(@NotNull final RenderLogger logger,
-                                           @NotNull RenderTaskContext renderTaskContext,
+                                           @NotNull RenderContext renderTaskContext,
                                            @Nullable XmlFile psiFile) {
     Module module = logger.getModule();
     if (module == null) {
@@ -449,7 +449,7 @@ public class RenderErrorContributor {
     myLinkManager.handleUrl(url, module, file, myDataContext, result, myDesignSurface);
   }
 
-  private void reportRelevantCompilationErrors(@NotNull RenderLogger logger, @NotNull RenderTask renderTask) {
+  private void reportRelevantCompilationErrors(@NotNull RenderLogger logger) {
     Module module = logger.getModule();
     if (module == null) {
       return;
@@ -476,7 +476,7 @@ public class RenderErrorContributor {
           .newline().newline();
       }
     }
-    else if (renderTask.getLayoutlibCallback().isUsed()) {
+    else if (myResult.hasRequestedCustomViews()) {
       boolean hasJavaErrors = wolfgang.hasProblemFilesBeneath(virtualFile -> virtualFile.getFileType() == JavaFileType.INSTANCE);
       if (hasJavaErrors) {
         summary = "Compilation errors";
@@ -628,8 +628,8 @@ public class RenderErrorContributor {
           String url = null;
           if (isFramework(frame) && platformSourceExists) { // try to link to documentation, if available
             if (platformSource == null) {
-              IAndroidTarget target = myResult.getRenderTask() != null ?
-                                      myResult.getRenderTask().getContext().getConfiguration().getRealTarget() :
+              IAndroidTarget target = myResult.getRenderContext() != null ?
+                                      myResult.getRenderContext().getConfiguration().getRealTarget() :
                                       null;
               platformSource = target != null ? AndroidSdks.getInstance().findPlatformSources(target) : null;
               platformSourceExists = platformSource != null;
@@ -682,7 +682,7 @@ public class RenderErrorContributor {
                myLinkManager.createRefreshRenderUrl()).newline();
   }
 
-  private void reportRtlNotEnabled(@NotNull RenderLogger logger, @Nullable RenderTask task) {
+  private void reportRtlNotEnabled(@NotNull RenderLogger logger) {
     ApplicationManager.getApplication().runReadAction(() -> {
       Project project = logger.getProject();
       if (project == null || project.isDisposed()) {
@@ -734,15 +734,15 @@ public class RenderErrorContributor {
       return;
     }
 
-    RenderTask renderTask = result.getRenderTask();
-    if (renderTask == null) {
+    RenderContext renderContext = result.getRenderContext();
+    if (renderContext == null) {
       return;
     }
-    IAndroidTarget target = renderTask.getContext().getConfiguration().getRealTarget();
+    IAndroidTarget target = renderContext.getConfiguration().getRealTarget();
     if (target == null) {
       return;
     }
-    AndroidPlatform platform = renderTask.getContext().getPlatform();
+    AndroidPlatform platform = renderContext.getPlatform();
     if (platform == null) {
       return;
     }
@@ -781,7 +781,7 @@ public class RenderErrorContributor {
     }
   }
 
-  private void reportOtherProblems(@NotNull RenderLogger logger, RenderTask task) {
+  private void reportOtherProblems(@NotNull RenderLogger logger) {
     List<RenderProblem> messages = logger.getMessages();
 
     if (messages.isEmpty()) {
@@ -802,7 +802,7 @@ public class RenderErrorContributor {
           continue;
         }
         else if (ILayoutLog.TAG_RTL_NOT_ENABLED.equals(tag)) {
-          reportRtlNotEnabled(logger, task);
+          reportRtlNotEnabled(logger);
           continue;
         }
         else if (ILayoutLog.TAG_RTL_NOT_SUPPORTED.equals(tag)) {
@@ -1391,18 +1391,20 @@ public class RenderErrorContributor {
 
   public Collection<RenderErrorModel.Issue> reportIssues() {
     RenderLogger logger = myResult.getLogger();
-    RenderTask renderTask = myResult.getRenderTask();
+    RenderContext renderContext = myResult.getRenderContext();
 
     reportMissingStyles(logger);
     reportAppCompatRequired(logger);
-    if (renderTask != null) {
-      reportRelevantCompilationErrors(logger, renderTask);
-      reportMissingSizeAttributes(logger, renderTask.getContext(), renderTask.getXmlFile());
+    if (renderContext != null) {
+      reportRelevantCompilationErrors(logger);
+      reportMissingSizeAttributes(logger,
+                                  renderContext,
+                                  (myResult.getFile() instanceof XmlFile) ? (XmlFile)myResult.getFile() : null);
       reportMissingClasses(logger);
     }
     reportBrokenClasses(logger);
     reportInstantiationProblems(logger);
-    reportOtherProblems(logger, renderTask);
+    reportOtherProblems(logger);
     reportUnknownFragments(logger);
     reportRenderingFidelityProblems(logger);
 

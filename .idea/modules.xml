@@ -28,6 +28,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../base/common/android.sdktools.common.iml" filepath="$PROJECT_DIR$/../../base/common/android.sdktools.common.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/common/android.sdktools.common.tests.iml" filepath="$PROJECT_DIR$/../../base/common/android.sdktools.common.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/ddmlib/android.sdktools.ddmlib.iml" filepath="$PROJECT_DIR$/../../base/ddmlib/android.sdktools.ddmlib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../base/ddmlib/android.sdktools.ddmlib.integration.tests.iml" filepath="$PROJECT_DIR$/../../base/ddmlib/android.sdktools.ddmlib.integration.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/deploy/deployer/android.sdktools.deployer.iml" filepath="$PROJECT_DIR$/../../base/deploy/deployer/android.sdktools.deployer.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/draw9patch/android.sdktools.draw9patch.iml" filepath="$PROJECT_DIR$/../../base/draw9patch/android.sdktools.draw9patch.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/device_validator/dvlib/android.sdktools.dvlib.iml" filepath="$PROJECT_DIR$/../../base/device_validator/dvlib/android.sdktools.dvlib.iml" />
@@ -178,6 +179,7 @@
       <module fileurl="file://$PROJECT_DIR$/sdk-updates/intellij.android.sdkUpdates.iml" filepath="$PROJECT_DIR$/sdk-updates/intellij.android.sdkUpdates.iml" />
       <module fileurl="file://$PROJECT_DIR$/sdk-updates/intellij.android.sdkUpdates.tests.iml" filepath="$PROJECT_DIR$/sdk-updates/intellij.android.sdkUpdates.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/smali/intellij.android.smali.iml" filepath="$PROJECT_DIR$/smali/intellij.android.smali.iml" />
+      <module fileurl="file://$PROJECT_DIR$/studio/tests/intellij.android.studio.tests.iml" filepath="$PROJECT_DIR$/studio/tests/intellij.android.studio.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/sync-perf-tests/intellij.android.sync-perf-tests.iml" filepath="$PROJECT_DIR$/sync-perf-tests/intellij.android.sync-perf-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-templates/intellij.android.templates.tests.iml" filepath="$PROJECT_DIR$/android-templates/intellij.android.templates.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-test-framework/intellij.android.testFramework.iml" filepath="$PROJECT_DIR$/android-test-framework/intellij.android.testFramework.iml" />

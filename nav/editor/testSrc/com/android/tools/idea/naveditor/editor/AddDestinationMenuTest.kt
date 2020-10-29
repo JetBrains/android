@@ -20,11 +20,9 @@ import com.android.SdkConstants
 import com.android.SdkConstants.ATTR_MODULE_NAME
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.TAG_INCLUDE
-import com.android.tools.idea.actions.CREATED_FILES
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -42,9 +40,6 @@ import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ADD_DESTINATION
 import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ADD_INCLUDE
 import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.CREATE_FRAGMENT
-import com.intellij.ide.impl.DataManagerImpl
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.project.rootManager
@@ -57,7 +52,6 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
-import junit.framework.TestCase
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
@@ -65,7 +59,6 @@ import org.mockito.Mockito.verify
 import java.awt.event.MouseEvent
 import java.io.File
 import java.util.stream.Collectors
-import javax.swing.JPanel
 
 // TODO: testing with custom navigators
 class AddDestinationMenuTest : NavTestCase() {
@@ -85,10 +78,6 @@ class AddDestinationMenuTest : NavTestCase() {
   private var _menu: AddDestinationMenu? = null
   private val menu
     get() = _menu!!
-
-  private var _panel: JPanel? = null
-  private val panel
-    get() = _panel!!
 
   private var _root: NavModelBuilderUtil.NavigationComponentDescriptor? = null
   private val root
@@ -112,7 +101,7 @@ class AddDestinationMenuTest : NavTestCase() {
     surface.setSize(1000, 1000)
     surface.model = model
     _menu = AddDestinationMenu(surface)
-    _panel = getMainMenuPanel()
+    setupMainMenuPanel()
   }
 
   fun testContent() {
@@ -271,23 +260,20 @@ class AddDestinationMenuTest : NavTestCase() {
 
   fun testCreateBlank() {
     model.pendingIds.addAll(model.flattenComponents().map { it.id }.collect(Collectors.toList()))
-    val event = mock(AnActionEvent::class.java)
-    `when`(event.project).thenReturn(project)
-    val action = object : AnAction() {
-      override fun actionPerformed(e: AnActionEvent) {
-        TestCase.assertEquals(event, e)
-        val createdFiles = DataManagerImpl().getDataContext(panel).getData(CREATED_FILES)!!
-        val root = myModule.rootManager.contentRoots[0].path
-        myFixture.addFileToProject("src/mytest/navtest/Frag.java",
-                                   "package mytest.navtest\n" +
-                                   "public class Frag extends android.support.v4.app.Fragment {}")
-        myFixture.addFileToProject("res/layout/frag_layout.xml", "")
-        createdFiles.add(File(root, "src/mytest/navtest/Frag.java"))
-        createdFiles.add(File(root, "res/layout/frag_layout.xml"))
-      }
+    val createdFiles = mutableListOf<File>()
+    val createFragmentFileTask = {
+      val root = myModule.rootManager.contentRoots[0].path
+      myFixture.addFileToProject("src/mytest/navtest/Frag.java",
+                                 "package mytest.navtest\n" +
+                                 "public class Frag extends android.support.v4.app.Fragment {}")
+      myFixture.addFileToProject("res/layout/frag_layout.xml", "")
+      createdFiles.add(File(root, "src/mytest/navtest/Frag.java"))
+      createdFiles.add(File(root, "res/layout/frag_layout.xml"))
+      menu.postNewDestinationFileCreated(model, createdFiles)
     }
+
     TestNavUsageTracker.create(model).use { tracker ->
-      menu.createNewDestination(event, action)
+      createFragmentFileTask()
 
       val added = model.find("frag")!!
       assertEquals("fragment", added.tagName)
@@ -305,21 +291,18 @@ class AddDestinationMenuTest : NavTestCase() {
 
   fun testCreateBlankNoLayout() {
     model.pendingIds.addAll(model.flattenComponents().map { it.id }.collect(Collectors.toList()))
-    val event = mock(AnActionEvent::class.java)
-    `when`(event.project).thenReturn(project)
-    val action = object : AnAction() {
-      override fun actionPerformed(e: AnActionEvent) {
-        TestCase.assertEquals(event, e)
-        val createdFiles = DataManagerImpl().getDataContext(panel).getData(CREATED_FILES)!!
-        val root = myModule.rootManager.contentRoots[0].path
-        myFixture.addFileToProject("src/mytest/navtest/Frag.java",
-                                   "package mytest.navtest\n" +
-                                   "public class Frag extends android.support.v4.app.Fragment {}")
-        createdFiles.add(File(root, "src/mytest/navtest/Frag.java"))
-      }
+    val createdFiles = mutableListOf<File>()
+    val createFragmentFileTask = {
+      val root = myModule.rootManager.contentRoots[0].path
+      myFixture.addFileToProject("src/mytest/navtest/Frag.java",
+                                 "package mytest.navtest\n" +
+                                 "public class Frag extends android.support.v4.app.Fragment {}")
+      createdFiles.add(File(root, "src/mytest/navtest/Frag.java"))
+      menu.postNewDestinationFileCreated(model, createdFiles)
     }
+
     TestNavUsageTracker.create(model).use { tracker ->
-      menu.createNewDestination(event, action)
+      createFragmentFileTask.invoke()
 
       val added = model.find("frag")!!
       assertEquals("fragment", added.tagName)
@@ -336,24 +319,20 @@ class AddDestinationMenuTest : NavTestCase() {
 
   fun testCreateSettingsFragment() {
     model.pendingIds.addAll(model.flattenComponents().map { it.id }.collect(Collectors.toList()))
-    val event = mock(AnActionEvent::class.java)
-    `when`(event.project).thenReturn(project)
-    val action = object : AnAction() {
-      override fun actionPerformed(e: AnActionEvent) {
-        TestCase.assertEquals(event, e)
-        val createdFiles = DataManagerImpl().getDataContext(panel).getData(CREATED_FILES)!!
-        val root = myModule.rootManager.contentRoots[0].path
-        myFixture.addFileToProject("src/mytest/navtest/SettingsFragment.kt",
-                                   """
+    val createdFiles = mutableListOf<File>()
+    val createFragmentFileTask = {
+      val root = myModule.rootManager.contentRoots[0].path
+      myFixture.addFileToProject("src/mytest/navtest/SettingsFragment.kt",
+                                 """
 package mytest.navtest
 import androidx.preference.PreferenceFragmentCompat
 class SettingsFragment : PreferenceFragmentCompat()
-                                   """.trimIndent())
-        createdFiles.add(File(root, "src/mytest/navtest/SettingsFragment.kt"))
-      }
+                                 """.trimIndent())
+      createdFiles.add(File(root, "src/mytest/navtest/SettingsFragment.kt"))
+      menu.postNewDestinationFileCreated(model, createdFiles)
     }
     TestNavUsageTracker.create(model).use { tracker ->
-      menu.createNewDestination(event, action)
+      createFragmentFileTask()
 
       val added = model.find("settingsFragment")!!
       assertEquals("fragment", added.tagName)
@@ -387,7 +366,7 @@ class SettingsFragment : PreferenceFragmentCompat()
                                          .setType(ADD_DESTINATION)
                                          .setDestinationInfo(NavDestinationInfo.newBuilder().setType(FRAGMENT)).build())
 
-      getMainMenuPanel()
+      setupMainMenuPanel()
       gallery = menu.destinationsList
       val destination2 = gallery.model.getElementAt(0) as Destination
       gallery.setSelectedValue(destination2, false)
@@ -402,8 +381,9 @@ class SettingsFragment : PreferenceFragmentCompat()
     }
   }
 
-  private fun getMainMenuPanel(): JPanel {
-    val res = menu.mainPanel
+  private fun setupMainMenuPanel() {
+    // Init the lateinit variable AddDestinationMenu.destinationsList
+    menu.mainPanel
     // We kick off a worker thread to load the destinations and then update the list in the ui thread, so we have to wait and dispatch
     // events until it's set.
     while (true) {
@@ -413,7 +393,6 @@ class SettingsFragment : PreferenceFragmentCompat()
       Thread.sleep(10L)
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     }
-    return res
   }
 
   fun testAddDestination() {

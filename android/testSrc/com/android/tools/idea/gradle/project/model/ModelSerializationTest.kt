@@ -323,7 +323,7 @@ class ModelSerializationTest {
 
   @Test
   fun nativeAbi() = assertSerializable {
-    IdeNativeAbiImpl("name", File("sourceFlagsFile"), File("sourceFolderIndexFile"), File("buildFileIndexFile"))
+    IdeNativeAbiImpl("name", File("sourceFlagsFile"), File("sourceFolderIndexFile"), File("buildFileIndexFile"), File("additionalProjectFiles"))
   }
 
   @Test

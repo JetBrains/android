@@ -1,5 +1,4 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
-load("//tools/base/bazel:maven.bzl", "maven_repo")
 
 # managed by go/iml_to_build
 iml_module(
@@ -50,28 +49,4 @@ iml_module(
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
         "//tools/adt/idea/emulator:intellij.android.emulator[module, test]",
     ],
-)
-
-# Dependencies of UI tests not covered by //tools/adt/idea/android:test_deps or out/studio/repo. This
-# allows us to run UI tests on a release bundle without a source checkout.
-maven_repo(
-    name = "uitest_deps",
-    artifacts = [
-        "//prebuilts/tools/common/m2/repository/android/arch/lifecycle/runtime/1.0.0:aar",
-        "//prebuilts/tools/common/m2/repository/androidx/constraintlayout/constraintlayout/1.1.2:aar",
-        "//prebuilts/tools/common/m2/repository/androidx/constraintlayout/constraintlayout-solver/1.1.2:jar",
-        "//prebuilts/tools/common/m2/repository/androidx/leanback/leanback/1.0.0:aar",
-        "//prebuilts/tools/common/m2/repository/androidx/legacy/legacy-support-v4/1.0.0:aar",
-        "//prebuilts/tools/common/m2/repository/androidx/media/media/1.0.0:aar",
-        "//prebuilts/tools/common/m2/repository/androidx/percentlayout/percentlayout/1.0.0:aar",
-        "//prebuilts/tools/common/m2/repository/androidx/recyclerview/recyclerview/1.0.0:aar",
-        "//prebuilts/tools/common/m2/repository/androidx/wear/wear/1.1.0:aar",
-        "//prebuilts/tools/common/m2/repository/androidx/test/espresso/espresso-core/3.1.0:aar",
-        "//prebuilts/tools/common/m2/repository/androidx/test/espresso/espresso-idling-resource/3.1.0:aar",
-        "//prebuilts/tools/common/m2/repository/androidx/test/monitor/1.1.0:aar",
-        "//prebuilts/tools/common/m2/repository/androidx/test/runner/1.1.0:aar",
-        "//prebuilts/tools/common/m2/repository/com/android/support/mediarouter-v7/27.1.1:aar",
-        "//prebuilts/tools/common/m2/repository/com/google/android/material/material/1.0.0:aar",
-    ],
-    visibility = ["//visibility:public"],
 )

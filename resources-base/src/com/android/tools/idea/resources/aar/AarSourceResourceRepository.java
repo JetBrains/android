@@ -24,6 +24,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AndroidManifestPackageNameUtils;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.symbols.Symbol;
 import com.android.ide.common.symbols.SymbolIo;
 import com.android.ide.common.symbols.SymbolTable;
 import com.android.ide.common.util.PathString;
@@ -98,7 +99,8 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
   /** The package name read on-demand from the manifest. */
   @NotNull private final NullableLazyValue<String> myManifestPackageName;
 
-  protected AarSourceResourceRepository(@NotNull RepositoryLoader loader, @Nullable String libraryName) {
+  protected AarSourceResourceRepository(@NotNull RepositoryLoader<? extends AarSourceResourceRepository> loader,
+                                        @Nullable String libraryName) {
     super(loader.getNamespace(), libraryName);
     myResourceDirectoryOrFile = loader.getResourceDirectoryOrFile();
     mySourceFileProtocol = loader.getSourceFileProtocol();
@@ -305,7 +307,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
   protected void loadFromStream(@NotNull Base128InputStream stream,
                                 @NotNull Map<String, String> stringCache,
                                 @Nullable Map<NamespaceResolver, NamespaceResolver> namespaceResolverCache) throws IOException {
-    ResourceSerializationUtil.readResourcesFromStream(stream, stringCache, namespaceResolverCache, this, item -> addResourceItem(item));
+    ResourceSerializationUtil.readResourcesFromStream(stream, stringCache, namespaceResolverCache, this, this::addResourceItem);
   }
 
   @TestOnly
@@ -385,7 +387,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
         .row(ResourceType.ID)
         .values()
         .stream()
-        .map(s -> s.getCanonicalName())
+        .map(Symbol::getCanonicalName)
         .collect(Collectors.toSet());
     }
 

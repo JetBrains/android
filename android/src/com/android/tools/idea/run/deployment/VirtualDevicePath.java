@@ -29,6 +29,10 @@ final class VirtualDevicePath extends Key {
     myValue = value;
   }
 
+  static @NotNull VirtualDevicePath parse(@NotNull String string) {
+    return new VirtualDevicePath(string.substring(PREFIX.length()));
+  }
+
   @Override
   @NotNull NonprefixedKey asNonprefixedKey() {
     return new NonprefixedKey(myValue);

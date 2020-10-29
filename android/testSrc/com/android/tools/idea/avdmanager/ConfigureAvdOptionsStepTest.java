@@ -16,6 +16,17 @@
 
 package com.android.tools.idea.avdmanager;
 
+import static com.android.sdklib.internal.avd.GpuMode.OFF;
+import static com.android.sdklib.internal.avd.GpuMode.SWIFT;
+import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_X86_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.TV_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
+import static com.android.tools.idea.avdmanager.ConfigureAvdOptionsStep.gpuOtherMode;
+import static com.android.tools.idea.avdmanager.ConfigureAvdOptionsStep.isGoogleApiTag;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.emulator.snapshot.SnapshotOuterClass;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.RepositoryPackages;
@@ -36,24 +47,22 @@ import com.android.testutils.NoErrorsOrWarningsLogger;
 import com.android.tools.idea.observable.BatchInvoker;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLabel;
-import org.jetbrains.android.AndroidTestCase;
-import org.junit.rules.TemporaryFolder;
-
-import javax.swing.*;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.sdklib.internal.avd.GpuMode.*;
-import static com.android.sdklib.repository.targets.SystemImage.*;
-import static com.android.tools.idea.avdmanager.ConfigureAvdOptionsStep.gpuOtherMode;
-import static com.android.tools.idea.avdmanager.ConfigureAvdOptionsStep.isGoogleApiTag;
-import static com.google.common.truth.Truth.assertThat;
+import java.util.concurrent.Executor;
+import javax.swing.Icon;
+import javax.swing.JCheckBox;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
+import org.junit.rules.TemporaryFolder;
 
 public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
@@ -198,7 +207,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
     //Device without SdCard
     AvdOptionsModel optionsModelNoSdCard = new AvdOptionsModel(myQAvdInfo);
-    ConfigureAvdOptionsStep optionsStepNoSdCard = new ConfigureAvdOptionsStep(getProject(), optionsModelNoSdCard);
+    ConfigureAvdOptionsStep optionsStepNoSdCard = new ConfigureAvdOptionsStep(getProject(), optionsModelNoSdCard, newSkinChooser());
     optionsStepNoSdCard.addListeners();
     Disposer.register(getTestRootDisposable(), optionsStepNoSdCard);
     optionsModelNoSdCard.device().setNullableValue(myAutomotive);
@@ -208,7 +217,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
     // Device with SdCard
     AvdOptionsModel optionsModelWithSdCard = new AvdOptionsModel(myQAvdInfo);
-    ConfigureAvdOptionsStep optionsStepWithSdCard = new ConfigureAvdOptionsStep(getProject(), optionsModelWithSdCard);
+    ConfigureAvdOptionsStep optionsStepWithSdCard = new ConfigureAvdOptionsStep(getProject(), optionsModelWithSdCard, newSkinChooser());
     optionsStepWithSdCard.addListeners();
     Disposer.register(getTestRootDisposable(), optionsStepWithSdCard);
     optionsModelWithSdCard.device().setNullableValue(myFoldable);
@@ -220,7 +229,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
   public void testFoldedDevice() {
     ensureSdkManagerAvailable();
     AvdOptionsModel optionsModel = new AvdOptionsModel(myQAvdInfo);
-    ConfigureAvdOptionsStep optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel);
+    ConfigureAvdOptionsStep optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel, newSkinChooser());
     optionsStep.addListeners();
     Disposer.register(getTestRootDisposable(), optionsStep);
     optionsModel.device().setNullableValue(myFoldable);
@@ -240,7 +249,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     ensureSdkManagerAvailable();
     AvdOptionsModel optionsModel = new AvdOptionsModel(myMarshmallowAvdInfo);
 
-    ConfigureAvdOptionsStep optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel);
+    ConfigureAvdOptionsStep optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel, newSkinChooser());
     Disposer.register(getTestRootDisposable(), optionsStep);
 
     optionsStep.updateSystemImageData();
@@ -251,7 +260,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
     optionsModel = new AvdOptionsModel(myPreviewAvdInfo);
 
-    optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel);
+    optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel, newSkinChooser());
     Disposer.register(getTestRootDisposable(), optionsStep);
     optionsStep.updateSystemImageData();
     icon = optionsStep.getSystemImageIcon();
@@ -263,7 +272,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
     optionsModel = new AvdOptionsModel(myZuluAvdInfo);
 
-    optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel);
+    optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel, newSkinChooser());
     Disposer.register(getTestRootDisposable(), optionsStep);
     optionsStep.updateSystemImageData();
     icon = optionsStep.getSystemImageIcon();
@@ -280,7 +289,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
       new AvdInfo("snapAvd", new File("ini"), snapAvdDir.getAbsolutePath(), mySnapshotSystemImage, myPropertiesMap);
     AvdOptionsModel optionsModel = new AvdOptionsModel(snapshotAvdInfo);
 
-    ConfigureAvdOptionsStep optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel);
+    ConfigureAvdOptionsStep optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel, newSkinChooser());
     Disposer.register(getTestRootDisposable(), optionsStep);
 
     File snapshotDir = new File(snapAvdDir, "snapshots");
@@ -335,5 +344,10 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     assertThat(snapshotList.get(0)).isEqualTo("snapSelected"); // First because it's selected
     assertThat(snapshotList.get(1)).isEqualTo("snapOldest");   // Next because of creation time
     assertThat(snapshotList.get(2)).isEqualTo("snapNewest");
+  }
+
+  private @NotNull SkinChooser newSkinChooser() {
+    Executor executor = MoreExecutors.directExecutor();
+    return new SkinChooser(getProject(), () -> Futures.immediateFuture(Collections.emptyList()), executor, executor);
   }
 }

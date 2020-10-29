@@ -176,6 +176,8 @@ object DataVisualizationColors {
    */
   private fun loadColorPalette(paletteStream: InputStream) {
     val gsonParser = Gson()
+    dataPalette.clear()
+    fontPalette.clear()
 
     val colors = gsonParser.fromJson(InputStreamReader(paletteStream), Array<DataVisualizationTheme>::class.java)
     colors.forEach {

@@ -32,6 +32,7 @@ import org.junit.Test
 import org.mockito.Mockito.mock
 import java.io.File
 import javax.imageio.ImageIO
+import kotlin.test.fail
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
@@ -107,7 +108,7 @@ class InspectorModelTest {
 
     val newNodes = model.root.flatten().associateBy { it.drawId }
     assertSameElements(newNodes.keys, origNodes.keys.plus(VIEW3))
-    assertSameElements(origNodes[VIEW1]?.children!!, newNodes[VIEW3])
+    assertSameElements(origNodes[VIEW1]?.children!!, newNodes[VIEW3] ?: fail())
     assertSingleRoot(model)
   }
 
@@ -222,12 +223,14 @@ class InspectorModelTest {
   }
 
   private fun assertSingleRoot(model: InspectorModel) {
-    assertEquals(
-      model.root.flatten()
-        .flatMap { it.drawChildren.asSequence().map { drawChild -> drawChild.owner }.plus(it) }
-        .map { it.parentSequence.last() }
-        .distinct()
-        .single(),
-      model.root)
+    ViewNode.readDrawChildren { drawChildren ->
+      assertEquals(
+        model.root.flatten()
+          .flatMap { it.drawChildren().asSequence().map { drawChild -> drawChild.owner }.plus(it) }
+          .map { it.parentSequence.last() }
+          .distinct()
+          .single(),
+        model.root)
+    }
   }
 }

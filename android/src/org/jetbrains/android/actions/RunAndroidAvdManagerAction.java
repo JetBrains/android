@@ -1,11 +1,11 @@
 /*
- * Copyright 2000-2010 JetBrains s.r.o.
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,14 +16,19 @@
 package org.jetbrains.android.actions;
 
 import static com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated;
+import static com.android.tools.idea.deviceManager.DeviceManagerFactoryKt.DEVICE_MANAGER_ID;
+
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdListDialog;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,6 +71,14 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
   }
 
   public void openAvdManager(@Nullable Project project) {
+    if (StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get()) {
+      openDeviceManager(project);
+    }
+    else {
+      openOldAvdManager(project);
+    }
+  }
+  private void openOldAvdManager(@Nullable Project project) {
     if (isChromeOSAndIsNotHWAccelerated()) {
       return;
     }
@@ -79,6 +92,17 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
     }
     else {
       myDialog.getFrame().toFront();
+    }
+  }
+
+  private static void openDeviceManager(@Nullable Project project) {
+    if (project == null) {
+      // TODO(qumeric): investigate if it is possible and let the user know if it is.
+      return;
+    }
+    ToolWindow deviceManager = ToolWindowManager.getInstance(project).getToolWindow(DEVICE_MANAGER_ID);
+    if (deviceManager != null) {
+      deviceManager.show(null);
     }
   }
 

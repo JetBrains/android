@@ -27,9 +27,11 @@ import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.isDeviceMatch
 import com.android.tools.idea.layoutinspector.model.ComponentTreeLoader
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.stats.AndroidStudioUsageTracker
+import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.idea.transport.TransportService
@@ -163,7 +165,7 @@ class DefaultInspectorClient(
   private val lowMemoryWatcher = LowMemoryWatcher.register(
     {
       model.root.children.clear()
-      model.root.drawChildren.clear()
+      ViewNode.writeDrawChildren { drawChildren -> model.root.drawChildren().clear() }
       requestScreenshotMode()
       InspectorBannerService.getInstance(project).setNotification("Low Memory. Rotation disabled.")
     }, LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC)
@@ -399,6 +401,7 @@ class DefaultInspectorClient(
           val builder = AndroidStudioEvent.newBuilder()
             .setKind(AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT)
             .setDynamicLayoutInspectorEvent(inspectorEvent)
+            .withProjectId(project)
           if (bridge != null) {
             findDevice(bridge, stream)?.let {
               builder.setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(it))

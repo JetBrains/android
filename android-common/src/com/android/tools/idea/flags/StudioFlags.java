@@ -573,8 +573,10 @@ public final class StudioFlags {
     "Enable the Upgrade Assistant for helping with AGP upgrades", true);
   public static final Flag<Boolean> DISABLE_FORCED_UPGRADES = Flag.create(
     GRADLE_IDE, "forced.agp.update", "Disable forced Android Gradle plugin upgrades",
-    "This option is only respected when running Android Studio internally.", false
-  );
+    "This option is only respected when running Android Studio internally.", false);
+  public static final Flag<Boolean> USE_MODULE_PER_SOURCE_SET = Flag.create(
+    GRADLE_IDE, "module.per.source.set", "Enables creating multiple modules per Gradle project",
+    "This allows the IDE to more closely represent how the project is configured in Gradle.", false);
 
   public static final Flag<Boolean> ALLOW_DIFFERENT_JDK_VERSION = Flag.create(
     GRADLE_IDE, "jdk.allow.different", "Allow different Gradle JDK", "Allow usage of a different JDK version when running Gradle.", true);
@@ -953,6 +955,13 @@ public final class StudioFlags {
     COMPOSE, "preview.animation.inspector",
     "Enable compose preview animation inspection",
     "If enabled, users can inspect animations in compose previews, e.g. play/pause and jump to specific frame",
+    true
+  );
+
+  public static final Flag<Boolean> COMPOSE_ANIMATION_PREVIEW_LABEL_INSPECTION = Flag.create(
+    COMPOSE, "preview.animation.label.inspection",
+    "Enable 'label' parameter inspection of Compose animations PropKeys",
+    "If enabled, show a warning when the 'label' parameter of Compose animations PropKeys are not set.",
     true
   );
 

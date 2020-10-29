@@ -192,14 +192,13 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
   @VisibleForTesting
   Snapshot getSnapshot(@NotNull Path snapshotDirectory) {
     Path snapshotProtocolBuffer = snapshotDirectory.resolve("snapshot.pb");
-    Path snapshotDirectoryName = snapshotDirectory.getFileName();
 
     if (!Files.exists(snapshotProtocolBuffer)) {
-      return new Snapshot(snapshotDirectoryName, myFileSystem);
+      return new Snapshot(snapshotDirectory);
     }
 
     try (InputStream in = Files.newInputStream(snapshotProtocolBuffer)) {
-      return getSnapshot(SnapshotOuterClass.Snapshot.parseFrom(in), snapshotDirectoryName);
+      return getSnapshot(SnapshotOuterClass.Snapshot.parseFrom(in), snapshotDirectory);
     }
     catch (IOException exception) {
       Logger.getInstance(VirtualDevicesTask.class).warn(snapshotDirectory.toString(), exception);
@@ -217,7 +216,7 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
     String name = snapshot.getLogicalName();
 
     if (name.isEmpty()) {
-      return new Snapshot(snapshotDirectory, myFileSystem);
+      return new Snapshot(snapshotDirectory);
     }
 
     return new Snapshot(snapshotDirectory, name);
@@ -225,13 +224,27 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
 
   @NotNull
   private VirtualDevice newDisconnectedDevice(@NotNull AvdInfo avd, @Nullable Snapshot snapshot) {
+    Key key;
+    Key nameKey;
+
+    if (snapshot == null) {
+      key = new VirtualDevicePath(avd.getDataFolderPath());
+      nameKey = new VirtualDeviceName(avd.getName());
+    }
+    else {
+      String path = snapshot.getDirectory().toString();
+
+      key = new VirtualDevicePathAndSnapshotPath(avd.getDataFolderPath(), path);
+      nameKey = new VirtualDeviceNameAndSnapshotPath(avd.getName(), path);
+    }
+
     AndroidDevice device = myNewLaunchableAndroidDevice.apply(avd);
 
     VirtualDevice.Builder builder = new VirtualDevice.Builder()
       .setName(avd.getDisplayName())
-      .setKey(new VirtualDevicePath(avd.getDataFolderPath()))
+      .setKey(key)
       .setAndroidDevice(device)
-      .setNameKey(new VirtualDeviceName(avd.getName()))
+      .setNameKey(nameKey)
       .setSnapshot(snapshot);
 
     if (myChecker == null) {

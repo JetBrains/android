@@ -145,7 +145,7 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
   @NotNull private final ResourceUrlParser myUrlParser = new ResourceUrlParser();
   // Used to keep track of resources defined in the current value resource file.
   @NotNull private final Table<ResourceType, String, BasicValueResourceItemBase> myValueFileResources =
-      Tables.newCustomTable(new EnumMap<>(ResourceType.class), () -> new LinkedHashMap<>());
+      Tables.newCustomTable(new EnumMap<>(ResourceType.class), LinkedHashMap::new);
   @NotNull protected final Path myResourceDirectoryOrFile;
   @NotNull private final PathString myResourceDirectoryOrFilePath;
   private final boolean myLoadingFromZipArchive;
@@ -1145,7 +1145,7 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
       }
 
       String qualifier = FolderConfiguration.getQualifier(folderName);
-      FolderConfiguration config = folderConfigCache.computeIfAbsent(qualifier, q -> FolderConfiguration.getConfigForQualifierString(q));
+      FolderConfiguration config = folderConfigCache.computeIfAbsent(qualifier, FolderConfiguration::getConfigForQualifierString);
       if (config == null) {
         return null;
       }
