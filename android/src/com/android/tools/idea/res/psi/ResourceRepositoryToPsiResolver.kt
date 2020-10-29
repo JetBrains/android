@@ -26,6 +26,7 @@ import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.getDeclaringAttributeValue
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.res.resolve
 import com.intellij.openapi.project.Project
@@ -34,6 +35,7 @@ import com.intellij.psi.PsiElementResolveResult
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.ResolveResult
+import com.intellij.psi.impl.ResolveScopeManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.search.SearchScope
@@ -41,8 +43,6 @@ import com.intellij.psi.xml.XmlElement
 import com.intellij.util.containers.toArray
 import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
-import com.android.tools.idea.res.getDeclaringAttributeValue
-import com.intellij.psi.impl.ResolveScopeManager
 
 object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
   override fun getGotoDeclarationFileBasedTargets(resourceReference: ResourceReference, context: PsiElement): Array<PsiFile> {
@@ -215,9 +215,6 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
     resourceReference: ResourceReference,
     resourceRepositoryManager: ResourceRepositoryManager
   ): ResourceRepository? {
-    return when (resourceReference.namespace) {
-      ResourceNamespace.ANDROID -> resourceRepositoryManager.getFrameworkResources(emptySet())
-      else -> resourceRepositoryManager.appResources
-    }
+    return resourceRepositoryManager.getResourcesForNamespace(resourceReference.namespace)
   }
 }

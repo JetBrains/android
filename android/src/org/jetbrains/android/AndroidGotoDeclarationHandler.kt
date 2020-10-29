@@ -13,6 +13,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
+import com.android.tools.idea.res.requiresDynamicFeatureModuleResources
 import com.android.tools.idea.util.androidFacet
 import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler
@@ -33,7 +34,6 @@ import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.manifest.ManifestElementWithRequiredName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
-import com.android.tools.idea.res.requiresDynamicFeatureModuleResources
 import java.util.ArrayList
 
 /**
@@ -67,7 +67,7 @@ class AndroidGotoDeclarationHandler : GotoDeclarationHandler {
         val styleableAttrUrl = targetElement.styleableAttrFieldUrl
         val styleables =
           ResourceRepositoryManager.getInstance(sourceElement)
-            ?.allResources
+            ?.getResourcesForNamespace(styleableAttrUrl.styleable.namespace)
             ?.getResources(styleableAttrUrl.styleable) ?: return PsiElement.EMPTY_ARRAY
         return findAttrElementsInStyleables(styleables, targetElement)
       }

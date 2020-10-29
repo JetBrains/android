@@ -294,29 +294,44 @@ public final class ResourceRepositoryManager implements Disposable {
   }
 
   /**
-   * Returns the repository with all resources available to a given module, both framework and non-framework.
+   * Returns the repository for the given namespace.
    *
-   * @return the computed repository or null if framework resources cannot be determined for the module
+   * @return the computed repository, or null if the namespace is {@link ResourceNamespace#ANDROID}
+   *     and the framework resources cannot be determined for the module
    * @see #getAppResources()
    * @see #getFrameworkResources(Set)
+   * @see #getExistingResourcesForNamespace(ResourceNamespace)
    */
+  @Slow
   @Nullable
-  public ResourceRepository getAllResources() {
-    ResourceRepository frameworkResources = getFrameworkResources(Collections.emptySet());
-    return frameworkResources == null ? null : new AllResourceRepository(getAppResources(), frameworkResources);
+  public ResourceRepository getResourcesForNamespace(@NotNull ResourceNamespace namespace) {
+    return namespace.equals(ResourceNamespace.ANDROID) ? getFrameworkResources(Collections.emptySet()) : getAppResources();
   }
 
   /**
-   * Returns the repository with all non-framework resources available to a given module (in the current variant). This includes not just
-   * the resources defined in this module, but in any other modules that this module depends on, as well as any libraries those modules may
-   * depend on (e.g. appcompat). This repository also contains sample data resources associated with the {@link ResourceNamespace#TOOLS}
-   * namespace.
+   * Returns the repository for the given namespace, if it has been loaded already.
    *
-   * <p>When a layout is rendered in the layout editor, it is getting resources from the app resource repository: it should see all
-   * the resources just like the app does.
+   * @return the repository, or null if the repository hasn't been loaded yet
+   * @see #getAppResources()
+   * @see #getFrameworkResources(Set)
+   * @see #getResourcesForNamespace(ResourceNamespace)
+   */
+  @Nullable
+  public ResourceRepository getExistingResourcesForNamespace(@NotNull ResourceNamespace namespace) {
+    return namespace.equals(ResourceNamespace.ANDROID) ? getExistingFrameworkResources(Collections.emptySet()) : getExistingAppResources();
+  }
+
+  /**
+   * Returns the repository with all non-framework resources available to a given module (in the current variant).
+   * This includes not just the resources defined in this module, but in any other modules that this module depends
+   * on, as well as any libraries those modules may depend on (e.g. appcompat). This repository also contains sample
+   * data resources associated with the {@link ResourceNamespace#TOOLS} namespace.
    *
-   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time, or block waiting for a read
-   * action lock.
+   * <p>When a layout is rendered in the layout editor, it is getting resources from the app resource repository:
+   * it should see all the resources just like the app does.
+   *
+   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time,
+   * or block waiting for a read action lock.
    *
    * @return the computed repository
    * @see #getExistingAppResources()
@@ -346,10 +361,10 @@ public final class ResourceRepositoryManager implements Disposable {
   }
 
   /**
-   * Returns the previously computed repository with all non-framework resources available to a given module (in the current variant).
-   * This includes not just the resources defined in this module, but in any other modules that this module depends on, as well as any AARs
-   * those modules depend on (e.g. appcompat). This repository also contains sample data resources associated with
-   * the {@link ResourceNamespace#TOOLS} namespace.
+   * Returns the previously computed repository with all non-framework resources available to a given module
+   * (in the current variant). This includes not just the resources defined in this module, but in any other
+   * modules that this module depends on, as well as any AARs those modules depend on (e.g. appcompat). This
+   * repository also contains sample data resources associated with the {@link ResourceNamespace#TOOLS} namespace.
    *
    * @return the repository, or null if the repository hasn't been created yet
    * @see #getAppResources()
@@ -365,8 +380,8 @@ public final class ResourceRepositoryManager implements Disposable {
    * Returns the resource repository for a module along with all its (local) module dependencies.
    * The repository doesn't contain resources from AAR dependencies.
    *
-   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time, or block waiting for a read
-   * action lock.
+   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time,
+   * or block waiting for a read action lock.
    *
    * @return the computed repository
    * @see #getExistingProjectResources()
@@ -408,11 +423,11 @@ public final class ResourceRepositoryManager implements Disposable {
   }
 
   /**
-   * Returns the resource repository for a single module (which can possibly have multiple resource folders). Does not include resources
-   * from any dependencies.
+   * Returns the resource repository for a single module (which can possibly have multiple resource folders).
+   * Does not include resources from any dependencies.
    *
-   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time, or block waiting for a read
-   * action lock.
+   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time,
+   * or block waiting for a read action lock.
    *
    * @return the computed repository
    * @see #getExistingModuleResources()
@@ -440,8 +455,8 @@ public final class ResourceRepositoryManager implements Disposable {
   }
 
   /**
-   * Returns the previously computed resource repository for a single module (which can possibly have multiple resource folders).
-   * Does not include resources from any dependencies.
+   * Returns the previously computed resource repository for a single module (which can possibly have multiple
+   * resource folders). Does not include resources from any dependencies.
    *
    * @return the repository, or null if the repository hasn't been created yet
    * @see #getModuleResources()
@@ -493,9 +508,10 @@ public final class ResourceRepositoryManager implements Disposable {
 
   @NotNull
   private LocalResourceRepository computeTestAppResources() {
-    // For disposal, the newly created test module repository ends up owned by the repository manager if returned from this method or the
-    // TestAppResourceRepository if passed to it. This is slightly different to the main module repository, which is always owned by the
-    // manager and stored in myModuleResources.
+    // For disposal, the newly created test module repository ends up owned by the repository manager
+    // if returned from this method or the TestAppResourceRepository if passed to it. This is slightly
+    // different to the main module repository, which is always owned by the manager and stored in
+    // myModuleResources.
     LocalResourceRepository moduleTestResources = getTestModuleResources();
 
     AndroidModuleModel model = AndroidModuleModel.get(myFacet);
@@ -514,7 +530,7 @@ public final class ResourceRepositoryManager implements Disposable {
    * @param languages the set of ISO 639 language codes determining the subset of resources to load.
    *     May be empty to load only the language-neutral resources. The returned repository may contain resources
    *     for more languages than was requested.
-   * @return the framework repository or null if the SDK resources directory cannot be determined for the module
+   * @return the framework repository, or null if the SDK resources directory cannot be determined for the module
    */
   @Slow
   @Nullable
@@ -528,14 +544,34 @@ public final class ResourceRepositoryManager implements Disposable {
   }
 
   /**
-   * If namespacing is disabled, the namespace parameter is ignored and the method returns a list containing the single resource repository
-   * returned by {@link #getAppResources()}. Otherwise the method returns a list of module, library, or sample data resource
-   * repositories for the given namespace. Usually the returned list will contain at most two resource repositories, one for a module and
-   * another for its user-defined sample data. More repositories may be returned only when there is a package name collision between modules
-   * or libraries.
+   * Returns the resource repository with Android framework resources for the module's compile SDK, if the repository
+   * has been loaded already.
    *
-   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time, or block waiting for a read
-   * action lock.
+   * @param languages the set of ISO 639 language codes determining the subset of resources to load.
+   *     May be empty to load only the language-neutral resources. The returned repository may contain resources
+   *     for more languages than was requested.
+   * @return the framework repository, or null if the repository hasn't been loaded yet
+   */
+  @Nullable
+  public ResourceRepository getExistingFrameworkResources(@NotNull Set<String> languages) {
+    AndroidPlatform androidPlatform = AndroidPlatform.getInstance(myFacet.getModule());
+    if (androidPlatform == null) {
+      return null;
+    }
+
+    return androidPlatform.getSdkData().getTargetData(androidPlatform.getTarget()).getFrameworkResources(languages);
+  }
+
+  /**
+   * If namespacing is disabled, the namespace parameter is ignored and the method returns a list containing
+   * the single resource repository returned by {@link #getAppResources()}. Otherwise the method returns
+   * a list of module, library, or sample data resource repositories for the given namespace. Usually the returned
+   * list will contain at most two resource repositories, one for a module and another for its user-defined sample
+   * data. More repositories may be returned only when there is a package name collision between modules or
+   * libraries.
+   *
+   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time,
+   * or block waiting for a read action lock.
    *
    * @param namespace the namespace to return resource repositories for
    * @return the repositories for the given namespace
@@ -604,8 +640,8 @@ public final class ResourceRepositoryManager implements Disposable {
 
   @Override
   public void dispose() {
-    // There's nothing to dispose in this object, but the actual resource repositories may need to do clean-up and they are children
-    // of this object in the Disposer hierarchy.
+    // There's nothing to dispose in this object, but the actual resource repositories may need to do
+    // clean-up and they are children of this object in the Disposer hierarchy.
   }
 
   public void resetAllCaches() {
@@ -747,8 +783,8 @@ public final class ResourceRepositoryManager implements Disposable {
   /**
    * Returns all resource directories.
    *
-   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time, or block waiting for a read
-   * action lock.
+   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time,
+   * or block waiting for a read action lock.
    */
   @Slow
   @NotNull
@@ -771,8 +807,8 @@ public final class ResourceRepositoryManager implements Disposable {
   /**
    * Returns resource repositories for all libraries the app depends upon directly or indirectly.
    *
-   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time, or block waiting for a read
-   * action lock.
+   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time,
+   * or block waiting for a read action lock.
    */
   @Slow
   @NotNull
