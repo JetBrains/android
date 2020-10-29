@@ -16,8 +16,8 @@
 package com.android.tools.idea.stats
 
 import com.android.ddmlib.IDevice
-import com.android.ide.common.util.isMdnsAutoConnectUnencrypted
 import com.android.ide.common.util.isMdnsAutoConnectTls
+import com.android.ide.common.util.isMdnsAutoConnectUnencrypted
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.HostData
@@ -40,7 +40,6 @@ import com.google.wireless.android.sdk.stats.ProductDetails
 import com.google.wireless.android.sdk.stats.ProductDetails.SoftwareLifeCycleChannel
 import com.google.wireless.android.sdk.stats.StudioProjectChange
 import com.google.wireless.android.sdk.stats.UserSentiment
-import com.intellij.concurrency.JobScheduler
 import com.intellij.ide.AppLifecycleListener
 import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.plugins.PluginManagerCore
@@ -147,19 +146,17 @@ object AndroidStudioUsageTracker {
   }
 
   @JvmStatic
-  fun setupScheduledReports() {
-    val scheduler = JobScheduler.getScheduler()
+  fun setup(scheduler: ScheduledExecutorService) {
+    scheduler.submit { runStartupReports() }
     // Send initial report immediately, daily from then on.
     scheduler.scheduleWithFixedDelay({ runDailyReports() }, 0, 1, TimeUnit.DAYS)
     // Send initial report immediately, hourly from then on.
     scheduler.scheduleWithFixedDelay({ runHourlyReports() }, 0, 1, TimeUnit.HOURS)
 
     subscribeToEvents()
-    runStartupReports()
   }
 
-  @JvmStatic
-  fun subscribeToEvents() {
+  private fun subscribeToEvents() {
     val app = ApplicationManager.getApplication()
     val connection = app.messageBus.connect()
     connection.subscribe(ProjectLifecycleListener.TOPIC, ProjectLifecycleTracker())
