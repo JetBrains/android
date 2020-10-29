@@ -417,14 +417,6 @@ class AgpUpgradeRefactoringProcessor(
     }
     presentation.setDynamicUsagesString("Dynamic " + StringUtil.decapitalize(
       descriptor.getCodeReferencesText(dynamicUsagesCount, dynamicUsagesCodeFiles.size)))
-    val generatedCodeString: String
-    generatedCodeString = if (codeReferencesText.contains("in code")) {
-      StringUtil.replace(codeReferencesText, "in code", "in generated code")
-    }
-    else {
-      "$codeReferencesText in generated code"
-    }
-    presentation.usagesInGeneratedCodeString = generatedCodeString
     return presentation
 
   }
