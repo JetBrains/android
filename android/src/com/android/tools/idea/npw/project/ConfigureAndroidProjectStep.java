@@ -20,6 +20,7 @@ import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.android.tools.idea.npw.FormFactorUtilKt.toWizardFormFactor;
 import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
+import static com.android.tools.idea.npw.module.AndroidApiLevelComboBoxKt.ensureDefaultApiLevelAtLeastRecommended;
 import static com.android.tools.idea.npw.platform.AndroidVersionsInfoKt.getSdkManagerLocalPath;
 import static com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
@@ -217,6 +218,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     int minSdk = newTemplate.getMinSdk();
 
+    ensureDefaultApiLevelAtLeastRecommended();
     myFormFactorSdkControls.startDataLoading(toWizardFormFactor(formFactor), minSdk);
     boolean isKotlinOnly;
     setTemplateThumbnail(newTemplate);

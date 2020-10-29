@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.module
 
+import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.repository.targets.AddonTarget
 import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem
@@ -74,3 +75,18 @@ class AndroidApiLevelComboBox : JComboBox<VersionItem?>() {
 }
 
 fun getPropertiesComponentMinSdkKey(formFactor: FormFactor): String = formFactor.id + "minApi"
+
+/**
+ * Ensures that the saved/persistent API level is at least the recommended version.
+ * This is done in a separate method here such that it can be called only from the
+ * new project wizard, not for every scenario the API level combo box is used (such as
+ * new module wizards.)
+ */
+fun ensureDefaultApiLevelAtLeastRecommended() {
+  val key = getPropertiesComponentMinSdkKey(FormFactor.MOBILE)
+  val recommended = SdkVersionInfo.RECOMMENDED_MIN_SDK_VERSION
+  val savedApiLevel = PropertiesComponent.getInstance().getValue(key, recommended.toString()).toIntOrNull() ?: return
+  if (savedApiLevel < recommended) {
+    PropertiesComponent.getInstance().setValue(key, recommended.toString())
+  }
+}

@@ -25,6 +25,7 @@ import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API_TV
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API_WEAR
+import com.android.sdklib.SdkVersionInfo.RECOMMENDED_MIN_SDK_VERSION
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_TAG
 import com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG
@@ -49,7 +50,7 @@ enum class FormFactor(
   val largeIcon: Icon,
   private val apiTags: List<IdDisplay> = listOf()
 ) {
-  MOBILE("Mobile", "Phone and Tablet", LOWEST_ACTIVE_API, LOWEST_ACTIVE_API, HIGHEST_KNOWN_API, FormFactors.MOBILE,
+  MOBILE("Mobile", "Phone and Tablet", RECOMMENDED_MIN_SDK_VERSION, LOWEST_ACTIVE_API, HIGHEST_KNOWN_API, FormFactors.MOBILE,
          FormFactors.MOBILE_LARGE, listOf(DEFAULT_TAG, GOOGLE_APIS_TAG, GOOGLE_APIS_X86_TAG)),
   WEAR("Wear", "Wear OS", LOLLIPOP, LOWEST_ACTIVE_API_WEAR, HIGHEST_KNOWN_API_WEAR, FormFactors.WEAR,
        FormFactors.WEAR_LARGE, listOf(WEAR_TAG)),
