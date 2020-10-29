@@ -36,7 +36,6 @@ import java.util.Objects;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
-//todo take a look
 public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
   @NotNull
   private static WhatsNewAction action = new WhatsNewAction();
