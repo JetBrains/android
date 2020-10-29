@@ -42,7 +42,7 @@ class WorkManagerInspectorTabProvider : AppInspectorTabProvider {
     AppInspectorJar("workmanager-inspection.jar",
                     developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/work/",
                     releaseDirectory = "plugins/android/resources/app-inspection/"),
-    ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-alpha01")
+    ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-alpha01", ArtifactCoordinate.Type.AAR)
   )
 
   override fun isApplicable(): Boolean {

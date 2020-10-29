@@ -23,10 +23,24 @@ package com.android.tools.idea.appinspection.inspector.api.launch
 data class ArtifactCoordinate(
   val groupId: String,
   val artifactId: String,
-  val version: String
+  val version: String,
+  val type: Type
 ) {
+  enum class Type {
+    JAR {
+      override fun toString() = "jar"
+    },
+    AAR {
+      override fun toString() = "aar"
+    }
+  }
   /**
    * The coordinate for this library, i.e. how it would appear in a Gradle dependencies block.
    */
-  override fun toString() = "${groupId}:${artifactId}:${version}"
+  override fun toString() = "${groupId}:${artifactId}:${version}@${type}"
+
+  /**
+   * The file name of the artifact in question.
+   */
+  val fileName = "${artifactId}-${version}.${type}"
 }

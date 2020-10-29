@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.api.service.TestAppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
@@ -49,6 +50,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -58,7 +60,7 @@ class TestAppInspectorTabProvider1 : AppInspectorTabProvider by StubTestAppInspe
 class TestAppInspectorTabProvider2 : AppInspectorTabProvider by StubTestAppInspectorTabProvider(
   INSPECTOR_ID_2,
   LibraryInspectorLaunchParams(TEST_JAR,
-                               ArtifactCoordinate("groupId", "artifactId", "0.0.0")))
+                               ArtifactCoordinate("groupId", "artifactId", "0.0.0", ArtifactCoordinate.Type.JAR)))
 
 @ExperimentalCoroutinesApi
 class AppInspectionViewTest {
@@ -69,12 +71,11 @@ class AppInspectionViewTest {
   private val appInspectionServiceRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
   private val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
 
-  private class TestIdeServices : AppInspectionIdeServices {
+  private class TestIdeServices : TestAppInspectionIdeServices() {
     class NotificationData(val content: String, val severity: AppInspectionIdeServices.Severity, val hyperlinkClicked: () -> Unit)
 
     val notificationListeners = mutableListOf<(NotificationData) -> Unit>()
 
-    override fun showToolWindow(callback: () -> Unit) {}
     override fun showNotification(content: String,
                                   title: String,
                                   severity: AppInspectionIdeServices.Severity,
@@ -82,8 +83,6 @@ class AppInspectionViewTest {
       val data = NotificationData(content, severity, hyperlinkClicked)
       notificationListeners.forEach { listener -> listener(data) }
     }
-
-    override suspend fun navigateTo(codeLocation: AppInspectionIdeServices.CodeLocation) {}
   }
 
   private val ideServices = TestIdeServices()
@@ -191,7 +190,7 @@ class AppInspectionViewTest {
       }
     })
 
-    processModel.selectedProcess = processModel.processes.first { it != processModel.selectedProcess }
+    processModel.setSelectedProcess(processModel.processes.first { it != processModel.selectedProcess })
 
     disposed.join()
   }
@@ -554,5 +553,46 @@ class AppInspectionViewTest {
     transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
 
     tabsAdded.join()
+  }
+
+  @Test
+  fun stopInspectionPressed_noMoreLaunchingOfInspectors() = runBlocking {
+    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+
+    val inspectionView = withContext(uiDispatcher) {
+      AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
+                        appInspectionServiceRule.scope, uiDispatcher) {
+        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+      }
+    }
+    Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+
+    val firstProcessReadyDeferred = CompletableDeferred<Unit>()
+    val deadProcessAddedDeferred = CompletableDeferred<Unit>()
+    launch {
+      inspectionView.tabsChangedFlow
+        .take(2)
+        .collectIndexed { index, _ ->
+          if (index == 0) {
+            firstProcessReadyDeferred.complete(Unit)
+          }
+          else if (index == 1) {
+            deadProcessAddedDeferred.complete(Unit)
+          }
+        }
+    }
+
+    // Add a process.
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+
+    // Wait for inspector to be added.
+    firstProcessReadyDeferred.await()
+
+    // Stop inspection.
+    inspectionView.processModel.stopInspection(inspectionView.processModel.selectedProcess!!)
+
+    // Wait for the offline inspector tabs to be added.
+    deadProcessAddedDeferred.await()
   }
 }

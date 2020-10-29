@@ -67,6 +67,11 @@ interface AppInspectionApiServices {
    */
   suspend fun launchInspector(params: LaunchParameters): AppInspectorMessenger
 
+  /**
+   * Stops all inspectors running on [process].
+   */
+  suspend fun stopInspectors(process: ProcessDescriptor)
+
   companion object {
     fun createDefaultAppInspectionApiServices(
       client: TransportClient,

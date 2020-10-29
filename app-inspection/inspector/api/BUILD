@@ -7,12 +7,17 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.app-inspection.inspector.api.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/idea/.idea/libraries:kotlinx-coroutines-jdk8",
+        "//tools/idea/.idea/libraries:truth[test]",
+        "//tools/idea/platform/util-ex:intellij.platform.util.ex[module]",
+        "//tools/idea/platform/util:intellij.platform.util[module]",
+        "//tools/idea/.idea/libraries:JUnit4[test]",
     ],
 )
 
@@ -23,11 +28,13 @@ iml_module(
     iml_files = ["intellij.android.app-inspection.inspector.api.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     project = "unb",
+    test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
+        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
     ],
 )
