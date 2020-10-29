@@ -31,8 +31,11 @@ import com.google.common.base.Charsets
 import com.google.common.collect.Lists
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.project.Project
+import org.apache.log4j.Logger
+import java.awt.Image
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStreamReader
 import java.nio.ByteBuffer
@@ -59,12 +62,16 @@ object LegacyTreeLoader : TreeLoader {
   }
 
   override fun getAllWindowIds(data: Any?, client: InspectorClient): List<String>? {
-    if (data is LegacyEvent) {
-      return data.allWindows
-    }
     val legacyClient = client as? LegacyClient ?: return null
-    val ddmClient = legacyClient.selectedClient ?: return null
-    return ListViewRootsHandler().getWindows(ddmClient, 5, TimeUnit.SECONDS)
+    val result = if (data is LegacyEvent) {
+      data.allWindows
+    }
+    else {
+      val ddmClient = legacyClient.selectedClient ?: return null
+      ListViewRootsHandler().getWindows(ddmClient, 5, TimeUnit.SECONDS)
+    }
+    legacyClient.latestScreenshots.keys.retainAll(result)
+    return result
   }
 
   @Slow
@@ -75,29 +82,45 @@ object LegacyTreeLoader : TreeLoader {
     ddmClient.dumpViewHierarchy(windowName, false, true, false, hierarchyHandler)
     propertiesUpdater.lookup.resourceLookup.dpi = ddmClient.device.density
     val hierarchyData = hierarchyHandler.getData() ?: return null
-    val (rootNode, hash) = parseLiveViewNode(hierarchyData, propertiesUpdater) ?: return null
-    val imageHandler = CaptureByteArrayHandler(DebugViewDumpHandler.CHUNK_VUOP)
-    ddmClient.captureView(windowName, hash, imageHandler)
-    ViewNode.writeDrawChildren { drawChildren ->
-      try {
-        val imageData = imageHandler.getData()
-        if (imageData != null) {
-          rootNode.drawChildren().add(DrawViewImage(ImageIO.read(ByteArrayInputStream(imageData)), rootNode))
+    val (rootNode, _) = parseLiveViewNode(hierarchyData, propertiesUpdater) ?: return null
+    getScreenshotPngBytes(ddmClient)?.let { legacyClient.latestScreenshots[windowName] = it }
+
+    return AndroidWindow(rootNode, windowName, LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED) { scale, window ->
+      val image = legacyClient.latestScreenshots[windowName]?.let { pngBytes ->
+        ImageIO.read(ByteArrayInputStream(pngBytes))?.let {
+          it.getScaledInstance((it.width * scale).toInt(), (it.height * scale).toInt(), Image.SCALE_DEFAULT)
         }
       }
-      catch (e: IOException) {
-        // We didn't get an image, but still return the hierarchy and properties
-      }
-      rootNode.flatten().forEach { it.children.mapTo(it.drawChildren()) { child -> DrawViewChild(child) } }
-      if (rootNode.drawChildren().size != rootNode.children.size) {
-        client.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER)
-      }
-      else {
-        client.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER_NO_PICTURE)
+      ViewNode.writeDrawChildren { drawChildren ->
+        val root = window.root
+        root.flatten().forEach { it.drawChildren().clear() }
+        if (image != null) {
+          root.drawChildren().add(DrawViewImage(image, root))
+        }
+        root.flatten().forEach { it.children.mapTo(it.drawChildren()) { child -> DrawViewChild(child) } }
+        if (root.drawChildren().size != root.children.size) {
+          client.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER)
+        }
+        else {
+          client.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER_NO_PICTURE)
+        }
       }
     }
+  }
 
-    return AndroidWindow(rootNode, windowName, LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED)
+  private fun getScreenshotPngBytes(ddmClient: Client): ByteArray? {
+    // TODO(171901393): move back to using ddmclient so we can have windows fetched separately.
+    val rawImage = try {
+      ddmClient.device.getScreenshot(5, TimeUnit.SECONDS)
+    }
+    catch (ex: Exception) {
+      Logger.getLogger(LegacyTreeLoader::class.java).warn("Couldn't get screenshot from device", ex)
+      return null
+    }
+    val bufferedImage = rawImage.asBufferedImage()
+    val baos = ByteArrayOutputStream()
+    ImageIO.write(bufferedImage, "PNG", baos)
+    return baos.toByteArray()
   }
 
   private class CaptureByteArrayHandler(type: Int) : DebugViewDumpHandler(type) {
@@ -201,8 +224,7 @@ object LegacyTreeLoader : TreeLoader {
     }
   }
 
-  private class ListViewRootsHandler :
-    DebugViewDumpHandler(CHUNK_VULW) {
+  private class ListViewRootsHandler : DebugViewDumpHandler(CHUNK_VULW) {
 
     private val viewRoots = Lists.newCopyOnWriteArrayList<String>()
 

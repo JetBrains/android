@@ -111,6 +111,8 @@ class LegacyClient(model: InspectorModel, parentDisposable: Disposable) : Inspec
 
   private val eventListeners: MutableMap<Common.Event.EventGroupIds, MutableList<(Any) -> Unit>> = mutableMapOf()
 
+  val latestScreenshots = mutableMapOf<String, ByteArray>()
+
   init {
     processManager.processListeners.add {
       if (selectedClient?.isValid != true) {
@@ -215,6 +217,7 @@ class LegacyClient(model: InspectorModel, parentDisposable: Disposable) : Inspec
       selectedStream = Common.Stream.getDefaultInstance()
       processChangedListeners.forEach { it(this) }
     }
+    latestScreenshots.clear()
     return CompletableFuture.completedFuture(null)
   }
 
