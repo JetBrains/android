@@ -260,8 +260,9 @@ public class AndroidTargetData {
    * to contain resources for the given set of languages plus the language-neutral ones, but may contain resources
    * for more languages than was requested. The repository loads faster if the set of languages is smaller.
    *
-   * @param languages the set of ISO 639 language codes
-   * @return the repository of Android framework resources
+   * @param languages a set of ISO 639 language codes
+   * @return the repository of Android framework resources, or null if the resources directory or file
+   *     does not exist on disk
    */
   @Slow
   @Nullable
@@ -275,6 +276,28 @@ public class AndroidTargetData {
     return FrameworkResourceRepositoryManager.getInstance().getFrameworkResources(resFolderOrJar,
                                                                                   myTarget instanceof CompatibilityRenderTarget,
                                                                                   languages);
+  }
+
+  /**
+   * Returns a repository of framework resources for the Android target if it has been loaded already.
+   * The returned repository, if not null, is guaranteed to contain resources for the given set of languages
+   * plus the language-neutral ones, but may contain resources for more languages than was requested.
+   *
+   * @param languages a set of ISO 639 language codes
+   * @return the repository of Android framework resources, or null if not loaded yet
+   */
+  @Slow
+  @Nullable
+  public synchronized ResourceRepository getExistingFrameworkResources(@NotNull Set<String> languages) {
+    File resFolderOrJar = myTarget.getFile(IAndroidTarget.RESOURCES);
+    if (!resFolderOrJar.exists()) {
+      LOG.error(String.format("\"%s\" directory or file cannot be found", resFolderOrJar.getPath()));
+      return null;
+    }
+
+    return FrameworkResourceRepositoryManager.getInstance().getExistingFrameworkResources(resFolderOrJar,
+                                                                                          myTarget instanceof CompatibilityRenderTarget,
+                                                                                          languages);
   }
 
   /**
