@@ -107,16 +107,16 @@ def _write_file(zip_path, mode, data, entry, sub_entry=None):
 
 
 RES_PATH = {
-  "linux": "android-studio/",
-  "win": "android-studio/",
-  "mac": "Android Studio.app/Contents/Resources/",
+  "linux": "",
+  "win": "",
+  "mac": "Contents/Resources/",
 }
 
 
 BASE_PATH = {
-  "linux": "android-studio/",
-  "win": "android-studio/",
-  "mac": "Android Studio.app/Contents/",
+  "linux": "",
+  "win": "",
+  "mac": "Contents/",
 }
 
 

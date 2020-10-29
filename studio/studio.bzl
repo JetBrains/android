@@ -68,8 +68,8 @@ LINUX = struct(
     name = "linux",
     jre = "jre/",
     get = _get_linux,
-    base_path = "android-studio/",
-    resource_path = "android-studio/",
+    base_path = "",
+    resource_path = "",
 )
 
 def _get_mac(dep):
@@ -79,8 +79,8 @@ MAC = struct(
     name = "mac",
     jre = "jre/jdk/",
     get = _get_mac,
-    base_path = "Android Studio.app/Contents/",
-    resource_path = "Android Studio.app/Contents/Resources/",
+    base_path = "Contents/",
+    resource_path = "Contents/Resources/",
 )
 
 def _get_win(dep):
@@ -90,8 +90,8 @@ WIN = struct(
     name = "win",
     jre = "jre/",
     get = _get_win,
-    base_path = "android-studio/",
-    resource_path = "android-studio/",
+    base_path = "",
+    resource_path = "",
 )
 
 def _resource_deps(res_dirs, res, platform):
@@ -348,29 +348,54 @@ def _zip_merger(ctx, zips, overrides, out):
         mnemonic = "zipmerger",
     )
 
+def _codesign(ctx, filelist_template, entitlements, prefix, out):
+    filelist = ctx.actions.declare_file(ctx.attr.name + ".codesign.filelist")
+    ctx.actions.expand_template(
+        template = filelist_template,
+        output = filelist,
+        substitutions = {
+            "%prefix%": prefix,
+        },
+    )
+
+    ctx.actions.declare_file(ctx.attr.name + ".codesign.zip")
+    files = [
+        ("_codesign/filelist", filelist),
+        ("_codesign/entitlements.xml", entitlements),
+    ]
+
+    _zipper(ctx, "_codesign for macOS", files, out)
+
+def _android_studio_prefix(ctx, platform):
+    if platform == MAC:
+        return ctx.attr.platform.mac_bundle_name + "/"
+    return "android-studio/"
+
 def _android_studio_os(ctx, platform, out):
     files = []
     zips = []
     overrides = []
 
+    platform_prefix = _android_studio_prefix(ctx, platform)
+
     platform_zip = platform.get(ctx.attr.platform.data)[0]
 
     platform_plugins = platform.get(ctx.attr.platform.plugins)
-    zips += [("", zip) for zip in [platform_zip] + platform_plugins]
+    zips += [(platform_prefix, zip) for zip in [platform_zip] + platform_plugins]
     if ctx.attr.jre:
         jre_zip = ctx.actions.declare_file(ctx.attr.name + ".jre.%s.zip" % platform.name)
         jre_files = [(ctx.attr.jre.mappings[f], f) for f in platform.get(ctx.attr.jre)]
         _zipper(ctx, "%s jre" % platform.name, jre_files, jre_zip)
-        zips += [(platform.base_path + platform.jre, jre_zip)]
+        zips += [(platform_prefix + platform.base_path + platform.jre, jre_zip)]
 
     # Stamp the platform and its plugins
     platform_stamp = ctx.actions.declare_file(ctx.attr.name + ".%s.platform.stamp.zip" % platform.name)
     _stamp_platform(ctx, platform, platform_zip, platform_stamp)
-    overrides += [("", platform_stamp)]
+    overrides += [(platform_prefix, platform_stamp)]
     for plugin in platform_plugins:
         stamp = ctx.actions.declare_file(ctx.attr.name + ".stamp.%s" % plugin.basename)
         _stamp_platform_plugin(ctx, platform, platform_zip, plugin, stamp)
-        overrides += [("", stamp)]
+        overrides += [(platform_prefix, stamp)]
 
     res = _resource_deps(ctx.attr.resources_dirs, ctx.attr.resources, platform)
     files += [(platform.base_path + d, f) for (d, f) in res]
@@ -399,18 +424,23 @@ def _android_studio_os(ctx, platform, out):
             so_jars += [("%splugins/%s/lib/%s" % (platform.base_path, plugin, jar), so_jar)]
     so_extras = ctx.actions.declare_file(ctx.attr.name + ".so.%s.zip" % platform.name)
     _zipper(ctx, "%s searchable options" % platform.name, so_jars, so_extras)
-    overrides += [("", so_extras)]
+    overrides += [(platform_prefix, so_extras)]
 
     extras_zip = ctx.actions.declare_file(ctx.attr.name + ".extras.%s.zip" % platform.name)
     _zipper(ctx, "%s extras" % platform.name, files, extras_zip)
-    zips += [("", extras_zip)]
+    zips += [(platform_prefix, extras_zip)]
 
     for p in ctx.attr.plugins:
         plugin_zip = platform.get(p)[0]
         stamp = ctx.actions.declare_file(ctx.attr.name + ".stamp.%s" % plugin_zip.basename)
         _stamp_plugin(ctx, platform, platform_zip, plugin_zip, stamp)
-        overrides += [(platform.base_path, stamp)]
-        zips += [(platform.base_path, plugin_zip)]
+        overrides += [(platform_prefix + platform.base_path, stamp)]
+        zips += [(platform_prefix + platform.base_path, plugin_zip)]
+
+    if platform == MAC:
+        codesign = ctx.actions.declare_file(ctx.attr.name + ".codesign.zip")
+        _codesign(ctx, ctx.file.codesign_filelist, ctx.file.codesign_entitlements, platform_prefix, codesign)
+        zips += [("", codesign)]
 
     _zip_merger(ctx, zips, overrides, out)
 
@@ -440,6 +470,8 @@ _android_studio = rule(
         "version_eap": attr.bool(),
         "version_full": attr.string(),
         "compress": attr.bool(),
+        "codesign_filelist": attr.label(allow_single_file = True),
+        "codesign_entitlements": attr.label(allow_single_file = True),
         "_singlejar": attr.label(
             default = Label("@bazel_tools//tools/jdk:singlejar"),
             cfg = "host",
@@ -588,12 +620,14 @@ def _intellij_platform_impl(ctx):
             files_win = depset(plugins_win),
             mappings = {},
         ),
+        mac_bundle_name = ctx.attr.mac_bundle_name,
     )
 
 _intellij_platform = rule(
     attrs = {
         "data": attr.label(),
         "compress": attr.bool(),
+        "mac_bundle_name": attr.string(),
         "_zipper": attr.label(
             default = Label("@bazel_tools//tools/zip:zipper"),
             cfg = "host",
@@ -662,10 +696,9 @@ def intellij_platform(
         files_mac = native.glob([src + "/darwin/**"]),
         files_win = native.glob([src + "/windows/**"]),
         mappings = {
-            "prebuilts/studio/intellij-sdk/%s/linux/" % src: "",
-            "prebuilts/studio/intellij-sdk/%s/darwin/android-studio/" % src: "Android Studio.app/",
-            "prebuilts/studio/intellij-sdk/%s/darwin/_codesign/" % src: "_codesign/",
-            "prebuilts/studio/intellij-sdk/%s/windows/" % src: "",
+            "prebuilts/studio/intellij-sdk/%s/linux/android-studio/" % src: "",
+            "prebuilts/studio/intellij-sdk/%s/darwin/android-studio/" % src: "",
+            "prebuilts/studio/intellij-sdk/%s/windows/android-studio/" % src: "",
         },
     )
 
@@ -694,5 +727,6 @@ def intellij_platform(
         name = name + ".platform",
         compress = _is_release(),
         data = name + ".data",
+        mac_bundle_name = spec.mac_bundle_name,
         visibility = ["//visibility:public"],
     )

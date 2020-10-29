@@ -325,6 +325,8 @@ studio_plugin(
 
 android_studio(
     name = "android-studio",
+    codesign_entitlements = "codesign/entitlements.xml",
+    codesign_filelist = "codesign/filelist",
     jre = "//prebuilts/studio/jdk:jdk-bundle",
     modules = {
         "android-base-common.jar": [
