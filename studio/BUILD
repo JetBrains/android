@@ -174,18 +174,28 @@ studio_plugin(
             "//prebuilts/tools/common/trace-processor-daemon:trace-processor-daemon-bundle",
         ],
     },
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
+    ],
 )
 
 studio_plugin(
     name = "com.android.tools.apk",
     directory = "android-apk",
     modules = {"android-apk.jar": ["//tools/vendor/google/android-apk:android-apk"]},
+    deps = [
+        ":com.android.tools.ndk",
+        ":org.jetbrains.android",
+    ],
 )
 
 studio_plugin(
     name = "com.android.tools.ndk",
     directory = "android-ndk",
     modules = {"android-ndk.jar": ["//tools/vendor/google/android-ndk:android-ndk"]},
+    deps = [
+        ":org.jetbrains.android",
+    ],
 )
 
 studio_plugin(
@@ -210,36 +220,67 @@ studio_plugin(
     name = "androidx.compose.plugins.idea",
     directory = "android-compose-ide-plugin",
     modules = {"android-compose-ide-plugin.jar": ["//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin"]},
+    deps = [
+        ":org.jetbrains.android",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+    ],
 )
 
 studio_plugin(
     name = "com.google.services.firebase",
     directory = "firebase",
     modules = {"firebase.jar": ["//tools/vendor/google/firebase:firebase"]},
+    deps = [
+        ":com.google.gct.login",
+        ":com.google.gct.test.recorder",
+        ":org.jetbrains.android",
+    ],
 )
 
 studio_plugin(
     name = "com.google.gct.testing",
     directory = "firebase-testing",
     modules = {"firebase-testing.jar": ["//tools/studio/google/cloud/testing/firebase-testing:firebase-testing"]},
+    deps = [
+        ":com.google.gct.core",
+        ":com.google.gct.login",
+        ":org.jetbrains.android",
+    ],
 )
 
 studio_plugin(
     name = "com.google.appindexing",
     directory = "google-appindexing",
     modules = {"google-appindexing.jar": ["//tools/studio/google/appindexing:google-appindexing"]},
+    deps = [
+        ":com.google.gct.login",
+        ":com.google.urlassistant",
+        ":org.jetbrains.android",
+    ],
 )
 
 studio_plugin(
     name = "com.google.gct",
     directory = "google-cloud-tools-as",
     modules = {"google-cloud-tools-as.jar": ["//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as"]},
+    deps = [
+        ":com.google.gct.core",
+        ":com.google.gct.login",
+        ":org.jetbrains.android",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-git4idea",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
+    ],
 )
 
 studio_plugin(
     name = "com.google.gct.core",
     directory = "google-cloud-tools-core-as",
     modules = {"google-cloud-tools-core-as.jar": ["//tools/studio/google/cloud/tools/core-plugin:google-cloud-tools-core-as"]},
+    deps = [
+        ":com.google.gct.login",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-git4idea",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
+    ],
 )
 
 studio_plugin(
@@ -252,6 +293,10 @@ studio_plugin(
     name = "com.google.cluestick.studioclient",
     directory = "google-samples",
     modules = {"google-samples.jar": ["//tools/studio/google/samples:google-samples"]},
+    deps = [
+        ":com.google.gct.login",
+        ":org.jetbrains.android",
+    ],
 )
 
 studio_plugin(
@@ -264,12 +309,18 @@ studio_plugin(
     name = "com.google.gct.test.recorder",
     directory = "test-recorder",
     modules = {"test-recorder.jar": ["//tools/studio/google/cloud/testing/test-recorder:test-recorder"]},
+    deps = [
+        ":org.jetbrains.android",
+    ],
 )
 
 studio_plugin(
     name = "com.google.urlassistant",
     directory = "url-assistant",
     modules = {"url-assistant.jar": ["//tools/vendor/google/url-assistant:url-assistant"]},
+    deps = [
+        ":org.jetbrains.android",
+    ],
 )
 
 android_studio(

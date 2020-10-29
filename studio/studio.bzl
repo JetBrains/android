@@ -1,5 +1,6 @@
 load("//tools/base/bazel:merge_archives.bzl", "run_singlejar")
 load("//tools/base/bazel:functions.bzl", "create_option_file")
+load("@bazel_tools//tools/jdk:toolchain_utils.bzl", "find_java_toolchain")
 
 def _zipper(ctx, desc, map, out, deps = []):
     files = [f for (p, f) in map]
@@ -102,36 +103,46 @@ def _resource_deps(res_dirs, res, platform):
             files += [(dir + "/" + f.basename, f) for f in dep.files.to_list()]
     return files
 
-def _studio_plugin_os(ctx, platform, module_deps, plugin_dir, out):
+def _check_plugin(ctx, files, verify_id = None, verify_deps = None):
+    deps = None
+    if verify_deps != None:
+        deps = [dep.plugin_info for dep in verify_deps if hasattr(dep, "plugin_info")]
+
+    plugin_info = ctx.actions.declare_file(ctx.attr.name + ".info")
+    check_args = ctx.actions.args()
+    check_args.add("--out", plugin_info)
+    check_args.add_all("--files", files)
+    if verify_id:
+        check_args.add("--plugin_id", verify_id)
+    if deps != None:
+        check_args.add_all("--deps", deps, omit_if_empty = False)
+
+    ctx.actions.run(
+        inputs = files + (deps if deps else []),
+        outputs = [plugin_info],
+        executable = ctx.executable._check_plugin,
+        arguments = [check_args],
+        progress_message = "Analyzing %s plugin..." % ctx.attr.name,
+        mnemonic = "chkplugin",
+    )
+    return plugin_info
+
+def _studio_plugin_os(ctx, platform, module_deps, plugin_dir, plugin_info, out):
     spec = [(plugin_dir + "/lib/" + d, f) for (d, f) in module_deps]
 
     res = _resource_deps(ctx.attr.resources_dirs, ctx.attr.resources, platform)
     spec += [(plugin_dir + "/" + d, f) for (d, f) in res]
 
     files = [f for (p, f) in spec]
-    check_log = ctx.actions.declare_file(ctx.attr.name + ".%s.log" % platform.name)
-    check_args = ctx.actions.args()
-    check_args.add("--plugin_id", ctx.attr.name)
-    check_args.add("--out", check_log)
-    check_args.add_all("--files", files)
-
-    ctx.actions.run(
-        inputs = files,
-        outputs = [check_log],
-        executable = ctx.executable._check_plugin,
-        arguments = [check_args],
-        progress_message = "Analyzing %s plugin..." % ctx.attr.name,
-        mnemonic = "chkplugin",
-    )
-
-    _zipper(ctx, "%s plugin" % platform.name, spec, out, [check_log])
+    _zipper(ctx, "%s plugin" % platform.name, spec, out, [plugin_info])
 
 def _studio_plugin_impl(ctx):
     plugin_dir = "plugins/" + ctx.attr.directory
     module_deps, plugin_jar, plugin_xml = _module_deps(ctx, ctx.attr.jars, ctx.attr.modules)
-    _studio_plugin_os(ctx, LINUX, module_deps, plugin_dir, ctx.outputs.plugin_linux)
-    _studio_plugin_os(ctx, MAC, module_deps, plugin_dir, ctx.outputs.plugin_mac)
-    _studio_plugin_os(ctx, WIN, module_deps, plugin_dir, ctx.outputs.plugin_win)
+    plugin_info = _check_plugin(ctx, [f for (r, f) in module_deps], ctx.attr.name, ctx.attr.deps)
+    _studio_plugin_os(ctx, LINUX, module_deps, plugin_dir, plugin_info, ctx.outputs.plugin_linux)
+    _studio_plugin_os(ctx, MAC, module_deps, plugin_dir, plugin_info, ctx.outputs.plugin_mac)
+    _studio_plugin_os(ctx, WIN, module_deps, plugin_dir, plugin_info, ctx.outputs.plugin_win)
 
     return struct(
         directory = ctx.attr.directory,
@@ -141,6 +152,7 @@ def _studio_plugin_impl(ctx):
         files_linux = depset([ctx.outputs.plugin_linux]),
         files_mac = depset([ctx.outputs.plugin_mac]),
         files_win = depset([ctx.outputs.plugin_win]),
+        plugin_info = plugin_info,
     )
 
 _studio_plugin = rule(
@@ -151,6 +163,7 @@ _studio_plugin = rule(
         "resources_dirs": attr.string_list(),
         "directory": attr.string(),
         "compress": attr.bool(),
+        "deps": attr.label_list(),
         "_singlejar": attr.label(
             default = Label("@bazel_tools//tools/jdk:singlejar"),
             cfg = "host",
@@ -494,6 +507,37 @@ def android_studio(
         **kwargs
     )
 
+def _intellij_plugin_impl(ctx):
+    infos = []
+    for jar in ctx.files.jars:
+        ijar = java_common.run_ijar(
+            actions = ctx.actions,
+            jar = jar,
+            java_toolchain = find_java_toolchain(ctx, ctx.attr._java_toolchain),
+        )
+        infos.append(JavaInfo(
+            output_jar = jar,
+            compile_jar = ijar,
+        ))
+    plugin_info = _check_plugin(ctx, ctx.files.jars)
+    return struct(
+        providers = [java_common.merge(infos)],
+        plugin_info = plugin_info,
+    )
+
+_intellij_plugin = rule(
+    attrs = {
+        "jars": attr.label_list(allow_files = True),
+        "_java_toolchain": attr.label(default = Label("@bazel_tools//tools/jdk:current_java_toolchain")),
+        "_check_plugin": attr.label(
+            default = Label("//tools/adt/idea/studio:check_plugin"),
+            cfg = "host",
+            executable = True,
+        ),
+    },
+    implementation = _intellij_plugin_impl,
+)
+
 def _intellij_platform_impl_os(ctx, platform, data):
     files = platform.get(data)
     plugin_dir = "%splugins/" % platform.base_path
@@ -629,7 +673,8 @@ def intellij_platform(
         add_windows = spec.plugin_jars_windows[plugin] if plugin in spec.plugin_jars_windows else []
         add_darwin = spec.plugin_jars_darwin[plugin] if plugin in spec.plugin_jars_darwin else []
         add_linux = spec.plugin_jars_linux[plugin] if plugin in spec.plugin_jars_linux else []
-        native.java_import(
+
+        _intellij_plugin(
             name = name + "-plugin-%s" % plugin,
             jars = select({
                 "//tools/base/bazel:windows": [src + "/windows/android-studio/plugins/" + plugin + "/lib/" + jar for jar in jars + add_windows],
