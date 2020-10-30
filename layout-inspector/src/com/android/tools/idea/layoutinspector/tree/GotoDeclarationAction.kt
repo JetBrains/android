@@ -32,8 +32,8 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.idea.core.util.getLineStartOffset
 import org.jetbrains.kotlin.idea.debugger.SourceLineKind
+import org.jetbrains.kotlin.idea.debugger.evaluate.KotlinDebuggerCaches
 import org.jetbrains.kotlin.idea.debugger.mapStacktraceLineToSource
-import org.jetbrains.kotlin.idea.debugger.readBytecodeInfo
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -81,9 +81,9 @@ object GotoDeclarationAction : AnAction("Go to Declaration") {
   private fun findNavigatableFromDebugInfo(project: Project, ktFile: KtFile, composeName: String, lineNumber: Int): Navigatable? {
     val vFile = ktFile.getVirtualFile() ?: return null
     val internalClassName = JvmClassName.byInternalName(composeName.substringBeforeLast(".invoke").replace(".", "/"))
-    val info = readBytecodeInfo(project, internalClassName, vFile)
+    val smap = KotlinDebuggerCaches.getSmapCached(project, internalClassName, vFile)
     val scope = GlobalSearchScope.allScope(project)
-    val pair = info?.smapData?.let { mapStacktraceLineToSource(it, lineNumber, project, SourceLineKind.CALL_LINE, scope) }
+    val pair = smap?.let { mapStacktraceLineToSource(it, lineNumber, project, SourceLineKind.CALL_LINE, scope) }
     val line = pair?.second ?: return null
     // A negative line number is a clear indication that either the given line number or the debug information is faulty.
     // Fallback to psi.
