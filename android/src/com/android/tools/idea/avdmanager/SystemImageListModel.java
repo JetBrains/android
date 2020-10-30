@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RemotePackage;
@@ -35,6 +34,7 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -43,22 +43,33 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableCellRenderer;
-import java.awt.*;
+import com.intellij.util.ui.AbstractTableCellEditor;
+import com.intellij.util.ui.ColumnInfo;
+import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.ListTableModel;
+import com.intellij.util.ui.UIUtil;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
 import java.awt.font.TextLayout;
-import java.util.*;
+import java.util.Comparator;
+import java.util.EventObject;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A table model for a {@link SystemImageList}
@@ -134,7 +145,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
     StudioProgressRunner runner = new StudioProgressRunner(false, false, "Loading Images", myProject);
     mySdkHandler.getSdkManager(LOGGER)
       .load(forceRefresh ? 0 : RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, ImmutableList.of(localComplete), ImmutableList.of(remoteComplete),
-            ImmutableList.of(error), runner, new StudioDownloader(), StudioSettingsController.getInstance(), false);
+            ImmutableList.of(error), runner, new StudioDownloader(), StudioSettingsController.getInstance());
   }
 
   // Report that one of the downloads were done.

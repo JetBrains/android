@@ -36,8 +36,8 @@ import com.android.sdklib.repository.meta.DetailsTypes.AddonDetailsType
 import com.android.sdklib.repository.meta.DetailsTypes.ApiDetailsType
 import com.android.sdklib.repository.meta.DetailsTypes.SysImgDetailsType
 import com.android.sdklib.repository.targets.SystemImage
-import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision
 import com.android.tools.adtui.device.FormFactor
+import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision
 import com.android.tools.idea.npw.invokeLater
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
@@ -189,7 +189,7 @@ class AndroidVersionsInfo {
       listOf(onComplete),
       listOf(onError),
       StudioProgressRunner(false, false, "Refreshing Targets", null),
-      StudioDownloader(), StudioSettingsController.getInstance(), false)
+      StudioDownloader(), StudioSettingsController.getInstance())
   }
 
   inner class VersionItem {

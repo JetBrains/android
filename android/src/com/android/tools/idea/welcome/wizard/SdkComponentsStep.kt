@@ -233,7 +233,7 @@ class SdkComponentsStep(
             contentPanel.stopLoading()
           }), ImmutableList.of(Runnable { loadingError() }),
               StudioProgressRunner(false, false, "Finding Available SDK Components", null), StudioDownloader(),
-              StudioSettingsController.getInstance(), false)
+              StudioSettingsController.getInstance())
     }
   }
 

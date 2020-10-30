@@ -218,7 +218,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
       () -> myNdkDownloadPanel.setVisible(false),
       ModalityState.any());
     repoManager.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(onComplete), ImmutableList.of(onError), runner,
-                     new StudioDownloader(), StudioSettingsController.getInstance(), false);
+                     new StudioDownloader(), StudioSettingsController.getInstance());
   }
 
   private void addHistoryUpdater(@NotNull String id, @NotNull Component c, @NotNull FocusListener historyUpdater) {

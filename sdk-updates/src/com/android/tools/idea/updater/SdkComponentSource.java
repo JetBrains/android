@@ -17,7 +17,12 @@ package com.android.tools.idea.updater;
 
 import com.android.SdkConstants;
 import com.android.repository.Revision;
-import com.android.repository.api.*;
+import com.android.repository.api.Downloader;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.RepoPackage;
+import com.android.repository.api.SettingsController;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
@@ -37,15 +42,13 @@ import com.intellij.ide.externalComponents.UpdatableExternalComponent;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An {@link ExternalComponentSource} that retrieves information from the {@link RepoManager} provided
@@ -71,8 +74,7 @@ public class SdkComponentSource implements ExternalComponentSource {
     else {
       progress = LOGGER;
     }
-    if (mgr
-      .loadSynchronously(TimeUnit.MINUTES.toMillis(1), progress, getDownloader(), getSettingsController())) {
+    if (mgr.loadSynchronously(TimeUnit.MINUTES.toMillis(1), progress, getDownloader(), getSettingsController())) {
       myPackages = mgr.getPackages();
     }
   }
