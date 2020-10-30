@@ -21,7 +21,6 @@
     <fileEditorProvider implementation="com.android.tools.idea.naveditor.editor.NavEditorProvider"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.navigation.NavigationDomFileDescription"/>
 
-    <projectService serviceImplementation="com.android.tools.idea.naveditor.property.editors.NavPropertyEditors" />
     <projectService serviceImplementation="com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm$Storage" />
     <scrollHandler implementation="com.android.tools.idea.naveditor.actions.NavEditorHelpScrollHandler" />
   </extensions>
