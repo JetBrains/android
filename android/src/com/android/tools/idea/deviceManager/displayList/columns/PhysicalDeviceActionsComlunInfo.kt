@@ -15,16 +15,12 @@
  */
 package com.android.tools.idea.deviceManager.displayList.columns
 
-import com.android.sdklib.internal.avd.AvdInfo
-import com.android.tools.idea.deviceManager.avdmanager.actions.DeviceUiAction
 import com.android.tools.idea.deviceManager.avdmanager.actions.PhysicalDeviceUiAction
 import com.android.tools.idea.deviceManager.displayList.NamedDevice
 import com.android.tools.idea.deviceManager.displayList.PhysicalDeviceActionPanel
-import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.AbstractTableCellEditor
 import com.intellij.util.ui.ColumnInfo
 import java.awt.Component
-import javax.swing.JPanel
 import javax.swing.JTable
 import javax.swing.table.TableCellEditor
 import javax.swing.table.TableCellRenderer

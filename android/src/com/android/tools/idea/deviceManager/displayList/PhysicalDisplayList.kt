@@ -18,7 +18,7 @@ package com.android.tools.idea.deviceManager.displayList
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService
-import com.android.tools.idea.deviceManager.avdmanager.AvdActionPanel
+import com.android.tools.idea.avdmanager.AvdActionPanel
 import com.android.tools.idea.deviceManager.avdmanager.actions.PhysicalDeviceUiAction
 import com.android.tools.idea.deviceManager.displayList.columns.PhysicalDeviceActionsColumnInfo
 import com.android.tools.idea.deviceManager.displayList.columns.PhysicalDeviceColumnInfo

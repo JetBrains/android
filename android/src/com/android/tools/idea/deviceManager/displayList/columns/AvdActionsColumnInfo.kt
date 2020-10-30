@@ -16,7 +16,7 @@
 package com.android.tools.idea.deviceManager.displayList.columns
 
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.tools.idea.deviceManager.avdmanager.AvdActionPanel
+import com.android.tools.idea.avdmanager.AvdActionPanel
 import com.intellij.util.ui.AbstractTableCellEditor
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.JBUI

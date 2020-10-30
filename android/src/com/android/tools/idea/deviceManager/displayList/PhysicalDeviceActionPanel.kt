@@ -15,36 +15,15 @@
  */
 package com.android.tools.idea.deviceManager.displayList
 
-import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
-import com.android.tools.idea.avdmanager.EmulatorAdvFeatures
-import com.android.tools.idea.deviceManager.avdmanager.actions.AvdSummaryAction
-import com.android.tools.idea.deviceManager.avdmanager.actions.AvdUiAction
-import com.android.tools.idea.deviceManager.avdmanager.actions.ColdBootNowAction
-import com.android.tools.idea.deviceManager.avdmanager.actions.DeleteAvdAction
-import com.android.tools.idea.deviceManager.avdmanager.actions.DuplicateAvdAction
-import com.android.tools.idea.deviceManager.avdmanager.actions.EditAvdAction
-import com.android.tools.idea.deviceManager.avdmanager.actions.ExploreAvdAction
 import com.android.tools.idea.deviceManager.avdmanager.actions.ExplorePhysicalDeviceAction
-import com.android.tools.idea.deviceManager.avdmanager.actions.InstallSystemImageAction
 import com.android.tools.idea.deviceManager.avdmanager.actions.PhysicalDeviceUiAction
 import com.android.tools.idea.deviceManager.avdmanager.actions.RenamePhysicalDeviceAction
-import com.android.tools.idea.deviceManager.avdmanager.actions.RepairAvdAction
-import com.android.tools.idea.deviceManager.avdmanager.actions.RunAvdAction
-import com.android.tools.idea.deviceManager.avdmanager.actions.ShowAvdOnDiskAction
-import com.android.tools.idea.deviceManager.avdmanager.actions.StopAvdAction
-import com.android.tools.idea.deviceManager.avdmanager.actions.WipeAvdDataAction
-import com.android.tools.idea.log.LogWrapper
-import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.JBMenuItem
 import com.intellij.openapi.ui.JBPopupMenu
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.JBColor
-import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Component
@@ -56,7 +35,6 @@ import java.awt.event.MouseEvent
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.SwingConstants
 import javax.swing.UIManager
 import javax.swing.border.Border
 

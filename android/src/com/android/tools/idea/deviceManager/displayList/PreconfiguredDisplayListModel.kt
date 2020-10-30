@@ -20,9 +20,8 @@ import com.android.repository.api.RepoManager
 import com.android.repository.api.RepoManager.RepoLoadedListener
 import com.android.repository.impl.meta.RepositoryPackages
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.tools.idea.deviceManager.avdmanager.DeviceManagerConnection
-import com.android.tools.idea.deviceManager.avdmanager.SystemImageDescription
-import com.android.tools.idea.deviceManager.avdmanager.SystemImageListModel
+import com.android.tools.idea.avdmanager.DeviceManagerConnection
+import com.android.tools.idea.avdmanager.SystemImageDescription
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
@@ -35,7 +34,7 @@ import com.intellij.util.ui.ListTableModel
 
 
 fun getDevice(deviceName: String) =
-  DeviceManagerConnection.defaultDeviceManagerConnection.devices.first { it.displayName == deviceName }
+  DeviceManagerConnection.getDefaultDeviceManagerConnection().devices.first { it.displayName == deviceName }
 
 // TODO(qumeric): consider making it a separate class or integrating into some existing class
 private fun List<SystemImageDescription>.toPreconfiguredDevices(): List<PreconfiguredDeviceDefinition> {

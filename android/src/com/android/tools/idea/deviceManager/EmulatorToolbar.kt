@@ -16,9 +16,9 @@
 package com.android.tools.idea.deviceManager
 
 import com.android.tools.adtui.stdui.CommonButton
-import com.android.tools.idea.deviceManager.avdmanager.AvdActionPanel
-import com.android.tools.idea.deviceManager.avdmanager.actions.AvdUiAction
-import com.android.tools.idea.deviceManager.avdmanager.actions.CreateAvdAction
+import com.android.tools.idea.avdmanager.AvdActionPanel
+import com.android.tools.idea.avdmanager.AvdUiAction
+import com.android.tools.idea.avdmanager.CreateAvdAction
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.ui.DocumentAdapter

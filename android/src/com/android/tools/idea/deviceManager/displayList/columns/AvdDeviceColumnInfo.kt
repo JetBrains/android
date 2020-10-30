@@ -18,7 +18,7 @@ package com.android.tools.idea.deviceManager.displayList.columns
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.adtui.stdui.CommonButton
-import com.android.tools.idea.deviceManager.avdmanager.AvdManagerConnection
+import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.deviceManager.displayList.EmulatorDisplayList
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.ui.DialogPanel
@@ -113,7 +113,7 @@ class AvdDeviceColumnInfo(
  */
 @VisibleForTesting
 fun AvdInfo.toDeviceInfo(): DeviceInfo = DeviceInfo(
-  AvdManagerConnection.getAvdDisplayName(this),
+  this.displayName,
   EmulatorDisplayList.DeviceType.Virtual,
   AvdManagerConnection.getDefaultAvdManagerConnection().isAvdRunning(this),
   androidVersion,

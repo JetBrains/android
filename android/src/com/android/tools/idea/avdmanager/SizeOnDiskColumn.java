@@ -23,14 +23,14 @@ import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
-final class SizeOnDiskColumn extends AvdColumnInfo {
+public final class SizeOnDiskColumn extends AvdColumnInfo {
   @NotNull
   private final Map<AvdInfo, SizeOnDisk> myDeviceToSizeOnDiskMap;
 
   @NotNull
   private final TableView<AvdInfo> myTable;
 
-  SizeOnDiskColumn(@NotNull TableView<AvdInfo> table) {
+  public SizeOnDiskColumn(@NotNull TableView<AvdInfo> table) {
     super("Size on Disk");
 
     myDeviceToSizeOnDiskMap = new HashMap<>();

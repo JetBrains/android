@@ -16,10 +16,10 @@
 package com.android.tools.idea.deviceManager.displayList
 
 import com.android.sdklib.devices.Device
-import com.android.tools.idea.deviceManager.avdmanager.ApiLevelComparator
-import com.android.tools.idea.deviceManager.avdmanager.AvdActionPanel
-import com.android.tools.idea.deviceManager.avdmanager.AvdOptionsModel
-import com.android.tools.idea.deviceManager.avdmanager.SystemImageDescription
+import com.android.tools.idea.avdmanager.ApiLevelComparator
+import com.android.tools.idea.avdmanager.AvdActionPanel
+import com.android.tools.idea.avdmanager.AvdOptionsModel
+import com.android.tools.idea.avdmanager.SystemImageDescription
 import com.android.tools.idea.deviceManager.displayList.columns.DeviceColumnInfo
 import com.android.tools.idea.deviceManager.displayList.columns.PreconfiguredDeviceColumnInfo
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
@@ -260,13 +260,21 @@ Check your internet connection and try again.""",
       return
     }
 
-    val avdOptionsModel = AvdOptionsModel(null) {
-      avdList.refreshAvds()
-    }.apply {
-      device.setNullableValue(pfd.device)
-      systemImage.setNullableValue(pfd.systemImage)
-      avdDisplayName.set(pfd.device.displayName)
-      hf()
+    // TODO (b/171512149): add parameter
+    //val avdOptionsModel = AvdOptionsModel(null) {
+    //  avdList.refreshAvds()
+    //}.apply {
+    //  device.setNullableValue(pfd.device)
+    //  systemImage.setNullableValue(pfd.systemImage)
+    //  avdDisplayName.set(pfd.device.displayName)
+    //  hf()
+    //}
+    val avdOptionsModel = AvdOptionsModel(null).apply {
+      device().setNullableValue(pfd.device)
+      systemImage().setNullableValue(pfd.systemImage)
+      avdDisplayName().set(pfd.device.displayName)
+      // TODO (b/171512149): handle finished (also this is not a good name)
+      //hf()
     }
   }
 
