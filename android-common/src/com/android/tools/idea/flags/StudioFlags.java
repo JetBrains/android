@@ -710,9 +710,9 @@ public final class StudioFlags {
     "is displayed.",
     false);
 
-  public static final Flag<Boolean> ENABLE_SHOW_UNUSED_NATIVE_FILES = Flag.create(
-    NDK, "ndk.projectview.showunusednativefiles", "Enable option to show unused native files",
-    "If enabled, for native projects, Android project view menu would show an option to `Show Unused Native Files`.",
+  public static final Flag<Boolean> ENABLE_SHOW_FILES_UNKNOWN_TO_CMAKE = Flag.create(
+    NDK, "ndk.projectview.showfilessunknowntocmake", "Enable option to show files unknown to CMake",
+    "If enabled, for projects using CMake, Android project view menu would show an option to `Show Files Unknown To CMake`.",
     true
   );
   //endregion

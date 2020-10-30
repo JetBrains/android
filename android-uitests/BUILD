@@ -1457,10 +1457,10 @@ java_test(
 )
 
 java_test(
-    name = "ShowUnusedNativeFilesActionTest",
+    name = "ShowFilesUnknownToCMakeActionTest",
     size = "large",
     data = COMMON_DATA,
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.ShowUnusedNativeFilesActionTest"],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.ShowFilesUnknownToCMakeActionTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
     ],

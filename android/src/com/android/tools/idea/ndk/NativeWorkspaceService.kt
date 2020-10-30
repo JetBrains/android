@@ -16,6 +16,7 @@
 package com.android.tools.idea.ndk
 
 import com.intellij.openapi.components.service
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import java.io.File
 import java.util.stream.Stream
@@ -32,5 +33,5 @@ class NativeWorkspaceService private constructor(val project: Project) {
   fun getCompilerSettings(filter: (ModuleVariantAbi) -> Boolean): Stream<NativeCompilerSetting> =
     NativeWorkspaceProvider.getCompilerSettings(project, filter)
 
-  fun shouldShowInProjectView(file: File): Boolean = NativeWorkspaceProvider.shouldShowInProjectView(project, file)
+  fun shouldShowInProjectView(module: Module, file: File): Boolean = NativeWorkspaceProvider.shouldShowInProjectView(module, file)
 }

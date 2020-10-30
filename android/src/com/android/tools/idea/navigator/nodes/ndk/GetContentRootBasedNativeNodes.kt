@@ -37,7 +37,7 @@ fun getContentRootBasedNativeNodes(module: Module,
   val nativeWorkspaceService = NativeWorkspaceService.getInstance(module.project)
   var sourceRootNodes: Collection<AbstractTreeNode<*>> = sourceRootPsiDirs.map {
     PsiDirectoryNode(project, it, settings) { item ->
-      nativeWorkspaceService.shouldShowInProjectView(item.virtualFile.toIoFile())
+      nativeWorkspaceService.shouldShowInProjectView(module, item.virtualFile.toIoFile())
     }
   }
   if (sourceRootNodes.size == 1) {

@@ -1,38 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <options>
   <configurable id="preferences.keymap" configurable_name="Keymap">
-    <option name="files" path="ActionManager" hit="Show Unused Native Files" />
-    <option name="native" path="ActionManager" hit="Show Unused Native Files" />
-    <option name="show" path="ActionManager" hit="Show Unused Native Files" />
-    <option name="unused" path="ActionManager" hit="Show Unused Native Files" />
-    <option name="a" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="are" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="build" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="configuration" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="considered" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="directories" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="explicitly" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="file" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="files" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="header" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="if" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="in" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="is" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="it" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="its" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="known" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="mentioned" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="native" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="not" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="note" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="or" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="parent" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="show" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="system" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="that" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="the" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="to" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
-    <option name="unknown" path="ActionManager" hit="Show files that are not known to the native build system. Note that if a header file or its parent directories are not explicitly mentioned in the build configuration, it is considered unknown to the build system." />
+    <option name="cmake" path="ActionManager" hit="Show Files Unknown to CMake" />
+    <option name="files" path="ActionManager" hit="Show Files Unknown to CMake" />
+    <option name="show" path="ActionManager" hit="Show Files Unknown to CMake" />
+    <option name="to" path="ActionManager" hit="Show Files Unknown to CMake" />
+    <option name="unknown" path="ActionManager" hit="Show Files Unknown to CMake" />
+    <option name="are" path="ActionManager" hit="Show files that are not explicitly mentioned in CMakeLists.txt files in this project." />
+    <option name="cmakelists" path="ActionManager" hit="Show files that are not explicitly mentioned in CMakeLists.txt files in this project." />
+    <option name="explicitly" path="ActionManager" hit="Show files that are not explicitly mentioned in CMakeLists.txt files in this project." />
+    <option name="files" path="ActionManager" hit="Show files that are not explicitly mentioned in CMakeLists.txt files in this project." />
+    <option name="in" path="ActionManager" hit="Show files that are not explicitly mentioned in CMakeLists.txt files in this project." />
+    <option name="mentioned" path="ActionManager" hit="Show files that are not explicitly mentioned in CMakeLists.txt files in this project." />
+    <option name="not" path="ActionManager" hit="Show files that are not explicitly mentioned in CMakeLists.txt files in this project." />
+    <option name="project" path="ActionManager" hit="Show files that are not explicitly mentioned in CMakeLists.txt files in this project." />
+    <option name="show" path="ActionManager" hit="Show files that are not explicitly mentioned in CMakeLists.txt files in this project." />
+    <option name="that" path="ActionManager" hit="Show files that are not explicitly mentioned in CMakeLists.txt files in this project." />
+    <option name="this" path="ActionManager" hit="Show files that are not explicitly mentioned in CMakeLists.txt files in this project." />
+    <option name="txt" path="ActionManager" hit="Show files that are not explicitly mentioned in CMakeLists.txt files in this project." />
   </configurable>
   <configurable id="editor.preferences.folding" configurable_name="Code Folding">
     <option name="" hit=" JNI-mangled function name " />
