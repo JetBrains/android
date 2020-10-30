@@ -47,7 +47,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.runner.Description
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 
 /**
  * Rule providing all of the underlying components of App Inspection including [executorService], [streamChannel], [transport] and [client].
@@ -93,9 +92,8 @@ class AppInspectionServiceRule(
   override fun before(description: Description) {
     client = TransportClient(grpcServer.name)
     executorService = Executors.newSingleThreadExecutor()
-    streamManager = TransportStreamManager.createManager(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100),
-                                                         executorService.asCoroutineDispatcher())
-    streamChannel = TransportStreamChannel(stream, streamManager.poller, client.transportStub, executorService.asCoroutineDispatcher())
+    streamManager = TransportStreamManager.createManager(client.transportStub, executorService.asCoroutineDispatcher())
+    streamChannel = TransportStreamChannel(stream, client.transportStub, executorService.asCoroutineDispatcher())
     scope = CoroutineScope(executorService.asCoroutineDispatcher() + SupervisorJob())
     transport = AppInspectionTransport(client, stream, process, streamChannel)
     jarCopier = AppInspectionTestUtils.TestTransportJarCopier

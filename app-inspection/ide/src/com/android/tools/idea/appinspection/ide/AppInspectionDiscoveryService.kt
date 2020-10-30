@@ -42,7 +42,6 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
-import java.util.concurrent.TimeUnit
 
 
 /**
@@ -58,8 +57,7 @@ class AppInspectionDiscoveryService : Disposable {
   }
 
   private val client = TransportClient(TransportService.CHANNEL_NAME)
-  private val streamManager = TransportStreamManager.createManager(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100),
-                                                                   AndroidDispatchers.workerThread)
+  private val streamManager = TransportStreamManager.createManager(client.transportStub, AndroidDispatchers.workerThread)
 
   private val applicationMessageBus = ApplicationManager.getApplication().messageBus.connect(this)
 
