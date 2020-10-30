@@ -24,7 +24,9 @@ import static com.intellij.xml.CommonXmlStrings.HTML_END;
 import static com.intellij.xml.CommonXmlStrings.HTML_START;
 
 import com.android.tools.lint.checks.BuiltinIssueRegistry;
+import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.LintClient;
+import com.android.tools.lint.client.api.Vendor;
 import com.android.tools.lint.detector.api.Category;
 import com.android.tools.lint.detector.api.Implementation;
 import com.android.tools.lint.detector.api.Issue;
@@ -36,6 +38,7 @@ import com.android.tools.lint.detector.api.LintFix.ShowUrl;
 import com.android.tools.lint.detector.api.Position;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
+import com.android.tools.lint.detector.api.TextFormat;
 import com.google.common.collect.Lists;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
@@ -572,6 +575,17 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
         }
       }
     }
+
+    Vendor vendor = myIssue.getVendor();
+    IssueRegistry registry = myIssue.getRegistry();
+    if (vendor == null && registry != null) {
+      vendor = registry.getVendor();
+    }
+    if (vendor != null && vendor != IssueRegistry.Companion.getAOSP_VENDOR()) {
+      sb.append("<br/><br/>\n");
+      vendor.describeInto(sb, TextFormat.HTML, "");
+    }
+
     sb.append("</body></html>");
 
     return sb.toString();

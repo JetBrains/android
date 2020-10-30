@@ -16,6 +16,8 @@
 package com.android.tools.idea.lint.common;
 
 import com.android.tools.lint.checks.BuiltinIssueRegistry;
+import com.android.tools.lint.client.api.IssueRegistry;
+import com.android.tools.lint.client.api.Vendor;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.TextFormat;
 import com.intellij.codeInsight.highlighting.TooltipLinkHandler;
@@ -49,6 +51,16 @@ public class LintInspectionDescriptionLinkHandler extends TooltipLinkHandler {
         for (String url : urls) {
           sb.append("<a href=\"").append(url).append("\">").append(url).append("</a><br>");
         }
+      }
+
+      Vendor vendor = issue.getVendor();
+      IssueRegistry registry = issue.getRegistry();
+      if (vendor == null && registry != null) {
+        vendor = registry.getVendor();
+      }
+      if (vendor != null) {
+        sb.append("<br>\n");
+        vendor.describeInto(sb, TextFormat.HTML, "");
       }
 
       return sb.toString();
