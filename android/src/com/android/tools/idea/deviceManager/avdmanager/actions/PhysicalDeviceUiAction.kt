@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.deviceManager.avdmanager.actions
 
-import com.android.sdklib.devices.Device
-import com.android.sdklib.internal.avd.AvdInfo
-import com.android.tools.idea.deviceManager.avdmanager.ConfigureDeviceModel
-import com.android.tools.idea.deviceManager.avdmanager.ConfigureDeviceOptionsStep
+import com.android.tools.idea.avdmanager.ConfigureDeviceModel
+import com.android.tools.idea.avdmanager.ConfigureDeviceOptionsStep
 import com.android.tools.idea.deviceManager.displayList.NamedDevice
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.android.tools.idea.wizard.model.ModelWizard
@@ -26,7 +24,6 @@ import com.intellij.openapi.project.Project
 import java.beans.PropertyChangeListener
 import javax.swing.Action
 import javax.swing.Icon
-import javax.swing.JComponent
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
 

@@ -15,13 +15,8 @@
  */
 package com.android.tools.idea.deviceManager.avdmanager.actions
 
-import com.android.tools.idea.deviceManager.DEVICE_MANAGER_ID
-import com.android.tools.idea.deviceManager.avdmanager.AvdOptionsModel
-import com.android.tools.idea.deviceManager.avdmanager.AvdWizardUtils
-import com.android.tools.idea.deviceManager.displayList.NamedDevice
 import com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowManager
 import java.awt.event.ActionEvent
 

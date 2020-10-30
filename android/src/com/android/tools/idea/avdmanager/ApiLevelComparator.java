@@ -20,7 +20,7 @@ import com.android.sdklib.SdkVersionInfo;
 import java.util.Comparator;
 
 /** Compared API level strings numerically when possible */
-class ApiLevelComparator implements Comparator<String> {
+public class ApiLevelComparator implements Comparator<String> {
   @Override
   public int compare(String s1, String s2) {
     int api1 = -1; // not a valid API level

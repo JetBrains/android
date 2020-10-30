@@ -51,7 +51,7 @@ public final class SystemImageDescription {
     mySystemImage = new RemoteSystemImage(remotePackage);
   }
 
-  static boolean hasSystemImage(RepoPackage p) {
+  public static boolean hasSystemImage(RepoPackage p) {
     TypeDetails details = p.getTypeDetails();
     if (!(details instanceof DetailsTypes.ApiDetailsType)) {
       return false;

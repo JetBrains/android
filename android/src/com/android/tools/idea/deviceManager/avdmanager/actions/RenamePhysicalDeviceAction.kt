@@ -15,18 +15,14 @@
  */
 package com.android.tools.idea.deviceManager.avdmanager.actions
 
-import com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.layout.panel
-import org.jetbrains.kotlin.idea.refactoring.move.guessNewFileName
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.ActionEvent
 import javax.swing.JComponent
-import javax.swing.JPanel
 
 
 // TODO(qumeric): create 2 packages for actions. Physical and Virtual.

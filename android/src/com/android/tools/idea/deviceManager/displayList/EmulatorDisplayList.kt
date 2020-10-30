@@ -22,19 +22,20 @@ import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
-import com.android.tools.idea.deviceManager.avdmanager.ApiLevelComparator
-import com.android.tools.idea.deviceManager.avdmanager.AvdActionPanel
-import com.android.tools.idea.deviceManager.avdmanager.AvdColumnInfo
-import com.android.tools.idea.deviceManager.avdmanager.AvdManagerConnection
-import com.android.tools.idea.deviceManager.avdmanager.DeviceManagerConnection
-import com.android.tools.idea.deviceManager.avdmanager.SizeOnDiskColumn
-import com.android.tools.idea.deviceManager.avdmanager.actions.AvdUiAction.AvdInfoProvider
-import com.android.tools.idea.deviceManager.avdmanager.actions.CreateAvdAction
-import com.android.tools.idea.deviceManager.avdmanager.actions.DeleteAvdAction
-import com.android.tools.idea.deviceManager.avdmanager.actions.EditAvdAction
-import com.android.tools.idea.deviceManager.avdmanager.actions.RunAvdAction
-import com.android.tools.idea.deviceManager.avdmanager.emulator.AccelerationErrorCode
-import com.android.tools.idea.deviceManager.avdmanager.emulator.AccelerationErrorNotificationPanel
+import com.android.tools.idea.avdmanager.AccelerationErrorCode
+import com.android.tools.idea.avdmanager.AccelerationErrorNotificationPanel
+import com.android.tools.idea.avdmanager.ApiLevelComparator
+import com.android.tools.idea.avdmanager.AvdActionPanel
+import com.android.tools.idea.avdmanager.AvdActionPanel.AvdRefreshProvider
+import com.android.tools.idea.avdmanager.AvdDisplayList
+import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.avdmanager.AvdUiAction.AvdInfoProvider
+import com.android.tools.idea.avdmanager.CreateAvdAction
+import com.android.tools.idea.avdmanager.DeleteAvdAction
+import com.android.tools.idea.avdmanager.DeviceManagerConnection
+import com.android.tools.idea.avdmanager.EditAvdAction
+import com.android.tools.idea.avdmanager.RunAvdAction
+import com.android.tools.idea.avdmanager.SizeOnDiskColumn
 import com.android.tools.idea.deviceManager.displayList.columns.AvdActionsColumnInfo
 import com.android.tools.idea.deviceManager.displayList.columns.AvdDeviceColumnInfo
 import com.google.common.annotations.VisibleForTesting
@@ -79,7 +80,7 @@ import javax.swing.table.TableCellRenderer
 /**
  * A UI component which lists the existing AVDs
  */
-class EmulatorDisplayList(override val project: Project?) : JPanel(), ListSelectionListener, AvdActionPanel.AvdRefreshProvider, AvdInfoProvider {
+class EmulatorDisplayList(private val project: Project?) : JPanel(), ListSelectionListener, AvdRefreshProvider, AvdInfoProvider {
   private val centerCardPanel: JPanel
   private val notificationPanel = JPanel().apply {
     layout = BoxLayout(this, 1)
@@ -182,9 +183,15 @@ class EmulatorDisplayList(override val project: Project?) : JPanel(), ListSelect
     }
   }
 
-  override val avdInfo: AvdInfo? = table.selectedObject
+  private val avdInfo: AvdInfo? = table.selectedObject
+  override fun getAvdInfo(): AvdInfo? {
+    return avdInfo
+  }
 
-  override val avdProviderComponent: JComponent = this
+  private val avdProviderComponent: JComponent = this
+  override fun getAvdProviderComponent(): JComponent {
+    return avdProviderComponent
+  }
 
   fun updateSearchResults(searchString: String?) {
     if (searchString != null) {
@@ -215,6 +222,10 @@ class EmulatorDisplayList(override val project: Project?) : JPanel(), ListSelect
     avdToSelect ?: return
     val avdInList = table.items.firstOrNull { it.name == avdToSelect.name } ?: return
     table.selection = listOf(avdInList)
+  }
+
+  override fun getProject(): Project? {
+    return project
   }
 
   override fun getComponent(): JComponent = this
@@ -294,7 +305,7 @@ class EmulatorDisplayList(override val project: Project?) : JPanel(), ListSelect
     return listOf(
       AvdDeviceColumnInfo("Device"),
 
-      object : AvdColumnInfo("API", JBUI.scale(20)) {
+      object : AvdDisplayList.AvdColumnInfo("API", JBUI.scale(20)) {
         override fun valueOf(avdInfo: AvdInfo): String = avdInfo.androidVersion.apiString
 
         /**
@@ -306,7 +317,9 @@ class EmulatorDisplayList(override val project: Project?) : JPanel(), ListSelect
         }
       },
 
-      SizeOnDiskColumn(table, JBUI.scale(30)),
+      // TODO (b/171512149): add parameter
+      //SizeOnDiskColumn(table, JBUI.scale(30)),
+      SizeOnDiskColumn(table),
 
       AvdActionsColumnInfo("actions", 3, this)
     )
@@ -373,7 +386,7 @@ class EmulatorDisplayList(override val project: Project?) : JPanel(), ListSelect
     const val EMPTY = "empty"
     private const val MOBILE_TAG_STRING = "mobile-device"
     private val deviceClassIcons = hashMapOf<String, HighlightableIconPair>()
-    val deviceManager: DeviceManagerConnection get() = DeviceManagerConnection.defaultDeviceManagerConnection
+    val deviceManager: DeviceManagerConnection get() = DeviceManagerConnection.getDefaultDeviceManagerConnection()
 
     /**
      * @return the device screen size of this AVD
