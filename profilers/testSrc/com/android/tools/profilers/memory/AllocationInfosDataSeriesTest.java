@@ -23,29 +23,19 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Memory.AllocationsInfo;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
-@RunWith(Parameterized.class)
 public final class AllocationInfosDataSeriesTest {
-  @Parameterized.Parameters
-  public static Collection<Boolean> useNewEventPipelineParameter() {
-    return Arrays.asList(false, true);
-  }
 
   private final FakeTimer myTimer = new FakeTimer();
   private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
@@ -56,11 +46,8 @@ public final class AllocationInfosDataSeriesTest {
 
   private MainMemoryProfilerStage myStage;
 
-  private final boolean myNewEventPipeline;
-
-  public AllocationInfosDataSeriesTest(boolean useNewEventPipeline) {
-    myNewEventPipeline = useNewEventPipeline;
-    myIdeProfilerServices.enableEventsPipeline(useNewEventPipeline);
+  public AllocationInfosDataSeriesTest() {
+    myIdeProfilerServices.enableEventsPipeline(true);
   }
 
   @Before
@@ -81,23 +68,14 @@ public final class AllocationInfosDataSeriesTest {
     AllocationsInfo info2 = AllocationsInfo.newBuilder()
       .setStartTime(TimeUnit.MICROSECONDS.toNanos(startTimeUs2)).setEndTime(Long.MAX_VALUE).setLegacy(true).build();
 
-    if (myNewEventPipeline) {
-      myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(),
-                                          ProfilersTestData.generateMemoryAllocationInfoData(info1.getStartTime(),
-                                                                                             ProfilersTestData.SESSION_DATA.getPid(),
-                                                                                             info1).build());
-      myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(),
-                                          ProfilersTestData.generateMemoryAllocationInfoData(info2.getStartTime(),
-                                                                                             ProfilersTestData.SESSION_DATA.getPid(),
-                                                                                             info2).build());
-    }
-    else {
-      MemoryData memoryData = MemoryData.newBuilder()
-        .addAllocationsInfo(info1)
-        .addAllocationsInfo(info2)
-        .build();
-      myService.setMemoryData(memoryData);
-    }
+    myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(),
+                                        ProfilersTestData.generateMemoryAllocationInfoData(info1.getStartTime(),
+                                                                                           ProfilersTestData.SESSION_DATA.getPid(),
+                                                                                           info1).build());
+    myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(),
+                                        ProfilersTestData.generateMemoryAllocationInfoData(info2.getStartTime(),
+                                                                                           ProfilersTestData.SESSION_DATA.getPid(),
+                                                                                           info2).build());
 
     AllocationInfosDataSeries series =
       new AllocationInfosDataSeries(new ProfilerClient(myGrpcChannel.getChannel()), ProfilersTestData.SESSION_DATA,

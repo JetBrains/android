@@ -30,7 +30,6 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
-import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerClient;
@@ -154,9 +153,6 @@ public class LiveAllocationCaptureObjectTest {
     @Parameter(2)
     public Boolean myJniRefTracking;
 
-    @Parameter(3)
-    public Boolean myNewPipeline;
-
     private ProfilerClient myProfilerClient;
 
     @Before
@@ -164,19 +160,16 @@ public class LiveAllocationCaptureObjectTest {
     public void before() {
       super.before();
       myIdeProfilerServices.enableJniReferenceTracking(myJniRefTracking);
-      myIdeProfilerServices.enableEventsPipeline(myNewPipeline);
+      myIdeProfilerServices.enableEventsPipeline(true);
       myProfilerClient = new ProfilerClient(myGrpcChannel.getChannel());
     }
 
-    @Parameters(name = "{index}: HeapId:{0}, HeapName:{1}, JNI tracking: {2}, New Pipeline: {3}")
+    @Parameters(name = "{index}: HeapId:{0}, HeapName:{1}, JNI tracking: {2}")
     public static Object[] getHeapParameters() {
       return new Object[]{
-        new Object[]{DEFAULT_HEAP_ID, DEFAULT_HEAP_NAME, false, false},
-        new Object[]{DEFAULT_HEAP_ID, DEFAULT_HEAP_NAME, true, false},
-        new Object[]{DEFAULT_HEAP_ID, DEFAULT_HEAP_NAME, false, true},
-        new Object[]{DEFAULT_HEAP_ID, DEFAULT_HEAP_NAME, true, true},
-        new Object[]{JNI_HEAP_ID, JNI_HEAP_NAME, true, false},
-        new Object[]{JNI_HEAP_ID, JNI_HEAP_NAME, true, true},
+        new Object[]{DEFAULT_HEAP_ID, DEFAULT_HEAP_NAME, false},
+        new Object[]{DEFAULT_HEAP_ID, DEFAULT_HEAP_NAME, true},
+        new Object[]{JNI_HEAP_ID, JNI_HEAP_NAME, true},
       };
     }
 
@@ -583,53 +576,34 @@ public class LiveAllocationCaptureObjectTest {
         .setSamplingNumInterval(MainMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue()).build();
       MemoryAllocSamplingData noneData = MemoryAllocSamplingData.newBuilder()
         .setSamplingNumInterval(MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue()).build();
-      if (myNewPipeline) {
-        myTransportService.addEventToStream(
-          ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
-            .setPid(ProfilersTestData.SESSION_DATA.getPid())
-            .setKind(Common.Event.Kind.MEMORY_ALLOC_SAMPLING)
-            .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME))
-            .setMemoryAllocSampling(fullData)
-            .build());
-        myTransportService.addEventToStream(
-          ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
-            .setPid(ProfilersTestData.SESSION_DATA.getPid())
-            .setKind(Common.Event.Kind.MEMORY_ALLOC_SAMPLING)
-            .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME + 1))
-            .setMemoryAllocSampling(sampledData)
-            .build());
-        myTransportService.addEventToStream(
-          ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
-            .setPid(ProfilersTestData.SESSION_DATA.getPid())
-            .setKind(Common.Event.Kind.MEMORY_ALLOC_SAMPLING)
-            .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME + 2))
-            .setMemoryAllocSampling(noneData)
-            .build());
-        myTransportService.addEventToStream(
-          ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
-            .setPid(ProfilersTestData.SESSION_DATA.getPid())
-            .setKind(Common.Event.Kind.MEMORY_ALLOC_SAMPLING)
-            .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME + 3))
-            .setMemoryAllocSampling(fullData)
-            .build());
-      }
-      else {
-        MemoryProfiler.MemoryData memoryData = MemoryProfiler.MemoryData.newBuilder().setEndTimestamp(1)
-          .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
-                                        .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME))
-                                        .setSamplingRate(fullData))
-          .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
-                                        .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME + 1))
-                                        .setSamplingRate(sampledData))
-          .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
-                                        .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME + 2))
-                                        .setSamplingRate(noneData))
-          .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
-                                        .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME + 3))
-                                        .setSamplingRate(fullData))
-          .build();
-        myService.setMemoryData(memoryData);
-      }
+      myTransportService.addEventToStream(
+        ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
+          .setPid(ProfilersTestData.SESSION_DATA.getPid())
+          .setKind(Common.Event.Kind.MEMORY_ALLOC_SAMPLING)
+          .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME))
+          .setMemoryAllocSampling(fullData)
+          .build());
+      myTransportService.addEventToStream(
+        ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
+          .setPid(ProfilersTestData.SESSION_DATA.getPid())
+          .setKind(Common.Event.Kind.MEMORY_ALLOC_SAMPLING)
+          .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME + 1))
+          .setMemoryAllocSampling(sampledData)
+          .build());
+      myTransportService.addEventToStream(
+        ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
+          .setPid(ProfilersTestData.SESSION_DATA.getPid())
+          .setKind(Common.Event.Kind.MEMORY_ALLOC_SAMPLING)
+          .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME + 2))
+          .setMemoryAllocSampling(noneData)
+          .build());
+      myTransportService.addEventToStream(
+        ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
+          .setPid(ProfilersTestData.SESSION_DATA.getPid())
+          .setKind(Common.Event.Kind.MEMORY_ALLOC_SAMPLING)
+          .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME + 3))
+          .setMemoryAllocSampling(fullData)
+          .build());
 
       // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
       boolean[] loadSuccess = new boolean[1];
