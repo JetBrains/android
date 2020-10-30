@@ -103,7 +103,7 @@ def _resource_deps(res_dirs, res, platform):
             files += [(dir + "/" + f.basename, f) for f in dep.files.to_list()]
     return files
 
-def _check_plugin(ctx, files, verify_id = None, verify_deps = None):
+def _check_plugin(ctx, files, external_xmls = [], verify_id = None, verify_deps = None):
     deps = None
     if verify_deps != None:
         deps = [dep.plugin_info for dep in verify_deps if hasattr(dep, "plugin_info")]
@@ -116,6 +116,7 @@ def _check_plugin(ctx, files, verify_id = None, verify_deps = None):
         check_args.add("--plugin_id", verify_id)
     if deps != None:
         check_args.add_all("--deps", deps, omit_if_empty = False)
+    check_args.add_all("--external_xmls", external_xmls)
 
     ctx.actions.run(
         inputs = files + (deps if deps else []),
@@ -139,7 +140,7 @@ def _studio_plugin_os(ctx, platform, module_deps, plugin_dir, plugin_info, out):
 def _studio_plugin_impl(ctx):
     plugin_dir = "plugins/" + ctx.attr.directory
     module_deps, plugin_jar, plugin_xml = _module_deps(ctx, ctx.attr.jars, ctx.attr.modules)
-    plugin_info = _check_plugin(ctx, [f for (r, f) in module_deps], ctx.attr.name, ctx.attr.deps)
+    plugin_info = _check_plugin(ctx, [f for (r, f) in module_deps], ctx.attr.external_xmls, ctx.attr.name, ctx.attr.deps)
     _studio_plugin_os(ctx, LINUX, module_deps, plugin_dir, plugin_info, ctx.outputs.plugin_linux)
     _studio_plugin_os(ctx, MAC, module_deps, plugin_dir, plugin_info, ctx.outputs.plugin_mac)
     _studio_plugin_os(ctx, WIN, module_deps, plugin_dir, plugin_info, ctx.outputs.plugin_win)
@@ -164,6 +165,8 @@ _studio_plugin = rule(
         "directory": attr.string(),
         "compress": attr.bool(),
         "deps": attr.label_list(),
+        "provided": attr.label_list(),
+        "external_xmls": attr.string_list(),
         "_singlejar": attr.label(
             default = Label("@bazel_tools//tools/jdk:singlejar"),
             cfg = "host",
