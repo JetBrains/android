@@ -64,8 +64,7 @@ class DefaultProcessManagerTest {
   fun before() {
     client = TransportClient(grpcServer!!.name)
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    streamManager = TransportStreamManager.createManager(client!!.transportStub, TimeUnit.MILLISECONDS.toNanos(100),
-                                                         executor.asCoroutineDispatcher())
+    streamManager = TransportStreamManager.createManager(client!!.transportStub, executor.asCoroutineDispatcher())
     scope = CoroutineScope(executor.asCoroutineDispatcher() + SupervisorJob())
     processManager = DefaultProcessManager(client!!.transportStub, streamManager!!, scope!!, disposableRule.disposable)
   }

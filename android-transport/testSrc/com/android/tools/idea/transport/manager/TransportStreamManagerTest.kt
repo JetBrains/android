@@ -26,7 +26,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.take
@@ -37,7 +36,6 @@ import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 
 @ExperimentalCoroutinesApi
 class TransportStreamManagerTest {
@@ -68,7 +66,7 @@ class TransportStreamManagerTest {
   fun discoverNewStream() = runBlocking {
     val manager =
       TransportStreamManager
-        .createManager(TransportClient(grpcServerRule.name).transportStub, TimeUnit.MILLISECONDS.toNanos(100), dispatcher)
+        .createManager(TransportClient(grpcServerRule.name).transportStub, dispatcher)
 
     val streamReadyDeferred = CompletableDeferred<Unit>()
     val streamDeadDeferred = CompletableDeferred<Unit>()
@@ -101,7 +99,7 @@ class TransportStreamManagerTest {
   fun rediscoverStream() = runBlocking {
     val manager =
       TransportStreamManager
-        .createManager(TransportClient(grpcServerRule.name).transportStub, TimeUnit.MILLISECONDS.toNanos(100), dispatcher)
+        .createManager(TransportClient(grpcServerRule.name).transportStub, dispatcher)
 
     val streamReadyDeferred = CompletableDeferred<Unit>()
     val streamReadyAgainDeferred = CompletableDeferred<Unit>()
@@ -143,7 +141,7 @@ class TransportStreamManagerTest {
   fun discoverMultipleStreams() = runBlocking {
     val manager =
       TransportStreamManager
-        .createManager(TransportClient(grpcServerRule.name).transportStub, TimeUnit.MILLISECONDS.toNanos(100), dispatcher)
+        .createManager(TransportClient(grpcServerRule.name).transportStub, dispatcher)
 
     val devicesDetected = CompletableDeferred<Unit>()
     launch {
@@ -179,8 +177,7 @@ class TransportStreamManagerTest {
   @Test
   fun streamsWithDifferentClocks() = runBlocking {
     val manager =
-      TransportStreamManager.createManager(TransportClient(grpcServerRule.name).transportStub, TimeUnit.MILLISECONDS.toNanos(100),
-                                           dispatcher)
+      TransportStreamManager.createManager(TransportClient(grpcServerRule.name).transportStub, dispatcher)
 
     launch {
       manager.streamActivityFlow()
@@ -210,8 +207,7 @@ class TransportStreamManagerTest {
   @Test
   fun streamDisconnect_closesFlows() = runBlocking {
     val manager =
-      TransportStreamManager.createManager(TransportClient(grpcServerRule.name).transportStub, TimeUnit.MILLISECONDS.toNanos(100),
-                                           dispatcher)
+      TransportStreamManager.createManager(TransportClient(grpcServerRule.name).transportStub, dispatcher)
 
     val streamReadyDeferred = CompletableDeferred<Unit>()
     launch {

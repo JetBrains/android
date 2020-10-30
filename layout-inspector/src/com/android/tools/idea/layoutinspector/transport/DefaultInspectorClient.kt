@@ -105,8 +105,7 @@ class DefaultInspectorClient(
   private val stats = model.stats
   private val client = TransportClient(channelNameForTest)
 
-  private val streamManager = TransportStreamManager.createManager(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100),
-                                                                   AndroidDispatchers.workerThread)
+  private val streamManager = TransportStreamManager.createManager(client.transportStub, AndroidDispatchers.workerThread)
   private val scope = AndroidCoroutineScope(this)
 
   @VisibleForTesting
