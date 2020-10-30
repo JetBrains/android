@@ -53,7 +53,7 @@ class WorkManagerInspectorClientTest {
       return singleRawCommandResponse
     }
 
-    override val rawEventFlow = emptyFlow<ByteArray>()
+    override val eventFlow = emptyFlow<ByteArray>()
   }
 
   /**

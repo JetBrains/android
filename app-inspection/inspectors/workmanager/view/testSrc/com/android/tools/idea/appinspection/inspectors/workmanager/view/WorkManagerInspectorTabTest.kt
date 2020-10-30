@@ -75,7 +75,7 @@ class WorkManagerInspectorTabTest {
       return ByteArray(0)
     }
 
-    override val rawEventFlow = emptyFlow<ByteArray>()
+    override val eventFlow = emptyFlow<ByteArray>()
   }
 
   private class TestIdeServices : TestAppInspectionIdeServices() {

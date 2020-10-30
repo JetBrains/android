@@ -28,5 +28,5 @@ class StubTestAppInspectorMessenger : AppInspectorMessenger {
   override val scope: CoroutineScope
     get() = throw NotImplementedError()
 
-  override val rawEventFlow: Flow<ByteArray> = emptyFlow()
+  override val eventFlow: Flow<ByteArray> = emptyFlow()
 }
