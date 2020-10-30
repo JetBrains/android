@@ -15,7 +15,7 @@ import org.junit.runner.RunWith
 import java.util.concurrent.TimeUnit
 
 @RunWith(GuiTestRemoteRunner::class)
-class ShowUnusedNativeFilesActionTest {
+class ShowFilesUnknownToCMakeActionTest {
   @get:Rule
   val guiTest = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
 
@@ -32,6 +32,7 @@ class ShowUnusedNativeFilesActionTest {
       .wizard()
       .clickNext()
       .configureNewAndroidProjectStep
+      .enterName("cpp-test")
       .enterPackageName("dev.tools")
       .wizard()
       .clickNext()
@@ -51,7 +52,7 @@ class ShowUnusedNativeFilesActionTest {
 
     // Turn off show unused files
     projectView.showOptionsMenu()
-    GuiTests.clickPopupMenuItem("Show Unused Native Files", ideFrame.target(), ideFrame.robot())
+    GuiTests.clickPopupMenuItem("Show Files Unknown to CMake", ideFrame.target(), ideFrame.robot())
 
     // Add a new file inside the IDE
     androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app", "cpp")
@@ -76,7 +77,7 @@ class ShowUnusedNativeFilesActionTest {
 
     // Turn on show unused files
     projectView.showOptionsMenu()
-    GuiTests.clickPopupMenuItem("Show Unused Native Files", ideFrame.target(), ideFrame.robot())
+    GuiTests.clickPopupMenuItem("Show Files Unknown to CMake", ideFrame.target(), ideFrame.robot())
 
     Truth.assertThat(androidPane.hasPath("app", "cpp", "unused.c")).isTrue()
   }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.ndk
 
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import java.io.File
@@ -64,7 +65,8 @@ interface NativeWorkspaceProvider {
         it.getCompilerSettings(project, filter).asSequence()
       }.asStream()
 
-    fun shouldShowInProjectView(project: Project, file: File): Boolean = EP_NAME.extensions().anyMatch { it.shouldShowInProjectView(project, file) }
+    fun shouldShowInProjectView(module: Module,
+                                file: File): Boolean = EP_NAME.extensions().anyMatch { it.shouldShowInProjectView(module, file) }
   }
 
   /** Gets union of all include paths for all module/variant/abi that matches the given filter. */
@@ -73,6 +75,6 @@ interface NativeWorkspaceProvider {
   /** Gets all compiler settings for all module/variant/abi that matches the given filter. */
   fun getCompilerSettings(project: Project, filter: (ModuleVariantAbi) -> Boolean): Stream<NativeCompilerSetting>
 
-  fun shouldShowInProjectView(project: Project, file: File): Boolean
+  fun shouldShowInProjectView(module: Module, file: File): Boolean
 }
 
