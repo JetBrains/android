@@ -186,7 +186,11 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     assert location != null;
 
     myState.put(WizardConstants.KEY_SDK_INSTALL_LOCATION, location.getAbsolutePath());
-    myState.put(WizardConstants.KEY_JDK_LOCATION, EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getPath());
+    File file = EmbeddedDistributionPaths.getInstance().tryToGetEmbeddedJdkPath();
+    if (file != null) {
+      // There is no embedded JDK in IDEA
+      myState.put(WizardConstants.KEY_JDK_LOCATION, file.getPath());
+    }
 
     myComponentTree = createComponentTree(myMode, !isChromeOSAndIsNotHWAccelerated() && myMode.shouldCreateAvd());
     myComponentTree.init(myProgressStep);
