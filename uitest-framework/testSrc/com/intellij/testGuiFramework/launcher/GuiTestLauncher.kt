@@ -161,6 +161,10 @@ object GuiTestLauncher {
       "-Didea.application.starter.command=${GuiTestStarter.COMMAND_NAME}",
       "-Didea.gui.test.port=$port"
     )
+    /* Move Menu bar into IDEA window on Mac OS. Required for test framework to access Menu */
+    if (SystemInfo.isMac) {
+      options += "-Dapple.laf.useScreenMenuBar=false"
+    }
     /* aspects agent options */
     if (!SystemInfoRt.IS_AT_LEAST_JAVA9) {  // b/134524025
       options += "-javaagent:${GuiTestOptions.getAspectsAgentJar()}=${GuiTestOptions.getAspectsAgentRules()};${GuiTestOptions.getAspectsAgentBaseline()}"
