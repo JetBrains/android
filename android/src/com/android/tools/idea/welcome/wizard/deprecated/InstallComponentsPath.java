@@ -16,6 +16,7 @@
 package com.android.tools.idea.welcome.wizard.deprecated;
 
 import static com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated;
+
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.TypeDetails;
@@ -115,9 +116,9 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     components.add(new AndroidSdk(myInstallUpdates));
 
     RepoManager sdkManager = myLocalHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));
-    sdkManager.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
+    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
                     new StudioProgressRunner(true, false, "Finding Available SDK Components", null),
-                    new StudioDownloader(), StudioSettingsController.getInstance(), true);
+                    new StudioDownloader(), StudioSettingsController.getInstance());
     Map<String, RemotePackage> remotePackages = sdkManager.getPackages().getRemotePackages();
     ComponentTreeNode platforms = Platform.Companion.createSubtree(remotePackages, myInstallUpdates);
     if (platforms != null) {
@@ -235,7 +236,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
                     myComponentsStep.stopLoading();
                   }), ImmutableList.of(() -> myComponentsStep.loadingError()),
                   new StudioProgressRunner(false, false, "Finding Available SDK Components", getProject()), new StudioDownloader(),
-                  StudioSettingsController.getInstance(), false);
+                  StudioSettingsController.getInstance());
         }
       }
     }

@@ -112,8 +112,7 @@ class PreconfiguredDisplayListModel(
     sdkHandler.getSdkManager(LOGGER).load(
       if (forceRefresh) 0 else RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
       listOf(localComplete), listOf(remoteComplete), listOf(error),
-      runner, StudioDownloader(), StudioSettingsController.getInstance(), false
-    )
+      runner, StudioDownloader(), StudioSettingsController.getInstance())
   }
 
   private val localImages: List<SystemImageDescription>
