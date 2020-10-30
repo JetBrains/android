@@ -55,7 +55,7 @@ class DatabaseInspectorClient constructor(
 
   init {
     scope.launch {
-      messenger.rawEventFlow.collect { eventData ->
+      messenger.eventFlow.collect { eventData ->
         onRawEvent(eventData)
       }
     }

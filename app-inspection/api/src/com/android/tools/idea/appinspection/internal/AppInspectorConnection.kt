@@ -148,7 +148,7 @@ internal class AppInspectorConnection(
     }
   }
 
-  override val rawEventFlow = callbackFlow<ByteArray> {
+  override val eventFlow = callbackFlow<ByteArray> {
     val listener = transport.createStreamEventListener(
       eventKind = APP_INSPECTION_EVENT,
       filter = { event ->
