@@ -30,6 +30,7 @@ import com.android.tools.idea.analytics.IdeBrandProviderKt;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.deployment.RunOnMultipleDevicesAction;
 import com.android.tools.idea.run.deployment.SelectMultipleDevicesAction;
+import com.android.tools.idea.progress.StudioProgressManagerAdapter;
 import com.android.tools.idea.serverflags.ServerFlagDownloader;
 import com.android.tools.idea.serverflags.ServerFlagInitializer;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
@@ -86,6 +87,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     @Override
     public void beforeApplicationLoaded(@NotNull Application application, @NotNull String configPath) {
       AndroidStudioAnalytics.initialize(new AndroidStudioAnalyticsImpl());
+      StudioProgressManagerAdapter.initialize();
     }
   }
 
