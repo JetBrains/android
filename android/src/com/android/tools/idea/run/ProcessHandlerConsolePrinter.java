@@ -34,9 +34,9 @@ public final class ProcessHandlerConsolePrinter implements ConsolePrinter {
 
   private static class Message {
     @NotNull final String text;
-    @NotNull final Key outputType;
+    @NotNull final Key<?> outputType;
 
-    Message(@NotNull String text, @NotNull Key outputType) {
+    Message(@NotNull String text, @NotNull Key<?> outputType) {
       this.text = text;
       this.outputType = outputType;
     }
@@ -70,12 +70,15 @@ public final class ProcessHandlerConsolePrinter implements ConsolePrinter {
       storedMessages = Lists.newArrayList(myStoredMessages);
       myStoredMessages.clear();
     }
-    for (Message message : storedMessages) {
-      print(message.text, message.outputType);
+    // We DO NOT call notifyTextAvailable under a lock, because it could execute arbitrary code
+    // and opens up the (remote) possibility of deadlock.
+    if (Thread.holdsLock(myLock)) {
+      throw new RuntimeException("Lock incorrectly held while setting process handler.");
     }
+    storedMessages.forEach(message -> processHandler.notifyTextAvailable(message.text + '\n', message.outputType));
   }
 
-  private void print(@NotNull String text, @NotNull Key outputType) {
+  private void print(@NotNull String text, @NotNull Key<?> outputType) {
     final ProcessHandler processHandler;
     synchronized (myLock) {
       processHandler = myProcessHandler.get();
@@ -86,7 +89,9 @@ public final class ProcessHandlerConsolePrinter implements ConsolePrinter {
     }
     // We DO NOT call notifyTextAvailable under a lock, because it could execute arbitrary code
     // and opens up the (remote) possibility of deadlock.
-    assert !Thread.holdsLock(myLock);
+    if (Thread.holdsLock(myLock)) {
+      throw new RuntimeException("Lock incorrectly held while printing.");
+    }
     processHandler.notifyTextAvailable(text + '\n', outputType);
   }
 }
