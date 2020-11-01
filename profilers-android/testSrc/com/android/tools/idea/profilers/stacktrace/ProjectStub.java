@@ -106,6 +106,7 @@ final class ProjectStub extends UserDataHolderBase implements Project {
     throw new UnsupportedOperationException("getExtensionArea is not implement in : " + getClass());
   }
 
+  @NotNull
   @Override
   public <T> Class<T> loadClass(@NotNull String className,
                                 @NotNull PluginDescriptor pluginDescriptor) throws ClassNotFoundException {
