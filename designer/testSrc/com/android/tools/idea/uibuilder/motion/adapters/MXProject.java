@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.motion.adapters;
 
 import com.intellij.openapi.components.ComponentManager;
 import com.intellij.openapi.extensions.AreaInstance;
+import com.intellij.openapi.extensions.PluginDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Key;
@@ -114,6 +115,12 @@ public class MXProject  implements Project {
   @NotNull
   @Override
   public Condition<?> getDisposed() {
+    return null;
+  }
+
+  @NotNull
+  @Override
+  public <T> Class<T> loadClass(@NotNull String className, @NotNull PluginDescriptor pluginDescriptor) {
     return null;
   }
 
