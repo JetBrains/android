@@ -17,6 +17,7 @@ package com.android.tools.idea.profilers.stacktrace;
 
 import com.intellij.openapi.components.BaseComponent;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.extensions.PluginDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.UserDataHolderBase;
@@ -131,6 +132,12 @@ final class ProjectStub extends UserDataHolderBase implements Project {
   @NotNull
   public Condition getDisposed() {
     return o -> isDisposed();
+  }
+
+  @NotNull
+  @Override
+  public <T> Class<T> loadClass(@NotNull String className, @NotNull PluginDescriptor pluginDescriptor) {
+    return null;
   }
 
   @Override
