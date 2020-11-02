@@ -35,7 +35,7 @@ import org.junit.runners.Parameterized
  * Returns the [HighlightInfo] description adding the relative line number
  */
 private fun HighlightInfo.descriptionWithLineNumber() = ReadAction.compute<String, Throwable> {
-  "${StringUtil.offsetToLineNumber(highlighter.document.text, startOffset)}: ${description}"
+  "${StringUtil.offsetToLineNumber(highlighter!!.document.text, startOffset)}: ${description}"
 }
 
 @RunWith(Parameterized::class)
