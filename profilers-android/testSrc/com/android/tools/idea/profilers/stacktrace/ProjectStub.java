@@ -18,12 +18,14 @@ package com.android.tools.idea.profilers.stacktrace;
 import com.intellij.openapi.components.BaseComponent;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.extensions.PluginDescriptor;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.messages.MessageBus;
+import java.util.Map;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -132,6 +134,24 @@ final class ProjectStub extends UserDataHolderBase implements Project {
   @NotNull
   public Condition getDisposed() {
     return o -> isDisposed();
+  }
+
+  @NotNull
+  @Override
+  public RuntimeException createError(@NotNull Throwable error, @NotNull PluginId pluginId) {
+    return null;
+  }
+
+  @NotNull
+  @Override
+  public RuntimeException createError(@NotNull String message, @NotNull PluginId pluginId) {
+    return null;
+  }
+
+  @NotNull
+  @Override
+  public RuntimeException createError(@NotNull String message, @NotNull PluginId pluginId, @Nullable Map<String, String> attachments) {
+    return null;
   }
 
   @NotNull

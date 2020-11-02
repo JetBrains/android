@@ -18,11 +18,13 @@ package com.android.tools.idea.uibuilder.motion.adapters;
 import com.intellij.openapi.components.ComponentManager;
 import com.intellij.openapi.extensions.AreaInstance;
 import com.intellij.openapi.extensions.PluginDescriptor;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBus;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
@@ -115,6 +117,24 @@ public class MXProject  implements Project {
   @NotNull
   @Override
   public Condition<?> getDisposed() {
+    return null;
+  }
+
+  @NotNull
+  @Override
+  public RuntimeException createError(@NotNull Throwable error, @NotNull PluginId pluginId) {
+    return null;
+  }
+
+  @NotNull
+  @Override
+  public RuntimeException createError(@NotNull String message, @NotNull PluginId pluginId) {
+    return null;
+  }
+
+  @NotNull
+  @Override
+  public RuntimeException createError(@NotNull String message, @NotNull PluginId pluginId, @Nullable Map<String, String> attachments) {
     return null;
   }
 
