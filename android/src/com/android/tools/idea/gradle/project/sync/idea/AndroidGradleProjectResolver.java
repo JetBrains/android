@@ -825,6 +825,11 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   public void preImportCheck() {
+    // FIXME-ank4: it should be OK to import gradle project in IDEA without Android SDK
+    if (!IdeInfo.getInstance().isAndroidStudio()){
+      return;
+    }
+
     // Don't run pre-import checks for the buildSrc project.
     if (resolverCtx.getBuildSrcGroup() != null) {
       return;
