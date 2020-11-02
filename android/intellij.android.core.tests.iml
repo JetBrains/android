@@ -121,6 +121,5 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="intellij.android.compose-ide-plugin" scope="TEST" />
   </component>
 </module>
