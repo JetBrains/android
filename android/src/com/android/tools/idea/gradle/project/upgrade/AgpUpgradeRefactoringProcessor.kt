@@ -23,6 +23,7 @@ import com.android.ide.common.repository.GradleVersion.max
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.flags.StudioFlags.AGP_UPGRADE_ASSISTANT_TOOL_WINDOW
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
@@ -608,6 +609,13 @@ internal fun notifyCancelledUpgrade(project: Project, processor: AgpUpgradeRefac
  * to the process, and then running the processor under that user input's direction.
  */
 internal fun showAndInvokeAgpUpgradeRefactoringProcessor(project: Project, current: GradleVersion, new: GradleVersion) {
+  if (AGP_UPGRADE_ASSISTANT_TOOL_WINDOW.get()) {
+    DumbService.getInstance(project).smartInvokeLater {
+      val contentManager = ServiceManager.getService(project, ContentManager::class.java)
+      contentManager.showContent()
+    }
+    return
+  }
   val processor = AgpUpgradeRefactoringProcessor(project, current, new)
   val runProcessor = showAndGetAgpUpgradeDialog(processor)
   if (runProcessor) {
