@@ -62,10 +62,38 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
     // If opening an animated vector, add an unlimited animation bar
     AnimationToolbar.createUnlimitedAnimationToolbar(this, AnimationToolbar.AnimationListener { frameTimeMs ->
       (surface.sceneManager as? LayoutlibSceneManager)?.let {
-        it.setElapsedFrameTimeMs(frameTimeMs)
-        it.requestRender()
+        if (frameTimeMs <= 0L) {
+          // This condition happens when animation is reset (stop and set elapsed frame to 0) or the elapsed frame is backed to negative.
+
+          // For performance reason, if there is a rendering task, the new render request will be ignored and the callback of new request
+          // will be triggered after the current rendering task is completed.
+          // But the current rendering task may work on different elapsed frame time. We need to request a new render with correct elapsed
+          // frame time after the current rendering task is completed.
+          // For now we don't have a good way to get the completion of current rendering task. Thus we request a render first then request
+          // another after the first one is completed. This makes sure the second request is not ignored and have correct elapsed frame
+          // time. Even the first request is not ignored, it is still fine because we just have an additional render request. Having an
+          // additional rendering doesn't cause the performance issue, because this condition only happens when animation is not playing.
+          it.setElapsedFrameTimeMs(0L)
+          it.requestRender().whenComplete { _, _ ->
+            // The shape may be changed if it is a vector drawable. Reinflate it.
+            it.forceReinflate()
+            // This rendering guarantees the elapsed frame time is 0 and it must re-inflates the drawable to have the correct shape.
+            it.requestRender()
+          }
+        }
+        else {
+          // We don't need to worry about wrong elapsed frame time here.
+          // In practise, this else branch happens when:
+          //   (1): The animation is playing.
+          //   (2): The elapsed time is changed by back frame or forward frame. In this case the animation must paused or stop before.
+          // In case 1, some of rendering can be ignored to improve the performance. It is similar to frame dropping.
+          // In case 2, the animation is paused or stopped first so there is no rendering task. We can just simply request a new render
+          // for the new elapsed frame time.
+          it.setElapsedFrameTimeMs(frameTimeMs)
+          it.requestRender()
+        }
       }
-    }, 16, 500L)
+    }, 16, 0L)
   }
   else null
 
