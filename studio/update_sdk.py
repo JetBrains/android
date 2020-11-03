@@ -83,7 +83,7 @@ def list_plugin_jars(sdk):
   return plugin_jars
 
 
-def write_spec_file(workspace, sdk_rel, version, sdk_jars, plugin_jars):
+def write_spec_file(workspace, sdk_rel, version, sdk_jars, plugin_jars, mac_bundle_name):
 
   suffix = {
     ALL: "",
@@ -91,6 +91,11 @@ def write_spec_file(workspace, sdk_rel, version, sdk_jars, plugin_jars):
     WIN: "_windows",
     LINUX: "_linux",
   }
+
+  # If no bundle name was supplied, we are regenerating from an existing set of
+  # prebuilts, so do not regenerate the spec.bzl file
+  if not mac_bundle_name:
+    return
 
   with open(workspace + sdk_rel + "/spec.bzl", "w") as file:
     name = version.replace("-", "").replace(".", "_")
@@ -111,6 +116,8 @@ def write_spec_file(workspace, sdk_rel, version, sdk_jars, plugin_jars):
             file.write("            \"" + os.path.basename(jar) + "\",\n")
           file.write("        ],\n")
       file.write("    },\n")
+
+    file.write(f"    mac_bundle_name = \"{mac_bundle_name}\",\n")
     file.write(")\n")
 
 
@@ -156,14 +163,14 @@ def write_xml_files(workspace, sdk, sdk_jars, plugin_jars):
     gen_lib(project_dir, "intellij-updater", [updater_jar], [workspace + sdk + "/android-studio-sources.zip"])
 
 
-def update_files(workspace, version):
+def update_files(workspace, version, mac_bundle_name):
   sdk = "/prebuilts/studio/intellij-sdk/" + version
 
   sdk_jars = list_sdk_jars(workspace + sdk)
   plugin_jars = list_plugin_jars(workspace + sdk)
 
   write_xml_files(workspace, sdk, sdk_jars, plugin_jars)
-  write_spec_file(workspace, sdk, version, sdk_jars, plugin_jars)
+  write_spec_file(workspace, sdk, version, sdk_jars, plugin_jars, mac_bundle_name)
 
 
 def check_artifacts(dir):
@@ -276,6 +283,7 @@ def extract(workspace, dir, delete_after):
   if len(apps) != 1:
     sys.exit("Only one directory starting with Android Studio expected for Mac")
   os.rename(path + apps[0], path + "/darwin/android-studio")
+  mac_bundle_name = os.path.basename(apps[0])
 
   print("Unzipping windows distribution...")
   with zipfile.ZipFile(dir + "/" + win, "r") as zip:
@@ -292,9 +300,10 @@ def extract(workspace, dir, delete_after):
     shutil.rmtree(dir)
   if old_path:
     shutil.rmtree(old_path)
-  return version
+  return version, mac_bundle_name
 
 def main(workspace, args):
+  mac_bundle_name = None
   version = args.version
   path = args.path
   bid = args.download
@@ -303,9 +312,9 @@ def main(workspace, args):
     path = download(workspace, bid)
     delete_path = True
   if path:
-    version = extract(workspace, path, delete_path)
+    version, mac_bundle_name = extract(workspace, path, delete_path)
 
-  update_files(workspace, version)
+  update_files(workspace, version, mac_bundle_name)
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
