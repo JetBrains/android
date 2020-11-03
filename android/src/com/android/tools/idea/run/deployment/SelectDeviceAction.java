@@ -24,6 +24,7 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+@SuppressWarnings("ComponentNotRegistered")
 public final class SelectDeviceAction extends AnAction {
   @NotNull
   private final Device myDevice;
@@ -63,7 +64,7 @@ public final class SelectDeviceAction extends AnAction {
 
     if (mySnapshotActionGroupChild) {
       Snapshot snapshot = myDevice.getSnapshot();
-      presentation.setText(snapshot == null ? "No Snapshot" : snapshot.toString(), false);
+      presentation.setText(snapshot == null ? "Cold Boot" : snapshot.toString(), false);
 
       return;
     }

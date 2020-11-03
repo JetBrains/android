@@ -29,6 +29,8 @@ import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BooleanSupplier;
 import java.util.stream.Collector;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
@@ -113,7 +115,20 @@ final class PopupActionGroup extends DefaultActionGroup {
 
   @NotNull
   private AnAction newSelectDeviceActionOrSnapshotActionGroup(@NotNull List<Device> devices) {
-    return devices.size() == 1 ? newSelectDeviceAction(devices.get(0)) : new SnapshotActionGroup(devices);
+    boolean hasGeneralSnapshot = devices.stream()
+      .map(Device::getSnapshot)
+      .filter(Objects::nonNull)
+      .anyMatch(Snapshot::isGeneral);
+
+    if (hasGeneralSnapshot) {
+      return new SnapshotActionGroup(devices);
+    }
+
+    Optional<Device> optionalDevice = devices.stream()
+      .filter(device -> device.getSnapshot() == null)
+      .findFirst();
+
+    return newSelectDeviceAction(optionalDevice.orElseThrow(AssertionError::new));
   }
 
   @NotNull
