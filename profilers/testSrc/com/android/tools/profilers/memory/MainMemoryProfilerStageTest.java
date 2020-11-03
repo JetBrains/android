@@ -76,11 +76,9 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     new FakeGrpcChannel("MemoryProfilerStageTestChannel", myService, myTransportService, new FakeProfilerService(myTimer),
                         new FakeCpuService(), new FakeEventService(), FakeNetworkService.newBuilder().build());
 
-  private final boolean myUnifiedPipeline = true;
-
   @Override
   protected void onProfilersCreated(StudioProfilers profilers) {
-    myIdeProfilerServices.enableEventsPipeline(myUnifiedPipeline);
+    myIdeProfilerServices.enableEventsPipeline(true);
   }
 
   @Override
@@ -97,13 +95,13 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
 
     MemoryProfilerTestUtils
-      .startTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, -1, Status.NOT_ENABLED, true);
+      .startTrackingHelper(myStage, myTransportService, myTimer, -1, Status.NOT_ENABLED, true);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
 
     MemoryProfilerTestUtils
-      .stopTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, -1, -1, Status.FAILURE_UNKNOWN, true);
+      .stopTrackingHelper(myStage, myTransportService, myTimer, -1, Status.FAILURE_UNKNOWN, true);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
@@ -118,7 +116,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
     long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
     MemoryProfilerTestUtils
-      .startTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, infoStart, Status.SUCCESS, true);
+      .startTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(true);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isEqualTo(null);
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
@@ -126,7 +124,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     // Attempting to start a in-progress session
     MemoryProfilerTestUtils
-      .startTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, infoStart, Status.IN_PROGRESS, true);
+      .startTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.IN_PROGRESS, true);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(true);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isEqualTo(null);
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
@@ -135,7 +133,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     // Stops the tracking session.
     myTransportService.addFile(Long.toString(infoStart), ByteString.copyFrom(FAKE_ALLOC_BUFFER));
     MemoryProfilerTestUtils
-      .stopTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, infoStart, infoEnd, Status.SUCCESS, true);
+      .stopTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isInstanceOf(LegacyAllocationCaptureObject.class);
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
@@ -175,12 +173,12 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     // Stopping tracking should not cause streaming.
     MemoryProfilerTestUtils
-      .stopTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, -1, -1, Status.NOT_ENABLED, true);
+      .stopTrackingHelper(myStage, myTransportService, myTimer, -1, Status.NOT_ENABLED, true);
     assertThat(myStage.getTimeline().isStreaming()).isFalse();
 
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
     MemoryProfilerTestUtils
-      .startTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, infoStart, Status.SUCCESS, true);
+      .startTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
     assertThat(myStage.getTimeline().isStreaming()).isTrue();
   }
 
@@ -192,14 +190,14 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
     long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
     MemoryProfilerTestUtils
-      .startTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, infoStart, Status.SUCCESS, true);
+      .startTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
     assertThat(myStage.isTrackingAllocations()).isTrue();
     myStage.exit();
     myStage.enter();
     assertThat(myStage.isTrackingAllocations()).isTrue();
 
     MemoryProfilerTestUtils
-      .stopTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, infoStart, infoEnd, Status.SUCCESS, true);
+      .stopTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
     assertThat(myStage.isTrackingAllocations()).isFalse();
     myStage.exit();
     myStage.enter();
@@ -212,17 +210,17 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     // Bypass the load mechanism in HeapDumpCaptureObject.
     myMockLoader.setReturnImmediateFuture(true);
     // Test the no-action cases
-    MemoryProfilerTestUtils.heapDumpHelper(myStage, myUnifiedPipeline, myTransportService, myService, -1, -1,
+    MemoryProfilerTestUtils.heapDumpHelper(myStage, myTransportService,
                                            Memory.HeapDumpStatus.Status.FAILURE_UNKNOWN);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isNull();
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
 
-    MemoryProfilerTestUtils.heapDumpHelper(myStage, myUnifiedPipeline, myTransportService, myService, -1, -1,
+    MemoryProfilerTestUtils.heapDumpHelper(myStage, myTransportService,
                                            Memory.HeapDumpStatus.Status.IN_PROGRESS);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isNull();
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
 
-    MemoryProfilerTestUtils.heapDumpHelper(myStage, myUnifiedPipeline, myTransportService, myService, -1, -1,
+    MemoryProfilerTestUtils.heapDumpHelper(myStage, myTransportService,
                                            Memory.HeapDumpStatus.Status.UNSPECIFIED);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isNull();
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
@@ -583,9 +581,9 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
     long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
     MemoryProfilerTestUtils
-      .startTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, infoStart, Status.SUCCESS, true);
+      .startTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
     MemoryProfilerTestUtils
-      .stopTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, infoStart, infoEnd, Status.SUCCESS, true);
+      .stopTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
 
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isEqualTo(null);
@@ -608,10 +606,10 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
     long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
     MemoryProfilerTestUtils
-      .startTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, infoStart, Status.SUCCESS, true);
+      .startTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
     myTransportService.addFile(Long.toString(infoStart), ByteString.copyFrom(FAKE_ALLOC_BUFFER));
     MemoryProfilerTestUtils
-      .stopTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, infoStart, infoEnd, Status.SUCCESS, true);
+      .stopTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
 
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isInstanceOf(LegacyAllocationCaptureObject.class);
@@ -635,7 +633,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
     MemoryProfilerTestUtils
-      .startTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, infoStart, Status.SUCCESS, true);
+      .startTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
     assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(1);
     assertThat(myStage.hasUserUsedMemoryCapture()).isTrue();
   }

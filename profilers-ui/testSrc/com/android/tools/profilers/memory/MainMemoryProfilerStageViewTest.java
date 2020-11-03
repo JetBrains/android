@@ -343,7 +343,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     assertThat(stageView.getCaptureElapsedTimeLabel().getText()).isEmpty();
 
     MemoryProfilerTestUtils
-      .startTrackingHelper(myStage, true, myTransportService, myService, myTimer, startTimeNs, Status.SUCCESS, true);
+      .startTrackingHelper(myStage, myTransportService, myTimer, startTimeNs, Status.SUCCESS, true);
     assertThat(stageView.getCaptureElapsedTimeLabel().getText())
       .isEqualTo(TimeFormatter.getSemiSimplifiedClockString(0));
 
@@ -353,13 +353,12 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
       .isEqualTo(TimeFormatter.getSemiSimplifiedClockString(deltaUs));
 
     // Triggering a heap dump should not affect the allocation recording duration
-    MemoryProfilerTestUtils.heapDumpHelper(myStage, true, myTransportService, myService, myTimer.getCurrentTimeNs(),
-                                           Long.MAX_VALUE, Memory.HeapDumpStatus.Status.SUCCESS);
+    MemoryProfilerTestUtils.heapDumpHelper(myStage, myTransportService, Memory.HeapDumpStatus.Status.SUCCESS);
     myStage.getCaptureSelection().getAspect().changed(CaptureSelectionAspect.CURRENT_CAPTURE_ELAPSED_TIME);
     assertThat(stageView.getCaptureElapsedTimeLabel().getText()).isEqualTo(TimeFormatter.getSemiSimplifiedClockString(deltaUs));
 
     MemoryProfilerTestUtils
-      .stopTrackingHelper(myStage, true, myTransportService, myService, myTimer, startTimeNs, endTimeNs, Status.SUCCESS, true);
+      .stopTrackingHelper(myStage, myTransportService, myTimer, startTimeNs, Status.SUCCESS, true);
     assertThat(stageView.getCaptureElapsedTimeLabel().getText()).isEmpty();
   }
 
