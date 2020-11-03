@@ -210,7 +210,7 @@ class WarningsDataPageModelImplTest {
     model.selectPageById(pageId)
     modelUpdateListenerCallsCount = 0
 
-    model.filter = WarningsFilter.default().copy(
+    model.filter = WarningsFilter.DEFAULT.copy(
       showTaskWarningTypes = setOf(TaskIssueType.ALWAYS_RUN_TASKS),
       showAnnotationProcessorWarnings = false
     )
@@ -230,7 +230,7 @@ class WarningsDataPageModelImplTest {
     model.selectPageById(pageId)
     modelUpdateListenerCallsCount = 0
 
-    model.filter = WarningsFilter.default().copy(
+    model.filter = WarningsFilter.DEFAULT.copy(
       showTaskWarningTypes = setOf(TaskIssueType.TASK_SETUP_ISSUE)
     )
 

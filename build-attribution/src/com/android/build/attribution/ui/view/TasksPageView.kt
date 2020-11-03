@@ -18,14 +18,12 @@ package com.android.build.attribution.ui.view
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.TasksPageId
 import com.android.build.attribution.ui.model.TasksTreeNode
-import com.android.build.attribution.ui.model.tasksFilterActions
+import com.android.build.attribution.ui.model.tasksFilterComponent
 import com.android.build.attribution.ui.panels.CriticalPathChartLegend
 import com.android.build.attribution.ui.view.chart.TimeDistributionTreeChart
 import com.android.build.attribution.ui.view.details.ChartsPanel
 import com.android.build.attribution.ui.view.details.TaskViewDetailPagesFactory
 import com.android.tools.idea.flags.StudioFlags.NEW_BUILD_ANALYZER_UI_VISUALIZATION_ENABLED
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.ui.CardLayoutPanel
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.OnePixelSplitter
@@ -184,13 +182,9 @@ class TasksPageView(
     layout = HorizontalLayout(10)
     name = "tasks-view-additional-controls"
 
-    val tasksFilterActions = tasksFilterActions(model, actionHandlers)
-    val defaultActionGroup = DefaultActionGroup().apply { add(tasksFilterActions) }
-    val actionsToolbar = ActionManager.getInstance().createActionToolbar("BuildAnalyzerView", defaultActionGroup, true)
-
     add(groupingCheckBox)
     if (NEW_BUILD_ANALYZER_UI_VISUALIZATION_ENABLED.get()) {
-      add(actionsToolbar.component)
+      add(tasksFilterComponent(model, actionHandlers))
     }
   }
 

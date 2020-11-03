@@ -79,7 +79,7 @@ class WarningsDataPageModelImpl(
       "Warnings - Total: ${treeStats.totalWarningsCount}, Filtered: ${treeStats.filteredWarningsCount}"
     }
 
-  override var filter: WarningsFilter = WarningsFilter.default()
+  override var filter: WarningsFilter = WarningsFilter.DEFAULT
     set(value) {
       field = value
       treeStructure.updateStructure(groupByPlugin, value)

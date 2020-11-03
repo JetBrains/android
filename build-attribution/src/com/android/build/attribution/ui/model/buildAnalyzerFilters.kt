@@ -22,11 +22,39 @@ import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.intellij.icons.AllIcons
+import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.ex.CustomComponentAction
+import com.intellij.openapi.actionSystem.impl.AutoPopupSupportingListener
 import com.intellij.openapi.project.DumbAware
+import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.ui.popup.ListPopup
+import com.intellij.ui.ClickListener
+import com.intellij.ui.LayeredIcon
+import com.intellij.ui.RoundedLineBorder
+import com.intellij.ui.popup.KeepingPopupOpenAction
+import com.intellij.ui.popup.util.PopupState
+import com.intellij.util.ui.EmptyIcon
+import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.LafIconLookup
+import com.intellij.util.ui.UIUtil
+import java.awt.Component
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
+import java.awt.event.MouseEvent
+import javax.swing.BorderFactory
+import javax.swing.Box
+import javax.swing.BoxLayout
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
 
 data class WarningsFilter(
   val showTaskSourceTypes: Set<PluginSourceType>,
@@ -42,8 +70,24 @@ data class WarningsFilter(
 
   fun acceptAnnotationProcessorIssue(annotationProcessorData: AnnotationProcessorUiData): Boolean = showAnnotationProcessorWarnings
 
+  fun toUiText(): String {
+    val taskWarningsPart = when {
+      showTaskSourceTypes.isEmpty() || showTaskWarningTypes.isEmpty() -> ""
+      showTaskSourceTypes.containsAll(PluginSourceType.values().asList())
+      && showTaskWarningTypes.containsAll(TaskIssueType.values().asList()) -> "All task warnings"
+      else -> "Selected types of task warnings"
+    }
+
+    val annotationProcessorsPart = if (showAnnotationProcessorWarnings) "Annotation processors" else ""
+
+    return sequenceOf(taskWarningsPart, annotationProcessorsPart)
+             .filter { it.isNotBlank() }
+             .joinToString(separator = ", ")
+             .takeIf { it.isNotBlank() } ?: "Nothing selected"
+  }
+
   companion object {
-    fun default() = WarningsFilter(
+    val DEFAULT = WarningsFilter(
       showTaskSourceTypes = setOf(PluginSourceType.ANDROID_PLUGIN, PluginSourceType.THIRD_PARTY, PluginSourceType.BUILD_SRC),
       showTaskWarningTypes = setOf(TaskIssueType.ALWAYS_RUN_TASKS, TaskIssueType.TASK_SETUP_ISSUE),
       showAnnotationProcessorWarnings = true,
@@ -56,7 +100,28 @@ private abstract class WarningsFilterToggleAction(
   uiName: String,
   val warningsModel: WarningsDataPageModel,
   val actionHandlers: ViewActionHandlers
-) : ToggleAction(uiName), DumbAware {
+) : ToggleAction(uiName), DumbAware, KeepingPopupOpenAction {
+
+  private val toggleableIcon = LayeredIcon(EmptyIcon.ICON_16, LafIconLookup.getIcon("checkmark"))
+  private val toggleableSelectedIcon = LayeredIcon(EmptyIcon.ICON_16, LafIconLookup.getSelectedIcon("checkmark"))
+
+  init {
+    templatePresentation.icon = toggleableIcon
+    templatePresentation.selectedIcon = toggleableSelectedIcon
+  }
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    // Popup list used in action menu does not refresh action presentation (e.g. icon) while popup stays open.
+    // Use LayeredIcon instead in order to show checked items, switch checkmark layer on and off
+    // depending on the actual action state.
+    // Note that setSelected()/isSelected() methods of this class and *Selected icon is an unfortunate name clashing,
+    // they correspond to different notions:
+    // - setSelected()/isSelected() correspond to the action state, if is should be marked as being 'on'.
+    // - 'selected' icon is used when list row is under selection and rendered in selection color (e.g. dark blue).
+    toggleableIcon.setLayerEnabled(1, isSelected(e))
+    toggleableSelectedIcon.setLayerEnabled(1, isSelected(e))
+  }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     val updatedFilter = if (state) onAdd(warningsModel.filter)
@@ -126,11 +191,17 @@ private class NonCriticalPathTaskWarningsFilterToggleAction(
 }
 
 fun warningsFilterActions(model: WarningsDataPageModel, actionHandlers: ViewActionHandlers): ActionGroup {
-  val actionGroup = DefaultActionGroup("Filters", true).apply {
-    templatePresentation.icon = AllIcons.Actions.Show
+  return FilterComponentAction(
+    subscribeToModelUpdates = { r: Runnable -> model.addModelUpdatedListener { r.run() } },
+    getModelUIText = { model.filter.toUiText() }
+  ).apply {
+    addAction(object : AnAction("Reset filters to default") {
+      override fun actionPerformed(unused: AnActionEvent) = actionHandlers.applyWarningsFilter(WarningsFilter.DEFAULT)
+    })
+    addSeparator("By task warning type")
     add(WarningTypeFilterToggleAction("Show Always-run tasks", TaskIssueType.ALWAYS_RUN_TASKS, model, actionHandlers))
     add(WarningTypeFilterToggleAction("Show Task Setup issues", TaskIssueType.TASK_SETUP_ISSUE, model, actionHandlers))
-    addSeparator()
+    addSeparator("By task type")
     add(TaskSourceTypeWarningFilterToggleAction(
       "Show issues for Android/Java/Kotlin plugins", PluginSourceType.ANDROID_PLUGIN, model, actionHandlers
     ))
@@ -140,13 +211,22 @@ fun warningsFilterActions(model: WarningsDataPageModel, actionHandlers: ViewActi
     add(TaskSourceTypeWarningFilterToggleAction(
       "Show issues for project customization", PluginSourceType.BUILD_SRC, model, actionHandlers
     ))
-    addSeparator()
-    add(AnnotationProcessorWarningsFilterToggleAction("Show annotation processors issues", model, actionHandlers))
     add(NonCriticalPathTaskWarningsFilterToggleAction(
       "Include issues for tasks non determining this build duration", model, actionHandlers
     ))
+    addSeparator("Other warnings")
+    add(AnnotationProcessorWarningsFilterToggleAction("Show annotation processors issues", model, actionHandlers))
   }
-  return actionGroup
+}
+
+fun warningsFilterComponent(model: WarningsDataPageModel, actionHandlers: ViewActionHandlers): Component {
+  return JPanel().apply {
+    add(FilterCustomComponent(
+      warningsFilterActions(model, actionHandlers),
+      subscribeToModelUpdates = { r: Runnable -> model.addModelUpdatedListener { r.run() } },
+      getModelUIText = { model.filter.toUiText() }
+    ))
+  }
 }
 
 data class TasksFilter(
@@ -158,19 +238,60 @@ data class TasksFilter(
     (showTasksWithoutWarnings || taskData.hasWarning) &&
     showTaskSourceTypes.contains(taskData.sourceType)
 
+  fun toUiText(): String {
+    if (showTaskSourceTypes.isEmpty()) return "No task types selected"
+    val taskTypesPart = if (showTaskSourceTypes.containsAll(PluginSourceType.values().asList()))
+      "All tasks"
+    else
+      PluginSourceType.values()
+        .filter { it in showTaskSourceTypes }
+        .joinToString(
+          separator = ", ",
+          postfix = " tasks"
+        ) { it.toFilterUiShortName() }
+    return if (showTasksWithoutWarnings) taskTypesPart else "$taskTypesPart with warnings"
+  }
+
   companion object {
-    fun default() = TasksFilter(
+    val DEFAULT = TasksFilter(
       showTaskSourceTypes = setOf(PluginSourceType.ANDROID_PLUGIN, PluginSourceType.THIRD_PARTY, PluginSourceType.BUILD_SRC),
       showTasksWithoutWarnings = true
     )
   }
 }
 
+private fun PluginSourceType.toFilterUiShortName(): String = when (this) {
+  PluginSourceType.BUILD_SRC -> "Project customization"
+  PluginSourceType.ANDROID_PLUGIN -> "Android/Java/Kotlin"
+  PluginSourceType.THIRD_PARTY -> "Other"
+}
+
 private abstract class TasksFilterToggleAction(
   uiName: String,
   val tasksModel: TasksDataPageModel,
   val actionHandlers: ViewActionHandlers
-) : ToggleAction(uiName), DumbAware {
+) : ToggleAction(uiName), DumbAware, KeepingPopupOpenAction {
+
+  private val toggleableIcon = LayeredIcon(EmptyIcon.ICON_16, LafIconLookup.getIcon("checkmark"))
+  private val toggleableSelectedIcon = LayeredIcon(EmptyIcon.ICON_16, LafIconLookup.getSelectedIcon("checkmark"))
+
+  init {
+    templatePresentation.icon = toggleableIcon
+    templatePresentation.selectedIcon = toggleableSelectedIcon
+  }
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    // Popup list used in action menu does not refresh action presentation (e.g. icon) while popup stays open.
+    // Use LayeredIcon instead in order to show checked items, switch checkmark layer on and off
+    // depending on the actual action state.
+    // Note that setSelected()/isSelected() methods of this class and *Selected icon is an unfortunate name clashing,
+    // they correspond to different notions:
+    // - setSelected()/isSelected() correspond to the action state, if is should be marked as being 'on'.
+    // - 'selected' icon is used when list row is under selection and rendered in selection color (e.g. dark blue).
+    toggleableIcon.setLayerEnabled(1, isSelected(e))
+    toggleableSelectedIcon.setLayerEnabled(1, isSelected(e))
+  }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     val updatedFilter = if (state) onAdd(tasksModel.filter) else onRemove(tasksModel.filter)
@@ -214,7 +335,10 @@ private class TasksWithoutWarningsFilterToggleAction(
 
 fun tasksFilterActions(model: TasksDataPageModel, actionHandlers: ViewActionHandlers): ActionGroup =
   DefaultActionGroup("Filters", true).apply {
-    templatePresentation.icon = AllIcons.Actions.Show
+    addAction(object : AnAction("Reset filters to default") {
+      override fun actionPerformed(unused: AnActionEvent) = actionHandlers.applyTasksFilter(TasksFilter.DEFAULT)
+    })
+    addSeparator()
     add(TaskSourceTypeTasksFilterToggleAction(
       "Show tasks for Android/Java/Kotlin plugins", PluginSourceType.ANDROID_PLUGIN, model, actionHandlers
     ))
@@ -225,3 +349,98 @@ fun tasksFilterActions(model: TasksDataPageModel, actionHandlers: ViewActionHand
     addSeparator()
     add(TasksWithoutWarningsFilterToggleAction("Show tasks without warnings", model, actionHandlers))
   }
+
+fun tasksFilterComponent(model: TasksDataPageModel, actionHandlers: ViewActionHandlers): Component =
+  JPanel().apply {
+    add(FilterCustomComponent(
+      tasksFilterActions(model, actionHandlers),
+      subscribeToModelUpdates = { r: Runnable -> model.addModelUpdatedListener { r.run() } },
+      getModelUIText = { model.filter.toUiText() }
+    ))
+  }
+
+class FilterComponentAction(
+  val subscribeToModelUpdates: (Runnable) -> Unit,
+  val getModelUIText: () -> String
+) : DefaultActionGroup("Filters", true), CustomComponentAction {
+  override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
+    FilterCustomComponent(this, subscribeToModelUpdates, getModelUIText)
+}
+
+private class FilterCustomComponent(
+  val filterActions: ActionGroup,
+  val subscribeToModelUpdates: (Runnable) -> Unit,
+  val getModelUIText: () -> String
+) : JPanel() {
+  private val popupState = PopupState()
+  private val nameLabel = JLabel("Filters: ")
+  private val valueLabel = JLabel(getModelUIText())
+
+  init {
+    layout = BoxLayout(this, BoxLayout.X_AXIS)
+    isFocusable = true
+
+    add(nameLabel)
+    add(valueLabel)
+    add(Box.createHorizontalStrut(3))
+    add(JLabel(AllIcons.Ide.Statusbar_arrows))
+    subscribeToModelUpdates {
+      valueLabel.text = getModelUIText()
+    }
+    installShowPopupMenuOnClick()
+    installShowPopupMenuFromKeyboard()
+    installFocusIndication()
+  }
+
+  private fun installFocusIndication() {
+    fun setFocusedBorder() {
+      border = BorderFactory.createCompoundBorder(
+        RoundedLineBorder(UIUtil.getFocusedBorderColor(), 10, 2),
+        JBUI.Borders.empty(2)
+      )
+    }
+
+    fun setUnFocusedBorder() {
+      border = JBUI.Borders.empty(4)
+    }
+    setUnFocusedBorder()
+    addFocusListener(object : FocusAdapter() {
+      override fun focusGained(e: FocusEvent) = setFocusedBorder()
+      override fun focusLost(e: FocusEvent) = setUnFocusedBorder()
+    })
+  }
+
+  private fun installShowPopupMenuOnClick() {
+    object : ClickListener() {
+      override fun onClick(event: MouseEvent, clickCount: Int): Boolean {
+        showPopupMenu()
+        return true
+      }
+    }.installOn(this)
+  }
+
+  private fun installShowPopupMenuFromKeyboard() {
+    addKeyListener(object : KeyAdapter() {
+      override fun keyPressed(e: KeyEvent) {
+        if (e.keyCode == KeyEvent.VK_ENTER || e.keyCode == KeyEvent.VK_DOWN || e.keyCode == KeyEvent.VK_SPACE) {
+          showPopupMenu()
+        }
+      }
+    })
+  }
+
+  private fun showPopupMenu() {
+    if (popupState.isRecentlyHidden) return  // Do not show new popup.
+
+    val popup: ListPopup = JBPopupFactory.getInstance().createActionGroupPopup(
+      null, filterActions,
+      DataManager.getInstance().getDataContext(this),
+      JBPopupFactory.ActionSelectionAid.SPEEDSEARCH,
+      true
+    )
+    popup.addListener(popupState)
+
+    AutoPopupSupportingListener.installOn(popup)
+    popup.showUnderneathOf(this)
+  }
+}

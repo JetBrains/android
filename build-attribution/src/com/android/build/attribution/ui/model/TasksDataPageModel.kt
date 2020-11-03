@@ -126,7 +126,7 @@ class TasksDataPageModelImpl(
   override val selectedNode: TasksTreeNode?
     get() = treeStructure.pageIdToNode[selectedPageId]
 
-  override var filter: TasksFilter = TasksFilter.default()
+  override var filter: TasksFilter = TasksFilter.DEFAULT
     private set(value) {
       field = value
       treeStructure.updateStructure(selectedGrouping, value)
