@@ -34,7 +34,6 @@ import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
@@ -152,11 +151,6 @@ public final class GradleUtil {
   @NotNull
   public static File getCacheFolderRootPath(@NotNull Project project) {
     return new File(project.getBasePath(), join(DIRECTORY_STORE_NAME, "caches"));
-  }
-
-  public static boolean isSupportedGradleVersion(@NotNull GradleVersion gradleVersion) {
-    GradleVersion supported = GradleVersion.parse(GRADLE_MINIMUM_VERSION);
-    return supported.compareTo(gradleVersion) <= 0;
   }
 
   /**
@@ -638,9 +632,8 @@ public final class GradleUtil {
     return null;
   }
 
-  // Currently, the latest Gradle version is 2.2.1, and we consider 2.2 and 2.2.1 as compatible.
   private static boolean isCompatibleWithEmbeddedGradleVersion(@NotNull String gradleVersion) {
-    return gradleVersion.equals(GRADLE_MINIMUM_VERSION) || gradleVersion.equals(GRADLE_LATEST_VERSION);
+    return gradleVersion.equals(GRADLE_LATEST_VERSION);
   }
 
   /**
