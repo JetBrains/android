@@ -82,4 +82,14 @@ final class SnapshotActionGroup extends ActionGroup {
 
     return property;
   }
+
+  @Override
+  public int hashCode() {
+    return myDevices.hashCode();
+  }
+
+  @Override
+  public boolean equals(@Nullable Object object) {
+    return object instanceof SnapshotActionGroup && myDevices.equals(((SnapshotActionGroup)object).myDevices);
+  }
 }
