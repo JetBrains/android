@@ -1,5 +1,6 @@
 load("//tools/base/bazel:merge_archives.bzl", "run_singlejar")
 load("//tools/base/bazel:functions.bzl", "create_option_file")
+load("//tools/base/bazel:utils.bzl", "dir_archive")
 load("@bazel_tools//tools/jdk:toolchain_utils.bzl", "find_java_toolchain")
 
 def _zipper(ctx, desc, map, out, deps = []):
@@ -708,6 +709,14 @@ def intellij_platform(
             "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents/build.txt"],
             "//conditions:default": [src + "/linux/android-studio/build.txt"],
         }),
+        visibility = ["//visibility:public"],
+    )
+
+    # TODO: merge this into the intellij_platform rule.
+    dir_archive(
+        name = name + "-full-linux",
+        dir = "prebuilts/studio/intellij-sdk/" + src + "/linux/android-studio",
+        files = native.glob([src + "/linux/android-studio/**"]),
         visibility = ["//visibility:public"],
     )
 
