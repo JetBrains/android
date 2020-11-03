@@ -45,13 +45,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-@RunWith(Parameterized.class)
 public final class AllocStatsDataSeriesTest {
-  @Parameterized.Parameters
-  public static Collection<Boolean> useNewDataPipelineParameter() {
-    return Arrays.asList(false, true);
-  }
-
   private final FakeTimer myTimer = new FakeTimer();
   private final FakeMemoryService myService = new FakeMemoryService();
   private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
@@ -63,11 +57,8 @@ public final class AllocStatsDataSeriesTest {
                                                                    new FakeCpuService(),
                                                                    new FakeNetworkService.Builder().build());
 
-  private final boolean myNewDataPipeline;
-
-  public AllocStatsDataSeriesTest(boolean useNewDataPipeline) {
-    myNewDataPipeline = useNewDataPipeline;
-    myIdeProfilerServices.enableEventsPipeline(useNewDataPipeline);
+  public AllocStatsDataSeriesTest() {
+    myIdeProfilerServices.enableEventsPipeline(true);
   }
 
   @Test
@@ -83,30 +74,18 @@ public final class AllocStatsDataSeriesTest {
     long timestamp1 = TimeUnit.MICROSECONDS.toNanos(3);
     long timestamp2 = TimeUnit.MICROSECONDS.toNanos(14);
 
-    if (myNewDataPipeline) {
-      myTransportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, Common.Event.newBuilder()
-        .setPid(FakeTransportService.FAKE_PROCESS.getPid())
-        .setTimestamp(timestamp1)
-        .setKind(Common.Event.Kind.MEMORY_ALLOC_STATS)
-        .setMemoryAllocStats(stats1)
-        .build());
-      myTransportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, Common.Event.newBuilder()
-        .setPid(FakeTransportService.FAKE_PROCESS.getPid())
-        .setTimestamp(timestamp2)
-        .setKind(Common.Event.Kind.MEMORY_ALLOC_STATS)
-        .setMemoryAllocStats(stats2)
-        .build());
-    }
-    else {
-      MemoryData memoryData = MemoryData.newBuilder()
-        .setEndTimestamp(1)
-        .addAllocStatsSamples(
-          MemoryData.AllocStatsSample.newBuilder().setTimestamp(TimeUnit.MICROSECONDS.toNanos(3)).setAllocStats(stats1))
-        .addAllocStatsSamples(
-          MemoryData.AllocStatsSample.newBuilder().setTimestamp(TimeUnit.MICROSECONDS.toNanos(14)).setAllocStats(stats2))
-        .build();
-      myService.setMemoryData(memoryData);
-    }
+    myTransportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, Common.Event.newBuilder()
+      .setPid(FakeTransportService.FAKE_PROCESS.getPid())
+      .setTimestamp(timestamp1)
+      .setKind(Common.Event.Kind.MEMORY_ALLOC_STATS)
+      .setMemoryAllocStats(stats1)
+      .build());
+    myTransportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, Common.Event.newBuilder()
+      .setPid(FakeTransportService.FAKE_PROCESS.getPid())
+      .setTimestamp(timestamp2)
+      .setKind(Common.Event.Kind.MEMORY_ALLOC_STATS)
+      .setMemoryAllocStats(stats2)
+      .build());
 
     AllocStatsDataSeries series =
       new AllocStatsDataSeries(studioProfilers,
