@@ -31,14 +31,18 @@ import static com.intellij.openapi.util.io.FileUtil.createTempDirectory;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 
 import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
+import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.testing.TestModuleUtil;
+import com.android.tools.idea.util.PropertiesFiles;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices;
@@ -150,11 +154,21 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     assertAbout(libraryDependencies()).that(androidLibModule).containsMatching(true, ".*commons-io.*", COMPILE);
   }
 
+  public static void setBuildCachePath(@NotNull File path, @NotNull Project project) throws IOException {
+    // Set up path of build-cache
+    // See: https://developer.android.com/r/tools/build-cache.html
+    File gradlePropertiesFilePath = new File(Projects.getBaseDirPath(project), "gradle.properties");
+    Properties gradleProperties = PropertiesFiles.getProperties(gradlePropertiesFilePath);
+    gradleProperties.setProperty("android.enableBuildCache", "true");
+    gradleProperties.setProperty("android.buildCacheDir", path.getAbsolutePath());
+    PropertiesFiles.savePropertiesToFile(gradleProperties, gradlePropertiesFilePath, "");
+  }
+
   // Disabled due to https://github.com/gradle/gradle/issues/8431
   public void /*test*/SyncWithGradleBuildCacheUninitialized() throws Exception {
     prepareProjectForImport(TRANSITIVE_DEPENDENCIES_PRE30, myGradleVersion, myPluginVersion, null);
     Project project = getProject();
-    BuildCacheSyncTest.setBuildCachePath(createTempDirectory("build-cache", ""), project);
+    setBuildCachePath(createTempDirectory("build-cache", ""), project);
 
     importProject();
 
