@@ -20,20 +20,22 @@ import com.android.tools.idea.wizard.template.renderIf
 
 private fun isEap(kotlinVersion: String) = setOf("rc", "eap", "-M").any { it in kotlinVersion }
 
+fun kotlinEapRepoBlock(kotlinVersion: String) = renderIf(isEap(kotlinVersion)) {
+  """maven { url = uri("https://dl.bintray.com/kotlin/kotlin-eap") }"""
+}
+
 fun androidProjectBuildGradle(
   generateKotlin: Boolean,
   kotlinVersion: String,
   gradlePluginVersion: GradlePluginVersion
 ): String {
-  val kotlinEapRepoBlock = renderIf(isEap(kotlinVersion)) { """maven { url = "https://dl.bintray.com/kotlin/kotlin-eap" }""" }
-
   return """
     // Top-level build file where you can add configuration options common to all sub-projects/modules.
     buildscript {
         repositories {
             google()
             jcenter()
-            $kotlinEapRepoBlock
+            ${kotlinEapRepoBlock(kotlinVersion)}
         }
         dependencies {
             classpath "com.android.tools.build:gradle:$gradlePluginVersion"
@@ -41,14 +43,6 @@ fun androidProjectBuildGradle(
 
             // NOTE: Do not place your application dependencies here; they belong
             // in the individual module build.gradle files
-        }
-    }
-
-    allprojects {
-        repositories {
-            google()
-            jcenter()
-            $kotlinEapRepoBlock
         }
     }
 
@@ -63,15 +57,13 @@ fun androidProjectBuildGradleKts(
   kotlinVersion: String,
   gradlePluginVersion: GradlePluginVersion
 ): String {
-  val kotlinEapRepoBlock = renderIf(isEap(kotlinVersion)) { """maven { url = uri("https://dl.bintray.com/kotlin/kotlin-eap") }""" }
-
   return """
     // Top-level build file where you can add configuration options common to all sub-projects/modules.
     buildscript {
         repositories {
             google()
             jcenter()
-            $kotlinEapRepoBlock
+            ${kotlinEapRepoBlock(kotlinVersion)}
         }
         dependencies {
             classpath("com.android.tools.build:gradle:$gradlePluginVersion")
@@ -79,14 +71,6 @@ fun androidProjectBuildGradleKts(
 
             // NOTE: Do not place your application dependencies here; they belong
             // in the individual module build.gradle.kts files
-        }
-    }
-
-    allprojects {
-        repositories {
-            google()
-            jcenter()
-            $kotlinEapRepoBlock
         }
     }
 

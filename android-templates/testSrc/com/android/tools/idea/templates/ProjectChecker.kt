@@ -121,6 +121,14 @@ data class ProjectChecker(
     val newContent = updateLocalRepositories(origContent, getLocalRepositoriesForGroovy())
     gradleFile.writeText(origContent, newContent)
 
+    val settingsFile = File(projectRoot, SdkConstants.FN_SETTINGS_GRADLE)
+    val settingsOrigContent = settingsFile.readText()
+    val settingsNewContent = updateLocalRepositories(settingsOrigContent, getLocalRepositoriesForGroovy())
+      // Make sure we fail if any repo are declared at the project level
+      .replace("dependencyResolutionManagement {",
+               "dependencyResolutionManagement {\n  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)")
+    settingsFile.writeText(settingsOrigContent, settingsNewContent)
+
     refreshProjectFiles()
     if (syncProject) {
       assertEquals(projectRoot, getBaseDirPath(this))
