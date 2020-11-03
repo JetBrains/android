@@ -57,7 +57,7 @@ fun RecipeExecutor.androidProjectRecipe(
   }
 
   val settingsFile = topOut.resolve(if (useGradleKts) FN_SETTINGS_GRADLE_KTS else FN_SETTINGS_GRADLE)
-  save(androidProjectGradleSettings(appTitle), settingsFile) // Note: The initial gradle settings file is the same in kts or groovy
+  save(androidProjectGradleSettings(appTitle, data.kotlinVersion), settingsFile) // Note: The initial gradle settings file is the same in kts or groovy
   save(
     androidProjectGradleProperties(addAndroidXSupport, language == Language.Kotlin, data.overridePathCheck, forceNonTransitiveRClass),
     topOut.resolve(FN_GRADLE_PROPERTIES))
