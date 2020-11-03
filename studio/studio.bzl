@@ -137,6 +137,10 @@ def _studio_plugin_os(ctx, platform, module_deps, plugin_dir, plugin_info, out):
     files = [f for (p, f) in spec]
     _zipper(ctx, "%s plugin" % platform.name, spec, out, [plugin_info])
 
+def _depset_subtract(depset1, depset2):
+    dict1 = {e1: None for e1 in depset1.to_list()}
+    return [e2 for e2 in depset2.to_list() if e2 not in dict1]
+
 def _studio_plugin_impl(ctx):
     plugin_dir = "plugins/" + ctx.attr.directory
     module_deps, plugin_jar, plugin_xml = _module_deps(ctx, ctx.attr.jars, ctx.attr.modules)
@@ -144,6 +148,19 @@ def _studio_plugin_impl(ctx):
     _studio_plugin_os(ctx, LINUX, module_deps, plugin_dir, plugin_info, ctx.outputs.plugin_linux)
     _studio_plugin_os(ctx, MAC, module_deps, plugin_dir, plugin_info, ctx.outputs.plugin_mac)
     _studio_plugin_os(ctx, WIN, module_deps, plugin_dir, plugin_info, ctx.outputs.plugin_win)
+
+    # Check that all modules needed by the modules in this plugin, are either present in the
+    # plugin or in its dependencies.
+    need = depset(transitive = [m.module.module_deps for m in ctx.attr.modules] + [m.module.plugin_deps for m in ctx.attr.modules])
+    have = depset(
+        direct = ctx.attr.modules + ctx.attr.provided,
+        transitive = [d.module_deps for d in ctx.attr.deps if hasattr(d, "module_deps")] +
+                     [depset([p for p in ctx.attr.deps if hasattr(p, "plugin_info")])],
+    )
+
+    missing = [str(s.label) for s in _depset_subtract(have, need)]
+    if missing:
+        fail("While analyzing %s, the following dependencies are required but not found:\n%s" % (ctx.attr.name, "\n".join(missing)))
 
     return struct(
         directory = ctx.attr.directory,
@@ -154,6 +171,7 @@ def _studio_plugin_impl(ctx):
         files_mac = depset([ctx.outputs.plugin_mac]),
         files_win = depset([ctx.outputs.plugin_win]),
         plugin_info = plugin_info,
+        module_deps = depset(ctx.attr.modules),
     )
 
 _studio_plugin = rule(
