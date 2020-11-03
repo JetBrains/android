@@ -17,8 +17,14 @@ class AgpCompatibleVersionTest {
   @Test
   fun testCompatibleVersions() {
     val data = mapOf(
-      "3.1" to GradleVersion.parse("4.4"),
-      "3.2" to GradleVersion.parse("4.6"),
+      /**
+       * This test intentionally does not use the symbolic constant SdkConstants.GRADLE_MINIMUM_VERSION, because any change to that should
+       * involve a careful look at the compatibility tables used by [getCompatibleGradleVersion] (which failing this test and reading
+       * this comment should encourage the brave maintainer to do.  Changes to GRADLE_LATEST_VERSION are both less likely to be disruptive
+       * and more likely to be noticed quickly.
+       */
+      "3.1" to GradleVersion.parse("4.8.1"),
+      "3.2" to GradleVersion.parse("4.8.1"),
       "3.3" to GradleVersion.parse("4.10.1"),
       "3.4" to GradleVersion.parse("5.1.1"),
       "3.5" to GradleVersion.parse("5.4.1"),

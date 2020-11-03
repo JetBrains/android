@@ -17,7 +17,9 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.SdkConstants.GRADLE_DISTRIBUTION_URL_PROPERTY
 import com.android.SdkConstants.GRADLE_LATEST_VERSION
+import com.android.SdkConstants.GRADLE_MINIMUM_VERSION
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.max
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.flags.StudioFlags
@@ -988,6 +990,7 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
       // them using this functionality is a non-starter.
       VERSION_4_4(GradleVersion.parse("4.4")),
       VERSION_4_6(GradleVersion.parse("4.6")),
+      VERSION_MIN(GradleVersion.parse(GRADLE_MINIMUM_VERSION)),
       VERSION_4_10_1(GradleVersion.parse("4.10.1")),
       VERSION_5_1_1(GradleVersion.parse("5.1.1")),
       VERSION_5_4_1(GradleVersion.parse("5.4.1")),
@@ -999,7 +1002,7 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
 
     fun getCompatibleGradleVersion(agpVersion: GradleVersion): CompatibleGradleVersion {
       val agpVersionMajorMinor = GradleVersion(agpVersion.major, agpVersion.minor)
-      return when {
+      val compatibleGradleVersion = when {
         GradleVersion.parse("3.1") >= agpVersionMajorMinor -> VERSION_4_4
         GradleVersion.parse("3.2") >= agpVersionMajorMinor -> VERSION_4_6
         GradleVersion.parse("3.3") >= agpVersionMajorMinor -> VERSION_4_10_1
@@ -1010,24 +1013,29 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         GradleVersion.parse("4.1") >= agpVersionMajorMinor -> VERSION_6_5
         else -> VERSION_FOR_DEV
       }
+      return when {
+        compatibleGradleVersion.version < VERSION_MIN.version -> VERSION_MIN
+        else -> compatibleGradleVersion
+      }
     }
 
     fun `kotlin-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
       when (compatibleGradleVersion) {
         VERSION_4_4 -> GradleVersion.parse("1.1.3")
         VERSION_4_6 -> GradleVersion.parse("1.2.51")
+        VERSION_MIN -> GradleVersion.parse("1.2.51")
         VERSION_4_10_1 -> GradleVersion.parse("1.3.0")
         VERSION_5_1_1 -> GradleVersion.parse("1.3.10")
         VERSION_5_4_1 -> GradleVersion.parse("1.3.10")
         VERSION_5_6_4 -> GradleVersion.parse("1.3.10")
         VERSION_6_1_1 -> GradleVersion.parse("1.3.20")
         VERSION_6_5 -> GradleVersion.parse("1.3.20")
-        VERSION_FOR_DEV -> GradleVersion.parse("1.3.20") //TODO(xof): checkme
+        VERSION_FOR_DEV -> GradleVersion.parse("1.3.20")
     }
 
     fun `androidx-navigation-safeargs-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
       when (compatibleGradleVersion) {
-        VERSION_4_4, VERSION_4_6, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1, VERSION_6_5 ->
+        VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1, VERSION_6_5 ->
           GradleVersion.parse("2.0.0")
         // TODO(xof): for Studio 4.2 / AGP 4.2, this is correct.  For Studio 4.3 / AGP 7.0, it might not be: a feature deprecated in
         //  AGP 4 might be removed in AGP 7.0 (see b/159542337) at which point we would need to upgrade the version to whatever the
