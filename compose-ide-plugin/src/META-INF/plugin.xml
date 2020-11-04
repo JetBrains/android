@@ -81,6 +81,7 @@
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
         <quickFixContributor implementation="com.android.tools.compose.intentions.ComposeDelegateStateImportFixContributor"/>
+        <quickFixContributor implementation="com.android.tools.compose.intentions.ComposeUnresolvedFunctionFixContributor"/>
         <additionalExtractableAnalyser implementation="com.android.tools.compose.ComposableFunctionExtractableAnalyser"/>
     </extensions>
 
