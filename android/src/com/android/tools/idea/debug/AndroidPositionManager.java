@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.TypeDetails;
+import com.android.repository.io.FileOp;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
@@ -212,13 +213,14 @@ public class AndroidPositionManager extends PositionManagerImpl {
     for (LocalPackage sourcePackage : sourcePackages) {
       TypeDetails typeDetails = sourcePackage.getTypeDetails();
       if (!(typeDetails instanceof DetailsTypes.ApiDetailsType)) {
-        LOG.warn("Unable to get type details for source package @ " + sourcePackage.getLocation().getPath());
+        LOG.warn("Unable to get type details for source package @ " + sourcePackage.getLocation().toString());
         continue;
       }
 
       DetailsTypes.ApiDetailsType details = (DetailsTypes.ApiDetailsType)typeDetails;
       AndroidVersion version = details.getAndroidVersion();
-      VirtualFile sourceFolder = VfsUtil.findFileByIoFile(sourcePackage.getLocation(), false);
+      FileOp fop = AndroidSdks.getInstance().tryToChooseSdkHandler().getFileOp();
+      VirtualFile sourceFolder = VfsUtil.findFileByIoFile(fop.toFile(sourcePackage.getLocation()), false);
       if (sourceFolder != null && sourceFolder.isValid()) {
         sourcesByApi.put(version, sourceFolder);
       }

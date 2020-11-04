@@ -86,7 +86,7 @@ public class PatchInstallingRestarter {
         boolean remote = false;
         if (pendingPackage != null) {
           // If the pending package was local, use the corresponding installed local package.
-          installDir = mgr.getPackages().getLocalPackages().get(pendingPackage.getPath()).getLocation();
+          installDir = myFileOp.toFile(mgr.getPackages().getLocalPackages().get(pendingPackage.getPath()).getLocation());
         }
         else {
           // Otherwise it's remote.

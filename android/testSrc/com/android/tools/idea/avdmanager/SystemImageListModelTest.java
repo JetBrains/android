@@ -53,56 +53,56 @@ public class SystemImageListModelTest extends AndroidTestCase {
 
     // Image with known API level
     String knownApiPath = "system-images;android-26;google_apis_playstore;x86";
-    FakePackage.FakeLocalPackage pkgKnownApi = new FakePackage.FakeLocalPackage(knownApiPath);
+    FakePackage.FakeLocalPackage pkgKnownApi = new FakePackage.FakeLocalPackage(knownApiPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsKnownApi =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsKnownApi.setTag(IdDisplay.create("google_apis_playstore", "Google Play"));
     detailsKnownApi.setApiLevel(26);
     pkgKnownApi.setTypeDetails((TypeDetails) detailsKnownApi);
-    fileOp.recordExistingFile(new File(pkgKnownApi.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    fileOp.recordExistingFile(pkgKnownApi.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Image with deprecated API level (Honeycomb)
     String deprecatedApiPath = "system-images;android-13;google_apis_playstore;x86";
-    FakePackage.FakeLocalPackage pkgDeprecatedApi = new FakePackage.FakeLocalPackage(deprecatedApiPath);
+    FakePackage.FakeLocalPackage pkgDeprecatedApi = new FakePackage.FakeLocalPackage(deprecatedApiPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsDeprecatedApi =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsDeprecatedApi.setTag(IdDisplay.create("google_apis_playstore", "Google Play"));
     detailsDeprecatedApi.setApiLevel(13);
     pkgDeprecatedApi.setTypeDetails((TypeDetails) detailsDeprecatedApi);
-    fileOp.recordExistingFile(new File(pkgDeprecatedApi.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    fileOp.recordExistingFile(pkgDeprecatedApi.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Image with deprecated API level (whatever is most-recently deprecated)
     String justDeprecatedApiPath = "system-images;android-97;google_apis_playstore;x86";
-    FakePackage.FakeLocalPackage pkgJustDeprecatedApi = new FakePackage.FakeLocalPackage(justDeprecatedApiPath);
+    FakePackage.FakeLocalPackage pkgJustDeprecatedApi = new FakePackage.FakeLocalPackage(justDeprecatedApiPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsJustDeprecatedApi =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsJustDeprecatedApi.setTag(IdDisplay.create("google_apis_playstore", "Google Play"));
     detailsJustDeprecatedApi.setApiLevel(SdkVersionInfo.LOWEST_ACTIVE_API - 1);
     pkgJustDeprecatedApi.setTypeDetails((TypeDetails) detailsJustDeprecatedApi);
-    fileOp.recordExistingFile(new File(pkgJustDeprecatedApi.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    fileOp.recordExistingFile(pkgJustDeprecatedApi.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Preview image (with unknown API level)
     String PreviewApiPath = "system-images;android-98;google_apis_playstore;x86";
-    FakePackage.FakeLocalPackage pkgPreviewApi = new FakePackage.FakeLocalPackage(PreviewApiPath);
+    FakePackage.FakeLocalPackage pkgPreviewApi = new FakePackage.FakeLocalPackage(PreviewApiPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsPreviewApi =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsPreviewApi.setTag(IdDisplay.create("google_apis_playstore", "Google Play"));
     detailsPreviewApi.setApiLevel(98);
     detailsPreviewApi.setCodename("Zwieback-preview"); // The codename makes it a "preview"
     pkgPreviewApi.setTypeDetails((TypeDetails) detailsPreviewApi);
-    fileOp.recordExistingFile(new File(pkgPreviewApi.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    fileOp.recordExistingFile(pkgPreviewApi.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Non-preview image with unknown API level
     // (This shouldn't happen.)
     String unknownApiPath = "system-images;android-99;google_apis_playstore;x86";
-    FakePackage.FakeLocalPackage pkgUnknownApi = new FakePackage.FakeLocalPackage(unknownApiPath);
+    FakePackage.FakeLocalPackage pkgUnknownApi = new FakePackage.FakeLocalPackage(unknownApiPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsUnknownApi =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsUnknownApi.setTag(IdDisplay.create("google_apis_playstore", "Google Play"));
     detailsUnknownApi.setApiLevel(99);
     // (Leaving codename null)
     pkgUnknownApi.setTypeDetails((TypeDetails) detailsUnknownApi);
-    fileOp.recordExistingFile(new File(pkgUnknownApi.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    fileOp.recordExistingFile(pkgUnknownApi.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     packages.setLocalPkgInfos(ImmutableList.of(pkgKnownApi, pkgDeprecatedApi, pkgJustDeprecatedApi, pkgPreviewApi, pkgUnknownApi));
 
@@ -115,15 +115,15 @@ public class SystemImageListModelTest extends AndroidTestCase {
     SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
 
     ISystemImage knownApiImage = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(knownApiPath, progress).getLocation());
+      fileOp.toFile(sdkHandler.getLocalPackage(knownApiPath, progress).getLocation()));
     ISystemImage deprecatedApiImage = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(deprecatedApiPath, progress).getLocation());
+      fileOp.toFile(sdkHandler.getLocalPackage(deprecatedApiPath, progress).getLocation()));
     ISystemImage justDeprecatedApiImage = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(justDeprecatedApiPath, progress).getLocation());
+      fileOp.toFile(sdkHandler.getLocalPackage(justDeprecatedApiPath, progress).getLocation()));
     ISystemImage previewApiImage = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(PreviewApiPath, progress).getLocation());
+      fileOp.toFile(sdkHandler.getLocalPackage(PreviewApiPath, progress).getLocation()));
     ISystemImage unknownApiImage = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(unknownApiPath, progress).getLocation());
+      fileOp.toFile(sdkHandler.getLocalPackage(unknownApiPath, progress).getLocation()));
 
     myKnownApiImageDescription = new SystemImageDescription(knownApiImage);
     myDeprecatedApiImageDescription = new SystemImageDescription(deprecatedApiImage);
@@ -132,7 +132,7 @@ public class SystemImageListModelTest extends AndroidTestCase {
     myUnknownApiImageDescription = new SystemImageDescription(unknownApiImage);
   }
 
-  public void testReleaseDisplayName() throws Exception {
+  public void testReleaseDisplayName() {
     assertEquals("Oreo", SystemImageListModel.releaseDisplayName(myKnownApiImageDescription));
     assertEquals("Honeycomb (Deprecated)", SystemImageListModel.releaseDisplayName(myDeprecatedApiImageDescription));
     assertEquals("Zwieback-preview", SystemImageListModel.releaseDisplayName(myPreviewApiImageDescription));

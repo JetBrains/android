@@ -54,7 +54,7 @@ public class SystemImagePreviewTest extends AndroidTestCase {
 
     // Marshmallow image (API 23)
     String marshmallowPath = "system-images;android-23;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgMarshmallow = new FakePackage.FakeLocalPackage(marshmallowPath);
+    FakePackage.FakeLocalPackage pkgMarshmallow = new FakePackage.FakeLocalPackage(marshmallowPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsMarshmallow =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsMarshmallow.setTag(IdDisplay.create("google_apis", "Google APIs"));
@@ -62,12 +62,11 @@ public class SystemImagePreviewTest extends AndroidTestCase {
     detailsMarshmallow.setVendor(IdDisplay.create("google", "Google"));
     detailsMarshmallow.setApiLevel(23);
     pkgMarshmallow.setTypeDetails((TypeDetails)detailsMarshmallow);
-    pkgMarshmallow.setInstalledPath(new File(SDK_LOCATION, "23-marshmallow-x86"));
-    fileOp.recordExistingFile(new File(pkgMarshmallow.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    fileOp.recordExistingFile(pkgMarshmallow.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Nougat Preview image (still API 23)
     String NPreviewPath = "system-images;android-N;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgNPreview = new FakePackage.FakeLocalPackage(NPreviewPath);
+    FakePackage.FakeLocalPackage pkgNPreview = new FakePackage.FakeLocalPackage(NPreviewPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsNPreview =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsNPreview.setTag(IdDisplay.create("google_apis", "Google APIs"));
@@ -76,8 +75,7 @@ public class SystemImagePreviewTest extends AndroidTestCase {
     detailsNPreview.setApiLevel(23);
     detailsNPreview.setCodename("N"); // Setting a code name is the key!
     pkgNPreview.setTypeDetails((TypeDetails)detailsNPreview);
-    pkgNPreview.setInstalledPath(new File(SDK_LOCATION, "n-preview-x86"));
-    fileOp.recordExistingFile(new File(pkgNPreview.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    fileOp.recordExistingFile(pkgNPreview.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     packages.setLocalPkgInfos(ImmutableList.of(pkgMarshmallow, pkgNPreview));
 
@@ -90,15 +88,15 @@ public class SystemImagePreviewTest extends AndroidTestCase {
     SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
 
     ISystemImage marshmallowImage = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(marshmallowPath, progress).getLocation());
+      fileOp.toFile(sdkHandler.getLocalPackage(marshmallowPath, progress).getLocation()));
     ISystemImage NPreviewImage = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(NPreviewPath, progress).getLocation());
+      fileOp.toFile(sdkHandler.getLocalPackage(NPreviewPath, progress).getLocation()));
 
     mMarshmallowImageDescr = new SystemImageDescription(marshmallowImage);
     mNPreviewImageDescr = new SystemImageDescription(NPreviewImage);
   }
 
-  public void testSetImage() throws Exception {
+  public void testSetImage() {
     SystemImagePreview imagePreview = new SystemImagePreview(null);
 
     imagePreview.setImage(mMarshmallowImageDescr);

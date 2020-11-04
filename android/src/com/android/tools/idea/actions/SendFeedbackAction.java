@@ -179,7 +179,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
     LocalPackage p = sdkHandler.getLatestLocalPackageForPrefix(SdkConstants.FD_NDK, null,false, progress);
     sb.append(String.format("latest from SDK: %1$s",
                             p == null ? "(not found)"
-                                      : getNdkVersion(p.getLocation().getAbsolutePath())));
+                                      : getNdkVersion(p.getLocation().toAbsolutePath().toString())));
     return sb.toString();
   }
 
@@ -264,7 +264,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
     LocalPackage p = sdkHandler.getLatestLocalPackageForPrefix(SdkConstants.FD_CMAKE, null,false, progress);
     sb.append(String.format("latest from SDK: %1$s, ",
                             p == null ? "(not found)"
-                                      : runAndGetCMakeVersion(getCMakeExecutablePath(p.getLocation().getAbsolutePath()))));
+                                      : runAndGetCMakeVersion(getCMakeExecutablePath(p.getLocation().toAbsolutePath().toString()))));
     // CMake from PATH (if any)
     String cmakeBinFromPath = findOnPath("cmake");
     sb.append(String.format("from PATH: %1$s",

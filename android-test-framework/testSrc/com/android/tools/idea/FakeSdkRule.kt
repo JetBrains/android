@@ -44,11 +44,11 @@ class FakeSdkRule(val projectRule: AndroidProjectRule, val fileOp: FileOp = Mock
   val remotePackages = mutableListOf<RemotePackage>()
 
   fun withLocalPackage(localPackage: LocalPackage) = apply { localPackages.add(localPackage) }
-  fun withLocalPackage(path: String) = apply { localPackages.add(FakePackage.FakeLocalPackage(path)) }
+  fun withLocalPackage(path: String) = apply { localPackages.add(FakePackage.FakeLocalPackage(path, fileOp)) }
   fun withRemotePackage(remotePackage: RemotePackage) = apply { remotePackages.add(remotePackage) }
 
   fun addLocalPackage(path: String) {
-    packages.setLocalPkgInfos(packages.localPackages.values.plus(FakePackage.FakeLocalPackage(path)))
+    packages.setLocalPkgInfos(packages.localPackages.values.plus(FakePackage.FakeLocalPackage(path, fileOp)))
   }
 
   override fun before(description: Description) {
