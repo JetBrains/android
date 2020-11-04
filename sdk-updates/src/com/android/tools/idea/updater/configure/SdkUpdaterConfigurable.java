@@ -25,6 +25,7 @@ import com.android.repository.api.RepoManager;
 import com.android.repository.api.UpdatablePackage;
 import com.android.repository.impl.meta.Archive;
 import com.android.repository.impl.meta.RepositoryPackages;
+import com.android.repository.io.FileUtilKt;
 import com.android.repository.util.InstallerUtil;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -35,7 +36,6 @@ import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
-import com.android.utils.FileUtils;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.Pair;
 import com.google.common.annotations.VisibleForTesting;
@@ -61,6 +61,8 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.AncestorListenerAdapter;
 import com.intellij.ui.JBColor;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -340,9 +342,12 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     long size = 0;
     for (LocalPackage item : localPackages) {
       if (item != null) {
-        // TODO: Consider adding installation size to the package manifest.
-        for (File f : FileUtils.getAllFiles(item.getLocation())) {
-          size += f.length();
+        try {
+          // TODO: Consider adding installation size to the package manifest.
+          size += FileUtilKt.recursiveSize(item.getLocation());
+        }
+        catch (IOException e) {
+          // skip
         }
       }
     }

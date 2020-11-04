@@ -61,7 +61,7 @@ public class PlatformToolsInstallListener implements PackageOperation.StatusChan
   private File getAdb(@NotNull ProgressIndicator progress) {
     LocalPackage localPackage = mySdkHandler.getLocalPackage(SdkConstants.FD_PLATFORM_TOOLS, progress);
     if (localPackage != null) {
-      return new File(localPackage.getLocation().getPath(), SdkConstants.FN_ADB);
+      return mySdkHandler.getFileOp().toFile(localPackage.getLocation().resolve(SdkConstants.FN_ADB));
     }
     return null;
   }

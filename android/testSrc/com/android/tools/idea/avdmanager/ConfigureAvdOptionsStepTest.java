@@ -87,31 +87,29 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
     // Q image (API 29)
     String qPath = "system-images;android-29;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgQ = new FakePackage.FakeLocalPackage(qPath);
+    FakePackage.FakeLocalPackage pkgQ = new FakePackage.FakeLocalPackage(qPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsQ =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsQ.setTag(IdDisplay.create("google_apis", "Google APIs"));
     detailsQ.setAbi("x86");
     detailsQ.setApiLevel(29);
     pkgQ.setTypeDetails((TypeDetails) detailsQ);
-    pkgQ.setInstalledPath(new File(SDK_LOCATION, "29-Q-x86"));
-    fileOp.recordExistingFile(new File(pkgQ.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    fileOp.recordExistingFile(pkgQ.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Marshmallow image (API 23)
     String marshmallowPath = "system-images;android-23;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgMarshmallow = new FakePackage.FakeLocalPackage(marshmallowPath);
+    FakePackage.FakeLocalPackage pkgMarshmallow = new FakePackage.FakeLocalPackage(marshmallowPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsMarshmallow =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsMarshmallow.setTag(IdDisplay.create("google_apis", "Google APIs"));
     detailsMarshmallow.setAbi("x86");
     detailsMarshmallow.setApiLevel(23);
     pkgMarshmallow.setTypeDetails((TypeDetails) detailsMarshmallow);
-    pkgMarshmallow.setInstalledPath(new File(SDK_LOCATION, "23-marshmallow-x86"));
-    fileOp.recordExistingFile(new File(pkgMarshmallow.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    fileOp.recordExistingFile(pkgMarshmallow.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Nougat Preview image (still API 23)
     String NPreviewPath = "system-images;android-N;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgNPreview = new FakePackage.FakeLocalPackage(NPreviewPath);
+    FakePackage.FakeLocalPackage pkgNPreview = new FakePackage.FakeLocalPackage(NPreviewPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsNPreview =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsNPreview.setTag(IdDisplay.create("google_apis", "Google APIs"));
@@ -119,21 +117,19 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     detailsNPreview.setApiLevel(23);
     detailsNPreview.setCodename("N"); // Setting a code name is the key!
     pkgNPreview.setTypeDetails((TypeDetails) detailsNPreview);
-    pkgNPreview.setInstalledPath(new File(SDK_LOCATION, "n-preview-x86"));
-    fileOp.recordExistingFile(new File(pkgNPreview.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    fileOp.recordExistingFile(pkgNPreview.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Image with an unknown API level
     // (This is not supposed to happen. But it does sometimes.)
     String zuluPath = "system-images;android-Z;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgZulu = new FakePackage.FakeLocalPackage(zuluPath);
+    FakePackage.FakeLocalPackage pkgZulu = new FakePackage.FakeLocalPackage(zuluPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsZulu =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsZulu.setTag(IdDisplay.create("google_apis", "Google APIs"));
     detailsZulu.setAbi("x86");
     detailsZulu.setApiLevel(99);
     pkgZulu.setTypeDetails((TypeDetails) detailsZulu);
-    pkgZulu.setInstalledPath(new File(SDK_LOCATION, "zulu-x86"));
-    fileOp.recordExistingFile(new File(pkgZulu.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    fileOp.recordExistingFile(pkgZulu.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     packages.setLocalPkgInfos(ImmutableList.of(pkgQ, pkgMarshmallow, pkgNPreview, pkgZulu));
 
@@ -146,13 +142,13 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
 
     ISystemImage QImage = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(qPath, progress).getLocation());
+      fileOp.toFile(sdkHandler.getLocalPackage(qPath, progress).getLocation()));
     ISystemImage marshmallowImage = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(marshmallowPath, progress).getLocation());
+      fileOp.toFile(sdkHandler.getLocalPackage(marshmallowPath, progress).getLocation()));
     ISystemImage NPreviewImage = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(NPreviewPath, progress).getLocation());
+      fileOp.toFile(sdkHandler.getLocalPackage(NPreviewPath, progress).getLocation()));
     ISystemImage ZuluImage = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(zuluPath, progress).getLocation());
+      fileOp.toFile(sdkHandler.getLocalPackage(zuluPath, progress).getLocation()));
 
     mySnapshotSystemImage = ZuluImage; // Re-use Zulu for the snapshot test
 

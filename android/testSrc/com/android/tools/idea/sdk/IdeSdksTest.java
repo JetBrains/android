@@ -33,9 +33,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.RepositoryPackages;
+import com.android.repository.io.FileOp;
+import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeRepoManager;
-import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.AndroidTestCaseHelper;
@@ -121,8 +122,9 @@ public class IdeSdksTest extends PlatformTestCase {
   }
 
   public void testGetAndroidNdkPath() {
-    FakePackage.FakeLocalPackage value = new FakePackage.FakeLocalPackage("ndk;21.0.0");
-    setupSdkData(ImmutableList.of(value));
+    FileOp fop = FileOpUtils.create();
+    FakePackage.FakeLocalPackage value = new FakePackage.FakeLocalPackage("ndk;21.0.0", fop);
+    setupSdkData(ImmutableList.of(value), fop);
 
     File ndkPath = myIdeSdks.getAndroidNdkPath();
     String osPrefix = SystemInfo.isWindows ? "C:" : "";
@@ -131,8 +133,9 @@ public class IdeSdksTest extends PlatformTestCase {
   }
 
   public void testGetAndroidNdkPathWithPredicate() {
-    FakePackage.FakeLocalPackage value = new FakePackage.FakeLocalPackage("ndk;21.0.0");
-    setupSdkData(ImmutableList.of(value));
+    FileOp fop = FileOpUtils.create();
+    FakePackage.FakeLocalPackage value = new FakePackage.FakeLocalPackage("ndk;21.0.0", fop);
+    setupSdkData(ImmutableList.of(value), fop);
 
     File ndkPath = myIdeSdks.getAndroidNdkPath(revision -> false);
     assertThat(ndkPath).isNull();
@@ -266,10 +269,10 @@ public class IdeSdksTest extends PlatformTestCase {
     assertThat(jdkFile).isEqualTo(expectedFile);
   }
 
-  private void setupSdkData(ImmutableList<LocalPackage> localPackages) {
+  private void setupSdkData(ImmutableList<LocalPackage> localPackages, FileOp fop) {
     RepositoryPackages packages = new RepositoryPackages(localPackages, Collections.emptyList());
     RepoManager repoManager = new FakeRepoManager(packages);
-    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(null, null, new MockFileOp(), repoManager);
+    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(null, null, fop, repoManager);
     AndroidSdkData androidSdkData = mock(AndroidSdkData.class);
     doReturn(androidSdkHandler).when(androidSdkData).getSdkHandler();
     myAndroidSdks.setSdkData(androidSdkData);

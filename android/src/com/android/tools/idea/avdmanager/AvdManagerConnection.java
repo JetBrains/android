@@ -44,6 +44,7 @@ import static java.nio.file.StandardOpenOption.WRITE;
 
 import com.android.SdkConstants;
 import com.android.ddmlib.IDevice;
+import com.android.io.CancellableFileIo;
 import com.android.prefs.AndroidLocation;
 import com.android.prefs.AndroidLocation.AndroidLocationException;
 import com.android.repository.Revision;
@@ -258,11 +259,11 @@ public class AvdManagerConnection {
     if (sdkPackage == null) {
       return null;
     }
-    File binaryFile = new File(sdkPackage.getLocation(), filename);
-    if (!myFileOp.exists(binaryFile)) {
+    Path binaryFile = sdkPackage.getLocation().resolve(filename);
+    if (CancellableFileIo.notExists(binaryFile)) {
       return null;
     }
-    return binaryFile;
+    return myFileOp.toFile(binaryFile);
   }
 
   @Nullable

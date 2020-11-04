@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.instantapp;
 
+import com.android.repository.io.FileOp;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.repository.api.LocalPackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -66,10 +67,11 @@ public class InstantAppSdks {
   @NotNull
   public File getOrInstallInstantAppSdk() {
     LocalPackage localPackage = getInstantAppLocalPackage();
+    FileOp fop = AndroidSdks.getInstance().tryToChooseSdkHandler().getFileOp();
     if (localPackage == null) {
-      return ensureSdkInstalled().getLocation();
+      return fop.toFile(ensureSdkInstalled().getLocation());
     }
-    return localPackage.getLocation();
+    return fop.toFile(localPackage.getLocation());
   }
 
   @Nullable

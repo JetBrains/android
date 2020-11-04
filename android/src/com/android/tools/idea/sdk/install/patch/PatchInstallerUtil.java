@@ -26,6 +26,7 @@ import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -262,12 +263,13 @@ public class PatchInstallerUtil {
       return null;
     }
     LocalPackage existing = patchOp.getExisting();
-    File existingRoot = existing == null ? null : existing.getLocation();
+    Path existingRoot = existing == null ? null : existing.getLocation();
     String existingDescription = existing == null ? "None" : existing.getDisplayName() + " Version " + existing.getVersion();
     String description = patchOp.getNewVersionName();
     File destination = new File(destDir, PATCH_JAR_FN);
     File newFilesRoot = patchOp.getNewFilesRoot();
-    if (runner.generatePatch(existingRoot, newFilesRoot, existingDescription, description, destination, progress.createSubProgress(1))) {
+    if (runner.generatePatch(existingRoot == null ? null : fop.toFile(existingRoot), newFilesRoot, existingDescription, description,
+                             destination, progress.createSubProgress(1))) {
       progress.setFraction(1);
       return destination;
     }

@@ -217,7 +217,7 @@ object SkiaParser : SkiaParserService {
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
     val latestPackage = getLatestParserPackage(sdkHandler)
     if (latestPackage != null) {
-      val mappingFile = File(latestPackage.location, VERSION_MAP_FILE_NAME)
+      val mappingFile = latestPackage.location.resolve(VERSION_MAP_FILE_NAME)
       try {
         val mapInputStream = sdkHandler.fileOp.newFileInputStream(mappingFile)
         val map = unmarshaller.unmarshal(mapInputStream) as VersionMap
@@ -286,7 +286,7 @@ class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
           return null
         }
       }
-      File(serverPackage.location, serverName)
+      sdkHandler.fileOp.toFile(serverPackage.location.resolve(serverName))
     }
   }
 

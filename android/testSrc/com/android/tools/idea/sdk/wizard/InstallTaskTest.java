@@ -65,7 +65,7 @@ public class InstallTaskTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myExisting1 = spy(new FakePackage.FakeLocalPackage("p1"));
+    myExisting1 = spy(new FakePackage.FakeLocalPackage("p1", myFileOp));
     myAvailable1 = spy(new FakePackage.FakeRemotePackage("p2"));
     myAvailable2 = spy(new FakePackage.FakeRemotePackage("p3"));
     factory = mock(InstallerFactory.class);

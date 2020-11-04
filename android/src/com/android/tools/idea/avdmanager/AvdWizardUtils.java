@@ -216,10 +216,10 @@ public class AvdWizardUtils {
       // The file is in the emulator component
       LocalPackage emulatorPackage = sdkHandler.getLocalPackage(FD_EMULATOR, new StudioLoggerProgressIndicator(AvdWizardUtils.class));
       if (emulatorPackage != null) {
-        File hardwareDefs = new File(emulatorPackage.getLocation(), FD_LIB + File.separator + FN_HARDWARE_INI);
+        Path hardwareDefs = emulatorPackage.getLocation().resolve(FD_LIB + File.separator + FN_HARDWARE_INI);
         FileOp fop = sdkHandler.getFileOp();
         ourHardwareProperties = HardwareProperties.parseHardwareDefinitions(
-          new FileOpFileWrapper(hardwareDefs, fop, false), new LogWrapper(Logger.getInstance(AvdManagerConnection.class)));
+          new FileOpFileWrapper(fop.toFile(hardwareDefs), fop, false), new LogWrapper(Logger.getInstance(AvdManagerConnection.class)));
       }
     }
     HardwareProperties.HardwareProperty hwProp = (ourHardwareProperties == null) ? null : ourHardwareProperties.get(name);

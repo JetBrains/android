@@ -76,7 +76,7 @@ class RetentionViewTest {
   @Before
   fun setUp() {
     MockitoAnnotations.initMocks(this)
-    val p = FakeLocalPackage(SdkConstants.FD_EMULATOR)
+    val p = FakeLocalPackage(SdkConstants.FD_EMULATOR, mockFileOp)
     mockFileOp.recordExistingFile(p.location.resolve(SdkConstants.FN_EMULATOR))
     val packages = RepositoryPackages(listOf(p), listOf())
     val mgr: RepoManager = FakeRepoManager(sdkPath, packages)

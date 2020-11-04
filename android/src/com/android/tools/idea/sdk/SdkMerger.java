@@ -17,6 +17,7 @@ package com.android.tools.idea.sdk;
 
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.RepoPackage;
+import com.android.repository.io.FileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.RepoProgressIndicatorAdapter;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -24,6 +25,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.util.io.FileUtil;
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,16 +51,16 @@ public class SdkMerger {
       }
       if (pkg.destPkg != null) {
         // Destination package exists but is older; delete the old and replace with the new.
-        File destPkgDir = pkg.destPkg.getLocation();
+        Path destPkgDir = pkg.destPkg.getLocation();
         try {
           FileUtil.delete(destPkgDir);
         }
-        catch (RuntimeException e) {
-          LOG.warn("Failed to delete destination directory " + destPkgDir.getPath(), e);
+        catch (IOException | RuntimeException e) {
+          LOG.warn("Failed to delete destination directory " + destPkgDir, e);
         }
       }
       try {
-        FileUtil.copyDir(pkg.srcPkg.getLocation(),
+        FileUtil.copyDir(FileOp.toFileUnsafe(pkg.srcPkg.getLocation()),
                          new File(pkg.destLocation, pkg.srcPkg.getPath().replace(RepoPackage.PATH_SEPARATOR, File.separatorChar)));
       }
       catch (IOException e) {

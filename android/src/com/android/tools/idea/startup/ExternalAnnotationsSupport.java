@@ -155,7 +155,7 @@ public class ExternalAnnotationsSupport {
                 DetailsTypes.PlatformDetailsType details = (DetailsTypes.PlatformDetailsType)info.getTypeDetails();
                 if (details.getApiLevel() >= 29 || details.getApiLevel() == 28 && revision.getMajor() >= 5) {
                   // Yes, you're using Android P, DP5 or later: The best annotations are bundled with the SDK
-                  String releaseLocation = info.getLocation().getPath() + separator + FD_DATA + separator + FN_ANNOTATIONS_ZIP;
+                  String releaseLocation = info.getLocation().toString() + separator + FD_DATA + separator + FN_ANNOTATIONS_ZIP;
                   root = fileManager.findFileByUrl("jar://" + FileUtil.toSystemIndependentName(releaseLocation) + "!/");
                 }
               }
