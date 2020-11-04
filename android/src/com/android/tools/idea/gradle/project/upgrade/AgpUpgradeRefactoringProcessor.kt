@@ -915,7 +915,7 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         val gradleWrapper = GradleWrapper.get(ioFile, project)
         val currentGradleVersion = gradleWrapper.gradleVersion ?: return@forEach
         val parsedCurrentGradleVersion = GradleVersion.tryParse(currentGradleVersion) ?: return@forEach
-        if (!GradleUtil.isSupportedGradleVersion(parsedCurrentGradleVersion)) {
+        if (gradleVersion > parsedCurrentGradleVersion) {
           val updatedUrl = gradleWrapper.getUpdatedDistributionUrl(gradleVersion.toString(), true);
           val virtualFile = VfsUtil.findFileByIoFile(ioFile, true) ?: return@forEach
           val propertiesFile = PsiManager.getInstance(project).findFile(virtualFile) as? PropertiesFile ?: return@forEach
