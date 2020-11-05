@@ -110,6 +110,11 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
         fun Preview4() {
         }
 
+        @Composable
+        @Preview(name = "preview5", uiMode = 3, backgroundColor = 0xFFBAAABA)
+        fun Preview5() {
+        }
+
         // This preview element will be found but the ComposeViewAdapter won't be able to render it
         @Composable
         @Preview(name = "Preview with parameters")
@@ -158,7 +163,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     assertTrue(computeOnBackground { AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile) })
 
     val elements = computeOnBackground { AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).toList() }
-    assertEquals(6, elements.size)
+    assertEquals(7, elements.size)
     elements[0].let {
       assertEquals("Preview1", it.displaySettings.name)
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
@@ -224,10 +229,22 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     }
 
     elements[4].let {
-      assertEquals("Preview with parameters", it.displaySettings.name)
+      assertEquals("preview5", it.displaySettings.name)
+      assertEquals(3, it.configuration.uiMode)
+      assertEquals("#ffbaaaba", it.displaySettings.backgroundColor)
+
+      ReadAction.run<Throwable> {
+        assertMethodTextRange(composeTest, "Preview5", it.previewBodyPsi?.psiRange?.range!!)
+        assertEquals("@Preview(name = \"preview5\", uiMode = 3, backgroundColor = 0xFFBAAABA)",
+                     it.previewElementDefinitionPsi?.element?.text)
+      }
     }
 
     elements[5].let {
+      assertEquals("Preview with parameters", it.displaySettings.name)
+    }
+
+    elements[6].let {
       assertEquals("FQN", it.displaySettings.name)
     }
   }
