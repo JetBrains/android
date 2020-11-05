@@ -106,6 +106,7 @@ import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.JScrollPane
 import javax.swing.SwingConstants
 
 val TYPE_CONSTRAINTS: EnumSet<Constraint> = EnumSet.of(
@@ -151,7 +152,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
   }
   private var parametersPanel = JPanel(TabularLayout("Fit-,*").setVGap(10))
 
-  private val rootPanel = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
+  private val mainPanel = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
     panel {
       row {
         templateTitleLabel()
@@ -182,7 +183,8 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     }
   }
 
-  private val validatorPanel: ValidatorPanel = ValidatorPanel(this, wrapWithVScroll(rootPanel))
+  private val validatorPanel: ValidatorPanel = ValidatorPanel(this, mainPanel)
+  private val rootPanel: JScrollPane = wrapWithVScroll(validatorPanel)
   private var evaluationState = EvaluationState.NOT_EVALUATING
   private val parameters: Collection<Parameter<*>> get() = model.newTemplate.parameters
 
@@ -247,7 +249,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       val parameter = widget.parameter as Parameter<in Any>
       property?.addListener {
         // If not evaluating, change comes from the user (or user pressed "Back" and updates are "external". eg Template changed)
-        if (evaluationState != EvaluationState.EVALUATING && rootPanel.isShowing) {
+        if (evaluationState != EvaluationState.EVALUATING && mainPanel.isShowing) {
           userValues[parameter] = property.get()
           parameter.setFromProperty(property)
           // Evaluate later to prevent modifying Swing values that are locked during read
@@ -392,7 +394,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     }
   }
 
-  override fun getComponent(): JComponent = validatorPanel
+  override fun getComponent(): JComponent = rootPanel
 
   override fun getPreferredFocusComponent(): JComponent? = parametersPanel.components.firstOrNull {
     val child = it as JComponent
