@@ -50,9 +50,10 @@ class ComponentImageLoaderTest {
       }
     }
     // The model builder adds the draw children automatically, which we don't want to be populated yet in this case.
-    root.flatten().forEach { it.drawChildren.clear() }
-
-    ComponentImageLoader(root.flatten().associateBy { it.drawId }, skiaRoot).loadImages()
+    ViewNode.writeDrawChildren { drawChildren ->
+      root.flatten().forEach { it.drawChildren().clear() }
+      ComponentImageLoader(root.flatten().associateBy { it.drawId }, skiaRoot).loadImages(drawChildren)
+    }
 
     val expected = view(1L) {
       image(image1)

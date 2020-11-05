@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
 import com.intellij.testFramework.RunsInEdt
+import junit.framework.Assert.assertNotNull
+import junit.framework.Assert.assertTrue
 import org.junit.Assert
 import org.junit.Test
 
@@ -78,6 +80,14 @@ class FabricCrashlyticsRefactoringProcessorTest : UpgradeGradleFileModelTestCase
   }
 
   @Test
+  fun testFabricSdkWithNdkAndFirebaseDependencies() {
+    writeToBuildFile(TestFileName("FabricCrashlytics/FabricSdkWithNdkAndFirebaseDependencies"))
+    val processor = FabricCrashlyticsRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("FabricCrashlytics/FabricSdkWithNdkAndFirebaseDependenciesExpected"))
+  }
+
+  @Test
   fun testIsAlwaysNoOpOnFabricSdkWithNdkExpected() {
     writeToBuildFile(TestFileName("FabricCrashlytics/FabricSdkWithNdkExpected"))
     val processor = FabricCrashlyticsRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
@@ -93,5 +103,23 @@ class FabricCrashlyticsRefactoringProcessorTest : UpgradeGradleFileModelTestCase
     Assert.assertTrue(processor.isAlwaysNoOpForProject)
     processor.run()
     verifyFileContents(buildFile, TestFileName("FabricCrashlytics/NonFabric"))
+  }
+
+  @Test
+  fun testFabricClasspathDependenciesTooltipsNotNull() {
+    writeToBuildFile(TestFileName("FabricCrashlytics/FabricClasspathDependencies"))
+    val processor = FabricCrashlyticsRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
+    val usages = processor.findUsages()
+    assertTrue(usages.isNotEmpty())
+    usages.forEach { assertNotNull(it.tooltipText) }
+  }
+
+  @Test
+  fun testFabricSdkWithNdkTooltipsNotNull() {
+    writeToBuildFile(TestFileName("FabricCrashlytics/FabricSdkWithNdk"))
+    val processor = FabricCrashlyticsRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
+    val usages = processor.findUsages()
+    assertTrue(usages.isNotEmpty())
+    usages.forEach { assertNotNull(it.tooltipText) }
   }
 }

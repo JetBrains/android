@@ -163,7 +163,7 @@ class ComponentTreeLoaderTest {
     assertThat(tree.width).isEqualTo(100)
     assertThat(tree.height).isEqualTo(200)
     assertThat(tree.qualifiedName).isEqualTo("com.example.MyViewClass1")
-    assertThat((tree.drawChildren[0] as DrawViewImage).image).isEqualTo(image1)
+    ViewNode.readDrawChildren { drawChildren -> assertThat ((tree.drawChildren()[0] as DrawViewImage).image).isEqualTo(image1) }
     assertThat(tree.children.map { it.drawId }).containsExactly(2L, 4L).inOrder()
 
     val node2 = tree.children[0]
@@ -173,7 +173,7 @@ class ComponentTreeLoaderTest {
     assertThat(node2.width).isEqualTo(50)
     assertThat(node2.height).isEqualTo(100)
     assertThat(node2.qualifiedName).isEqualTo("com.example.MyViewClass2")
-    assertThat((node2.drawChildren[0] as DrawViewImage).image).isEqualTo(image2)
+    ViewNode.readDrawChildren { drawChildren -> assertThat((node2.drawChildren()[0] as DrawViewImage).image).isEqualTo(image2) }
     assertThat(node2.children.map { it.drawId }).containsExactly(3L)
 
     val node3 = node2.children[0]
@@ -183,7 +183,7 @@ class ComponentTreeLoaderTest {
     assertThat(node3.width).isEqualTo(20)
     assertThat(node3.height).isEqualTo(50)
     assertThat(node3.qualifiedName).isEqualTo("com.example.MyViewClass1")
-    assertThat((node3.drawChildren[0] as DrawViewImage).image).isEqualTo(image3)
+    ViewNode.readDrawChildren { drawChildren -> assertThat((node3.drawChildren()[0] as DrawViewImage).image).isEqualTo(image3) }
     assertThat(node3.children).isEmpty()
 
     val node4 = tree.children[1]
@@ -193,7 +193,7 @@ class ComponentTreeLoaderTest {
     assertThat(node4.width).isEqualTo(40)
     assertThat(node4.height).isEqualTo(50)
     assertThat(node4.qualifiedName).isEqualTo("com.example.MyViewClass2")
-    assertThat((node4.drawChildren[0] as DrawViewImage).image).isEqualTo(image4)
+    ViewNode.readDrawChildren { drawChildren -> assertThat((node4.drawChildren()[0] as DrawViewImage).image).isEqualTo(image4) }
     assertThat(node4.children).isEmpty()
     assertThat((node4.transformedBounds as Polygon).xpoints).isEqualTo(intArrayOf(25, 75, 78, 23))
     assertThat((node4.transformedBounds as Polygon).ypoints).isEqualTo(intArrayOf(125, 127, 253, 250))
@@ -217,8 +217,10 @@ class ComponentTreeLoaderTest {
     val tree = window.root
 
     assertThat(window.imageType).isEqualTo(PNG_AS_REQUESTED)
-    ImageDiffUtil.assertImageSimilar(imageFile, (tree.drawChildren[0] as DrawViewImage).image as BufferedImage, 0.0)
-    assertThat(tree.flatten().flatMap { it.drawChildren.asSequence() }.count { it is DrawViewImage }).isEqualTo(1)
+    ViewNode.readDrawChildren { drawChildren ->
+      ImageDiffUtil.assertImageSimilar(imageFile, (tree.drawChildren()[0] as DrawViewImage).image as BufferedImage, 0.0)
+      assertThat(tree.flatten().flatMap { it.drawChildren().asSequence() }.count { it is DrawViewImage }).isEqualTo(1)
+    }
     verify(client).logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
   }
 

@@ -46,8 +46,10 @@ object CheckUtil {
    */
   fun assertDrawTreesEqual(expected: ViewNode, actual: ViewNode) {
     assertEquals(expected.drawId, actual.drawId)
-    assertEquals("for node ${expected.drawId}", expected.drawChildren.size, actual.drawChildren.size)
-    expected.drawChildren.zip(actual.drawChildren).forEach { (expected, actual) -> checkTreesEqual(expected, actual) }
+    ViewNode.readDrawChildren { drawChildren ->
+      assertEquals("for node ${expected.drawId}", expected.drawChildren().size, actual.drawChildren().size)
+      expected.drawChildren().zip(actual.drawChildren()).forEach { (expected, actual) -> checkTreesEqual(expected, actual) }
+    }
   }
 
   private fun checkTreesEqual(expected: DrawViewNode, actual: DrawViewNode) {

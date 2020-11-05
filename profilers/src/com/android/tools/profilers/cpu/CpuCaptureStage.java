@@ -80,7 +80,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * This class holds the models and capture data for the {@link com.android.tools.profilers.cpu.CpuCaptureStageView}.
+ * This class holds the models and capture data for the {@code com.android.tools.profilers.cpu.CpuCaptureStageView}.
  * This stage is set when a capture is selected from the {@link CpuProfilerStage}, or when a capture is imported.
  */
 public class CpuCaptureStage extends Stage<Timeline> {
@@ -526,11 +526,11 @@ public class CpuCaptureStage extends Stage<Timeline> {
 
   private static TrackGroupModel createRssMemoryTrackGroup(@NotNull CpuSystemTraceData systemTraceData, @NotNull Timeline timeline) {
     TrackGroupModel memory = TrackGroupModel.newBuilder()
-      .setTitle("RSS Memory")
+      .setTitle("Process Memory (RSS)")
       .setTitleHelpText("This section shows the memory footprint of the app." +
                         "<p><b>Resident Set Size (RSS)</b> is the portion of memory the app occupies in RAM, " +
                         "combining both shared and non-shared pages.</p>")
-      .setTitleHelpLink("Learn more", "https://developer.android.com/topic/performance/memory-management#calculating_memory_footprint")
+      .setTitleHelpLink("Learn more", "https://d.android.com/r/studio-ui/profiler/rss-memory")
       .setCollapsedInitially(true)
       .build();
     RssMemoryTrackModel.Companion.getIncludedCountersNameMap().forEach(

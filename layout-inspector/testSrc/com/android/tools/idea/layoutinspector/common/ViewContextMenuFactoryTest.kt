@@ -56,17 +56,7 @@ class ViewContextMenuFactoryTest {
   private var popupMenuComponent: JPopupMenu? = mock()
   private var createdGroup: ActionGroup? = null
 
-  private var inspectorModel: InspectorModel? = model {
-    view(ROOT, viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "rootId")) {
-      view(VIEW1)
-      view(VIEW2, qualifiedName = "viewName") {
-        view(VIEW3, textValue = "myText") {
-          image()
-        }
-        image()
-      }
-    }
-  }
+  private var inspectorModel: InspectorModel? = null
 
   @Before
   fun setUp() {
@@ -78,6 +68,17 @@ class ViewContextMenuFactoryTest {
       mockPopupMenu
     }
     `when`(mockPopupMenu.component).thenReturn(popupMenuComponent)
+    inspectorModel = model {
+      view(ROOT, viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "rootId")) {
+        view(VIEW1)
+        view(VIEW2, qualifiedName = "viewName") {
+          view(VIEW3, textValue = "myText") {
+            image()
+          }
+          image()
+        }
+      }
+    }
   }
 
   @After

@@ -137,7 +137,7 @@ class CpuCaptureStageTest {
     assertThat(coresTrackGroup[1].title).isEqualTo("CPU 0 Frequency")
 
     val rssMemoryTrackGroup = stage.trackGroupModels[2]
-    assertThat(rssMemoryTrackGroup.title).isEqualTo("RSS Memory")
+    assertThat(rssMemoryTrackGroup.title).isEqualTo("Process Memory (RSS)")
 
     val threadsTrackGroup = stage.trackGroupModels[3]
     assertThat(threadsTrackGroup.title).isEqualTo("Threads (40)")
@@ -167,7 +167,7 @@ class CpuCaptureStageTest {
     assertThat(coresTrackGroup[1].title).isEqualTo("CPU 0 Frequency")
 
     val rssMemoryTrackGroup = stage.trackGroupModels[2]
-    assertThat(rssMemoryTrackGroup.title).isEqualTo("RSS Memory")
+    assertThat(rssMemoryTrackGroup.title).isEqualTo("Process Memory (RSS)")
 
     val threadsTrackGroup = stage.trackGroupModels[3]
     assertThat(threadsTrackGroup.title).isEqualTo("Threads (41)")
