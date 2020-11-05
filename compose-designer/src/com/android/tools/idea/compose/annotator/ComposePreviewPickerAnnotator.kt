@@ -22,6 +22,7 @@ import com.android.tools.idea.compose.preview.toPreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.intellij.icons.AllIcons
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
@@ -73,7 +74,7 @@ private class ComposePreviewPickerRenderer(private val project: Project,
     }
   }
 
-  override fun getIcon(): Icon = StudioIcons.Common.EDIT // TODO(b/154503873): Placeholder icon, update once the correct icon is uploaded
+  override fun getIcon(): Icon = AllIcons.Actions.InlayGear
 
   override fun getClickAction() = psiPickerAction
 
