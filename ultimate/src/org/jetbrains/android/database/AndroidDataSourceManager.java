@@ -3,6 +3,7 @@ package org.jetbrains.android.database;
 
 import com.intellij.database.Dbms;
 import com.intellij.database.dialects.DatabaseDialectEx;
+import com.intellij.database.model.DasDataSource;
 import com.intellij.database.psi.BasicDataSourceManager;
 import com.intellij.database.util.DbImplUtil;
 import com.intellij.database.util.DbSqlUtil;
@@ -45,6 +46,11 @@ public class AndroidDataSourceManager extends BasicDataSourceManager<AndroidData
   public void renameDataSource(@NotNull AndroidDataSource element, @NotNull String name) {
     element.setName(name);
     updateDataSource(element);
+  }
+
+  @Override
+  public boolean isMyDataSource(@NotNull Class<? extends DasDataSource> clazz) {
+    return AndroidDataSource.class.isAssignableFrom(clazz);
   }
 
   @Override
