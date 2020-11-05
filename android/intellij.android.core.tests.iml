@@ -117,7 +117,8 @@
     <orderEntry type="module" module-name="android.sdktools.perf-logger" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.databinding" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.resources-base" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="kotlin-plugin-android-compile-deps" level="project" />
+    <orderEntry type="module" module-name="intellij.android.kotlin-dependencies" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-jdk8" level="project" />
     <orderEntry type="library" scope="TEST" name="NanoXML" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.debuggers" />
