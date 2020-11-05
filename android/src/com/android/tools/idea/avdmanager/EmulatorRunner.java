@@ -83,7 +83,7 @@ public class EmulatorRunner {
 
   @NotNull
   private static LaunchType getLaunchType(@NotNull GeneralCommandLine commandLine) {
-    return commandLine.getParametersList().getParameters().contains("-no-window") ? LaunchType.IN_TOOL_WINDOW : LaunchType.STANDALONE;
+    return commandLine.getParametersList().getParameters().contains("-qt-hide-window") ? LaunchType.IN_TOOL_WINDOW : LaunchType.STANDALONE;
   }
 
   @NotNull
