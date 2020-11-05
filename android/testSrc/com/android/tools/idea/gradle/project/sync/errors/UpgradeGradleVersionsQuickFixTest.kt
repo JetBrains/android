@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.sync.quickFixes.UpgradeGradleVersio
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.IdeComponents
+import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.TestDataProvider
 import org.junit.Rule
@@ -48,6 +49,16 @@ class UpgradeGradleVersionsQuickFixTest {
     verifyUpdaterRun(success = false)
   }
 
+  @Test
+  fun `run with AgpUpgradeRefactoringProcessor success`() {
+    verifyProcessorRun(success = true)
+  }
+
+  @Test
+  fun `run with AgpUpgradeRefactoringProcessor no success`() {
+    verifyProcessorRun(success = false)
+  }
+
   private fun verifyUpdaterRun(success: Boolean) {
     val project = gradleProjectRule.project
     val latestGradleVersion = GradleVersion.parse(SdkConstants.GRADLE_LATEST_VERSION)
@@ -58,7 +69,7 @@ class UpgradeGradleVersionsQuickFixTest {
     val mockSyncInvoker = ideComponents.mockApplicationService(GradleSyncInvoker::class.java)
     `when`(mockedUpdater.updatePluginVersion(any(), any())).thenReturn(success)
     val result = quickFix.runQuickFix(project, TestDataProvider(project)).get()
-    assertThat(result).isNull()
+    assertThat(result).isEqualTo(success)
     verify(mockedUpdater).updatePluginVersion(eq(latestAgpVersion), eq(latestGradleVersion))
     if (success) {
       verify(mockSyncInvoker).requestProjectSync(eq(project), any(GradleSyncInvoker.Request::class.java))
@@ -66,5 +77,19 @@ class UpgradeGradleVersionsQuickFixTest {
     else {
       Mockito.verifyZeroInteractions(mockSyncInvoker)
     }
+  }
+
+  private fun verifyProcessorRun(success: Boolean) {
+    gradleProjectRule.loadProject(SIMPLE_APPLICATION)
+    val project = gradleProjectRule.project
+    val latestGradleVersion = GradleVersion.parse(SdkConstants.GRADLE_LATEST_VERSION)
+    val latestAgpVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+    val quickFix = UpgradeGradleVersionsQuickFix(latestGradleVersion, latestAgpVersion, "latest")
+    quickFix.showDialogResult(success)
+    val ideComponents = IdeComponents(project)
+    val mockSyncInvoker = ideComponents.mockApplicationService(GradleSyncInvoker::class.java)
+    val result = quickFix.runQuickFix(project, TestDataProvider(project)).get()
+    assertThat(result).isEqualTo(success)
+    Mockito.verifyZeroInteractions(mockSyncInvoker)
   }
 }

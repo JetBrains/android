@@ -22,6 +22,8 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenPluginBuildFileQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.UpgradeGradleVersionsQuickFix
+import com.android.tools.idea.gradle.project.upgrade.AgpGradleVersionRefactoringProcessor
+import com.android.tools.idea.gradle.project.upgrade.AgpGradleVersionRefactoringProcessor.Companion.getCompatibleGradleVersion
 import com.android.tools.idea.sdk.IdeSdks
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.FilePosition
@@ -73,7 +75,7 @@ class OldAndroidPluginIssueChecker: GradleIssueChecker {
       val jdkVersion = if (jdk != null && jdk.versionString != null) JavaSdkVersion.fromVersionString(jdk.versionString!!) else null
       val isJdk8OrOlder = (jdkVersion != null) && (jdkVersion <= JavaSdkVersion.JDK_1_8)
       val minAgpToUse = if (isJdk8OrOlder) MINIMUM_AGP_VERSION_JDK_8 else MINIMUM_AGP_VERSION_JDK_11
-      composer.addQuickFix(UpgradeGradleVersionsQuickFix(MINIMUM_GRADLE_VERSION, minAgpToUse, "minimum"))
+      composer.addQuickFix(UpgradeGradleVersionsQuickFix(getCompatibleGradleVersion(minAgpToUse).version, minAgpToUse, "minimum"))
     }
     composer.addQuickFix(UpgradeGradleVersionsQuickFix(GradleVersion.parse(SdkConstants.GRADLE_LATEST_VERSION), GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()), "latest"))
     composer.addQuickFix("Open build file", OpenPluginBuildFileQuickFix())
