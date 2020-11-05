@@ -286,7 +286,7 @@
     <projectService serviceImplementation="com.android.tools.idea.project.SyncTimestamp" />
     <projectService serviceImplementation="com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild" />
     <postStartupActivity implementation="com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild$MyStartupActivity"/>
-    <ApplicationLoadListener implementation="com.android.tools.idea.startup.AndroidStudioInitializer$AndroidStudioLoadListener"/>
+    <ApplicationLoadListener implementation="com.android.tools.idea.startup.AndroidPluginInitializer"/>
     <fileBasedIndex implementation="com.android.tools.idea.model.AndroidManifestIndex"/>
     <projectOpenProcessor implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectOpenProcessor" id="android-gradle" order="before gradle" />
     <projectViewPane implementation="com.android.tools.idea.navigator.AndroidProjectViewPane"/>
