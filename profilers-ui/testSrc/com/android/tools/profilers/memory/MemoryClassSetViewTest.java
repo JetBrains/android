@@ -56,7 +56,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 import javax.swing.JScrollPane;
@@ -206,7 +205,7 @@ public class MemoryClassSetViewTest {
   }
 
   @Test
-  public void fieldSelectionAndNavigationTest() {
+  public void instanceSelectionTest() {
     final long TEST_CLASS_ID = 1, TEST_FIELD_ID = 2;
     final String TEST_CLASS_NAME = "com.Foo";
     final String TEST_FIELD_NAME = "com.Field";
@@ -280,8 +279,7 @@ public class MemoryClassSetViewTest {
     assertThat(((MemoryObjectTreeNode)classSetRoot).getAdapter()).isInstanceOf(ClassSet.class);
     //noinspection unchecked
     myClassSetRootNode = (MemoryObjectTreeNode<MemoryObject>)classSetRoot;
-    findChildWithPredicate(findChildWithPredicate(myClassSetRootNode, instance -> instance == instanceFoo),
-                           field -> Objects.equals(field, fieldFoo));
+    findChildWithPredicate(myClassSetRootNode, instance -> instance == instanceFoo);
 
     myStage.getCaptureSelection().setClassGrouping(ARRANGE_BY_PACKAGE);
     aspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 1, 2, 2);
@@ -294,7 +292,7 @@ public class MemoryClassSetViewTest {
     CodeLocation codeLocation = codeLocationSupplier.get();
     assertThat(codeLocation).isNotNull();
     String codeLocationClassName = codeLocation.getClassName();
-    assertThat(codeLocationClassName).isEqualTo(TEST_FIELD_NAME);
+    assertThat(codeLocationClassName).isEqualTo(TEST_CLASS_NAME);
 
     myStage.getStudioProfilers().getIdeServices().getCodeNavigator().addListener(myStage); // manually add, since we didn't enter stage
     myStage.getStudioProfilers().getIdeServices().getCodeNavigator().navigate(codeLocation);
