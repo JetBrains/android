@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.sqlite.cli.SqliteQueries
 import com.android.tools.idea.sqlite.model.Delimiter
 import com.android.tools.idea.sqlite.model.ExportFormat.CSV
 import com.android.tools.idea.sqlite.model.ExportRequest
@@ -26,10 +27,12 @@ import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteValue
+import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.model.isQueryStatement
 import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.ui.exportToFile.ExportToFileDialogView
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.withContext
@@ -38,6 +41,7 @@ import java.util.concurrent.Executor
 
 @UiThread
 class ExportToFileController(
+  private val project: Project,
   private val view: ExportToFileDialogView,
   private val databaseRepository: DatabaseRepository,
   taskExecutor: Executor,
@@ -74,7 +78,20 @@ class ExportToFileController(
   private suspend fun doExport(params: ExportRequest): Unit = withContext(taskDispatcher) {
     when (params) {
       is ExportDatabaseRequest -> throw IllegalStateException("Not implemented") // // TODO(161081452)
-      is ExportTableRequest -> throw IllegalStateException("Not implemented") // // TODO(161081452)
+      is ExportTableRequest -> {
+        when (params.format) {
+          is CSV -> {
+            doExport(
+              ExportQueryResultsRequest(
+                params.srcDatabase,
+                createSqliteStatement(SqliteQueries.selectTableContents(params.srcTable)),
+                params.format,
+                params.dstPath)
+            )
+          }
+          else -> throwNotSupportedParams(params)
+        }
+      }
       is ExportQueryResultsRequest -> {
         if (!params.srcQuery.isQueryStatement) throwNotSupportedParams(params)
 
@@ -91,6 +108,10 @@ class ExportToFileController(
         }
       }
     }
+  }
+
+  private suspend fun createSqliteStatement(statementText: String): SqliteStatement = withContext(edtDispatcher) {
+    createSqliteStatement(project, statementText)
   }
 
   private suspend fun executeQuery(srcDatabase: SqliteDatabaseId, srcQuery: SqliteStatement): List<SqliteRow> =

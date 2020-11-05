@@ -18,6 +18,9 @@
 package com.android.tools.idea.sqlite.cli
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.sqlite.cli.SqliteQueries.selectTableContents
+import com.android.tools.idea.sqlite.cli.SqliteQueries.selectTableNames
+import com.android.tools.idea.sqlite.cli.SqliteQueries.selectViewNames
 import com.intellij.openapi.diagnostic.logger
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.async
@@ -61,10 +64,10 @@ class SqliteCliArgs private constructor() {
     fun dump() = apply { args.add(SqliteCliArg(".dump")) }
     fun dumpTable(tableName: String) = apply { args.add(SqliteCliArg(".dump '$tableName'")) }
     fun headersOn() = apply { args.add(SqliteCliArg(".headers on")) }
-    fun separator(separator: Char) = apply { args.add(SqliteCliArg(".separator '${separator}'")) }
-    fun queryTableContents(tableName: String) = apply { args.add(SqliteCliArg("select * from '$tableName';")) }
-    fun queryTableList() = apply { args.add(SqliteCliArg(SqliteConstants.selectTableNames + ";")) }
-    fun queryViewList() = apply { args.add(SqliteCliArg(SqliteConstants.selectViewNames + ";")) }
+    fun separator(separator: Char) = apply { args.add(SqliteCliArg(".separator '$separator'")) }
+    fun queryTableContents(tableName: String) = apply { args.add(SqliteCliArg("${selectTableContents(tableName)};")) }
+    fun queryTableList() = apply { args.add(SqliteCliArg("$selectTableNames;")) }
+    fun queryViewList() = apply { args.add(SqliteCliArg("$selectViewNames;")) }
     fun raw(rawArg: String) = apply { args.add(SqliteCliArg(rawArg)) }
     private fun quit() = apply { args.add(SqliteCliArg(".quit")) } // exits the sqlite3 interactive mode
 
@@ -72,9 +75,10 @@ class SqliteCliArgs private constructor() {
   }
 }
 
-object SqliteConstants {
+object SqliteQueries {
   const val selectTableNames = "select name from sqlite_master where type = 'table' AND name not like 'sqlite_%'"
   const val selectViewNames = "select name from sqlite_master where type = 'view' AND name not like 'sqlite_%'"
+  fun selectTableContents(tableName: String) = "select * from '$tableName'"
 }
 
 class SqliteCliClientImpl(private val sqlite3: Path, private val dispatcher: CoroutineDispatcher) : SqliteCliClient {
