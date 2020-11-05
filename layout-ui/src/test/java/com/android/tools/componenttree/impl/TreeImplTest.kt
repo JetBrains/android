@@ -1,3 +1,4 @@
+@file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE") // TODO: remove usage of sun.awt.AWTAccessor.
 package com.android.tools.componenttree.impl
 
 import com.android.SdkConstants
