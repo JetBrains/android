@@ -52,9 +52,10 @@ def generate_searchable_options(work_dir, out_dir):
   studio_bin = {
     "Windows": "/android-studio/bin/studio.cmd",
     "Linux": "/android-studio/bin/studio.sh",
-    "Darwin": "/Android Studio.app/Contents/MacOS/studio",
+    "Darwin": "/Android Studio*.app/Contents/MacOS/studio",
   }
-  subprocess.call([work_dir + studio_bin[platform.system()], "traverseUI", options_dir, "true"], env=env)
+  [bin_path] = glob.glob(work_dir + studio_bin[platform.system()])
+  subprocess.call([bin_path, "traverseUI", options_dir, "true"], env=env)
 
   plugin_list = []
   with open("tools/adt/idea/studio/android-studio.plugin.lst", "r") as list_file:
