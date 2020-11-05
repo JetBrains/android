@@ -40,7 +40,6 @@ import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils.createDipImage
 import com.android.tools.adtui.ImageUtils.rotateByQuadrants
-import com.android.tools.idea.avdmanager.AvdManagerConnection.getEmulatorHiddenWindowFlag
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.protobuf.CodedOutputStream
 import com.android.tools.idea.protobuf.Empty
@@ -142,7 +141,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       ""
     }
     else {
-      """ ${getEmulatorHiddenWindowFlag()} "-gpu" "auto-no-window" "-idle-grpc-timeout" "300""""
+      """ "-qt-hide-window" "-idle-grpc-timeout" "300""""
     }
 
     registration = """

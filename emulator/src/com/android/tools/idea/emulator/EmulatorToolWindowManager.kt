@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.avdmanager.AvdLaunchListener
-import com.android.tools.idea.avdmanager.AvdManagerConnection.getEmulatorHiddenWindowFlag
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListener
@@ -463,6 +462,6 @@ internal class EmulatorToolWindowManager private constructor(private val project
 
     @JvmStatic
     private fun isEmbeddedEmulator(commandLine: GeneralCommandLine) =
-      commandLine.parametersList.parameters.contains(getEmulatorHiddenWindowFlag())
+      commandLine.parametersList.parameters.contains("-qt-hide-window")
   }
 }
