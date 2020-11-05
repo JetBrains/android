@@ -30,5 +30,5 @@ data class EmulatorId(val grpcPort: Int, val grpcCertificate: String?, val grpcT
   }
 
   val isEmbedded: Boolean
-    get() = commandLine.contains("-idle-grpc-timeout")
+    get() = commandLine.contains("-qt-hide-window")
 }
