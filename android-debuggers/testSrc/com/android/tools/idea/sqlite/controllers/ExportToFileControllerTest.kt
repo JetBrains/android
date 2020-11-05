@@ -22,6 +22,7 @@ import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.sqlite.mocks.FakeExportToFileDialogView
 import com.android.tools.idea.sqlite.mocks.OpenDatabaseRepository
 import com.android.tools.idea.sqlite.model.DatabaseFileData
+import com.android.tools.idea.sqlite.model.Delimiter.TAB
 import com.android.tools.idea.sqlite.model.Delimiter.VERTICAL_BAR
 import com.android.tools.idea.sqlite.model.ExportFormat.CSV
 import com.android.tools.idea.sqlite.model.ExportRequest
@@ -45,7 +46,18 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
+import java.nio.file.Paths
 import java.util.concurrent.Executor
+
+private const val nonAsciiSuffix = " ąę"
+private const val table1 = "t1$nonAsciiSuffix"
+private const val column1 = "c1$nonAsciiSuffix"
+private const val column2 = "c2$nonAsciiSuffix"
+private const val databaseFileName = "db$nonAsciiSuffix.db"
+private const val outputFileName = "output$nonAsciiSuffix.out"
+
+/** two columns with increasing numbers (and a non-ascii suffix) */
+private val sampleValues: List<Pair<String, String>> = (1..10).map { "$it$nonAsciiSuffix" }.zipWithNext()
 
 class ExportToFileControllerTest : LightPlatformTestCase() {
   private val notifyExportComplete: (ExportRequest) -> Unit = mock()
@@ -76,6 +88,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
 
     view = FakeExportToFileDialogView()
     controller = ExportToFileController(
+      project,
       view,
       databaseRepository,
       taskExecutor,
@@ -93,57 +106,71 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     super.tearDown()
   }
 
-  fun testQueryToCsv() {
-    // given: a database on disk and an export request
-    val suffix = " ąę"
-    val table1 = "t1$suffix"
-    val column1 = "c1$suffix"
-    val column2 = "c2$suffix"
-    val databaseName = "db1$suffix"
-    val outputFileName = "output$suffix.out$suffix"
-    val values: List<Pair<String, String>> = (1..10).map { "$it$suffix" }.zipWithNext() // two columns with increasing numbers
+  fun testExportQueryToCsv() {
+    val database = createEmptyDatabase()
+    fillDatabase(database, sampleValues)
 
-    val database = createTestDatabase(databaseName)
-    runDispatching {
-      database.execute("create table '$table1' ('$column1' int, '$column2' text)")
-      values.forEach { (v1, v2) -> database.execute("insert into '$table1' values ('$v1', '$v2')") }
-    }
+    val statement = createSqliteStatement("select * from '$table1' where cast(\"$column1\" as text) > cast(5 as text)")
+    val dstPath = Paths.get(tempDirTestFixture.tempDirPath, outputFileName)
+    val exportRequest = ExportRequest.ExportQueryResultsRequest(database, statement, CSV(VERTICAL_BAR), dstPath)
 
-    val delimiter = VERTICAL_BAR
-    val format = CSV(delimiter)
-    val dstPath = tempDirTestFixture.createFile(outputFileName).toNioPath()
-    val query = runDispatching { createSqliteStatement("select * from '$table1'") }
-    val exportRequest = ExportRequest.ExportQueryResultsRequest(database, query, format, dstPath)
+    testExportToCsv(exportRequest = exportRequest, expectedValues = sampleValues.filter { (c1, _) -> c1 > "5" })
+  }
 
-    val delimiterStr = delimiter.delimiter
-    val expectedOutput = listOf("$column1$delimiterStr$column2") + values.map { (v1, v2) -> "$v1$delimiterStr$v2" }
+  fun testExportTableToCsv() {
+    val database = createEmptyDatabase()
+    fillDatabase(database, sampleValues)
+
+    val dstPath = Paths.get(tempDirTestFixture.tempDirPath, outputFileName)
+    val exportRequest = ExportRequest.ExportTableRequest(database, table1, CSV(TAB), dstPath)
+
+    testExportToCsv(exportRequest = exportRequest, expectedValues = sampleValues)
+  }
+
+  private fun testExportToCsv(exportRequest: ExportRequest, expectedValues: List<Pair<String, String>>) {
+    // given: an export request
+    val delimiterStr = (exportRequest.format as CSV).delimiter.delimiter
+    val expectedOutput = listOf("$column1$delimiterStr$column2") + expectedValues.map { (v1, v2) -> "$v1$delimiterStr$v2" }
 
     // when: an export request is submitted
-    runDispatching { view.listeners.first().exportRequestSubmitted(exportRequest) }
+    submitExportRequest(exportRequest)
 
     // then: compare output file with expected output
-    val actualOutput = dstPath.toLineSequence().toList()
-
-    assertThat(actualOutput).isEqualTo(expectedOutput)
     verify(notifyExportComplete).invoke(exportRequest)
-    verifyNoMoreInteractions(notifyExportError)
+    verifyNoMoreInteractions(notifyExportError, notifyExportComplete)
+    val actualOutput = exportRequest.dstPath.toLineSequence().toList()
+    assertThat(actualOutput).isEqualTo(expectedOutput)
+  }
+
+  private fun submitExportRequest(exportRequest: ExportRequest) {
+    runDispatching { view.listeners.first().exportRequestSubmitted(exportRequest) }
   }
 
   @Suppress("SameParameterValue")
-  private fun createTestDatabase(dbName: String): SqliteDatabaseId {
-    val databaseFile = tempDirTestFixture.createFile(dbName)
+  private fun createEmptyDatabase(): SqliteDatabaseId {
+    val databaseFile = tempDirTestFixture.createFile(databaseFileName)
     val connection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(testRootDisposable, databaseFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
     )
     val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(databaseFile))
+
     runDispatching { databaseRepository.addDatabaseConnection(databaseId, connection) }
     return databaseId
   }
 
-  private suspend fun SqliteDatabaseId.execute(statement: String) =
-    databaseRepository.executeStatement(this, createSqliteStatement(statement)).await()
+  private fun fillDatabase(database: SqliteDatabaseId, values: List<Pair<String, String>>) {
+    database.execute("create table '$table1' ('$column1' int, '$column2' text)")
+    values.forEach { (v1, v2) -> database.execute("insert into '$table1' values ('$v1', '$v2')") }
+  }
 
-  private suspend fun createSqliteStatement(statement: String): SqliteStatement = withContext(edtExecutor.asCoroutineDispatcher()) {
-    createSqliteStatement(project, statement)
+  private fun SqliteDatabaseId.execute(statementText: String) = let { db ->
+    val statement = createSqliteStatement(statementText)
+    runDispatching { databaseRepository.executeStatement(db, statement).await() }
+  }
+
+  private fun createSqliteStatement(statement: String): SqliteStatement = runDispatching {
+    withContext(edtExecutor.asCoroutineDispatcher()) {
+      createSqliteStatement(project, statement)
+    }
   }
 }
