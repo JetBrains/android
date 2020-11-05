@@ -131,11 +131,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   private val grpcLock = ReentrantLock()
 
   init {
-    val embeddedFlags = if (standalone) {
-      ""
-    } else {
-      """ ${getEmulatorHiddenWindowFlag()} "-gpu" "auto-no-window" "-idle-grpc-timeout" "300""""
-    }
+    val embeddedFlags = if (standalone) "" else """ "-qt-hide-window""""
 
     registration = """
       port.serial=${serialPort}
