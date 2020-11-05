@@ -52,6 +52,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -557,6 +558,8 @@ class AppInspectionViewTest {
     tabsAdded.join()
   }
 
+  // TODO(b/172505926) This test ocassionally times out and never finishes.
+  @Ignore
   @Test
   fun stopInspectionPressed_noMoreLaunchingOfInspectors() = runBlocking {
     val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
