@@ -30,7 +30,6 @@ import com.android.tools.idea.analytics.IdeBrandProviderKt;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.deployment.RunOnMultipleDevicesAction;
 import com.android.tools.idea.run.deployment.SelectMultipleDevicesAction;
-import com.android.tools.idea.progress.StudioProgressManagerAdapter;
 import com.android.tools.idea.serverflags.ServerFlagDownloader;
 import com.android.tools.idea.serverflags.ServerFlagInitializer;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
@@ -43,7 +42,6 @@ import com.intellij.execution.actions.RunConfigurationProducer;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.junit.JUnitConfigurationProducer;
 import com.intellij.execution.junit.JUnitConfigurationType;
-import com.intellij.ide.ApplicationLoadListener;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.lang.injection.MultiHostInjector;
@@ -81,15 +79,6 @@ import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtensi
  * </p>
  */
 public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
-
-  public static class AndroidStudioLoadListener implements ApplicationLoadListener {
-
-    @Override
-    public void beforeApplicationLoaded(@NotNull Application application, @NotNull String configPath) {
-      AndroidStudioAnalytics.initialize(new AndroidStudioAnalyticsImpl());
-      StudioProgressManagerAdapter.initialize();
-    }
-  }
 
   @Override
   public void customize(@NotNull ActionManager actionManager) {
