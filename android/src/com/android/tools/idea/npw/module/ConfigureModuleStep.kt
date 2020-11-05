@@ -56,6 +56,7 @@ import java.util.function.Consumer
 import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.JScrollPane
 import javax.swing.JTextField
 
 abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
@@ -78,16 +79,19 @@ abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
   protected val apiLevelCombo: AndroidApiLevelComboBox = AndroidApiLevelComboBox()
   protected val gradleKtsCheck: JBCheckBox = JBCheckBox("Use Kotlin script (.kts) for Gradle build files")
   protected val validatorPanel: ValidatorPanel by lazy {
-    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
-      ValidatorPanel(this, wrapWithVScroll(createMainPanel(), SMALL))
-    }
-    else {
-      ValidatorPanel(this, wrapWithVScroll(createMainPanel()))
-    }.apply {
+    ValidatorPanel(this, createMainPanel()).apply {
       registerValidator(model.moduleName, moduleValidator)
       registerValidator(model.packageName, PackageNameValidator())
       registerValidator(model.androidSdkInfo, ApiVersionValidator(model.project.isAndroidx(), formFactor))
       FormScalingUtil.scaleComponentTree(this@ConfigureModuleStep.javaClass, this)
+    }
+  }
+  protected val rootPanel: JScrollPane by lazy {
+    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
+      wrapWithVScroll(validatorPanel, SMALL)
+    }
+    else {
+      wrapWithVScroll(validatorPanel)
     }
   }
 
@@ -146,7 +150,7 @@ abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
 
   public final override fun canGoForward(): ObservableBool = validatorPanel.hasErrors().not()
 
-  final override fun getComponent(): JComponent = validatorPanel
+  final override fun getComponent(): JComponent = rootPanel
 
   override fun dispose() {
     bindings.releaseAll()

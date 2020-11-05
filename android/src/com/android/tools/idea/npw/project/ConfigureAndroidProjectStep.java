@@ -68,6 +68,7 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.JBEmptyBorder;
@@ -98,6 +99,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private final List<UpdatablePackage> myInstallRequests = new ArrayList<>();
   private final List<RemotePackage> myInstallLicenseRequests = new ArrayList<>();
 
+  private final @NotNull JBScrollPane myRootPanel;
   private JPanel myPanel;
   private TextFieldWithBrowseButton myProjectLocation;
   private JTextField myAppName;
@@ -120,7 +122,8 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     super(newProjectModuleModel, message("android.wizard.project.new.configure"));
 
     myProjectModel = projectModel;
-    myValidatorPanel = new ValidatorPanel(this, wrapWithVScroll(myPanel));
+    myValidatorPanel = new ValidatorPanel(this, myPanel);
+    myRootPanel = wrapWithVScroll(myValidatorPanel);
 
     myAppCompatHelp.setIcon(AllIcons.General.ContextHelp);
     HelpTooltip helpTooltip = new HelpTooltip()
@@ -129,7 +132,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     helpTooltip.installOn(myAppCompatHelp);
     myAppCompatComment.setBorder(new JBEmptyBorder(computeCommentInsets(myAppCompatCheck, true)));
 
-    FormScalingUtil.scaleComponentTree(this.getClass(), myValidatorPanel);
+    FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 
   @NotNull
@@ -250,7 +253,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   @NotNull
   @Override
   protected JComponent getComponent() {
-    return myValidatorPanel;
+    return myRootPanel;
   }
 
   @Nullable
