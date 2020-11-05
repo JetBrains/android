@@ -28,10 +28,8 @@ import com.android.tools.idea.compose.preview.util.PreviewParameter
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.android.tools.idea.compose.preview.util.WIDTH_PARAMETER
 import com.android.tools.idea.compose.preview.util.toSmartPsiPointer
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.getQualifiedName
 import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.text.nullize
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotated
@@ -122,7 +120,12 @@ private fun previewAnnotationToPreviewElement(previewAnnotation: UAnnotation,
                         ?: previewAnnotation.findDeclaredAttributeValue("showSystemUI")?.evaluate() as? Boolean
                         ?: false
   val showBackground = previewAnnotation.findDeclaredAttributeValue("showBackground")?.evaluate() as? Boolean ?: false
-  val backgroundColor = previewAnnotation.findDeclaredAttributeValue("backgroundColor")?.evaluate() as? Int
+  val backgroundColor = previewAnnotation.findDeclaredAttributeValue("backgroundColor")?.evaluate()
+  val backgroundColorString = when(backgroundColor) {
+    is Int -> backgroundColor.toString(16)
+    is Long -> backgroundColor.toString(16)
+    else -> null
+  }?.let { "#$it" }
 
   // If the same composable functions is found multiple times, only keep the first one. This usually will happen during
   // copy & paste and both the compiler and Studio will flag it as an error.
@@ -130,7 +133,7 @@ private fun previewAnnotationToPreviewElement(previewAnnotation: UAnnotation,
                                                groupName,
                                                showDecorations,
                                                showBackground,
-                                               backgroundColor?.toString(16)?.let { "#$it" })
+                                               backgroundColorString)
 
   val parameters = getPreviewParameters(annotatedMethod.uastParameters)
   val composeLibraryNamespace = previewAnnotation.findComposeLibraryNamespace()
