@@ -1,4 +1,5 @@
 import filecmp
+import glob
 import os
 import platform
 import re
@@ -27,10 +28,10 @@ class SearchableOptionTests(unittest.TestCase):
     plugin_path = {
       "Windows": "android-studio/plugins",
       "Linux": "android-studio/plugins",
-      "Darwin": "Android Studio.app/Contents/plugins",
+      "Darwin": "Android Studio*.app/Contents/plugins",
     }
     actual_dir = os.path.join(work_dir, "actual")
-    plugins_dir = os.path.join(work_dir, plugin_path[platform.system()])
+    [plugins_dir] = glob.glob(os.path.join(work_dir, plugin_path[platform.system()]))
     for plugin in os.listdir(plugins_dir):
       if plugin in plugin_list:
         lib_dir = os.path.join(plugins_dir, plugin, "lib")
