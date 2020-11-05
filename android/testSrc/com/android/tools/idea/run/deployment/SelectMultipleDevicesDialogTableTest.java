@@ -187,7 +187,7 @@ public final class SelectMultipleDevicesDialogTableTest {
     // @formatter:off
     Object data = Arrays.asList(
       Arrays.asList("",    "Type",           "Device",         "Snapshot"),
-      Arrays.asList(false, device.getIcon(), "Pixel 3 API 29", "Quickboot"));
+      Arrays.asList(false, device.getIcon(), "Pixel 3 API 29", "Quick Boot"));
     // @formatter:on
 
     assertEquals(data, myTable.getData());

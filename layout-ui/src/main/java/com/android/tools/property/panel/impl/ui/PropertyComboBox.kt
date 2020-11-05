@@ -66,6 +66,7 @@ class PropertyComboBox(model: ComboBoxPropertyEditorModel, asTableCellEditor: Bo
 private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEditor: Boolean)
   : CommonComboBox<EnumValue, ComboBoxPropertyEditorModel>(model), DataProvider {
   private val textField = editor.editorComponent as CommonTextField<*>
+  private var inSetup = false
 
   init {
     putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)
@@ -99,7 +100,11 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     setFromModel()
 
     // This action is fired when changes to the selectedIndex is made, which includes mouse clicks and certain keystrokes
-    addActionListener { model.selectEnumValue() }
+    addActionListener {
+      if (!inSetup) {
+        model.selectEnumValue()
+      }
+    }
 
     addPopupMenuListener(
       object : PopupMenuListener {
@@ -188,7 +193,13 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
       isPopupVisible = model.isPopupVisible
     }
     if (!model.editable) {
-      selectedIndex = findIndexWithValue(model.value)
+      inSetup = true
+      try {
+        selectedIndex = findIndexWithValue(model.value)
+      }
+      finally {
+        inSetup = false
+      }
     }
   }
 

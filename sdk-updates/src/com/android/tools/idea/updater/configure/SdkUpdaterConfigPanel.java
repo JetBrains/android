@@ -74,7 +74,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.updateSettings.impl.UpdateSettingsConfigurable;
-import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.HyperlinkAdapter;
@@ -96,7 +95,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
@@ -643,12 +641,12 @@ public class SdkUpdaterConfigPanel implements Disposable {
       myToolComponentsPanel.startLoading();
       myConfigurable.getRepoManager()
                     .load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater), null,
-                          progressRunner, myDownloader, mySettings, false);
+                          progressRunner, myDownloader, mySettings);
     }
     else {
       myConfigurable.getRepoManager()
                     .load(0, ImmutableList.of(myLocalUpdater), null, null,
-                          progressRunner, null, mySettings, false);
+                          progressRunner, null, mySettings);
     }
   }
 

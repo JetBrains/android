@@ -28,6 +28,7 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -38,6 +39,7 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiClassOwner;
 import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiIdentifier;
@@ -90,6 +92,25 @@ public class AndroidPsiUtils {
       return null;
     }
     return psiFile;
+  }
+
+
+  /**
+   * Looks up the {@link PsiFile} for a given {@link Document} in a given {@link Project}, in
+   * a safe way (meaning it will acquire a read lock first, and will check that the file is valid
+   *
+   * @param project the project
+   * @param document the document
+   * @return the corresponding {@link PsiFile}, or null if not found or valid
+   */
+  @Nullable
+  public static PsiFile getPsiFileSafely(@NotNull final Project project, @NotNull final Document document) {
+    return ApplicationManager.getApplication().runReadAction((Computable<PsiFile>)() -> {
+      if (project.isDisposed()) {
+        return null;
+      }
+      return PsiDocumentManager.getInstance(project).getPsiFile(document);
+    });
   }
 
   /**

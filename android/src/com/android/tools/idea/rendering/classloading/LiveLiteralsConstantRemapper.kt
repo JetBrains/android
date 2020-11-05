@@ -29,7 +29,7 @@ import java.util.WeakHashMap
  */
 interface ConstantRemapper : ModificationTracker {
   /**
-   * Adds a new constant to be replaced.
+   * Adds a new constant to be replaced. Returns true, if the constant value has been updated.
    *
    * @param classLoader [ClassLoader] associated to the class where the constants are being replaced. This allows to have the same class
    * loaded by multiple class loaders and have different constant replacements.
@@ -37,7 +37,7 @@ interface ConstantRemapper : ModificationTracker {
    * @param initialValue the initial value constant.
    * @param newValue the new value to replace the [initialValue] with.
    */
-  fun addConstant(classLoader: ClassLoader?, reference: LiteralUsageReference, initialValue: Any, newValue: Any)
+  fun addConstant(classLoader: ClassLoader?, reference: LiteralUsageReference, initialValue: Any, newValue: Any): Boolean
 
   /**
    * Removes all the existing constants that are remapped.
@@ -79,7 +79,7 @@ object DefaultConstantRemapper : ConstantRemapper {
   /** Modification tracker that is updated everytime a constant is added/removed. */
   private val modificationTracker = SimpleModificationTracker()
 
-  override fun addConstant(classLoader: ClassLoader?, reference: LiteralUsageReference, initialValue: Any, newValue: Any) {
+  override fun addConstant(classLoader: ClassLoader?, reference: LiteralUsageReference, initialValue: Any, newValue: Any): Boolean {
     val classLoaderMap = perClassLoaderConstantMap.computeIfAbsent(classLoader) { mutableMapOf() }
     val serializedValue = initialValue.toString()
     initialValueCache.add(serializedValue)
@@ -88,7 +88,7 @@ object DefaultConstantRemapper : ConstantRemapper {
       // This is a new key, update modification count.
       modificationTracker.incModificationCount()
     }
-    classLoaderMap[lookupKey] = newValue
+    return classLoaderMap.put(lookupKey, newValue) != newValue
   }
 
   override fun clearConstants(classLoader: ClassLoader?) {

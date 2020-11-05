@@ -27,6 +27,10 @@ import com.android.tools.profiler.proto.Common
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.testFramework.DisposableRule
 import io.grpc.ManagedChannel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancel
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -47,6 +51,7 @@ class DefaultProcessManagerTest {
   private var client: TransportClient? = null
   private var streamManager: TransportStreamManager? = null
   private var processManager: DefaultProcessManager? = null
+  private var scope: CoroutineScope? = null
 
   @get:Rule
   val disposableRule = DisposableRule()
@@ -58,13 +63,16 @@ class DefaultProcessManagerTest {
   @Before
   fun before() {
     client = TransportClient(grpcServer!!.name)
-    streamManager = TransportStreamManager.createManager(client!!.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    processManager = DefaultProcessManager(client!!.transportStub, executor, streamManager!!, disposableRule.disposable)
+    streamManager = TransportStreamManager.createManager(client!!.transportStub, executor.asCoroutineDispatcher())
+    scope = CoroutineScope(executor.asCoroutineDispatcher() + SupervisorJob())
+    processManager = DefaultProcessManager(client!!.transportStub, streamManager!!, scope!!, disposableRule.disposable)
   }
 
   @After
   fun after() {
+    scope?.cancel()
+    scope = null
     closeChannel()
     streamManager?.let { TransportStreamManager.unregisterManager(it) }
     processManager = null

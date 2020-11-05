@@ -230,6 +230,8 @@
   </configurable>
   <configurable id="preferences.keymap" configurable_name="Keymap">
     <option name="" path="ActionManager" hit="" />
+    <option name="action" path="ActionManager" hit="Add Action" />
+    <option name="add" path="ActionManager" hit="Add Action" />
     <option name="add" path="ActionManager" hit="Add As Library..." />
     <option name="as" path="ActionManager" hit="Add As Library..." />
     <option name="library" path="ActionManager" hit="Add As Library..." />
@@ -248,10 +250,26 @@
     <option name="this" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
     <option name="to" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
     <option name="with" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
+    <option name="add" path="ActionManager" hit="Add Deep Link" />
+    <option name="deep" path="ActionManager" hit="Add Deep Link" />
+    <option name="link" path="ActionManager" hit="Add Deep Link" />
     <option name="add" path="ActionManager" hit="Add Right-to-Left (RTL) Support..." />
     <option name="right-to-left" path="ActionManager" hit="Add Right-to-Left (RTL) Support..." />
     <option name="rtl" path="ActionManager" hit="Add Right-to-Left (RTL) Support..." />
     <option name="support" path="ActionManager" hit="Add Right-to-Left (RTL) Support..." />
+    <option name="action" path="ActionManager" hit="Add action to the selected item" />
+    <option name="add" path="ActionManager" hit="Add action to the selected item" />
+    <option name="item" path="ActionManager" hit="Add action to the selected item" />
+    <option name="selected" path="ActionManager" hit="Add action to the selected item" />
+    <option name="the" path="ActionManager" hit="Add action to the selected item" />
+    <option name="to" path="ActionManager" hit="Add action to the selected item" />
+    <option name="add" path="ActionManager" hit="Add deep link to the selected item" />
+    <option name="deep" path="ActionManager" hit="Add deep link to the selected item" />
+    <option name="item" path="ActionManager" hit="Add deep link to the selected item" />
+    <option name="link" path="ActionManager" hit="Add deep link to the selected item" />
+    <option name="selected" path="ActionManager" hit="Add deep link to the selected item" />
+    <option name="the" path="ActionManager" hit="Add deep link to the selected item" />
+    <option name="to" path="ActionManager" hit="Add deep link to the selected item" />
     <option name="add" path="ActionManager" hit="Add light-to-left (RTL) support where possible" />
     <option name="light-to-left" path="ActionManager" hit="Add light-to-left (RTL) support where possible" />
     <option name="possible" path="ActionManager" hit="Add light-to-left (RTL) support where possible" />
@@ -306,6 +324,16 @@
     <option name="apply" path="ActionManager" hit="Apply Code Changes" />
     <option name="changes" path="ActionManager" hit="Apply Code Changes" />
     <option name="code" path="ActionManager" hit="Apply Code Changes" />
+    <option name="assign" path="ActionManager" hit="Assign Start Destination" />
+    <option name="destination" path="ActionManager" hit="Assign Start Destination" />
+    <option name="start" path="ActionManager" hit="Assign Start Destination" />
+    <option name="assign" path="ActionManager" hit="Assign the start point of navigation graph" />
+    <option name="graph" path="ActionManager" hit="Assign the start point of navigation graph" />
+    <option name="navigation" path="ActionManager" hit="Assign the start point of navigation graph" />
+    <option name="of" path="ActionManager" hit="Assign the start point of navigation graph" />
+    <option name="point" path="ActionManager" hit="Assign the start point of navigation graph" />
+    <option name="start" path="ActionManager" hit="Assign the start point of navigation graph" />
+    <option name="the" path="ActionManager" hit="Assign the start point of navigation graph" />
     <option name="android" path="ActionManager" hit="Attach Debugger to Android Process" />
     <option name="attach" path="ActionManager" hit="Attach Debugger to Android Process" />
     <option name="debugger" path="ActionManager" hit="Attach Debugger to Android Process" />
@@ -329,6 +357,8 @@
     <option name="resource" path="ActionManager" hit="Attempt to apply resource and code changes and restart activity." />
     <option name="restart" path="ActionManager" hit="Attempt to apply resource and code changes and restart activity." />
     <option name="to" path="ActionManager" hit="Attempt to apply resource and code changes and restart activity." />
+    <option name="arrange" path="ActionManager" hit="Auto Arrange" />
+    <option name="auto" path="ActionManager" hit="Auto Arrange" />
     <option name="available" path="ActionManager" hit="Available devices" />
     <option name="devices" path="ActionManager" hit="Available devices" />
     <option name="back" path="ActionManager" hit="Back" />
@@ -774,6 +804,9 @@
     <option name="style" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />
     <option name="style-related" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />
     <option name="them" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />
+    <option name="items" path="ActionManager" hit="Rearrange the items" />
+    <option name="rearrange" path="ActionManager" hit="Rearrange the items" />
+    <option name="the" path="ActionManager" hit="Rearrange the items" />
     <option name="project" path="ActionManager" hit="Rebuild Project" />
     <option name="rebuild" path="ActionManager" hit="Rebuild Project" />
     <option name="c" path="ActionManager" hit="Refresh Linked C++ Projects" />

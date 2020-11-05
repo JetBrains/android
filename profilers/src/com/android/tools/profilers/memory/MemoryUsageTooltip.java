@@ -19,9 +19,9 @@ import com.android.tools.adtui.model.TooltipModel;
 import org.jetbrains.annotations.NotNull;
 
 public class MemoryUsageTooltip implements TooltipModel {
-  @NotNull private final MainMemoryProfilerStage myStage;
+  @NotNull private final BaseStreamingMemoryProfilerStage myStage;
 
-  MemoryUsageTooltip(@NotNull MainMemoryProfilerStage stage) {
+  MemoryUsageTooltip(@NotNull BaseStreamingMemoryProfilerStage stage) {
     myStage = stage;
   }
 

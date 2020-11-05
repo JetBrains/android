@@ -120,8 +120,7 @@ class SystemImageListModel(
     sdkHandler.getSdkManager(LOGGER).load(
       if (forceRefresh) 0 else RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
       listOf(localComplete), listOf(remoteComplete), listOf(error),
-      runner, StudioDownloader(), StudioSettingsController.getInstance(), false
-    )
+      runner, StudioDownloader(), StudioSettingsController.getInstance())
   }
 
   // Report that one of the downloads were done.

@@ -33,23 +33,12 @@ import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth
-import org.junit.Assume
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 import java.util.concurrent.TimeUnit
 
-@RunWith(Parameterized::class)
-class SessionItemTest(newPipeline: Boolean) {
-  companion object {
-    @JvmStatic
-    @Parameterized.Parameters
-    fun data(): Collection<Boolean> {
-      return listOf(false, true)
-    }
-  }
-
+class SessionItemTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer, false)
   private val myMemoryService = FakeMemoryService()
@@ -66,7 +55,7 @@ class SessionItemTest(newPipeline: Boolean) {
   )
 
   private val myIdeServices = FakeIdeProfilerServices().apply {
-    enableEventsPipeline(newPipeline)
+    enableEventsPipeline(true)
   }
   private val myProfilers by lazy { StudioProfilers(ProfilerClient(myGrpcChannel.channel), myIdeServices, myTimer) }
 
@@ -106,11 +95,9 @@ class SessionItemTest(newPipeline: Boolean) {
     Truth.assertThat(myProfilers.stage).isEqualTo(stage)
   }
 
+  @Ignore("b/136292864")
   @Test
   fun testNonFullSessionNavigation() {
-    // TODO b/136292864
-    Assume.assumeFalse(myProfilers.ideServices.featureConfig.isUnifiedPipelineEnabled)
-
     Truth.assertThat(myProfilers.stageClass).isEqualTo(NullMonitorStage::class.java)
 
     val sessionsManager = myProfilers.sessionsManager
@@ -126,11 +113,9 @@ class SessionItemTest(newPipeline: Boolean) {
     Truth.assertThat(myProfilers.stageClass).isEqualTo(MainMemoryProfilerStage::class.java)
   }
 
+  @Ignore("b/136292864")
   @Test
   fun testImportedHprofSessionName() {
-    // TODO b/136292864
-    Assume.assumeFalse(myProfilers.ideServices.featureConfig.isUnifiedPipelineEnabled)
-
     val sessionsManager = myProfilers.sessionsManager
     sessionsManager.createImportedSessionLegacy("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 0, 0, 0)
     sessionsManager.update()

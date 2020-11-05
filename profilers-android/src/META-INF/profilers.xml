@@ -39,6 +39,8 @@
     <fileEditorProvider implementation="com.android.tools.idea.profilers.capture.AndroidProfilerCaptureEditorProvider" />
     <fileType name="AndroidProfilerCpuCapture" implementationClass="com.android.tools.idea.fileTypes.profiler.CpuCaptureFileType"
               extensions="trace"/>
+    <fileType name="AndroidProfilerMemoryAllocation" implementationClass="com.android.tools.idea.fileTypes.profiler.MemoryAllocationFileType"
+              extensions="alloc"/>
     <fileType name="AndroidProfilerMemoryCapture" implementationClass="com.android.tools.idea.fileTypes.profiler.MemoryCaptureFileType"
               extensions="hprof"/>
     <fileType name="HeapProfd" implementationClass="com.android.tools.idea.profilers.capture.HeapProfdMemoryCaptureFileType"

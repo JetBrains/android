@@ -23,8 +23,8 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectio
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createRawAppInspectionEvent
-import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
+import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.appinspection.test.createCreateInspectorResponse
 import com.android.tools.idea.appinspection.test.createRawResponse
 import com.android.tools.idea.protobuf.ByteString
@@ -104,16 +104,13 @@ class AppInspectorConnectionTest {
     val connection = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
     appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(byteArrayOf(0x12, 0x15)))
 
-    assertThat(connection.rawEventFlow.take(1).single()).isEqualTo(byteArrayOf(0x12, 0x15))
-
-    // Verify the flow is cold.
-    assertThat(connection.rawEventFlow.take(1).single()).isEqualTo(byteArrayOf(0x12, 0x15))
+    assertThat(connection.eventFlow.take(1).single()).isEqualTo(byteArrayOf(0x12, 0x15))
 
     // Verify flow collection when inspector is disposed.
     connection.scope.cancel()
 
     try {
-      connection.rawEventFlow.single()
+      connection.eventFlow.single()
       fail()
     }
     catch (e: CancellationException) {
@@ -257,7 +254,7 @@ class AppInspectorConnectionTest {
 
     val client = appInspectionRule.launchInspectorConnection()
     appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(freshEventData))
-    val rawData = client.rawEventFlow.take(1).single()
+    val rawData = client.eventFlow.take(1).single()
     assertThat(rawData).isEqualTo(freshEventData)
   }
 
@@ -272,7 +269,7 @@ class AppInspectorConnectionTest {
     appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(firstEventData))
 
     var count = 0
-    val flow = client.rawEventFlow.map { eventData ->
+    val flow = client.eventFlow.map { eventData ->
       count++
       eventData
     }

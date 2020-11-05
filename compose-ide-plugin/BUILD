@@ -18,6 +18,8 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/intellij.android.compose-common[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
+        "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
     ],
 )
 
@@ -27,7 +29,20 @@ iml_module(
     iml_files = ["intellij.android.compose-ide-plugin.tests.iml"],
     project = "unb",
     test_class = "com.android.tools.tests.ComposeTestSuite",
+    test_data = [
+        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//tools/base/build-system:studio_repo.zip",
+        "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
+        "//tools/base/build-system:gradle-distrib",
+        "//prebuilts/studio/sdk:licenses",
+        "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
+        "//tools/adt/idea/compose-ide-plugin/testData",
+    ],
     test_srcs = ["testSrc"],
+    test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -43,5 +58,6 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
+        "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:intellij.android.gradle-tooling.api[module, test]",
     ],
 )

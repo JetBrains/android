@@ -47,7 +47,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.runner.Description
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 
 /**
  * Rule providing all of the underlying components of App Inspection including [executorService], [streamChannel], [transport] and [client].
@@ -92,14 +91,14 @@ class AppInspectionServiceRule(
 
   override fun before(description: Description) {
     client = TransportClient(grpcServer.name)
-    streamManager = TransportStreamManager.createManager(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
-    streamChannel = TransportStreamChannel(stream, streamManager.poller)
     executorService = Executors.newSingleThreadExecutor()
+    streamManager = TransportStreamManager.createManager(client.transportStub, executorService.asCoroutineDispatcher())
+    streamChannel = TransportStreamChannel(stream, client.transportStub, executorService.asCoroutineDispatcher())
     scope = CoroutineScope(executorService.asCoroutineDispatcher() + SupervisorJob())
-    transport = AppInspectionTransport(client, stream, process, executorService.asCoroutineDispatcher(), streamChannel)
+    transport = AppInspectionTransport(client, stream, process, streamChannel)
     jarCopier = AppInspectionTestUtils.TestTransportJarCopier
-    targetManager = AppInspectionTargetManager(client, scope, executorService.asCoroutineDispatcher())
-    processNotifier = AppInspectionProcessDiscovery(executorService.asCoroutineDispatcher(), streamManager)
+    targetManager = AppInspectionTargetManager(client, scope)
+    processNotifier = AppInspectionProcessDiscovery(streamManager, scope)
     apiServices = DefaultAppInspectionApiServices(targetManager, { jarCopier }, processNotifier as AppInspectionProcessDiscovery)
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, defaultAttachHandler)
   }
@@ -108,7 +107,6 @@ class AppInspectionServiceRule(
     TransportStreamManager.unregisterManager(streamManager)
     scope.coroutineContext[Job]!!.cancelAndJoin()
     executorService.shutdownNow()
-    client.shutdown()
     timer.currentTimeNs += 1
     client.shutdown()
   }

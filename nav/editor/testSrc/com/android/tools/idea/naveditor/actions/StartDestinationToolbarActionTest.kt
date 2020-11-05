@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.actions
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.util.NlTreeDumper
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
@@ -37,8 +38,10 @@ class StartDestinationToolbarActionTest : NavTestCase() {
     val surface = model.surface as NavDesignSurface
     surface.selectionModel.setSelection(listOf(component))
 
-    val action = StartDestinationToolbarAction(surface)
-    action.actionPerformed(Mockito.mock(AnActionEvent::class.java))
+    val action = StartDestinationToolbarAction.instance
+    val actionEvent = Mockito.mock(AnActionEvent::class.java)
+    Mockito.`when`(actionEvent.getRequiredData(DESIGN_SURFACE)).thenReturn(surface)
+    action.actionPerformed(actionEvent)
 
     assertEquals(
       """

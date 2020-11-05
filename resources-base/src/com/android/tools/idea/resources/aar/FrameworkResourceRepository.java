@@ -127,6 +127,21 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   }
 
   /**
+   * Checks if the repository contains resources for the given set of languages.
+   *
+   * @param languages the set of ISO 639 language codes to check
+   * @return true if the repository contains resources for all requested languages
+   */
+  public boolean containsLanguages(@NotNull Set<String> languages) {
+    for (String language : languages) {
+      if (!myLanguageGroups.contains(getLanguageGroup(language))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Loads resources for requested languages that are not present in this resource repository.
    *
    * @param languagesToLoad the set of ISO 639 language codes, or null to load all available languages

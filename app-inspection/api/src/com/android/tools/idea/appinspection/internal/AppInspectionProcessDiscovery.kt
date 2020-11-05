@@ -22,14 +22,16 @@ import com.android.tools.idea.appinspection.api.process.ProcessNotifier
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.isInspectable
+import com.android.tools.idea.transport.manager.StreamConnected
+import com.android.tools.idea.transport.manager.StreamDisconnected
+import com.android.tools.idea.transport.manager.StreamEventQuery
 import com.android.tools.idea.transport.manager.TransportStreamChannel
-import com.android.tools.idea.transport.manager.TransportStreamEventListener
-import com.android.tools.idea.transport.manager.TransportStreamListener
 import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.profiler.proto.Common
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.asExecutor
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import java.lang.Long.max
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
@@ -47,8 +49,8 @@ import java.util.concurrent.Executor
  */
 @AnyThread
 internal class AppInspectionProcessDiscovery(
-  private val dispatcher: CoroutineDispatcher,
-  private val manager: TransportStreamManager
+  private val manager: TransportStreamManager,
+  private val scope: CoroutineScope
 ) : ProcessNotifier {
 
   // Keep track of the last_active_event_timestamp per stream. This ensures that in the event the stream is disconnected and connected
@@ -100,40 +102,36 @@ internal class AppInspectionProcessDiscovery(
    * Register listeners to receive stream and process events from transport pipeline.
    */
   private fun registerListenersForDiscovery() {
-    // Create listener for STREAM connected
-    manager.addStreamListener(object : TransportStreamListener {
-      override fun onStreamConnected(streamChannel: TransportStreamChannel) {
-        streamIdMap[streamChannel.stream.streamId] = streamChannel
-        val streamLastEventTimestamp = streamLastActiveTime[streamChannel.stream.streamId]?.let { { it + 1 } } ?: { Long.MIN_VALUE }
-        streamChannel.registerStreamEventListener(
-          TransportStreamEventListener(
-            eventKind = Common.Event.Kind.PROCESS,
-            executor = dispatcher.asExecutor(),
-            startTime = streamLastEventTimestamp,
-            filter = { it.process.hasProcessStarted() }
-          ) {
-            val process = it.process.processStarted.process
-            addProcess(streamChannel, process)
-            setStreamLastActiveTime(streamChannel.stream.streamId, it.timestamp)
+    scope.launch {
+      manager.streamActivityFlow()
+        .collect { activity ->
+          val streamChannel = activity.streamChannel
+          if (activity is StreamConnected) {
+            streamIdMap[streamChannel.stream.streamId] = streamChannel
+            val streamLastEventTimestamp = streamLastActiveTime[streamChannel.stream.streamId]?.let { { it + 1 } } ?: { Long.MIN_VALUE }
+            launch {
+              streamChannel.eventFlow(
+                StreamEventQuery(
+                  eventKind = Common.Event.Kind.PROCESS,
+                  startTime = streamLastEventTimestamp
+                )
+              ).collect { streamEvent ->
+                if (streamEvent.event.process.hasProcessStarted()) {
+                  val process = streamEvent.event.process.processStarted.process
+                  addProcess(streamChannel, process)
+                  setStreamLastActiveTime(streamChannel.stream.streamId, streamEvent.event.timestamp)
+                } else {
+                  removeProcess(streamChannel.stream.streamId, streamEvent.event.groupId.toInt())
+                  setStreamLastActiveTime(streamChannel.stream.streamId, streamEvent.event.timestamp)
+                }
+              }
+            }
           }
-        )
-        streamChannel.registerStreamEventListener(
-          TransportStreamEventListener(
-            eventKind = Common.Event.Kind.PROCESS,
-            executor = dispatcher.asExecutor(),
-            startTime = streamLastEventTimestamp,
-            filter = { !it.process.hasProcessStarted() }
-          ) {
-            removeProcess(streamChannel.stream.streamId, it.groupId.toInt())
-            setStreamLastActiveTime(streamChannel.stream.streamId, it.timestamp)
+          else if (activity is StreamDisconnected) {
+            streamIdMap.remove(streamChannel.stream.streamId)
           }
-        )
-      }
-
-      override fun onStreamDisconnected(streamChannel: TransportStreamChannel) {
-        streamIdMap.remove(streamChannel.stream.streamId)
-      }
-    }, dispatcher.asExecutor())
+        }
+    }
   }
 
   private fun setStreamLastActiveTime(streamId: Long, timestamp: Long) {

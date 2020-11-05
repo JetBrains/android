@@ -203,6 +203,30 @@ class DefaultPropertiesProviderTest {
   }
 
   @Test
+  fun testGetEmptyProperties() {
+    inspectorRule.withCommandHandler(LayoutInspectorCommand.Type.GET_PROPERTIES, ::handleGetPropertiesWithEmptyPropertyEvent).attach()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    val provider = inspectorRule.inspectorClient.provider
+    val result = ProviderResult()
+    provider.resultListeners.add(result::receiveProperties)
+    val model = inspectorRule.inspectorModel
+    val view = model["title"]!!
+    provider.requestProperties(view).get()
+    inspectorRule.advanceTime(110, TimeUnit.MILLISECONDS)
+
+    assertThat(result.provider).isSameAs(provider)
+    assertThat(result.view).isSameAs(view)
+    val table = result.table
+    // With no properties, we should still show position and size:
+    checkProperty(table, view, "name", Type.STRING, "android.widget.TextView", PropertySection.VIEW, null, NAMESPACE_INTERNAL)
+    checkProperty(table, view, "x", Type.DIMENSION, "200px", PropertySection.DIMENSION, null, NAMESPACE_INTERNAL)
+    checkProperty(table, view, "y", Type.DIMENSION, "400px", PropertySection.DIMENSION, null, NAMESPACE_INTERNAL)
+    checkProperty(table, view, "width", Type.DIMENSION, "400px", PropertySection.DIMENSION, null, NAMESPACE_INTERNAL)
+    checkProperty(table, view, "height", Type.DIMENSION, "100px", PropertySection.DIMENSION, null, NAMESPACE_INTERNAL)
+    assertThat(table.size).isEqualTo(5)
+  }
+
+  @Test
   fun testNotAvailableInSnapshotMode() {
     with (inspectorRule) {
       inSnapshotMode().attach()
@@ -434,6 +458,21 @@ class DefaultPropertiesProviderTest {
         addProperty(Property.newBuilder().apply { name = 66; namespace = 1; type = Type.STRING; int32Value = 67 }
                       .addElement(Property.newBuilder().apply { name = 68; namespace = 1; type = Type.DIMENSION_DP; floatValue = 20.0f })
                       .addElement(Property.newBuilder().apply { name = 69; namespace = 1; type = Type.DIMENSION_DP; floatValue = 40.0f }))
+      }
+    }.build())
+  }
+
+  /**
+   * Simulate an empty property event from the agent (can happen from Composables).
+   */
+  private fun handleGetPropertiesWithEmptyPropertyEvent(command: Commands.Command, events: MutableList<Common.Event>) {
+    events.add(Common.Event.newBuilder().apply {
+      pid = command.pid
+      kind = Kind.LAYOUT_INSPECTOR
+      groupId = EventGroupIds.PROPERTIES.number.toLong()
+      layoutInspectorEventBuilder.propertiesBuilder.apply {
+        viewId = command.layoutInspector.viewId
+        generation = generationInAgent
       }
     }.build())
   }

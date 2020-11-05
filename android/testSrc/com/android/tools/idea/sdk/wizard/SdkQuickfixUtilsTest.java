@@ -15,30 +15,29 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
-import com.android.repository.api.*;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.MockitoAnnotations.initMocks;
+
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Disposer;
-import org.jetbrains.android.sdk.AndroidSdkData;
-
-import javax.swing.*;
-
-import static org.mockito.Mockito.*;
-
 import java.io.File;
 import java.util.Collections;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link SdkQuickfixUtils}.
@@ -95,7 +94,7 @@ public class SdkQuickfixUtilsTest extends AndroidGradleTestCase {
     Disposer.register(getTestRootDisposable(), dialog.getDisposable());
     // We're fine with non-zero cache expiration values, as those inherently optimize the redundant downloads.
     // One such call is currently made from the wizard, which starts SDK installation once built - we will accept that.
-    verify(myRepoManager, never()).load(eq(0), any(), any(), any(), any(), any(), any(), anyBoolean());
+    verify(myRepoManager, never()).loadSynchronously(eq(0), any(), any(), any(), any(), any(), any());
   }
 
   public void testCreateDialogNoUncachedRepoReloads() {
@@ -110,8 +109,8 @@ public class SdkQuickfixUtilsTest extends AndroidGradleTestCase {
       assertThat(e.getMessage()).contains("All packages are not available for download!");
     }
 
-    verify(myRepoManager, never()).load(eq(0), any(), any(), any(), any(), any(), any(), anyBoolean());
-    verify(myRepoManager, times(1)).load(eq(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS), any(), any(), any(), any(),
-                                         any(), any(), anyBoolean());
+    verify(myRepoManager, never()).loadSynchronously(eq(0), any(), any(), any(), any(), any(), any());
+    verify(myRepoManager, times(1)).loadSynchronously(eq(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS), any(), any(), any(), any(),
+                                         any(), any());
   }
 }

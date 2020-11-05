@@ -10,10 +10,8 @@ import com.android.tools.idea.util.listenUntilNextSync
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import org.jetbrains.android.uipreview.ModuleClassLoaderManager
 import java.util.WeakHashMap
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -89,9 +87,6 @@ fun setupBuildListener(
       override fun buildFinished(status: BuildStatus, context: BuildContext?) {
         // We do not call refresh if the build was not successful or if it was simply a clean build.
         if (status.isSuccess() && context?.buildMode != BuildMode.CLEAN) {
-          // Before calling any of the build listeners we should invalidate current ClassLoaders for the rebuilt modules
-          ModuleManager.getInstance(project).modules.forEach { ModuleClassLoaderManager.get().clearCache(it) }
-
           forEachNonDisposedBuildListener(project, BuildListener::buildSucceeded)
         }
         else {

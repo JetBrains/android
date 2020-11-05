@@ -130,7 +130,7 @@ public class InstallNdkHyperlink extends NotificationHyperlink {
       () -> notifyNdkPackageNotFound(project),
       ModalityState.any());
     sdkManager.load(DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(onComplete), ImmutableList.of(onError), progressRunner,
-                    new StudioDownloader(), StudioSettingsController.getInstance(), false);
+                    new StudioDownloader(), StudioSettingsController.getInstance());
   }
 
   private static void notifyNdkPackageNotFound(@NotNull Project project) {

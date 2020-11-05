@@ -472,7 +472,7 @@ public class AttributeProcessingUtil {
     @NotNull Set<XmlName> skipAttrNames,
     @NotNull ResourceNamespace resourceNamespace
   ) {
-    ResourceRepository repo = ResourceRepositoryManager.getInstance(facet).getAllResources();
+    ResourceRepository repo = ResourceRepositoryManager.getInstance(facet).getResourcesForNamespace(resourceNamespace);
     if (repo == null) return;
 
     //@see AttributeProcessingUtil.getLayoutStyleablePrimary and AttributeProcessingUtil.getLayoutStyleableSecondary

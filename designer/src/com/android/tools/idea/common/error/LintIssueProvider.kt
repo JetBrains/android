@@ -28,7 +28,6 @@ import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.psi.util.PsiEditorUtil
 import java.awt.Desktop
-import java.net.URL
 import java.util.Objects
 import java.util.stream.Stream
 import javax.swing.event.HyperlinkEvent
@@ -77,6 +76,12 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
         builder.endList()
       }
       builder.newline()
+
+      val vendor = issue.vendor ?: issue.registry?.vendor
+      vendor?.let {
+        builder.addHtml(vendor.describe(TextFormat.HTML))
+        builder.newline()
+      }
 
       return builder.html
     }

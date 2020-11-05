@@ -64,7 +64,7 @@ class WorkManagerInspectorClient(private val messenger: AppInspectorMessenger, p
       messenger.sendRawCommand(command.toByteArray())
     }
     clientScope.launch {
-      messenger.rawEventFlow.collect { eventData ->
+      messenger.eventFlow.collect { eventData ->
         handleEvent(eventData)
       }
     }

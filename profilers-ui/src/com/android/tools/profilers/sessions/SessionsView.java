@@ -374,8 +374,9 @@ public class SessionsView extends AspectObserver {
     // Add the dropdown action for loading from file
     CommonAction loadAction = new CommonAction("Load from file...", null);
     List<String> supportedExtensions = new ArrayList<>();
-    supportedExtensions.add("hprof");
     supportedExtensions.add("trace");
+    supportedExtensions.add("alloc");
+    supportedExtensions.add("hprof");
     if (getProfilers().getIdeServices().getFeatureConfig().isNativeMemorySampleEnabled()) {
       supportedExtensions.add("heapprofd");
     }

@@ -89,9 +89,9 @@ class FirstRunModel(private val mode: FirstRunWizardMode): WizardModel() {
     val components: MutableList<ComponentTreeNode> = mutableListOf(AndroidSdk(installUpdates))
 
     val sdkManager = localHandler.getSdkManager(StudioLoggerProgressIndicator(javaClass)).apply {
-      load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
+      loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
            StudioProgressRunner(true, false, "Finding Available SDK Components", null),
-           StudioDownloader(), StudioSettingsController.getInstance(), true)
+           StudioDownloader(), StudioSettingsController.getInstance())
     }
 
     val remotePackages = sdkManager.packages.remotePackages

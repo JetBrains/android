@@ -37,11 +37,13 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.ConcurrentHashMap
@@ -65,16 +67,16 @@ private fun CoroutineScope.commandSender(commands: ReceiveChannel<InspectorComma
                                          transport: AppInspectionTransport,
                                          connectionStartTimeNs: Long,
                                          inspectorId: String) = launch {
-
   val pendingCommands = ConcurrentHashMap<Int, CompletableDeferred<AppInspection.AppInspectionResponse>>()
-  val responsesListener = transport.createStreamEventListener(
-    eventKind = APP_INSPECTION_RESPONSE,
-    filter = { it.hasAppInspectionResponse() },
-    startTimeNs = { connectionStartTimeNs }
-  ) { event ->
-    pendingCommands.remove(event.appInspectionResponse.commandId)?.complete(event.appInspectionResponse)
+  launch {
+    transport.eventFlow(
+      eventKind = APP_INSPECTION_RESPONSE,
+      filter = { it.hasAppInspectionResponse() },
+      startTimeNs = { connectionStartTimeNs }
+    ).collect {
+      pendingCommands.remove(it.event.appInspectionResponse.commandId)?.complete(it.event.appInspectionResponse)
+    }
   }
-  transport.registerEventListener(responsesListener)
 
   try {
     for (command in commands) {
@@ -95,9 +97,6 @@ private fun CoroutineScope.commandSender(commands: ReceiveChannel<InspectorComma
     pendingCommands.values.forEach {
       it.completeExceptionally(AppInspectionConnectionException(inspectorDisposedMessage(inspectorId)))
     }
-  }
-  finally {
-    transport.unregisterEventListener(responsesListener)
   }
 }
 
@@ -135,21 +134,7 @@ internal class AppInspectorConnection(
   private var isDisposed = AtomicBoolean(false)
   private val commandChannel = Channel<InspectorCommand>()
 
-  private val inspectorEventListener = transport.createStreamEventListener(
-    eventKind = APP_INSPECTION_EVENT,
-    filter = { event -> event.hasAppInspectionEvent() && event.appInspectionEvent.inspectorId == inspectorId },
-    startTimeNs = { connectionStartTimeNs }
-  ) { event ->
-    val appInspectionEvent = event.appInspectionEvent
-    when {
-      appInspectionEvent.hasCrashEvent() -> {
-        cleanup("Inspector $inspectorId has crashed.", crashed = true)
-      }
-    }
-  }
-
-  override val rawEventFlow = callbackFlow<ByteArray> {
-    val listener = transport.createStreamEventListener(
+  override val eventFlow = transport.eventFlow(
       eventKind = APP_INSPECTION_EVENT,
       filter = { event ->
         event.hasAppInspectionEvent()
@@ -157,32 +142,15 @@ internal class AppInspectorConnection(
         && event.appInspectionEvent.hasRawEvent()
       },
       startTimeNs = { connectionStartTimeNs }
-    ) { event ->
-      val appInspectionEvent = event.appInspectionEvent
-      val content = appInspectionEvent.rawEvent.content.toByteArray()
-      sendBlocking(content)
-    }
-    transport.registerEventListener(listener)
-    awaitClose { transport.unregisterEventListener(listener) }
-  }.scopeCollection(scope.coroutineContext[Job]!!)
-
-  private val processEndListener = transport.createStreamEventListener(
-    eventKind = PROCESS,
-    startTimeNs = { connectionStartTimeNs },
-    isTransient = true
-  ) {
-    if (it.isEnded) {
-      cleanup("Inspector $inspectorId was disposed, because app process terminated.")
-    }
-  }
+    ).map {
+      it.event.appInspectionEvent.rawEvent.content.toByteArray()
+    }.scopeCollection(scope.coroutineContext[Job]!!)
 
   /**
    * Sets the crash and process-end listeners for this inspector. It also starts the [commandSender] actor that facilitates two-way
    * communication between client and the inspector on device.
    */
   init {
-    transport.registerEventListener(inspectorEventListener)
-    transport.registerEventListener(processEndListener)
     scope.launch(start = CoroutineStart.ATOMIC) {
       try {
         coroutineScope {
@@ -195,6 +163,34 @@ internal class AppInspectorConnection(
         }
       }
     }
+    collectCrashes()
+    collectProcessTermination()
+  }
+
+  private fun collectCrashes() {
+    transport.eventFlow(
+      eventKind = APP_INSPECTION_EVENT,
+      filter = { event -> event.hasAppInspectionEvent() && event.appInspectionEvent.inspectorId == inspectorId },
+      startTimeNs = { connectionStartTimeNs }
+    ).onEach {
+      val appInspectionEvent = it.event.appInspectionEvent
+      when {
+        appInspectionEvent.hasCrashEvent() -> {
+          cleanup("Inspector $inspectorId has crashed.", crashed = true)
+        }
+      }
+    }.launchIn(scope)
+  }
+
+  private fun collectProcessTermination() {
+    transport.eventFlow(
+      eventKind = PROCESS,
+      startTimeNs = { connectionStartTimeNs },
+    ).onEach {
+      if (it.event.isEnded) {
+        cleanup("Inspector $inspectorId was disposed, because app process terminated.")
+      }
+    }.launchIn(scope)
   }
 
   private suspend fun doDispose() {
@@ -259,8 +255,6 @@ internal class AppInspectorConnection(
     if (isDisposed.compareAndSet(false, true)) {
       val cause = if (crashed) AppInspectionCrashException(exceptionMessage) else AppInspectionConnectionException(exceptionMessage)
       commandChannel.close(cause)
-      transport.unregisterEventListener(inspectorEventListener)
-      transport.unregisterEventListener(processEndListener)
       scope.cancel(exceptionMessage, cause)
     }
   }

@@ -37,12 +37,12 @@ interface AppInspectorMessenger {
   suspend fun sendRawCommand(rawData: ByteArray): ByteArray
 
   /**
-   * A cold data stream of Raw Events sent by the inspector on device.
+   * A cold data stream of events sent by the inspector on device.
    *
    * Note: Once the inspector client is disposed by any means, collection won't be possible and will result in
    * CancellationException being thrown immediately.
    */
-  val rawEventFlow: Flow<ByteArray>
+  val eventFlow: Flow<ByteArray>
 
   /**
    * The coroutine scope this inspector client runs in.

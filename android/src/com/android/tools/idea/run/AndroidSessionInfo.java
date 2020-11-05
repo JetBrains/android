@@ -109,6 +109,15 @@ public class AndroidSessionInfo {
     return myRunConfiguration;
   }
 
+  /**
+   * Find all the actively running session in the a given progject.
+   */
+  @Nullable
+  public static List<AndroidSessionInfo> findActiveSession(@NotNull Project project) {
+    return Arrays.stream(ExecutionManager.getInstance(project).getRunningProcesses()).map(
+      handler -> handler.getUserData(KEY)).collect(Collectors.toList());
+  }
+
   @Nullable
   public static AndroidSessionInfo findOldSession(@NotNull Project project,
                                                   @Nullable Executor executor,

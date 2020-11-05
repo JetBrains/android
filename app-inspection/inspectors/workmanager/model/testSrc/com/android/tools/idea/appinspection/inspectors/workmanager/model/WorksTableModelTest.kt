@@ -47,7 +47,7 @@ class WorksTableModelTest {
     scope = CoroutineScope(executor.asCoroutineDispatcher() + SupervisorJob())
     messenger = object : AppInspectorMessenger {
       override suspend fun sendRawCommand(rawData: ByteArray) = ByteArray(0)
-      override val rawEventFlow = emptyFlow<ByteArray>()
+      override val eventFlow = emptyFlow<ByteArray>()
       override val scope = this@WorksTableModelTest.scope
     }
     client = WorkManagerInspectorClient(messenger, scope)

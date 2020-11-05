@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.SdkConstants
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -37,6 +38,8 @@ class UnsupportedGradleVersionIssueCheckerTest: AndroidGradleTestCase() {
     assertThat(buildIssue!!.description).contains("Gradle version 2.2 is required.\n\nPlease fix the project's Gradle settings.")
     assertThat(buildIssue.quickFixes).hasSize(3)
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(UnsupportedGradleVersionIssueChecker.FixGradleVersionInWrapperQuickFix::class.java)
+    val fixVersionFix = buildIssue.quickFixes[0] as UnsupportedGradleVersionIssueChecker.FixGradleVersionInWrapperQuickFix
+    assertThat(fixVersionFix.gradleVersion).isEqualTo("2.2")
     assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenFileAtLocationQuickFix::class.java)
     assertThat(buildIssue.quickFixes[2]).isInstanceOf(UnsupportedGradleVersionIssueChecker.OpenGradleSettingsQuickFix::class.java)
   }
@@ -65,6 +68,27 @@ class UnsupportedGradleVersionIssueCheckerTest: AndroidGradleTestCase() {
                                                   "Please fix the project's Gradle settings.")
     assertThat(buildIssue.quickFixes).hasSize(3)
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(UnsupportedGradleVersionIssueChecker.FixGradleVersionInWrapperQuickFix::class.java)
+    val fixVersionFix = buildIssue.quickFixes[0] as UnsupportedGradleVersionIssueChecker.FixGradleVersionInWrapperQuickFix
+    assertThat(fixVersionFix.gradleVersion).isEqualTo("3.3")
+    assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenFileAtLocationQuickFix::class.java)
+    assertThat(buildIssue.quickFixes[2]).isInstanceOf(UnsupportedGradleVersionIssueChecker.OpenGradleSettingsQuickFix::class.java)
+  }
+
+  fun testCheckIssueWithOlderVersion() {
+    loadProject(TestProjectPaths.SIMPLE_APPLICATION)
+
+    val errMessage = "Old Gradle version error."
+    val issueData = GradleIssueData(projectFolderPath.path, UnsupportedVersionException(errMessage), null, null)
+    val buildIssue = unsupportedGradleVersionIssueChecker.check(issueData)
+
+    assertThat(buildIssue).isNotNull()
+    assertThat(buildIssue!!.description).contains("The project is using an unsupported version of Gradle.\n" +
+                                                  "Please point to a supported Gradle version in the project's Gradle settings " +
+                                                  "or in the project's Gradle wrapper (if applicable.)")
+    assertThat(buildIssue.quickFixes).hasSize(3)
+    assertThat(buildIssue.quickFixes[0]).isInstanceOf(UnsupportedGradleVersionIssueChecker.FixGradleVersionInWrapperQuickFix::class.java)
+    val fixVersionFix = buildIssue.quickFixes[0] as UnsupportedGradleVersionIssueChecker.FixGradleVersionInWrapperQuickFix
+    assertThat(fixVersionFix.gradleVersion).isEqualTo(SdkConstants.GRADLE_LATEST_VERSION)
     assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenFileAtLocationQuickFix::class.java)
     assertThat(buildIssue.quickFixes[2]).isInstanceOf(UnsupportedGradleVersionIssueChecker.OpenGradleSettingsQuickFix::class.java)
   }

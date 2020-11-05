@@ -709,6 +709,12 @@ public final class StudioFlags {
     "If enabled, the C/C++ content roots are displayed in Android View and Project View. Otherwise, each individual native target " +
     "is displayed.",
     false);
+
+  public static final Flag<Boolean> ENABLE_SHOW_FILES_UNKNOWN_TO_CMAKE = Flag.create(
+    NDK, "ndk.projectview.showfilessunknowntocmake", "Enable option to show files unknown to CMake",
+    "If enabled, for projects using CMake, Android project view menu would show an option to `Show Files Unknown To CMake`.",
+    true
+  );
   //endregion
 
   //region Editor
@@ -977,6 +983,20 @@ public final class StudioFlags {
     "Enable the \"always on\" live literals",
     "If enabled, live literals are always enabled without user interaction",
     false
+  );
+
+  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_LITERALS = Flag.create(
+    COMPOSE, "deploy.live.literals.deploy",
+    "Enable live literals deploy",
+    "If enabled, literals within Composable functions are instantly deployed to device",
+    false
+  );
+
+  public static final Flag<Integer> COMPOSE_LIVE_LITERALS_UPDATE_RATE = Flag.create(
+    COMPOSE, "deploy.live.literals.updaterate",
+    "Update rate of live literals edits",
+    "The rate of which live literals are updated in milliseconds",
+    50
   );
 
   public static final Flag<Boolean> COMPOSE_DEBUG_BOUNDS = Flag.create(

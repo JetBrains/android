@@ -38,10 +38,8 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import icons.StudioIcons;
-import java.util.HashMap;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -219,6 +217,22 @@ public class IssueModelTest {
     assertEquals("Too many issues were found in this preview, not all of them will be shown in this panel.\n" +
                  "3 were found and not displayed.", issue.getDescription());
     assertEquals(HighlightSeverity.WEAK_WARNING, issue.getSeverity());
+  }
+
+  @Test
+  public void testModelDescriptions() {
+    ImmutableList.Builder<Issue> issueListBuilder = ImmutableList.builder();
+    LintAnnotationsModel lintAnnotationsModel = new LintAnnotationsModel();
+    MockIssueFactory.addLintIssue(lintAnnotationsModel, HighlightDisplayLevel.ERROR);
+    LintIssueProvider provider = new LintIssueProvider(lintAnnotationsModel);
+    provider.collectIssues(issueListBuilder);
+    ImmutableList<Issue> issues = issueListBuilder.build();
+    assertEquals(1, issues.size());
+    assertEquals("<BR/><BR/>titi<BR/><BR/><I>Issue id: toto</I><BR/><BR/>Vendor: Android Studio<br/>\n" +
+                 "Identifier: MockIssueFactory<br/>\n" +
+                 "Contact: studio@example.com<br/>\n" +
+                 "Feedback: <a href=\"b/\">b/</a><br/>\n" +
+                 "<BR/>", issues.get(0).getDescription());
   }
 
   @Test

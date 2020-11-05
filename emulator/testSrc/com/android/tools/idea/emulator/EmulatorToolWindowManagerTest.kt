@@ -22,7 +22,6 @@ import com.android.sdklib.internal.avd.AvdInfo
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.idea.avdmanager.AvdLaunchListener
-import com.android.tools.idea.avdmanager.AvdManagerConnection.getEmulatorHiddenWindowFlag
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat
@@ -99,8 +98,7 @@ class EmulatorToolWindowManagerTest {
     // Send notification that the emulator has been launched.
     val avdInfo = AvdInfo(emulator1.avdId, emulator1.avdFolder.resolve("config.ini").toFile(),
                           emulator1.avdFolder.toString(), mock(), null)
-    val commandLine = GeneralCommandLine("/emulator_home/fake_emulator", "-avd", emulator1.avdId,
-                                         getEmulatorHiddenWindowFlag(), "-gpu", "auto-no-window")
+    val commandLine = GeneralCommandLine("/emulator_home/fake_emulator", "-avd", emulator1.avdId, "-qt-hide-window")
     project.messageBus.syncPublisher(AvdLaunchListener.TOPIC).avdLaunched(avdInfo, commandLine, project)
     dispatchAllInvocationEvents()
 

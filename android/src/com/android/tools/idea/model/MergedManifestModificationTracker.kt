@@ -18,7 +18,6 @@ package com.android.tools.idea.model
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.util.ModificationTracker
@@ -32,7 +31,7 @@ import org.jetbrains.annotations.TestOnly
  */
 class MergedManifestModificationTracker(val module: Module) : ModificationTracker {
   private val manifestContributorTracker = SimpleModificationTracker()
-  private val LOG: Logger get() = logger("MergedManifestModificationTracker.kt")
+  private val LOG: Logger get() = Logger.getInstance("MergedManifestModificationTracker.kt")
   var manifestChangedActivityRegistered = false
     private set
     @TestOnly get

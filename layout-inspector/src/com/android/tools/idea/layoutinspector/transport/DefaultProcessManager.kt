@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector.transport
 
+import com.android.tools.idea.transport.manager.StreamConnected
+import com.android.tools.idea.transport.manager.StreamDisconnected
 import com.android.tools.idea.transport.manager.StreamEventQuery
-import com.android.tools.idea.transport.manager.TransportStreamChannel
-import com.android.tools.idea.transport.manager.TransportStreamEventListener
-import com.android.tools.idea.transport.manager.TransportStreamListener
 import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.idea.util.ListenerCollection
 import com.android.tools.profiler.proto.Common
@@ -28,9 +27,11 @@ import com.android.tools.profiler.proto.TransportServiceGrpc.TransportServiceBlo
 import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedDeque
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -47,8 +48,8 @@ import java.util.function.Consumer
 // TODO(b/150618894): Investigate if this functionality should be shared with the App Inspector.
 class DefaultProcessManager(
   private val transportStub: TransportServiceBlockingStub,
-  executor: ExecutorService,
   manager: TransportStreamManager,
+  scope: CoroutineScope,
   parentDisposable: Disposable
 ) : InspectorProcessManager, Disposable {
   override val processListeners = ListenerCollection.createWithDirectExecutor<() -> Unit>()
@@ -76,29 +77,30 @@ class DefaultProcessManager(
     }
   }
 
-  private val streamListener = object : TransportStreamListener {
-    override fun onStreamConnected(streamChannel: TransportStreamChannel) {
-      if (streamFilter(streamChannel.stream)) {
-        addStream(streamChannel.stream)
-        val streamQuery = StreamEventQuery(eventKind = PROCESS)
-        streamChannel.registerStreamEventListener(
-          TransportStreamEventListener(streamEventQuery = streamQuery, executor = executor) {
-            invalidateCache(streamChannel.stream)
-          }
-        )
-      }
-    }
-
-    override fun onStreamDisconnected(streamChannel: TransportStreamChannel) {
-      if (streamFilter(streamChannel.stream)) {
-        removeStream(streamChannel.stream)
-      }
-    }
-  }
-
   init {
     Disposer.register(parentDisposable, this)
-    manager.addStreamListener(streamListener, executor)
+    scope.launch {
+      manager.streamActivityFlow()
+        .collect {
+          val streamChannel = it.streamChannel
+          if (it is StreamConnected) {
+            if (streamFilter(streamChannel.stream)) {
+              addStream(streamChannel.stream)
+              val streamQuery = StreamEventQuery(eventKind = PROCESS)
+              launch {
+                streamChannel.eventFlow(streamQuery).collect {
+                  invalidateCache(streamChannel.stream)
+                }
+              }
+            }
+          }
+          else if (it is StreamDisconnected) {
+            if (streamFilter(streamChannel.stream)) {
+              removeStream(streamChannel.stream)
+            }
+          }
+        }
+    }
   }
 
   override fun dispose() {

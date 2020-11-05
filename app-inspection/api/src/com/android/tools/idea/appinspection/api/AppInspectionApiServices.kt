@@ -80,8 +80,8 @@ interface AppInspectionApiServices {
       dispatcher: CoroutineDispatcher,
       createJarCopier: JarCopierCreator
     ): AppInspectionApiServices {
-      val targetManager = AppInspectionTargetManager(client, scope, dispatcher)
-      val processNotifier = AppInspectionProcessDiscovery(dispatcher, streamManager)
+      val targetManager = AppInspectionTargetManager(client, scope)
+      val processNotifier = AppInspectionProcessDiscovery(streamManager, scope)
       processNotifier.addProcessListener(dispatcher.asExecutor(), targetManager)
       return DefaultAppInspectionApiServices(targetManager, createJarCopier, processNotifier)
     }

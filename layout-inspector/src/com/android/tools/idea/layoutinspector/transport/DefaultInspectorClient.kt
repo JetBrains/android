@@ -21,6 +21,8 @@ import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.adb.AdbService
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
 import com.android.tools.idea.layoutinspector.SkiaParser
@@ -71,7 +73,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.LowMemoryWatcher
 import com.intellij.ui.components.dialog
 import com.intellij.ui.layout.panel
-import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.UIUtil
 import io.grpc.Status
@@ -103,10 +104,12 @@ class DefaultInspectorClient(
   private val project = model.project
   private val stats = model.stats
   private val client = TransportClient(channelNameForTest)
-  private val streamManager = TransportStreamManager.createManager(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
+
+  private val streamManager = TransportStreamManager.createManager(client.transportStub, AndroidDispatchers.workerThread)
+  private val scope = AndroidCoroutineScope(this)
 
   @VisibleForTesting
-  val processManager = DefaultProcessManager(client.transportStub, AppExecutorUtil.getAppScheduledExecutorService(), streamManager, this)
+  val processManager = DefaultProcessManager(client.transportStub, streamManager, scope, this)
 
   @VisibleForTesting
   var transportPoller = TransportEventPoller.createPoller(client.transportStub,
@@ -149,7 +152,8 @@ class DefaultInspectorClient(
       if (value) {
         execute(LayoutInspectorCommand.Type.START)
         stats.live.toggledToLive()
-      } else {
+      }
+      else {
         execute(LayoutInspectorCommand.Type.STOP)
         stats.live.toggledToRefresh()
       }
@@ -175,8 +179,8 @@ class DefaultInspectorClient(
     // TODO: this doesn't seem to be needed now that this is a Disposable
     registerProjectClosed(project)
     // TODO: retry getting adb if it fails the first time
-    adb = AndroidSdkUtils.getAdb(project)?.let { AdbService.getInstance()?.getDebugBridge(it) } ?:
-          Futures.immediateFuture(AndroidDebugBridge.createBridge())
+    adb = AndroidSdkUtils.getAdb(project)?.let { AdbService.getInstance()?.getDebugBridge(it) } ?: Futures.immediateFuture(
+      AndroidDebugBridge.createBridge())
     Disposer.register(parentDisposable, this)
   }
 
@@ -268,7 +272,8 @@ class DefaultInspectorClient(
     when (commandType) {
       LayoutInspectorCommand.Type.START,
       LayoutInspectorCommand.Type.REFRESH -> command.composeMode = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT.get()
-      else -> {}
+      else -> {
+      }
     }
     execute(command.build())
   }
