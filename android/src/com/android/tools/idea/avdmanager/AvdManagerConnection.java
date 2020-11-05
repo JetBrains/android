@@ -636,7 +636,7 @@ public class AvdManagerConnection {
 
     commandLine.addParameters("-avd", info.getName());
     if (shouldBeLaunchedEmbedded(project, info)) {
-      commandLine.addParameters("-no-window", "-gpu", "auto-no-window", "-grpc-use-token", "-idle-grpc-timeout", "300"); // Launch headless.
+      commandLine.addParameters("-qt-hide-window", "-grpc-use-token", "-idle-grpc-timeout", "300"); // Launch headless.
     }
   }
 

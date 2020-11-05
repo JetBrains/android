@@ -30,5 +30,5 @@ data class EmulatorId(val grpcPort: Int, val grpcCertificate: String?, val grpcT
   }
 
   val isEmbedded: Boolean
-    get() = commandLine.contains("auto-no-window")
+    get() = commandLine.contains("-qt-hide-window")
 }
