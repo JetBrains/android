@@ -648,6 +648,7 @@ iml_module(
         ":android-studio.linux.zip",
         ":android-studio.mac.zip",
         ":android-studio.win.zip",
+        ":android-studio.plugin.lst",
     ],
     test_srcs = ["tests/testSrc"],
     visibility = ["//visibility:public"],
