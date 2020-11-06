@@ -85,12 +85,6 @@ public interface AndroidDevice {
   ListenableFuture<IDevice> launch(@NotNull Project project);
 
   /**
-   * @param arguments additional arguments to pass to the emulator command
-   */
-  @NotNull
-  ListenableFuture<IDevice> launch(@NotNull Project project, @NotNull List<String> arguments);
-
-  /**
    * Returns the {@link IDevice} corresponding to this device if it is running or has been launched.
    * Throws {@link IllegalStateException} if the device is not running and hasn't been launched.
    */
