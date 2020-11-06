@@ -558,8 +558,6 @@ class AppInspectionViewTest {
     tabsAdded.join()
   }
 
-  // TODO(b/172505926) This test ocassionally times out and never finishes.
-  @Ignore
   @Test
   fun stopInspectionPressed_noMoreLaunchingOfInspectors() = runBlocking {
     val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
@@ -575,6 +573,11 @@ class AppInspectionViewTest {
     val firstProcessReadyDeferred = CompletableDeferred<Unit>()
     val deadProcessAddedDeferred = CompletableDeferred<Unit>()
     launch {
+      launch {
+        // Add a process.
+        transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+        transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+      }
       inspectionView.tabsChangedFlow
         .take(2)
         .collectIndexed { index, _ ->
@@ -586,10 +589,6 @@ class AppInspectionViewTest {
           }
         }
     }
-
-    // Add a process.
-    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
-    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
 
     // Wait for inspector to be added.
     firstProcessReadyDeferred.await()
