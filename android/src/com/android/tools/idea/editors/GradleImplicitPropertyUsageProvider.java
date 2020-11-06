@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.editors;
 
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
+import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
+import static com.android.SdkConstants.SDK_DIR_PROPERTY;
+
 import com.intellij.codeInspection.unused.ImplicitPropertyUsageProvider;
 import com.intellij.lang.properties.psi.Property;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.SdkConstants.*;
 
 /**
  * Provider which defines some properties as implicitly used, such that they don't get
