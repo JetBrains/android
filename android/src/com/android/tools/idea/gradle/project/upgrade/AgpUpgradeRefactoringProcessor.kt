@@ -547,11 +547,27 @@ class AgpUpgradeRefactoringProcessor(
    * state or performing other user interface actions, which (if parsing were to happen in their scope) might block the whole UI.
    */
   fun ensureParsedModels() {
-    // this may look like a property access but it is in fact a call to retrieve (from cache or, if empty, by parsing) the complete
-    // project Build Dsl model.
     // TODO(b/169667833): add methods that explicitly compute and cache the list or retrieve it from cache (computeAllIncluded... /
-    //  retrieveAllIncluded..., maybe?) and use that here.  Deprecate the old getAllIncluded... method).
-    buildModel.allIncludedBuildModels
+    //  retrieveAllIncluded..., maybe?) and use that here.  Deprecate the old getAllIncluded... methods).
+    val progressManager = ProgressManager.getInstance()
+    // Running synchronously here brings up a modal progress dialog.  On the one hand this isn't ideal because it prevents other work from
+    // being done; on the other hand it is cancellable, shows numeric progress and takes around 30 seconds for a project with 1k modules.
+    //
+    // Moving to an asynchronous process would involve modifying callers to do the subsequent work after parsing in callbacks.
+    progressManager.runProcessWithProgressSynchronously(
+      {
+        val indicator = progressManager.progressIndicator
+        buildModel.getAllIncludedBuildModels { seen, total ->
+          indicator?.let {
+            indicator.checkCanceled()
+            // both "Parsing file ..." and "Parsing module ..." here are in general slightly wrong (given included and settings files).
+            indicator.text = "Parsing file $seen${if (total != null) " of $total" else ""}"
+            indicator.isIndeterminate = total == null
+            total?.let { indicator.fraction = seen.toDouble() / total.toDouble() }
+          }
+        }
+      },
+      commandName, true, project)
   }
 }
 
