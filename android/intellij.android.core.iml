@@ -205,5 +205,6 @@
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
     <orderEntry type="module" module-name="intellij.gradle.dsl" />
     <orderEntry type="module" module-name="intellij.gradle.dsl.impl" />
+    <orderEntry type="module" module-name="intellij.properties.psi.impl" />
   </component>
 </module>
