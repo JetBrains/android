@@ -260,8 +260,12 @@ def preserve_old(old_path, new_path):
       if compatible(old_file, new_file):
         os.replace(old_file, new_file)
 
+def write_metadata(path, data):
+  with open(os.path.join(path, "METADATA"), "w") as file:
+    for k, v in data.items():
+      file.write(k + ": " + str(v) + "\n")
 
-def extract(workspace, dir, delete_after):
+def extract(workspace, dir, delete_after, metadata):
   version, sources, mac, linux, win, updater = check_artifacts(dir)
   path = workspace + "/prebuilts/studio/intellij-sdk/" + version
 
@@ -300,19 +304,26 @@ def extract(workspace, dir, delete_after):
     shutil.rmtree(dir)
   if old_path:
     shutil.rmtree(old_path)
+
+  write_metadata(path, metadata)
+
   return version, mac_bundle_name
 
 def main(workspace, args):
+  metadata = {}
   mac_bundle_name = None
   version = args.version
   path = args.path
   bid = args.download
   delete_path = False
+  if path:
+    metadata["path"] = path
   if bid:
+    metadata["build_id"] = bid
     path = download(workspace, bid)
     delete_path = True
   if path:
-    version, mac_bundle_name = extract(workspace, path, delete_path)
+    version, mac_bundle_name = extract(workspace, path, delete_path, metadata)
 
   update_files(workspace, version, mac_bundle_name)
 
