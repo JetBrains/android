@@ -428,6 +428,27 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals(0, representation2.nActivations)
   }
 
+  fun testMultiRepresentationReactivateHandlesRepresentationActivation() {
+    val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
+    myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
+    val representation1 = TestPreviewRepresentation()
+
+    multiPreview = UpdatableMultiRepresentationPreview(
+      sampleFile,
+      myFixture.editor,
+      listOf(
+        TestPreviewRepresentationProvider("Representation1", true, representation1)
+      ),
+      MultiRepresentationPreviewFileEditorState("Representation1"))
+
+    multiPreview.onActivate()
+    assertEquals(1, representation1.nActivations)
+    multiPreview.onDeactivate()
+    assertEquals(0, representation1.nActivations)
+    multiPreview.onActivate()
+    assertEquals(1, representation1.nActivations)
+  }
+
   fun testCaretNotification() {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", """
       // Line 1
