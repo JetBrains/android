@@ -644,7 +644,8 @@ public class AvdManagerConnection {
 
     commandLine.addParameters("-avd", info.getName());
     if (shouldBeLaunchedEmbedded(project, info)) {
-      commandLine.addParameters("-qt-hide-window", "-grpc-use-token", "-idle-grpc-timeout", "300"); // Launch headless.
+      // Launch with hidden window.
+      commandLine.addParameters(getEmulatorHiddenWindowFlag(), "-gpu", "auto-no-window", "-grpc-use-token", "-idle-grpc-timeout", "300");
     }
   }
 
@@ -665,6 +666,11 @@ public class AvdManagerConnection {
   public static boolean isFoldable(@NotNull AvdInfo avd) {
     String displayRegionWidth = avd.getProperty("hw.displayRegion.0.1.width");
     return displayRegionWidth != null && !"0".equals(displayRegionWidth);
+  }
+
+  @NotNull
+  public static String getEmulatorHiddenWindowFlag() {
+    return StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.get() ? "-qt-hide-window" : "-no-window";
   }
 
   /**
