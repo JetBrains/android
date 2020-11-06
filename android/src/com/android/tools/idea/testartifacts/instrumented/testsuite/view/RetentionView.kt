@@ -21,7 +21,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.emulator.snapshot.SnapshotOuterClass
 import com.android.repository.api.ProgressIndicator
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.tools.idea.concurrency.AndroidExecutors.Companion.getInstance
+import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.testartifacts.instrumented.DEVICE_NAME_KEY
@@ -68,6 +68,8 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.Callable
+import java.util.concurrent.locks.ReentrantLock
 import java.util.regex.Pattern
 import javax.imageio.ImageIO
 import javax.swing.BorderFactory
@@ -126,6 +128,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
   }
 
   private var packageName = ""
+  @VisibleForTesting
   val myRetentionDebugButton: JButton = JButton("Start retention debug", AllIcons.Actions.Execute).apply {
     addActionListener {
       isEnabled = false
@@ -135,11 +138,13 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
     }
     isBorderPainted = false
   }
+  @VisibleForTesting
   val myRetentionHelperLabel = JLabel(AllIcons.General.ContextHelp).apply {
     HelpTooltip().setDescription(
       "Debug from the retention state will load the snapshot at the point of failure, and attach to the debugger."
     ).installOn(this)
   }
+  @VisibleForTesting
   val myInfoText = SwingHelper.createHtmlViewer(true, null, null, null).apply {
     alignmentX = 0.0f
     alignmentY = 0.0f
@@ -151,7 +156,8 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
       }
     }
   }
-  private val myImageLabel = JLabel()
+  @VisibleForTesting
+  val myImageLabel = JLabel()
   private val myInnerPanel = panel {
     row {
       myImageLabel()
@@ -201,6 +207,8 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
   }
 
   private var testStartTime: Long? = null
+  private var lastSnapshotCheck: Runnable? = null
+  private val snapshotCheckLock = ReentrantLock()
 
   /**
    * Returns the root panel.
@@ -213,7 +221,9 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
   }
 
   @AnyThread
-  private fun updateSnapshotImage(image: Image, imageWidth: Int, imageHeight: Int) {
+  @VisibleForTesting
+  fun updateSnapshotImage(image: Image, imageWidth: Int, imageHeight: Int,
+                          isCancelled: (() -> Boolean)? = null) {
     val rootWidth = rootPanel.width
     if (rootWidth == 0 || imageHeight <= 0 || imageWidth <= 0) {
       return
@@ -222,8 +232,10 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
     val targetHeight = targetWidth * imageHeight / imageWidth
     val newImage = image.getScaledInstance(targetWidth, targetHeight, Image.SCALE_DEFAULT)
     AppUIUtil.invokeOnEdt {
-      myImageLabel.icon = ImageIcon(newImage)
-      myInnerPanel.revalidate()
+      if (isCancelled == null || !isCancelled()) {
+        myImageLabel.icon = ImageIcon(newImage)
+        myInnerPanel.revalidate()
+      }
     }
   }
 
@@ -240,20 +252,50 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
     }
     myRetentionPanel.setSnapshotFile(
       snapshotFile)
-    myRetentionDebugButton.isEnabled = false
-    myRetentionDebugButton.toolTipText = null
     updateInfoText()
     myImageLabel.icon = null
     image = null
-    if (snapshotFile != null) {
-      getInstance().ioThreadExecutor.execute {
-        scanSnapshotFileContent(snapshotFile)
+    val snapshotCheck = object: Runnable {
+      override fun run() {
+        synchronized(snapshotCheckLock) {
+          scanSnapshotFileContent(snapshotFile) {
+            lastSnapshotCheck != this
+          }
+        }
       }
+    }
+    synchronized(snapshotCheckLock) {
+      lastSnapshotCheck = snapshotCheck
+    }
+    AndroidExecutors.getInstance().ioThreadExecutor.execute {
+      snapshotCheck.run()
     }
   }
 
-  private fun scanSnapshotFileContent(snapshotFile: File) {
+  @VisibleForTesting
+  fun scanSnapshotFileContent(snapshotFile: File?,
+                              isCancelled: () -> Boolean) {
     try {
+      if (isCancelled()) {
+        return
+      }
+      if (snapshotFile == null) {
+        AppUIUtil.invokeOnEdt {
+          if (isCancelled()) {
+            return@invokeOnEdt
+          }
+          myRetentionDebugButton.isEnabled = false
+          myRetentionDebugButton.toolTipText = "No snapshot file found."
+        }
+        return
+      }
+      AppUIUtil.invokeOnEdt {
+        if (isCancelled()) {
+          return@invokeOnEdt
+        }
+        myRetentionDebugButton.isEnabled = false
+        myRetentionDebugButton.toolTipText = "Validating snapshot file, please wait..."
+      }
       var inputStream: InputStream = FileInputStream(
         snapshotFile)
       if (FileNameUtils.getExtension(
@@ -272,7 +314,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
             tarInputStream)
           image = ImageIcon(imageStream).image
           updateSnapshotImage(image!!, image!!.getWidth(observer),
-                              image!!.getHeight(observer))
+                              image!!.getHeight(observer), isCancelled)
         } else if (entry!!.name == "snapshot.pb") {
           snapshotProto = SnapshotOuterClass.Snapshot.parseFrom(tarInputStream)
         }
@@ -280,6 +322,9 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
       myRetentionPanel.snapshotProto = snapshotProto
       if (snapshotProto == null) {
         AppUIUtil.invokeOnEdt {
+          if (isCancelled()) {
+            return@invokeOnEdt
+          }
           myRetentionDebugButton.toolTipText = "Snapshot protobuf broken, expected path: ${snapshotFile.name}:snapshot.pb"
         }
         return
@@ -288,6 +333,9 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
       val emulatorBinary = emulatorPackage?.location?.resolve(SdkConstants.FN_EMULATOR)?.let { androidSdkHandler.fileOp.toFile(it) }
       if (emulatorBinary == null || !androidSdkHandler.fileOp.exists(emulatorBinary)) {
         AppUIUtil.invokeOnEdt {
+          if (isCancelled()) {
+            return@invokeOnEdt
+          }
           myRetentionDebugButton.toolTipText = "Missing emulator executables. Please download the emulator from SDK manager."
         }
         return
@@ -311,6 +359,9 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
         }.let {
           if (it) {
             AppUIUtil.invokeOnEdt {
+              if (isCancelled()) {
+                return@invokeOnEdt
+              }
               myRetentionDebugButton.toolTipText = "Snapshot not loadable, reason: $lines"
             }
             return
@@ -318,11 +369,21 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
         }
       }
       AppUIUtil.invokeOnEdt {
+        if (isCancelled()) {
+          return@invokeOnEdt
+        }
+        myRetentionDebugButton.toolTipText = null
         myRetentionDebugButton.isEnabled = true
       }
     } catch (e: IOException) {
       LOG.warn(
         "Failed to parse retention snapshot", e)
+      AppUIUtil.invokeOnEdt {
+        if (isCancelled()) {
+          return@invokeOnEdt
+        }
+        myRetentionDebugButton.toolTipText = "Failed to parse retention snapshot"
+      }
     }
   }
 
