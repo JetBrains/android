@@ -64,6 +64,9 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode;
+import com.android.tools.idea.avdmanager.emulatorcommand.ColdBootNowEmulatorCommandBuilder;
+import com.android.tools.idea.avdmanager.emulatorcommand.DefaultEmulatorCommandBuilderFactory;
+import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilderFactory;
 import com.android.tools.idea.emulator.EmulatorSettings;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
@@ -113,11 +116,14 @@ import java.lang.reflect.Method;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
@@ -400,27 +406,17 @@ public class AvdManagerConnection {
 
   @NotNull
   public ListenableFuture<IDevice> startAvd(@Nullable Project project, @NotNull AvdInfo info) {
-    return startAvd(project, info, Collections.emptyList());
-  }
-
-  /**
-   * Launches the given AVD in the emulator. Returns a future with the device that was launched.
-   */
-  @NotNull
-  public ListenableFuture<IDevice> startAvd(@Nullable Project project, @NotNull AvdInfo info, @NotNull List<String> parameters) {
-    return startAvd(project, info, false, parameters);
+    return startAvd(project, info, new DefaultEmulatorCommandBuilderFactory());
   }
 
   @NotNull
   ListenableFuture<IDevice> startAvdWithColdBoot(@Nullable Project project, @NotNull AvdInfo info) {
-    return startAvd(project, info, true, Collections.emptyList());
+    return startAvd(project, info, ColdBootNowEmulatorCommandBuilder::new);
   }
 
-  @NotNull
-  private ListenableFuture<IDevice> startAvd(@Nullable Project project,
-                                             @NotNull AvdInfo info,
-                                             boolean forceColdBoot,
-                                             @NotNull List<String> parameters) {
+  private @NotNull ListenableFuture<IDevice> startAvd(@Nullable Project project,
+                                                      @NotNull AvdInfo info,
+                                                      @NotNull EmulatorCommandBuilderFactory factory) {
     if (!initIfNecessary()) {
       return Futures.immediateFailedFuture(new RuntimeException("No Android SDK Found"));
     }
@@ -436,32 +432,30 @@ public class AvdManagerConnection {
     // noinspection ConstantConditions, UnstableApiUsage
     return Futures.transformAsync(
       checkAccelerationAsync(),
-      code -> continueToStartAvdIfAccelerationErrorIsNotBlocking(code, project, info, forceColdBoot, parameters),
+      code -> continueToStartAvdIfAccelerationErrorIsNotBlocking(code, project, info, factory),
       MoreExecutors.directExecutor());
   }
 
-  @NotNull
-  private ListenableFuture<IDevice> continueToStartAvdIfAccelerationErrorIsNotBlocking(@NotNull AccelerationErrorCode code,
-                                                                                       @Nullable Project project,
-                                                                                       @NotNull AvdInfo info,
-                                                                                       boolean forceColdBoot,
-                                                                                       @NotNull List<String> parameters) {
+  private @NotNull ListenableFuture<IDevice> continueToStartAvdIfAccelerationErrorIsNotBlocking(@NotNull AccelerationErrorCode code,
+                                                                                                @Nullable Project project,
+                                                                                                @NotNull AvdInfo info,
+                                                                                                @NotNull EmulatorCommandBuilderFactory factory) {
     switch (code) {
       case ALREADY_INSTALLED:
-        return continueToStartAvd(project, info, forceColdBoot, parameters);
+        return continueToStartAvd(project, info, factory);
       case TOOLS_UPDATE_REQUIRED:
       case PLATFORM_TOOLS_UPDATE_ADVISED:
       case SYSTEM_IMAGE_UPDATE_ADVISED:
         // Launch the virtual device with possibly degraded performance even if there are updates
         // noinspection DuplicateBranchesInSwitch
-        return continueToStartAvd(project, info, forceColdBoot, parameters);
+        return continueToStartAvd(project, info, factory);
       case NO_EMULATOR_INSTALLED:
         return handleAccelerationError(project, info, code);
       default:
         Abi abi = Abi.getEnum(info.getAbiType());
 
         if (abi == null) {
-          return continueToStartAvd(project, info, forceColdBoot, parameters);
+          return continueToStartAvd(project, info, factory);
         }
 
         if (abi.equals(Abi.X86) || abi.equals(Abi.X86_64)) {
@@ -469,15 +463,13 @@ public class AvdManagerConnection {
         }
 
         // Let ARM and MIPS virtual devices launch without hardware acceleration
-        return continueToStartAvd(project, info, forceColdBoot, parameters);
+        return continueToStartAvd(project, info, factory);
     }
   }
 
-  @NotNull
-  private ListenableFuture<IDevice> continueToStartAvd(@Nullable Project project,
-                                                       @NotNull AvdInfo avd,
-                                                       boolean forceColdBoot,
-                                                       @NotNull List<String> parameters) {
+  private @NotNull ListenableFuture<IDevice> continueToStartAvd(@Nullable Project project,
+                                                                @NotNull AvdInfo avd,
+                                                                @NotNull EmulatorCommandBuilderFactory factory) {
     File emulatorBinary = getEmulatorBinary();
     if (emulatorBinary == null) {
       IJ_LOG.error("No emulator binary found!");
@@ -509,7 +501,7 @@ public class AvdManagerConnection {
       return Futures.immediateFailedFuture(new RuntimeException(message));
     }
 
-    GeneralCommandLine commandLine = newEmulatorCommand(project, emulatorBinary, avd, forceColdBoot, parameters);
+    GeneralCommandLine commandLine = newEmulatorCommand(project, emulatorBinary, avd, factory);
     EmulatorRunner runner = new EmulatorRunner(commandLine, avd);
     addListeners(runner);
 
@@ -561,26 +553,20 @@ public class AvdManagerConnection {
     return EmulatorConnectionListener.getDeviceForEmulator(project, avd.getName(), processHandler, 5, TimeUnit.MINUTES);
   }
 
-  @NotNull
-  private GeneralCommandLine newEmulatorCommand(@Nullable Project project,
-                                                @NotNull File emulator,
-                                                @NotNull AvdInfo device,
-                                                boolean forceColdBoot,
-                                                @NotNull List<String> parameters) {
-    GeneralCommandLine command = new GeneralCommandLine();
+  protected @NotNull GeneralCommandLine newEmulatorCommand(@Nullable Project project,
+                                                           @NotNull File emulator,
+                                                           @NotNull AvdInfo avd,
+                                                           @NotNull EmulatorCommandBuilderFactory factory) {
+    ProgressIndicator indicator = new StudioLoggerProgressIndicator(AvdManagerConnection.class);
+    ILogger logger = new LogWrapper(Logger.getInstance(AvdManagerConnection.class));
+    Optional<Collection<String>> params = Optional.ofNullable(System.getenv("studio.emu.params")).map(Splitter.on(',')::splitToList);
 
-    command.setExePath(emulator.getPath());
-    addParameters(project, device, forceColdBoot, command);
-
-    CharSequence arguments = System.getenv("studio.emu.params");
-
-    if (arguments != null) {
-      // noinspection UnstableApiUsage
-      command.addParameters(Splitter.on(',').splitToList(arguments));
-    }
-
-    command.addParameters(parameters);
-    return command;
+    return factory.newEmulatorCommandBuilder(emulator.toPath(), avd)
+      .setEmulatorSupportsSnapshots(EmulatorAdvFeatures.emulatorSupportsFastBoot(mySdkHandler, indicator, logger))
+      .setStudioParams(writeParameterFile().orElse(null))
+      .setLaunchInToolWindow(shouldBeLaunchedEmbedded(project, avd))
+      .addAllStudioEmuParams(params.orElse(Collections.emptyList()))
+      .build();
   }
 
   /**
@@ -614,51 +600,6 @@ public class AvdManagerConnection {
    * Allow subclasses to add listeners before starting the emulator.
    */
   protected void addListeners(@NotNull EmulatorRunner runner) {
-  }
-
-  /**
-   * Adds necessary parameters to {@code commandLine}.
-   */
-  protected void addParameters(@Nullable Project project, @NotNull AvdInfo info, boolean forceColdBoot,
-                               @NotNull GeneralCommandLine commandLine) {
-    Map<String, String> properties = info.getProperties();
-    String netDelay = properties.get(AvdWizardUtils.AVD_INI_NETWORK_LATENCY);
-    String netSpeed = properties.get(AvdWizardUtils.AVD_INI_NETWORK_SPEED);
-    if (netDelay != null) {
-      commandLine.addParameters("-netdelay", netDelay);
-    }
-
-    if (netSpeed != null) {
-      commandLine.addParameters("-netspeed", netSpeed);
-    }
-
-    // Control fast boot
-    if (EmulatorAdvFeatures.emulatorSupportsFastBoot(mySdkHandler,
-                                                     new StudioLoggerProgressIndicator(AvdManagerConnection.class),
-                                                     new LogWrapper(Logger.getInstance(AvdManagerConnection.class)))) {
-      if ("yes".equals(properties.get(AvdWizardUtils.USE_COLD_BOOT))) {
-        // Do not fast boot and do not store a snapshot on exit
-        commandLine.addParameter("-no-snapstorage");
-      }
-      else if (forceColdBoot) {
-        // No fast boot now, but do store a snapshot on exit for next time
-        commandLine.addParameter("-no-snapshot-load");
-      }
-      else if ("yes".equals(properties.get(AvdWizardUtils.USE_CHOSEN_SNAPSHOT_BOOT))) {
-        // Fast boot with the specific file that was requested. Don't save on exit.
-        commandLine.addParameters("-snapshot", StringUtil.notNullize(properties.get(AvdWizardUtils.CHOSEN_SNAPSHOT_FILE)));
-        commandLine.addParameter("-no-snapshot-save");
-      }
-      // We could use "-snapstorage" for the "normal" case, but don't bother. It is the default.
-    }
-
-    writeParameterFile(commandLine);
-
-    commandLine.addParameters("-avd", info.getName());
-    if (shouldBeLaunchedEmbedded(project, info)) {
-      // Launch with hidden window.
-      commandLine.addParameters("-qt-hide-window", "-grpc-use-token", "-idle-grpc-timeout", "300");
-    }
   }
 
   private static boolean shouldBeLaunchedEmbedded(@Nullable Project project, @NotNull AvdInfo avd) {
@@ -697,16 +638,15 @@ public class AvdManagerConnection {
 
   /**
    * Write HTTP Proxy information to a temporary file.
-   * Put the file's name on the command line.
    */
-  protected void writeParameterFile(@NotNull GeneralCommandLine commandLine) {
+  private @NotNull Optional<@NotNull Path> writeParameterFile() {
     if (!emulatorVersionIsAtLeast(EMULATOR_REVISION_SUPPORTS_STUDIO_PARAMS)) {
       // Older versions of the emulator don't accept this information.
-      return;
+      return Optional.empty();
     }
     HttpConfigurable httpInstance = HttpConfigurable.getInstance();
     if (httpInstance == null) {
-      return; // No proxy info to send
+      return Optional.empty();
     }
 
     // Extract the proxy information
@@ -729,13 +669,12 @@ public class AvdManagerConnection {
     }
 
     if (proxyParameters.isEmpty()) {
-      return; // No values to send
+      return Optional.empty();
     }
 
-    File tempFile = writeTempFile(proxyParameters);
-    if (tempFile != null) {
-        commandLine.addParameters("-studio-params", tempFile.getAbsolutePath());
-    }
+    return Optional.ofNullable(writeTempFile(proxyParameters))
+      .map(File::getAbsoluteFile)
+      .map(File::toPath);
   }
 
   /** Create a directory under $ANDROID_SDK_ROOT where we can write

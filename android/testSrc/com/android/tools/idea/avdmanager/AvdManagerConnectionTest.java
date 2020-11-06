@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_FORCE_COLD_BOOT_MODE;
-
 import com.android.prefs.AndroidLocation;
 import com.android.repository.Revision;
 import com.android.repository.impl.meta.RepositoryPackages;
@@ -25,11 +23,9 @@ import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.repository.testframework.MockFileOp;
-import com.android.sdklib.FileOpFileWrapper;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
@@ -37,14 +33,10 @@ import com.android.sdklib.repository.targets.SystemImage;
 import com.android.sdklib.repository.targets.SystemImageManager;
 import com.android.testutils.MockLog;
 import com.android.utils.NullLogger;
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.util.SystemInfo;
 import java.io.File;
-import java.io.OutputStreamWriter;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.AndroidTestCase;
@@ -125,95 +117,6 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     assertFalse(mAvdManagerConnection.emulatorVersionIsAtLeast(new Revision(23, 4, 6)));
     assertFalse(mAvdManagerConnection.emulatorVersionIsAtLeast(new Revision(23, 5, 1)));
     assertFalse(mAvdManagerConnection.emulatorVersionIsAtLeast(new Revision(24, 1, 1)));
-  }
-
-  public void testAddParameters() throws Exception {
-    MockLog log = new MockLog();
-
-    // Create an AVD. Let it default to Fast Boot.
-    String fastBootName = "fastBootAvd";
-    File fastBootFolder = AvdInfo.getDefaultAvdFolder(mAvdManager, fastBootName, mFileOp, false);
-    AvdInfo fastBootAvd = mAvdManager.createAvd(
-      fastBootFolder,
-      fastBootName,
-      mSystemImage,
-      null,
-      null,
-      null,
-      null,
-      null,
-      false,
-      true,
-      false,
-      log);
-
-    // Create another AVD
-    String coldBootName = "coldBootAvd";
-    File coldBootFolder = AvdInfo.getDefaultAvdFolder(mAvdManager, coldBootName, mFileOp, false);
-    AvdInfo coldBootAvd = mAvdManager.createAvd(
-      coldBootFolder,
-      coldBootName,
-      mSystemImage,
-      null,
-      null,
-      null,
-      null,
-      null,
-      false,
-      true,
-      false,
-      log);
-
-    // Modify the second AVD's config.ini file so the AVD does a cold boot
-    File coldConfigIniFile = new File(coldBootFolder, "config.ini");
-    FileOpFileWrapper configIniWrapper = new FileOpFileWrapper(coldConfigIniFile,
-                                                                     mFileOp, false);
-    Map<String, String> iniProperties = ProjectProperties.parsePropertyFile(configIniWrapper, log);
-    iniProperties.put(AVD_INI_FORCE_COLD_BOOT_MODE, "yes");
-
-    try (OutputStreamWriter iniWriter = new OutputStreamWriter(mFileOp.newFileOutputStream(coldConfigIniFile), Charsets.UTF_8)) {
-      for (Map.Entry<String, String> mapEntry : iniProperties.entrySet()) {
-        iniWriter.write(String.format("%1$s=%2$s\n", mapEntry.getKey(), mapEntry.getValue()));
-      }
-    }
-    coldBootAvd = mAvdManager.reloadAvd(coldBootAvd, log);
-
-    // Test all three AVDs using an Emulator that does not support fast boot
-    String COLD_BOOT_COMMAND = "-no-snapstorage";
-    String COLD_BOOT_ONCE_COMMAND = "-no-snapshot-load";
-    GeneralCommandLine cmdLine = new GeneralCommandLine();
-    mAvdManagerConnection.addParameters(getProject(), fastBootAvd, false, cmdLine);
-    assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
-    assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
-
-    cmdLine = new GeneralCommandLine();
-    mAvdManagerConnection.addParameters(getProject(), coldBootAvd, false , cmdLine);
-    assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
-    assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
-
-    cmdLine = new GeneralCommandLine();
-    mAvdManagerConnection.addParameters(getProject(), fastBootAvd, true, cmdLine);
-    assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
-    assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
-
-    // Mark the Emulator as supporting fast boot
-    recordEmulatorSupportsFastBoot(mFileOp);
-
-    // Re-test all AVDs using an Emulator that DOES support fast boot
-    cmdLine = new GeneralCommandLine();
-    mAvdManagerConnection.addParameters(getProject(), fastBootAvd, false, cmdLine);
-    assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
-    assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
-
-    cmdLine = new GeneralCommandLine();
-    mAvdManagerConnection.addParameters(getProject(), coldBootAvd, false, cmdLine);
-    assertTrue(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
-    assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
-
-    cmdLine = new GeneralCommandLine();
-    mAvdManagerConnection.addParameters(getProject(), fastBootAvd, true, cmdLine);
-    assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
-    assertTrue(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
   }
 
   public void testGetHardwareProperties() {
@@ -418,11 +321,6 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
                            + "    <display-name>Google APIs Intel x86 Atom_64 System Image</display-name>"
                            + "  </localPackage>"
                            + "</ns2:repository>");
-  }
-
-  private static void recordEmulatorSupportsFastBoot(MockFileOp fop) {
-    fop.recordExistingFile("/sdk/emulator/lib/advancedFeatures.ini",
-                           "FastSnapshotV1=on\n");
   }
 
   private static void recordEmulatorHardwareProperties(MockFileOp fop) {

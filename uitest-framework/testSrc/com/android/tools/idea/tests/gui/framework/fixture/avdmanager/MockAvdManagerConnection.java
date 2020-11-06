@@ -24,6 +24,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilderFactory;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.diagnostic.Logger;
@@ -56,15 +57,6 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
 
   public static void inject() {
     setConnectionFactory(MockAvdManagerConnection::new);
-  }
-
-  @Override
-  protected void addParameters(@Nullable Project project,
-                               @NotNull AvdInfo info,
-                               boolean forceColdBoot,
-                               @NotNull GeneralCommandLine commandLine) {
-    super.addParameters(project, info, forceColdBoot, commandLine);
-    commandLine.addParameters("-no-window");
   }
 
   @NotNull
@@ -164,5 +156,16 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
 
   private static void killEmulatorCrashReportProcess() {
     exec(isWindows ? "taskkill /F /IM  emulator64-cra*" : "pkill emulator64-cra");
+  }
+
+  @Override
+  protected @NotNull GeneralCommandLine newEmulatorCommand(@Nullable Project project,
+                                                           @NotNull File emulator,
+                                                           @NotNull AvdInfo avd,
+                                                           @NotNull EmulatorCommandBuilderFactory factory) {
+    GeneralCommandLine command = super.newEmulatorCommand(project, emulator, avd, factory);
+    command.addParameter("-no-window");
+
+    return command;
   }
 }
