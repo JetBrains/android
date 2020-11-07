@@ -114,6 +114,11 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
 
   val selectedVariant = variant ?: androidModel.selectedVariant
 
+  // First set up any extra sdk libraries as these should really be in the SDK.
+  getExtraSdkLibraries(projectDataNode, this, androidModel.androidProject.bootClasspath).forEach { sdkLibraryDependency ->
+    processedLibraries[sdkLibraryDependency.target.externalName] = sdkLibraryDependency
+  }
+
   // Setup the dependencies for the main artifact, the main dependencies are done first since there scope is more permissive.
   // This allows us to just skip the dependency if it is already present.
   setupAndroidDependenciesForArtifact(
@@ -153,12 +158,6 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
   // coming after (java libs then android).
   // TODO(rework-12): What is the correct order
   var orderIndex = 0
-
-  // First set up any extra sdk libraries as these should really be in the SDK.
-  getExtraSdkLibraries(projectDataNode, this, androidModel.androidProject.bootClasspath).forEach { sdkLibraryDependency ->
-    sdkLibraryDependency.order = orderIndex++
-    createChild(ProjectKeys.LIBRARY_DEPENDENCY, sdkLibraryDependency)
-  }
 
   val processedLibrarySize = processedLibraries.size
   var tempOrderIndex = 0
