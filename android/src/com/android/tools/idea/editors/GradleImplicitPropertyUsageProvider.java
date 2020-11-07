@@ -28,7 +28,7 @@ import static com.android.SdkConstants.*;
  */
 public class GradleImplicitPropertyUsageProvider extends ImplicitPropertyUsageProvider {
   @Override
-  protected boolean isUsed(Property property) {
+  public boolean isUsed(Property property) {
     PsiFile file = property.getContainingFile();
     boolean caseSensitive = file.getViewProvider().getVirtualFile().isCaseSensitive();
     if (Comparing.equal(file.getName(), FN_GRADLE_WRAPPER_PROPERTIES, caseSensitive)) {
