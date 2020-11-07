@@ -260,21 +260,13 @@ Check your internet connection and try again.""",
       return
     }
 
-    // TODO (b/171512149): add parameter
-    //val avdOptionsModel = AvdOptionsModel(null) {
-    //  avdList.refreshAvds()
-    //}.apply {
-    //  device.setNullableValue(pfd.device)
-    //  systemImage.setNullableValue(pfd.systemImage)
-    //  avdDisplayName.set(pfd.device.displayName)
-    //  hf()
-    //}
-    val avdOptionsModel = AvdOptionsModel(null).apply {
+    AvdOptionsModel(null) {
+      avdList.refreshAvds()
+    }.apply {
       device().setNullableValue(pfd.device)
       systemImage().setNullableValue(pfd.systemImage)
       avdDisplayName().set(pfd.device.displayName)
-      // TODO (b/171512149): handle finished (also this is not a good name)
-      //hf()
+      handleFinished()
     }
   }
 
