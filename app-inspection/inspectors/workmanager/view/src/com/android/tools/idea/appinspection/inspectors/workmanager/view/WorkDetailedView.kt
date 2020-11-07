@@ -74,6 +74,7 @@ class WorkInfoDetailsView(client: WorkManagerInspectorClient,
     detailsPanel.add(buildCategoryPanel("WorkContinuation", listOf(
       buildKeyValuePair("Previous", work.prerequisitesList.toList(), idListProvider),
       buildKeyValuePair("Next", work.dependentsList.toList(), idListProvider),
+      buildKeyValuePair(" ", ""), // Visually separate work chain or else UUIDs run together
       buildKeyValuePair("Unique work chain", client.getOrderedWorkChain(work.id).map { it.id }, idListProvider)
     )))
 
