@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors;
 
-import com.intellij.codeInspection.unused.ImplicitPropertyUsageProvider;
+import com.intellij.lang.properties.codeInspection.unused.ImplicitPropertyUsageProvider;
 import com.intellij.lang.properties.psi.Property;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.psi.PsiFile;
@@ -26,7 +26,7 @@ import static com.android.SdkConstants.*;
  * Provider which defines some properties as implicitly used, such that they don't get
  * flagged by the inspections as unused.
  */
-public class GradleImplicitPropertyUsageProvider extends ImplicitPropertyUsageProvider {
+public class GradleImplicitPropertyUsageProvider implements ImplicitPropertyUsageProvider {
   @Override
   public boolean isUsed(Property property) {
     PsiFile file = property.getContainingFile();
