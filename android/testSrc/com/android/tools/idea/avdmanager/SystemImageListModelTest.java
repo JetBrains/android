@@ -106,7 +106,7 @@ public class SystemImageListModelTest extends AndroidTestCase {
 
     packages.setLocalPkgInfos(ImmutableList.of(pkgKnownApi, pkgDeprecatedApi, pkgJustDeprecatedApi, pkgPreviewApi, pkgUnknownApi));
 
-    RepoManager mgr = new FakeRepoManager(new File(SDK_LOCATION), packages);
+    RepoManager mgr = new FakeRepoManager(fileOp.toPath(SDK_LOCATION), packages);
 
     AndroidSdkHandler sdkHandler =
       new AndroidSdkHandler(new File(SDK_LOCATION), new File(AVD_LOCATION), fileOp, mgr);

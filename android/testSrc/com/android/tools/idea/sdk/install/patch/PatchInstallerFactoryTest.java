@@ -34,7 +34,6 @@ import com.android.repository.testframework.FakeDownloader;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.repository.testframework.MockFileOp;
 import com.google.common.collect.ImmutableList;
-import java.io.File;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -56,8 +55,7 @@ public class PatchInstallerFactoryTest {
     myInstallerFactory = new PatchInstallerFactory((runnerPackage, progress, fop) -> Mockito.mock(PatchRunner.class));
     myInstallerFactory.setFallbackFactory(new BasicInstallerFactory());
     myRepositoryPackages = new RepositoryPackages();
-    File root = new File("/sdk");
-    myRepoManager = new FakeRepoManager(root, myRepositoryPackages);
+    myRepoManager = new FakeRepoManager(myFileOp.toPath("/sdk"), myRepositoryPackages);
   }
 
   @Test

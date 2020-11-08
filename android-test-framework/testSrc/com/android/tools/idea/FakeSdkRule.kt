@@ -54,7 +54,7 @@ class FakeSdkRule(val projectRule: AndroidProjectRule, val fileOp: FileOp = Mock
   override fun before(description: Description) {
     packages = RepositoryPackages(localPackages, remotePackages)
     val sdkFile = File(sdkPath).absoluteFile
-    val repoManager = FakeRepoManager(sdkFile, packages)
+    val repoManager = FakeRepoManager(fileOp.toPath(sdkPath), packages)
     val sdkHandler = AndroidSdkHandler(sdkFile, null, fileOp, repoManager)
 
     val ideSdks = spy(IdeSdks.getInstance())

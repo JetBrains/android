@@ -79,7 +79,7 @@ public class SystemImagePreviewTest extends AndroidTestCase {
 
     packages.setLocalPkgInfos(ImmutableList.of(pkgMarshmallow, pkgNPreview));
 
-    RepoManager mgr = new FakeRepoManager(new File(SDK_LOCATION), packages);
+    RepoManager mgr = new FakeRepoManager(fileOp.toPath(SDK_LOCATION), packages);
 
     AndroidSdkHandler sdkHandler =
       new AndroidSdkHandler(new File(SDK_LOCATION), new File(AVD_LOCATION), fileOp, mgr);

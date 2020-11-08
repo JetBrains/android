@@ -52,7 +52,6 @@ import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
 import com.intellij.testFramework.DisposableRule;
 import com.intellij.testFramework.ExtensionTestUtil;
-import java.io.File;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
@@ -63,7 +62,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -147,8 +145,8 @@ public class SdkComponentSourceTest {
     String url = "http://example.com/repo";
     downloader.registerUrl(new URL(url), getRepoXml(remotePaths, remoteRevisions, remoteChannels, true).getBytes(Charsets.UTF_8));
 
-    final RepoManager mgr = new RepoManagerImpl(myFileOp);
-    mgr.setLocalPath(new File("/sdk"));
+    final RepoManager mgr = new RepoManagerImpl();
+    mgr.setLocalPath(myFileOp.toPath("/sdk"));
     mgr.registerSchemaModule(AndroidSdkHandler.getRepositoryModule());
     mgr.registerSchemaModule(AndroidSdkHandler.getCommonModule());
     mgr.registerSourceProvider(new FakeRepositorySourceProvider(

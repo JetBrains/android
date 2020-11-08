@@ -80,8 +80,7 @@ class AvdOptionsModelTest : AndroidTestCase() {
     val pkgList: MutableList<LocalPackage> = ImmutableList.of(googlePlayPkg, nonPlayPkg)
     packages.setLocalPkgInfos(pkgList)
 
-    val mgr = FakeRepoManager(SDK_LOCATION, packages)
-
+    val mgr = FakeRepoManager(fileOp.toPath(SDK_LOCATION), packages)
     val sdkHandler = AndroidSdkHandler(SDK_LOCATION, AVD_LOCATION, fileOp, mgr)
 
     val progress = FakeProgressIndicator()

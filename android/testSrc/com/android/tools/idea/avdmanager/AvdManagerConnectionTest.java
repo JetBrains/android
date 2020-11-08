@@ -160,7 +160,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     mFileOp.recordExistingFile(q2_64Package.getLocation().resolve("kernel-ranchu-64"));
 
     packages.setLocalPkgInfos(ImmutableList.of(q1Package, q2Package, q2_64Package));
-    FakeRepoManager mgr = new FakeRepoManager(new File(SDK_LOCATION), packages);
+    FakeRepoManager mgr = new FakeRepoManager(mFileOp.toPath(SDK_LOCATION), packages);
 
     AndroidSdkHandler sdkHandler =
       new AndroidSdkHandler(new File(SDK_LOCATION), new File(AVD_LOCATION), mFileOp, mgr);
