@@ -35,8 +35,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -47,14 +45,12 @@ import static org.mockito.Mockito.*;
 public class InstallTaskTest extends AndroidTestCase {
   private static final File SDK_ROOT = new File("/sdk");
 
-  private LocalPackage myExisting1;
   private RemotePackage myAvailable1;
   private RemotePackage myAvailable2;
 
-  private MockFileOp myFileOp = new MockFileOp();
-  private ProgressIndicator myProgressIndicator = new FakeProgressIndicator();
+  private final MockFileOp myFileOp = new MockFileOp();
+  private final ProgressIndicator myProgressIndicator = new FakeProgressIndicator();
 
-  private InstallerFactory factory;
   private Installer myInstaller;
   private Installer myInstaller2;
   private Uninstaller myUninstaller;
@@ -65,22 +61,22 @@ public class InstallTaskTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myExisting1 = spy(new FakePackage.FakeLocalPackage("p1", myFileOp));
+    LocalPackage existing1 = spy(new FakePackage.FakeLocalPackage("p1", myFileOp));
     myAvailable1 = spy(new FakePackage.FakeRemotePackage("p2"));
     myAvailable2 = spy(new FakePackage.FakeRemotePackage("p3"));
-    factory = mock(InstallerFactory.class);
+    InstallerFactory factory = mock(InstallerFactory.class);
     myInstaller = mock(Installer.class);
     myInstaller2 = mock(Installer.class);
     myUninstaller = mock(Uninstaller.class);
 
-    RepositoryPackages repoPackages = new RepositoryPackages(ImmutableList.of(myExisting1), ImmutableList.of(myAvailable1, myAvailable2));
+    RepositoryPackages repoPackages = new RepositoryPackages(ImmutableList.of(existing1), ImmutableList.of(myAvailable1, myAvailable2));
 
-    FakeRepoManager repoManager = new FakeRepoManager(SDK_ROOT, repoPackages);
+    FakeRepoManager repoManager = new FakeRepoManager(myFileOp.toPath(SDK_ROOT), repoPackages);
     mySdkHandler = new AndroidSdkHandler(SDK_ROOT, new File("/sdk"), myFileOp, repoManager);
 
     myInstallTask = new InstallTask(factory, mySdkHandler, new FakeSettingsController(false), myProgressIndicator);
     myInstallTask.setInstallRequests(ImmutableList.of(new UpdatablePackage(myAvailable1), new UpdatablePackage(myAvailable2)));
-    myInstallTask.setUninstallRequests(ImmutableList.of(myExisting1));
+    myInstallTask.setUninstallRequests(ImmutableList.of(existing1));
     when(myInstaller.prepare(any())).thenReturn(true);
     when(myInstaller2.prepare(any())).thenReturn(true);
     when(myUninstaller.prepare(any())).thenReturn(true);
@@ -89,16 +85,16 @@ public class InstallTaskTest extends AndroidTestCase {
     when(myUninstaller.complete(any())).thenReturn(true);
 
     myOperations = new HashMap<>();
-    myOperations.put(myExisting1, myUninstaller);
+    myOperations.put(existing1, myUninstaller);
     myOperations.put(myAvailable1, myInstaller);
     myOperations.put(myAvailable2, myInstaller2);
 
     when(factory.createInstaller(eq(myAvailable1), eq(repoManager), any(), eq(myFileOp))).thenReturn(myInstaller);
     when(factory.createInstaller(eq(myAvailable2), eq(repoManager), any(), eq(myFileOp))).thenReturn(myInstaller2);
-    when(factory.createUninstaller(myExisting1, repoManager, myFileOp)).thenReturn(myUninstaller);
+    when(factory.createUninstaller(existing1, repoManager, myFileOp)).thenReturn(myUninstaller);
   }
 
-  public void testPrepare() throws Exception {
+  public void testPrepare() {
     List<RepoPackage> failures = new ArrayList<>();
     myInstallTask.preparePackages(myOperations, failures, new EmptyProgressIndicator());
 
@@ -109,7 +105,7 @@ public class InstallTaskTest extends AndroidTestCase {
     assertTrue(failures.isEmpty());
   }
 
-  public void testPrepareWithFallback() throws Exception {
+  public void testPrepareWithFallback() {
     Installer fallback = mock(Installer.class);
     when(fallback.prepare(any())).thenReturn(true);
     when(myInstaller2.prepare(any())).thenReturn(false);
@@ -127,7 +123,7 @@ public class InstallTaskTest extends AndroidTestCase {
     assertEquals(fallback, myOperations.get(myAvailable2));
   }
 
-  public void testPrepareWithDoubleFallback() throws Exception {
+  public void testPrepareWithDoubleFallback() {
     Installer fallback = mock(Installer.class);
     when(fallback.prepare(any())).thenReturn(false);
     Installer fallback2 = mock(Installer.class);
@@ -150,7 +146,7 @@ public class InstallTaskTest extends AndroidTestCase {
     assertEquals(fallback2, myOperations.get(myAvailable2));
   }
 
-  public void testPrepareWithErrors() throws Exception {
+  public void testPrepareWithErrors() {
     when(myInstaller2.prepare(any())).thenReturn(false);
 
     List<RepoPackage> failures = new ArrayList<>();
@@ -164,7 +160,7 @@ public class InstallTaskTest extends AndroidTestCase {
     assertEquals(1, failures.size());
   }
 
-  public void testComplete() throws Exception {
+  public void testComplete() {
     List<RepoPackage> failures = new ArrayList<>();
     myInstallTask.completePackages(myOperations, failures, new FakeProgressIndicator(true),
                                    new EmptyProgressIndicator());
@@ -177,7 +173,7 @@ public class InstallTaskTest extends AndroidTestCase {
     assertTrue(myOperations.isEmpty());
   }
 
-  public void testCompleteWithFallback() throws Exception {
+  public void testCompleteWithFallback() {
     Installer fallback = mock(Installer.class);
     when(myInstaller.getFallbackOperation()).thenReturn(fallback);
 
@@ -195,7 +191,7 @@ public class InstallTaskTest extends AndroidTestCase {
     assertEquals(1, myOperations.size());
   }
 
-  public void testCompleteWithErrors() throws Exception {
+  public void testCompleteWithErrors() {
     when(myInstaller.complete(any())).thenReturn(false);
     List<RepoPackage> failures = new ArrayList<>();
     myInstallTask.completePackages(myOperations, failures, new FakeProgressIndicator(true),
@@ -210,7 +206,7 @@ public class InstallTaskTest extends AndroidTestCase {
     assertTrue(myOperations.isEmpty());
   }
 
-  public void testRunBasic() throws Exception {
+  public void testRunBasic() {
     myInstallTask.run(new StudioProgressIndicatorAdapter(myProgressIndicator, new EmptyProgressIndicator()));
     InOrder installer1Calls = inOrder(myInstaller);
     installer1Calls.verify(myInstaller).prepare(any());
@@ -223,7 +219,7 @@ public class InstallTaskTest extends AndroidTestCase {
     uninstallerCalls.verify(myUninstaller).complete(any());
   }
 
-  public void testRunCallbacks() throws Exception {
+  public void testRunCallbacks() {
     Runnable prepareComplete = mock(Runnable.class);
     myInstallTask.setPrepareCompleteCallback(prepareComplete);
     Function<List<RepoPackage>, Void> complete = (Function<List<RepoPackage>, Void>)mock(Function.class);
@@ -238,7 +234,7 @@ public class InstallTaskTest extends AndroidTestCase {
     callbackCalls.verify(complete).apply(new ArrayList<>());
   }
 
-  public void testRunWithFallbackOnPrepare() throws Exception {
+  public void testRunWithFallbackOnPrepare() {
     Installer fallback = mock(Installer.class);
     when(fallback.prepare(any())).thenReturn(true);
     when(myInstaller2.prepare(any())).thenReturn(false);
@@ -257,7 +253,7 @@ public class InstallTaskTest extends AndroidTestCase {
     verify(myInstaller2, never()).complete(any());
   }
 
-  public void testRunWithFallbackOnComplete() throws Exception {
+  public void testRunWithFallbackOnComplete() {
     Installer fallback = mock(Installer.class);
     when(fallback.prepare(any())).thenReturn(true);
     when(myInstaller2.complete(any())).thenReturn(false);

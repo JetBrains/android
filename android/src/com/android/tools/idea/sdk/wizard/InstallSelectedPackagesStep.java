@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
+import com.android.repository.io.FileOp;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.repository.api.*;
 import com.android.repository.impl.meta.TypeDetails;
@@ -49,6 +50,7 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.ui.GuiUtils;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -142,12 +144,14 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
   @Override
   protected void onEntering() {
     mySdkManagerOutput.setText("");
-    File path = myRepoManager.getLocalPath();
+    Path path = myRepoManager.getLocalPath();
+    FileOp fop = mySdkHandler.getFileOp();
     if (path == null) {
-      path = IdeSdks.getInstance().getAndroidSdkPath();
+      File defaultPath = IdeSdks.getInstance().getAndroidSdkPath();
+      path = defaultPath == null ? null : fop.toPath(defaultPath);
       myRepoManager.setLocalPath(path);
     }
-    myLabelSdkPath.setText(path.getPath());
+    myLabelSdkPath.setText(path.toString());
 
     myInstallationFinished.set(false);
     startSdkInstall();

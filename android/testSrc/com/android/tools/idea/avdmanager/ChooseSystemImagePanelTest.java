@@ -183,7 +183,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
 
     packages.setLocalPkgInfos(ImmutableList.of(pkgGapi, pkgGapi29, pkgGapi30, pkgPs, pkgWear, pkgWear29, pkgCnWear, pkgAutomotive, pkgAutomotivePs));
 
-    RepoManager mgr = new FakeRepoManager(new File(SDK_LOCATION), packages);
+    RepoManager mgr = new FakeRepoManager(fileOp.toPath(SDK_LOCATION), packages);
 
     AndroidSdkHandler sdkHandler =
       new AndroidSdkHandler(new File(SDK_LOCATION), new File(AVD_LOCATION), fileOp, mgr);

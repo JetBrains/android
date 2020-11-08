@@ -220,7 +220,7 @@ public class PatchInstallerUtil {
    */
   private static boolean setupPatchDir(@NotNull File patchFile, @NotNull File patcherFile, @NotNull RepoPackage toInstallOrDelete,
                                        @NotNull RepoManager mgr, @NotNull FileOp fop, @NotNull ProgressIndicator progress) {
-    File patchesDir = new File(mgr.getLocalPath(), PATCHES_DIR_NAME);
+    File patchesDir = new File(fop.toFile(mgr.getLocalPath()), PATCHES_DIR_NAME);
     File patchDir;
     for (int i = 1; ; i++) {
       patchDir = new File(patchesDir, PATCH_DIR_PREFIX + i);

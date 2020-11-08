@@ -74,8 +74,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
   private AvdInfo myPreviewAvdInfo;
   private AvdInfo myZuluAvdInfo;
   private ISystemImage mySnapshotSystemImage;
-  private Map<String, String> myPropertiesMap = Maps.newHashMap();
-  private SystemImageDescription myQImageDescription;
+  private final Map<String, String> myPropertiesMap = Maps.newHashMap();
   private Device myFoldable;
   private Device myAutomotive;
 
@@ -133,7 +132,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
     packages.setLocalPkgInfos(ImmutableList.of(pkgQ, pkgMarshmallow, pkgNPreview, pkgZulu));
 
-    RepoManager mgr = new FakeRepoManager(new File(SDK_LOCATION), packages);
+    RepoManager mgr = new FakeRepoManager(fileOp.toPath(SDK_LOCATION), packages);
 
     AndroidSdkHandler sdkHandler =
       new AndroidSdkHandler(new File(SDK_LOCATION), new File(AVD_LOCATION), fileOp, mgr);
@@ -152,7 +151,6 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
     mySnapshotSystemImage = ZuluImage; // Re-use Zulu for the snapshot test
 
-    myQImageDescription = new SystemImageDescription(QImage);
     DeviceManager devMgr = DeviceManager.createInstance(sdkHandler, new NoErrorsOrWarningsLogger());
     myFoldable = devMgr.getDevice("7.6in Foldable", "Generic");
     myAutomotive = devMgr.getDevice("automotive_1024p_landscape", "Google");
@@ -175,7 +173,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     super.tearDown();
   }
 
-  public void testIsGoogleApiTag() throws Exception {
+  public void testIsGoogleApiTag() {
     assertThat(isGoogleApiTag(GOOGLE_APIS_TAG)).isTrue();
     assertThat(isGoogleApiTag(TV_TAG)).isTrue();
     assertThat(isGoogleApiTag(WEAR_TAG)).isTrue();
@@ -184,7 +182,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     assertThat(isGoogleApiTag(GOOGLE_APIS_X86_TAG)).isFalse();
   }
 
-  public void testGpuOtherMode() throws Exception {
+  public void testGpuOtherMode() {
     assertEquals(SWIFT, gpuOtherMode(23, true, true, true));
     assertEquals(SWIFT, gpuOtherMode(23, true, true, false));
 
@@ -241,7 +239,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     assertFalse(skinChooser.isEnabled());
   }
 
-  public void testUpdateSystemImageData() throws Exception {
+  public void testUpdateSystemImageData() {
     ensureSdkManagerAvailable();
     AvdOptionsModel optionsModel = new AvdOptionsModel(myMarshmallowAvdInfo);
 

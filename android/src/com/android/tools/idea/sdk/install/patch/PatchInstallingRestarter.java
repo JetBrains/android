@@ -91,7 +91,7 @@ public class PatchInstallingRestarter {
         else {
           // Otherwise it's remote.
           pendingPackage = repo.getRemotePackage().get(0);
-          installDir = ((RemotePackage)pendingPackage).getInstallDir(mgr, progress);
+          installDir = ((RemotePackage)pendingPackage).getInstallDir(mgr, progress, myFileOp);
           remote = true;
         }
         File existingPackageXml = new File(installDir, LocalRepoLoaderImpl.PACKAGE_XML_FN);

@@ -55,7 +55,7 @@ public class SdkQuickfixUtilsTest extends AndroidGradleTestCase {
     RepositoryPackages packages = new RepositoryPackages();
     File sdkPath = new File("/sdk");
     File avdPath = new File("/avd");
-    myRepoManager = spy(new FakeRepoManager(sdkPath, packages));
+    myRepoManager = spy(new FakeRepoManager(fileOp.toPath(sdkPath), packages));
     mySdkHandler = new AndroidSdkHandler(sdkPath, avdPath, fileOp, myRepoManager);
     assertNotNull(mySdkHandler);
     FakeProgressIndicator progress = new FakeProgressIndicator();
