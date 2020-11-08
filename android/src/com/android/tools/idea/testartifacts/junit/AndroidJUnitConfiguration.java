@@ -27,6 +27,7 @@ import com.intellij.execution.junit.JUnitConfiguration;
 import com.intellij.execution.junit.TestObject;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
+import com.intellij.execution.target.LanguageRuntimeType;
 import com.intellij.execution.testframework.TestSearchScope;
 import com.intellij.execution.testframework.sm.runner.SMTRunnerConsoleProperties;
 import com.intellij.openapi.module.Module;
@@ -37,6 +38,7 @@ import com.intellij.openapi.project.Project;
 import java.util.HashSet;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Android implementation of {@link JUnitConfiguration} so some behaviors can be overridden.
@@ -51,6 +53,12 @@ public class AndroidJUnitConfiguration extends JUnitConfiguration {
         return testObject != null ? testObject : super.getTestObject(configuration);
       }
     }, configurationFactory);
+  }
+
+  @Override
+  @Nullable
+  public LanguageRuntimeType<?> getDefaultLanguageRuntimeType() {
+    return null; // run targets support disabled
   }
 
   @Override
