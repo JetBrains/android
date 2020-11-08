@@ -230,21 +230,11 @@ object AndroidStudioUsageTracker {
       eventQueue.removeIdleListener(runner)
 
       val now = AnalyticsSettings.dateProvider.now()
-      val dialog = SatisfactionDialog()
-      dialog.showAndGetOk().doWhenDone(Runnable {
-        val result = dialog.selectedSentiment
-        UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
-          kind = EventKind.USER_SENTIMENT
-          userSentiment = UserSentiment.newBuilder().apply {
-            state = UserSentiment.SentimentState.POPUP_QUESTION
-            level = result
-          }.build()
-        })
-
-        AnalyticsSettings.lastSentimentQuestionDate = now
-        AnalyticsSettings.lastSentimentAnswerDate = now
-        AnalyticsSettings.saveSettings()
-      })
+      val dialog = SatisfactionDialog(DEFAULT_SATISFACTION_SURVEY, LegacySurveyLogger)
+      dialog.show()
+      AnalyticsSettings.lastSentimentQuestionDate = now
+      AnalyticsSettings.lastSentimentAnswerDate = now
+      AnalyticsSettings.saveSettings()
     }
 
     eventQueue.addIdleListener(runner, IDLE_TIME_BEFORE_SHOWING_DIALOG)
