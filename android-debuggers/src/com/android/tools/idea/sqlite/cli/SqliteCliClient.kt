@@ -149,9 +149,14 @@ private object ProcessExecutor {
   private suspend fun consumeProcessOutput(source: InputStream?, outputWriter: Writer, process: Process) {
     if (source == null) return
 
+    var isFirstLine = true
     Scanner(source, UTF_8.name()).use { scanner ->
       while (process.isAlive || scanner.hasNextLine()) {
-        while (scanner.hasNextLine()) outputWriter.append(scanner.nextLine()).append(System.lineSeparator())
+        while (scanner.hasNextLine()) {
+          if (!isFirstLine) outputWriter.append(System.lineSeparator())
+          isFirstLine = false
+          outputWriter.append(scanner.nextLine())
+        }
         delay(50)
       }
     }
