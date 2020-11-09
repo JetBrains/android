@@ -47,6 +47,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -298,6 +299,45 @@ class ComposePreviewTest {
       .allSceneViews
       .size)
 
+    composePreview.designSurface
+      .allSceneViews
+      .first()
+      .toolbar()
+      .clickButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
+
+    composePreview
+      .waitForRenderToFinish()
+
+    assertEquals(1, composePreview.designSurface
+      .allSceneViews
+      .size)
+
+    composePreview
+      .findActionButtonByText("Stop Interactive Preview")
+      .click()
+
+    composePreview
+      .waitForRenderToFinish()
+
+    assertEquals(3, composePreview.designSurface
+      .allSceneViews
+      .size)
+
+    fixture.editor.close()
+  }
+
+  @Test
+  @Ignore // TODO(b/172894609): AnimationDemo is not detected as animation
+  @Throws(Exception::class)
+  fun testAnimationButtonWhileInteractiveSwitch() {
+    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    val composePreview = openComposePreview(fixture, "Animations.kt")
+
+    composePreview
+      .waitForRenderToFinish()
+      .getNotificationsFixture()
+      .assertNoNotifications()
+
     var animButton =
       composePreview.designSurface
         .allSceneViews
@@ -314,10 +354,6 @@ class ComposePreviewTest {
 
     composePreview
       .waitForRenderToFinish()
-
-    assertEquals(1, composePreview.designSurface
-      .allSceneViews
-      .size)
 
     animButton =
       composePreview.designSurface
@@ -343,10 +379,6 @@ class ComposePreviewTest {
         .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
     // Animation inspector can be open again after exiting interactive mode.
     assertTrue(animButton.isEnabled)
-
-    assertEquals(3, composePreview.designSurface
-      .allSceneViews
-      .size)
 
     fixture.editor.close()
   }
