@@ -22,6 +22,7 @@ import com.android.tools.idea.concurrency.FutureCallbackExecutor;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceState;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
+import com.android.tools.idea.testing.DebugLoggerRule;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.EmptyRunnable;
@@ -60,7 +61,7 @@ public class AdbDeviceFileSystemTest {
   public ExpectedException thrown = ExpectedException.none();
 
   @ClassRule
-  public static final TestRule ourLoggerFactoryRule = new DebugLoggerFactoryRule();
+  public static final TestRule ourLoggerRule = new DebugLoggerRule();
 
   @Before
   public void setUp() throws Exception {
