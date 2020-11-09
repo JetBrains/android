@@ -169,7 +169,8 @@ public class AndroidCompileUtil {
                 line = Integer.parseInt(matcher.group(2));
               }
             }
-            context.addMessage(category, (module != null ? '[' + module.getName() + "] " : "") + message, url, line, -1);
+            String moduleName = module != null? module.getName() : null;
+            context.addMessage(category, (moduleName != null ? '[' + moduleName + "] " : "") + message, url, line, -1, null, moduleName != null? Collections.singleton(moduleName) : Collections.emptyList());
           }
         }
       }
@@ -525,7 +526,7 @@ public class AndroidCompileUtil {
     final CompilerProjectExtension extension = CompilerProjectExtension.getInstance(project);
     if (extension == null) {
       if (context != null) {
-        context.addMessage(CompilerMessageCategory.ERROR, "Cannot get compiler settings for project " + project.getName(), null, -1, -1);
+        context.addMessage(CompilerMessageCategory.ERROR, "Cannot get compiler settings for project " + project.getName(), null, -1, -1, null, Collections.singleton(module.getName()));
       }
       return null;
     }
@@ -533,7 +534,7 @@ public class AndroidCompileUtil {
     final String projectOutputDirUrl = extension.getCompilerOutputUrl();
     if (projectOutputDirUrl == null) {
       if (context != null) {
-        context.addMessage(CompilerMessageCategory.ERROR, "Cannot find output directory for project " + project.getName(), null, -1, -1);
+        context.addMessage(CompilerMessageCategory.ERROR, "Cannot find output directory for project " + project.getName(), null, -1, -1, null, Collections.singleton(module.getName()));
       }
       return null;
     }
@@ -549,7 +550,7 @@ public class AndroidCompileUtil {
       else {
         if (context != null) {
           context.addMessage(CompilerMessageCategory.ERROR, "Cannot create directory " + pngCacheDirOsPath + " because file already exists",
-                             null, -1, -1);
+                             null, -1, -1, null, Collections.singleton(module.getName()));
         }
         return null;
       }
@@ -561,7 +562,7 @@ public class AndroidCompileUtil {
 
     if (!pngCacheDir.mkdirs()) {
       if (context != null) {
-        context.addMessage(CompilerMessageCategory.ERROR, "Cannot create directory " + pngCacheDirOsPath, null, -1, -1);
+        context.addMessage(CompilerMessageCategory.ERROR, "Cannot create directory " + pngCacheDirOsPath, null, -1, -1, null, Collections.singleton(module.getName()));
       }
       return null;
     }
