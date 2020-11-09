@@ -27,7 +27,6 @@ import com.android.tools.property.panel.impl.support.TextEditorFocusListener
 import com.intellij.ide.actions.UndoRedoAction
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.util.text.nullize
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Color
@@ -123,6 +122,9 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
             // Do this by calling JPopupMenu.show(Component,x,y) which could be overridden
             // in a LAF implementation of PopupMenuUI.
             val popupMenu = popup as? JPopupMenu ?: return@updatePopup
+            if (!isPopupVisible) {
+              return@updatePopup
+            }
             val location = popupMenu.locationOnScreen
             val comboLocation = this@WrappedComboBox.locationOnScreen
             location.translate(-comboLocation.x, -comboLocation.y)
@@ -195,22 +197,12 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     if (!model.editable) {
       inSetup = true
       try {
-        selectedIndex = findIndexWithValue(model.value)
+        selectedIndex = model.getIndexOfCurrentValue()
       }
       finally {
         inSetup = false
       }
     }
-  }
-
-  private fun findIndexWithValue(value: String): Int {
-    val nullable = value.nullize()
-    for (index in 0 until model.size) {
-      if (model.getElementAt(index)?.value == nullable) {
-        return index
-      }
-    }
-    return -1
   }
 
   override fun setForeground(color: Color?) {
