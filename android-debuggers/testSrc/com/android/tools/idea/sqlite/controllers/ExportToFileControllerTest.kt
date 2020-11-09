@@ -17,8 +17,11 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
+import com.android.tools.idea.sqlite.cli.SqliteCliClient
+import com.android.tools.idea.sqlite.cli.SqliteCliClientImpl
+import com.android.tools.idea.sqlite.cli.SqliteCliProviderImpl
+import com.android.tools.idea.sqlite.mocks.CliDatabaseConnection
 import com.android.tools.idea.sqlite.mocks.FakeExportToFileDialogView
 import com.android.tools.idea.sqlite.mocks.OpenDatabaseRepository
 import com.android.tools.idea.sqlite.model.DatabaseFileData
@@ -31,6 +34,7 @@ import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
+import com.android.tools.idea.sqlite.utils.initAdbFileProvider
 import com.android.tools.idea.sqlite.utils.toLineSequence
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.truth.Truth.assertThat
@@ -39,7 +43,6 @@ import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.TempDirTestFixture
 import com.intellij.util.concurrency.EdtExecutorService
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.withContext
@@ -48,6 +51,7 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import java.nio.file.Paths
 import java.util.concurrent.Executor
+import java.util.concurrent.atomic.AtomicInteger
 
 private const val nonAsciiSuffix = " ąę"
 private const val table1 = "t1$nonAsciiSuffix"
@@ -56,8 +60,11 @@ private const val column2 = "c2$nonAsciiSuffix"
 private const val databaseFileName = "db$nonAsciiSuffix.db"
 private const val outputFileName = "output$nonAsciiSuffix.out"
 
-/** two columns with increasing numbers (and a non-ascii suffix) */
+/** Two columns with increasing numbers (and a non-ascii suffix) */
 private val sampleValues: List<Pair<String, String>> = (1..10).map { "$it$nonAsciiSuffix" }.zipWithNext()
+
+/** Keeps connection ids unique */
+private val nextConnectionId = AtomicInteger(1)
 
 class ExportToFileControllerTest : LightPlatformTestCase() {
   private val notifyExportComplete: (ExportRequest) -> Unit = mock()
@@ -68,8 +75,8 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
   private lateinit var edtExecutor: Executor
   private lateinit var taskExecutor: Executor
 
-  private lateinit var projectScope: CoroutineScope
   private lateinit var databaseRepository: DatabaseRepository
+  private lateinit var sqliteCliClient: SqliteCliClient
 
   private lateinit var view: FakeExportToFileDialogView
   private lateinit var controller: ExportToFileController
@@ -83,7 +90,8 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     edtExecutor = EdtExecutorService.getInstance()
     taskExecutor = PooledThreadExecutor.INSTANCE
 
-    projectScope = project.coroutineScope
+    initAdbFileProvider(project)
+    sqliteCliClient = SqliteCliClientImpl(SqliteCliProviderImpl(project).getSqliteCli()!!, taskExecutor.asCoroutineDispatcher())
     databaseRepository = OpenDatabaseRepository(project, taskExecutor)
 
     view = FakeExportToFileDialogView()
@@ -106,8 +114,9 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     super.tearDown()
   }
 
-  fun testExportQueryToCsv() {
-    val database = createEmptyDatabase()
+  fun testExportQueryToCsvLiveDb() = testExportQueryToCsv(createEmptyDatabase(DatabaseType.Live))
+  fun testExportQueryToCsvFileDb() = testExportQueryToCsv(createEmptyDatabase(DatabaseType.File))
+  private fun testExportQueryToCsv(database: SqliteDatabaseId) {
     fillDatabase(database, sampleValues)
 
     val statement = createSqliteStatement("select * from '$table1' where cast(\"$column1\" as text) > cast(5 as text)")
@@ -117,8 +126,9 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     testExportToCsv(exportRequest = exportRequest, expectedValues = sampleValues.filter { (c1, _) -> c1 > "5" })
   }
 
-  fun testExportTableToCsv() {
-    val database = createEmptyDatabase()
+  fun testExportTableToCsvLiveDb() = testExportTableToCsv(createEmptyDatabase(DatabaseType.Live))
+  fun testExportTableToCsvFileDb() = testExportTableToCsv(createEmptyDatabase(DatabaseType.File))
+  private fun testExportTableToCsv(database: SqliteDatabaseId) {
     fillDatabase(database, sampleValues)
 
     val dstPath = Paths.get(tempDirTestFixture.tempDirPath, outputFileName)
@@ -146,13 +156,20 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     runDispatching { view.listeners.first().exportRequestSubmitted(exportRequest) }
   }
 
-  @Suppress("SameParameterValue")
-  private fun createEmptyDatabase(): SqliteDatabaseId {
+  private fun createEmptyDatabase(type: DatabaseType): SqliteDatabaseId {
     val databaseFile = tempDirTestFixture.createFile(databaseFileName)
-    val connection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, databaseFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
-    )
-    val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(databaseFile))
+
+    val connection = when (type) {
+      DatabaseType.File -> pumpEventsAndWaitForFuture(
+        getJdbcDatabaseConnection(testRootDisposable, databaseFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+      )
+      DatabaseType.Live -> CliDatabaseConnection(databaseFile.toNioPath(), sqliteCliClient, '|', taskExecutor)
+    }
+
+    val databaseId = when (type) {
+      DatabaseType.File -> SqliteDatabaseId.fromFileDatabase(DatabaseFileData(databaseFile))
+      DatabaseType.Live -> SqliteDatabaseId.fromLiveDatabase(databaseFile.toNioPath().toString(), nextConnectionId.getAndIncrement())
+    }
 
     runDispatching { databaseRepository.addDatabaseConnection(databaseId, connection) }
     return databaseId
@@ -174,3 +191,5 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     }
   }
 }
+
+private enum class DatabaseType { Live, File }
