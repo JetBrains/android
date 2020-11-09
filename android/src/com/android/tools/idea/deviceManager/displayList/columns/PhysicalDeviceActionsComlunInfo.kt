@@ -78,4 +78,3 @@ class PhysicalDeviceActionsColumnInfo(
     override fun getCellEditorValue(): Any? = null
   }
 }
-

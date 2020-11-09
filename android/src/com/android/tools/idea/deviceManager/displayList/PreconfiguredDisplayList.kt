@@ -24,8 +24,6 @@ import com.android.tools.idea.deviceManager.displayList.columns.DeviceColumnInfo
 import com.android.tools.idea.deviceManager.displayList.columns.PreconfiguredDeviceColumnInfo
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.google.common.collect.Sets
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.ui.ScrollPaneFactory
@@ -75,15 +73,9 @@ class PreconfiguredDisplayList(
     layout = BoxLayout(this, 1)
   }
 
-  protected val model = PreconfiguredDisplayListModel(project).apply {
-    isSortable = true
-  }
-  protected val table: TableView<PreconfiguredDeviceDefinition> = TableView<PreconfiguredDeviceDefinition>().apply {
-    setModelAndUpdateColumns(this@PreconfiguredDisplayList.model)
-    setDefaultRenderer(Any::class.java, NoBorderCellRenderer(this.getDefaultRenderer(Any::class.java)))
-  }
+  private val model = PreconfiguredDisplayListModel(project)
+  private val table = TableView<PreconfiguredDeviceDefinition>()
   private val listeners: MutableSet<DeviceSelectionListener> = Sets.newHashSet()
-  private val logger: Logger get() = logger<PreconfiguredDisplayList>()
 
   init {
     layout = BorderLayout()
@@ -99,6 +91,8 @@ class PreconfiguredDisplayList(
 
     add(centerCardPanel, BorderLayout.CENTER)
 
+    table.setModelAndUpdateColumns(model)
+    table.setDefaultRenderer(Any::class.java, NoBorderCellRenderer(table.getDefaultRenderer(Any::class.java)))
     table.apply {
       selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
       selectionModel.addListSelectionListener(this)
@@ -121,6 +115,7 @@ class PreconfiguredDisplayList(
     }
     refreshDevices()
 
+    model.isSortable = true
     model.columnInfos = listOf(
       PreconfiguredDeviceColumnInfo("Device"),
       object : DeviceColumnInfo("API", JBUI.scale(50)) {

@@ -114,7 +114,7 @@ class AvdDeviceColumnInfo(
 @VisibleForTesting
 fun AvdInfo.toDeviceInfo(): DeviceInfo = DeviceInfo(
   this.displayName,
-  EmulatorDisplayList.DeviceType.Virtual,
+  EmulatorDisplayList.DeviceType.VIRTUAL,
   AvdManagerConnection.getDefaultAvdManagerConnection().isAvdRunning(this),
   androidVersion,
   EmulatorDisplayList.getDeviceClassIconPair(this),

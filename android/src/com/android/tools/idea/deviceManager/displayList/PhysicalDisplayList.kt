@@ -22,8 +22,6 @@ import com.android.tools.idea.avdmanager.AvdActionPanel
 import com.android.tools.idea.deviceManager.avdmanager.actions.PhysicalDeviceUiAction
 import com.android.tools.idea.deviceManager.displayList.columns.PhysicalDeviceActionsColumnInfo
 import com.android.tools.idea.deviceManager.displayList.columns.PhysicalDeviceColumnInfo
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.layout.panel
@@ -72,9 +70,8 @@ class PhysicalDisplayList(override val project: Project?) : JPanel(), ListSelect
     setDefaultRenderer(Any::class.java, EmulatorDisplayList.NoBorderCellRenderer(this.getDefaultRenderer(Any::class.java)))
   }
   private val listeners: MutableSet<DeviceSelectionListener> = mutableSetOf()
-  private val logger: Logger get() = logger<PhysicalDisplayList>()
 
-  private var latestSearchString: String = ""
+  private var latestSearchString: String = "" // TODO: use this
 
   // TODO(qumeric): consider the case when serial numbers clash
   private val deviceMap: MutableMap<SerialNumber, NamedDevice> = mutableMapOf()

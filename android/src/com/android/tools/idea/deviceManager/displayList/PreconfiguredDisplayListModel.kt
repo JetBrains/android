@@ -19,6 +19,7 @@ import com.android.repository.api.ProgressIndicator
 import com.android.repository.api.RepoManager
 import com.android.repository.api.RepoManager.RepoLoadedListener
 import com.android.repository.impl.meta.RepositoryPackages
+import com.android.sdklib.devices.Device
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.avdmanager.SystemImageDescription
@@ -33,7 +34,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.util.ui.ListTableModel
 
 
-fun getDevice(deviceName: String) =
+fun getDevice(deviceName: String): Device =
   DeviceManagerConnection.getDefaultDeviceManagerConnection().devices.first { it.displayName == deviceName }
 
 // TODO(qumeric): consider making it a separate class or integrating into some existing class
@@ -60,7 +61,7 @@ private fun List<SystemImageDescription>.toPreconfiguredDevices(): List<Preconfi
 
 // TODO(qumeric): there is a lot of redundant stuff here like columnInfos. It should be removed
 /**
- * A table model for a [PreconfiguredDisplayList]. Heavily infuenced by [SystemImageListModel]
+ * A table model for a [PreconfiguredDisplayList]. Heavily influenced by [com.android.tools.idea.avdmanager.SystemImageListModel]
  */
 class PreconfiguredDisplayListModel(
   private val project: Project?

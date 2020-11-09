@@ -292,11 +292,11 @@ class EmulatorDisplayList(private val project: Project?) : JPanel(), ListSelecti
   }
 
   enum class DeviceType {
-    Virtual(),
-    Real(),
+    VIRTUAL,
+    REAL,
 
     // TODO(qumeric): should probably be a sealed class and provide data to facilitate download
-    Preconfigured();
+    PRECONFIGURED
   }
 
 
@@ -337,7 +337,7 @@ class EmulatorDisplayList(private val project: Project?) : JPanel(), ListSelecti
           if (result != AccelerationErrorCode.ALREADY_INSTALLED) {
             refreshUI.set(true)
             notificationPanel.add(
-              AccelerationErrorNotificationPanel(result, project, Runnable { refreshErrorCheck() }))
+              AccelerationErrorNotificationPanel(result, project) { refreshErrorCheck() })
           }
           if (refreshUI.get()) {
             notificationPanel.revalidate()
