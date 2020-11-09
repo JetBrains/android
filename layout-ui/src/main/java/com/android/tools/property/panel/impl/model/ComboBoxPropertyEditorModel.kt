@@ -103,6 +103,18 @@ class ComboBoxPropertyEditorModel(
     resetPendingValue()
   }
 
+  fun getIndexOfCurrentValue(): Int {
+    val stringValue = value
+    if (stringValue.isNotEmpty()) {
+      for (index in 0 until size) {
+        if (getElementAt(index)?.value == stringValue) {
+          return index
+        }
+      }
+    }
+    return -1
+  }
+
   private fun setInitialDropDownValue(stringValue: String) {
     loading.clear()
     if (stringValue.isNotEmpty()) {
