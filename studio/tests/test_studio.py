@@ -46,6 +46,23 @@ class StudioTests(unittest.TestCase):
       if m:
         self.assertEquals(m.group(1), "Info.plist", "Only Info.plist should be present in Contents (Found " + m.group(1) + ")")
 
+  def test_mac_filelist(self):
+    """Tests whether the _codesign/filelist file is up to date.
+
+    When building the macOS distribution, //tools/adt/idea/studio/codesign/filelist
+    is copied to _codesign/filelist in the final zip. This test ensures that
+    the entries in filelist are up to date.
+    """
+    name = "tools/adt/idea/studio/android-studio.mac.zip"
+    macos_zip = zipfile.ZipFile(name)
+    namelist = macos_zip.namelist()
+    filelist = macos_zip.open("_codesign/filelist")
+    for line in filelist:
+      line = line.decode("utf-8").strip()
+      if line.startswith("#"):
+        continue
+      self.assertIn(line, namelist, "%s is in _codesign/filelist but is not present in distribution" % line)
+
   def test_no_build_files(self):
     for platform in PLATFORMS:
       name = "tools/adt/idea/studio/android-studio.%s.zip" % platform
