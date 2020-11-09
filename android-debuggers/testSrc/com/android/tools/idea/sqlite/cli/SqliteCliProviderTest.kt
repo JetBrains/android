@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.sqlite.cli
 
-import com.android.tools.idea.adb.AdbFileProvider
+import com.android.SdkConstants
+import com.android.testutils.OsType
 import com.android.tools.idea.sqlite.cli.SqliteCliProvider.Companion.SQLITE3_PATH_ENV
 import com.android.tools.idea.sqlite.cli.SqliteCliProvider.Companion.SQLITE3_PATH_PROPERTY
 import com.google.common.truth.Truth.assertThat
@@ -46,6 +47,7 @@ class SqliteCliProviderTest : LightPlatformTestCase() {
     val actual = SqliteCliProviderImpl(project).getSqliteCli()
     assertThat(actual!!.exists()).isTrue()
     assertThat(actual.isFile()).isTrue()
+    assertThat(actual.fileName.toString()).isEqualTo(SdkConstants.FN_SQLITE3)
     assertThat(actual.parent.toFile().name).isEqualTo("platform-tools")
   }
 
@@ -66,13 +68,9 @@ class SqliteCliProviderTest : LightPlatformTestCase() {
     assertThat(actual2!!.toFile().canonicalPath).isEqualTo(fakeSqlite3Property.canonicalPath)
   }
 
-  fun testWindowsExtension() {
-    val fakeAdbExe = tempDirTestFixture.createFile("adb.exe").toNioPath().toFile()
-    val fakeSqlite3Exe = tempDirTestFixture.createFile("sqlite3.exe").toNioPath().toFile()
-
-    AdbFileProvider { fakeAdbExe }.storeInProject(project)
-
+  fun testExtension() {
     val actual = SqliteCliProviderImpl(project).getSqliteCli()
-    assertThat(actual!!.toFile().canonicalPath).isEqualTo(fakeSqlite3Exe.canonicalPath)
+    val expectedExtension = if (OsType.getHostOs() == OsType.WINDOWS) "exe" else ""
+    assertThat(actual!!.toFile().extension).isEqualTo(expectedExtension)
   }
 }
