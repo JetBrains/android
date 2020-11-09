@@ -61,7 +61,6 @@ public class AndroidApplicationArtifactProperties extends ArtifactProperties<And
                          AndroidBundle.message("android.compilation.error.specify.platform", module.getName()), null, -1, -1);
       return;
     }
-    final String sdkLocation = platform.getSdkData().getPath();
     final String artifactFilePath = artifact.getOutputFilePath();
 
     final String keyStorePath = myKeyStoreUrl != null
@@ -73,7 +72,7 @@ public class AndroidApplicationArtifactProperties extends ArtifactProperties<And
                                ? getPlainKeyPassword() : null;
     try {
       final Map<AndroidCompilerMessageKind,List<String>> messages =
-        AndroidBuildCommonUtils.buildArtifact(artifactName, messagePrefix, sdkLocation, platform.getTarget(), artifactFilePath,
+        AndroidBuildCommonUtils.buildArtifact(artifactName, messagePrefix, platform.getTarget(), artifactFilePath,
                                               keyStorePath, myKeyAlias, keyStorePassword, keyPassword);
       AndroidCompileUtil.addMessages(context, AndroidCompileUtil.toCompilerMessageCategoryKeys(messages), null);
     }

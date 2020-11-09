@@ -33,8 +33,8 @@ import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Clock;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -351,7 +351,7 @@ public class MergedManifestManagerTest extends AndroidTestCase {
     }
 
     @Override
-    public File getDefaultSkin() {
+    public Path getDefaultSkin() {
       return null;
     }
 
@@ -390,7 +390,7 @@ public class MergedManifestManagerTest extends AndroidTestCase {
 
     @Override
     @NotNull
-    public String getPath(int pathId) {
+    public Path getPath(int pathId) {
       throw new UnsupportedOperationException();
     }
 
@@ -421,7 +421,7 @@ public class MergedManifestManagerTest extends AndroidTestCase {
 
     @Override
     @NotNull
-    public File[] getSkins() {
+    public Path[] getSkins() {
       return null;
     }
 

@@ -31,6 +31,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.function.Function;
@@ -46,7 +47,7 @@ import org.jetbrains.annotations.Nullable;
  * Finds an asset in all the asset directories and returns the input stream.
  */
 public class AssetRepositoryImpl extends AssetRepository {
-  private static File myFrameworkResDirOrJar;
+  private static Path myFrameworkResDirOrJar;
   private AndroidFacet myFacet;
 
   public AssetRepositoryImpl(@NotNull AndroidFacet facet) {
@@ -206,7 +207,7 @@ public class AssetRepositoryImpl extends AssetRepository {
   }
 
   @Nullable
-  private static File getSdkResDirOrJar(@NotNull AndroidFacet facet) {
+  private static Path getSdkResDirOrJar(@NotNull AndroidFacet facet) {
     if (myFrameworkResDirOrJar == null) {
       ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(facet);
       IAndroidTarget target = manager.getHighestApiTarget();
@@ -214,7 +215,7 @@ public class AssetRepositoryImpl extends AssetRepository {
         return null;
       }
       CompatibilityRenderTarget compatibilityTarget = StudioEmbeddedRenderTarget.getCompatibilityTarget(target);
-      myFrameworkResDirOrJar = compatibilityTarget.getFile(IAndroidTarget.RESOURCES);
+      myFrameworkResDirOrJar = compatibilityTarget.getPath(IAndroidTarget.RESOURCES);
     }
     return myFrameworkResDirOrJar;
   }

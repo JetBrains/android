@@ -8,7 +8,7 @@
 	at sun.nio.fs.UnixFileSystemProvider.readAttributes(UnixFileSystemProvider.java:144)
 	at java.nio.file.Files.readAttributes(Files.java:1737)
 	at java.nio.file.Files.isRegularFile(Files.java:2229)
-	at com.android.repository.io.impl.FileSystemFileOp.isFile(FileSystemFileOp.java:164)
+	at com.android.repository.io.FileOp.isFile(FileSystemFileOp.java:164)
 	at com.android.sdklib.repository.PackageParserUtils.parseSkinFolder(PackageParserUtils.java:101)
 	at com.android.sdklib.repository.targets.PlatformTarget.<init>(PlatformTarget.java:147)
 	at com.android.sdklib.repository.targets.AndroidTargetManager.getTargetMap(AndroidTargetManager.java:94)
