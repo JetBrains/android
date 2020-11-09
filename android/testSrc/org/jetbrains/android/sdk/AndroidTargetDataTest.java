@@ -139,9 +139,9 @@ public class AndroidTargetDataTest extends AndroidTestCase {
     LocalFileSystem.getInstance().refresh(false);
 
     IAndroidTarget target = mock(IAndroidTarget.class);
-    when(target.getPath(eq(IAndroidTarget.ATTRIBUTES))).thenReturn(attrsXml.getPath());
-    when(target.getPath(eq(IAndroidTarget.MANIFEST_ATTRIBUTES))).thenReturn(manifestAttrsXml.getPath());
-    when(target.getPath(eq(IAndroidTarget.RESOURCES))).thenReturn(resDir.getPath());
+    when(target.getPath(eq(IAndroidTarget.ATTRIBUTES))).thenReturn(attrsXml.toPath());
+    when(target.getPath(eq(IAndroidTarget.MANIFEST_ATTRIBUTES))).thenReturn(manifestAttrsXml.toPath());
+    when(target.getPath(eq(IAndroidTarget.RESOURCES))).thenReturn(resDir.toPath());
 
     AndroidTargetData targetData = new AndroidTargetData(mock(AndroidSdkData.class), target);
     AttributeDefinitions publicAttrs = targetData.getPublicAttrDefs(getProject());

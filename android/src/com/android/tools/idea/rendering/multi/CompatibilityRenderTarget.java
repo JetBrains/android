@@ -21,7 +21,7 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.OptionalLibrary;
 import com.android.sdklib.SdkVersionInfo;
-import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -117,14 +117,8 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
 
   @Override
   @NotNull
-  public String getPath(int pathId) {
+  public Path getPath(int pathId) {
     return myDelegate.getPath(pathId);
-  }
-
-  @Override
-  @NotNull
-  public File getFile(int pathId) {
-    return myDelegate.getFile(pathId);
   }
 
   // Remainder: Just delegate
@@ -188,13 +182,13 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
 
   @Override
   @NotNull
-  public File[] getSkins() {
+  public Path[] getSkins() {
     return myDelegate.getSkins();
   }
 
   @Nullable
   @Override
-  public File getDefaultSkin() {
+  public Path getDefaultSkin() {
     return myDelegate.getDefaultSkin();
   }
 

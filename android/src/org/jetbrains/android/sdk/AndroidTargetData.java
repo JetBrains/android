@@ -48,7 +48,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -103,8 +103,8 @@ public class AndroidTargetData {
   public AttributeDefinitions getAllAttrDefs(@NotNull Project project) {
     synchronized (myAttrDefsLock) {
       if (myAttrDefs == null) {
-        String attrsPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.ATTRIBUTES));
-        String attrsManifestPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.MANIFEST_ATTRIBUTES));
+        String attrsPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.ATTRIBUTES).toString());
+        String attrsManifestPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.MANIFEST_ATTRIBUTES).toString());
         myAttrDefs = AttributeDefinitionsImpl.parseFrameworkFiles(new File(attrsPath), new File(attrsManifestPath));
       }
       return myAttrDefs;
@@ -142,9 +142,9 @@ public class AndroidTargetData {
   }
 
   private void parsePublicResCache() {
-    String resDirPath = myTarget.getPath(IAndroidTarget.RESOURCES);
-    String publicXmlPath = resDirPath + '/' + SdkConstants.FD_RES_VALUES + "/public.xml";
-    VirtualFile publicXml = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(publicXmlPath));
+    Path resDirPath = myTarget.getPath(IAndroidTarget.RESOURCES);
+    Path publicXmlPath = resDirPath.resolve(SdkConstants.FD_RES_VALUES).resolve("public.xml");
+    VirtualFile publicXml = LocalFileSystem.getInstance().findFileByNioFile(publicXmlPath);
 
     if (publicXml != null) {
       try {
@@ -267,15 +267,16 @@ public class AndroidTargetData {
   @Slow
   @Nullable
   public synchronized ResourceRepository getFrameworkResources(@NotNull Set<String> languages) {
-    File resFolderOrJar = myTarget.getFile(IAndroidTarget.RESOURCES);
-    if (!resFolderOrJar.exists()) {
-      LOG.error(String.format("\"%s\" directory or file cannot be found", resFolderOrJar.getPath()));
+    Path resFolderOrJar = myTarget.getPath(IAndroidTarget.RESOURCES);
+    if (!Files.exists(resFolderOrJar)) {
+      LOG.error(String.format("\"%s\" directory or file cannot be found", resFolderOrJar.toString()));
       return null;
     }
 
-    return FrameworkResourceRepositoryManager.getInstance().getFrameworkResources(resFolderOrJar,
-                                                                                  myTarget instanceof CompatibilityRenderTarget,
-                                                                                  languages);
+    return FrameworkResourceRepositoryManager.getInstance().getFrameworkResources(
+      mySdkData.getSdkHandler().getFileOp().toFile(resFolderOrJar),
+      myTarget instanceof CompatibilityRenderTarget,
+      languages);
   }
 
   /**
@@ -289,15 +290,16 @@ public class AndroidTargetData {
   @Slow
   @Nullable
   public synchronized ResourceRepository getExistingFrameworkResources(@NotNull Set<String> languages) {
-    File resFolderOrJar = myTarget.getFile(IAndroidTarget.RESOURCES);
-    if (!resFolderOrJar.exists()) {
-      LOG.error(String.format("\"%s\" directory or file cannot be found", resFolderOrJar.getPath()));
+    Path resFolderOrJar = myTarget.getPath(IAndroidTarget.RESOURCES);
+    if (!Files.exists(resFolderOrJar)) {
+      LOG.error(String.format("\"%s\" directory or file cannot be found", resFolderOrJar.toString()));
       return null;
     }
 
-    return FrameworkResourceRepositoryManager.getInstance().getExistingFrameworkResources(resFolderOrJar,
-                                                                                          myTarget instanceof CompatibilityRenderTarget,
-                                                                                          languages);
+    return FrameworkResourceRepositoryManager.getInstance().getExistingFrameworkResources(
+      mySdkData.getSdkHandler().getFileOp().toFile(resFolderOrJar),
+      myTarget instanceof CompatibilityRenderTarget,
+      languages);
   }
 
   /**
@@ -440,7 +442,7 @@ public class AndroidTargetData {
 
     @Nullable
     private Set<String> collectValues(int pathId) {
-      try (BufferedReader reader = Files.newBufferedReader(Paths.get(myTarget.getPath(pathId)))) {
+      try (BufferedReader reader = Files.newBufferedReader(myTarget.getPath(pathId))) {
         Set<String> result = new HashSet<>();
         String line;
         while ((line = reader.readLine()) != null) {

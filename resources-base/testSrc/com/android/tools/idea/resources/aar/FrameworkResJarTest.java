@@ -45,7 +45,7 @@ public class FrameworkResJarTest extends LightPlatformTestCase {
   @NotNull
   private static Path getFrameworkResJar() {
     IAndroidTarget renderTarget = StudioEmbeddedRenderTarget.getInstance();
-    return Paths.get(renderTarget.getPath(IAndroidTarget.RESOURCES));
+    return renderTarget.getPath(IAndroidTarget.RESOURCES);
   }
 
   /** Returns the path of the framework res directory in prebuilts. */

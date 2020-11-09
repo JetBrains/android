@@ -306,7 +306,7 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
   private String getFrameworkResourcesPath() {
     IAndroidTarget target = ConfigurationManager.getOrCreateInstance(myModule).getProjectTarget();
     assertThat(target).isNotNull();
-    return target.getPath(IAndroidTarget.RESOURCES);
+    return target.getPath(IAndroidTarget.RESOURCES).toString();
   }
 
   @Nullable

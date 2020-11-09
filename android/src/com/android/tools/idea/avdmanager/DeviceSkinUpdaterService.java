@@ -118,7 +118,6 @@ final class DeviceSkinUpdaterService {
       .map(IAndroidTarget::getSkins)
       .flatMap(Arrays::stream)
       .filter(Objects::nonNull)
-      .map(File::toPath)
       .map(updateSkins);
   }
 

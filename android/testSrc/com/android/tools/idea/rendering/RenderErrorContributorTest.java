@@ -34,6 +34,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import java.nio.file.Path;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -201,12 +202,11 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       if (!ConfigurationManager.isLayoutLibTarget(target)) {
         continue;
       }
-      String path = target.getPath(IAndroidTarget.ANDROID_JAR);
+      Path path = target.getPath(IAndroidTarget.ANDROID_JAR);
       if (path == null) {
         continue;
       }
-      File f = new File(path);
-      if (f.getParentFile() != null && f.getParentFile().getName().equals(platformDir)) {
+      if (path.getParent() != null && path.getParent().getFileName().toString().equals(platformDir)) {
         return target;
       }
     }
