@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite.cli
 
+import com.android.SdkConstants
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.sqlite.cli.SqliteCliProvider.Companion.SQLITE3_PATH_ENV
 import com.android.tools.idea.sqlite.cli.SqliteCliProvider.Companion.SQLITE3_PATH_PROPERTY
@@ -71,9 +72,7 @@ class SqliteCliProviderImpl(private val project: Project) : SqliteCliProvider {
     }
     logAny("Adb location: ${adbFile.toPath()}")
     logAny("Adb neighbours: ${adbFile.parentFile.listFiles()?.map { it.toPath() }}")
-    val ext = if (adbFile.extension == "exe") ".exe" else ""
-    val sqliteCliFileName = "sqlite3$ext"
-    val adbSibling = adbFile.toPath().parent.resolve(sqliteCliFileName).toFile()
+    val adbSibling = adbFile.toPath().parent.resolve(SdkConstants.FN_SQLITE3).toFile()
 
     logCheckingSqlite3(adbSibling.toPath())
     return if (adbSibling.exists()) {
