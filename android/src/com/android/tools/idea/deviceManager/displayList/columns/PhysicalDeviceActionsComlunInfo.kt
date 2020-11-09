@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.deviceManager.displayList.columns
 
-import com.android.tools.idea.deviceManager.avdmanager.actions.PhysicalDeviceUiAction
+import com.android.tools.idea.deviceManager.actions.PhysicalDeviceUiAction
 import com.android.tools.idea.deviceManager.displayList.NamedDevice
 import com.android.tools.idea.deviceManager.displayList.PhysicalDeviceActionPanel
 import com.intellij.util.ui.AbstractTableCellEditor
