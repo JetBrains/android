@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -58,7 +59,7 @@ public class AndroidApplicationArtifactProperties extends ArtifactProperties<And
     final AndroidPlatform platform = AndroidPlatform.getInstance(module);
     if (platform == null) {
       context.addMessage(CompilerMessageCategory.ERROR, messagePrefix +
-                         AndroidBundle.message("android.compilation.error.specify.platform", module.getName()), null, -1, -1);
+                         AndroidBundle.message("android.compilation.error.specify.platform", module.getName()), null, -1, -1, null, Collections.singleton(module.getName()));
       return;
     }
     final String artifactFilePath = artifact.getOutputFilePath();

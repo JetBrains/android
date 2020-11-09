@@ -212,7 +212,7 @@ public class AndroidPrecompileTask implements CompileTask {
                                                               "' have different ProGuard options: " +
                                                               firstArtifact.getName() +
                                                               ", " +
-                                                              artifact.getName(), null, -1, -1);
+                                                              artifact.getName(), null, -1, -1, null, Collections.singleton(moduleName));
             success = false;
             break;
           }
@@ -256,7 +256,7 @@ public class AndroidPrecompileTask implements CompileTask {
       if (manifestMergerProp != null && Boolean.parseBoolean(manifestMergerProp.getFirst())) {
         context.addMessage(CompilerMessageCategory.WARNING,
                            "[" + module.getName() + "] " + AndroidBundle.message("android.manifest.merger.not.supported.error"),
-                           manifestMergerProp.getSecond().getUrl(), -1, -1);
+                           manifestMergerProp.getSecond().getUrl(), -1, -1, null, Collections.singleton(module.getName()));
       }
 
       if (facet.getConfiguration().isAppProject()) {
@@ -278,7 +278,7 @@ public class AndroidPrecompileTask implements CompileTask {
                                    depModule.getName() +
                                    ": Android application module depends on other application module. Possibly, you should ";
                   message += "change dependency scope to 'Provided'.";
-                  context.addMessage(CompilerMessageCategory.WARNING, message, null, -1, -1);
+                  context.addMessage(CompilerMessageCategory.WARNING, message, null, -1, -1, null, Collections.singleton(module.getName()));
                 }
               }
             }
