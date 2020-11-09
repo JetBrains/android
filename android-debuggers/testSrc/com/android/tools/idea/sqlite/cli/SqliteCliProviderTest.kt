@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.testutils.OsType
 import com.android.tools.idea.sqlite.cli.SqliteCliProvider.Companion.SQLITE3_PATH_ENV
 import com.android.tools.idea.sqlite.cli.SqliteCliProvider.Companion.SQLITE3_PATH_PROPERTY
+import com.android.tools.idea.sqlite.utils.initAdbFileProvider
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
@@ -32,7 +33,7 @@ class SqliteCliProviderTest : LightPlatformTestCase() {
   override fun setUp() {
     super.setUp()
     tempDirTestFixture = IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture()
-    project.setUpAdb()
+    initAdbFileProvider(project)
     tempDirTestFixture.setUp()
   }
 

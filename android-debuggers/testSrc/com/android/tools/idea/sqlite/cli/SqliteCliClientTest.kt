@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite.cli
 
+import com.android.tools.idea.sqlite.utils.initAdbFileProvider
 import com.android.tools.idea.sqlite.utils.toContentString
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.LightPlatformTestCase
@@ -54,7 +55,7 @@ class SqliteCliClientTest : LightPlatformTestCase() {
     tempDirTestFixture = IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture()
     tempDirTestFixture.setUp()
     databaseFile = tempDirTestFixture.createFile(dbPath).toNioPath()
-    project.setUpAdb()
+    initAdbFileProvider(project)
     client = SqliteCliClientImpl(SqliteCliProviderImpl(project).getSqliteCli()!!, taskExecutor.asCoroutineDispatcher())
   }
 
