@@ -153,9 +153,36 @@ private fun Int?.truncate(min: Int, max: Int): Int? {
   return minOf(maxOf(this, min), max)
 }
 
-private const val DEFAULT_DEVICE = ""
+/** Empty device spec when the user has not specified any. */
+private const val NO_DEVICE_SPEC = ""
+/** Prefix used by device specs to find devices by id. */
 private const val DEVICE_BY_ID_PREFIX = "id:"
+/** Prefix used by device specs to find devices by name. */
 private const val DEVICE_BY_NAME_PREFIX = "name:"
+
+private fun Collection<Device>.findDeviceViaSpec(deviceSpec: String): Device? = when {
+  deviceSpec == NO_DEVICE_SPEC -> null
+  deviceSpec.startsWith(DEVICE_BY_ID_PREFIX) -> {
+    val id = deviceSpec.removePrefix(DEVICE_BY_ID_PREFIX)
+    find { it.id == id }.also {
+      if (it == null) {
+        Logger.getInstance(PreviewConfiguration::class.java).warn("Unable to find device with id '$id'")
+      }
+    }
+  }
+  deviceSpec.startsWith(DEVICE_BY_NAME_PREFIX) -> {
+    val name = deviceSpec.removePrefix(DEVICE_BY_NAME_PREFIX)
+    find { it.displayName == name }.also {
+      if (it == null) {
+        Logger.getInstance(PreviewConfiguration::class.java).warn("Unable to find device with name '$name'")
+      }
+    }
+  }
+  else -> {
+    Logger.getInstance(PreviewConfiguration::class.java).warn("Invalid device spec '$deviceSpec'")
+    null
+  }
+}
 
 private fun PreviewConfiguration.applyTo(renderConfiguration: Configuration,
                                          highestApiTarget: (Configuration) -> IAndroidTarget?,
@@ -166,6 +193,12 @@ private fun PreviewConfiguration.applyTo(renderConfiguration: Configuration,
       renderConfiguration.target = CompatibilityRenderTarget(it, apiLevel, null)
     }
   }
+  else {
+    // Use the highest available one when not defined.
+    highestApiTarget(renderConfiguration)?.let {
+      renderConfiguration.target = CompatibilityRenderTarget(it, it.version.apiLevel, null)
+    }
+  }
 
   if (theme != null) {
     renderConfiguration.setTheme(theme)
@@ -174,36 +207,12 @@ private fun PreviewConfiguration.applyTo(renderConfiguration: Configuration,
   renderConfiguration.uiModeFlagValue = uiMode
   renderConfiguration.fontScale = max(0f, fontScale)
 
-  when {
-    deviceSpec.startsWith(DEVICE_BY_ID_PREFIX) -> {
-      val id = deviceSpec.removePrefix(DEVICE_BY_ID_PREFIX)
-      val device = devicesProvider(renderConfiguration).find { it.id == id } ?: defaultDeviceProvider(renderConfiguration)
-      if (device != null) {
-        renderConfiguration.setDevice(device, false)
-      }
-      else {
-        Logger.getInstance(PreviewConfiguration::class.java).warn("Unable to find device with id '$id'")
-      }
-    }
-    deviceSpec.startsWith(DEVICE_BY_NAME_PREFIX) -> {
-      val name = deviceSpec.removePrefix(DEVICE_BY_NAME_PREFIX)
-      val device = devicesProvider(renderConfiguration).find { it.displayName == name } ?: defaultDeviceProvider(renderConfiguration)
-      if (device != null) {
-        renderConfiguration.setDevice(device, false)
-      }
-      else {
-        Logger.getInstance(PreviewConfiguration::class.java).warn("Unable to find device with name '$name'")
-      }
-    }
-    else -> {
-      if (deviceSpec != DEFAULT_DEVICE) {
-        Logger.getInstance(PreviewElement::class.java).warn("Unknown device spec $deviceSpec")
-      }
-      val device = defaultDeviceProvider(renderConfiguration)
-      if (device != null) {
-        renderConfiguration.setDevice(device, false)
-      }
-    }
+  val allDevices = devicesProvider(renderConfiguration)
+  val device = allDevices.findDeviceViaSpec(deviceSpec)
+               ?: defaultDeviceProvider(renderConfiguration)
+
+  if (device != null) {
+    renderConfiguration.setDevice(device, false)
   }
 }
 
@@ -215,8 +224,11 @@ fun PreviewConfiguration.applyConfigurationForTest(renderConfiguration: Configur
   applyTo(renderConfiguration, highestApiTarget, devicesProvider, defaultDeviceProvider)
 }
 
+/** id for the default device when no device is specified by the user. */
+private const val DEFAULT_DEVICE_ID = "pixel_4"
+
 /**
- * Contain settings for rendering
+ * Contains settings for rendering.
  */
 data class PreviewConfiguration internal constructor(val apiLevel: Int,
                                                      val theme: String?,
@@ -229,7 +241,10 @@ data class PreviewConfiguration internal constructor(val apiLevel: Int,
     applyTo(renderConfiguration,
             { it.configurationManager.highestApiTarget },
             { it.configurationManager.devices },
-            { it.configurationManager.defaultDevice })
+            {
+              it.configurationManager.devices.find { device -> device.id == DEFAULT_DEVICE_ID }
+              ?:it.configurationManager.defaultDevice
+            })
 
   companion object {
     /**
@@ -252,7 +267,7 @@ data class PreviewConfiguration internal constructor(val apiLevel: Int,
                            height = height.truncate(1, MAX_HEIGHT) ?: UNDEFINED_DIMENSION,
                            fontScale = fontScale ?: 1f,
                            uiMode = uiMode ?: 0,
-                           deviceSpec = device ?: DEFAULT_DEVICE)
+                           deviceSpec = device ?: NO_DEVICE_SPEC)
   }
 }
 
