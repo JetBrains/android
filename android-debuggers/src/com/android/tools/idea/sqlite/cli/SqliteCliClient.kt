@@ -57,9 +57,9 @@ class SqliteCliArgs private constructor() {
   class Builder {
     private val args = mutableListOf<SqliteCliArg>()
 
-    fun database(path: Path) = apply { args.add(SqliteCliArg(".open '${path.canonicalPath}'")) }
-    fun output(path: Path) = apply { args.add(SqliteCliArg("$sqliteCliOutputArgPrefix ${path.canonicalPath}")) }
-    fun clone(path: Path) = apply { args.add(SqliteCliArg(".clone '${path.canonicalPath}'")) }
+    fun database(path: Path) = apply { args.add(SqliteCliArg(".open '${path.toAbsolutePath()}'")) }
+    fun output(path: Path) = apply { args.add(SqliteCliArg("$sqliteCliOutputArgPrefix ${path.toAbsolutePath()}")) }
+    fun clone(path: Path) = apply { args.add(SqliteCliArg(".clone '${path.toAbsolutePath()}'")) }
     fun modeCsv() = apply { args.add(SqliteCliArg(".mode csv")) }
     fun dump() = apply { args.add(SqliteCliArg(".dump")) }
     fun dumpTable(tableName: String) = apply { args.add(SqliteCliArg(".dump '$tableName'")) }
@@ -86,7 +86,7 @@ class SqliteCliClientImpl(private val sqlite3: Path, private val dispatcher: Cor
 
   @WorkerThread
   override suspend fun runSqliteCliCommand(args: List<SqliteCliArg>): SqliteCliResponse = withContext(dispatcher) {
-    val sqlCliPath = sqlite3.canonicalPath
+    val sqlCliPath = sqlite3.toAbsolutePath()
     val stringArgs = args.map { it.rawArg }
     logger.info("Executing external command $sqlCliPath with arguments ${stringArgs.toString().ellipsize(500)}")
 
@@ -102,7 +102,7 @@ class SqliteCliClientImpl(private val sqlite3: Path, private val dispatcher: Cor
     val errWriter = StringWriter()
 
     outputWriter.use {
-      val exitCode = ProcessExecutor.exec(sqlCliPath, inputLines, outputWriter, errWriter, dispatcher)
+      val exitCode = ProcessExecutor.exec(sqlCliPath.toString(), inputLines, outputWriter, errWriter, dispatcher)
       val stdOutput = if (outputWriter is StringWriter) outputWriter.toString() else "" // in the "else" case we assume a file output
       val errOutput = errWriter.toString()
       SqliteCliResponse(exitCode, stdOutput, errOutput).also {
@@ -162,8 +162,6 @@ private object ProcessExecutor {
     }
   }
 }
-
-private val Path.canonicalPath get() = this.toFile().canonicalPath
 
 // Shortens the string if over maxLength (and adds an ellipsis at the end if the case)
 private fun String.ellipsize(maxLength: Int): String {
