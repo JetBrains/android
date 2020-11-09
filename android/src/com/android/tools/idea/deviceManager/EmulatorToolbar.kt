@@ -56,8 +56,7 @@ class EmulatorToolbar(
 
   private val separator = Separator()
 
-  private val SEARCH_FIELD_LABEL = "Search virtual devices by name"
-  private val searchField = createSearchField(SEARCH_FIELD_LABEL).apply {
+  private val searchField = createSearchField("Search virtual devices by name").apply {
     addDocumentListener(searchDocumentListener)
   }
 

@@ -49,8 +49,7 @@ class PhysicalToolbar(
 
   private val separator = Separator()
 
-  private val SEARCH_FIELD_LABEL = "Search physical devices by name"
-  private val searchField = createSearchField(SEARCH_FIELD_LABEL).apply {
+  private val searchField = createSearchField("Search physical devices by name").apply {
     addDocumentListener(searchDocumentListener)
   }
 
@@ -79,4 +78,3 @@ private fun createSearchField(name: String, gap: Int = JBUI.scale(10)) = SearchT
     }
   })
 }
-

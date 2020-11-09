@@ -168,9 +168,8 @@ class PhysicalDeviceActionPanel(
     border = JBUI.Borders.empty(10)
     layout = FlowLayout(FlowLayout.RIGHT, 3, 0)
 
-    var numVisibleActions = numVisibleActions
     var visibleActionCount = 0
-    var errorState = false
+    val errorState = false // TODO: what is this for?
 
     for (action in actions) {
       val actionLabel: JComponent = if (errorState || numVisibleActions != -1 && visibleActionCount >= numVisibleActions) {

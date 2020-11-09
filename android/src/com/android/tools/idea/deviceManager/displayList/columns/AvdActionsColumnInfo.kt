@@ -98,4 +98,3 @@ class AvdActionsColumnInfo(
     override fun getCellEditorValue(): Any? = null
   }
 }
-

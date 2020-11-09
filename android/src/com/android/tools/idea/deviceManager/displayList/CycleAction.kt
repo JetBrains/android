@@ -81,13 +81,10 @@ class CycleAction(
       table.setColumnSelectionInterval(0, 0)
     }
     else if (selectedRow == -1 || selectedColumn != actionsColumn) {
-      var selectedRow = selectedRow
       // We aren't in the table yet, or we're not in the actions column. Move to the previous (or last) row.
       // and select the actions column
-      if (selectedRow == -1) {
-        selectedRow = table.rowCount
-      }
-      table.setRowSelectionInterval(selectedRow - 1, selectedRow - 1)
+      val newSelectedRow = if (selectedRow == -1) table.rowCount - 1 else selectedRow - 1
+      table.setRowSelectionInterval(newSelectedRow, newSelectedRow)
       table.setColumnSelectionInterval(actionsColumn, actionsColumn)
       actionsColumnRenderer.cycleFocus(table.selectedObject, true)
     }
