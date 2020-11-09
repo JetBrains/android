@@ -71,7 +71,12 @@
                  implementationClass="com.android.tools.compose.AndroidComposeCompletionWeigher"
                  id="android.compose"
                  order="first"/>
-        <lang.inspectionSuppressor language="kotlin" implementationClass="com.android.tools.compose.ComposeSuppressor"/>
+      <weigher key="completion"
+               implementationClass="com.android.tools.compose.ComposeModifiersCompletionWeigher"
+               id="android.compose.modifiers"
+               order="first"/>
+
+      <lang.inspectionSuppressor language="kotlin" implementationClass="com.android.tools.compose.ComposeSuppressor"/>
 
     </extensions>
 

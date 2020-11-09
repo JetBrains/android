@@ -17,7 +17,6 @@ package com.android.tools.compose
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
-import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
@@ -25,8 +24,6 @@ import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.junit.Before
 import org.junit.Rule
@@ -35,7 +32,7 @@ import org.junit.Test
 /**
  * Tests for [ComposeCompletionContributor].
  */
-class ComposeCompletionContributorTest  {
+class ComposeCompletionContributorTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.onDisk()
@@ -43,7 +40,7 @@ class ComposeCompletionContributorTest  {
   private val myFixture: CodeInsightTestFixture by lazy { projectRule.fixture }
 
   @Before
-    fun setUp() {
+  fun setUp() {
     StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
     StudioFlags.COMPOSE_COMPLETION_PRESENTATION.override(true)
     StudioFlags.COMPOSE_COMPLETION_INSERT_HANDLER.override(true)
@@ -594,6 +591,63 @@ class ComposeCompletionContributorTest  {
     )
 
     ComposeSettings.getInstance().state.isComposeInsertHandlerEnabled = true
+  }
+
+  @Test
+  fun testComposeModifiersCompletionWeigher() {
+    myFixture.addFileToProject(
+      "src/${ComposeLibraryNamespace.ANDROIDX_COMPOSE.packageName.replace(".", "/")}/Modifier.kt",
+      // language=kotlin
+      """
+    package ${ComposeLibraryNamespace.ANDROIDX_COMPOSE.packageName}
+
+    interface Modifier {
+      fun function():Unit
+      companion object : Modifier {
+        fun function() {}
+      }
+    }
+
+    fun Modifier.extentionFunction():Modifier { return this}
+    """.trimIndent()
+    )
+
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      """
+      package com.example
+
+      import androidx.compose.ui.Modifier
+
+      @Composable
+      fun HomeScreen() {
+        val m = Modifier.${caret}
+      }
+      """.trimIndent())
+
+    myFixture.completeBasic()
+
+    var lookupStrings = myFixture.lookupElementStrings!!
+    assertThat(lookupStrings.indexOf("extentionFunction")).isLessThan(lookupStrings.indexOf("function"))
+
+    myFixture.loadNewFile(
+      "src/com/example/Test2.kt",
+      """
+      package com.example
+
+      import androidx.compose.ui.Modifier
+      import androidx.compose.ui.extentionFunction
+
+      @Composable
+      fun HomeScreen() {
+        val m = Modifier.extentionFunction().${caret}
+      }
+      """.trimIndent())
+
+    myFixture.completeBasic()
+
+    lookupStrings = myFixture.lookupElementStrings!!
+    assertThat(lookupStrings.indexOf("extentionFunction")).isLessThan(lookupStrings.indexOf("function"))
   }
 
   private val CodeInsightTestFixture.renderedLookupElements: Collection<String>
