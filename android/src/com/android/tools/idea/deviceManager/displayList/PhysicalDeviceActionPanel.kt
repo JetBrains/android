@@ -16,9 +16,9 @@
 package com.android.tools.idea.deviceManager.displayList
 
 import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
-import com.android.tools.idea.deviceManager.avdmanager.actions.ExplorePhysicalDeviceAction
-import com.android.tools.idea.deviceManager.avdmanager.actions.PhysicalDeviceUiAction
-import com.android.tools.idea.deviceManager.avdmanager.actions.RenamePhysicalDeviceAction
+import com.android.tools.idea.deviceManager.actions.ExplorePhysicalDeviceAction
+import com.android.tools.idea.deviceManager.actions.PhysicalDeviceUiAction
+import com.android.tools.idea.deviceManager.actions.RenamePhysicalDeviceAction
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.ui.JBMenuItem
 import com.intellij.openapi.ui.JBPopupMenu

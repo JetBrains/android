@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.deviceManager.avdmanager.actions
+package com.android.tools.idea.deviceManager.actions
 
 import com.android.tools.idea.avdmanager.ConfigureDeviceModel
 import com.android.tools.idea.avdmanager.ConfigureDeviceOptionsStep
