@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.index
 
-import com.google.common.base.CaseFormat
+import com.android.tools.idea.nav.safeargs.psi.java.toUpperCamelCase
 import com.intellij.util.containers.addIfNotNull
 
 /**
@@ -98,7 +98,7 @@ interface NavNavigationData : MaybeNavDestinationData {
     val id = this.id ?: return null
     return object : NavDestinationData {
       override val id = id
-      override val name = ".${CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, id)}"
+      override val name = ".${id.toUpperCamelCase()}" // The prefix '.' means this class should be scoped in the current module
       override val arguments = this@NavNavigationData.arguments
       override val actions = this@NavNavigationData.actions
     }
