@@ -61,6 +61,16 @@ public class SyncPerfTestSuite extends IdeaTestSuiteBase {
     }
 
     try {
+      setUpSourceZip("prebuilts/studio/buildbenchmarks/android-studio-gradle-test.3600041f/src.zip",
+                     "tools/adt/idea/sync-perf-tests/testData/" + TestProjectPaths.BASE100_KOTLIN,
+                     new DiffSpec("prebuilts/studio/buildbenchmarks/android-studio-gradle-test.3600041f/setupForSyncKotlinTest.diff", 2));
+      unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/android-studio-gradle-test.3600041f/repo.zip");
+    }
+    catch(Exception e) {
+      LOG.warning("Could not prepare Base100Kotlin project: " + e);
+    }
+
+    try {
       setUpSourceZip("prebuilts/studio/buildbenchmarks/SantaTracker.181be75/src.zip",
                      "tools/adt/idea/sync-perf-tests/testData/" + TestProjectPaths.SANTA_TRACKER,
                      new DiffSpec("prebuilts/studio/buildbenchmarks/SantaTracker.181be75/setupForIdeTest.diff", 2));
@@ -72,5 +82,6 @@ public class SyncPerfTestSuite extends IdeaTestSuiteBase {
 
     unzipIntoOfflineMavenRepo("tools/adt/idea/sync-perf-tests/test_deps.zip");
     unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip");
+    unzipIntoOfflineMavenRepo("tools/base/third_party/kotlin/kotlin-m2repository.zip");
   }
 }

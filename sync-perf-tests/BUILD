@@ -24,6 +24,12 @@ iml_module(
             "timeout": "long",
             "tags": ["no_windows"],
         },
+        "Base100KotlinSmoke": {
+            "data": ["//prebuilts/studio/buildbenchmarks:Base100_project"],
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100KotlinSmokeTest",
+            "timeout": "long",
+            "tags": ["no_windows"],
+        },
         "DolphinSmoke": {
             "data": ["//prebuilts/studio/buildbenchmarks/dolphin.3627ef8a"],
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.DolphinSmokeTest",
@@ -40,6 +46,11 @@ iml_module(
         "Base100": {
             "data": ["//prebuilts/studio/buildbenchmarks:Base100_project"],
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100PerfTest",
+            "tags": SYNC_PERFGATE_TAGS,
+        },
+        "Base100Kotlin": {
+            "data": ["//prebuilts/studio/buildbenchmarks:Base100_project"],
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100KotlinPerfTest",
             "tags": SYNC_PERFGATE_TAGS,
         },
         "Dolphin": {
@@ -71,6 +82,7 @@ iml_module(
         "//tools/adt/idea/sync-perf-tests/testData",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo.zip",
+        "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
     ],
     test_srcs = ["testSrc"],
     test_tags = [
