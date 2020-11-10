@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.ide.resolver
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.gradle.util.GradleUtil
+import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
@@ -67,18 +68,25 @@ internal class GradleArtifactDownloader(private val taskManager: GradleTaskManag
     val id = ExternalSystemTaskId.create(GradleUtil.GRADLE_SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project)
     val settings = GradleUtil.getOrCreateGradleExecutionSettings(project)
     val downloaded = mutableMapOf<String, Path>()
-    taskManager.executeTasks(
-      id, listOf(TASK_ID), scriptFile.path, settings, null,
-      object : ExternalSystemTaskNotificationListenerAdapter() {
-        override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
-          if (stdOut && text.startsWith(ARTIFACT_PREFIX)) {
-            val file = File(text.substring(ARTIFACT_PREFIX.length))
-            if (file.exists()) {
-              downloaded[file.name] = file.toPath()
+    try {
+      taskManager.executeTasks(
+        id, listOf(TASK_ID), scriptFile.path, settings, null,
+        object : ExternalSystemTaskNotificationListenerAdapter() {
+          override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
+            if (stdOut && text.startsWith(ARTIFACT_PREFIX)) {
+              val file = File(text.substring(ARTIFACT_PREFIX.length))
+              if (file.exists()) {
+                downloaded[file.name] = file.toPath()
+              }
             }
           }
-        }
-      })
+        })
+    }
+    // TODO(b/172934092): This is to catch the case when build system is not present (ex: ASWB).
+    // Until the bug is resolved, bundling is only supported when gradle build system is present.
+    catch (e: ExternalSystemException) {
+      return artifacts.map { DownloadResult(DownloadResult.Status.FAILURE, it, null) }
+    }
     return artifacts.map { artifact ->
       downloaded[artifact.fileName]?.let { jar ->
         DownloadResult(DownloadResult.Status.SUCCESS, artifact, jar)
