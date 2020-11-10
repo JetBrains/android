@@ -32,7 +32,9 @@ class GradleScriptBuilderTest {
         google()
       }
       configurations {
-        inspectors
+        inspectors {
+          transitive = false
+        }
       }
       dependencies {
         inspectors "androidx.work:work-runtime:2.5.0-alpha01:inspector@jar"
