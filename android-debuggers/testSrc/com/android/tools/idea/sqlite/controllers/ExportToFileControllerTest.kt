@@ -29,6 +29,8 @@ import com.android.tools.idea.sqlite.model.Delimiter.TAB
 import com.android.tools.idea.sqlite.model.Delimiter.VERTICAL_BAR
 import com.android.tools.idea.sqlite.model.ExportFormat.CSV
 import com.android.tools.idea.sqlite.model.ExportRequest
+import com.android.tools.idea.sqlite.model.ExportRequest.ExportQueryResultsRequest
+import com.android.tools.idea.sqlite.model.ExportRequest.ExportTableRequest
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.createSqliteStatement
@@ -38,6 +40,7 @@ import com.android.tools.idea.sqlite.utils.initAdbFileProvider
 import com.android.tools.idea.sqlite.utils.toLineSequence
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
@@ -67,8 +70,8 @@ private val sampleValues: List<Pair<String, String>> = (1..10).map { "$it$nonAsc
 private val nextConnectionId = AtomicInteger(1)
 
 class ExportToFileControllerTest : LightPlatformTestCase() {
-  private val notifyExportComplete: (ExportRequest) -> Unit = mock()
-  private val notifyExportError: (ExportRequest, Throwable?) -> Unit = mock()
+  private lateinit var notifyExportComplete: (ExportRequest) -> Unit
+  private lateinit var notifyExportError: (ExportRequest, Throwable?) -> Unit
 
   private lateinit var tempDirTestFixture: TempDirTestFixture
 
@@ -83,6 +86,11 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
 
   override fun setUp() {
     super.setUp()
+
+    notifyExportComplete = mock()
+    notifyExportError = { request, throwable ->
+      throw IllegalStateException("Error while processing a request ($request).", throwable)
+    }
 
     tempDirTestFixture = IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture()
     tempDirTestFixture.setUp()
@@ -114,25 +122,29 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     super.tearDown()
   }
 
-  fun testExportQueryToCsvLiveDb() = testExportQueryToCsv(createEmptyDatabase(DatabaseType.Live))
   fun testExportQueryToCsvFileDb() = testExportQueryToCsv(createEmptyDatabase(DatabaseType.File))
+
+  fun testExportQueryToCsvLiveDb() = testExportQueryToCsv(createEmptyDatabase(DatabaseType.Live))
+
   private fun testExportQueryToCsv(database: SqliteDatabaseId) {
     fillDatabase(database, sampleValues)
 
     val statement = createSqliteStatement("select * from '$table1' where cast(\"$column1\" as text) > cast(5 as text)")
     val dstPath = Paths.get(tempDirTestFixture.tempDirPath, outputFileName)
-    val exportRequest = ExportRequest.ExportQueryResultsRequest(database, statement, CSV(VERTICAL_BAR), dstPath)
+    val exportRequest = ExportQueryResultsRequest(database, statement, CSV(VERTICAL_BAR), dstPath)
 
     testExportToCsv(exportRequest = exportRequest, expectedValues = sampleValues.filter { (c1, _) -> c1 > "5" })
   }
 
-  fun testExportTableToCsvLiveDb() = testExportTableToCsv(createEmptyDatabase(DatabaseType.Live))
   fun testExportTableToCsvFileDb() = testExportTableToCsv(createEmptyDatabase(DatabaseType.File))
+
+  fun testExportTableToCsvLiveDb() = testExportTableToCsv(createEmptyDatabase(DatabaseType.Live))
+
   private fun testExportTableToCsv(database: SqliteDatabaseId) {
     fillDatabase(database, sampleValues)
 
     val dstPath = Paths.get(tempDirTestFixture.tempDirPath, outputFileName)
-    val exportRequest = ExportRequest.ExportTableRequest(database, table1, CSV(TAB), dstPath)
+    val exportRequest = ExportTableRequest(database, table1, CSV(TAB), dstPath)
 
     testExportToCsv(exportRequest = exportRequest, expectedValues = sampleValues)
   }
@@ -147,9 +159,37 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
 
     // then: compare output file with expected output
     verify(notifyExportComplete).invoke(exportRequest)
-    verifyNoMoreInteractions(notifyExportError, notifyExportComplete)
+    verifyNoMoreInteractions(notifyExportComplete)
     val actualOutput = exportRequest.dstPath.toLineSequence().toList()
     assertThat(actualOutput).isEqualTo(expectedOutput)
+  }
+
+  fun testInvalidRequestFileDb() = testInvalidRequest(DatabaseType.File)
+
+  fun testInvalidRequestLiveDb() = testInvalidRequest(DatabaseType.Live)
+
+  private fun testInvalidRequest(databaseType: DatabaseType) {
+    // given: an invalid request
+    val assertionDescription = "Expecting a SQLite exception caused by a invalid query."
+    val exportRequest = ExportTableRequest(
+      createEmptyDatabase(databaseType),
+      "non-existing-table", // this will cause an exception (we are a database without any tables)
+      CSV(TAB),
+      tempDirTestFixture.createFile("ignored-output-file").toNioPath()
+    )
+
+    try {
+      // when: a request is processed by the controller
+      submitExportRequest(exportRequest)
+      fail(assertionDescription) // if we got here, it means we didn't encounter the expected exception
+    }
+    catch (throwable: Throwable) {
+      // then: expect the exception related to the issue
+      val sqlException = throwable.toNestedThrowableSequence().firstOrNull {
+        it.message?.contains("no such table.*${exportRequest.srcTable}".toRegex()) ?: false
+      }
+      assertWithMessage(assertionDescription).that(sqlException).isNotNull()
+    }
   }
 
   private fun submitExportRequest(exportRequest: ExportRequest) {
@@ -188,6 +228,17 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
   private fun createSqliteStatement(statement: String): SqliteStatement = runDispatching {
     withContext(edtExecutor.asCoroutineDispatcher()) {
       createSqliteStatement(project, statement)
+    }
+  }
+}
+
+/** Exposes [Throwable]'s nested exceptions as a sequence */
+private fun Throwable.toNestedThrowableSequence() = let {
+  sequence {
+    var current: Throwable? = it
+    while (current != null) {
+      yield(current)
+      current = current.cause
     }
   }
 }
