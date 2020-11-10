@@ -177,7 +177,6 @@ studio_plugin(
             "//prebuilts/tools:simpleperf-bundle",
             "//prebuilts/tools/common/perfetto:perfetto-bundle",
             "//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite-inspection-bundle",
-            "//prebuilts/tools/common/app-inspection/androidx/work:workmanager-inspection-bundle",
             "//tools/base/deploy/installer:android-installer-bundle",
             "//tools/adt/idea/android:asset-studio-bundle",
             "//prebuilts/tools/common/trace-processor-daemon:trace-processor-daemon-bundle",
