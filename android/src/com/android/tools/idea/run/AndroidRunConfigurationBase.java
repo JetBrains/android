@@ -23,6 +23,7 @@ import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.DeployTargetState;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
+import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.stats.RunStats;
@@ -382,11 +383,21 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     ApkProvider apkProvider = getApkProvider();
     if (apkProvider == null) return null;
-    AndroidLaunchTasksProvider launchTasksProvider =
-      new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions.build());
+    LaunchTasksProvider launchTasksProvider = createLaunchTasksProvider(env, facet, applicationIdProvider, apkProvider, launchOptions.build());
 
     return new AndroidRunState(env, getName(), module, applicationIdProvider,
                                getConsoleProvider(deviceFutures.getDevices().size() > 1), deviceFutures, launchTasksProvider);
+  }
+
+  /**
+   * Subclasses should override to adjust the LaunchTaskProvider
+   */
+  protected LaunchTasksProvider createLaunchTasksProvider(@NotNull ExecutionEnvironment env,
+                                                       @NotNull AndroidFacet facet,
+                                                       @NotNull ApplicationIdProvider applicationIdProvider,
+                                                       @NotNull ApkProvider apkProvider,
+                                                       @NotNull LaunchOptions launchOptions) {
+    return new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions);
   }
 
   private static String canDebug(@NotNull DeviceFutures deviceFutures, @NotNull AndroidFacet facet, @NotNull String moduleName) {
@@ -420,6 +431,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @Nullable
   public ApplicationIdProvider getApplicationIdProvider() {
     return ProjectSystemUtil.getProjectSystem(getProject()).getApplicationIdProvider(this);
+  }
+
+  @Nullable
+  protected int getNumberOfSelectedDevices(@NotNull AndroidFacet facet) {
+    return getDeployTarget(facet).getDevices(facet).getDevices().size();
   }
 
   @Nullable

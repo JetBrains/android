@@ -28,12 +28,14 @@ import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.run.AndroidLaunchTasksProvider;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.ConsoleProvider;
+import com.android.tools.idea.run.GradleAndroidLaunchTasksProvider;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
@@ -41,6 +43,7 @@ import com.android.tools.idea.run.editor.AndroidTestExtraParam;
 import com.android.tools.idea.run.editor.AndroidTestExtraParamKt;
 import com.android.tools.idea.run.editor.TestRunParameters;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
+import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration;
@@ -62,6 +65,7 @@ import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.junit.JUnitUtil;
+import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.testframework.sm.SMTestRunnerConnectionUtil;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.module.Module;
@@ -300,6 +304,20 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     return errors;
   }
 
+  @Override
+  protected LaunchTasksProvider createLaunchTasksProvider(@NotNull ExecutionEnvironment env,
+                                                       @NotNull AndroidFacet facet,
+                                                       @NotNull ApplicationIdProvider applicationIdProvider,
+                                                       @NotNull ApkProvider apkProvider,
+                                                       @NotNull LaunchOptions launchOptions) {
+    if (StudioFlags.UTP_INSTRUMENTATION_TESTING.get()) {
+      return new GradleAndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, launchOptions,
+                                                  TESTING_TYPE, PACKAGE_NAME, CLASS_NAME, METHOD_NAME);
+    } else {
+      return new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions);
+    }
+  }
+
   @NotNull
   @Override
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
@@ -388,6 +406,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                                 launchStatus.getProcessHandler(),
                                                                 consolePrinter,
                                                                 device);
+
       case TEST_ALL_IN_PACKAGE:
         return AndroidTestApplicationLaunchTask.allInPackageTest(runner,
                                                                  testAppId,
