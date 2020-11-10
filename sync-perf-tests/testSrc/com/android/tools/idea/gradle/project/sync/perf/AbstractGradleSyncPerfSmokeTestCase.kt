@@ -30,6 +30,7 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -71,7 +72,7 @@ abstract class AbstractGradleSyncPerfSmokeTestCase {
    * @throws Exception
    */
   @Throws(java.lang.Exception::class)
-  @Test
+  @Ignore("See http://b/172934015")
   open fun testSyncsAndBuildsJdk8() {
     overrideJdkTo8()
     try {
