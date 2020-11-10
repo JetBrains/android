@@ -43,6 +43,7 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.runners.ProgramRunner;
+import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -318,7 +319,12 @@ public abstract class BaseAction extends AnAction {
         // IDEA-239076
         XDebugSession debugSession = session.getXDebugSession();
         if (debugSession != null && !debugSession.isStopped()) {
-          return debugSession.getRunContentDescriptor().getProcessHandler();
+          RunContentDescriptor descriptor = debugSession.getRunContentDescriptor();
+          // IDEA-239076
+          // One of the classes implementing the interface potentially violates @NotNull annotation.
+          if (descriptor != null) {
+            return descriptor.getProcessHandler();
+          }
         }
       }
     }
