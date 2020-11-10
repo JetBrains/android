@@ -57,7 +57,7 @@ public class AndroidRunState implements RunProfileState {
                          @NotNull ApplicationIdProvider applicationIdProvider,
                          @NotNull ConsoleProvider consoleProvider,
                          @NotNull DeviceFutures deviceFutures,
-                         @NotNull AndroidLaunchTasksProvider launchTasksProvider) {
+                         @NotNull LaunchTasksProvider launchTasksProvider) {
     myEnv = env;
     myLaunchConfigName = launchConfigName;
     myModule = module;
