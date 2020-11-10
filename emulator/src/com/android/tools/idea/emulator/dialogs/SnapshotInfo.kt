@@ -16,7 +16,7 @@
 package com.android.tools.idea.emulator.dialogs
 
 import com.android.emulator.control.SnapshotDetails
-import com.android.emulator.snapshot.SnapshotOuterClass
+import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.intellij.util.text.nullize
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit
  * Information about an Emulator snapshot.
  */
 class SnapshotInfo(val snapshotFolder: Path,
-                   val snapshot: SnapshotOuterClass.Snapshot,
+                   val snapshot: Snapshot,
                    val sizeOnDisk: Long,
                    val isCompatible: Boolean,
                    var isLoadedLast: Boolean) {
@@ -43,7 +43,7 @@ class SnapshotInfo(val snapshotFolder: Path,
   /**
    * Creates a placeholder for a non-existent snapshot.
    */
-  constructor(snapshotFolder: Path) : this(snapshotFolder, SnapshotOuterClass.Snapshot.getDefaultInstance(), 0, isCompatible = true, isLoadedLast = false)
+  constructor(snapshotFolder: Path) : this(snapshotFolder, Snapshot.getDefaultInstance(), 0, isCompatible = true, isLoadedLast = false)
 
   /**
    * Creates a [SnapshotInfo] for the given [SnapshotDetails] proto message.
@@ -110,9 +110,23 @@ class SnapshotInfo(val snapshotFolder: Path,
   override fun hashCode(): Int {
     return snapshotFolder.hashCode()
   }
+
+  override fun toString(): String {
+    val buf = StringBuilder("Snapshot $snapshotId")
+    if (displayName != snapshotId) {
+      buf.append(" ($displayName)")
+    }
+    if (!isCompatible) {
+      buf.append(" incompatible")
+    }
+    if (!isCreated) {
+      buf.append(" not created yet")
+    }
+    return buf.toString()
+  }
 }
 
-private fun SnapshotOuterClass.Snapshot.withLogicalNameAndDescription(logicalName: String, description: String): SnapshotOuterClass.Snapshot {
+private fun Snapshot.withLogicalNameAndDescription(logicalName: String, description: String): Snapshot {
   return toBuilder().apply {
     this.logicalName = logicalName
     this.description = description

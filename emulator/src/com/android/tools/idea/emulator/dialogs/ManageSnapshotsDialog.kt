@@ -37,6 +37,7 @@ import com.intellij.openapi.actionSystem.ActionToolbarPosition
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
@@ -599,6 +600,8 @@ internal class ManageSnapshotsDialog(
     }
 
     val snapshotAutoDeletionPolicy = EmulatorSettings.getInstance().snapshotAutoDeletionPolicy
+    logger.debug { "snapshotAutoDeletionPolicy: $snapshotAutoDeletionPolicy" }
+    logger.debug { "snapshots before deletion: $snapshots" }
     var incompatibleSnapshotsCount = 0
     var incompatibleSnapshotsSize = 0L
     if (snapshotAutoDeletionPolicy != SnapshotAutoDeletionPolicy.DO_NOT_DELETE) {
@@ -615,10 +618,12 @@ internal class ManageSnapshotsDialog(
     }
 
     invokeLaterWhileDialogIsShowing {
+      logger.debug { "updating snapshot table with: $snapshots"}
       snapshotTableModel.update(snapshots, bootSnapshot)
       if (incompatibleSnapshotsCount != 0 && snapshotAutoDeletionPolicy == SnapshotAutoDeletionPolicy.ASK_BEFORE_DELETING &&
           confirmIncompatibleSnapshotsDeletion(incompatibleSnapshotsCount, incompatibleSnapshotsSize)) {
         deleteIncompatibleSnapshots(snapshots)
+        logger.debug { "updating snapshot table with: $snapshots"}
         snapshotTableModel.update(snapshots, bootSnapshot)
       }
     }
@@ -627,6 +632,7 @@ internal class ManageSnapshotsDialog(
   private fun deleteIncompatibleSnapshots(snapshots: MutableList<SnapshotInfo>) {
     val foldersToDelete = snapshots.filter { !it.isCompatible }.map { it.snapshotFolder }
     snapshots.removeIf { !it.isCompatible }
+    logger.debug { "snapshots after deletion: $snapshots"}
     deleteSnapshotFolders(foldersToDelete)
   }
 
