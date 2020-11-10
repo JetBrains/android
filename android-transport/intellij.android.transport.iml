@@ -10,6 +10,10 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="jetbrains-annotations-java5" level="project" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="library" name="studio-grpc" level="project" />
+    <orderEntry type="library" name="studio-proto" level="project" />
+    <orderEntry type="library" name="transport-proto" level="project" />
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
@@ -23,15 +27,11 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
-    <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="module" module-name="android.sdktools.analytics-tracker" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
-    <orderEntry type="library" name="studio-grpc" level="project" />
-    <orderEntry type="library" name="studio-proto" level="project" />
-    <orderEntry type="library" name="transport-proto" level="project" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="library" name="fastutil-min" level="project" />
     <orderEntry type="library" scope="TEST" name="jsr305" level="project" />
