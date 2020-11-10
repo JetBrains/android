@@ -24,6 +24,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.io.FileUtilRt;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMaps;
@@ -226,7 +227,11 @@ public class ResourceSerializationUtil {
     }
 
     n = stream.readInt();
+    int cancellationCheckInterval = 500; // For framework repository without locale-specific resources cancellation check happens 32 times.
     for (int i = 0; i < n; i++) {
+      if (i % cancellationCheckInterval == 0) {
+        ProgressManager.checkCanceled();
+      }
       BasicResourceItemBase item = BasicResourceItemBase.deserialize(stream, configurations, newSourceFiles, newNamespaceResolvers);
       resourceConsumer.accept(item);
     }
