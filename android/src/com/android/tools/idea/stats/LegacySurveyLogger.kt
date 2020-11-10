@@ -35,4 +35,7 @@ object LegacySurveyLogger : SurveyLogger {
       }.build()
     })
   }
+
+  override fun log(result: List<Int>) {
+  }
 }
