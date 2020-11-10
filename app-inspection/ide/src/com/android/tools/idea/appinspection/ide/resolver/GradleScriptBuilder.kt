@@ -34,7 +34,9 @@ repositories {
   google()
 }
 configurations {
-  inspectors
+  inspectors {
+    transitive = false
+  }
 }
 dependencies {
 ${inspectors.joinToString("\n") { "  inspectors \"$it\"" }}
