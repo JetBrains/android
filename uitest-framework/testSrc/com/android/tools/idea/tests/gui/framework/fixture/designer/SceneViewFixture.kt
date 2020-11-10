@@ -253,14 +253,11 @@ class SceneViewFixture(private val robot: Robot,
 
   fun countSceneComponents(): Int = sceneView.scene.sceneComponents.size
 
-  fun toolbar(): SceneViewTopPanelFixture {
-    // Find the SceneViewPeerPanel
-    val sceneViewPeerPanel = robot.finder().find(sceneView.surface) {
-      component -> component is SceneViewPeerPanel && component.sceneView == sceneView
-    } as SceneViewPeerPanel
+  fun toolbar() = SceneViewTopPanelFixture(robot, target().sceneViewTopPanel)
 
-    return SceneViewTopPanelFixture(robot, sceneViewPeerPanel.sceneViewTopPanel)
-  }
+  fun target() = robot.finder().find(sceneView.surface) {
+    component -> component is SceneViewPeerPanel && component.sceneView == sceneView
+  } as SceneViewPeerPanel
 
   fun size(): Dimension = sceneView.scaledContentSize
 }
