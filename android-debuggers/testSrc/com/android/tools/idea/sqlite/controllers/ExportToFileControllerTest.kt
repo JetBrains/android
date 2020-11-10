@@ -17,10 +17,10 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.sqlite.cli.SqliteCliClient
 import com.android.tools.idea.sqlite.cli.SqliteCliClientImpl
 import com.android.tools.idea.sqlite.cli.SqliteCliProviderImpl
+import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.mocks.CliDatabaseConnection
 import com.android.tools.idea.sqlite.mocks.FakeExportToFileDialogView
 import com.android.tools.idea.sqlite.mocks.OpenDatabaseRepository
@@ -42,6 +42,7 @@ import com.android.tools.idea.testing.runDispatching
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.TempDirTestFixture
@@ -200,9 +201,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     val databaseFile = tempDirTestFixture.createFile(databaseFileName)
 
     val connection = when (type) {
-      DatabaseType.File -> pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(testRootDisposable, databaseFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
-      )
+      DatabaseType.File -> createFileDatabaseConnection(databaseFile)
       DatabaseType.Live -> CliDatabaseConnection(databaseFile.toNioPath(), sqliteCliClient, '|', taskExecutor)
     }
 
@@ -229,6 +228,10 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     withContext(edtExecutor.asCoroutineDispatcher()) {
       createSqliteStatement(project, statement)
     }
+  }
+
+  private fun createFileDatabaseConnection(databaseFile: VirtualFile): DatabaseConnection = runDispatching {
+    getJdbcDatabaseConnection(testRootDisposable, databaseFile, FutureCallbackExecutor.wrap(taskExecutor)).await()
   }
 }
 
