@@ -78,7 +78,7 @@ b/144931276 */
     ExternalSystemModulePropertyManager modulePropertyManager = new ExternalSystemModulePropertyManagerImpl(module);
     when(picoContainer.getComponentInstance(ExternalSystemModulePropertyManager.class.getName())).thenReturn(modulePropertyManager);
     modulePropertyManager.setExternalOptions(GradleUtil.GRADLE_SYSTEM_ID, new ModuleData("", GradleUtil.GRADLE_SYSTEM_ID,
-                                                                                         "", "", "", projectPath), null);
+                                                                                         "", "", "", projectPath), null, null);
     when(module.getOptionValue("external.linked.project.path")).thenReturn(projectPath);
     return gradleBuildInvoker;
   }
