@@ -23,6 +23,7 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.ide.common.util.PathString;
+import com.android.io.CancellableFileIo;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.resources.base.Base128InputStream;
 import com.android.tools.idea.resources.base.Base128OutputStream;
@@ -44,7 +45,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -593,7 +593,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     @NotNull
     public Set<String> getAllCacheFileLanguages() {
       Set<String> result = new TreeSet<>();
-      try (Stream<Path> stream = Files.list(myLanguageNeutralFile.getParent())) {
+      try (Stream<Path> stream = CancellableFileIo.list(myLanguageNeutralFile.getParent())) {
         stream.forEach(file -> {
           String language = getLanguage(file.getFileName().toString());
           if (language != null) {
