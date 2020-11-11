@@ -111,47 +111,52 @@ public class CpuProfiler extends StudioProfiler {
    */
   private void registerTraceImportHandler() {
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
-    sessionsManager.registerImportHandler("trace", file -> {
-      // The time when the session is created. Will determine the order in sessions panel.
-      long startTimestampEpochMs = System.currentTimeMillis();
-      Pair<Long, Long> timestampsNs = StudioProfilers.computeImportedFileStartEndTimestampsNs(file);
-      long startTimestampNs = timestampsNs.first;
+    sessionsManager.registerImportHandler("trace", this::loadCapture);
+    sessionsManager.registerImportHandler("pftrace", this::loadCapture);
+    sessionsManager.registerImportHandler("perfetto-trace", this::loadCapture);
+  }
 
-      // Select the session if it is already imported. Do not re-import.
-      if (sessionsManager.setSessionById(startTimestampNs)) {
-        return;
-      }
+  private void loadCapture(File file) {
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+    // The time when the session is created. Will determine the order in sessions panel.
+    long startTimestampEpochMs = System.currentTimeMillis();
+    Pair<Long, Long> timestampsNs = StudioProfilers.computeImportedFileStartEndTimestampsNs(file);
+    long startTimestampNs = timestampsNs.first;
 
-      long endTimestampNs = timestampsNs.second;
-      if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-        sessionsManager.createImportedSession(file.getName(),
-                                              Common.SessionData.SessionStarted.SessionType.CPU_CAPTURE,
-                                              startTimestampNs,
-                                              endTimestampNs,
-                                              startTimestampEpochMs,
-                                              Collections.emptyMap());
-        // NOTE - New imported session will be auto selected by SessionsManager once it is queried
+    // Select the session if it is already imported. Do not re-import.
+    if (sessionsManager.setSessionById(startTimestampNs)) {
+      return;
+    }
 
-        // TODO b/132796215 use the shared byte cache instead of storing the file locally, as this CpuProfiler instance does not persist
-        // across projects.
-        mySessionTraceFiles.put(startTimestampNs, file);
-      }
-      else {
-        Common.Session importedSession = sessionsManager.createImportedSessionLegacy(file.getName(),
-                                                                                     Common.SessionMetaData.SessionType.CPU_CAPTURE,
-                                                                                     startTimestampNs,
-                                                                                     endTimestampNs,
-                                                                                     startTimestampEpochMs);
-        // Associate the trace file with the session so we can retrieve it later.
-        mySessionTraceFiles.put(importedSession.getSessionId(), file);
-        // Select the imported session
-        sessionsManager.update();
-        sessionsManager.setSession(importedSession);
-      }
+    long endTimestampNs = timestampsNs.second;
+    if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+      sessionsManager.createImportedSession(file.getName(),
+                                            Common.SessionData.SessionStarted.SessionType.CPU_CAPTURE,
+                                            startTimestampNs,
+                                            endTimestampNs,
+                                            startTimestampEpochMs,
+                                            Collections.emptyMap());
+      // NOTE - New imported session will be auto selected by SessionsManager once it is queried
 
-      myProfilers.getIdeServices().getFeatureTracker().trackCreateSession(Common.SessionMetaData.SessionType.CPU_CAPTURE,
-                                                                          SessionsManager.SessionCreationSource.MANUAL);
-    });
+      // TODO b/132796215 use the shared byte cache instead of storing the file locally, as this CpuProfiler instance does not persist
+      // across projects.
+      mySessionTraceFiles.put(startTimestampNs, file);
+    }
+    else {
+      Common.Session importedSession = sessionsManager.createImportedSessionLegacy(file.getName(),
+                                                                                   Common.SessionMetaData.SessionType.CPU_CAPTURE,
+                                                                                   startTimestampNs,
+                                                                                   endTimestampNs,
+                                                                                   startTimestampEpochMs);
+      // Associate the trace file with the session so we can retrieve it later.
+      mySessionTraceFiles.put(importedSession.getSessionId(), file);
+      // Select the imported session
+      sessionsManager.update();
+      sessionsManager.setSession(importedSession);
+    }
+
+    myProfilers.getIdeServices().getFeatureTracker().trackCreateSession(Common.SessionMetaData.SessionType.CPU_CAPTURE,
+                                                                        SessionsManager.SessionCreationSource.MANUAL);
   }
 
   @Nullable
