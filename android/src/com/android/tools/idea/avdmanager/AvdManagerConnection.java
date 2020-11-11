@@ -53,7 +53,6 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
-import com.android.repository.io.impl.FileSystemFileOp;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Abi;
@@ -431,7 +430,7 @@ public class AvdManagerConnection {
     String skinPath = info.getProperties().get(AVD_INI_SKIN_PATH);
     if (skinPath != null) {
       FileSystem fileSystem =
-        myFileOp instanceof FileSystemFileOp ? ((FileSystemFileOp)myFileOp).getFileSystem() : FileSystems.getDefault();
+        myFileOp instanceof FileOp ? ((FileOp)myFileOp).getFileSystem() : FileSystems.getDefault();
 
       DeviceSkinUpdater.updateSkins(fileSystem.getPath(skinPath).getFileName(), null, fileSystem);
     }

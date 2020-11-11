@@ -35,7 +35,6 @@ import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.io.FileOp;
-import com.android.repository.io.impl.FileSystemFileOp;
 import com.android.sdklib.FileOpFileWrapper;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Storage;
@@ -259,7 +258,7 @@ public class AvdWizardUtils {
                                                   @Nullable SystemImageDescription image,
                                                   @NotNull FileOp operations) {
     FileSystem fileSystem =
-      operations instanceof FileSystemFileOp ? ((FileSystemFileOp)operations).getFileSystem() : FileSystems.getDefault();
+      operations instanceof FileOp ? ((FileOp)operations).getFileSystem() : FileSystems.getDefault();
 
     return device == null ? null : DeviceSkinUpdater.updateSkins(fileSystem.getPath(device.getPath()), image, fileSystem).toFile();
   }
