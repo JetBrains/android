@@ -80,6 +80,8 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
   private val accumulatedTimeoutExceptions = AtomicInteger(0)
   private val isBusy = AtomicBoolean(false)
 
+  fun interrupt() = renderingThread.get()?.interrupt()
+
   fun shutdown() {
     timeoutExecutor.shutdownNow()
     renderingExecutor.shutdownNow()
@@ -127,7 +129,13 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
                                                     actionTimeout: Long,
                                                     actionTimeoutUnit: TimeUnit,
                                                     callable: Callable<T>): CompletableFuture<T> {
-    val future = CompletableFuture<T>()
+    val future = object : CompletableFuture<T>() {
+      override fun cancel(mayInterruptIfRunning: Boolean): Boolean = super.cancel(mayInterruptIfRunning).also {
+        if (mayInterruptIfRunning && it) {
+          interrupt()
+        }
+      }
+    }
 
     val queueTimeoutFuture = if (queueingTimeout > 0) {
       scheduleTimeoutAction(queueingTimeout, queueingTimeoutUnit) {
@@ -153,6 +161,8 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
       }
     }
     renderingExecutor.execute {
+      // Clear the interrupted state
+      Thread.interrupted()
       isBusy.set(true)
       try {
         queueTimeoutFuture?.cancel(false)
@@ -163,6 +173,9 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
         if (future.isDone) return@execute
 
         val actionTimeoutFuture = scheduleTimeoutAction(actionTimeout, actionTimeoutUnit) {
+          if (!future.isDone) {
+            interrupt()
+          }
           future.completeExceptionally(
             createRenderTimeoutException("The render action was too slow to execute (${actionTimeoutUnit.toMillis(actionTimeout)}ms)"))
         }
