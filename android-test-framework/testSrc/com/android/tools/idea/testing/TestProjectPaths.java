@@ -88,6 +88,7 @@ public final class TestProjectPaths {
   public static final String SIGNAPK_MULTIFLAVOR = "projects/signapk/multiflavor";
   public static final String SIGNAPK_NO_FLAVORS = "projects/signapk/no_flavors";
   public static final String SIMPLE_APPLICATION = "projects/simpleApplication";
+  public static final String SIMPLE_APPLICATION_WITH_DUPLICATES = "projects/simpleApplicationWithDuplicates";
   public static final String SIMPLE_APPLICATION_UNRESOLVED_DEPENDENCY = "projects/simpleApplicationUnresolvedDependency";
   public static final String SIMPLE_APPLICATION_PRE30 = "projects/simpleApplication_pre30";
   public static final String SIMPLE_APP_WITH_OLDER_SUPPORT_LIB = "projects/simpleAppWithOlderSupportLib";
