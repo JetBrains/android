@@ -627,6 +627,24 @@ class AndroidTestSuiteViewTest {
     ).inOrder()
   }
 
+  // Regression tests for b/172088812 where the apply-code-changes action causes
+  // onTestSuiteScheduled(device) callback method to be called more than once.
+  @Test
+  fun onTestSuiteScheduledMethodMayBeCalledMoreThanOnce() {
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
+
+    val device1 = device("deviceId1", "deviceName1")
+    val sameDeviceId = device("deviceId1", "different name")
+
+    view.onTestSuiteScheduled(device1)
+
+    assertThat(view.myResultsTableView.getTableViewForTesting().columnCount).isEqualTo(3)
+
+    view.onTestSuiteScheduled(sameDeviceId)
+
+    assertThat(view.myResultsTableView.getTableViewForTesting().columnCount).isEqualTo(3)
+  }
+
   private fun device(id: String, name: String, apiVersion: Int = 28): AndroidDevice {
     return AndroidDevice(id, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(apiVersion))
   }
