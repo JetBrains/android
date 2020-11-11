@@ -375,6 +375,8 @@ public class SessionsView extends AspectObserver {
     CommonAction loadAction = new CommonAction("Load from file...", null);
     List<String> supportedExtensions = new ArrayList<>();
     supportedExtensions.add("trace");
+    supportedExtensions.add("pftrace");
+    supportedExtensions.add("perfetto-trace");
     supportedExtensions.add("alloc");
     supportedExtensions.add("hprof");
     if (getProfilers().getIdeServices().getFeatureConfig().isNativeMemorySampleEnabled()) {
