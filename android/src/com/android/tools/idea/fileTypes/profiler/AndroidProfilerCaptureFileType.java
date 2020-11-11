@@ -40,10 +40,4 @@ public abstract class AndroidProfilerCaptureFileType implements FileType {
   public Icon getIcon() {
     return StudioIcons.Profiler.Files.PROFILER_CAPTURE;
   }
-
-  @Nullable
-  @Override
-  public String getCharset(@NotNull VirtualFile file, @NotNull byte[] content) {
-    return null;
-  }
 }

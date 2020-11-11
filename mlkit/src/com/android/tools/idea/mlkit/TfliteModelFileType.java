@@ -66,10 +66,4 @@ public class TfliteModelFileType implements FileType {
   public boolean isReadOnly() {
     return true;
   }
-
-  @Nullable
-  @Override
-  public String getCharset(@NotNull VirtualFile file, @NotNull byte[] content) {
-    return null;
-  }
 }
