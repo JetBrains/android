@@ -17,6 +17,9 @@ package com.android.tools.idea.testartifacts.gradle
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testartifacts.TestConfigurationTesting
+import com.android.tools.idea.testartifacts.createAndroidGradleConfigurationFromDirectory
+import com.android.tools.idea.testartifacts.createAndroidGradleConfigurationFromFile
+import com.android.tools.idea.testartifacts.createAndroidGradleTestConfigurationFromClass
 
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN
@@ -88,37 +91,5 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     loadProject(TEST_ARTIFACTS_KOTLIN)
     TestCase.assertNull(createAndroidGradleConfigurationFromFile(
       project, "app/src/androidTest/java/com/example/android/kotlin/ExampleInstrumentedTest.kt"))
-  }
-
-  private fun createAndroidGradleTestConfigurationFromClass(project: Project, qualifiedName: String) : GradleRunConfiguration? {
-    val element = JavaPsiFacade.getInstance(project).findClass(qualifiedName, GlobalSearchScope.projectScope(project))
-    Assert.assertNotNull(element)
-    return createGradleConfigurationFromPsiElement(project, element!!)
-  }
-
-  private fun createAndroidGradleConfigurationFromDirectory(project: Project, directory: String) : GradleRunConfiguration? {
-    val element = getPsiElement(project, directory, true)
-    return createGradleConfigurationFromPsiElement(project, element)
-  }
-
-  private fun createAndroidGradleConfigurationFromFile(project: Project, file: String) : GradleRunConfiguration? {
-    val element = getPsiElement(project, file, false)
-    return createGradleConfigurationFromPsiElement(project, element)
-  }
-
-  private fun createGradleConfigurationFromPsiElement(project: Project, psiElement: PsiElement) : GradleRunConfiguration? {
-    val context = TestConfigurationTesting.createContext(project, psiElement)
-    val settings = context.configuration ?: return null
-    val configuration = settings.configuration
-    if (configuration is GradleRunConfiguration) return configuration else return null
-  }
-
-  private fun getPsiElement(project: Project, file: String, isDirectory: Boolean): PsiElement {
-    val virtualFile = VfsUtilCore.findRelativeFile(file, project.baseDir)
-    Assert.assertNotNull(virtualFile)
-    val element: PsiElement? = if (isDirectory) PsiManager.getInstance(project).findDirectory(virtualFile!!)
-    else PsiManager.getInstance(project).findFile(virtualFile!!)
-    Assert.assertNotNull(element)
-    return element!!
   }
 }
