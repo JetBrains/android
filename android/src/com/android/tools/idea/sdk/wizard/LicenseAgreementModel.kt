@@ -49,7 +49,7 @@ class LicenseAgreementModel(sdkLocation: File?) : WizardModel() {
     }
 
     licenses.forEach {
-      it.setAccepted(sdkRoot.value, FileOpUtils.create())
+      it.setAccepted(FileOpUtils.create().toPath(sdkRoot.value))
     }
   }
 }
