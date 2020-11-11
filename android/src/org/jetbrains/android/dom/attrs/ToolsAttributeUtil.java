@@ -16,6 +16,7 @@
 package org.jetbrains.android.dom.attrs;
 
 import static com.android.SdkConstants.ATTR_ACTION_BAR_NAV_MODE;
+import static com.android.SdkConstants.ATTR_COMPOSABLE_NAME;
 import static com.android.SdkConstants.ATTR_CONTEXT;
 import static com.android.SdkConstants.ATTR_DISCARD;
 import static com.android.SdkConstants.ATTR_IGNORE;
@@ -105,6 +106,7 @@ public class ToolsAttributeUtil {
   private static final ImmutableMap<String, List<AttributeFormat>> ATTRIBUTES = ImmutableMap.<String, List<AttributeFormat>>builder()
     // Layout files attributes
     .put(ATTR_ACTION_BAR_NAV_MODE, singletonList(AttributeFormat.FLAGS))
+    .put(ATTR_COMPOSABLE_NAME, NO_FORMATS)
     .put(ATTR_CONTEXT, ImmutableList.of(AttributeFormat.REFERENCE, AttributeFormat.STRING))
     .put(ATTR_IGNORE, NO_FORMATS)
     .put(ATTR_ITEM_COUNT, singletonList(AttributeFormat.INTEGER))

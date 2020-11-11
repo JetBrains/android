@@ -267,6 +267,13 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
       }
       """.trimIndent()
 
+  @Language("JAVA")
+  private val composeView =
+    """
+      package androidx.compose.ui.platform;
+      public class ComposeView extends android.view.View {}
+      """.trimIndent()
+
   @Language("XML")
   private val constraintLayoutResources =
     """
@@ -288,6 +295,30 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
   override fun getPathToCopy(testFileName: String): String {
     return "res/layout/$testFileName"
+  }
+
+  fun testComposableNameToolsAttributeCompletion() {
+    myFixture.addClass(composeView)
+    @Suppress("RequiredAttributes")
+    val composeLayout = myFixture.addFileToProject(
+      "res/layout/layout.xml",
+      //language=XML
+      """
+        <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          xmlns:tools="http://schemas.android.com/tools"
+          xmlns:android="http://schemas.android.com/apk/res/android">
+
+          <androidx.compose.ui.platform.ComposeView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:${caret}=""/>
+        </LinearLayout>
+      """.trimIndent()).virtualFile
+    myFixture.configureFromExistingVirtualFile(composeLayout)
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).contains("tools:composableName")
   }
 
   /**
@@ -356,7 +387,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   fun testStylesItemReferenceAndroid() {
     val psiFile = myFixture.addFileToProject("res/values/styles.xml",
       //language=XML
-      """
+                                             """
       <resources>
         <style name="TextAppearance.Theme.PlainText">
           <item name="android:textStyle"/>
@@ -374,7 +405,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.addFileToProject("res/values/coordinatorlayout_attrs.xml", coordinatorLayoutResources)
     val psiFile = myFixture.addFileToProject("res/values/styles.xml",
       //language=XML
-      """
+                                             """
       <resources>
         <style name="TextAppearance.Theme.PlainText">
           <item name="layout_behavior"/>
@@ -391,7 +422,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   fun testStylesItemCompletionAndroid() {
     val psiFile = myFixture.addFileToProject("res/values/styles.xml",
       //language=XML
-      """
+                                             """
       <resources>
         <style name="TextAppearance.Theme.PlainText">
           <item name="layout_wid"/>
@@ -407,7 +438,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.addFileToProject("res/values/coordinatorlayout_attrs.xml", coordinatorLayoutResources)
     val psiFile = myFixture.addFileToProject("res/values/styles.xml",
       //language=xml
-      """
+                                             """
       <resources>
         <style name="TextAppearance.Theme.PlainText">
           <item name="layout_be"/>
