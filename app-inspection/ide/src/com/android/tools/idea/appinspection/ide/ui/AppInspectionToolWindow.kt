@@ -16,8 +16,8 @@
 package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
-import com.android.tools.idea.appinspection.ide.resolver.gradle.AppInspectionGradleArtifactResolver
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspector.ide.resolver.AppInspectionArtifactResolverFactory
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.model.AndroidModuleInfo
@@ -112,7 +112,7 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
     ideServices,
     scope,
     AndroidDispatchers.uiThread,
-    AppInspectionGradleArtifactResolver(),
+    AppInspectionArtifactResolverFactory.instance.getArtifactResolver(project),
     ::getPreferredProcesses
   )
   val component: JComponent = appInspectionView.component

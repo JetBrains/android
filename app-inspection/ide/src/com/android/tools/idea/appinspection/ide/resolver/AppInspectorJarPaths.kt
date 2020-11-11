@@ -17,9 +17,8 @@ package com.android.tools.idea.appinspection.ide.resolver
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.io.FileService
-import com.android.tools.idea.appinspection.inspector.ide.io.IdeFileService
+import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.io.ZipUtil
@@ -46,7 +45,7 @@ private const val INSPECTOR_JAR = "inspector.jar"
  *   $cache_dir/<group_id>/<artifact_id>/<version>/inspector.jar
  */
 @ThreadSafe
-class AppInspectorJarPaths(private val fileService: FileService = IdeFileService("app-inspection")) {
+class AppInspectorJarPaths(private val fileService: FileService) {
 
   /**
    * In memory representation of the cached inspector jars that have been accessed or populated during the life of the application. At the

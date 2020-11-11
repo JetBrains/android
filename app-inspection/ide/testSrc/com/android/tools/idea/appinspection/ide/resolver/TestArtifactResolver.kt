@@ -21,7 +21,7 @@ import com.android.tools.idea.appinspection.inspector.ide.resolver.AppInspection
 import com.android.tools.idea.appinspection.test.TEST_JAR
 import com.intellij.openapi.project.Project
 
-class StubAppInspectionArtifactResolver : AppInspectionArtifactResolver {
+class TestArtifactResolver : AppInspectionArtifactResolver {
   override suspend fun resolveArtifacts(artifactIdList: List<ArtifactCoordinate>,
                                         project: Project): Map<ArtifactCoordinate, AppInspectorJar> {
     return artifactIdList.associateWith { TEST_JAR }
