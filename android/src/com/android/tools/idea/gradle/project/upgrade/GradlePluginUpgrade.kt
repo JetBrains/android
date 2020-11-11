@@ -166,12 +166,8 @@ fun performRecommendedPluginUpgrade(
   if (userAccepted) {
     // The user accepted the upgrade
     if (AGP_UPGRADE_ASSISTANT.get()) {
-      val processor = AgpUpgradeRefactoringProcessor(project, currentVersion, recommendedVersion)
-      val runProcessor = showAndGetAgpUpgradeDialog(processor)
-      if (runProcessor) {
-        DumbService.getInstance(project).smartInvokeLater { processor.run() }
-      }
-      // The AgpUpgradeRefactoringProcessor requests a sync itself when executed.
+      showAndInvokeAgpUpgradeRefactoringProcessor(project, currentVersion, recommendedVersion)
+      // AgpUpgradeRefactoringProcessor is responsible for its own syncs
       return false
     }
 
@@ -194,7 +190,7 @@ fun performRecommendedPluginUpgrade(
  * dialog if we detect that the upgrade will fail in some way.
  */
 @Slow
-private fun showAndGetAgpUpgradeDialog(processor: AgpUpgradeRefactoringProcessor): Boolean {
+fun showAndGetAgpUpgradeDialog(processor: AgpUpgradeRefactoringProcessor): Boolean {
   val java8Processor = processor.componentRefactoringProcessors.firstIsInstanceOrNull<Java8DefaultRefactoringProcessor>()
   if (java8Processor == null) {
     LOG.error("no Java8Default processor found in AGP Upgrade Processor")

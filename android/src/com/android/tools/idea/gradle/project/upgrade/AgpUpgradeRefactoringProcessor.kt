@@ -89,11 +89,13 @@ import com.intellij.navigation.NavigationItem
 import com.intellij.navigation.PsiElementNavigationItem
 import com.intellij.openapi.actionSystem.TypeSafeDataProvider
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Factory
 import com.intellij.openapi.util.Ref
@@ -571,6 +573,18 @@ class AgpUpgradeRefactoringProcessor(
         }
       },
       commandName, true, project)
+  }
+}
+
+/**
+ * This function is a default entry point to the AGP Upgrade Assistant, responsible for showing suitable UI for gathering user input
+ * to the process, and then running the processor under that user input's direction.
+ */
+internal fun showAndInvokeAgpUpgradeRefactoringProcessor(project: Project, current: GradleVersion, new: GradleVersion) {
+  val processor = AgpUpgradeRefactoringProcessor(project, current, new)
+  val runProcessor = showAndGetAgpUpgradeDialog(processor)
+  if (runProcessor) {
+    DumbService.getInstance(project).smartInvokeLater { processor.run() }
   }
 }
 
