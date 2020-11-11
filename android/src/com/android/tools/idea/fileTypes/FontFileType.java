@@ -69,10 +69,4 @@ public class FontFileType implements FileType {
   public boolean isBinary() {
     return true;
   }
-
-  @Nullable
-  @Override
-  public String getCharset(@NotNull VirtualFile file, @NotNull byte[] content) {
-    return null;
-  }
 }
