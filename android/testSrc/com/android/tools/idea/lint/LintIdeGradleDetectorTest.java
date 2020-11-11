@@ -38,6 +38,11 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  public void testDependenciesWithTask() throws Exception {
+    AndroidLintGradleDependencyInspection inspection = new AndroidLintGradleDependencyInspection();
+    doTest(inspection, null);
+  }
+
   public void testIncompatiblePlugin() throws Exception {
     AndroidLintGradlePluginVersionInspection inspection = new AndroidLintGradlePluginVersionInspection();
     doTest(inspection, null);

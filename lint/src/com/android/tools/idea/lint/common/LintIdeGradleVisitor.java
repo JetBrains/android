@@ -219,15 +219,18 @@ public class LintIdeGradleVisitor extends GradleVisitor {
               if (invokedExpression instanceof GrReferenceExpression) {
                 GrReferenceExpression referenceExpression = (GrReferenceExpression) invokedExpression;
                 GrExpression qualifierExpression = referenceExpression.getQualifierExpression();
+                String qualifierName = "";
                 if (qualifierExpression != null) {
-                  parentName = qualifierExpression.getText();
+                  qualifierName = qualifierExpression.getText();
                 }
                 String name = referenceExpression.getReferenceName();
-                String value = unnamedArguments.get(0);
-                GrCommandArgumentList argumentList = applicationStatement.getArgumentList();
-                for (GradleScanner detector : detectors) {
-                  detector.checkDslPropertyAssignment(context, name, value, parentName, null,
-                                                      invokedExpression, argumentList, applicationStatement);
+                if (name != null) {
+                  String value = unnamedArguments.get(0);
+                  GrCommandArgumentList argumentList = applicationStatement.getArgumentList();
+                  for (GradleScanner detector : detectors) {
+                    detector.checkDslPropertyAssignment(context, name, value, qualifierName, null,
+                                                        invokedExpression, argumentList, applicationStatement);
+                  }
                 }
               }
             }
