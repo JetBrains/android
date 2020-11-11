@@ -166,12 +166,8 @@ fun performRecommendedPluginUpgrade(
   if (userAccepted) {
     // The user accepted the upgrade
     if (AGP_UPGRADE_ASSISTANT.get()) {
-      val processor = AgpUpgradeRefactoringProcessor(project, currentVersion, recommendedVersion)
-      val runProcessor = showAndGetAgpUpgradeDialog(processor)
-      if (runProcessor) {
-        DumbService.getInstance(project).smartInvokeLater { processor.run() }
-      }
-      // The AgpUpgradeRefactoringProcessor requests a sync itself when executed.
+      showAndInvokeAgpUpgradeRefactoringProcessor(project, currentVersion, recommendedVersion)
+      // AgpUpgradeRefactoringProcessor is responsible for its own syncs
       return false
     }
 
