@@ -88,8 +88,7 @@ class TopLevelModuleFactory {
           GRADLE_SYSTEM_ID,
           new ModuleData(":", GRADLE_SYSTEM_ID, JAVA.getId(), projectRootDir.getName(), projectRootDirPath,
                          projectRootDirPath),
-          new ProjectData(GRADLE_SYSTEM_ID, project.getName(), project.getBasePath(), project.getBasePath()),
-          null);
+          new ProjectData(GRADLE_SYSTEM_ID, project.getName(), project.getBasePath(), project.getBasePath()));
 
       ModifiableRootModel model = ModuleRootManager.getInstance(module).getModifiableModel();
       model.addContentEntry(contentRoot);
