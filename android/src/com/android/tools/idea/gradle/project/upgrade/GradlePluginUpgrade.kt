@@ -367,7 +367,7 @@ fun displayForceUpdatesDisabledMessage(project: Project) {
   notification.notify(project)
 }
 
-private fun Project.findPluginInfo() : AndroidPluginInfo? {
+internal fun Project.findPluginInfo() : AndroidPluginInfo? {
   val pluginInfo = AndroidPluginInfo.find(this)
   if (pluginInfo == null) {
     LOG.warn("Unable to obtain application's Android Project")
