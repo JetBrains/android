@@ -17,10 +17,13 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.ui.components.JBScrollPane
 import org.jetbrains.annotations.TestOnly
+import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JTable
+
+const val WORK_MANAGER_TOOLBAR_PLACE = "WorkManagerInspector"
 
 /**
  * Parent panel which contains toggleable different views into workers, e.g. a table view and a graph view.
@@ -149,18 +152,26 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
   }
 
   private fun buildActionBar(): JComponent {
-    val group = DefaultActionGroup().apply {
+    val toolbarPanel = JPanel(BorderLayout())
+
+    val leftGroup = DefaultActionGroup().apply {
       add(CancelAction())
       addSeparator()
       add(TagsDropDownAction())
-      if (ENABLE_WORK_MANAGER_GRAPH_VIEW.get()) {
-        addSeparator()
+    }
+    val leftToolbar = ActionManager.getInstance().createActionToolbar(WORK_MANAGER_TOOLBAR_PLACE, leftGroup, true)
+    toolbarPanel.add(leftToolbar.component, BorderLayout.WEST)
+
+    if (ENABLE_WORK_MANAGER_GRAPH_VIEW.get()) {
+      val rightGroup = DefaultActionGroup().apply {
         add(ListViewAction())
         add(GraphViewAction())
       }
+      val rightToolbar = ActionManager.getInstance().createActionToolbar(WORK_MANAGER_TOOLBAR_PLACE, rightGroup, true)
+      toolbarPanel.add(rightToolbar.component, BorderLayout.EAST)
     }
-    val toolbar = ActionManager.getInstance().createActionToolbar("WorkManagerInspector", group, true)
-    return toolbar.component
+
+    return toolbarPanel
   }
 
   private fun buildContentViewportView(): JComponent = when (contentMode) {
