@@ -66,6 +66,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTable
 import javax.swing.table.DefaultTableCellRenderer
+import kotlin.streams.toList
 
 class WorkManagerInspectorTabTest {
 
@@ -459,9 +460,11 @@ class WorkManagerInspectorTabTest {
       val contentView = (inspectorTab.component as JBSplitter).firstComponent as WorksContentView
       val table = contentView.getFirstChildIsInstance<JTable>()
       table.selectionModel.setSelectionInterval(0, 0)
-      val toolbar =
-        TreeWalker(inspectorTab.component).descendantStream().filter { it is ActionToolbar }.findFirst().get() as ActionToolbarImpl
-      val graphViewAction = toolbar.actions[5] as AnAction
+      val toolbar = TreeWalker(inspectorTab.component)
+        .descendantStream()
+        .filter { it is ActionToolbar }
+        .toList()[1] as ActionToolbarImpl
+      val graphViewAction = toolbar.actions[1] as AnAction
       assertThat(graphViewAction.templateText).isEqualTo("Show Graph View")
       val event: AnActionEvent = mock(AnActionEvent::class.java)
       graphViewAction.actionPerformed(event)
@@ -479,13 +482,15 @@ class WorkManagerInspectorTabTest {
       val contentView = (inspectorTab.component as JBSplitter).firstComponent as WorksContentView
       val table = contentView.getFirstChildIsInstance<JTable>()
       table.selectionModel.setSelectionInterval(0, 0)
-      val toolbar =
-        TreeWalker(inspectorTab.component).descendantStream().filter { it is ActionToolbar }.findFirst().get() as ActionToolbarImpl
-      val graphViewAction = toolbar.actions[5] as AnAction
+      val toolbar = TreeWalker(inspectorTab.component)
+        .descendantStream()
+        .filter { it is ActionToolbar }
+        .toList()[1] as ActionToolbarImpl
+      val graphViewAction = toolbar.actions[1] as AnAction
       val event: AnActionEvent = mock(AnActionEvent::class.java)
       graphViewAction.actionPerformed(event)
 
-      val tableViewAction = toolbar.actions[4] as AnAction
+      val tableViewAction = toolbar.actions[0] as AnAction
       assertThat(tableViewAction.templateText).isEqualTo("Show List View")
       tableViewAction.actionPerformed(event)
 
@@ -506,9 +511,11 @@ class WorkManagerInspectorTabTest {
       val contentView = (inspectorTab.component as JBSplitter).firstComponent as WorksContentView
       val table = contentView.getFirstChildIsInstance<JTable>()
       table.selectionModel.setSelectionInterval(0, 0)
-      val toolbar =
-        TreeWalker(inspectorTab.component).descendantStream().filter { it is ActionToolbar }.findFirst().get() as ActionToolbarImpl
-      val graphViewAction = toolbar.actions[5] as AnAction
+      val toolbar = TreeWalker(inspectorTab.component)
+        .descendantStream()
+        .filter { it is ActionToolbar }
+        .toList()[1] as ActionToolbarImpl
+      val graphViewAction = toolbar.actions[1] as AnAction
       val event: AnActionEvent = mock(AnActionEvent::class.java)
       graphViewAction.actionPerformed(event)
     }.join()
