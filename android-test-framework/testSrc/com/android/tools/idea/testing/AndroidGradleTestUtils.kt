@@ -538,8 +538,7 @@ fun setupTestProjectFromAndroidModel(
         .setExternalOptions(
           GRADLE_SYSTEM_ID,
           ModuleData(":", GRADLE_SYSTEM_ID, JAVA.id, project.name, basePath.path, basePath.path),
-          ProjectData(GRADLE_SYSTEM_ID, project.name, project.basePath!!, basePath.path),
-          null)
+          ProjectData(GRADLE_SYSTEM_ID, project.name, project.basePath!!, basePath.path))
     }
   }
   else {
