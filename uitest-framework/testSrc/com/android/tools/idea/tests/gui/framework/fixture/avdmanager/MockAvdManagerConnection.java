@@ -75,6 +75,7 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
       AndroidDebugBridge adb = AndroidDebugBridge.createBridge(getAdbBinary().getAbsolutePath(), false);
 
       Collection<IDevice> emulatorDevices = new ArrayList<>();
+      assert adb != null;
       for (IDevice device : adb.getDevices()) {
         EmulatorConsole emulatorConsole = EmulatorConsole.getConsole(device);
         if (emulatorConsole != null) {
@@ -122,7 +123,8 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
           }
           return true;
         });
-    } catch (WaitTimedOutError timeout) {
+    }
+    catch (WaitTimedOutError timeout) {
       getLogger().warn("Emulators did not shut down gracefully");
     }
   }
@@ -130,7 +132,8 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
   public void tapRunningAvd(int x, int y) {
     try {
       exec(getAdbBinary().getAbsolutePath() + " shell input tap " + x + " " + y);
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -138,7 +141,8 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
   public void tapBackButtonOnRunningAvd() {
     try {
       exec(getAdbBinary().getAbsolutePath() + " shell input keyevent 4");
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -146,10 +150,12 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
   private static void exec(@NotNull String cmd) {
     try {
       Runtime.getRuntime().exec(cmd).waitFor(10, TimeUnit.SECONDS);
-    } catch (InterruptedException interrupted) {
+    }
+    catch (InterruptedException interrupted) {
       // Continue keeping the thread interrupted. Don't block on anything to cleanup
       Thread.currentThread().interrupt();
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       throw new RuntimeException(e);
     }
   }

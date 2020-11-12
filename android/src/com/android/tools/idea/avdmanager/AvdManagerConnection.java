@@ -45,6 +45,7 @@ import static java.nio.file.StandardOpenOption.WRITE;
 import com.android.SdkConstants;
 import com.android.ddmlib.IDevice;
 import com.android.prefs.AndroidLocation;
+import com.android.prefs.AndroidLocation.AndroidLocationException;
 import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
@@ -146,15 +147,15 @@ public class AvdManagerConnection {
   public static final Revision TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("25.0.0 rc1");
   public static final Revision TOOLS_REVISION_25_0_2_RC3 = Revision.parseRevision("25.0.2 rc3");
   public static final Revision PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("23.1.0");
-  protected static Revision EMULATOR_REVISION_SUPPORTS_STUDIO_PARAMS = Revision.parseRevision("26.1.0");
+  protected static final Revision EMULATOR_REVISION_SUPPORTS_STUDIO_PARAMS = Revision.parseRevision("26.1.0");
 
-  private static final SystemImageUpdateDependency[] SYSTEM_IMAGE_DEPENCENCY_WITH_FIRST_QEMU2 = {
+  private static final SystemImageUpdateDependency[] SYSTEM_IMAGE_DEPENDENCY_WITH_FIRST_QEMU2 = {
     new SystemImageUpdateDependency(LMP_MR1_API_LEVEL_22, DEFAULT_TAG, 2),
     new SystemImageUpdateDependency(LMP_MR1_API_LEVEL_22, GOOGLE_APIS_TAG, 2),
     new SystemImageUpdateDependency(MNC_API_LEVEL_23, DEFAULT_TAG, 6),
     new SystemImageUpdateDependency(MNC_API_LEVEL_23, GOOGLE_APIS_TAG, 10),
   };
-  private static final SystemImageUpdateDependency[] SYSTEM_IMAGE_DEPENCENCY_WITH_25_0_2_RC3 = {
+  private static final SystemImageUpdateDependency[] SYSTEM_IMAGE_DEPENDENCY_WITH_25_0_2_RC3 = {
     new SystemImageUpdateDependency(LMP_MR1_API_LEVEL_22, DEFAULT_TAG, 4),
     new SystemImageUpdateDependency(LMP_MR1_API_LEVEL_22, GOOGLE_APIS_TAG, 4),
     new SystemImageUpdateDependency(MNC_API_LEVEL_23, DEFAULT_TAG, 8),
@@ -228,13 +229,12 @@ public class AvdManagerConnection {
       try {
         myAvdManager = AvdManager.getInstance(mySdkHandler, new File(AndroidLocation.getAvdFolder()), SDK_LOG);
       }
-      catch (AndroidLocation.AndroidLocationException e) {
+      catch (AndroidLocationException e) {
         IJ_LOG.error("Could not instantiate AVD Manager from SDK", e);
         return false;
       }
-      if (myAvdManager == null) {
-        return false;
-      }
+
+      return myAvdManager != null;
     }
     return true;
   }
@@ -287,10 +287,10 @@ public class AvdManagerConnection {
       return null;
     }
     if (info.getVersion().compareTo(TOOLS_REVISION_25_0_2_RC3) >= 0) {
-      return SYSTEM_IMAGE_DEPENCENCY_WITH_25_0_2_RC3;
+      return SYSTEM_IMAGE_DEPENDENCY_WITH_25_0_2_RC3;
     }
     if (info.getVersion().compareTo(TOOLS_REVISION_WITH_FIRST_QEMU2) >= 0) {
-      return SYSTEM_IMAGE_DEPENCENCY_WITH_FIRST_QEMU2;
+      return SYSTEM_IMAGE_DEPENDENCY_WITH_FIRST_QEMU2;
     }
     return null;
   }
@@ -305,10 +305,8 @@ public class AvdManagerConnection {
     if (info == null) {
       return false;
     }
-    if (info.getVersion().compareTo(PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2) >= 0) {
-      return true;
-    }
-    return false;
+
+    return info.getVersion().compareTo(PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2) >= 0;
   }
 
   private boolean hasSystemImagesForQEMU2Installed() {
@@ -319,6 +317,7 @@ public class AvdManagerConnection {
    * The qemu2 emulator has changes in the system images for platform 22 and 23 (Intel CPU architecture only).
    * This method will generate package updates if we detect that we have outdated system images for platform
    * 22 and 23. We also check the addon system images which includes the Google API.
+   *
    * @return a list of package paths that need to be updated.
    */
   @NotNull
@@ -353,24 +352,27 @@ public class AvdManagerConnection {
     }
     if (forceRefresh) {
       try {
+        assert myAvdManager != null;
         myAvdManager.reloadAvds(SDK_LOG);
       }
-      catch (AndroidLocation.AndroidLocationException e) {
+      catch (AndroidLocationException e) {
         IJ_LOG.error("Could not find Android SDK!", e);
       }
     }
-    ArrayList<AvdInfo> avdInfos = Lists.newArrayList(myAvdManager.getAllAvds());
+    assert myAvdManager != null;
+    ArrayList<AvdInfo> avds = Lists.newArrayList(myAvdManager.getAllAvds());
     boolean needsRefresh = false;
-    for (AvdInfo info : avdInfos) {
-      if (info.getStatus() == AvdInfo.AvdStatus.ERROR_DEVICE_CHANGED) {
-        updateDeviceChanged(info);
+    for (AvdInfo avd : avds) {
+      if (avd.getStatus() == AvdInfo.AvdStatus.ERROR_DEVICE_CHANGED) {
+        updateDeviceChanged(avd);
         needsRefresh = true;
       }
     }
     if (needsRefresh) {
       return getAvds(true);
-    } else {
-      return avdInfos;
+    }
+    else {
+      return avds;
     }
   }
 
@@ -378,6 +380,7 @@ public class AvdManagerConnection {
     if (!initIfNecessary()) {
       return false;
     }
+    assert myAvdManager != null;
     AvdInfo info = myAvdManager.getAvd(avdName, false);
     if (info == null) {
       return false;
@@ -392,15 +395,18 @@ public class AvdManagerConnection {
     if (!initIfNecessary()) {
       return false;
     }
+    assert myAvdManager != null;
     return myAvdManager.deleteAvd(info, SDK_LOG);
   }
 
   public boolean isAvdRunning(@NotNull AvdInfo info) {
+    assert myAvdManager != null;
     return myAvdManager.isAvdRunning(info, SDK_LOG);
   }
 
 
   public void stopAvd(@NotNull AvdInfo info) {
+    assert myAvdManager != null;
     myAvdManager.stopAvd(info);
   }
 
@@ -483,13 +489,14 @@ public class AvdManagerConnection {
     // userdata-qemu.img.lock/pid on Windows). We should detect whether those lock files are stale and if so, delete them without showing
     // this error. Either the emulator provides a command to do that, or we learn about its internals (qemu/android/utils/filelock.c) and
     // perform the same action here. If it is not stale, then we should show this error and if possible, bring that window to the front.
+    assert myAvdManager != null;
     if (myAvdManager.isAvdRunning(avd, SDK_LOG)) {
       myAvdManager.logRunningAvdInfo(avd, SDK_LOG);
       String baseFolder;
       try {
         baseFolder = myAvdManager.getBaseAvdFolder().getAbsolutePath();
       }
-      catch (AndroidLocation.AndroidLocationException e) {
+      catch (AndroidLocationException e) {
         baseFolder = "$HOME";
       }
 
@@ -503,7 +510,6 @@ public class AvdManagerConnection {
 
     GeneralCommandLine commandLine = newEmulatorCommand(project, emulatorBinary, avd, factory);
     EmulatorRunner runner = new EmulatorRunner(commandLine, avd);
-    addListeners(runner);
 
     ProcessHandler processHandler;
     try {
@@ -518,7 +524,7 @@ public class AvdManagerConnection {
 
     // If we're using qemu2, it has its own progress bar, so put ours in the background. Otherwise show it.
     ProgressWindow p = hasQEMU2Installed()
-                       ? new BackgroundableProcessIndicator(project, "Launching Emulator", PerformInBackgroundOption.ALWAYS_BACKGROUND,
+                       ? new BackgroundableProcessIndicator(project, "Launching emulator", PerformInBackgroundOption.ALWAYS_BACKGROUND,
                                                             "", "", false)
                        : new ProgressWindow(false, true, project);
     p.setIndeterminate(false);
@@ -580,7 +586,7 @@ public class AvdManagerConnection {
     EmulatorSettings settings = EmulatorSettings.getInstance();
     boolean foldable = isFoldable(avd);
     boolean show =
-        foldable ? settings.getShowLaunchedStandaloneNotificationForFoldable() : settings.getShowLaunchedStandaloneNotification();
+      foldable ? settings.getShowLaunchedStandaloneNotificationForFoldable() : settings.getShowLaunchedStandaloneNotification();
     if (!show) {
       return; // Notified before.
     }
@@ -594,12 +600,6 @@ public class AvdManagerConnection {
     else {
       settings.setShowLaunchedStandaloneNotification(false);
     }
-  }
-
-  /**
-   * Allow subclasses to add listeners before starting the emulator.
-   */
-  protected void addListeners(@NotNull EmulatorRunner runner) {
   }
 
   private static boolean shouldBeLaunchedEmbedded(@Nullable Project project, @NotNull AvdInfo avd) {
@@ -624,6 +624,7 @@ public class AvdManagerConnection {
 
   /**
    * Indicates if the Emulator's version is at least {@code desired}
+   *
    * @return true if the Emulator version is the desired version or higher
    */
   public boolean emulatorVersionIsAtLeast(@NotNull Revision desired) {
@@ -677,7 +678,8 @@ public class AvdManagerConnection {
       .map(File::toPath);
   }
 
-  /** Create a directory under $ANDROID_SDK_ROOT where we can write
+  /**
+   * Create a directory under $ANDROID_SDK_ROOT where we can write
    * temporary files.
    *
    * @return The directory file. This will be null if we
@@ -745,7 +747,6 @@ public class AvdManagerConnection {
                                                             @NotNull AvdInfo info,
                                                             @NotNull AccelerationErrorCode code) {
     if (code.getSolution().equals(SolutionCode.NONE)) {
-      // noinspection UnstableApiUsage
       return Futures.immediateFailedFuture(new RuntimeException("Could not start AVD"));
     }
 
@@ -780,13 +781,11 @@ public class AvdManagerConnection {
                                                                @NotNull AvdInfo info,
                                                                @NotNull AccelerationErrorCode code) {
     if (result == Messages.CANCEL) {
-      // noinspection UnstableApiUsage
       return Futures.immediateFailedFuture(new RuntimeException("Could not start AVD"));
     }
 
     SettableFuture<IDevice> future = SettableFuture.create();
 
-    @SuppressWarnings("UnstableApiUsage")
     Runnable setFuture = () -> future.setFuture(startAvd(project, info));
 
     Runnable setException = () -> future.setException(new RuntimeException("Retry after fixing problem by hand"));
@@ -873,11 +872,13 @@ public class AvdManagerConnection {
     try {
       if (currentInfo != null) {
         avdFolder = new File(currentInfo.getDataFolderPath());
-      } else {
+      }
+      else {
+        assert myAvdManager != null;
         avdFolder = AvdInfo.getDefaultAvdFolder(myAvdManager, avdName, myFileOp, true);
       }
     }
-    catch (AndroidLocation.AndroidLocationException e) {
+    catch (AndroidLocationException e) {
       IJ_LOG.error("Could not create AVD " + avdName, e);
       return null;
     }
@@ -950,12 +951,14 @@ public class AvdManagerConnection {
       hardwareProperties.put(AVD_INI_ROLL_PERCENTAGES_POSTURE_DEFINITIONS, "58.55-76.45, 76.45-94.35, 94.35-100");
     }
     if (currentInfo != null && !avdName.equals(currentInfo.getName()) && removePrevious) {
+      assert myAvdManager != null;
       boolean success = myAvdManager.moveAvd(currentInfo, avdName, currentInfo.getDataFolderPath(), SDK_LOG);
       if (!success) {
         return null;
       }
     }
 
+    assert myAvdManager != null;
     return myAvdManager.createAvd(avdFolder,
                                   avdName,
                                   systemImageDescription.getSystemImage(),
@@ -1008,6 +1011,7 @@ public class AvdManagerConnection {
     if (!initIfNecessary()) {
       return false;
     }
+    assert myAvdManager != null;
     return myAvdManager.getAvd(candidate, false) != null;
   }
 
@@ -1042,6 +1046,7 @@ public class AvdManagerConnection {
 
   @NotNull
   private AvdInfo reloadAvd(@NotNull AvdInfo avdInfo) {
+    assert myAvdManager != null;
     return myAvdManager.reloadAvd(avdInfo, SDK_LOG);
   }
 
@@ -1054,16 +1059,16 @@ public class AvdManagerConnection {
     return StringUtil.trimEnd(imageSystemDir.replace(File.separatorChar, RepoPackage.PATH_SEPARATOR), RepoPackage.PATH_SEPARATOR);
   }
 
-  public boolean updateDeviceChanged(@NotNull AvdInfo avdInfo) {
+  public void updateDeviceChanged(@NotNull AvdInfo avdInfo) {
     if (initIfNecessary()) {
       try {
-        return myAvdManager.updateDeviceChanged(avdInfo, SDK_LOG) != null;
+        assert myAvdManager != null;
+        myAvdManager.updateDeviceChanged(avdInfo, SDK_LOG);
       }
       catch (IOException e) {
         IJ_LOG.warn("Could not update AVD Device " + avdInfo.getName(), e);
       }
     }
-    return false;
   }
 
   public boolean wipeUserData(@NotNull AvdInfo avdInfo) {

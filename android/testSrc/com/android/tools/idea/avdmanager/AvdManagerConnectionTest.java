@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.prefs.AndroidLocation;
 import com.android.repository.Revision;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.impl.meta.TypeDetails;
@@ -37,6 +36,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.util.SystemInfo;
 import java.io.File;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.AndroidTestCase;
@@ -60,8 +60,9 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(new File("/sdk"), ANDROID_PREFS_ROOT, mFileOp);
 
-    mAvdManager = AvdManager.getInstance(androidSdkHandler, new File(ANDROID_PREFS_ROOT, AndroidLocation.FOLDER_AVD), new NullLogger());
+    mAvdManager = AvdManager.getInstance(androidSdkHandler, new File(ANDROID_PREFS_ROOT, "avd"), new NullLogger());
 
+    assert mAvdManager != null;
     mAvdFolder = AvdInfo.getDefaultAvdFolder(mAvdManager, getName(), mFileOp, false);
 
     mSystemImage = androidSdkHandler.getSystemImageManager(new FakeProgressIndicator()).getImages().iterator().next();
@@ -96,7 +97,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     File snapshotsDir = new File(mAvdFolder, AvdManager.SNAPSHOTS_DIRECTORY);
     String snapshotFile = snapshotsDir.getAbsolutePath() + "/aSnapShotFile.txt";
     mFileOp.recordExistingFile(snapshotFile, "Some contents for the file");
-    assertTrue("Could not create " + snapshotFile, mFileOp.exists(new File (snapshotFile)));
+    assertTrue("Could not create " + snapshotFile, mFileOp.exists(new File(snapshotFile)));
 
     // Do the "wipe-data"
     assertTrue("Could not wipe data from AVD", mAvdManagerConnection.wipeUserData(avd));
@@ -168,17 +169,23 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     FakeProgressIndicator progress = new FakeProgressIndicator();
     SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
 
-    ISystemImage q1Image = systemImageManager.getImageAt(sdkHandler.getLocalPackage(q1Path, progress).getLocation());
-    ISystemImage q2Image = systemImageManager.getImageAt(sdkHandler.getLocalPackage(q2Path, progress).getLocation());
-    ISystemImage q2_64Image = systemImageManager.getImageAt(sdkHandler.getLocalPackage(q2_64Path, progress).getLocation());
+    ISystemImage q1Image =
+      systemImageManager.getImageAt(Objects.requireNonNull(sdkHandler.getLocalPackage(q1Path, progress)).getLocation());
+    ISystemImage q2Image =
+      systemImageManager.getImageAt(Objects.requireNonNull(sdkHandler.getLocalPackage(q2Path, progress)).getLocation());
+    ISystemImage q2_64Image =
+      systemImageManager.getImageAt(Objects.requireNonNull(sdkHandler.getLocalPackage(q2_64Path, progress)).getLocation());
 
-    SystemImageDescription q1ImageDescr = new SystemImageDescription(q1Image);
-    SystemImageDescription q2ImageDescr = new SystemImageDescription(q2Image);
-    SystemImageDescription q2_64ImageDescr = new SystemImageDescription(q2_64Image);
+    assert q1Image != null;
+    SystemImageDescription q1ImageDescription = new SystemImageDescription(q1Image);
+    assert q2Image != null;
+    SystemImageDescription q2ImageDescription = new SystemImageDescription(q2Image);
+    assert q2_64Image != null;
+    SystemImageDescription q2_64ImageDescription = new SystemImageDescription(q2_64Image);
 
-    assertFalse("Should not support QEMU2", AvdManagerConnection.doesSystemImageSupportQemu2(q1ImageDescr, mFileOp));
-    assertTrue("Should support QEMU2", AvdManagerConnection.doesSystemImageSupportQemu2(q2ImageDescr, mFileOp));
-    assertTrue("Should support QEMU2", AvdManagerConnection.doesSystemImageSupportQemu2(q2_64ImageDescr, mFileOp));
+    assertFalse("Should not support QEMU2", AvdManagerConnection.doesSystemImageSupportQemu2(q1ImageDescription, mFileOp));
+    assertTrue("Should support QEMU2", AvdManagerConnection.doesSystemImageSupportQemu2(q2ImageDescription, mFileOp));
+    assertTrue("Should support QEMU2", AvdManagerConnection.doesSystemImageSupportQemu2(q2_64ImageDescription, mFileOp));
   }
 
   // Note: This only tests a small part of startAvd(). We are not set up
@@ -207,6 +214,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       log);
 
     try {
+      assert skinnyAvd != null;
       mAvdManagerConnection.startAvd(null, skinnyAvd).get(4, TimeUnit.SECONDS);
       fail();
     }
@@ -269,6 +277,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       log);
 
     try {
+      assert skinlessAvd != null;
       mAvdManagerConnection.startAvd(null, skinlessAvd).get(4, TimeUnit.SECONDS);
       fail();
     }
