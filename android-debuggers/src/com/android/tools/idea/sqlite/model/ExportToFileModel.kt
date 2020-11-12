@@ -22,7 +22,7 @@ import java.nio.file.Path
 sealed class ExportFormat {
   object DB : ExportFormat()
   object SQL : ExportFormat()
-  class CSV(val delimiter: Delimiter) : ExportFormat()
+  data class CSV(val delimiter: Delimiter) : ExportFormat()
 }
 
 enum class Delimiter(val delimiter: Char) {
