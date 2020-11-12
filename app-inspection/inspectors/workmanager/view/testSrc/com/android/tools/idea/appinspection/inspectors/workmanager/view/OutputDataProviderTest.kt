@@ -19,7 +19,7 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.CallStack
 import androidx.work.inspection.WorkManagerInspectorProtocol.Constraints
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
-import com.android.tools.idea.appinspection.inspector.api.service.TestAppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.CoroutineScope
@@ -47,7 +47,7 @@ class OutputDataProviderTest {
   fun setUp() {
     executor = Executors.newSingleThreadExecutor()
     scope = CoroutineScope(executor.asCoroutineDispatcher() + SupervisorJob())
-    ideServices = TestAppInspectionIdeServices()
+    ideServices = AppInspectionIdeServicesAdapter()
   }
 
   @After

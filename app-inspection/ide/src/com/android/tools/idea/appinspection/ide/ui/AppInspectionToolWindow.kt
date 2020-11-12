@@ -112,7 +112,7 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
     ideServices,
     scope,
     AndroidDispatchers.uiThread,
-    AppInspectionGradleArtifactResolver(ideServices.createFileService()),
+    AppInspectionGradleArtifactResolver(),
     ::getPreferredProcesses
   )
   val component: JComponent = appInspectionView.component

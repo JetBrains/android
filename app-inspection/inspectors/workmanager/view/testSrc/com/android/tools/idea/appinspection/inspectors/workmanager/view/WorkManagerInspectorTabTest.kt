@@ -29,8 +29,8 @@ import com.android.flags.junit.SetFlagRule
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
-import com.android.tools.idea.appinspection.inspector.api.service.TestAppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorksTableModel
 import com.android.tools.idea.flags.StudioFlags
@@ -82,7 +82,7 @@ class WorkManagerInspectorTabTest {
     override val eventFlow = emptyFlow<ByteArray>()
   }
 
-  private class TestIdeServices : TestAppInspectionIdeServices() {
+  private class TestIdeServices : AppInspectionIdeServicesAdapter() {
     var lastVisitedCodeLocation: AppInspectionIdeServices.CodeLocation? = null
 
     override suspend fun navigateTo(codeLocation: AppInspectionIdeServices.CodeLocation) {

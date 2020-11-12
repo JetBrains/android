@@ -5,7 +5,7 @@ import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.resolver.StubAppInspectionArtifactResolver
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionToolWindowManagerListener
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
-import com.android.tools.idea.appinspection.inspector.api.service.TestAppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -67,7 +67,7 @@ class AppInspectionToolWindowManagerListenerTest {
     }
   }
 
-  private val ideServices = TestAppInspectionIdeServices()
+  private val ideServices = AppInspectionIdeServicesAdapter()
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionServiceRule)!!.around(projectRule)!!

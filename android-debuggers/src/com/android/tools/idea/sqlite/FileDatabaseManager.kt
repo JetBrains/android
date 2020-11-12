@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite
 
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.appinspection.inspector.ide.io.IdeFileService
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.sqlite.model.DatabaseFileData
@@ -71,7 +72,7 @@ class FileDatabaseManagerImpl(
 
     val files = try {
       // store files in Studio caches
-      val downloadDestinationFolder = Paths.get(PathManager.getSystemPath(), "database-inspector")
+      val downloadDestinationFolder = IdeFileService( "database-inspector").cacheRoot
       deviceFileDownloaderService.downloadFiles(
         processDescriptor.serial,
         pathsToDownload,
