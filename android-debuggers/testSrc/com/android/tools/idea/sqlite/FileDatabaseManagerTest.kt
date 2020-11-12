@@ -19,6 +19,7 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.appinspection.inspector.ide.io.IdeFileService
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.sqlite.model.DatabaseFileData
@@ -104,7 +105,7 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
         "/data/data/com.example.package/databases/db-file-wal"
       )),
       any(DownloadProgress::class.java),
-      eq(Paths.get(PathManager.getSystemPath(), "database-inspector"))
+      eq(IdeFileService("database-inspector").cacheRoot)
     )
 
     assertEquals(DatabaseFileData(file1, listOf(file2, file3)), offlineDatabaseData)

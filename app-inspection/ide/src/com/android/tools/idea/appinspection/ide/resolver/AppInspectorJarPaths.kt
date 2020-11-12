@@ -18,13 +18,13 @@ package com.android.tools.idea.appinspection.ide.resolver
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
-import com.android.tools.idea.appinspection.inspector.api.service.FileService
+import com.android.tools.idea.appinspection.inspector.api.io.FileService
+import com.android.tools.idea.appinspection.inspector.ide.io.IdeFileService
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.io.ZipUtil
 import com.intellij.util.io.exists
 import org.jetbrains.kotlin.utils.ThreadSafe
-import java.io.FilenameFilter
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -46,11 +46,7 @@ private const val INSPECTOR_JAR = "inspector.jar"
  *   $cache_dir/<group_id>/<artifact_id>/<version>/inspector.jar
  */
 @ThreadSafe
-class AppInspectorJarPaths(private val fileService: FileService) {
-  /**
-   * Temporary directory in which to store downloaded artifacts before moving them to the cache directory.
-   */
-  private val scratchDir = fileService.getOrCreateTempDir(INSPECTOR_JARS_DIR)
+class AppInspectorJarPaths(private val fileService: FileService = IdeFileService("app-inspection")) {
 
   /**
    * In memory representation of the cached inspector jars that have been accessed or populated during the life of the application. At the
@@ -101,9 +97,10 @@ class AppInspectorJarPaths(private val fileService: FileService) {
    */
   @WorkerThread
   private fun unzipInspectorJarFromLibrary(url: ArtifactCoordinate, libraryPath: Path): Path {
-    ZipUtil.extract(libraryPath.toFile(), scratchDir.toFile()) { _, name -> name == INSPECTOR_JAR }
+    val tempDir = fileService.getOrCreateTempDir(INSPECTOR_JARS_DIR)
+    ZipUtil.extract(libraryPath.toFile(), tempDir.toFile()) { _, name -> name == INSPECTOR_JAR }
 
-    val srcFile = scratchDir.resolve(INSPECTOR_JAR)
+    val srcFile = tempDir.resolve(INSPECTOR_JAR)
     val destDir = fileService.getOrCreateCacheDir(INSPECTOR_JARS_DIR).resolve(url.groupId).resolve(url.artifactId).resolve(url.version)
     Files.createDirectories(destDir)
     val destFile = destDir.resolve(INSPECTOR_JAR)

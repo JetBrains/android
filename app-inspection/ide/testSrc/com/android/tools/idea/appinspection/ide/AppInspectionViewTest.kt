@@ -23,9 +23,9 @@ import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.ide.resolver.StubAppInspectionArtifactResolver
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
-import com.android.tools.idea.appinspection.inspector.api.service.TestAppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
 import com.android.tools.idea.appinspection.inspector.ide.resolver.AppInspectionArtifactResolver
@@ -77,7 +77,7 @@ class AppInspectionViewTest {
   private val appInspectionServiceRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
   private val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
 
-  private class TestIdeServices : TestAppInspectionIdeServices() {
+  private class TestIdeServices : AppInspectionIdeServicesAdapter() {
     class NotificationData(val content: String, val severity: AppInspectionIdeServices.Severity, val hyperlinkClicked: () -> Unit)
 
     val notificationListeners = mutableListOf<(NotificationData) -> Unit>()
