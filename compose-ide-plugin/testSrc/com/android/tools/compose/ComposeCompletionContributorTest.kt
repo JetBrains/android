@@ -639,8 +639,27 @@ class ComposeCompletionContributorTest {
       import androidx.compose.ui.extentionFunction
 
       @Composable
-      fun HomeScreen() {
+      fun HomeScreen2() {
         val m = Modifier.extentionFunction().${caret}
+      }
+      """.trimIndent())
+
+    myFixture.completeBasic()
+
+    lookupStrings = myFixture.lookupElementStrings!!
+    assertThat(lookupStrings.indexOf("extentionFunction")).isLessThan(lookupStrings.indexOf("function"))
+
+    myFixture.loadNewFile(
+      "src/com/example/Test3.kt",
+      """
+      package com.example
+
+      import androidx.compose.ui.Modifier
+      import androidx.compose.ui.extentionFunction
+
+      @Composable
+      fun HomeScreen3(modifier: Modifier = Modifier) {
+        modifier.${caret}
       }
       """.trimIndent())
 

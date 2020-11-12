@@ -45,7 +45,7 @@ import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.completion.BasicLookupElementFactory
 import org.jetbrains.kotlin.idea.completion.LambdaSignatureTemplates
 import org.jetbrains.kotlin.idea.completion.LookupElementFactory
@@ -53,13 +53,13 @@ import org.jetbrains.kotlin.idea.completion.handlers.KotlinCallableInsertHandler
 import org.jetbrains.kotlin.idea.core.completion.DeclarationLookupObject
 import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
 import org.jetbrains.kotlin.idea.util.CallType
+import org.jetbrains.kotlin.js.translate.callTranslator.getReturnType
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.nj2k.postProcessing.resolve
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -265,16 +265,10 @@ class ComposeModifiersCompletionWeigher : CompletionWeigher() {
 
   private fun PsiElement.isMethodCalledOnModifier(): Boolean {
     val elementOnWhichMethodCalled: KtExpression = parent.safeAs<KtNameReferenceExpression>()?.getReceiverExpression() ?: return false
-    val fqName = when (elementOnWhichMethodCalled) {
-      // Case Modifier.<caret>
-      is KtNameReferenceExpression -> elementOnWhichMethodCalled.resolve().safeAs<KtClass>()?.fqName
-      // Case Modifier.align().<caret>
-      is KtDotQualifiedExpression -> {
-        val bindingContext = elementOnWhichMethodCalled.analyze(BodyResolveMode.PARTIAL)
-        bindingContext.getType(elementOnWhichMethodCalled)?.fqName
-      }
-      else -> return false
-    }
+    // Case Modifier.align().<caret>, modifier.<caret>
+    val fqName = elementOnWhichMethodCalled.resolveToCall(BodyResolveMode.PARTIAL)?.getReturnType()?.fqName ?:
+                 // Case Modifier.<caret>
+                 elementOnWhichMethodCalled.safeAs<KtNameReferenceExpression>()?.resolve().safeAs<KtClass>()?.fqName
     return fqName?.asString() == ComposeLibraryNamespace.ANDROIDX_COMPOSE.composeModifierClassName
   }
 }
