@@ -32,6 +32,7 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.codeInsight.template.Template
 import com.intellij.codeInsight.template.TemplateEditingAdapter
 import com.intellij.codeInsight.template.TemplateManager
+import com.intellij.codeInsight.template.impl.ConstantNode
 import com.intellij.codeInspection.InspectionSuppressor
 import com.intellij.codeInspection.SuppressQuickFix
 import com.intellij.openapi.application.runWriteAction
@@ -42,6 +43,7 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.util.castSafelyTo
 import icons.StudioIcons
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
+import org.jetbrains.kotlin.builtins.isFunctionType
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -311,7 +313,12 @@ class ComposeInsertHandler(private val descriptor: FunctionDescriptor) : KotlinC
               addTextSegment(", ")
             }
             addTextSegment(parameter.name.asString() + " = ")
-            addVariable(EmptyExpression(), true)
+            if (parameter.type.isFunctionType) {
+              addVariable(ConstantNode("{ /*TODO*/ }"), true)
+            }
+            else {
+              addVariable(EmptyExpression(), true)
+            }
           }
           addTextSegment(")")
         }
