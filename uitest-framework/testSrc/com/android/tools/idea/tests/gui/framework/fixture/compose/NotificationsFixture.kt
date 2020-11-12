@@ -37,8 +37,9 @@ class NotificationsFixture(val robot: Robot, private val notificationsPanel: JCo
     })
   }
 
-  fun assertNoNotifications(): NotificationsFixture {
-    assertTrue(target().components.isEmpty())
+  fun waitForNotificationsToDisappear(wait: Wait = Wait.seconds(10)): NotificationsFixture {
+    // Notification panel gets updated asynchronously in the UI thread. We might have to wait some time for it to be cleaned-up.
+    wait.expecting("No notifications in notification panel").until { target().components.isEmpty() }
     return this
   }
 

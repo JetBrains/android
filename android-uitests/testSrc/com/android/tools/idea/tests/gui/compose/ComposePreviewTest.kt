@@ -101,7 +101,7 @@ class ComposePreviewTest {
 
     return editor.getSplitEditorFixture().waitForRenderToFinish().apply {
       if (assertNoNotifications) {
-        getNotificationsFixture().assertNoNotifications()
+        getNotificationsFixture().waitForNotificationsToDisappear()
       }
     }
   }
