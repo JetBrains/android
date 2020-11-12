@@ -57,7 +57,6 @@ interface BuildEventsAnalysisResult {
    * Total time spent in garbage collection for this build.
    */
   fun getTotalGarbageCollectionTimeMs(): Long
-  fun isAffectedByPotentialG1GCRegression(): Boolean
 }
 
 /**
@@ -119,10 +118,6 @@ class BuildEventsAnalyzersProxy(
 
   override fun getGarbageCollectionData(): List<GarbageCollectionData> {
     return garbageCollectionAnalyzer.garbageCollectionData
-  }
-
-  override fun isAffectedByPotentialG1GCRegression(): Boolean {
-    return garbageCollectionAnalyzer.isAffectedByPotentialG1GCRegression()
   }
 
   override fun getTotalGarbageCollectionTimeMs(): Long {

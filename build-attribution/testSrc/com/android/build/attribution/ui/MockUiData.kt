@@ -51,8 +51,7 @@ class MockUiData(
   val criticalPathDurationMs: Long = defaultCriticalPathDurationMs,
   val configurationDurationMs: Long = defaultConfigurationDurationMs,
   val gcTimeMs: Long = 0,
-  val tasksList: List<TestTaskUiData> = emptyList(),
-  val suggestChangeGC: Boolean = false
+  val tasksList: List<TestTaskUiData> = emptyList()
 ) : BuildAttributionReportUiData {
   override val successfulBuild = true
   override var buildSummary = mockBuildOverviewData()
@@ -62,7 +61,7 @@ class MockUiData(
   override var configurationTime = Mockito.mock(ConfigurationUiData::class.java)
   override var annotationProcessors = mockAnnotationProcessorsData()
 
-  private fun mockBuildOverviewData() = object : BuildSummary {
+  fun mockBuildOverviewData() = object : BuildSummary {
     override val buildFinishedTimestamp = Calendar.getInstance().let {
       it.set(2020, 0, 30, 12, 21)
       it.timeInMillis
@@ -71,7 +70,6 @@ class MockUiData(
     override val criticalPathDuration = TimeWithPercentage(criticalPathDurationMs, totalBuildDurationMs)
     override val configurationDuration = TimeWithPercentage(configurationDurationMs, totalBuildDurationMs)
     override val garbageCollectionTime = TimeWithPercentage(gcTimeMs, totalBuildDurationMs)
-    override val shouldSuggestSwitchingToParallelGC = suggestChangeGC
   }
 
   fun mockCriticalPathTasksUiData() = object : CriticalPathTasksUiData {
