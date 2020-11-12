@@ -48,6 +48,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
 
     class Row
     class Column
+    class Box
     """.trimIndent()
     )
   }
@@ -90,11 +91,11 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       package com.example
 
       import androidx.compose.Composable
-      import androidx.ui.layout.Container
+      import androidx.compose.foundation.layout.Box
 
       @Composable
       fun NewsStory() {
-          Container {
+          Box {
               Text("A day in Shark Fin Cove")
               Text("Davenport, California")
               Text("December 2018")
@@ -133,11 +134,11 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       package com.example
 
       import androidx.compose.Composable
-      import androidx.ui.layout.Container
+      import androidx.compose.foundation.layout.Box
 
       @Composable
       fun NewsStory() {
-          Container {
+          Box {
               Text("A day in Shark Fin Cove")
               Text("Davenport, California")
               Text("December 2018")
