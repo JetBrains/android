@@ -67,7 +67,7 @@ public class ResourceSerializationUtil {
    *   <li>Serialized resource items (see {@link BasicResourceItemBase#serialize})</li>
    * </ol>
    */
-  public static void createPersistentCache(@NotNull Path cacheFile, @NotNull byte[] fileHeader,
+  public static void createPersistentCache(@NotNull Path cacheFile, byte @NotNull [] fileHeader,
                                            @NotNull Base128StreamWriter contentWriter) {
     // Try to delete the old cache file.
     try {
@@ -243,8 +243,7 @@ public class ResourceSerializationUtil {
    * @param headerWriter the writer object
    * @return the cache file header contents in a byte array
    */
-  @NotNull
-  public static byte[] getCacheFileHeader(@NotNull Base128StreamWriter headerWriter) {
+  public static byte @NotNull [] getCacheFileHeader(@NotNull Base128StreamWriter headerWriter) {
     ByteArrayOutputStream header = new ByteArrayOutputStream();
     try (Base128OutputStream stream = new Base128OutputStream(header)) {
       headerWriter.write(stream);
@@ -261,7 +260,7 @@ public class ResourceSerializationUtil {
     }
   }
 
-  private static <K> void writeStrings(@NotNull Object2IntMap<String> qualifierStringIndexes, @NotNull Base128OutputStream stream)
+  private static void writeStrings(@NotNull Object2IntMap<String> qualifierStringIndexes, @NotNull Base128OutputStream stream)
       throws IOException {
     String[] strings = new String[qualifierStringIndexes.size()];
     for (Object2IntMap.Entry<String> entry : Object2IntMaps.fastIterable(qualifierStringIndexes)) {
