@@ -24,7 +24,37 @@ import com.intellij.openapi.project.Project
  */
 interface ArtifactResolver {
   /**
-   * Resolves the provided list of gradle coordinates in the given project and returns a map containing the downloaded jars.
+   * For each request, attempts to resolve the requested artifact and returns a [ArtifactResolverRequest].
    */
-  suspend fun resolveArtifacts(artifactIdList: List<ArtifactCoordinate>, project: Project): Map<ArtifactCoordinate, AppInspectorJar>
+  suspend fun <T : ArtifactResolverRequest> resolveArtifacts(requests: List<T>, project: Project): List<ArtifactResolverResult<T>>
 }
+
+/**
+ * Contains all of the information needed to make a attempt to resolve an artifact.
+ */
+abstract class ArtifactResolverRequest(
+  val artifactCoordinate: ArtifactCoordinate
+)
+
+/**
+ * Represents the result of resolving the artifact of a given coordinate.
+ */
+sealed class ArtifactResolverResult<T : ArtifactResolverRequest>(
+  val request: T
+)
+
+/**
+ * Represents the success scenario of resolving an artifact, in which the jar is returned.
+ */
+class SuccessfulResult<T : ArtifactResolverRequest>(
+  request: T,
+  val jar: AppInspectorJar
+) : ArtifactResolverResult<T>(request)
+
+/**
+ * Represents the failure scenario in which the error message is returned.
+ */
+class FailureResult<T : ArtifactResolverRequest>(
+  request: T,
+  val errorMessage: String? = null
+) : ArtifactResolverResult<T>(request)

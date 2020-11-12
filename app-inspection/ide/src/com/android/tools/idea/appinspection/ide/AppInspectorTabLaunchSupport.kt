@@ -26,6 +26,9 @@ import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvide
 import com.android.tools.idea.appinspection.inspector.ide.FrameworkInspectorLaunchParams
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
+import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverRequest
+import com.android.tools.idea.appinspection.inspector.ide.resolver.FailureResult
+import com.android.tools.idea.appinspection.inspector.ide.resolver.SuccessfulResult
 import com.intellij.openapi.project.Project
 import javax.swing.JComponent
 
@@ -53,7 +56,9 @@ class AppInspectorTabLaunchSupport(
    */
   private suspend fun getApplicableLibraryInspectors(process: ProcessDescriptor): List<InspectorTabLaunchParams> {
     val applicableTabProviders = getTabProviders()
-                                   .filter { provider -> provider.isApplicable() && provider.inspectorLaunchParams is LibraryInspectorLaunchParams }
+                                   .filter {
+                                     provider -> provider.isApplicable() && provider.inspectorLaunchParams is LibraryInspectorLaunchParams
+                                   }
                                    .takeIf { it.isNotEmpty() } ?: return emptyList()
 
     // Build a map of ArtifactCoordinate -> AppInspectorTabProvider for easy reverse lookup in the following code.
@@ -73,7 +78,7 @@ class AppInspectorTabLaunchSupport(
 
     // The inspectors for these compatible libraries need to be resolved.
     val resolvableInfos = compatibleLibraries.map {
-      ResolvableLibraryInfo(artifactToProvider[it.libraryCoordinate]!!, it.getTargetLibraryCoordinate())
+      DefaultArtifactResolverRequest(artifactToProvider[it.libraryCoordinate]!!, it.getTargetLibraryCoordinate())
     }
 
     // Show a static info message for these incompatible inspectors.
@@ -85,20 +90,24 @@ class AppInspectorTabLaunchSupport(
     return processCompatibleLibraries(resolvableInfos) + incompatibleInspectorTabs
   }
 
-  private suspend fun processCompatibleLibraries(resolvableLibraries: List<ResolvableLibraryInfo>): List<InspectorTabLaunchParams> {
-    val resolvedArtifacts = artifactResolver.resolveArtifacts(resolvableLibraries.map { it.targetLibrary }, project)
-
-    val (resolvedInspectors, unresolvedInspectors) = resolvableLibraries.partition { resolvedArtifacts.containsKey(it.targetLibrary) }
+  private suspend fun processCompatibleLibraries(
+    resolvableLibraries: List<DefaultArtifactResolverRequest>
+  ): List<InspectorTabLaunchParams> {
+    val resolvedArtifacts = artifactResolver.resolveArtifacts(resolvableLibraries, project)
 
     // These are inspector tabs whose jars we managed to resolve and can launch.
-    val resolvedInspectorTabs = resolvedInspectors.map { libraryInfo ->
-      LaunchableInspectorTabLaunchParams(libraryInfo.provider, resolvedArtifacts[libraryInfo.targetLibrary]!!)
-    }
+    val resolvedInspectorTabs = resolvedArtifacts
+      .filterIsInstance<SuccessfulResult<DefaultArtifactResolverRequest>>()
+      .map { result ->
+        LaunchableInspectorTabLaunchParams(result.request.provider, result.jar)
+      }
 
     // We didn't manage to resolve artifacts for these tabs, so we show an empty tab with an info message.
-    val unresolvedInspectorTabs = unresolvedInspectors.map { libraryInfo ->
-      StaticInspectorTabLaunchParams(libraryInfo.provider, libraryInfo.targetLibrary.toUnresolvedInspectorMessage())
-    }
+    val unresolvedInspectorTabs = resolvedArtifacts
+      .filterIsInstance<FailureResult<DefaultArtifactResolverRequest>>()
+      .map { result ->
+        StaticInspectorTabLaunchParams(result.request.provider, result.request.artifactCoordinate.toUnresolvedInspectorMessage())
+      }
 
     return resolvedInspectorTabs + unresolvedInspectorTabs
   }
@@ -115,10 +124,10 @@ class AppInspectorTabLaunchSupport(
   }
 }
 
-private class ResolvableLibraryInfo(
+private class DefaultArtifactResolverRequest(
   val provider: AppInspectorTabProvider,
-  val targetLibrary: ArtifactCoordinate
-)
+  targetLibrary: ArtifactCoordinate
+) : ArtifactResolverRequest(targetLibrary)
 
 /**
  * Collects all of the information necessary to launch an inspector tab, live or dead, in [AppInspectionView].
