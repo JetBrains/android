@@ -13,9 +13,10 @@
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="library" name="kotlin-plugin" level="project" />
     <orderEntry type="module-library">
-      <library name="compose-compiler-hosted">
+      <library name="compose-compiler-hosted" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:compose-compiler-hosted-0.1.0-dev06:27.1.0.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../studio-master-dev/prebuilts/tools/common/kotlin-compose/compose-compiler-hosted-0.1.0-dev06.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compose-compiler-hosted-0.1.0-dev06/27.1.0.0/compose-compiler-hosted-0.1.0-dev06-27.1.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
