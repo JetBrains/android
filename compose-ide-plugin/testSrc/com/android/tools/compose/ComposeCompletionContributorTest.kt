@@ -532,7 +532,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        AppBarIcon(icon = , onClick = )
+        AppBarIcon(icon = , onClick = { /*TODO*/ })
       }
       """.trimIndent()
       , true)
