@@ -1071,7 +1071,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> ENABLE_WORK_MANAGER_GRAPH_VIEW = Flag.create(
     WORK_MANAGER_INSPECTOR, "enable.graph.view", "Enable WorkManager Graph View",
     "Enables a Graph View for visualizing work dependencies in the WorkManager Inspector Tab",
-    false
+    true
   );
   // endregion
 
