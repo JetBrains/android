@@ -44,8 +44,6 @@ class BuildAnalyzerViewModel(
 
   val shouldWarnAboutGC: Boolean
     get() = reportUiData.buildSummary.garbageCollectionTime.percentage > 10.0
-  val shouldSuggestSwitchingToParallelGC: Boolean
-    get() = reportUiData.buildSummary.shouldSuggestSwitchingToParallelGC
   val tasksPageModel: TasksDataPageModel = TasksDataPageModelImpl(reportUiData)
   val warningsPageModel: WarningsDataPageModel = WarningsDataPageModelImpl(reportUiData)
 }
