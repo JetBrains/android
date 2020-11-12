@@ -27,6 +27,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.DimensionUnits
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
+import com.android.tools.idea.layoutinspector.properties.LambdaPropertyItem
 import com.android.tools.idea.layoutinspector.properties.NAMESPACE_INTERNAL
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
@@ -199,7 +200,8 @@ class DefaultPropertiesProviderTest {
     checkProperty(table, view, "float_null", Type.FLOAT, null, PropertySection.DEFAULT, null)
     checkProperty(table, view, "padding", Type.STRING, "Padding", PropertySection.DEFAULT, null, expandable = true,
       detail = listOf(PropertyDetail("x", Type.DIMENSION_DP, "20.0px"), PropertyDetail("y", Type.DIMENSION_DP, "40.0px")))
-    assertThat(table.size).isEqualTo(45)
+    checkLambdaProperty(table, view, "lambda", Type.LAMBDA, "com.example.MyActivityKt", "var$1$2", 19, 23)
+    assertThat(table.size).isEqualTo(46)
   }
 
   @Test
@@ -329,6 +331,30 @@ class DefaultPropertiesProviderTest {
     }
   }
 
+  @Suppress("SameParameterValue")
+  private fun checkLambdaProperty(
+    table: PropertiesTable<InspectorPropertyItem>,
+    view: ViewNode,
+    name: String,
+    type: Type,
+    enclosedClassName: String,
+    lambdaName: String,
+    startLine: Int,
+    endLine: Int
+  ) {
+    val property = table["", name] as LambdaPropertyItem
+    assertThat(property.name).isEqualTo(name)
+    assertThat(property.attrName).isEqualTo(name)
+    assertThat(property.namespace).isEqualTo("")
+    assertThat(property.type).isEqualTo(type)
+    assertThat(property.value).isEqualTo("λ Lambda")
+    assertThat(property.enclosedClassName).isEqualTo(enclosedClassName)
+    assertThat(property.lambdaName).isEqualTo(lambdaName)
+    assertThat(property.startLineNumber).isEqualTo(startLine)
+    assertThat(property.endLineNumber).isEqualTo(endLine)
+    assertThat(property.viewId).isEqualTo(view.drawId)
+  }
+
   /**
    * Simulate a property event from the agent.
    */
@@ -415,6 +441,9 @@ class DefaultPropertiesProviderTest {
         addString(StringEntry.newBuilder().apply { id = 67; str = "Padding"})
         addString(StringEntry.newBuilder().apply { id = 68; str = "x"})
         addString(StringEntry.newBuilder().apply { id = 69; str = "y"})
+        addString(StringEntry.newBuilder().apply { id = 70; str = "lambda"})
+        addString(StringEntry.newBuilder().apply { id = 71; str = "MyActivityKt"})
+        addString(StringEntry.newBuilder().apply { id = 72; str = "var$1$2"})
         addProperty(Property.newBuilder().apply { name = 2; namespace = 1; type = Type.BOOLEAN; int32Value = 1 })
         addProperty(Property.newBuilder().apply { name = 3; namespace = 1; type = Type.BYTE; int32Value = 7 })
         addProperty(Property.newBuilder().apply { name = 4; namespace = 1; type = Type.CHAR; int32Value = 'g'.toInt() })
@@ -458,6 +487,11 @@ class DefaultPropertiesProviderTest {
         addProperty(Property.newBuilder().apply { name = 66; namespace = 1; type = Type.STRING; int32Value = 67 }
                       .addElement(Property.newBuilder().apply { name = 68; namespace = 1; type = Type.DIMENSION_DP; floatValue = 20.0f })
                       .addElement(Property.newBuilder().apply { name = 69; namespace = 1; type = Type.DIMENSION_DP; floatValue = 40.0f }))
+        addProperty(Property.newBuilder().apply {
+          name = 70
+          type = Type.LAMBDA
+          lambdaValueBuilder.apply { packageName = 1; className = 71; lambdaName = 72; startLineNumber = 19; endLineNumber = 23 }
+        })
       }
     }.build())
   }

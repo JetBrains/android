@@ -45,6 +45,7 @@ import javax.swing.Icon
  * the property definition or property assignment.
  */
 class ResourceLookup(private val project: Project) {
+  private val lambdaResolver = LambdaResolver(project)
 
   @VisibleForTesting
   var resolver: ResourceLookupResolver? = null
@@ -107,6 +108,13 @@ class ResourceLookup(private val project: Project) {
    */
   fun findAttributeValue(property: InspectorPropertyItem, view: ViewNode, location: ResourceReference): String? =
     resolver?.findAttributeValue(property, view, location)
+
+  /**
+   * Find the lambda source location.
+   */
+  fun findLambdaLocation(enclosedClassName: String, lambdaName: String, startLine: Int, endLine: Int): SourceLocation? {
+    return lambdaResolver.findLambdaLocation(enclosedClassName, lambdaName, startLine, endLine)
+  }
 
   /**
    * Find the icon from this drawable property.
