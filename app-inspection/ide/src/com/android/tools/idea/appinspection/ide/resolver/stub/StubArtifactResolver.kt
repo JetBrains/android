@@ -15,16 +15,20 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver.stub
 
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
+import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverRequest
+import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverResult
+import com.android.tools.idea.appinspection.inspector.ide.resolver.FailureResult
 import com.intellij.openapi.project.Project
 
+/**
+ * A stubbed out resolver that fails every resolve request.
+ */
 class StubArtifactResolver: ArtifactResolver {
-  override suspend fun resolveArtifacts(
-    artifactIdList: List<ArtifactCoordinate>,
+  override suspend fun <T : ArtifactResolverRequest> resolveArtifacts(
+    requests: List<T>,
     project: Project
-  ): Map<ArtifactCoordinate, AppInspectorJar> {
-    return emptyMap()
+  ): List<ArtifactResolverResult<T>> {
+    return requests.map { FailureResult(it) }
   }
 }
