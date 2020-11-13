@@ -15,13 +15,35 @@
  */
 package com.android.tools.idea.sqlite.utils
 
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.nio.file.Path
 import java.util.Scanner
+import java.util.zip.ZipInputStream
 
-fun Path.toLineSequence() = sequence {
+fun Path.toLines() = sequence {
   Scanner(toFile(), Charsets.UTF_8.name()).use {
     while (it.hasNextLine()) yield(it.nextLine())
   }
-}
+}.toList()
 
-fun Path.toContentString() = toLineSequence().joinToString(separator = System.lineSeparator(), postfix = System.lineSeparator())
+/** @return list of unzipped files */
+fun Path.unzipTo(dstDirectory: Path): List<Path> = let { source ->
+  sequence {
+    FileInputStream(source.toFile()).use { fileInputStream ->
+      ZipInputStream(fileInputStream).use { zipInputStream ->
+        var current = zipInputStream.nextEntry
+        while (current != null) {
+          if (current.isDirectory) throw IllegalStateException("Not implemented")
+          val outPath = dstDirectory.resolve(current.name)
+          FileOutputStream(outPath.toFile()).use { outStream ->
+            // convert to a buffered approach for larger files
+            outStream.write(zipInputStream.readAllBytes())
+          }
+          yield(outPath)
+          current = zipInputStream.nextEntry
+        }
+      }
+    }
+  }.toList()
+}
