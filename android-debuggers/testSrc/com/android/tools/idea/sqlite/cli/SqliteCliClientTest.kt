@@ -16,7 +16,7 @@
 package com.android.tools.idea.sqlite.cli
 
 import com.android.tools.idea.sqlite.utils.initAdbFileProvider
-import com.android.tools.idea.sqlite.utils.toContentString
+import com.android.tools.idea.sqlite.utils.toLines
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
@@ -201,19 +201,18 @@ class SqliteCliClientTest : LightPlatformTestCase() {
       .also { assertThat(it.exitCode).isEqualTo(0) }
 
     // verify content no headers, separator=|
-    assertThat(outputFile1.toContentString()).isEqualTo(
-      "1|2|3" + lineSeparator() +
-      "4|5|6" + lineSeparator() +
-      "7|8|9" + lineSeparator()
-    )
+    assertThat(outputFile1.toLines().toList()).isEqualTo(listOf(
+      "1|2|3",
+      "4|5|6",
+      "7|8|9"))
 
     // verify content with headers, separator=;
-    assertThat(outputFile2.toContentString()).isEqualTo(
-      "\"$column1\";\"$column2\";\"$column3\"" + lineSeparator() +
-      "1;2;3" + lineSeparator() +
-      "4;5;6" + lineSeparator() +
-      "7;8;9" + lineSeparator()
-    )
+    assertThat(outputFile2.toLines()).isEqualTo(listOf(
+      "\"$column1\";\"$column2\";\"$column3\"",
+      "1;2;3",
+      "4;5;6",
+      "7;8;9",
+    ))
   }
 
   /**

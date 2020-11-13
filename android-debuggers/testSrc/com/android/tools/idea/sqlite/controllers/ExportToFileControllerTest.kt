@@ -25,10 +25,12 @@ import com.android.tools.idea.sqlite.mocks.CliDatabaseConnection
 import com.android.tools.idea.sqlite.mocks.FakeExportToFileDialogView
 import com.android.tools.idea.sqlite.mocks.OpenDatabaseRepository
 import com.android.tools.idea.sqlite.model.DatabaseFileData
+import com.android.tools.idea.sqlite.model.Delimiter.COMMA
 import com.android.tools.idea.sqlite.model.Delimiter.TAB
 import com.android.tools.idea.sqlite.model.Delimiter.VERTICAL_BAR
 import com.android.tools.idea.sqlite.model.ExportFormat.CSV
 import com.android.tools.idea.sqlite.model.ExportRequest
+import com.android.tools.idea.sqlite.model.ExportRequest.ExportDatabaseRequest
 import com.android.tools.idea.sqlite.model.ExportRequest.ExportQueryResultsRequest
 import com.android.tools.idea.sqlite.model.ExportRequest.ExportTableRequest
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
@@ -37,7 +39,8 @@ import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.utils.initAdbFileProvider
-import com.android.tools.idea.sqlite.utils.toLineSequence
+import com.android.tools.idea.sqlite.utils.toLines
+import com.android.tools.idea.sqlite.utils.unzipTo
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
@@ -53,22 +56,28 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
-import java.nio.file.Paths
+import java.io.File
 import java.util.concurrent.Executor
-import java.util.concurrent.atomic.AtomicInteger
 
 private const val nonAsciiSuffix = " ąę"
 private const val table1 = "t1$nonAsciiSuffix"
+private const val table2 = "t2$nonAsciiSuffix"
+private const val table3 = "t3$nonAsciiSuffix"
 private const val column1 = "c1$nonAsciiSuffix"
 private const val column2 = "c2$nonAsciiSuffix"
 private const val databaseFileName = "db$nonAsciiSuffix.db"
 private const val outputFileName = "output$nonAsciiSuffix.out"
 
+typealias TwoColumnTable = List<Pair<String, String>>
+
+private fun TwoColumnTable.toCsvOutputLines(delimiter: Char): List<String> =
+  listOf("$column1$delimiter$column2") + this.map { (v1, v2) -> "$v1$delimiter$v2" }
+
 /** Two columns with increasing numbers (and a non-ascii suffix) */
-private val sampleValues: List<Pair<String, String>> = (1..10).map { "$it$nonAsciiSuffix" }.zipWithNext()
+private fun IntRange.toTwoColumnTable(): TwoColumnTable = this.map { "$it$nonAsciiSuffix" }.zipWithNext()
 
 /** Keeps connection ids unique */
-private val nextConnectionId = AtomicInteger(1)
+private val nextConnectionId = generateSequence(1) { it + 1 }
 
 class ExportToFileControllerTest : LightPlatformTestCase() {
   private lateinit var notifyExportComplete: (ExportRequest) -> Unit
@@ -128,13 +137,14 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
   fun testExportQueryToCsvLiveDb() = testExportQueryToCsv(createEmptyDatabase(DatabaseType.Live))
 
   private fun testExportQueryToCsv(database: SqliteDatabaseId) {
-    fillDatabase(database, sampleValues)
+    val values = (1..10).toTwoColumnTable()
+    fillDatabase(database, table1, values)
 
     val statement = createSqliteStatement("select * from '$table1' where cast(\"$column1\" as text) > cast(5 as text)")
-    val dstPath = Paths.get(tempDirTestFixture.tempDirPath, outputFileName)
+    val dstPath = tempDirTestFixture.toNioPath().resolve(outputFileName)
     val exportRequest = ExportQueryResultsRequest(database, statement, CSV(VERTICAL_BAR), dstPath)
 
-    testExportToCsv(exportRequest = exportRequest, expectedValues = sampleValues.filter { (c1, _) -> c1 > "5" })
+    testExportToCsv(exportRequest = exportRequest, expectedValues = values.filter { (c1, _) -> c1 > "5" })
   }
 
   fun testExportTableToCsvFileDb() = testExportTableToCsv(createEmptyDatabase(DatabaseType.File))
@@ -142,18 +152,20 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
   fun testExportTableToCsvLiveDb() = testExportTableToCsv(createEmptyDatabase(DatabaseType.Live))
 
   private fun testExportTableToCsv(database: SqliteDatabaseId) {
-    fillDatabase(database, sampleValues)
+    val values = (1..9).toTwoColumnTable()
+    fillDatabase(database, table1, values)
 
-    val dstPath = Paths.get(tempDirTestFixture.tempDirPath, outputFileName)
+    val dstPath = tempDirTestFixture.toNioPath().resolve(outputFileName)
     val exportRequest = ExportTableRequest(database, table1, CSV(TAB), dstPath)
 
-    testExportToCsv(exportRequest = exportRequest, expectedValues = sampleValues)
+    testExportToCsv(exportRequest = exportRequest, expectedValues = values)
   }
 
-  private fun testExportToCsv(exportRequest: ExportRequest, expectedValues: List<Pair<String, String>>) {
+  /** TODO: unify with [testExportDatabaseToCsv] */
+  private fun testExportToCsv(exportRequest: ExportRequest, expectedValues: TwoColumnTable) {
     // given: an export request
     val delimiterStr = (exportRequest.format as CSV).delimiter.delimiter
-    val expectedOutput = listOf("$column1$delimiterStr$column2") + expectedValues.map { (v1, v2) -> "$v1$delimiterStr$v2" }
+    val expectedOutput = expectedValues.toCsvOutputLines(delimiterStr)
 
     // when: an export request is submitted
     submitExportRequest(exportRequest)
@@ -161,8 +173,50 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     // then: compare output file with expected output
     verify(notifyExportComplete).invoke(exportRequest)
     verifyNoMoreInteractions(notifyExportComplete)
-    val actualOutput = exportRequest.dstPath.toLineSequence().toList()
+    val actualOutput = exportRequest.dstPath.toLines()
     assertThat(actualOutput).isEqualTo(expectedOutput)
+  }
+
+  fun testExportDatabaseToCsvFileDb() = testExportDatabaseToCsv(createEmptyDatabase(DatabaseType.File))
+
+  fun testExportDatabaseToCsvLiveDb() = testExportDatabaseToCsv(createEmptyDatabase(DatabaseType.Live))
+
+  private fun testExportDatabaseToCsv(database: SqliteDatabaseId) {
+    // given: a database with a number of tables
+    val tableValuePairs = listOf(
+      table1 to (1..11).toTwoColumnTable(),
+      table2 to (2..22).toTwoColumnTable(),
+      table3 to (3..33).toTwoColumnTable()
+    )
+    tableValuePairs.forEach { (table, values) -> fillDatabase(database, table, values) }
+
+    val dstPath = tempDirTestFixture.toNioPath().resolve("$outputFileName.zip")
+    val delimiter = COMMA
+    val exportRequest = ExportDatabaseRequest(database, CSV(delimiter), dstPath)
+
+    // when: a request is processed by the controller
+    submitExportRequest(exportRequest)
+
+    // then: a zip file is created containing a csv file per table
+    verify(notifyExportComplete).invoke(exportRequest)
+    verifyNoMoreInteractions(notifyExportComplete)
+
+    val tmpDir = tempDirTestFixture.findOrCreateDir("unzipped")
+    val outputFiles = dstPath.unzipTo(tmpDir.toNioPath()).sorted()
+
+    run {
+      val actualFileNames = outputFiles.map { it.toFile().canonicalPath }
+      val expectedFileNames = tableValuePairs.map { (table, _) ->
+        tmpDir.toNioPath().resolve("$table.csv").toFile().canonicalPath
+      }
+      assertThat(actualFileNames).isEqualTo(expectedFileNames)
+    }
+
+    run {
+      val actualFileContents = outputFiles.map { it.toLines() }
+      val expectedLineContents = tableValuePairs.map { (_, values) -> values.toCsvOutputLines(delimiter.delimiter) }
+      assertThat(actualFileContents).isEqualTo(expectedLineContents)
+    }
   }
 
   fun testInvalidRequestFileDb() = testInvalidRequest(DatabaseType.File)
@@ -171,7 +225,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
 
   private fun testInvalidRequest(databaseType: DatabaseType) {
     // given: an invalid request
-    val assertionDescription = "Expecting a SQLite exception caused by a invalid query."
+    val assertionDescription = "Expecting a SQLite exception caused by an invalid query."
     val exportRequest = ExportTableRequest(
       createEmptyDatabase(databaseType),
       "non-existing-table", // this will cause an exception (we are a database without any tables)
@@ -186,7 +240,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     }
     catch (throwable: Throwable) {
       // then: expect the exception related to the issue
-      val sqlException = throwable.toNestedThrowableSequence().firstOrNull {
+      val sqlException = generateSequence(throwable) { it.cause }.firstOrNull {
         it.message?.contains("no such table.*${exportRequest.srcTable}".toRegex()) ?: false
       }
       assertWithMessage(assertionDescription).that(sqlException).isNotNull()
@@ -207,16 +261,16 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
 
     val databaseId = when (type) {
       DatabaseType.File -> SqliteDatabaseId.fromFileDatabase(DatabaseFileData(databaseFile))
-      DatabaseType.Live -> SqliteDatabaseId.fromLiveDatabase(databaseFile.toNioPath().toString(), nextConnectionId.getAndIncrement())
+      DatabaseType.Live -> SqliteDatabaseId.fromLiveDatabase(databaseFile.toNioPath().toString(), nextConnectionId.first())
     }
 
     runDispatching { databaseRepository.addDatabaseConnection(databaseId, connection) }
     return databaseId
   }
 
-  private fun fillDatabase(database: SqliteDatabaseId, values: List<Pair<String, String>>) {
-    database.execute("create table '$table1' ('$column1' int, '$column2' text)")
-    values.forEach { (v1, v2) -> database.execute("insert into '$table1' values ('$v1', '$v2')") }
+  private fun fillDatabase(database: SqliteDatabaseId, tableName: String, values: TwoColumnTable) {
+    database.execute("create table '$tableName' ('$column1' int, '$column2' text)")
+    values.forEach { (v1, v2) -> database.execute("insert into '$tableName' values ('$v1', '$v2')") }
   }
 
   private fun SqliteDatabaseId.execute(statementText: String) = let { db ->
@@ -235,15 +289,6 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
   }
 }
 
-/** Exposes [Throwable]'s nested exceptions as a sequence */
-private fun Throwable.toNestedThrowableSequence() = let {
-  sequence {
-    var current: Throwable? = it
-    while (current != null) {
-      yield(current)
-      current = current.cause
-    }
-  }
-}
+private fun TempDirTestFixture.toNioPath() = File(tempDirPath).toPath()
 
 private enum class DatabaseType { Live, File }

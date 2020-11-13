@@ -33,11 +33,19 @@ import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.ui.exportToFile.ExportToFileDialogView
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.util.io.exists
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.withContext
+import java.io.Closeable
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.Executor
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 @UiThread
 class ExportToFileController(
@@ -77,7 +85,32 @@ class ExportToFileController(
 
   private suspend fun doExport(params: ExportRequest): Unit = withContext(taskDispatcher) {
     when (params) {
-      is ExportDatabaseRequest -> throw IllegalStateException("Not implemented") // // TODO(161081452)
+      is ExportDatabaseRequest -> {
+        when (params.format) {
+          is CSV -> {
+            // TODO(161081452): clarify if to export views (or only tables)
+            val tableNames: List<String> = databaseRepository.fetchSchema(params.srcDatabase).tables.map { it.name }
+            val dstDir = params.dstPath.parent
+
+            val dstDirReady = dstDir.exists() || dstDir.toFile().mkdirs()
+            if (!dstDirReady) throw IllegalStateException("Unable to access or create the destination folder.")
+
+            // TODO(161081452): skip temporary files (write directly to zip stream)
+            @Suppress("BlockingMethodInNonBlockingContext") // IO on taskDispatcher
+            val tmpDir = Files.createTempDirectory(dstDir, ".tmp")
+            Closeable { FileUtil.delete(tmpDir) }.use {
+              val tmpFileToEntryName: List<TempExportedData> = tableNames.mapIndexed { ix, name ->
+                val path = tmpDir.toAbsolutePath().resolve(".$ix.tmp") // using indexes for file names to avoid file naming issues
+                doExport(ExportTableRequest(params.srcDatabase, name, params.format, path))
+                TempExportedData(path, "$name.csv")
+              }
+
+              createZipFile(params.dstPath, tmpFileToEntryName)
+            }
+          }
+          else -> throwNotSupportedParams(params)
+        }
+      }
       is ExportTableRequest -> {
         when (params.format) {
           is CSV -> {
@@ -141,6 +174,23 @@ class ExportToFileController(
     }
   }
 
+  private suspend fun createZipFile(dstPath: Path, sourceToName: List<TempExportedData>) = withContext(taskDispatcher) {
+    @Suppress("BlockingMethodInNonBlockingContext")
+    FileOutputStream(dstPath.toFile()).use { fileOutputStream ->
+      ZipOutputStream(fileOutputStream).use { zipOutputStream ->
+        sourceToName.forEach { (source, name) ->
+          FileInputStream(source.toFile()).use { fileInputStream ->
+            zipOutputStream.putNextEntry(ZipEntry(name))
+            val buffer = ByteArray(1024)
+            generateSequence { fileInputStream.read(buffer) }
+              .takeWhile { bytesReadCount -> bytesReadCount > 0 }
+              .forEach { bytesReadCount -> zipOutputStream.write(buffer, 0, bytesReadCount) }
+          }
+        }
+      }
+    }
+  }
+
   private val SqliteValue.asString
     get() : String =
       when (this) {
@@ -151,4 +201,6 @@ class ExportToFileController(
   private fun throwNotSupportedParams(params: ExportRequest) {
     throw IllegalArgumentException("Unsupported export format: $params")
   }
+
+  private data class TempExportedData(val tempFile: Path, val finalFileName: String)
 }
