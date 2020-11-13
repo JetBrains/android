@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
+import com.android.tools.idea.appinspection.inspectors.workmanager.analytics.IdeWorkManagerInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
 import com.android.tools.idea.appinspection.inspectors.workmanager.view.WorkManagerInspectorTab
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -57,7 +58,7 @@ class WorkManagerInspectorTabProvider : AppInspectorTabProvider {
     val moduleScope = CoroutineScope(projectScope.coroutineContext + Job(projectScope.coroutineContext[Job]))
     return object : AppInspectorTab {
       override val messenger = messenger
-      private val client = WorkManagerInspectorClient(messenger, moduleScope)
+      private val client = WorkManagerInspectorClient(messenger, moduleScope, IdeWorkManagerInspectorTracker(project))
 
       override val component: JComponent = WorkManagerInspectorTab(client, ideServices, moduleScope).component
     }
