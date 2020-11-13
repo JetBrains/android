@@ -45,18 +45,55 @@ import org.jetbrains.org.objectweb.asm.ClassWriter;
 public class ClassConverter {
   private static final int ourCurrentJdkClassVersion = jdkToClassVersion(SystemInfo.JAVA_VERSION);
 
+  private static class ClassWriterWithClassLoader extends ClassWriter {
+    private final ClassLoader myClassLoader;
+
+    public ClassWriterWithClassLoader(int flags, @NotNull ClassLoader classLoader) {
+      super(flags);
+
+      myClassLoader = classLoader;
+    }
+
+    @Override
+    protected ClassLoader getClassLoader() {
+      return myClassLoader;
+    }
+  }
+
   /**
    * Rewrites the given class applying the given transformations.
+   *
+   * @param classData the input class binary contents.
+   * @param getTransformations a {@link Function<ClassVisitor, ClassVisitor>} that provides the transformations to be applied by this rewrite.
+   * @param flags optional {@link ClassWriter} flags to use. (0 for none)
+   * @param classLoader {@link ClassLoader} to use when the class writing process needs to load additional types.
    */
   @NotNull
-  static byte[] rewriteClass(@NotNull byte[] classData, @NotNull Function<ClassVisitor, ClassVisitor> getTransformations) {
-    final ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+  static byte[] rewriteClass(@NotNull byte[] classData,
+                             @NotNull Function<ClassVisitor, ClassVisitor> getTransformations,
+                             int flags,
+                             @NotNull ClassLoader classLoader) {
+    final ClassWriter classWriter = new ClassWriterWithClassLoader(flags, classLoader);
     ClassVisitor classVisitor = getTransformations.apply(classWriter);
     ClassReader reader = new ClassReader(classData);
 
-    reader.accept(classVisitor, 0);
+    reader.accept(classVisitor, ClassReader.EXPAND_FRAMES);
 
     return classWriter.toByteArray();
+  }
+
+  /**
+   * Rewrites the given class applying the given transformations.
+   *
+   * @param classData the input class binary contents.
+   * @param getTransformations a {@link Function<ClassVisitor, ClassVisitor>} that provides the transformations to be applied by this rewrite.
+   * @param classLoader {@link ClassLoader} to use when the class writing process needs to load additional types.
+   */
+  @NotNull
+  static byte[] rewriteClass(@NotNull byte[] classData,
+                             @NotNull Function<ClassVisitor, ClassVisitor> getTransformations,
+                             @NotNull ClassLoader classLoader) {
+    return rewriteClass(classData, getTransformations, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES, classLoader);
   }
 
   /** Converts a JDK string like 1.6.0_65 to the corresponding class file version number, e.g. 50 */

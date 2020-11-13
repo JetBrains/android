@@ -39,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.org.objectweb.asm.ClassVisitor;
+import org.jetbrains.org.objectweb.asm.ClassWriter;
 
 /**
  * Class loader which can load classes for rendering and if necessary
@@ -133,7 +134,7 @@ public abstract class RenderClassLoader extends ClassLoader {
   protected Class<?> loadClassFromNonProjectDependency(@NotNull String name) throws ClassNotFoundException {
     try {
       byte[] data = getClassData(name);
-      byte[] rewritten = ClassConverter.rewriteClass(data, myNonProjectClassesTransformationProvider);
+      byte[] rewritten = ClassConverter.rewriteClass(data, myNonProjectClassesTransformationProvider, ClassWriter.COMPUTE_MAXS, this);
       return defineClassAndPackage(name, rewritten, 0, rewritten.length);
     }
     catch (IOException | ClassNotFoundException e) {
@@ -204,7 +205,7 @@ public abstract class RenderClassLoader extends ClassLoader {
       throw new ClassFormatError(fqcn);
     }
 
-    byte[] rewritten = ClassConverter.rewriteClass(data, myProjectClassesTransformationProvider);
+    byte[] rewritten = ClassConverter.rewriteClass(data, myProjectClassesTransformationProvider, this);
     try {
       if (LOG.isDebugEnabled()) {
         LOG.debug(String.format("Defining class '%s' from disk file", anonymizeClassName(fqcn)));
