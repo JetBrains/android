@@ -26,14 +26,12 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import java.io.File;
 import java.nio.file.FileSystems;
 import java.util.Collection;
 import java.util.List;
@@ -43,7 +41,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,6 +57,8 @@ final class AsyncDevicesGetter implements Disposable {
   @NotNull
   private final Worker<List<ConnectedDevice>> myConnectedDevicesWorker;
 
+  private final @NotNull AndroidDebugBridge myBridge;
+
   @NotNull
   private final KeyToConnectionTimeMap myMap;
 
@@ -73,10 +72,9 @@ final class AsyncDevicesGetter implements Disposable {
   private AsyncDevicesGetter(@NotNull Project project) {
     myProject = project;
     mySelectDeviceSnapshotComboBoxSnapshotsEnabled = StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED::get;
-
     myVirtualDevicesWorker = new Worker<>();
     myConnectedDevicesWorker = new Worker<>();
-
+    myBridge = new DdmlibAndroidDebugBridge(project);
     myMap = new KeyToConnectionTimeMap();
     myGetName = new NameGetter(this);
   }
@@ -89,10 +87,9 @@ final class AsyncDevicesGetter implements Disposable {
                      @NotNull Function<ConnectedDevice, String> getName) {
     myProject = project;
     mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
-
     myVirtualDevicesWorker = new Worker<>();
     myConnectedDevicesWorker = new Worker<>();
-
+    myBridge = new DdmlibAndroidDebugBridge(project);
     myMap = map;
     myGetName = getName;
   }
@@ -113,19 +110,6 @@ final class AsyncDevicesGetter implements Disposable {
   @NotNull
   Optional<List<Device>> get() {
     initChecker(RunManager.getInstance(myProject).getSelectedConfiguration(), AndroidFacet::getInstance);
-    File adb = AndroidSdkUtils.getAdb(myProject);
-
-    if (adb == null) {
-      Logger.getInstance(AsyncDevicesGetter.class).info("adb not found");
-      return Optional.empty();
-    }
-
-    AndroidDebugBridge bridge = new DdmlibAndroidDebugBridge(adb);
-
-    if (!bridge.isConnected()) {
-      Logger.getInstance(AsyncDevicesGetter.class).info("ADB is not connected");
-      return Optional.empty();
-    }
 
     AsyncSupplier<Collection<VirtualDevice>> virtualDevicesTask = new VirtualDevicesTask.Builder()
       .setExecutorService(AppExecutorUtil.getAppExecutorService())
@@ -137,7 +121,7 @@ final class AsyncDevicesGetter implements Disposable {
       .build();
 
     Optional<Collection<VirtualDevice>> virtualDevices = myVirtualDevicesWorker.perform(virtualDevicesTask);
-    Optional<List<ConnectedDevice>> connectedDevices = myConnectedDevicesWorker.perform(new ConnectedDevicesTask(bridge, myChecker));
+    Optional<List<ConnectedDevice>> connectedDevices = myConnectedDevicesWorker.perform(new ConnectedDevicesTask(myBridge, myChecker));
 
     if (!virtualDevices.isPresent() || !connectedDevices.isPresent()) {
       return Optional.empty();
