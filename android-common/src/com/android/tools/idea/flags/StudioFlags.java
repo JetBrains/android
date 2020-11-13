@@ -882,7 +882,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW_INTERRUPTIBLE = Flag.create(
     COMPOSE, "preview.interruptible", "Allows the Compose Preview to interrupt rendering calls",
     "If enabled, if a render takes too long, the preview will be able to interrupt the execution.",
-    false);
+    true);
 
   public static final Flag<Boolean> COMPOSE_EDITOR_SUPPORT = Flag.create(
     COMPOSE, "editor",
