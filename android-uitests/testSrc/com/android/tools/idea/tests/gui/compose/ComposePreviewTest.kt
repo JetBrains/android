@@ -89,15 +89,21 @@ class ComposePreviewTest {
     StudioFlags.COMPOSE_ANIMATION_INSPECTOR.clearOverride()
   }
 
-  private fun openComposePreview(fixture: IdeFrameFixture, fileName: String = "MainActivity.kt"): SplitEditorFixture {
+  private fun openComposePreview(fixture: IdeFrameFixture, fileName: String = "MainActivity.kt", assertNoNotifications: Boolean = true):
+    SplitEditorFixture {
     // Open the main compose activity and check that the preview is present
     val editor = fixture.editor
     val file = "app/src/main/java/google/simpleapplication/$fileName"
+
     editor.open(file)
 
     fixture.invokeAndWaitForBuildAction("Build", "Make Project")
 
-    return editor.getSplitEditorFixture()
+    return editor.getSplitEditorFixture().waitForRenderToFinish().apply {
+      if (assertNoNotifications) {
+        getNotificationsFixture().assertNoNotifications()
+      }
+    }
   }
 
   @Test
@@ -119,11 +125,6 @@ class ComposePreviewTest {
                                                                      "1.4.0",
                                                                      GuiTestRule.DEFAULT_IMPORT_AND_SYNC_WAIT)
     val composePreview = openComposePreview(fixture)
-
-    composePreview
-      .waitForRenderToFinish()
-      .getNotificationsFixture()
-      .assertNoNotifications()
 
     // Commented until b/156216008 is solved
     //assertFalse(composePreview.hasRenderErrors())
@@ -181,11 +182,6 @@ class ComposePreviewTest {
   private fun openAndClosePreview(fixture: IdeFrameFixture) {
     val composePreview = openComposePreview(fixture)
 
-    composePreview
-      .waitForRenderToFinish()
-      .getNotificationsFixture()
-      .assertNoNotifications()
-
     // Commented until b/156216008 is solved
     //assertFalse(composePreview.hasRenderErrors())
 
@@ -217,11 +213,6 @@ class ComposePreviewTest {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
     val composePreview = openComposePreview(fixture)
 
-    composePreview
-      .waitForRenderToFinish()
-      .getNotificationsFixture()
-      .assertNoNotifications()
-
     // Commented until b/156216008 is solved
     //assertFalse(composePreview.hasRenderErrors())
 
@@ -242,11 +233,6 @@ class ComposePreviewTest {
   fun testAddAdditionalPreview() {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
     val composePreview = openComposePreview(fixture)
-
-    composePreview
-      .waitForRenderToFinish()
-      .getNotificationsFixture()
-      .assertNoNotifications()
 
     // Commented until b/156216008 is solved
     //assertFalse(composePreview.hasRenderErrors())
@@ -290,11 +276,6 @@ class ComposePreviewTest {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
     val composePreview = openComposePreview(fixture, "MultipleComposePreviews.kt")
 
-    composePreview
-      .waitForRenderToFinish()
-      .getNotificationsFixture()
-      .assertNoNotifications()
-
     assertEquals(3, composePreview.designSurface
       .allSceneViews
       .size)
@@ -332,11 +313,6 @@ class ComposePreviewTest {
   fun testAnimationButtonWhileInteractiveSwitch() {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
     val composePreview = openComposePreview(fixture, "Animations.kt")
-
-    composePreview
-      .waitForRenderToFinish()
-      .getNotificationsFixture()
-      .assertNoNotifications()
 
     var animButton =
       composePreview.designSurface
@@ -398,11 +374,6 @@ class ComposePreviewTest {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
     val composePreview = openComposePreview(fixture, "Animations.kt")
 
-    composePreview
-      .waitForRenderToFinish()
-      .getNotificationsFixture()
-      .assertNoNotifications()
-
     assertEquals(2, composePreview.designSurface
       .allSceneViews
       .size)
@@ -447,11 +418,6 @@ class ComposePreviewTest {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
     val composePreview = openComposePreview(fixture, "Animations.kt")
 
-    composePreview
-      .waitForRenderToFinish()
-      .getNotificationsFixture()
-      .assertNoNotifications()
-
     var animButton =
       composePreview.designSurface
       .allSceneViews
@@ -488,7 +454,7 @@ class ComposePreviewTest {
     // We can't enter interactive mode for a preview being inspected in the animation inspector
     assertFalse(interactivePreviewButton.isEnabled)
 
-    val otherComposePreview = openComposePreview(fixture, "MultipleComposePreviews.kt").waitForRenderToFinish()
+    val otherComposePreview = openComposePreview(fixture, "MultipleComposePreviews.kt", false)
 
     animButton =
       otherComposePreview.designSurface
@@ -536,7 +502,7 @@ class ComposePreviewTest {
     AndroidDebugBridgeUtils.enableFakeAdbServerMode(adbRule.fakeAdbServerPort)
     adbRule.attachDevice("42", "Google", "Pix3l", "versionX", "29", DeviceState.HostConnectionType.USB)
 
-    val composePreview = openComposePreview(fixture, "MultipleComposePreviews.kt").waitForRenderToFinish()
+    val composePreview = openComposePreview(fixture, "MultipleComposePreviews.kt", false)
     commandHandler.composablePackageName = "google.simpleapplication"
     commandHandler.composableFqn = "google.simpleapplication.MultipleComposePreviewsKt.Preview1"
 
