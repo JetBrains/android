@@ -77,7 +77,7 @@ private fun TwoColumnTable.toCsvOutputLines(delimiter: Char): List<String> =
 private fun IntRange.toTwoColumnTable(): TwoColumnTable = this.map { "$it$nonAsciiSuffix" }.zipWithNext()
 
 /** Keeps connection ids unique */
-private val nextConnectionId = generateSequence(1) { it + 1 }
+private val nextConnectionId: () -> Int = run { var next = 1; { next++ } }
 
 class ExportToFileControllerTest : LightPlatformTestCase() {
   private lateinit var notifyExportComplete: (ExportRequest) -> Unit
@@ -204,6 +204,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     val tmpDir = tempDirTestFixture.findOrCreateDir("unzipped")
     val outputFiles = dstPath.unzipTo(tmpDir.toNioPath()).sorted()
 
+
     run {
       val actualFileNames = outputFiles.map { it.toFile().canonicalPath }
       val expectedFileNames = tableValuePairs.map { (table, _) ->
@@ -247,6 +248,11 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     }
   }
 
+  fun testNextConnectionId() {
+    assertThat((1..5).map { nextConnectionId() }).isEqualTo((1..5).toList())
+    assertThat((1..5).map { nextConnectionId() }).isEqualTo((6..10).toList())
+  }
+
   private fun submitExportRequest(exportRequest: ExportRequest) {
     runDispatching { view.listeners.first().exportRequestSubmitted(exportRequest) }
   }
@@ -261,7 +267,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
 
     val databaseId = when (type) {
       DatabaseType.File -> SqliteDatabaseId.fromFileDatabase(DatabaseFileData(databaseFile))
-      DatabaseType.Live -> SqliteDatabaseId.fromLiveDatabase(databaseFile.toNioPath().toString(), nextConnectionId.first())
+      DatabaseType.Live -> SqliteDatabaseId.fromLiveDatabase(databaseFile.toNioPath().toString(), nextConnectionId())
     }
 
     runDispatching { databaseRepository.addDatabaseConnection(databaseId, connection) }
