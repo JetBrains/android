@@ -16,7 +16,7 @@
 package com.android.tools.idea.appinspection.ide.resolver
 
 import com.android.tools.idea.appinspection.ide.resolver.gradle.GradleArtifactResolver
-import com.android.tools.idea.appinspection.ide.resolver.stub.StubArtifactResolver
+import com.android.tools.idea.appinspection.ide.resolver.http.HttpArtifactResolver
 import com.android.tools.idea.appinspection.inspector.api.service.TestFileService
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -53,7 +53,7 @@ class ArtifactResolverFactoryTest(private val variation: Variation) {
       }
       Variation.OTHER -> run {
         assertThat(ArtifactResolverFactory(TestFileService()).getArtifactResolver(projectRule.project))
-          .isInstanceOf(StubArtifactResolver::class.java)
+          .isInstanceOf(HttpArtifactResolver::class.java)
       }
     }
   }
