@@ -56,7 +56,6 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.util.MockCopyPasteManager;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.browsers.BrowserLauncher;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -94,7 +93,6 @@ public class NlComponentTreeTest extends LayoutTestCase {
   private NlComponent myButton;
   private NlComponent myTextView;
   private NlComponent myAbsoluteLayout;
-  private volatile Disposable myDisposable;
   private DesignSurfaceActionHandler myActionHandler;
   private DataContext myDataContext;
 
@@ -105,15 +103,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     replaceApplicationService(CopyPasteManager.class, new MockCopyPasteManager());
     myModel = createModel();
     myModel.getUpdateQueue().setPassThrough(true);
-    // If using a lambda, it can be reused by the JVM and causing an exception because the Disposable is already disposed.
-    //noinspection Convert2Lambda
-    myDisposable = new Disposable() {
-      @Override
-      public void dispose() {
-
-      }
-    };
-    mySurface = NlDesignSurface.builder(getProject(), myDisposable)
+    mySurface = NlDesignSurface.builder(getProject(), getTestRootDisposable())
       .setSceneManagerProvider((surface, model) -> new SyncLayoutlibSceneManager((SyncNlModel) model) {
         @NotNull
         @Override
@@ -137,8 +127,9 @@ public class NlComponentTreeTest extends LayoutTestCase {
     myButton = findFirst(BUTTON);
     myTextView = findFirst(TEXT_VIEW);
     myAbsoluteLayout = findFirst(ABSOLUTE_LAYOUT);
-    Disposer.register(myDisposable, myTree);
-    Disposer.register(myDisposable, myPanel);
+    Disposer.register(getTestRootDisposable(), myTree);
+    Disposer.register(getTestRootDisposable(), myPanel);
+    Disposer.register(getTestRootDisposable(), myModel);
   }
 
   @NotNull
@@ -165,11 +156,8 @@ public class NlComponentTreeTest extends LayoutTestCase {
   @Override
   public void tearDown() throws Exception {
     try {
-      Disposer.dispose(myModel);
-      Disposer.dispose(myDisposable);
       // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
       // tests through IJ)
-      myDisposable = null;
       myBrowserLauncher = null;
       myRelativeLayout = null;
       myLinearLayout = null;
