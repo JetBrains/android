@@ -44,6 +44,11 @@ class BuildAnalyzerViewModel(
 
   val shouldWarnAboutGC: Boolean
     get() = reportUiData.buildSummary.garbageCollectionTime.percentage > 10.0
+
+  val shouldWarnAboutNoGCSetting: Boolean
+    get() = reportUiData.buildSummary.isGarbageCollectorSettingSet == false
+            && reportUiData.buildSummary.javaVersionUsed?.let { it >= 9 } ?: false
+
   val tasksPageModel: TasksDataPageModel = TasksDataPageModelImpl(reportUiData)
   val warningsPageModel: WarningsDataPageModel = WarningsDataPageModelImpl(reportUiData)
 }

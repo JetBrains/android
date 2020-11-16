@@ -116,6 +116,24 @@ class BuildOverviewPageViewTest {
     Mockito.verify(mockHandlers).openMemorySettings()
   }
 
+  @Test
+  fun testNoGcSettingWarning() {
+    val mockData = MockUiData().apply {
+      buildSummary = mockBuildOverviewData(javaVersionUsed = 11, isGarbageCollectorSettingSet = false)
+    }
+    val model = BuildAnalyzerViewModel(mockData)
+    val view = BuildOverviewPageView(model, mockHandlers)
+    val memoryPanel = TreeWalker(view.component).descendants().single { it.name == "memory" }
+
+    Truth.assertThat(model.shouldWarnAboutNoGCSetting).isTrue()
+    Truth.assertThat(memoryPanel.isVisible).isTrue()
+
+    val textPane = TreeWalker(memoryPanel).descendants().single { it.name == "no-gc-setting-warning" }
+
+    Truth.assertThat(textPane.isVisible).isTrue()
+    Truth.assertThat(visibleText(textPane)).contains("The default garbage collector was used in this build running with JDK 11.")
+  }
+
   private fun visibleText(component: Component): String? = when (component) {
     is JLabel -> component.text
     is JEditorPane -> clearHtml(component.text)
