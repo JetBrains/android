@@ -240,6 +240,10 @@ class BuildAttributionUiAnalytics(
     )
   }
 
+  fun reportUnregisteredEvent() {
+    doLog(newUiEventBuilder().setCurrentPage(currentPage).setEventType(BuildAttributionUiEvent.EventType.UNKNOWN_TYPE))
+  }
+
   data class AnalyticsPageId(
     val pageType: BuildAttributionUiEvent.Page.PageType,
     val pageId: String
