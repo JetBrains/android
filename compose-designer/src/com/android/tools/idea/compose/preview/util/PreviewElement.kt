@@ -225,7 +225,7 @@ fun PreviewConfiguration.applyConfigurationForTest(renderConfiguration: Configur
 }
 
 /** id for the default device when no device is specified by the user. */
-private const val DEFAULT_DEVICE_ID = "pixel_4"
+private const val DEFAULT_DEVICE_ID = "pixel_5"
 
 /**
  * Contains settings for rendering.
