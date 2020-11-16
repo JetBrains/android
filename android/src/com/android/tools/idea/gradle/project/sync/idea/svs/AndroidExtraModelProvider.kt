@@ -328,30 +328,25 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
       inputModules: List<AndroidModule>,
       syncOptions: SingleVariantSyncActionOptions
     ): LinkedList<ModuleConfiguration> {
-      val allModulesToSetUp = LinkedList<ModuleConfiguration>()
       // The module whose variant selection was changed from UI, the dependency modules should be consistent with this module. Achieve this by
       // adding this module to the head of allModules so that its dependency modules are resolved first.
-      var moduleWithVariantSwitched: ModuleConfiguration? = null
-
-      inputModules.filter { it.fetchedVariantNames.isEmpty() }.forEach { module ->
-        val moduleConfiguration = selectedOrDefaultModuleConfiguration(module, syncOptions) ?: return@forEach
-        if (module.id == syncOptions.moduleIdWithVariantSwitched) {
-          moduleWithVariantSwitched = moduleConfiguration
-        }
-        else {
-          // All app modules must be requested first since they are used to work out which variants to request for their dependencies.
-          // The configurations requested here represent just what we know at this moment. Many of these modules will turn out to be
-          // dependencies of others and will be visited sooner and the configurations created below will be discarded. This is fine since
-          // `createRequestedModuleConfiguration()` is cheap.
-          when (module.projectType) {
-            PROJECT_TYPE_APP -> allModulesToSetUp.addFirst(moduleConfiguration)
-            else -> allModulesToSetUp.addLast(moduleConfiguration)
+      return inputModules
+        .asSequence()
+        .filter { it.fetchedVariantNames.isEmpty() }
+        .mapNotNull { module -> selectedOrDefaultModuleConfiguration(module, syncOptions)?.let { module to it } }
+        .sortedBy { (module, moduleConfiguration) ->
+          when {
+            module.id == syncOptions.moduleIdWithVariantSwitched -> 0
+            // All app modules must be requested first since they are used to work out which variants to request for their dependencies.
+            // The configurations requested here represent just what we know at this moment. Many of these modules will turn out to be
+            // dependencies of others and will be visited sooner and the configurations created below will be discarded. This is fine since
+            // `createRequestedModuleConfiguration()` is cheap.
+            module.projectType == PROJECT_TYPE_APP -> 1
+            else -> 2
           }
         }
-      }
-
-      moduleWithVariantSwitched?.let { allModulesToSetUp.addFirst(it) }
-      return allModulesToSetUp
+        .map { it.second }
+        .toCollection(LinkedList<ModuleConfiguration>())
     }
 
     private fun selectedOrDefaultModuleConfiguration(
