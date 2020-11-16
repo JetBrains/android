@@ -22,7 +22,7 @@
     <orderEntry type="library" name="emulator-proto" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
-    <orderEntry type="library" scope="TEST" name="kotlin-plugin" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlin-plugin-android-compile-deps" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" name="studio-grpc" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
