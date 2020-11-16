@@ -190,13 +190,13 @@ private fun PreviewConfiguration.applyTo(renderConfiguration: Configuration,
                                          defaultDeviceProvider: (Configuration) -> Device?) {
   if (apiLevel != UNDEFINED_API_LEVEL) {
     highestApiTarget(renderConfiguration)?.let {
-      renderConfiguration.target = CompatibilityRenderTarget(it, apiLevel, null)
+      renderConfiguration.target = CompatibilityRenderTarget(it, apiLevel, it)
     }
   }
   else {
     // Use the highest available one when not defined.
     highestApiTarget(renderConfiguration)?.let {
-      renderConfiguration.target = CompatibilityRenderTarget(it, it.version.apiLevel, null)
+      renderConfiguration.target = CompatibilityRenderTarget(it, it.version.apiLevel, it)
     }
   }
 
