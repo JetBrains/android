@@ -75,6 +75,7 @@ import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.util.ArrayUtil;
 import java.awt.Component;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -141,6 +142,7 @@ public class PalettePanelTest extends LayoutTestCase {
       public void actionPerformed(@NotNull AnActionEvent e) { }
     });
     when(myActionManager.createActionPopupMenu(anyString(), any(ActionGroup.class))).thenReturn(myPopupMenu);
+    when(myActionManager.getActionIds(anyString())).thenReturn(ArrayUtil.EMPTY_STRING_ARRAY);
     when(myPopupMenu.getComponent()).thenReturn(myPopupMenuComponent);
     myPanel = new PalettePanel(getProject(), myDependencyManager, getProject());
   }
