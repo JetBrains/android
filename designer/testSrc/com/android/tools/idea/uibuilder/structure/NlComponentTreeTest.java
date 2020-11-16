@@ -34,6 +34,7 @@ import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.RELATIVE_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.findActionForKey;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.isNull;
@@ -178,9 +179,9 @@ public class NlComponentTreeTest extends LayoutTestCase {
 
     NlComponentTree tree = createTree(model);
     // Extract xml
-    XmlTag tagLinearLayout = linearLayout.getTagDeprecated();
-    XmlTag tagTextView = textView.getTagDeprecated();
-    XmlTag tagAbsoluteLayout = absoluteLayout.getTagDeprecated();
+    XmlTag tagLinearLayout = checkNotNull(linearLayout.getTag());
+    XmlTag tagTextView = checkNotNull(textView.getTag());
+    XmlTag tagAbsoluteLayout = checkNotNull(absoluteLayout.getTag());
 
     // Mix the component references
     relativeLayout.setChildren(null);
@@ -203,7 +204,6 @@ public class NlComponentTreeTest extends LayoutTestCase {
     newRelativeLayout.addChild(newTextView);
     newRelativeLayout.addChild(newAbsoluteLayout);
 
-    assert newButton != null;
     newLinearLayout.addChild(newButton);
 
     tree.modelDerivedDataChanged(model);
@@ -394,7 +394,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
   public void testShiftHelpOnComponentTree() {
     SyncNlModel model = createModel();
     NlComponentTree tree = createTree(model);
-    AnAction action = findActionForKey(tree, KeyEvent.VK_F1, InputEvent.SHIFT_MASK);
+    AnAction action = findActionForKey(tree, KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK);
 
     assertThat(action).isNotNull();
 
@@ -628,9 +628,10 @@ public class NlComponentTreeTest extends LayoutTestCase {
     tree.setSelectionPath(pathForRow4);
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
-    ((DeleteProvider)tree.getData(PlatformDataKeys.DELETE_ELEMENT_PROVIDER.getName())).deleteElement(DataContext.EMPTY_CONTEXT);
+    ((DeleteProvider)checkNotNull(tree.getData(PlatformDataKeys.DELETE_ELEMENT_PROVIDER.getName())))
+      .deleteElement(DataContext.EMPTY_CONTEXT);
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-    String constraintReferences = model.find("barrier").getAttribute(AUTO_URI, CONSTRAINT_REFERENCED_IDS);
+    String constraintReferences = checkNotNull(model.find("barrier")).getAttribute(AUTO_URI, CONSTRAINT_REFERENCED_IDS);
     assertThat(constraintReferences).isEqualTo("button3");
   }
 
