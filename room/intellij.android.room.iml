@@ -17,7 +17,7 @@
     <orderEntry type="module" module-name="intellij.java.impl" />
     <orderEntry type="module" module-name="intellij.java" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlin-plugin" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlin-plugin-android-compile-deps" level="project" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
   </component>
 </module>
