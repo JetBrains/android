@@ -60,18 +60,15 @@ public class ScreenView extends ScreenViewBase {
   /**
    * {@link ContentSizePolicy} that uses the device configuration size.
    */
-  public static final ContentSizePolicy DEVICE_CONTENT_SIZE_POLICY = new ContentSizePolicy() {
-    @Override
-    public void measure(@NotNull ScreenView screenView, @NotNull Dimension outDimension) {
-      Configuration configuration = screenView.getConfiguration();
-      Device device = configuration.getCachedDevice();
-      State state = configuration.getDeviceState();
-      if (device != null && state != null) {
-        HardwareConfig config =
-          new HardwareConfigHelper(device).setOrientation(state.getOrientation()).getConfig();
+  public static final ContentSizePolicy DEVICE_CONTENT_SIZE_POLICY = (screenView, outDimension) -> {
+    Configuration configuration = screenView.getConfiguration();
+    Device device = configuration.getCachedDevice();
+    State state = configuration.getDeviceState();
+    if (device != null && state != null) {
+      HardwareConfig config =
+        new HardwareConfigHelper(device).setOrientation(state.getOrientation()).getConfig();
 
-        outDimension.setSize(config.getScreenWidth(), config.getScreenHeight());
-      }
+      outDimension.setSize(config.getScreenWidth(), config.getScreenHeight());
     }
   };
 
@@ -104,7 +101,7 @@ public class ScreenView extends ScreenViewBase {
             cachedDimension.setSize(outDimension);
           }
           return;
-        } catch (AssertionError e) {
+        } catch (AssertionError ignored) {
         }
       }
 
