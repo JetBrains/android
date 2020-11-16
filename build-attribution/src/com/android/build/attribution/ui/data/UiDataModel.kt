@@ -52,6 +52,8 @@ interface BuildSummary {
       totalBuildDuration.totalMs
     )
   val garbageCollectionTime: TimeWithPercentage
+  val javaVersionUsed: Int?
+  val isGarbageCollectorSettingSet: Boolean?
 }
 
 interface CriticalPathTasksUiData {

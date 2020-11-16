@@ -18,9 +18,12 @@ package com.android.build.attribution.analyzers
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.GarbageCollectionData
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
+import com.intellij.util.lang.JavaVersion
 
 class GarbageCollectionAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter): BuildAttributionReportAnalyzer {
   var garbageCollectionData: List<GarbageCollectionData> = emptyList()
+  var javaVersion: Int? = null
+  var isSettingSet: Boolean? = null
 
   override fun onBuildStart() {
     garbageCollectionData = emptyList()
@@ -28,5 +31,9 @@ class GarbageCollectionAnalyzer(override val warningsFilter: BuildAttributionWar
 
   override fun receiveBuildAttributionReport(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData) {
     garbageCollectionData = androidGradlePluginAttributionData.garbageCollectionData.map { GarbageCollectionData(it.key, it.value) }
+    javaVersion = JavaVersion.tryParse(androidGradlePluginAttributionData.javaInfo.version)?.feature
+    isSettingSet = androidGradlePluginAttributionData.javaInfo.vmArguments.any { it.isGcVmArgument() }
   }
+
+  private fun String.isGcVmArgument(): Boolean = startsWith("-XX:+Use") && endsWith("GC")
 }
