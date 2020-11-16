@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.model
 
+import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.ui.MockUiData
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
@@ -33,8 +34,9 @@ class BuildAnalyzerViewModelTest {
   }
 
   private val mockData = MockUiData()
+  private val warningSuppressions = BuildAttributionWarningsFilter()
 
-  private val model = BuildAnalyzerViewModel(mockData).apply {
+  private val model = BuildAnalyzerViewModel(mockData, warningSuppressions).apply {
     dataSetSelectionListener = listenerMock
   }
 
@@ -81,6 +83,36 @@ class BuildAnalyzerViewModelTest {
     testCase(javaVersionUsed = 13, isGarbageCollectorSettingSet = false, expectedResult = true)
     testCase(javaVersionUsed = 14, isGarbageCollectorSettingSet = false, expectedResult = true)
     testCase(javaVersionUsed = 15, isGarbageCollectorSettingSet = false, expectedResult = true)
+    testCase(javaVersionUsed = 8, isGarbageCollectorSettingSet = true, expectedResult = false)
+    testCase(javaVersionUsed = 9, isGarbageCollectorSettingSet = true, expectedResult = false)
+    testCase(javaVersionUsed = 10, isGarbageCollectorSettingSet = true, expectedResult = false)
+    testCase(javaVersionUsed = 11, isGarbageCollectorSettingSet = true, expectedResult = false)
+    testCase(javaVersionUsed = 12, isGarbageCollectorSettingSet = true, expectedResult = false)
+    testCase(javaVersionUsed = 13, isGarbageCollectorSettingSet = true, expectedResult = false)
+    testCase(javaVersionUsed = 14, isGarbageCollectorSettingSet = true, expectedResult = false)
+    testCase(javaVersionUsed = 15, isGarbageCollectorSettingSet = true, expectedResult = false)
+  }
+
+  @Test
+  fun testShouldWarnAboutNoGCSettingWhenSuppressed() {
+    warningSuppressions.suppressNoGCSettingWarning = true
+    fun testCase(
+      javaVersionUsed: Int?,
+      isGarbageCollectorSettingSet: Boolean?,
+      expectedResult: Boolean
+    ) {
+      mockData.buildSummary  = mockData.mockBuildOverviewData(javaVersionUsed, isGarbageCollectorSettingSet)
+      expect.that(model.shouldWarnAboutNoGCSetting).isEqualTo(expectedResult)
+    }
+
+    testCase(javaVersionUsed = 8, isGarbageCollectorSettingSet = false, expectedResult = false)
+    testCase(javaVersionUsed = 9, isGarbageCollectorSettingSet = false, expectedResult = false)
+    testCase(javaVersionUsed = 10, isGarbageCollectorSettingSet = false, expectedResult = false)
+    testCase(javaVersionUsed = 11, isGarbageCollectorSettingSet = false, expectedResult = false)
+    testCase(javaVersionUsed = 12, isGarbageCollectorSettingSet = false, expectedResult = false)
+    testCase(javaVersionUsed = 13, isGarbageCollectorSettingSet = false, expectedResult = false)
+    testCase(javaVersionUsed = 14, isGarbageCollectorSettingSet = false, expectedResult = false)
+    testCase(javaVersionUsed = 15, isGarbageCollectorSettingSet = false, expectedResult = false)
     testCase(javaVersionUsed = 8, isGarbageCollectorSettingSet = true, expectedResult = false)
     testCase(javaVersionUsed = 9, isGarbageCollectorSettingSet = true, expectedResult = false)
     testCase(javaVersionUsed = 10, isGarbageCollectorSettingSet = true, expectedResult = false)

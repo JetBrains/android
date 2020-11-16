@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.controllers
 
+import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.TaskUiData
@@ -135,6 +136,12 @@ class BuildAnalyzerViewController(
     val duration = runAndMeasureDuration { model.warningsPageModel.groupByPlugin = groupByPlugin }
     val newAnalyticsPage = analytics.getStateFromModel(model)
     analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.GROUPING_CHANGED, duration)
+  }
+
+  override fun dontShowAgainNoGCSettingWarningClicked() {
+    BuildAttributionWarningsFilter.getInstance(project).suppressNoGCSettingWarning = true
+    //TODO (mlazeba): add separate event to analytics
+    analytics.reportUnregisteredEvent()
   }
 
   private fun runAndMeasureDuration(action: () -> Unit): Duration {

@@ -18,6 +18,7 @@ package com.android.build.attribution.ui
 import com.android.annotations.concurrency.UiThread
 import com.android.build.attribution.BuildAttributionStateReporter
 import com.android.build.attribution.BuildAttributionStateReporterImpl
+import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.BuildAnalyzerViewController
 import com.android.build.attribution.ui.controllers.TaskIssueReporter
@@ -265,7 +266,7 @@ private class NewViewComponentContainer(
   val view: BuildAnalyzerComboBoxView
 
   init {
-    val model = BuildAnalyzerViewModel(uiData)
+    val model = BuildAnalyzerViewModel(uiData, BuildAttributionWarningsFilter.getInstance(project))
     val controller = BuildAnalyzerViewController(model, project, uiAnalytics, issueReporter)
     view = BuildAnalyzerComboBoxView(model, controller)
   }

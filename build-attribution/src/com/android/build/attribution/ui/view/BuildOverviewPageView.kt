@@ -25,6 +25,7 @@ import com.android.build.attribution.ui.warningIcon
 import com.android.tools.adtui.TabularLayout
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
+import com.intellij.openapi.ui.Messages
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.HorizontalLayout
@@ -103,14 +104,30 @@ class BuildOverviewPageView(
     val defaultGCUsageWarning = htmlTextLabelWithFixedLines("""
       |The default garbage collector was used in this build running with JDK ${model.reportUiData.buildSummary.javaVersionUsed}.<br/>
       |Note that the default GC was changed starting with JDK 9. This could impact your build performance by as much as 10%.<br/>
-      |<b>Recommendation:</b> <a href="${BuildAnalyzerBrowserLinks.CONFIGURE_GC.name}">Fine tune your JVM</a><br/>
+      |<b>Recommendation:</b> <a href="${BuildAnalyzerBrowserLinks.CONFIGURE_GC.name}">Fine tune your JVM</a>.<br/>
+      |<a href="suppress">Don't show this again</a>.
     """.trimMargin())
     defaultGCUsageWarning.name = "no-gc-setting-warning"
     defaultGCUsageWarning.addHyperlinkListener { e ->
       if (e.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-        BuildAnalyzerBrowserLinks.valueOf(e.description).let {
-          BrowserUtil.browse(it.urlTarget)
-          actionHandlers.helpLinkClicked(it)
+        if (e.description == "suppress") {
+          val confirmationResult = Messages.showOkCancelDialog(
+            "Click OK to hide this warning in future builds.",
+            "Confirm Warning Suppression",
+            Messages.getOkButton(),
+            Messages.getCancelButton(),
+            Messages.getInformationIcon()
+          )
+          if (confirmationResult == Messages.OK) {
+            actionHandlers.dontShowAgainNoGCSettingWarningClicked()
+            defaultGCUsageWarning.isVisible = false
+          }
+        }
+        else {
+          BuildAnalyzerBrowserLinks.valueOf(e.description).let {
+            BrowserUtil.browse(it.urlTarget)
+            actionHandlers.helpLinkClicked(it)
+          }
         }
       }
     }

@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.model
 
+import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.BuildAnalyzerViewController
@@ -75,7 +76,7 @@ class BuildAnalyzerFiltersTest {
     BuildAttributionUiEvent.FilterItem.SHOW_TASKS_WITHOUT_WARNINGS
   )
 
-  val model = BuildAnalyzerViewModel(MockUiData(tasksList = listOf(task1, task2, task3)))
+  val model = BuildAnalyzerViewModel(MockUiData(tasksList = listOf(task1, task2, task3)), BuildAttributionWarningsFilter())
   val analytics = BuildAttributionUiAnalytics(projectRule.project, uiSizeProvider = { Dimension(300, 200) })
   val buildSessionId = UUID.randomUUID().toString()
   val issueReporter = Mockito.mock(TaskIssueReporter::class.java)
