@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver
 
+import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverRequest
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverResult
@@ -28,3 +29,7 @@ class TestArtifactResolver : ArtifactResolver {
     return requests.map { SuccessfulResult(it, TEST_JAR) }
   }
 }
+
+class TestArtifactResolverRequest(
+  artifactCoordinate: ArtifactCoordinate
+): ArtifactResolverRequest(artifactCoordinate)
