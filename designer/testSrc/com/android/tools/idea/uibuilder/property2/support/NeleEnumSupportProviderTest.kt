@@ -120,7 +120,8 @@ class NeleEnumSupportProviderTest: AndroidTestCase() {
     val property = util.makeProperty(ANDROID_URI, attributeName, NelePropertyType.DIMENSION)
     val provider = NeleEnumSupportProvider(util.model)
     val enumSupport = provider(property) ?: error("No EnumSupport Found")
-    assertThat(enumSupport.values.map{ it.value }).containsExactly("8sp", "10sp", "12sp", "14sp", "18sp", "24sp", "30sp", "36sp").inOrder()
+    assertThat(enumSupport.values.map{ it.value })
+      .containsExactly("8sp", "10sp", "12sp", "14sp", "16sp", "20sp", "24sp", "34sp", "48sp", "60sp", "96sp").inOrder()
   }
 
   fun testLayoutWidth() {
