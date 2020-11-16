@@ -45,6 +45,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
@@ -80,20 +82,9 @@ import org.mockito.Mock;
 
 public class NlComponentTreeTest extends LayoutTestCase {
 
-  private NlDesignSurface mySurface;
-
   @Mock
   private BrowserLauncher myBrowserLauncher;
-
-  private SyncNlModel myModel;
-  private NlComponentTree myTree;
-  private NlVisibilityGutterPanel myPanel;
-  private NlComponent myRelativeLayout;
-  private NlComponent myLinearLayout;
-  private NlComponent myButton;
-  private NlComponent myTextView;
-  private NlComponent myAbsoluteLayout;
-  private DesignSurfaceActionHandler myActionHandler;
+  @Mock
   private DataContext myDataContext;
 
   @Override
@@ -101,56 +92,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     super.setUp();
     initMocks(this);
     replaceApplicationService(CopyPasteManager.class, new MockCopyPasteManager());
-    myModel = createModel();
-    myModel.getUpdateQueue().setPassThrough(true);
-    mySurface = NlDesignSurface.builder(getProject(), getTestRootDisposable())
-      .setSceneManagerProvider((surface, model) -> new SyncLayoutlibSceneManager((SyncNlModel) model) {
-        @NotNull
-        @Override
-        public CompletableFuture<Void> requestRender() {
-          // This test does not need Layoutlib renders
-          return CompletableFuture.completedFuture(null);
-        }
-      })
-      .build();
-    mySurface.setModel(myModel);
-    myPanel = new NlVisibilityGutterPanel();
-    myTree = new NlComponentTree(getProject(), mySurface, myPanel);
-    myTree.getUpdateQueue().setPassThrough(true);
-    myTree.getUpdateQueue().flush();
     registerApplicationService(BrowserLauncher.class, myBrowserLauncher);
-    myActionHandler = getActionHandler(myTree);
-    myDataContext = mock(DataContext.class);
-
-    myRelativeLayout = findFirst(RELATIVE_LAYOUT);
-    myLinearLayout = findFirst(LINEAR_LAYOUT);
-    myButton = findFirst(BUTTON);
-    myTextView = findFirst(TEXT_VIEW);
-    myAbsoluteLayout = findFirst(ABSOLUTE_LAYOUT);
-    Disposer.register(getTestRootDisposable(), myTree);
-    Disposer.register(getTestRootDisposable(), myPanel);
-    Disposer.register(getTestRootDisposable(), myModel);
-  }
-
-  @NotNull
-  private NlComponent findFirst(@NotNull String tagName) {
-    NlComponent component = findFirst(tagName, myModel.getComponents());
-    assert component != null;
-    return component;
-  }
-
-  @Nullable
-  private static NlComponent findFirst(@NotNull String tagName, @NotNull List<NlComponent> components) {
-    for (NlComponent component : components) {
-      if (component.getTagName().equals(tagName)) {
-        return component;
-      }
-      NlComponent child = findFirst(tagName, component.getChildren());
-      if (child != null) {
-        return child;
-      }
-    }
-    return null;
   }
 
   @Override
@@ -159,16 +101,6 @@ public class NlComponentTreeTest extends LayoutTestCase {
       // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
       // tests through IJ)
       myBrowserLauncher = null;
-      myRelativeLayout = null;
-      myLinearLayout = null;
-      myButton = null;
-      myTextView = null;
-      myAbsoluteLayout = null;
-      mySurface = null;
-      myModel = null;
-      myTree = null;
-      myPanel = null;
-      myActionHandler = null;
       myDataContext = null;
     }
     finally {
@@ -177,18 +109,17 @@ public class NlComponentTreeTest extends LayoutTestCase {
   }
 
   public void testTreeStructure() {
+    NlComponentTree tree = createTree(createModel());
     UIUtil.dispatchAllInvocationEvents();
     assertEquals("<RelativeLayout>  [expanded]\n" +
                  "    <LinearLayout>  [expanded]\n" +
                  "        <Button>\n" +
                  "    <TextView>\n" +
-                 "    <AbsoluteLayout>\n", toTree());
+                 "    <AbsoluteLayout>\n", toTree(tree));
   }
 
   public void testTreeStructureOfAppBar() {
-    SyncNlModel model = createModelWithAppBar();
-    mySurface.setModel(model);
-    myTree.setDesignSurface(mySurface);
+    NlComponentTree tree = createTree(createModelWithAppBar());
     UIUtil.dispatchAllInvocationEvents();
     assertEquals("<android.support.design.widget.CoordinatorLayout>  [expanded]\n" +
                  "    <android.support.design.widget.AppBarLayout>  [expanded]\n" +
@@ -196,64 +127,80 @@ public class NlComponentTreeTest extends LayoutTestCase {
                  "            <ImageView>\n" +
                  "            <android.support.v7.widget.Toolbar>\n" +
                  "    <android.support.v4.widget.NestedScrollView>  [expanded]\n" +
-                 "        <TextView>\n", toTree());
+                 "        <TextView>\n", toTree(tree));
   }
 
   public void testSelectionInTreeIsPropagatedToModel() {
-    assertNull(myTree.getSelectionPaths());
-    assertFalse(mySurface.getSelectionModel().getSelection().iterator().hasNext());
+    SyncNlModel model = createModel();
+    NlComponentTree tree = createTree(model);
+    SelectionModel selectionModel = model.getSurface().getSelectionModel();
+    assertNull(tree.getSelectionPaths());
+    assertFalse(selectionModel.getSelection().iterator().hasNext());
 
-    NlComponent root = (NlComponent)myTree.getModel().getRoot();
+    NlComponent root = (NlComponent)tree.getModel().getRoot();
     NlComponent node1 = root.getChild(1);
     NlComponent node2 = root.getChild(2);
-    myTree.addSelectionPath(new TreePath(new Object[]{root, node1}));
-    myTree.addSelectionPath(new TreePath(new Object[]{root, node2}));
+    tree.addSelectionPath(new TreePath(new Object[]{root, node1}));
+    tree.addSelectionPath(new TreePath(new Object[]{root, node2}));
 
-    Iterator<NlComponent> selected = mySurface.getSelectionModel().getSelection().iterator();
+    Iterator<NlComponent> selected = selectionModel.getSelection().iterator();
     assertEquals(node1, selected.next());
     assertEquals(node2, selected.next());
     assertFalse(selected.hasNext());
   }
 
   public void testSelectionInModelIsShownInTree() {
-    assertNull(myTree.getSelectionPaths());
-    assertFalse(mySurface.getSelectionModel().getSelection().iterator().hasNext());
+    SyncNlModel model = createModel();
+    SelectionModel selectionModel = model.getSurface().getSelectionModel();
+    NlComponent textView = findFirst(model, TEXT_VIEW);
+    NlComponent button = findFirst(model, BUTTON);
 
-    mySurface.getSelectionModel().toggle(myTextView);
-    mySurface.getSelectionModel().toggle(myButton);
+    NlComponentTree tree = createTree(model);
+    assertNull(tree.getSelectionPaths());
+    assertFalse(selectionModel.getSelection().iterator().hasNext());
+    selectionModel.toggle(textView);
+    selectionModel.toggle(button);
 
-    TreePath[] selection = myTree.getSelectionPaths();
+    TreePath[] selection = tree.getSelectionPaths();
     assertThat(selection).isNotNull();
 
     assertThat(selection.length).isEqualTo(2);
-    assertThat(selection[0].getLastPathComponent()).isSameAs(myTextView);
-    assertThat(selection[1].getLastPathComponent()).isSameAs(myButton);
+    assertThat(selection[0].getLastPathComponent()).isSameAs(textView);
+    assertThat(selection[1].getLastPathComponent()).isSameAs(button);
   }
 
   @SuppressWarnings("UnnecessaryLocalVariable")
   public void testHierarchyUpdate() {
+    SyncNlModel model = createModel();
+    NlComponent textView = findFirst(model, TEXT_VIEW);
+    NlComponent button = findFirst(model, BUTTON);
+    NlComponent linearLayout = findFirst(model, LINEAR_LAYOUT);
+    NlComponent absoluteLayout = findFirst(model, ABSOLUTE_LAYOUT);
+    NlComponent relativeLayout = findFirst(model, RELATIVE_LAYOUT);
+
+    NlComponentTree tree = createTree(model);
     // Extract xml
-    XmlTag tagLinearLayout = myLinearLayout.getTagDeprecated();
-    XmlTag tagTextView = myTextView.getTagDeprecated();
-    XmlTag tagAbsoluteLayout = myAbsoluteLayout.getTagDeprecated();
+    XmlTag tagLinearLayout = linearLayout.getTagDeprecated();
+    XmlTag tagTextView = textView.getTagDeprecated();
+    XmlTag tagAbsoluteLayout = absoluteLayout.getTagDeprecated();
 
     // Mix the component references
-    myRelativeLayout.setChildren(null);
-    myLinearLayout.setTag(tagAbsoluteLayout);
-    myLinearLayout.setSnapshot(null);
-    myLinearLayout.setChildren(null);
-    myTextView.setTag(tagLinearLayout);
-    myTextView.setSnapshot(null);
-    myTextView.setChildren(null);
-    myAbsoluteLayout.setTag(tagTextView);
-    myAbsoluteLayout.setSnapshot(null);
-    myAbsoluteLayout.setChildren(null);
+    relativeLayout.setChildren(null);
+    linearLayout.setTag(tagAbsoluteLayout);
+    linearLayout.setSnapshot(null);
+    linearLayout.setChildren(null);
+    textView.setTag(tagLinearLayout);
+    textView.setSnapshot(null);
+    textView.setChildren(null);
+    absoluteLayout.setTag(tagTextView);
+    absoluteLayout.setSnapshot(null);
+    absoluteLayout.setChildren(null);
 
-    NlComponent newRelativeLayout = myRelativeLayout;
-    NlComponent newLinearLayout = myTextView;
-    NlComponent newButton = myButton;
-    NlComponent newTextView = myAbsoluteLayout;
-    NlComponent newAbsoluteLayout = myLinearLayout;
+    NlComponent newRelativeLayout = relativeLayout;
+    NlComponent newLinearLayout = textView;
+    NlComponent newButton = button;
+    NlComponent newTextView = absoluteLayout;
+    NlComponent newAbsoluteLayout = linearLayout;
     newRelativeLayout.addChild(newLinearLayout);
     newRelativeLayout.addChild(newTextView);
     newRelativeLayout.addChild(newAbsoluteLayout);
@@ -261,42 +208,49 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assert newButton != null;
     newLinearLayout.addChild(newButton);
 
-    myTree.modelDerivedDataChanged(myModel);
+    tree.modelDerivedDataChanged(model);
     UIUtil.dispatchAllInvocationEvents();
     assertEquals("<RelativeLayout>  [expanded]\n" +
                  "    <LinearLayout>\n" +
                  "        <Button>\n" +
                  "    <TextView>\n" +
-                 "    <AbsoluteLayout>\n", toTree());
+                 "    <AbsoluteLayout>\n", toTree(tree));
   }
 
   public void testPasteIsNotPossibleWhenMultipleComponentsAreSelected() {
-    copy(myTextView);
+    SyncNlModel model = createModel();
+    NlComponentTree tree = createTree(model);
+    SelectionModel selectionModel = model.getSurface().getSelectionModel();
+    DesignSurfaceActionHandler actionHandler = getActionHandler(tree);
+    copy(tree, findFirst(model, TEXT_VIEW));
 
-    mySurface.getSelectionModel().toggle(myLinearLayout);
-    mySurface.getSelectionModel().toggle(myAbsoluteLayout);
-    assertThat(myActionHandler.isPasteEnabled(myDataContext)).isFalse();
-    assertThat(myActionHandler.isPastePossible(myDataContext)).isFalse();
-    myActionHandler.performPaste(myDataContext);
-    assertThat(toTree()).isEqualTo("<RelativeLayout>  [expanded]\n" +
-                                   "    <LinearLayout>  [expanded]  [selected]\n" +
-                                   "        <Button>\n" +
-                                   "    <TextView>\n" +
-                                   "    <AbsoluteLayout>  [selected]\n");
+    selectionModel.toggle(findFirst(model, LINEAR_LAYOUT));
+    selectionModel.toggle(findFirst(model, ABSOLUTE_LAYOUT));
+    assertThat(actionHandler.isPasteEnabled(myDataContext)).isFalse();
+    assertThat(actionHandler.isPastePossible(myDataContext)).isFalse();
+    actionHandler.performPaste(myDataContext);
+    assertThat(toTree(tree)).isEqualTo("<RelativeLayout>  [expanded]\n" +
+                                       "    <LinearLayout>  [expanded]  [selected]\n" +
+                                       "        <Button>\n" +
+                                       "    <TextView>\n" +
+                                       "    <AbsoluteLayout>  [selected]\n");
   }
 
   public void testCopyIntoRootWhenNothingIsSelected() {
-    copy(myTextView);
+    SyncNlModel model = createModel();
+    NlComponentTree tree = createTree(model);
+    DesignSurfaceActionHandler actionHandler = getActionHandler(tree);
+    copy(tree, findFirst(model, TEXT_VIEW));
 
-    assertThat(myActionHandler.isPasteEnabled(myDataContext)).isTrue();
-    assertThat(myActionHandler.isPastePossible(myDataContext)).isTrue();
-    myActionHandler.performPaste(myDataContext);
-    assertThat(toTree()).isEqualTo("<RelativeLayout>  [expanded]\n" +
-                                   "    <TextView>  [selected]\n" +
-                                   "    <LinearLayout>  [expanded]\n" +
-                                   "        <Button>\n" +
-                                   "    <TextView>\n" +
-                                   "    <AbsoluteLayout>\n");
+    assertThat(actionHandler.isPasteEnabled(myDataContext)).isTrue();
+    assertThat(actionHandler.isPastePossible(myDataContext)).isTrue();
+    actionHandler.performPaste(myDataContext);
+    assertThat(toTree(tree)).isEqualTo("<RelativeLayout>  [expanded]\n" +
+                                       "    <TextView>  [selected]\n" +
+                                       "    <LinearLayout>  [expanded]\n" +
+                                       "        <Button>\n" +
+                                       "    <TextView>\n" +
+                                       "    <AbsoluteLayout>\n");
   }
 
   private static DesignSurfaceActionHandler getActionHandler(NlComponentTree tree) {
@@ -304,145 +258,186 @@ public class NlComponentTreeTest extends LayoutTestCase {
   }
 
   public void testPasteIntoLayoutAsFirstChild() {
-    copy(myTextView);
+    SyncNlModel model = createModel();
+    NlComponentTree tree = createTree(model);
+    SelectionModel selectionModel = model.getSurface().getSelectionModel();
+    DesignSurfaceActionHandler actionHandler = getActionHandler(tree);
+    copy(tree, findFirst(model, TEXT_VIEW));
 
-    mySurface.getSelectionModel().toggle(myLinearLayout);
-    assertThat(myActionHandler.isPasteEnabled(myDataContext)).isTrue();
-    assertThat(myActionHandler.isPastePossible(myDataContext)).isTrue();
-    myActionHandler.performPaste(myDataContext);
-    assertThat(toTree()).isEqualTo("<RelativeLayout>  [expanded]\n" +
-                                   "    <LinearLayout>  [expanded]\n" +
-                                   "        <TextView>  [selected]\n" +
-                                   "        <Button>\n" +
-                                   "    <TextView>\n" +
-                                   "    <AbsoluteLayout>\n");
+    selectionModel.toggle(findFirst(model, LINEAR_LAYOUT));
+    assertThat(actionHandler.isPasteEnabled(myDataContext)).isTrue();
+    assertThat(actionHandler.isPastePossible(myDataContext)).isTrue();
+    actionHandler.performPaste(myDataContext);
+    assertThat(toTree(tree)).isEqualTo("<RelativeLayout>  [expanded]\n" +
+                                       "    <LinearLayout>  [expanded]\n" +
+                                       "        <TextView>  [selected]\n" +
+                                       "        <Button>\n" +
+                                       "    <TextView>\n" +
+                                       "    <AbsoluteLayout>\n");
   }
 
   public void testPasteIntoParentAfterButton() {
-    copy(myTextView);
+    SyncNlModel model = createModel();
+    NlComponentTree tree = createTree(model);
+    SelectionModel selectionModel = model.getSurface().getSelectionModel();
+    DesignSurfaceActionHandler actionHandler = getActionHandler(tree);
+    copy(tree, findFirst(model, TEXT_VIEW));
 
-    mySurface.getSelectionModel().toggle(myButton);
-    assertThat(myActionHandler.isPasteEnabled(myDataContext)).isTrue();
-    assertThat(myActionHandler.isPastePossible(myDataContext)).isTrue();
-    myActionHandler.performPaste(myDataContext);
-    assertThat(toTree()).isEqualTo("<RelativeLayout>  [expanded]\n" +
-                                   "    <LinearLayout>  [expanded]\n" +
-                                   "        <Button>\n" +
-                                   "        <TextView>  [selected]\n" +
-                                   "    <TextView>\n" +
-                                   "    <AbsoluteLayout>\n");
+    selectionModel.toggle(findFirst(model, BUTTON));
+    assertThat(actionHandler.isPasteEnabled(myDataContext)).isTrue();
+    assertThat(actionHandler.isPastePossible(myDataContext)).isTrue();
+    actionHandler.performPaste(myDataContext);
+    assertThat(toTree(tree)).isEqualTo("<RelativeLayout>  [expanded]\n" +
+                                       "    <LinearLayout>  [expanded]\n" +
+                                       "        <Button>\n" +
+                                       "        <TextView>  [selected]\n" +
+                                       "    <TextView>\n" +
+                                       "    <AbsoluteLayout>\n");
   }
 
   public void testCopyMultiple() {
-    mySurface.getSelectionModel().toggle(myTextView);
-    mySurface.getSelectionModel().toggle(myButton);
-    assertThat(myActionHandler.isCopyVisible(myDataContext)).isTrue();
-    assertThat(myActionHandler.isCopyEnabled(myDataContext)).isTrue();
+    SyncNlModel model = createModel();
+    NlComponentTree tree = createTree(model);
+    SelectionModel selectionModel = model.getSurface().getSelectionModel();
+    selectionModel.toggle(findFirst(model, TEXT_VIEW));
+    selectionModel.toggle(findFirst(model, BUTTON));
+    DesignSurfaceActionHandler actionHandler = getActionHandler(tree);
+    assertThat(actionHandler.isCopyVisible(myDataContext)).isTrue();
+    assertThat(actionHandler.isCopyEnabled(myDataContext)).isTrue();
   }
 
   public void testPasteMultipleIntoLayout() {
-    copy(myTextView, myButton);
+    SyncNlModel model = createModel();
+    NlComponentTree tree = createTree(model);
+    SelectionModel selectionModel = model.getSurface().getSelectionModel();
+    DesignSurfaceActionHandler actionHandler = getActionHandler(tree);
+    copy(tree, findFirst(model, TEXT_VIEW), findFirst(model, BUTTON));
 
-    mySurface.getSelectionModel().toggle(myAbsoluteLayout);
-    assertThat(myActionHandler.isPasteEnabled(myDataContext)).isTrue();
-    assertThat(myActionHandler.isPastePossible(myDataContext)).isTrue();
-    myActionHandler.performPaste(myDataContext);
-    assertThat(toTree()).isEqualTo("<RelativeLayout>  [expanded]\n" +
-                                   "    <LinearLayout>  [expanded]\n" +
-                                   "        <Button>\n" +
-                                   "    <TextView>\n" +
-                                   "    <AbsoluteLayout>  [expanded]\n" +
-                                   "        <TextView>  [selected]\n" +
-                                   "        <Button>  [selected]\n");
+    selectionModel.toggle(findFirst(model, ABSOLUTE_LAYOUT));
+    assertThat(actionHandler.isPasteEnabled(myDataContext)).isTrue();
+    assertThat(actionHandler.isPastePossible(myDataContext)).isTrue();
+    actionHandler.performPaste(myDataContext);
+    assertThat(toTree(tree)).isEqualTo("<RelativeLayout>  [expanded]\n" +
+                                       "    <LinearLayout>  [expanded]\n" +
+                                       "        <Button>\n" +
+                                       "    <TextView>\n" +
+                                       "    <AbsoluteLayout>  [expanded]\n" +
+                                       "        <TextView>  [selected]\n" +
+                                       "        <Button>  [selected]\n");
   }
 
   public void testDropOnChain() {
-    myModel = createModelWithConstraintLayout();
-    mySurface.setModel(myModel);
-    NlComponent chain = findFirst(CLASS_CONSTRAINT_LAYOUT_CHAIN.defaultName());
-    copy(myButton);
-    mySurface.getSelectionModel().toggle(chain);
-    assertThat(myActionHandler.isPasteEnabled(myDataContext)).isTrue();
-    assertThat(myActionHandler.isPastePossible(myDataContext)).isTrue();
-    myActionHandler.performPaste(myDataContext);
-    assertThat(toTree()).isEqualTo("<android.support.constraint.ConstraintLayout>  [expanded]\n" +
-                                   "    <Button>\n" +
-                                   "    <Button>\n" +
-                                   "    <Button>\n" +
-                                   "    <android.support.constraint.Chain>\n" +
-                                   "        <Button>  [selected]\n");
+    SyncNlModel model = createModelWithConstraintLayout();
+    NlComponentTree tree = createTree(model);
+    SelectionModel selectionModel = model.getSurface().getSelectionModel();
+    NlComponent chain = findFirst(model, CLASS_CONSTRAINT_LAYOUT_CHAIN.defaultName());
+    DesignSurfaceActionHandler actionHandler = getActionHandler(tree);
+    copy(tree, findFirst(model, BUTTON));
+    selectionModel.toggle(chain);
+    assertThat(actionHandler.isPasteEnabled(myDataContext)).isTrue();
+    assertThat(actionHandler.isPastePossible(myDataContext)).isTrue();
+    actionHandler.performPaste(myDataContext);
+    assertThat(toTree(tree)).isEqualTo("<android.support.constraint.ConstraintLayout>  [expanded]\n" +
+                                       "    <Button>\n" +
+                                       "    <Button>\n" +
+                                       "    <Button>\n" +
+                                       "    <android.support.constraint.Chain>\n" +
+                                       "        <Button>  [selected]\n");
   }
 
   public void testCutRemovesComponents() {
-    mySurface.getSelectionModel().toggle(myTextView);
-    assertThat(myActionHandler.isCutVisible(myDataContext)).isTrue();
-    assertThat(myActionHandler.isCutEnabled(myDataContext)).isTrue();
-    myActionHandler.performCut(myDataContext);
-    assertThat(toTree()).isEqualTo("<RelativeLayout>  [expanded]\n" +
-                                   "    <LinearLayout>  [expanded]\n" +
-                                   "        <Button>\n" +
-                                   "    <AbsoluteLayout>\n");
+    SyncNlModel model = createModel();
+    NlComponentTree tree = createTree(model);
+    SelectionModel selectionModel = model.getSurface().getSelectionModel();
+    selectionModel.toggle(findFirst(model, TEXT_VIEW));
+    DesignSurfaceActionHandler actionHandler = getActionHandler(tree);
+    assertThat(actionHandler.isCutVisible(myDataContext)).isTrue();
+    assertThat(actionHandler.isCutEnabled(myDataContext)).isTrue();
+    actionHandler.performCut(myDataContext);
+    assertThat(toTree(tree)).isEqualTo("<RelativeLayout>  [expanded]\n" +
+                                       "    <LinearLayout>  [expanded]\n" +
+                                       "        <Button>\n" +
+                                       "    <AbsoluteLayout>\n");
   }
 
   public void testPasteAfterCut() {
-    cut(myTextView);
+    SyncNlModel model = createModel();
+    NlComponentTree tree = createTree(model);
+    DesignSurfaceActionHandler actionHandler = getActionHandler(tree);
+    cut(tree, findFirst(model, TEXT_VIEW));
 
-    mySurface.getSelectionModel().clear();
-    mySurface.getSelectionModel().toggle(myButton);
-    assertThat(myActionHandler.isPasteEnabled(myDataContext)).isTrue();
-    assertThat(myActionHandler.isPastePossible(myDataContext)).isTrue();
-    myActionHandler.performPaste(myDataContext);
-    assertThat(toTree()).isEqualTo("<RelativeLayout>  [expanded]\n" +
-                                   "    <LinearLayout>  [expanded]\n" +
-                                   "        <Button>  [selected]\n" +
-                                   "        <TextView>\n" +
-                                   "    <AbsoluteLayout>\n");
+    SelectionModel selectionModel = model.getSurface().getSelectionModel();
+    selectionModel.clear();
+    selectionModel.toggle(findFirst(model, BUTTON));
+    assertThat(actionHandler.isPasteEnabled(myDataContext)).isTrue();
+    assertThat(actionHandler.isPastePossible(myDataContext)).isTrue();
+    actionHandler.performPaste(myDataContext);
+    assertThat(toTree(tree)).isEqualTo("<RelativeLayout>  [expanded]\n" +
+                                       "    <LinearLayout>  [expanded]\n" +
+                                       "        <Button>  [selected]\n" +
+                                       "        <TextView>\n" +
+                                       "    <AbsoluteLayout>\n");
   }
 
   public void testDelete() {
-    mySurface.getSelectionModel().toggle(myTextView);
-    assertThat(myActionHandler.canDeleteElement(myDataContext)).isTrue();
-    myActionHandler.deleteElement(myDataContext);
-    assertThat(toTree()).isEqualTo("<RelativeLayout>  [expanded]\n" +
-                                   "    <LinearLayout>  [expanded]\n" +
-                                   "        <Button>\n" +
-                                   "    <AbsoluteLayout>\n");
+    SyncNlModel model = createModel();
+    NlComponentTree tree = createTree(model);
+    SelectionModel selectionModel = model.getSurface().getSelectionModel();
+    selectionModel.toggle(findFirst(model, TEXT_VIEW));
+    DesignSurfaceActionHandler actionHandler = getActionHandler(tree);
+    assertThat(actionHandler.canDeleteElement(myDataContext)).isTrue();
+    actionHandler.deleteElement(myDataContext);
+    assertThat(toTree(tree)).isEqualTo("<RelativeLayout>  [expanded]\n" +
+                                       "    <LinearLayout>  [expanded]\n" +
+                                       "        <Button>\n" +
+                                       "    <AbsoluteLayout>\n");
   }
 
-  public void testShiftHelpOnComponentTree() throws Exception {
-    AnAction action = findActionForKey(myTree, KeyEvent.VK_F1, InputEvent.SHIFT_MASK);
+  public void testShiftHelpOnComponentTree() {
+    SyncNlModel model = createModel();
+    NlComponentTree tree = createTree(model);
+    AnAction action = findActionForKey(tree, KeyEvent.VK_F1, InputEvent.SHIFT_MASK);
 
     assertThat(action).isNotNull();
 
     AnActionEvent event = mock(AnActionEvent.class);
     when(event.getDataContext()).thenReturn(myDataContext);
 
-    mySurface.getSelectionModel().toggle(myTextView);
+    SelectionModel selectionModel = model.getSurface().getSelectionModel();
+    selectionModel.toggle(findFirst(model, TEXT_VIEW));
     action.actionPerformed(event);
     verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/TextView.html"), isNull(), isNull());
   }
 
-  private void copy(@NotNull NlComponent... components) {
-    mySurface.getSelectionModel().setSelection(Arrays.asList(components));
-    myActionHandler.performCopy(mock(DataContext.class));
-    mySurface.getSelectionModel().clear();
+  private void copy(@NotNull NlComponentTree tree, @NotNull NlComponent... components) {
+    NlDesignSurface surface = tree.getDesignSurface();
+    assertNotNull(surface);
+    SelectionModel selectionModel = surface.getSelectionModel();
+
+    selectionModel.setSelection(Arrays.asList(components));
+    getActionHandler(tree).performCopy(mock(DataContext.class));
+    selectionModel.clear();
   }
 
-  private void cut(@NotNull NlComponent... components) {
+  private void cut(@NotNull NlComponentTree tree, @NotNull NlComponent... components) {
+    NlDesignSurface surface = tree.getDesignSurface();
+    assertNotNull(surface);
+    SelectionModel selectionModel = surface.getSelectionModel();
+
     List<NlComponent> list = Arrays.asList(components);
-    mySurface.getSelectionModel().setSelection(list);
-    myActionHandler.performCut(mock(DataContext.class));
-    mySurface.getSelectionModel().clear();
+    selectionModel.setSelection(list);
+    getActionHandler(tree).performCut(mock(DataContext.class));
+    selectionModel.clear();
   }
 
-  private String toTree() {
+  private String toTree(@NotNull NlComponentTree tree) {
     StringBuilder sb = new StringBuilder();
-    describe(sb, new TreePath(myTree.getModel().getRoot()), 0);
+    describe(tree, sb, new TreePath(tree.getModel().getRoot()), 0);
 
     return sb.toString();
   }
 
-  private void describe(StringBuilder sb, TreePath path, int depth) {
+  private void describe(@NotNull NlComponentTree tree, @NotNull StringBuilder sb, @NotNull TreePath path, int depth) {
     for (int i = 0; i < depth; i++) {
       sb.append("    ");
     }
@@ -450,16 +445,16 @@ public class NlComponentTreeTest extends LayoutTestCase {
     NlComponent component = (NlComponent)path.getLastPathComponent();
     sb.append("<").append(component.getTagName())
       .append(">");
-    if (myTree.isExpanded(path)) {
+    if (tree.isExpanded(path)) {
       sb.append("  [expanded]");
     }
-    if (myTree.isPathSelected(path)) {
+    if (tree.isPathSelected(path)) {
       sb.append("  [selected]");
     }
     sb.append("\n");
     for (Object subNodeAsObject : component.getChildren()) {
       TreePath subPath = path.pathByAddingChild(subNodeAsObject);
-      describe(sb, subPath, depth + 1);
+      describe(tree, sb, subPath, depth + 1);
     }
   }
 
@@ -575,69 +570,69 @@ public class NlComponentTreeTest extends LayoutTestCase {
   }
 
   public void testNonNlComponentDrop() throws Exception {
-    assertNull(myTree.getSelectionPaths());
-    myModel = createModelWithBarriers();
-    mySurface.setModel(myModel);
+    SyncNlModel model = createModelWithBarriers();
+    NlComponentTree tree = createTree(model);
+    assertNull(tree.getSelectionPaths());
 
     // Check initial state
-    myTree.expandRow(3);
+    tree.expandRow(3);
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
-    TreePath pathForRow4 = myTree.getPathForRow(4);
-    TreePath pathForRow5 = myTree.getPathForRow(5);
+    TreePath pathForRow4 = tree.getPathForRow(4);
+    TreePath pathForRow5 = tree.getPathForRow(5);
     assertThat(pathForRow4.getLastPathComponent()).isEqualTo("button2");
     assertThat(pathForRow5.getLastPathComponent()).isEqualTo("button3");
 
-    myTree.setSelectionPath(pathForRow4);
-    Rectangle bounds1 = myTree.getPathBounds(pathForRow4);
-    Rectangle bounds2 = myTree.getPathBounds(pathForRow5);
+    tree.setSelectionPath(pathForRow4);
+    Rectangle bounds1 = tree.getPathBounds(pathForRow4);
+    Rectangle bounds2 = tree.getPathBounds(pathForRow5);
     assertNotNull(bounds1);
     assertNotNull(bounds2);
 
     // Perform the drop
-    DelegatedTreeEventHandler handler = NlTreeUtil.getSelectionTreeHandler(myTree);
+    DelegatedTreeEventHandler handler = NlTreeUtil.getSelectionTreeHandler(tree);
     assertNotNull(handler);
     DropTargetDropEvent dropEvent =
       new DropTargetDropEventBuilder(LayoutTestUtilities.createDropTargetContext(), bounds2.x, (int)bounds2.getCenterY(),
-                                     handler.getTransferable(myTree.getSelectionPaths())).build();
+                                     handler.getTransferable(tree.getSelectionPaths())).build();
 
     // We directly crate and call the listener because we cannot setup the
     // drag and drop in BuildBot since there is no X11 server
-    NlDropListener listener = new NlDropListener(myTree);
+    NlDropListener listener = new NlDropListener(tree);
     listener.drop(dropEvent);
 
     // Check that the model is changed
-    Object child1 = ((ConstraintHelperHandler)handler).getComponentTreeChild(myTree.getPathForRow(3).getLastPathComponent(), 0);
-    Object child2 = ((ConstraintHelperHandler)handler).getComponentTreeChild(myTree.getPathForRow(3).getLastPathComponent(), 1);
+    Object child1 = ((ConstraintHelperHandler)handler).getComponentTreeChild(tree.getPathForRow(3).getLastPathComponent(), 0);
+    Object child2 = ((ConstraintHelperHandler)handler).getComponentTreeChild(tree.getPathForRow(3).getLastPathComponent(), 1);
     assertThat(child1).isEqualTo("button3");
     assertThat(child2).isEqualTo("button2");
 
     // We manually notify the model changed event to ensure that the paths are updated
-    myTree.modelDerivedDataChanged(myModel);
-    myTree.expandRow(3); // Ensure that the the barrier's children path are not collapsed
+    tree.modelDerivedDataChanged(model);
+    tree.expandRow(3); // Ensure that the the barrier's children path are not collapsed
 
     // Check that button2 and button3 are swapped
-    pathForRow4 = myTree.getPathForRow(4);
-    pathForRow5 = myTree.getPathForRow(5);
+    pathForRow4 = tree.getPathForRow(4);
+    pathForRow5 = tree.getPathForRow(5);
     assertThat(pathForRow4.getLastPathComponent()).isEqualTo("button3");
     assertThat(pathForRow5.getLastPathComponent()).isEqualTo("button2");
   }
 
   public void testDeleteBarrier() throws Exception {
-    assertNull(myTree.getSelectionPaths());
-    myModel = createModelWithBarriers();
-    mySurface.setModel(myModel);
+    SyncNlModel model = createModelWithBarriers();
+    NlComponentTree tree = createTree(model);
+    assertNull(tree.getSelectionPaths());
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
     // Check initial state
-    myTree.expandRow(3);
-    TreePath pathForRow4 = myTree.getPathForRow(4);
-    myTree.setSelectionPath(pathForRow4);
+    tree.expandRow(3);
+    TreePath pathForRow4 = tree.getPathForRow(4);
+    tree.setSelectionPath(pathForRow4);
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
-    ((DeleteProvider)myTree.getData(PlatformDataKeys.DELETE_ELEMENT_PROVIDER.getName())).deleteElement(DataContext.EMPTY_CONTEXT);
+    ((DeleteProvider)tree.getData(PlatformDataKeys.DELETE_ELEMENT_PROVIDER.getName())).deleteElement(DataContext.EMPTY_CONTEXT);
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-    String constraintReferences = myModel.find("barrier").getAttribute(AUTO_URI, CONSTRAINT_REFERENCED_IDS);
+    String constraintReferences = model.find("barrier").getAttribute(AUTO_URI, CONSTRAINT_REFERENCED_IDS);
     assertThat(constraintReferences).isEqualTo("button3");
   }
 
@@ -682,5 +677,49 @@ public class NlComponentTreeTest extends LayoutTestCase {
                  "    NlComponent{tag=<TextView>, bounds=[0,0:200x200}",
                  NlTreeDumper.dumpTree(model.getComponents()));
     return model;
+  }
+
+  private NlComponentTree createTree(@NotNull SyncNlModel model) {
+    model.getUpdateQueue().setPassThrough(true);
+    NlDesignSurface surface = NlDesignSurface.builder(getProject(), getTestRootDisposable())
+      .setSceneManagerProvider((newSurface, newModel) -> new SyncLayoutlibSceneManager((SyncNlModel) model) {
+        @NotNull
+        @Override
+        public CompletableFuture<Void> requestRender() {
+          // This test does not need Layoutlib renders
+          return CompletableFuture.completedFuture(null);
+        }
+      })
+      .build();
+    surface.setModel(model);
+    ((SyncNlModel) model).setSurface(surface);
+    NlVisibilityGutterPanel gutterPanel = new NlVisibilityGutterPanel();
+    Disposer.register(getTestRootDisposable(), gutterPanel);
+    NlComponentTree tree = new NlComponentTree(getProject(), surface, gutterPanel);
+    Disposer.register(getTestRootDisposable(), tree);
+    tree.getUpdateQueue().setPassThrough(true);
+    tree.getUpdateQueue().flush();
+    return tree;
+  }
+
+  @NotNull
+  private NlComponent findFirst(@NotNull NlModel model, @NotNull String tagName) {
+    NlComponent component = findFirst(tagName, model.getComponents());
+    assert component != null;
+    return component;
+  }
+
+  @Nullable
+  private static NlComponent findFirst(@NotNull String tagName, @NotNull List<NlComponent> components) {
+    for (NlComponent component : components) {
+      if (component.getTagName().equals(tagName)) {
+        return component;
+      }
+      NlComponent child = findFirst(tagName, component.getChildren());
+      if (child != null) {
+        return child;
+      }
+    }
+    return null;
   }
 }
