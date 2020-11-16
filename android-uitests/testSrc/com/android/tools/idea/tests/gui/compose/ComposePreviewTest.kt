@@ -95,9 +95,9 @@ class ComposePreviewTest {
     val editor = fixture.editor
     val file = "app/src/main/java/google/simpleapplication/$fileName"
 
-    editor.open(file)
-
     fixture.invokeAndWaitForBuildAction("Build", "Make Project")
+
+    editor.open(file)
 
     return editor.getSplitEditorFixture().waitForRenderToFinish().apply {
       if (assertNoNotifications) {
