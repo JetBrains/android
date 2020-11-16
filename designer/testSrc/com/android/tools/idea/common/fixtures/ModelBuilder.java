@@ -202,6 +202,7 @@ public class ModelBuilder {
       if (mySurfaceClass.equals(NlDesignSurface.class)) {
         when(((NlDesignSurface)surface).getAdaptiveIconShape()).thenReturn(ShapeMenuAction.AdaptiveIconShape.getDefaultShape());
         when(((NlDesignSurface)surface).getScreenViewProvider()).thenReturn(NlScreenViewProvider.BLUEPRINT);
+        when(surface.getActionHandlerProvider()).thenReturn(NlDesignSurface::defaultActionHandlerProvider);
       }
 
       SceneManager sceneManager = myManagerFactory.apply(model);

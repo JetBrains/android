@@ -53,7 +53,6 @@ import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDropEventBuilder;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHandler;
-import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.util.MockCopyPasteManager;
 import com.intellij.ide.DeleteProvider;
@@ -74,7 +73,6 @@ import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -681,20 +679,9 @@ public class NlComponentTreeTest extends LayoutTestCase {
 
   private NlComponentTree createTree(@NotNull SyncNlModel model) {
     model.getUpdateQueue().setPassThrough(true);
-    NlDesignSurface surface = NlDesignSurface.builder(getProject(), getTestRootDisposable())
-      .setSceneManagerProvider((newSurface, newModel) -> new SyncLayoutlibSceneManager((SyncNlModel) model) {
-        @NotNull
-        @Override
-        public CompletableFuture<Void> requestRender() {
-          // This test does not need Layoutlib renders
-          return CompletableFuture.completedFuture(null);
-        }
-      })
-      .build();
-    surface.setModel(model);
-    ((SyncNlModel) model).setSurface(surface);
     NlVisibilityGutterPanel gutterPanel = new NlVisibilityGutterPanel();
     Disposer.register(getTestRootDisposable(), gutterPanel);
+    NlDesignSurface surface = (NlDesignSurface)model.getSurface();
     NlComponentTree tree = new NlComponentTree(getProject(), surface, gutterPanel);
     Disposer.register(getTestRootDisposable(), tree);
     tree.getUpdateQueue().setPassThrough(true);
