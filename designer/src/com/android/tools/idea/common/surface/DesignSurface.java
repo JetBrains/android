@@ -414,6 +414,12 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return myActionManager;
   }
 
+  // Allow a test to override myActionHandlerProvider when the surface is a mockito mock
+  @NotNull
+  public Function<DesignSurface, DesignSurfaceActionHandler> getActionHandlerProvider() {
+    return myActionHandlerProvider;
+  }
+
   @NotNull
   public SelectionModel getSelectionModel() {
     return mySelectionModel;
@@ -1706,7 +1712,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
              PlatformDataKeys.CUT_PROVIDER.is(dataId) ||
              PlatformDataKeys.COPY_PROVIDER.is(dataId) ||
              PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
-      return myActionHandlerProvider.apply(this);
+      return getActionHandlerProvider().apply(this);
     }
     else if (PlatformDataKeys.CONTEXT_MENU_POINT.is(dataId)) {
       SceneView view = getFocusedSceneView();

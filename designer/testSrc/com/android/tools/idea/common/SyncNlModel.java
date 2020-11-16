@@ -67,10 +67,6 @@ public class SyncNlModel extends NlModel {
     return mySurface;
   }
 
-  public void setSurface(@NotNull DesignSurface surface) {
-    mySurface = surface;
-  }
-
   @VisibleForTesting
   public void setConfiguration(Configuration configuration) {
     myConfiguration = configuration;
