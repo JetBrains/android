@@ -284,7 +284,7 @@ class ComposePreviewTest {
       .allSceneViews
       .first()
       .toolbar()
-      .clickButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
+      .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW).click()
 
     composePreview
       .waitForRenderToFinish()
@@ -326,7 +326,7 @@ class ComposePreviewTest {
       .allSceneViews
       .first()
       .toolbar()
-      .clickButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
+      .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW).click()
 
     composePreview
       .waitForRenderToFinish()
@@ -382,7 +382,7 @@ class ComposePreviewTest {
       .allSceneViews
       .first()
       .toolbar()
-      .clickButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
+      .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR).click()
 
     composePreview
       .waitForRenderToFinish()
@@ -397,7 +397,7 @@ class ComposePreviewTest {
       .allSceneViews
       .first()
       .toolbar()
-      .clickButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
+      .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR).click()
 
     composePreview
       .waitForRenderToFinish()
@@ -433,7 +433,7 @@ class ComposePreviewTest {
         .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
     assertTrue(interactivePreviewButton.isEnabled)
 
-    guiTest.robot().click(animButton)
+    animButton.click()
     composePreview.waitForRenderToFinish()
 
     // The button should be enabled, so we can close the animation inspector
@@ -510,7 +510,7 @@ class ComposePreviewTest {
       .allSceneViews
       .first()
       .toolbar()
-      .clickButtonByIcon(StudioIcons.Compose.Toolbar.RUN_ON_DEVICE)
+      .findButtonByIcon(StudioIcons.Compose.Toolbar.RUN_ON_DEVICE).click()
 
     val runToolWindowFixture = RunToolWindowFixture(guiTest.ideFrame())
     val contentFixture = runToolWindowFixture.findContent("Preview1")
