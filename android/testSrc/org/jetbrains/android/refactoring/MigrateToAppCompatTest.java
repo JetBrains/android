@@ -17,7 +17,6 @@ package org.jetbrains.android.refactoring;
 
 import com.android.annotations.NonNull;
 import com.google.common.collect.Sets;
-import com.intellij.codeInspection.SmartHashMap;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
@@ -26,12 +25,13 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.usageView.UsageInfo;
-import com.intellij.util.SmartList;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.*;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -268,8 +268,8 @@ public class MigrateToAppCompatTest extends AndroidTestCase {
    * that the results match the expected results stored in filename_after.ext
    */
   static class MigrationBuilder {
-    private final Map<String, String> myPaths = new SmartHashMap<>();
-    private final List<AppCompatMigrationEntry> myEntries = new SmartList<>();
+    private final Map<String, String> myPaths = new HashMap<>();
+    private final List<AppCompatMigrationEntry> myEntries = new ArrayList<>();
     private final Set<String> myAppCompatAttrs = Sets.newHashSetWithExpectedSize(2);
     private final Set<String> myAppCompatStyles = Sets.newHashSetWithExpectedSize(2);
     private boolean myUseAllMapEntries = false;
