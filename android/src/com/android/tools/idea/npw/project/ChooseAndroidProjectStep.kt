@@ -43,6 +43,7 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.progress.util.BackgroundTaskUtil
 import com.intellij.openapi.progress.util.ProgressWindow
 import com.intellij.ui.GuiUtils
+import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBLoadingPanel
@@ -251,7 +252,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
       return JBLabel("Templates").apply {
         isOpaque = true
         background = UIUtil.getListBackground()
-        foreground = UIUtil.getHeaderActiveColor()
+        foreground = JBColor(0x999999, 0x787878)
         border = JBUI.Borders.empty(TABLE_TITLE_PADDING, TABLE_CELL_LEFT_PADDING, TABLE_TITLE_PADDING, TABLE_TITLE_PADDING)
       }
     }
