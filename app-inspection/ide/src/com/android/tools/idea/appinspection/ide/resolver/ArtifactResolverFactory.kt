@@ -23,10 +23,15 @@ import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResol
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverFactory
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.intellij.openapi.project.Project
+import com.intellij.serviceContainer.NonInjectable
+import org.jetbrains.annotations.TestOnly
 
-class ArtifactResolverFactory(
-  private val fileService: FileService = IdeFileService("app-inspection")
+class ArtifactResolverFactory @NonInjectable @TestOnly constructor(
+  private val fileService: FileService
 ) : ArtifactResolverFactory {
+  // This is used by intellij platform in reflection to create service.
+  constructor(): this(IdeFileService("app-inspection"))
+
   private val jarPaths = AppInspectorJarPaths(fileService)
 
   override fun getArtifactResolver(project: Project): ArtifactResolver {
