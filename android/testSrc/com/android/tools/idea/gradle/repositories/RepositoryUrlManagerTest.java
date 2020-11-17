@@ -45,8 +45,8 @@ import java.util.function.Predicate;
  * Tests for the local repository utility class
  */
 public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
-  private static final File SDK_DIR = new File("/sdk");
-  private static final File ANDROID_PREFS_ROOT = new File("/android-home");
+  private static final File SDK_DIR = new File("/sdk").getAbsoluteFile();
+  private static final File ANDROID_PREFS_ROOT = new File("/android-home").getAbsoluteFile();
 
   private RepositoryUrlManager myRepositoryUrlManager;
   private MockFileOp myFileOp;

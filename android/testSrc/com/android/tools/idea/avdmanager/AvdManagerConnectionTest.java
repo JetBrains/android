@@ -233,8 +233,8 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     assertNotNull("Could not find Emulator", emulatorFile);
     File emulatorDirectory = emulatorFile.getParentFile();
     assertTrue("Found invalid Emulator", mFileOp.isDirectory(emulatorDirectory));
-    String emulatorDirectoryPath = mFileOp.getAgnosticAbsPath(emulatorDirectory);
-    assertEquals("Found wrong emulator", "/sdk/emulator", emulatorDirectoryPath);
+    String emulatorDirectoryPath = mFileOp.getPlatformSpecificPath(emulatorDirectory);
+    assertEquals("Found wrong emulator", mFileOp.getPlatformSpecificPath("/sdk/emulator"), emulatorDirectoryPath);
 
     // Remove the emulator package
     File emulatorPackage = new File("/sdk/emulator/package.xml");
@@ -242,7 +242,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     // Create a new AvdManagerConnection that doesn't remember the
     // previous list of packages
-    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(new File("/sdk"), ANDROID_PREFS_ROOT, mFileOp);
+    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(new File("/sdk").getAbsoluteFile(), ANDROID_PREFS_ROOT, mFileOp);
     AvdManagerConnection managerConnection = new AvdManagerConnection(androidSdkHandler, MoreExecutors.newDirectExecutorService());
 
     File bogusEmulatorFile = managerConnection.getEmulatorBinary();
@@ -250,7 +250,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       // An emulator binary was found. It should not be anything that
       // we created (especially not anything in /sdk/tools/).
       String bogusEmulatorPath = bogusEmulatorFile.getAbsolutePath();
-      assertFalse("Should not have found Emulator", bogusEmulatorPath.startsWith("/sdk"));
+      assertFalse("Should not have found Emulator", bogusEmulatorPath.startsWith(mFileOp.getPlatformSpecificPath("/sdk")));
     }
   }
 
