@@ -42,9 +42,10 @@ import org.junit.runner.RunWith
 import org.junit.runners.MethodSorters
 import org.junit.runners.Parameterized
 import java.io.File
+import java.time.Duration
 import java.time.Instant
 import java.util.ArrayList
-import java.util.function.ToLongFunction
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.logging.Logger
 
 /**
@@ -67,6 +68,11 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
   val ruleChain = org.junit.rules.RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   companion object {
+    const val MEMORY_MEASUREMENT_INTERVAL_MILLIS: Long = 100
+    const val HISTOGRAM_SAMPLES = 80
+    const val HISTOGRAM_LEVELS = 20
+    const val BENCHMARK_PROJECT = "Android Studio Sync Test"
+
     @JvmStatic
     @Parameterized.Parameters(name = "SVS_{0}_Gradle_{1}_AGP_{2}")
     fun testParameters() = arrayOf<Array<Any?>>(
@@ -75,7 +81,6 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
     )
   }
 
-  private val BENCHMARK_PROJECT = "Android Studio Sync Test"
   private var myUsageTracker: TestUsageTracker? = null
   private var myScheduler: VirtualTimeScheduler? = null
 
@@ -143,11 +148,13 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
   @Test
   open fun testSyncTimes() {
     setWriterForTest(myUsageTracker!!) // Start logging data for performance dashboard
+    val scenarioName = getScenarioName()
+    val memoryThread = MemoryMeasurementThread(scenarioName)
+    memoryThread.start()
     projectRule.loadProject(relativePath, gradleVersion = gradleVersion, agpVersion = agpVersion)
     val measurements = ArrayList<Long>()
     val log = getLogger()
     try {
-      val scenarioName = getScenarioName()
       val initialBenchmark = Benchmark.Builder("Initial sync time")
         .setProject(BENCHMARK_PROJECT)
         .build()
@@ -192,7 +199,8 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
           metricRegularTotal.addSamples(scenarioBenchmark, MetricSample(currentTime, sampleStats.totalTimeMs))
         }
       }
-      metricScenario.commit()
+      memoryThread.stopReadings()
+      metricScenario.commit("Time")
       metricInitialGradle.commit(scenarioName)
       metricInitialIDE.commit(scenarioName)
       metricInitialTotal.commit(scenarioName)
@@ -204,10 +212,56 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
       throw RuntimeException(e)
     }
     finally {
-      log.info("Average: ${measurements.stream().mapToLong(ToLongFunction { obj: Long -> obj }).average().orElse(0.0)}")
-      log.info("min: ${measurements.stream().mapToLong(ToLongFunction { obj: Long -> obj }).min().orElse(0)}")
-      log.info("max: ${measurements.stream().mapToLong(ToLongFunction { obj: Long -> obj }).max().orElse(0)}")
+      memoryThread.stopReadings()
+      log.info("Average: ${measurements.average()}")
+      log.info("min: ${measurements.min()}")
+      log.info("max: ${measurements.max()}")
+      val memory = memoryThread.usedMemory
+      log.info("Memory average: ${memory.average()}")
+      log.info("Memory min: ${memory.min()}")
+      log.info("Memory max: ${memory.max()}")
+      showHistogram(memory)
     }
+  }
+
+  private fun showHistogram(values: ArrayList<Long>) {
+    val maximum = values.max()
+    val log = getLogger()
+    if (maximum == null) {
+      log.info("***NO VALUES WERE CAPTURED***")
+      return
+    }
+    val samples = ArrayList<Long>()
+    for (i in 0 until HISTOGRAM_SAMPLES) {
+      val start = (i * values.size) / HISTOGRAM_SAMPLES
+      val end = ((i + 1) * values.size) / HISTOGRAM_SAMPLES
+      if (end <= start) {
+        // No single value will be used in this sample
+        continue
+      }
+      var currentSample = values[start]
+      for (j in start until end) {
+        val current = values[j]
+        if (current > currentSample) {
+          currentSample = current
+        }
+      }
+      samples.add(currentSample)
+    }
+    log.info(buildString {
+      append("Memory usage:")
+      for (level in HISTOGRAM_LEVELS - 1 downTo 0) {
+        append("\n")
+        val currentLevelValue = (maximum * level) / HISTOGRAM_LEVELS
+        for (sample in samples) {
+          append(if (sample > currentLevelValue) "X" else " ")
+        }
+      }
+      append("\n")
+      for (sample in samples) {
+        append("-")
+      }
+    })
   }
 
   private fun getLogger(): Logger {
@@ -247,5 +301,43 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
       scenarioName.append("_Gradle").append(gradleVersion)
     }
     return scenarioName.toString()
+  }
+
+  class MemoryMeasurementThread(private val scenarioName: String): Thread() {
+    val usedMemory = ArrayList<Long>()
+    private var stopRunning = AtomicBoolean(false)
+
+    override fun run() {
+      val memoryBenchmark = Benchmark.Builder("Memory usage")
+        .setProject(BENCHMARK_PROJECT)
+        .build()
+      val metricMemoryUsed = Metric(scenarioName)
+      var nextReading = Instant.now()
+      while (!stopRunning.get()) {
+        val currentInstant = Instant.now()
+        if (currentInstant < nextReading) {
+          val waitMillis = Duration.between(currentInstant, nextReading).toMillis()
+          sleep(waitMillis)
+          continue
+        }
+        val usage = getUsedMemory()
+        usedMemory.add(usage)
+        metricMemoryUsed.addSamples(memoryBenchmark, MetricSample(currentInstant.toEpochMilli(), usage))
+        nextReading = nextReading.plusMillis(MEMORY_MEASUREMENT_INTERVAL_MILLIS)
+      }
+      metricMemoryUsed.commit("Memory")
+    }
+
+    private fun getUsedMemory(): Long {
+      val runtime = Runtime.getRuntime()
+      return runtime.totalMemory() - runtime.freeMemory()
+    }
+
+    fun stopReadings() {
+      if (isAlive) {
+        stopRunning.set(true)
+        join(2 * MEMORY_MEASUREMENT_INTERVAL_MILLIS)
+      }
+    }
   }
 }
