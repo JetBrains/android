@@ -57,6 +57,7 @@ import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import java.io.File
+import java.nio.file.Path
 import java.util.concurrent.Executor
 
 private const val nonAsciiSuffix = " ąę"
@@ -67,14 +68,6 @@ private const val column1 = "c1$nonAsciiSuffix"
 private const val column2 = "c2$nonAsciiSuffix"
 private const val databaseFileName = "db$nonAsciiSuffix.db"
 private const val outputFileName = "output$nonAsciiSuffix.out"
-
-typealias TwoColumnTable = List<Pair<String, String>>
-
-private fun TwoColumnTable.toCsvOutputLines(delimiter: Char): List<String> =
-  listOf("$column1$delimiter$column2") + this.map { (v1, v2) -> "$v1$delimiter$v2" }
-
-/** Two columns with increasing numbers (and a non-ascii suffix) */
-private fun IntRange.toTwoColumnTable(): TwoColumnTable = this.map { "$it$nonAsciiSuffix" }.zipWithNext()
 
 /** Keeps connection ids unique */
 private val nextConnectionId: () -> Int = run { var next = 1; { next++ } }
@@ -144,7 +137,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     val dstPath = tempDirTestFixture.toNioPath().resolve(outputFileName)
     val exportRequest = ExportQueryResultsRequest(database, statement, CSV(VERTICAL_BAR), dstPath)
 
-    testExportToCsv(exportRequest = exportRequest, expectedValues = values.filter { (c1, _) -> c1 > "5" })
+    testExportToCsv(exportRequest, expectedValues = values.filter { (c1, _) -> c1 > "5" })
   }
 
   fun testExportTableToCsvFileDb() = testExportTableToCsv(createEmptyDatabase(DatabaseType.File))
@@ -158,23 +151,32 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     val dstPath = tempDirTestFixture.toNioPath().resolve(outputFileName)
     val exportRequest = ExportTableRequest(database, table1, CSV(TAB), dstPath)
 
-    testExportToCsv(exportRequest = exportRequest, expectedValues = values)
+    testExportToCsv(exportRequest, expectedValues = values)
   }
 
-  /** TODO: unify with [testExportDatabaseToCsv] */
-  private fun testExportToCsv(exportRequest: ExportRequest, expectedValues: TwoColumnTable) {
-    // given: an export request
-    val delimiterStr = (exportRequest.format as CSV).delimiter.delimiter
-    val expectedOutput = expectedValues.toCsvOutputLines(delimiterStr)
+  /** Overload suitable for single file CSV output (e.g. exporting a query or a single table). */
+  private fun testExportToCsv(exportRequest: ExportRequest, expectedValues: TwoColumnTable) =
+    testExportToCsv(
+      exportRequest,
+      expectedOutput = listOf(ExpectedOutputFile(exportRequest.dstPath, expectedValues)),
+      decompress = { file -> listOf(file) } // no-op
+    )
 
+  /** Overload suitable for a general case (provide a [decompress] function if required to get the underlying CSV files). */
+  private fun testExportToCsv(exportRequest: ExportRequest, expectedOutput: List<ExpectedOutputFile>, decompress: (Path) -> List<Path>) {
+    // given: an export request
     // when: an export request is submitted
     submitExportRequest(exportRequest)
 
-    // then: compare output file with expected output
+    // then: compare output file(s) with expected output
     verify(notifyExportComplete).invoke(exportRequest)
     verifyNoMoreInteractions(notifyExportComplete)
-    val actualOutput = exportRequest.dstPath.toLines()
-    assertThat(actualOutput).isEqualTo(expectedOutput)
+
+    val actualFiles = decompress(exportRequest.dstPath).sorted()
+    actualFiles.zip(expectedOutput.sortedBy { it.path }) { actualPath, (expectedPath, expectedValues) ->
+      assertThat(actualPath.toFile().canonicalPath).isEqualTo(expectedPath.toFile().canonicalPath)
+      assertThat(actualPath.toLines()).isEqualTo(expectedValues.toCsvOutputLines(exportRequest.delimiter))
+    }
   }
 
   fun testExportDatabaseToCsvFileDb() = testExportDatabaseToCsv(createEmptyDatabase(DatabaseType.File))
@@ -191,33 +193,13 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     tableValuePairs.forEach { (table, values) -> fillDatabase(database, table, values) }
 
     val dstPath = tempDirTestFixture.toNioPath().resolve("$outputFileName.zip")
-    val delimiter = COMMA
-    val exportRequest = ExportDatabaseRequest(database, CSV(delimiter), dstPath)
-
-    // when: a request is processed by the controller
-    submitExportRequest(exportRequest)
-
-    // then: a zip file is created containing a csv file per table
-    verify(notifyExportComplete).invoke(exportRequest)
-    verifyNoMoreInteractions(notifyExportComplete)
+    val exportRequest = ExportDatabaseRequest(database, CSV(COMMA), dstPath)
 
     val tmpDir = tempDirTestFixture.findOrCreateDir("unzipped")
-    val outputFiles = dstPath.unzipTo(tmpDir.toNioPath()).sorted()
+    val decompress: (Path) -> List<Path> = { it.unzipTo(tmpDir.toNioPath()) }
+    val expectedOutput = tableValuePairs.map { (table, values) -> ExpectedOutputFile(tmpDir.toNioPath().resolve("$table.csv"), values) }
 
-
-    run {
-      val actualFileNames = outputFiles.map { it.toFile().canonicalPath }
-      val expectedFileNames = tableValuePairs.map { (table, _) ->
-        tmpDir.toNioPath().resolve("$table.csv").toFile().canonicalPath
-      }
-      assertThat(actualFileNames).isEqualTo(expectedFileNames)
-    }
-
-    run {
-      val actualFileContents = outputFiles.map { it.toLines() }
-      val expectedLineContents = tableValuePairs.map { (_, values) -> values.toCsvOutputLines(delimiter.delimiter) }
-      assertThat(actualFileContents).isEqualTo(expectedLineContents)
-    }
+    testExportToCsv(exportRequest, expectedOutput, decompress)
   }
 
   fun testInvalidRequestFileDb() = testInvalidRequest(DatabaseType.File)
@@ -253,9 +235,8 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     assertThat((1..5).map { nextConnectionId() }).isEqualTo((6..10).toList())
   }
 
-  private fun submitExportRequest(exportRequest: ExportRequest) {
+  private fun submitExportRequest(exportRequest: ExportRequest) =
     runDispatching { view.listeners.first().exportRequestSubmitted(exportRequest) }
-  }
 
   private fun createEmptyDatabase(type: DatabaseType): SqliteDatabaseId {
     val databaseFile = tempDirTestFixture.createFile(databaseFileName)
@@ -297,4 +278,16 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
 
 private fun TempDirTestFixture.toNioPath() = File(tempDirPath).toPath()
 
+private val ExportRequest.delimiter get(): Char = (format as CSV).delimiter.delimiter
+
 private enum class DatabaseType { Live, File }
+
+private data class ExpectedOutputFile(val path: Path, val values: TwoColumnTable)
+
+private typealias TwoColumnTable = List<Pair<String, String>>
+
+private fun TwoColumnTable.toCsvOutputLines(delimiter: Char): List<String> =
+  listOf("$column1$delimiter$column2") + this.map { (v1, v2) -> "$v1$delimiter$v2" }
+
+/** Two columns with increasing numbers (and a non-ascii suffix) */
+private fun IntRange.toTwoColumnTable(): TwoColumnTable = this.map { "$it$nonAsciiSuffix" }.zipWithNext()
