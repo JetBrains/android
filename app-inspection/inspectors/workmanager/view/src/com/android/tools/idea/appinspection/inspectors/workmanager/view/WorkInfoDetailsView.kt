@@ -4,6 +4,7 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
+import com.google.wireless.android.sdk.stats.AppInspectionEvent.WorkManagerInspectorEvent
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.roots.ui.componentsList.components.ScrollablePanel
 import com.intellij.openapi.ui.popup.IconButton
@@ -53,19 +54,20 @@ class WorkInfoDetailsView(client: WorkManagerInspectorClient,
     detailsPanel.border = BorderFactory.createEmptyBorder(6, 12, 20, 12)
 
     val idListProvider = IdListProvider(client, work) {
+      client.tracker.trackWorkSelected(WorkManagerInspectorEvent.Context.DETAILS_CONTEXT)
       tab.selectedWork = it
     }
     detailsPanel.preferredScrollableViewportSize
     val scrollPane = JBScrollPane(detailsPanel)
     scrollPane.border = BorderFactory.createEmptyBorder()
     detailsPanel.add(buildCategoryPanel("Description", listOf(
-      buildKeyValuePair("Class", work.workerClassName, ClassNameProvider(ideServices, scope)),
+      buildKeyValuePair("Class", work.workerClassName, ClassNameProvider(ideServices, client.tracker, scope)),
       buildKeyValuePair("Tags", work.tagsList, StringListProvider),
       buildKeyValuePair("UUID", work.id)
     )))
 
     detailsPanel.add(buildCategoryPanel("Execution", listOf(
-      buildKeyValuePair("Enqueued by", work.callStack, EnqueuedAtProvider(ideServices, scope)),
+      buildKeyValuePair("Enqueued by", work.callStack, EnqueuedAtProvider(ideServices, client.tracker, scope)),
       buildKeyValuePair("Constraints", work.constraints, ConstraintProvider),
       buildKeyValuePair("Frequency", if (work.isPeriodic) "Periodic" else "One Time"),
       buildKeyValuePair("State", work.state, StateProvider)

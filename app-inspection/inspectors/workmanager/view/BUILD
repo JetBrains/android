@@ -22,6 +22,7 @@ iml_module(
         "//tools/adt/idea/app-inspection/inspectors/workmanager/view:workmanager-inspector-proto",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
     ],
 )
 

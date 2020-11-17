@@ -23,6 +23,7 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo.State
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspectors.workmanager.analytics.WorkManagerInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
 import com.android.tools.idea.protobuf.ProtocolStringList
 import com.intellij.ide.HelpTooltip
@@ -58,12 +59,15 @@ class ToStringProvider<T> : ComponentProvider<T> {
 /**
  * Provides a component that represents a class name which can be navigated to.
  */
-class ClassNameProvider(private val ideServices: AppInspectionIdeServices, private val scope: CoroutineScope) : ComponentProvider<String> {
+class ClassNameProvider(private val ideServices: AppInspectionIdeServices,
+                        private val tracker: WorkManagerInspectorTracker,
+                        private val scope: CoroutineScope) : ComponentProvider<String> {
   override fun convert(fqcn: String): JComponent {
     return HyperlinkLabel(fqcn).apply {
       addHyperlinkListener {
         scope.launch {
           ideServices.navigateTo(AppInspectionIdeServices.CodeLocation.forClass(fqcn))
+          tracker.trackJumpedToSource()
         }
       }
     }
@@ -93,6 +97,7 @@ object StateProvider : ComponentProvider<State> {
  * click on that location to navigate into the code.
  */
 class EnqueuedAtProvider(private val ideServices: AppInspectionIdeServices,
+                         private val tracker: WorkManagerInspectorTracker,
                          private val scope: CoroutineScope) : ComponentProvider<CallStack> {
   override fun convert(stack: CallStack): JComponent {
     return if (stack.framesCount == 0) {
@@ -112,6 +117,7 @@ class EnqueuedAtProvider(private val ideServices: AppInspectionIdeServices,
         addHyperlinkListener {
           scope.launch {
             ideServices.navigateTo(AppInspectionIdeServices.CodeLocation.forFile(frame0.fileName, frame0.lineNumber))
+            tracker.trackJumpedToSource()
           }
         }
       }

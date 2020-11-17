@@ -38,7 +38,7 @@ import net.jcip.annotations.ThreadSafe
 @ThreadSafe
 class WorkManagerInspectorClient(private val messenger: AppInspectorMessenger,
                                  private val clientScope: CoroutineScope,
-                                 private val tracker: WorkManagerInspectorTracker = StubWorkManagerInspectorTracker()) {
+                                 val tracker: WorkManagerInspectorTracker = StubWorkManagerInspectorTracker()) {
   companion object {
     private val logger: Logger = Logger.getInstance(WorkManagerInspectorClient::class.java)
   }

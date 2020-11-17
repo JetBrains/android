@@ -33,17 +33,14 @@ class IdeWorkManagerInspectorTracker(private val project: Project) : WorkManager
     activeMode = WorkManagerInspectorEvent.Mode.TABLE_MODE
   }
 
-  override fun trackGraphModeSelected(context: WorkManagerInspectorEvent.Context) {
-    track(context, WorkManagerInspectorEvent.Type.GRAPH_MODE_SELECTED.toEvent())
+  override fun trackGraphModeSelected(context: WorkManagerInspectorEvent.Context, chainInfo: WorkManagerInspectorEvent.ChainInfo) {
+    val event = WorkManagerInspectorEvent.Type.GRAPH_MODE_SELECTED.toEvent().setChainInfo(chainInfo)
+    track(context, event)
     activeMode = WorkManagerInspectorEvent.Mode.GRAPH_MODE
   }
 
-  override fun trackWorkSelected(context: WorkManagerInspectorEvent.Context, chainInfo: WorkManagerInspectorEvent.ChainInfo?) {
-    val event = WorkManagerInspectorEvent.Type.WORK_SELECTED.toEvent()
-    if (chainInfo != null) {
-      event.chainInfo = chainInfo
-    }
-    track(context, event)
+  override fun trackWorkSelected(context: WorkManagerInspectorEvent.Context) {
+    track(context, WorkManagerInspectorEvent.Type.WORK_SELECTED.toEvent())
   }
 
   override fun trackJumpedToSource() {

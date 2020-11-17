@@ -20,6 +20,7 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.Constraints
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
+import com.android.tools.idea.appinspection.inspectors.workmanager.analytics.StubWorkManagerInspectorTracker
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.CoroutineScope
@@ -58,7 +59,8 @@ class OutputDataProviderTest {
 
   @Test
   fun convertEmptyCallStack() {
-    val component = EnqueuedAtProvider(ideServices, scope).convert(CallStack.getDefaultInstance())
+    val component = EnqueuedAtProvider(ideServices, StubWorkManagerInspectorTracker(), scope)
+      .convert(CallStack.getDefaultInstance())
     assertThat(component.componentCount).isEqualTo(3)
     assertThat((component.getComponent(0) as JLabel).text).isEqualTo("Unavailable")
   }
