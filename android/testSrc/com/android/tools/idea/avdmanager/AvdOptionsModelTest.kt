@@ -39,6 +39,9 @@ import java.io.File
 
 import com.android.testutils.NoErrorsOrWarningsLogger
 
+private val SDK_LOCATION = File("/sdk").absoluteFile
+private val AVD_LOCATION = File("/avd").absoluteFile
+
 class AvdOptionsModelTest : AndroidTestCase() {
 
   private var myGooglePlayAvdInfo: AvdInfo? = null
@@ -79,9 +82,9 @@ class AvdOptionsModelTest : AndroidTestCase() {
     val pkgList: MutableList<LocalPackage> = ImmutableList.of(googlePlayPkg, nonPlayPkg)
     packages.setLocalPkgInfos(pkgList)
 
-    val mgr = FakeRepoManager(File(SDK_LOCATION), packages)
+    val mgr = FakeRepoManager(SDK_LOCATION, packages)
 
-    val sdkHandler = AndroidSdkHandler(File(SDK_LOCATION), File(AVD_LOCATION), fileOp, mgr)
+    val sdkHandler = AndroidSdkHandler(SDK_LOCATION, AVD_LOCATION, fileOp, mgr)
 
     val progress = FakeProgressIndicator()
     val systemImageManager = sdkHandler.getSystemImageManager(progress)
@@ -255,10 +258,5 @@ class AvdOptionsModelTest : AndroidTestCase() {
     optionsModel.ensureMinimumMemory();
     assertThat(optionsModel.sdCardStorage().value).isEqualTo(Storage(12, Storage.Unit.MiB))
     assertThat(optionsModel.internalStorage().get()).isEqualTo(Storage(200, Storage.Unit.MiB))
-  }
-
-  companion object {
-    private val SDK_LOCATION = "/sdk"
-    private val AVD_LOCATION = "/avd"
   }
 }
