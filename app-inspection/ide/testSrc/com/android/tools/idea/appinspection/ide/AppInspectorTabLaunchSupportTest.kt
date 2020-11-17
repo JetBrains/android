@@ -23,7 +23,7 @@ import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordin
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
-import com.android.tools.idea.appinspection.inspector.ide.resolver.AppInspectionArtifactResolver
+import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createFakeProcessDescriptor
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
@@ -86,7 +86,7 @@ class AppInspectorTabLaunchSupportTest {
    */
   @Test
   fun getApplicableTabProviders() = runBlocking<Unit> {
-    val resolver = object : AppInspectionArtifactResolver {
+    val resolver = object : ArtifactResolver {
       override suspend fun resolveArtifacts(artifactIdList: List<ArtifactCoordinate>,
                                             project: Project): Map<ArtifactCoordinate, AppInspectorJar> {
         return artifactIdList.filter { it != unresolvedLibrary }.associateWith { resolvedJar }

@@ -38,7 +38,7 @@ import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameter
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
-import com.android.tools.idea.appinspection.inspector.ide.resolver.AppInspectionArtifactResolver
+import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ide.ActivityTracker
@@ -72,7 +72,7 @@ class AppInspectionView(
   private val getTabProviders: () -> Collection<AppInspectorTabProvider>,
   private val scope: CoroutineScope,
   private val uiDispatcher: CoroutineDispatcher,
-  private val artifactResolver: AppInspectionArtifactResolver,
+  private val artifactResolver: ArtifactResolver,
   getPreferredProcesses: () -> List<String>
 ) : Disposable {
   val component = JPanel(TabularLayout("*", "Fit,Fit,*"))
@@ -113,7 +113,7 @@ class AppInspectionView(
               ideServices: AppInspectionIdeServices,
               scope: CoroutineScope,
               uiDispatcher: CoroutineDispatcher,
-              artifactResolver: AppInspectionArtifactResolver,
+              artifactResolver: ArtifactResolver,
               getPreferredProcesses: () -> List<String>) :
     this(project,
          apiServices,

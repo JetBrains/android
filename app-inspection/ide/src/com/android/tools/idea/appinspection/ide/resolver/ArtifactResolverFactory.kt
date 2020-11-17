@@ -15,23 +15,23 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver
 
-import com.android.tools.idea.appinspection.ide.resolver.gradle.AppInspectionGradleArtifactResolver
+import com.android.tools.idea.appinspection.ide.resolver.gradle.GradleArtifactResolver
 import com.android.tools.idea.appinspection.ide.resolver.stub.StubArtifactResolver
 import com.android.tools.idea.appinspection.inspector.api.io.FileService
 import com.android.tools.idea.appinspection.inspector.ide.io.IdeFileService
-import com.android.tools.idea.appinspection.inspector.ide.resolver.AppInspectionArtifactResolver
-import com.android.tools.idea.appinspection.inspector.ide.resolver.AppInspectionArtifactResolverFactory
+import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
+import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverFactory
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.intellij.openapi.project.Project
 
 class ArtifactResolverFactory(
   fileService: FileService = IdeFileService("app-inspection")
-) : AppInspectionArtifactResolverFactory {
+) : ArtifactResolverFactory {
   private val jarPaths = AppInspectorJarPaths(fileService)
 
-  override fun getArtifactResolver(project: Project): AppInspectionArtifactResolver {
+  override fun getArtifactResolver(project: Project): ArtifactResolver {
     return if (GradleProjectInfo.getInstance(project).isBuildWithGradle) {
-      AppInspectionGradleArtifactResolver(jarPaths)
+      GradleArtifactResolver(jarPaths)
     }
     else {
       // TODO(b/172934092): This is to catch the case when build system is not present (ex: ASWB).
