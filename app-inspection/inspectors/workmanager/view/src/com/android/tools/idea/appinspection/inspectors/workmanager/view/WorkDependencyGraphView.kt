@@ -20,6 +20,7 @@ import com.android.tools.adtui.TabularLayout
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
 import com.android.tools.idea.appinspection.inspectors.workmanager.view.WorkManagerInspectorColors.GRAPH_LABEL_BACKGROUND_COLOR
 import com.android.tools.idea.appinspection.inspectors.workmanager.view.WorkManagerInspectorColors.SELECTED_WORK_BORDER_COLOR
+import com.google.wireless.android.sdk.stats.AppInspectionEvent.WorkManagerInspectorEvent
 import com.intellij.ide.plugins.newui.VerticalLayout
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.components.JBLabel
@@ -135,6 +136,7 @@ class WorkDependencyGraphView(private val client: WorkManagerInspectorClient,
 
     label.addMouseListener(object : MouseAdapter() {
       override fun mousePressed(e: MouseEvent?) {
+        client.tracker.trackWorkSelected(WorkManagerInspectorEvent.Context.GRAPH_CONTEXT)
         tab.selectedWork = work
         tab.isDetailsViewVisible = true
       }

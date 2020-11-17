@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.workmanager.analytics
 
+import androidx.work.inspection.WorkManagerInspectorProtocol
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.WorkManagerInspectorEvent
 
 /**
@@ -22,17 +23,31 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent.WorkManagerInspe
  */
 interface WorkManagerInspectorTracker {
   fun trackTableModeSelected()
-  fun trackGraphModeSelected(context: WorkManagerInspectorEvent.Context = WorkManagerInspectorEvent.Context.TOOL_BUTTON_CONTEXT)
+  fun trackGraphModeSelected(context: WorkManagerInspectorEvent.Context, chainInfo: WorkManagerInspectorEvent.ChainInfo)
 
-  fun trackWorkSelected(context: WorkManagerInspectorEvent.Context, chainInfo: WorkManagerInspectorEvent.ChainInfo? = null)
+  fun trackWorkSelected(context: WorkManagerInspectorEvent.Context)
   fun trackJumpedToSource()
   fun trackWorkCancelled()
 }
 
-internal class StubWorkManagerInspectorTracker : WorkManagerInspectorTracker {
+class StubWorkManagerInspectorTracker : WorkManagerInspectorTracker {
   override fun trackTableModeSelected() {}
-  override fun trackGraphModeSelected(context: WorkManagerInspectorEvent.Context) {}
-  override fun trackWorkSelected(context: WorkManagerInspectorEvent.Context, chainInfo: WorkManagerInspectorEvent.ChainInfo?) {}
+  override fun trackGraphModeSelected(context: WorkManagerInspectorEvent.Context, chainInfo: WorkManagerInspectorEvent.ChainInfo) {}
+  override fun trackWorkSelected(context: WorkManagerInspectorEvent.Context) {}
   override fun trackJumpedToSource() {}
   override fun trackWorkCancelled() {}
+}
+
+fun List<WorkManagerInspectorProtocol.WorkInfo>.toChainInfo(): WorkManagerInspectorEvent.ChainInfo {
+  val depthMap = mutableMapOf<String, Int>()
+  for (work in this) {
+    depthMap[work.id] = (work.prerequisitesList.mapNotNull { depthMap[it] }.max() ?: 0) + 1
+  }
+  val worksCountByDepth = this.groupBy { depthMap[it.id] }.map { it.value.size }
+  return WorkManagerInspectorEvent.ChainInfo.newBuilder()
+    .setDependencyCount(sumBy { it.dependentsCount })
+    .setMaxDepth(depthMap.values.max() ?: 0)
+    .setMaxWidth(worksCountByDepth.max() ?: 0)
+    .setWorkerCount(size)
+    .build()
 }
