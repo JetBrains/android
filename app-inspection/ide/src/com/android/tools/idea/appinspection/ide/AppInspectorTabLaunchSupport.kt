@@ -25,7 +25,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.FrameworkInspectorLaunchParams
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
-import com.android.tools.idea.appinspection.inspector.ide.resolver.AppInspectionArtifactResolver
+import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.intellij.openapi.project.Project
 import javax.swing.JComponent
 
@@ -39,7 +39,7 @@ class AppInspectorTabLaunchSupport(
   private val getTabProviders: () -> Collection<AppInspectorTabProvider>,
   private val apiServices: AppInspectionApiServices,
   private val project: Project,
-  private val artifactResolver: AppInspectionArtifactResolver
+  private val artifactResolver: ArtifactResolver
 ) {
 
   /**

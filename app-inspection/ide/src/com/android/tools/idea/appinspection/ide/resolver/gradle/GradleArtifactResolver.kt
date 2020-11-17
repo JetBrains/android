@@ -19,16 +19,16 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.appinspection.ide.resolver.AppInspectorJarPaths
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
-import com.android.tools.idea.appinspection.inspector.ide.resolver.AppInspectionArtifactResolver
+import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
 
 /**
- * Implementation of [AppInspectionArtifactResolver] using gradle as the tool to resolve remote artifacts.
+ * Implementation of [ArtifactResolver] using gradle as the tool to resolve remote artifacts.
  *
  * TODO(b/169794015): write an integration test for this.
  */
-class AppInspectionGradleArtifactResolver(private val jarPaths: AppInspectorJarPaths) : AppInspectionArtifactResolver {
+class GradleArtifactResolver(private val jarPaths: AppInspectorJarPaths) : ArtifactResolver {
   private val taskManager = GradleTaskManager()
   private val downloader = GradleArtifactDownloader(taskManager)
 

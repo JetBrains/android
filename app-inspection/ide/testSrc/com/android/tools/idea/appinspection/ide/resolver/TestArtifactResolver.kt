@@ -17,11 +17,11 @@ package com.android.tools.idea.appinspection.ide.resolver
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
-import com.android.tools.idea.appinspection.inspector.ide.resolver.AppInspectionArtifactResolver
+import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.appinspection.test.TEST_JAR
 import com.intellij.openapi.project.Project
 
-class TestArtifactResolver : AppInspectionArtifactResolver {
+class TestArtifactResolver : ArtifactResolver {
   override suspend fun resolveArtifacts(artifactIdList: List<ArtifactCoordinate>,
                                         project: Project): Map<ArtifactCoordinate, AppInspectorJar> {
     return artifactIdList.associateWith { TEST_JAR }

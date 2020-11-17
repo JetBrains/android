@@ -15,16 +15,18 @@
  */
 package com.android.tools.idea.appinspection.inspector.ide.resolver
 
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 
 /**
- * A class that handles the downloading of gradle/maven artifacts.
+ * A factory for creating [ArtifactResolver].
  */
-interface AppInspectionArtifactResolver {
+interface ArtifactResolverFactory {
+  companion object {
+    val instance = service<ArtifactResolverFactory>()
+  }
   /**
-   * Resolves the provided list of gradle coordinates in the given project and returns a map containing the downloaded jars.
+   * Creates an [ArtifactResolver] based on the project.
    */
-  suspend fun resolveArtifacts(artifactIdList: List<ArtifactCoordinate>, project: Project): Map<ArtifactCoordinate, AppInspectorJar>
+  fun getArtifactResolver(project: Project): ArtifactResolver
 }
