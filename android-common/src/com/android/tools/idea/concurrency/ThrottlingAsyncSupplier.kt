@@ -25,10 +25,8 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.util.Alarm.ThreadToUse.POOLED_THREAD
 import com.intellij.util.AlarmFactory
-import org.jetbrains.annotations.TestOnly
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicReference
-
 
 /**
  * A caching [AsyncSupplier] which ensures an expensive-to-compute value isn't computed more than once in
@@ -44,9 +42,7 @@ class ThrottlingAsyncSupplier<V : Any>(
   private val compute: () -> V,
   @AnyThread private val isUpToDate: (value: V) -> Boolean,
   private val mergingPeriod: Duration
-) : AsyncSupplier<V>,
-    Disposable,
-    ModificationTracker {
+) : AsyncSupplier<V>, Disposable, ModificationTracker {
 
   private val alarm = AlarmFactory.getInstance().create(POOLED_THREAD, this)
   private val scheduledComputation = AtomicReference<Computation<V>?>(null)
@@ -64,15 +60,7 @@ class ThrottlingAsyncSupplier<V : Any>(
    */
   private val lastFailedComputation = AtomicReference<Computation<V>?>(null)
 
-  private var updateCallback: Runnable? = null
-
-  @TestOnly
-  fun setUpdateCallback(callback: Runnable?) {
-    updateCallback = callback
-  }
-
   override fun dispose() {
-    updateCallback = null
   }
 
   /**
@@ -98,12 +86,13 @@ class ThrottlingAsyncSupplier<V : Any>(
       return Futures.immediateFuture(cachedValue)
     }
     val computation = Computation<V>(modificationCount)
-    val scheduled = scheduledComputation.updateAndGet { it ?: computation }
-    if (scheduled === computation) {
+    val scheduled = scheduledComputation.compareAndExchange(null, computation)
+    if (scheduled == null) {
       // Our thread won and our computation is considered scheduled. Let's schedule it:
       alarm.addRequest(this::runScheduledComputation, determineDelay(cachedComputation, lastFailedComputation.get()))
+      return computation.getResult()
     }
-    return scheduled!!.getResult()
+    return scheduled.getResult()
   }
 
   private fun runScheduledComputation() {
@@ -138,7 +127,6 @@ class ThrottlingAsyncSupplier<V : Any>(
     computation.complete(result)
     lastSuccessfulComputation.set(computation)
     computation.broadcastResult()
-    updateCallback?.run()
   }
 
   private fun determineDelay(lastSuccessfulComputation: Computation<V>?, lastFailedComputation: Computation<V>?): Long {
@@ -162,7 +150,7 @@ private sealed class ComputationResult<V> {
 
 private class Computation<V>(val modificationCountWhenScheduled: Long) {
   private val result = AtomicReference<ComputationResult<V>>(null)
-  private val future = SettableFuture.create<V>()!!
+  private val future = SettableFuture.create<V>()
 
   private fun getResultAndCheckComplete(): ComputationResult<V> {
     return result.get() ?: throw IllegalStateException("This Computation hasn't been executed yet.")
