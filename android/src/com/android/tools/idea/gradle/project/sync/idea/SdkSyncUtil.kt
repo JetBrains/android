@@ -26,6 +26,7 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.OrderRootType.CLASSES
 import com.intellij.openapi.util.io.FileUtil.filesEqual
@@ -69,13 +70,22 @@ fun AndroidSdks.computeSdkReloadingAsNeeded(
   ideSdks: IdeSdks
 ) : Sdk? {
   // 1 - Find the SDK if it already exists.
-  val sdk = findSuitableAndroidSdk(compileTarget)
+  var sdk = findSuitableAndroidSdk(compileTarget)
+
+  // 2 - Ensure that the SDK has roots. Sometimes when the SDK is removed and re-downloaded the SDK will still be
+  // present in the Jdk table but will not have any valid file entries.
+  if (sdk != null && sdk.rootProvider.getFiles(CLASSES).isEmpty()) {
+    // Delete the invalid JDK to ensure we re-create it with the correct order entries.
+    ProjectJdkTable.getInstance().removeJdk(sdk)
+    sdk = null
+  }
+
   if (sdk != null) {
     logSdkFound(sdk, moduleName)
     return sdk
   }
 
-  // 2 - We may have had an Sdk downloaded by AGP and it has not yet been registered by studio. Here we attempt to
+  // 3 - We may have had an Sdk downloaded by AGP and it has not yet been registered by studio. Here we attempt to
   // find any unregistered sdks.
   val progress = StudioLoggerProgressIndicator(AndroidGradleProjectResolver::class.java)
   tryToChooseSdkHandler().getSdkManager(progress).reloadLocalIfNeeded(progress)
@@ -98,7 +108,7 @@ fun AndroidSdks.computeSdkReloadingAsNeeded(
     return (newSdk as Sdk)
   }
 
-  // 3 - We might have an SDK add-on being used attempt to find the SDK for an addon.
+  // 4 - We might have an SDK add-on being used attempt to find the SDK for an addon.
   val addonSdk = findMatchingSdkForAddon(bootClasspath)
 
   if (addonSdk == null) {
