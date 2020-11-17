@@ -117,7 +117,7 @@ private fun previewAnnotationToPreviewElement(previewAnnotation: UAnnotation,
   val previewName = previewAnnotation.findDeclaredAttributeValue("name")?.evaluateString() ?: annotatedMethod.name
   val groupName = overrideGroupName ?: previewAnnotation.findDeclaredAttributeValue("group")?.evaluateString()
   val showDecorations = previewAnnotation.findDeclaredAttributeValue("showDecoration")?.evaluate() as? Boolean
-                        ?: previewAnnotation.findDeclaredAttributeValue("showSystemUI")?.evaluate() as? Boolean
+                        ?: previewAnnotation.findDeclaredAttributeValue("showSystemUi")?.evaluate() as? Boolean
                         ?: false
   val showBackground = previewAnnotation.findDeclaredAttributeValue("showBackground")?.evaluate() as? Boolean ?: false
   val backgroundColor = previewAnnotation.findDeclaredAttributeValue("backgroundColor")?.evaluate()
