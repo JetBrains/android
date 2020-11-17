@@ -87,41 +87,13 @@ class ExportToFileController(
     when (params) {
       is ExportDatabaseRequest -> {
         when (params.format) {
-          is CSV -> {
-            // TODO(161081452): clarify if to export views (or only tables)
-            val tableNames: List<String> = databaseRepository.fetchSchema(params.srcDatabase).tables.map { it.name }
-            val dstDir = params.dstPath.parent
-
-            val dstDirReady = dstDir.exists() || dstDir.toFile().mkdirs()
-            if (!dstDirReady) throw IllegalStateException("Unable to access or create the destination folder.")
-
-            // TODO(161081452): skip temporary files (write directly to zip stream)
-            @Suppress("BlockingMethodInNonBlockingContext") // IO on taskDispatcher
-            val tmpDir = Files.createTempDirectory(dstDir, ".tmp")
-            Closeable { FileUtil.delete(tmpDir) }.use {
-              val tmpFileToEntryName: List<TempExportedData> = tableNames.mapIndexed { ix, name ->
-                val path = tmpDir.toAbsolutePath().resolve(".$ix.tmp") // using indexes for file names to avoid file naming issues
-                doExport(ExportTableRequest(params.srcDatabase, name, params.format, path))
-                TempExportedData(path, "$name.csv")
-              }
-
-              createZipFile(params.dstPath, tmpFileToEntryName)
-            }
-          }
+          is CSV -> exportDatabaseToCsv(params.srcDatabase, params.format as CSV, params.dstPath)
           else -> throwNotSupportedParams(params)
         }
       }
       is ExportTableRequest -> {
         when (params.format) {
-          is CSV -> {
-            doExport(
-              ExportQueryResultsRequest(
-                params.srcDatabase,
-                createSqliteStatement(SqliteQueries.selectTableContents(params.srcTable)),
-                params.format,
-                params.dstPath)
-            )
-          }
+          is CSV -> exportTableToCsv(params.srcDatabase, params.srcTable, params.format as CSV, params.dstPath)
           else -> throwNotSupportedParams(params)
         }
       }
@@ -129,19 +101,49 @@ class ExportToFileController(
         if (!params.srcQuery.isQueryStatement) throwNotSupportedParams(params)
 
         when (params.format) {
-          is CSV -> {
-            // TODO(161081452): lock and download in chunks
-            val rows = executeQuery(params.srcDatabase, params.srcQuery)
-            writeRowsToCsvFile(
-              rows,
-              (params.format as CSV).delimiter,
-              params.dstPath)
-          }
+          is CSV -> exportQueryToCsv(params.srcDatabase, params.srcQuery, params.format as CSV, params.dstPath)
           else -> throwNotSupportedParams(params)
         }
       }
     }
   }
+
+  private suspend fun exportDatabaseToCsv(database: SqliteDatabaseId, format: CSV, dstPath: Path) = withContext(taskDispatcher) {
+    // TODO(161081452): clarify if to export views (or only tables)
+    val tableNames: List<String> = databaseRepository.fetchSchema(database).tables.map { it.name }
+    val dstDir = dstPath.parent
+
+    val dstDirReady = dstDir.exists() || dstDir.toFile().mkdirs()
+    if (!dstDirReady) throw IllegalStateException("Unable to access or create the destination folder.")
+
+    // TODO(161081452): skip temporary files (write directly to zip stream)
+    @Suppress("BlockingMethodInNonBlockingContext") // IO on taskDispatcher
+    val tmpDir = Files.createTempDirectory(dstDir, ".tmp")
+    Closeable { FileUtil.delete(tmpDir) }.use {
+      val tmpFileToEntryName: List<TempExportedData> = tableNames.mapIndexed { ix, name ->
+        val path = tmpDir.toAbsolutePath().resolve(".$ix.tmp") // using indexes for file names to avoid file naming issues
+        doExport(ExportTableRequest(database, name, format, path))
+        TempExportedData(path, "$name.csv")
+      }
+
+      createZipFile(dstPath, tmpFileToEntryName)
+    }
+  }
+
+  private suspend fun exportTableToCsv(database: SqliteDatabaseId, srcTable: String, format: CSV, dstPath: Path) =
+    withContext(taskDispatcher) {
+      val query = createSqliteStatement(SqliteQueries.selectTableContents(srcTable))
+      exportQueryToCsv(database, query, format, dstPath)
+    }
+
+  private suspend fun exportQueryToCsv(database: SqliteDatabaseId, query: SqliteStatement, format: CSV, dstPath: Path) =
+    withContext(taskDispatcher) {
+      writeRowsToCsvFile(
+        executeQuery(database, query), // TODO(161081452): lock and download in chunks
+        format.delimiter,
+        dstPath
+      )
+    }
 
   private suspend fun createSqliteStatement(statementText: String): SqliteStatement = withContext(edtDispatcher) {
     createSqliteStatement(project, statementText)
