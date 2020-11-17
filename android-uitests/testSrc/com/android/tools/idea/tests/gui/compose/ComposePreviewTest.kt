@@ -42,7 +42,6 @@ import org.fest.swing.fixture.JPopupMenuFixture
 import org.fest.swing.timing.Wait
 import org.fest.swing.util.PatternTextMatcher
 import org.junit.After
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -236,7 +235,7 @@ class ComposePreviewTest {
 
     // Commented until b/156216008 is solved
     //assertFalse(composePreview.hasRenderErrors())
-    assertEquals(1, composePreview.designSurface.allSceneViews.count())
+    composePreview.waitForSceneViewsCount(1)
 
     val editor = fixture.editor
     editor.invokeAction(EditorFixture.EditorAction.TEXT_END)
@@ -265,7 +264,7 @@ class ComposePreviewTest {
     composePreview.waitForRenderToFinish()
 
     // Check the new preview has been added
-    assertEquals(2, composePreview.designSurface.allSceneViews.count())
+    composePreview.waitForSceneViewsCount(2)
 
     editor.close()
   }
@@ -276,9 +275,7 @@ class ComposePreviewTest {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
     val composePreview = openComposePreview(fixture, "MultipleComposePreviews.kt")
 
-    assertEquals(3, composePreview.designSurface
-      .allSceneViews
-      .size)
+    composePreview.waitForSceneViewsCount(3)
 
     composePreview.designSurface
       .allSceneViews
@@ -289,9 +286,7 @@ class ComposePreviewTest {
     composePreview
       .waitForRenderToFinish()
 
-    assertEquals(1, composePreview.designSurface
-      .allSceneViews
-      .size)
+    composePreview.waitForSceneViewsCount(1)
 
     composePreview
       .findActionButtonByText("Stop Interactive Preview")
@@ -300,9 +295,7 @@ class ComposePreviewTest {
     composePreview
       .waitForRenderToFinish()
 
-    assertEquals(3, composePreview.designSurface
-      .allSceneViews
-      .size)
+    composePreview.waitForSceneViewsCount(3)
 
     fixture.editor.close()
   }
@@ -374,9 +367,7 @@ class ComposePreviewTest {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
     val composePreview = openComposePreview(fixture, "Animations.kt")
 
-    assertEquals(2, composePreview.designSurface
-      .allSceneViews
-      .size)
+    composePreview.waitForSceneViewsCount(2)
 
     composePreview.designSurface
       .allSceneViews
@@ -387,9 +378,7 @@ class ComposePreviewTest {
     composePreview
       .waitForRenderToFinish()
 
-    assertEquals(1, composePreview.designSurface
-      .allSceneViews
-      .size)
+    composePreview.waitForSceneViewsCount(1)
 
     assertNotNull(composePreview.findAnimationInspector())
 
@@ -402,9 +391,7 @@ class ComposePreviewTest {
     composePreview
       .waitForRenderToFinish()
 
-    assertEquals(2, composePreview.designSurface
-      .allSceneViews
-      .size)
+    composePreview.waitForSceneViewsCount(2)
 
     assertNull(composePreview.findAnimationInspector())
 

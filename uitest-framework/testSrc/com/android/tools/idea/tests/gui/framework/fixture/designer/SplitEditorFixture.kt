@@ -79,6 +79,11 @@ class SplitEditorFixture(val robot: Robot, val editor: SplitEditor<out FileEdito
     return this
   }
 
+  fun waitForSceneViewsCount(count: Int, wait: Wait = Wait.seconds(10)): SplitEditorFixture {
+    wait.expecting("Expecting $count SceneView(s) to appear").until { designSurface.allSceneViews.size == count }
+    return this
+  }
+
   fun hasRenderErrors() = designSurface.hasRenderErrors()
 
   fun findActionButtonByText(text: String): ActionButtonFixture {
