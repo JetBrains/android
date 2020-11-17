@@ -52,9 +52,6 @@ import org.jetbrains.annotations.NotNull;
  */
 class AndroidLiveLiteralDeployMonitor {
 
-  private static final Object MAPPING_LOCK = new Object();
-  private static final Map<Project, List<String>> CONNECTED_PROJECT = new WeakHashMap();
-
   // TODO: The logging is overly excessive for now given we have no UI to provide feedback to the user
   // when things go wrong. This will be changed in the final product.
   private static LogWrapper LOGGER = new LogWrapper(Logger.getInstance(AndroidLiveLiteralDeployMonitor.class));
@@ -67,31 +64,15 @@ class AndroidLiveLiteralDeployMonitor {
    * This method mostly create a call back and it is locked to be thread-safe.
    */
   static Runnable getCallback(Project project, String packageName) {
-    synchronized (MAPPING_LOCK) {
-      if (!StudioFlags.COMPOSE_DEPLOY_LIVE_LITERALS.get()) {
-        return null;
-      }
-
-      List<String> packageNames = CONNECTED_PROJECT.get(project);
-      if (packageNames == null) {
-        packageNames = new ArrayList<>();
-        packageNames.add(packageName);
-        CONNECTED_PROJECT.put(project, packageNames);
-      }
-      else {
-        if (!packageNames.contains(packageName)) {
-          packageNames.add(packageName);
-        }
-        return null;
-      }
+    LiveLiteralsService.Companion.getInstance(project).setEnabled(false);
+    if (!StudioFlags.COMPOSE_DEPLOY_LIVE_LITERALS.get()) {
+      return null;
     }
 
     LOGGER.info("Creating monitor for project %s targeting app %s", project.getName(), packageName);
     return () -> {
       LiveLiteralsService.Companion.getInstance(project).addOnLiteralsChangedListener(
-        (Disposable) () -> {
-          CONNECTED_PROJECT.remove(project);
-        },
+        (Disposable) () -> {},
         (changes) -> {
           AndroidLiveLiteralDeployMonitor.pushLiteralsToDevice(project, packageName, (List<LiteralReference>)changes);
           return null;
@@ -140,15 +121,9 @@ class AndroidLiveLiteralDeployMonitor {
               LOGGER.info("Live Literal Value of type %s updated to %s", type, change.getConstantValue().toString());
             }
           }
+          LOGGER.info("Invoking Deployer.updateLiveLiteral for %s", packageName);
+          deployer.updateLiveLiteral(installer, adb, packageName, params);
 
-          List<String> packageNames = new ArrayList<>();
-          synchronized (MAPPING_LOCK) {
-            packageNames.addAll(CONNECTED_PROJECT.getOrDefault(project, ImmutableList.of()));
-          }
-          for (String targetName : packageNames) {
-            LOGGER.info("Invoking Deployer.updateLiveLiteral for %s", packageName);
-            deployer.updateLiveLiteral(installer, adb, targetName, params);
-          }
         }
       }
     });
