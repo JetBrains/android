@@ -76,7 +76,9 @@ private fun KotlinBuiltIns.getKotlinClassType(
   fqName: FqName,
   moduleDescriptor: ModuleDescriptor
 ): KotlinType {
-  return JavaToKotlinClassMap.mapJavaToKotlin(fqName, this)?.defaultType
+  val classId = JavaToKotlinClassMap.mapJavaToKotlin(fqName)
+  val classDescriptor = if (classId != null) getBuiltInClassByFqName(classId.asSingleFqName()) else null
+  return classDescriptor?.defaultType
          ?: ClassId.topLevel(fqName).let { moduleDescriptor.findClassAcrossModuleDependencies(it)?.defaultType }
          ?: fqName.getUnresolvedType()
 }
