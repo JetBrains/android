@@ -40,7 +40,7 @@ abstract class AbstractAndroidIntentionTest : KotlinAndroidTestCase() {
         try {
             val kotlinPlugin = TestUtils.getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin")
             val compilerLib = "$kotlinPlugin/kotlinc/lib"
-            ConfigLibraryUtil.addLibrary(myModule, "androidExtensionsRuntime", compilerLib, arrayOf("android-extensions-runtime.jar"))
+            ConfigLibraryUtil.addLibrary(myModule, "parcelizeCompiler", compilerLib, arrayOf("parcelize-compiler.jar"))
             ConfigLibraryUtil.addLibrary(myModule, "kotlinStdlib", compilerLib, arrayOf("kotlin-stdlib.jar"))
 
             if (withRuntime) {
@@ -79,7 +79,7 @@ abstract class AbstractAndroidIntentionTest : KotlinAndroidTestCase() {
             }
         }
         finally {
-            ConfigLibraryUtil.removeLibrary(myModule, "androidExtensionsRuntime")
+            ConfigLibraryUtil.removeLibrary(myModule, "parcelizeCompiler")
             ConfigLibraryUtil.removeLibrary(myModule, "kotlinStdlib")
             if (withRuntime) {
                 ConfigLibraryUtil.unConfigureKotlinRuntime(myFixture.module)
