@@ -25,7 +25,9 @@ private const val TRACKING_THREAD_LOCAL_FQCN = "com/android/layoutlib/reflection
  * This bytecode manipulation transform replaces all the references to [java.lang.ThreadLocal] with
  * [com.android.layoutlib.reflection.TrackingThreadLocal]. See [com.android.layoutlib.reflection.TrackingThreadLocal] for more details.
  */
-class ThreadLocalRenameTransform(val delegate: ClassVisitor) : ClassRemapper(delegate, ThreadLocalRemapper)
+class ThreadLocalRenameTransform(val delegate: ClassVisitor) : ClassRemapper(delegate, ThreadLocalRemapper), ClassVisitorUniqueIdProvider {
+  override val uniqueId: String = ThreadLocalRenameTransform::class.qualifiedName!!
+}
 
 private object ThreadLocalRemapper : Remapper() {
   override fun map(internalName: String?): String {

@@ -33,7 +33,6 @@ import org.jetbrains.android.uipreview.ClassBinaryCache;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.org.objectweb.asm.ClassVisitor;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -47,6 +46,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.util.List;
 
+import static com.android.tools.idea.rendering.classloading.UtilKt.toClassTransform;
 import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
@@ -99,7 +99,7 @@ public class RenderClassLoaderTest {
     FileUtil.copy(jarSource, testJarFile);
 
     RenderClassLoader loader =
-      new TestableRenderClassLoader(this.getClass().getClassLoader(), Function.identity(), ImmutableList.of(testJarFile.toURI().toURL()));
+      new TestableRenderClassLoader(this.getClass().getClassLoader(), ClassTransform.getIdentity(), ImmutableList.of(testJarFile.toURI().toURL()));
 
     loader.loadClassFromNonProjectDependency("com.myjar.MyJarClass");
     assertTrue(testJarFile.delete());
@@ -115,7 +115,7 @@ public class RenderClassLoaderTest {
     File classSource = new File(AndroidTestBase.getTestDataPath(), "rendering/renderClassLoader/MyJarClass.class");
     byte[] classBytes = Files.readAllBytes(classSource.toPath());
 
-    RenderClassLoader loader = new TestableRenderClassLoader(this.getClass().getClassLoader(), Function.identity(), ImmutableList.of()) {
+    RenderClassLoader loader = new TestableRenderClassLoader(this.getClass().getClassLoader(), ClassTransform.getIdentity(), ImmutableList.of()) {
 
       @NotNull
       @Override
@@ -137,7 +137,7 @@ public class RenderClassLoaderTest {
     File jarSource = new File(AndroidTestBase.getTestDataPath(), "rendering/renderClassLoader/mythreadlocals.jar");
 
     RenderClassLoader loader = new TestableRenderClassLoader(this.getClass().getClassLoader(),
-                                                             cv -> new ThreadLocalRenameTransform(cv),
+                                                             toClassTransform(ThreadLocalRenameTransform::new),
                                                              ImmutableList.of(jarSource.toURI().toURL()));
 
     Class<?> customThreadLocalClass = loader.loadClassFromNonProjectDependency("com.mythreadlocalsjar.CustomThreadLocal");
@@ -155,7 +155,7 @@ public class RenderClassLoaderTest {
     File jarSource = new File(AndroidTestBase.getTestDataPath(), "rendering/renderClassLoader/mythreadlocals.jar");
 
     RenderClassLoader loader = new TestableRenderClassLoader(this.getClass().getClassLoader(),
-                                                             cv -> new ThreadLocalRenameTransform(cv),
+                                                             toClassTransform(ThreadLocalRenameTransform::new),
                                                              ImmutableList.of(jarSource.toURI().toURL()));
 
     Class<?> customThreadLocalClass = loader.loadClassFromNonProjectDependency("com.mythreadlocalsjar.ThreadLocalContainer");
@@ -218,16 +218,16 @@ public class RenderClassLoaderTest {
     @NotNull
     private final List<URL> mDependencies;
     TestableRenderClassLoader(@NotNull ClassLoader parent,
-                              @NotNull Function<ClassVisitor, ClassVisitor> transformation,
+                              @NotNull ClassTransform transformations,
                               @NotNull List<URL> dependencies) {
-      super(parent, transformation);
+      super(parent, transformations);
       mDependencies = dependencies;
     }
 
     TestableRenderClassLoader(@NotNull ClassLoader parent,
                               @NotNull List<URL> dependencies,
                               @NotNull ClassBinaryCache cache) {
-      super(parent, Function.identity(), Function.identity(), Function.identity(), cache);
+      super(parent, ClassTransform.getIdentity(), ClassTransform.getIdentity(), Function.identity(), cache);
       mDependencies = dependencies;
     }
 

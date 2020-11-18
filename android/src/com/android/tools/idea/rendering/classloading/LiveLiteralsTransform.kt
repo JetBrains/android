@@ -182,8 +182,10 @@ private data class MethodData(val access: Int,
 class LiveLiteralsTransform @JvmOverloads constructor(
   delegate: ClassVisitor,
   private val fileInfoAnnotationName: String = FILE_INFO_ANNOTATION,
-  private val infoAnnotationName: String = INFO_ANNOTATION) : ClassVisitor(Opcodes.ASM7, delegate) {
+  private val infoAnnotationName: String = INFO_ANNOTATION) : ClassVisitor(Opcodes.ASM7, delegate), ClassVisitorUniqueIdProvider {
   private val LOG = Logger.getInstance(LiveLiteralsTransform::class.java)
+
+  override val uniqueId: String = "${LiveLiteralsTransform::className},$fileInfoAnnotationName,$infoAnnotationName"
 
   /**
    * The fully qualified class name.

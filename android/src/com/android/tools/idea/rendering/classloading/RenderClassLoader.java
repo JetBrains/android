@@ -48,8 +48,8 @@ import org.jetbrains.org.objectweb.asm.ClassWriter;
 public abstract class RenderClassLoader extends ClassLoader {
   protected static final Logger LOG = Logger.getInstance(RenderClassLoader.class);
 
-  private final Function<ClassVisitor, ClassVisitor> myProjectClassesTransformationProvider;
-  private final Function<ClassVisitor, ClassVisitor> myNonProjectClassesTransformationProvider;
+  private final ClassTransform myProjectClassesTransformationProvider;
+  private final ClassTransform myNonProjectClassesTransformationProvider;
   private final Object myJarClassLoaderLock = new Object();
   private final Function<String, String> myNonProjectClassNameLookup;
   @GuardedBy("myJarClassLoaderLock")
@@ -61,9 +61,9 @@ public abstract class RenderClassLoader extends ClassLoader {
    * Creates a new {@link RenderClassLoader}.
    *
    * @param parent the parent {@link ClassLoader}
-   * @param projectClassesTransformationProvider a {@link Function} that given a {@link ClassVisitor} returns a new one applying any desired
+   * @param projectClassesTransformationProvider a {@link ClassTransform} that given a {@link ClassVisitor} returns a new one applying any desired
    *                                             transformation. This transformation is only applied to classes from the user project.
-   * @param nonProjectClassesTransformationProvider a {@link Function} that given a {@link ClassVisitor} returns a new one applying any
+   * @param nonProjectClassesTransformationProvider a {@link ClassTransform} that given a {@link ClassVisitor} returns a new one applying any
    *                                                desired transformation. This transformation is applied to all classes except user
    *                                                project classes.
    * @param nonProjectClassNameLookup a {@link Function} that allows mapping "modified" class names to its original form so they can be
@@ -73,8 +73,8 @@ public abstract class RenderClassLoader extends ClassLoader {
    * @param cache a binary class representation cache to speed up jar file reads where possible.
    */
   public RenderClassLoader(@Nullable ClassLoader parent,
-                           @NotNull Function<ClassVisitor, ClassVisitor> projectClassesTransformationProvider,
-                           @NotNull Function<ClassVisitor, ClassVisitor> nonProjectClassesTransformationProvider,
+                           @NotNull ClassTransform projectClassesTransformationProvider,
+                           @NotNull ClassTransform nonProjectClassesTransformationProvider,
                            @NotNull Function<String, String> nonProjectClassNameLookup,
                            @NotNull ClassBinaryCache cache) {
     super(parent);
@@ -93,7 +93,7 @@ public abstract class RenderClassLoader extends ClassLoader {
    *                               transformation.
    */
   @TestOnly
-  public RenderClassLoader(@Nullable ClassLoader parent, @NotNull Function<ClassVisitor, ClassVisitor> transformationProvider) {
+  public RenderClassLoader(@Nullable ClassLoader parent, @NotNull ClassTransform transformationProvider) {
     this(parent, transformationProvider, transformationProvider, Function.identity(), ClassBinaryCache.NO_CACHE);
   }
 
@@ -104,7 +104,7 @@ public abstract class RenderClassLoader extends ClassLoader {
    */
   @TestOnly
   public RenderClassLoader(@Nullable ClassLoader parent) {
-    this(parent, Function.identity(), Function.identity(), Function.identity(), ClassBinaryCache.NO_CACHE);
+    this(parent, ClassTransform.getIdentity(), ClassTransform.getIdentity(), Function.identity(), ClassBinaryCache.NO_CACHE);
   }
 
   protected abstract List<URL> getExternalJars();

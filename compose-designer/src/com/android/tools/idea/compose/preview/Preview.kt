@@ -60,7 +60,7 @@ import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.classloading.CooperativeInterruptTransform
 import com.android.tools.idea.rendering.classloading.HasLiveLiteralsTransform
 import com.android.tools.idea.rendering.classloading.LiveLiteralsTransform
-import com.android.tools.idea.rendering.classloading.multiTransformOf
+import com.android.tools.idea.rendering.classloading.toClassTransform
 import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
@@ -169,22 +169,21 @@ private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
     interactive = isInteractive
     isUsePrivateClassLoader = usePrivateClassLoader
     if (isLiveLiteralsEnabled) {
-      setProjectClassesTransform { sourceVisitor ->
-        multiTransformOf(
+      setProjectClassesTransform(
+        toClassTransform(
           { if (StudioFlags.COMPOSE_PREVIEW_INTERRUPTIBLE.get()) CooperativeInterruptTransform(it) else it },
           { LiveLiteralsTransform(it) }
-        ).apply(sourceVisitor)
-      }
+        ))
     }
     else {
-      setProjectClassesTransform { sourceVisitor ->
-        multiTransformOf(
+      setProjectClassesTransform(
+        toClassTransform(
           { if (StudioFlags.COMPOSE_PREVIEW_INTERRUPTIBLE.get()) CooperativeInterruptTransform(it) else it },
           // Live literals is not enabled but we pass the [HasLiveLiteralsTransform] to identify if the current project
           // has live literals enabled.
           { HasLiveLiteralsTransform(it, onLiveLiteralsFound = onLiveLiteralsFound) }
-        ).apply(sourceVisitor)
-      }
+        )
+      )
     }
     setQuality(0.7f)
     setShowDecorations(showDecorations)
