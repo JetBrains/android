@@ -16,7 +16,7 @@
 
 package org.jetbrains.kotlin.android.parcel.quickfixes
 
-import kotlinx.android.parcel.IgnoredOnParcel
+import kotlinx.parcelize.IgnoredOnParcel
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPsiFactory
 

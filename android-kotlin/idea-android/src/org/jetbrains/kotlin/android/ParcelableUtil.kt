@@ -21,7 +21,7 @@ import com.android.SdkConstants.CLASS_PARCELABLE
 import com.android.tools.idea.kotlin.isSubclassOf
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.psi.PsiDocumentManager
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.PrimitiveType
 import org.jetbrains.kotlin.descriptors.ParameterDescriptor
