@@ -1,7 +1,7 @@
 package test
 
-import kotlinx.android.parcel.Parcelize
-import kotlinx.android.parcel.RawValue
+import kotlinx.parcelize.Parcelize
+import kotlinx.parcelize.RawValue
 import android.os.Parcelable
 
 @Parcelize
