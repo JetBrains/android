@@ -26,8 +26,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.AtomicNotNullLazyValue;
 import com.intellij.openapi.util.ModificationTracker;
+import com.intellij.openapi.util.NotNullLazyValue;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
@@ -74,7 +74,7 @@ import org.jetbrains.annotations.Nullable;
 public class LightDataBindingComponentClass extends AndroidLightClassBase implements ModificationTracker {
   private final AndroidFacet myFacet;
   private final CachedValue<PsiMethod[]> myMethodCache;
-  private final AtomicNotNullLazyValue<PsiFile> myContainingFile;
+  private final NotNullLazyValue<PsiFile> myContainingFile;
   private final DataBindingMode myMode;
 
   public LightDataBindingComponentClass(@NotNull PsiManager psiManager, final AndroidFacet facet) {
@@ -145,7 +145,7 @@ public class LightDataBindingComponentClass extends AndroidLightClassBase implem
         }
       , false);
 
-    myContainingFile = AtomicNotNullLazyValue.createValue(() -> {
+    myContainingFile = NotNullLazyValue.createAtomic(() -> {
       String packageName = myMode.packageName;
       if (packageName.endsWith(".")) {
         packageName = packageName.substring(0, packageName.length() - 1);
