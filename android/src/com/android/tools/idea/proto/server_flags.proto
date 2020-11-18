@@ -1,17 +1,9 @@
 syntax = "proto2";
 
-option java_package = "com.android.tools.idea";
-option java_multiple_files = true;
-
 import "google/protobuf/any.proto";
 
-// A specific version of Android Studio.
-message StudioVersion {
-  optional int32 major = 1;
-  optional int32 minor = 2;
-  optional int32 micro = 3;
-  optional int32 build = 4;
-}
+option java_package = "com.android.tools.idea";
+option java_multiple_files = true;
 
 // ServerFlag is a property used to configure a specific feature
 // at the client
@@ -45,39 +37,17 @@ message ServerFlagList {
   repeated ServerFlagData server_flags = 2;
 }
 
-// ServerConfiguration contains a ServerFlag object and a range of
-// StudioVersion objects that the flag should apply to
-message ServerConfiguration {
-  optional StudioVersion min_version = 1;
-  optional StudioVersion max_version = 2;
-  optional ServerFlag server_flag = 3;
-}
-
-// ServerConfigurationList is a list of ServerConfiguration objects
-message ServerConfigurationList {
-  repeated ServerConfiguration server_configurations = 1;
-}
-
 // An individual option in a survey
-// icon_path: path to icon in Android Studio
-// An individual option in a survey
-// icon_path: path to icon in Android Studio
-// label: text displayed to the user
 message Option {
-  optional string icon_path = 1;
-  optional string label = 2;
+  optional string icon_path = 1;  // path to icon in Android Studio
+  optional string label = 2;      // text displayed to the user
 }
 
 // A survey presented to the user
-// title: title of the survey
-// question: question posed to user
-// interval_days: number of days between survey being asked
-// answer_count: number of answers to be selected
-// options: list of survey options
 message Survey {
-  optional string title = 1;
-  optional string question = 2;
-  optional int32 interval_days = 3;
-  optional int32 answer_count = 4;
-  repeated Option options = 5;
+  optional string title = 1;         // title of the survey
+  optional string question = 2;      // question posed to user
+  optional int32 interval_days = 3;  // days between survey being asked
+  optional int32 answer_count = 4;   // number of answers to be selected
+  repeated Option options = 5;       // list of survey options
 }
