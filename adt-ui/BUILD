@@ -11,6 +11,7 @@ iml_module(
     test_data = [
         "//tools/adt/idea/artwork:device-art-resources",
     ],
+    test_flaky = True,  # b/172521726
     test_resources = ["src/test/resources"],
     test_srcs = ["src/test/java"],
     visibility = ["//visibility:public"],
