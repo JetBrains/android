@@ -165,7 +165,9 @@ private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
                                            onLiveLiteralsFound: () -> Unit,
                                            forceReinflate: Boolean = true): LayoutlibSceneManager =
   sceneManager.apply {
-    val usePrivateClassLoader = requestPrivateClassLoader || isLiveLiteralsEnabled
+    val usePrivateClassLoader = requestPrivateClassLoader
+                                || StudioFlags.COMPOSE_LIVE_LITERALS.get()
+                                || StudioFlags.COMPOSE_PREVIEW_INTERRUPTIBLE.get()
     val reinflate = forceReinflate || changeRequiresReinflate(showDecorations, isInteractive, usePrivateClassLoader)
     setTransparentRendering(!showDecorations)
     setShrinkRendering(!showDecorations)
@@ -181,7 +183,6 @@ private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
       }
     }
     else {
-
       setProjectClassesTransform { sourceVisitor ->
         multiTransformOf(
           { if (StudioFlags.COMPOSE_PREVIEW_INTERRUPTIBLE.get()) CooperativeInterruptTransform(it) else it },
