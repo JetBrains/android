@@ -118,4 +118,18 @@ class PTableModelImplTest {
     assertThat(impl.getValueAt(5, 0).name).isEqualTo("hide")
     assertThat(impl.getValueAt(6, 0).name).isEqualTo("item2")
   }
+
+  @Test
+  fun testModelWithMultipleEqualNodes() {
+    val model = createModel(Group("group", Group("group", Item("item")), Item("item")))
+    val group0 = model.items.single() as Group
+    val group1 = group0.children.first() as Group
+    val item1 = group0.children.last()
+    val item2 = group1.children.single()
+    val impl = PTableModelImpl(model)
+    assertThat(impl.parentOf(item1)).isSameAs(group0)
+    assertThat(impl.parentOf(item2)).isSameAs(group1)
+    assertThat(impl.depth(item1)).isEqualTo(1)
+    assertThat(impl.depth(item2)).isEqualTo(2)
+  }
 }
