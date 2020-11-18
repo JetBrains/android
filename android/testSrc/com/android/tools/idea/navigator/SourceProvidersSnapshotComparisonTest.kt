@@ -99,7 +99,7 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
       AndroidGradleTests.updateLocalProperties(projectRoot, TestUtils.getSdk())
     }
 
-    val project = PlatformTestUtil.loadAndOpenProject(projectPath.toPath())
+    val project = PlatformTestUtil.loadAndOpenProject(projectPath.toPath(), testRootDisposable)
     val text = project.dumpSourceProviders()
     PlatformTestUtil.forceCloseProjectWithoutSaving(project)
 
