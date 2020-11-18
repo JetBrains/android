@@ -177,6 +177,18 @@ public final class StudioFeatureTracker implements FeatureTracker {
            CpuCaptureMetadata.CaptureStatus.STOP_FAILED_CANNOT_FORM_FILE)
       .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_CANNOT_READ_FILE,
            CpuCaptureMetadata.CaptureStatus.STOP_FAILED_CANNOT_READ_FILE)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PATH_INVALID,
+           CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PATH_INVALID)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_READ_ERROR,
+           CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_READ_ERROR)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PARSER_UNKNOWN,
+           CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PARSER_UNKNOWN)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_FILE_HEADER_ERROR,
+           CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_FILE_HEADER_ERROR)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PARSER_ERROR,
+           CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PARSER_ERROR)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_CAUSE_UNKNOWN,
+           CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_CAUSE_UNKNOWN)
       .build();
 
   private final ImmutableMap<Class<? extends CaptureObjectInstanceFilter>, MemoryInstanceFilterMetadata.FilterType>

@@ -1127,7 +1127,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
                      TimeUnit.SECONDS.toNanos(3));
 
     CpuCaptureMetadata metadata = ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata();
-    assertThat(metadata.getStatus()).isEqualTo(CpuCaptureMetadata.CaptureStatus.PARSING_FAILURE);
+    assertThat(metadata.getStatus()).isEqualTo(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PARSER_ERROR);
     ArtSampledConfiguration metadataConfig = (ArtSampledConfiguration)metadata.getProfilingConfiguration();
     assertThat(metadataConfig.getProfilingSamplingIntervalUs()).isEqualTo(10);
     assertThat(metadataConfig.getProfilingBufferSizeInMb()).isEqualTo(15);

@@ -32,7 +32,8 @@ public class CpuCaptureMetadata {
     /** Deprecated by STOP_FAILED_* enum constants. */
     @Deprecated
     STOP_CAPTURING_FAILURE,
-    /** There was a failure when trying to parse the capture. */
+    /** Deprecated by PARSING_FAILED_* enum constants. */
+    @Deprecated
     PARSING_FAILURE,
     /** User aborted parsing the trace after being notified it was too large. */
     USER_ABORTED_PARSING,
@@ -63,7 +64,19 @@ public class CpuCaptureMetadata {
     /** Couldn't form the trace file into the format expected by Studio. */
     STOP_FAILED_CANNOT_FORM_FILE,
     /** Couldn't read the content of the trace file. */
-    STOP_FAILED_CANNOT_READ_FILE
+    STOP_FAILED_CANNOT_READ_FILE,
+    /** The trace file doesn't exist or is a directory. */
+    PARSING_FAILED_PATH_INVALID,
+    /** The trace file cannot be read. */
+    PARSING_FAILED_READ_ERROR,
+    /** Couldn't identify correct parser for the trace file. */
+    PARSING_FAILED_PARSER_UNKNOWN,
+    /** The trace file failed file header verification. */
+    PARSING_FAILED_FILE_HEADER_ERROR,
+    /** The trace file cannot be parsed by the identified parser, e.g. ART parser for Java method traces. */
+    PARSING_FAILED_PARSER_ERROR,
+    /** The trace file failed to be parsed due to unknown reasons. */
+    PARSING_FAILED_CAUSE_UNKNOWN
     ;
 
     public static CaptureStatus fromStopStatus(Cpu.TraceStopStatus.Status status) {
