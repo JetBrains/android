@@ -475,5 +475,7 @@
       </library>
     </orderEntry>
     <orderEntry type="library" scope="PROVIDED" name="javaslang" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="kotlinx-coroutines-jdk8" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="kotlin-reflect" level="project" />
   </component>
 </module>
