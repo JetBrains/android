@@ -219,6 +219,13 @@ public class LayoutlibSceneManager extends SceneManager {
   private ClassTransform myAdditionalNonProjectTransform = ClassTransform.getIdentity();
 
   /**
+   * Handler called when a new class loader has been instantiated. This allows resetting some state that
+   * might be specific to the classes currently loaded.
+   */
+  @NotNull
+  private Runnable myOnNewModuleClassLoader = () -> {};
+
+  /**
    * When true, this will force the current {@link RenderTask} to be disposed and re-created on the next render. This will also
    * re-inflate the model.
    */
@@ -1069,7 +1076,8 @@ public class LayoutlibSceneManager extends SceneManager {
 
     taskBuilder
       .setProjectClassesTransform(myAdditionalProjectTransform)
-      .setNonProjectClassesTransform(myAdditionalNonProjectTransform);
+      .setNonProjectClassesTransform(myAdditionalNonProjectTransform)
+      .setOnNewClassLoader(myOnNewModuleClassLoader);
 
     return taskBuilder;
   }
@@ -1572,6 +1580,14 @@ public class LayoutlibSceneManager extends SceneManager {
   @NotNull
   public void setNonProjectClassesTransform(@NotNull ClassTransform transform) {
     myAdditionalNonProjectTransform = transform;
+  }
+
+  /**
+   * Sets a callback to be notified when a new class loader has been instantiated.
+   */
+  @NotNull
+  public void setOnNewClassLoader(@NotNull Runnable runnable) {
+    myOnNewModuleClassLoader = runnable;
   }
 
   @Override

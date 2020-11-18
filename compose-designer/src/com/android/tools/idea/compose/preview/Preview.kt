@@ -149,6 +149,7 @@ fun LayoutlibSceneManager.changeRequiresReinflate(showDecorations: Boolean, isIn
  * @param isLiveLiteralsEnabled if true, the classes will be instrumented with live literals support.
  * @param onLiveLiteralsFound callback called when the classes have compiler live literals support. This callback will only be called if
  *  [isLiveLiteralsEnabled] is false. If true, the classes are assumed to have this support.
+ * @param resetLiveLiteralsFound callback called when the classes are about to be reloaded so the live literals state can be discarded.
  * @param forceReinflate forces re-inflating the layout.
  */
 private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
@@ -157,17 +158,17 @@ private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
                                            requestPrivateClassLoader: Boolean,
                                            isLiveLiteralsEnabled: Boolean,
                                            onLiveLiteralsFound: () -> Unit,
+                                           resetLiveLiteralsFound: () -> Unit,
                                            forceReinflate: Boolean = true): LayoutlibSceneManager =
   sceneManager.apply {
-    val usePrivateClassLoader = requestPrivateClassLoader
-                                || StudioFlags.COMPOSE_LIVE_LITERALS.get()
-                                || StudioFlags.COMPOSE_PREVIEW_INTERRUPTIBLE.get()
+    val usePrivateClassLoader = requestPrivateClassLoader || isLiveLiteralsEnabled
     val reinflate = forceReinflate || changeRequiresReinflate(showDecorations, isInteractive, usePrivateClassLoader)
     setTransparentRendering(!showDecorations)
     setShrinkRendering(!showDecorations)
     setUseImagePool(false)
     interactive = isInteractive
     isUsePrivateClassLoader = usePrivateClassLoader
+    setOnNewClassLoader(resetLiveLiteralsFound)
     if (isLiveLiteralsEnabled) {
       setProjectClassesTransform(
         toClassTransform(
@@ -721,6 +722,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                          requestPrivateClassLoader = usePrivateClassLoader(),
                                          isLiveLiteralsEnabled = isLiveLiteralsEnabled,
                                          onLiveLiteralsFound = { hasLiveLiterals = true },
+                                         resetLiveLiteralsFound = { hasLiveLiterals = isLiveLiteralsEnabled },
                                          forceReinflate = forceReinflate)
           reusedModel
         }
@@ -746,6 +748,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                          isInteractive = interactiveMode.isStartingOrReady(),
                                          isLiveLiteralsEnabled = isLiveLiteralsEnabled,
                                          onLiveLiteralsFound = { hasLiveLiterals = true },
+                                         resetLiveLiteralsFound = { hasLiveLiterals = isLiveLiteralsEnabled },
                                          requestPrivateClassLoader = usePrivateClassLoader())
           newModel
         }
@@ -879,6 +882,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                                requestPrivateClassLoader = usePrivateClassLoader(),
                                                isLiveLiteralsEnabled = isLiveLiteralsEnabled,
                                                onLiveLiteralsFound = { hasLiveLiterals = true },
+                                               resetLiveLiteralsFound = { hasLiveLiterals = isLiveLiteralsEnabled },
                                                forceReinflate = false)
                   .requestComposeRender()
                   .await()

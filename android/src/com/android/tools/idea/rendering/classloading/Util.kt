@@ -55,7 +55,7 @@ class ClassTransform(private val transforms: List<java.util.function.Function<Cl
         acc, visitor ->
           val newVisitor = visitor.apply(acc.second)
           if (newVisitor != acc.second) {
-            "${newVisitor.uniqueId()}/${acc.first}" to newVisitor
+            "${newVisitor.uniqueId()}\n${acc.first}" to newVisitor
           } else {
             // The provider was the identity, skip this in the uniqueId output.
             acc.first to newVisitor

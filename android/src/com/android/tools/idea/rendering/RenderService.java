@@ -392,6 +392,13 @@ public class RenderService implements Disposable {
      */
     private ClassTransform myAdditionalNonProjectTransform = ClassTransform.getIdentity();
 
+    /**
+     * Handler called when a new class loader has been instantiated. This allows resetting some state that
+     * might be specific to the classes currently loaded.
+     */
+    @NotNull
+    private Runnable myOnNewModuleClassLoader = () -> {};
+
     private RenderTaskBuilder(@NotNull RenderService service,
                               @NotNull AndroidFacet facet,
                               @NotNull Configuration configuration,
@@ -555,6 +562,15 @@ public class RenderService implements Disposable {
     }
 
     /**
+     * Sets a callback to be notified when a new class loader has been instantiated.
+     */
+    @NotNull
+    public RenderTaskBuilder setOnNewClassLoader(@NotNull Runnable runnable) {
+      myOnNewModuleClassLoader = runnable;
+      return this;
+    }
+
+    /**
      * Builds a new {@link RenderTask}. The returned future always completes successfully but the value might be null if the RenderTask
      * can not be created.
      */
@@ -614,7 +630,7 @@ public class RenderService implements Disposable {
             new RenderTask(myFacet, myService, myConfiguration, myLogger, layoutLib,
                            device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myDownscaleFactor, stackTraceCaptureElement, myManifestProvider,
-                           privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform);
+                           privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader);
           if (myPsiFile instanceof XmlFile) {
             task.setXmlFile((XmlFile)myPsiFile);
           }
