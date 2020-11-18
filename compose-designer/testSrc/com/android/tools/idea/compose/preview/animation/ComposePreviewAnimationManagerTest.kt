@@ -21,6 +21,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform
 import com.android.tools.idea.rendering.classloading.RenderClassLoader
+import com.android.tools.idea.rendering.classloading.toClassTransform
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.collect.ImmutableList
@@ -234,7 +235,7 @@ class ComposePreviewAnimationManagerTest {
   @Test
   @Throws(IOException::class, ClassNotFoundException::class)
   fun classLoaderRedirectsSubscriptionToAnimationManager() {
-    class PreviewAnimationClockClassLoader : RenderClassLoader(this.javaClass.classLoader, { PreviewAnimationClockMethodTransform(it) }) {
+    class PreviewAnimationClockClassLoader : RenderClassLoader(this.javaClass.classLoader, toClassTransform({ PreviewAnimationClockMethodTransform(it) })) {
       override fun getExternalJars(): List<URL> {
         val basePath = TestUtils.getWorkspaceFile("tools/adt/idea/compose-designer/testData/classloader").path
         val jarSource = File(basePath, "composeanimation.jar")

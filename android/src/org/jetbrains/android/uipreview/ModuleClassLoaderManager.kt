@@ -20,6 +20,7 @@ import com.android.tools.idea.LogAnonymizerUtil.anonymize
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.rendering.RenderService
+import com.android.tools.idea.rendering.classloading.ClassTransform
 import com.android.tools.idea.rendering.classloading.combine
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -31,11 +32,9 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.uipreview.ModuleClassLoader.NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS
 import org.jetbrains.android.uipreview.ModuleClassLoader.PROJECT_DEFAULT_TRANSFORMS
-import org.jetbrains.org.objectweb.asm.ClassVisitor
 import java.lang.IllegalStateException
 import java.util.Collections
 import java.util.WeakHashMap
-import java.util.function.Function.identity
 
 private val DUMMY_HOLDER = Any()
 
@@ -128,8 +127,8 @@ class ModuleClassLoaderManager {
   fun getPrivate(parent: ClassLoader?,
                  module: Module,
                  holder: Any,
-                 additionalProjectTransformation: java.util.function.Function<ClassVisitor, ClassVisitor> = identity(),
-                 additionalNonProjectTransformation: java.util.function.Function<ClassVisitor, ClassVisitor> = identity()): ModuleClassLoader {
+                 additionalProjectTransformation: ClassTransform = ClassTransform.identity,
+                 additionalNonProjectTransformation: ClassTransform = ClassTransform.identity): ModuleClassLoader {
     // Make sure the helper service is initialized
     module.project.getService(ModuleClassLoaderProjectHelperService::class.java)
 

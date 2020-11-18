@@ -53,6 +53,7 @@ import com.android.tools.idea.model.ActivityAttributesSnapshot;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
@@ -88,7 +89,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -103,7 +103,6 @@ import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.org.objectweb.asm.ClassVisitor;
 
 /**
  * The {@link RenderTask} provides rendering and layout information for
@@ -204,8 +203,8 @@ public class RenderTask {
              @NotNull StackTraceCapture stackTraceCaptureElement,
              @NotNull Function<Module, MergedManifestSnapshot> manifestProvider,
              boolean privateClassLoader,
-             @NotNull Function<ClassVisitor, ClassVisitor> additionalProjectTransform,
-             @NotNull Function<ClassVisitor, ClassVisitor> additionalNonProjectTransform) {
+             @NotNull ClassTransform additionalProjectTransform,
+             @NotNull ClassTransform additionalNonProjectTransform) {
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
 
     if (!isSecurityManagerEnabled) {
