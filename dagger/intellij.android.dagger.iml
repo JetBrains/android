@@ -15,7 +15,7 @@
     <orderEntry type="module" module-name="intellij.java.impl" />
     <orderEntry type="module" module-name="intellij.java" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
-    <orderEntry type="library" name="kotlin-plugin-android-compile-deps" level="project" />
+    <orderEntry type="module" module-name="intellij.android.kotlin-dependencies" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
