@@ -122,11 +122,10 @@ class SelectProcessAction(private val model: AppInspectionProcessModel, private 
       }
       if (preferredProcesses.isNotEmpty() && otherProcesses.isNotEmpty()) {
         add(Separator.getInstance())
-        for (process in otherProcesses) {
-          add(ConnectAction(process, model))
-        }
       }
-
+      for (process in otherProcesses) {
+        add(ConnectAction(process, model))
+      }
       if (childrenCount == 0) {
         add(NO_PROCESS_ACTION)
       }
