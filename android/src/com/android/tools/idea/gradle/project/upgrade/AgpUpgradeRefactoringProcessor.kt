@@ -42,7 +42,7 @@ import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginDependency
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
-import com.android.tools.idea.gradle.project.upgrade.AgpGradleVersionRefactoringProcessor.Companion.CompatibleGradleVersion.*
+import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.*
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginRelatedDependency
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.Companion.INSERT_OLD_USAGE_TYPE
@@ -980,22 +980,6 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
     val GRADLE_URL_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.agpGradleVersionRefactoringProcessor.gradleUrlUsageType"))
     val WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.agpGradleVersionRefactoringProcessor.wellKnownGradlePluginUsageType"))
 
-    enum class CompatibleGradleVersion(val version: GradleVersion) {
-      // versions earlier than 4.4 (corresponding to AGP 3.0.0 and below) are not needed because
-      // we no longer support running such early versions of Gradle given our required JDKs, so upgrading to
-      // them using this functionality is a non-starter.
-      VERSION_4_4(GradleVersion.parse("4.4")),
-      VERSION_4_6(GradleVersion.parse("4.6")),
-      VERSION_MIN(GradleVersion.parse(GRADLE_MINIMUM_VERSION)),
-      VERSION_4_10_1(GradleVersion.parse("4.10.1")),
-      VERSION_5_1_1(GradleVersion.parse("5.1.1")),
-      VERSION_5_4_1(GradleVersion.parse("5.4.1")),
-      VERSION_5_6_4(GradleVersion.parse("5.6.4")),
-      VERSION_6_1_1(GradleVersion.parse("6.1.1")),
-      VERSION_6_5(GradleVersion.parse("6.5")),
-      VERSION_FOR_DEV(GradleVersion.parse(GRADLE_LATEST_VERSION))
-    }
-
     fun getCompatibleGradleVersion(agpVersion: GradleVersion): CompatibleGradleVersion {
       val agpVersionMajorMinor = GradleVersion(agpVersion.major, agpVersion.minor)
       val compatibleGradleVersion = when {
@@ -1044,6 +1028,22 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
       "androidx.navigation:navigation-safe-args-gradle-plugin" to ::`androidx-navigation-safeargs-gradle-plugin-compatibility-info`,
     )
   }
+}
+
+enum class CompatibleGradleVersion(val version: GradleVersion) {
+  // versions earlier than 4.4 (corresponding to AGP 3.0.0 and below) are not needed because
+  // we no longer support running such early versions of Gradle given our required JDKs, so upgrading to
+  // them using this functionality is a non-starter.
+  VERSION_4_4(GradleVersion.parse("4.4")),
+  VERSION_4_6(GradleVersion.parse("4.6")),
+  VERSION_MIN(GradleVersion.parse(GRADLE_MINIMUM_VERSION)),
+  VERSION_4_10_1(GradleVersion.parse("4.10.1")),
+  VERSION_5_1_1(GradleVersion.parse("5.1.1")),
+  VERSION_5_4_1(GradleVersion.parse("5.4.1")),
+  VERSION_5_6_4(GradleVersion.parse("5.6.4")),
+  VERSION_6_1_1(GradleVersion.parse("6.1.1")),
+  VERSION_6_5(GradleVersion.parse("6.5")),
+  VERSION_FOR_DEV(GradleVersion.parse(GRADLE_LATEST_VERSION))
 }
 
 class GradleVersionUsageInfo(
