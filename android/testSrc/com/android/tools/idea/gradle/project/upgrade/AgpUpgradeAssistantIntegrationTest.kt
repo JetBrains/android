@@ -27,8 +27,6 @@ import java.io.File
 
 class AgpUpgradeAssistantIntegrationTest : AndroidGradleTestCase() {
   fun testUpgradeBasic40() {
-    // TODO(b/172205437): re-enable when the prebuilts don't have a broken GradleConnection cache
-    return
     loadProject("upgrade/Projects/Basic40", null, "6.1.1", "4.0.0", "1.3.72", null)
 
     val appModule = ModuleManager.getInstance(project).modules.first { it.name == "Basic40.app" }

@@ -1056,6 +1056,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.3.6:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.3.7:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.3.9:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/trove4j/trove4j/20160824:jar",
         "//prebuilts/tools/common/m2/repository/org/jvnet/staxex/stax-ex/1.7.7:jar",
         "//prebuilts/tools/common/m2/repository/org/jvnet/staxex/stax-ex/1.8:jar",
         "//prebuilts/tools/common/m2/repository/org/mockito/mockito-core/3.0.0:jar",
