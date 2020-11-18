@@ -57,14 +57,10 @@ import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javaslang.collection.Array;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -245,9 +241,9 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
         assertThat(target).isInstanceOf(XmlAttributeValue.class);
       }
       List<String> getTextList = ContainerUtil.map(targets, it -> it.getText());
-      assertThat(getTextList).containsExactlyElementsIn(Array.of("\"LabelView\"", "\"LabelView\"", "\"LabelView\""));
+      assertThat(getTextList).containsExactlyElementsIn(Arrays.asList("\"LabelView\"", "\"LabelView\"", "\"LabelView\""));
       List<String> containingFileList = ContainerUtil.map(targets, it -> it.getContainingFile().getName());
-      assertThat(containingFileList).containsExactlyElementsIn(Array.of("attrs5.xml", "attrs.xml", "attrs.xml"));
+      assertThat(containingFileList).containsExactlyElementsIn(Arrays.asList("attrs5.xml", "attrs.xml", "attrs.xml"));
     } else {
       assertEquals(1, targets.length);
       PsiElement targetElement = targets[0];
@@ -750,7 +746,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
           assertThat(it.getSeverity()).isEqualTo(HighlightInfoType.ELEMENT_UNDER_CARET_SEVERITY);
         });
         List<String> getTextList = ContainerUtil.map(highlightInfos, it -> it.getText());
-        assertThat(getTextList).containsExactlyElementsIn(Array.of("foo", "@string/foo"));
+        assertThat(getTextList).containsExactlyElementsIn(Arrays.asList("foo", "@string/foo"));
       } else {
         assertThat(highlightInfos).hasSize(1);
         HighlightInfo highlightInfo = Iterables.getOnlyElement(highlightInfos);
