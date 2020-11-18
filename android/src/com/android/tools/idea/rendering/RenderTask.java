@@ -183,10 +183,10 @@ public class RenderTask {
 
   /**
    * Don't create this task directly; obtain via {@link RenderService}
-   *
-   * @param quality            Factor from 0 to 1 used to downscale the rendered image. A lower value means smaller images used
+   *  @param quality            Factor from 0 to 1 used to downscale the rendered image. A lower value means smaller images used
    *                           during rendering at the expense of quality. 1 means that downscaling is disabled.
    * @param privateClassLoader if true, this task should have its own ModuleClassLoader, if false it can use a shared one for the module
+   * @param onNewModuleClassLoader
    */
   RenderTask(@NotNull AndroidFacet facet,
              @NotNull RenderService renderService,
@@ -204,7 +204,8 @@ public class RenderTask {
              @NotNull Function<Module, MergedManifestSnapshot> manifestProvider,
              boolean privateClassLoader,
              @NotNull ClassTransform additionalProjectTransform,
-             @NotNull ClassTransform additionalNonProjectTransform) {
+             @NotNull ClassTransform additionalNonProjectTransform,
+             @NotNull Runnable onNewModuleClassLoader) {
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
 
     if (!isSecurityManagerEnabled) {
@@ -232,8 +233,14 @@ public class RenderTask {
         myLayoutLib.getClassLoader(),
         module,
         this, additionalProjectTransform, additionalNonProjectTransform);
+      onNewModuleClassLoader.run();
     } else {
-      myModuleClassLoader = manager.getShared(myLayoutLib.getClassLoader(), module, this);
+      myModuleClassLoader = manager.getShared(myLayoutLib.getClassLoader(),
+                                              module,
+                                              this,
+                                              additionalProjectTransform,
+                                              additionalNonProjectTransform,
+                                              onNewModuleClassLoader);
     }
     try {
       myLayoutlibCallback =

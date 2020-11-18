@@ -20,7 +20,9 @@ import static com.android.tools.idea.rendering.classloading.ClassConverter.isVal
 
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.GuardedBy;
+import com.google.common.base.Charsets;
 import com.google.common.base.Suppliers;
+import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
@@ -56,6 +58,10 @@ public abstract class RenderClassLoader extends ClassLoader {
   private final Supplier<UrlClassLoader> myJarClassLoader = Suppliers.memoize(() -> createJarClassLoader(getExternalJars()));
   protected boolean myInsideJarClassLoader;
   private final ClassBinaryCache myTransformedClassCache;
+  private final Object myCachedTransformationUniqueIdLock = new Object();
+  @GuardedBy("myCachedTransformationUniqueIdLock")
+  @Nullable
+  private String myCachedTransformationUniqueId = null;
 
   /**
    * Creates a new {@link RenderClassLoader}.
@@ -105,6 +111,33 @@ public abstract class RenderClassLoader extends ClassLoader {
   @TestOnly
   public RenderClassLoader(@Nullable ClassLoader parent) {
     this(parent, ClassTransform.getIdentity(), ClassTransform.getIdentity(), Function.identity(), ClassBinaryCache.NO_CACHE);
+  }
+
+  private static String calculateTransformationsUniqueId(@NotNull ClassTransform projectClassesTransformationProvider,
+                                                         @NotNull ClassTransform nonProjectClassesTransformationProvider) {
+    //noinspection UnstableApiUsage
+    return Hashing.goodFastHash(64).newHasher()
+      .putString(projectClassesTransformationProvider.getId(), Charsets.UTF_8)
+      .putString(nonProjectClassesTransformationProvider.getId(), Charsets.UTF_8)
+      .hash()
+      .toString();
+  }
+
+  @NotNull
+  private String getTransformationsUniqueId() {
+    synchronized (myCachedTransformationUniqueIdLock) {
+      if (myCachedTransformationUniqueId == null) {
+        myCachedTransformationUniqueId = calculateTransformationsUniqueId(myProjectClassesTransformationProvider, myNonProjectClassesTransformationProvider);
+      }
+
+      return myCachedTransformationUniqueId;
+    }
+  }
+
+  public boolean areTransformationsUpToDate(@NotNull ClassTransform projectClassesTransformationProvider,
+                                            @NotNull ClassTransform nonProjectClassesTransformationProvider) {
+    return getTransformationsUniqueId()
+      .equals(calculateTransformationsUniqueId(projectClassesTransformationProvider, nonProjectClassesTransformationProvider));
   }
 
   protected abstract List<URL> getExternalJars();

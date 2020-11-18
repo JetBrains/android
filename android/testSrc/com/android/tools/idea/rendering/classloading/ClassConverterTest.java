@@ -368,10 +368,10 @@ public class ClassConverterTest extends TestCase {
         visitor -> new TestVisitorWithId(visitor, "AnId")
       );
 
-      assertTrue(visitorGroup.getDebugId().startsWith("TestVisitorWithId AnId/"));
+      assertTrue(visitorGroup.getDebugId().startsWith("TestVisitorWithId AnId"));
       assertTrue("Second element is expected to be an instance id", Pattern.matches(
-        "ClassVisitor:\\p{Alnum}*/",
-        StringUtil.substringAfter(visitorGroup.getDebugId(), "/")));
+        TestVisitor.class.getCanonicalName() + ":\\p{Alnum}*\n",
+        StringUtil.substringAfter(visitorGroup.getDebugId(), "\n")));
     }
 
     {
@@ -382,7 +382,8 @@ public class ClassConverterTest extends TestCase {
         visitor -> new TestVisitorWithId(visitor, "Id2")
       );
 
-      assertEquals("TestVisitorWithId Id2/TestVisitorWithId Id1/", visitorGroup.getDebugId());
+      assertEquals("TestVisitorWithId Id2\n" +
+                   "TestVisitorWithId Id1\n", visitorGroup.getDebugId());
     }
 
     // Check the same as above without using identity. In this case, because the instance is not the same,
@@ -393,7 +394,8 @@ public class ClassConverterTest extends TestCase {
         visitor -> new TestVisitorWithId(visitor, "Id1")
       );
 
-      assertEquals("TestVisitorWithId Id1/TestVisitorWithId Id1/", visitorGroup.getDebugId());
+      assertEquals("TestVisitorWithId Id1\n" +
+                   "TestVisitorWithId Id1\n", visitorGroup.getDebugId());
     }
   }
 
