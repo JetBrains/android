@@ -159,7 +159,7 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
   fun testMissingImlIsIgnored() {
     prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION_CORRUPTED_MISSING_IML_40, "testMissingImlIsIgnored_Test")
     val text = openPreparedProject("testMissingImlIsIgnored_Test" ) { project: Project ->
-    project.dumpAndroidProjectView()
+    dumpAndroidProjectView(project)
   }
 
     assertIsEqualToSnapshot(text)
@@ -271,13 +271,13 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     }
 
     fun applySettings(settings: ProjectViewSettings) {
-      ProjectView.getInstance(this).apply {
+      ProjectView.getInstance(this.project).apply {
         setHideEmptyPackages(AndroidProjectViewPane.ID, settings.hideEmptyPackages)
         (this as ProjectViewImpl).setFlattenPackages(AndroidProjectViewPane.ID, settings.flattenPackages);
       }
     }
 
-    fun getCurrentSettings(): ProjectViewSettings = ProjectView.getInstance(this).let { view ->
+    fun getCurrentSettings(): ProjectViewSettings = ProjectView.getInstance(this.project).let { view ->
       ProjectViewSettings(
         hideEmptyPackages = view.isHideEmptyMiddlePackages(AndroidProjectViewPane.ID),
         flattenPackages = view.isFlattenPackages(AndroidProjectViewPane.ID)

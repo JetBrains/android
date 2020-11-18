@@ -17,15 +17,19 @@ package com.android.tools.idea.uibuilder.motion.adapters;
 
 import com.intellij.openapi.components.ComponentManager;
 import com.intellij.openapi.extensions.AreaInstance;
+import com.intellij.openapi.extensions.PluginDescriptor;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBus;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
 import org.picocontainer.PicoContainer;
+import java.util.Map;
 
 public class MXProject  implements Project {
   @NotNull
@@ -114,6 +118,31 @@ public class MXProject  implements Project {
   @NotNull
   @Override
   public Condition<?> getDisposed() {
+    return null;
+  }
+
+  @Override
+  public @NotNull RuntimeException createError(@NotNull Throwable error,
+                                               @NotNull PluginId pluginId) {
+    return null;
+  }
+
+  @Override
+  public @NotNull RuntimeException createError(@NotNull @NonNls String message,
+                                               @NotNull PluginId pluginId) {
+    return null;
+  }
+
+  @Override
+  public @NotNull RuntimeException createError(@NotNull @NonNls String message,
+                                               @NotNull PluginId pluginId,
+                                               @Nullable Map<String, String> attachments) {
+    return null;
+  }
+
+  @Override
+  public @NotNull <T> Class<T> loadClass(@NotNull String className,
+                                         @NotNull PluginDescriptor pluginDescriptor) throws ClassNotFoundException {
     return null;
   }
 

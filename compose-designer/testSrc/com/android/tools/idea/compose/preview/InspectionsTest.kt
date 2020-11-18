@@ -33,7 +33,7 @@ import org.junit.Test
  * Returns the [HighlightInfo] description adding the relative line number
  */
 private fun HighlightInfo.descriptionWithLineNumber() = ReadAction.compute<String, Throwable> {
-  "${StringUtil.offsetToLineNumber(highlighter.document.text, startOffset)}: ${description}"
+  "${StringUtil.offsetToLineNumber(highlighter!!.document.text, startOffset)}: ${description}"
 }
 
 class InspectionsTest  {
