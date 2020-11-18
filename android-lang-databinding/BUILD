@@ -47,6 +47,7 @@ iml_module(
         "//tools/base/build-system:studio_repo.zip",
         "//tools/data-binding:data_binding_runtime.zip",
     ],
+    test_shard_count = 2,
     test_srcs = ["testSrc"],
     test_timeout = "long",
     visibility = ["//visibility:public"],
