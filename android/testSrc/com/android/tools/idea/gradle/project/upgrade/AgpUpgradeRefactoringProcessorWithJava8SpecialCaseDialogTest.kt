@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.junit.Test
 import java.lang.reflect.Field
 import javax.swing.Action
+import javax.swing.JEditorPane
 
 class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialogTest : HeavyPlatformTestCase() {
   private val isPreviewUsagesField: Field = BaseRefactoringProcessor::class.java.getDeclaredField("myIsPreviewUsages")
@@ -98,6 +99,28 @@ class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialogTest : HeavyPlatfo
     val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor, processor.getJava8DefaultRefactoringProcessor(), false,
                                                                           true)
     (processor.componentRefactoringProcessors + processor.classpathRefactoringProcessor).forEach { checkConsistency(it) }
+    Disposer.dispose(dialog.disposable)
+  }
+
+  @Test
+  fun testHasNoWarningTextIfFilesNotChanged() {
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("4.2.0-alpha05"))
+    processor.setJava8DefaultIsAlwaysNoOpForProject(false)
+    val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor, processor.getJava8DefaultRefactoringProcessor(), false)
+    val editorPanes = UIUtil.findComponentsOfType(dialog.createCenterPanel(), JEditorPane::class.java)
+    assertSize(1, editorPanes)
+    assertFalse(editorPanes[0].text.contains("<b>Warning</b>:"))
+    Disposer.dispose(dialog.disposable)
+  }
+
+  @Test
+  fun testHasWarningTextIfFilesChanged() {
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("4.2.0-alpha05"))
+    processor.setJava8DefaultIsAlwaysNoOpForProject(false)
+    val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor, processor.getJava8DefaultRefactoringProcessor(), true)
+    val editorPanes = UIUtil.findComponentsOfType(dialog.createCenterPanel(), JEditorPane::class.java)
+    assertSize(1, editorPanes)
+    assertTrue(editorPanes[0].text.contains("<b>Warning</b>:"))
     Disposer.dispose(dialog.disposable)
   }
 

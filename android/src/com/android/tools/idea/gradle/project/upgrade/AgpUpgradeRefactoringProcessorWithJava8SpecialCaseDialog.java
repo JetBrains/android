@@ -19,6 +19,7 @@ import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
 import static com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT;
 import static com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT;
 import static com.android.tools.idea.gradle.project.upgrade.AgpUpgradeRefactoringProcessorKt.notifyCancelledUpgrade;
+import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.isCleanEnoughProject;
 import static com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT;
 import static com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT;
 import static com.intellij.ide.BrowserUtil.browse;
@@ -100,11 +101,12 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
       Action backAction = new AbstractAction(UIUtil.replaceMnemonicAmpersand("&Back")) {
         @Override
         public void actionPerformed(ActionEvent e) {
+          boolean hasChangesInBuildFiles = !isCleanEnoughProject(myProcessor.getProject());
           boolean runProcessor = ActionsKt.invokeAndWaitIfNeeded(
             NON_MODAL,
             () -> {
               DialogWrapper dialog = new AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(
-                myProcessor, myJava8Processor, false, true);
+                myProcessor, myJava8Processor, hasChangesInBuildFiles, true);
               return dialog.showAndGet();
             });
             if (runProcessor) {
@@ -136,6 +138,12 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
       sb.append("<li>").append(myProcessor.getClasspathRefactoringProcessor().getCommandName()).append(".").append("</li>");
     }
     sb.append("</ul>");
+
+    if (hasChangedBuildFiles) {
+      sb.append("<br/><p><b>Warning</b>: there are uncommitted changes in project build files.  Before upgrading, " +
+                "you should commit or revert changes to the build files so that changes from the upgrade process " +
+                "can be handled separately.</p>");
+    }
     myEditorPane.setText(sb.toString());
 
     if (myJava8Processor.isEnabled() && !myJava8Processor.isAlwaysNoOpForProject()) {
