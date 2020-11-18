@@ -249,28 +249,23 @@ class MergedManifestManager(module: Module) : Disposable {
      * [getMergedManifestSupplier] instead.
      */
     @JvmStatic
-    fun getMergedManifest(module: Module) = getMergedManifestSupplier(module).get()
+    fun getMergedManifest(module: Module): ListenableFuture<MergedManifestSnapshot> = getMergedManifestSupplier(module).get()
 
     @JvmStatic
-    fun getMergedManifestSupplier(module: Module) = getInstance(module).mergedManifest
+    fun getMergedManifestSupplier(module: Module): AsyncSupplier<MergedManifestSnapshot> = getInstance(module).mergedManifest
 
     @JvmStatic
-    fun getModificationTracker(module: Module) = getInstance(module).modificationTracker
+    fun getModificationTracker(module: Module): ModificationTracker = getInstance(module).modificationTracker
 
     @Deprecated(
       message = "Do NOT call this function! It only exists as a workaround to avoid deadlocks when computing the merged manifest."
                 + " Use the AsyncSupplier returned by getMergedManifestSupplier() instead.",
       replaceWith = ReplaceWith("MergedManifestManager.getMergedManifestSupplier(module)")
     )
+    @Slow
     @JvmStatic
-    fun getFreshSnapshotInCallingThread(module: Module) = getInstance(module).supplier.getOrCreateSnapshotInCallingThread()
-
-    @Deprecated(
-      message = "Use the AsyncSupplier returned by getMergedManifestSupplier() instead.",
-      replaceWith = ReplaceWith("MergedManifestManager.getMergedManifestSupplier(facet.module).now")
-    )
-    @JvmStatic
-    fun getCachedSnapshot(facet: AndroidFacet) = getMergedManifestSupplier(facet.module).now
+    fun getFreshSnapshotInCallingThread(module: Module): MergedManifestSnapshot =
+        getInstance(module).supplier.getOrCreateSnapshotInCallingThread()
 
     /**
      * Returns a potentially stale [MergedManifestSnapshot] for the given [AndroidFacet], blocking the calling
@@ -280,8 +275,9 @@ class MergedManifestManager(module: Module) : Disposable {
       message = "To avoid blocking the calling thread, use the AsyncSupplier returned by getMergedManifestSupplier() instead.",
       replaceWith = ReplaceWith("MergedManifestManager.getMergedManifestSupplier(facet.module)")
     )
+    @Slow
     @JvmStatic
-    fun getSnapshot(facet: AndroidFacet) = getSnapshot(facet.module)
+    fun getSnapshot(facet: AndroidFacet): MergedManifestSnapshot = getSnapshot(facet.module)
 
     /**
      * Returns a potentially stale [MergedManifestSnapshot] for the given [Module], blocking the calling
@@ -291,6 +287,7 @@ class MergedManifestManager(module: Module) : Disposable {
       message = "To avoid blocking the calling thread, use the AsyncSupplier returned by getMergedManifestSupplier() instead.",
       replaceWith = ReplaceWith("MergedManifestManager.getMergedManifestSupplier(module)")
     )
+    @Slow
     @JvmStatic
     fun getSnapshot(module: Module): MergedManifestSnapshot {
       val supplier = getInstance(module).supplier
@@ -305,6 +302,7 @@ class MergedManifestManager(module: Module) : Disposable {
       message = "To avoid blocking the calling thread, asynchronously respond to the future returned by getMergedManifest() instead.",
       replaceWith = ReplaceWith("MergedManifestManager.getMergedManifest(module)")
     )
+    @Slow
     @JvmStatic
     fun getFreshSnapshot(module: Module): MergedManifestSnapshot {
       val supplier = getInstance(module).supplier
