@@ -176,15 +176,27 @@ public class RenderClassLoaderTest {
 
     ClassBinaryCache cache = new ClassBinaryCache() {
       private final Map<String, byte[]> mCache = new HashMap<>();
+
       @Nullable
       @Override
-      public byte[] get(@NotNull String fqcn) {
-        return mCache.get(fqcn);
+      public byte[] get(@NotNull String fqcn, @NotNull String transformationId) {
+        return mCache.get(fqcn + ":" + transformationId);
+      }
+
+      @Override
+      public void put(@NotNull String fqcn, @NotNull String transformationId, @NotNull String libraryPath, @NotNull byte[] data) {
+        mCache.put(fqcn + ":" + transformationId, data);
       }
 
       @Override
       public void put(@NotNull String fqcn, @NotNull String libraryPath, @NotNull byte[] data) {
-        mCache.put(fqcn, data);
+        put(fqcn, "", libraryPath, data);
+      }
+
+      @Nullable
+      @Override
+      public byte[] get(@NotNull String fqcn) {
+        return get(fqcn, "");
       }
 
       @Override
