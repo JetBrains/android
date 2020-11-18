@@ -28,7 +28,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
-import java.lang.RuntimeException
+import java.lang.IllegalArgumentException
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
@@ -101,7 +101,8 @@ class CpuCaptureParserTest {
 
   @Test
   fun corruptedTraceFileCompletesExceptionally() {
-    val parser = CpuCaptureParser(FakeIdeProfilerServices())
+    val services = FakeIdeProfilerServices()
+    val parser = CpuCaptureParser(services)
     val corruptedTrace = CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace") // Malformed trace file.
 
     // Parsing will fail because the trace is corrupted. However, the future capture should still be created properly (not null).
@@ -114,6 +115,31 @@ class CpuCaptureParserTest {
       // We expect getting the capture to throw an ExecutionException because the trace failed to be parsed.
       // CpuCapture fails with an IllegalStateException
       assertThat(e.cause).isInstanceOf(CpuCaptureParser.ParsingFailureException::class.java)
+    } finally {
+      val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
+      assertThat(fakeFeatureTracker.lastCpuCaptureMetadata.status).isEqualTo(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PARSER_ERROR)
+    }
+  }
+
+  @Test
+  fun invalidTraceFilePathCompletesExceptionally() {
+    val services = FakeIdeProfilerServices()
+    val parser = CpuCaptureParser(services)
+    val corruptedTrace = CpuProfilerTestUtils.getTraceFile("") // Trace directory.
+
+    // Parsing will fail because the trace file is a directory. However, the future capture should still be created properly (not null).
+    val futureCapture = parser.parseForTestWithArt(corruptedTrace)
+    try {
+      futureCapture.get()
+      fail()
+    }
+    catch (e: ExecutionException) {
+      // We expect getting the capture to throw an ExecutionException because the trace file is a directory.
+      // CpuCapture fails with an ExecutionException
+      assertThat(e.cause).isInstanceOf(CpuCaptureParser.InvalidPathParsingFailureException::class.java)
+    } finally {
+      val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
+      assertThat(fakeFeatureTracker.lastCpuCaptureMetadata.status).isEqualTo(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PATH_INVALID)
     }
   }
 
@@ -449,13 +475,18 @@ class CpuCaptureParserTest {
       fail()
     }
     catch (e: ExecutionException) {
-      assertThat(e).hasCauseThat().isInstanceOf(CpuCaptureParser.ParsingFailureException::class.java)
+      assertThat(e).hasCauseThat().isInstanceOf(CpuCaptureParser.FileHeaderParsingFailureException::class.java)
       assertThat(e).hasCauseThat().hasMessageThat().contains(
-        "Trace ${traceFile.absolutePath} expected to be of type PERFETTO but failed input verification.")
+        "Trace file '${traceFile.absolutePath}' expected to be of type PERFETTO but failed header verification.")
 
       assertThat(e).hasCauseThat().hasCauseThat().isInstanceOf(Throwable::class.java)
       assertThat(e).hasCauseThat().hasCauseThat().hasMessageThat().contains(
         "Encountered unknown tag (84) when attempting to parse perfetto capture.")
+    }
+    finally {
+      val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
+      assertThat(fakeFeatureTracker.lastCpuCaptureMetadata.status).isEqualTo(
+        CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_FILE_HEADER_ERROR)
     }
   }
 
@@ -478,10 +509,14 @@ class CpuCaptureParserTest {
     }
     catch (e: ExecutionException) {
       assertThat(e).hasCauseThat().isInstanceOf(CpuCaptureParser.ParsingFailureException::class.java)
-      assertThat(e).hasCauseThat().hasMessageThat().contains("Trace ${traceFile.absolutePath} failed to be parsed as PERFETTO")
+      assertThat(e).hasCauseThat().hasMessageThat().contains("Trace file '${traceFile.absolutePath}' failed to be parsed as PERFETTO")
 
       assertThat(e).hasCauseThat().hasCauseThat().isInstanceOf(RuntimeException::class.java)
       assertThat(e).hasCauseThat().hasCauseThat().hasMessageThat().contains("Unable to load trace with TPD.")
+    }
+    finally {
+      val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
+      assertThat(fakeFeatureTracker.lastCpuCaptureMetadata.status).isEqualTo(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PARSER_ERROR)
     }
   }
 
@@ -504,10 +539,14 @@ class CpuCaptureParserTest {
     }
     catch (e: ExecutionException) {
       assertThat(e).hasCauseThat().isInstanceOf(CpuCaptureParser.ParsingFailureException::class.java)
-      assertThat(e).hasCauseThat().hasMessageThat().contains("Trace ${traceFile.absolutePath} failed to be parsed as PERFETTO")
+      assertThat(e).hasCauseThat().hasMessageThat().contains("Trace file '${traceFile.absolutePath}' failed to be parsed as PERFETTO")
 
       assertThat(e).hasCauseThat().hasCauseThat().isInstanceOf(RuntimeException::class.java)
       assertThat(e).hasCauseThat().hasCauseThat().hasMessageThat().contains("Unable to load trace with TPD.")
+    }
+    finally {
+      val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
+      assertThat(fakeFeatureTracker.lastCpuCaptureMetadata.status).isEqualTo(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PARSER_ERROR)
     }
   }
 
