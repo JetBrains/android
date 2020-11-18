@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.rendering.classloading
 
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Functions
+import com.google.common.hash.Hashing
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
 
@@ -37,7 +39,7 @@ interface ClassVisitorUniqueIdProvider {
 private fun ClassVisitor.uniqueId(): String = if (this is ClassVisitorUniqueIdProvider)
   uniqueId
 else
-  "ClassVisitor:${System.identityHashCode(this).toString(16)}"
+  "${this::class.qualifiedName}:${System.identityHashCode(this).toString(16)}"
 
 /**
  * Class that represents a group of [ClassVisitor] to be applied to an input class that will generated a transformed output.
@@ -46,7 +48,8 @@ else
  * is the same, the transformation applied by both is the same.
  */
 class ClassTransform(private val transforms: List<java.util.function.Function<ClassVisitor, ClassVisitor>>) {
-  val id: String
+  @VisibleForTesting
+  val debugId: String
     get() = java.util.function.Function<Pair<String, ClassVisitor>, Pair<String, ClassVisitor>> {
       transforms.fold(it) {
         acc, visitor ->
@@ -59,6 +62,11 @@ class ClassTransform(private val transforms: List<java.util.function.Function<Cl
           }
       }
     }.apply("" to EmptyClassVisitor).first
+
+  val id: String by lazy {
+    @Suppress("UnstableApiUsage")
+    Hashing.goodFastHash(64).hashString(debugId, Charsets.UTF_8).toString()
+  }
 
   operator fun invoke(visitor: ClassVisitor): ClassVisitor =
     java.util.function.Function<ClassVisitor, ClassVisitor> { transforms.fold(it) { acc, visitor -> visitor.apply(acc) } }.apply(visitor)

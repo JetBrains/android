@@ -55,7 +55,7 @@ public abstract class RenderClassLoader extends ClassLoader {
   @GuardedBy("myJarClassLoaderLock")
   private final Supplier<UrlClassLoader> myJarClassLoader = Suppliers.memoize(() -> createJarClassLoader(getExternalJars()));
   protected boolean myInsideJarClassLoader;
-  private final ClassBinaryCache myClassCache;
+  private final ClassBinaryCache myTransformedClassCache;
 
   /**
    * Creates a new {@link RenderClassLoader}.
@@ -81,7 +81,7 @@ public abstract class RenderClassLoader extends ClassLoader {
     myProjectClassesTransformationProvider = projectClassesTransformationProvider;
     myNonProjectClassesTransformationProvider = nonProjectClassesTransformationProvider;
     myNonProjectClassNameLookup = nonProjectClassNameLookup;
-    myClassCache = cache;
+    myTransformedClassCache = cache;
   }
 
 
@@ -133,9 +133,8 @@ public abstract class RenderClassLoader extends ClassLoader {
   @NotNull
   protected Class<?> loadClassFromNonProjectDependency(@NotNull String name) throws ClassNotFoundException {
     try {
-      byte[] data = getClassData(name);
-      byte[] rewritten = ClassConverter.rewriteClass(data, myNonProjectClassesTransformationProvider, ClassWriter.COMPUTE_MAXS, this);
-      return defineClassAndPackage(name, rewritten, 0, rewritten.length);
+      byte[] data = getNonProjectClassData(name, myNonProjectClassesTransformationProvider);
+      return defineClassAndPackage(name, data, 0, data.length);
     }
     catch (IOException | ClassNotFoundException e) {
       LOG.debug(e);
@@ -144,9 +143,13 @@ public abstract class RenderClassLoader extends ClassLoader {
     }
   }
 
+  /**
+   * Loads from disk the given class and applies the transformation.
+   */
   @NotNull
-  private byte[] getClassData(@NotNull String name) throws ClassNotFoundException, IOException {
-    byte[] cachedData = myClassCache.get(name);
+  private byte[] getNonProjectClassData(@NotNull String name, @NotNull ClassTransform classTransform) throws ClassNotFoundException, IOException {
+    String classTransformId = classTransform.getId();
+    byte[] cachedData = myTransformedClassCache.get(name, classTransformId);
     if (cachedData != null) {
       return cachedData;
     }
@@ -173,13 +176,14 @@ public abstract class RenderClassLoader extends ClassLoader {
       if (!isValidClassFile(data)) {
         throw new ClassFormatError(name);
       }
+      byte[] transformedData = ClassConverter.rewriteClass(data, classTransform, ClassWriter.COMPUTE_MAXS, this);
       Pair<String, String> splitPath = URLUtil.splitJarUrl(classUrl.getPath());
       if (splitPath != null) {
-        myClassCache.put(name, splitPath.first, data);
+        myTransformedClassCache.put(name, classTransformId, splitPath.first, transformedData);
       } else {
         LOG.warn("Could not find the file for " + classUrl);
       }
-      return data;
+      return transformedData;
     }
     finally {
       myInsideJarClassLoader = false;

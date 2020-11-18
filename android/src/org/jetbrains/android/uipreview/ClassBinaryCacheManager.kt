@@ -86,9 +86,10 @@ class ClassBinaryCacheManager private constructor(ticker: Ticker, maxWeight: Lon
     private fun notCurrentDependency(path: String?) = path !in libraryPaths
 
     // @LayoutlibRenderThread
-    override fun get(fqcn: String): ByteArray? {
+    override fun get(fqcn: String, transformationId: String): ByteArray? {
+      val key = getCachingKey(fqcn, transformationId)
       // If the url for the class is not in this module dependencies we should invalidate the whole library (url) and make
-      val libraryPath = lock.withLock { classFqn2LibraryPath[fqcn] }
+      val libraryPath = lock.withLock { classFqn2LibraryPath[key] }
       if (notCurrentDependency(libraryPath)) {
         libraryPath?.let {
           lock.withLock { libraryPath2ClassFqns.remove(libraryPath) }?.forEach { globalCache.invalidate(it) }
@@ -96,16 +97,19 @@ class ClassBinaryCacheManager private constructor(ticker: Ticker, maxWeight: Lon
         return null
       }
 
-      return globalCache.getIfPresent(fqcn)
+      return globalCache.getIfPresent(key)
     }
 
+    private fun getCachingKey(fqcn: String, transformationId: String) = "$transformationId:$fqcn"
+
     // @LayoutlibRenderThread
-    override fun put(fqcn: String, libraryPath: String, data: ByteArray) {
+    override fun put(fqcn: String, transformationId: String, libraryPath: String, data: ByteArray) {
+      val key = getCachingKey(fqcn, transformationId)
       lock.withLock {
-        classFqn2LibraryPath[fqcn] = libraryPath
+        classFqn2LibraryPath[key] = libraryPath
         libraryPath2ClassFqns.computeIfAbsent(libraryPath) { mutableSetOf() }.add(fqcn)
       }
-      globalCache.put(fqcn, data)
+      globalCache.put(key, data)
     }
 
     @AnyThread
