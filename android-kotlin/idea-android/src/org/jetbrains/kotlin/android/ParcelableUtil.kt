@@ -62,9 +62,10 @@ private val DESCRIBE_CONTENTS_TEXT = "override fun describeContents(): Int {\nre
 private val CONSTRUCTOR_TEXT = "constructor($PARCEL_NAME: $CLASS_PARCEL)"
 
 private val PARCELIZE_FQNAME = FqName(Parcelize::class.java.name)
+private val PARCELIZE_FQNAME_LEGACY = FqName("kotlinx.android.parcel.Parcelize")
 
 //TODO add test
-fun KtClass.isParcelize() = findAnnotation(PARCELIZE_FQNAME) != null
+fun KtClass.isParcelize() = findAnnotation(PARCELIZE_FQNAME) != null || findAnnotation(PARCELIZE_FQNAME_LEGACY) != null
 
 fun KtClass.canAddParcelable(): Boolean =
         findParcelableSupertype() == null
