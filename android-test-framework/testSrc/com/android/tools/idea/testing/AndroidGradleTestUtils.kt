@@ -78,6 +78,7 @@ import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.util.AndroidTestPaths
 import com.android.utils.FileUtils
 import com.android.utils.appendCapitalized
 import com.google.common.collect.ImmutableList
@@ -930,7 +931,7 @@ interface GradleIntegrationTest {
   /**
    * The path to a test data directory relative to the workspace or `null` to use the legacy resolution.
    */
-  fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String
+  fun getTestDataDirectoryAdtIdeaRelativePath(): @SystemIndependent String
 
   /**
    * The collection of additional repositories to be added to the Gradle project.
@@ -941,8 +942,8 @@ interface GradleIntegrationTest {
    * The base testData directory to be used in tests.
    */
   fun resolveTestDataPath(testDataPath: @SystemIndependent String): File {
-    val testDataDirectory = File(TestUtils.getWorkspaceRoot(), toSystemDependentName(getTestDataDirectoryWorkspaceRelativePath()))
-    return testDataDirectory.resolve(toSystemDependentName(testDataPath))
+    val testDataDirectory = AndroidTestPaths.adtSources().resolve(toSystemDependentName(getTestDataDirectoryAdtIdeaRelativePath()))
+    return testDataDirectory.resolve(toSystemDependentName(testDataPath)).toFile()
   }
 }
 
