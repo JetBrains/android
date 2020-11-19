@@ -26,10 +26,11 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ModificationTracker
 import org.jetbrains.android.facet.AndroidFacet
@@ -81,18 +82,18 @@ private class MergedManifestSupplier(private val module: Module) : AsyncSupplier
   override fun dispose() {
   }
 
-  override fun getModificationCount() = delegate.modificationCount
+  override fun getModificationCount(): Long = delegate.modificationCount
 
   override val now: MergedManifestSnapshot?
     // getOrCreateSnapshotFromDelegate clears snapshotFromCallingThread before using it,
     // so if the value is not null, it must be more recent than whatever the delegate has cached.
     get() = synchronized(callingThreadLock) { snapshotFromCallingThread } ?: delegate.now
 
-  override fun get() = delegate.get()
+  override fun get(): ListenableFuture<MergedManifestSnapshot> = delegate.get()
 
   @Slow
   private fun getOrCreateSnapshot(cachedSnapshot: MergedManifestSnapshot?): MergedManifestSnapshot {
-    return runReadAction {
+    return runCancellableReadAction {
       val facet = module.androidFacet
                   ?: throw IllegalArgumentException("Attempt to obtain manifest info from a non Android module: ${module.name}")
       when {
@@ -213,7 +214,14 @@ private class MergedManifestSupplier(private val module: Module) : AsyncSupplier
     // The only way the snapshot's merged manifest info could be null is if the facet
     // is disposed, in which case there's no need to try and recalculate it.
     val mergedManifestInfo = snapshot.mergedManifestInfo ?: return true
-    return runReadAction(mergedManifestInfo::isUpToDate)
+    return runCancellableReadAction(mergedManifestInfo::isUpToDate)
+  }
+
+  private fun <T> runCancellableReadAction(computable: Computable<T>): T {
+    if (ApplicationManager.getApplication().isReadAccessAllowed) {
+      return computable.compute()
+    }
+    return ReadAction.nonBlocking(computable::compute).executeSynchronously()
   }
 }
 
