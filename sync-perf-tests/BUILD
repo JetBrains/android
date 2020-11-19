@@ -17,30 +17,46 @@ iml_module(
         "AverageSmoke": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.AverageSmokeTest",
             "timeout": "long",
+            "tags": [
+                "no_test_mac",
+                "no_test_windows",
+            ],
         },
         "Base100Smoke": {
             "data": ["//prebuilts/studio/buildbenchmarks:Base100_project"],
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100SmokeTest",
             "timeout": "long",
-            "tags": ["no_windows"],
+            "tags": [
+                "no_test_mac",
+                "no_test_windows",
+            ],
         },
         "Base100KotlinSmoke": {
             "data": ["//prebuilts/studio/buildbenchmarks:Base100_project"],
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100KotlinSmokeTest",
             "timeout": "long",
-            "tags": ["no_windows"],
+            "tags": [
+                "no_test_mac",
+                "no_test_windows",
+            ],
         },
         "DolphinSmoke": {
             "data": ["//prebuilts/studio/buildbenchmarks/dolphin.3627ef8a"],
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.DolphinSmokeTest",
             "timeout": "long",
-            "tags": ["no_windows"],
+            "tags": [
+                "no_test_mac",
+                "no_test_windows",
+            ],
         },
         "SantaTrackerSmoke": {
             "data": ["//prebuilts/studio/buildbenchmarks:SantaTracker_project"],
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.SantaTrackerSmokeTest",
             "timeout": "long",
-            "tags": ["no_windows"],
+            "tags": [
+                "no_test_mac",
+                "no_test_windows",
+            ],
         },
         # Perfgate tests
         "Base100": {
