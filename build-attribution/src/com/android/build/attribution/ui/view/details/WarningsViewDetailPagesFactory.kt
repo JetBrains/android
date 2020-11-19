@@ -153,15 +153,12 @@ class WarningsViewDetailPagesFactory(
       <br/>
       This annotation processor is non-incremental and causes the JavaCompile task to always run non-incrementally.<br/>
       Consider switching to using an incremental annotation processor.<br/>
-    """.trimIndent()
-    val recommendationText = """
       <br/>
       <b>Recommendation</b><br/>
-      Ensure that you are using the most recent version of this annotation processor.<br/>
     """.trimIndent()
     val linkPanel = JPanel().apply {
       layout = FlowLayout(FlowLayout.LEFT, 0, 0)
-      add(HyperlinkLabel("Learn more").apply {
+      add(HyperlinkLabel("Make sure that you are using an incremental version of this annotation processor.").apply {
         val target = BuildAnalyzerBrowserLinks.NON_INCREMENTAL_ANNOTATION_PROCESSORS
         addHyperlinkListener { actionHandlers.helpLinkClicked(target) }
         setHyperlinkTarget(target.urlTarget)
@@ -172,6 +169,5 @@ class WarningsViewDetailPagesFactory(
     add(htmlTextLabelWithFixedLines(headerText).with2pxShift(), TabularLayout.Constraint(0, 2))
     add(htmlTextLabelWithFixedLines(descriptionText).with2pxShift(), TabularLayout.Constraint(1, 2))
     add(linkPanel, TabularLayout.Constraint(2, 2))
-    add(htmlTextLabelWithFixedLines(recommendationText).with2pxShift(), TabularLayout.Constraint(3, 2))
   }
 }
