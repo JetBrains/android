@@ -28,7 +28,9 @@ import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.VerticalOnlyLayoutManager
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
@@ -60,10 +62,10 @@ internal fun createPreviewDesignSurface(
   project: Project,
   navigationHandler: NlDesignSurface.NavigationHandler,
   delegateInteractionHandler: DelegateInteractionHandler,
-  psiFilePointer: SmartPsiElementPointer<PsiFile>,
-  previewRepresentation: ComposePreviewRepresentation,
+  dataProvider: DataProvider,
+  parentDisposable: Disposable,
   sceneManagerProvider: BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager>): NlDesignSurface =
-  NlDesignSurface.builder(project, previewRepresentation)
+  NlDesignSurface.builder(project, parentDisposable)
     .setIsPreview(true)
     .showModelNames()
     .setNavigationHandler(navigationHandler)
@@ -73,16 +75,7 @@ internal fun createPreviewDesignSurface(
     .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }
     .setSceneManagerProvider(sceneManagerProvider)
     .setEditable(true)
-    .setDelegateDataProvider {
-      return@setDelegateDataProvider when (it) {
-        COMPOSE_PREVIEW_MANAGER.name -> previewRepresentation
-        // The Compose preview NlModels do not point to the actual file but to a synthetic file
-        // generated for Layoutlib. This ensures we return the right file.
-        CommonDataKeys.VIRTUAL_FILE.name -> psiFilePointer.virtualFile
-        CommonDataKeys.PROJECT.name -> project
-        else -> null
-      }
-    }
+    .setDelegateDataProvider(dataProvider)
     .setSelectionModel(NopSelectionModel)
     .build()
     .apply {
