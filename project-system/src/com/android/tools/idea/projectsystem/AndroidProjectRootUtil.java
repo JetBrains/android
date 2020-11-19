@@ -20,11 +20,11 @@ import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import com.google.common.base.Strings;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.io.File;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,9 +51,11 @@ public class AndroidProjectRootUtil {
       return null;
     }
 
+    ProgressManager.checkCanceled();
     String moduleDirPath = getModuleDirPath(module);
     if (moduleDirPath != null) {
       String absPath = toSystemIndependentName(moduleDirPath + relativePath);
+      ProgressManager.checkCanceled();
       VirtualFile file = LocalFileSystem.getInstance().findFileByPath(absPath);
       if (file != null) {
         return file;
@@ -64,6 +66,7 @@ public class AndroidProjectRootUtil {
     if (lookInContentRoot) {
       for (VirtualFile contentRoot : contentRoots) {
         String absPath = toSystemIndependentName(contentRoot.getPath() + relativePath);
+        ProgressManager.checkCanceled();
         VirtualFile file = LocalFileSystem.getInstance().findFileByPath(absPath);
         if (file != null) {
           return file;

@@ -10,6 +10,7 @@ import com.intellij.facet.FacetManagerAdapter;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.DependencyScope;
@@ -186,6 +187,7 @@ public class AndroidDependenciesCache implements Disposable {
     // is required by two higher level libraries it can be inserted in the correct place.
 
     for (int i = entries.length; --i >= 0;) {
+      ProgressManager.checkCanceled();
       OrderEntry orderEntry = entries[i];
       if (orderEntry instanceof ModuleOrderEntry) {
         ModuleOrderEntry moduleOrderEntry = (ModuleOrderEntry)orderEntry;
