@@ -5,7 +5,7 @@ import com.android.SdkConstants.VIEW_TAG
 import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.imports.AndroidMavenImportFix
-import com.android.tools.idea.imports.MavenClassRegistry
+import com.android.tools.idea.imports.getMavenClassRegistry
 import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.LocalQuickFix
@@ -100,10 +100,10 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
           }
         }
         val name = className.substring(className.lastIndexOf('.') + 1)
-        val imported = MavenClassRegistry.findImport(name)
+        val imported = getMavenClassRegistry().findImport(name)
         if (imported != null && (className == imported || className == AndroidxNameUtils.getNewName(className))) {
           // Have fix
-          var artifact = MavenClassRegistry.findArtifact(name) ?: "library"
+          var artifact = getMavenClassRegistry().findArtifact(name) ?: "library"
           if (tag.project.isAndroidx()) {
             artifact = AndroidxNameUtils.getCoordinateMapping(artifact)
           }

@@ -104,7 +104,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
 
     // Also add dependent annotation processor?
     if (module.getModuleSystem().canRegisterDependency(DependencyType.ANNOTATION_PROCESSOR).isSupported()) {
-      MavenClassRegistry.findAnnotationProcessor(artifact)?.let { it ->
+      getMavenClassRegistry().findAnnotationProcessor(artifact)?.let { it ->
         val annotationProcessor = if (project.isAndroidx()) {
           AndroidxNameUtils.getCoordinateMapping(it)
         }
@@ -229,7 +229,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
 
   fun findArtifact(project: Project, element: PsiElement): String? {
     val text = element.text
-    val artifact = MavenClassRegistry.findArtifact(text) ?: return null
+    val artifact = getMavenClassRegistry().findArtifact(text) ?: return null
 
     return if (project.isAndroidx()) {
       var androidx = AndroidxNameUtils.getCoordinateMapping(artifact)
@@ -238,7 +238,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       // whether you're importing from a Kotlin file, not whether the project
       // contains Kotlin.
       if (isKotlin(element)) {
-        androidx = MavenClassRegistry.findKtxLibrary(androidx) ?: androidx
+        androidx = getMavenClassRegistry().findKtxLibrary(androidx) ?: androidx
       }
 
       androidx
@@ -250,7 +250,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
 
   private fun findImport(project: Project, element: PsiElement, caret: Int): String? {
     val text = findElement(element, caret).text
-    val fqn = MavenClassRegistry.findImport(text) ?: return null
+    val fqn = getMavenClassRegistry().findImport(text) ?: return null
     return if (project.isAndroidx()) {
       AndroidxNameUtils.getNewName(fqn)
     }
