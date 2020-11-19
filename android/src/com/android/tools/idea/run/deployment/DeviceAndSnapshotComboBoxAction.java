@@ -43,6 +43,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JComponent;
@@ -50,6 +51,7 @@ import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+@SuppressWarnings("ComponentNotRegistered")
 public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   /**
    * Run configurations that aren't {@link AndroidRunConfiguration} or {@link AndroidTestRunConfiguration} can use this key
@@ -205,11 +207,22 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @VisibleForTesting
   Device getSelectedDevice(@NotNull Project project) {
     List<Device> devices = getDevices(project).orElse(Collections.emptyList());
-    return myDevicesSelectedServiceGetInstance.apply(project).getDeviceSelectedWithComboBox(devices);
+    Optional<Target> target = myDevicesSelectedServiceGetInstance.apply(project).getTargetSelectedWithComboBox(devices);
+
+    if (!target.isPresent()) {
+      return null;
+    }
+
+    Key key = target.get().getDeviceKey();
+
+    return devices.stream()
+      .filter(device -> device.matches(key))
+      .findFirst()
+      .orElseThrow(AssertionError::new);
   }
 
   void setSelectedDevice(@NotNull Project project, @NotNull Device selectedDevice) {
-    myDevicesSelectedServiceGetInstance.apply(project).setDeviceSelectedWithComboBox(selectedDevice);
+    myDevicesSelectedServiceGetInstance.apply(project).setTargetSelectedWithComboBox(new Target(selectedDevice.getKey()));
     setActiveTarget(project, Collections.singleton(selectedDevice.getKey()));
   }
 
@@ -229,16 +242,15 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     DevicesSelectedService service = myDevicesSelectedServiceGetInstance.apply(project);
 
     if (service.isMultipleDevicesSelectedInComboBox()) {
-      return service.getDeviceKeysSelectedWithDialog();
+      return service.getTargetsSelectedWithDialog().stream()
+        .map(Target::getDeviceKey)
+        .collect(Collectors.toSet());
     }
 
-    Device device = service.getDeviceSelectedWithComboBox(devices);
-
-    if (device == null) {
-      return Collections.emptySet();
-    }
-
-    return Collections.singleton(device.getKey());
+    return service.getTargetSelectedWithComboBox(devices)
+      .map(Target::getDeviceKey)
+      .map(Collections::singleton)
+      .orElseGet(Collections::emptySet);
   }
 
   void selectMultipleDevices(@NotNull Project project) {
