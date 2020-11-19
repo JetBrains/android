@@ -23,12 +23,12 @@ import com.android.tools.property.ptable2.PTableGroupItem
 /**
  * PropertyItem instance that holds child items.
  */
-class InspectorGroupPropertyItem(
+open class InspectorGroupPropertyItem(
   namespace: String,
   name: String,
   type: LayoutInspectorProto.Property.Type,
   value: String?,
-  val classLocation: SourceLocation?,
+  open val classLocation: SourceLocation?,
   group: PropertySection,
   source: ResourceReference?,
   viewId: Long,

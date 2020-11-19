@@ -46,6 +46,23 @@ class StudioTests(unittest.TestCase):
       if m:
         self.assertEquals(m.group(1), "Info.plist", "Only Info.plist should be present in Contents (Found " + m.group(1) + ")")
 
+  def test_mac_filelist(self):
+    """Tests whether the _codesign/filelist file is up to date.
+
+    When building the macOS distribution, //tools/adt/idea/studio/codesign/filelist
+    is copied to _codesign/filelist in the final zip. This test ensures that
+    the entries in filelist are up to date.
+    """
+    name = "tools/adt/idea/studio/android-studio.mac.zip"
+    macos_zip = zipfile.ZipFile(name)
+    namelist = macos_zip.namelist()
+    filelist = macos_zip.open("_codesign/filelist")
+    for line in filelist:
+      line = line.decode("utf-8").strip()
+      if line.startswith("#"):
+        continue
+      self.assertIn(line, namelist, "%s is in _codesign/filelist but is not present in distribution" % line)
+
   def test_no_build_files(self):
     for platform in PLATFORMS:
       name = "tools/adt/idea/studio/android-studio.%s.zip" % platform
@@ -149,34 +166,6 @@ class StudioTests(unittest.TestCase):
     with zipfile.ZipFile(name) as mac_zip:
       kotlin_plugin_count = sum(name.endswith("kotlin-plugin.jar") for name in mac_zip.namelist())
       self.assertEqual(kotlin_plugin_count, 1)
-
-  @unittest.skip("b/166452874")
-  def test_kotlin_binary_compatibility(self):
-    # TODO Update this test to work with prebuilts
-    dist_all = os.path.join(out_dir, "dist.all")
-
-    for output_dir in glob.glob("plugin-verifier*"):
-      shutil.rmtree(output_dir)
-
-    args = [
-        os.path.join(java_home, "bin", "java"),
-        "-Dplugin.verifier.home.dir=plugin-verifier",
-        "-jar", "prebuilts/tools/common/intellij-plugin-verifier/verifier-cli-1.240-all.jar",
-        "-ignored-problems", "tools/idea/studio/kotlin_known_problems.txt",
-        "-verification-reports-dir", "plugin-verifier/reports",
-        "-runtime-dir", java_home,
-        "-ide-version", "AI-" + build.replace(".-", "."),  # for AB presubmit; see build_studio.sh
-        "check-plugin", os.path.join(dist_all, "plugins", "Kotlin"), dist_all,
-    ]
-    subprocess.check_call(args)
-
-    output_dirs = glob.glob("plugin-verifier/reports/*/plugins/org.jetbrains.kotlin/*")
-    self.assertEqual(len(output_dirs), 1, msg="should be exactly one output dir")
-    shutil.copytree(output_dirs[0], os.path.join(dist_dir, "plugin-verifier-report"))
-
-    problems_file = glob.glob(output_dirs[0] + "/compatibility-problems.txt")
-    if problems_file:
-      self.fail(msg="See compatibility-problems.txt")
 
 if __name__ == "__main__":
   unittest.main()

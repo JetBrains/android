@@ -19,6 +19,8 @@ package com.android.tools.idea.navigator.nodes
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.intellij.openapi.application.ApplicationListener
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ex.ApplicationManagerEx
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
 import java.util.concurrent.TimeUnit
@@ -34,6 +36,7 @@ fun ProjectSystemSyncManager.maybeWaitForAnySyncOutcomeInterruptibly() {
 private fun ProjectSystemSyncManager.waitForAnySyncOutcomeInterruptibly() {
   val lock = ReentrantLock()
   val condVar = lock.newCondition()
+  val application = ApplicationManagerEx.getApplicationEx()
 
   val listener = object : ApplicationListener {
     override fun beforeWriteActionStart(action: Any) {
@@ -58,6 +61,9 @@ private fun ProjectSystemSyncManager.waitForAnySyncOutcomeInterruptibly() {
     lock.withLock {
       while (getLastSyncResult() == ProjectSystemSyncManager.SyncResult.UNKNOWN) {
         ProgressManager.checkCanceled() // Give priority to write actions as we are holding the read lock.
+        // For unknown reasons the statement above does not always throw `ProcessCanceledException` when a write action is pending even
+        // though it is running via `NonBlockingReadAction`. See b/171914220.
+        if (application.isWriteActionPending) throw ProcessCanceledException()
         condVar.await(50, TimeUnit.MILLISECONDS) // We are *polling* sync status.
       }
     }

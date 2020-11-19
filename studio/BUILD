@@ -150,6 +150,15 @@ studio_plugin(
             "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin",
         ],
     },
+    provided = [
+        "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api",  # Plugins :com.android.layoutlib.*" are optional
+        "//tools/base/common:studio.android.sdktools.common",
+        "//tools/base/annotations:studio.android.sdktools.android-annotations",
+        "//tools/analytics-library/shared:analytics-shared",
+        "//tools/analytics-library/tracker:analytics-tracker",
+        "//tools/analytics-library/publisher:analytics-publisher",
+        "//tools/analytics-library/crash:analytics-crash",
+    ],
     resources = {
         "lib": [
             "//tools/adt/idea/android/lib:asm-tools_files",
@@ -168,14 +177,22 @@ studio_plugin(
             "//prebuilts/tools:simpleperf-bundle",
             "//prebuilts/tools/common/perfetto:perfetto-bundle",
             "//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite-inspection-bundle",
-            "//prebuilts/tools/common/app-inspection/androidx/work:workmanager-inspection-bundle",
             "//tools/base/deploy/installer:android-installer-bundle",
             "//tools/adt/idea/android:asset-studio-bundle",
             "//prebuilts/tools/common/trace-processor-daemon:trace-processor-daemon-bundle",
         ],
     },
     deps = [
+        ":com.android.tools.idea.smali",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-IntelliLang",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-webp",
     ],
 )
 
@@ -183,7 +200,11 @@ studio_plugin(
     name = "com.android.tools.apk",
     directory = "android-apk",
     modules = {"android-apk.jar": ["//tools/vendor/google/android-apk:android-apk"]},
+    provided = [
+        "//tools/analytics-library/tracker:analytics-tracker",
+    ],
     deps = [
+        ":com.android.tools.idea.smali",
         ":com.android.tools.ndk",
         ":org.jetbrains.android",
     ],
@@ -192,9 +213,20 @@ studio_plugin(
 studio_plugin(
     name = "com.android.tools.ndk",
     directory = "android-ndk",
+    external_xmls = [
+        "META-INF/CidrCorePlugin.xml",
+        "META-INF/CidrClangdPlugin.xml",
+    ],
     modules = {"android-ndk.jar": ["//tools/vendor/google/android-ndk:android-ndk"]},
+    provided = [
+        "//tools/analytics-library/tracker:analytics-tracker",
+        "//tools/analytics-library/shared:analytics-shared",
+        "//tools/analytics-library/crash:analytics-crash",
+    ],
     deps = [
         ":org.jetbrains.android",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
     ],
 )
 
@@ -205,6 +237,10 @@ studio_plugin(
         "android-layoutlib.jar": ["//tools/adt/idea/layoutlib:intellij.android.layoutlib"],
         "layoutlib-api.jar": ["//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api"],
     },
+    provided = [
+        "//tools/base/annotations:studio.android.sdktools.android-annotations",
+        "//tools/base/common:studio.android.sdktools.common",
+    ],
 )
 
 studio_plugin(
@@ -214,12 +250,19 @@ studio_plugin(
         "android-layoutlib-native.jar": ["//tools/adt/idea/layoutlib-native:intellij.android.layoutlib-native"],
         "layoutlib-api.jar": ["//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api"],
     },
+    provided = [
+        "//tools/base/annotations:studio.android.sdktools.android-annotations",
+        "//tools/base/common:studio.android.sdktools.common",
+    ],
 )
 
 studio_plugin(
     name = "androidx.compose.plugins.idea",
     directory = "android-compose-ide-plugin",
     modules = {"android-compose-ide-plugin.jar": ["//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin"]},
+    provided = [
+        "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api",  # layout plugins are optional.
+    ],
     deps = [
         ":org.jetbrains.android",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
@@ -230,10 +273,14 @@ studio_plugin(
     name = "com.google.services.firebase",
     directory = "firebase",
     modules = {"firebase.jar": ["//tools/vendor/google/firebase:firebase"]},
+    provided = [
+        "//tools/analytics-library/tracker:analytics-tracker",
+    ],
     deps = [
         ":com.google.gct.login",
         ":com.google.gct.test.recorder",
         ":org.jetbrains.android",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
     ],
 )
 
@@ -241,10 +288,14 @@ studio_plugin(
     name = "com.google.gct.testing",
     directory = "firebase-testing",
     modules = {"firebase-testing.jar": ["//tools/studio/google/cloud/testing/firebase-testing:firebase-testing"]},
+    provided = [
+        "//tools/analytics-library/tracker:analytics-tracker",
+    ],
     deps = [
         ":com.google.gct.core",
         ":com.google.gct.login",
         ":org.jetbrains.android",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
     ],
 )
 
@@ -252,10 +303,14 @@ studio_plugin(
     name = "com.google.appindexing",
     directory = "google-appindexing",
     modules = {"google-appindexing.jar": ["//tools/studio/google/appindexing:google-appindexing"]},
+    provided = [
+        "//tools/analytics-library/tracker:analytics-tracker",
+    ],
     deps = [
         ":com.google.gct.login",
         ":com.google.urlassistant",
         ":org.jetbrains.android",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
     ],
 )
 
@@ -263,11 +318,17 @@ studio_plugin(
     name = "com.google.gct",
     directory = "google-cloud-tools-as",
     modules = {"google-cloud-tools-as.jar": ["//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as"]},
+    provided = [
+        "//tools/analytics-library/tracker:analytics-tracker",
+    ],
     deps = [
         ":com.google.gct.core",
         ":com.google.gct.login",
         ":org.jetbrains.android",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-git4idea",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
     ],
 )
@@ -309,6 +370,9 @@ studio_plugin(
     name = "com.google.gct.test.recorder",
     directory = "test-recorder",
     modules = {"test-recorder.jar": ["//tools/studio/google/cloud/testing/test-recorder:test-recorder"]},
+    provided = [
+        "//tools/analytics-library/tracker:analytics-tracker",
+    ],
     deps = [
         ":org.jetbrains.android",
     ],
@@ -318,8 +382,12 @@ studio_plugin(
     name = "com.google.urlassistant",
     directory = "url-assistant",
     modules = {"url-assistant.jar": ["//tools/vendor/google/url-assistant:url-assistant"]},
+    provided = [
+        "//tools/analytics-library/tracker:analytics-tracker",
+    ],
     deps = [
         ":org.jetbrains.android",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
     ],
 )
 
@@ -401,9 +469,9 @@ android_studio(
     },
     searchable_options = "searchable-options",
     version_eap = True,
-    version_full = "{0}.{1} Canary {3}",
+    version_full = "dev build",
     version_micro = 0,
-    version_patch = 1,
+    version_patch = 0,
 )
 
 py_test(
@@ -579,6 +647,7 @@ iml_module(
         ":android-studio.linux.zip",
         ":android-studio.mac.zip",
         ":android-studio.win.zip",
+        ":android-studio.plugin.lst",
     ],
     test_srcs = ["tests/testSrc"],
     visibility = ["//visibility:public"],

@@ -249,7 +249,7 @@ object SkiaParser : SkiaParserService {
 
 /**
  * Metadata for a skia parser server version. May or may not correspond to a server on disk, but has the capability to download it if not.
- * If [serverVersion] is null, corresponds to the locally-built1 server (in a dev build).
+ * If [serverVersion] is null, corresponds to the locally-built server (in a dev build).
  */
 @VisibleForTesting
 class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
@@ -268,7 +268,7 @@ class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
   private fun findPath(): File? {
     return if (serverVersion == null) {
       // devbuild
-      File(PathManager.getHomePath(), "../../bazel-bin/tools/base/dynamic-layout-inspector/${serverName}")
+      File(PathManager.getHomePath(), "../../../../../../bazel-bin/tools/base/dynamic-layout-inspector/${serverName}")
     }
     else {
       val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()

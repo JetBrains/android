@@ -12,6 +12,7 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
+        "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
@@ -62,6 +63,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/android-transport:intellij.android.transport[module]",
         "//tools/adt/idea/.idea/libraries:sqlite-inspector-proto",
+        "//tools/adt/idea/.idea/libraries:kotlinx-coroutines-guava",
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/adt/idea/.idea/libraries:protobuf",

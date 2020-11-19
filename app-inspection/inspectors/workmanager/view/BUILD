@@ -21,6 +21,8 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/app-inspection/inspectors/workmanager/view:workmanager-inspector-proto",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
     ],
 )
 
@@ -50,6 +52,7 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/app-inspection/inspectors/workmanager/view:intellij.android.app-inspection.inspectors.workmanager.view[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
     ],
 )
 

@@ -181,7 +181,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   @VisibleForTesting val myLogger: AndroidTestSuiteLogger = AndroidTestSuiteLogger()
 
   // Number of devices which we will run tests against.
-  private val myScheduledDevices: MutableList<AndroidDevice> = mutableListOf()
+  private val myScheduledDevices: MutableSet<AndroidDevice> = sortedSetOf(compareBy { it.id })
   private var myStartedDevices = 0
   private var myFinishedDevices = 0
 
@@ -363,22 +363,23 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
       if (myTestStartTimeMillis == 0L) {
         myTestStartTimeMillis = myClock.millis()
       }
-      myDeviceAndApiLevelFilterComboBoxAction.addDevice(device)
-      myScheduledDevices.add(device)
-      if (myScheduledDevices.size == 1) {
-        myResultsTableView.showTestStatusColumn = false
-      }
-      else {
-        myDetailsView.isDeviceSelectorListVisible = true
-        myResultsTableView.showTestStatusColumn = true
-      }
-      myResultsTableView.addDevice(device)
-      myDetailsView.addDevice(device)
-      updateProgress()
+      if (myScheduledDevices.add(device)) {
+        myDeviceAndApiLevelFilterComboBoxAction.addDevice(device)
+        if (myScheduledDevices.size == 1) {
+          myResultsTableView.showTestStatusColumn = false
+        }
+        else {
+          myDetailsView.isDeviceSelectorListVisible = true
+          myResultsTableView.showTestStatusColumn = true
+        }
+        myResultsTableView.addDevice(device)
+        myDetailsView.addDevice(device)
+        updateProgress()
 
-      if (myComponentsSplitter.width > 0) {
-        myComponentsSplitter.proportion =
-          min(0.6f, myResultsTableView.preferredTableWidth.toFloat() / myComponentsSplitter.width)
+        if (myComponentsSplitter.width > 0) {
+          myComponentsSplitter.proportion =
+            min(0.6f, myResultsTableView.preferredTableWidth.toFloat() / myComponentsSplitter.width)
+        }
       }
     }
   }
@@ -434,7 +435,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
         showSystemNotification()
         showNotificationBalloonIfToolWindowIsNotActive()
         myExportTestResultsAction.apply {
-          devices = myScheduledDevices
+          devices = myScheduledDevices.toList()
           rootResultsNode = myResultsTableView.rootResultsNode
         }
         saveHistory()
@@ -540,7 +541,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
           }
           AndroidTestResultsXmlFormatter(
             myResultsTableView.rootResultsNode,
-            myScheduledDevices,
+            myScheduledDevices.toList(),
             runConfiguration,
             transformerHandler).execute()
           myResultFile = outputFile

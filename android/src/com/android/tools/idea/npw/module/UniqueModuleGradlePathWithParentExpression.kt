@@ -40,7 +40,7 @@ data class UniqueModuleGradlePathWithParentExpression(
   override fun get(): String {
     val moduleValidator = ModuleValidator(project)
 
-    fun isUnique(name: String): Boolean = moduleValidator.validate(name).severity in setOf(Validator.Severity.OK, Validator.Severity.INFO)
+    fun isUnique(name: String): Boolean = moduleValidator.validate(name).severity != Validator.Severity.ERROR
     fun String.toGradleProjectName() = toLowerCase(Locale.US).replace("\\s".toRegex(), "")
 
     val parentModulePrefix = if (moduleParent.endsWith(":")) moduleParent else "$moduleParent:"
@@ -48,7 +48,7 @@ data class UniqueModuleGradlePathWithParentExpression(
     val moduleGradlePath = if (convertedName.startsWith(":")) convertedName else parentModulePrefix + convertedName
     val uniqueModuleGradlePath =
       if (isUnique(moduleGradlePath)) moduleGradlePath
-      else (2..1000).asSequence().map { "$moduleGradlePath$it" }.first { isUnique(it) }
+      else (2..1000).asSequence().map { "$moduleGradlePath$it" }.firstOrNull { isUnique(it) } ?: moduleGradlePath
     return if (parentModulePrefix == ":") uniqueModuleGradlePath.removePrefix(":") else uniqueModuleGradlePath
   }
 }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.deviceManager
 
-import com.android.tools.adtui.common.border
 import com.android.tools.idea.deviceManager.displayList.EmulatorDisplayList
 import com.android.tools.idea.deviceManager.displayList.PreconfiguredDisplayList
 import com.intellij.openapi.project.Project
@@ -54,7 +53,7 @@ class EmulatorTab(project: Project, toolWindow: ToolWindow) {
     }
   }
 
-  val toolbar = CommonToolbar(avdDisplayList, avdDisplayList, searchDocumentListener)
+  val toolbar = EmulatorToolbar(avdDisplayList, avdDisplayList, searchDocumentListener)
 
   val content = panel(LCFlags.fill) {
     row {

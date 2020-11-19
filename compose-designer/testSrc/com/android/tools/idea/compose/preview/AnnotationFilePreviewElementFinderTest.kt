@@ -16,12 +16,13 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.ComposeProjectRule
+import com.android.tools.idea.compose.preview.util.DisplayPositioning
 import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
+import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
+import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.UNDEFINED_API_LEVEL
 import com.android.tools.idea.compose.preview.util.UNDEFINED_DIMENSION
-import com.android.tools.idea.compose.preview.util.sortByDisplayName
-import com.android.tools.idea.compose.preview.util.sortBySourcePosition
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.compose.preview.util.sortByDisplayAndSourcePosition
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.util.TextRange
@@ -31,14 +32,12 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.concurrency.AppExecutorUtil
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.toUElementOfType
-import org.junit.After
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -111,6 +110,11 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
         fun Preview4() {
         }
 
+        @Composable
+        @Preview(name = "preview5", uiMode = 3, backgroundColor = 0xFFBAAABA)
+        fun Preview5() {
+        }
+
         // This preview element will be found but the ComposeViewAdapter won't be able to render it
         @Composable
         @Preview(name = "Preview with parameters")
@@ -159,7 +163,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     assertTrue(computeOnBackground { AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile) })
 
     val elements = computeOnBackground { AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).toList() }
-    assertEquals(6, elements.size)
+    assertEquals(7, elements.size)
     elements[0].let {
       assertEquals("Preview1", it.displaySettings.name)
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
@@ -225,10 +229,22 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     }
 
     elements[4].let {
-      assertEquals("Preview with parameters", it.displaySettings.name)
+      assertEquals("preview5", it.displaySettings.name)
+      assertEquals(3, it.configuration.uiMode)
+      assertEquals("#ffbaaaba", it.displaySettings.backgroundColor)
+
+      ReadAction.run<Throwable> {
+        assertMethodTextRange(composeTest, "Preview5", it.previewBodyPsi?.psiRange?.range!!)
+        assertEquals("@Preview(name = \"preview5\", uiMode = 3, backgroundColor = 0xFFBAAABA)",
+                     it.previewElementDefinitionPsi?.element?.text)
+      }
     }
 
     elements[5].let {
+      assertEquals("Preview with parameters", it.displaySettings.name)
+    }
+
+    elements[6].let {
       assertEquals("FQN", it.displaySettings.name)
     }
   }
@@ -448,7 +464,17 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
 
         @Composable
         @Preview
+        fun TopA() {
+        }
+
+        @Composable
+        @Preview
         fun B() {
+        }
+
+        @Composable
+        @Preview
+        fun TopB() {
         }
       """.trimIndent())
 
@@ -458,25 +484,26 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
           // Randomize to make sure the ordering works
           shuffle()
         }
-        .sortBySourcePosition()
+        .map {
+          // Override positioning for testing for those preview starting with Top
+          object : PreviewElement by it {
+            override val displaySettings: PreviewDisplaySettings =
+              PreviewDisplaySettings(
+                it.displaySettings.name,
+                it.displaySettings.group,
+                it.displaySettings.showDecoration,
+                it.displaySettings.showBackground,
+                it.displaySettings.backgroundColor,
+                if (it.displaySettings.name.startsWith("Top")) DisplayPositioning.TOP else it.displaySettings.displayPositioning)
+          }
+        }
+        .sortByDisplayAndSourcePosition()
         .map { it.composableMethodFqn }
         .toTypedArray()
         .let {
-          assertArrayEquals(arrayOf("TestKt.C", "TestKt.A", "TestKt.B"), it)
+          assertArrayEquals(arrayOf("TestKt.TopA", "TestKt.TopB", "TestKt.C", "TestKt.A", "TestKt.B"), it)
         }
     }
-
-    AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
-      .toMutableList().apply {
-        // Randomize to make sure the ordering works
-        shuffle()
-      }
-      .sortByDisplayName()
-      .map { it.composableMethodFqn }
-      .toTypedArray()
-      .let {
-        assertArrayEquals(arrayOf("TestKt.A", "TestKt.B", "TestKt.C"), it)
-      }
   }
 
   @Test

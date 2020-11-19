@@ -1,7 +1,3 @@
-*** note
-**Warning:** work in progress
-***
-
 # Opening Android Studio in the IDE
 
 * Open the project in `//tools/adt/idea`
@@ -13,57 +9,52 @@
 *** note
 Please note that in order for this Path Variable to take full effect, you need to close and reopen the project
 ***
-
-* Set a [*Path Variable*](https://www.jetbrains.com/help/idea/settings-path-variables.html) named `TEST_TEMP`:
-  * Linux and Mac: `/tmp/idea-test`
-  * Windows: `%TEMP%\idea-test` where `%TEMP%` is the value of the TEMP environment variable.
-
-* If you are using IntelliJ 2020.2 or earlier, create a template JUnit configuration as described in
+If you are using IntelliJ 2020.2 or earlier, create a template JUnit configuration as described in
   [*Running tests using IntelliJ*](http://goto.corp.google.com/adtsetup#heading=h.31alixxsfo00)
 
 # Updating the platform prebuilts
 
 ## From `go/ab`
 
-The ideal and official way of updating prebuilts that can be uploaded to `prebuilts/studio/intellij-sdk` is to do:
+The official way of updating prebuilts that can be commited to `prebuilts/studio/intellij-sdk` is to get them from the `go/ab` target [here](https://android-build.googleplex.com/builds/branches/git_studio-sdk-master-dev/grid?).
+
+First identify the `<bid>` you want to update to. If you want to know what is the current build checked in into prebuilts you can look at the [METADATA](https://googleplex-android.git.corp.google.com/platform/tools/vendor/google_prebuilts/studio/intellij-sdk/+/refs/heads/studio-master-dev/AI-202/METADATA) file.
+
+Then you can run the following command:
 
 ```
 ./tools/adt/idea/studio/update_sdk.py --download <bid>
 ```
-Where `<bid>` is the build ID of the studio sdk target [here](https://android-build.googleplex.com/builds/branches/git_studio-sdk-master-dev/grid?).
 
-This command will update your prebuilts and your library files in tools/adt/idea to point to the newly downloaded
-platform.
+which will update `tools/adt/idea` and `prebuilts/studio/intellij-sdk` with the new prebuilts. Note that if there jars are the same and there are no major version changes, `tools/adt/idea` won't need to be updated. At this point you are ready to upload the changes for review.
 
 ## From a locally built platform
 
-While the migration is in progress, the flow to modify the prebuilts for `tools/idea` is complicated, and will be improved overtime.
-Because the tools/idea project still has references to android modules, we need a separate checkout with a few things. For example, let's
-say your main checkout is at `$SRC/studio-master-dev`, and we create a new `$SRC/studio-sdk`:
+In order to locally try changes to the platform, the prebuilts can be rebuilt as follows:
 
 ```
-cd $SRC/studio-sdk
+cd $SRC/tools/idea
+./build_studio.sh
+```
+
+which will generate a set of artifacts in `tools/idea/out/studio/dist`. To update the prebuilts with these, run:
+
+```
+$SRC/tools/adt/idea/studio/update_sdk.py --path $SRC/tools/idea/out/studio/dist
+```
+
+### Isolated builds
+
+Note that in `go/ab` the prebuilts are built on a separate checkout to ensure that the `ant` build only has access to a few git repos.
+If you want to have an isolated check out to build prebuilts you can checkout a separate repo like this:
+
+
+```
 repo init -u sso://googleplex-android.git.corp.google.com/platform/manifest -b studio-master-dev -m studio-sdk.xml
 repo sync -j10
 ```
 
-Then we build the platform on this new checkout:
-
-```
-cd $SRC/studio-sdk/tools/idea
-./build_studio.sh --studio-sdk
-```
-
-And finally we can import this prebuilts into the main checkout:
-
-```
-cd $SRC/studio-master-dev
-./tools/adt/idea/studio/update_sdk.py --path $SRC/studio-sdk/tools/idea/out/studio/dist
-```
-
-*** note
-Once the tools/idea project does not have any android references, we will be able to all this from the same checkout
-***
+And execute `update_sdk.py` from the main repo with the path pointing to this isolated checkout.
 
 # Building Android Studio
 
@@ -97,23 +88,3 @@ Or our remote configuration which also implies release
 ```
 bazel build //tools/adt/idea/studio:android-studio --config=remote
 ```
-
-
-# Note: This is still work in progress
-
-We are not yet using this mechanism to build and release Studio, as this is still in progress.
-Currently all the new targets needed are tagged as manual, and live in parallel with the main iml_module targets. To generate the iml_modules for this project use:
-
-```
-bazel run //tools/base/bazel:iml_to_build -- --project_path tools/adt/idea --strict
-```
-
-This will create and/or update the iml_module rules. To update the attributes that are manually added to iml_module rules use:
-
-```
-bazel run //tools/base/bazel:fix_unbundled_rules
-```
-
-Note that to switch bazel to use the unbundled rules, the file //tools/base/bazel/project.bzl needs to be changed.
-
-This is done for now by tools/base/bazel/studio_linux.sh before it runs the tests.

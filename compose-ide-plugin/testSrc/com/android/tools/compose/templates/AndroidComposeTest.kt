@@ -35,6 +35,7 @@ class AndroidComposeTest : JavaCodeInsightFixtureTestCase() {
 
     class Row
     class Column
+    class Box
     """.trimIndent()
     )
   }
@@ -42,6 +43,41 @@ class AndroidComposeTest : JavaCodeInsightFixtureTestCase() {
   override fun tearDown() {
     StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
     super.tearDown()
+  }
+
+  fun testBoxTemplate() {
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun NewsStory() {
+          W<caret>
+      }
+      """.trimIndent()
+    )
+
+    myFixture.type("\t")
+
+    myFixture.checkResult(
+      """
+      package com.example
+
+      import androidx.compose.foundation.layout.Box
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun NewsStory() {
+          Box {
+              
+          }
+      }
+      """.trimIndent()
+    )
   }
 
   fun testRowTemplate() {

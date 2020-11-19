@@ -19,16 +19,44 @@ import com.android.tools.idea.deviceManager.displayList.PhysicalDisplayList
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.ui.layout.panel
+import javax.swing.event.DocumentEvent
+import javax.swing.event.DocumentListener
+import javax.swing.text.BadLocationException
+import javax.swing.text.Document
 
 
 class PhysicalTab(project: Project, toolWindow: ToolWindow) {
+  private val searchDocumentListener = object : DocumentListener {
+    override fun insertUpdate(e: DocumentEvent) {
+      // TODO
+    }
+
+    override fun removeUpdate(e: DocumentEvent) {
+      // TODO
+    }
+
+    override fun changedUpdate(e: DocumentEvent) {
+      // TODO
+    }
+
+    private fun getText(d: Document): String {
+      return try {
+        d.getText(0, d.length)
+      }
+      catch (e: BadLocationException) {
+        ""
+      }
+    }
+  }
+
   val avdDisplayList = PhysicalDisplayList(project)
+  val toolbar = PhysicalToolbar(project, searchDocumentListener)
   val content = panel {
-    row {
-      label("Device Manager")
+    row  {
+      toolbar.panel(growX)
     }
     row {
-      avdDisplayList()
+      avdDisplayList(grow, push)
     }
   }
 }

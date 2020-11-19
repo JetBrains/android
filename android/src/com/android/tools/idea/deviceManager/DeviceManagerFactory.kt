@@ -18,13 +18,13 @@ package com.android.tools.idea.deviceManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.resourcemanager.RESOURCE_EXPLORER_TOOL_WINDOW_ID
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowFactory;
+import com.intellij.openapi.wm.ToolWindow
+import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
-import com.intellij.ui.content.ContentFactory;
+import com.intellij.ui.content.ContentFactory
 import icons.StudioIcons
 import javax.swing.JComponent
 
@@ -39,11 +39,10 @@ class DeviceManagerFactory : ToolWindowFactory {
     val emulatorTab = EmulatorTab(project, toolWindow)
     val physicalTab = PhysicalTab(project, toolWindow)
     val deviceGroupsTab = DeviceGroupsTab(project, toolWindow)
-    val contentFactory = ContentFactory.SERVICE.getInstance();
+    val contentFactory = ContentFactory.SERVICE.getInstance()
 
     fun createTab(content: JComponent, name: String) {
-      val c = contentFactory.createContent(content, name, false);
-      toolWindow.contentManager.addContent(c)
+      toolWindow.contentManager.addContent(contentFactory.createContent(content, name, false))
     }
 
     createTab(emulatorTab.content, emulatorTabName)

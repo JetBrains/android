@@ -33,6 +33,6 @@ public final class IdeInfo {
   }
 
   public static boolean isGameTool() {
-    return "AndroidStudioGameTools".equals(getPlatformPrefix());
+    return "AndroidGameDevelopmentTools".equals(getPlatformPrefix());
   }
 }

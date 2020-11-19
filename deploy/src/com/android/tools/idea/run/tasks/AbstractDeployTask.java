@@ -330,7 +330,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
     }
   }
 
-  private class DeploymentHyperlinkInfo implements HyperlinkInfo {
+  private static class DeploymentHyperlinkInfo implements HyperlinkInfo {
     private final @Nullable String myActionId;
     @NotNull
     private final ConsolePrinter myPrinter;

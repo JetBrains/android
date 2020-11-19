@@ -4,6 +4,7 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.Data
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorksTableModel
+import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.table.JBTable
 import java.awt.Component
@@ -134,6 +135,7 @@ class WorksTableView(tab: WorkManagerInspectorTab,
         // Updates for [tab.selectedWork] are handled by [selectionModel].
         if (rowAtPoint(e.point) in 0 until rowCount) {
           tab.isDetailsViewVisible = true
+          client.tracker.trackWorkSelected(AppInspectionEvent.WorkManagerInspectorEvent.Context.TABLE_CONTEXT)
         }
       }
     })

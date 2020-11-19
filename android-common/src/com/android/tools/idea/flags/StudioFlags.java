@@ -879,6 +879,11 @@ public final class StudioFlags {
     "If enabled, when moving the caret in the text editor, the Preview will show the preview currently under the cursor.",
     true);
 
+  public static final Flag<Boolean> COMPOSE_PREVIEW_INTERRUPTIBLE = Flag.create(
+    COMPOSE, "preview.interruptible", "Allows the Compose Preview to interrupt rendering calls",
+    "If enabled, if a render takes too long, the preview will be able to interrupt the execution.",
+    true);
+
   public static final Flag<Boolean> COMPOSE_EDITOR_SUPPORT = Flag.create(
     COMPOSE, "editor",
     "Compose-specific support in the code editor",
@@ -1033,6 +1038,13 @@ public final class StudioFlags {
     "If enabled, the user can change the mode of Compose previews, between different types of colorblind modes",
     true
   );
+
+  public static final Flag<Boolean> COMPOSE_PIN_PREVIEW = Flag.create(
+    COMPOSE, "preview.pin.enable",
+    "Enable pinning compose previews",
+    "If enabled, a user can pin a preview",
+    false
+  );
   //endregion
 
   //region Manifests
@@ -1060,6 +1072,13 @@ public final class StudioFlags {
     "Enables a WorkManager Inspector Tab in the App Inspection tool window",
     true
   );
+
+  public static final Flag<Boolean> ENABLE_WORK_MANAGER_GRAPH_VIEW = Flag.create(
+    WORK_MANAGER_INSPECTOR, "enable.graph.view", "Enable WorkManager Graph View",
+    "Enables a Graph View for visualizing work dependencies in the WorkManager Inspector Tab",
+    true
+  );
+  // endregion
 
   //region Device Manager
   private static final FlagGroup DEVICE_MANAGER = new FlagGroup(FLAGS, "device.manager", "Device Manager");

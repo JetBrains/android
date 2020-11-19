@@ -25,4 +25,3 @@ abstract class DeviceColumnInfo(name: String, private val width: Int = -1): Colu
 
   override fun getWidth(table: JTable): Int = width
 }
-

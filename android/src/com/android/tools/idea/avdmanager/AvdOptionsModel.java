@@ -85,6 +85,7 @@ public final class AvdOptionsModel extends WizardModel {
   private static final Storage zeroSdSize = new Storage(0, Storage.Unit.MiB);
 
   private final AvdInfo myAvdInfo;
+  @Nullable private final Runnable myAvdCreatedCallback;
 
   /**
    * The 'myUseQemu2' is used to name the family of virtual hardware boards
@@ -155,7 +156,12 @@ public final class AvdOptionsModel extends WizardModel {
   }
 
   public AvdOptionsModel(@Nullable AvdInfo avdInfo) {
+    this(avdInfo, null);
+  }
+
+  public AvdOptionsModel(@Nullable AvdInfo avdInfo, @Nullable Runnable avdCreatedCallback) {
     myAvdInfo = avdInfo;
+    myAvdCreatedCallback = avdCreatedCallback;
     myAvdDeviceData = new AvdDeviceData();
 
     boolean supportsVirtualCamera = EmulatorAdvFeatures.emulatorSupportsVirtualScene(
@@ -681,7 +687,7 @@ public final class AvdOptionsModel extends WizardModel {
   }
 
   @Override
-  protected void handleFinished() {
+  public void handleFinished() {
     // By this point we should have both a Device and a SystemImage
     Device device = myDevice.getValue();
     SystemImageDescription systemImage = mySystemImage.getValue();
@@ -819,6 +825,9 @@ public final class AvdOptionsModel extends WizardModel {
         myCreatedAvd = connection.createOrUpdateAvd(
           myAvdInfo, avdName, device, systemImage, mySelectedAvdOrientation.get(),
           isCircular, sdCardFinal, skinFile, hardwareProperties, myRemovePreviousAvd.get());
+        if (myAvdCreatedCallback != null) {
+          myAvdCreatedCallback.run();
+        }
       },
       "Creating Android Virtual Device", false, null
     );

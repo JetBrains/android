@@ -18,17 +18,12 @@ package com.android.tools.idea.avdmanager;
 import static com.intellij.util.containers.ContainerUtil.sorted;
 
 import com.android.repository.io.FileOp;
-import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,7 +51,7 @@ public class SkinLayoutDefinition {
   public static SkinLayoutDefinition parseFile(@NotNull File file, @NotNull FileOp fop) {
     String contents;
     try {
-      contents = fop.toString(file, Charsets.UTF_8);
+      contents = fop.readText(file);
     }
     catch (IOException e) {
       return null;

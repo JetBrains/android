@@ -18,10 +18,16 @@ package com.android.tools.idea.appinspection.ide
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.process.ProcessListener
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
+import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
+import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverRequest
+import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverResult
+import com.android.tools.idea.appinspection.inspector.ide.resolver.FailureResult
+import com.android.tools.idea.appinspection.inspector.ide.resolver.SuccessfulResult
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createFakeProcessDescriptor
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
@@ -34,6 +40,7 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Commands
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
@@ -51,7 +58,11 @@ class AppInspectorTabLaunchSupportTest {
   @get:Rule
   val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionServiceRule)!!.around(projectRule)!!
 
+  private val resolvedJar = AppInspectorJar("resolved")
 
+  private val notApplicableInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID) {
+    override fun isApplicable() = false
+  }
   private val frameworkInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID) {}
   private val incompatibleLibraryInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID_2) {
     override val inspectorLaunchParams = LibraryInspectorLaunchParams(
@@ -62,20 +73,41 @@ class AppInspectorTabLaunchSupportTest {
                                                                       ArtifactCoordinate("a", "b", "1.0.0", ArtifactCoordinate.Type.JAR))
   }
 
+  private val unresolvedLibrary = ArtifactCoordinate("fallback", "library", "1.0.0", ArtifactCoordinate.Type.JAR)
+  private val unresolvedJar = AppInspectorJar("fallback_jar")
+  private val unresolvedLibraryInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID_3) {
+    override val inspectorLaunchParams = LibraryInspectorLaunchParams(unresolvedJar, unresolvedLibrary)
+  }
+
   /**
-   * This tests the call to getApplicableTabProviders with all possible inspector scenarios:
+   * This tests all 4 possible scenarios during and leading up to the launch of a library inspector tab + 1 framework inspector.
    *
-   * Scenarios tested:
-   *   1) framework inspector
-   *   2) library inspector
-   *   3) library inspector that is incompatible
-   *
-   * Scenarios 1 & 2 should result in LAUNCH status. Scenario 3 should result in INCOMPATIBLE status.
+   * The 4 library inspectors are:
+   * 1) not applicable - inspector tab shouldn't be included in result
+   * 2) incompatible inspector - an info tab should be created with an appropriate error message
+   * 3) compatible inspector - a mutable tab created and inspector jar set to the resolved one
+   * 4) compatible inspector but failed to resolve its jar - an info tab should be created with an appropriate error message
    */
   @Test
-  fun getApplicableTabProviders_allScenarios() = runBlocking<Unit> {
-    val support = AppInspectorTabLaunchSupport({ listOf(frameworkInspector, incompatibleLibraryInspector, libraryInspector) },
-                                               appInspectionServiceRule.apiServices, projectRule.project)
+  fun getApplicableTabProviders() = runBlocking<Unit> {
+    val resolver = object : ArtifactResolver {
+      override suspend fun <T : ArtifactResolverRequest> resolveArtifacts(requests: List<T>,
+                                                                          project: Project): List<ArtifactResolverResult<T>> {
+        return requests.map {
+          if (it.artifactCoordinate == unresolvedLibrary) {
+            FailureResult(it)
+          } else {
+            SuccessfulResult(it, resolvedJar)
+          }
+        }
+      }
+    }
+    val support = AppInspectorTabLaunchSupport(
+      { listOf(notApplicableInspector, frameworkInspector, incompatibleLibraryInspector, libraryInspector, unresolvedLibraryInspector) },
+      appInspectionServiceRule.apiServices,
+      projectRule.project,
+      resolver
+    )
 
     transportService.setCommandHandler(
       Commands.Command.CommandType.APP_INSPECTION,
@@ -111,12 +143,23 @@ class AppInspectorTabLaunchSupportTest {
     processReadyDeferred.await()
 
     val tabs = support.getApplicableTabLaunchParams(createFakeProcessDescriptor())
-    val inspectorTabs = tabs.filter { it.status == AppInspectorTabLaunchParams.Status.LAUNCH }
-    val infoTabs = tabs.filter { it.status == AppInspectorTabLaunchParams.Status.INCOMPATIBLE }
+    val inspectorTabs = tabs.filterIsInstance<LaunchableInspectorTabLaunchParams>()
+    val infoTabs = tabs.filterIsInstance<StaticInspectorTabLaunchParams>()
 
     assertThat(inspectorTabs).hasSize(2)
-    assertThat(infoTabs).hasSize(1)
+    assertThat(infoTabs).hasSize(2)
 
-    assertThat(infoTabs[0].provider).isSameAs(incompatibleLibraryInspector)
+    assertThat(infoTabs.map { it.provider }).containsExactly(incompatibleLibraryInspector, unresolvedLibraryInspector)
+
+    inspectorTabs.forEach { tab ->
+      when (tab.provider) {
+        frameworkInspector -> {
+          assertThat(tab.jar).isSameAs(TEST_JAR)
+        }
+        else -> {
+          assertThat(tab.jar).isSameAs(resolvedJar)
+        }
+      }
+    }
   }
 }

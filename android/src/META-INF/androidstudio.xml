@@ -144,7 +144,7 @@
                     serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettings"
                     overrides="true"/>
 
-    <!-- DO NOT move to oproject-system-gradle-plugin.xml. It should run in Android Studio only. -->
+    <!-- DO NOT move to project-system-gradle-plugin.xml. It should run in Android Studio only. -->
     <projectService serviceInterface="com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker"
                     serviceImplementation="com.android.tools.idea.projectsystem.gradle.RefreshOnlyAutoImportProjectTracker"
                     overrides="true"
@@ -162,6 +162,8 @@
                              provider="com.android.tools.idea.memorysettings.MemorySettingsConfigurableProvider"
                              id="memory.settings"/>
     <project.converterProvider implementation="com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationConverterProvider"/>
+
+    <statistic.eventLog.eventLoggerProvider implementation="com.android.tools.idea.stats.AndroidStudioStatisticsEventLoggerProvider"/>
   </extensions>
 
 </idea-plugin>

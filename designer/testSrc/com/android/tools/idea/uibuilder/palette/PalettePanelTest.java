@@ -75,6 +75,7 @@ import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.util.ArrayUtil;
 import java.awt.Component;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -141,6 +142,7 @@ public class PalettePanelTest extends LayoutTestCase {
       public void actionPerformed(@NotNull AnActionEvent e) { }
     });
     when(myActionManager.createActionPopupMenu(anyString(), any(ActionGroup.class))).thenReturn(myPopupMenu);
+    when(myActionManager.getActionIds(anyString())).thenReturn(ArrayUtil.EMPTY_STRING_ARRAY);
     when(myPopupMenu.getComponent()).thenReturn(myPopupMenuComponent);
     myPanel = new PalettePanel(getProject(), myDependencyManager, getProject());
   }
@@ -329,7 +331,7 @@ public class PalettePanelTest extends LayoutTestCase {
     }
   }
 
-  public void testAddToDesignFromEnterKey() {
+  public void testAddToDesignFromEnterKey() throws InterruptedException {
     DesignSurface surface = setUpLayoutDesignSurface();
 
     myPanel.getCategoryList().setSelectedIndex(BUTTON_CATEGORY_INDEX);
@@ -340,6 +342,7 @@ public class PalettePanelTest extends LayoutTestCase {
 
     ActionEvent event = mock(ActionEvent.class);
     listener.actionPerformed(event);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
     assertThat(myTreeDumper.toTree(surface.getModel().getComponents())).isEqualTo(
       "NlComponent{tag=<LinearLayout>, instance=0}\n" +
@@ -380,13 +383,14 @@ public class PalettePanelTest extends LayoutTestCase {
     assertThat(itemList.getSelectedIndex()).isEqualTo(3);
   }
 
-  public void testAddToDesign() {
+  public void testAddToDesign() throws InterruptedException {
     DesignSurface surface = setUpLayoutDesignSurface();
     myPanel.getCategoryList().setSelectedIndex(BUTTON_CATEGORY_INDEX);
     myPanel.getItemList().setSelectedIndex(CHECKBOX_ITEM_INDEX);
 
     AnActionEvent event = mock(AnActionEvent.class);
     myPanel.getAddToDesignAction().actionPerformed(event);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
     assertThat(myTreeDumper.toTree(surface.getModel().getComponents())).isEqualTo(
       "NlComponent{tag=<LinearLayout>, instance=0}\n" +

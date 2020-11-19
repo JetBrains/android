@@ -24,6 +24,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
+import com.android.tools.idea.layoutinspector.properties.LambdaPropertyItem
 import com.android.tools.idea.layoutinspector.properties.NAMESPACE_INTERNAL
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertySection
@@ -283,6 +284,7 @@ class DefaultPropertiesProvider(
         Type.ANIM,
         Type.ANIMATOR,
         Type.INTERPOLATOR -> fromKnownObjectType(property)
+        Type.LAMBDA -> return fromLambda(property)
         else -> ""
       }
       val type = property.type
@@ -331,6 +333,15 @@ class DefaultPropertiesProvider(
         Type.INTERPOLATOR -> valueFromInterpolatorClass(className) ?: SOME_UNKNOWN_INTERPOLATOR_VALUE
         else -> null
       }
+    }
+
+    private fun fromLambda(property: Property): InspectorPropertyItem {
+      val name = stringTable[property.name]
+      val lambda = property.lambdaValue
+      val packageName = stringTable[lambda.packageName]
+      val className = stringTable[lambda.className]
+      val lambdaName = stringTable[lambda.lambdaName]
+      return LambdaPropertyItem(name, viewId, "$packageName.$className", lambdaName, lambda.startLineNumber, lambda.endLineNumber, lookup)
     }
 
     private fun fromResource(property: Property, layout: ResourceReference?): String {

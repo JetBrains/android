@@ -92,6 +92,7 @@ import javax.swing.tree.TreeSelectionModel;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 public class NlComponentTree extends Tree implements DesignSurfaceListener, ModelListener, SelectionListener, Disposable,
                                                      DataProvider {
@@ -159,6 +160,12 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       setTransferHandler(new TreeTransferHandler());
       setDropTarget(new DropTarget(this, new NlDropListener(this)));
     }
+  }
+
+  @Nullable
+  @TestOnly
+  public NlDesignSurface getDesignSurface() {
+    return mySurface;
   }
 
   public void setDesignSurface(@Nullable NlDesignSurface designSurface) {

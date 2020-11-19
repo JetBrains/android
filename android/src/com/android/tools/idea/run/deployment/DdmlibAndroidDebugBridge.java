@@ -15,70 +15,77 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.adb.AdbService;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.FluentFuture;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.function.Supplier;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class DdmlibAndroidDebugBridge implements AndroidDebugBridge {
-  @NotNull
-  private final File myAdb;
+  private final @NotNull ListeningExecutorService myExecutorService;
+  private final @NotNull Supplier<@Nullable Path> myGetAdb;
+  private final @NotNull AsyncFunction<@Nullable Path, com.android.ddmlib.@Nullable AndroidDebugBridge> myGetDebugBridge;
 
-  @NotNull
-  private final ListeningExecutorService myListeningExecutorService;
+  DdmlibAndroidDebugBridge(@NotNull Project project) {
+    this(MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService()),
+         () -> getAdb(project),
+         DdmlibAndroidDebugBridge::getDebugBridge);
+  }
 
-  DdmlibAndroidDebugBridge(@NotNull File adb) {
-    myAdb = adb;
-    myListeningExecutorService = MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService());
+  @VisibleForTesting
+  DdmlibAndroidDebugBridge(@NotNull ListeningExecutorService executorService,
+                           @NotNull Supplier<@Nullable Path> getAdb,
+                           @NotNull AsyncFunction<@Nullable Path, com.android.ddmlib.@Nullable AndroidDebugBridge> getDebugBridge) {
+    myExecutorService = executorService;
+    myGetAdb = getAdb;
+    myGetDebugBridge = getDebugBridge;
+  }
+
+  @WorkerThread
+  private static @Nullable Path getAdb(@NotNull Project project) {
+    return Optional.ofNullable(AndroidSdkUtils.getAdb(project)).map(File::toPath).orElse(null);
+  }
+
+  @WorkerThread
+  private static @NotNull ListenableFuture<com.android.ddmlib.@Nullable AndroidDebugBridge> getDebugBridge(@Nullable Path adb) {
+    return adb == null ? Futures.immediateFuture(null) : AdbService.getInstance().getDebugBridge(adb.toFile());
   }
 
   @Override
-  public boolean isConnected() {
-    Future<com.android.ddmlib.AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(myAdb);
-
-    if (future.isCancelled()) {
-      return false;
-    }
-
-    if (!future.isDone()) {
-      return false;
-    }
-
-    try {
-      return future.get().isConnected();
-    }
-    catch (InterruptedException exception) {
-      Thread.currentThread().interrupt();
-      return false;
-    }
-    catch (ExecutionException exception) {
-      Logger.getInstance(DdmlibAndroidDebugBridge.class).warn(exception);
-      return false;
-    }
-  }
-
-  @NotNull
-  @Override
-  public ListenableFuture<Collection<IDevice>> getConnectedDevices() {
+  public @NotNull ListenableFuture<@NotNull Collection<@NotNull IDevice>> getConnectedDevices() {
     // noinspection UnstableApiUsage
-    return FluentFuture.from(AdbService.getInstance().getDebugBridge(myAdb))
-      .transform(com.android.ddmlib.AndroidDebugBridge::getDevices, myListeningExecutorService)
-      .transform(Arrays::asList, myListeningExecutorService);
+    return FluentFuture.from(myExecutorService.submit(myGetAdb::get))
+      .transformAsync(myGetDebugBridge, myExecutorService)
+      .transform(DdmlibAndroidDebugBridge::getDevices, myExecutorService);
   }
 
-  @NotNull
-  @Override
-  public ListenableFuture<String> getVirtualDeviceId(@NotNull IDevice virtualDevice) {
-    return com.android.ddmlib.AndroidDebugBridge.getVirtualDeviceId(myListeningExecutorService, myAdb, virtualDevice);
+  @WorkerThread
+  private static @NotNull Collection<@NotNull IDevice> getDevices(com.android.ddmlib.@Nullable AndroidDebugBridge bridge) {
+    if (bridge == null) {
+      return Collections.emptyList();
+    }
+
+    if (!bridge.isConnected()) {
+      return Collections.emptyList();
+    }
+
+    return Arrays.asList(bridge.getDevices());
   }
 }

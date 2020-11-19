@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templateSet group="AndroidXML">
-  <template name="appNs" value="xmlns:app=&quot;http://schemas.android.com/apk/res-auto&quot;" description="adds application namespace" toReformat="true" toShortenFQNames="true">
+  <template name="appNs" value="xmlns:app=&quot;http://schemas.android.com/apk/res-auto&quot;" description="Adds application namespace" toReformat="true" toShortenFQNames="true">
     <context>
       <option name="XSL_TEXT" value="true" />
       <option name="XML_ATTRIBUTE" value="true" />
     </context>
   </template>
-  <template name="toolsNs" value="xmlns:tools=&quot;http://schemas.android.com/tools&quot;" description="adds tools namespace to Android xml file" toReformat="true" toShortenFQNames="true">
+  <template name="distNs" value="xmlns:dist=&quot;http://schemas.android.com/apk/distribution&quot;" description="Adds distribution namespace" toReformat="true" toShortenFQNames="true">
+    <context>
+      <option name="XSL_TEXT" value="true" />
+      <option name="XML_ATTRIBUTE" value="true" />
+    </context>
+  </template>
+  <template name="toolsNs" value="xmlns:tools=&quot;http://schemas.android.com/tools&quot;" description="Adds tools namespace" toReformat="true" toShortenFQNames="true">
     <context>
       <option name="XSL_TEXT" value="true" />
       <option name="XML_ATTRIBUTE" value="true" />

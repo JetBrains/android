@@ -25,13 +25,15 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.WorkAddedEvent
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkRemovedEvent
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkUpdatedEvent
+import com.android.flags.junit.SetFlagRule
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
-import com.android.tools.idea.appinspection.inspector.api.service.TestAppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorksTableModel
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -55,6 +57,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.mockito.Mockito.mock
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -63,6 +66,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTable
 import javax.swing.table.DefaultTableCellRenderer
+import kotlin.streams.toList
 
 class WorkManagerInspectorTabTest {
 
@@ -78,7 +82,7 @@ class WorkManagerInspectorTabTest {
     override val eventFlow = emptyFlow<ByteArray>()
   }
 
-  private class TestIdeServices : TestAppInspectionIdeServices() {
+  private class TestIdeServices : AppInspectionIdeServicesAdapter() {
     var lastVisitedCodeLocation: AppInspectionIdeServices.CodeLocation? = null
 
     override suspend fun navigateTo(codeLocation: AppInspectionIdeServices.CodeLocation) {
@@ -86,8 +90,11 @@ class WorkManagerInspectorTabTest {
     }
   }
 
+  private val setFlagRule = SetFlagRule(StudioFlags.ENABLE_WORK_MANAGER_GRAPH_VIEW, true)
+  private val projectRule = AndroidProjectRule.inMemory()
+
   @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  val ruleChain = RuleChain.outerRule(projectRule).around(setFlagRule)!!
 
   private lateinit var executor: ExecutorService
   private lateinit var scope: CoroutineScope
@@ -438,12 +445,93 @@ class WorkManagerInspectorTabTest {
       assertThat(cancelAction.templateText).isEqualTo("Cancel Selected Work")
       val event: AnActionEvent = mock(AnActionEvent::class.java)
       cancelAction.actionPerformed(event)
+      scope.launch {
+        assertThat(Command.parseFrom(messenger.rawDataSent).cancelWork.id).isEqualTo(fakeWorkInfo.id)
+      }.join()
     }.join()
-    assertThat(Command.parseFrom(messenger.rawDataSent).cancelWork.id).isEqualTo(fakeWorkInfo.id)
   }
 
-  private fun WorkManagerInspectorTab.getTable() =
-    TreeWalker(component).descendantStream().filter { it is JTable }.findFirst().get() as JTable
+  @Test
+  fun openDependencyGraphView() = runBlocking {
+    sendWorkAddedEvent(fakeWorkInfo)
+    launch(uiDispatcher) {
+      val inspectorTab = WorkManagerInspectorTab(client, ideServices, scope)
+
+      val contentView = (inspectorTab.component as JBSplitter).firstComponent as WorksContentView
+      val table = contentView.getFirstChildIsInstance<JTable>()
+      table.selectionModel.setSelectionInterval(0, 0)
+      val toolbar = TreeWalker(inspectorTab.component)
+        .descendantStream()
+        .filter { it is ActionToolbar }
+        .toList()[1] as ActionToolbarImpl
+      val graphViewAction = toolbar.actions[1] as AnAction
+      assertThat(graphViewAction.templateText).isEqualTo("Show Graph View")
+      val event: AnActionEvent = mock(AnActionEvent::class.java)
+      graphViewAction.actionPerformed(event)
+      val graphView = contentView.getFirstChildIsInstance<WorkDependencyGraphView>()
+      assertThat(graphView.getFirstChildIsInstance<JLabel>().text).isEqualTo("ClassName1")
+    }.join()
+  }
+
+  @Test
+  fun openTableViewAfterGraphView() = runBlocking {
+    sendWorkAddedEvent(fakeWorkInfo)
+    launch(uiDispatcher) {
+      val inspectorTab = WorkManagerInspectorTab(client, ideServices, scope)
+
+      val contentView = (inspectorTab.component as JBSplitter).firstComponent as WorksContentView
+      val table = contentView.getFirstChildIsInstance<JTable>()
+      table.selectionModel.setSelectionInterval(0, 0)
+      val toolbar = TreeWalker(inspectorTab.component)
+        .descendantStream()
+        .filter { it is ActionToolbar }
+        .toList()[1] as ActionToolbarImpl
+      val graphViewAction = toolbar.actions[1] as AnAction
+      val event: AnActionEvent = mock(AnActionEvent::class.java)
+      graphViewAction.actionPerformed(event)
+
+      val tableViewAction = toolbar.actions[0] as AnAction
+      assertThat(tableViewAction.templateText).isEqualTo("Show List View")
+      tableViewAction.actionPerformed(event)
+
+      val newTable = contentView.getFirstChildIsInstance<JTable>()
+      assertThat(newTable).isEqualTo(table)
+      assertThat(newTable.selectedRow).isEqualTo(0)
+    }.join()
+  }
+
+  @Test
+  fun worksRemovedInGraphView_returnToEmptyTable() = runBlocking {
+    sendWorkAddedEvent(fakeWorkInfo)
+    lateinit var inspectorTab: WorkManagerInspectorTab
+
+    launch(uiDispatcher) {
+      inspectorTab = WorkManagerInspectorTab(client, ideServices, scope)
+      inspectorTab.isDetailsViewVisible = true
+      val contentView = (inspectorTab.component as JBSplitter).firstComponent as WorksContentView
+      val table = contentView.getFirstChildIsInstance<JTable>()
+      table.selectionModel.setSelectionInterval(0, 0)
+      val toolbar = TreeWalker(inspectorTab.component)
+        .descendantStream()
+        .filter { it is ActionToolbar }
+        .toList()[1] as ActionToolbarImpl
+      val graphViewAction = toolbar.actions[1] as AnAction
+      val event: AnActionEvent = mock(AnActionEvent::class.java)
+      graphViewAction.actionPerformed(event)
+    }.join()
+    sendWorkRemovedEvent(fakeWorkInfo.id)
+
+    launch(uiDispatcher) {
+      val table = inspectorTab.getTable()
+      assertThat(inspectorTab.getDetailsView()).isNull()
+      assertThat(table.rowCount).isEqualTo(0)
+    }.join()
+  }
+
+  private inline fun <reified T> JComponent.getFirstChildIsInstance(): T =
+    TreeWalker(this).descendantStream().filter { it is T }.findFirst().get() as T
+
+  private fun WorkManagerInspectorTab.getTable() = component.getFirstChildIsInstance<JTable>()
 
   private fun WorkManagerInspectorTab.getDetailsView(): JComponent? {
     var detailedPanel: JComponent? = null

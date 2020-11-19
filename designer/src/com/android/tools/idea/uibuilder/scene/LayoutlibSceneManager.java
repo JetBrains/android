@@ -1009,7 +1009,8 @@ public class LayoutlibSceneManager extends SceneManager {
       .thenApply(result -> {
         fireOnInflateComplete();
         return logIfSuccessful(result, null, CommonUsageTracker.RenderResultType.INFLATE);
-      });
+      })
+      .whenCompleteAsync(this::notifyModelUpdateIfSuccessful, PooledThreadExecutor.INSTANCE);
   }
 
   @Nullable
@@ -1091,7 +1092,6 @@ public class LayoutlibSceneManager extends SceneManager {
       return CompletableFuture.completedFuture(null);
     }
     return inflate(true)
-      .whenCompleteAsync(this::notifyModelUpdateIfSuccessful, PooledThreadExecutor.INSTANCE)
       .thenApply(result -> null);
   }
 
@@ -1235,7 +1235,6 @@ public class LayoutlibSceneManager extends SceneManager {
   @NotNull
   private CompletableFuture<RenderResult> renderImpl() {
     return inflate(myForceInflate.getAndSet(false))
-      .whenCompleteAsync(this::notifyModelUpdateIfSuccessful, PooledThreadExecutor.INSTANCE)
       .thenCompose(inflateResult -> {
         boolean inflated = inflateResult != null && inflateResult.getRenderResult().isSuccess();
         long elapsedFrameTimeMs = myElapsedFrameTimeMs;

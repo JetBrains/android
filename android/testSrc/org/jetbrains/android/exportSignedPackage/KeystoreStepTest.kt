@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.exportSignedPackage
 
+import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.testing.IdeComponents
 import com.intellij.credentialStore.CredentialAttributes
 import com.intellij.credentialStore.PasswordSafeSettings
@@ -22,18 +23,19 @@ import com.intellij.credentialStore.ProviderType
 import com.intellij.ide.passwordSafe.PasswordSafe
 import com.intellij.ide.passwordSafe.impl.BasePasswordSafe
 import com.intellij.ide.wizard.CommitStepException
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.util.ThrowableRunnable
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.jetbrains.android.util.AndroidBundle
-import org.junit.Assert.assertArrayEquals
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.io.File
+import java.util.Arrays
+import java.util.concurrent.TimeUnit
 
-class KeystoreStepTest : PlatformTestCase() {
+class KeystoreStepTest : HeavyPlatformTestCase() {
   private lateinit var ideComponents: IdeComponents
   private lateinit var facets: MutableList<AndroidFacet>
   private lateinit var myAndroidFacet1: AndroidFacet
@@ -248,8 +250,10 @@ class KeystoreStepTest : PlatformTestCase() {
     val keystoreStep2 = KeystoreStep(wizard, true, facets)
     assertEquals(testKeyStorePath, keystoreStep2.keyStorePathField.text)
     assertEquals(testKeyAlias, keystoreStep2.keyAliasField.text)
-    assertArrayEquals(testKeyStorePassword.toCharArray(), keystoreStep2.keyStorePasswordField.password)
-    assertArrayEquals(testKeyPassword.toCharArray(), keystoreStep2.keyPasswordField.password)
+    waitForCondition(1, TimeUnit.SECONDS) {
+      Arrays.equals(testKeyStorePassword.toCharArray(), keystoreStep2.keyStorePasswordField.password)
+    }
+    waitForCondition(1, TimeUnit.SECONDS) { Arrays.equals(testKeyPassword.toCharArray(), keystoreStep2.keyPasswordField.password) }
   }
 
   // See b/64995008 & b/70937387 - we want to ensure smooth transition so that the user didn't have to retype both passwords
@@ -288,7 +292,7 @@ class KeystoreStepTest : PlatformTestCase() {
     // Yes, it's weird but before the fix for b/64995008 this was exactly the observed behavior: the keystore password would
     // never be populated, whereas the key password would be saved as expected.
     assertEquals(0, keystoreStep.keyStorePasswordField.password.size)
-    assertArrayEquals(testLegacyKeyPassword.toCharArray(), keystoreStep.keyPasswordField.password)
+    waitForCondition(1, TimeUnit.SECONDS) { Arrays.equals(testLegacyKeyPassword.toCharArray(), keystoreStep.keyPasswordField.password) }
 
     // Set passwords and commit.
     keystoreStep.keyStorePasswordField.text = testKeyStorePassword

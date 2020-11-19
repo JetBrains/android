@@ -21,8 +21,6 @@ import com.android.SdkConstants.FN_GRADLE_PROPERTIES
 import com.android.SdkConstants.RECYCLER_VIEW
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.idea.model.AndroidModuleInfo
-import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
-import com.android.tools.idea.projectsystem.EP_NAME
 import com.android.tools.idea.projectsystem.PLATFORM_SUPPORT_LIBS
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
@@ -32,11 +30,12 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.StdModuleTypes
 import com.intellij.openapi.project.ex.ProjectManagerEx
+import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.ui.TestDialog
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Ref
@@ -44,7 +43,6 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito.mock
@@ -59,6 +57,7 @@ class DependencyManagerTest : AndroidTestCase() {
   private var dependencyManager: DependencyManager? = null
   private var dependencyUpdateCount = 0
   private val syncListeners = ArrayDeque<Future<*>>()
+  private val dialogMessages = mutableListOf<String>()
 
   @Throws(Exception::class)
   override fun setUp() {
@@ -78,12 +77,17 @@ class DependencyManagerTest : AndroidTestCase() {
     }
     Disposer.register(disposable!!, dependencyManager!!)
     dependencyManager!!.addDependencyChangeListener { dependencyUpdateCount++ }
+    Messages.setTestDialog { message: String ->
+      dialogMessages.add(message.trim()) // Remove line break in the end of the message.
+      Messages.OK
+    }
   }
 
   @Throws(Exception::class)
   override fun tearDown() {
     try {
       AndroidModuleInfo.setInstanceForTest(myFacet, null)
+      Messages.setTestDialog(TestDialog.DEFAULT)
       // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
       // tests through IJ)
       Disposer.dispose(disposable!!)

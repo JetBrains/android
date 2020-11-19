@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.resources.base;
 
+import com.android.io.CancellableFileIo;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Map;
@@ -49,7 +49,7 @@ public final class Base128InputStream extends BufferedInputStream {
    * @throws IOException if any other error occurs
    */
   public Base128InputStream(@NotNull Path file) throws IOException {
-    super(Files.newInputStream(file));
+    super(CancellableFileIo.newInputStream(file));
   }
 
   /**
@@ -209,7 +209,7 @@ public final class Base128InputStream extends BufferedInputStream {
    * @return true if the stream content matches, false otherwise.
    * @throws IOException in case of a premature end of stream or an I/O error
    */
-  public boolean validateContents(@NotNull byte[] expected) throws IOException {
+  public boolean validateContents(byte @NotNull [] expected) throws IOException {
     boolean result = true;
     for (byte b : expected) {
       if (b != readByte()) {

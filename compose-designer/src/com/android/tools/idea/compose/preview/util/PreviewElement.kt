@@ -153,9 +153,36 @@ private fun Int?.truncate(min: Int, max: Int): Int? {
   return minOf(maxOf(this, min), max)
 }
 
-private const val DEFAULT_DEVICE = ""
+/** Empty device spec when the user has not specified any. */
+private const val NO_DEVICE_SPEC = ""
+/** Prefix used by device specs to find devices by id. */
 private const val DEVICE_BY_ID_PREFIX = "id:"
+/** Prefix used by device specs to find devices by name. */
 private const val DEVICE_BY_NAME_PREFIX = "name:"
+
+private fun Collection<Device>.findDeviceViaSpec(deviceSpec: String): Device? = when {
+  deviceSpec == NO_DEVICE_SPEC -> null
+  deviceSpec.startsWith(DEVICE_BY_ID_PREFIX) -> {
+    val id = deviceSpec.removePrefix(DEVICE_BY_ID_PREFIX)
+    find { it.id == id }.also {
+      if (it == null) {
+        Logger.getInstance(PreviewConfiguration::class.java).warn("Unable to find device with id '$id'")
+      }
+    }
+  }
+  deviceSpec.startsWith(DEVICE_BY_NAME_PREFIX) -> {
+    val name = deviceSpec.removePrefix(DEVICE_BY_NAME_PREFIX)
+    find { it.displayName == name }.also {
+      if (it == null) {
+        Logger.getInstance(PreviewConfiguration::class.java).warn("Unable to find device with name '$name'")
+      }
+    }
+  }
+  else -> {
+    Logger.getInstance(PreviewConfiguration::class.java).warn("Invalid device spec '$deviceSpec'")
+    null
+  }
+}
 
 private fun PreviewConfiguration.applyTo(renderConfiguration: Configuration,
                                          highestApiTarget: (Configuration) -> IAndroidTarget?,
@@ -163,7 +190,13 @@ private fun PreviewConfiguration.applyTo(renderConfiguration: Configuration,
                                          defaultDeviceProvider: (Configuration) -> Device?) {
   if (apiLevel != UNDEFINED_API_LEVEL) {
     highestApiTarget(renderConfiguration)?.let {
-      renderConfiguration.target = CompatibilityRenderTarget(it, apiLevel, null)
+      renderConfiguration.target = CompatibilityRenderTarget(it, apiLevel, it)
+    }
+  }
+  else {
+    // Use the highest available one when not defined.
+    highestApiTarget(renderConfiguration)?.let {
+      renderConfiguration.target = CompatibilityRenderTarget(it, it.version.apiLevel, it)
     }
   }
 
@@ -174,36 +207,12 @@ private fun PreviewConfiguration.applyTo(renderConfiguration: Configuration,
   renderConfiguration.uiModeFlagValue = uiMode
   renderConfiguration.fontScale = max(0f, fontScale)
 
-  when {
-    deviceSpec.startsWith(DEVICE_BY_ID_PREFIX) -> {
-      val id = deviceSpec.removePrefix(DEVICE_BY_ID_PREFIX)
-      val device = devicesProvider(renderConfiguration).find { it.id == id } ?: defaultDeviceProvider(renderConfiguration)
-      if (device != null) {
-        renderConfiguration.setDevice(device, false)
-      }
-      else {
-        Logger.getInstance(PreviewConfiguration::class.java).warn("Unable to find device with id '$id'")
-      }
-    }
-    deviceSpec.startsWith(DEVICE_BY_NAME_PREFIX) -> {
-      val name = deviceSpec.removePrefix(DEVICE_BY_NAME_PREFIX)
-      val device = devicesProvider(renderConfiguration).find { it.displayName == name } ?: defaultDeviceProvider(renderConfiguration)
-      if (device != null) {
-        renderConfiguration.setDevice(device, false)
-      }
-      else {
-        Logger.getInstance(PreviewConfiguration::class.java).warn("Unable to find device with name '$name'")
-      }
-    }
-    else -> {
-      if (deviceSpec != DEFAULT_DEVICE) {
-        Logger.getInstance(PreviewElement::class.java).warn("Unknown device spec $deviceSpec")
-      }
-      val device = defaultDeviceProvider(renderConfiguration)
-      if (device != null) {
-        renderConfiguration.setDevice(device, false)
-      }
-    }
+  val allDevices = devicesProvider(renderConfiguration)
+  val device = allDevices.findDeviceViaSpec(deviceSpec)
+               ?: defaultDeviceProvider(renderConfiguration)
+
+  if (device != null) {
+    renderConfiguration.setDevice(device, false)
   }
 }
 
@@ -215,8 +224,11 @@ fun PreviewConfiguration.applyConfigurationForTest(renderConfiguration: Configur
   applyTo(renderConfiguration, highestApiTarget, devicesProvider, defaultDeviceProvider)
 }
 
+/** id for the default device when no device is specified by the user. */
+private const val DEFAULT_DEVICE_ID = "pixel_5"
+
 /**
- * Contain settings for rendering
+ * Contains settings for rendering.
  */
 data class PreviewConfiguration internal constructor(val apiLevel: Int,
                                                      val theme: String?,
@@ -229,7 +241,10 @@ data class PreviewConfiguration internal constructor(val apiLevel: Int,
     applyTo(renderConfiguration,
             { it.configurationManager.highestApiTarget },
             { it.configurationManager.devices },
-            { it.configurationManager.defaultDevice })
+            {
+              it.configurationManager.devices.find { device -> device.id == DEFAULT_DEVICE_ID }
+              ?:it.configurationManager.defaultDevice
+            })
 
   companion object {
     /**
@@ -252,12 +267,17 @@ data class PreviewConfiguration internal constructor(val apiLevel: Int,
                            height = height.truncate(1, MAX_HEIGHT) ?: UNDEFINED_DIMENSION,
                            fontScale = fontScale ?: 1f,
                            uiMode = uiMode ?: 0,
-                           deviceSpec = device ?: DEFAULT_DEVICE)
+                           deviceSpec = device ?: NO_DEVICE_SPEC)
   }
 }
 
 /** Configuration equivalent to defining a `@Preview` annotation with no parameters */
 private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null)
+
+enum class DisplayPositioning {
+  TOP, // Previews with this priority will be displayed at the top
+  NORMAL
+}
 
 /**
  * Settings that modify how a [PreviewElement] is rendered
@@ -273,7 +293,8 @@ data class PreviewDisplaySettings(val name: String,
                                   val group: String?,
                                   val showDecoration: Boolean,
                                   val showBackground: Boolean,
-                                  val backgroundColor: String?)
+                                  val backgroundColor: String?,
+                                  val displayPositioning: DisplayPositioning = DisplayPositioning.NORMAL)
 
 /**
  * Definition of a preview parameter provider. This is defined by annotating parameters with `PreviewParameter`
@@ -390,6 +411,7 @@ class SinglePreviewElementInstance(override val composableMethodFqn: String,
                    showDecorations: Boolean = false,
                    showBackground: Boolean = false,
                    backgroundColor: String? = null,
+                   displayPositioning: DisplayPositioning = DisplayPositioning.NORMAL,
                    configuration: PreviewConfiguration = nullConfiguration,
                    uiToolingPackageName: ComposeLibraryNamespace = ComposeLibraryNamespace.ANDROIDX_UI) =
       SinglePreviewElementInstance(composableMethodFqn,
@@ -398,7 +420,8 @@ class SinglePreviewElementInstance(override val composableMethodFqn: String,
                                      groupName,
                                      showDecorations,
                                      showBackground,
-                                     backgroundColor),
+                                     backgroundColor,
+                                     displayPositioning),
                                    null, null,
                                    configuration,
                                    uiToolingPackageName)
@@ -546,16 +569,12 @@ interface FilePreviewElementFinder {
 private val PreviewElement?.sourceOffset: Int
   get() = this?.previewElementDefinitionPsi?.element?.startOffset ?: -1
 
-/**
- * Sorts the [PreviewElement]s in alphabetical order of their display name.
- */
-fun Collection<PreviewElement>.sortByDisplayName(): List<PreviewElement> = sortedWith(Comparator { o1, o2 ->
-  o1.displaySettings.name.compareTo(o2.displaySettings.name)
-})
+private val sourceOffsetComparator = compareBy<PreviewElement> { it.sourceOffset }
+private val displayPriorityComparator = compareBy<PreviewElement> { it.displaySettings.displayPositioning }
 
 /**
- * Sorts the [PreviewElement]s by source code line number, smaller first.
+ * Sorts the [PreviewElement]s by [DisplayPositioning] (top first) and then by source code line number, smaller first.
  */
-fun Collection<PreviewElement>.sortBySourcePosition(): List<PreviewElement> = ReadAction.compute<List<PreviewElement>, Throwable> {
-  sortedWith(Comparator { o1, o2 -> o1.sourceOffset - o2.sourceOffset })
+fun <T: PreviewElement> Collection<T>.sortByDisplayAndSourcePosition(): List<T> = ReadAction.compute<List<T>, Throwable> {
+  sortedWith(displayPriorityComparator.thenComparing(sourceOffsetComparator))
 }

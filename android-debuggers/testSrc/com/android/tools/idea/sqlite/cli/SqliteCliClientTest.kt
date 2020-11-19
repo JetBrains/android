@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.sqlite.cli
 
+import com.android.tools.idea.sqlite.utils.initAdbFileProvider
+import com.android.tools.idea.sqlite.utils.toLines
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
@@ -25,8 +27,6 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.ide.PooledThreadExecutor
 import java.lang.System.lineSeparator
 import java.nio.file.Path
-import java.util.Scanner
-import kotlin.text.Charsets.UTF_8
 
 class SqliteCliClientTest : LightPlatformTestCase() {
   private lateinit var client: SqliteCliClient
@@ -55,7 +55,7 @@ class SqliteCliClientTest : LightPlatformTestCase() {
     tempDirTestFixture = IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture()
     tempDirTestFixture.setUp()
     databaseFile = tempDirTestFixture.createFile(dbPath).toNioPath()
-    project.setUpAdb()
+    initAdbFileProvider(project)
     client = SqliteCliClientImpl(SqliteCliProviderImpl(project).getSqliteCli()!!, taskExecutor.asCoroutineDispatcher())
   }
 
@@ -93,7 +93,7 @@ class SqliteCliClientTest : LightPlatformTestCase() {
         "PRAGMA foreign_keys=OFF;" + lineSeparator() +
         "BEGIN TRANSACTION;" + lineSeparator() +
         "CREATE TABLE IF NOT EXISTS '$table1' ('$column1' int, '$column2' int);" + lineSeparator() +
-        "COMMIT;" + lineSeparator()
+        "COMMIT;"
       )
     }
   }
@@ -107,7 +107,7 @@ class SqliteCliClientTest : LightPlatformTestCase() {
   fun testQueryLargeOutput() = runBlocking {
     // generate a "large" output
     val values = (1..2000).toList()
-    val expectedOutput = values.joinToString(separator = lineSeparator(), postfix = lineSeparator())
+    val expectedOutput = values.joinToString(separator = lineSeparator())
 
     // create table
     client.runSqliteCliCommand(
@@ -201,19 +201,18 @@ class SqliteCliClientTest : LightPlatformTestCase() {
       .also { assertThat(it.exitCode).isEqualTo(0) }
 
     // verify content no headers, separator=|
-    assertThat(readFile(outputFile1)).isEqualTo(
-      "1|2|3" + lineSeparator() +
-      "4|5|6" + lineSeparator() +
-      "7|8|9" + lineSeparator()
-    )
+    assertThat(outputFile1.toLines().toList()).isEqualTo(listOf(
+      "1|2|3",
+      "4|5|6",
+      "7|8|9"))
 
     // verify content with headers, separator=;
-    assertThat(readFile(outputFile2)).isEqualTo(
-      "\"$column1\";\"$column2\";\"$column3\"" + lineSeparator() +
-      "1;2;3" + lineSeparator() +
-      "4;5;6" + lineSeparator() +
-      "7;8;9" + lineSeparator()
-    )
+    assertThat(outputFile2.toLines()).isEqualTo(listOf(
+      "\"$column1\";\"$column2\";\"$column3\"",
+      "1;2;3",
+      "4;5;6",
+      "7;8;9",
+    ))
   }
 
   /**
@@ -260,7 +259,7 @@ class SqliteCliClientTest : LightPlatformTestCase() {
         .build())
       .also {
         assertThat(it.exitCode).isEqualTo(0)
-        assertThat(it.stdOutput).isEqualTo(table1 + lineSeparator() + table2 + lineSeparator())
+        assertThat(it.stdOutput).isEqualTo(table1 + lineSeparator() + table2)
       }
 
     // query view list
@@ -272,7 +271,7 @@ class SqliteCliClientTest : LightPlatformTestCase() {
         .build())
       .also {
         assertThat(it.exitCode).isEqualTo(0)
-        assertThat(it.stdOutput).isEqualTo(view1 + lineSeparator())
+        assertThat(it.stdOutput).isEqualTo(view1)
       }
 
     // dump table
@@ -290,7 +289,7 @@ class SqliteCliClientTest : LightPlatformTestCase() {
           "CREATE TABLE IF NOT EXISTS '$table1' ('$column1' int, '$column2' text, '$column3' float);" + lineSeparator() +
           "INSERT INTO \"$table1\" VALUES(1,'2',3.0);" + lineSeparator() +
           "INSERT INTO \"$table1\" VALUES(4,'5',6.0);" + lineSeparator() +
-          "COMMIT;" + lineSeparator()
+          "COMMIT;"
         )
       }
 
@@ -313,7 +312,7 @@ class SqliteCliClientTest : LightPlatformTestCase() {
           "INSERT INTO \"$table2\" VALUES(11,'22',33);" + lineSeparator() +
           "INSERT INTO \"$table2\" VALUES(44,'55',66);" + lineSeparator() +
           "CREATE VIEW '$view1' as select * from '$table1';" + lineSeparator() +
-          "COMMIT;" + lineSeparator()
+          "COMMIT;"
         )
       }
 
@@ -345,8 +344,4 @@ class SqliteCliClientTest : LightPlatformTestCase() {
     }
     assertThat(dump1).isEqualTo(dump2)
   }
-
-  private fun readFile(path: Path): String = sequence {
-    Scanner(path, UTF_8.name()).use { while (it.hasNextLine()) yield(it.nextLine()) }
-  }.joinToString(separator = lineSeparator(), postfix = lineSeparator())
 }

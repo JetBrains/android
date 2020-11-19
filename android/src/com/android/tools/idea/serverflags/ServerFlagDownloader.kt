@@ -23,7 +23,7 @@ import java.net.URL
 import java.nio.file.Path
 
 private const val BASE_URL_OVERRIDE_KEY = "studio.server.flags.baseurl.override"
-private const val DEFAULT_BASE_URL = "https://dl.google.com/android/studio/server_flags/"
+private const val DEFAULT_BASE_URL = "https://dl.google.com/android/studio/server_flags/release"
 
 /**
  * ServerFlagDownloader downloads the protobuf file for the current version of Android Studio.

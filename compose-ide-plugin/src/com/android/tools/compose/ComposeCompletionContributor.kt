@@ -32,6 +32,7 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.codeInsight.template.Template
 import com.intellij.codeInsight.template.TemplateEditingAdapter
 import com.intellij.codeInsight.template.TemplateManager
+import com.intellij.codeInsight.template.impl.ConstantNode
 import com.intellij.codeInspection.InspectionSuppressor
 import com.intellij.codeInspection.SuppressQuickFix
 import com.intellij.openapi.application.runWriteAction
@@ -42,23 +43,35 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.util.castSafelyTo
 import icons.StudioIcons
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
+import org.jetbrains.kotlin.builtins.isFunctionType
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.completion.BasicLookupElementFactory
 import org.jetbrains.kotlin.idea.completion.LambdaSignatureTemplates
 import org.jetbrains.kotlin.idea.completion.LookupElementFactory
 import org.jetbrains.kotlin.idea.completion.handlers.KotlinCallableInsertHandler
 import org.jetbrains.kotlin.idea.core.completion.DeclarationLookupObject
+import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
 import org.jetbrains.kotlin.idea.util.CallType
+import org.jetbrains.kotlin.js.translate.callTranslator.getReturnType
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.nj2k.postProcessing.resolve
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.getNextSiblingIgnoringWhitespace
+import org.jetbrains.kotlin.psi.psiUtil.getReceiverExpression
+import org.jetbrains.kotlin.psi.psiUtil.isExtensionDeclaration
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
+import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.typeUtil.isUnit
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 private val COMPOSABLE_FUNCTION_ICON = StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION
 
@@ -78,11 +91,12 @@ private fun LookupElement.getFunctionDescriptor(): FunctionDescriptor? {
     ?.castSafelyTo<FunctionDescriptor>()
 }
 
-private val List<ValueParameterDescriptor>.hasComposableChildren: Boolean get() {
-  val lastArgType = lastOrNull()?.type ?: return false
-  return lastArgType.isBuiltinFunctionalType
-         && COMPOSABLE_FQ_NAMES.any { lastArgType.annotations.hasAnnotation(FqName(it)) }
-}
+private val List<ValueParameterDescriptor>.hasComposableChildren: Boolean
+  get() {
+    val lastArgType = lastOrNull()?.type ?: return false
+    return lastArgType.isBuiltinFunctionalType
+           && COMPOSABLE_FQ_NAMES.any { lastArgType.annotations.hasAnnotation(FqName(it)) }
+  }
 
 /**
  * Modifies [LookupElement]s for composable functions, to improve Compose editing UX.
@@ -238,6 +252,29 @@ class AndroidComposeCompletionWeigher : CompletionWeigher() {
   private fun LookupElement.isForNamedArgument() = lookupString.endsWith(" =")
 }
 
+/**
+ * Moves extension functions for Modifier [ComposeLibraryNamespace.ANDROIDX_COMPOSE.composeModifierClassName] up the completion list.
+ */
+class ComposeModifiersCompletionWeigher : CompletionWeigher() {
+  override fun weigh(element: LookupElement, location: CompletionLocation) = when {
+    !StudioFlags.COMPOSE_EDITOR_SUPPORT.get() -> 0
+    location.completionParameters.position.language != KotlinLanguage.INSTANCE -> 0
+    location.completionParameters.position.getModuleSystem()?.usesCompose != true -> 0
+    // If it's modifier's extension method assign bigger weight
+    location.completionParameters.position.isMethodCalledOnModifier() -> if (element.psiElement?.isExtensionDeclaration() == true) 2 else 0
+    else -> 0
+  }
+
+  private fun PsiElement.isMethodCalledOnModifier(): Boolean {
+    val elementOnWhichMethodCalled: KtExpression = parent.safeAs<KtNameReferenceExpression>()?.getReceiverExpression() ?: return false
+    // Case Modifier.align().<caret>, modifier.<caret>
+    val fqName = elementOnWhichMethodCalled.resolveToCall(BodyResolveMode.PARTIAL)?.getReturnType()?.fqName ?:
+                 // Case Modifier.<caret>
+                 elementOnWhichMethodCalled.safeAs<KtNameReferenceExpression>()?.resolve().safeAs<KtClass>()?.fqName
+    return fqName?.asString() == ComposeLibraryNamespace.ANDROIDX_COMPOSE.composeModifierClassName
+  }
+}
+
 private fun InsertionContext.getNextElementIgnoringWhitespace(): PsiElement? {
   val elementAtCaret = file.findElementAt(editor.caretModel.offset) ?: return null
   return elementAtCaret.getNextSiblingIgnoringWhitespace(true) ?: return null
@@ -276,7 +313,12 @@ class ComposeInsertHandler(private val descriptor: FunctionDescriptor) : KotlinC
               addTextSegment(", ")
             }
             addTextSegment(parameter.name.asString() + " = ")
-            addVariable(EmptyExpression(), true)
+            if (parameter.type.isFunctionType) {
+              addVariable(ConstantNode("{ /*TODO*/ }"), true)
+            }
+            else {
+              addVariable(EmptyExpression(), true)
+            }
           }
           addTextSegment(")")
         }

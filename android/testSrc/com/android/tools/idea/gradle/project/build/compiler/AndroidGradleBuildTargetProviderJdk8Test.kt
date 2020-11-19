@@ -24,6 +24,10 @@ class AndroidGradleBuildTargetProviderJdk8Test: AndroidGradleBuildTargetProvider
     overrideJdkTo8()
   }
 
+  override fun testProjectCompileScope() {
+    // ignore because of http://b/172934015
+  }
+
   override fun tearDown() {
     try {
       restoreJdk()

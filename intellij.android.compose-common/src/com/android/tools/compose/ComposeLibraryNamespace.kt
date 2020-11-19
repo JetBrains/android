@@ -49,6 +49,8 @@ enum class ComposeLibraryNamespace(val packageName: String) {
    */
   val composableAdapterName: String = "$previewPackage.ComposeViewAdapter"
 
+  val composeModifierClassName: String = "$packageName.Modifier"
+
   /** Only composables with this annotations will be rendered to the surface. */
   val previewAnnotationName = "$previewPackage.$COMPOSE_PREVIEW_ANNOTATION_NAME"
 

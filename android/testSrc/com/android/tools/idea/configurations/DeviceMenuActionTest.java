@@ -59,6 +59,7 @@ public class DeviceMenuActionTest extends AndroidTestCase {
       "    6.0, 1440 \u00d7 2560, 560dpi (Nexus 6)\n" +
       "    6.0, 1440 \u00d7 2880, 560dpi (Pixel 2 XL)\n" +
       "    6.0, 1080 \u00d7 2160, 400dpi (Pixel 3a XL)\n" +
+      "    6.0, 1080 \u00d7 2340, 440dpi (Pixel 5)\n" +
       "    6.3, 1440 \u00d7 2960, 560dpi (Pixel 3 XL)\n" +
       "    6.3, 1440 \u00d7 3040, 560dpi (Pixel 4 XL)\n" +
       "    ------------------------------------------------------\n" +

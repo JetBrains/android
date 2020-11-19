@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
-import com.android.testutils.MockitoKt.any
 import com.android.SdkConstants
-import com.android.repository.Revision
-import com.android.repository.api.LocalPackage
 import com.android.repository.api.RepoManager
 import com.android.repository.impl.meta.RepositoryPackages
 import com.android.repository.testframework.FakePackage.FakeLocalPackage
@@ -26,38 +23,34 @@ import com.android.repository.testframework.FakeProgressIndicator
 import com.android.repository.testframework.FakeRepoManager
 import com.android.repository.testframework.MockFileOp
 import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.concurrency.AndroidExecutors
-import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.concurrency.BoundedTaskExecutor
-import java.io.File
-import java.io.FileOutputStream
-import java.io.ByteArrayInputStream
-import java.nio.charset.Charset
-import java.util.concurrent.TimeUnit
 import org.apache.commons.io.IOUtils
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.TemporaryFolder
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.anyString
 import org.mockito.MockitoAnnotations
+import java.io.ByteArrayInputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.nio.charset.Charset
+import java.util.concurrent.TimeUnit
 
 private const val RESOURCE_BASE = "com/android/tools/idea/testartifacts/instrumented/testsuite/snapshots/"
 private const val SNAPSHOT_TAR = "fakeSnapshotWithScreenshot.tar"
 private const val SNAPSHOT_TAR_GZ = "fakeSnapshotWithScreenshot.tar.gz"
 private const val SNAPSHOT_WITH_PB_TAR = "fakeSnapshotWithPb.tar.gz"
-private const val FAKE_EMULATOR_REVISION = "26.0.0"
 
-@RunWith(JUnit4::class)
 class RetentionViewTest {
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
@@ -71,7 +64,7 @@ class RetentionViewTest {
 
   private lateinit var retentionView: RetentionView
   private lateinit var androidSdkHandler: AndroidSdkHandler
-  private lateinit var sdkPath: File
+  private val sdkPath = File("/sdk")
 
   @Mock
   private lateinit var mockRuntime: Runtime
@@ -83,17 +76,9 @@ class RetentionViewTest {
   @Before
   fun setUp() {
     MockitoAnnotations.initMocks(this)
-    sdkPath = temporaryFolderRule.newFolder()
-    val emulatorFolder = sdkPath.resolve(SdkConstants.FD_EMULATOR)
-    assertThat(emulatorFolder.mkdirs()).isTrue()
-    val emulatorBinary = emulatorFolder.resolve(SdkConstants.FN_EMULATOR)
-    assertThat(emulatorBinary.createNewFile()).isTrue()
-    mockFileOp.recordExistingFile(emulatorBinary)
     val p = FakeLocalPackage(SdkConstants.FD_EMULATOR)
-    p.setRevision(Revision.parseRevision(FAKE_EMULATOR_REVISION))
-    p.setInstalledPath(emulatorFolder)
-    val packages = RepositoryPackages()
-    packages.setLocalPkgInfos(ImmutableList.of<LocalPackage>(p))
+    mockFileOp.recordExistingFile(p.location.resolve(SdkConstants.FN_EMULATOR))
+    val packages = RepositoryPackages(listOf(p), listOf())
     val mgr: RepoManager = FakeRepoManager(sdkPath, packages)
     androidSdkHandler = AndroidSdkHandler(sdkPath, sdkPath, mockFileOp, mgr)
     `when`(mockRuntime.exec(any(Array<String>::class.java))).thenReturn(mockProcess)

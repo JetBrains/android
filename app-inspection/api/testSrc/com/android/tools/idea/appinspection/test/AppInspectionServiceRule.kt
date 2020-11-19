@@ -147,23 +147,57 @@ class AppInspectionServiceRule(
   }
 
   /**
+   * Generate fake [Common.Event]s using the provided [payloadEvents].
+   *
+   * Once this has been called, the complete payload (all passed in payload events concatenated)
+   * should be cached on the other side of the connection, and it can be referenced via the
+   * [payloadId] passed in here.
+   *
+   * @param payloadId You may pass in any unique ID you want here. Re-using an old ID will
+   * potentially overwrite a previously sent payload, so be careful not to do that! In production,
+   * this value will be generated automatically by the app inspection service, but for tests, you
+   * can just specify a value, as long as you're consistent about using it later when fetching the
+   * payload.
+   *
+   * See also: [AppInspectionTestUtils.createPayloadChunks]
+   */
+  fun addAppInspectionPayload(payloadId: Long, payloadEvents: List<AppInspection.AppInspectionPayload>) {
+    payloadEvents.forEachIndexed { i, payloadEvent -> addAppInspectionPayload(payloadId, payloadEvent, i == payloadEvents.lastIndex) }
+  }
+
+  private fun addAppInspectionPayload(payloadId: Long, payloadEvent: AppInspection.AppInspectionPayload, isEnded: Boolean) {
+    addTransportEvent { transportEvent ->
+      transportEvent.kind = Common.Event.Kind.APP_INSPECTION_PAYLOAD
+      transportEvent.groupId = payloadId
+      transportEvent.isEnded = isEnded
+      transportEvent.appInspectionPayload = payloadEvent
+    }
+  }
+
+  /**
    * Generate a fake [Common.Event] using the provided [appInspectionEvent].
    */
   fun addAppInspectionEvent(appInspectionEvent: AppInspection.AppInspectionEvent) {
-    transportService.addEventToStream(
-      stream.streamId,
-      Common.Event.newBuilder()
-        .setPid(process.pid)
-        .setKind(Common.Event.Kind.APP_INSPECTION_EVENT)
-        .setTimestamp(timer.currentTimeNs)
-        .setIsEnded(true)
-        .setAppInspectionEvent(appInspectionEvent)
-        .build()
-    )
-    timer.currentTimeNs += 1
+    addTransportEvent { transportEvent ->
+      transportEvent.kind = Common.Event.Kind.APP_INSPECTION_EVENT
+      transportEvent.appInspectionEvent = appInspectionEvent
+    }
   }
 
   fun addProcessListener(listener: ProcessListener) {
     processNotifier.addProcessListener(executorService, listener)
+  }
+
+  private fun addTransportEvent(initEvent: (Common.Event.Builder) -> Unit) {
+    val transportEvent = Common.Event.newBuilder().apply {
+      pid = this@AppInspectionServiceRule.process.pid
+      timestamp = timer.currentTimeNs
+      isEnded = true
+
+      initEvent(this)
+    }.build()
+
+    transportService.addEventToStream(stream.streamId, transportEvent)
+    timer.currentTimeNs += 1
   }
 }

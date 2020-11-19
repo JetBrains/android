@@ -18,6 +18,9 @@
 package com.android.tools.idea.sqlite.cli
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.sqlite.cli.SqliteQueries.selectTableContents
+import com.android.tools.idea.sqlite.cli.SqliteQueries.selectTableNames
+import com.android.tools.idea.sqlite.cli.SqliteQueries.selectViewNames
 import com.intellij.openapi.diagnostic.logger
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.async
@@ -54,17 +57,17 @@ class SqliteCliArgs private constructor() {
   class Builder {
     private val args = mutableListOf<SqliteCliArg>()
 
-    fun database(path: Path) = apply { args.add(SqliteCliArg(".open '${path.canonicalPath}'")) }
-    fun output(path: Path) = apply { args.add(SqliteCliArg("$sqliteCliOutputArgPrefix ${path.canonicalPath}")) }
-    fun clone(path: Path) = apply { args.add(SqliteCliArg(".clone '${path.canonicalPath}'")) }
+    fun database(path: Path) = apply { args.add(SqliteCliArg(".open '${path.toAbsolutePath()}'")) }
+    fun output(path: Path) = apply { args.add(SqliteCliArg("$sqliteCliOutputArgPrefix ${path.toAbsolutePath()}")) }
+    fun clone(path: Path) = apply { args.add(SqliteCliArg(".clone '${path.toAbsolutePath()}'")) }
     fun modeCsv() = apply { args.add(SqliteCliArg(".mode csv")) }
     fun dump() = apply { args.add(SqliteCliArg(".dump")) }
     fun dumpTable(tableName: String) = apply { args.add(SqliteCliArg(".dump '$tableName'")) }
     fun headersOn() = apply { args.add(SqliteCliArg(".headers on")) }
-    fun separator(separator: Char) = apply { args.add(SqliteCliArg(".separator '${separator}'")) }
-    fun queryTableContents(tableName: String) = apply { args.add(SqliteCliArg("select * from '$tableName';")) }
-    fun queryTableList() = apply { args.add(SqliteCliArg(SqliteConstants.selectTableNames + ";")) }
-    fun queryViewList() = apply { args.add(SqliteCliArg(SqliteConstants.selectViewNames + ";")) }
+    fun separator(separator: Char) = apply { args.add(SqliteCliArg(".separator '$separator'")) }
+    fun queryTableContents(tableName: String) = apply { args.add(SqliteCliArg("${selectTableContents(tableName)};")) }
+    fun queryTableList() = apply { args.add(SqliteCliArg("$selectTableNames;")) }
+    fun queryViewList() = apply { args.add(SqliteCliArg("$selectViewNames;")) }
     fun raw(rawArg: String) = apply { args.add(SqliteCliArg(rawArg)) }
     private fun quit() = apply { args.add(SqliteCliArg(".quit")) } // exits the sqlite3 interactive mode
 
@@ -72,9 +75,10 @@ class SqliteCliArgs private constructor() {
   }
 }
 
-object SqliteConstants {
+object SqliteQueries {
   const val selectTableNames = "select name from sqlite_master where type = 'table' AND name not like 'sqlite_%'"
   const val selectViewNames = "select name from sqlite_master where type = 'view' AND name not like 'sqlite_%'"
+  fun selectTableContents(tableName: String) = "select * from '$tableName'"
 }
 
 class SqliteCliClientImpl(private val sqlite3: Path, private val dispatcher: CoroutineDispatcher) : SqliteCliClient {
@@ -82,7 +86,7 @@ class SqliteCliClientImpl(private val sqlite3: Path, private val dispatcher: Cor
 
   @WorkerThread
   override suspend fun runSqliteCliCommand(args: List<SqliteCliArg>): SqliteCliResponse = withContext(dispatcher) {
-    val sqlCliPath = sqlite3.canonicalPath
+    val sqlCliPath = sqlite3.toAbsolutePath()
     val stringArgs = args.map { it.rawArg }
     logger.info("Executing external command $sqlCliPath with arguments ${stringArgs.toString().ellipsize(500)}")
 
@@ -98,7 +102,7 @@ class SqliteCliClientImpl(private val sqlite3: Path, private val dispatcher: Cor
     val errWriter = StringWriter()
 
     outputWriter.use {
-      val exitCode = ProcessExecutor.exec(sqlCliPath, inputLines, outputWriter, errWriter, dispatcher)
+      val exitCode = ProcessExecutor.exec(sqlCliPath.toString(), inputLines, outputWriter, errWriter, dispatcher)
       val stdOutput = if (outputWriter is StringWriter) outputWriter.toString() else "" // in the "else" case we assume a file output
       val errOutput = errWriter.toString()
       SqliteCliResponse(exitCode, stdOutput, errOutput).also {
@@ -145,16 +149,19 @@ private object ProcessExecutor {
   private suspend fun consumeProcessOutput(source: InputStream?, outputWriter: Writer, process: Process) {
     if (source == null) return
 
+    var isFirstLine = true
     Scanner(source, UTF_8.name()).use { scanner ->
       while (process.isAlive || scanner.hasNextLine()) {
-        while (scanner.hasNextLine()) outputWriter.append(scanner.nextLine()).append(System.lineSeparator())
+        while (scanner.hasNextLine()) {
+          if (!isFirstLine) outputWriter.append(System.lineSeparator())
+          isFirstLine = false
+          outputWriter.append(scanner.nextLine())
+        }
         delay(50)
       }
     }
   }
 }
-
-private val Path.canonicalPath get() = this.toFile().canonicalPath
 
 // Shortens the string if over maxLength (and adds an ellipsis at the end if the case)
 private fun String.ellipsize(maxLength: Int): String {

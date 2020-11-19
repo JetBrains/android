@@ -451,7 +451,7 @@ public class RenderErrorContributor {
 
   private void reportRelevantCompilationErrors(@NotNull RenderLogger logger) {
     Module module = logger.getModule();
-    if (module == null) {
+    if (module == null || module.isDisposed()) {
       return;
     }
 

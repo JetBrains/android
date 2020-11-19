@@ -21,11 +21,13 @@ import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
-import com.android.tools.idea.appinspection.ide.AppInspectorTabLaunchParams
 import com.android.tools.idea.appinspection.ide.AppInspectorTabLaunchSupport
+import com.android.tools.idea.appinspection.ide.StaticInspectorTabLaunchParams
+import com.android.tools.idea.appinspection.ide.LaunchableInspectorTabLaunchParams
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
+import com.android.tools.idea.appinspection.ide.toIncompatibleVersionMessage
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLibraryMissingException
@@ -36,6 +38,7 @@ import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameter
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
+import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ide.ActivityTracker
@@ -69,9 +72,9 @@ class AppInspectionView(
   private val getTabProviders: () -> Collection<AppInspectorTabProvider>,
   private val scope: CoroutineScope,
   private val uiDispatcher: CoroutineDispatcher,
+  private val artifactResolver: ArtifactResolver,
   getPreferredProcesses: () -> List<String>
 ) : Disposable {
-
   val component = JPanel(TabularLayout("*", "Fit,Fit,*"))
   private val inspectorPanel = JPanel(BorderLayout())
 
@@ -110,6 +113,7 @@ class AppInspectionView(
               ideServices: AppInspectionIdeServices,
               scope: CoroutineScope,
               uiDispatcher: CoroutineDispatcher,
+              artifactResolver: ArtifactResolver,
               getPreferredProcesses: () -> List<String>) :
     this(project,
          apiServices,
@@ -117,6 +121,7 @@ class AppInspectionView(
          { AppInspectorTabProvider.EP_NAME.extensionList },
          scope,
          uiDispatcher,
+         artifactResolver,
          getPreferredProcesses)
 
   private fun showCrashNotification(inspectorName: String) {
@@ -198,17 +203,17 @@ class AppInspectionView(
   }
 
   private fun launchInspectorTabsForCurrentProcess(force: Boolean = false) = scope.launch {
-    val launchSupport = AppInspectorTabLaunchSupport(getTabProviders, apiServices, project)
-    // Triage the applicable inspector tab providers into those of which inspectors can be launched, and those of which can't.
+    val launchSupport = AppInspectorTabLaunchSupport(getTabProviders, apiServices, project, artifactResolver)
+    // Triage the applicable inspector tab providers into those that can be launched, and those that can't.
     val applicableTabs = launchSupport.getApplicableTabLaunchParams(currentProcess)
-    val incompatibleInspectorTabShells = applicableTabs
-      .filter { it.status == AppInspectorTabLaunchParams.Status.INCOMPATIBLE }
-      .map { AppInspectorTabShell(it.provider).also { shell -> shell.setComponent(shell.provider.toIncompatibleVersionMessage()) } }
-    val inspectorTabShells = applicableTabs
-      .filter { it.status == AppInspectorTabLaunchParams.Status.LAUNCH }
+    val launchableInspectorTabs = applicableTabs
+      .filterIsInstance<LaunchableInspectorTabLaunchParams>()
       .map { AppInspectorTabShell(it.provider) }
+    val deadInspectorTabs = applicableTabs
+      .filterIsInstance<StaticInspectorTabLaunchParams>()
+      .map { AppInspectorTabShell(it.provider).also { shell -> shell.setComponent(it.toInfoMessageTab()) } }
 
-    inspectorTabShells.forEach { tab ->
+    launchableInspectorTabs.forEach { tab ->
       val provider = tab.provider
       launch {
         try {
@@ -261,10 +266,10 @@ class AppInspectionView(
           }
         }
         catch (e: AppInspectionVersionIncompatibleException) {
-          withContext(uiDispatcher) { tab.setComponent(provider.toIncompatibleVersionMessage()) }
+          withContext(uiDispatcher) { tab.setComponent(EmptyStatePanel(provider.toIncompatibleVersionMessage())) }
         }
         catch (e: AppInspectionLibraryMissingException) {
-          withContext(uiDispatcher) { tab.setComponent(provider.toIncompatibleVersionMessage()) }
+          withContext(uiDispatcher) { tab.setComponent(EmptyStatePanel(provider.toIncompatibleVersionMessage())) }
         }
         catch (e: Exception) {
           Logger.getInstance(AppInspectionView::class.java).error(e)
@@ -272,19 +277,17 @@ class AppInspectionView(
       }
     }
 
-    withContext(uiDispatcher) {
+    withContext(uiDispatcher)
+    {
       inspectorTabs.clear()
-      (incompatibleInspectorTabShells + inspectorTabShells).sorted().forEach { tab -> inspectorTabs.add(tab) }
+      (launchableInspectorTabs + deadInspectorTabs).sorted().forEach { tab ->
+        inspectorTabs.add(tab)
+      }
       updateUi()
       fireTabsChangedListener()
     }
   }
 
-  private fun AppInspectorTabProvider.toIncompatibleVersionMessage(): JComponent {
-    val reason = AppInspectionBundle.message("incompatible.version",
-                                             (inspectorLaunchParams as LibraryInspectorLaunchParams).minVersionLibraryCoordinate.toString())
-    return EmptyStatePanel(reason)
-  }
 
   private fun fireTabsChangedListener() {
     tabsChangedListener?.invoke()

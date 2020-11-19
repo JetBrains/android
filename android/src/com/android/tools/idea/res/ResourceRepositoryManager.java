@@ -559,7 +559,7 @@ public final class ResourceRepositoryManager implements Disposable {
       return null;
     }
 
-    return androidPlatform.getSdkData().getTargetData(androidPlatform.getTarget()).getFrameworkResources(languages);
+    return androidPlatform.getSdkData().getTargetData(androidPlatform.getTarget()).getExistingFrameworkResources(languages);
   }
 
   /**

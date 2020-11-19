@@ -65,6 +65,7 @@ import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.util.PathString;
+import com.android.io.CancellableFileIo;
 import com.android.resources.Arity;
 import com.android.resources.Density;
 import com.android.resources.FolderTypeRelationship;
@@ -83,6 +84,7 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.io.URLUtil;
@@ -92,7 +94,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
-import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -211,7 +212,7 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
 
   protected void loadFromResFolder(@NotNull T repository) {
     try {
-      if (Files.notExists(myResourceDirectoryOrFile)) {
+      if (CancellableFileIo.notExists(myResourceDirectoryOrFile)) {
         return; // Don't report errors if the resource directory doesn't exist. This happens in some tests.
       }
 
@@ -303,7 +304,7 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
     Path valuesFolder = myResourceDirectoryOrFile.resolve(FD_RES_VALUES);
     Path publicXmlFile = valuesFolder.resolve("public.xml");
 
-    try (InputStream stream = new BufferedInputStream(Files.newInputStream(publicXmlFile))) {
+    try (InputStream stream = new BufferedInputStream(CancellableFileIo.newInputStream(publicXmlFile))) {
       CommentTrackingXmlPullParser parser = new CommentTrackingXmlPullParser();
       parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
       parser.setInput(stream, UTF_8.name());
@@ -406,7 +407,7 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
     ResourceFileCollector fileCollector = new ResourceFileCollector(this);
     for (Path file : filesOrFolders) {
       try {
-        Files.walkFileTree(file, fileCollector);
+        CancellableFileIo.walkFileTree(file, fileCollector);
       }
       catch (IOException e) {
         // All IOExceptions are logged by ResourceFileCollector.
@@ -574,9 +575,10 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
     if (myZipFile == null) {
       Path path = file.toPath();
       Preconditions.checkArgument(path != null);
-      return new BufferedInputStream(Files.newInputStream(path));
+      return new BufferedInputStream(CancellableFileIo.newInputStream(path));
     }
     else {
+      ProgressManager.checkCanceled();
       ZipEntry entry = myZipFile.getEntry(file.getPortablePath());
       if (entry == null) {
         throw new NoSuchFileException(file.getPortablePath());

@@ -28,13 +28,9 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.ide.ui.search.SearchUtil;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.SimpleColoredComponent;
-import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.Function;
 import com.intellij.util.ThreeState;
-import icons.StudioIcons;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -42,7 +38,6 @@ import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public final class LaunchableAndroidDevice implements AndroidDevice {
   private static final Map<Abi, List<Abi>> ABI_MAPPINGS = ImmutableMap.of(
@@ -131,29 +126,11 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
   }
 
   @Override
-  public boolean renderLabel(@NotNull SimpleColoredComponent component, boolean isCompatible, @Nullable String searchPrefix) {
-    component.setIcon(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE);
-    SimpleTextAttributes attr = isCompatible ? SimpleTextAttributes.REGULAR_ATTRIBUTES : SimpleTextAttributes.GRAY_ATTRIBUTES;
-    SearchUtil.appendFragments(searchPrefix, getName(), attr.getStyle(), attr.getFgColor(), attr.getBgColor(), component);
-    return true;
-  }
-
-  @Override
-  public void prepareToRenderLabel() {
-  }
-
-  @Override
   @NotNull
   public ListenableFuture<IDevice> launch(@NotNull Project project) {
-    return launch(project, Collections.emptyList());
-  }
-
-  @Override
-  @NotNull
-  public ListenableFuture<IDevice> launch(@NotNull Project project, @NotNull List<String> arguments) {
     synchronized (myLock) {
       if (myLaunchedEmulator == null) {
-        myLaunchedEmulator = AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, myAvdInfo, arguments);
+        myLaunchedEmulator = AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, myAvdInfo);
       }
       return myLaunchedEmulator;
     }

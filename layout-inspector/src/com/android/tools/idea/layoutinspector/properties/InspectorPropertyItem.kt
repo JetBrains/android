@@ -17,7 +17,6 @@ package com.android.tools.idea.layoutinspector.properties
 
 import com.android.SdkConstants.ATTR_TEXT_SIZE
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE

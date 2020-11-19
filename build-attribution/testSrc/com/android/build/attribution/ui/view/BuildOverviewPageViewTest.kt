@@ -116,6 +116,32 @@ class BuildOverviewPageViewTest {
     Mockito.verify(mockHandlers).openMemorySettings()
   }
 
+  @Test
+  fun testG1GCSuggestionShowsUpWhenDetected() {
+    val model = BuildAnalyzerViewModel(MockUiData(suggestChangeGC = true))
+    val view = BuildOverviewPageView(model, mockHandlers)
+    val memoryPanel = TreeWalker(view.component).descendants().single { it.name == "memory" }
+
+    Truth.assertThat(
+      TreeWalker(memoryPanel).descendants()
+        .filterIsInstance<JEditorPane>()
+        .any { it.text.contains("G1 Garbage Collector was used in this build.") }
+    ).isTrue()
+  }
+
+  @Test
+  fun testG1GCSuggestionNotShownWhenNotDetected() {
+    val model = BuildAnalyzerViewModel(MockUiData(suggestChangeGC = false))
+    val view = BuildOverviewPageView(model, mockHandlers)
+    val memoryPanel = TreeWalker(view.component).descendants().single { it.name == "memory" }
+
+    Truth.assertThat(
+      TreeWalker(memoryPanel).descendants()
+        .filterIsInstance<JEditorPane>()
+        .any { it.text.contains("G1 Garbage Collector was used in this build.") }
+    ).isFalse()
+  }
+
   private fun visibleText(component: Component): String? = when (component) {
     is JLabel -> component.text
     is JEditorPane -> clearHtml(component.text)
@@ -125,6 +151,6 @@ class BuildOverviewPageViewTest {
 
   private fun clearHtml(html: String): String = UIUtil.getHtmlBody(html)
     .trimIndent()
-    .replace("\n","")
-    .replace("<br>","\n")
+    .replace("\n", "")
+    .replace("<br>", "\n")
 }

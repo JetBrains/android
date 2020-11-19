@@ -42,7 +42,6 @@ import com.intellij.execution.actions.RunConfigurationProducer;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.junit.JUnitConfigurationProducer;
 import com.intellij.execution.junit.JUnitConfigurationType;
-import com.intellij.ide.ApplicationLoadListener;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.lang.injection.MultiHostInjector;
@@ -81,14 +80,6 @@ import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtensi
  */
 public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
 
-  public static class AndroidStudioLoadListener implements ApplicationLoadListener {
-
-    @Override
-    public void beforeApplicationLoaded(@NotNull Application application, @NotNull String configPath) {
-      AndroidStudioAnalytics.initialize(new AndroidStudioAnalyticsImpl());
-    }
-  }
-
   @Override
   public void customize(@NotNull ActionManager actionManager) {
     checkInstallation();
@@ -102,9 +93,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
 
     ServerFlagInitializer.initializeService();
     ScheduledExecutorService scheduler = JobScheduler.getScheduler();
-    scheduler.execute(() -> {
-      ServerFlagDownloader.downloadServerFlagList();
-    });
+    scheduler.execute(ServerFlagDownloader::downloadServerFlagList);
 
     setupAnalytics();
     disableIdeaJUnitConfigurations(actionManager);

@@ -15,31 +15,30 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
+import static com.android.SdkConstants.FD_RES_DRAWABLE;
+import static org.jetbrains.android.util.AndroidUtils.createChildDirectoryIfNotExist;
+
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
-import com.android.tools.idea.common.model.NlModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.SourceProviderManager;
-import com.android.tools.idea.res.IdeResourcesUtil;
-import org.jetbrains.annotations.NotNull;
-
-import javax.imageio.ImageIO;
-import java.awt.*;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-
-import static com.android.SdkConstants.FD_RES_DRAWABLE;
-import static org.jetbrains.android.util.AndroidUtils.createChildDirectoryIfNotExist;
+import javax.imageio.ImageIO;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.SourceProviderManager;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Utilities class to create resources
@@ -51,7 +50,7 @@ public final class ResourcesUtil {
   /**
    * Check if a drawable with the provided name and extension exist
    * @param drawableName Name of the drawable without extension
-   * @param drawableType Extension of the drwable file
+   * @param drawableType Extension of the drawable file
    * @param facet Current facet
    * @return true is the a drawable exists
    */
@@ -152,17 +151,16 @@ public final class ResourcesUtil {
   /**
    * Create a byte array from a BufferedImage
    *
-   * @param subImage  the image to convert
-   * @param imageType
+   * @param subImage the image to convert
+   * @param imageType the informal name of the image format (see {@link ImageIO#write(RenderedImage, String, java.io.OutputStream)})
    * @return the byte array representing the image
-   * @throws IOException
    */
   public static byte[] imageToByteArray(BufferedImage subImage, String imageType) throws IOException {
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    ImageIO.write(subImage, imageType, baos);
-    baos.flush();
-    byte[] imageInByte = baos.toByteArray();
-    baos.close();
+    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+    ImageIO.write(subImage, imageType, stream);
+    stream.flush();
+    byte[] imageInByte = stream.toByteArray();
+    stream.close();
     return imageInByte;
   }
 
@@ -181,7 +179,7 @@ public final class ResourcesUtil {
   private static void createDrawableAndFolder(@NotNull String drawableName,
                                               @NotNull String drawableType,
                                               @NotNull AndroidFacet facet,
-                                              @NotNull byte[] imageInByte,
+                                              byte @NotNull [] imageInByte,
                                               @NotNull Project project,
                                               @NotNull WidgetCreator.DoneCallback doneCallback,
                                               @NotNull Object requestor) {
@@ -198,7 +196,7 @@ public final class ResourcesUtil {
             LOGGER.error(e);
           }
         }),
-        "Export selection to drawable",
+        "Export Selection to Drawable",
         null
       );
     }
@@ -214,7 +212,7 @@ public final class ResourcesUtil {
    * @param requestor    Object requesting the drawable creation
    */
   private static void createDrawableFile(@NotNull String fileName,
-                                         @NotNull byte[] imageInByte,
+                                         byte @NotNull [] imageInByte,
                                          @NotNull Project project,
                                          @NotNull VirtualFile drawableDir,
                                          @NotNull WidgetCreator.DoneCallback doneCallback,
@@ -231,7 +229,7 @@ public final class ResourcesUtil {
           doneCallback.done(WidgetCreator.DoneCallback.CANCEL);
         }
       }),
-      "Export selection to drawable",
+      "Export Selection to Drawable",
       null
     );
   }

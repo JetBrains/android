@@ -31,6 +31,7 @@ import com.android.tools.idea.emulator.EmulatorViewRule
 import com.android.tools.idea.emulator.FakeEmulator
 import com.android.tools.idea.emulator.actions.findManageSnapshotDialog
 import com.android.tools.idea.protobuf.TextFormat
+import com.android.tools.idea.testing.DebugLoggerRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.testFramework.EdtRule
@@ -67,7 +68,7 @@ import javax.swing.table.DefaultTableCellRenderer
 class ManageSnapshotsDialogTest {
   private val emulatorViewRule = EmulatorViewRule()
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(emulatorViewRule).around(EdtRule())
+  val ruleChain: RuleChain = RuleChain.outerRule(emulatorViewRule).around(DebugLoggerRule()).around(EdtRule())
 
   private var nullableEmulator: FakeEmulator? = null
   private var nullableEmulatorView: EmulatorView? = null

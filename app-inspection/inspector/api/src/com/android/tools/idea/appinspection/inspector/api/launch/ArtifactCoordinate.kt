@@ -39,7 +39,7 @@ data class ArtifactCoordinate(
   /**
    * The coordinate for this library, i.e. how it would appear in a Gradle dependencies block.
    */
-  override fun toString() = "${groupId}:${artifactId}:${version}@${type}"
+  override fun toString() = "${groupId}:${artifactId}:${version}"
 
   /**
    * The file name of the artifact in question.

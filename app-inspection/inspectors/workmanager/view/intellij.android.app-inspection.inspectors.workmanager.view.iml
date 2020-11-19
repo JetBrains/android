@@ -26,5 +26,7 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="module" module-name="android.sdktools.flags" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
   </component>
 </module>

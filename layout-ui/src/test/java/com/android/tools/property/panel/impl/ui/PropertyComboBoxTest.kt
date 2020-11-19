@@ -45,6 +45,7 @@ import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JList
 import javax.swing.plaf.basic.ComboPopup
+import kotlin.test.assertEquals
 
 class PropertyComboBoxTest {
 
@@ -53,6 +54,15 @@ class PropertyComboBoxTest {
 
   @get:Rule
   val edtRule = EdtRule()
+
+  @Test
+  fun testInitialTextWithEmptyValue() {
+    val property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "")
+    val enumSupport = FakeEnumSupport("visible", "invisible", "gone")
+    val comboBox = createComboBox(property, enumSupport, false)
+
+    assertEquals("", comboBox.editor.text)
+  }
 
   @Test
   fun testEnter() {

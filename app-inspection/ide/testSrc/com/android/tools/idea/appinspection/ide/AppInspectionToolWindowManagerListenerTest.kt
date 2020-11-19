@@ -2,9 +2,10 @@ package com.android.tools.idea.appinspection.ide
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
+import com.android.tools.idea.appinspection.ide.resolver.TestArtifactResolver
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionToolWindowManagerListener
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
-import com.android.tools.idea.appinspection.inspector.api.service.TestAppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -66,7 +67,7 @@ class AppInspectionToolWindowManagerListenerTest {
     }
   }
 
-  private val ideServices = TestAppInspectionIdeServices()
+  private val ideServices = AppInspectionIdeServicesAdapter()
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionServiceRule)!!.around(projectRule)!!
@@ -79,7 +80,7 @@ class AppInspectionToolWindowManagerListenerTest {
     val inspectionView = withContext(uiDispatcher) {
       AppInspectionView(
         projectRule.project, appInspectionServiceRule.apiServices, ideServices,
-        appInspectionServiceRule.scope, uiDispatcher
+        appInspectionServiceRule.scope, uiDispatcher, TestArtifactResolver()
       ) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }

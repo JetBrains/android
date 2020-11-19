@@ -22,6 +22,8 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.TrackWorkManagerCom
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkUpdatedEvent
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import com.android.tools.idea.appinspection.inspectors.workmanager.analytics.StubWorkManagerInspectorTracker
+import com.android.tools.idea.appinspection.inspectors.workmanager.analytics.WorkManagerInspectorTracker
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
 import kotlinx.coroutines.CoroutineScope
@@ -34,7 +36,9 @@ import net.jcip.annotations.ThreadSafe
  * Class used to send commands to and handle events from the on-device work manager inspector through its [messenger].
  */
 @ThreadSafe
-class WorkManagerInspectorClient(private val messenger: AppInspectorMessenger, private val clientScope: CoroutineScope) {
+class WorkManagerInspectorClient(private val messenger: AppInspectorMessenger,
+                                 private val clientScope: CoroutineScope,
+                                 val tracker: WorkManagerInspectorTracker = StubWorkManagerInspectorTracker()) {
   companion object {
     private val logger: Logger = Logger.getInstance(WorkManagerInspectorClient::class.java)
   }
@@ -96,7 +100,7 @@ class WorkManagerInspectorClient(private val messenger: AppInspectorMessenger, p
    */
   fun getOrderedWorkChain(id: String): List<WorkInfo> = synchronized(lock) {
     val workMap = works.associateBy { it.id }
-    val work = workMap.get(id) ?: return listOf()
+    val work = workMap[id] ?: return listOf()
     val connectedWorks = mutableListOf(work)
     val visitedWorks = mutableSetOf(work)
     val orderedWorks = mutableListOf<WorkInfo>()

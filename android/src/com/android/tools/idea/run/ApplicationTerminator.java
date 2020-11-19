@@ -67,12 +67,12 @@ public class ApplicationTerminator implements AndroidDebugBridge.IDeviceChangeLi
     try {
       // Ensure all Clients are killed prior to handing off to the AndroidProcessHandler.
       if (!myProcessKilledLatch.await(10, TimeUnit.SECONDS)) {
-        launchStatus.terminateLaunch(String.format("%s is already running.", myApplicationId), true);
+        launchStatus.terminateLaunch(String.format("Couldn't terminate the existing process for %s.", myApplicationId), true);
         return false;
       }
     }
     catch (InterruptedException ignored) {
-      launchStatus.terminateLaunch(String.format("%s is already running.", myApplicationId), true);
+      launchStatus.terminateLaunch(String.format("Termination of the existing process for %s was cancelled.", myApplicationId), true);
       return false;
     }
 
