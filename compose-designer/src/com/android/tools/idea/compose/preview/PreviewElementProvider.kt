@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.intellij.openapi.util.ModificationTracker
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -28,6 +29,10 @@ import kotlin.concurrent.write
  */
 interface PreviewElementProvider {
   val previewElements: Sequence<PreviewElement>
+}
+
+interface PreviewElementInstanceProvider: PreviewElementProvider {
+  override val previewElements: Sequence<PreviewElementInstance>
 }
 
 /**
