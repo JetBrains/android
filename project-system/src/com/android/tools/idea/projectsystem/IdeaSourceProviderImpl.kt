@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
@@ -226,5 +227,8 @@ interface NamedIdeaSourceProviderBuilder {
 /** Convert a set of IDEA file urls into a set of equivalent virtual files  */
 private fun Sequence<String>.toVirtualFiles(): Iterable<VirtualFile> {
   val fileManager = VirtualFileManager.getInstance()
-  return mapNotNull { fileManager.findFileByUrl(it) }.asIterable()
+  return mapNotNull {
+    ProgressManager.checkCanceled()
+    fileManager.findFileByUrl(it)
+  }.asIterable()
 }
