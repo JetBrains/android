@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.deviceManager.groups;
 
+import com.android.tools.idea.deviceManager.groups.create.CreateGroupDialog;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.project.Project;
 import javax.swing.JButton;
@@ -30,6 +31,12 @@ public class DeviceGroupsToolbarPanel {
   public DeviceGroupsToolbarPanel(@NotNull Project project) {
     myHelpButton.addActionListener(
       e -> BrowserUtil.browse("http://developer.android.com/r/studio-ui/virtualdeviceconfig.html")); // TODO: Change target URL
+
+    myCreateGroupButton.addActionListener(
+      e -> {
+        CreateGroupDialog dialog = new CreateGroupDialog(project);
+        dialog.show();
+      });
   }
 
   @NotNull
