@@ -25,9 +25,9 @@ import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandle
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
 import com.android.tools.idea.editors.notifications.NotificationPanel
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
@@ -45,6 +45,8 @@ import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.OverlayLayout
+
+private const val SPLITTER_DIVIDER_WIDTH_PX = 3
 
 /**
  * [WorkBench] panel used to contain all the compose preview elements.
@@ -70,6 +72,13 @@ internal class ComposePreviewPanel(private val project: Project,
   private val sceneComponentProvider = ComposeSceneComponentProvider()
   private val delegateInteractionHandler = DelegateInteractionHandler()
 
+  val pinnedSurface by lazy {
+    createPreviewDesignSurface(
+      project, navigationHandler, delegateInteractionHandler, dataProvider, parentDisposable) { surface, model ->
+      LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener(), { RealTimeSessionClock() })
+    }
+  }
+
   val mainSurface = createPreviewDesignSurface(
     project, navigationHandler, delegateInteractionHandler, dataProvider, parentDisposable) { surface, model ->
     LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener(), { RealTimeSessionClock() })
@@ -79,10 +88,19 @@ internal class ComposePreviewPanel(private val project: Project,
   private val interactiveInteractionHandler by lazy { LayoutlibInteractionHandler(mainSurface) }
 
   /**
-   * Vertical splitter where the top component is the main Compose Preview panel and the bottom component, when visible, is an auxiliary
+   * Vertical splitter where the top part is a surface containing the pinned elements and the bottom the main design surface.
+   */
+  private val surfaceSplitter = JBSplitter(true, 0.25f, 0f, 0.5f).apply {
+    dividerWidth = SPLITTER_DIVIDER_WIDTH_PX
+  }
+
+  /**
+   * Vertical splitter where the top component is the [surfaceSplitter] and the bottom component, when visible, is an auxiliary
    * panel associated with the preview. For example, it can be an animation inspector that lists all the animations the preview has.
    */
-  private val mainPanelSplitter = JBSplitter(true, 0.7f).apply { dividerWidth = 3 }
+  private val mainPanelSplitter = JBSplitter(true, 0.7f).apply {
+    dividerWidth = SPLITTER_DIVIDER_WIDTH_PX
+  }
 
   private val notificationPanel = NotificationPanel(
     ExtensionPointName.create("com.android.tools.idea.compose.preview.composeEditorNotificationProvider"))
@@ -100,11 +118,16 @@ internal class ComposePreviewPanel(private val project: Project,
         override fun isOptimizedDrawingEnabled(): Boolean = false
       }
 
+      if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
+        surfaceSplitter.firstComponent = pinnedSurface
+      }
+      surfaceSplitter.secondComponent = mainSurface
+
       overlayPanel.apply {
         layout = OverlayLayout(this)
 
         add(notificationPanel)
-        add(mainSurface)
+        add(surfaceSplitter)
       }
 
       mainPanelSplitter.firstComponent = overlayPanel
