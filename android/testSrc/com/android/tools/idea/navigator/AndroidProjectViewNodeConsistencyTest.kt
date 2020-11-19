@@ -77,7 +77,7 @@ class AndroidProjectViewNodeConsistencyTest : GradleIntegrationTest {
 
   override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
+  override fun getTestDataDirectoryAdtIdeaRelativePath(): String = "android/testData/snapshots"
   override fun getAdditionalRepos(): Collection<File> = listOf()
 
   private interface TestContext {

@@ -16,6 +16,7 @@
 package com.android.tools.idea.testing
 
 import com.android.testutils.TestUtils
+import com.android.tools.idea.util.AndroidTestPaths
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.io.FileUtil.sanitizeFileName
 import com.intellij.testFramework.UsefulTestCase
@@ -34,7 +35,7 @@ interface SnapshotComparisonTest {
   /**
    * A testData subdirectory name where to look for snapshots.
    */
-  val snapshotDirectoryWorkspaceRelativePath: String
+  val snapshotDirectoryAdtIdeaRelativePath: String
 
   /**
    * The list of file name suffixes applicable to the currently running test.
@@ -83,7 +84,11 @@ private fun SnapshotComparisonTest.getAndMaybeUpdateSnapshot(
 
 private fun SnapshotComparisonTest.getCandidateSnapshotFiles(project: String): List<File> =
   snapshotSuffixes
-    .map { File("${TestUtils.getWorkspaceFile(snapshotDirectoryWorkspaceRelativePath)}/${project.substringAfter("projects/")}$it.txt") }
+    .map { AndroidTestPaths.adtSources()
+      .resolve(snapshotDirectoryAdtIdeaRelativePath)
+      .resolve("${project.substringAfter("projects/")}$it.txt")
+      .toFile()
+    }
 
 private fun SnapshotComparisonTest.updateSnapshotFile(snapshotName: String, text: String) {
   getCandidateSnapshotFiles(snapshotName)

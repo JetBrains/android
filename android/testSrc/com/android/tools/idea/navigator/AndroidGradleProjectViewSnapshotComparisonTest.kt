@@ -45,8 +45,8 @@ import java.io.File
 import javax.swing.Icon
 
 class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), GradleIntegrationTest, SnapshotComparisonTest {
-  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/projectViews"
-  override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData/snapshots"
+  override val snapshotDirectoryAdtIdeaRelativePath: String = "android/testData/snapshots/projectViews"
+  override fun getTestDataDirectoryAdtIdeaRelativePath(): @SystemIndependent String = "android/testData/snapshots"
 
   data class ProjectViewSettings(
     val hideEmptyPackages: Boolean = true,

@@ -41,6 +41,7 @@ import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.gradle.util.GradleBuildOutputUtil;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testing.AndroidGradleTests.SyncIssuesPresentError;
+import com.android.tools.idea.util.AndroidTestPaths;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -163,7 +164,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   public void setUpFixture(IdeaProjectTestFixture projectFixture) throws Exception {
     JavaCodeInsightTestFixture fixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectFixture);
     fixture.setUp();
-    fixture.setTestDataPath(new File(getWorkspaceRoot(), getTestDataDirectoryWorkspaceRelativePath()).getCanonicalPath());
+    fixture.setTestDataPath(AndroidTestPaths.adtSources().resolve(getTestDataDirectoryAdtIdeaRelativePath()).toAbsolutePath().toString());
     ensureSdkManagerAvailable();
 
     Project project = fixture.getProject();
@@ -307,8 +308,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   @NotNull
   @Override
   @SystemIndependent
-  public String getTestDataDirectoryWorkspaceRelativePath() {
-    return "tools/adt/idea/android/testData";
+  public String getTestDataDirectoryAdtIdeaRelativePath() {
+    return "android/testData";
   }
 
   @NotNull
