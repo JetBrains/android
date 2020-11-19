@@ -24,16 +24,17 @@ import com.android.tools.idea.run.editor.DeployTargetState;
 import com.google.common.base.MoreObjects;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetProvider {
-  static final Key<@NotNull Boolean> MULTIPLE_DEPLOY_TARGETS =
-    Key.create("com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider.MULTIPLE_DEPLOY_TARGETS");
+  static final @NotNull com.intellij.openapi.util.Key<@NotNull Boolean> MULTIPLE_DEPLOY_TARGETS = com.intellij.openapi.util.Key
+    .create("com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider.MULTIPLE_DEPLOY_TARGETS");
 
   @NotNull
   @Override
@@ -77,7 +78,15 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
       return null;
     }
 
-    return new DeviceAndSnapshotComboBoxTarget(DevicesSelectedService.getInstance(project).getDevicesSelectedWithDialog(devices));
+    Collection<Key> keys = DevicesSelectedService.getInstance(project).getTargetsSelectedWithDialog().stream()
+      .map(Target::getDeviceKey)
+      .collect(Collectors.toSet());
+
+    devices = devices.stream()
+      .filter(device -> device.hasKeyContainedBy(keys))
+      .collect(Collectors.toList());
+
+    return new DeviceAndSnapshotComboBoxTarget(devices);
   }
 
   @NotNull

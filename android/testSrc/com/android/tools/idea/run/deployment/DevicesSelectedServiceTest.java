@@ -17,7 +17,6 @@ package com.android.tools.idea.run.deployment;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.run.AndroidDevice;
@@ -28,6 +27,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -48,7 +48,7 @@ public final class DevicesSelectedServiceTest {
   }
 
   @Test
-  public void getDeviceSelectedWithComboBoxDevicesIsEmpty() {
+  public void getTargetSelectedWithComboBoxDevicesIsEmpty() {
     // Arrange
     DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
                                                                 project -> myProperties,
@@ -56,14 +56,14 @@ public final class DevicesSelectedServiceTest {
                                                                 () -> false);
 
     // Act
-    Object device = service.getDeviceSelectedWithComboBox(Collections.emptyList());
+    Object target = service.getTargetSelectedWithComboBox(Collections.emptyList());
 
     // Assert
-    assertNull(device);
+    assertEquals(Optional.empty(), target);
   }
 
   @Test
-  public void getDeviceSelectedWithComboBoxKeyAsStringIsNull() {
+  public void getTargetSelectedWithComboBoxKeyAsStringIsNull() {
     // Arrange
     DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
                                                                 project -> myProperties,
@@ -77,14 +77,14 @@ public final class DevicesSelectedServiceTest {
       .build();
 
     // Act
-    Object selectedDevice = service.getDeviceSelectedWithComboBox(Collections.singletonList(device));
+    Object selectedTarget = service.getTargetSelectedWithComboBox(Collections.singletonList(device));
 
     // Assert
-    assertEquals(device, selectedDevice);
+    assertEquals(Optional.of(new Target(new VirtualDeviceName("Pixel_3_API_29"))), selectedTarget);
   }
 
   @Test
-  public void getDeviceSelectedWithComboBoxSelectedDeviceIsntPresent() {
+  public void getTargetSelectedWithComboBoxSelectedDeviceIsntPresent() {
     // Arrange
     myProperties.setValue(DevicesSelectedService.DEVICE_KEY_SELECTED_WITH_COMBO_BOX, "Pixel_2_API_29");
 
@@ -100,14 +100,14 @@ public final class DevicesSelectedServiceTest {
       .build();
 
     // Act
-    Object selectedDevice = service.getDeviceSelectedWithComboBox(Collections.singletonList(device));
+    Object selectedTarget = service.getTargetSelectedWithComboBox(Collections.singletonList(device));
 
     // Assert
-    assertEquals(device, selectedDevice);
+    assertEquals(Optional.of(new Target(new VirtualDeviceName("Pixel_3_API_29"))), selectedTarget);
   }
 
   @Test
-  public void getDeviceSelectedWithComboBoxConnectedDeviceIsntPresent() {
+  public void getTargetSelectedWithComboBoxConnectedDeviceIsntPresent() {
     // Arrange
     myProperties.setValue(DevicesSelectedService.DEVICE_KEY_SELECTED_WITH_COMBO_BOX, "Pixel_3_API_29");
 
@@ -123,14 +123,14 @@ public final class DevicesSelectedServiceTest {
       .build();
 
     // Act
-    Object selectedDevice = service.getDeviceSelectedWithComboBox(Collections.singletonList(device));
+    Object selectedTarget = service.getTargetSelectedWithComboBox(Collections.singletonList(device));
 
     // Assert
-    assertEquals(device, selectedDevice);
+    assertEquals(Optional.of(new Target(new VirtualDeviceName("Pixel_3_API_29"))), selectedTarget);
   }
 
   @Test
-  public void getDeviceSelectedWithComboBoxSelectionTimeIsBeforeConnectionTime() {
+  public void getTargetSelectedWithComboBoxSelectionTimeIsBeforeConnectionTime() {
     // Arrange
     myProperties.setValue(DevicesSelectedService.DEVICE_KEY_SELECTED_WITH_COMBO_BOX, "Pixel_3_API_29");
     myProperties.setValue(DevicesSelectedService.TIME_DEVICE_KEY_WAS_SELECTED_WITH_COMBO_BOX, "2018-11-28T01:15:27.000Z");
@@ -154,14 +154,14 @@ public final class DevicesSelectedServiceTest {
       .build();
 
     // Act
-    Object selectedDevice = service.getDeviceSelectedWithComboBox(Arrays.asList(device, connectedDevice));
+    Object selectedTarget = service.getTargetSelectedWithComboBox(Arrays.asList(device, connectedDevice));
 
     // Assert
-    assertEquals(connectedDevice, selectedDevice);
+    assertEquals(Optional.of(new Target(new VirtualDeviceName("Pixel_2_API_29"))), selectedTarget);
   }
 
   @Test
-  public void getDeviceSelectedWithComboBox() {
+  public void getTargetSelectedWithComboBox() {
     // Arrange
     myProperties.setValue(DevicesSelectedService.DEVICE_KEY_SELECTED_WITH_COMBO_BOX, "Pixel_3_API_29");
     myProperties.setValue(DevicesSelectedService.TIME_DEVICE_KEY_WAS_SELECTED_WITH_COMBO_BOX, "2018-11-28T01:15:27.000Z");
@@ -185,14 +185,14 @@ public final class DevicesSelectedServiceTest {
       .build();
 
     // Act
-    Object selectedDevice = service.getDeviceSelectedWithComboBox(Arrays.asList(device, connectedDevice));
+    Object selectedTarget = service.getTargetSelectedWithComboBox(Arrays.asList(device, connectedDevice));
 
     // Assert
-    assertEquals(device, selectedDevice);
+    assertEquals(Optional.of(new Target(new VirtualDeviceName("Pixel_3_API_29"))), selectedTarget);
   }
 
   @Test
-  public void getDeviceSelectedWithComboBoxSelectionTimeIsNull() {
+  public void getTargetSelectedWithComboBoxSelectionTimeIsNull() {
     // Arrange
     myProperties.setValue(DevicesSelectedService.DEVICE_KEY_SELECTED_WITH_COMBO_BOX, "Pixel_3_API_29");
 
@@ -215,10 +215,10 @@ public final class DevicesSelectedServiceTest {
       .build();
 
     // Act
-    Object selectedDevice = service.getDeviceSelectedWithComboBox(Arrays.asList(device, connectedDevice));
+    Object selectedTarget = service.getTargetSelectedWithComboBox(Arrays.asList(device, connectedDevice));
 
     // Assert
-    assertEquals(connectedDevice, selectedDevice);
+    assertEquals(Optional.of(new Target(new VirtualDeviceName("Pixel_2_API_29"))), selectedTarget);
   }
 
   @Test
@@ -286,7 +286,7 @@ public final class DevicesSelectedServiceTest {
   }
 
   @Test
-  public void setDeviceKeysSelectedWithDialog() {
+  public void setTargetsSelectedWithDialog() {
     // Arrange
     DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
                                                                 project -> myProperties,
@@ -294,7 +294,7 @@ public final class DevicesSelectedServiceTest {
                                                                 () -> false);
 
     // Act
-    service.setDeviceKeysSelectedWithDialog(Collections.emptySet());
+    service.setTargetsSelectedWithDialog(Collections.emptySet());
 
     // Assert
     assertTrue(service.isDialogSelectionEmpty());

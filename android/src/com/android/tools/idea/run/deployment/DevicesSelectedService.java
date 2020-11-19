@@ -21,11 +21,9 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.serviceContainer.NonInjectable;
-import com.intellij.util.containers.ContainerUtil;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -33,7 +31,6 @@ import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -87,16 +84,15 @@ final class DevicesSelectedService {
     return project.getService(DevicesSelectedService.class);
   }
 
-  @Nullable
-  Device getDeviceSelectedWithComboBox(@NotNull List<Device> devices) {
+  @NotNull Optional<@NotNull Target> getTargetSelectedWithComboBox(@NotNull List<@NotNull Device> devices) {
     if (devices.isEmpty()) {
-      return null;
+      return Optional.empty();
     }
 
     String keyAsString = myPropertiesComponentGetInstance.apply(myProject).getValue(DEVICE_KEY_SELECTED_WITH_COMBO_BOX);
 
     if (keyAsString == null) {
-      return devices.get(0);
+      return Optional.of(new Target(devices.get(0).getKey()));
     }
 
     Key key = Key.newKey(keyAsString);
@@ -106,7 +102,7 @@ final class DevicesSelectedService {
       .findFirst();
 
     if (!optionalSelectedDevice.isPresent()) {
-      return devices.get(0);
+      return Optional.of(new Target(devices.get(0).getKey()));
     }
 
     Device selectedDevice = optionalSelectedDevice.get();
@@ -116,7 +112,7 @@ final class DevicesSelectedService {
       .findFirst();
 
     if (!optionalConnectedDevice.isPresent()) {
-      return selectedDevice;
+      return Optional.of(new Target(selectedDevice.getKey()));
     }
 
     Device connectedDevice = optionalConnectedDevice.get();
@@ -125,10 +121,10 @@ final class DevicesSelectedService {
     assert connectionTime != null : "connected device \"" + connectedDevice + "\" has a null connection time";
 
     if (getTimeDeviceWasSelectedWithComboBox(selectedDevice).isBefore(connectionTime)) {
-      return connectedDevice;
+      return Optional.of(new Target(connectedDevice.getKey()));
     }
 
-    return selectedDevice;
+    return Optional.of(new Target(selectedDevice.getKey()));
   }
 
   @NotNull
@@ -145,16 +141,16 @@ final class DevicesSelectedService {
     return Instant.parse(time);
   }
 
-  void setDeviceSelectedWithComboBox(@Nullable Device deviceSelectedWithComboBox) {
+  void setTargetSelectedWithComboBox(@Nullable Target targetSelectedWithComboBox) {
     PropertiesComponent properties = myPropertiesComponentGetInstance.apply(myProject);
     properties.unsetValue(MULTIPLE_DEVICES_SELECTED_IN_COMBO_BOX);
 
-    if (deviceSelectedWithComboBox == null) {
+    if (targetSelectedWithComboBox == null) {
       properties.unsetValue(TIME_DEVICE_KEY_WAS_SELECTED_WITH_COMBO_BOX);
       properties.unsetValue(DEVICE_KEY_SELECTED_WITH_COMBO_BOX);
     }
     else {
-      properties.setValue(DEVICE_KEY_SELECTED_WITH_COMBO_BOX, deviceSelectedWithComboBox.getKey().toString());
+      properties.setValue(DEVICE_KEY_SELECTED_WITH_COMBO_BOX, targetSelectedWithComboBox.getDeviceKey().toString());
       properties.setValue(TIME_DEVICE_KEY_WAS_SELECTED_WITH_COMBO_BOX, myClock.instant().toString());
     }
   }
@@ -182,18 +178,7 @@ final class DevicesSelectedService {
     return !myPropertiesComponentGetInstance.apply(myProject).isValueSet(DEVICE_KEYS_SELECTED_WITH_DIALOG);
   }
 
-  @NotNull
-  List<Device> getDevicesSelectedWithDialog(@NotNull List<Device> devices) {
-    Collection<Key> keys = getDeviceKeysSelectedWithDialog();
-    return ContainerUtil.filter(devices, device -> device.hasKeyContainedBy(keys));
-  }
-
-  void setDevicesSelectedWithDialog(@NotNull List<Device> devicesSelectedWithDialog) {
-    setDeviceKeysSelectedWithDialog(devicesSelectedWithDialog.stream().map(Device::getKey));
-  }
-
-  @NotNull
-  Set<Key> getDeviceKeysSelectedWithDialog() {
+  @NotNull Set<@NotNull Target> getTargetsSelectedWithDialog() {
     String[] keys = myPropertiesComponentGetInstance.apply(myProject).getValues(DEVICE_KEYS_SELECTED_WITH_DIALOG);
 
     if (keys == null) {
@@ -204,15 +189,13 @@ final class DevicesSelectedService {
 
     return Arrays.stream(keys)
       .map(Key::newKey)
+      .map(Target::new)
       .collect(Collectors.toSet());
   }
 
-  void setDeviceKeysSelectedWithDialog(@NotNull Set<Key> deviceKeysSelectedWithDialog) {
-    setDeviceKeysSelectedWithDialog(deviceKeysSelectedWithDialog.stream());
-  }
-
-  private void setDeviceKeysSelectedWithDialog(@NotNull Stream<Key> stream) {
-    String[] array = stream
+  void setTargetsSelectedWithDialog(@NotNull Set<@NotNull Target> targetsSelectedWithDialog) {
+    String[] array = targetsSelectedWithDialog.stream()
+      .map(Target::getDeviceKey)
       .map(Key::toString)
       .toArray(String[]::new);
 
