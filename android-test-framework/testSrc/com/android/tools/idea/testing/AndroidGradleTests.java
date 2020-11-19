@@ -47,6 +47,7 @@ import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.npw.template.KotlinVersionProvider;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
@@ -178,7 +179,7 @@ public class AndroidGradleTests {
       contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]",
                                    pluginVersion);
 
-      String kotlinVersion = getKotlinVersionForTests(); //.split("-")[0]; // for compose
+      String kotlinVersion = KotlinVersionProvider.getInstance().getKotlinVersionForGradle();
       contents = replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", kotlinVersion);
 
       // App compat version needs to match compile SDK
@@ -209,10 +210,10 @@ public class AndroidGradleTests {
       contents = replaceRegexGroup(contents, "classpath\\(['\"]com.android.tools.build:gradle:(.+)['\"]",
                                    pluginVersion);
       contents = replaceRegexGroup(contents, "[a-zA-Z]+\\s*\\(?\\s*['\"]org.jetbrains.kotlin:kotlin[a-zA-Z\\-]*:(.+)['\"]",
-                                   KotlinCompilerVersion.VERSION);
+                                   KotlinVersionProvider.getInstance().getKotlinVersionForGradle());
       // "implementation"(kotlin("stdlib", "1.3.61"))
       contents =
-        replaceRegexGroup(contents, "\"[a-zA-Z]+\"\\s*\\(\\s*kotlin\\(\"[a-zA-Z\\-]+\",\\s*\"(.+)\"", KotlinCompilerVersion.VERSION);
+        replaceRegexGroup(contents, "\"[a-zA-Z]+\"\\s*\\(\\s*kotlin\\(\"[a-zA-Z\\-]+\",\\s*\"(.+)\"", KotlinVersionProvider.getInstance().getKotlinVersionForGradle());
       contents = replaceRegexGroup(contents, "\\(\"com.android.application\"\\) version \"(.+)\"", pluginVersion);
       contents = replaceRegexGroup(contents, "\\(\"com.android.library\"\\) version \"(.+)\"", pluginVersion);
       contents = replaceRegexGroup(contents, "buildToolsVersion\\(\"(.+)\"\\)", buildEnvironment.getBuildToolsVersion());
