@@ -21,6 +21,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.concurrency.ThrottlingAsyncSupplier
 import com.android.tools.idea.util.androidFacet
+import com.android.utils.TraceUtils
 import com.android.utils.concurrency.AsyncSupplier
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
@@ -126,7 +127,10 @@ private class MergedManifestSupplier(private val module: Module) : AsyncSupplier
       return manifestSnapshot
     }
 
-    Logger.getLogger(this.javaClass.name).warning("Infinite recursion detected when computing merged manifest for module ${module.name}")
+    Logger.getLogger(this.javaClass.name).warning(
+      """Infinite recursion detected when computing merged manifest for module ${module.name}
+         ${TraceUtils.getCurrentStack()}
+      """.trimMargin())
     return MergedManifestSnapshotFactory.createEmptyMergedManifestSnapshot(module)
   }
 
