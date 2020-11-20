@@ -171,7 +171,19 @@ public class DomPsiConverter {
   @NotNull
   public static TextRange getTextNameRange(@NotNull Node node) {
     if (!(node instanceof DomNode)) {
-      return getTextRange(node);
+      TextRange range = getTextRange(node);
+
+      // If element, limit to just the name tag
+      if (node.getNodeType() == Node.ELEMENT_NODE) {
+        String tag = node.getNodeName();
+        int start = range.getStartOffset() + 1;
+        return new TextRange(start, start + tag.length());
+      } else if (node.getNodeType() == Node.ATTRIBUTE_NODE) {
+        String name = node.getNodeName();
+        int start = range.getStartOffset();
+        return new TextRange(start, start + name.length());
+      }
+      return range;
     }
 
     DomNode domNode = (DomNode)node;
@@ -204,7 +216,16 @@ public class DomPsiConverter {
   @NotNull
   public static TextRange getTextValueRange(@NotNull Node node) {
     if (!(node instanceof DomNode)) {
-      return getTextRange(node);
+      TextRange range = getTextRange(node);
+      if (node.getNodeType() == Node.ATTRIBUTE_NODE) {
+        String name = node.getNodeValue();
+        int end = range.getEndOffset() - 1;
+        int start = end - name.length();
+        if (start >= range.getStartOffset()) {
+          return new TextRange(start, end);
+        }
+      }
+      return range;
     }
 
     DomNode domNode = (DomNode)node;
