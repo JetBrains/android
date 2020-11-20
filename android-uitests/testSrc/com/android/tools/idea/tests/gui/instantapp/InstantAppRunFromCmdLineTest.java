@@ -34,7 +34,6 @@ import com.android.tools.idea.tests.gui.framework.emulator.AvdSpec;
 import com.android.tools.idea.tests.gui.framework.emulator.AvdTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
@@ -106,10 +105,10 @@ public class InstantAppRunFromCmdLineTest {
 
     // TODO: Move these adb commands over to DeviceQueries and AndroidDebugBridgeUtils
     AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-    File adbBinary = new File(sdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_PLATFORM_TOOLS_FOLDER, SdkConstants.FN_ADB));
+    String adbBinary = sdkHandler.getLocation().resolve(SdkConstants.OS_SDK_PLATFORM_TOOLS_FOLDER).resolve(SdkConstants.FN_ADB).toString();
     File prebuiltApks = new File(guiTest.ideFrame().getProjectPath(), "prebuilt");
 
-    AndroidDebugBridge adb = AndroidDebugBridge.createBridge(adbBinary.getAbsolutePath(), false);
+    AndroidDebugBridge adb = AndroidDebugBridge.createBridge(adbBinary, false);
     Wait.seconds(120)
       .expecting("emulator to start")
       .until(() -> adb.getDevices().length > 0);

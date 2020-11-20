@@ -190,7 +190,7 @@ public class AvdManagerConnection {
 
   @NotNull
   public synchronized static AvdManagerConnection getAvdManagerConnection(@NotNull AndroidSdkHandler handler) {
-    File sdkPath = handler.getLocation();
+    File sdkPath = handler.getFileOp().toFile(handler.getLocation());
     if (!ourCache.containsKey(sdkPath)) {
       ourCache.put(sdkPath, ourConnectionFactory.apply(handler));
     }

@@ -222,7 +222,7 @@ class SdkComponentsStep(
     //}
     val sdkLocation = model.sdkLocation
 
-    if (!FileUtil.filesEqual(localHandler.location, sdkLocation)) {
+    if (!FileUtil.filesEqual(localHandler.location?.toFile(), sdkLocation)) {
       val progress = StudioLoggerProgressIndicator(javaClass)
       contentPanel.startLoading()
       localHandler.getSdkManager(progress)

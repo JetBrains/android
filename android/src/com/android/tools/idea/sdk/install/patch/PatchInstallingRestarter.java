@@ -31,6 +31,7 @@ import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.install.StudioSdkInstallListenerFactory;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.intellij.openapi.ui.Messages;
+import java.nio.file.Path;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,12 +62,13 @@ public class PatchInstallingRestarter {
    * matching that in the pending XML, do the install complete actions (write package.xml and fire listeners) and clean up.
    */
   public void restartAndInstallIfNecessary() {
-    File patchesDir = new File(mySdkHandler.getLocation(), PatchInstallerUtil.PATCHES_DIR_NAME);
+    File sdkLocation = mySdkHandler.getLocation().toFile();
+    File patchesDir = new File(sdkLocation, PatchInstallerUtil.PATCHES_DIR_NAME);
     StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(PatchInstallerFactory.class);
     if (patchesDir.exists()) {
       File[] subDirs = patchesDir.listFiles(file -> file.isDirectory() && file.getName().startsWith(PatchInstallerUtil.PATCH_DIR_PREFIX));
       for (File patchDir : subDirs) {
-        processPatch(mySdkHandler.getLocation(), progress, patchDir);
+        processPatch(sdkLocation, progress, patchDir);
       }
     }
   }

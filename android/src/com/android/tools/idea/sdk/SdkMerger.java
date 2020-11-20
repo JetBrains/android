@@ -73,7 +73,7 @@ public class SdkMerger {
 
     // Dest dir is changed, refresh.
     com.android.repository.api.ProgressIndicator repoProgress = getRepoProgress(indicator);
-    AndroidSdkHandler.getInstance(destDir).getSdkManager(repoProgress).loadSynchronously(0, repoProgress, null, null);
+    AndroidSdkHandler.getInstance(destDir.toPath()).getSdkManager(repoProgress).loadSynchronously(0, repoProgress, null, null);
   }
 
   @NotNull
@@ -99,8 +99,8 @@ public class SdkMerger {
     com.android.repository.api.ProgressIndicator repoProgress = getRepoProgress(progress);
     Collection<MergeablePackage> results = Lists.newArrayList();
 
-    AndroidSdkHandler srcHandler = AndroidSdkHandler.getInstance(srcDir);
-    AndroidSdkHandler destHandler = AndroidSdkHandler.getInstance(destDir);
+    AndroidSdkHandler srcHandler = AndroidSdkHandler.getInstance(srcDir.toPath());
+    AndroidSdkHandler destHandler = AndroidSdkHandler.getInstance(destDir.toPath());
 
 
     Map<String, ? extends LocalPackage> srcPackages = srcHandler.getSdkManager(repoProgress).getPackages().getLocalPackages();

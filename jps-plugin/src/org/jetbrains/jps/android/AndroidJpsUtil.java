@@ -12,6 +12,7 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.OrderedSet;
+import java.nio.file.Paths;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactSigningMode;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
@@ -397,7 +398,7 @@ public class AndroidJpsUtil {
       return null;
     }
 
-    final AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(new File(sdk.getHomePath()));
+    final AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(Paths.get(sdk.getHomePath()));
 
     RepoLogger log = new RepoLogger();
     final IAndroidTarget target = sdkHandler.getAndroidTargetManager(log).getTargetFromHashString(targetHashString, log);

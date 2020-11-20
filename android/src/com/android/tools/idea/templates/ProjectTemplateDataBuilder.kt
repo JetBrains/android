@@ -94,10 +94,7 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
 
     addBuildToolVersion(project, getRecommendedBuildToolsRevision(sdkHandler, progress))
 
-    val sdkPath = sdkHandler.location?.path
-    if (sdkPath != null) {
-      sdkDir = File(sdkPath)
-    }
+    sdkDir = sdkHandler.location?.toFile()
   }
 
   /**

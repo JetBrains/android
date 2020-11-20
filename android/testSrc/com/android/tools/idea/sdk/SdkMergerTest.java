@@ -118,7 +118,7 @@ public class SdkMergerTest extends AndroidTestCase {
 
   private String getSdkFingerprint(File sdk) {
     StringBuilder s = new StringBuilder();
-    RepoManager sdkManager = AndroidSdkHandler.getInstance(sdk).getSdkManager(new StudioLoggerProgressIndicator(getClass()));
+    RepoManager sdkManager = AndroidSdkHandler.getInstance(sdk.toPath()).getSdkManager(new StudioLoggerProgressIndicator(getClass()));
     for (LocalPackage p : Sets.newTreeSet(sdkManager.getPackages().getLocalPackages().values())) {
       s.append(p.getPath());
       s.append(',');

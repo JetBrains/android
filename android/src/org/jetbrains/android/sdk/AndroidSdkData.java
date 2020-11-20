@@ -57,7 +57,7 @@ public class AndroidSdkData {
   private final int myPlatformToolsRevision;
 
   private static final ConcurrentMap<String/* sdk path */, SoftReference<AndroidSdkData>> ourCache = Maps.newConcurrentMap();
-  private AndroidSdkHandler mySdkHandler;
+  private final AndroidSdkHandler mySdkHandler;
 
 
   @Nullable
@@ -133,7 +133,7 @@ public class AndroidSdkData {
   }
 
   private AndroidSdkData(@NotNull File localSdk) {
-    mySdkHandler = AndroidSdkHandler.getInstance(localSdk);
+    mySdkHandler = AndroidSdkHandler.getInstance(localSdk.toPath());
     File location = getLocation();
     String locationPath = location.getPath();
     Revision platformToolsRevision = parsePackageRevision(locationPath, FD_PLATFORM_TOOLS);
@@ -143,11 +143,7 @@ public class AndroidSdkData {
 
   @NotNull
   public File getLocation() {
-    File location = mySdkHandler.getLocation();
-
-    // The LocalSdk should always have been initialized.
-    assert location != null;
-    return location;
+    return mySdkHandler.getLocation().toFile();
   }
 
   @Deprecated
@@ -284,7 +280,7 @@ public class AndroidSdkData {
       }
       else {
         mySdkData = null;
-        mySdkHandler = AndroidSdkHandler.getInstance((File)null);
+        mySdkHandler = AndroidSdkHandler.getInstance(null);
       }
     }
 

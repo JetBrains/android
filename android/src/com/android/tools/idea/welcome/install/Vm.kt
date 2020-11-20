@@ -118,7 +118,7 @@ abstract class Vm(
   }
 
   override fun configure(installContext: InstallContext, sdkHandler: AndroidSdkHandler) {
-    val sdkRoot = sdkHandler.location
+    val sdkRoot = sdkHandler.location?.toFile()
     if (sdkRoot == null) {
       installContext.print(
         "${installerInfo.fullName} installer could not be run because SDK root isn't specified", ConsoleViewContentType.ERROR_OUTPUT)

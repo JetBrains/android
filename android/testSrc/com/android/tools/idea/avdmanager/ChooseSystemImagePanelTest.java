@@ -16,6 +16,21 @@
 
 package com.android.tools.idea.avdmanager;
 
+import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_PLAY_STORE_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.CHROMEOS_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_X86_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.TV_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
+import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.OTHER;
+import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.RECOMMENDED;
+import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.X86;
+import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.getClassificationForDevice;
+import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.getClassificationFromParts;
+import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.systemImageMatchesDevice;
+
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.impl.meta.TypeDetails;
@@ -34,14 +49,6 @@ import com.android.sdklib.repository.targets.SystemImageManager;
 import com.android.testutils.NoErrorsOrWarningsLogger;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.android.AndroidTestCase;
-
-import java.io.File;
-
-import static com.android.sdklib.repository.targets.SystemImage.*;
-import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.getClassificationForDevice;
-import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.getClassificationFromParts;
-import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.*;
-import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.systemImageMatchesDevice;
 
 public class ChooseSystemImagePanelTest extends AndroidTestCase {
 
@@ -186,7 +193,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     RepoManager mgr = new FakeRepoManager(fileOp.toPath(SDK_LOCATION), packages);
 
     AndroidSdkHandler sdkHandler =
-      new AndroidSdkHandler(new File(SDK_LOCATION), new File(AVD_LOCATION), fileOp, mgr);
+      new AndroidSdkHandler(fileOp.toPath(SDK_LOCATION), fileOp.toPath(AVD_LOCATION), fileOp, mgr);
 
     FakeProgressIndicator progress = new FakeProgressIndicator();
     SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);

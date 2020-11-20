@@ -82,7 +82,7 @@ import javax.swing.event.HyperlinkEvent
  * Shows the Android Test Retention artifacts
  */
 class RetentionView(private val androidSdkHandler: AndroidSdkHandler
-                    = AndroidSdkHandler.getInstance(IdeSdks.getInstance().androidSdkPath),
+                    = AndroidSdkHandler.getInstance(IdeSdks.getInstance().androidSdkPath?.toPath()),
                     private val progressIndicator: ProgressIndicator
                     = StudioLoggerProgressIndicator(RetentionView::class.java),
                     private val runtime: Runtime

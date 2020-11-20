@@ -99,7 +99,7 @@ public class AndroidSdkInitializer implements Runnable {
     }
 
     if (androidSdkPath != null) {
-      AndroidSdkHandler handler = AndroidSdkHandler.getInstance(androidSdkPath);
+      AndroidSdkHandler handler = AndroidSdkHandler.getInstance(androidSdkPath.toPath());
       new PatchInstallingRestarter(handler, FileOpUtils.create()).restartAndInstallIfNecessary();
       // We need to start the system info monitoring even in case when user never
       // runs a single emulator instance: e.g., incompatible hypervisor might be

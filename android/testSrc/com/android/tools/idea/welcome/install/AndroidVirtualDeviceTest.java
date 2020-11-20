@@ -112,7 +112,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     recordGoogleApisSysImg23(fop);
     fop.recordExistingFile(new File(DeviceArtDescriptor.getBundledDescriptorsFolder(), DEVICE_ID));
 
-    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), new File("/android-home"), fop);
+    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(fop.toPath("/sdk"), fop.toPath("/android-home"), fop);
 
     FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-23");
     RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
@@ -157,7 +157,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     Map<String, RemotePackage> remotes = Maps.newHashMap();
 
     AndroidVirtualDevice avd = new AndroidVirtualDevice(remotes, true, fop);
-    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), new File("/android-home"), fop);
+    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(fop.toPath("/sdk"), fop.toPath("/android-home"), fop);
 
     // No SDK installed -> Not selected by default
     assertFalse(avd.isSelectedByDefault());
