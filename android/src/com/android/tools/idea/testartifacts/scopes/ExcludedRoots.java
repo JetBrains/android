@@ -158,9 +158,6 @@ class ExcludedRoots {
 
   /**
    * Returns folders which are used for unit testing and stored in the model, but not represented in the IntelliJ project structure.
-   *
-   * <p>These folders are added to the classpath by {@link AndroidJunitPatcher} and potentially filtered out by this class via
-   * {@link GradleTestArtifactSearchScopes}.
    */
   public static List<File> getAdditionalClasspathFolders(@NotNull IdeBaseArtifact artifact) {
     return ImmutableList.<File>builder()

@@ -32,7 +32,6 @@
   <depends optional="true" config-file="database-support.xml">com.intellij.database</depends>
 
   <xi:include href="android-kotlin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="android-junit.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/org/jetbrains/android/dom/android-xml.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/com/android/tools/idea/lint/android-lint.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
@@ -752,7 +751,6 @@
     <spellchecker.support language="JSON" implementationClass="org.jetbrains.android.spellchecker.GoogleServicesJsonSpellcheckingStrategy" order="first"/>
     <spellchecker.support language="Shell Script" implementationClass="org.jetbrains.android.spellchecker.AndroidShellSpellcheckingStrategy" order="first"/>
     <deadCode implementation="org.jetbrains.android.inspections.AndroidComponentEntryPoint"/>
-    <junitPatcher implementation="com.android.tools.idea.testartifacts.scopes.AndroidJunitPatcher" />
 
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.BitmapRenderer" />
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.BitmapDrawableRenderer" />

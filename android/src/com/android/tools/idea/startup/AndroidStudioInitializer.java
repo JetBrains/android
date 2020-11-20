@@ -34,14 +34,9 @@ import com.android.tools.idea.serverflags.ServerFlagDownloader;
 import com.android.tools.idea.serverflags.ServerFlagInitializer;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.GcPauseWatcher;
-import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
-import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.intellij.analytics.AndroidStudioAnalytics;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.execution.actions.RunConfigurationProducer;
-import com.intellij.execution.configurations.ConfigurationType;
-import com.intellij.execution.junit.JUnitConfigurationProducer;
-import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.lang.injection.MultiHostInjector;
@@ -96,7 +91,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     scheduler.execute(ServerFlagDownloader::downloadServerFlagList);
 
     setupAnalytics();
-    disableIdeaJUnitConfigurations(actionManager);
     disableKaptImportHandlers();
     hideRarelyUsedIntellijActions(actionManager);
     setupResourceManagerActions(actionManager);
@@ -257,34 +251,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
   private static void disableKaptImportHandlers() {
     ExtensionPoint<GradleProjectResolverExtension> resolverExtensionPoint = GradleProjectResolverExtension.EP_NAME.getPoint();
     resolverExtensionPoint.unregisterExtension(KaptProjectResolverExtension.class);
-  }
-
-  // JUnit original Extension JUnitConfigurationType is disabled so it can be replaced by its child class AndroidJUnitConfigurationType
-  private static void disableIdeaJUnitConfigurations(ActionManager actionManager) {
-    // First we unregister the ConfigurationProducers, and after the ConfigurationType
-
-    //noinspection rawtypes: RunConfigurationProducer.EP_NAME uses raw types.
-    ExtensionPoint<RunConfigurationProducer> configurationProducerExtensionPoint = RunConfigurationProducer.EP_NAME.getPoint();
-    //noinspection rawtypes: RunConfigurationProducer.EP_NAME uses raw types.
-    for (RunConfigurationProducer runConfigurationProducer : configurationProducerExtensionPoint.getExtensions()) {
-      if (runConfigurationProducer instanceof JUnitConfigurationProducer
-          && !(runConfigurationProducer instanceof AndroidJUnitConfigurationProducer)) {
-        // In AndroidStudio these ConfigurationProducer s are replaced
-        configurationProducerExtensionPoint.unregisterExtension(runConfigurationProducer.getClass());
-      }
-    }
-
-    ExtensionPoint<ConfigurationType> configurationTypeExtensionPoint = ConfigurationType.CONFIGURATION_TYPE_EP.getPoint();
-    for (ConfigurationType configurationType : configurationTypeExtensionPoint.getExtensions()) {
-      if (configurationType instanceof JUnitConfigurationType && !(configurationType instanceof AndroidJUnitConfigurationType)) {
-        // In Android Studio the user is forced to use AndroidJUnitConfigurationType instead of JUnitConfigurationType
-        configurationTypeExtensionPoint.unregisterExtension(configurationType.getClass());
-      }
-    }
-
-    // We hide actions registered by the JUnit plugin and instead we use those registered in android-junit.xml
-    Actions.hideAction(actionManager, "excludeFromSuite");
-    Actions.hideAction(actionManager, "AddToISuite");
   }
 
   private static void hideRarelyUsedIntellijActions(ActionManager actionManager) {

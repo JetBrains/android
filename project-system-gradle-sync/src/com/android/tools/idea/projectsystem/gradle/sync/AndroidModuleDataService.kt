@@ -38,15 +38,11 @@ import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.run.RunConfigurationChecker
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration
-import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.compiler.options.CompileStepBeforeRun
 import com.intellij.execution.BeforeRunTask
 import com.intellij.execution.BeforeRunTaskProvider
 import com.intellij.execution.RunManagerEx
-import com.intellij.execution.RunnerAndConfigurationSettings
-import com.intellij.execution.configurations.ConfigurationType
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.DataNode
@@ -155,7 +151,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     findConflicts(project).showSelectionConflicts()
     ProjectSetup(project).setUpProject(false /* sync successful */)
 
-    modifyJUnitRunConfigurations(project)
     RunConfigurationChecker.getInstance(project).ensureRunConfigsInvokeBuild()
 
     ProjectStructure.getInstance(project).analyzeProjectStructure()
@@ -222,35 +217,6 @@ private fun relativePath(basePath: File, file: File?): String {
     return SEPARATOR + toSystemIndependentName(relativePath)
   }
   return ""
-}
-
-// TODO: Find a better place for this method.
-private fun modifyJUnitRunConfigurations(project: Project) {
-  val junitConfigurationType: ConfigurationType = AndroidJUnitConfigurationType.getInstance()
-  val taskProviders = BeforeRunTaskProvider.EXTENSION_POINT_NAME.getExtensions(project)
-  val runManager = RunManagerEx.getInstanceEx(project)
-  // For Android Studio, use "Gradle-Aware Make" to run JUnit tests.
-  // For IDEA, use regular "Make".
-  val makeTaskId = if (IdeInfo.getInstance().isAndroidStudio) MakeBeforeRunTaskProvider.ID else CompileStepBeforeRun.ID
-  val targetProvider: BeforeRunTaskProvider<*>? = taskProviders.first { it.id == makeTaskId }
-
-  if (targetProvider != null) {
-    // Store current before run tasks in each configuration to reset them after modifying the template, since modifying
-    val currentTasks = runManager.getConfigurationsList(junitConfigurationType).associateWith { runManager.getBeforeRunTasks(it) }
-    // Fix the "JUnit Run Configuration" templates.
-    for (configurationFactory in junitConfigurationType.configurationFactories) {
-      val template: RunnerAndConfigurationSettings = runManager.getConfigurationTemplate(configurationFactory)
-      val runConfiguration = template.configuration as AndroidJUnitConfiguration
-      // Set the correct "Make step" in the "JUnit Run Configuration" template.
-      setMakeStepInJUnitConfiguration(project, targetProvider, runConfiguration)
-      runConfiguration.workingDirectory = "$" + PathMacroUtil.MODULE_DIR_MACRO_NAME + "$"
-    }
-    // Fix existing JUnit Configurations.
-    for (runConfiguration in runManager.getConfigurationsList(junitConfigurationType)) {
-      // Keep the previous configurations in existing run configurations
-      runManager.setBeforeRunTasks(runConfiguration, currentTasks[runConfiguration]!!)
-    }
-  }
 }
 
 // TODO: Find a better place for this method.

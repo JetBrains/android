@@ -26,23 +26,9 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
-import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
-import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
-import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.AndroidGradleTestUtilsKt;
-import com.android.tools.idea.testing.AndroidModuleModelBuilder;
-import com.android.tools.idea.testing.AndroidProjectBuilder;
-import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.ProjectFiles;
 import com.android.tools.idea.testing.TestModuleUtil;
-import com.google.common.collect.ImmutableList;
-import com.intellij.execution.BeforeRunTask;
-import com.intellij.execution.RunManagerEx;
-import com.intellij.execution.RunnerAndConfigurationSettings;
-import com.intellij.execution.configurations.ConfigurationFactory;
-import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.impl.RunManagerImpl;
 import com.intellij.facet.FacetManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
@@ -50,10 +36,7 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import java.io.File;
 import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.mockito.Mock;
 
@@ -129,44 +112,5 @@ public class AndroidModuleDataServiceTest extends AndroidGradleTestCase {
     GradleProjectInfo gradleProjectInfo = GradleProjectInfo.getInstance(getProject());
     assertFalse(gradleProjectInfo.isImportedProject());
     assertFalse(gradleProjectInfo.isNewProject());
-  }
-
-  public void testOnSuccessJUnitRunConfigurationSetup() throws Exception {
-    AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel(
-      getProject(),
-      new File(getProject().getBasePath()),
-      new AndroidModuleModelBuilder(":", "debug", new AndroidProjectBuilder()));
-
-    RunManagerEx runManager = RunManagerImpl.getInstanceImpl(getProject());
-
-    new AndroidModuleDataService().onSuccessImport(
-      ImmutableList.of(), null, getProject(), mock(IdeModifiableModelsProvider.class)
-    );
-    ConfigurationFactory configurationFactory = AndroidJUnitConfigurationType.getInstance().getConfigurationFactories()[0];
-    Project project = getProject();
-    AndroidJUnitConfiguration jUnitConfiguration = new AndroidJUnitConfiguration(project, configurationFactory);
-    RunnerAndConfigurationSettings settings = runManager.createConfiguration(jUnitConfiguration, configurationFactory);
-    settings.storeInDotIdeaFolder();
-    runManager.addConfiguration(settings);
-
-    List<RunConfiguration> junitRunConfigurations = runManager.getConfigurationsList(AndroidJUnitConfigurationType.getInstance());
-    for (RunConfiguration runConfiguration : junitRunConfigurations) {
-      assertSize(1, runManager.getBeforeRunTasks(runConfiguration));
-      assertEquals(MakeBeforeRunTaskProvider.ID, runManager.getBeforeRunTasks(runConfiguration).get(0).getProviderId());
-    }
-
-    RunConfiguration runConfiguration = junitRunConfigurations.get(0);
-    List<BeforeRunTask> tasks = new LinkedList<>(runManager.getBeforeRunTasks(runConfiguration));
-
-    MakeBeforeRunTaskProvider taskProvider = new MakeBeforeRunTaskProvider(project);
-    BeforeRunTask newTask = taskProvider.createTask(runConfiguration);
-    newTask.setEnabled(true);
-    tasks.add(newTask);
-    runManager.setBeforeRunTasks(runConfiguration, tasks);
-
-    new AndroidModuleDataService().onSuccessImport(
-      ImmutableList.of(), null, getProject(), mock(IdeModifiableModelsProvider.class)
-    );
-    assertSize(2, runManager.getBeforeRunTasks(runConfiguration));
   }
 }
