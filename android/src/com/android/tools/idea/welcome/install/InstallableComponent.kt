@@ -90,7 +90,7 @@ abstract class InstallableComponent(
   override fun updateState(handler: AndroidSdkHandler) {
     // If we don't have anything to install, show as unchecked and not editable.
     sdkHandler = handler
-    val nothingToInstall = !isWritable(fileOp, handler.location) || packagesToInstall.isEmpty()
+    val nothingToInstall = !isWritable(handler.location) || packagesToInstall.isEmpty()
     isOptional = !nothingToInstall && isOptionalForSdkLocation()
 
     willBeInstalled.set(

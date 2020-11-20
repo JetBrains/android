@@ -15,27 +15,47 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
-import com.android.repository.api.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.android.repository.api.Installer;
+import com.android.repository.api.InstallerFactory;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.PackageOperation;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoPackage;
+import com.android.repository.api.Uninstaller;
+import com.android.repository.api.UpdatablePackage;
 import com.android.repository.impl.meta.RepositoryPackages;
-import com.android.repository.testframework.*;
+import com.android.repository.testframework.FakePackage;
+import com.android.repository.testframework.FakeProgressIndicator;
+import com.android.repository.testframework.FakeRepoManager;
+import com.android.repository.testframework.FakeSettingsController;
+import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.sdk.progress.StudioProgressIndicatorAdapter;
 import com.android.tools.idea.concurrency.FutureUtils;
+import com.android.tools.idea.sdk.progress.StudioProgressIndicatorAdapter;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.util.Disposer;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.mockito.InOrder;
-
-import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-
-import static org.mockito.Mockito.*;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
+import org.mockito.InOrder;
 
 /**
  * Tests for {@link InstallSelectedPackagesStep}.
@@ -43,7 +63,7 @@ import static org.mockito.Mockito.*;
  * TODO: this does not include tests for in-process installs.
  */
 public class InstallTaskTest extends AndroidTestCase {
-  private static final File SDK_ROOT = new File("/sdk");
+  private static final String SDK_ROOT = "/sdk";
 
   private RemotePackage myAvailable1;
   private RemotePackage myAvailable2;
@@ -72,7 +92,7 @@ public class InstallTaskTest extends AndroidTestCase {
     RepositoryPackages repoPackages = new RepositoryPackages(ImmutableList.of(existing1), ImmutableList.of(myAvailable1, myAvailable2));
 
     FakeRepoManager repoManager = new FakeRepoManager(myFileOp.toPath(SDK_ROOT), repoPackages);
-    mySdkHandler = new AndroidSdkHandler(SDK_ROOT, new File("/sdk"), myFileOp, repoManager);
+    mySdkHandler = new AndroidSdkHandler(myFileOp.toPath(SDK_ROOT), myFileOp.toPath("/sdk"), myFileOp, repoManager);
 
     myInstallTask = new InstallTask(factory, mySdkHandler, new FakeSettingsController(false), myProgressIndicator);
     myInstallTask.setInstallRequests(ImmutableList.of(new UpdatablePackage(myAvailable1), new UpdatablePackage(myAvailable2)));

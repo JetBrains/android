@@ -147,7 +147,7 @@ public class ExternalAnnotationsSupport {
           File sdkRoot = new File(sdkRootPath);
           if (sdkRoot.isDirectory()) {
             ProgressIndicator progress = new StudioLoggerProgressIndicator(ExternalAnnotationsSupport.class);
-            AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(sdkRoot);
+            AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(sdkRoot.toPath());
             LocalPackage info = sdkHandler.getLocalPackage(FD_PLATFORMS + ";" + platformHash, progress);
             if (info != null) {
               Revision revision = info.getVersion();

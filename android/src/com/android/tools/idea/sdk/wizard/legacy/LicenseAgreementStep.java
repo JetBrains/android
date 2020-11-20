@@ -43,7 +43,7 @@ import com.intellij.ui.components.JBRadioButton;
 import com.intellij.ui.treeStructure.Tree;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
-import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -78,7 +78,7 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
   private String myCurrentLicense;
   private final Set<License> myLicenses = Sets.newHashSet();
 
-  private final File mySdkRoot;
+  private final Path mySdkRoot;
 
   public LicenseAgreementStep(@NotNull Disposable disposable) {
     super(disposable);
@@ -263,7 +263,7 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
               ((DetailsTypes.ApiDetailsType)p.getTypeDetails()).getAndroidVersion().isPreview());
         }
         myLicenses.add(license);
-        if (!license.checkAccepted(mySdkHandler.getFileOp().toPath(mySdkRoot))) {
+        if (!license.checkAccepted(mySdkRoot)) {
           toReturn.add(new Change(ChangeType.INSTALL, p, license));
         }
       }
@@ -306,7 +306,7 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
 
   public void performFinishingActions() {
     for (License license : myLicenses) {
-      license.setAccepted(mySdkHandler.getFileOp().toPath(mySdkRoot));
+      license.setAccepted(mySdkRoot);
     }
   }
 

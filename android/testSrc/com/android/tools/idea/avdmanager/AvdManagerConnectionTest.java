@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.AndroidTestCase;
 
 public class AvdManagerConnectionTest extends AndroidTestCase {
-  private static final File ANDROID_PREFS_ROOT = new File("/android-home");
+  private static final String ANDROID_PREFS_ROOT = "/android-home";
 
   private AvdManager mAvdManager;
   private AvdManagerConnection mAvdManagerConnection;
@@ -58,7 +58,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     recordGoogleApisSysImg23(mFileOp);
     recordEmulatorVersion_23_4_5(mFileOp);
 
-    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(new File("/sdk"), ANDROID_PREFS_ROOT, mFileOp);
+    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(mFileOp.toPath("/sdk"), mFileOp.toPath(ANDROID_PREFS_ROOT), mFileOp);
 
     mAvdManager = AvdManager.getInstance(androidSdkHandler, new File(ANDROID_PREFS_ROOT, "avd"), new NullLogger());
 
@@ -163,7 +163,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     FakeRepoManager mgr = new FakeRepoManager(mFileOp.toPath(SDK_LOCATION), packages);
 
     AndroidSdkHandler sdkHandler =
-      new AndroidSdkHandler(new File(SDK_LOCATION), new File(AVD_LOCATION), mFileOp, mgr);
+      new AndroidSdkHandler(mFileOp.toPath(SDK_LOCATION), mFileOp.toPath(AVD_LOCATION), mFileOp, mgr);
 
     FakeProgressIndicator progress = new FakeProgressIndicator();
     SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
@@ -241,7 +241,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     // Create a new AvdManagerConnection that doesn't remember the
     // previous list of packages
-    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(new File("/sdk").getAbsoluteFile(), ANDROID_PREFS_ROOT, mFileOp);
+    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(mFileOp.toPath("/sdk"), mFileOp.toPath(ANDROID_PREFS_ROOT), mFileOp);
     AvdManagerConnection managerConnection = new AvdManagerConnection(androidSdkHandler, MoreExecutors.newDirectExecutorService());
 
     File bogusEmulatorFile = managerConnection.getEmulatorBinary();

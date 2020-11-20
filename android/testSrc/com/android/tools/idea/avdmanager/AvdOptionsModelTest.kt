@@ -39,8 +39,8 @@ import java.io.File
 
 import com.android.testutils.NoErrorsOrWarningsLogger
 
-private val SDK_LOCATION = File("/sdk").absoluteFile
-private val AVD_LOCATION = File("/avd").absoluteFile
+private val SDK_LOCATION = "/sdk"
+private val AVD_LOCATION = "/avd"
 
 class AvdOptionsModelTest : AndroidTestCase() {
 
@@ -81,7 +81,7 @@ class AvdOptionsModelTest : AndroidTestCase() {
     packages.setLocalPkgInfos(pkgList)
 
     val mgr = FakeRepoManager(fileOp.toPath(SDK_LOCATION), packages)
-    val sdkHandler = AndroidSdkHandler(SDK_LOCATION, AVD_LOCATION, fileOp, mgr)
+    val sdkHandler = AndroidSdkHandler(fileOp.toPath(SDK_LOCATION), fileOp.toPath(AVD_LOCATION), fileOp, mgr)
 
     val progress = FakeProgressIndicator()
     val systemImageManager = sdkHandler.getSystemImageManager(progress)

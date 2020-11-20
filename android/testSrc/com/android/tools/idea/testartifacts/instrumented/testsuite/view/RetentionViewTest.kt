@@ -43,7 +43,6 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 import java.io.ByteArrayInputStream
-import java.io.File
 import java.io.FileOutputStream
 import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
@@ -66,7 +65,7 @@ class RetentionViewTest {
 
   private lateinit var retentionView: RetentionView
   private lateinit var androidSdkHandler: AndroidSdkHandler
-  private val sdkPath = File("/sdk")
+  private val sdkPath = "/sdk"
 
   @Mock
   private lateinit var mockRuntime: Runtime
@@ -82,7 +81,7 @@ class RetentionViewTest {
     mockFileOp.recordExistingFile(p.location.resolve(SdkConstants.FN_EMULATOR))
     val packages = RepositoryPackages(listOf(p), listOf())
     val mgr: RepoManager = FakeRepoManager(mockFileOp.toPath(sdkPath), packages)
-    androidSdkHandler = AndroidSdkHandler(sdkPath, sdkPath, mockFileOp, mgr)
+    androidSdkHandler = AndroidSdkHandler(mockFileOp.toPath(sdkPath), mockFileOp.toPath(sdkPath), mockFileOp, mgr)
     `when`(mockRuntime.exec(any(Array<String>::class.java))).thenReturn(mockProcess)
     `when`(mockRuntime.exec(anyString())).thenReturn(mockProcess)
     retentionView = RetentionView(androidSdkHandler, FakeProgressIndicator(), mockRuntime)

@@ -69,8 +69,7 @@ public class DeviceManagerConnection {
   @NotNull
   public static DeviceManagerConnection getDefaultDeviceManagerConnection() {
     AndroidSdkHandler handler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-    File location = handler.getLocation();
-    Path sdkPath = location == null ? null : handler.getFileOp().toPath(location);
+    Path sdkPath = handler.getLocation();
     if (sdkPath != null) {
       return getDeviceManagerConnection(sdkPath);
     }

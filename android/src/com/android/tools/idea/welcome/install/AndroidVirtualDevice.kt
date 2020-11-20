@@ -78,7 +78,7 @@ class AndroidVirtualDevice(
   @VisibleForTesting
   @Throws(WizardException::class)
   fun createAvd(connection: AvdManagerConnection, sdkHandler: AndroidSdkHandler): AvdInfo? {
-    val d = getDevice(sdkHandler.fileOp.toPath(sdkHandler.location!!))
+    val d = getDevice(sdkHandler.location!!)
     val systemImageDescription = getSystemImageDescription(sdkHandler)
     val cardSize = EmulatedProperties.DEFAULT_INTERNAL_STORAGE.toIniString()
     val hardwareSkinPath = AvdWizardUtils.pathToUpdatedSkins(d.defaultHardware.skinFile, systemImageDescription, fileOp)

@@ -33,10 +33,13 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidDebugBridgeUtils {
   @NotNull
   public static AndroidDebugBridge getAdb() {
-    File adbBinary = new File(
-      AndroidSdks.getInstance().tryToChooseSdkHandler().getLocation(),
-      FileUtil.join(SdkConstants.OS_SDK_PLATFORM_TOOLS_FOLDER, SdkConstants.FN_ADB)
-    );
+    File adbBinary =
+      AndroidSdks.getInstance()
+        .tryToChooseSdkHandler()
+        .getLocation()
+        .resolve(SdkConstants.OS_SDK_PLATFORM_TOOLS_FOLDER)
+        .resolve(SdkConstants.FN_ADB)
+        .toFile();
     return AndroidDebugBridge.createBridge(adbBinary.getAbsolutePath(), false);
   }
 

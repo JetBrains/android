@@ -62,7 +62,7 @@ import com.intellij.ui.AncestorListenerAdapter;
 import com.intellij.ui.JBColor;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -145,7 +145,8 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
    * cached.
    */
   AndroidSdkHandler getSdkHandler() {
-    return AndroidSdkHandler.getInstance(myPanel.getSelectedSdkLocation());
+    File location = myPanel.getSelectedSdkLocation();
+    return AndroidSdkHandler.getInstance(location == null ? null : location.toPath());
   }
 
   RepoManager getRepoManager() {
@@ -298,8 +299,11 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     }
 
     if (found) {
-      Pair<HtmlBuilder, HtmlBuilder> diskUsageMessages = getDiskUsageMessages(getSdkHandler().getLocation(), fullInstallationsDownloadSize,
-                                                                              patchesDownloadSize, spaceToBeFreedUp);
+      Path location = getSdkHandler().getLocation();
+      Pair<HtmlBuilder, HtmlBuilder> diskUsageMessages = getDiskUsageMessages(
+        location == null ? null : getSdkHandler().getFileOp().toFile(location),
+        fullInstallationsDownloadSize, patchesDownloadSize,
+        spaceToBeFreedUp);
       // Now form the summary message ordering the constituents properly.
       HtmlBuilder message = new HtmlBuilder();
       message.openHtmlBody();

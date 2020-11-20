@@ -103,7 +103,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     myMode = mode;
 
     // Create a new instance for use during installation
-    myLocalHandler = AndroidSdkHandler.getInstance(sdkLocation);
+    myLocalHandler = AndroidSdkHandler.getInstance(myFileOp.toPath(sdkLocation));
 
     myProgressStep = progressStep;
     myComponentInstaller = new ComponentInstaller(myLocalHandler);
@@ -183,7 +183,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
   @Override
   protected void init() {
-    File location = myLocalHandler.getLocation();
+    File location = myLocalHandler.getLocation().toFile();
     assert location != null;
 
     myState.put(WizardConstants.KEY_SDK_INSTALL_LOCATION, location.getAbsolutePath());
@@ -225,8 +225,8 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       String sdkPath = myState.get(WizardConstants.KEY_SDK_INSTALL_LOCATION);
       if (sdkPath != null) {
         File sdkLocation = new File(sdkPath);
-        if (!FileUtil.filesEqual(myLocalHandler.getLocation(), sdkLocation)) {
-          myLocalHandler = AndroidSdkHandler.getInstance(sdkLocation);
+        if (!FileUtil.filesEqual(myLocalHandler.getLocation().toFile(), sdkLocation)) {
+          myLocalHandler = AndroidSdkHandler.getInstance(myLocalHandler.getFileOp().toPath(sdkLocation));
           StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
           myComponentsStep.startLoading();
           myLocalHandler.getSdkManager(progress)
@@ -330,7 +330,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     String path = myState.get(WizardConstants.KEY_SDK_INSTALL_LOCATION);
     assert path != null;
 
-    return SdkLocationUtils.isWritable(myFileOp, new File(path));
+    return SdkLocationUtils.isWritable(myFileOp.toPath(path));
   }
 
   private static class MergeOperation extends InstallOperation<File, File> {

@@ -3784,7 +3784,7 @@ public class GradleImportTest extends AndroidTestCase {
   static {
     String candidate = CURRENT_BUILD_TOOLS_VERSION;
     FakeProgressIndicator progress = new FakeProgressIndicator();
-    AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(getSdk());
+    AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(getSdk().toPath());
     BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(progress, false);
     if (buildTool != null) {
       candidate = buildTool.getRevision().toString();
