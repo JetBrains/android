@@ -133,7 +133,7 @@ public class AndroidSdks {
   @NotNull
   public AndroidSdkHandler tryToChooseSdkHandler() {
     AndroidSdkData data = tryToChooseAndroidSdk();
-    return data != null ? data.getSdkHandler() : AndroidSdkHandler.getInstance(null);
+    return data != null ? data.getSdkHandler() : AndroidSdkHandler.getInstance((File)null);
   }
 
   /**
