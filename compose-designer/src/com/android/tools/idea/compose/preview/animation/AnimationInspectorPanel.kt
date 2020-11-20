@@ -328,9 +328,13 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       val toState = endStateComboBox.selectedItem
 
       clock.updateSeekableAnimationFunction.invoke(clock.clock, animation, startState, toState)
-      surface.layoutlibSceneManagers.singleOrNull()?.executeCallbacksAndRequestRender {
+
+      val updatedStates = surface.layoutlibSceneManagers.singleOrNull()?.executeCallbacksAndRequestRender {
         clock.updateAnimationStatesFunction.invoke(clock.clock)
-      }
+      } ?: false
+
+      if (!updatedStates) return
+
       timeline.jumpToStart()
       timeline.setClockTime(0) // Make sure that clock time is actually set in case timeline was already in 0.
 
@@ -771,9 +775,10 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         clockTimeMs += slider.maximum * loopCount
       }
 
-      surface.layoutlibSceneManagers.singleOrNull()?.executeCallbacksAndRequestRender {
+      val clockUpdated = surface.layoutlibSceneManagers.singleOrNull()?.executeCallbacksAndRequestRender {
         clock.setClockTimeFunction.invoke(clock.clock, clockTimeMs)
-      }
+      } ?: false
+      if (!clockUpdated) return
       tab.updateProperties()
     }
 
