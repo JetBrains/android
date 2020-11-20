@@ -97,7 +97,7 @@ abstract class AbstractAndroidResourceIntentionTest : KotlinAndroidTestCase() {
     }
 
     fun assertResourcesEqual(expectedPath: String) {
-        PlatformTestUtil.assertDirectoriesEqual(LocalFileSystem.getInstance().findFileByPath(expectedPath), getResourceDirectory())
+        PlatformTestUtil.assertDirectoriesEqual(LocalFileSystem.getInstance().findFileByPath(expectedPath)!!, getResourceDirectory()!!)
     }
 
     fun getResourceDirectory() = LocalFileSystem.getInstance().findFileByPath(myFixture.tempDirPath + "/res")
