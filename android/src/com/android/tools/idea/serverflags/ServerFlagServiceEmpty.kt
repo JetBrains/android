@@ -19,7 +19,7 @@ import com.google.protobuf.Message
 
 class ServerFlagServiceEmpty : ServerFlagService {
   override val initialized: Boolean = false
-  override val configurationVersion :Long = -1
+  override val configurationVersion: Long = -1
   override val names: List<String> = emptyList()
 
   override fun getString(name: String): String? {
@@ -42,9 +42,9 @@ class ServerFlagServiceEmpty : ServerFlagService {
     return null
   }
 
-  override fun <T : Message> getProtoMessage(name: String, defaultInstance: T): T {
+  override fun <T : Message> getProtoOrNull(name: String, instance: T): T? {
     checkInternalDebugBuild()
-    return defaultInstance
+    return null
   }
 
   private fun checkInternalDebugBuild() {
