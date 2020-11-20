@@ -49,6 +49,7 @@ import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.npw.template.KotlinVersionProvider;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.util.AndroidTestPaths;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
@@ -382,17 +383,22 @@ public class AndroidGradleTests {
   @NotNull
   public static Collection<File> getLocalRepositoryDirectories() {
     List<File> repositories = new ArrayList<>();
-    if (TestUtils.runningFromBazel()) {
-      // FIXME-ank4: use AndroidTestPaths instead?
-      repositories.add(TestUtils.getPrebuiltOfflineMavenRepo());
-    }
-    else if (System.getProperty("idea.gui.test.running.on.release") != null) {
-      repositories.add(new File(PathManager.getHomePath(), "gradle"));
-    }
-    else {
-      // FIXME-ank4: use AndroidTestPaths instead?
-      repositories.add(TestUtils.getPrebuiltOfflineMavenRepo());
-      repositories.add(getWorkspaceFile("out/repo"));
+
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      if (TestUtils.runningFromBazel()) {
+        repositories.add(AndroidTestPaths.prebuiltsRepo().toFile());
+      }
+      else if (System.getProperty("idea.gui.test.running.on.release") != null) {
+        repositories.add(new File(PathManager.getHomePath(), "gradle"));
+      }
+      else {
+        repositories.add(AndroidTestPaths.prebuiltsRepo().toFile());
+        repositories.add(getWorkspaceFile("out/repo"));
+      }
+    } else {
+      // In IDEA there in no WORKSPACE root.
+      repositories.add(AndroidTestPaths.prebuiltsRepo().toFile());
+      repositories.add(AndroidTestPaths.outRepo().toFile());
     }
 
     // Read optional repositories passed as JVM property (see ADDITIONAL_REPOSITORY_PROPERTY)
