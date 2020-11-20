@@ -36,8 +36,6 @@ import com.intellij.openapi.Disposable
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
-import java.io.File
-import java.io.FileInputStream
 
 val DEFAULT_PROCESS = Common.Process.newBuilder().apply {
   name = "myProcess"
@@ -74,7 +72,6 @@ class TransportRule(
   /** If you set this to false before attaching a device, the attach will fail (return [UNATTACHABLE]) */
   var shouldConnectSuccessfully = true
 
-  private var testDataDir: File? = null
   private val commandHandlers = mutableMapOf<
     LayoutInspectorProto.LayoutInspectorCommand.Type,
     (Commands.Command, MutableList<Common.Event>) -> Unit>()
@@ -102,9 +99,6 @@ class TransportRule(
 
   private var originalClientFactory: ((InspectorModel, Disposable) -> List<InspectorClient>)? = null
 
-  fun withTestData(directory: File) =
-    apply { testDataDir = directory }
-
   /**
    * Add a specific [LayoutInspectorProto.LayoutInspectorCommand] handler.
    */
@@ -112,9 +106,8 @@ class TransportRule(
                          handler: (Commands.Command, MutableList<Common.Event>) -> Unit) =
     apply { commandHandlers[type] = handler }
 
-  fun withFile(id: Int, fileName: String) = apply {
-    val content = FileInputStream(File(testDataDir!!, fileName)).use { ByteString.readFrom(it) }
-    transportService.addFile(id.toString(), content)
+  fun withFile(id: Int, bytes: ByteArray) = apply {
+    transportService.addFile(id.toString(), ByteString.copyFrom(bytes))
   }
 
   fun addEventToStream(device: Common.Device, event: Common.Event) {
@@ -174,7 +167,7 @@ class TransportRule(
     transportService.setCommandHandler(Commands.Command.CommandType.LAYOUT_INSPECTOR, inspectorHandler)
     originalClientFactory = InspectorClient.clientFactory
     InspectorClient.clientFactory = {
-      model, parentDisposable -> listOf(TransportInspectorClient(model, parentDisposable, TEST_CHANNEL_NAME))
+      model, parentDisposable -> listOf(TransportInspectorClient(model, parentDisposable, grpcServer.name))
     }
 
     // Start ADB with fake server and its port.

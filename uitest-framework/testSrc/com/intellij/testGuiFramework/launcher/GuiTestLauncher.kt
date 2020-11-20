@@ -192,6 +192,10 @@ object GuiTestLauncher {
       options += "-Xdebug"
       options += "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=${GuiTestOptions.getDebugPort()}"
     }
+    /* options for tests with native libraries */
+    if (!options.contains("-Djava.library.path=")) {
+      options += "-Djava.library.path=${System.getProperty("java.library.path")}"
+    }
     if (TestUtils.runningFromBazel()) {
       if (!IdeaTestSuiteBase.isUnbundledBazelTestTarget()) {
         options += "-Didea.home.path=${resolveWorkspacePath("tools/idea").toFile()}"
