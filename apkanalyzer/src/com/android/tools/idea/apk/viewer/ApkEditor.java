@@ -201,6 +201,9 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
   @Nullable
   @Override
   public JComponent getPreferredFocusedComponent() {
+    if (myApkViewPanel == null) {
+      return null;
+    }
     return myApkViewPanel.getPreferredFocusedComponent();
   }
 
