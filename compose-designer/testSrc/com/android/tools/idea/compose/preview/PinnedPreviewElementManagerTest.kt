@@ -90,14 +90,18 @@ internal class PinnedPreviewElementManagerTest {
     assertEquals(2, elementsInFile2.size)
 
     val pinnedPreviewManager = PinnedPreviewElementManager.getInstance(project)
+    val startModificationCount = pinnedPreviewManager.modificationCount
     val pinnedPreviewElementProvider = PinnedPreviewElementManager.getPreviewElementProvider(project)
     assertEquals(0, pinnedPreviewElementProvider.previewElements.count())
+    assertEquals(startModificationCount, pinnedPreviewManager.modificationCount)
     // Pin Preview1
     pinnedPreviewManager.pin(elementsInFile1[0] as PreviewElementInstance)
     assertEquals(1, pinnedPreviewElementProvider.previewElements.count())
+    assertEquals(startModificationCount + 1, pinnedPreviewManager.modificationCount)
 
     // Pin Preview2
     pinnedPreviewManager.pin(elementsInFile2[0] as PreviewElementInstance)
+    assertEquals(startModificationCount + 2, pinnedPreviewManager.modificationCount)
     assertEquals(
       """
         TestKt.Preview1
@@ -107,12 +111,14 @@ internal class PinnedPreviewElementManagerTest {
     )
 
     pinnedPreviewManager.unpin(elementsInFile1[0] as PreviewElementInstance)
+    assertEquals(startModificationCount + 3, pinnedPreviewManager.modificationCount)
     assertEquals(
       "com.test.TestKt.Preview3",
       pinnedPreviewElementProvider.toDebugString()
     )
 
     pinnedPreviewManager.unpin(elementsInFile2[0] as PreviewElementInstance)
+    assertEquals(startModificationCount + 4, pinnedPreviewManager.modificationCount)
     assertEquals(
       "",
       pinnedPreviewElementProvider.toDebugString()
@@ -154,10 +160,14 @@ internal class PinnedPreviewElementManagerTest {
     val elementsInFile = AnnotationFilePreviewElementFinder.findPreviewMethods(project, file1.virtualFile).toList()
     val pinnedPreviewManager = PinnedPreviewElementManager.getInstance(project)
     val pinnedPreviewElementProvider = PinnedPreviewElementManager.getPreviewElementProvider(project)
+    val startModificationCount = pinnedPreviewManager.modificationCount
     assertFalse(pinnedPreviewManager.unpin(elementsInFile[0] as PreviewElementInstance))
+    assertEquals(startModificationCount, pinnedPreviewManager.modificationCount)
     assertEquals(0, pinnedPreviewElementProvider.previewElements.count())
     assertTrue(pinnedPreviewManager.pin(elementsInFile[0] as PreviewElementInstance))
+    assertEquals(startModificationCount + 1, pinnedPreviewManager.modificationCount)
     assertFalse(pinnedPreviewManager.unpin(elementsInFile[1] as PreviewElementInstance))
+    assertEquals(startModificationCount + 1, pinnedPreviewManager.modificationCount)
     assertEquals(1, pinnedPreviewElementProvider.previewElements.count())
   }
 }
