@@ -45,6 +45,7 @@ import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.diagnostic.Logger;
@@ -630,6 +631,14 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Override
   public String getClientRevision() {
     return ApplicationInfoEx.getInstanceEx().getStrictVersion();
+  }
+
+  @NotNull
+  @Override
+  public String getClientDisplayName() {
+    // Returns for example "Android Studio" (but isn't hardcoded such that
+    // it does the right thing as the Android plugin in IntelliJ IDEA)
+    return ApplicationNamesInfo.getInstance().getFullProductName();
   }
 
   @Nullable private static volatile String ourSystemPath;
