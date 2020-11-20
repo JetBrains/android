@@ -1,6 +1,6 @@
 PROJECT             : MainActivity
-    PROJECT_JDK         : 1.8
-        Version             : java version "<JDK_VERSION>"
+    PROJECT_JDK         : corretto-11
+        Version             : Amazon Corretto version <JDK_VERSION>
     MODULE              : MainActivity
         ExternalModuleGroup :
         ExternalModuleVersion         : unspecified
@@ -80,11 +80,11 @@ PROJECT             : MainActivity
         FACET               : Kotlin
             TypeId              : kotlin-language
             ExternalSource      : GRADLE
-            ApiLevel            : 1.3
+            ApiLevel            : 1.4
             CompilerArguments
-                apiVersion          : 1.3
+                apiVersion          : 1.4
                 coroutinesState     : default
-                languageVersion     : 1.3
+                languageVersion     : 1.4
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -104,11 +104,11 @@ PROJECT             : MainActivity
             CoroutineSupport    : ENABLED_WITH_WARNING
             IsTestModule        : false
             Kind                : DEFAULT
-            LanguageLevel       : 1.3
+            LanguageLevel       : 1.4
             MergedCompilerArguments
-                apiVersion          : 1.3
+                apiVersion          : 1.4
                 coroutinesState     : default
-                languageVersion     : 1.3
+                languageVersion     : 1.4
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -200,11 +200,31 @@ PROJECT             : MainActivity
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/shaders
             EXCLUDE_FOLDER      : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/app/build
+        CONENT_ENTRY        : file://<PROJECT>/app/build/generated/source/kapt/debug
+            JavaSource          : file://<PROJECT>/app/build/generated/source/kapt/debug
+        CONENT_ENTRY        : file://<PROJECT>/app/build/generated/source/kapt/debugAndroidTest
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kapt/debugAndroidTest
+        CONENT_ENTRY        : file://<PROJECT>/app/build/generated/source/kapt/debugUnitTest
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kapt/debugUnitTest
+        CONENT_ENTRY        : file://<PROJECT>/app/build/generated/source/kapt/release
+            JavaSource          : file://<PROJECT>/app/build/generated/source/kapt/release
+        CONENT_ENTRY        : file://<PROJECT>/app/build/generated/source/kapt/releaseUnitTest
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kapt/releaseUnitTest
+        CONENT_ENTRY        : file://<PROJECT>/app/build/generated/source/kaptKotlin/debug
+            JavaSource          : file://<PROJECT>/app/build/generated/source/kaptKotlin/debug
+        CONENT_ENTRY        : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugAndroidTest
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugAndroidTest
+        CONENT_ENTRY        : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugUnitTest
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugUnitTest
+        CONENT_ENTRY        : file://<PROJECT>/app/build/generated/source/kaptKotlin/release
+            JavaSource          : file://<PROJECT>/app/build/generated/source/kaptKotlin/release
+        CONENT_ENTRY        : file://<PROJECT>/app/build/generated/source/kaptKotlin/releaseUnitTest
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kaptKotlin/releaseUnitTest
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : Amazon Corretto version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
         LIBRARY             : Gradle: androidx.annotation:annotation:1.0.0
             LibraryLevel        : project
@@ -245,7 +265,6 @@ PROJECT             : MainActivity
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.0/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.0/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.0/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.lifecycle:lifecycle-common:2.0.0
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -490,11 +509,11 @@ PROJECT             : MainActivity
         FACET               : Kotlin
             TypeId              : kotlin-language
             ExternalSource      : GRADLE
-            ApiLevel            : 1.3
+            ApiLevel            : 1.4
             CompilerArguments
-                apiVersion          : 1.3
+                apiVersion          : 1.4
                 coroutinesState     : default
-                languageVersion     : 1.3
+                languageVersion     : 1.4
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -514,11 +533,11 @@ PROJECT             : MainActivity
             CoroutineSupport    : ENABLED_WITH_WARNING
             IsTestModule        : false
             Kind                : DEFAULT
-            LanguageLevel       : 1.3
+            LanguageLevel       : 1.4
             MergedCompilerArguments
-                apiVersion          : 1.3
+                apiVersion          : 1.4
                 coroutinesState     : default
-                languageVersion     : 1.3
+                languageVersion     : 1.4
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -608,7 +627,7 @@ PROJECT             : MainActivity
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : Amazon Corretto version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
         LIBRARY             : Gradle: androidx.annotation:annotation:1.0.0
             LibraryLevel        : project
@@ -626,7 +645,6 @@ PROJECT             : MainActivity
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/annotations.zip!/
         LIBRARY             : Gradle: androidx.arch.core:core-common:2.0.0
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -668,7 +686,6 @@ PROJECT             : MainActivity
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.core:core:1.0.1@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -678,7 +695,6 @@ PROJECT             : MainActivity
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/annotations.zip!/
         LIBRARY             : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -715,7 +731,6 @@ PROJECT             : MainActivity
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.fragment:fragment:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -725,7 +740,6 @@ PROJECT             : MainActivity
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.interpolator:interpolator:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -823,7 +837,6 @@ PROJECT             : MainActivity
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -842,7 +855,6 @@ PROJECT             : MainActivity
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false

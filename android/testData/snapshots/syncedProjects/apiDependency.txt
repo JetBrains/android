@@ -1,6 +1,6 @@
 PROJECT             : testApiDependency
-    PROJECT_JDK         : 1.8
-        Version             : java version "<JDK_VERSION>"
+    PROJECT_JDK         : corretto-11
+        Version             : Amazon Corretto version <JDK_VERSION>
     MODULE              : testApiDependency
         ExternalModuleGroup :
         ExternalModuleVersion         : unspecified
@@ -151,7 +151,7 @@ PROJECT             : testApiDependency
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : Amazon Corretto version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
         LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
@@ -230,7 +230,6 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -256,7 +255,6 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:cursoradapter:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -293,7 +291,6 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:interpolator:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -330,7 +327,6 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -356,7 +352,6 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-core-ui:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -384,7 +379,6 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -403,7 +397,6 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -428,14 +421,14 @@ PROJECT             : testApiDependency
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib3:0.9.1 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
         LIBRARY             : Gradle: com.example.jlib:lib4:0.9.1
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib4:0.9.1 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
         LIBRARY             : Gradle: com.example.libs:lib1:0.9.1@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -492,12 +485,28 @@ PROJECT             : testApiDependency
             Buildable           : true
             BuildFolderPath     : <PROJECT>/jlib/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jlib
-            JavaSource          : file://<PROJECT>/jlib/src/main/java
-            JavaResource        : file://<PROJECT>/jlib/src/main/resources
-            JavaSource (test)   : file://<PROJECT>/jlib/src/test/java
-            JavaResource (test) : file://<PROJECT>/jlib/src/test/resources
             EXCLUDE_FOLDER      : file://<PROJECT>/jlib/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jlib/build [-]
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testApiDependency.jlib.main
+        ExternalModuleGroup : testApiDependency
+        ExternalModuleType  : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : :jlib:main
+        LinkedProjectPath   : <PROJECT>/jlib
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testApiDependency.jlib.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testApiDependency.jlib.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/jlib/testApiDependency.jlib.main.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        CONENT_ENTRY        : file://<PROJECT>/jlib/src/main
+            JavaSource          : file://<PROJECT>/jlib/src/main/java
+            JavaResource        : file://<PROJECT>/jlib/src/main/resources
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
@@ -515,6 +524,41 @@ PROJECT             : testApiDependency
             IsExported          : false
             Name                : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
+    MODULE              : testApiDependency.jlib.test
+        ExternalModuleGroup : testApiDependency
+        ExternalModuleType  : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : :jlib:test
+        LinkedProjectPath   : <PROJECT>/jlib
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testApiDependency.jlib.test [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testApiDependency.jlib.test [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/jlib/testApiDependency.jlib.test.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        CONENT_ENTRY        : file://<PROJECT>/jlib/src/test
+            JavaSource (test)   : file://<PROJECT>/jlib/src/test/java
+            JavaResource (test) : file://<PROJECT>/jlib/src/test/resources
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+        LIBRARY             : Gradle: junit:junit:4.12
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: junit:junit:4.12 [=]
+            *CLASSES            : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/
+        LIBRARY             : Gradle: org.hamcrest:hamcrest-core:1.3
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
+            *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
+        ORDER_ENTRY         : testApiDependency.jlib.main
     MODULE              : testApiDependency.jlib0
         ExternalModuleGroup : testApiDependency
         ExternalModuleVersion         : unspecified
@@ -536,12 +580,28 @@ PROJECT             : testApiDependency
             Buildable           : true
             BuildFolderPath     : <PROJECT>/jlib0/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jlib0
-            JavaSource          : file://<PROJECT>/jlib0/src/main/java
-            JavaResource        : file://<PROJECT>/jlib0/src/main/resources
-            JavaSource (test)   : file://<PROJECT>/jlib0/src/test/java
-            JavaResource (test) : file://<PROJECT>/jlib0/src/test/resources
             EXCLUDE_FOLDER      : file://<PROJECT>/jlib0/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jlib0/build [-]
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testApiDependency.jlib0.main
+        ExternalModuleGroup : testApiDependency
+        ExternalModuleType  : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : :jlib0:main
+        LinkedProjectPath   : <PROJECT>/jlib0
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testApiDependency.jlib0.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testApiDependency.jlib0.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/jlib0/testApiDependency.jlib0.main.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        CONENT_ENTRY        : file://<PROJECT>/jlib0/src/main
+            JavaSource          : file://<PROJECT>/jlib0/src/main/java
+            JavaResource        : file://<PROJECT>/jlib0/src/main/resources
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
@@ -559,7 +619,43 @@ PROJECT             : testApiDependency
             IsExported          : false
             Name                : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
-        ORDER_ENTRY         : testApiDependency.jlib
+        ORDER_ENTRY         : testApiDependency.jlib.main
+    MODULE              : testApiDependency.jlib0.test
+        ExternalModuleGroup : testApiDependency
+        ExternalModuleType  : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : :jlib0:test
+        LinkedProjectPath   : <PROJECT>/jlib0
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testApiDependency.jlib0.test [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testApiDependency.jlib0.test [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/jlib0/testApiDependency.jlib0.test.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        CONENT_ENTRY        : file://<PROJECT>/jlib0/src/test
+            JavaSource (test)   : file://<PROJECT>/jlib0/src/test/java
+            JavaResource (test) : file://<PROJECT>/jlib0/src/test/resources
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+        LIBRARY             : Gradle: junit:junit:4.12
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: junit:junit:4.12 [=]
+            *CLASSES            : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/
+        LIBRARY             : Gradle: org.hamcrest:hamcrest-core:1.3
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
+            *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
+        ORDER_ENTRY         : testApiDependency.jlib.main
+        ORDER_ENTRY         : testApiDependency.jlib0.main
     MODULE              : testApiDependency.lib
         ExternalModuleGroup : testApiDependency
         ExternalModuleVersion         : unspecified
@@ -687,7 +783,7 @@ PROJECT             : testApiDependency
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : Amazon Corretto version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
         LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
@@ -766,7 +862,6 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -792,7 +887,6 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:cursoradapter:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -829,7 +923,6 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:interpolator:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -866,7 +959,6 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -892,7 +984,6 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-core-ui:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -920,7 +1011,6 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -939,7 +1029,6 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -964,14 +1053,14 @@ PROJECT             : testApiDependency
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib3:0.9.1 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
         LIBRARY             : Gradle: com.example.jlib:lib4:0.9.1
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib4:0.9.1 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
         LIBRARY             : Gradle: com.example.libs:lib1:0.9.1@aar
             LibraryLevel        : project
             IsModuleLevel       : false

@@ -1,6 +1,6 @@
 PROJECT             : testPsdDependencyDeleteModule
-    PROJECT_JDK         : 1.8
-        Version             : java version "<JDK_VERSION>"
+    PROJECT_JDK         : corretto-11
+        Version             : Amazon Corretto version <JDK_VERSION>
     MODULE              : testPsdDependencyDeleteModule
         ExternalModuleGroup :
         ExternalModuleVersion         : unspecified
@@ -209,7 +209,7 @@ PROJECT             : testPsdDependencyDeleteModule
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : Amazon Corretto version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
         LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
@@ -288,7 +288,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -314,7 +313,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:cursoradapter:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -351,7 +349,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:interpolator:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -388,7 +385,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -414,7 +410,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-core-ui:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -442,7 +437,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -461,7 +455,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -502,65 +495,122 @@ PROJECT             : testPsdDependencyDeleteModule
             Buildable           : true
             BuildFolderPath     : <PROJECT>/jModuleK/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleK
-            JavaSource          : file://<PROJECT>/jModuleK/src/main/java
-            JavaResource        : file://<PROJECT>/jModuleK/src/main/resources
-            JavaSource (test)   : file://<PROJECT>/jModuleK/src/test/java
-            JavaResource (test) : file://<PROJECT>/jModuleK/src/test/resources
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleK/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleK/build [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
+    MODULE              : testPsdDependencyDeleteModule.jModuleK.main
+        ExternalModuleGroup : testPsdDependencyDeleteModule
+        ExternalModuleType  : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : :jModuleK:main
+        LinkedProjectPath   : <PROJECT>/jModuleK
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule.jModuleK.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule.jModuleK.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleK/testPsdDependencyDeleteModule.jModuleK.main.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        CONENT_ENTRY        : file://<PROJECT>/jModuleK/src/main
+            JavaSource          : file://<PROJECT>/jModuleK/src/main/java
+            JavaResource        : file://<PROJECT>/jModuleK/src/main/resources
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+        LIBRARY
+            LibraryLevel        : module
+            IsModuleLevel       : true
+            Scope               : Compile
+            IsExported          : false
+            *CLASSES            : jar://<PROJECT>/jModuleK/libs/jarlib-1.1.jar!/
         LIBRARY             : Gradle: com.example.jlib:lib3:0.9.1
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Provided
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib3:0.9.1 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
         LIBRARY             : Gradle: com.example.jlib:lib3:1.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Runtime
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib3:1.0 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
-        LIBRARY             : Gradle: com.example.jlib:lib3:1.0
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Test
-            IsExported          : false
-            Name                : Gradle: com.example.jlib:lib3:1.0 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
         LIBRARY             : Gradle: com.example.jlib:lib4:0.9.1
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Provided
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib4:0.9.1 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
         LIBRARY             : Gradle: com.example.jlib:lib4:1.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Runtime
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib4:1.0 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
-        LIBRARY             : Gradle: com.example.jlib:lib4:1.0
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Test
-            IsExported          : false
-            Name                : Gradle: com.example.jlib:lib4:1.0 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
-        LIBRARY             : Gradle: jarlib-1.1
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
+        ORDER_ENTRY         : testPsdDependencyDeleteModule.jModuleL.main
+    MODULE              : testPsdDependencyDeleteModule.jModuleK.test
+        ExternalModuleGroup : testPsdDependencyDeleteModule
+        ExternalModuleType  : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : :jModuleK:test
+        LinkedProjectPath   : <PROJECT>/jModuleK
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule.jModuleK.test [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule.jModuleK.test [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleK/testPsdDependencyDeleteModule.jModuleK.test.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        CONENT_ENTRY        : file://<PROJECT>/jModuleK/src/test
+            JavaSource (test)   : file://<PROJECT>/jModuleK/src/test/java
+            JavaResource (test) : file://<PROJECT>/jModuleK/src/test/resources
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+        LIBRARY
             LibraryLevel        : module
             IsModuleLevel       : true
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: jarlib-1.1 [=]
             *CLASSES            : jar://<PROJECT>/jModuleK/libs/jarlib-1.1.jar!/
-        ORDER_ENTRY         : testPsdDependencyDeleteModule.jModuleL
+        LIBRARY             : Gradle: com.example.jlib:lib3:0.9.1
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Provided
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib3:0.9.1 [=]
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
+        LIBRARY             : Gradle: com.example.jlib:lib3:1.0
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Runtime
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib3:1.0 [=]
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
+        LIBRARY             : Gradle: com.example.jlib:lib4:0.9.1
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Provided
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib4:0.9.1 [=]
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
+        LIBRARY             : Gradle: com.example.jlib:lib4:1.0
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Runtime
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib4:1.0 [=]
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
+        ORDER_ENTRY         : testPsdDependencyDeleteModule.jModuleK.main
+        ORDER_ENTRY         : testPsdDependencyDeleteModule.jModuleL.main
     MODULE              : testPsdDependencyDeleteModule.jModuleL
         ExternalModuleGroup : testPsdDependencyDeleteModule
         ExternalModuleVersion         : unspecified
@@ -582,12 +632,28 @@ PROJECT             : testPsdDependencyDeleteModule
             Buildable           : true
             BuildFolderPath     : <PROJECT>/jModuleL/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleL
-            JavaSource          : file://<PROJECT>/jModuleL/src/main/java
-            JavaResource        : file://<PROJECT>/jModuleL/src/main/resources
-            JavaSource (test)   : file://<PROJECT>/jModuleL/src/test/java
-            JavaResource (test) : file://<PROJECT>/jModuleL/src/test/resources
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleL/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleL/build [-]
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testPsdDependencyDeleteModule.jModuleL.main
+        ExternalModuleGroup : testPsdDependencyDeleteModule
+        ExternalModuleType  : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : :jModuleL:main
+        LinkedProjectPath   : <PROJECT>/jModuleL
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule.jModuleL.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule.jModuleL.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleL/testPsdDependencyDeleteModule.jModuleL.main.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        CONENT_ENTRY        : file://<PROJECT>/jModuleL/src/main
+            JavaSource          : file://<PROJECT>/jModuleL/src/main/java
+            JavaResource        : file://<PROJECT>/jModuleL/src/main/resources
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
@@ -597,14 +663,49 @@ PROJECT             : testPsdDependencyDeleteModule
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib3:1.0 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
         LIBRARY             : Gradle: com.example.jlib:lib4:1.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib4:1.0 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
+    MODULE              : testPsdDependencyDeleteModule.jModuleL.test
+        ExternalModuleGroup : testPsdDependencyDeleteModule
+        ExternalModuleType  : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : :jModuleL:test
+        LinkedProjectPath   : <PROJECT>/jModuleL
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule.jModuleL.test [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule.jModuleL.test [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleL/testPsdDependencyDeleteModule.jModuleL.test.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        CONENT_ENTRY        : file://<PROJECT>/jModuleL/src/test
+            JavaSource (test)   : file://<PROJECT>/jModuleL/src/test/java
+            JavaResource (test) : file://<PROJECT>/jModuleL/src/test/resources
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+        LIBRARY             : Gradle: com.example.jlib:lib3:1.0
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib3:1.0 [=]
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
+        LIBRARY             : Gradle: com.example.jlib:lib4:1.0
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib4:1.0 [=]
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
+        ORDER_ENTRY         : testPsdDependencyDeleteModule.jModuleL.main
     MODULE              : testPsdDependencyDeleteModule.jModuleM
         ExternalModuleGroup : testPsdDependencyDeleteModule
         ExternalModuleVersion         : unspecified
@@ -626,12 +727,28 @@ PROJECT             : testPsdDependencyDeleteModule
             Buildable           : true
             BuildFolderPath     : <PROJECT>/jModuleM/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleM
-            JavaSource          : file://<PROJECT>/jModuleM/src/main/java
-            JavaResource        : file://<PROJECT>/jModuleM/src/main/resources
-            JavaSource (test)   : file://<PROJECT>/jModuleM/src/test/java
-            JavaResource (test) : file://<PROJECT>/jModuleM/src/test/resources
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleM/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleM/build [-]
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testPsdDependencyDeleteModule.jModuleM.main
+        ExternalModuleGroup : testPsdDependencyDeleteModule
+        ExternalModuleType  : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : :jModuleM:main
+        LinkedProjectPath   : <PROJECT>/jModuleM
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule.jModuleM.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule.jModuleM.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleM/testPsdDependencyDeleteModule.jModuleM.main.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        CONENT_ENTRY        : file://<PROJECT>/jModuleM/src/main
+            JavaSource          : file://<PROJECT>/jModuleM/src/main/java
+            JavaResource        : file://<PROJECT>/jModuleM/src/main/resources
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
@@ -641,14 +758,49 @@ PROJECT             : testPsdDependencyDeleteModule
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib3:0.9.1 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
         LIBRARY             : Gradle: com.example.jlib:lib4:0.9.1
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib4:0.9.1 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
+    MODULE              : testPsdDependencyDeleteModule.jModuleM.test
+        ExternalModuleGroup : testPsdDependencyDeleteModule
+        ExternalModuleType  : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : :jModuleM:test
+        LinkedProjectPath   : <PROJECT>/jModuleM
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule.jModuleM.test [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule.jModuleM.test [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleM/testPsdDependencyDeleteModule.jModuleM.test.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        CONENT_ENTRY        : file://<PROJECT>/jModuleM/src/test
+            JavaSource (test)   : file://<PROJECT>/jModuleM/src/test/java
+            JavaResource (test) : file://<PROJECT>/jModuleM/src/test/resources
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+        LIBRARY             : Gradle: com.example.jlib:lib3:0.9.1
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib3:0.9.1 [=]
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
+        LIBRARY             : Gradle: com.example.jlib:lib4:0.9.1
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib4:0.9.1 [=]
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
+        ORDER_ENTRY         : testPsdDependencyDeleteModule.jModuleM.main
     MODULE              : testPsdDependencyDeleteModule.jModuleZ
         ExternalModuleGroup : testPsdDependencyDeleteModule
         ExternalModuleVersion         : unspecified
@@ -670,81 +822,73 @@ PROJECT             : testPsdDependencyDeleteModule
             Buildable           : true
             BuildFolderPath     : <PROJECT>/jModuleZ/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleZ
-            JavaSource          : file://<PROJECT>/jModuleZ/src/main/java
-            JavaResource        : file://<PROJECT>/jModuleZ/src/main/resources
-            JavaSource (test)   : file://<PROJECT>/jModuleZ/src/test/java
-            JavaResource (test) : file://<PROJECT>/jModuleZ/src/test/resources
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/build [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
+    MODULE              : testPsdDependencyDeleteModule.jModuleZ.main
+        ExternalModuleGroup : testPsdDependencyDeleteModule
+        ExternalModuleType  : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : :jModuleZ:main
+        LinkedProjectPath   : <PROJECT>/jModuleZ
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule.jModuleZ.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule.jModuleZ.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/testPsdDependencyDeleteModule.jModuleZ.main.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        CONENT_ENTRY        : file://<PROJECT>/jModuleZ/src/main
+            JavaSource          : file://<PROJECT>/jModuleZ/src/main/java
+            JavaResource        : file://<PROJECT>/jModuleZ/src/main/resources
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+        LIBRARY
+            LibraryLevel        : module
+            IsModuleLevel       : true
+            Scope               : Runtime
+            IsExported          : false
+            *CLASSES            : jar://<PROJECT>/jModuleK/libs/jarlib-1.1.jar!/
+        LIBRARY
+            LibraryLevel        : module
+            IsModuleLevel       : true
+            Scope               : Compile
+            IsExported          : false
+            *CLASSES            : jar://<PROJECT>/lib/libsam1-1.1.jar!/
+        LIBRARY
+            LibraryLevel        : module
+            IsModuleLevel       : true
+            Scope               : Compile
+            IsExported          : false
+            *CLASSES            : jar://<PROJECT>/lib/libsam2-1.1.jar!/
         LIBRARY             : Gradle: com.example.jlib:lib3:1.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Runtime
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib3:1.0 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
-        LIBRARY             : Gradle: com.example.jlib:lib3:1.0
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Test
-            IsExported          : false
-            Name                : Gradle: com.example.jlib:lib3:1.0 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
         LIBRARY             : Gradle: com.example.jlib:lib4:0.6
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Provided
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib4:0.6 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.6/lib4-0.6.jar!/
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.6/lib4-0.6.jar!/
         LIBRARY             : Gradle: com.example.jlib:lib4:1.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Runtime
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib4:1.0 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
-        LIBRARY             : Gradle: com.example.jlib:lib4:1.0
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Test
-            IsExported          : false
-            Name                : Gradle: com.example.jlib:lib4:1.0 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
-        LIBRARY             : Gradle: jarlib-1.1
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Runtime
-            IsExported          : false
-            Name                : Gradle: jarlib-1.1 [=]
-            *CLASSES            : jar://<PROJECT>/jModuleK/libs/jarlib-1.1.jar!/
-        LIBRARY             : Gradle: jarlib-1.1
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Test
-            IsExported          : false
-            Name                : Gradle: jarlib-1.1 [=]
-            *CLASSES            : jar://<PROJECT>/jModuleK/libs/jarlib-1.1.jar!/
-        LIBRARY             : Gradle: libsam1-1.1
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Compile
-            IsExported          : false
-            Name                : Gradle: libsam1-1.1 [=]
-            *CLASSES            : jar://<PROJECT>/lib/libsam1-1.1.jar!/
-        LIBRARY             : Gradle: libsam2-1.1
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Compile
-            IsExported          : false
-            Name                : Gradle: libsam2-1.1 [=]
-            *CLASSES            : jar://<PROJECT>/lib/libsam2-1.1.jar!/
-        ORDER_ENTRY         : testPsdDependencyDeleteModule.jModuleK
-        ORDER_ENTRY         : testPsdDependencyDeleteModule.jModuleL
-        ORDER_ENTRY         : testPsdDependencyDeleteModule.jModuleZ.nestedZ
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
+        ORDER_ENTRY         : testPsdDependencyDeleteModule.jModuleK.main
+        ORDER_ENTRY         : testPsdDependencyDeleteModule.jModuleL.main
+        ORDER_ENTRY         : testPsdDependencyDeleteModule.jModuleZ.nestedZ.main
     MODULE              : testPsdDependencyDeleteModule.jModuleZ.nestedZ
         ExternalModuleGroup : testPsdDependencyDeleteModule.jModuleZ
         ExternalModuleVersion         : unspecified
@@ -766,12 +910,28 @@ PROJECT             : testPsdDependencyDeleteModule
             Buildable           : true
             BuildFolderPath     : <PROJECT>/jModuleZ/nestedZ/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleZ/nestedZ
-            JavaSource          : file://<PROJECT>/jModuleZ/nestedZ/src/main/java
-            JavaResource        : file://<PROJECT>/jModuleZ/nestedZ/src/main/resources
-            JavaSource (test)   : file://<PROJECT>/jModuleZ/nestedZ/src/test/java
-            JavaResource (test) : file://<PROJECT>/jModuleZ/nestedZ/src/test/resources
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/nestedZ/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/nestedZ/build [-]
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testPsdDependencyDeleteModule.jModuleZ.nestedZ.main
+        ExternalModuleGroup : testPsdDependencyDeleteModule.jModuleZ
+        ExternalModuleType  : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : :jModuleZ:nestedZ:main
+        LinkedProjectPath   : <PROJECT>/jModuleZ/nestedZ
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule.jModuleZ.nestedZ.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule.jModuleZ.nestedZ.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/nestedZ/testPsdDependencyDeleteModule.jModuleZ.nestedZ.main.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        CONENT_ENTRY        : file://<PROJECT>/jModuleZ/nestedZ/src/main
+            JavaSource          : file://<PROJECT>/jModuleZ/nestedZ/src/main/java
+            JavaResource        : file://<PROJECT>/jModuleZ/nestedZ/src/main/resources
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
@@ -781,7 +941,98 @@ PROJECT             : testPsdDependencyDeleteModule
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib4:0.6 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.6/lib4-0.6.jar!/
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.6/lib4-0.6.jar!/
+    MODULE              : testPsdDependencyDeleteModule.jModuleZ.nestedZ.test
+        ExternalModuleGroup : testPsdDependencyDeleteModule.jModuleZ
+        ExternalModuleType  : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : :jModuleZ:nestedZ:test
+        LinkedProjectPath   : <PROJECT>/jModuleZ/nestedZ
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule.jModuleZ.nestedZ.test [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule.jModuleZ.nestedZ.test [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/nestedZ/testPsdDependencyDeleteModule.jModuleZ.nestedZ.test.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        CONENT_ENTRY        : file://<PROJECT>/jModuleZ/nestedZ/src/test
+            JavaSource (test)   : file://<PROJECT>/jModuleZ/nestedZ/src/test/java
+            JavaResource (test) : file://<PROJECT>/jModuleZ/nestedZ/src/test/resources
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+        LIBRARY             : Gradle: com.example.jlib:lib4:0.6
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib4:0.6 [=]
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.6/lib4-0.6.jar!/
+        ORDER_ENTRY         : testPsdDependencyDeleteModule.jModuleZ.nestedZ.main
+    MODULE              : testPsdDependencyDeleteModule.jModuleZ.test
+        ExternalModuleGroup : testPsdDependencyDeleteModule
+        ExternalModuleType  : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : :jModuleZ:test
+        LinkedProjectPath   : <PROJECT>/jModuleZ
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule.jModuleZ.test [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule.jModuleZ.test [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/testPsdDependencyDeleteModule.jModuleZ.test.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        CONENT_ENTRY        : file://<PROJECT>/jModuleZ/src/test
+            JavaSource (test)   : file://<PROJECT>/jModuleZ/src/test/java
+            JavaResource (test) : file://<PROJECT>/jModuleZ/src/test/resources
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+        LIBRARY
+            LibraryLevel        : module
+            IsModuleLevel       : true
+            Scope               : Runtime
+            IsExported          : false
+            *CLASSES            : jar://<PROJECT>/jModuleK/libs/jarlib-1.1.jar!/
+        LIBRARY
+            LibraryLevel        : module
+            IsModuleLevel       : true
+            Scope               : Compile
+            IsExported          : false
+            *CLASSES            : jar://<PROJECT>/lib/libsam1-1.1.jar!/
+        LIBRARY
+            LibraryLevel        : module
+            IsModuleLevel       : true
+            Scope               : Compile
+            IsExported          : false
+            *CLASSES            : jar://<PROJECT>/lib/libsam2-1.1.jar!/
+        LIBRARY             : Gradle: com.example.jlib:lib3:1.0
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Runtime
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib3:1.0 [=]
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
+        LIBRARY             : Gradle: com.example.jlib:lib4:0.6
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Provided
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib4:0.6 [=]
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.6/lib4-0.6.jar!/
+        LIBRARY             : Gradle: com.example.jlib:lib4:1.0
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Runtime
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib4:1.0 [=]
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
+        ORDER_ENTRY         : testPsdDependencyDeleteModule.jModuleK.main
+        ORDER_ENTRY         : testPsdDependencyDeleteModule.jModuleL.main
+        ORDER_ENTRY         : testPsdDependencyDeleteModule.jModuleZ.main
+        ORDER_ENTRY         : testPsdDependencyDeleteModule.jModuleZ.nestedZ.main
     MODULE              : testPsdDependencyDeleteModule.mainModule
         ExternalModuleGroup : testPsdDependencyDeleteModule
         ExternalModuleVersion         : unspecified
@@ -967,7 +1218,7 @@ PROJECT             : testPsdDependencyDeleteModule
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : Amazon Corretto version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
         LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
@@ -1046,7 +1297,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1072,7 +1322,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:cursoradapter:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1109,7 +1358,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:interpolator:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1146,7 +1394,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1172,7 +1419,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-core-ui:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1200,7 +1446,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1219,7 +1464,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1244,14 +1488,14 @@ PROJECT             : testPsdDependencyDeleteModule
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib3:1.0 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
         LIBRARY             : Gradle: com.example.jlib:lib4:1.0
             LibraryLevel        : module
             IsModuleLevel       : true
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib4:1.0 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
         LIBRARY             : Gradle: com.example.libs:lib1:1.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1397,7 +1641,7 @@ PROJECT             : testPsdDependencyDeleteModule
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : Amazon Corretto version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
         LIBRARY             : Gradle: ./lib/libsam1-1.1.jar
             LibraryLevel        : project
@@ -1490,7 +1734,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1516,7 +1759,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:cursoradapter:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1553,7 +1795,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:interpolator:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1590,7 +1831,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1616,7 +1856,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-core-ui:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1644,7 +1883,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1663,7 +1901,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1809,7 +2046,7 @@ PROJECT             : testPsdDependencyDeleteModule
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : Amazon Corretto version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
         LIBRARY             : Gradle: ./lib/libsam1-1.1.jar
             LibraryLevel        : project
@@ -1895,7 +2132,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1921,7 +2157,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:cursoradapter:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1958,7 +2193,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:interpolator:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1995,7 +2229,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2021,7 +2254,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-core-ui:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2049,7 +2281,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2068,7 +2299,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2215,7 +2445,7 @@ PROJECT             : testPsdDependencyDeleteModule
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : Amazon Corretto version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
         LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
@@ -2294,7 +2524,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2320,7 +2549,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:cursoradapter:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2357,7 +2585,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:interpolator:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2394,7 +2621,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2420,7 +2646,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-core-ui:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2448,7 +2673,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2467,7 +2691,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2671,7 +2894,7 @@ PROJECT             : testPsdDependencyDeleteModule
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : Amazon Corretto version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
     MODULE              : testPsdDependencyDeleteModule.modulePlus
         ExternalModuleGroup : testPsdDependencyDeleteModule
@@ -2800,7 +3023,7 @@ PROJECT             : testPsdDependencyDeleteModule
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : Amazon Corretto version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
         LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
@@ -2879,7 +3102,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2905,7 +3127,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:cursoradapter:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2942,7 +3163,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:interpolator:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2979,7 +3199,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -3005,7 +3224,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-core-ui:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -3033,7 +3251,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -3052,7 +3269,6 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -3077,14 +3293,14 @@ PROJECT             : testPsdDependencyDeleteModule
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib3:1.0 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
         LIBRARY             : Gradle: com.example.jlib:lib4:1.0
             LibraryLevel        : module
             IsModuleLevel       : true
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib4:1.0 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
+            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
         LIBRARY             : Gradle: com.example.libs:lib1:0.9.1@aar
             LibraryLevel        : project
             IsModuleLevel       : false

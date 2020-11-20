@@ -1,6 +1,6 @@
 PROJECT             : AS36_noiml
-    PROJECT_JDK         : 1.8
-        Version             : java version "<JDK_VERSION>"
+    PROJECT_JDK         : corretto-11
+        Version             : Amazon Corretto version <JDK_VERSION>
     MODULE              : AS36_noiml
         ExternalModuleGroup :
         ExternalModuleVersion         : unspecified
@@ -151,7 +151,7 @@ PROJECT             : AS36_noiml
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : Amazon Corretto version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
         ORDER_ENTRY         : AS36_noiml.libs.android_library
         LIBRARY             : Gradle: androidx.annotation:annotation:1.0.0
@@ -170,7 +170,6 @@ PROJECT             : AS36_noiml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/annotations.zip!/
         LIBRARY             : Gradle: androidx.arch.core:core-common:2.0.0
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -228,7 +227,6 @@ PROJECT             : AS36_noiml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.core:core:1.0.1@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -238,7 +236,6 @@ PROJECT             : AS36_noiml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/annotations.zip!/
         LIBRARY             : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -275,7 +272,6 @@ PROJECT             : AS36_noiml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.fragment:fragment:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -285,7 +281,6 @@ PROJECT             : AS36_noiml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.interpolator:interpolator:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -383,7 +378,6 @@ PROJECT             : AS36_noiml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -402,7 +396,6 @@ PROJECT             : AS36_noiml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -702,7 +695,7 @@ PROJECT             : AS36_noiml
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : Amazon Corretto version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
         ORDER_ENTRY         : AS36_noiml.app
     MODULE              : AS36_noiml.features.dynamicfeature2
@@ -832,7 +825,7 @@ PROJECT             : AS36_noiml
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : Amazon Corretto version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
         ORDER_ENTRY         : AS36_noiml.app
     MODULE              : AS36_noiml.libs
@@ -988,7 +981,7 @@ PROJECT             : AS36_noiml
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : Amazon Corretto version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
         ORDER_ENTRY         : AS36_noiml.libs.java_lib
         LIBRARY             : Gradle: androidx.annotation:annotation:1.0.0
@@ -1007,7 +1000,6 @@ PROJECT             : AS36_noiml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/annotations.zip!/
         LIBRARY             : Gradle: androidx.arch.core:core-common:2.0.0
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1065,7 +1057,6 @@ PROJECT             : AS36_noiml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.core:core:1.0.1@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1075,7 +1066,6 @@ PROJECT             : AS36_noiml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/annotations.zip!/
         LIBRARY             : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1112,7 +1102,6 @@ PROJECT             : AS36_noiml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.fragment:fragment:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1122,7 +1111,6 @@ PROJECT             : AS36_noiml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.interpolator:interpolator:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1220,7 +1208,6 @@ PROJECT             : AS36_noiml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1239,7 +1226,6 @@ PROJECT             : AS36_noiml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/jars/classes.jar!/
-            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1407,15 +1393,52 @@ PROJECT             : AS36_noiml
             Buildable           : true
             BuildFolderPath     : <PROJECT>/libs/java_lib/build [-]
         CONENT_ENTRY        : file://<PROJECT>/libs/java_lib
-            JavaSource          : file://<PROJECT>/libs/java_lib/src/main/java
-            JavaResource        : file://<PROJECT>/libs/java_lib/src/main/resources
-            JavaSource (test)   : file://<PROJECT>/libs/java_lib/src/test/java
-            JavaResource (test) : file://<PROJECT>/libs/java_lib/src/test/resources
             EXCLUDE_FOLDER      : file://<PROJECT>/libs/java_lib/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/libs/java_lib/build [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
+    MODULE              : AS36_noiml.libs.java_lib.main
+        ExternalModuleGroup : AS36_noiml.libs
+        ExternalModuleType  : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : :libs:java_lib:main
+        LinkedProjectPath   : <PROJECT>/libs/java_lib
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.libs.java_lib.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.libs.java_lib.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/libs/java_lib/AS36_noiml.libs.java_lib.main.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        CONENT_ENTRY        : file://<PROJECT>/libs/java_lib/src/main
+            JavaSource          : file://<PROJECT>/libs/java_lib/src/main/java
+            JavaResource        : file://<PROJECT>/libs/java_lib/src/main/resources
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+    MODULE              : AS36_noiml.libs.java_lib.test
+        ExternalModuleGroup : AS36_noiml.libs
+        ExternalModuleType  : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : :libs:java_lib:test
+        LinkedProjectPath   : <PROJECT>/libs/java_lib
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.libs.java_lib.test [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.libs.java_lib.test [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/libs/java_lib/AS36_noiml.libs.java_lib.test.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        CONENT_ENTRY        : file://<PROJECT>/libs/java_lib/src/test
+            JavaSource (test)   : file://<PROJECT>/libs/java_lib/src/test/java
+            JavaResource (test) : file://<PROJECT>/libs/java_lib/src/test/resources
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+        ORDER_ENTRY         : AS36_noiml.libs.java_lib.main
     RUN_CONFIGURATION   : app
         *class*             : AndroidRunConfiguration
         ModuleName          : AS36_noiml.app
