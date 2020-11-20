@@ -18,13 +18,13 @@ package com.android.tools.idea.compose.preview.util
 import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.ProjectStructure
-import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
+import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.module.Module
@@ -112,9 +112,11 @@ else false
  *  of the build.
  */
 fun hasBeenBuiltSuccessfully(project: Project, lazyFileProvider: () -> PsiFile): Boolean {
-  val summary = GradleBuildState.getInstance(project).summary
-  if (summary != null) {
-    return summary.status.isBuildSuccessful && summary.context?.buildMode != BuildMode.CLEAN
+  val result = ProjectSystemService.getInstance(project).projectSystem.getBuildManager().getLastBuildResult()
+
+  if (result.status != ProjectSystemBuildManager.BuildStatus.UNKNOWN) {
+    return result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS &&
+           result.mode != ProjectSystemBuildManager.BuildMode.CLEAN
 
   }
 
