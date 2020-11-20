@@ -46,6 +46,7 @@ import com.google.common.collect.ImmutableSet
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.diagnostic.Logger
 import java.io.File
+import java.nio.file.Path
 
 /**
  * Logic for setting up Android virtual device
@@ -77,7 +78,7 @@ class AndroidVirtualDevice(
   @VisibleForTesting
   @Throws(WizardException::class)
   fun createAvd(connection: AvdManagerConnection, sdkHandler: AndroidSdkHandler): AvdInfo? {
-    val d = getDevice(sdkHandler.location!!)
+    val d = getDevice(sdkHandler.fileOp.toPath(sdkHandler.location!!))
     val systemImageDescription = getSystemImageDescription(sdkHandler)
     val cardSize = EmulatedProperties.DEFAULT_INTERNAL_STORAGE.toIniString()
     val hardwareSkinPath = AvdWizardUtils.pathToUpdatedSkins(d.defaultHardware.skinFile, systemImageDescription, fileOp)
@@ -165,9 +166,8 @@ class AndroidVirtualDevice(
     )
 
     @Throws(WizardException::class)
-    private fun getDevice(sdkPath: File): Device {
-      val devices = DeviceManagerConnection.getDeviceManagerConnection(
-        sdkPath).devices
+    private fun getDevice(sdkPath: Path): Device {
+      val devices = DeviceManagerConnection.getDeviceManagerConnection(sdkPath).devices
       for (device in devices) {
         if (Objects.equal(device.id, DEFAULT_DEVICE_ID)) {
           return device

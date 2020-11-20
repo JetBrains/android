@@ -284,7 +284,7 @@ public class AndroidSdkData {
       }
       else {
         mySdkData = null;
-        mySdkHandler = AndroidSdkHandler.getInstance(null);
+        mySdkHandler = AndroidSdkHandler.getInstance((File)null);
       }
     }
 
