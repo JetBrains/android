@@ -77,10 +77,6 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     myReporter = new UnresolvedDependenciesReporter();
     myUsageReporter = new TestSyncIssueUsageReporter();
     when(mySyncIssue.getType()).thenReturn(TYPE_UNRESOLVED_DEPENDENCY);
-
-    // FIXME-ank: check if we still need this
-    IdeInfo ideInfo = myIdeComponents.mockApplicationService(IdeInfo.class);
-    when(ideInfo.isAndroidStudio()).thenReturn(true);
   }
 
   @Override

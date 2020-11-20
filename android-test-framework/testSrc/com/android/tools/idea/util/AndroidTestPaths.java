@@ -75,11 +75,23 @@ public class AndroidTestPaths {
    */
   public static Path prebuiltsRepo() {
     List<String> alternatives = Arrays.asList(
-      "../../prebuilts/tools/common/m2/repository", // AOSP
+      TestUtils.getPrebuiltOfflineMavenRepo().getAbsolutePath(), // AOSP
       "community/build/dependencies/build/android-sdk/prebuilts/tools/common/m2/repository", // IU
       "build/dependencies/build/android-sdk/prebuilts/tools/common/m2/repository" // IC
     );
     return selectExisting(alternatives, "Could not find path for prebuilts/tools/common/m2/repository");
+  }
+
+  /**
+   * @return absolute path to "out/repo"
+   */
+  public static Path outRepo() {
+    List<String> alternatives = Arrays.asList(
+      "../../out/repo", // AOSP
+      "community/build/dependencies/build/android-sdk/out/repo", // IU
+      "build/dependencies/build/android-sdk/out/repo" // IC
+    );
+    return selectExisting(alternatives, "Could not find path for out/repo");
   }
 
   /**
