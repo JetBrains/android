@@ -90,6 +90,9 @@ enum class GoogleMavenArtifactId(val mavenGroupId: String, val mavenArtifactId: 
   DATA_BINDING_ADAPTERS("com.android.databinding", "adapters", false),
   ANDROIDX_DATA_BINDING_ADAPTERS("androidx.databinding", "databinding-adapters", false),
 
+  // App Inspection supported libraries
+  ANDROIDX_WORK_RUNTIME("androidx.work", "work-runtime", false),
+
   // Google repo
   PLAY_SERVICES("com.google.android.gms", "play-services", false),
   PLAY_SERVICES_ADS("com.google.android.gms", "play-services-ads", false),
