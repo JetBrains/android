@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.internal
 
 import com.android.SdkConstants
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration
 import com.android.tools.idea.gradle.project.facet.java.JavaFacetConfiguration
@@ -326,10 +327,18 @@ private fun ProjectDumper.dump(library: Library, matchingName: String) {
     library
       .getUrls(type)
       .filter { file ->
-        !file.toPrintablePath().contains("<M2>") ||
-        (type != OrderRootType.DOCUMENTATION &&
-         type != OrderRootType.SOURCES &&
-         type != JavadocOrderRootType.getInstance())
+        if (IdeInfo.getInstance().isAndroidStudio){
+          !file.toPrintablePath().contains("<M2>") ||
+          (type != OrderRootType.DOCUMENTATION &&
+           type != OrderRootType.SOURCES &&
+           type != JavadocOrderRootType.getInstance())
+        } else {
+          // IDEA
+          type != OrderRootType.DOCUMENTATION &&
+          type != OrderRootType.SOURCES &&
+          type != JavadocOrderRootType.getInstance() &&
+          type != AnnotationOrderRootType.getInstance()
+        }
       }
       .filter { file ->
         !file.toPrintablePath().contains("<USER_M2>") || type != AnnotationOrderRootType.getInstance()
