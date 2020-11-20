@@ -74,6 +74,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.TestOnly
 import java.io.File
+import java.nio.file.Path
 import java.util.ArrayDeque
 import java.util.Collections
 import com.android.builder.model.CodeShrinker as BuildModelCodeShrinker
@@ -118,6 +119,12 @@ class GradleModuleSystem(
       .asSequence()
       .mapNotNull { GradleCoordinate.parseCoordinateString(it.address) }
       .find { it.matches(coordinate) }
+  }
+
+  override fun getDependencyPath(coordinate: GradleCoordinate): Path? {
+    return getResolvedLibraryDependencies()
+      .find { GradleCoordinate.parseCoordinateString(it.address)?.matches(coordinate) ?: false }
+      ?.location?.toPath()
   }
 
   // TODO: b/129297171

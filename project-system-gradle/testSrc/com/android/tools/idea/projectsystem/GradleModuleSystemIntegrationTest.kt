@@ -205,6 +205,14 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
     ).inOrder()
   }
 
+  fun testGetDependencyPath() {
+    loadSimpleApplication()
+    val moduleSystem = project.findAppModule().getModuleSystem()
+
+    // Verify that the module system returns a path.
+    assertThat(moduleSystem.getDependencyPath(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"))).isNotNull()
+  }
+
   private fun isSameArtifact(first: GradleCoordinate?, second: GradleCoordinate?) =
     GradleCoordinate.COMPARE_PLUS_LOWER.compare(first, second) == 0
 

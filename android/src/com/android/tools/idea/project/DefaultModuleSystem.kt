@@ -75,6 +75,7 @@ import org.jetbrains.android.util.AndroidUtils
 import org.kxml2.io.KXmlParser
 import org.xmlpull.v1.XmlPullParser
 import java.io.StringReader
+import java.nio.file.Path
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -142,6 +143,8 @@ class DefaultModuleSystem(override val module: Module) :
 
     return null
   }
+
+  override fun getDependencyPath(coordinate: GradleCoordinate): Path? = null
 
   // We don't offer maven artifact support for JPS projects because there aren't any use cases that requires this feature.
   // JPS also import their dependencies as modules and don't translate very well to the original maven artifacts.

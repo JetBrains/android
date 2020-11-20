@@ -28,6 +28,7 @@ import com.intellij.openapi.roots.TestSourcesFilter
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
+import java.nio.file.Path
 
 /**
  * Provides a build-system-agnostic interface to the build system. Instances of this interface
@@ -105,6 +106,14 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
    */
   @Throws(DependencyManagementException::class)
   fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate?
+
+  /**
+   * Returns the absolute path of the provided coordinate, if it is resolvable within the module.
+   * <p>
+   * Note the resulting path doesn't necessarily point to an archive file (ex: jar). It is determined
+   * by the build system this method is implemented for.
+   */
+  fun getDependencyPath(coordinate: GradleCoordinate): Path?
 
   /** Whether this module system supports adding dependencies of the given type via [registerDependency] */
   fun canRegisterDependency(type: DependencyType = DependencyType.IMPLEMENTATION): CapabilityStatus
