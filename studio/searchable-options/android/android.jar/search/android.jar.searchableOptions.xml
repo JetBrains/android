@@ -283,12 +283,6 @@
     <option name="data" path="ActionManager" hit="Add sample data file" />
     <option name="file" path="ActionManager" hit="Add sample data file" />
     <option name="sample" path="ActionManager" hit="Add sample data file" />
-    <option name="add" path="ActionManager" hit="Add to Android JUnit pattern suite" />
-    <option name="android" path="ActionManager" hit="Add to Android JUnit pattern suite" />
-    <option name="junit" path="ActionManager" hit="Add to Android JUnit pattern suite" />
-    <option name="pattern" path="ActionManager" hit="Add to Android JUnit pattern suite" />
-    <option name="suite" path="ActionManager" hit="Add to Android JUnit pattern suite" />
-    <option name="to" path="ActionManager" hit="Add to Android JUnit pattern suite" />
     <option name="a" path="ActionManager" hit="Adds a new data sample file" />
     <option name="adds" path="ActionManager" hit="Adds a new data sample file" />
     <option name="data" path="ActionManager" hit="Adds a new data sample file" />
@@ -504,9 +498,6 @@
     <option name="instant" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
     <option name="module" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
     <option name="support" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
-    <option name="exclude" path="ActionManager" hit="Exclude from suite" />
-    <option name="from" path="ActionManager" hit="Exclude from suite" />
-    <option name="suite" path="ActionManager" hit="Exclude from suite" />
     <option name="export" path="ActionManager" hit="Export to Zip File..." />
     <option name="file" path="ActionManager" hit="Export to Zip File..." />
     <option name="to" path="ActionManager" hit="Export to Zip File..." />

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.scopes
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testartifacts.TestConfigurationTesting
 import com.android.tools.idea.testartifacts.createAndroidGradleConfigurationFromDirectory
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -29,17 +28,6 @@ import junit.framework.TestCase
  */
 class AndroidTestAndGradleConfigurationConflictsTest : AndroidGradleTestCase() {
   // See: http://b.android.com/173106394
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.GRADLE_UNIT_TESTING.override(true)
-  }
-
-  @Throws(Exception::class)
-  override fun tearDown() {
-    super.tearDown()
-    StudioFlags.GRADLE_UNIT_TESTING.clearOverride()
-  }
-
   @Throws(Exception::class)
   fun testCanCreateInstrumentedTestConfiguration() {
     loadSimpleApplication()

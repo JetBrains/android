@@ -19,20 +19,17 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.recordTestLibrary
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
-import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.TestLibraries
 import com.google.wireless.android.sdk.stats.TestRun
 import com.intellij.execution.ExecutionListener
-import com.intellij.execution.ExecutionManager
+import com.intellij.execution.junit.JUnitConfiguration
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.testframework.sm.runner.SMTRunnerEventsAdapter
-import com.intellij.execution.testframework.sm.runner.SMTRunnerEventsListener
 import com.intellij.execution.testframework.sm.runner.SMTestProxy
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
@@ -49,7 +46,8 @@ class AnalyticsTestRunnerEventsListener(val project: Project) : SMTRunnerEventsA
   }
 
   override fun processStarted(executorId: String, env: ExecutionEnvironment, handler: ProcessHandler) {
-    val runConfiguration = env.runProfile as? AndroidJUnitConfiguration ?: return
+    // TODO(karimai): add tracking gradle test run configuration.
+    val runConfiguration = env.runProfile as? JUnitConfiguration ?: return
 
     val testRunProtoBuilder = TestRun.newBuilder().apply {
       testInvocationType = TestRun.TestInvocationType.ANDROID_STUDIO_TEST
