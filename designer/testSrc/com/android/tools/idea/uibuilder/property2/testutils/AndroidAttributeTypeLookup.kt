@@ -262,6 +262,7 @@ object AndroidAttributeFact {
       "chainUseRtl" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "constraintSet" -> return NelePropertyType.ID
       "constraint_referenced_ids" -> return NelePropertyType.STRING
+      "constraint_referenced_tags" -> return NelePropertyType.STRING
       "flow_firstHorizontalBias" -> return NelePropertyType.FLOAT
       "flow_firstHorizontalStyle" -> return NelePropertyType.ENUM
       "flow_firstVerticalBias" -> return NelePropertyType.FLOAT

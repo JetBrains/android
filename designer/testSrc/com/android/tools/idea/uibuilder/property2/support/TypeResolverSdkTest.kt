@@ -64,6 +64,7 @@ private const val APPCOMPAT_VIEW_PACKAGE = "android.support.v7.widget"
 private const val CONSTRAINT_LAYOUT_PACKAGE = "android.support.constraint"
 private const val TOTAL_ERROR_MESSAGE = "attributes with mismatched types"
 private const val RECYCLER_VIEW_V7_ID = "recyclerview-v7"
+private const val DEBUG_DUMP = false
 
 @RunsInEdt
 class TypeResolverSdkTest {
@@ -111,7 +112,7 @@ class TypeResolverSdkTest {
     assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
   }
 
-  // @Test b/173697685
+  @Test
   fun testConstraintLayoutViewAttributeTypes() {
     Dependencies.add(projectRule.fixture, CONSTRAINT_LAYOUT_ID)
     val psiFacade = JavaPsiFacade.getInstance(projectRule.project)
@@ -248,6 +249,9 @@ class TypeResolverSdkTest {
     }
 
     fun dumpReport() {
+      if (!DEBUG_DUMP) {
+        return
+      }
       System.err.println("\n==============================================================>")
       System.err.println("           $name")
       if (mismatches.isNotEmpty()) {
