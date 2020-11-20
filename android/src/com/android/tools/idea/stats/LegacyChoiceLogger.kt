@@ -22,7 +22,7 @@ import com.google.wireless.android.sdk.stats.UserSentiment.SatisfactionLevel.UNK
 import com.google.wireless.android.sdk.stats.UserSentiment.SatisfactionLevel.VERY_SATISFIED_VALUE
 
 object LegacyChoiceLogger : ChoiceLogger {
-  override fun log(result: Int) {
+  override fun log(name: String, result: Int) {
     val value = UserSentiment.SatisfactionLevel.values()
                   .firstOrNull { it.number == VERY_SATISFIED_VALUE - result }
                 ?: UNKNOWN_SATISFACTION_LEVEL
@@ -36,6 +36,6 @@ object LegacyChoiceLogger : ChoiceLogger {
     })
   }
 
-  override fun log(result: List<Int>) {
+  override fun log(name: String, result: List<Int>) {
   }
 }

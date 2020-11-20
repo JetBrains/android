@@ -13,14 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.stats
+package com.android.tools.idea.serverflags
 
-interface ChoiceLogger {
-  fun log(name: String, result: Int) {
-    log(name, listOf(result))
-  }
-  fun log(name: String, result: List<Int>)
-  fun cancel(name: String) {
-    log(name, emptyList())
-  }
-}
+const val SATISFACTION_SURVEY = "analytics/surveys/satisfaction"
+const val FOLLOWUP_SURVEY = "analytics/surveys/followup"
