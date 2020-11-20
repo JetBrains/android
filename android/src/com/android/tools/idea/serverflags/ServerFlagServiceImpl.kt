@@ -55,20 +55,20 @@ class ServerFlagServiceImpl(override val configurationVersion: Long, private val
     return flag.booleanValue
   }
 
-  override fun <T : Message> getProtoMessage(name: String, defaultInstance: T): T {
-    val flag = flags[name] ?: return defaultInstance
+  override fun <T : Message> getProtoOrNull(name: String, instance: T): T? {
+    val flag = flags[name] ?: return null
     if (!flag.hasProtoValue()) {
       throw IllegalArgumentException(name)
     }
 
-    val any = flag.protoValue ?: return defaultInstance
+    val any = flag.protoValue ?: return null
 
     return try {
       @Suppress("UNCHECKED_CAST")
-      defaultInstance.parserForType.parseFrom(any.value) as T
+      instance.parserForType.parseFrom(any.value) as T
     }
     catch (e: InvalidProtocolBufferException) {
-      return defaultInstance
+      null
     }
   }
 

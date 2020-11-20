@@ -82,7 +82,7 @@ class ServerFlagInitializerTest : TestCase() {
       assertThat(getInt("int")).isEqualTo(1)
       assertThat(getFloat("float")).isNull()
       assertThat(getFloat("string")).isNull()
-      assertThat(getProtoMessage(name, TEST_PROTO).content).isEqualTo("content")
+      assertThat(getProto(name, TEST_PROTO).content).isEqualTo("content")
     }
 
     val actual = loadServerFlagList(localPath, VERSION)
