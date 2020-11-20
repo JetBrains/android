@@ -135,8 +135,7 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
       case SERIAL_NUMBER_MODEL_COLUMN_INDEX:
         return getSerialNumber(myDevices.get(modelRowIndex));
       case SNAPSHOT_MODEL_COLUMN_INDEX:
-        Object snapshot = myDevices.get(modelRowIndex).getSnapshot();
-        return snapshot == null ? "" : snapshot.toString();
+        return "";
       default:
         throw new AssertionError(modelColumnIndex);
     }

@@ -18,9 +18,6 @@ package com.android.tools.idea.run.deployment;
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.MultimapBuilder;
-import com.google.common.collect.Multimaps;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -28,11 +25,7 @@ import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.function.BooleanSupplier;
-import java.util.stream.Collector;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,9 +47,7 @@ final class PopupActionGroup extends DefaultActionGroup {
     myDevices = devices;
     myComboBoxAction = comboBoxAction;
 
-    Collection<AnAction> actions =
-      comboBoxAction.areSnapshotsEnabled() ? newSelectDeviceActionsOrSnapshotActionGroups() : newSelectDeviceActions();
-
+    Collection<AnAction> actions = newSelectDeviceActions();
     addAll(actions);
 
     if (!actions.isEmpty()) {
@@ -79,56 +70,6 @@ final class PopupActionGroup extends DefaultActionGroup {
 
     addSeparator();
     add(action);
-  }
-
-  @NotNull
-  private Collection<AnAction> newSelectDeviceActionsOrSnapshotActionGroups() {
-    @SuppressWarnings("UnstableApiUsage")
-    Collector<Device, ?, ListMultimap<String, Device>> collector = Multimaps.toMultimap(device -> device.getKey().getDeviceKey(),
-                                                                                        device -> device,
-                                                                                        this::buildListMultimap);
-
-    ListMultimap<String, Device> multimap = myDevices.stream().collect(collector);
-
-    Collection<String> deviceKeys = multimap.keySet();
-    Collection<AnAction> actions = new ArrayList<>(1 + deviceKeys.size());
-
-    if (!deviceKeys.isEmpty()) {
-      actions.add(ActionManager.getInstance().getAction(Heading.AVAILABLE_DEVICES_ID));
-    }
-
-    deviceKeys.stream()
-      .map(multimap::get)
-      .map(this::newSelectDeviceActionOrSnapshotActionGroup)
-      .forEach(actions::add);
-
-    return actions;
-  }
-
-  @NotNull
-  private ListMultimap<String, Device> buildListMultimap() {
-    return MultimapBuilder
-      .hashKeys(myDevices.size())
-      .arrayListValues()
-      .build();
-  }
-
-  @NotNull
-  private AnAction newSelectDeviceActionOrSnapshotActionGroup(@NotNull List<Device> devices) {
-    boolean hasGeneralSnapshot = devices.stream()
-      .map(Device::getSnapshot)
-      .filter(Objects::nonNull)
-      .anyMatch(Snapshot::isGeneral);
-
-    if (hasGeneralSnapshot) {
-      return new SnapshotActionGroup(devices);
-    }
-
-    Optional<Device> optionalDevice = devices.stream()
-      .filter(device -> device.getSnapshot() == null)
-      .findFirst();
-
-    return newSelectDeviceAction(optionalDevice.orElseThrow(AssertionError::new));
   }
 
   @NotNull

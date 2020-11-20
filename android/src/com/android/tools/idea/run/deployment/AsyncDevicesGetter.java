@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.LaunchCompatibilityCheckerImpl;
 import com.android.tools.idea.run.LaunchableAndroidDevice;
@@ -36,7 +35,6 @@ import java.nio.file.FileSystems;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -47,9 +45,6 @@ import org.jetbrains.annotations.Nullable;
 final class AsyncDevicesGetter implements Disposable {
   @NotNull
   private final Project myProject;
-
-  @NotNull
-  private final BooleanSupplier mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
 
   @NotNull
   private final Worker<Collection<VirtualDevice>> myVirtualDevicesWorker;
@@ -71,7 +66,6 @@ final class AsyncDevicesGetter implements Disposable {
   @SuppressWarnings("unused")
   private AsyncDevicesGetter(@NotNull Project project) {
     myProject = project;
-    mySelectDeviceSnapshotComboBoxSnapshotsEnabled = StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED::get;
     myVirtualDevicesWorker = new Worker<>();
     myConnectedDevicesWorker = new Worker<>();
     myBridge = new DdmlibAndroidDebugBridge(project);
@@ -82,11 +76,9 @@ final class AsyncDevicesGetter implements Disposable {
   @NonInjectable
   @VisibleForTesting
   AsyncDevicesGetter(@NotNull Project project,
-                     @NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabled,
                      @NotNull KeyToConnectionTimeMap map,
-                     @NotNull Function<ConnectedDevice, String> getName) {
+                     @NotNull Function<@NotNull ConnectedDevice, @NotNull String> getName) {
     myProject = project;
-    mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
     myVirtualDevicesWorker = new Worker<>();
     myConnectedDevicesWorker = new Worker<>();
     myBridge = new DdmlibAndroidDebugBridge(project);
@@ -114,7 +106,6 @@ final class AsyncDevicesGetter implements Disposable {
     AsyncSupplier<Collection<VirtualDevice>> virtualDevicesTask = new VirtualDevicesTask.Builder()
       .setExecutorService(AppExecutorUtil.getAppExecutorService())
       .setGetAvds(() -> AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false))
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(mySelectDeviceSnapshotComboBoxSnapshotsEnabled)
       .setFileSystem(FileSystems.getDefault())
       .setNewLaunchableAndroidDevice(LaunchableAndroidDevice::new)
       .setChecker(myChecker)

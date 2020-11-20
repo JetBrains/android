@@ -108,8 +108,7 @@ public abstract class Device {
     return myValidityReason;
   }
 
-  @Nullable
-  abstract Snapshot getSnapshot();
+  abstract @NotNull Collection<@NotNull Snapshot> getSnapshots();
 
   @NotNull
   public final Key getKey() {

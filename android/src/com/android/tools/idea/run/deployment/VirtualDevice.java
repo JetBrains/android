@@ -27,6 +27,7 @@ import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.Future;
@@ -48,8 +49,7 @@ final class VirtualDevice extends Device {
    */
   private final @Nullable Key myNameKey;
 
-  @Nullable
-  private final Snapshot mySnapshot;
+  private final @NotNull Collection<@NotNull Snapshot> mySnapshots;
 
   @NotNull
   static VirtualDevice newConnectedDevice(@NotNull ConnectedDevice connectedDevice,
@@ -77,15 +77,13 @@ final class VirtualDevice extends Device {
       .setConnectionTime(map.get(key))
       .setAndroidDevice(connectedDevice.getAndroidDevice())
       .setNameKey(nameKey)
-      .setSnapshot(device.getSnapshot())
+      .addAllSnapshots(device.getSnapshots())
       .build();
   }
 
   static final class Builder extends Device.Builder {
     private @Nullable Key myNameKey;
-
-    @Nullable
-    private Snapshot mySnapshot;
+    private final @NotNull Collection<@NotNull Snapshot> mySnapshots = new ArrayList<>();
 
     @NotNull
     Builder setName(@NotNull String name) {
@@ -129,9 +127,13 @@ final class VirtualDevice extends Device {
       return this;
     }
 
-    @NotNull
-    Builder setSnapshot(@Nullable Snapshot snapshot) {
-      mySnapshot = snapshot;
+    @NotNull Builder addSnapshot(@NotNull Snapshot snapshot) {
+      mySnapshots.add(snapshot);
+      return this;
+    }
+
+    @NotNull Builder addAllSnapshots(@NotNull Collection<@NotNull Snapshot> snapshots) {
+      mySnapshots.addAll(snapshots);
       return this;
     }
 
@@ -146,7 +148,7 @@ final class VirtualDevice extends Device {
     super(builder);
 
     myNameKey = builder.myNameKey;
-    mySnapshot = builder.mySnapshot;
+    mySnapshots = new ArrayList<>(builder.mySnapshots);
   }
 
   @NotNull
@@ -160,10 +162,9 @@ final class VirtualDevice extends Device {
     return getConnectionTime() != null;
   }
 
-  @Nullable
   @Override
-  Snapshot getSnapshot() {
-    return mySnapshot;
+  @NotNull Collection<@NotNull Snapshot> getSnapshots() {
+    return mySnapshots;
   }
 
   @Override
@@ -225,7 +226,7 @@ final class VirtualDevice extends Device {
            Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
            getAndroidDevice().equals(device.getAndroidDevice()) &&
            Objects.equals(myNameKey, device.myNameKey) &&
-           Objects.equals(mySnapshot, device.mySnapshot);
+           mySnapshots.equals(device.mySnapshots);
   }
 
   @Override
@@ -238,6 +239,6 @@ final class VirtualDevice extends Device {
       getConnectionTime(),
       getAndroidDevice(),
       myNameKey,
-      mySnapshot);
+      mySnapshots);
   }
 }
