@@ -28,7 +28,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.android.tools.idea.util.StudioPathManager;
-import com.google.common.collect.ImmutableList;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -37,10 +37,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -129,7 +126,6 @@ class AndroidLiveLiteralDeployMonitor {
     });
   }
 
-
   private static String constTypeToJvmType(Object constValue) {
     if (constValue instanceof Character) {
       return "C";
@@ -141,8 +137,6 @@ class AndroidLiveLiteralDeployMonitor {
       return "J";
     } else if (constValue instanceof Short) {
       return "S";
-    } else if (constValue instanceof Boolean) {
-      return "B";
     } else if (constValue instanceof Float) {
       return "F";
     } else if (constValue instanceof Double) {
@@ -157,16 +151,36 @@ class AndroidLiveLiteralDeployMonitor {
   // TODO: Temp solution. We should NOT do this.
   //       Compose API / Live Literal service should do the translation and figure out the key instead of us looking this up
   //       on the device in runtime.
-  private static String qualifyNameToHelperClassName(String name) {
+  @VisibleForTesting
+  static String qualifyNameToHelperClassName(String name) {
     String helper = name;
-    while (helper.lastIndexOf(".<anonymous>") != -1) {
-      helper = helper.substring(0, helper.lastIndexOf(".<anonymous>"));
+
+    // Skip all the .<anonymous> placehold names since those are not used in naming the helper class.
+    //  com.example.compose.MainActivity.Greeting.<anonymous>.<anonymous>.<anonymous> to
+    //  com.example.compose.MainActivity.Greeting
+    while (helper.endsWith(".<anonymous>")) {
+      helper = helper.substring(0, helper.length() - ".<anonymous>".length());
     }
-    helper = helper.substring(0, helper.lastIndexOf("Kt.") + "Kt".length());
-    helper = helper.substring(0, helper.lastIndexOf('.') + 1) + "LiveLiterals$" + helper.substring(helper.lastIndexOf('.') + 1);
+
+    // Skip over the composible function name.
+    //  com.example.compose.MainActivity.Greeting to
+    //  com.example.compose.MainActivity
+    helper = helper.substring(0, helper.lastIndexOf("."));
+
+    // The compiler will always name the helper class LiveLiterals$FooKt so add "Kt" even if we are looking at non-outer functions.
+    //  com.example.compose.MainActivity
+    //  com.example.compose.MainActivityKt
+    if (!helper.endsWith("Kt")) {
+      helper += "Kt";
+    }
+
+    // Append LiveLiterals$ as prefix for the helper.
+    //  com.example.compose.MainActivityKt to
+    //  com.example.compose.LiveLiterals$MainActivity
+    helper = helper.substring(0, helper.lastIndexOf('.') + 1) +
+             "LiveLiterals$" + helper.substring(helper.lastIndexOf('.') + 1);
     return helper;
   }
-
 
   // TODO: Unify this part.
   private static String getLocalInstaller() {
@@ -179,5 +193,4 @@ class AndroidLiveLiteralDeployMonitor {
     }
     return path.getAbsolutePath();
   }
-
 }
