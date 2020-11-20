@@ -21,10 +21,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
-import icons.StudioIcons
 import java.awt.AWTEvent
 import java.awt.FlowLayout
 import java.awt.event.ActionEvent
@@ -35,7 +33,6 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.Box
 import javax.swing.ButtonGroup
-import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JRadioButton
@@ -47,14 +44,23 @@ class SingleChoiceDialog(private val survey: Survey, private val choiceLogger: C
   : DialogWrapper(null), ActionListener, ItemListener {
   val buttonGroup = ButtonGroup()
   private val buttons: MutableList<JRadioButton> = mutableListOf()
+  val ordering: MutableList<Int> = mutableListOf()
 
   val content: JComponent = Box.createVerticalBox().apply {
     border = CENTER_PANEL_BORDER
     add(JBLabel(survey.question))
     add(Box.createVerticalStrut(JBUI.scale(10)))
 
-    survey.optionsList.forEach() {
-      add(createButton(it))
+    for (i in 0 until survey.optionsCount) {
+      ordering.add(i)
+    }
+
+    if(survey.hasRandomOrder() && survey.randomOrder) {
+      ordering.shuffle()
+    }
+
+    for (i in ordering) {
+      add(createButton(survey.optionsList[ordering[i]]))
     }
   }
 
@@ -65,6 +71,7 @@ class SingleChoiceDialog(private val survey: Survey, private val choiceLogger: C
     title = survey.title
     isOKActionEnabled = false
     isModal = false
+
     init()
   }
 
@@ -73,12 +80,12 @@ class SingleChoiceDialog(private val survey: Survey, private val choiceLogger: C
   override fun getPreferredFocusedComponent(): JComponent? = buttonGroup.elements.nextElement()
 
   override fun doOKAction() {
-    choiceLogger.log(buttons.indexOfFirst { it.isSelected })
+    choiceLogger.log(survey.name, ordering[buttons.indexOfFirst { it.isSelected }])
     super.doOKAction()
   }
 
   override fun doCancelAction(source: AWTEvent?) {
-    choiceLogger.cancel()
+    choiceLogger.cancel(survey.name)
     super.doCancelAction(source)
   }
 
@@ -126,12 +133,6 @@ class SingleChoiceDialog(private val survey: Survey, private val choiceLogger: C
     }
   }
 }
-
-private val Option.icon: Icon?
-  get() {
-    val path = iconPath ?: return null
-    return IconLoader.getIcon(path, StudioIcons::class.java)
-  }
 
 class ShowSatisfactionDialogAction : DumbAwareAction("Show satisfaction dialog") {
   override fun actionPerformed(e: AnActionEvent) {

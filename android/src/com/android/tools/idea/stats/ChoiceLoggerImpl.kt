@@ -15,12 +15,18 @@
  */
 package com.android.tools.idea.stats
 
-interface ChoiceLogger {
-  fun log(name: String, result: Int) {
-    log(name, listOf(result))
-  }
-  fun log(name: String, result: List<Int>)
-  fun cancel(name: String) {
-    log(name, emptyList())
+import com.android.tools.analytics.UsageTracker
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.SurveyResponse
+
+object ChoiceLoggerImpl : ChoiceLogger {
+  override fun log(name: String, result: List<Int>) {
+    UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
+      kind = AndroidStudioEvent.EventKind.SURVEY_RESPONSE
+      surveyResponse = SurveyResponse.newBuilder().apply {
+        this.name = name
+        addAllResponses(result)
+      }.build()
+    })
   }
 }

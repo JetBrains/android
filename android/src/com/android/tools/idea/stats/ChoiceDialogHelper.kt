@@ -15,12 +15,24 @@
  */
 package com.android.tools.idea.stats
 
-interface ChoiceLogger {
-  fun log(name: String, result: Int) {
-    log(name, listOf(result))
+import com.android.tools.idea.Option
+import com.android.tools.idea.Survey
+import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.util.IconLoader
+import icons.StudioIcons
+import javax.swing.Icon
+
+val Option.icon: Icon?
+  get() {
+    val path = iconPath ?: return null
+    return IconLoader.getIcon(path, StudioIcons::class.java)
   }
-  fun log(name: String, result: List<Int>)
-  fun cancel(name: String) {
-    log(name, emptyList())
+
+fun createDialog(survey: Survey, choiceLogger: ChoiceLogger = ChoiceLoggerImpl): DialogWrapper {
+  return if (survey.answerCount > 1) {
+    MultipleChoiceDialog(survey, choiceLogger)
+  }
+  else {
+    SingleChoiceDialog(survey, choiceLogger)
   }
 }
