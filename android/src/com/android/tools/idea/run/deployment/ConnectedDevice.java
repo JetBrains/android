@@ -20,6 +20,7 @@ import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeviceFutures;
 import com.intellij.openapi.project.Project;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.Future;
 import javax.swing.Icon;
@@ -88,10 +89,9 @@ final class ConnectedDevice extends Device {
     throw new UnsupportedOperationException();
   }
 
-  @Nullable
   @Override
-  Snapshot getSnapshot() {
-    return null;
+  @NotNull Collection<@NotNull Snapshot> getSnapshots() {
+    return Collections.emptyList();
   }
 
   @Override

@@ -356,7 +356,6 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       .setDevicesSelectedService(myDevicesSelectedServiceGetInstance.apply(project))
       .setDevices(devices)
       .setConfigurationAndSettings(myGetRunManager.apply(project).getSelectedConfiguration())
-      .setSnapshotsEnabled(mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get())
       .build();
 
     updater.update();

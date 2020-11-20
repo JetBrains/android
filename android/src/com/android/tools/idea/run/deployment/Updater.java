@@ -51,8 +51,6 @@ final class Updater {
   @Nullable
   private final RunnerAndConfigurationSettings myConfigurationAndSettings;
 
-  private final boolean mySnapshotsEnabled;
-
   static final class Builder {
     @Nullable
     private Project myProject;
@@ -71,8 +69,6 @@ final class Updater {
 
     @Nullable
     private RunnerAndConfigurationSettings myConfigurationAndSettings;
-
-    private boolean mySnapshotsEnabled;
 
     @NotNull
     Builder setProject(@NotNull Project project) {
@@ -111,12 +107,6 @@ final class Updater {
     }
 
     @NotNull
-    Builder setSnapshotsEnabled(boolean snapshotsEnabled) {
-      mySnapshotsEnabled = snapshotsEnabled;
-      return this;
-    }
-
-    @NotNull
     Updater build() {
       return new Updater(this);
     }
@@ -135,9 +125,7 @@ final class Updater {
     myDevicesSelectedService = builder.myDevicesSelectedService;
 
     myDevices = builder.myDevices;
-
     myConfigurationAndSettings = builder.myConfigurationAndSettings;
-    mySnapshotsEnabled = builder.mySnapshotsEnabled;
   }
 
   void update() {
@@ -255,9 +243,6 @@ final class Updater {
 
   @NotNull
   private String getText(@NotNull Device device) {
-    Key key = Devices.containsAnotherDeviceWithSameName(myDevices, device) ? device.getKey() : null;
-    Snapshot snapshot = mySnapshotsEnabled ? device.getSnapshot() : null;
-
-    return Devices.getText(device, key, snapshot);
+    return Devices.getText(device, Devices.containsAnotherDeviceWithSameName(myDevices, device) ? device.getKey() : null, null);
   }
 }

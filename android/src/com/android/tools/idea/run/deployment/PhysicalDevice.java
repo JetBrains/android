@@ -27,6 +27,7 @@ import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.Future;
 import java.util.function.Function;
@@ -122,10 +123,9 @@ final class PhysicalDevice extends Device {
     return true;
   }
 
-  @Nullable
   @Override
-  Snapshot getSnapshot() {
-    return null;
+  @NotNull Collection<@NotNull Snapshot> getSnapshots() {
+    return Collections.emptyList();
   }
 
   @Override
