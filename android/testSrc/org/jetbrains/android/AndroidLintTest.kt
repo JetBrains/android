@@ -964,14 +964,6 @@ class AndroidLintTest : AndroidTestCase() {
     doGlobalInspectionTest(AndroidLintManifestOrderInspection())
   }
 
-  fun testButtonsOrder() {
-    deleteManifest()
-    myFixture.copyFileToProject("$globalTestDir/AndroidManifest.xml", "AndroidManifest.xml")
-    myFixture.copyFileToProject("$globalTestDir/strings.xml", "res/values/strings.xml")
-    myFixture.copyFileToProject("$globalTestDir/layout.xml", "res/layout/layout.xml")
-    doGlobalInspectionTest(AndroidLintButtonOrderInspection())
-  }
-
   fun testViewType() {
     myFixture.copyFileToProject("$globalTestDir/MyActivity.java", "src/p1/p2/MyActivity.java")
     myFixture.copyFileToProject("$globalTestDir/layout.xml", "res/layout/layout.xml")
