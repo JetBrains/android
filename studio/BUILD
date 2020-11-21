@@ -489,7 +489,6 @@ py_test(
 
 py_test(
     name = "searchable_options_test",
-    timeout = "eternal",
     srcs = [
         "tests/searchable_options_test.py",
         "tests/update_searchable_options.py",
@@ -501,6 +500,22 @@ py_test(
     ],
     tags = [
         "block_network",
+        "no_windows",
+    ],
+)
+
+py_test(
+    name = "startup_test",
+    srcs = [
+        "tests/startup_test.py",
+    ],
+    data = [
+        ":android-studio.linux.zip",
+        "//tools/vendor/google/testing/display:xvfb",
+    ],
+    tags = [
+        "block_network",
+        "no_mac",
         "no_windows",
     ],
 )
