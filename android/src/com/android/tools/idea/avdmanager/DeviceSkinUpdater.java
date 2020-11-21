@@ -114,17 +114,7 @@ final class DeviceSkinUpdater {
 
   @Slow
   static @NotNull Path updateSkins(@NotNull Path device, @Nullable SystemImageDescription image, @NotNull FileSystem fileSystem) {
-    Collection<Path> imageSkins;
-
-    if (image == null) {
-      imageSkins = Collections.emptyList();
-    }
-    else {
-      imageSkins = Arrays.stream(image.getSkins())
-        .map(File::getPath)
-        .map(fileSystem::getPath)
-        .collect(Collectors.toList());
-    }
+    Collection<Path> imageSkins = image == null ? Collections.emptyList() : Arrays.asList(image.getSkins());
 
     File studioSkins = DeviceArtDescriptor.getBundledDescriptorsFolder();
     AndroidSdkData sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk();

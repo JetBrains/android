@@ -86,10 +86,8 @@ class AvdOptionsModelTest : AndroidTestCase() {
     val progress = FakeProgressIndicator()
     val systemImageManager = sdkHandler.getSystemImageManager(progress)
 
-    val googlePlayImage = systemImageManager.getImageAt(
-        fileOp.toFile(sdkHandler.getLocalPackage(googlePlayPath, progress)!!.location))
-    val nonPlayImage = systemImageManager.getImageAt(
-        fileOp.toFile(sdkHandler.getLocalPackage(nonPlayPath, progress)!!.location))
+    val googlePlayImage = systemImageManager.getImageAt(sdkHandler.getLocalPackage(googlePlayPath, progress)!!.location)
+    val nonPlayImage = systemImageManager.getImageAt(sdkHandler.getLocalPackage(nonPlayPath, progress)!!.location)
 
     myGooglePlayAvdInfo = AvdInfo("name", File("ini"), "folder", googlePlayImage!!, myPropertiesMap)
     myNonPlayAvdInfo = AvdInfo("name", File("ini"), "folder", nonPlayImage!!, myPropertiesMap)

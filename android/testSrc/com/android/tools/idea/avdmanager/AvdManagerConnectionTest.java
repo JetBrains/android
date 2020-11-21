@@ -74,7 +74,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     MockLog log = new MockLog();
     // Create an AVD
     AvdInfo avd = mAvdManager.createAvd(
-      mAvdFolder,
+      mFileOp.toPath(mAvdFolder),
       getName(),
       mSystemImage,
       null,
@@ -169,11 +169,11 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
 
     ISystemImage q1Image =
-      systemImageManager.getImageAt(mFileOp.toFile(Objects.requireNonNull(sdkHandler.getLocalPackage(q1Path, progress)).getLocation()));
+      systemImageManager.getImageAt(Objects.requireNonNull(sdkHandler.getLocalPackage(q1Path, progress)).getLocation());
     ISystemImage q2Image =
-      systemImageManager.getImageAt(mFileOp.toFile(Objects.requireNonNull(sdkHandler.getLocalPackage(q2Path, progress)).getLocation()));
+      systemImageManager.getImageAt(Objects.requireNonNull(sdkHandler.getLocalPackage(q2Path, progress)).getLocation());
     ISystemImage q2_64Image =
-      systemImageManager.getImageAt(mFileOp.toFile(Objects.requireNonNull(sdkHandler.getLocalPackage(q2_64Path, progress)).getLocation()));
+      systemImageManager.getImageAt(Objects.requireNonNull(sdkHandler.getLocalPackage(q2_64Path, progress)).getLocation());
 
     assert q1Image != null;
     SystemImageDescription q1ImageDescription = new SystemImageDescription(q1Image);
@@ -182,9 +182,9 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     assert q2_64Image != null;
     SystemImageDescription q2_64ImageDescription = new SystemImageDescription(q2_64Image);
 
-    assertFalse("Should not support QEMU2", AvdManagerConnection.doesSystemImageSupportQemu2(q1ImageDescription, mFileOp));
-    assertTrue("Should support QEMU2", AvdManagerConnection.doesSystemImageSupportQemu2(q2ImageDescription, mFileOp));
-    assertTrue("Should support QEMU2", AvdManagerConnection.doesSystemImageSupportQemu2(q2_64ImageDescription, mFileOp));
+    assertFalse("Should not support QEMU2", AvdManagerConnection.doesSystemImageSupportQemu2(q1ImageDescription));
+    assertTrue("Should support QEMU2", AvdManagerConnection.doesSystemImageSupportQemu2(q2ImageDescription));
+    assertTrue("Should support QEMU2", AvdManagerConnection.doesSystemImageSupportQemu2(q2_64ImageDescription));
   }
 
   // Note: This only tests a small part of startAvd(). We are not set up
@@ -199,10 +199,10 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     mFileOp.mkdirs(skinFolder);
 
     AvdInfo skinnyAvd = mAvdManager.createAvd(
-      skinnyAvdFolder,
+      mFileOp.toPath(skinnyAvdFolder),
       skinnyAvdName,
       mSystemImage,
-      skinFolder,
+      mFileOp.toPath(skinFolder),
       "skinName",
       null,
       null,
@@ -262,7 +262,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     File skinlessAvdFolder = AvdInfo.getDefaultAvdFolder(mAvdManager, skinlessAvdName, mFileOp, false);
 
     AvdInfo skinlessAvd = mAvdManager.createAvd(
-      skinlessAvdFolder,
+      mFileOp.toPath(skinlessAvdFolder),
       skinlessAvdName,
       mSystemImage,
       null,

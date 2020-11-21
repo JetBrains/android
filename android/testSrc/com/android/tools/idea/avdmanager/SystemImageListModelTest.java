@@ -113,15 +113,15 @@ public class SystemImageListModelTest extends AndroidTestCase {
     SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
 
     ISystemImage knownApiImage = systemImageManager.getImageAt(
-      fileOp.toFile(sdkHandler.getLocalPackage(knownApiPath, progress).getLocation()));
+      sdkHandler.getLocalPackage(knownApiPath, progress).getLocation());
     ISystemImage deprecatedApiImage = systemImageManager.getImageAt(
-      fileOp.toFile(sdkHandler.getLocalPackage(deprecatedApiPath, progress).getLocation()));
+      sdkHandler.getLocalPackage(deprecatedApiPath, progress).getLocation());
     ISystemImage justDeprecatedApiImage = systemImageManager.getImageAt(
-      fileOp.toFile(sdkHandler.getLocalPackage(justDeprecatedApiPath, progress).getLocation()));
+      sdkHandler.getLocalPackage(justDeprecatedApiPath, progress).getLocation());
     ISystemImage previewApiImage = systemImageManager.getImageAt(
-      fileOp.toFile(sdkHandler.getLocalPackage(PreviewApiPath, progress).getLocation()));
+      sdkHandler.getLocalPackage(PreviewApiPath, progress).getLocation());
     ISystemImage unknownApiImage = systemImageManager.getImageAt(
-      fileOp.toFile(sdkHandler.getLocalPackage(unknownApiPath, progress).getLocation()));
+      sdkHandler.getLocalPackage(unknownApiPath, progress).getLocation());
 
     myKnownApiImageDescription = new SystemImageDescription(knownApiImage);
     myDeprecatedApiImageDescription = new SystemImageDescription(deprecatedApiImage);
