@@ -88,9 +88,9 @@ public class SystemImagePreviewTest extends AndroidTestCase {
     SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
 
     ISystemImage marshmallowImage = systemImageManager.getImageAt(
-      fileOp.toFile(sdkHandler.getLocalPackage(marshmallowPath, progress).getLocation()));
+      sdkHandler.getLocalPackage(marshmallowPath, progress).getLocation());
     ISystemImage NPreviewImage = systemImageManager.getImageAt(
-      fileOp.toFile(sdkHandler.getLocalPackage(NPreviewPath, progress).getLocation()));
+      sdkHandler.getLocalPackage(NPreviewPath, progress).getLocation());
 
     mMarshmallowImageDescr = new SystemImageDescription(marshmallowImage);
     mNPreviewImageDescr = new SystemImageDescription(NPreviewImage);

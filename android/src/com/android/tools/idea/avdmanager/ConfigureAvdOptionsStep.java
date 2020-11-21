@@ -1237,7 +1237,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   private boolean doesSystemImageSupportQemu2() {
     assert getModel().systemImage().get().isPresent();
-    return AvdManagerConnection.doesSystemImageSupportQemu2(getModel().systemImage().getValue(), FileOpUtils.create());
+    return AvdManagerConnection.doesSystemImageSupportQemu2(getModel().systemImage().getValue());
   }
 
   private int getSelectedApiLevel() {

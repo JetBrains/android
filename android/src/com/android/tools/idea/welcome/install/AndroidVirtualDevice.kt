@@ -85,14 +85,15 @@ class AndroidVirtualDevice(
     val displayName = connection.uniquifyDisplayName(d.displayName + " " + systemImageDescription.version + " " + systemImageDescription.abiType)
     val internalName = AvdWizardUtils.cleanAvdName(connection, displayName, true)
     val abi = Abi.getEnum(systemImageDescription.abiType)
-    val useRanchu = AvdManagerConnection.doesSystemImageSupportQemu2(systemImageDescription, fileOp)
+    val useRanchu = AvdManagerConnection.doesSystemImageSupportQemu2(systemImageDescription)
     val supportsSmp = abi != null && abi.supportsMultipleCpuCores() && AvdWizardUtils.getMaxCpuCores() > 1
     val settings = getAvdSettings(internalName, d)
     if (useRanchu) {
       settings[AvdWizardUtils.CPU_CORES_KEY] =  "1".takeUnless { supportsSmp } ?: AvdWizardUtils.getMaxCpuCores().toString()
     }
     return connection.createOrUpdateAvd(
-      null, internalName, d, systemImageDescription, ScreenOrientation.PORTRAIT, false, cardSize, hardwareSkinPath, settings, true
+      null, internalName, d, systemImageDescription, ScreenOrientation.PORTRAIT, false, cardSize,
+      hardwareSkinPath?.let { fileOp.toPath(it) }, settings, true
     )
   }
 
