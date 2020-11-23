@@ -68,7 +68,7 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
     )
     expectedNecessitiesMap.forEach { (t, u) ->
       val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse(t.first), GradleVersion.parse(t.second))
-      assertEquals(processor.necessity(), u)
+      assertEquals(u, processor.necessity())
     }
   }
 
