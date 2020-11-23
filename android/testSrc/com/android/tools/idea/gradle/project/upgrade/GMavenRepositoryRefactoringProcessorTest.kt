@@ -46,7 +46,7 @@ class GMavenRepositoryRefactoringProcessorTest : UpgradeGradleFileModelTestCase(
     )
     expectedNecessitiesMap.forEach { (t, u) ->
       val processor = GMavenRepositoryRefactoringProcessor(project, GradleVersion.parse(t.first), GradleVersion.parse(t.second))
-      assertEquals("${t.first} to ${t.second}", processor.necessity(), u)
+      assertEquals("${t.first} to ${t.second}", u, processor.necessity())
     }
   }
 

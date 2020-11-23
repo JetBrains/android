@@ -33,7 +33,7 @@ class FabricCrashlyticsRefactoringProcessorTest : UpgradeGradleFileModelTestCase
     )
     expectedNecessitiesMap.forEach { (t, u) ->
       val processor = FabricCrashlyticsRefactoringProcessor(project, GradleVersion.parse(t.first), GradleVersion.parse(t.second))
-      Assert.assertEquals(processor.necessity(), u)
+      Assert.assertEquals(u, processor.necessity())
     }
   }
 
