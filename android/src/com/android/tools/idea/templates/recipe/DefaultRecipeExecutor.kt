@@ -489,8 +489,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     val buildModel = moduleGradleBuildModel ?: return
 
     fun updateCompatibility(current: LanguageLevelPropertyModel) {
-      if (current.valueType == ValueType.NONE ||
-          current.toLanguageLevel()!!.isLessThan(languageLevel)) {
+      if (current.valueType == ValueType.NONE || current.toLanguageLevel()?.isAtLeast(languageLevel) != true) {
         current.setLanguageLevel(languageLevel)
       }
     }
