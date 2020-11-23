@@ -177,6 +177,9 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
    * The resource package name is equivalent to the "package" attribute of the module's
    * merged manifest once it has been built. Depending on the build system, however,
    * this method may be optimized to avoid the costs of merged manifest computation.
+   *
+   * The returned package name is guaranteed to reflect the latest contents of the Android
+   * manifests including changes that haven't been saved yet.
    */
   fun getPackageName(): String?
 
