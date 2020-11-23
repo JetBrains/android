@@ -168,7 +168,7 @@ class ComposePreviewRepresentationProvider(
             emptySequence<PreviewElement>()
           }
     }
-    return ComposePreviewRepresentation(psiFile, previewProvider)
+    return ComposePreviewRepresentation(psiFile, previewProvider, ::ComposePreviewViewImpl)
   }
 
   override val displayName = message("representation.name")

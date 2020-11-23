@@ -28,6 +28,7 @@ import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
@@ -49,6 +50,66 @@ import javax.swing.OverlayLayout
 private const val SPLITTER_DIVIDER_WIDTH_PX = 3
 
 /**
+ * Interface that isolates the view of the Compose view so it can be replaced for testing.
+ */
+interface ComposePreviewView {
+  val pinnedSurface: NlDesignSurface
+  val mainSurface: NlDesignSurface
+
+  /**
+   * Returns the [JComponent] containing this [ComposePreviewView] that can be used to embed it other panels.
+   */
+  val component: JComponent
+
+  /**
+   * Allows replacing the bottom panel in the [ComposePreviewView]. Used to display the animations component.
+   */
+  var bottomPanel: JComponent?
+
+  /**
+   * Sets whether the scene overlay is visible. If true, the outline for the components will be visible and selectable.
+   */
+  var hasComponentsOverlay: Boolean
+
+  /**
+   * Sets whether the panel is in "interactive" mode. If it's in interactive mode, the clicks will be forwarded to the
+   * code being previewed using the [LayoutlibInteractionHandler].
+   */
+  var isInteractive: Boolean
+
+  /**
+   * Method called to force an update on the notifications for the given [FileEditor].
+   */
+  fun updateNotifications(parentEditor: FileEditor)
+
+  /**
+   * Updates the surface visibility and displays the content or an error message depending on the build state. This method is called after
+   * certain updates like a build or a preview refresh has happened.
+   * Calling this method will also update the FileEditor notifications.
+   */
+  fun updateVisibilityAndNotifications()
+
+  /**
+   * Hides the content if visible and displays the given [message].
+   */
+  fun showModalErrorMessage(message: String)
+
+  /**
+   * If the content is not already visible, shows a "Building" message.
+   */
+  fun showBuildingMessage()
+}
+
+fun interface ComposePreviewViewProvider {
+  fun invoke(project: Project,
+             psiFilePointer: SmartPsiElementPointer<PsiFile>,
+             projectBuildStatusManager: ProjectBuildStatusManager,
+             navigationHandler: PreviewNavigationHandler,
+             dataProvider: DataProvider,
+             parentDisposable: Disposable): ComposePreviewView
+}
+
+/**
  * [WorkBench] panel used to contain all the compose preview elements.
  *
  * @param project the current open project
@@ -60,29 +121,31 @@ private const val SPLITTER_DIVIDER_WIDTH_PX = 3
  * @param dataProvider the [DataProvider] to be used by this panel.
  * @param parentDisposable the [Disposable] to use as parent disposable for this panel.
  */
-internal class ComposePreviewPanel(private val project: Project,
-                                   private val psiFilePointer: SmartPsiElementPointer<PsiFile>,
-                                   private val projectBuildStatusManager: ProjectBuildStatusManager,
-                                   navigationHandler: PreviewNavigationHandler,
-                                   dataProvider: DataProvider,
-                                   parentDisposable: Disposable) :
-  WorkBench<DesignSurface>(project, "Compose Preview", null, parentDisposable) {
-  private val log = Logger.getInstance(ComposePreviewPanel::class.java)
+internal class ComposePreviewViewImpl(private val project: Project,
+                                      private val psiFilePointer: SmartPsiElementPointer<PsiFile>,
+                                      private val projectBuildStatusManager: ProjectBuildStatusManager,
+                                      navigationHandler: PreviewNavigationHandler,
+                                      dataProvider: DataProvider,
+                                      parentDisposable: Disposable) :
+  WorkBench<DesignSurface>(project, "Compose Preview", null, parentDisposable), ComposePreviewView {
+  private val log = Logger.getInstance(ComposePreviewViewImpl::class.java)
 
   private val sceneComponentProvider = ComposeSceneComponentProvider()
   private val delegateInteractionHandler = DelegateInteractionHandler()
 
-  val pinnedSurface by lazy {
+  override val pinnedSurface by lazy {
     createPreviewDesignSurface(
       project, navigationHandler, delegateInteractionHandler, dataProvider, parentDisposable) { surface, model ->
       LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener(), { RealTimeSessionClock() })
     }
   }
 
-  val mainSurface = createPreviewDesignSurface(
+  override val mainSurface = createPreviewDesignSurface(
     project, navigationHandler, delegateInteractionHandler, dataProvider, parentDisposable) { surface, model ->
     LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener(), { RealTimeSessionClock() })
   }
+
+  override val component: JComponent = this
 
   private val staticPreviewInteractionHandler = NlInteractionHandler(mainSurface)
   private val interactiveInteractionHandler by lazy { LayoutlibInteractionHandler(mainSurface) }
@@ -140,28 +203,19 @@ internal class ComposePreviewPanel(private val project: Project,
     showLoading(message("panel.building"))
   }
 
-  /**
-   * If the content is not already visible, shows a "Building" message.
-   */
-  fun showBuildingMessage() = UIUtil.invokeLaterIfNeeded {
+  override fun showBuildingMessage() = UIUtil.invokeLaterIfNeeded {
     if (isMessageVisible) {
       showLoading(message("panel.building"))
       hideContent()
     }
   }
 
-  /**
-   * Hides the content if visible and displays the given [message].
-   */
-  fun showModalErrorMessage(message: String) = UIUtil.invokeLaterIfNeeded {
+  override fun showModalErrorMessage(message: String) = UIUtil.invokeLaterIfNeeded {
     log.debug("showModelErrorMessage: $message")
     loadingStopped(message)
   }
 
-  /**
-   * Method called to force an update on the notifications for the given [FileEditor].
-   */
-  fun updateNotifications(parentEditor: FileEditor) = UIUtil.invokeLaterIfNeeded {
+  override fun updateNotifications(parentEditor: FileEditor) = UIUtil.invokeLaterIfNeeded {
     if (Disposer.isDisposed(this) || project.isDisposed || !parentEditor.isValid) return@invokeLaterIfNeeded
 
     notificationPanel.updateNotifications(psiFilePointer.virtualFile, parentEditor, project)
@@ -182,7 +236,7 @@ internal class ComposePreviewPanel(private val project: Project,
    * certain updates like a build or a preview refresh has happened.
    * Calling this method will also update the FileEditor notifications.
    */
-  fun updateVisibilityAndNotifications() = UIUtil.invokeLaterIfNeeded {
+  override fun updateVisibilityAndNotifications() = UIUtil.invokeLaterIfNeeded {
     if (isMessageVisible && projectBuildStatusManager.status == NeedsBuild) {
       log.debug("Needs successful build")
       showModalErrorMessage(message("panel.needs.build"))
@@ -196,20 +250,13 @@ internal class ComposePreviewPanel(private val project: Project,
     updateNotifications()
   }
 
-  /**
-   * Sets whether the scene overlay is visible. If true, the outline for the components will be visible and selectable.
-   */
-  var hasComponentsOverlay: Boolean
+  override var hasComponentsOverlay: Boolean
     get() = sceneComponentProvider.enabled
     set(value) {
       sceneComponentProvider.enabled = value
     }
 
-  /**
-   * Sets whether the panel is in "interactive" mode. If it's in interactive mode, the clicks will be forwarded to the
-   * code being previewed using the [LayoutlibInteractionHandler].
-   */
-  var isInteractive: Boolean = false
+  override var isInteractive: Boolean = false
     set(value) {
       field = value
       if (value) {
@@ -220,7 +267,7 @@ internal class ComposePreviewPanel(private val project: Project,
       }
     }
 
-  var bottomPanel: JComponent?
+  override var bottomPanel: JComponent?
     set(value) {
       mainPanelSplitter.secondComponent = value
     }

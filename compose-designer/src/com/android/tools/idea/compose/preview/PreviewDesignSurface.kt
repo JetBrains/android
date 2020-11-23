@@ -178,7 +178,7 @@ internal fun NlDesignSurface.updatePreviewsAndRefresh(
   dataContextProvider: (PreviewElementInstance) -> DataContext,
   configureLayoutlibSceneManager: (PreviewElement, LayoutlibSceneManager) -> LayoutlibSceneManager): List<PreviewElementInstance> {
   val stopwatch = if (log.isDebugEnabled) StopWatch() else null
-  val facet = AndroidFacet.getInstance(psiFile)!!
+  val facet = AndroidFacet.getInstance(psiFile) ?: return emptyList()
   val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
   // Retrieve the models that were previously displayed so we can reuse them instead of creating new ones.
   val existingModels = models.toMutableList()
@@ -203,7 +203,7 @@ internal fun NlDesignSurface.updatePreviewsAndRefresh(
         // If model index for this preview element >= 0 then an existing model that can be reused is found. See matchElementsToModels for
         // more details.
         val reusedModel = existingModels[modelIndices[idx]]
-        val affinity = modelAffinity(reusedModel.dataContext, previewElement)
+        val affinity = modelAffinity(reusedModel, previewElement)
         // If the model is for the same element (affinity=0) and we know that it is not spoiled by previous actions (quickRefresh)
         // we can skip reinflate and therefore refresh much quicker
         val forceReinflate = !(affinity == 0 && quickRefresh)
