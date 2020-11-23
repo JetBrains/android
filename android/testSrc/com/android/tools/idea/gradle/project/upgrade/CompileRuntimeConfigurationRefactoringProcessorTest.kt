@@ -59,9 +59,9 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
   @Test
   fun testNecessities() {
     val expectedNecessitiesMap = mapOf(
-      ("2.3.2" to "3.4.0") to IRRELEVANT_FUTURE,
+      ("2.3.2" to "3.0.0") to IRRELEVANT_FUTURE,
       ("2.3.2" to "3.5.0") to OPTIONAL_CODEPENDENT,
-      ("3.5.0" to "3.6.0") to OPTIONAL_INDEPENDENT,
+      ("3.1.0" to "3.6.0") to OPTIONAL_INDEPENDENT,
       ("3.6.0" to "5.1.0") to MANDATORY_INDEPENDENT,
       ("2.3.2" to "5.1.0") to MANDATORY_CODEPENDENT,
       ("5.0.0" to "5.1.0") to IRRELEVANT_PAST
