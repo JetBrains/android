@@ -712,6 +712,23 @@ sealed class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactorin
 
   abstract fun necessity(): AgpUpgradeComponentNecessity
 
+  /** see the comment above [AgpUpgradeComponentNecessity] */
+  protected fun standardPointNecessity(change: GradleVersion) = when {
+    current < change && new >= change -> MANDATORY_CODEPENDENT
+    new < change -> IRRELEVANT_FUTURE
+    else -> IRRELEVANT_PAST
+  }
+
+  /** see the comment above [AgpUpgradeComponentNecessity] */
+  protected fun standardRegionNecessity(replacementAvailable: GradleVersion, originalRemoved: GradleVersion) = when {
+    current < replacementAvailable && new >= originalRemoved -> MANDATORY_CODEPENDENT
+    current < originalRemoved && new >= originalRemoved -> MANDATORY_INDEPENDENT
+    new < replacementAvailable -> IRRELEVANT_FUTURE
+    current >= originalRemoved -> IRRELEVANT_PAST
+    current < replacementAvailable -> OPTIONAL_CODEPENDENT
+    else -> OPTIONAL_INDEPENDENT
+  }
+
   public final override fun findUsages(): Array<out UsageInfo> {
     if (!isEnabled) {
       trackComponentUsage(FIND_USAGES, 0)
@@ -865,11 +882,7 @@ class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProce
   var gradleVersion: GradleVersion
     @VisibleForTesting set
 
-  override fun necessity() = when {
-    current < GradleVersion(3, 0, 0) && new >= GradleVersion(3, 0, 0) -> MANDATORY_CODEPENDENT
-    new < GradleVersion(3, 0, 0) -> IRRELEVANT_FUTURE
-    else -> IRRELEVANT_PAST
-  }
+  override fun necessity() = standardPointNecessity(GradleVersion(3, 0, 0))
 
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
@@ -1132,11 +1145,7 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity() = when {
-    current < ACTIVATED_VERSION && new >= ACTIVATED_VERSION -> MANDATORY_CODEPENDENT
-    new < ACTIVATED_VERSION -> IRRELEVANT_FUTURE
-    else -> IRRELEVANT_PAST
-  }
+  override fun necessity() = standardPointNecessity(ACTIVATED_VERSION)
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     fun usageType(model: LanguageLevelPropertyModel): UsageType? = when {
@@ -1321,14 +1330,7 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity() = when {
-    current < IMPLEMENTATION_API_INTRODUCED && new >= COMPILE_REMOVED -> MANDATORY_CODEPENDENT
-    current < COMPILE_REMOVED && new >= COMPILE_REMOVED -> MANDATORY_INDEPENDENT
-    new < IMPLEMENTATION_API_INTRODUCED -> IRRELEVANT_FUTURE
-    current >= COMPILE_REMOVED -> IRRELEVANT_PAST
-    current < IMPLEMENTATION_API_INTRODUCED -> OPTIONAL_CODEPENDENT
-    else -> OPTIONAL_INDEPENDENT
-  }
+  override fun necessity() = standardRegionNecessity(IMPLEMENTATION_API_INTRODUCED, COMPILE_REMOVED)
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
@@ -1457,14 +1459,7 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity() = when {
-    current < COMPATIBLE_WITH && new >= INCOMPATIBLE_VERSION -> MANDATORY_CODEPENDENT
-    current < INCOMPATIBLE_VERSION && new >= INCOMPATIBLE_VERSION -> MANDATORY_INDEPENDENT
-    new < COMPATIBLE_WITH -> IRRELEVANT_FUTURE
-    current >= INCOMPATIBLE_VERSION -> IRRELEVANT_PAST
-    current < COMPATIBLE_WITH -> OPTIONAL_CODEPENDENT
-    else -> OPTIONAL_INDEPENDENT
-  }
+  override fun necessity() = standardRegionNecessity(COMPATIBLE_WITH, INCOMPATIBLE_VERSION)
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = ArrayList<UsageInfo>()
