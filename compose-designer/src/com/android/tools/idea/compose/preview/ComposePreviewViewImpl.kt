@@ -98,6 +98,11 @@ interface ComposePreviewView {
    * If the content is not already visible, shows a "Building" message.
    */
   fun showBuildingMessage()
+
+  /**
+   * If called the pinned previews will be shown/hidden at the top.
+   */
+  fun setPinnedSurfaceVisibility(visible: Boolean)
 }
 
 fun interface ComposePreviewViewProvider {
@@ -181,9 +186,6 @@ internal class ComposePreviewViewImpl(private val project: Project,
         override fun isOptimizedDrawingEnabled(): Boolean = false
       }
 
-      if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
-        surfaceSplitter.firstComponent = pinnedSurface
-      }
       surfaceSplitter.secondComponent = mainSurface
 
       overlayPanel.apply {
@@ -207,6 +209,15 @@ internal class ComposePreviewViewImpl(private val project: Project,
     if (isMessageVisible) {
       showLoading(message("panel.building"))
       hideContent()
+    }
+  }
+
+  override fun setPinnedSurfaceVisibility(visible: Boolean) = UIUtil.invokeLaterIfNeeded {
+    if (StudioFlags.COMPOSE_PIN_PREVIEW.get() && visible) {
+      surfaceSplitter.firstComponent = pinnedSurface
+    }
+    else {
+      surfaceSplitter.firstComponent = null
     }
   }
 
