@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver
 
+import com.android.tools.idea.apk.ApkFacet
+import com.android.tools.idea.appinspection.ide.resolver.blaze.BlazeArtifactResolver
 import com.android.tools.idea.appinspection.ide.resolver.gradle.GradleArtifactResolver
 import com.android.tools.idea.appinspection.ide.resolver.http.HttpArtifactResolver
 import com.android.tools.idea.appinspection.inspector.api.service.TestFileService
@@ -28,7 +30,8 @@ import org.junit.runners.Parameterized
 
 enum class Variation {
   GRADLE,
-  OTHER
+  APK,
+  BLAZE,
 }
 
 @RunWith(Parameterized::class)
@@ -37,7 +40,7 @@ class ArtifactResolverFactoryTest(private val variation: Variation) {
     @Suppress("unused") // Used by JUnit via reflection
     @JvmStatic
     @get:Parameterized.Parameters(name = "{0}")
-    val variations = listOf(Variation.OTHER, Variation.GRADLE)
+    val variations = listOf(Variation.APK, Variation.GRADLE, Variation.BLAZE)
   }
 
   @get:Rule
@@ -51,9 +54,14 @@ class ArtifactResolverFactoryTest(private val variation: Variation) {
         assertThat(ArtifactResolverFactory(TestFileService()).getArtifactResolver(projectRule.project))
           .isInstanceOf(GradleArtifactResolver::class.java)
       }
-      Variation.OTHER -> run {
+      Variation.APK -> run {
+        projectRule.addFacet(ApkFacet.getFacetType(), ApkFacet.getFacetName())
         assertThat(ArtifactResolverFactory(TestFileService()).getArtifactResolver(projectRule.project))
           .isInstanceOf(HttpArtifactResolver::class.java)
+      }
+      Variation.BLAZE -> run {
+        assertThat(ArtifactResolverFactory(TestFileService()).getArtifactResolver(projectRule.project))
+          .isInstanceOf(BlazeArtifactResolver::class.java)
       }
     }
   }
