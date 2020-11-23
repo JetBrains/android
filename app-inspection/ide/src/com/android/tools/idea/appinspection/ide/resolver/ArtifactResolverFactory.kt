@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver
 
+import com.android.tools.idea.appinspection.ide.resolver.blaze.BlazeArtifactResolver
 import com.android.tools.idea.appinspection.ide.resolver.gradle.GradleArtifactResolver
 import com.android.tools.idea.appinspection.ide.resolver.http.HttpArtifactResolver
 import com.android.tools.idea.appinspection.inspector.api.io.FileService
@@ -22,6 +23,7 @@ import com.android.tools.idea.appinspection.inspector.ide.io.IdeFileService
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverFactory
 import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.project.AndroidProjectInfo
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
 import org.jetbrains.annotations.TestOnly
@@ -35,12 +37,16 @@ class ArtifactResolverFactory @NonInjectable @TestOnly constructor(
   private val jarPaths = AppInspectorJarPaths(fileService)
 
   override fun getArtifactResolver(project: Project): ArtifactResolver {
-    return if (GradleProjectInfo.getInstance(project).isBuildWithGradle) {
-      GradleArtifactResolver(jarPaths)
-    }
-    else {
-      HttpArtifactResolver(fileService, jarPaths)
+    return when {
+      GradleProjectInfo.getInstance(project).isBuildWithGradle -> {
+        GradleArtifactResolver(jarPaths)
+      }
+      AndroidProjectInfo.getInstance(project).isApkProject -> {
+        HttpArtifactResolver(fileService, jarPaths)
+      }
+      else -> {
+        BlazeArtifactResolver(fileService, jarPaths)
+      }
     }
   }
 }
-
