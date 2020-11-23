@@ -69,11 +69,11 @@ import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.text.nullize
-import org.codehaus.plexus.util.xml.pull.XmlPullParser
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.util.AndroidUtils
 import org.kxml2.io.KXmlParser
+import org.xmlpull.v1.XmlPullParser
 import java.io.StringReader
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
