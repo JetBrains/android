@@ -27,7 +27,7 @@ import junit.framework.TestCase
  * Tests for verifying that there is no conflict creating an instrumented test after a Gradle unit test.
  */
 class AndroidTestAndGradleConfigurationConflictsTest : AndroidGradleTestCase() {
-  // See: http://b.android.com/173106394
+  // See: http://b/173106394
   @Throws(Exception::class)
   fun testCanCreateInstrumentedTestConfiguration() {
     loadSimpleApplication()
