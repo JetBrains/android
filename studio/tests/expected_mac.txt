@@ -2202,6 +2202,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/device-art-resources/wea
 Android Studio Preview.app/Contents/plugins/android/lib/device-art-resources/wear_round_chin_320_290/layout
 Android Studio Preview.app/Contents/plugins/android/lib/device-art-resources/wear_square/back.png
 Android Studio Preview.app/Contents/plugins/android/lib/device-art-resources/wear_square/fore.png
+Android Studio Preview.app/Contents/plugins/android/lib/device-art-resources/wear_square/hardware.ini
 Android Studio Preview.app/Contents/plugins/android/lib/device-art-resources/wear_square/layout
 Android Studio Preview.app/Contents/plugins/android/lib/device-art-resources/wear_square/mask.png
 Android Studio Preview.app/Contents/plugins/android/lib/device-art-resources/wear_square/shadow.png
