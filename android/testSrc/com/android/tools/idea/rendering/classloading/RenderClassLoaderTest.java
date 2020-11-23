@@ -50,6 +50,7 @@ import static com.android.tools.idea.rendering.classloading.UtilKt.toClassTransf
 import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
@@ -215,6 +216,26 @@ public class RenderClassLoaderTest {
     loader2.loadClassFromNonProjectDependency("com.myjar.MyJarClass");
   }
 
+  /**
+   * Regression test for b/173773976
+   */
+  @Test
+  public void testFailedClassLoadingResetsInsideClassLoader() throws Exception {
+    File jarSource = new File(AndroidTestBase.getTestDataPath(), "rendering/renderClassLoader/mythreadlocals.jar");
+
+    TestableRenderClassLoader loader = new TestableRenderClassLoader(this.getClass().getClassLoader(),
+                                                             toClassTransform(ThreadLocalRenameTransform::new),
+                                                             ImmutableList.of(jarSource.toURI().toURL()));
+
+    assertFalse(loader.isInsiderJarClassLoader());
+    try {
+      loader.loadClassFromNonProjectDependency("com.does.not.exist.Test");
+      fail("Class does not exist, the class loader must throw ClassNotFoundException");
+    } catch (ClassNotFoundException ignored) {
+    }
+    assertFalse(loader.isInsiderJarClassLoader());
+  }
+
   public static class MyLoggerFactory implements Logger.Factory {
     public MyLoggerFactory() {
     }
@@ -245,5 +266,9 @@ public class RenderClassLoaderTest {
 
     @Override
     protected List<URL> getExternalJars() { return mDependencies; }
+
+    public boolean isInsiderJarClassLoader() {
+      return myInsideJarClassLoader;
+    }
   }
 }
