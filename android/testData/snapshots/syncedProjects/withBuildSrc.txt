@@ -645,13 +645,6 @@ PROJECT             : testWithBuildSrc
             IsExported          : false
             Name                : Gradle: kotlin-stdlib-jdk8-<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: testWithBuildSrc.buildSrc.buildSrc
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Compile
-            IsExported          : true
-            Name                : Gradle: testWithBuildSrc.buildSrc.buildSrc [=]
-            *CLASSES            : jar://<PROJECT>/buildSrc/build/libs/buildSrc.jar!/
         ORDER_ENTRY         : testWithBuildSrc.buildSrc.lib1
         ORDER_ENTRY         : testWithBuildSrc.buildSrc.lib2
         ORDER_ENTRY         : testWithBuildSrc.buildSrc.lib2
@@ -685,13 +678,6 @@ PROJECT             : testWithBuildSrc
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: testWithBuildSrc.buildSrc.lib1.lib1
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Compile
-            IsExported          : true
-            Name                : Gradle: testWithBuildSrc.buildSrc.lib1.lib1 [=]
-            *CLASSES            : jar://<PROJECT>/buildSrc/lib1/build/libs/lib1.jar!/
         ORDER_ENTRY         : testWithBuildSrc.buildSrc.lib2
     MODULE              : testWithBuildSrc.buildSrc.lib2
         ExternalModuleGroup : buildSrc
@@ -723,13 +709,6 @@ PROJECT             : testWithBuildSrc
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: testWithBuildSrc.buildSrc.lib2.lib2
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Compile
-            IsExported          : true
-            Name                : Gradle: testWithBuildSrc.buildSrc.lib2.lib2 [=]
-            *CLASSES            : jar://<PROJECT>/buildSrc/lib2/build/libs/lib2.jar!/
     RUN_CONFIGURATION   : app
         *class*             : AndroidRunConfiguration
         ModuleName          : testWithBuildSrc.app

@@ -21,11 +21,9 @@ import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.ide.common.gradle.model.impl.ModelCache;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.intellij.openapi.application.ApplicationManager;
@@ -152,42 +150,5 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends PlatformTestCas
   @NotNull
   private String createLibraryName(@NotNull File jarFilePath) {
     return GradleConstants.SYSTEM_ID.getReadableName() + ": " + getModule().getName() + "." + getNameWithoutExtension(jarFilePath);
-  }
-
-  public void testDoSetUpModuleWithCompiledJar() throws IOException {
-    Module module = getModule();
-    String moduleName = module.getName();
-
-    File buildFolderPath = createTempDir("build");
-    File jarFilePath = new File(buildFolderPath, moduleName + ".jar");
-    createIfDoesntExist(jarFilePath);
-
-    Project project = getProject();
-    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(project);
-
-    Map<String, Set<File>> artifactsByConfiguration = new HashMap<>();
-    artifactsByConfiguration.put("default", Collections.singleton(jarFilePath));
-
-    JavaModuleModel model =
-      JavaModuleModel
-        .create(moduleName,
-                Collections.emptyList(),
-                Collections.emptyList(),
-                Collections.emptyList(),
-                artifactsByConfiguration,
-                null,
-                buildFolderPath,
-                null,
-                true);
-    ModuleSetupContext context = new ModuleSetupContext.Factory().create(module, modelsProvider);
-    mySetupStep.doSetUpModule(context, model);
-
-    ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
-
-    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(project);
-    Library[] libraries = libraryTable.getLibraries();
-    assertThat(libraries).isEmpty();
-
-    assertAbout(libraryDependencies()).that(module).doesNotHaveDependencies();
   }
 }
