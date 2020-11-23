@@ -32,21 +32,6 @@ import javax.swing.JPanel
 import javax.swing.JSeparator
 
 object PsiPickerManager {
-  /**
-   * Shows a picker for editing a [PsiPropertyModel]s. The user can modify the model using this dialog.
-   */
-  fun showForEvent(e: AnActionEvent, model: PsiPropertyModel) {
-    val disposable = Disposer.newDisposable()
-    val popup = createPopup(disposable)
-    val previewPickerPanel = createPreviewPickerPanel(disposable, model)
-
-    val owner = e.inputEvent.component
-    val location = owner.locationOnScreen
-    // Center the picker in the middle of the parent width, usually a button. The popup will show up at the bottom of the owner.
-    location.translate(owner.width / 2, owner.height)
-
-    popup.show(previewPickerPanel, null, location)
-  }
 
   /**
    * Shows a picker for editing a [PsiPropertyModel]s. The user can modify the model using this dialog.
