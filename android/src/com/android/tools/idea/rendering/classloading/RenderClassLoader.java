@@ -194,29 +194,31 @@ public abstract class RenderClassLoader extends ClassLoader {
 
     String diskLookupName = myNonProjectClassNameLookup.apply(name);
     myInsideJarClassLoader = true;
-    // We do not request the stream from URL because it is problematic, see https://stackoverflow.com/questions/7071761
-    String classResourceName = diskLookupName.replace('.', '/') + SdkConstants.DOT_CLASS;
-    URL classUrl = jarClassLoaders.getResource(classResourceName);
-    if (classUrl == null) {
-      throw new ClassNotFoundException(name);
-    }
-    try (InputStream is = jarClassLoaders.getResourceAsStream(classResourceName)) {
-      if (is == null) {
+    try {
+      // We do not request the stream from URL because it is problematic, see https://stackoverflow.com/questions/7071761
+      String classResourceName = diskLookupName.replace('.', '/') + SdkConstants.DOT_CLASS;
+      URL classUrl = jarClassLoaders.getResource(classResourceName);
+      if (classUrl == null) {
         throw new ClassNotFoundException(name);
       }
-      byte[] data = ByteStreams.toByteArray(is);
+      try (InputStream is = jarClassLoaders.getResourceAsStream(classResourceName)) {
+        if (is == null) {
+          throw new ClassNotFoundException(name);
+        }
+        byte[] data = ByteStreams.toByteArray(is);
 
-      if (!isValidClassFile(data)) {
-        throw new ClassFormatError(name);
+        if (!isValidClassFile(data)) {
+          throw new ClassFormatError(name);
+        }
+        byte[] transformedData = ClassConverter.rewriteClass(data, classTransform, ClassWriter.COMPUTE_MAXS, this);
+        Pair<String, String> splitPath = URLUtil.splitJarUrl(classUrl.getPath());
+        if (splitPath != null) {
+          myTransformedClassCache.put(name, classTransformId, splitPath.first, transformedData);
+        } else {
+          LOG.warn("Could not find the file for " + classUrl);
+        }
+        return transformedData;
       }
-      byte[] transformedData = ClassConverter.rewriteClass(data, classTransform, ClassWriter.COMPUTE_MAXS, this);
-      Pair<String, String> splitPath = URLUtil.splitJarUrl(classUrl.getPath());
-      if (splitPath != null) {
-        myTransformedClassCache.put(name, classTransformId, splitPath.first, transformedData);
-      } else {
-        LOG.warn("Could not find the file for " + classUrl);
-      }
-      return transformedData;
     }
     finally {
       myInsideJarClassLoader = false;
