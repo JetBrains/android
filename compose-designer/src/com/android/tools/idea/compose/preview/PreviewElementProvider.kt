@@ -38,8 +38,8 @@ interface PreviewElementInstanceProvider: PreviewElementProvider {
 /**
  * [PreviewElementProvider] that does not contain [PreviewElement]s.
  */
-object EmptyPreviewElementProvider : PreviewElementProvider {
-  override val previewElements: Sequence<PreviewElement> = emptySequence()
+object EmptyPreviewElementInstanceProvider : PreviewElementInstanceProvider {
+  override val previewElements: Sequence<PreviewElementInstance> = emptySequence()
 }
 
 /**

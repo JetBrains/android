@@ -149,7 +149,7 @@ interface PinnedPreviewElementManager {
       }
     }
     else {
-      EmptyPreviewElementProvider
+      EmptyPreviewElementInstanceProvider
     }
   }
 }

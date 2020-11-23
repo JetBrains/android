@@ -197,7 +197,8 @@ private const val FPS_LIMIT = 60
  * @param previewProvider [PreviewElementProvider] to obtain the [PreviewElement]s.
  */
 class ComposePreviewRepresentation(psiFile: PsiFile,
-                                   previewProvider: PreviewElementProvider) :
+                                   previewProvider: PreviewElementProvider,
+                                   composePreviewViewProvider: ComposePreviewViewProvider) :
   PreviewRepresentation, ComposePreviewManagerEx, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
   private val LOG = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val project = psiFile.project
@@ -345,12 +346,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       forceRefresh()
     }
 
-  private val composeWorkBench = ComposePreviewPanel(
+  private val composeWorkBench: ComposePreviewView = composePreviewViewProvider.invoke(
     project,
     psiFilePointer,
     projectBuildStatusManager,
     navigationHandler, {
-      return@ComposePreviewPanel when (it) {
+      return@invoke when (it) {
         COMPOSE_PREVIEW_MANAGER.name -> this@ComposePreviewRepresentation
         // The Compose preview NlModels do not point to the actual file but to a synthetic file
         // generated for Layoutlib. This ensures we return the right file.
@@ -370,7 +371,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   /**
    * List of [PreviewElement] being rendered by this editor
    */
-  var previewElements: List<PreviewElement> = emptyList()
+  private var previewElements: List<PreviewElement> = emptyList()
 
   /**
    * Counts the current number of simultaneous executions of [refresh] method. Being inside the [refresh] indicates that the this preview
@@ -430,7 +431,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     isLiveLiteralsEnabled = StudioFlags.COMPOSE_ALWAYS_ON_LIVE_LITERALS.get()
   }
 
-  override val component: JComponent = composeWorkBench
+  override val component: JComponent = composeWorkBench.component
 
   // region Lifecycle handling
   /**
@@ -610,6 +611,32 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    */
   override fun updateNotifications(parentEditor: FileEditor) = composeWorkBench.updateNotifications(parentEditor)
 
+  private fun toPreviewXmlString(instance: PreviewElementInstance): String =
+    instance.toPreviewXml()
+      // Whether to paint the debug boundaries or not
+      .toolsAttribute("paintBounds", showDebugBoundaries.toString())
+      .toolsAttribute("forceCompositionInvalidation", isLiveLiteralsEnabled.toString())
+      .apply {
+        if (animationInspection.get()) {
+          // If the animation inspection is active, start the PreviewAnimationClock with the current epoch time.
+          toolsAttribute("animationClockStartTime", System.currentTimeMillis().toString())
+        }
+      }
+      .buildString()
+
+  private fun getPreviewDataContextForPreviewElement(previewElement: PreviewElement) =
+    PreviewElementDataContext(project, this@ComposePreviewRepresentation, previewElement)
+
+  private fun configureLayoutlibSceneManagerForPreviewElement(previewElement: PreviewElement,
+                                                              layoutlibSceneManager: LayoutlibSceneManager) =
+    configureLayoutlibSceneManager(layoutlibSceneManager,
+                                   showDecorations = previewElement.displaySettings.showDecoration,
+                                   isInteractive = interactiveMode.isStartingOrReady(),
+                                   requestPrivateClassLoader = usePrivateClassLoader(),
+                                   isLiveLiteralsEnabled = isLiveLiteralsEnabled,
+                                   onLiveLiteralsFound = { hasLiveLiterals = true },
+                                   resetLiveLiteralsFound = { hasLiveLiterals = isLiveLiteralsEnabled })
+
   /**
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The call will block until all the given [PreviewElement]s have completed rendering. If [quickRefresh]
@@ -630,6 +657,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
     } ?: return
 
+    // The surface might have been deactivated while we waited for the read lock, check again.
+    if (!isActive.get()) {
+      refreshedWhileDeactivated.set(true)
+      return
+    }
+
     // Cache available groups
     availableGroups = previewElementProvider.allAvailableGroups
 
@@ -645,29 +678,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       psiFile,
       this,
       { hasRenderedAtLeastOnce.set(true) },
-      {
-        it.toPreviewXml()
-          // Whether to paint the debug boundaries or not
-          .toolsAttribute("paintBounds", showDebugBoundaries.toString())
-          .toolsAttribute("forceCompositionInvalidation", isLiveLiteralsEnabled.toString())
-          .apply {
-            if (animationInspection.get()) {
-              // If the animation inspection is active, start the PreviewAnimationClock with the current epoch time.
-              toolsAttribute("animationClockStartTime", System.currentTimeMillis().toString())
-            }
-          }
-          .buildString()
-      },
-      { PreviewElementDataContext(project, this@ComposePreviewRepresentation, it) }
-    ) { previewElement, layoutlibSceneManager ->
-      configureLayoutlibSceneManager(layoutlibSceneManager,
-                                     showDecorations = previewElement.displaySettings.showDecoration,
-                                     isInteractive = interactiveMode.isStartingOrReady(),
-                                     requestPrivateClassLoader = usePrivateClassLoader(),
-                                     isLiveLiteralsEnabled = isLiveLiteralsEnabled,
-                                     onLiveLiteralsFound = { hasLiveLiterals = true },
-                                     resetLiveLiteralsFound = { hasLiveLiterals = isLiveLiteralsEnabled })
-    }
+      this::toPreviewXmlString,
+      this::getPreviewDataContextForPreviewElement,
+      this::configureLayoutlibSceneManagerForPreviewElement
+    )
     showingPreviewElements.ifEmpty {
       composeWorkBench.showModalErrorMessage(message("panel.no.previews.defined"))
     }
