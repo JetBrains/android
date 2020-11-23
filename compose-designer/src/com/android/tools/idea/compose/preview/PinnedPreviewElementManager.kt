@@ -7,6 +7,7 @@ import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.util.ListenerCollection
 import com.google.common.collect.Sets
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.components.Service
@@ -68,8 +69,10 @@ class PinnedPreviewElementManagerImpl internal constructor(val project: Project)
   private val modificationTracker: SimpleModificationTracker = SimpleModificationTracker()
 
   private val pinnedElements = Sets.newConcurrentHashSet<PinnedElementReference>()
+  private val pinsModificationTracker = SimpleModificationTracker()
+  private val listenerCollection = ListenerCollection.createWithDirectExecutor<PinnedPreviewElementManager.Listener>()
 
-  internal val previewElements: Sequence<PreviewElement>
+  internal val previewElements: Sequence<PreviewElementInstance>
     get() {
       val filesWithPinnedElements = pinnedElements.map { it.containingFilePath }.toSet()
       val kotlinAnnotations: Sequence<PsiElement> = ReadAction.compute<Sequence<PsiElement>, Throwable> {
@@ -104,28 +107,51 @@ class PinnedPreviewElementManagerImpl internal constructor(val project: Project)
     }
 
   override fun pin(element: PreviewElementInstance): Boolean {
-    return pinnedElements.add(element.asPinnedElement() ?: return false).also {
-      if (it) modificationTracker.incModificationCount()
+    return pinnedElements.add(element.asPinnedElement() ?: return false).also { added ->
+      if (added) {
+        pinsModificationTracker.incModificationCount()
+        listenerCollection.forEach { it.pinsChanged() }
+      }
     }
   }
 
   override fun unpin(element: PreviewElementInstance): Boolean {
-    return pinnedElements.remove(element.asPinnedElement() ?: return false).also {
-      if (it) modificationTracker.incModificationCount()
+    return pinnedElements.remove(element.asPinnedElement() ?: return false).also { removed ->
+      if (removed) {
+        pinsModificationTracker.incModificationCount()
+        listenerCollection.forEach { it.pinsChanged() }
+      }
     }
   }
 
   override fun isPinned(element: PreviewElement) = pinnedElements.contains(element.asPinnedElement())
-  override fun getModificationCount(): Long = modificationTracker.modificationCount
+
+  override fun addListener(listener: PinnedPreviewElementManager.Listener) {
+    listenerCollection.add(listener)
+  }
+
+  override fun removeListener(listener: PinnedPreviewElementManager.Listener) {
+    listenerCollection.remove(listener)
+  }
+
+  override fun getModificationCount(): Long = pinsModificationTracker.modificationCount
 }
 
 private object NopPinnedPreviewElementManager : PinnedPreviewElementManager, ModificationTracker by ModificationTracker.NEVER_CHANGED {
   override fun pin(element: PreviewElementInstance): Boolean = false
   override fun unpin(element: PreviewElementInstance): Boolean = false
   override fun isPinned(element: PreviewElement): Boolean = false
+  override fun addListener(listener: PinnedPreviewElementManager.Listener) {}
+
+  override fun removeListener(listener: PinnedPreviewElementManager.Listener) {}
 }
 
 interface PinnedPreviewElementManager: ModificationTracker {
+  fun interface Listener {
+    /** Called when the pinned previews have changed */
+    fun pinsChanged()
+  }
+
   /**
    * Pins the given [PreviewElementInstance]. Returns true if the element was not pinned and was successfully pinned.
    */
@@ -141,6 +167,10 @@ interface PinnedPreviewElementManager: ModificationTracker {
    */
   fun isPinned(element: PreviewElement): Boolean
 
+  fun addListener(listener: Listener)
+
+  fun removeListener(listener: Listener)
+
   companion object {
     @JvmStatic
     fun getInstance(project: Project): PinnedPreviewElementManager = if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
@@ -155,10 +185,10 @@ interface PinnedPreviewElementManager: ModificationTracker {
      * and that are not meant to be only from the current opened editor.
      */
     @JvmStatic
-    fun getPreviewElementProvider(project: Project): PreviewElementProvider = if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
-      object : PreviewElementProvider {
+    fun getPreviewElementProvider(project: Project): PreviewElementInstanceProvider = if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
+      object : PreviewElementInstanceProvider {
         @get:Slow
-        override val previewElements: Sequence<PreviewElement>
+        override val previewElements: Sequence<PreviewElementInstance>
           get() = project.getService(PinnedPreviewElementManagerImpl::class.java).previewElements
       }
     }

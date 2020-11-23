@@ -54,6 +54,9 @@ private class TestComposePreviewView(override val pinnedSurface: NlDesignSurface
 
   override fun showBuildingMessage() {
   }
+
+  override fun setPinnedSurfaceVisibility(visible: Boolean) {
+  }
 }
 
 class ComposePreviewRepresentationTest {

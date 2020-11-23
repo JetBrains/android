@@ -208,12 +208,15 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private val projectBuildStatusManager = ProjectBuildStatusManager(this, psiFile)
 
   /**
+   * [PreviewElementProvider] containing the pinned previews.
+   */
+  private val memoizedPinnedPreviewProvider = PinnedPreviewElementManager.getPreviewElementProvider(project)
+
+  /**
    * [PreviewElementProvider] used to save the result of a call to `previewProvider`. Calls to `previewProvider` can potentially
    * be slow. This saves the last result and it is refreshed on demand when we know is not running on the UI thread.
    */
-  private val memoizedElementsProvider = MemoizedPreviewElementProvider(
-    CombinedPreviewElementProvider(listOf(previewProvider, PinnedPreviewElementManager.getPreviewElementProvider(project)))
-  ) {
+  private val memoizedElementsProvider = MemoizedPreviewElementProvider(previewProvider) {
     ReadAction.compute<Long, Throwable> {
       psiFilePointer.element?.modificationStamp ?: -1
     }
@@ -361,6 +364,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         else -> null
       }
     }, this)
+
+  private val pinnedSurface: NlDesignSurface
+    get() = composeWorkBench.pinnedSurface
   private val surface: NlDesignSurface
     get() = composeWorkBench.mainSurface
 
@@ -504,6 +510,16 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         refresh()
       }
     })
+
+    if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
+      val listener = PinnedPreviewElementManager.Listener {
+        refresh()
+      }
+      PinnedPreviewElementManager.getInstance(project).addListener(listener)
+      Disposer.register(this) {
+        PinnedPreviewElementManager.getInstance(project).removeListener(listener)
+      }
+    }
   }
 
   override fun onActivate() {
@@ -586,6 +602,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override var isBuildOnSaveEnabled: Boolean = false
     get() = COMPOSE_PREVIEW_BUILD_ON_SAVE.get() && field
 
+  private var lastPinsModificationCount = PinnedPreviewElementManager.getInstance(project).modificationCount
+
   private fun hasErrorsAndNeedsBuild(): Boolean = !hasRenderedAtLeastOnce.get() || surface.layoutlibSceneManagers
     .any { it.renderResult.isComposeErrorResult() }
 
@@ -638,6 +656,16 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                    onLiveLiteralsFound = { hasLiveLiterals = true },
                                    resetLiveLiteralsFound = { hasLiveLiterals = isLiveLiteralsEnabled })
 
+  private fun onAfterRender() {
+    if (!hasRenderedAtLeastOnce.get()) {
+      // We zoom to fit to have better initial zoom level when first build is completed
+      UIUtil.invokeLaterIfNeeded {
+        surface.zoomToFit()
+        hasRenderedAtLeastOnce.set(true)
+      }
+    }
+  }
+
   /**
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The call will block until all the given [PreviewElement]s have completed rendering. If [quickRefresh]
@@ -671,26 +699,35 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     onRestoreState?.invoke()
     onRestoreState = null
 
+    val hasPinnedElements = if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
+      lastPinsModificationCount = PinnedPreviewElementManager.getInstance(project).modificationCount
+      pinnedSurface.updatePreviewsAndRefresh(
+        false,
+        memoizedPinnedPreviewProvider,
+        LOG,
+        psiFile,
+        this,
+        this::onAfterRender,
+        this::toPreviewXmlString,
+        this::getPreviewDataContextForPreviewElement,
+        this::configureLayoutlibSceneManagerForPreviewElement
+      ).isNotEmpty()
+    } else false
     val showingPreviewElements = surface.updatePreviewsAndRefresh(
       quickRefresh,
       previewElementProvider,
       LOG,
       psiFile,
       this,
-      {
-        if (!hasRenderedAtLeastOnce.get()) {
-          // We zoom to fit to have better initial zoom level when first build is completed
-          UIUtil.invokeLaterIfNeeded {
-            surface.zoomToFit()
-            hasRenderedAtLeastOnce.set(true)
-          }
-        }
-      },
+      this::onAfterRender,
       this::toPreviewXmlString,
       this::getPreviewDataContextForPreviewElement,
       this::configureLayoutlibSceneManagerForPreviewElement
     )
-    showingPreviewElements.ifEmpty {
+
+    composeWorkBench.setPinnedSurfaceVisibility(hasPinnedElements)
+
+    if (!hasPinnedElements && showingPreviewElements.isEmpty()) {
       composeWorkBench.showModalErrorMessage(message("panel.no.previews.defined"))
     }
 
@@ -732,7 +769,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
             .sortByDisplayAndSourcePosition()
         }
 
-        if (filePreviewElements == previewElements) {
+        val needsFullRefresh = filePreviewElements != previewElements ||
+                               PinnedPreviewElementManager.getInstance(project).modificationCount != lastPinsModificationCount
+
+        if (!needsFullRefresh) {
           LOG.debug("No updates on the PreviewElements, just refreshing the existing ones")
           // In this case, there are no new previews. We need to make sure that the surface is still correctly
           // configured and that we are showing the right size for components. For example, if the user switches on/off
