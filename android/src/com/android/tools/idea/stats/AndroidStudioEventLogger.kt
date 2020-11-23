@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.stats
 
+import com.android.tools.analytics.UsageTracker
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.FileUsage
 import com.intellij.internal.statistic.eventLog.EmptyEventLogFilesProvider
 import com.intellij.internal.statistic.eventLog.EventLogGroup
 import com.intellij.internal.statistic.eventLog.StatisticsEventLogger
@@ -25,8 +28,22 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
   override fun getActiveLogFile(): Nothing? = null
   override fun getLogFilesProvider() = EmptyEventLogFilesProvider
   override fun logAsync(group: EventLogGroup, eventId: String, data: Map<String, Any>, isState: Boolean): CompletableFuture<Void> {
+    when (group.id) {
+      "file.types.usage" -> logFileUsage(data)
+    }
     return CompletableFuture.completedFuture(null)
   }
 
   override fun rollOver() {}
+
+  private fun logFileUsage(data: Map<String, Any>) {
+    UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
+      kind = AndroidStudioEvent.EventKind.SURVEY_RESPONSE
+      fileUsage = FileUsage.newBuilder().apply {
+        this.filePath = data["file_path"] as? String
+        this.fileType = data["file_type"] as? String
+        this.pluginType = data["plugin_type"] as? String
+      }.build()
+    })
+  }
 }
