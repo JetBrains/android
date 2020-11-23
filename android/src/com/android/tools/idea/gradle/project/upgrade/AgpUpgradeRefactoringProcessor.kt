@@ -1458,9 +1458,12 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
   override fun necessity() = when {
-    current < INCOMPATIBLE_VERSION && new >= INCOMPATIBLE_VERSION -> MANDATORY_CODEPENDENT
-    new < INCOMPATIBLE_VERSION -> IRRELEVANT_FUTURE
-    else -> IRRELEVANT_PAST
+    current < COMPATIBLE_WITH && new >= INCOMPATIBLE_VERSION -> MANDATORY_CODEPENDENT
+    current < INCOMPATIBLE_VERSION && new >= INCOMPATIBLE_VERSION -> MANDATORY_INDEPENDENT
+    new < COMPATIBLE_WITH -> IRRELEVANT_FUTURE
+    current >= INCOMPATIBLE_VERSION -> IRRELEVANT_PAST
+    current < COMPATIBLE_WITH -> OPTIONAL_CODEPENDENT
+    else -> OPTIONAL_INDEPENDENT
   }
 
   override fun findComponentUsages(): Array<out UsageInfo> {
@@ -1663,6 +1666,7 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
   override fun getReadMoreUrl(): String? = "https://firebase.google.com/docs/crashlytics/upgrade-sdk?platform=android"
 
   companion object {
+    val COMPATIBLE_WITH = GradleVersion.parse("3.4.0")
     val INCOMPATIBLE_VERSION = GradleVersion.parse("4.1.0-alpha05") // see b/154302886
 
     val REMOVE_FABRIC_REPOSITORY_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.fabricCrashlyticsRefactoringProcessor.removeFabricRepositoryUsageType"))
