@@ -21,7 +21,7 @@ import com.google.wireless.android.sdk.stats.UserSentiment
 import com.google.wireless.android.sdk.stats.UserSentiment.SatisfactionLevel.UNKNOWN_SATISFACTION_LEVEL
 import com.google.wireless.android.sdk.stats.UserSentiment.SatisfactionLevel.VERY_SATISFIED_VALUE
 
-object LegacySurveyLogger : SurveyLogger {
+object LegacyChoiceLogger : ChoiceLogger {
   override fun log(result: Int) {
     val value = UserSentiment.SatisfactionLevel.values()
                   .firstOrNull { it.number == VERY_SATISFIED_VALUE - result }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.stats
 
-interface SurveyLogger {
+interface ChoiceLogger {
   fun log(result: Int)
   fun log(result: List<Int>)
   fun cancel() {

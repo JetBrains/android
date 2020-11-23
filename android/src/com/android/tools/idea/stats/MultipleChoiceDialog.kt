@@ -17,11 +17,9 @@ package com.android.tools.idea.stats
 
 import com.android.tools.idea.Option
 import com.android.tools.idea.Survey
-import com.google.wireless.android.sdk.stats.UserSentiment
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.components.JBLabel
-import com.intellij.util.containers.toArray
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.AWTEvent
@@ -43,7 +41,7 @@ private const val OK_BUTTON_TEXT = "Submit"
 /**
  * Dialog presenting a survey for users with a list of options and requesting multiple answers
  */
-class MultipleChoiceSurveyDialog(private val survey: Survey, private val surveyLogger: SurveyLogger)
+class MultipleChoiceDialog(private val survey: Survey, private val choiceLogger: ChoiceLogger)
   : DialogWrapper(null), ActionListener, ItemListener {
   val checkBoxes = mutableListOf<JCheckBox>()
 
@@ -70,12 +68,12 @@ class MultipleChoiceSurveyDialog(private val survey: Survey, private val surveyL
   override fun createCenterPanel(): JComponent = content
 
   override fun doOKAction() {
-    surveyLogger.log(IntRange(0, checkBoxes.count() - 1).filter { checkBoxes[it].isSelected })
+    choiceLogger.log(IntRange(0, checkBoxes.count() - 1).filter { checkBoxes[it].isSelected })
     super.doOKAction()
   }
 
   override fun doCancelAction(source: AWTEvent?) {
-    surveyLogger.cancel()
+    choiceLogger.cancel()
     super.doCancelAction(source)
   }
 
@@ -103,8 +101,8 @@ class MultipleChoiceSurveyDialog(private val survey: Survey, private val surveyL
   private fun createButton(option: Option) = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
     alignmentX = JPanel.LEFT_ALIGNMENT
     val checkBox = JCheckBox().apply {
-      addActionListener(this@MultipleChoiceSurveyDialog)
-      addItemListener(this@MultipleChoiceSurveyDialog)
+      addActionListener(this@MultipleChoiceDialog)
+      addItemListener(this@MultipleChoiceDialog)
     }
     add(checkBox)
     checkBoxes.add(checkBox)

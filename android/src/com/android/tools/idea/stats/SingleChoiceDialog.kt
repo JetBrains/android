@@ -17,7 +17,6 @@ package com.android.tools.idea.stats
 
 import com.android.tools.idea.Option
 import com.android.tools.idea.Survey
-import com.google.wireless.android.sdk.stats.UserSentiment
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.DumbAwareAction
@@ -43,13 +42,8 @@ import javax.swing.JRadioButton
 
 private const val OK_BUTTON_TEXT = "Submit"
 private val CENTER_PANEL_BORDER = JBUI.Borders.empty(0, 0, 10, 50)
-private val PROMPT_CONTENT_SPACING = JBUI.scale(10)
 
-/**
- * Dialog prompting users for their level of satisfaction.
- * The [UserSentiment.SatisfactionLevel] selected by the user is accessible using [selectedSentiment].
- */
-class SatisfactionDialog(private val survey: Survey, private val surveyLogger: SurveyLogger)
+class SingleChoiceDialog(private val survey: Survey, private val choiceLogger: ChoiceLogger)
   : DialogWrapper(null), ActionListener, ItemListener {
   val buttonGroup = ButtonGroup()
   private val buttons: MutableList<JRadioButton> = mutableListOf()
@@ -57,7 +51,7 @@ class SatisfactionDialog(private val survey: Survey, private val surveyLogger: S
   val content: JComponent = Box.createVerticalBox().apply {
     border = CENTER_PANEL_BORDER
     add(JBLabel(survey.question))
-    add(Box.createVerticalStrut(PROMPT_CONTENT_SPACING))
+    add(Box.createVerticalStrut(JBUI.scale(10)))
 
     survey.optionsList.forEach() {
       add(createButton(it))
@@ -79,12 +73,12 @@ class SatisfactionDialog(private val survey: Survey, private val surveyLogger: S
   override fun getPreferredFocusedComponent(): JComponent? = buttonGroup.elements.nextElement()
 
   override fun doOKAction() {
-    surveyLogger.log(buttons.indexOfFirst { it.isSelected })
+    choiceLogger.log(buttons.indexOfFirst { it.isSelected })
     super.doOKAction()
   }
 
   override fun doCancelAction(source: AWTEvent?) {
-    surveyLogger.cancel()
+    choiceLogger.cancel()
     super.doCancelAction(source)
   }
 
@@ -106,8 +100,8 @@ class SatisfactionDialog(private val survey: Survey, private val surveyLogger: S
   private fun createButton(option: Option) = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
     alignmentX = JPanel.LEFT_ALIGNMENT
     val button = JRadioButton().apply {
-      addActionListener(this@SatisfactionDialog)
-      addItemListener(this@SatisfactionDialog)
+      addActionListener(this@SingleChoiceDialog)
+      addItemListener(this@SingleChoiceDialog)
       buttonGroup.add(this)
     }
     add(button)
