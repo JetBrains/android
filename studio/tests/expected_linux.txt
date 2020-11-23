@@ -2205,6 +2205,7 @@ android-studio/plugins/android/lib/device-art-resources/wear_round_chin_320_290/
 android-studio/plugins/android/lib/device-art-resources/wear_round_chin_320_290/layout
 android-studio/plugins/android/lib/device-art-resources/wear_square/back.png
 android-studio/plugins/android/lib/device-art-resources/wear_square/fore.png
+android-studio/plugins/android/lib/device-art-resources/wear_square/hardware.ini
 android-studio/plugins/android/lib/device-art-resources/wear_square/layout
 android-studio/plugins/android/lib/device-art-resources/wear_square/mask.png
 android-studio/plugins/android/lib/device-art-resources/wear_square/shadow.png
