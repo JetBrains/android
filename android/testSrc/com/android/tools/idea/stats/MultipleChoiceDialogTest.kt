@@ -30,7 +30,6 @@ import org.mockito.Mockito.verify
 import java.awt.Dimension
 import javax.swing.JCheckBox
 import javax.swing.JComponent
-import javax.swing.JRadioButton
 import javax.swing.SwingUtilities
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -51,7 +50,7 @@ private val TEST_SURVEY : Survey = Survey.newBuilder().apply {
   })
 }.build()
 
-class MultipleChoiceSurveyDialogTest {
+class MultipleChoiceDialogTest {
 
   lateinit var disposable: Disposable
 
@@ -68,10 +67,10 @@ class MultipleChoiceSurveyDialogTest {
   @Suppress("UnstableApiUsage")
   @Test
   fun testOK() {
-    val result = Ref.create<MultipleChoiceSurveyDialog>()
-    val surveyLogger = Mockito.mock(SurveyLogger::class.java)
+    val result = Ref.create<MultipleChoiceDialog>()
+    val logger = Mockito.mock(ChoiceLogger::class.java)
     SwingUtilities.invokeAndWait {
-      val dialog = createSatisfactionDialog(surveyLogger)
+      val dialog = createDialog(logger)
       result.set(dialog)
     }
     val dialog = result.get()
@@ -92,15 +91,15 @@ class MultipleChoiceSurveyDialogTest {
     assertTrue(dialog.isOKActionEnabled)
 
     SwingUtilities.invokeAndWait { dialog.performOKAction() }
-    verify(surveyLogger).log(listOf(0, 1))
+    verify(logger).log(listOf(0, 1))
   }
 
   @Test
   fun testCancel() {
-    val result = Ref.create<MultipleChoiceSurveyDialog>()
-    val surveyLogger = Mockito.mock(SurveyLogger::class.java)
+    val result = Ref.create<MultipleChoiceDialog>()
+    val logger = Mockito.mock(ChoiceLogger::class.java)
     SwingUtilities.invokeAndWait {
-      val dialog = createSatisfactionDialog(surveyLogger)
+      val dialog = createDialog(logger)
       result.set(dialog)
     }
     val dialog = result.get()
@@ -117,10 +116,10 @@ class MultipleChoiceSurveyDialogTest {
     assertFalse(dialog.isOKActionEnabled)
 
     SwingUtilities.invokeAndWait { dialog.doCancelAction(null) }
-    verify(surveyLogger).cancel()
+    verify(logger).cancel()
   }
 
-  private fun getContent(dialog: MultipleChoiceSurveyDialog): JComponent {
+  private fun getContent(dialog: MultipleChoiceDialog): JComponent {
     val content = dialog.content
     content.isVisible = true
     content.size = Dimension(300, 400)
@@ -128,8 +127,8 @@ class MultipleChoiceSurveyDialogTest {
     return content
   }
 
-  private fun createSatisfactionDialog(logger: SurveyLogger): MultipleChoiceSurveyDialog {
-    val dialog = MultipleChoiceSurveyDialog(TEST_SURVEY, logger)
+  private fun createDialog(logger: ChoiceLogger): MultipleChoiceDialog {
+    val dialog = MultipleChoiceDialog(TEST_SURVEY, logger)
     Disposer.register(disposable, dialog.disposable)
     return dialog
   }

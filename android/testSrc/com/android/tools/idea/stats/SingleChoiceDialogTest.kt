@@ -32,7 +32,7 @@ import javax.swing.SwingUtilities
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class SatisfactionDialogTest {
+class SingleChoiceDialogTest {
 
   lateinit var disposable: Disposable
 
@@ -49,16 +49,16 @@ class SatisfactionDialogTest {
   @Suppress("UnstableApiUsage")
   @Test
   fun testOK() {
-    val result = Ref.create<SatisfactionDialog>()
-    val surveyLogger = Mockito.mock(SurveyLogger::class.java)
+    val result = Ref.create<SingleChoiceDialog>()
+    val logger = Mockito.mock(ChoiceLogger::class.java)
     SwingUtilities.invokeAndWait {
-      val satisfactionDialog = createSatisfactionDialog(surveyLogger)
-      result.set(satisfactionDialog)
+      val dialog = createDialog(logger)
+      result.set(dialog)
     }
-    val satisfactionDialog = result.get()
-    val content = getContent(satisfactionDialog)
+    val dialog = result.get()
+    val content = getContent(dialog)
     val radioButtons = UIUtil.findComponentsOfType(content, JRadioButton::class.java)
-    assertFalse(satisfactionDialog.isOKActionEnabled)
+    assertFalse(dialog.isOKActionEnabled)
     for (button in radioButtons) {
       assertFalse(button.isSelected)
     }
@@ -66,24 +66,24 @@ class SatisfactionDialogTest {
     val fakeUi = FakeUi(content)
     clickButton(fakeUi, radioButtons[0])
     assertTrue(radioButtons[0].isSelected)
-    assertTrue(satisfactionDialog.isOKActionEnabled)
+    assertTrue(dialog.isOKActionEnabled)
 
-    SwingUtilities.invokeAndWait { satisfactionDialog.performOKAction() }
-    verify(surveyLogger).log(0)
+    SwingUtilities.invokeAndWait { dialog.performOKAction() }
+    verify(logger).log(0)
   }
 
   @Test
   fun testCancel() {
-    val result = Ref.create<SatisfactionDialog>()
-    val surveyLogger = Mockito.mock(SurveyLogger::class.java)
+    val result = Ref.create<SingleChoiceDialog>()
+    val logger = Mockito.mock(ChoiceLogger::class.java)
     SwingUtilities.invokeAndWait {
-      val satisfactionDialog = createSatisfactionDialog(surveyLogger)
-      result.set(satisfactionDialog)
+      val dialog = createDialog(logger)
+      result.set(dialog)
     }
-    val satisfactionDialog = result.get()
-    val content = getContent(satisfactionDialog)
+    val dialog = result.get()
+    val content = getContent(dialog)
     val radioButtons = UIUtil.findComponentsOfType(content, JRadioButton::class.java)
-    assertFalse(satisfactionDialog.isOKActionEnabled)
+    assertFalse(dialog.isOKActionEnabled)
     for (button in radioButtons) {
       assertFalse(button.isSelected)
     }
@@ -91,24 +91,24 @@ class SatisfactionDialogTest {
     val fakeUi = FakeUi(content)
     clickButton(fakeUi, radioButtons[0])
     assertTrue(radioButtons[0].isSelected)
-    assertTrue(satisfactionDialog.isOKActionEnabled)
+    assertTrue(dialog.isOKActionEnabled)
 
-    SwingUtilities.invokeAndWait { satisfactionDialog.doCancelAction(null) }
-    verify(surveyLogger).cancel()
+    SwingUtilities.invokeAndWait { dialog.doCancelAction(null) }
+    verify(logger).cancel()
   }
 
-  private fun getContent(satisfactionDialog: SatisfactionDialog): JComponent {
-    val content = satisfactionDialog.content
+  private fun getContent(singleChoiceDialog: SingleChoiceDialog): JComponent {
+    val content = singleChoiceDialog.content
     content.isVisible = true
     content.size = Dimension(300, 400)
     content.preferredSize = Dimension(300, 400)
     return content
   }
 
-  private fun createSatisfactionDialog(logger: SurveyLogger): SatisfactionDialog {
-    val satisfactionDialog = SatisfactionDialog(DEFAULT_SATISFACTION_SURVEY, logger)
-    Disposer.register(disposable, satisfactionDialog.disposable)
-    return satisfactionDialog
+  private fun createDialog(logger: ChoiceLogger): SingleChoiceDialog {
+    val dialog = SingleChoiceDialog(DEFAULT_SATISFACTION_SURVEY, logger)
+    Disposer.register(disposable, dialog.disposable)
+    return dialog
   }
 
   private fun clickButton(fakeUi: FakeUi, button: JRadioButton) {
