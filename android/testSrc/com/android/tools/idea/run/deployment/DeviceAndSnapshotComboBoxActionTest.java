@@ -42,6 +42,7 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -90,6 +91,38 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Mockito.when(myEvent.getProject()).thenReturn(myRule.getProject());
     Mockito.when(myEvent.getPresentation()).thenReturn(myPresentation);
     Mockito.when(myEvent.getPlace()).thenReturn(ActionPlaces.MAIN_TOOLBAR);
+  }
+
+  @Test
+  public void setTargetSelectedWithComboBox() {
+    // Arrange
+    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(key)
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(Collections.singletonList(device)));
+
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setDevicesSelectedServiceGetInstance(project -> myDevicesSelectedService)
+      .setExecutionTargetServiceGetInstance(project -> myExecutionTargetService)
+      .build();
+
+    Project project = myRule.getProject();
+    Target target = new Target(key);
+
+    // Act
+    action.setTargetSelectedWithComboBox(project, target);
+
+    // Assert
+    assertEquals(Collections.singleton(target), action.getSelectedTargets(project));
+
+    Set<Key> keys = Collections.singleton(key);
+    Mockito.verify(myExecutionTargetService).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(keys, myDevicesGetter));
   }
 
   @Test
@@ -241,7 +274,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     action.update(myEvent);
 
     // Assert
-    assertEquals(pixel3XlApiQ, action.getSelectedDevice(myRule.getProject()));
+    assertEquals(Collections.singletonList(pixel3XlApiQ), action.getSelectedDevices(myRule.getProject()));
   }
 
   @Test

@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,6 +26,16 @@ final class Target {
 
   Target(@NotNull Key deviceKey) {
     myDeviceKey = deviceKey;
+  }
+
+  static @NotNull List<@NotNull Device> filterDevices(@NotNull Set<@NotNull Target> targets, @NotNull List<@NotNull Device> devices) {
+    Set<Key> keys = targets.stream()
+      .map(Target::getDeviceKey)
+      .collect(Collectors.toSet());
+
+    return devices.stream()
+      .filter(device -> device.hasKeyContainedBy(keys))
+      .collect(Collectors.toList());
   }
 
   @NotNull Key getDeviceKey() {
