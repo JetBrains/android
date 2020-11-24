@@ -53,9 +53,9 @@ java_import(
     name = "mockito",
     # do not sort: must match IML order
     jars = [
-        "//prebuilts/tools/common/m2/repository/org/mockito/mockito-core/3.0.0:mockito_files",
-        "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy/1.9.10:mockito_files",
-        "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy-agent/1.9.10:mockito_files",
+        "//prebuilts/tools/common/m2/repository/org/mockito/mockito-core/3.4.6:mockito_files",
+        "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy/1.10.13:mockito_files",
+        "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy-agent/1.10.13:mockito_files",
     ],
     visibility = ["//visibility:public"],
 )
