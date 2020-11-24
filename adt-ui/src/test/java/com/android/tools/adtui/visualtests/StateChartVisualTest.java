@@ -16,23 +16,31 @@
 
 package com.android.tools.adtui.visualtests;
 
-import com.android.tools.adtui.*;
+import com.android.tools.adtui.AnimatedComponent;
+import com.android.tools.adtui.AnimatedTimeRange;
+import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.chart.statechart.StateChart;
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.DefaultDataSeries;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.intellij.ui.JBColor;
-import gnu.trove.TIntArrayList;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ItemEvent;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
 
 public class StateChartVisualTest extends VisualTest {
 
@@ -64,10 +72,10 @@ public class StateChartVisualTest extends VisualTest {
   private StateChart<MockStrengthState> mRadioStateChart;
 
   @NotNull
-  private List<DefaultDataSeries<MockFruitState>> mNetworkDataEntries = new ArrayList<>();
+  private final List<DefaultDataSeries<MockFruitState>> mNetworkDataEntries = new ArrayList<>();
 
   @NotNull
-  private List<DefaultDataSeries<MockStrengthState>> mRadioDataEntries = new ArrayList<>();
+  private final List<DefaultDataSeries<MockStrengthState>> mRadioDataEntries = new ArrayList<>();
 
   private static EnumMap<MockFruitState, Color> getFruitStateColor() {
     EnumMap<MockFruitState, Color> colors = new EnumMap<>(MockFruitState.class);
@@ -144,8 +152,8 @@ public class StateChartVisualTest extends VisualTest {
         super.run();
         try {
           // Store off the last state to simulate the same preprocessing the DataStore does on each series.
-          TIntArrayList lastNetworkData = new TIntArrayList();
-          TIntArrayList lastRadioVariance = new TIntArrayList();
+          IntList lastNetworkData = new IntArrayList();
+          IntList lastRadioVariance = new IntArrayList();
           while (true) {
             long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
 
@@ -158,7 +166,7 @@ public class StateChartVisualTest extends VisualTest {
                 if(lastNetworkData.size() <= i) {
                   lastNetworkData.add(-1);
                 }
-                if (lastNetworkData.get(i) != index) {
+                if (lastNetworkData.getInt(i) != index) {
                   series.add(nowUs, MockFruitState.values()[index]);
                   networkChanged = true;
                   lastNetworkData.set(i, index);
@@ -178,7 +186,7 @@ public class StateChartVisualTest extends VisualTest {
                 if(lastRadioVariance.size() <= i) {
                   lastRadioVariance.add(-1);
                 }
-                if (lastRadioVariance.get(i) != index) {
+                if (lastRadioVariance.getInt(i) != index) {
                   series.add(nowUs, MockStrengthState.values()[index]);
                   radioChanged = true;
                   lastRadioVariance.set(i, index);

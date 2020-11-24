@@ -15,14 +15,14 @@
  */
 package com.android.tools.adtui.model.formatter;
 
-import gnu.trove.TIntArrayList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.jetbrains.annotations.NotNull;
 
 public final class UserCounterAxisFormatter extends BaseAxisFormatter {
-
   // TODO: (b/140522169) Base default interval based on how many events users have registered.
   public static final int DEFAULT_MAJOR_INTERVAL = 2;
-  public static String[] LABELS = {"Light", "Medium", "Heavy"};
+  public static final String[] LABELS = {"Light", "Medium", "Heavy"};
   // Default formatter for the User Counter Axis value.
   public static final UserCounterAxisFormatter DEFAULT = new UserCounterAxisFormatter(1, LABELS.length, 1);
 
@@ -76,7 +76,7 @@ public final class UserCounterAxisFormatter extends BaseAxisFormatter {
 
   @NotNull
   @Override
-  protected TIntArrayList getUnitBaseFactors(int index) {
-    return new TIntArrayList(0);
+  protected IntList getUnitBaseFactors(int index) {
+    return new IntArrayList(0);
   }
 }

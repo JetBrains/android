@@ -20,7 +20,6 @@
     <orderEntry type="module" module-name="intellij.platform.uast" exported="" />
     <orderEntry type="module" module-name="intellij.java.uast" exported="" />
     <orderEntry type="module" module-name="intellij.android.kotlin-dependencies" exported="" scope="PROVIDED" />
-    <orderEntry type="library" exported="" name="Trove4j" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-lint-api" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint-api:27.0.0.0" />
