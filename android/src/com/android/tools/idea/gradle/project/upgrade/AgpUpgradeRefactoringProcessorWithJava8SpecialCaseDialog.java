@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.upgrade;
 import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
 import static com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT;
 import static com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT;
+import static com.android.tools.idea.gradle.project.upgrade.AgpUpgradeRefactoringProcessorKt.notifyCancelledUpgrade;
 import static com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT;
 import static com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT;
 import static com.intellij.ide.BrowserUtil.browse;
@@ -105,6 +106,9 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
             });
             if (runProcessor) {
               DumbService.getInstance(myProcessor.getProject()).smartInvokeLater(() -> myProcessor.run());
+            }
+            else {
+              notifyCancelledUpgrade(myProcessor.getProject(), myProcessor);
             }
         }
       };

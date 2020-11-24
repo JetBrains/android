@@ -87,6 +87,7 @@ import com.intellij.lang.properties.psi.Property
 import com.intellij.navigation.ItemPresentation
 import com.intellij.navigation.NavigationItem
 import com.intellij.navigation.PsiElementNavigationItem
+import com.intellij.notification.NotificationListener
 import com.intellij.openapi.actionSystem.TypeSafeDataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ServiceManager
@@ -576,6 +577,20 @@ class AgpUpgradeRefactoringProcessor(
   }
 }
 
+internal fun notifyCancelledUpgrade(project: Project, processor: AgpUpgradeRefactoringProcessor) {
+  val current = processor.current
+  val new = processor.new
+  val listener = NotificationListener { notification, _ ->
+    notification.expire()
+    ApplicationManager.getApplication().executeOnPooledThread {
+      showAndInvokeAgpUpgradeRefactoringProcessor(project, current, new)
+    }
+  }
+  val notification = ProjectUpgradeNotification(
+    "Android Gradle Plugin Upgrade Cancelled", "<a href=\"resume\">Resume upgrade</a>.", listener)
+  notification.notify(project)
+}
+
 /**
  * This function is a default entry point to the AGP Upgrade Assistant, responsible for showing suitable UI for gathering user input
  * to the process, and then running the processor under that user input's direction.
@@ -585,6 +600,11 @@ internal fun showAndInvokeAgpUpgradeRefactoringProcessor(project: Project, curre
   val runProcessor = showAndGetAgpUpgradeDialog(processor)
   if (runProcessor) {
     DumbService.getInstance(project).smartInvokeLater { processor.run() }
+  }
+  else {
+    // TODO(xof): This adds a notification when the user selects Cancel from the dialog box, but not when they select Cancel from the
+    //  refactoring preview.
+    notifyCancelledUpgrade(project, processor)
   }
 }
 
