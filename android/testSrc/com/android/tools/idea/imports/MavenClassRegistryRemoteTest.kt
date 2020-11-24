@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.imports
 
-import com.android.ide.common.repository.NetworkCache
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import java.io.InputStream
 
 /**
  * Tests for [MavenClassRegistryRemote].
@@ -178,14 +176,5 @@ class MavenClassRegistryRemoteTest {
     val mavenClassRegistry = MavenClassRegistryRemote(fakeGMavenIndexRepository)
 
     assertThat(mavenClassRegistry.lookup).isEmpty()
-  }
-
-  private class FakeGMavenIndexRepository(
-    val data: String
-  ) : GMavenIndexRepository, NetworkCache("https://example.com/", GMAVEN_INDEX_CACHE_DIR_KEY, null) {
-    override fun readUrlData(url: String, timeout: Int): ByteArray? = data.toByteArray()
-    override fun error(throwable: Throwable, message: String?) = throw throwable
-    override fun readDefaultData(relative: String) = data.byteInputStream()
-    override fun fetchIndex(relative: String): InputStream? = findData(relative)
   }
 }

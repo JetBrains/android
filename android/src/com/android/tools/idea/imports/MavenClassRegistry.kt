@@ -30,15 +30,9 @@ interface MavenClassRegistry {
   data class Library(val artifact: String, val packageName: String)
 
   /**
-   * Given a simple class name, returns the likely groupid:artifactid for the maven.google.com
-   * artifact containing that class.
+   * Given a class name, returns the likely collection of [Library] objects for the following quick fixes purposes.
    */
-  fun findArtifact(className: String): String?
-
-  /**
-   * Given a simple class name, returns the likely fully qualified class name for the subsequent import purposes.
-   */
-  fun findImport(className: String): String?
+  fun findLibraryData(className: String, useAndroidX: Boolean): Collection<Library>
 
   /**
    * For the given runtime artifact, if it also requires an annotation processor, provide it

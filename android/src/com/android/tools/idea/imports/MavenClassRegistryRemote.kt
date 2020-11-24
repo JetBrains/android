@@ -16,11 +16,8 @@
 package com.android.tools.idea.imports
 
 import com.google.gson.stream.JsonReader
-import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.kotlin.name.FqName
-import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
@@ -38,15 +35,25 @@ class MavenClassRegistryRemote(val indexRepository: GMavenIndexRepository) : Mav
     generateLookup()
   }
 
-  override fun findArtifact(className: String): String? {
-    // TODO: Multiple artifacts associated to one class name is not handled.
-    return lookup[className]?.firstOrNull()?.artifact
-  }
+  /**
+   * Given a class name, returns the likely collection of [MavenClassRegistry.Library] objects for the maven.google.com
+   * artifacts containing that class.
+   *
+   * Here, the passed in [className] can be either short class name or fully qualified class name.
+   *
+   * This implementation only returns results of index data from [GMavenIndexRepository].
+   */
+  override fun findLibraryData(className: String, useAndroidX: Boolean): Collection<MavenClassRegistry.Library> {
+    if (!useAndroidX) return emptyList()
 
-  override fun findImport(className: String): String? {
-    // TODO: Multiple artifacts associated to one class name is not handled.
-    val data = lookup[className]?.firstOrNull() ?: return null
-    return "${data.packageName}.$className"
+    val index = className.lastIndexOf('.')
+    val shortName = className.substring(index + 1)
+    val packageName = if (index == -1) "" else className.substring(0, index)
+
+    val foundArtifacts = lookup[shortName] ?: return emptyList()
+    if (packageName.isEmpty()) return foundArtifacts
+
+    return foundArtifacts.filter { it.packageName == packageName }
   }
 
   private fun generateLookup(): Map<String, List<MavenClassRegistry.Library>> {
@@ -183,8 +190,7 @@ data class GMavenArtifactIndex(
  * A single object of [MavenClassRegistryRemote] which is initialized in lazy way.
  */
 val mavenClassRegistryRemote: MavenClassRegistryRemote by lazy {
-  val cacheDir = File(FileUtil.toCanonicalPath(PathManager.getSystemPath()), GMAVEN_INDEX_CACHE_DIR_KEY)
-  MavenClassRegistryRemote(GMavenIndexRepositoryImpl(cacheDir))
+  MavenClassRegistryRemote(GMavenIndexRepository.getInstance())
 }
 
 /**

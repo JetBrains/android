@@ -31,7 +31,6 @@ class AndroidMavenImportFix(val className: String, val artifact: String) : Local
   override fun applyFix(project: Project, descriptor: ProblemDescriptor) {
     val element = descriptor.endElement
     val action = AndroidMavenImportIntentionAction()
-    val artifact = action.findArtifact(project, element) ?: return
     action.perform(project, element, artifact, importSymbol = null, sync = true)
   }
 }
