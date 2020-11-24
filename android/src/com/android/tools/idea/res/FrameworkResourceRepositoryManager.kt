@@ -91,12 +91,11 @@ class FrameworkResourceRepositoryManager {
    * @return the repository of Android framework resources, or null if not loaded yet
    */
   fun getExistingFrameworkResources(
-    resourceDirectoryOrFile: File,
+    resourceDirectoryOrFile: Path,
     useCompiled9Patches: Boolean,
     languages: Set<String>
   ): FrameworkResourceRepository? {
-    val path = resourceDirectoryOrFile.toPath()
-    val cacheKey = CacheKey(path, useCompiled9Patches)
+    val cacheKey = CacheKey(resourceDirectoryOrFile, useCompiled9Patches)
     val repository = cache[cacheKey] ?: return null
     return if (repository.containsLanguages(languages)) repository else null
   }

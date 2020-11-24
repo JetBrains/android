@@ -15,19 +15,12 @@
  */
 package com.android.tools.idea.sdk.install.patch;
 
-import com.android.repository.api.*;
-import com.android.repository.impl.meta.SchemaModuleUtil;
+import com.android.repository.api.ProgressIndicator;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.MockFileOp;
-import com.google.common.collect.ImmutableList;
-import com.intellij.util.PathUtil;
-import java.awt.*;
-import java.io.ByteArrayInputStream;
+import java.awt.Component;
 import java.io.File;
-import java.io.InputStream;
-import javax.xml.bind.JAXBException;
 import junit.framework.TestCase;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link PatchInstallerFactory}.
@@ -48,7 +41,7 @@ public class PatchInstallerTest extends TestCase {
                            "the source to which the diff will be applied");
     String patchFile = new File("/patchfile").getAbsolutePath();
     ourFileOp.recordExistingFile(patchFile, "the patch contents");
-    PatchRunner runner = new PatchRunner(new File("dummy"), FakeRunner.class, FakeUIBase.class, FakeUI.class, FakeGenerator.class);
+    PatchRunner runner = new PatchRunner(ourFileOp.toPath("dummy"), FakeRunner.class, FakeUIBase.class, FakeUI.class, FakeGenerator.class);
     boolean result = runner.run(new File(localPackageLocation), new File(patchFile), progress);
     progress.assertNoErrorsOrWarnings();
     assertTrue(result);
