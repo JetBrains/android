@@ -131,7 +131,7 @@ public class PatchInstallerUtil {
     if (patcherPackage == null) {
       return false;
     }
-    PatchRunner patcher = new PatchRunner.DefaultFactory().getPatchRunner(patcherPackage, progress, fop);
+    PatchRunner patcher = new PatchRunner.DefaultFactory().getPatchRunner(patcherPackage, progress);
     if (patcher == null) {
       return false;
     }
@@ -202,7 +202,7 @@ public class PatchInstallerUtil {
         progress.logInfo("Cancelled");
       }
       else {
-        if (setupPatchDir(patchFile, patchRunner.getPatcherJar(), op.getPackage(), op.getRepoManager(), fop, progress)) {
+        if (setupPatchDir(patchFile, fop.toFile(patchRunner.getPatcherJar()), op.getPackage(), op.getRepoManager(), fop, progress)) {
           if (result == 1 && restartable) {
             progress.logInfo("Installation will continue after restart");
           }
@@ -258,7 +258,7 @@ public class PatchInstallerUtil {
     if (patcher == null) {
       return null;
     }
-    PatchRunner runner = new PatchRunner.DefaultFactory().getPatchRunner(patcher, progress, fop);
+    PatchRunner runner = new PatchRunner.DefaultFactory().getPatchRunner(patcher, progress);
     if (runner == null) {
       return null;
     }

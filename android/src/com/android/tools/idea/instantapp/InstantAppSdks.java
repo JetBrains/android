@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.instantapp;
 
-import com.android.repository.io.FileOp;
-import com.google.common.annotations.VisibleForTesting;
+import static com.android.SdkConstants.FD_EXTRAS;
+import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
+
 import com.android.repository.api.LocalPackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.analytics.AnalyticsSettings;
@@ -26,18 +27,16 @@ import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.android.instantapps.sdk.api.ExtendedSdk;
 import com.google.android.instantapps.sdk.api.SdkLoader;
 import com.google.android.instantapps.sdk.api.TelemetryManager;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.ui.Messages;
+import java.io.File;
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-
-import static com.android.SdkConstants.FD_EXTRAS;
-import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
 
 /**
  * Responsible for providing InstantApp SDK.
@@ -65,13 +64,12 @@ public class InstantAppSdks {
    * If the SDK is missing, it will trigger an install. Failing that, it will throw an exception.
    */
   @NotNull
-  public File getOrInstallInstantAppSdk() {
+  public Path getOrInstallInstantAppSdk() {
     LocalPackage localPackage = getInstantAppLocalPackage();
-    FileOp fop = AndroidSdks.getInstance().tryToChooseSdkHandler().getFileOp();
     if (localPackage == null) {
-      return fop.toFile(ensureSdkInstalled().getLocation());
+      return ensureSdkInstalled().getLocation();
     }
-    return fop.toFile(localPackage.getLocation());
+    return localPackage.getLocation();
   }
 
   @Nullable
@@ -125,9 +123,9 @@ public class InstantAppSdks {
   @VisibleForTesting
   ExtendedSdk loadLibrary(boolean attemptUpgrades) {
     if (cachedSdkLib == null) {
-      File sdkRoot = getOrInstallInstantAppSdk();
+      Path sdkRoot = getOrInstallInstantAppSdk();
 
-      File jar = sdkRoot.toPath().resolve(SDK_LIB_JAR_PATH).toFile();
+      File jar = sdkRoot.resolve(SDK_LIB_JAR_PATH).toFile();
 
       if (!jar.exists()) {
         // This SDK is too old and is lacking the library JAR

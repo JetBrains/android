@@ -115,7 +115,6 @@ import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -163,7 +162,7 @@ public class AvdManagerConnection {
     new SystemImageUpdateDependency(MNC_API_LEVEL_23, GOOGLE_APIS_TAG, 12),
   };
 
-  private static final Map<File, AvdManagerConnection> ourCache = ContainerUtil.createWeakMap();
+  private static final Map<Path, AvdManagerConnection> ourCache = ContainerUtil.createWeakMap();
   private static long ourMemorySize = -1;
 
   private static Function<AndroidSdkHandler, AvdManagerConnection> ourConnectionFactory = AvdManagerConnection::new;
@@ -191,7 +190,7 @@ public class AvdManagerConnection {
 
   @NotNull
   public synchronized static AvdManagerConnection getAvdManagerConnection(@NotNull AndroidSdkHandler handler) {
-    File sdkPath = handler.getFileOp().toFile(handler.getLocation());
+    Path sdkPath = handler.getLocation();
     if (!ourCache.containsKey(sdkPath)) {
       ourCache.put(sdkPath, ourConnectionFactory.apply(handler));
     }
@@ -430,8 +429,7 @@ public class AvdManagerConnection {
 
     String skinPath = info.getProperties().get(AVD_INI_SKIN_PATH);
     if (skinPath != null) {
-      FileSystem fileSystem =
-        myFileOp instanceof FileOp ? ((FileOp)myFileOp).getFileSystem() : FileSystems.getDefault();
+      FileSystem fileSystem = myFileOp.getFileSystem();
 
       DeviceSkinUpdater.updateSkins(fileSystem.getPath(skinPath).getFileName(), null, fileSystem);
     }
@@ -889,7 +887,8 @@ public class AvdManagerConnection {
     String skinName = null;
 
     if (skinFolder == null && isCircular) {
-      skinFolder = myFileOp.toPath(getRoundSkin(systemImageDescription));
+      File skin = getRoundSkin(systemImageDescription);
+      skinFolder = skin == null ? null : myFileOp.toPath(skin);
     }
     if (skinFolder != null && FileUtil.filesEqual(myFileOp.toFile(skinFolder), AvdWizardUtils.NO_SKIN)) {
       skinFolder = null;

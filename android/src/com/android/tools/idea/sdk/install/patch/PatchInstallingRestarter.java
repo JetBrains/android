@@ -106,7 +106,7 @@ public class PatchInstallingRestarter {
         else {
           // The patch is already installed, or was cancelled.
 
-          String relativePath = FileOpUtils.makeRelative(androidSdkPath, installDir, myFileOp);
+          String relativePath = FileOpUtils.makeRelative(androidSdkPath, installDir);
           // Use the old mechanism to get the version, since it's actually part of the package itself. Thus we can tell if the patch
           // has already been applied.
           Revision rev = AndroidBuildCommonUtils.parsePackageRevision(androidSdkPath.getPath(), relativePath);
