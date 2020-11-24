@@ -127,7 +127,8 @@ fun recommendPluginUpgrade(project: Project) {
       }
     }
 
-    val notification = ProjectUpgradeNotification(listener)
+    val notification = ProjectUpgradeNotification(
+      "Plugin Update Recommended", IdeBundle.message("updates.ready.message", "Android Gradle Plugin"), listener)
     notification.notify(project)
   }
 }
@@ -223,13 +224,8 @@ fun shouldRecommendUpgrade(current: GradleVersion, recommended: GradleVersion) :
   return current < recommended
 }
 
-@VisibleForTesting
-class ProjectUpgradeNotification(listener: NotificationListener)
-  : Notification(AGP_UPGRADE_NOTIFICATION_GROUP.displayId,
-                 "Plugin Update Recommended",
-                 IdeBundle.message("updates.ready.message", "Android Gradle Plugin"),
-                 NotificationType.INFORMATION,
-                 listener)
+class ProjectUpgradeNotification(title: String, content: String, listener: NotificationListener)
+  : Notification(AGP_UPGRADE_NOTIFICATION_GROUP.displayId, title, content, NotificationType.INFORMATION, listener)
 
 fun expireProjectUpgradeNotifications(project: Project?) {
   NotificationsManager
