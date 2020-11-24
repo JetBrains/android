@@ -16,7 +16,7 @@
 package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.Result
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.res.FrameworkResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -55,13 +55,13 @@ class RenderComplexPerfgateTest {
   fun setUp() {
     RenderTestUtil.beforeRenderTestCase()
 
-    val baseTestPath = TestUtils.getWorkspaceFile("tools/adt/idea/designer-perf-tests/testData").path
-    gradleRule.fixture.testDataPath = baseTestPath
+    val baseTestPath = resolveWorkspacePath("tools/adt/idea/designer-perf-tests/testData")
+    gradleRule.fixture.testDataPath = baseTestPath.toString()
     gradleRule.load(PERFGATE_COMPLEX_LAYOUT)
     gradleRule.requestSyncAndWait()
     facet = gradleRule.androidFacet(":app")
-    val xmlPath = "$baseTestPath/projects/perfgateComplexLayout/app/src/main/res/layout/activity_main.xml"
-    layoutFile = LocalFileSystem.getInstance().findFileByPath(xmlPath)!!
+    val xmlPath = baseTestPath.resolve("projects/perfgateComplexLayout/app/src/main/res/layout/activity_main.xml")
+    layoutFile = LocalFileSystem.getInstance().findFileByPath(xmlPath.toString())!!
     layoutConfiguration = RenderTestUtil.getConfiguration(facet.module, layoutFile)
   }
 

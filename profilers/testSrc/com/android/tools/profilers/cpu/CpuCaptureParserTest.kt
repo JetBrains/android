@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeFeatureTracker
@@ -28,7 +28,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
-import java.lang.IllegalArgumentException
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
@@ -385,7 +384,7 @@ class CpuCaptureParserTest {
   fun parsingDirectoriesCompletesExceptionally() {
     val parser = CpuCaptureParser(FakeIdeProfilerServices())
 
-    val dir = TestUtils.getWorkspaceFile("")
+    val dir = resolveWorkspacePath("").toFile()
     assertThat(dir.exists()).isTrue()
 
     val futureCapture = parser.parseForTest(dir)

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.gradle
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.compose.preview.TEST_DATA_PATH
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.rendering.NoSecurityManagerRenderService
@@ -46,7 +46,7 @@ private class ComposeGradleProjectRuleImpl(private val projectPath: String,
     RenderService.shutdownRenderExecutor(5)
     RenderService.initializeRenderExecutor()
     RenderService.setForTesting(projectRule.project, NoSecurityManagerRenderService(projectRule.project))
-    projectRule.fixture.testDataPath = TestUtils.getWorkspaceFile(TEST_DATA_PATH).path
+    projectRule.fixture.testDataPath = resolveWorkspacePath(TEST_DATA_PATH).toString()
     projectRule.load(projectPath, kotlinVersion)
 
     projectRule.invokeTasks("compileDebugSources").apply {

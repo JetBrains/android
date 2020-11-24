@@ -34,6 +34,7 @@ import com.android.sdklib.devices.State
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.SystemImageDescription
 import com.android.utils.FileUtils
@@ -43,6 +44,7 @@ import org.junit.rules.ExternalResource
 import java.io.File
 import java.io.IOException
 import java.net.ConnectException
+import java.nio.file.Files
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
@@ -176,19 +178,14 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
    * Pre-condition: running within Bazel
    */
   private fun copyEmuAndImages(sdkLocation: File) {
-    val workspaceRoot = TestUtils.getWorkspaceRoot()
-    val sysImg = File(workspaceRoot, "external/externsdk/system-images")
-    val emu = File(workspaceRoot, "external/externsdk/emulator")
+    val sysImg = resolveWorkspacePath("external/externsdk/system-images")
+    val emu = resolveWorkspacePath("external/externsdk/emulator")
 
-    if (!sysImg.exists()
-      || !sysImg.isDirectory
-      || !emu.exists()
-      || !emu.isDirectory) {
-      Assert.fail("The system image and emulator directories are not available. Check the workspace!")
-    }
+    Assert.assertTrue(Files.isDirectory(sysImg))
+    Assert.assertTrue(Files.isDirectory(emu))
 
-    FileUtils.copyDirectoryToDirectory(sysImg, sdkLocation)
-    FileUtils.copyDirectoryToDirectory(emu, sdkLocation)
+    FileUtils.copyDirectoryToDirectory(sysImg.toFile(), sdkLocation)
+    FileUtils.copyDirectoryToDirectory(emu.toFile(), sdkLocation)
   }
 
   private fun createAvd(sdkManager: AndroidSdkHandler, avdManager: AvdManagerConnection): AvdInfo? {

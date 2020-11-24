@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.DragAndDropList
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
@@ -106,7 +106,7 @@ class CpuThreadsViewTest {
       stage,
       cpuService,
       transportService,
-      CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH)))
+      CpuProfilerTestUtils.traceFileToByteString(resolveWorkspacePath(CpuProfilerUITestUtils.ATRACE_TRACE_PATH).toFile()))
     stage.timeline.viewRange.set(stage.capture!!.range)
 
     // Find our thread list.

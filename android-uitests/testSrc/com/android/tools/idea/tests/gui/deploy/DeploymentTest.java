@@ -300,7 +300,8 @@ public class DeploymentTest {
               return;
             }
 
-            VirtualFile apkFileToCopy = VfsUtil.findFileByIoFile(TestUtils.getWorkspaceFile(new File(APKS_LOCATION, apk.myFileName).getPath()), true);
+            VirtualFile apkFileToCopy =
+                VfsUtil.findFile(TestUtils.resolveWorkspacePath(APKS_LOCATION + '/' + apk.myFileName), true);
             if (apkFileToReplace == null || !apkFileToReplace.exists()) {
               VirtualFile targetApkCopy = VfsUtilCore.copyFile(this, apkFileToCopy, baseDir, DEPLOY_APK_NAME);
               assertThat(targetApkCopy.isValid()).isTrue();

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.io.DiskFileService
+import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -26,7 +26,7 @@ class AppInspectorJarPathsTest {
 
   @Test
   fun findJars() {
-    val testData = TestUtils.getWorkspaceFile("tools/adt/idea/app-inspection/ide/testData").toPath()
+    val testData = resolveWorkspacePath("tools/adt/idea/app-inspection/ide/testData")
     val fileService = object : DiskFileService() {
       override val cacheRoot = testData.resolve("cache")
       override val tmpRoot = testData.resolve("tmp")

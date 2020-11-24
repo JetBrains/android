@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -58,7 +58,7 @@ class CpuCaptureStageCpuUsageTooltipViewTest {
     profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
     val profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     captureStage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
-                                          TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.VALID_TRACE_PATH), 123L)
+                                          resolveWorkspacePath(CpuProfilerUITestUtils.VALID_TRACE_PATH).toFile(), 123L)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     profilers.stage = captureStage
     val stageView = profilersView.stageView as CpuCaptureStageView

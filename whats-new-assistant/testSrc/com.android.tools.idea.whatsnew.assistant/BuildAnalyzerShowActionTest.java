@@ -18,11 +18,8 @@ package com.android.tools.idea.whatsnew.assistant;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.android.build.attribution.BuildAttributionStateReporter;
@@ -40,9 +37,6 @@ import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.common.truth.Truth;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowId;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.ServiceContainerUtil;
@@ -50,7 +44,6 @@ import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.Topic;
 import com.intellij.util.ui.UIUtil;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -81,7 +74,7 @@ public final class BuildAnalyzerShowActionTest {
   private GradleBuildInvoker myBuildInvoker;
 
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
     myBundleCreator = AssistantBundleCreator.EP_NAME.findExtension(WhatsNewBundleCreator.class);
 
     WhatsNewURLProvider mockUrlProvider = mock(WhatsNewURLProvider.class);
@@ -94,8 +87,8 @@ public final class BuildAnalyzerShowActionTest {
       }
     });
 
-    File tmpDir = TestUtils.createTempDirDeletedOnExit();
-    Path localPath = tmpDir.toPath().resolve("local-4.0.0.xml");
+    Path tmpDir = TestUtils.createTempDirDeletedOnExit();
+    Path localPath = tmpDir.resolve("local-4.0.0.xml");
     when(mockUrlProvider.getLocalConfig(REVISION)).thenReturn(localPath);
 
     myBundleCreator.setURLProvider(mockUrlProvider);

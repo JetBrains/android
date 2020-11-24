@@ -55,7 +55,7 @@ public class DynamicFeaturesParametersTest {
 
   @Before
   public void setUp() throws Exception {
-    projectRule.getFixture().setTestDataPath(TestUtils.getWorkspaceFile("tools/adt/idea/android/testData").getPath());
+    projectRule.getFixture().setTestDataPath(TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString());
 
     StudioFlags.SUPPORT_FEATURE_ON_FEATURE_DEPS.override(featureOnFeatureFlagEnabled);
   }

@@ -249,7 +249,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
       return null;
     });
 
-    myTestDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/gradle-dsl/testData/parser").getPath();
+    myTestDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/gradle-dsl/testData/parser").toString();
   }
 
   @NotNull

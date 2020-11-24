@@ -21,8 +21,8 @@ import com.android.SdkConstants.ATTR_TEXT_COLOR
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
-import com.android.testutils.TestUtils
 import com.android.testutils.ImageDiffUtil
+import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.swing.FakeUi
@@ -58,7 +58,6 @@ import java.awt.Font
 import java.awt.event.ActionEvent
 import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
-import java.io.File
 import javax.swing.JComponent
 import javax.swing.LookAndFeel
 import javax.swing.UIManager
@@ -192,7 +191,7 @@ class ResolutionElementEditorTest {
     }
     val platform = SystemInfo.OS_NAME.replace(' ', '_')
     val filename = "$TEST_DATA_PATH/testResolutionEditorPaint$expected$platform.png"
-    ImageDiffUtil.assertImageSimilar(File(TestUtils.getWorkspaceRoot(), filename), generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve(filename), generatedImage, DIFF_THRESHOLD)
   }
 
   private fun updateSize(component: Component) {

@@ -1,11 +1,13 @@
 package com.android.tools.idea
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.WindowDeviationAnalyzer
+//import com.google.common.io.Files
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
+import java.nio.file.Files
 import java.util.zip.ZipFile
 
 /**
@@ -40,12 +42,12 @@ class AndroidStudioBundleSizeTest {
           .build())
       .build()
 
-    val plugins = TestUtils.getWorkspaceFile("tools/adt/idea/studio/android-studio.plugin.lst").readLines().toSet();
+    val plugins = Files.readAllLines(resolveWorkspacePath("tools/adt/idea/studio/android-studio.plugin.lst")).toSet();
     val pluginRegex = Regex("(android-studio/plugins/|Android Studio.*\\.app/Contents/plugins/)([^/]+)/.*")
     val platforms = listOf("win", "mac", "linux")
 
     platforms.map { platform -> async {
-      val zipFile = TestUtils.getWorkspaceFile("tools/adt/idea/studio/android-studio.$platform.zip")
+      val zipFile = resolveWorkspacePath("tools/adt/idea/studio/android-studio.$platform.zip").toFile()
       var files: Long = 0
       val totalSize = Size(0, 0)
       val platformSize = Size(0, 0)

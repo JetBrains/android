@@ -89,7 +89,7 @@ public class CaptureNodeModelRendererVisualTest extends VisualTest {
 
   private static CaptureNode parseTraceAndGetHNode(String traceFile, String nodeName,
                                                    Cpu.CpuTraceType profilerType) {
-    File file = TestUtils.getWorkspaceFile(TEST_RESOURCE_DIR + traceFile);
+    File file = TestUtils.resolveWorkspacePath(TEST_RESOURCE_DIR + traceFile).toFile();
     TraceParser parser;
     int traceId = 20;
     if (profilerType == Cpu.CpuTraceType.ART) {

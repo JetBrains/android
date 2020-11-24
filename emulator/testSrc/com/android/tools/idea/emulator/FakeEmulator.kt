@@ -37,7 +37,7 @@ import com.android.emulator.control.ThemingStyle
 import com.android.emulator.control.UiControllerGrpc
 import com.android.emulator.control.VmRunState
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.ImageUtils.createDipImage
 import com.android.tools.adtui.ImageUtils.rotateByQuadrants
 import com.android.tools.idea.protobuf.ByteString
@@ -882,7 +882,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
     @JvmStatic
     fun getSkinFolder(skinName: String): Path {
-      return TestUtils.getWorkspaceRoot().toPath().resolve("tools/adt/idea/artwork/resources/device-art-resources/${skinName}")
+      return getWorkspaceRoot().resolve("tools/adt/idea/artwork/resources/device-art-resources/${skinName}")
     }
 
     @JvmStatic

@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import static com.android.testutils.TestUtils.resolveWorkspacePath;
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildClassSetWithName;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -22,7 +23,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import com.android.testutils.TestUtils;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
@@ -43,10 +43,10 @@ import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.adapters.instancefilters.ActivityFragmentLeakInstanceFilter;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.google.common.truth.Truth;
-import java.io.File;
-import java.io.FileInputStream;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -210,9 +210,9 @@ public class HeapDumpCaptureObjectTest {
                                 dumpInfo, null, myIdeProfilerServices.getFeatureTracker(),
                                 myStage.getStudioProfilers().getIdeServices());
 
-    File hprof = TestUtils.getWorkspaceFile("tools/adt/idea/profilers/testData/hprofs/displayingbitmaps_leakedActivity.hprof");
-    FileInputStream inputStream = new FileInputStream(hprof);
-    MappedByteBuffer buffer = inputStream.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, inputStream.getChannel().size());
+    Path hprof = resolveWorkspacePath("tools/adt/idea/profilers/testData/hprofs/displayingbitmaps_leakedActivity.hprof");
+    FileChannel fileChannel = FileChannel.open(hprof, StandardOpenOption.READ);
+    MappedByteBuffer buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size());
     buffer.load();
 
     myTransportService.addFile(Long.toString(0), ByteString.copyFrom(buffer));
