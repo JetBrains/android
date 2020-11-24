@@ -17,11 +17,15 @@ package com.android.tools.idea.imports
 
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.NetworkCache
+import com.android.tools.idea.ui.GuiTestingService
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.io.HttpRequests
-import java.io.File
 import java.io.InputStream
 import java.net.URL
+import java.nio.file.Path
+import java.nio.file.Paths
 
 
 /** Key used in cache directories to locate the gmaven.index network cache. */
@@ -31,7 +35,7 @@ private const val BASE_URL = "https://dl.google.com/android/studio/gmaven/index/
 /**
  * An implementation of [GMavenIndexRepository] to provide data about the GMaven indices on [BASE_URL].
  */
-class GMavenIndexRepositoryImpl(cacheDir: File?) : GMavenIndexRepository, NetworkCache(BASE_URL, GMAVEN_INDEX_CACHE_DIR_KEY, cacheDir) {
+class GMavenIndexRepositoryImpl : GMavenIndexRepository, NetworkCache(BASE_URL, GMAVEN_INDEX_CACHE_DIR_KEY, getCacheDir()?.toFile()) {
   /**
    * Reads the data by given relative URL to the base URL.
    *
@@ -58,12 +62,9 @@ class GMavenIndexRepositoryImpl(cacheDir: File?) : GMavenIndexRepository, Networ
   }
 }
 
-/**
- * Provides service to fetch GMaven index.
- */
-interface GMavenIndexRepository {
-  /**
-   * Reads the data by given relative URL to the base URL.
-   */
-  fun fetchIndex(relative: String): InputStream?
+private fun getCacheDir(): Path? {
+  val isTestMode = ApplicationManager.getApplication().isUnitTestMode || GuiTestingService.getInstance().isGuiTestingMode
+  if (isTestMode) return null
+
+  return Paths.get(PathManager.getSystemPath(), GMAVEN_INDEX_CACHE_DIR_KEY)
 }

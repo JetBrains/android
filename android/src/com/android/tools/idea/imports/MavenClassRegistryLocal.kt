@@ -15,40 +15,48 @@
  */
 package com.android.tools.idea.imports
 
+import com.android.support.AndroidxNameUtils
+
 /**
  *  Lookup from key class names to well known maven.google.com artifacts.
  */
 object MavenClassRegistryLocal : MavenClassRegistry {
+
   /**
-   * Given a simple class name, return the likely groupid:artifactid for the maven.google.com
-   * artifact containing that class.
+   * Given a class name, returns the likely collection of [MavenClassRegistry.Library] objects for the maven.google.com
+   * artifacts containing that class.
    *
-   * This implementation only returns results for a few important classes, not an exhaustive search
-   * from a full index.
+   * Here, the passed in [className] can be either short class name or fully qualified class name.
    *
-   * NOTE: This MavenClassRegistry.Library should be returning the pre-AndroidX MavenClassRegistry.Library names when applicable; the caller is
-   * responsible for mapping this to the corresponding AndroidX MavenClassRegistry.Library artifact if the project is
-   * using it. (The reason for this is practical: we have an artifact map to map forwards, not backwards.)
+   * This implementation only returns results for a few important classes, not an exhaustive search from a full index.
+   *
+   * NOTE: This MavenClassRegistry.Library should be returning the pre-AndroidX MavenClassRegistry.Library names when
+   * applicable; the caller is responsible for mapping this to the corresponding AndroidX [MavenClassRegistry.Library]
+   * artifact if the project is using it. (The reason for this is practical: we have an artifact map to map forwards,
+   * not backwards.)
    */
-  override fun findArtifact(className: String): String? {
-    return findArtifactData(className)?.artifact
-  }
-
-  override fun findImport(className: String): String? {
-    val data = findArtifactData(className) ?: return null
-    return "${data.packageName}.$className"
-  }
-
-  private fun findArtifactData(className: String): MavenClassRegistry.Library? {
+  override fun findLibraryData(className: String, useAndroidX: Boolean): Collection<MavenClassRegistry.Library> {
     val index = className.lastIndexOf('.')
-    val symbol = if (index == -1) {
-      className
+    val shortName = className.substring(index + 1)
+    val packageName = if (index == -1) "" else className.substring(0, index)
+
+    val foundArtifact = findLocalArtifactData(shortName) ?: return emptyList()
+    return if (packageName.isEmpty() ||
+               foundArtifact.packageName == packageName ||
+               checkAndroidX(className, "${foundArtifact.packageName}.${shortName}")) {
+      listOf(foundArtifact)
     }
     else {
-      className.substring(index + 1)
+      emptyList()
     }
+  }
 
-    return when (symbol) {
+  private fun checkAndroidX(className: String, preAndroidXClassName: String): Boolean {
+    return AndroidxNameUtils.getNewName(preAndroidXClassName) == className
+  }
+
+  private fun findLocalArtifactData(className: String): MavenClassRegistry.Library? {
+    return when (className) {
       "Nullable",
       "NonNull" ->
         // In AndroidX this is androidx.annotation
