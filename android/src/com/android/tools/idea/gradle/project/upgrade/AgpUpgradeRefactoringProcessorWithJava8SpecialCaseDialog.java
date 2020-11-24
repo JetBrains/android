@@ -60,14 +60,16 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
 
   AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(
     @NotNull AgpUpgradeRefactoringProcessor processor,
-    @NotNull Java8DefaultRefactoringProcessor java8Processor
+    @NotNull Java8DefaultRefactoringProcessor java8Processor,
+    boolean hasChangedBuildFiles
   ) {
-    this(processor, java8Processor, false);
+    this(processor, java8Processor, hasChangedBuildFiles, false);
   }
 
   AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(
     @NotNull AgpUpgradeRefactoringProcessor processor,
     @NotNull Java8DefaultRefactoringProcessor java8Processor,
+    boolean hasChangedBuildFiles,
     boolean processorAlreadyConfiguredForJava8Dialog
   ) {
     super(processor.getProject());
@@ -101,7 +103,8 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
           boolean runProcessor = ActionsKt.invokeAndWaitIfNeeded(
             NON_MODAL,
             () -> {
-              DialogWrapper dialog = new AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(myProcessor, myJava8Processor, true);
+              DialogWrapper dialog = new AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(
+                myProcessor, myJava8Processor, false, true);
               return dialog.showAndGet();
             });
             if (runProcessor) {
