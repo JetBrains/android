@@ -234,6 +234,10 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
    */
   @UiThread
   fun setSnapshotFile(snapshotFile: File?) {
+    if (myRetentionPanel.getSnapshotFile()?.canonicalPath
+      == snapshotFile?.canonicalPath) {
+      return
+    }
     myRetentionPanel.setSnapshotFile(
       snapshotFile)
     myRetentionDebugButton.isEnabled = false
