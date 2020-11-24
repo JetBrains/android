@@ -140,6 +140,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     private Function<DesignSurface, InteractionHandler> myInteractionHandlerProvider = NlDesignSurface::defaultInteractionHandlerProvider;
     private Function<DesignSurface, DesignSurfaceActionHandler> myActionHandlerProvider = NlDesignSurface::defaultActionHandlerProvider;
     @Nullable private SelectionModel mySelectionModel = null;
+    private ZoomControlsPolicy myZoomControlsPolicy = ZoomControlsPolicy.VISIBLE;
 
     private Builder(@NotNull Project project, @NotNull Disposable parentDisposable) {
       myProject = project;
@@ -303,6 +304,17 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       return this;
     }
 
+    /**
+     * The surface will autohide the zoom controls when the mouse is not over it.
+     */
+    @NotNull
+    public Builder setZoomControlsPolicy(@NotNull ZoomControlsPolicy policy) {
+      myZoomControlsPolicy = policy;
+      return this;
+    }
+
+
+
     @NotNull
     public NlDesignSurface build() {
       SurfaceLayoutManager layoutManager = myLayoutManager != null ? myLayoutManager : createDefaultSurfaceLayoutManager();
@@ -324,7 +336,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                                  myOnChangeZoom,
                                  myActionHandlerProvider,
                                  myDelegateDataProvider,
-                                 mySelectionModel != null ? mySelectionModel : new DefaultSelectionModel());
+                                 mySelectionModel != null ? mySelectionModel : new DefaultSelectionModel(),
+                                 myZoomControlsPolicy);
     }
   }
 
@@ -394,11 +407,13 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           @NotNull ZoomType onChangeZoom,
                           @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider,
                           @Nullable DataProvider delegateDataProvider,
-                          @NotNull SelectionModel selectionModel) {
+                          @NotNull SelectionModel selectionModel,
+                          ZoomControlsPolicy zoomControlsPolicy) {
     super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, isEditable, onChangeZoom,
           (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, defaultLayoutManager),
           actionHandlerProvider,
-          selectionModel);
+          selectionModel,
+          zoomControlsPolicy);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     myIsInPreview = isInPreview;
