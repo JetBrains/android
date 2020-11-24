@@ -18,6 +18,7 @@
   <name>Layoutlib Standard</name>
   <version>1.0</version>
   <vendor>Google</vendor>
+  <category>Android</category>
 
   <description>Provides a library for rendering Android resources</description>
 
