@@ -18,6 +18,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElementOfType
 
@@ -63,11 +64,6 @@ private class PinnedPreviewElementInstance(
 
 @Service
 class PinnedPreviewElementManagerImpl internal constructor(val project: Project) : PinnedPreviewElementManager {
-  /**
-   * Tracks the modifications in pin/unpin calls.
-   */
-  private val modificationTracker: SimpleModificationTracker = SimpleModificationTracker()
-
   private val pinnedElements = Sets.newConcurrentHashSet<PinnedElementReference>()
   private val pinsModificationTracker = SimpleModificationTracker()
   private val listenerCollection = ListenerCollection.createWithDirectExecutor<PinnedPreviewElementManager.Listener>()
@@ -99,30 +95,28 @@ class PinnedPreviewElementManagerImpl internal constructor(val project: Project)
         .distinct()
 
       // Clean-up any elements from the file path cache that do not exist anymore
-      if (pinnedElements.removeIf { !foundPreviewElementPaths.contains(it.containingFilePath) }) {
-        modificationTracker.incModificationCount()
-      }
+      pinnedElements.removeIf { !foundPreviewElementPaths.contains(it.containingFilePath) }
 
       return foundPreviewElements
     }
 
-  override fun pin(element: PreviewElementInstance): Boolean {
-    return pinnedElements.add(element.asPinnedElement() ?: return false).also { added ->
-      if (added) {
-        pinsModificationTracker.incModificationCount()
-        listenerCollection.forEach { it.pinsChanged() }
-      }
-    }
-  }
+  override fun pin(elements: Collection<PreviewElementInstance>): Boolean =
+    elements.filter {
+      pinnedElements.add(it.asPinnedElement() ?: return@filter false)
+    }.ifNotEmpty {
+      pinsModificationTracker.incModificationCount()
+      listenerCollection.forEach { it.pinsChanged() }
+      true
+    } ?: false
 
-  override fun unpin(element: PreviewElementInstance): Boolean {
-    return pinnedElements.remove(element.asPinnedElement() ?: return false).also { removed ->
-      if (removed) {
-        pinsModificationTracker.incModificationCount()
-        listenerCollection.forEach { it.pinsChanged() }
-      }
-    }
-  }
+  override fun unpin(elements: Collection<PreviewElementInstance>): Boolean =
+    elements.filter {
+      pinnedElements.remove(it.asPinnedElement() ?: return@filter false)
+    }.ifNotEmpty {
+      pinsModificationTracker.incModificationCount()
+      listenerCollection.forEach { it.pinsChanged() }
+      true
+    } ?: false
 
   override fun isPinned(element: PreviewElement) = pinnedElements.contains(element.asPinnedElement())
 
@@ -138,8 +132,8 @@ class PinnedPreviewElementManagerImpl internal constructor(val project: Project)
 }
 
 private object NopPinnedPreviewElementManager : PinnedPreviewElementManager, ModificationTracker by ModificationTracker.NEVER_CHANGED {
-  override fun pin(element: PreviewElementInstance): Boolean = false
-  override fun unpin(element: PreviewElementInstance): Boolean = false
+  override fun pin(elements: Collection<PreviewElementInstance>): Boolean = false
+  override fun unpin(elements: Collection<PreviewElementInstance>): Boolean = false
   override fun isPinned(element: PreviewElement): Boolean = false
   override fun addListener(listener: PinnedPreviewElementManager.Listener) {}
 
@@ -153,14 +147,24 @@ interface PinnedPreviewElementManager: ModificationTracker {
   }
 
   /**
+   * Pins the given [PreviewElementInstance]s. Returns true if any element was not pinned and was successfully pinned.
+   */
+  fun pin(elements: Collection<PreviewElementInstance>): Boolean
+
+  /**
+   * Unpins the given [PreviewElementInstance]s. Returns true if any element was pinned and was successfully unpinned.
+   */
+  fun unpin(elements: Collection<PreviewElementInstance>): Boolean
+
+  /**
    * Pins the given [PreviewElementInstance]. Returns true if the element was not pinned and was successfully pinned.
    */
-  fun pin(element: PreviewElementInstance): Boolean
+  fun pin(element: PreviewElementInstance): Boolean = pin(listOf(element))
 
   /**
    * Unpins the given [PreviewElementInstance]. Returns true if the element was pinned and was successfully unpinned.
    */
-  fun unpin(element: PreviewElementInstance): Boolean
+  fun unpin(element: PreviewElementInstance): Boolean = unpin(listOf(element))
 
   /**
    * Returns true if the given [PreviewElement] is pinned. Only [PreviewElementInstance]s can be pinned.
