@@ -16,7 +16,7 @@
 package com.android.tools.adtui.model.formatter;
 
 import com.google.common.annotations.VisibleForTesting;
-import gnu.trove.TIntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
@@ -30,14 +30,14 @@ public final class TimeAxisFormatter extends BaseAxisFormatter {
   private static final int[] BASES = new int[]{10, 10, 60, 60, 24};
   private static final int[] MIN_INTERVALS = new int[]{10, 10, 1, 1, 1};    // 10ms, 1s, 1m, 1h
   private static final String[] UNITS = new String[]{"us", "ms", "s", "m", "h"};
-  private static final TIntArrayList[] BASE_FACTORS;
+  private static final IntList[] BASE_FACTORS;
 
   public static final TimeAxisFormatter DEFAULT = new TimeAxisFormatter(5, 10, 5);
   public static final TimeAxisFormatter DEFAULT_WITHOUT_MINOR_TICKS = new TimeAxisFormatter(1, 10, 5);
 
   static {
     int size = BASES.length;
-    BASE_FACTORS = new TIntArrayList[size];
+    BASE_FACTORS = new IntList[size];
     for (int i = 0; i < size; i++) {
       BASE_FACTORS[i] = getMultiplierFactors(BASES[i]);
     }
@@ -85,7 +85,7 @@ public final class TimeAxisFormatter extends BaseAxisFormatter {
 
   @Override
   @NotNull
-  protected TIntArrayList getUnitBaseFactors(int index) {
+  protected IntList getUnitBaseFactors(int index) {
     return BASE_FACTORS[index];
   }
 }

@@ -15,7 +15,8 @@
  */
 package com.android.tools.adtui.model.formatter;
 
-import gnu.trove.TIntArrayList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.jetbrains.annotations.NotNull;
 
 public final class NetworkTrafficFormatter extends BaseAxisFormatter {
@@ -23,7 +24,7 @@ public final class NetworkTrafficFormatter extends BaseAxisFormatter {
   private static final int BASE = 2;
   private static final int[] MIN_INTERVALS = new int[]{4, 1, 1};    // 4 B/S, 1 KB/S, 1 MB/S
   private static String[] UNITS = new String[]{"B/s", "KB/s", "MB/s"};
-  private static final TIntArrayList BASE_FACTORS = new TIntArrayList(new int[]{2, 1});
+  private static final IntList BASE_FACTORS = IntArrayList.wrap(new int[]{2, 1});
 
   public static final NetworkTrafficFormatter DEFAULT = new NetworkTrafficFormatter(4, 10, 2);
 
@@ -59,7 +60,7 @@ public final class NetworkTrafficFormatter extends BaseAxisFormatter {
 
   @Override
   @NotNull
-  protected TIntArrayList getUnitBaseFactors(int index) {
+  protected IntList getUnitBaseFactors(int index) {
     return BASE_FACTORS;
   }
 }
