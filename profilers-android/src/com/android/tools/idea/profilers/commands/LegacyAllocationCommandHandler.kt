@@ -23,22 +23,22 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory
 import com.android.tools.profiler.proto.Transport
-import gnu.trove.TIntObjectHashMap
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import java.util.concurrent.BlockingDeque
 import java.util.concurrent.Executor
 import java.util.function.BiFunction
 import java.util.function.Consumer
 
 class LegacyAllocationCommandHandler(val device: IDevice,
-                                     val eventQueue: BlockingDeque<Common.Event>,
-                                     val byteCache: MutableMap<String, ByteString>,
-                                     val fetchExecutor: Executor,
-                                     val legacyTrackerSupplier: BiFunction<IDevice, Int, LegacyAllocationTracker>)
+                                     private val eventQueue: BlockingDeque<Common.Event>,
+                                     private val byteCache: MutableMap<String, ByteString>,
+                                     private val fetchExecutor: Executor,
+                                     private val legacyTrackerSupplier: BiFunction<IDevice, Int, LegacyAllocationTracker>)
   : TransportProxy.ProxyCommandHandler {
 
   // Per-process cache of LegacyAllocationTracker and AllocationsInfo (keyed by pid)
-  private val myLegacyTrackers = TIntObjectHashMap<LegacyAllocationTracker>()
-  private val myInProgressTrackingInfo = TIntObjectHashMap<Memory.AllocationsInfo>()
+  private val myLegacyTrackers = Int2ObjectOpenHashMap<LegacyAllocationTracker>()
+  private val myInProgressTrackingInfo = Int2ObjectOpenHashMap<Memory.AllocationsInfo>()
 
   override fun execute(command: Commands.Command): Transport.ExecuteResponse {
     when (command.type) {
@@ -51,7 +51,7 @@ class LegacyAllocationCommandHandler(val device: IDevice,
 
   private fun enableAllocations(command: Commands.Command) {
     val requestTime = command.startAllocTracking.requestTime
-    var statusBuilder = Memory.TrackStatus.newBuilder()
+    val statusBuilder = Memory.TrackStatus.newBuilder()
     if (myInProgressTrackingInfo.containsKey(command.pid)) {
       statusBuilder.setStatus(Memory.TrackStatus.Status.IN_PROGRESS)
     }
@@ -103,7 +103,7 @@ class LegacyAllocationCommandHandler(val device: IDevice,
 
   private fun disableAllocations(command: Commands.Command) {
     val requestTime = command.stopAllocTracking.requestTime
-    var statusBuilder = Memory.TrackStatus.newBuilder()
+    val statusBuilder = Memory.TrackStatus.newBuilder()
     if (!myInProgressTrackingInfo.containsKey(command.pid)) {
       statusBuilder.setStatus(Memory.TrackStatus.Status.NOT_ENABLED)
     }

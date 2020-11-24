@@ -15,24 +15,23 @@
  */
 package com.android.tools.adtui;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.RotatedLabel;
-import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import gnu.trove.TFloatArrayList;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A component that draws an axis based on data from a {@link Range} object.
@@ -68,12 +67,12 @@ public final class AxisComponent extends AnimatedComponent {
   /**
    * Cached major marker positions.
    */
-  private final TFloatArrayList myMajorMarkerPositions;
+  private final FloatArrayList myMajorMarkerPositions;
 
   /**
    * Cached minor marker positions.
    */
-  private final TFloatArrayList myMinorMarkerPositions;
+  private final FloatArrayList myMinorMarkerPositions;
 
   /**
    * Cached marker labels
@@ -94,7 +93,7 @@ public final class AxisComponent extends AnimatedComponent {
    */
   private String myMinLabel;
 
-  private AxisComponentModel myModel;
+  private final AxisComponentModel myModel;
 
   @NotNull private final AxisOrientation myOrientation;
 
@@ -119,8 +118,8 @@ public final class AxisComponent extends AnimatedComponent {
 
   public AxisComponent(@NotNull AxisComponentModel model, @NotNull AxisOrientation orientation) {
     myModel = model;
-    myMajorMarkerPositions = new TFloatArrayList();
-    myMinorMarkerPositions = new TFloatArrayList();
+    myMajorMarkerPositions = new FloatArrayList();
+    myMinorMarkerPositions = new FloatArrayList();
     myMarkerLabels = new ArrayList<>();
     myOrientation = orientation;
 
@@ -182,8 +181,8 @@ public final class AxisComponent extends AnimatedComponent {
 
   void calculateMarkers(@NotNull Dimension dimension) {
     myMarkerLabels.clear();
-    myMajorMarkerPositions.reset();
-    myMinorMarkerPositions.reset();
+    myMajorMarkerPositions.clear();
+    myMinorMarkerPositions.clear();
 
     double currentMinValueRelative = myModel.getRange().getMin() - myModel.getZero();
     double currentMaxValueRelative = myModel.getRange().getMax() - myModel.getZero();
@@ -337,7 +336,7 @@ public final class AxisComponent extends AnimatedComponent {
     if (!skipRendering) {
       // Draw minor ticks.
       for (int i = 0; i < myMinorMarkerPositions.size(); i++) {
-        float scaledPosition = myMinorMarkerPositions.get(i) * myAxisLength;
+        float scaledPosition = myMinorMarkerPositions.getFloat(i) * myAxisLength;
         drawMarkerLine(g2d, line, scaledPosition, origin, myMinorMarkerLength);
       }
     }
@@ -349,7 +348,7 @@ public final class AxisComponent extends AnimatedComponent {
         continue;
       }
 
-      float scaledPosition = myMajorMarkerPositions.get(i) * myAxisLength;
+      float scaledPosition = myMajorMarkerPositions.getFloat(i) * myAxisLength;
       drawMarkerLine(g2d, line, scaledPosition, origin, myMajorMarkerLength);
       if (myShowLabels) {
         boolean reserveMinMaxBufferZone = myShowMin || myShowMax || (myHideTickAtMin && scaledPosition == 0);
