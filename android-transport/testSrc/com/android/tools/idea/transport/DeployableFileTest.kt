@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.transport
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
@@ -91,7 +91,7 @@ class DeployableFileTest {
   fun getDirAbsolutePath() {
     // To make this test work on both windows and linux machines, the path can't be hardcoded to one format. Therefore, we use workspace
     // root's path because it is formatted correctly.
-    val targetDir = TestUtils.getWorkspaceRoot().absolutePath
+    val targetDir = getWorkspaceRoot().toString()
 
     // Test running from sources (dev mode) - calling getDir() on the deployable file should return the dev directory.
     val hostFile1 = DeployableFile.Builder("myfile")

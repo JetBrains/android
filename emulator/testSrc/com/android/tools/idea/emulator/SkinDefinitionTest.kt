@@ -16,9 +16,9 @@
 package com.android.tools.idea.emulator
 
 import com.android.emulator.control.Rotation.SkinRotation
-import com.android.testutils.TestUtils
-import com.android.tools.adtui.ImageUtils
 import com.android.testutils.ImageDiffUtil
+import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.webp.WebpMetadata
 import com.android.tools.idea.emulator.FakeEmulator.Companion.getSkinFolder
 import com.google.common.truth.Truth.assertThat
@@ -199,7 +199,7 @@ class SkinDefinitionTest {
   }
 
   private fun getGoldenFile(name: String): File {
-    return TestUtils.getWorkspaceRoot().toPath().resolve("${GOLDEN_FILE_PATH}/${name}.png").toFile()
+    return getWorkspaceRoot().resolve("${GOLDEN_FILE_PATH}/${name}.png").toFile()
   }
 }
 

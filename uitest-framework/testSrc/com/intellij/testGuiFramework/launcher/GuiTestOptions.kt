@@ -15,7 +15,7 @@
  */
 package com.intellij.testGuiFramework.launcher
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.getWorkspaceRoot
 import java.io.File
 
 enum class RestartPolicy {
@@ -37,11 +37,11 @@ object GuiTestOptions {
   fun getBootClasspath(): String = getSystemProperty("idea.gui.test.bootclasspath", "../out/production/boot")
 
   fun getAspectsAgentJar(): String =
-    getSystemProperty("aspects.agent.jar", "${TestUtils.getWorkspaceRoot()}/prebuilts/tools/common/aspects-agent/aspects_agent.jar")
+    getSystemProperty("aspects.agent.jar", "${getWorkspaceRoot()}/prebuilts/tools/common/aspects-agent/aspects_agent.jar")
   fun getAspectsAgentRules(): String =
-    getSystemProperty("aspects.agent.rules", "${TestUtils.getWorkspaceRoot()}/tools/adt/idea/android-uitests/default_aspect_rules.json")
+    getSystemProperty("aspects.agent.rules", "${getWorkspaceRoot()}/tools/adt/idea/android-uitests/default_aspect_rules.json")
   fun getAspectsAgentBaseline(): String =
-    getSystemProperty("aspects.agent.baseline", "${TestUtils.getWorkspaceRoot()}/tools/adt/idea/android-uitests/aspects_baseline.txt")
+    getSystemProperty("aspects.agent.baseline", "${getWorkspaceRoot()}/tools/adt/idea/android-uitests/aspects_baseline.txt")
   fun getAspectsBaselineExportPath(): String = getSystemProperty("aspects.baseline.export.path", "")
 
   //used for restarted and resumed test to qualify from what point to start

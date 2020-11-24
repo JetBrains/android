@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.diagnostics.hprof
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.diagnostics.hprof.analysis.AnalysisConfig
 import com.android.tools.idea.diagnostics.hprof.analysis.AnalysisContext
 import com.android.tools.idea.diagnostics.hprof.analysis.AnalyzeGraph
@@ -75,13 +76,13 @@ class HeapAnalysisTest {
     val extension = if (file.extension != "") "." + file.extension else ""
 
     val javaSpecSpecificFileName = File(file.parent, "$name.$javaSpecString$extension").toString()
-    val javaSpecSpecificFile = File(TestUtils.getWorkspaceRoot(), javaSpecSpecificFileName)
+    val javaSpecSpecificFile = getWorkspaceRoot().resolve(javaSpecSpecificFileName)
 
-    if (javaSpecSpecificFile.exists()) {
-      return javaSpecSpecificFile.toPath()
+    if (Files.exists(javaSpecSpecificFile)) {
+      return javaSpecSpecificFile
     }
 
-    return TestUtils.getWorkspaceFile(filenameWithPath).toPath()
+    return resolveWorkspacePath(filenameWithPath)
   }
 
   class MemoryBackedIntList(size: Int) : IntList {

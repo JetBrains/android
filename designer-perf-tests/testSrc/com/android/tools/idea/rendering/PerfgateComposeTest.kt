@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.rendering
 
-import com.android.testutils.TestUtils
-import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -30,7 +29,6 @@ import org.junit.After
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -50,7 +48,7 @@ class PerfgateComposeTest {
   fun setUp() {
     RenderTestUtil.beforeRenderTestCase()
     RenderService.setForTesting(projectRule.project, NoSecurityManagerRenderService(projectRule.project))
-    val baseTestPath = TestUtils.getWorkspaceFile("tools/adt/idea/designer-perf-tests/testData").path
+    val baseTestPath = resolveWorkspacePath("tools/adt/idea/designer-perf-tests/testData").toString()
     projectRule.fixture.testDataPath = baseTestPath
     projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH)
     projectRule.requestSyncAndWait()

@@ -17,7 +17,7 @@ package com.android.tools.idea.appinspection.ide.resolver.http
 
 import com.android.repository.api.Downloader
 import com.android.repository.api.ProgressIndicator
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.appinspection.ide.resolver.AppInspectorJarPaths
 import com.android.tools.idea.appinspection.ide.resolver.TestArtifactResolverRequest
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
@@ -39,7 +39,7 @@ class HttpArtifactResolverTest {
   @get:Rule
   val androidProjectRule = AndroidProjectRule.inMemory()
 
-  private val testData = TestUtils.getWorkspaceFile("tools/adt/idea/app-inspection/ide/testData/libraries").toPath()
+  private val testData = resolveWorkspacePath("tools/adt/idea/app-inspection/ide/testData/libraries")
 
   private val fakeDownloader = object : Downloader {
     override fun downloadAndStream(url: URL, indicator: ProgressIndicator): InputStream? = null

@@ -54,7 +54,7 @@ class DeviceProcessPollerTest : DataStorePollerTest() {
 
   @Before
   fun setup() {
-    val servicePath = TestUtils.createTempDirDeletedOnExit().absolutePath
+    val servicePath = TestUtils.createTempDirDeletedOnExit().toString()
     myDataStore = DataStoreService(javaClass.simpleName, servicePath, pollTicker::run, FakeLogService())
     myProfilerService = FakeTransportService()
     val namespace = DEFAULT_SHARED_NAMESPACE

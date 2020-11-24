@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
@@ -60,7 +60,7 @@ class CpuKernelTooltipViewTest {
     myFakeTransportService.addProcess(device, Common.Process.newBuilder().setDeviceId(1).setPid(1).build())
     val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), FakeIdeProfilerServices(), timer)
     myStage = CpuProfilerStage(profilers)
-    myCapture = AtraceParser(MainProcessSelector(idHint = 1)).parse(TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE), 0)
+    myCapture = AtraceParser(MainProcessSelector(idHint = 1)).parse(resolveWorkspacePath(TOOLTIP_TRACE_DATA_FILE).toFile(), 0)
     myStage.capture = myCapture
     timer.tick(TimeUnit.SECONDS.toNanos(1))
     profilers.stage = myStage

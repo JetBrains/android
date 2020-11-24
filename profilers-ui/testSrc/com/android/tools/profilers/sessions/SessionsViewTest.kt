@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.sessions
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.stdui.CommonAction
 import com.android.tools.adtui.swing.FakeKeyboard
@@ -54,6 +54,7 @@ import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.event.ActionEvent
+import java.nio.file.Files
 import java.util.concurrent.TimeUnit
 
 @RunsInEdt
@@ -575,7 +576,7 @@ class SessionsViewTest {
       .setCpuTrace(Cpu.CpuTraceData.newBuilder()
                      .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
       .build())
-    myTransportService.addFile(traceInfoId.toString(), ByteString.copyFrom(TestUtils.getWorkspaceFile(VALID_TRACE_PATH).readBytes()))
+    myTransportService.addFile(traceInfoId.toString(), ByteString.copyFrom(Files.readAllBytes(resolveWorkspacePath(VALID_TRACE_PATH))))
 
     myTimer.currentTimeNs = 0
     mySessionsManager.beginSession(device.deviceId, device, process)

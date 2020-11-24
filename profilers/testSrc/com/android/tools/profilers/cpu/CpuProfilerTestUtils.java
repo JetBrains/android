@@ -21,15 +21,14 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.testutils.TestUtils;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.idea.transport.faketransport.commands.StartCpuTrace;
 import com.android.tools.idea.transport.faketransport.commands.StopCpuTrace;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
-import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.ProfilersTestData;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -67,7 +66,7 @@ public class CpuProfilerTestUtils {
   }
 
   public static File getTraceFile(@NotNull String filename) {
-    return TestUtils.getWorkspaceFile(CPU_TRACES_DIR + filename);
+    return TestUtils.resolveWorkspacePath(CPU_TRACES_DIR + filename).toFile();
   }
 
   public static CpuCapture getValidCapture() throws ExecutionException, InterruptedException {
@@ -76,7 +75,7 @@ public class CpuProfilerTestUtils {
 
   public static CpuCapture getCapture(@NotNull String fullFileName) {
     try {
-      File file = TestUtils.getWorkspaceFile(fullFileName);
+      File file = TestUtils.resolveWorkspacePath(fullFileName).toFile();
       return getCapture(file, CpuTraceType.ART);
     }
     catch (Exception e) {

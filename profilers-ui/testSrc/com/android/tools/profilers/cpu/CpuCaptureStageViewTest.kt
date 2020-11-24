@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.AxisComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.common.AdtUiCursorType
@@ -87,7 +87,7 @@ class CpuCaptureStageViewTest {
     profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
-                                   TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.VALID_TRACE_PATH), 123L)
+                                   resolveWorkspacePath(CpuProfilerUITestUtils.VALID_TRACE_PATH).toFile(), 123L)
 
     ApplicationManager.getApplication().registerServiceInstance(AdtUiCursorsProvider::class.java, TestAdtUiCursorsProvider())
     replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRAB, Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR))
@@ -181,7 +181,7 @@ class CpuCaptureStageViewTest {
   fun showTrackGroupTooltip() {
     // Load Atrace
     val stage = CpuCaptureStage.create(profilersView.studioProfilers, ProfilersTestData.DEFAULT_CONFIG,
-                                       TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH), 123L)
+                                       resolveWorkspacePath(CpuProfilerUITestUtils.ATRACE_TRACE_PATH).toFile(), 123L)
     val stageView = CpuCaptureStageView(profilersView, stage)
     stage.enter()
     val trackGroups = stageView.trackGroupList.trackGroups

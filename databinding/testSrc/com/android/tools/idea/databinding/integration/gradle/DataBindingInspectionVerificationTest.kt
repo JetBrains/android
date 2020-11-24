@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding.integration.gradle
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.intellij.openapi.project.guessProjectDir
@@ -74,7 +74,7 @@ class DataBindingInspectionVerificationTest {
     // has a really specialized build.gradle file that makes a lot of assumptions about the
     // directory it is in, so we copy over all other files instead and provide a minimally
     // useful build.gradle that allows the project to sync.
-    val root = TestUtils.getWorkspaceFile("tools/data-binding/integration-tests")
+    val root = resolveWorkspacePath("tools/data-binding/integration-tests").toFile()
     val testAppSrc = File(root, "TestApp")
     val testAppDst = File(temporaryFolder.root, "TestApp").also { it.mkdir() }
     testAppSrc.copyRecursively(testAppDst)
