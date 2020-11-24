@@ -101,6 +101,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myLayoutInspectorSeparator.setVisible(showLayoutInspectorSettings);
     myLayoutInspectorCheckbox.setVisible(showLayoutInspectorSettings);
     myAtfCheckBox.setVisible(StudioFlags.NELE_LAYOUT_SCANNER_IN_EDITOR.get());
+    myUseLayoutlibNative.setVisible(StudioFlags.NELE_SHOW_LAYOUTLIB_LEGACY.get());
     initTraceComponents();
     reset();
   }
