@@ -82,7 +82,7 @@ internal class PinnedPreviewElementManagerTest {
   }
 
   @Test
-  fun `pin unpin preview successfully`() {
+  fun `pin unpin preview successfully with notification`() {
     val elementsInFile1 = AnnotationFilePreviewElementFinder.findPreviewMethods(project, file1.virtualFile).toList()
     val elementsInFile2 = AnnotationFilePreviewElementFinder.findPreviewMethods(project, file2.virtualFile).toList()
 
@@ -92,6 +92,8 @@ internal class PinnedPreviewElementManagerTest {
     val pinnedPreviewManager = PinnedPreviewElementManager.getInstance(project)
     val startModificationCount = pinnedPreviewManager.modificationCount
     val pinnedPreviewElementProvider = PinnedPreviewElementManager.getPreviewElementProvider(project)
+    var modifications = 0
+    pinnedPreviewManager.addListener { modifications++ }
     assertEquals(0, pinnedPreviewElementProvider.previewElements.count())
     assertEquals(startModificationCount, pinnedPreviewManager.modificationCount)
     // Pin Preview1
@@ -109,6 +111,7 @@ internal class PinnedPreviewElementManagerTest {
       """.trimIndent(),
       pinnedPreviewElementProvider.toDebugString()
     )
+    assertEquals(2, modifications)
 
     pinnedPreviewManager.unpin(elementsInFile1[0] as PreviewElementInstance)
     assertEquals(startModificationCount + 3, pinnedPreviewManager.modificationCount)
@@ -116,6 +119,7 @@ internal class PinnedPreviewElementManagerTest {
       "com.test.TestKt.Preview3",
       pinnedPreviewElementProvider.toDebugString()
     )
+    assertEquals(3, modifications)
 
     pinnedPreviewManager.unpin(elementsInFile2[0] as PreviewElementInstance)
     assertEquals(startModificationCount + 4, pinnedPreviewManager.modificationCount)
@@ -123,6 +127,7 @@ internal class PinnedPreviewElementManagerTest {
       "",
       pinnedPreviewElementProvider.toDebugString()
     )
+    assertEquals(4, modifications)
   }
 
   @Test
@@ -162,12 +167,35 @@ internal class PinnedPreviewElementManagerTest {
     val pinnedPreviewElementProvider = PinnedPreviewElementManager.getPreviewElementProvider(project)
     val startModificationCount = pinnedPreviewManager.modificationCount
     assertFalse(pinnedPreviewManager.unpin(elementsInFile[0] as PreviewElementInstance))
-    assertEquals(startModificationCount, pinnedPreviewManager.modificationCount)
+    assertEquals("There were no pinned elements, no modifications expected", startModificationCount, pinnedPreviewManager.modificationCount)
     assertEquals(0, pinnedPreviewElementProvider.previewElements.count())
     assertTrue(pinnedPreviewManager.pin(elementsInFile[0] as PreviewElementInstance))
     assertEquals(startModificationCount + 1, pinnedPreviewManager.modificationCount)
     assertFalse(pinnedPreviewManager.unpin(elementsInFile[1] as PreviewElementInstance))
     assertEquals(startModificationCount + 1, pinnedPreviewManager.modificationCount)
     assertEquals(1, pinnedPreviewElementProvider.previewElements.count())
+  }
+
+  @Test
+  fun `multiple pin with notification`() {
+    val elementsInFile = AnnotationFilePreviewElementFinder.findPreviewMethods(project, file1.virtualFile).toList()
+    val pinnedPreviewManager = PinnedPreviewElementManager.getInstance(project)
+    val pinnedPreviewElementProvider = PinnedPreviewElementManager.getPreviewElementProvider(project)
+    var modifications = 0
+    pinnedPreviewManager.addListener { modifications++ }
+    assertFalse(pinnedPreviewManager.unpin(listOf(
+      elementsInFile[0] as PreviewElementInstance,
+      elementsInFile[1] as PreviewElementInstance)))
+    assertTrue(pinnedPreviewManager.pin(listOf(
+      elementsInFile[0] as PreviewElementInstance,
+      elementsInFile[1] as PreviewElementInstance)))
+    assertEquals("Only one modification expected for multiple pins", 1, modifications)
+    assertEquals(2, pinnedPreviewElementProvider.previewElements.count())
+    modifications = 0
+    assertTrue(pinnedPreviewManager.unpin(listOf(
+      elementsInFile[0] as PreviewElementInstance,
+      elementsInFile[1] as PreviewElementInstance)))
+    assertEquals("Only one modification expected for multiple pins", 1, modifications)
+    assertEquals(0, pinnedPreviewElementProvider.previewElements.count())
   }
 }
