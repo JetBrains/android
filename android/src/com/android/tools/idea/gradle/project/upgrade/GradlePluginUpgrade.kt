@@ -207,7 +207,7 @@ fun showAndGetAgpUpgradeDialog(processor: AgpUpgradeRefactoringProcessor): Boole
       dialog.show()
       return@invokeAndWaitIfNeeded false
     }
-    val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor, java8Processor!!)
+    val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor, java8Processor!!, false)
     dialog.showAndGet()
   }
   return runProcessor
