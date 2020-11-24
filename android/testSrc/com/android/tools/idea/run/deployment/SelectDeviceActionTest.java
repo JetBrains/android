@@ -155,4 +155,24 @@ public final class SelectDeviceActionTest {
     // Assert
     assertEquals("apiQ_64_Google", myPresentation.getText());
   }
+
+  @Test
+  public void actionPerformed() {
+    // Arrange
+    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(key)
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    AnAction action = SelectDeviceAction.newSelectDeviceAction(device, myComboBoxAction);
+
+    // Act
+    action.actionPerformed(myEvent);
+
+    // Assert
+    Mockito.verify(myComboBoxAction).setTargetSelectedWithComboBox(myProject, new Target(key));
+  }
 }

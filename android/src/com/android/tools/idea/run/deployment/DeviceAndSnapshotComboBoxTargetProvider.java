@@ -21,13 +21,14 @@ import com.android.tools.idea.run.editor.DeployTargetConfigurable;
 import com.android.tools.idea.run.editor.DeployTargetConfigurableContext;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.DeployTargetState;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
+import java.util.function.Function;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +36,24 @@ import org.jetbrains.annotations.Nullable;
 public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetProvider {
   static final @NotNull com.intellij.openapi.util.Key<@NotNull Boolean> MULTIPLE_DEPLOY_TARGETS = com.intellij.openapi.util.Key
     .create("com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider.MULTIPLE_DEPLOY_TARGETS");
+
+  private final @NotNull Function<@NotNull Project, @NotNull AsyncDevicesGetter> myAsyncDevicesGetterGetInstance;
+  private final @NotNull SelectMultipleDevicesDialogSupplier myNewSelectMultipleDevicesDialog;
+  private final @NotNull Function<@NotNull Project, @NotNull DevicesSelectedService> myDevicesSelectedServiceGetInstance;
+
+  // TODO This should not be used in tests
+  public DeviceAndSnapshotComboBoxTargetProvider() {
+    this(AsyncDevicesGetter::getInstance, SelectMultipleDevicesDialog::new, DevicesSelectedService::getInstance);
+  }
+
+  @VisibleForTesting
+  DeviceAndSnapshotComboBoxTargetProvider(@NotNull Function<@NotNull Project, @NotNull AsyncDevicesGetter> asyncDevicesGetterGetInstance,
+                                          @NotNull SelectMultipleDevicesDialogSupplier newSelectMultipleDevicesDialog,
+                                          @NotNull Function<@NotNull Project, @NotNull DevicesSelectedService> devicesSelectedServiceGetInstance) {
+    myAsyncDevicesGetterGetInstance = asyncDevicesGetterGetInstance;
+    myNewSelectMultipleDevicesDialog = newSelectMultipleDevicesDialog;
+    myDevicesSelectedServiceGetInstance = devicesSelectedServiceGetInstance;
+  }
 
   @NotNull
   @Override
@@ -72,21 +91,14 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
   @Override
   public @Nullable DeployTarget showPrompt(@NotNull AndroidFacet facet) {
     Project project = facet.getModule().getProject();
-    List<Device> devices = AsyncDevicesGetter.getInstance(project).get().orElse(Collections.emptyList());
+    List<Device> devices = myAsyncDevicesGetterGetInstance.apply(project).get().orElse(Collections.emptyList());
 
-    if (!new SelectMultipleDevicesDialog(project, devices).showAndGet()) {
+    if (!myNewSelectMultipleDevicesDialog.get(project, devices).showAndGet()) {
       return null;
     }
 
-    Collection<Key> keys = DevicesSelectedService.getInstance(project).getTargetsSelectedWithDialog().stream()
-      .map(Target::getDeviceKey)
-      .collect(Collectors.toSet());
-
-    devices = devices.stream()
-      .filter(device -> device.hasKeyContainedBy(keys))
-      .collect(Collectors.toList());
-
-    return new DeviceAndSnapshotComboBoxTarget(devices);
+    Set<Target> targets = myDevicesSelectedServiceGetInstance.apply(project).getTargetsSelectedWithDialog();
+    return new DeviceAndSnapshotComboBoxTarget(Target.filterDevices(targets, devices));
   }
 
   @NotNull

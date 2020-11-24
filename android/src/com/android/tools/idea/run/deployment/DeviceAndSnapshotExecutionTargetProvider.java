@@ -22,13 +22,17 @@ import com.intellij.openapi.project.Project;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class DeviceAndSnapshotExecutionTargetProvider extends ExecutionTargetProvider {
   @NotNull
   @Override
   public List<ExecutionTarget> getTargets(@NotNull Project project, @NotNull RunConfiguration configuration) {
-    Set<Key> keys = DeviceAndSnapshotComboBoxAction.getInstance().getSelectedDeviceKeys(project);
+    Set<Key> keys = DeviceAndSnapshotComboBoxAction.getInstance().getSelectedTargets(project).stream()
+      .map(Target::getDeviceKey)
+      .collect(Collectors.toSet());
+
     return Collections.singletonList(new DeviceAndSnapshotComboBoxExecutionTarget(keys, AsyncDevicesGetter.getInstance(project)));
   }
 }
