@@ -726,6 +726,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     )
 
     composeWorkBench.setPinnedSurfaceVisibility(hasPinnedElements)
+    if (hasPinnedElements) {
+      // TODO: This is a temporary label. It will display the pinned file name when we allow per-file pinning.
+      composeWorkBench.pinnedLabel = "Pinned"
+    }
 
     if (!hasPinnedElements && showingPreviewElements.isEmpty()) {
       composeWorkBench.showModalErrorMessage(message("panel.no.previews.defined"))
