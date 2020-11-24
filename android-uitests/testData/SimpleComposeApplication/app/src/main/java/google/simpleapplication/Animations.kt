@@ -1,13 +1,14 @@
 package google.simpleapplication
 
-import androidx.compose.animation.Transition
 import androidx.compose.animation.core.FloatPropKey
 import androidx.compose.animation.core.transitionDefinition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.transition
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Text
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -36,7 +37,8 @@ private val transDef = transitionDefinition<String> {
 @Preview
 @Composable
 fun AnimationDemo() {
-  Transition(definition = transDef, initState = "start", toState = "end") { state ->
+  val state = transition(definition = transDef, initState = "start", toState = "end")
+  Scaffold {
     ScaledColorRect(scale = state[scale])
   }
 }
