@@ -15,7 +15,8 @@
  */
 package com.android.tools.adtui.model.formatter;
 
-import gnu.trove.TIntArrayList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.jetbrains.annotations.NotNull;
 
 public class EnergyAxisFormatter extends BaseAxisFormatter {
@@ -117,7 +118,7 @@ public class EnergyAxisFormatter extends BaseAxisFormatter {
 
   @NotNull
   @Override
-  protected TIntArrayList getUnitBaseFactors(int index) {
-    return new TIntArrayList(0);
+  protected IntList getUnitBaseFactors(int index) {
+    return new IntArrayList(0);
   }
 }

@@ -23,7 +23,7 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory
 import com.android.tools.profiler.proto.Transport
-import gnu.trove.TIntObjectHashMap
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import java.util.concurrent.BlockingDeque
 import java.util.concurrent.Executor
 import java.util.function.BiFunction
@@ -37,8 +37,8 @@ class LegacyAllocationCommandHandler(val device: IDevice,
   : TransportProxy.ProxyCommandHandler {
 
   // Per-process cache of LegacyAllocationTracker and AllocationsInfo (keyed by pid)
-  private val myLegacyTrackers = TIntObjectHashMap<LegacyAllocationTracker>()
-  private val myInProgressTrackingInfo = TIntObjectHashMap<Memory.AllocationsInfo>()
+  private val myLegacyTrackers = Int2ObjectOpenHashMap<LegacyAllocationTracker>()
+  private val myInProgressTrackingInfo = Int2ObjectOpenHashMap<Memory.AllocationsInfo>()
 
   override fun execute(command: Commands.Command): Transport.ExecuteResponse {
     when (command.type) {
