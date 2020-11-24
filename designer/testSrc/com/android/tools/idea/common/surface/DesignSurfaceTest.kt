@@ -224,7 +224,8 @@ private class TestDesignSurface(project: Project, disposible: Disposable)
                   java.util.function.Function { TestInteractionHandler(it) },
                   true,
                   java.util.function.Function { TestLayoutManager(it) },
-                  java.util.function.Function { TestActionHandler(it) }) {
+                  java.util.function.Function { TestActionHandler(it) },
+                  ZoomControlsPolicy.VISIBLE) {
   override fun getSelectionAsTransferable(): ItemTransferable {
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
   }
