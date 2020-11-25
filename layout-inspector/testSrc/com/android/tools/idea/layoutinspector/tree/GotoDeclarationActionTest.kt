@@ -41,6 +41,7 @@ import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.ComponentStack
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -84,6 +85,7 @@ class GotoDeclarationActionTest {
     checkEditor("demo.xml", 8, "<TextView")
   }
 
+  @Ignore("b/174295048")
   @RunsInEdt
   @Test
   fun testComposeViewNode() {
