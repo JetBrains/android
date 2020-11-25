@@ -22,5 +22,5 @@ android {
 dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'androidx.ui:ui-tooling:+'
+    implementation 'androidx.compose.ui:ui-tooling:+'
 }
