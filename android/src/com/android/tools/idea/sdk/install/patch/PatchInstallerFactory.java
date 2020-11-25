@@ -23,12 +23,13 @@ import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.api.Uninstaller;
+import com.google.common.annotations.VisibleForTesting;
+import com.android.repository.io.FileOpUtils;
 import com.android.repository.impl.installer.AbstractInstallerFactory;
 import com.android.repository.impl.meta.Archive;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileUtilKt;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -95,7 +96,7 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
     ProgressIndicator progress = new StudioLoggerProgressIndicator(PatchInstallerFactory.class);
     if (p instanceof LocalPackage) {
       // Uninstall case. Only useful on windows, since it locks in-use files.
-      if (FileOp.isWindows()) {
+      if (FileOpUtils.isWindows()) {
         try {
           if (FileUtilKt.recursiveSize(((LocalPackage)p).getLocation()) >= PSEUDO_PATCH_CUTOFF) {
             // Don't pseudo-patch if the file is too big.
@@ -118,7 +119,7 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
 
     LocalPackage local = manager.getPackages().getLocalPackages().get(p.getPath());
     RemotePackage remote = (RemotePackage)p;
-    if (local == null || (!FileOp.isWindows() && !hasPatch(local, remote))) {
+    if (local == null || (!FileOpUtils.isWindows() && !hasPatch(local, remote))) {
       // If this isn't an update, or if we're not on windows and there's no patch, there's no reason to use the patcher.
       return false;
     }
@@ -136,7 +137,7 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
       }
 
       // We don't have the right patcher. Give up unless we're on Windows.
-      if (!FileOp.isWindows()) {
+      if (!FileOpUtils.isWindows()) {
         return false;
       }
     }
