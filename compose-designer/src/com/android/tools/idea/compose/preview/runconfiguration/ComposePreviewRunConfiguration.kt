@@ -49,7 +49,7 @@ open class ComposePreviewRunConfiguration(project: Project, factory: Configurati
     // TODO(b/152183413): limit the search to the library scope. We currently use the global scope because SpecificActivityLaunch.State only
     //                    accepts either project or global scope.
     @Suppress("LeakingThis")
-    setLaunchActivity("androidx.ui.tooling.preview.PreviewActivity", true)
+    setLaunchActivity("androidx.compose.ui.tooling.preview.PreviewActivity", true)
   }
 
   private fun updateActivityExtraFlags() {

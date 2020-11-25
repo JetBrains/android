@@ -29,9 +29,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
+@Ignore("Temporarily disabled until we have alpha08 final b/174291742")
 class PreviewNavigationTest {
   private val LOG = Logger.getInstance(PreviewNavigationTest::class.java)
 
@@ -137,7 +139,7 @@ class PreviewNavigationTest {
         val rootView = renderResult!!.rootViews.single()!!
         ReadAction.run<Throwable> {
           // We click a Text() but we should not navigate to the local Text.kt file since it's not
-          // related to the androidx.ui.foundation.Text
+          // related to the androidx.compose.ui.foundation.Text
           // Assert disabled for dev16 because of b/162066489
           // assertTrue(findComponentHits(module, rootView, 2, 2).any { it.fileName == "Text.kt" })
           assertTrue((findNavigatableComponentHit(module, rootView, 2,

@@ -25,6 +25,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
+import java.io.FileOutputStream
+import javax.imageio.ImageIO
 
 class SinglePreviewElementRendererTest {
   @get:Rule
@@ -48,6 +50,7 @@ class SinglePreviewElementRendererTest {
     val defaultRender = renderPreviewElement(
       projectRule.androidFacet(":app"),
       SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.DefaultPreview")).get()
+    ImageIO.write(defaultRender, "png", FileOutputStream(File("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender.png")))
     ImageDiffUtil.assertImageSimilar(File("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender.png"),
                                      defaultRender!!,
                                      0.0)
