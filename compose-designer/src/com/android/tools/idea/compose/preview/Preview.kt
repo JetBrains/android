@@ -72,6 +72,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBColor
+import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -670,14 +671,18 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     onRestoreState?.invoke()
     onRestoreState = null
 
-    val isFirstRender = !hasRenderedAtLeastOnce.get()
     val showingPreviewElements = surface.updatePreviewsAndRefresh(
       quickRefresh,
       previewElementProvider,
       LOG,
       psiFile,
       this,
-      { hasRenderedAtLeastOnce.set(true) },
+      {
+        if (!hasRenderedAtLeastOnce.getAndSet(true)) {
+          // We zoom to fit to have better initial zoom level when first build is completed
+          UIUtil.invokeLaterIfNeeded { surface.zoomToFit() }
+        }
+      },
       this::toPreviewXmlString,
       this::getPreviewDataContextForPreviewElement,
       this::configureLayoutlibSceneManagerForPreviewElement
@@ -693,13 +698,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       // Some preview elements did not result in model creations. This could be because of failed PreviewElements instantiation.
       // TODO(b/160300892): Add better error handling for failed instantiations.
       LOG.warn("Some preview elements have failed")
-    }
-
-    // We zoom to fit to have better initial zoom level when first build is completed
-    if (isFirstRender) {
-      withContext(uiThread) {
-        surface.zoomToFit()
-      }
     }
   }
 
