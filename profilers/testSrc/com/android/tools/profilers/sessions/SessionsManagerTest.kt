@@ -479,13 +479,30 @@ class SessionsManagerTest {
   @Test
   fun testImportedSessionOnlyProcessedWhenEnded() {
     myTransportService.addEventToStream(1, ProfilersTestData.generateSessionStartEvent(1, 1, 1,
-                                                                                       Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE).build())
+                                                                                       Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE,
+                                                                                       1).build())
     myManager.update()
     assertThat(myManager.sessionArtifacts.size).isEqualTo(0)
 
     myTransportService.addEventToStream(1, ProfilersTestData.generateSessionEndEvent(1, 1, 2).build())
     myManager.update()
     assertThat(myManager.sessionArtifacts.size).isEqualTo(1)
+  }
+
+  // The epoch time in session meta data is the time when the file is imported.
+  @Test
+  fun testImportedSessionIsSelectedByImportTime() {
+    // Note the event may be added to the pipeline out of order (of epoch time).
+    myTransportService.addEventToStream(
+      1, ProfilersTestData.generateSessionStartEvent(
+      1, 1, 1, Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE, 200).build())
+    myTransportService.addEventToStream(1, ProfilersTestData.generateSessionEndEvent(1, 1, 2).build())
+    myTransportService.addEventToStream(
+      3, ProfilersTestData.generateSessionStartEvent(
+      3, 3, 3, Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE, 100).build())
+    myTransportService.addEventToStream(3, ProfilersTestData.generateSessionEndEvent(3, 3, 4).build())
+    myManager.update()
+    assertThat(myManager.selectedSession.sessionId).isEqualTo(1)
   }
 
   @Ignore("b/136292864")
@@ -501,13 +518,15 @@ class SessionsManagerTest {
                                             .setTraceType(Cpu.CpuTraceType.SIMPLEPERF))).build()
 
     myTransportService.addEventToStream(1, ProfilersTestData.generateSessionStartEvent(1, 1, session1Timestamp,
-                                                                                       Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE).build())
+                                                                                       Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE,
+                                                                                       1).build())
     myTransportService.addEventToStream(1, ProfilersTestData.generateSessionEndEvent(1, 1, session1Timestamp).build())
     val heapDumpEvent = ProfilersTestData.generateMemoryHeapDumpData(session1Timestamp, session1Timestamp, heapDumpInfo)
     myTransportService.addEventToStream(1, heapDumpEvent.build())
 
     myTransportService.addEventToStream(2, ProfilersTestData.generateSessionStartEvent(2, 2, session2Timestamp,
-                                                                                       Common.SessionData.SessionStarted.SessionType.CPU_CAPTURE).build())
+                                                                                       Common.SessionData.SessionStarted.SessionType.CPU_CAPTURE,
+                                                                                       2).build())
     myTransportService.addEventToStream(2, ProfilersTestData.generateSessionEndEvent(2, 2, session2Timestamp).build())
     val cpuTrace = Common.Event.newBuilder()
       .setGroupId(session2Timestamp)
