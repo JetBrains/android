@@ -157,7 +157,10 @@ iml_module(
         },
         "gradle.project.sync": {
             "shard_count": 5,
-            "data": ["//prebuilts/studio/sdk:ndk"],
+            "data": [
+                "//prebuilts/studio/sdk:ndk",
+                "//tools/data-binding:data_binding_runtime.zip",
+            ],
             # Mismatches from ProjectDumper (b/150709248), and sync errors/timeout (b/152778663)
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle.project.sync",
@@ -279,12 +282,11 @@ iml_module(
         "//tools/adt/idea/android/lib:sampleData",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/artwork:device-art-resources",
-        "//tools/base/build-system:gradle-distrib",
-        "//tools/base/build-system:gradle-distrib-6.1.1",
-        "//tools/base/build-system:gradle-distrib-6.5",
+        "//tools/base/build-system:gradle-distrib",  # Please do not add old versions of AGP here. Use the old-agp-tests module instead.
+        "//tools/base/build-system:gradle-distrib-6.1.1",  # b/141628806
+        "//tools/base/build-system:gradle-distrib-6.5",  # b/141628806
         "//tools/base/build-system:studio_repo",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
-        "//tools/data-binding:data_binding_runtime.zip",
     ],
     test_resources = ["testResources"],
     test_srcs = ["testSrc"],
