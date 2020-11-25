@@ -30,6 +30,7 @@ import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
+import com.android.tools.idea.util.StudioPathManager
 import com.android.tools.layoutinspector.LayoutInspectorUtils.buildTree
 import com.android.tools.layoutinspector.SkiaViewNode
 import com.google.common.annotations.VisibleForTesting
@@ -38,7 +39,6 @@ import com.intellij.execution.process.OSProcessHandler
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.SystemInfo.isWindows
@@ -268,7 +268,7 @@ class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
   private fun findPath(): File? {
     return if (serverVersion == null) {
       // devbuild
-      File(PathManager.getHomePath(), "../../../../../../bazel-bin/tools/base/dynamic-layout-inspector/${serverName}")
+      File(StudioPathManager.getSourcesRoot(), "bazel-bin/tools/base/dynamic-layout-inspector/${serverName}")
     }
     else {
       val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
