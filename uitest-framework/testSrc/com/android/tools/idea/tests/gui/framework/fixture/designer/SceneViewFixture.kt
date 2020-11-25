@@ -228,13 +228,13 @@ class SceneViewTopPanelFixture(private val robot: Robot, private val toolbar: JC
     robot.click(button)
   }
 
-  fun findButtonByIcon(icon: Icon): ActionButtonFixture {
+  fun findButtonByIcon(icon: Icon, secondsToWait: Long = 10L): ActionButtonFixture {
     val button = GuiTests.waitUntilShowing(
       robot, toolbar, object : GenericTypeMatcher<ActionButton>(ActionButton::class.java) {
       override fun isMatching(component: ActionButton): Boolean {
         return component.icon == icon || IconLoader.getDisabledIcon(icon) == component.icon
       }
-    })
+    }, secondsToWait)
     return ActionButtonFixture(robot, button)
   }
 }

@@ -37,6 +37,7 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import icons.StudioIcons
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.exception.ComponentLookupException
+import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.fixture.JPopupMenuFixture
 import org.fest.swing.timing.Wait
 import org.fest.swing.util.PatternTextMatcher
@@ -45,6 +46,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -301,7 +303,7 @@ class ComposePreviewTest {
   }
 
   @Test
-  @Ignore("b/172894609") // The test is broken because of the zoom levels issue (b/174145654)
+  @Ignore("b/172894609") // Ignore while we don't update the Compose version. We fixed a bug that fails to detect animations.
   @Throws(Exception::class)
   fun testAnimationButtonWhileInteractiveSwitch() {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
@@ -319,26 +321,30 @@ class ComposePreviewTest {
       .allSceneViews
       .first()
       .toolbar()
-      .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW).click()
+      .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
+      .click()
 
-    composePreview
-      .waitForRenderToFinish()
+    composePreview.waitForRenderToFinish()
 
-    animButton =
+    val toolbar =
       composePreview.designSurface
         .allSceneViews
         .first()
         .toolbar()
-        .findButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
-    // Animation inspector can't be open for a preview if it's in interactive mode.
-    assertNull(animButton)
+
+    try {
+      toolbar.findButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR, 1)
+      fail("Expected not to find the Animation preview button.")
+    }
+    catch (e: WaitTimedOutError) {
+      // Expected to throw.
+    }
 
     composePreview
       .findActionButtonByText("Stop Interactive Preview")
       .click()
 
-    composePreview
-      .waitForRenderToFinish()
+    composePreview.waitForRenderToFinish()
 
     animButton =
       composePreview.designSurface
