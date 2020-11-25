@@ -273,7 +273,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   }
 
   @Override
-  public void zoomChanged() {
+  public void zoomChanged(double previousScale, double newScale) {
     UIUtil.invokeLaterIfNeeded(() -> myNorthEastToolbar.updateActionsImmediately());
   }
 

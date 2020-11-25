@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.editor.PanZoomListener
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
@@ -48,6 +49,7 @@ import com.intellij.ui.JBSplitter
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
+import java.awt.event.AdjustmentEvent
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -191,15 +193,16 @@ internal class ComposePreviewViewImpl(private val project: Project,
 
   override val pinnedSurface by lazy {
     createPreviewDesignSurface(
-      project, navigationHandler, delegateInteractionHandler, dataProvider, parentDisposable, GridSurfaceLayoutManager(
-      NlConstants.DEFAULT_SCREEN_OFFSET_X, NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-      NlConstants.SCREEN_DELTA, NlConstants.SCREEN_DELTA)) { surface, model ->
+      project, navigationHandler, delegateInteractionHandler, dataProvider, parentDisposable, DesignSurface.ZoomControlsPolicy.HIDDEN,
+      GridSurfaceLayoutManager(NlConstants.DEFAULT_SCREEN_OFFSET_X, NlConstants.DEFAULT_SCREEN_OFFSET_Y, NlConstants.SCREEN_DELTA,
+                               NlConstants.SCREEN_DELTA)) { surface, model ->
       LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener(), { RealTimeSessionClock() })
     }
   }
 
   override val mainSurface = createPreviewDesignSurface(
-    project, navigationHandler, delegateInteractionHandler, dataProvider, parentDisposable) { surface, model ->
+    project, navigationHandler, delegateInteractionHandler, dataProvider, parentDisposable,
+    DesignSurface.ZoomControlsPolicy.VISIBLE) { surface, model ->
     LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener(), { RealTimeSessionClock() })
   }
 
@@ -243,6 +246,18 @@ internal class ComposePreviewViewImpl(private val project: Project,
   init {
     // Start handling events for the static preview.
     delegateInteractionHandler.delegate = staticPreviewInteractionHandler
+
+    mainSurface.addPanZoomListener(object: PanZoomListener {
+      override fun zoomChanged(previousScale: Double, newScale: Double) {
+        // Always keep the ratio from the fit scale from the pinned and main surfaces. This allows to zoom in/out in a
+        // synchronized way without them ever going out of sync because of hitting the max/min limit.
+        val zoomToFitDelta = pinnedSurface.getFitScale(false) - mainSurface.getFitScale(false)
+
+        pinnedSurface.setScale(newScale + zoomToFitDelta)
+      }
+
+      override fun panningChanged(adjustmentEvent: AdjustmentEvent?) {}
+    })
 
     val contentPanel = JPanel(BorderLayout()).apply {
       val actionsToolbar = ActionsToolbar(parentDisposable, mainSurface)

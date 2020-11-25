@@ -500,7 +500,7 @@ public class NavDesignSurface extends DesignSurface {
   }
 
   @Override
-  protected double getFitScale(boolean fitInto) {
+  public double getFitScale(boolean fitInto) {
     return Math.min(super.getFitScale(fitInto), 1.0);
   }
 
