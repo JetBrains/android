@@ -20,10 +20,12 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.components.JBViewport
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
+import java.awt.Point
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JScrollPane
@@ -226,4 +228,32 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
     selectFilterAction.updateActions(DataContext.EMPTY_CONTEXT)
     return selectFilterAction.getChildren(null).map { it as ToggleAction }
   }
+}
+
+fun JComponent.scrollToCenter() {
+  var component: JComponent = this
+  val point = Point(bounds.width / 2, bounds.height / 2)
+  while (component.parent !is JBViewport) {
+    point.x += component.bounds.x
+    point.y += component.bounds.y
+    component = component.parent as? JComponent ?: return
+  }
+  val viewport = component.parent as JBViewport
+  point.x -= viewport.size.width / 2
+  point.y -= viewport.size.height / 2
+  val viewSize = viewport.viewSize
+
+  if (viewSize.width >= viewport.size.width) {
+    point.x = point.x.coerceAtLeast(0).coerceAtMost(viewSize.width - viewport.size.width)
+  }
+  else {
+    point.x = 0
+  }
+  if (viewSize.height >= viewport.size.height) {
+    point.y = point.y.coerceAtLeast(0).coerceAtMost(viewSize.height - viewport.size.height)
+  }
+  else {
+    point.y = 0
+  }
+  viewport.viewPosition = point
 }

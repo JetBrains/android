@@ -50,26 +50,25 @@ class WorkDependencyGraphView(private val tab: WorkManagerInspectorTab,
                               private val onSelectedWorkCleared: () -> Unit) : JPanel() {
 
   private var works = listOf<WorkInfo>()
-  private val labelMap = mutableMapOf<String, JLabel>()
+  private var labelMap = mapOf<String, JLabel>()
 
   init {
     border = EmptyBorder(JBUI.scale(50), JBUI.scale(100), JBUI.scale(50), 0)
-    workSelectionModel.registerWorkSelectionListener { work, _ ->
-      refreshView(work)
+    workSelectionModel.registerWorkSelectionListener { work, context ->
+      refreshView(work, context)
     }
   }
 
-  private fun refreshView(work: WorkInfo?) {
+  private fun refreshView(work: WorkInfo?, context: WorkSelectionModel.Context) {
     if (work == null) {
       onSelectedWorkCleared()
     }
     else {
-      updateWorks(work)
+      updateWorks(work, context)
     }
   }
 
-  private fun updateWorks(selectedWork: WorkInfo) {
-    labelMap.clear()
+  private fun updateWorks(selectedWork: WorkInfo, context: WorkSelectionModel.Context) {
     removeAll()
     works = client.getOrderedWorkChain(selectedWork.id)
 
@@ -77,9 +76,11 @@ class WorkDependencyGraphView(private val tab: WorkManagerInspectorTab,
       onSelectedWorkCleared()
       return
     }
+
+    labelMap = works.map { it.id to createLabel(it) }.toMap()
+    val selectedLabel = labelMap[selectedWork.id]
     val depthMap = mutableMapOf<String, Int>()
     for (work in works) {
-      labelMap[work.id] = createLabel(work)
       depthMap[work.id] = (work.prerequisitesList.mapNotNull { depthMap[it] }.max() ?: -1) + 1
     }
     val maxDepth = depthMap.values.max() ?: -1
@@ -104,7 +105,10 @@ class WorkDependencyGraphView(private val tab: WorkManagerInspectorTab,
       }
       add(panelWithDepth)
     }
-    revalidate()
+    validate()
+    if (context == WorkSelectionModel.Context.DETAILS) {
+      selectedLabel?.scrollToCenter()
+    }
     repaint()
   }
 
