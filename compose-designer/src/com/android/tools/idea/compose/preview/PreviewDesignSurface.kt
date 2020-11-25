@@ -46,6 +46,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
+import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.VerticalOnlyLayoutManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
@@ -94,12 +95,13 @@ internal fun createPreviewDesignSurface(
   delegateInteractionHandler: DelegateInteractionHandler,
   dataProvider: DataProvider,
   parentDisposable: Disposable,
+  defaultLayoutManager: SurfaceLayoutManager = DEFAULT_PREVIEW_LAYOUT_MANAGER,
   sceneManagerProvider: BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager>): NlDesignSurface =
   NlDesignSurface.builder(project, parentDisposable)
     .setIsPreview(true)
     .showModelNames()
     .setNavigationHandler(navigationHandler)
-    .setLayoutManager(DEFAULT_PREVIEW_LAYOUT_MANAGER)
+    .setLayoutManager(defaultLayoutManager)
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface) }
     .setInteractionHandlerProvider { delegateInteractionHandler }
     .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }
@@ -107,6 +109,7 @@ internal fun createPreviewDesignSurface(
     .setEditable(true)
     .setDelegateDataProvider(dataProvider)
     .setSelectionModel(NopSelectionModel)
+    .setZoomControlsPolicy(DesignSurface.ZoomControlsPolicy.AUTO_HIDE)
     .build()
     .apply {
       setScreenViewProvider(NlScreenViewProvider.COMPOSE, false)
