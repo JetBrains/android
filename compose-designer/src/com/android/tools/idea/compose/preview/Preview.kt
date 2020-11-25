@@ -678,9 +678,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       psiFile,
       this,
       {
-        if (!hasRenderedAtLeastOnce.getAndSet(true)) {
+        if (!hasRenderedAtLeastOnce.get()) {
           // We zoom to fit to have better initial zoom level when first build is completed
-          UIUtil.invokeLaterIfNeeded { surface.zoomToFit() }
+          UIUtil.invokeLaterIfNeeded {
+            surface.zoomToFit()
+            hasRenderedAtLeastOnce.set(true)
+          }
         }
       },
       this::toPreviewXmlString,
