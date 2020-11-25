@@ -122,10 +122,12 @@ public final class ProfilersTestData {
   public static Common.Event.Builder generateSessionStartEvent(long streamId,
                                                                long sessionId,
                                                                long timestampNs,
-                                                               Common.SessionData.SessionStarted.SessionType type) {
+                                                               Common.SessionData.SessionStarted.SessionType type,
+                                                               long startTimestampEpochMs) {
     return Common.Event.newBuilder().setTimestamp(timestampNs).setGroupId(sessionId).setKind(Common.Event.Kind.SESSION)
       .setSession(Common.SessionData.newBuilder().setSessionStarted(
-        Common.SessionData.SessionStarted.newBuilder().setStreamId(streamId).setSessionId(sessionId).setType(type)));
+        Common.SessionData.SessionStarted.newBuilder().setStreamId(streamId).setSessionId(sessionId).setType(type)
+          .setStartTimestampEpochMs(startTimestampEpochMs)));
   }
 
   @NotNull
