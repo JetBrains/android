@@ -386,6 +386,8 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     buildModel.applyPlugin("kotlin-android");
     List<PluginModel> plugins = buildModel.plugins();
     verifyPlugins(ImmutableList.of("com.android.application", "kotlin-android"), plugins);
+    applyChanges(buildModel);
+    verifyFileContents(myBuildFile, TestFile.ADD_PLUGIN_TO_PLUGINS_BLOCK_EXPECTED);
   }
 
   @Test
@@ -439,6 +441,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
   enum TestFile implements TestFileName {
     ADD_PLUGIN_TO_PLUGINS_BLOCK("addPluginToPluginsBlock"),
+    ADD_PLUGIN_TO_PLUGINS_BLOCK_EXPECTED("addPluginToPluginsBlockExpected"),
     APPLIED_KOTLIN_PLUGIN("appliedKotlinPlugin"),
     APPLIED_PLUGINS_BLOCK("appliedPluginsBlock"),
     APPLIED_PLUGINS_BLOCK_WITH_REPEATED_PLUGINS("appliedPluginsBlockWithRepeatedPlugins"),
