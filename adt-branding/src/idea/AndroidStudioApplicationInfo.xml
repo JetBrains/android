@@ -53,4 +53,6 @@
               event-log-settings=""
               service-key="android-studio" />
 
+  <win32AppUserModelId>__WIN32_APP_USER_MODEL_ID__</win32AppUserModelId>
+
 </component>
