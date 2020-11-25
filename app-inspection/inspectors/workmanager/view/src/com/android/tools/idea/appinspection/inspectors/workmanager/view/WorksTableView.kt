@@ -8,6 +8,7 @@ import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorksTa
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ui.table.JBTable
 import java.awt.Component
+import java.awt.Rectangle
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
@@ -128,6 +129,9 @@ class WorksTableView(tab: WorkManagerInspectorTab,
         if (tableModelRow != -1) {
           val tableRow = convertRowIndexToView(tableModelRow)
           addRowSelectionInterval(tableRow, tableRow)
+          if (context == WorkSelectionModel.Context.DETAILS) {
+            scrollRectToVisible(Rectangle(getCellRect(tableRow, 0, true)))
+          }
         }
       }
     }
