@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.welcome.wizard
 
-import com.android.repository.api.RemotePackage
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
@@ -71,7 +70,7 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
     // if mode == NEW_INSTALL
     val customInstall = initialSdkLocation.path.isEmpty()
     val jdkLocation = EmbeddedDistributionPaths.getInstance().embeddedJdkPath
-    val installSummaryData = InstallSummaryModel(customInstall, initialSdkLocation, jdkLocation)
+    val installSummaryData = InstallSummaryModel(customInstall, initialSdkLocation, jdkLocation.toFile())
 
     val model = ConfigureInstallationModel()
     // TODO(qumeric): Add more steps and check witch steps to add for each different FirstRunWizardMode
@@ -95,7 +94,7 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
         addStep(LinuxHaxmInfoStep()) // FIXME(qumeric): only if needed
       }
       // if (mode != INSTALL_HANDOFF) {
-      addStep(InstallSummaryStep(installSummaryData, Supplier { listOf<RemotePackage>() }))
+      addStep(InstallSummaryStep(installSummaryData, Supplier { listOf() }))
       // TODO(qumeric): add support for MISSING_SDK case and for INSTALL_HANDOFF
       //addStep(LicenseAgreementStep())
       //if(SystemInfo.isMac || SystemInfo.isWindows) {

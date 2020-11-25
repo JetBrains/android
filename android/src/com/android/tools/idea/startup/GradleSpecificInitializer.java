@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.startup;
 
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.startup.Actions.hideAction;
 import static com.android.tools.idea.startup.Actions.moveAction;
 import static com.android.tools.idea.startup.Actions.replaceAction;
@@ -36,6 +35,7 @@ import com.android.tools.idea.actions.AndroidOpenFileAction;
 import com.android.tools.idea.actions.CreateLibraryFromFilesAction;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
+import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
@@ -269,7 +269,7 @@ public class GradleSpecificInitializer implements Runnable {
     if (sdk != null) {
       String sdkHomePath = sdk.getHomePath();
       assert sdkHomePath != null;
-      ideSdks.createAndroidSdkPerAndroidTarget(toSystemDependentPath(sdkHomePath));
+      ideSdks.createAndroidSdkPerAndroidTarget(FilePaths.stringToFile(sdkHomePath));
       return;
     }
 

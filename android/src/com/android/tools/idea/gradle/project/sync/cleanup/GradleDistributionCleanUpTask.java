@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.cleanup;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.GradleUtil.isSupportedGradleVersion;
 import static com.android.tools.idea.gradle.util.GradleWrapper.getDefaultPropertiesFilePath;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.intellij.openapi.ui.Messages.OK;
 import static com.intellij.openapi.ui.Messages.getQuestionIcon;
 import static com.intellij.openapi.ui.Messages.showOkCancelDialog;
@@ -33,6 +32,7 @@ import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.util.GradleWrapper;
+import com.android.tools.idea.io.FilePaths;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -88,7 +88,7 @@ class GradleDistributionCleanUpTask extends ProjectCleanUpTask {
         msg = createUseWrapperQuestion("The path of the local Gradle distribution to use is not set.");
       }
       else {
-        File gradleHomePath = toSystemDependentPath(gradleHome);
+        File gradleHomePath = FilePaths.stringToFile(gradleHome);
         if (!gradleHomePath.isDirectory()) {
           String reason = String.format("The path\n'%1$s'\n, set as a local Gradle distribution, does not belong to an existing directory.",
                                         gradleHomePath.getPath());

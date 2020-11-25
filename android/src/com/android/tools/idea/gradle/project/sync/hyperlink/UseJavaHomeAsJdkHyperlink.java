@@ -24,12 +24,12 @@ import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import java.io.File;
+import java.nio.file.Paths;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class UseJavaHomeAsJdkHyperlink extends NotificationHyperlink {
-  @NotNull private String myJavaHome;
+  @NotNull private final String myJavaHome;
 
   @Nullable
   public static UseJavaHomeAsJdkHyperlink create() {
@@ -47,7 +47,7 @@ public final class UseJavaHomeAsJdkHyperlink extends NotificationHyperlink {
 
   @Override
   protected void execute(@NotNull Project project) {
-    ApplicationManager.getApplication().runWriteAction(() -> IdeSdks.getInstance().setJdkPath(new File(myJavaHome)));
+    ApplicationManager.getApplication().runWriteAction(() -> IdeSdks.getInstance().setJdkPath(Paths.get(myJavaHome)));
     GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_JDK_CHANGED_TO_CURRENT);
   }
 }

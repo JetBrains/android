@@ -30,7 +30,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
-import java.io.File;
+import java.nio.file.Paths;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -90,7 +90,7 @@ public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
     when(myMockIdeSdks.getJdk()).thenReturn(jdk);
     when(jdk.getHomePath()).thenReturn(pathToJdk10);
     when(myMockIdeSdks.getRunningVersionOrDefault()).thenReturn(JavaSdkVersion.JDK_1_8);
-    when(myMockJdks.findVersion(new File(pathToJdk10))).thenReturn(JavaSdkVersion.JDK_10);
+    when(myMockJdks.findVersion(Paths.get(pathToJdk10))).thenReturn(JavaSdkVersion.JDK_10);
 
     PreSyncCheckResult result = myJdkPreSyncCheck.doCheckCanSyncAndTryToFix(getProject());
     verifyCheckFailure(result,
@@ -106,7 +106,7 @@ public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
     when(myMockIdeSdks.getJdk()).thenReturn(jdk);
     when(jdk.getHomePath()).thenReturn(pathToJdk10);
     when(myMockIdeSdks.getRunningVersionOrDefault()).thenReturn(JavaSdkVersion.JDK_1_8);
-    when(myMockJdks.findVersion(new File(pathToJdk10))).thenReturn(JavaSdkVersion.JDK_10);
+    when(myMockJdks.findVersion(Paths.get(pathToJdk10))).thenReturn(JavaSdkVersion.JDK_10);
 
     PreSyncCheckResult result = myJdkPreSyncCheck.doCheckCanSyncAndTryToFix(getProject());
     verifyCheckFailure(result,
@@ -121,7 +121,7 @@ public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
     when(myMockIdeSdks.getJdk()).thenReturn(jdk);
     when(jdk.getHomePath()).thenReturn(pathToJdk8);
     when(myMockIdeSdks.getRunningVersionOrDefault()).thenReturn(JavaSdkVersion.JDK_1_8);
-    when(myMockJdks.findVersion(new File(pathToJdk8))).thenReturn(JavaSdkVersion.JDK_1_8);
+    when(myMockJdks.findVersion(Paths.get(pathToJdk8))).thenReturn(JavaSdkVersion.JDK_1_8);
     when(myMockIdeSdks.getJdk()).thenReturn(jdk);
     when(jdk.getHomePath()).thenReturn("/path/to/jdk8");
 
