@@ -26,10 +26,12 @@ import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvide
 import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
 import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
+import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.diagnostic.Logger
@@ -189,7 +191,9 @@ internal class ComposePreviewViewImpl(private val project: Project,
 
   override val pinnedSurface by lazy {
     createPreviewDesignSurface(
-      project, navigationHandler, delegateInteractionHandler, dataProvider, parentDisposable) { surface, model ->
+      project, navigationHandler, delegateInteractionHandler, dataProvider, parentDisposable, GridSurfaceLayoutManager(
+      NlConstants.DEFAULT_SCREEN_OFFSET_X, NlConstants.DEFAULT_SCREEN_OFFSET_Y,
+      NlConstants.SCREEN_DELTA, NlConstants.SCREEN_DELTA)) { surface, model ->
       LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener(), { RealTimeSessionClock() })
     }
   }
