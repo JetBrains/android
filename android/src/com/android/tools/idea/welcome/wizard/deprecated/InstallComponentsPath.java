@@ -72,6 +72,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
@@ -190,9 +191,9 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     assert location != null;
 
     myState.put(WizardConstants.KEY_SDK_INSTALL_LOCATION, location.getAbsolutePath());
-    File file = EmbeddedDistributionPaths.getInstance().tryToGetEmbeddedJdkPath();
+    Path file = EmbeddedDistributionPaths.getInstance().tryToGetEmbeddedJdkPath();
     if (file != null) {
-      myState.put(WizardConstants.KEY_JDK_LOCATION, file.getPath());
+      myState.put(WizardConstants.KEY_JDK_LOCATION, file.toString());
     }
 
     myComponentTree = createComponentTree(myMode, !isChromeOSAndIsNotHWAccelerated() && myMode.shouldCreateAvd());
@@ -271,7 +272,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     Sdk jdk = null;
     String jdkLocation = myState.get(KEY_JDK_LOCATION);
     if (jdkLocation != null) {
-      jdk = IdeSdks.getInstance().setJdkPath(new File(jdkLocation));
+      jdk = IdeSdks.getInstance().setJdkPath(Paths.get(jdkLocation));
     }
     SetPreference setPreference = new SetPreference(myMode.getInstallerTimestamp(),
                                                     ModalityState.stateForComponent(myWizard.getContentPane()),
@@ -412,7 +413,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
         IdeSdks.getInstance().setAndroidSdkPath(input, myJdk, ProjectManager.getInstance().getDefaultProject());
         if (myJdk != null && !isEmpty(myJdk.getHomePath()) && StudioFlags.ALLOW_JDK_PER_PROJECT.get()) {
           // Add as Android Studio default JDK
-          IdeSdks.findOrCreateJdk(ANDROID_STUDIO_DEFAULT_JDK_NAME, new File(myJdk.getHomePath()));
+          IdeSdks.findOrCreateJdk(ANDROID_STUDIO_DEFAULT_JDK_NAME, Paths.get(myJdk.getHomePath()));
         }
         AndroidFirstRunPersistentData.getInstance().markSdkUpToDate(myInstallerTimestamp);
       });

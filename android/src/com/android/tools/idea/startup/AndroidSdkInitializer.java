@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.startup;
 
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -26,6 +25,7 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabl
 import com.android.SdkConstants;
 import com.android.prefs.AndroidLocationsSingleton;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SystemInfoStatsMonitor;
@@ -114,7 +114,7 @@ public class AndroidSdkInitializer implements Runnable {
     if (sdk != null) {
       String sdkHomePath = sdk.getHomePath();
       assert sdkHomePath != null;
-      IdeSdks.getInstance().createAndroidSdkPerAndroidTarget(toSystemDependentPath(sdkHomePath));
+      IdeSdks.getInstance().createAndroidSdkPerAndroidTarget(FilePaths.stringToFile(sdkHomePath));
       return;
     }
 
@@ -229,7 +229,7 @@ public class AndroidSdkInitializer implements Runnable {
         }
         LOG.info(msg);
         if (sdkPath != null) {
-          return toSystemDependentPath(sdkPath);
+          return FilePaths.stringToFile(sdkPath);
         }
       }
       catch (Exception e) {
@@ -237,7 +237,7 @@ public class AndroidSdkInitializer implements Runnable {
       }
     }
     LOG.info("Using default SDK path: " + ANDROID_SDK_DEFAULT_INSTALL_DIR);
-    return toSystemDependentPath(ANDROID_SDK_DEFAULT_INSTALL_DIR);
+    return FilePaths.stringToFile(ANDROID_SDK_DEFAULT_INSTALL_DIR);
   }
 
   /**

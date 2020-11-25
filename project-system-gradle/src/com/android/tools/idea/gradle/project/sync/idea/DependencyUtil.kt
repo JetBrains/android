@@ -425,7 +425,7 @@ private class AndroidDependenciesSetupContext(
     // TODO: Why do we only do this for Android modules?
     // TODO: Add this to the model instead!
     (library.compileJarFiles + library.resFolder).distinct().mapNotNull {
-      FilePaths.toSystemDependentPath(it)?.path
+      FilePaths.stringToFile(it)?.path
     }.forEach { binaryPath ->
       if (binaryPath.endsWith(separatorChar + FD_RES)) {
         val annotationsFile = File(binaryPath.removeSuffix(FD_RES) + FN_ANNOTATIONS_ZIP)

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
+import com.android.tools.idea.io.FilePaths;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import java.io.File;
@@ -30,7 +30,7 @@ public class ProjectFinder {
   @Nullable
   private Project findProject(@NotNull String projectPath) {
     if (isNotEmpty(projectPath)) {
-      File projectFolderPath = toSystemDependentPath(projectPath);
+      File projectFolderPath = FilePaths.stringToFile(projectPath);
       for (Project project : ProjectManager.getInstance().getOpenProjects()) {
         if (hasMatchingPath(project, projectFolderPath)) {
           return project;

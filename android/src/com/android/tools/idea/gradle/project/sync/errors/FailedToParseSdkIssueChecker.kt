@@ -111,7 +111,7 @@ open class FailedToParseSdkIssueChecker: GradleIssueChecker {
         val moduleSdk = ModuleRootManager.getInstance(module).sdk ?: continue
         if (androidSdk.isAndroidSdk(moduleSdk)) {
           val homePath = moduleSdk.homePath ?: continue
-          val sdkHomePath = FilePaths.toSystemDependentPath(homePath)
+          val sdkHomePath = FilePaths.stringToFile(homePath)
           // sdkHomePath is never null as homePath isn't at this stage.
           if (isMissingAddonsFolder(sdkHomePath!!)) {
             return sdkHomePath

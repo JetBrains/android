@@ -63,10 +63,7 @@ public class GradleUtilAndroidGradleTest extends AndroidGradleTestCase {
   }
 
   public void testJdkPathFromProjectJavaCurrent() throws Exception {
-    @NotNull IdeSdks ideSdks = IdeSdks.getInstance();
-    File jdkPath = ideSdks.getJdkPath();
-    assertNotNull("Could not find path of current JDK", jdkPath);
-    verifyJdkPathFromProject(jdkPath.getAbsolutePath());
+    verifyJdkPathFromProject(IdeSdks.getInstance().getJdkPath().toAbsolutePath().toString());
   }
 
   private void verifyBuildFile(@NotNull Module module, @NotNull String... expectedPath) {
@@ -86,8 +83,7 @@ public class GradleUtilAndroidGradleTest extends AndroidGradleTestCase {
 
     // Change value returned by IdeSdks.getJdkPath to Java 8
     ApplicationManager.getApplication().runWriteAction(() -> {
-      File jdkPath = new File(javaPath);
-      IdeSdks.getInstance().setJdkPath(jdkPath);
+      IdeSdks.getInstance().setJdkPath(Paths.get(javaPath));
     });
 
     Project project = getProject();

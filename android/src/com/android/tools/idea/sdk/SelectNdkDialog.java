@@ -17,6 +17,7 @@
 package com.android.tools.idea.sdk;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
@@ -35,7 +36,6 @@ import javax.swing.*;
 import java.io.File;
 import java.util.List;
 
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -172,7 +172,7 @@ public class SelectNdkDialog extends DialogWrapper {
       return "Android NDK path not specified.";
     }
 
-    ValidationResult validationResult = validateAndroidNdk(toSystemDependentPath(path), false);
+    ValidationResult validationResult = validateAndroidNdk(FilePaths.stringToFile(path), false);
     if (!validationResult.success) {
       // Show error message in new line. Long lines trigger incorrect layout rendering.
       // See https://code.google.com/p/android/issues/detail?id=78291

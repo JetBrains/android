@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.util.PropertiesFiles;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
@@ -30,7 +31,6 @@ import java.util.Properties;
 
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
 import static com.android.SdkConstants.SDK_DIR_PROPERTY;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.easymock.EasyMock.*;
@@ -79,7 +79,7 @@ public class LocalPropertiesTest extends PlatformTestCase {
   }
 
   public void testSetAndroidSdkPathWithFile() throws Exception {
-    File androidSdkPath = toSystemDependentPath("/home/sdk2");
+    File androidSdkPath = FilePaths.stringToFile("/home/sdk2");
     myLocalProperties.setAndroidSdkPath(androidSdkPath);
     myLocalProperties.save();
 

@@ -17,6 +17,8 @@ package com.android.tools.idea.io;
 
 import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,7 +59,7 @@ public final class FilePaths {
   }
 
   @Nullable
-  public static File getJarFromJarUrl(@NotNull String url) {
+  public static Path getJarFromJarUrl(@NotNull String url) {
     // URLs for jar file start with "jar://" and end with "!/".
     if (!url.startsWith(StandardFileSystems.JAR_PROTOCOL_PREFIX)) {
       return null;
@@ -75,7 +77,16 @@ public final class FilePaths {
    */
   @Contract("!null -> !null")
   @Nullable
-  public static File toSystemDependentPath(@Nullable String path) {
-    return path != null ? new File(toSystemDependentName(path)) : null;
+  public static Path toSystemDependentPath(@Nullable String path) {
+    return path == null ? null : Paths.get(path);
+  }
+
+  /**
+   * Converts the given {@code String} path to a system-dependent path (as {@link File}.)
+   */
+  @Contract("!null -> !null")
+  @Nullable
+  public static File stringToFile(@Nullable String path) {
+    return path == null ? null : new File(path);
   }
 }

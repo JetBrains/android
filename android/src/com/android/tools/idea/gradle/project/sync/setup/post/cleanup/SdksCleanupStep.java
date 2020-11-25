@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.setup.post.cleanup;
 
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
@@ -30,6 +29,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallPlatformHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanupStep;
+import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -119,7 +119,7 @@ public class SdksCleanupStep extends ProjectCleanupStep {
 
   @VisibleForTesting
   static void updateSdkIfNeeded(@NotNull Sdk sdk, @NotNull AndroidSdks androidSdks, @NotNull IAndroidTarget target) {
-    List<OrderRoot> expectedRoots = androidSdks.getLibraryRootsForTarget(target, toSystemDependentPath(sdk.getHomePath()), true);
+    List<OrderRoot> expectedRoots = androidSdks.getLibraryRootsForTarget(target, FilePaths.stringToFile(sdk.getHomePath()), true);
     Map<OrderRootType, Set<String>> urlsByRootType = new HashMap<>();
     for (OrderRoot root : expectedRoots) {
       urlsByRootType.computeIfAbsent(root.getType(), k -> new HashSet<>()).add(root.getFile().getUrl());

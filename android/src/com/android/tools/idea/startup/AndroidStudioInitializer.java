@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.startup;
 
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.intellij.openapi.actionSystem.IdeActions.ACTION_COMPILE;
 import static com.intellij.openapi.actionSystem.IdeActions.ACTION_COMPILE_PROJECT;
 import static com.intellij.openapi.actionSystem.IdeActions.ACTION_MAKE_MODULE;
@@ -28,6 +27,7 @@ import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.analytics.IdeBrandProviderKt;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.run.deployment.RunOnMultipleDevicesAction;
 import com.android.tools.idea.run.deployment.SelectMultipleDevicesAction;
 import com.android.tools.idea.serverflags.ServerFlagDownloader;
@@ -161,7 +161,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
       getLog().info("Unable to find Studio home directory");
       return;
     }
-    File studioHomePath = toSystemDependentPath(studioHome);
+    File studioHomePath = FilePaths.stringToFile(studioHome);
     if (!studioHomePath.isDirectory()) {
       getLog().info(String.format("The path '%1$s' does not belong to an existing directory", studioHomePath.getPath()));
       return;
