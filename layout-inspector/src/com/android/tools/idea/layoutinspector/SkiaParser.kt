@@ -268,7 +268,7 @@ class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
   private fun findPath(): File? {
     return if (serverVersion == null) {
       // devbuild
-      File(StudioPathManager.getSourcesRoot(), "bazel-bin/tools/base/dynamic-layout-inspector/${serverName}")
+      File(StudioPathManager.getBinariesRoot(), "tools/base/dynamic-layout-inspector/${serverName}")
     }
     else {
       val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
