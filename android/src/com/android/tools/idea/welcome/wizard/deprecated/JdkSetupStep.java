@@ -19,11 +19,8 @@ import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.JDK_LO
 import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.JDK_LOCATION_WARNING_URL;
 import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.generateChooseValidJdkDirectoryError;
 import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.getLocationFromComboBoxWithBrowseButton;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
 import static com.android.tools.idea.wizard.WizardConstants.KEY_JDK_LOCATION;
-import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable;
@@ -37,13 +34,12 @@ import com.intellij.ui.ComboboxWithBrowseButton;
 import com.intellij.ui.ContextHelpLabel;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.Function;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.io.File;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.function.Function;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,7 +62,7 @@ public class JdkSetupStep extends FirstRunWizardStep {
 
   private void setUpJdkLocationComboBox() {
     FileChooserDescriptor descriptor = createSingleFolderDescriptor(file -> {
-      File validatedFile = validateJdkPath(file);
+      Path validatedFile = validateJdkPath(file);
       if (validatedFile == null) {
         throw new IllegalArgumentException(generateChooseValidJdkDirectoryError());
       }
@@ -77,16 +73,16 @@ public class JdkSetupStep extends FirstRunWizardStep {
     myJdkLocationComboBox.addBrowseFolderListener(getProject(), descriptor);
     JComboBox comboBox = myJdkLocationComboBox.getComboBox();
     IdeSdks ideSdks = IdeSdks.getInstance();
-    File embeddedPath = ideSdks.getEmbeddedJdkPath();
+    Path embeddedPath = ideSdks.getEmbeddedJdkPath();
     if (embeddedPath != null) {
-      File validatedPath = validateJdkPath(embeddedPath);
+      Path validatedPath = validateJdkPath(embeddedPath);
       if (validatedPath != null) {
         comboBox.addItem(new IdeSdksConfigurable.LabelAndFileForLocation("Embedded JDK", validatedPath));
       }
     }
     String javaHomePath = getJdkFromJavaHome();
     if (javaHomePath != null) {
-      File validatedPath = validateJdkPath(new File(javaHomePath));
+      Path validatedPath = validateJdkPath(Paths.get(javaHomePath));
       myIsJavaHomeValid = validatedPath != null;
       if (myIsJavaHomeValid) {
         comboBox.addItem(new IdeSdksConfigurable.LabelAndFileForLocation("JAVA_HOME", validatedPath));
@@ -107,13 +103,8 @@ public class JdkSetupStep extends FirstRunWizardStep {
     setJdkLocationComboBox(embeddedPath);
   }
 
-  private void setJdkLocationComboBox(@Nullable File path) {
-    if (path == null) {
-      myJdkLocationComboBox.getComboBox().setSelectedItem(null);
-    }
-    else {
-      myJdkLocationComboBox.getComboBox().setSelectedItem(toSystemDependentName(path.getPath()));
-    }
+  private void setJdkLocationComboBox(@Nullable Path path) {
+    myJdkLocationComboBox.getComboBox().setSelectedItem(path == null ? null : path.toString());
     updateIsValidPath();
   }
 
@@ -123,13 +114,12 @@ public class JdkSetupStep extends FirstRunWizardStep {
   }
 
   @NotNull
-  private static FileChooserDescriptor createSingleFolderDescriptor(@NotNull Function<? super File, Void> validation) {
+  private static FileChooserDescriptor createSingleFolderDescriptor(@NotNull Function<? super Path, Void> validation) {
     FileChooserDescriptor descriptor = new FileChooserDescriptor(false, true, false, false, false, false) {
       @Override
       public void validateSelectedFiles(VirtualFile[] files) {
         for (VirtualFile virtualFile : files) {
-          File file = virtualToIoFile(virtualFile);
-          validation.fun(file);
+          validation.apply(virtualFile.toNioPath());
         }
       }
     };
@@ -145,8 +135,8 @@ public class JdkSetupStep extends FirstRunWizardStep {
   }
 
   @Nullable
-  private File validateJdkPath(@NotNull File file) {
-    File possiblePath = IdeSdks.getInstance().validateJdkPath(file);
+  private Path validateJdkPath(@NotNull Path file) {
+    Path possiblePath = IdeSdks.getInstance().validateJdkPath(file);
     if (possiblePath != null) {
       setJdkLocationComboBox(possiblePath);
       return possiblePath;
@@ -158,8 +148,7 @@ public class JdkSetupStep extends FirstRunWizardStep {
   public void init() {
     // Apply default selection
     IdeSdks ideSdks = IdeSdks.getInstance();
-    File embeddedPath = ideSdks.getEmbeddedJdkPath();
-    setJdkLocationComboBox(embeddedPath);
+    setJdkLocationComboBox(ideSdks.getEmbeddedJdkPath());
   }
 
   @Nullable
@@ -190,14 +179,14 @@ public class JdkSetupStep extends FirstRunWizardStep {
     if (!isValidJdkPath()) {
       return false;
     }
-    File path = toSystemDependentPath(getJdkLocation().getPath());
+    Path path = getJdkLocation();
     ApplicationManager.getApplication().runWriteAction(() -> IdeSdks.getInstance().setJdkPath(path));
-    myState.put(KEY_JDK_LOCATION, path.getPath());
+    myState.put(KEY_JDK_LOCATION, path.toString());
     return true;
   }
 
   @NotNull
-  private File getJdkLocation() {
+  private Path getJdkLocation() {
     return getLocationFromComboBoxWithBrowseButton(myJdkLocationComboBox);
   }
 

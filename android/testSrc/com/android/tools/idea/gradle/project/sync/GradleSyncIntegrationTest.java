@@ -18,11 +18,6 @@ package com.android.tools.idea.gradle.project.sync;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
-import static com.android.tools.idea.gradle.util.ContentEntries.findChildContentEntries;
-import static com.android.tools.idea.io.FilePaths.getJarFromJarUrl;
-import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.APP_WITH_BUILDSRC;
 import static com.android.tools.idea.testing.TestProjectPaths.BASIC;
@@ -84,9 +79,12 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager;
+import com.android.tools.idea.gradle.util.ContentEntries;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTests;
@@ -135,6 +133,7 @@ import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Proxy;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -366,12 +365,12 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     Library appCompat = libraries.findMatchingLibrary("Gradle: appcompat-v7.*");
     assertNotNull(appCompat);
 
-    File jarsFolderPath = null;
+    Path jarsFolderPath = null;
     for (String url : appCompat.getUrls(CLASSES)) {
       if (url.startsWith(JAR_PROTOCOL_PREFIX)) {
-        File jarPath = getJarFromJarUrl(url);
+        Path jarPath = FilePaths.getJarFromJarUrl(url);
         assertNotNull(jarPath);
-        jarsFolderPath = jarPath.getParentFile();
+        jarsFolderPath = jarPath.getParent();
         break;
       }
     }
@@ -382,7 +381,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
     ContentEntry contentEntry = contentEntries[0];
     List<String> excludeFolderUrls = contentEntry.getExcludeFolderUrls();
-    assertThat(excludeFolderUrls).contains(pathToIdeaUrl(jarsFolderPath));
+    assertThat(excludeFolderUrls).contains(FilePaths.pathToIdeaUrl(jarsFolderPath.toFile()));
   }
 
   public void ignore_testSourceAttachmentsForJavaLibraries() throws Exception {
@@ -433,7 +432,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
     SyncMessage message = messages.get(0);
     // @formatter:off
-    assertAbout(syncMessage()).that(message).hasType(MessageType.ERROR)
+    assertAbout(SyncMessageSubject.syncMessage()).that(message).hasType(MessageType.ERROR)
             .hasMessageLine("The module 'app' is an Android project without build variants, and cannot be built.", 0);
     // @formatter:on
 
@@ -463,7 +462,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
               ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
               try {
                 Collection<ContentEntry> contentEntries =
-                        findChildContentEntries(centralBuildDirPath, Arrays.stream(rootModel.getContentEntries()));
+                        ContentEntries.findChildContentEntries(centralBuildDirPath, Arrays.stream(rootModel.getContentEntries()));
 
                 List<File> paths = new ArrayList<>();
 
@@ -471,7 +470,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
                         .collect(Collectors.toSet())) {
                   String path = urlToPath(source.getUrl());
                   if (isNotEmpty(path)) {
-                    paths.add(toSystemDependentPath(path));
+                    paths.add(FilePaths.stringToFile(path));
                   }
                 }
                 return paths.toArray(new File[paths.size()]);

@@ -19,25 +19,23 @@ import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable.getLocationFromComboBoxWithBrowseButton
-import com.android.tools.idea.io.FilePaths
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.ui.validation.validators.PathValidator
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll
-import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.ComboboxWithBrowseButton
-import com.intellij.ui.layout.panel
+import com.intellij.ui.layout.*
 import com.intellij.uiDesigner.core.Spacer
 import java.awt.event.ItemEvent
-import java.io.File
+import java.nio.file.Path
+import java.nio.file.Paths
 
 /**
  * Wizard step for JDK setup.
@@ -60,7 +58,8 @@ class JdkSetupStep : ModelWizardStep.WithoutModel("Select default JDK location")
   private val validatorPanel = ValidatorPanel(this, wrappedWithVScroll(jdkPanel))
   private val invalidPathMessage = StringValueProperty()
   private val isValidJdkPath = BoolValueProperty(false)
-  private val jdkLocation: File get() = getLocationFromComboBoxWithBrowseButton(jdkLocationComboBox)
+  private val jdkLocation: Path
+    get() = getLocationFromComboBoxWithBrowseButton(jdkLocationComboBox)
 
   init {
     val descriptor = createSingleFolderDescriptor { file ->
@@ -75,9 +74,8 @@ class JdkSetupStep : ModelWizardStep.WithoutModel("Select default JDK location")
       validateJdkPath(jdkLocation)
     }
 
-    fun addJdkIfValid(path: File?, label: String) {
-      path ?: return
-      val validatedPath = validateJdkPath(path) ?: return
+    fun addJdkIfValid(path: Path?, label: String) {
+      val validatedPath = validateJdkPath(path ?: return) ?: return
       comboBox.addItem(IdeSdksConfigurable.LabelAndFileForLocation(label, validatedPath))
     }
 
@@ -86,7 +84,7 @@ class JdkSetupStep : ModelWizardStep.WithoutModel("Select default JDK location")
 
     val javaHomePath = IdeSdks.getJdkFromJavaHome()
     if (javaHomePath != null) {
-      addJdkIfValid(File(javaHomePath), "JAVA_HOME")
+      addJdkIfValid(Paths.get(javaHomePath), "JAVA_HOME")
     }
 
     comboBox.isEditable = true
@@ -106,8 +104,8 @@ class JdkSetupStep : ModelWizardStep.WithoutModel("Select default JDK location")
   override fun canGoForward(): ObservableBool = isValidJdkPath
 
   override fun onProceeding() {
-    val path = FilePaths.toSystemDependentPath(jdkLocation.path)
-    ApplicationManager.getApplication().runWriteAction { IdeSdks.getInstance().setJdkPath(path!!) }
+    val path = jdkLocation.toAbsolutePath().normalize()
+    ApplicationManager.getApplication().runWriteAction { IdeSdks.getInstance().setJdkPath(path) }
     //myState.put(WizardConstants.KEY_JDK_LOCATION, path!!.path)
   }
 
@@ -115,7 +113,7 @@ class JdkSetupStep : ModelWizardStep.WithoutModel("Select default JDK location")
 
   override fun getComponent() = validatorPanel
 
-  private fun validateJdkPath(file: File): File? {
+  private fun validateJdkPath(file: Path): Path? {
     val possiblePath = IdeSdks.getInstance().validateJdkPath(file)
     if (possiblePath != null) {
       setJdkLocationComboBox(possiblePath)
@@ -127,27 +125,26 @@ class JdkSetupStep : ModelWizardStep.WithoutModel("Select default JDK location")
 
     // TODO(qumeric): replace it with PathValidator, like:
     val validator = PathValidator.Builder().withCommonRules().build("Android SDK location")
-    val validationResult = validator.validate(jdkLocation)
+    val validationResult = validator.validate(jdkLocation.toFile())
     invalidPathMessage.set(validationResult.message)
     val isError = validationResult.severity != Validator.Severity.ERROR
     isValidJdkPath.set(isError)
     return file.takeIf { !isError }
   }
 
-  private fun setJdkLocationComboBox(path: File?) {
-    jdkLocationComboBox.comboBox.selectedItem = path?.toSystemDependentName()
+  private fun setJdkLocationComboBox(path: Path?) {
+    jdkLocationComboBox.comboBox.selectedItem = path?.toString()
   }
-
-  private fun File.toSystemDependentName() = FileUtilRt.toSystemDependentName(path)
 }
 
 // TODO(qumeric) make private
-fun createSingleFolderDescriptor(validation: (File) -> Unit) =
-  object : FileChooserDescriptor(false, true, false, false, false, false) {
+fun createSingleFolderDescriptor(validation: (Path) -> Unit): FileChooserDescriptor {
+  val result = object : FileChooserDescriptor(false, true, false, false, false, false) {
     override fun validateSelectedFiles(files: Array<VirtualFile>) {
-      files.map(VirtualFile::toIoFile).forEach(validation)
+      files.map(VirtualFile::toNioPath).forEach(validation)
     }
-  }.apply<FileChooserDescriptor> {
-    withShowHiddenFiles(SystemInfo.isMac)
-    title = "Choose JDK Location"
   }
+  result.withShowHiddenFiles(SystemInfo.isMac)
+  result.title = "Choose JDK Location"
+  return result
+}

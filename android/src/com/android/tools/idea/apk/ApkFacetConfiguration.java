@@ -19,6 +19,7 @@ import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.apk.debugging.DebuggableSharedObjectFile;
 import com.android.tools.idea.apk.debugging.NativeLibrary;
 import com.android.tools.idea.apk.debugging.SetupIssue;
+import com.android.tools.idea.io.FilePaths;
 import com.intellij.facet.FacetConfiguration;
 import com.intellij.facet.ui.FacetEditorContext;
 import com.intellij.facet.ui.FacetEditorTab;
@@ -28,15 +29,19 @@ import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xmlb.XmlSerializer;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 
 public class ApkFacetConfiguration implements FacetConfiguration {
   private static final FacetEditorTab[] EDITOR_TABS = new FacetEditorTab[0];
@@ -62,7 +67,7 @@ public class ApkFacetConfiguration implements FacetConfiguration {
       for (NativeLibrary library : NATIVE_LIBRARIES) {
         DebuggableSharedObjectFile sharedObjectFile = library.debuggableSharedObjectFilesByAbi.get(abi);
         if (sharedObjectFile != null) {
-          File path = toSystemDependentPath(sharedObjectFile.path);
+          File path = FilePaths.stringToFile(sharedObjectFile.path);
           if (path.exists()) {
             paths.add(path.getParent());
           }
@@ -83,7 +88,7 @@ public class ApkFacetConfiguration implements FacetConfiguration {
       DebuggableSharedObjectFile sharedObjectFile = library.debuggableSharedObjectFilesByAbi.get(abi);
       if (sharedObjectFile != null && lib != null) {
         File libFile = VfsUtilCore.virtualToIoFile(lib);
-        File symFile = toSystemDependentPath(sharedObjectFile.path);
+        File symFile = FilePaths.stringToFile(sharedObjectFile.path);
         if (libFile.exists() && symFile.exists()) {
           moduleToSymbols.put(libFile, symFile);
         }

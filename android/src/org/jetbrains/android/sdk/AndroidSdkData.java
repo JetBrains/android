@@ -3,7 +3,6 @@
 package org.jetbrains.android.sdk;
 
 import static com.android.SdkConstants.FD_PLATFORM_TOOLS;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.intellij.openapi.util.io.FileUtil.fileHashCode;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
@@ -16,6 +15,7 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.Maps;
@@ -95,8 +95,7 @@ public final class AndroidSdkData {
 
   @Nullable
   public static AndroidSdkData getSdkData(@NotNull String sdkPath) {
-    File file = toSystemDependentPath(sdkPath);
-    return getSdkData(file);
+    return getSdkData(FilePaths.stringToFile(sdkPath));
   }
 
   @Nullable

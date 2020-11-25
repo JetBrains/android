@@ -1,9 +1,8 @@
 // Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.sdk;
 
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -63,7 +62,7 @@ class AndroidSdkConfigurableForm {
       }
       final IAndroidTarget target = (IAndroidTarget)e.getItem();
 
-      List<OrderRoot> roots = AndroidSdks.getInstance().getLibraryRootsForTarget(target, toSystemDependentPath(mySdkLocation), true);
+      List<OrderRoot> roots = AndroidSdks.getInstance().getLibraryRootsForTarget(target, FilePaths.stringToFile(mySdkLocation), true);
       Map<OrderRootType, String[]> configuredRoots = new HashMap<>();
 
       for (OrderRootType type : OrderRootType.getAllTypes()) {

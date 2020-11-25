@@ -34,6 +34,8 @@ import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.intellij.testFramework.fixtures.impl.TempDirTestFixtureImpl
 import com.intellij.testFramework.registerExtension
 import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.util.io.delete
+import com.intellij.util.io.exists
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
@@ -252,7 +254,7 @@ class AndroidProjectRule private constructor(
         object : TempDirTestFixtureImpl() {
           private val tempDir by lazy { toSystemDependentPath(projectBuilder.fixture.project.basePath)!! }
 
-          override fun getTempHome(): Path = tempDir.toPath()
+          override fun getTempHome(): Path = tempDir
 
           override fun tearDown() {
             val existed = tempDir.exists()

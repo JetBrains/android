@@ -34,12 +34,10 @@ import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.function.Supplier;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextPane;
+import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import org.jetbrains.annotations.NotNull;
@@ -139,7 +137,7 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
       jdkLocation = myState.get(myKeyJdkLocation);
     }
     if (!isEmptyOrSpaces(jdkLocation)) {
-      if (!isSameAsJavaHomeJdk(new File(jdkLocation))) {
+      if (!isSameAsJavaHomeJdk(Paths.get(jdkLocation))) {
         jdkLocation += " (<b>Note:</b> Gradle may be using JAVA_HOME when invoked from command line. " +
                        "<a href=\"" + JDK_LOCATION_WARNING_URL + "\">More info...</a>)";
       }

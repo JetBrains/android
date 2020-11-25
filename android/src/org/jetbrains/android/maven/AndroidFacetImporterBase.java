@@ -2,11 +2,11 @@
 package org.jetbrains.android.maven;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenAndroidSdkManagerHyperlink;
+import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.ui.CustomNotificationListener;
@@ -1053,7 +1053,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
         if (target != null) {
           Sdk library = AndroidSdkUtils.findAppropriateAndroidPlatform(target, sdkData, true);
           if (library == null) {
-            library = createNewAndroidSdkForMaven(toSystemDependentPath(sdkPath), target);
+            library = createNewAndroidSdkForMaven(FilePaths.stringToFile(sdkPath), target);
           }
           return library;
         }

@@ -38,6 +38,7 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoManager;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
@@ -89,6 +90,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -265,7 +268,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
     try {
       LocalProperties localProperties = new LocalProperties(myProject);
-      localProperties.setAndroidNdkPath(getNdkLocation());
+      localProperties.setAndroidNdkPath(getNdkLocation().toFile());
       localProperties.save();
     }
     catch (IOException e) {
@@ -279,7 +282,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
                                  "Please manually update the file's '%3$s' property value to \n" +
                                  "'%4$s'\n" +
                                  "and sync the project with Gradle files.", myProject.getName(), cause, NDK_DIR_PROPERTY,
-                                 getNdkLocation().getPath());
+                                 getNdkLocation().toString());
       Messages.showErrorDialog(myProject, msg, "Android Ndk Update");
     }
   }
@@ -310,7 +313,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
         throw new IllegalArgumentException(msg);
       }
       JComboBox comboBox = myNdkLocationComboBox.getComboBox();
-      setComboBoxFile(comboBox, file);
+      setComboBoxFile(comboBox, file.toPath());
       return null;
     });
 
@@ -321,7 +324,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
     File androidNdkPath = IdeSdks.getInstance().getAndroidNdkPath();
     if (androidNdkPath != null) {
-      comboBox.addItem(new LabelAndFileForLocation("Default NDK (recommended)", androidNdkPath));
+      comboBox.addItem(new LabelAndFileForLocation("Default NDK (recommended)", androidNdkPath.toPath()));
     }
 
     comboBox.setEditable(true);
@@ -343,11 +346,11 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
   private void createJdkLocationComboBox() {
     FileChooserDescriptor descriptor = createSingleFolderDescriptor("Choose JDK Location", file -> {
-      File validatedFile = validateJdkPath(file);
+      Path validatedFile = validateJdkPath(file.toPath());
       if (validatedFile == null) {
         throw new IllegalArgumentException(generateChooseValidJdkDirectoryError());
       }
-      setJdkLocationComboBox(file);
+      setJdkLocationComboBox(file.getPath());
       return null;
     });
 
@@ -357,9 +360,9 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     JComboBox comboBox = myJdkLocationComboBox.getComboBox();
 
     IdeSdks ideSdks = IdeSdks.getInstance();
-    File embeddedPath = ideSdks.getEmbeddedJdkPath();
+    Path embeddedPath = ideSdks.getEmbeddedJdkPath();
     if (embeddedPath != null) {
-      File validatedPath = validateJdkPath(embeddedPath);
+      Path validatedPath = validateJdkPath(embeddedPath);
       if (validatedPath != null) {
         comboBox.addItem(new LabelAndFileForLocation("Embedded JDK", validatedPath));
       }
@@ -367,14 +370,14 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
     String javaHomePath = getJdkFromJavaHome();
     if (javaHomePath != null) {
-      File validatedPath = validateJdkPath(new File(javaHomePath));
+      Path validatedPath = validateJdkPath(Paths.get(javaHomePath));
       myIsJavaHomeValid = validatedPath != null;
       if (myIsJavaHomeValid) {
         comboBox.addItem(new LabelAndFileForLocation("JAVA_HOME", validatedPath));
       }
     }
 
-    File envVarPath = ideSdks.getEnvVariableJdk();
+    Path envVarPath = ideSdks.getEnvVariableJdk();
     if (envVarPath != null) {
       comboBox.addItem(new LabelAndFileForLocation(JDK_LOCATION_ENV_VARIABLE_NAME, envVarPath));
     }
@@ -445,8 +448,8 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     }
   }
 
-  private static void setComboBoxFile(@NotNull JComboBox comboBox, @NotNull File file) {
-    setComboBoxPath(comboBox, file.getPath());
+  private static void setComboBoxFile(@NotNull JComboBox comboBox, @NotNull Path file) {
+    setComboBoxPath(comboBox, file.toString());
   }
 
   private static void setComboBoxPath(@NotNull JComboBox comboBox, @NotNull String path) {
@@ -567,8 +570,8 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   @Override
   public boolean isModified() {
     return !Objects.equals(myOriginalSdkHomePath, getSdkLocation().getPath()) ||
-           !Objects.equals(myOriginalNdkHomePath, getNdkLocation().getPath()) ||
-           !Objects.equals(myOriginalJdkHomePath, getJdkLocation().getPath());
+           !Objects.equals(myOriginalNdkHomePath, getNdkLocation().toString()) ||
+           !Objects.equals(myOriginalJdkHomePath, getJdkLocation().toString());
   }
 
   /**
@@ -642,18 +645,18 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
    */
   @NotNull
   private static String getIdeJdkPath() {
-    File javaHome =  IdeSdks.getInstance().getJdkPath();
-    return javaHome != null ? javaHome.getPath() : "";
+    Path javaHome =  IdeSdks.getInstance().getJdkPath();
+    return javaHome != null ? javaHome.toString() : "";
   }
 
   @NotNull
   private File getSdkLocation() {
     String sdkLocation = mySdkLocationTextField.getText();
-    return toSystemDependentPath(sdkLocation);
+    return FilePaths.stringToFile(sdkLocation);
   }
 
   @NotNull
-  private File getNdkLocation() {
+  private Path getNdkLocation() {
     return getLocationFromComboBoxWithBrowseButton(myNdkLocationComboBox);
   }
 
@@ -741,7 +744,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
       value = selectedItem.toString();
     }
     if (!value.isEmpty()) {
-      ValidationResult validationResult = validateAndroidNdk(getNdkLocation(), false);
+      ValidationResult validationResult = validateAndroidNdk(getNdkLocation().toFile(), false);
       if (!validationResult.success) {
         adjustNdkQuickFixVisibility();
         String msg = validationResult.message;
@@ -767,18 +770,18 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   }
 
   @NotNull
-  private File getUserSelectedJdkLocation() {
+  private Path getUserSelectedJdkLocation() {
     String jdkLocation = nullToEmpty(myUserSelectedJdkHomePath);
     return toSystemDependentPath(jdkLocation);
   }
 
   @NotNull
-  private File getJdkLocation() {
+  private Path getJdkLocation() {
     return getLocationFromComboBoxWithBrowseButton(myJdkLocationComboBox);
   }
 
   @NotNull
-  public static File getLocationFromComboBoxWithBrowseButton(@NotNull ComboboxWithBrowseButton comboboxWithBrowseButton) {
+  public static Path getLocationFromComboBoxWithBrowseButton(@NotNull ComboboxWithBrowseButton comboboxWithBrowseButton) {
     Object item = comboboxWithBrowseButton.getComboBox().getEditor().getItem();
     if (item instanceof LabelAndFileForLocation) {
       return ((LabelAndFileForLocation)item).getFile();
@@ -793,8 +796,8 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
    * @return the path of the JDK installation if valid, or {@code null} if the path is not valid.
    */
   @Nullable
-  private File validateJdkPath(@NotNull File file) {
-    File possiblePath = IdeSdks.getInstance().validateJdkPath(file);
+  private Path validateJdkPath(@NotNull Path file) {
+    Path possiblePath = IdeSdks.getInstance().validateJdkPath(file);
     if (possiblePath != null) {
       setJdkLocationComboBox(possiblePath);
       return possiblePath;
@@ -802,8 +805,8 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     return null;
   }
 
-  private void setJdkLocationComboBox(@NotNull File file) {
-    setJdkLocationComboBox(file.getPath());
+  private void setJdkLocationComboBox(@NotNull Path file) {
+    setJdkLocationComboBox(file.toString());
   }
 
   private void setJdkLocationComboBox(@NotNull String path) {
@@ -819,7 +822,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
     IdeSdks ideSdks = IdeSdks.getInstance();
 
-    boolean validJdk = ideSdks.isUsingEmbeddedJdk() || (!jdkPath.isEmpty() && checkForJdk(new File(jdkPath)));
+    boolean validJdk = ideSdks.isUsingEmbeddedJdk() || (!jdkPath.isEmpty() && checkForJdk(Paths.get(jdkPath)));
     boolean validSdk = !sdkPath.isEmpty() && ideSdks.isValidAndroidSdkPath(new File(sdkPath));
 
     return !validJdk || !validSdk;
@@ -850,10 +853,10 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   }
 
   public static class LabelAndFileForLocation {
-    @NotNull private String myLabel;
-    @NotNull private File myFile;
+    @NotNull private final String myLabel;
+    @NotNull private final Path myFile;
 
-    public LabelAndFileForLocation(@NotNull String label, @NotNull File file) {
+    public LabelAndFileForLocation(@NotNull String label, @NotNull Path file) {
       myLabel = label;
       myFile = file;
     }
@@ -864,13 +867,13 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     }
 
     @NotNull
-    public File getFile() {
+    public Path getFile() {
       return myFile;
     }
 
     @NotNull
     public String getSystemDependentPath() {
-      return toSystemDependentName(myFile.getPath());
+      return toSystemDependentName(myFile.toString());
     }
 
     @Override
@@ -880,8 +883,8 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   }
 
   public static class LabelAndPath {
-    @NotNull private String myLabel;
-    @NotNull private String myPath;
+    @NotNull private final String myLabel;
+    @NotNull private final String myPath;
 
     public LabelAndPath(@NotNull String label, @NotNull String path) {
       myLabel = label;

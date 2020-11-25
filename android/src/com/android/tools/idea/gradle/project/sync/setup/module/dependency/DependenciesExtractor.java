@@ -127,10 +127,10 @@ public class DependenciesExtractor {
                                                                              @NotNull Library library,
                                                                              @NotNull DependencyScope scope) {
     ImmutableList.Builder<File> binaryPaths = new ImmutableList.Builder<>();
-    binaryPaths.add(FilePaths.toSystemDependentPath(library.getCompileJarFile()));
-    binaryPaths.add(FilePaths.toSystemDependentPath(library.getResFolder()));
+    binaryPaths.add(FilePaths.stringToFile(library.getCompileJarFile()));
+    binaryPaths.add(FilePaths.stringToFile(library.getResFolder()));
     for (String localJar : library.getLocalJars()) {
-      binaryPaths.add(FilePaths.toSystemDependentPath(localJar));
+      binaryPaths.add(FilePaths.stringToFile(localJar));
     }
     return LibraryDependency.create(basePath, library.getArtifact(), library.getArtifactAddress(), scope, binaryPaths.build());
   }

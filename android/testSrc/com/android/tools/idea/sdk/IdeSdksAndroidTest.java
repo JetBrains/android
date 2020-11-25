@@ -26,13 +26,14 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.utils.FileUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import java.io.File;
+import java.nio.file.Path;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Tests for {@link IdeSdks}
  */
 public class IdeSdksAndroidTest extends AndroidGradleTestCase {
-  @Nullable private File myInitialJdkPath;
+  @Nullable private Path myInitialJdkPath;
   private IdeSdks myIdeSdks;
   private boolean myEmbeddedIsJavaHome;
   private File myJavaHomePath;
@@ -45,8 +46,8 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
     String javaHome = getJdkFromJavaHome();
     assertThat(javaHome).isNotEmpty();
     myJavaHomePath = new File(javaHome);
-    File embeddedPath = EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath();
-    myEmbeddedIsJavaHome = FileUtils.isSameFile(embeddedPath, myJavaHomePath);
+    Path embeddedPath = EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath();
+    myEmbeddedIsJavaHome = FileUtils.isSameFile(embeddedPath.toFile(), myJavaHomePath);
   }
 
   @Override
@@ -55,6 +56,9 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
       if (myInitialJdkPath != null) {
         ApplicationManager.getApplication().runWriteAction(() -> myIdeSdks.setJdkPath(myInitialJdkPath));
       }
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
     }
     finally {
       super.tearDown();
@@ -66,7 +70,7 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
    */
   public void testJavaHomeJdk() {
     boolean studio = myIdeSdks.isAndroidStudio();
-    ApplicationManager.getApplication().runWriteAction(() -> myIdeSdks.setJdkPath(myJavaHomePath));
+    ApplicationManager.getApplication().runWriteAction(() -> myIdeSdks.setJdkPath(myJavaHomePath.toPath()));
     assertEquals("isUsingJavaHomeJdk returns true for AndroidStudio (setJdkPath:=myJavaHomePath), and false for IJ (hardcoded)",
                  studio, myIdeSdks.isUsingJavaHomeJdk(false /* do not assume it is uint test */));
     assertEquals(myEmbeddedIsJavaHome && studio, myIdeSdks.isUsingEmbeddedJdk());
@@ -130,9 +134,9 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
    */
   public void testIsUsingEnvVariableJdk() {
     myIdeSdks.cleanJdkEnvVariableInitialization();
-    myIdeSdks.initializeJdkEnvVariable(myInitialJdkPath.getAbsolutePath());
+    myIdeSdks.initializeJdkEnvVariable(myInitialJdkPath.toAbsolutePath().toString());
     assertThat(myIdeSdks.isUsingEnvVariableJdk()).isTrue();
-    ApplicationManager.getApplication().runWriteAction(() -> myIdeSdks.setJdkPath(myJavaHomePath));
+    ApplicationManager.getApplication().runWriteAction(() -> myIdeSdks.setJdkPath(myJavaHomePath.toPath()));
     assertThat(myIdeSdks.isUsingEnvVariableJdk()).isFalse();
   }
 }
