@@ -44,6 +44,8 @@ class AvdDeviceColumnInfo(
 ) : ColumnInfo<AvdInfo, AvdInfo>(name) {
   override fun getRenderer(o: AvdInfo): TableCellRenderer? = staticRenderer
 
+  override fun getColumnClass(): Class<*> = AvdInfo::class.java
+
   override fun getWidth(table: JTable): Int = JBUI.scale(width)
 
   override fun valueOf(avdInfo: AvdInfo): AvdInfo = avdInfo
@@ -52,7 +54,7 @@ class AvdDeviceColumnInfo(
     /**
      * Renders an icon in a small square field
      */
-    private val staticRenderer: TableCellRenderer = object : DefaultTableCellRenderer() {
+    val staticRenderer: TableCellRenderer = object : DefaultTableCellRenderer() {
       override fun getTableCellRendererComponent(
         table: JTable, value: Any, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int
       ): Component {
