@@ -37,7 +37,7 @@ import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
-import com.android.repository.io.FileOp;
+import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -233,7 +233,7 @@ public class IdeSdks {
   public File getAndroidNdkPath(@Nullable Predicate<Revision> filter) {
     LocalPackage ndk = getHighestLocalNdkPackage(false, filter);
     if (ndk != null) {
-      return FileOp.toFileUnsafe(ndk.getLocation());
+      return FileOpUtils.toFileUnsafe(ndk.getLocation());
     }
     return null;
   }

@@ -29,7 +29,7 @@ import com.android.repository.api.LocalPackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.installer.BasicInstallerFactory;
 import com.android.repository.impl.meta.RepositoryPackages;
-import com.android.repository.io.FileOp;
+import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakeDependency;
 import com.android.repository.testframework.FakeDownloader;
 import com.android.repository.testframework.FakeRepoManager;
@@ -61,7 +61,7 @@ public class PatchInstallerFactoryTest {
 
   @Test
   public void cantHandleLinuxUninstallWithPatcher() {
-    assumeFalse(FileOp.isWindows());
+    assumeFalse(FileOpUtils.isWindows());
     LocalPackage p = new FakeLocalPackage("foo", myFileOp);
     myRepositoryPackages.setLocalPkgInfos(ImmutableList.of(p, PATCHER_4));
     assertFalse(myInstallerFactory.canHandlePackage(p, myRepoManager));
@@ -69,7 +69,7 @@ public class PatchInstallerFactoryTest {
 
   @Test
   public void canHandleWindowsUninstallWithPatcher() {
-    assumeTrue(FileOp.isWindows());
+    assumeTrue(FileOpUtils.isWindows());
     LocalPackage p = new FakeLocalPackage("foo", myFileOp);
     myRepositoryPackages.setLocalPkgInfos(ImmutableList.of(p, PATCHER_4));
     assertTrue(myInstallerFactory.canHandlePackage(p, myRepoManager));
@@ -77,7 +77,7 @@ public class PatchInstallerFactoryTest {
 
   @Test
   public void cantHandleWindowsUninstallWithLargeFile() {
-    assumeTrue(FileOp.isWindows());
+    assumeTrue(FileOpUtils.isWindows());
     LocalPackage p = new FakeLocalPackage("foo", myFileOp);
     myFileOp.recordExistingFile(p.getLocation().toAbsolutePath().toString(), new byte[100 * 1024 * 1024]);
     myRepositoryPackages.setLocalPkgInfos(ImmutableList.of(p, PATCHER_4));
@@ -86,7 +86,7 @@ public class PatchInstallerFactoryTest {
 
   @Test
   public void cantHandleWindowsUninstallWithoutPatcher() {
-    assumeTrue(FileOp.isWindows());
+    assumeTrue(FileOpUtils.isWindows());
     LocalPackage p = new FakeLocalPackage("foo", myFileOp);
     myRepositoryPackages.setLocalPkgInfos(ImmutableList.of(p));
     assertFalse(myInstallerFactory.canHandlePackage(p, myRepoManager));
@@ -94,14 +94,14 @@ public class PatchInstallerFactoryTest {
 
   @Test
   public void cantHandleWindowsUninstallOfLatestPatcher() {
-    assumeTrue(FileOp.isWindows());
+    assumeTrue(FileOpUtils.isWindows());
     myRepositoryPackages.setLocalPkgInfos(ImmutableList.of(PATCHER_4));
     assertFalse(myInstallerFactory.canHandlePackage(PATCHER_4, myRepoManager));
   }
 
   @Test
   public void cantHandleNoPatchOnLinux() {
-    assumeFalse(FileOp.isWindows());
+    assumeFalse(FileOpUtils.isWindows());
     FakeRemotePackage p = new FakeRemotePackage("foo");
     p.setCompleteUrl("http://example.com");
     p.setDependencies(ImmutableList.of(new FakeDependency(PATCHER_4.getPath())));
@@ -112,7 +112,7 @@ public class PatchInstallerFactoryTest {
 
   @Test
   public void canHandleOnLinux() {
-    assumeFalse(FileOp.isWindows());
+    assumeFalse(FileOpUtils.isWindows());
     FakeRemotePackage remote = new FakeRemotePackage("foo");
     remote.setCompleteUrl("http://example.com");
     remote.setRevision(new Revision(2));
@@ -127,7 +127,7 @@ public class PatchInstallerFactoryTest {
 
   @Test
   public void cantHandleWrongPatch() {
-    assumeFalse(FileOp.isWindows());
+    assumeFalse(FileOpUtils.isWindows());
     FakeRemotePackage remote = new FakeRemotePackage("foo");
     remote.setRevision(new Revision(2));
     remote.setPatchInfo("foo", new Revision(1));
@@ -142,7 +142,7 @@ public class PatchInstallerFactoryTest {
 
   @Test
   public void canHandleOnWindows() {
-    assumeTrue(FileOp.isWindows());
+    assumeTrue(FileOpUtils.isWindows());
     FakeRemotePackage remote = new FakeRemotePackage("foo");
     remote.setRevision(new Revision(2));
     remote.setPatchInfo("foo", new Revision(1));
@@ -157,7 +157,7 @@ public class PatchInstallerFactoryTest {
 
   @Test
   public void canHandleLargeFileOnWindows() {
-    assumeTrue(FileOp.isWindows());
+    assumeTrue(FileOpUtils.isWindows());
     FakeRemotePackage remote = new FakeRemotePackage("foo");
     remote.setRevision(new Revision(2));
     remote.setPatchInfo("foo", new Revision(1));
@@ -173,7 +173,7 @@ public class PatchInstallerFactoryTest {
 
   @Test
   public void canHandleNoPatchOnWindowsWithNewPatcher() {
-    assumeTrue(FileOp.isWindows());
+    assumeTrue(FileOpUtils.isWindows());
     FakeRemotePackage remote = new FakeRemotePackage("foo");
     remote.setRevision(new Revision(2));
     remote.setCompleteUrl("http://example.com");
@@ -186,7 +186,7 @@ public class PatchInstallerFactoryTest {
 
   @Test
   public void cantHandleNoPatchOnWindowsWithLargeFile() {
-    assumeTrue(FileOp.isWindows());
+    assumeTrue(FileOpUtils.isWindows());
     FakeRemotePackage remote = new FakeRemotePackage("foo");
     remote.setRevision(new Revision(2));
     remote.setCompleteUrl("http://example.com");
@@ -201,7 +201,7 @@ public class PatchInstallerFactoryTest {
 
   @Test
   public void cantHandleNoSrcOnWindows() {
-    assumeTrue(FileOp.isWindows());
+    assumeTrue(FileOpUtils.isWindows());
     FakeRemotePackage remote = new FakeRemotePackage("foo");
     remote.setRevision(new Revision(2));
     remote.setDependencies(ImmutableList.of(new FakeDependency(PATCHER_4.getPath())));
@@ -213,7 +213,7 @@ public class PatchInstallerFactoryTest {
 
   @Test
   public void cantHandleNoPatchOnWindowsWithOldPatcher() {
-    assumeTrue(FileOp.isWindows());
+    assumeTrue(FileOpUtils.isWindows());
     FakeRemotePackage remote = new FakeRemotePackage("foo");
     remote.setRevision(new Revision(2));
     remote.setCompleteUrl("http://example.com");
@@ -226,7 +226,7 @@ public class PatchInstallerFactoryTest {
 
   @Test
   public void cantHandleNoPatchOnWindowsWithNoPatcher() {
-    assumeTrue(FileOp.isWindows());
+    assumeTrue(FileOpUtils.isWindows());
     FakeRemotePackage remote = new FakeRemotePackage("foo");
     remote.setRevision(new Revision(2));
     remote.setCompleteUrl("http://example.com");
@@ -239,7 +239,7 @@ public class PatchInstallerFactoryTest {
 
   @Test
   public void createPatchUninstaller() {
-    assumeTrue(FileOp.isWindows());
+    assumeTrue(FileOpUtils.isWindows());
     FakeLocalPackage p = new FakeLocalPackage("foo", myFileOp);
     myRepositoryPackages.setLocalPkgInfos(ImmutableList.of(p, PATCHER_4));
     assertTrue(myInstallerFactory.createUninstaller(p, myRepoManager, myFileOp) instanceof PatchUninstaller);
@@ -247,14 +247,14 @@ public class PatchInstallerFactoryTest {
 
   @Test
   public void createFallbackUninstaller() {
-    assumeFalse(FileOp.isWindows());
+    assumeFalse(FileOpUtils.isWindows());
     FakeLocalPackage p = new FakeLocalPackage("foo", myFileOp);
     assertFalse(myInstallerFactory.createUninstaller(p, myRepoManager, myFileOp) instanceof PatchUninstaller);
   }
 
   @Test
   public void createInstallerWithPatch() {
-    assumeFalse(FileOp.isWindows());
+    assumeFalse(FileOpUtils.isWindows());
     FakeRemotePackage remote = new FakeRemotePackage("foo");
     remote.setRevision(new Revision(2));
     remote.setPatchInfo("foo", new Revision(1));
@@ -270,7 +270,7 @@ public class PatchInstallerFactoryTest {
 
   @Test
   public void createInstallerWithoutPatch() {
-    assumeTrue(FileOp.isWindows());
+    assumeTrue(FileOpUtils.isWindows());
     FakeRemotePackage remote = new FakeRemotePackage("foo");
     remote.setRevision(new Revision(2));
     remote.setCompleteUrl("http://example.com");
@@ -284,7 +284,7 @@ public class PatchInstallerFactoryTest {
 
   @Test
   public void createFallbackInstaller() {
-    assumeFalse(FileOp.isWindows());
+    assumeFalse(FileOpUtils.isWindows());
     FakeRemotePackage remote = new FakeRemotePackage("foo");
     remote.setRevision(new Revision(2));
     remote.setCompleteUrl("http://example.com");

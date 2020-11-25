@@ -21,7 +21,6 @@ import com.android.ide.common.repository.StubGoogleMavenRepository;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.RepositoryPackages;
-import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeRepoManager;
@@ -139,12 +138,12 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
   }
 
   public void testgetLibraryRevision_missingSdk() {
-    FileOp.deleteFileOrFolder(myFileOp.toPath(SDK_DIR));
+    FileOpUtils.deleteFileOrFolder(myFileOp.toPath(SDK_DIR));
     assertNull(getLibraryRevision(GoogleMavenArtifactId.SUPPORT_V4, true, v -> v.getMajor() == 24));
   }
 
   public void testgetLibraryRevision_offlineIndex() {
-    FileOp.deleteFileOrFolder(myFileOp.toPath(SDK_DIR));
+    FileOpUtils.deleteFileOrFolder(myFileOp.toPath(SDK_DIR));
     assertEquals("26.0.2", getLibraryRevision(GoogleMavenArtifactId.SUPPORT_V4, true));
   }
 
@@ -168,7 +167,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
   }
 
   public void testGetArchiveForCoordinate_missingSdk() {
-    FileOp.deleteFileOrFolder(myFileOp.toPath(SDK_DIR));
+    FileOpUtils.deleteFileOrFolder(myFileOp.toPath(SDK_DIR));
     checkGetArchiveForCoordinate("com.android.support:support-v4:20.0.0", null);
   }
 
