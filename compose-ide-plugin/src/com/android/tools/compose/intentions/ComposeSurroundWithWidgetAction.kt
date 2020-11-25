@@ -36,7 +36,7 @@ import org.jetbrains.kotlin.psi.KtFile
 import java.util.HashSet
 
 /**
- * Intention action that includes [ComposeSurroundWithContainerAction], [ComposeSurroundWithRowAction], [ComposeSurroundWithColumnAction].
+ * Intention action that includes [ComposeSurroundWithBoxAction], [ComposeSurroundWithRowAction], [ComposeSurroundWithColumnAction].
  *
  * After this action is selected, a new pop-up appears, in which user can choose between actions listed above.
  *
@@ -45,7 +45,7 @@ import java.util.HashSet
  */
 class ComposeSurroundWithWidgetActionGroup :
   IntentionActionGroup<ComposeSurroundWithWidgetAction>(
-    listOf(ComposeSurroundWithContainerAction(), ComposeSurroundWithRowAction(), ComposeSurroundWithColumnAction())
+    listOf(ComposeSurroundWithBoxAction(), ComposeSurroundWithRowAction(), ComposeSurroundWithColumnAction())
   ) {
   override fun getGroupText(actions: List<ComposeSurroundWithWidgetAction>) =
     ComposeBundle.message("surround.with.widget.intention.text")
@@ -114,10 +114,10 @@ abstract class ComposeSurroundWithWidgetAction : IntentionAction, HighPriorityAc
 }
 
 /**
- * Surrounds selected statements inside a @Composable function with Container widget.
+ * Surrounds selected statements inside a @Composable function with Box widget.
  */
-class ComposeSurroundWithContainerAction : ComposeSurroundWithWidgetAction() {
-  override fun getText(): String = ComposeBundle.message("surround.with.container.intention.text")
+class ComposeSurroundWithBoxAction : ComposeSurroundWithWidgetAction() {
+  override fun getText(): String = ComposeBundle.message("surround.with.box.intention.text")
 
   override fun getTemplate(): TemplateImpl? {
     return TemplateSettings.getInstance().getTemplate("W", "AndroidCompose")
