@@ -507,8 +507,8 @@ class ComposePreviewTest {
     // We should display "Launching '<Compose Preview Configuration Name>' on <Device>"
     val launchingPreview = Pattern.compile(".*Launching 'Preview1' on Google Pix3l.*", Pattern.DOTALL)
     contentFixture.waitForOutput(PatternTextMatcher(launchingPreview), 10)
-    // We should display the adb shell command containing androidx.ui.tooling.preview.PreviewActivity, which wraps the @Composable
-    val previewActivity = Pattern.compile(".*androidx\\.ui\\.tooling\\.preview\\.PreviewActivity.*", Pattern.DOTALL)
+    // We should display the adb shell command containing androidx.compose.ui.tooling.preview.PreviewActivity, which wraps the @Composable
+    val previewActivity = Pattern.compile(".*androidx\\.compose\\.ui\\.tooling\\.preview\\.PreviewActivity.*", Pattern.DOTALL)
     contentFixture.waitForOutput(PatternTextMatcher(previewActivity), 10)
 
     guiTest.ideFrame().invokeMenuPath("Run", "Stop 'Preview1'")
@@ -520,7 +520,7 @@ class ComposePreviewTest {
     var composableFqn: String = "com.example.MyComposable"
 
     override fun accept(server: FakeAdbServer, socket: Socket, device: DeviceState, command: String, args: String): Boolean {
-      val deployArgs = "am start -n \"$composablePackageName/androidx.ui.tooling.preview.PreviewActivity\"" +
+      val deployArgs = "am start -n \"$composablePackageName/androidx.compose.ui.tooling.preview.PreviewActivity\"" +
                        " -a android.intent.action.MAIN -c android.intent.category.LAUNCHER --es composable $composableFqn"
       val stopArgs = "am force-stop $composablePackageName"
       when (args) {

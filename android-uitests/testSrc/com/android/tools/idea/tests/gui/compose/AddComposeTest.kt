@@ -53,8 +53,8 @@ class AddComposeTest {
    * 1. Create new default "Empty Activity" Project
    * 2. Add new "Empty Compose Activity" Module, with name: "compose"
    * Verify:
-   * 1. Check that app/build.gradle does NOT have dependencies for "androidx.ui:ui-framework" and "androidx.ui:ui-tooling"
-   * 2. Check that compose/build.gradle has dependencies for "androidx.ui:ui-framework" and "androidx.ui:ui-tooling"
+   * 1. Check that app/build.gradle does NOT have dependencies for "androidx.compose.ui:ui-framework" and "androidx.compose.ui:ui-tooling"
+   * 2. Check that compose/build.gradle has dependencies for "androidx.compose.ui:ui-framework" and "androidx.compose.ui:ui-tooling"
    * 3. Check that the "compose" main activity has functions annotated with @Composable and @Preview
    */
   @Test
@@ -62,7 +62,7 @@ class AddComposeTest {
     createNewProject(guiTest, "Empty Activity")
     guiTest.getProjectFileText("app/build.gradle").run {
       assertThat(this).doesNotContain("androidx.compose.ui:ui:")
-      assertThat(this).doesNotContain("androidx.ui:ui-tooling:")
+      assertThat(this).doesNotContain("androidx.compose.ui:ui-tooling:")
     }
 
     NewModuleWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "New Module..."))
@@ -82,7 +82,7 @@ class AddComposeTest {
     guiTest.getProjectFileText("compose/build.gradle").run {
       assertThat(this).contains("implementation \"androidx.compose.ui:ui:")
       assertThat(this).contains("implementation \"androidx.compose.material:material:")
-      assertThat(this).contains("implementation \"androidx.ui:ui-tooling:")
+      assertThat(this).contains("implementation \"androidx.compose.ui:ui-tooling:")
     }
     guiTest.getProjectFileText("compose/src/main/java/com/google/compose/MainActivity.kt").run {
       assertThat(this).contains("@Composable")
@@ -98,15 +98,15 @@ class AddComposeTest {
    * 1. Create new default "Empty Activity" Project
    * 2. Add new "Empty Compose Activity" Activity to "app" module, with name "ComposeActivity"
    * Verify:
-   * 1. Check that app/build.gradle has dependencies for "androidx.ui:ui-framework" and "androidx.ui:ui-tooling"
+   * 1. Check that app/build.gradle has dependencies for "androidx.compose.ui:ui-framework" and "androidx.compose.ui:ui-tooling"
    * 2. Check that ComposeActivity has functions annotated with @Composable and @Preview
    */
   @Test
   fun newComposeActivity() {
     createNewProject(guiTest, "Empty Activity")
     guiTest.getProjectFileText("app/build.gradle").run {
-      assertThat(this).doesNotContain("androidx.ui:ui-framework:")
-      assertThat(this).doesNotContain("androidx.ui:ui-tooling:")
+      assertThat(this).doesNotContain("androidx.compose.ui:ui-framework:")
+      assertThat(this).doesNotContain("androidx.compose.ui:ui-tooling:")
     }
 
     fun addComposeActivity(name: String) {
@@ -126,7 +126,7 @@ class AddComposeTest {
     guiTest.getProjectFileText("app/build.gradle").run {
       assertThat(this).contains("implementation \"androidx.compose.ui:ui:")
       assertThat(this).contains("implementation \"androidx.compose.material:material:")
-      assertThat(this).contains("implementation \"androidx.ui:ui-tooling:")
+      assertThat(this).contains("implementation \"androidx.compose.ui:ui-tooling:")
     }
     guiTest.getProjectFileText("app/src/main/java/com/google/myapplication/$activityTitle.kt").run {
       assertThat(this).contains("Greeting")

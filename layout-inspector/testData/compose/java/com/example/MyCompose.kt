@@ -5,9 +5,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.Composable
 import androidx.compose.foundation.Text
 import androidx.compose.foundation.layout.*
-import androidx.ui.core.Modifier
-import androidx.ui.core.setContent
-import androidx.ui.unit.dp
+import androidx.compose.ui.core.Modifier
+import androidx.compose.ui.core.setContent
+import androidx.compose.ui.unit.dp
 import com.example.composable.Greeting
 
 class MainActivity : AppCompatActivity() {

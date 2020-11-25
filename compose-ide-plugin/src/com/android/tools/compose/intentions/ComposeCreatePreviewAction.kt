@@ -75,7 +75,7 @@ class ComposeCreatePreviewAction : IntentionAction {
     val composableAnnotationEntry = getComposableAnnotationEntry(editor, file) ?: return
     val composableFunction = composableAnnotationEntry.parentOfType<KtFunction>() ?: return
     val previewAnnotationEntry = KtPsiFactory(project).createAnnotationEntry(
-      "@" + ComposeLibraryNamespace.ANDROIDX_UI.previewAnnotationName)
+      "@" + ComposeLibraryNamespace.ANDROIDX_COMPOSE.previewAnnotationName)
 
     ShortenReferences.DEFAULT.process(composableFunction.addAnnotationEntry(previewAnnotationEntry))
   }
