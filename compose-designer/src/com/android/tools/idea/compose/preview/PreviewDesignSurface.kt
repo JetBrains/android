@@ -95,6 +95,7 @@ internal fun createPreviewDesignSurface(
   delegateInteractionHandler: DelegateInteractionHandler,
   dataProvider: DataProvider,
   parentDisposable: Disposable,
+  zoomControlsPolicy: DesignSurface.ZoomControlsPolicy,
   defaultLayoutManager: SurfaceLayoutManager = DEFAULT_PREVIEW_LAYOUT_MANAGER,
   sceneManagerProvider: BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager>): NlDesignSurface =
   NlDesignSurface.builder(project, parentDisposable)
@@ -109,7 +110,7 @@ internal fun createPreviewDesignSurface(
     .setEditable(true)
     .setDelegateDataProvider(dataProvider)
     .setSelectionModel(NopSelectionModel)
-    .setZoomControlsPolicy(DesignSurface.ZoomControlsPolicy.AUTO_HIDE)
+    .setZoomControlsPolicy(zoomControlsPolicy)
     .build()
     .apply {
       setScreenViewProvider(NlScreenViewProvider.COMPOSE, false)

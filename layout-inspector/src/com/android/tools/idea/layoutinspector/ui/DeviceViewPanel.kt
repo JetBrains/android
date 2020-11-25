@@ -234,7 +234,7 @@ class DeviceViewPanel(
     viewSettings.modificationListeners.add {
       if (prevZoom != viewSettings.scalePercent) {
         ApplicationManager.getApplication().executeOnPooledThread {
-          deviceViewPanelActionsToolbar.zoomChanged()
+          deviceViewPanelActionsToolbar.zoomChanged(prevZoom / 100.0, viewSettings.scalePercent / 100.0)
           prevZoom = viewSettings.scalePercent
           layoutInspector.layoutInspectorModel.windows.values.forEach {
             it.refreshImages(viewSettings.scaleFraction)

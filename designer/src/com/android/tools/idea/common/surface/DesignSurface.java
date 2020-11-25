@@ -976,7 +976,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @see #getFitScale(Dimension, boolean)
    */
   @SurfaceScale
-  protected double getFitScale(boolean fitInto) {
+  public double getFitScale(boolean fitInto) {
     int availableWidth = getExtentSize().width;
     int availableHeight = getExtentSize().height;
     return getFitScale(getPreferredContentSize(availableWidth, availableHeight), fitInto);
@@ -991,9 +991,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @return The scale to make the content fit the design surface
    * @see {@link #getScreenScalingFactor()}
    */
-  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
   @SurfaceScale
-  public double getFitScale(@AndroidCoordinate Dimension size, boolean fitInto) {
+  protected double getFitScale(@AndroidCoordinate Dimension size, boolean fitInto) {
     // Fit to zoom
 
     int availableWidth = getExtentSize().width;
@@ -1185,6 +1184,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       androidY = Coordinates.getAndroidYDip(view, y);
     }
 
+    double previousScale = myScale;
     myScale = newScale;
     NlModel model = Iterables.getFirst(getModels(), null);
     if (model != null) {
@@ -1198,7 +1198,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
 
     revalidateScrollArea();
-    notifyScaleChanged();
+    notifyScaleChanged(previousScale, myScale);
     return true;
   }
 
@@ -1252,10 +1252,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return 1;
   }
 
-  private void notifyScaleChanged() {
+  private void notifyScaleChanged(double previousScale, double newScale) {
     if (myZoomListeners != null) {
       for (PanZoomListener myZoomListener : myZoomListeners) {
-        myZoomListener.zoomChanged();
+        myZoomListener.zoomChanged(previousScale, newScale);
       }
     }
   }
