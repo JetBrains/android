@@ -26,10 +26,7 @@ import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_11;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.projectRoots.JdkUtil.isModularRuntime;
-import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
-import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
-import static com.intellij.openapi.util.io.FileUtil.resolveShortWindowsName;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
@@ -45,6 +42,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
+import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.utils.FileUtils;
@@ -72,12 +70,16 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.EnvironmentUtil;
 import com.intellij.util.SystemProperties;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -171,7 +173,7 @@ public class IdeSdks {
       sdkHome = sdk.getHomePath();
     }
     if (sdkHome != null) {
-      File candidate = toSystemDependentPath(sdkHome);
+      File candidate = FilePaths.stringToFile(sdkHome);
       // Check if the sdk home is still valid. See https://code.google.com/p/android/issues/detail?id=197401 for more details.
       if (isValidAndroidSdkPath(candidate)) {
         return candidate;
@@ -267,15 +269,15 @@ public class IdeSdks {
    * See {@link IdeSdks#getJdk()}
    */
   @Nullable
-  public File getJdkPath() {
+  public Path getJdkPath() {
     return doGetJdkPath(true);
   }
 
   @Nullable
-  private File doGetJdkPath(boolean createJdkIfNeeded) {
+  private Path doGetJdkPath(boolean createJdkIfNeeded) {
     Sdk jdk = doGetJdk(createJdkIfNeeded);
     if (jdk != null && jdk.getHomePath() != null) {
-      return new File(jdk.getHomePath());
+      return Paths.get(jdk.getHomePath());
     }
     return null;
   }
@@ -369,10 +371,10 @@ public class IdeSdks {
    * @param path, folder in which the JDK is looked for.
    * @return the JDK in the given path if valid, null otherwise.
    */
-  public Sdk setJdkPath(@NotNull File path) {
+  public Sdk setJdkPath(@NotNull Path path) {
     if (checkForJdk(path)) {
       ApplicationManager.getApplication().assertWriteAccessAllowed();
-      File canonicalPath = resolvePath(path);
+      Path canonicalPath = resolvePath(path);
       Sdk chosenJdk = null;
 
       ProjectJdkTable projectJdkTable = ProjectJdkTable.getInstance();
@@ -385,7 +387,7 @@ public class IdeSdks {
       }
       else {
         for (Sdk jdk : projectJdkTable.getSdksOfType(JavaSdk.getInstance())) {
-          if (pathsEqual(jdk.getHomePath(), canonicalPath.getPath())) {
+          if (FileUtil.pathsEqual(jdk.getHomePath(), canonicalPath.toString())) {
             chosenJdk = jdk;
             break;
           }
@@ -393,11 +395,11 @@ public class IdeSdks {
       }
 
       if (chosenJdk == null) {
-        if (canonicalPath.isDirectory()) {
+        if (Files.isDirectory(canonicalPath)) {
           chosenJdk = createJdk(canonicalPath);
           if (chosenJdk == null) {
             // Unlikely to happen
-            throw new IllegalStateException("Failed to create IDEA JDK from '" + path.getPath() + "'");
+            throw new IllegalStateException("Failed to create IDEA JDK from '" + path + "'");
           }
           setJdkOfAndroidSdks(chosenJdk);
 
@@ -410,7 +412,7 @@ public class IdeSdks {
           }
         }
         else {
-          throw new IllegalStateException("The resolved path '" + canonicalPath.getPath() + "' was not found");
+          throw new IllegalStateException("The resolved path '" + canonicalPath + "' was not found");
         }
       }
       setUseEnvVariableJdk(false);
@@ -426,7 +428,7 @@ public class IdeSdks {
       List<Sdk> jdks = projectJdkTable.getSdksOfType(JavaSdk.getInstance());
       for (final Sdk jdk : jdks) {
         String homePath = jdk.getHomePath();
-        if (homePath == null || validateJdkPath(new File(homePath)) == null) {
+        if (homePath == null || validateJdkPath(Paths.get(homePath)) == null) {
           projectJdkTable.removeJdk(jdk);
         }
       }
@@ -488,9 +490,9 @@ public class IdeSdks {
       // Set up a list of SDKs we don't need any more. At the end we'll delete them.
       List<Sdk> sdksToDelete = new ArrayList<>();
 
-      File resolved = resolvePath(path);
+      Path resolved = resolvePath(path.toPath());
       // Parse out the new SDK. We'll need its targets to set up IntelliJ SDKs for each.
-      AndroidSdkData sdkData = getSdkData(resolved, true);
+      AndroidSdkData sdkData = getSdkData(resolved.toFile(), true);
       if (sdkData != null) {
         // Iterate over all current existing IJ Android SDKs
         for (Sdk sdk : myAndroidSdks.getAllAndroidSdks()) {
@@ -504,9 +506,9 @@ public class IdeSdks {
       }
 
       // If there are any API targets that we haven't created IntelliJ SDKs for yet, fill those in.
-      List<Sdk> sdks = createAndroidSdkPerAndroidTarget(resolved, javaSdk);
+      List<Sdk> sdks = createAndroidSdkPerAndroidTarget(resolved.toFile(), javaSdk);
 
-      afterAndroidSdkPathUpdate(resolved);
+      afterAndroidSdkPathUpdate(resolved.toFile());
 
       return sdks;
     }
@@ -557,8 +559,8 @@ public class IdeSdks {
     }
 
     // Add new SDK's from SDK manager
-    File resolved = resolvePath(sdkDir);
-    createAndroidSdkPerAndroidTarget(resolved);
+    Path resolved = resolvePath(sdkDir.toPath());
+    createAndroidSdkPerAndroidTarget(resolved.toFile());
   }
 
   private static void afterAndroidSdkPathUpdate(@NotNull File androidSdkPath) {
@@ -657,10 +659,10 @@ public class IdeSdks {
   }
 
   @NotNull
-  private static File resolvePath(@NotNull File path) {
+  private static Path resolvePath(@NotNull Path path) {
     try {
-      String resolvedPath = resolveShortWindowsName(path.getPath());
-      return new File(resolvedPath);
+      String resolvedPath = FileUtil.resolveShortWindowsName(path.toString());
+      return Paths.get(resolvedPath);
     }
     catch (IOException e) {
       //file doesn't exist yet
@@ -677,8 +679,9 @@ public class IdeSdks {
     if (!myIdeInfo.isAndroidStudio() && !myIdeInfo.isGameTools()) {
       return false;
     }
-    File jdkPath = doGetJdkPath(false);
-    return jdkPath != null && filesEqual(jdkPath, getEmbeddedJdkPath());
+    Path jdkPath = doGetJdkPath(false);
+    Path embeddedJdkPath = getEmbeddedJdkPath();
+    return jdkPath != null && embeddedJdkPath != null && FileUtil.pathsEqual(jdkPath.toString(), embeddedJdkPath.toString());
   }
 
   /**
@@ -686,13 +689,12 @@ public class IdeSdks {
    */
   public void setUseEmbeddedJdk() {
     checkState(myIdeInfo.isAndroidStudio() || myIdeInfo.isGameTools(), "This method is for use in Android Studio only.");
-    File embeddedJdkPath = getEmbeddedJdkPath();
-    assert embeddedJdkPath != null;
+    Path embeddedJdkPath = getEmbeddedJdkPath();
     setJdkPath(embeddedJdkPath);
   }
 
   @Nullable
-  public File getEmbeddedJdkPath() {
+  public Path getEmbeddedJdkPath() {
     if (!myIdeInfo.isAndroidStudio() && !myIdeInfo.isGameTools()) {
       return null;
     }
@@ -714,7 +716,7 @@ public class IdeSdks {
       return false;
     }
     // Do not create Jdk in ProjectJDKTable when running from unit tests, to prevent leaking
-    File jdkPath = doGetJdkPath(!assumeUnitTest);
+    Path jdkPath = doGetJdkPath(!assumeUnitTest);
     return isSameAsJavaHomeJdk(jdkPath);
   }
 
@@ -725,9 +727,9 @@ public class IdeSdks {
    *
    * @return true if JAVA_HOME is the same as path
    */
-  public static boolean isSameAsJavaHomeJdk(@Nullable File path) {
+  public static boolean isSameAsJavaHomeJdk(@Nullable Path path) {
     String javaHome = getJdkFromJavaHome();
-    return javaHome != null && filesEqual(path, toSystemDependentPath(javaHome));
+    return javaHome != null && FileUtil.pathsEqual(path.toString(), javaHome);
   }
 
   /**
@@ -759,13 +761,13 @@ public class IdeSdks {
     if (isNullOrEmpty(path)) {
       return null;
     }
-    File pathFile = new File(toSystemDependentName(path));
+    Path pathFile = Paths.get(path);
     String result = doGetJdkFromPath(pathFile);
     if (result != null) {
       return result;
     }
     // Sometimes JAVA_HOME is set to a JRE inside a JDK, see if this is the case
-    File parentFile = pathFile.getParentFile();
+    Path parentFile = pathFile.getParent();
     if (parentFile != null) {
       return doGetJdkFromPath(parentFile);
     }
@@ -773,14 +775,14 @@ public class IdeSdks {
   }
 
   @Nullable
-  private static String doGetJdkFromPath(@NotNull File file) {
+  private static String doGetJdkFromPath(@NotNull Path file) {
     if (checkForJdk(file)) {
-      return file.getPath();
+      return file.toString();
     }
     if (SystemInfo.isMac) {
-      File potentialPath = new File(file, MAC_JDK_CONTENT_PATH);
-      if (potentialPath.isDirectory() && checkForJdk(potentialPath)) {
-        return potentialPath.getPath();
+      Path potentialPath = file.resolve(MAC_JDK_CONTENT_PATH);
+      if (Files.isDirectory(potentialPath) && checkForJdk(potentialPath)) {
+        return potentialPath.toString();
       }
     }
     return null;
@@ -863,8 +865,8 @@ public class IdeSdks {
         continue; // already checked: didn't fit
       }
 
-      if (checkForJdk(jdkPath)) {
-        Sdk jdk = createJdk(jdkPath); // TODO-ank: this adds JDK to the project even if the JDK is not compatible and will be skipped
+      if (checkForJdk(jdkPath.toPath())) {
+        Sdk jdk = createJdk(jdkPath.toPath()); // TODO-ank: this adds JDK to the project even if the JDK is not compatibile and will be skipped
         if (isJdkCompatible(jdk, preferredVersion) ) {
           return jdk;
         }
@@ -872,7 +874,7 @@ public class IdeSdks {
       // On Linux, the returned path is the folder that contains all JDKs, instead of a specific JDK.
       if (SystemInfo.isLinux) {
         for (File child : notNullize(jdkPath.listFiles())) {
-          if (child.isDirectory() && checkForJdk(child)) {
+          if (child.isDirectory() && checkForJdk(child.toPath())) {
             Sdk jdk = myJdks.createJdk(child.getPath());
             if (isJdkCompatible(jdk, preferredVersion)) {
               return jdk;
@@ -968,30 +970,30 @@ public class IdeSdks {
    * {@code null} if it could not be created successfully.
    */
   @Nullable
-  private Sdk createJdk(@NotNull File homeDirectory) {
+  private Sdk createJdk(@NotNull Path homeDirectory) {
     ProjectJdkTable projectJdkTable = ProjectJdkTable.getInstance();
     for (Sdk jdk : projectJdkTable.getSdksOfType(JavaSdk.getInstance())) {
-      if (pathsEqual(jdk.getHomePath(), homeDirectory.getPath())) {
+      if (FileUtil.pathsEqual(jdk.getHomePath(), homeDirectory.toString())) {
         return jdk;
       }
     }
-    return myJdks.createJdk(homeDirectory.getPath());
+    return myJdks.createJdk(homeDirectory.toString());
   }
 
   @NotNull
-  public static Sdk findOrCreateJdk(@NotNull String name, @NotNull File jdkPath) {
+  public static Sdk findOrCreateJdk(@NotNull String name, @NotNull Path jdkPath) {
     ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
     Sdk existingJdk = jdkTable.findJdk(name);
     if (existingJdk != null) {
       String homePath = existingJdk.getHomePath();
-      if ((homePath != null) && FileUtils.isSameFile(jdkPath, new File(homePath))) {
+      if ((homePath != null) && FileUtils.isSameFile(jdkPath.toFile(), new File(homePath))) {
         // Already exists in ProjectJdkTable and points to the same path, reuse.
         return existingJdk;
       }
     }
     // Path is different, generate a new one to replace the existing JDK
     JavaSdk javaSdkType = JavaSdk.getInstance();
-    Sdk newJdk = javaSdkType.createJdk(name, jdkPath.getAbsolutePath());
+    Sdk newJdk = javaSdkType.createJdk(name, jdkPath.toAbsolutePath().toString());
     ApplicationManager.getApplication().runWriteAction( () -> {
       if (existingJdk != null) {
         jdkTable.removeJdk(existingJdk);
@@ -1052,18 +1054,18 @@ public class IdeSdks {
 
   /**
    * Validates that the given directory belongs to a valid JDK installation.
-   * @param file the directory to validate.
+   * @param path the directory to validate.
    * @return the path of the JDK installation if valid, or {@code null} if the path is not valid.
    */
   @Nullable
-  public File validateJdkPath(@NotNull File file) {
-    File possiblePath = null;
-    if (checkForJdk(file)) {
-      possiblePath = file;
+  public Path validateJdkPath(@NotNull Path path) {
+    Path possiblePath = null;
+    if (checkForJdk(path)) {
+      possiblePath = path;
     }
     else if (SystemInfo.isMac) {
-      File macPath = new File(file, MAC_JDK_CONTENT_PATH);
-      if (macPath.isDirectory() && checkForJdk(macPath)) {
+      Path macPath = path.resolve(MAC_JDK_CONTENT_PATH);
+      if (Files.isDirectory(macPath) && checkForJdk(macPath)) {
         possiblePath = macPath;
       }
     }
@@ -1076,6 +1078,7 @@ public class IdeSdks {
       }
     }
     else {
+      File file = FilePaths.stringToFile(path.toString());
       showValidateDetails(file);
       if (SystemInfo.isMac) {
         showValidateDetails(new File(file, MAC_JDK_CONTENT_PATH));
@@ -1090,7 +1093,7 @@ public class IdeSdks {
     LOG.warn("  Javac: " + (new File(homePath, "bin/javac").isFile() || new File(homePath, "bin/javac.exe").isFile()));
     LOG.warn("  JDK: " + new File(homePath, "jre/lib/rt.jar").exists());
     LOG.warn("  JRE: " + new File(homePath, "lib/rt.jar").exists());
-    LOG.warn("  Jigsaw JDK/JRE: " + isModularRuntime(homePath));
+    LOG.warn("  Jigsaw JDK/JRE: " + isModularRuntime(homePath.toPath()));
     LOG.warn("  Apple JDK: " + new File(homePath, "../Classes/classes.jar").exists());
     LOG.warn("  IBM JDK: " + new File(homePath, "jre/lib/vm.jar").exists());
     LOG.warn("  Custom build: " + new File(homePath, "classes").isDirectory());
@@ -1122,7 +1125,7 @@ public class IdeSdks {
    * @return true if the folder is a valid JDK location and it has the given version.
    */
   @Contract("null, _ -> false")
-  public static boolean isJdkSameVersion(@Nullable File jdkLocation, @NotNull JavaSdkVersion expectedVersion) {
+  public static boolean isJdkSameVersion(@Nullable Path jdkLocation, @NotNull JavaSdkVersion expectedVersion) {
     if (jdkLocation == null) {
       return false;
     }
@@ -1164,7 +1167,7 @@ public class IdeSdks {
     private void initialize(@Nullable String value) {
       // Read env variable only once and initialize the settings accordingly. myInitialized == false means that this function has not been
       // called yet.
-      File envVariableJdkFile;
+      Path envVariableJdkPath;
       synchronized (myInitializationLock) {
         if (myInitialized) {
           return;
@@ -1173,23 +1176,23 @@ public class IdeSdks {
           setInitializationAsNotDefined();
           return;
         }
-        envVariableJdkFile = validateJdkPath(new File(toSystemDependentName(value)));
-        if (envVariableJdkFile == null) {
+        envVariableJdkPath = validateJdkPath(Paths.get(value));
+        if (envVariableJdkPath == null) {
           setInitializationAsDefinedButInvalid(value);
           LOG.warn("The provided JDK path is invalid: " + value);
           return;
         }
       }
       // Environment variable is defined and valid, make sure it is safe to use EDT to prevent a deadlock (b/174675513)
-      File finalEnvVariableJdkFile = envVariableJdkFile;
+      Path finalEnvVariableJdkPath = envVariableJdkPath;
       Runnable createJdkTask = () -> {
         synchronized (myInitializationLock) {
           // Check initialization again (another thread could have called this already when waiting for EDT)
           if (!myInitialized) {
             try {
-              @Nullable Sdk jdk = createJdk(finalEnvVariableJdkFile);
+              @Nullable Sdk jdk = createJdk(finalEnvVariableJdkPath);
               if (jdk != null) {
-                setInitialization(value, finalEnvVariableJdkFile, jdk);
+                setInitialization(value, FilePaths.stringToFile(finalEnvVariableJdkPath.toString()), jdk);
                 LOG.info("Using Gradle JDK from " + JDK_LOCATION_ENV_VARIABLE_NAME + "=" + value);
               }
               else {

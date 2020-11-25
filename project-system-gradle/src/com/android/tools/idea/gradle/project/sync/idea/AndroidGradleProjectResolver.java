@@ -37,7 +37,6 @@ import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.
 import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.expireProjectUpgradeNotifications;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.utils.BuildScriptUtil.findGradleSettingsFile;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
@@ -96,6 +95,7 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheck;
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -339,7 +339,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
                                                @NotNull IdeaModule gradleModule,
                                                @Nullable IdeAndroidModels androidModels) {
     String moduleName = moduleNode.getData().getInternalName();
-    File rootModulePath = toSystemDependentPath(moduleNode.getData().getLinkedExternalProjectPath());
+    File rootModulePath = FilePaths.stringToFile(moduleNode.getData().getLinkedExternalProjectPath());
 
     ExternalProject externalProject = resolverCtx.getExtraProject(gradleModule, ExternalProject.class);
     KaptGradleModel kaptGradleModel = resolverCtx.getExtraProject(gradleModule, KaptGradleModel.class);
@@ -884,7 +884,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
   @NotNull
   private LocalProperties getLocalProperties() {
-    File projectDir = toSystemDependentPath(resolverCtx.getProjectPath());
+    File projectDir = FilePaths.stringToFile(resolverCtx.getProjectPath());
     try {
       return new LocalProperties(projectDir);
     }

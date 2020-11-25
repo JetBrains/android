@@ -27,7 +27,7 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
-import java.io.File;
+import java.nio.file.Paths;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -71,7 +71,7 @@ public class JdkImportCheckTest extends AndroidGradleTestCase {
 
     when(jdk.getHomePath()).thenReturn(pathToJdk10);
     when(myMockIdeSdks.getRunningVersionOrDefault()).thenReturn(JavaSdkVersion.JDK_1_8);
-    when(myMockJdks.findVersion(new File(pathToJdk10))).thenReturn(JavaSdkVersion.JDK_10);
+    when(myMockJdks.findVersion(Paths.get(pathToJdk10))).thenReturn(JavaSdkVersion.JDK_10);
 
     assertThat(runCheckJdkErrorMessage(jdk)).startsWith(
       "The version of selected Jdk doesn't match the Jdk used by Studio. Please choose a valid Jdk 8 directory.\n" +
@@ -85,7 +85,7 @@ public class JdkImportCheckTest extends AndroidGradleTestCase {
     String pathToJdk10 = "/path/to/jdk10";
     when(jdk.getHomePath()).thenReturn(pathToJdk10);
     when(myMockIdeSdks.getRunningVersionOrDefault()).thenReturn(JavaSdkVersion.JDK_1_8);
-    when(myMockJdks.findVersion(new File(pathToJdk10))).thenReturn(JavaSdkVersion.JDK_10);
+    when(myMockJdks.findVersion(Paths.get(pathToJdk10))).thenReturn(JavaSdkVersion.JDK_10);
 
     assertThat(runCheckJdkErrorMessage(jdk)).startsWith(
       "The Jdk installation is invalid.\n" +
@@ -98,7 +98,7 @@ public class JdkImportCheckTest extends AndroidGradleTestCase {
     String pathToJdk8 = "/path/to/jdk8";
     when(jdk.getHomePath()).thenReturn(pathToJdk8);
     when(myMockIdeSdks.getRunningVersionOrDefault()).thenReturn(JavaSdkVersion.JDK_1_8);
-    when(myMockJdks.findVersion(new File(pathToJdk8))).thenReturn(JavaSdkVersion.JDK_1_8);
+    when(myMockJdks.findVersion(Paths.get(pathToJdk8))).thenReturn(JavaSdkVersion.JDK_1_8);
 
     assertThat(runCheckJdkErrorMessage(jdk)).startsWith(
       "The Jdk installation is invalid.\n" +

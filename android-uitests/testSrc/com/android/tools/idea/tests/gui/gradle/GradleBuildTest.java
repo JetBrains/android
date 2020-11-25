@@ -53,6 +53,6 @@ public class GradleBuildTest {
     selectSdkDialog.setJdkPath(jdkPath)
                    .clickOk();
 
-    assertEquals(jdkPath.getPath(), IdeSdks.getInstance().getJdkPath().getPath());
+    assertEquals(jdkPath.getPath(), IdeSdks.getInstance().getJdkPath().toString());
   }
 }

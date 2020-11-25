@@ -16,6 +16,7 @@
 package org.jetbrains.android.sdk;
 
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -38,8 +39,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 
 class AndroidSdkConfigurableForm {
   private JComboBox myInternalJdkComboBox;
@@ -75,7 +74,7 @@ class AndroidSdkConfigurableForm {
       }
       final IAndroidTarget target = (IAndroidTarget)e.getItem();
 
-      List<OrderRoot> roots = AndroidSdks.getInstance().getLibraryRootsForTarget(target, toSystemDependentPath(mySdkLocation), true);
+      List<OrderRoot> roots = AndroidSdks.getInstance().getLibraryRootsForTarget(target, FilePaths.stringToFile(mySdkLocation), true);
       Map<OrderRootType, String[]> configuredRoots = new HashMap<>();
 
       for (OrderRootType type : OrderRootType.getAllTypes()) {

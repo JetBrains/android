@@ -72,7 +72,7 @@ class InstallSummaryStep(
 
   private val jdkFolderSection: Section
     get() {
-      var jdkLocationText = model.jdkLocation.absolutePath
+      var jdkLocationText = model.jdkLocation.toAbsolutePath().toString()
 
       if (!isSameAsJavaHomeJdk(model.jdkLocation)) {
         jdkLocationText += " (<b>Note:</b> Gradle may be using JAVA_HOME when invoked from command line. " +

@@ -27,6 +27,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -157,7 +159,7 @@ public class EmbeddedDistributionPaths {
   }
 
   @Nullable
-  public File tryToGetEmbeddedJdkPath() {
+  public Path tryToGetEmbeddedJdkPath() {
     try {
       return getEmbeddedJdkPath();
     }
@@ -168,12 +170,11 @@ public class EmbeddedDistributionPaths {
   }
 
   @NotNull
-  public File getEmbeddedJdkPath() {
+  public Path getEmbeddedJdkPath() {
     if (StudioPathManager.isRunningFromSources()) {
       // If AndroidStudio runs from IntelliJ IDEA sources
       if (System.getProperty("android.test.embedded.jdk") != null) {
-        File jdkDir = new File(System.getProperty("android.test.embedded.jdk"));
-        assert jdkDir.exists();
+        Path jdkDir = Paths.get(System.getProperty("android.test.embedded.jdk"));
         return jdkDir;
       }
 
@@ -181,32 +182,32 @@ public class EmbeddedDistributionPaths {
       String sourcesRoot = StudioPathManager.getSourcesRoot();
       String jdkDevPath = System.getProperty("studio.dev.jdk", Paths.get(sourcesRoot, "prebuilts/studio/jdk").toString());
       String relativePath = toSystemDependentName(jdkDevPath);
-      File jdkRootPath = new File(toCanonicalPath(relativePath), "jdk11");
+      Path jdkRootPath = Paths.get(relativePath, "jdk11");
       if (SystemInfo.isWindows) {
-        jdkRootPath = new File(jdkRootPath, "win");
+        jdkRootPath = jdkRootPath.resolve("win");
       }
       else if (SystemInfo.isLinux) {
-        jdkRootPath = new File(jdkRootPath, "linux");
+        jdkRootPath = jdkRootPath.resolve("linux");
       }
       else if (SystemInfo.isMac) {
-        jdkRootPath = new File(jdkRootPath, "mac");
+        jdkRootPath = jdkRootPath.resolve("mac");
       }
       return getSystemSpecificJdkPath(jdkRootPath);
     } else {
       // Release build.
       String ideHomePath = getIdeHomePath();
-      File jdkRootPath = new File(ideHomePath, "jre");
+      Path jdkRootPath = Paths.get(ideHomePath, "jre");
       return getSystemSpecificJdkPath(jdkRootPath);
     }
   }
 
   @NotNull
-  private static File getSystemSpecificJdkPath(File jdkRootPath) {
+  private static Path getSystemSpecificJdkPath(Path jdkRootPath) {
     if (SystemInfo.isMac) {
-      jdkRootPath = new File(jdkRootPath, MAC_JDK_CONTENT_PATH);
+      jdkRootPath = jdkRootPath.resolve(MAC_JDK_CONTENT_PATH);
     }
-    if (!jdkRootPath.isDirectory()) {
-      throw new Error(String.format("Incomplete or corrupted installation - \"%s\" directory does not exist", jdkRootPath.toString()));
+    if (!Files.isDirectory(jdkRootPath)) {
+      throw new Error(String.format("Incomplete or corrupted installation - \"%s\" directory does not exist", jdkRootPath));
     }
     return jdkRootPath;
   }

@@ -3,6 +3,7 @@ package org.jetbrains.android.sdk;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
@@ -26,7 +27,6 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
@@ -76,7 +76,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
     if (isEmpty(path)) {
       return false;
     }
-    File sdkPath = toSystemDependentPath(path);
+    File sdkPath = FilePaths.stringToFile(path);
     return validateAndroidSdk(sdkPath, false).success;
   }
 

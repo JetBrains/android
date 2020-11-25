@@ -85,9 +85,9 @@ public class DependenciesExtractor {
   private static LibraryDependency createLibraryDependencyFromAndroidLibrary(@NotNull IdeAndroidLibrary library) {
     ImmutableList.Builder<File> binaryPaths = new ImmutableList.Builder<>();
     for (String file : library.getCompileJarFiles()) {
-      binaryPaths.add(FilePaths.toSystemDependentPath(file));
+      binaryPaths.add(FilePaths.stringToFile(file));
     }
-    binaryPaths.add(FilePaths.toSystemDependentPath(library.getResFolder()));
+    binaryPaths.add(FilePaths.stringToFile(library.getResFolder()));
     return LibraryDependency.create(library.getArtifact(), binaryPaths.build());
   }
 

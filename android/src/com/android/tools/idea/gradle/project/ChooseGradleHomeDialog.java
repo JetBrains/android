@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.util.GradleVersions;
+import com.android.tools.idea.io.FilePaths;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.settings.LocationSettingType;
@@ -35,7 +36,6 @@ import javax.swing.event.DocumentEvent;
 import java.io.File;
 
 import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.intellij.openapi.externalSystem.model.settings.LocationSettingType.EXPLICIT_CORRECT;
 import static com.intellij.openapi.externalSystem.model.settings.LocationSettingType.EXPLICIT_INCORRECT;
@@ -166,7 +166,7 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
 
   @NotNull
   private static File getGradleHomePath(@NotNull String gradleHome) {
-    return toSystemDependentPath(gradleHome);
+    return FilePaths.stringToFile(gradleHome);
   }
 
   public void storeLastUsedGradleHomePath() {

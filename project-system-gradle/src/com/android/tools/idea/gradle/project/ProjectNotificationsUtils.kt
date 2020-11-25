@@ -26,7 +26,7 @@ import com.intellij.notification.NotificationType
 import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
-import java.io.File
+import java.nio.file.Paths
 
 fun showNeededNotifications(project: Project) {
   if (IdeInfo.getInstance().isAndroidStudio) {
@@ -76,7 +76,7 @@ fun invalidJdkErrorMessage(jdkPath: String?): String? {
   }
   else {
     val ideSdks = IdeSdks.getInstance()
-    if (ideSdks.validateJdkPath(File(jdkPath)) == null) {
+    if (ideSdks.validateJdkPath(Paths.get(jdkPath)) == null) {
       errorMessage = "Could not find a valid JDK at $jdkPath"
     }
   }

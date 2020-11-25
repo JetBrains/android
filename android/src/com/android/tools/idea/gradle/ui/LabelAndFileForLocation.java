@@ -17,14 +17,14 @@ package com.android.tools.idea.gradle.ui;
 
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
 
-import java.io.File;
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
 public class LabelAndFileForLocation {
   @NotNull private String myLabel;
-  @NotNull private File myFile;
+  @NotNull private Path myFile;
 
-  public LabelAndFileForLocation(@NotNull String label, @NotNull File file) {
+  public LabelAndFileForLocation(@NotNull String label, @NotNull Path file) {
     myLabel = label;
     myFile = file;
   }
@@ -35,13 +35,13 @@ public class LabelAndFileForLocation {
   }
 
   @NotNull
-  public File getFile() {
+  public Path getFile() {
     return myFile;
   }
 
   @NotNull
   public String getSystemDependentPath() {
-    return toSystemDependentName(myFile.getPath());
+    return toSystemDependentName(myFile.toString());
   }
 
   @Override

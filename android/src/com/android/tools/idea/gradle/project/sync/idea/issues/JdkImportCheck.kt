@@ -43,7 +43,7 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
-import java.io.File
+import java.nio.file.Paths
 import java.util.concurrent.CompletableFuture
 
 class JdkImportCheckException(reason: String) : AndroidSyncException(reason)
@@ -123,7 +123,7 @@ class JdkImportIssueChecker : GradleIssueChecker {
         if (issueQuickFixes.isEmpty()) {
           val embeddedJdkPath = EmbeddedDistributionPaths.getInstance().tryToGetEmbeddedJdkPath()
           // TODO: Check we REALLY need to check isJdkRunnableOnPlatform. This spawns a process.
-          if (embeddedJdkPath != null && Jdks.isJdkRunnableOnPlatform(embeddedJdkPath.absolutePath)) {
+          if (embeddedJdkPath != null && Jdks.isJdkRunnableOnPlatform(embeddedJdkPath.toAbsolutePath().toString())) {
             addQuickFix(UseEmbeddedJdkQuickFix())
           } else {
             addQuickFix(DownloadAndroidStudioQuickFix())
@@ -139,7 +139,7 @@ class JdkImportIssueChecker : GradleIssueChecker {
   private fun addUseJavaHomeQuickFix(composer: BuildIssueComposer) {
     val ideSdks = IdeSdks.getInstance()
     val jdkFromHome = IdeSdks.getJdkFromJavaHome()
-    if (jdkFromHome != null && ideSdks.validateJdkPath(File(jdkFromHome)) != null) {
+    if (jdkFromHome != null && ideSdks.validateJdkPath(Paths.get(jdkFromHome)) != null) {
       composer.addQuickFix(UseJavaHomeAsJdkQuickFix(jdkFromHome))
     }
   }
@@ -226,7 +226,7 @@ private fun validateJdk(jdk: Sdk?): String? {
   val selectedJdkMsg = "Selected Jdk location is $jdkHomePath.\n"
   // Check if the version of selected Jdk is the same with the Jdk IDE uses.
   val runningJdkVersion = IdeSdks.getInstance().runningVersionOrDefault
-  if (!StudioFlags.ALLOW_DIFFERENT_JDK_VERSION.get() && !IdeSdks.isJdkSameVersion(File(jdkHomePath), runningJdkVersion)) {
+  if (!StudioFlags.ALLOW_DIFFERENT_JDK_VERSION.get() && !IdeSdks.isJdkSameVersion(Paths.get(jdkHomePath), runningJdkVersion)) {
     return "The version of selected Jdk doesn't match the Jdk used by Studio. Please choose a valid Jdk " +
            runningJdkVersion.description + " directory.\n" + selectedJdkMsg
   }

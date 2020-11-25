@@ -83,6 +83,7 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.util.ThrowableConsumer;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -623,10 +624,10 @@ public class AndroidGradleTests {
 
   public static void overrideJdkToCurrentJdk() throws IOException {
     @NotNull IdeSdks ideSdks = IdeSdks.getInstance();
-    File jdkPath = ideSdks.getJdkPath();
+    Path jdkPath = ideSdks.getJdkPath();
     assertNotNull("Could not find path of current JDK", jdkPath);
     LOG.info("Using JDK from " + jdkPath);
-    ideSdks.overrideJdkEnvVariable(jdkPath.getAbsolutePath());
+    ideSdks.overrideJdkEnvVariable(jdkPath.toAbsolutePath().toString());
     assertTrue("Could not use JDK from " + jdkPath, ideSdks.isJdkEnvVariableValid());
   }
 

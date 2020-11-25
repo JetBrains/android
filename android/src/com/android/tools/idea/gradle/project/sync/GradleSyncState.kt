@@ -313,7 +313,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
         return
       }
       namePrefix = "Android Studio"
-      jdkPath = ideSdks.jdkPath?.absolutePath
+      jdkPath = ideSdks.jdkPath?.toAbsolutePath().toString()
     }
 
     val quickFixes = mutableListOf<NotificationHyperlink>(OpenUrlHyperlink(JDK_LOCATION_WARNING_URL, "More info..."))
