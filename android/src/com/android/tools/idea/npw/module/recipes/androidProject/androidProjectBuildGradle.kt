@@ -30,7 +30,6 @@ fun androidProjectBuildGradle(
   return """
     // Top-level build file where you can add configuration options common to all sub-projects/modules.
     buildscript {
-        ${renderIf(generateKotlin) { "ext.kotlin_version = \"$kotlinVersion\"" }}
         repositories {
             google()
             jcenter()
@@ -38,7 +37,7 @@ fun androidProjectBuildGradle(
         }
         dependencies {
             classpath "com.android.tools.build:gradle:$gradlePluginVersion"
-            ${renderIf(generateKotlin) { "classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:\$kotlin_version\"" }}
+            ${renderIf(generateKotlin) { "classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion\"" }}
 
             // NOTE: Do not place your application dependencies here; they belong
             // in the individual module build.gradle files
@@ -69,7 +68,6 @@ fun androidProjectBuildGradleKts(
   return """
     // Top-level build file where you can add configuration options common to all sub-projects/modules.
     buildscript {
-        ${renderIf(generateKotlin) { "val kotlin_version by extra(\"$kotlinVersion\")" }}
         repositories {
             google()
             jcenter()
@@ -77,7 +75,7 @@ fun androidProjectBuildGradleKts(
         }
         dependencies {
             classpath("com.android.tools.build:gradle:$gradlePluginVersion")
-            ${renderIf(generateKotlin) { "classpath(\"org.jetbrains.kotlin:kotlin-gradle-plugin:\$kotlin_version\")" }}
+            ${renderIf(generateKotlin) { "classpath(\"org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion\")" }}
 
             // NOTE: Do not place your application dependencies here; they belong
             // in the individual module build.gradle.kts files
