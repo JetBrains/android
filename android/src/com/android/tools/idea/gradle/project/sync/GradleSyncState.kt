@@ -428,10 +428,10 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
   }
 
   class DataImportListener(val project: Project) : ProjectDataImportListener {
-    override fun onImportFinished(projectPath: String) {
+    override fun onImportFinished(projectPath: String?) {
       LOG.info("onImportFinished($projectPath)")
       val syncStateUpdaterService = project.getService(SyncStateUpdaterService::class.java)
-      if (syncStateUpdaterService.stopTrackingTask(projectPath)) {
+      if (syncStateUpdaterService.stopTrackingTask(projectPath!!)) {
         GradleSyncState.getInstance(project).syncSucceeded()
       }
     }
