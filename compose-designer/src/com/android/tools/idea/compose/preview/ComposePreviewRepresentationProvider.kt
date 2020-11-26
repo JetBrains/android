@@ -24,6 +24,7 @@ import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
+import com.android.tools.idea.compose.preview.actions.AnimationInteractiveSwitchAction
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.GroupSwitchAction
 import com.android.tools.idea.compose.preview.actions.LiveLiteralsAction
@@ -105,6 +106,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
 
   override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup(listOfNotNull(
     StudioFlags.COMPOSE_PREVIEW_BUILD_ON_SAVE.ifEnabled { ToggleAutoBuildOnSave() },
+    StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_SWITCH.ifEnabled { AnimationInteractiveSwitchAction() },
     IssueNotificationAction.getInstance()
   ))
 }

@@ -1042,6 +1042,13 @@ public final class StudioFlags {
     "If enabled, a user can pin a preview",
     false
   );
+
+  public static final Flag<Boolean> COMPOSE_INTERACTIVE_ANIMATION_SWITCH = Flag.create(
+    COMPOSE, "preview.switch.animation.interactive",
+    "Enable animation inspection switch from interactive preview (and disable from static preview)",
+    "If enabled, a user can switch to animation inspection from interactive preview",
+    true
+  );
   //endregion
 
   //region Manifests

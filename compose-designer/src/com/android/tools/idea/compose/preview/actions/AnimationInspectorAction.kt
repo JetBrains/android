@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -45,7 +44,6 @@ internal class AnimationInspectorAction(private val dataContextProvider: () -> D
   override fun setSelected(e: AnActionEvent, isSelected: Boolean) {
     getComposePreviewManager()?.let {
       it.animationInspectionPreviewElementInstance = if (isSelected) {
-        ComposePreviewAnimationManager.onAnimationInspectorOpened()
         getPreviewElement()
       }
       else {
