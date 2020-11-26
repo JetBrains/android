@@ -28,7 +28,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VfsUtil
 import org.jetbrains.kotlin.idea.util.application.invokeLater
 import java.io.IOException
 import java.nio.file.FileAlreadyExistsException
@@ -81,7 +81,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
             imageContents.writeTo(it)
           }
 
-          val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file.toFile()) ?: return
+          val virtualFile = VfsUtil.findFile(file, true) ?: return
 
           invokeLater {
             FileEditorManager.getInstance(project).openFile(virtualFile, true)
@@ -92,7 +92,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
           continue
         }
         catch (e: IOException) {
-          logger.error("Unable to create screenshot file ${file}", e)
+          logger.error("Unable to create screenshot file $file", e)
           return
         }
       }
