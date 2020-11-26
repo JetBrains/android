@@ -360,7 +360,7 @@ class ComposePreviewTest {
 
   @Test
   @RunIn(TestGroup.UNRELIABLE) // b/160776556
-  @Ignore("b/172894609") // The test is broken because of the zoom levels issue (b/174145654)
+  @Ignore("b/172894609") // Ignore while we don't update the Compose version. We fixed a bug that fails to detect animations.
   @Throws(Exception::class)
   fun testAnimationInspector() {
     fun SplitEditorFixture.findAnimationInspector() =
@@ -372,9 +372,7 @@ class ComposePreviewTest {
       }
 
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
-    val composePreview = openComposePreview(fixture, "Animations.kt")
-
-    composePreview.waitForSceneViewsCount(2)
+    val composePreview = openComposePreview(fixture, "Animations.kt").waitForSceneViewsCount(2)
 
     composePreview.designSurface
       .allSceneViews
@@ -385,21 +383,17 @@ class ComposePreviewTest {
 
     composePreview
       .waitForRenderToFinish()
-
-    composePreview.waitForSceneViewsCount(1)
+      .waitForSceneViewsCount(1)
 
     assertNotNull(composePreview.findAnimationInspector())
 
-    composePreview.designSurface
-      .allSceneViews
-      .first()
-      .toolbar()
-      .findButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
+    composePreview
+      .findActionButtonByText("Stop Animation Preview")
       .click()
 
-    composePreview.waitForRenderToFinish()
-
-    composePreview.waitForSceneViewsCount(2)
+    composePreview
+      .waitForRenderToFinish()
+      .waitForSceneViewsCount(2)
 
     assertNull(composePreview.findAnimationInspector())
 
