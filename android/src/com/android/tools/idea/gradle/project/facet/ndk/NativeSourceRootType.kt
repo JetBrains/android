@@ -15,9 +15,22 @@
  */
 package com.android.tools.idea.gradle.project.facet.ndk
 
+import org.jdom.Element
 import org.jetbrains.jps.model.JpsDummyElement
+import org.jetbrains.jps.model.JpsElementFactory
 import org.jetbrains.jps.model.ex.JpsElementTypeWithDummyProperties
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType
+import org.jetbrains.jps.model.serialization.module.JpsModuleSourceRootPropertiesSerializer
 
 /** Type to differentiate a native content root from Java/Kotlin content root. */
 object NativeSourceRootType : JpsElementTypeWithDummyProperties(), JpsModuleSourceRootType<JpsDummyElement>
+
+object NativeSourceRootTypeSerializer : JpsModuleSourceRootPropertiesSerializer<JpsDummyElement>(
+  NativeSourceRootType, "native-Source-root") {
+  override fun loadProperties(sourceRootTag: Element): JpsDummyElement {
+    return JpsElementFactory.getInstance().createDummyElement();
+  }
+
+  override fun saveProperties(properties: JpsDummyElement, sourceRootTag: Element) {
+  }
+}
