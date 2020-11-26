@@ -53,6 +53,7 @@ class SinglePreviewElementInstanceFilteredPreviewProvider(private val delegate: 
    * The Composable [PreviewElementInstance] to filter. If no [PreviewElementInstance] is defined by that intsance, then this filter will
    * return all the available previews.
    */
+  @Volatile
   var instance: PreviewElementInstance? = null
 
   private val filteredPreviewElementProvider = FilteredPreviewElementProvider(delegate) {

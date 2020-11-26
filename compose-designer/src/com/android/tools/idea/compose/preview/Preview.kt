@@ -246,81 +246,106 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private val fpsCounter = FpsCalculator { System.nanoTime() }
 
-  override fun setInteractivePreviewElementInstance(previewElement: PreviewElementInstance?) {
-    if (previewElementProvider.instanceFilter != previewElement) {
-      LOG.debug("New single preview element focus: $previewElement")
-      val isInteractive = previewElement != null
-      // The order matters because we first want to change the composable being previewed and then start interactive loop when enabled
-      // but we want to stop the loop first and then change the composable when disabled
-      if (isInteractive) { // Enable interactive
-        interactiveMode = ComposePreviewManager.InteractiveMode.STARTING
-        val quickRefresh = shouldQuickRefresh() // We should call this before assigning newValue to instanceIdFilter
-        val peerPreviews = previewElementProvider.previewElements.count()
-        previewElementProvider.instanceFilter = previewElement
-        composeWorkBench.hasComponentsOverlay = false
-        val startUpStart = System.currentTimeMillis()
-        forceRefresh(quickRefresh).invokeOnCompletion {
-          surface.layoutlibSceneManagers.forEach { it.resetTouchEventsCounter() }
-          InteractivePreviewUsageTracker.getInstance(surface).logStartupTime(
-            (System.currentTimeMillis() - startUpStart).toInt(), peerPreviews)
-          fpsCounter.resetAndStart()
-          ticker.start()
-          composeWorkBench.isInteractive = true
-
-          if (StudioFlags.COMPOSE_ANIMATED_PREVIEW_SHOW_CLICK.get()) {
-            // While in interactive mode, display a small ripple when clicking
-            surface.enableMouseClickDisplay()
+  override var interactivePreviewElementInstance: PreviewElementInstance?
+    set(value) {
+      if ((interactiveMode == ComposePreviewManager.InteractiveMode.DISABLED && value != null) ||
+          (interactiveMode == ComposePreviewManager.InteractiveMode.READY && value == null)) {
+        LOG.debug("New single preview element focus: $value")
+        val isInteractive = value != null
+        val isFromAnimationInspection = animationInspection.get()
+        // The order matters because we first want to change the composable being previewed and then start interactive loop when enabled
+        // but we want to stop the loop first and then change the composable when disabled
+        if (isInteractive) { // Enable interactive
+          if (isFromAnimationInspection) {
+            onAnimationInspectionStop()
           }
-          surface.background = INTERACTIVE_BACKGROUND_COLOR
-          interactiveMode = ComposePreviewManager.InteractiveMode.READY
+          interactiveMode = ComposePreviewManager.InteractiveMode.STARTING
+          val quickRefresh = shouldQuickRefresh() && !isFromAnimationInspection// We should call this before assigning newValue to instanceIdFilter
+          val peerPreviews = previewElementProvider.previewElements.count()
+          previewElementProvider.instanceFilter = value
+          composeWorkBench.hasComponentsOverlay = false
+          val startUpStart = System.currentTimeMillis()
+          forceRefresh(quickRefresh).invokeOnCompletion {
+            surface.layoutlibSceneManagers.forEach { it.resetTouchEventsCounter() }
+            if (!isFromAnimationInspection) { // Currently it will re-create classloader and will be slower that switch from static
+              InteractivePreviewUsageTracker.getInstance(surface).logStartupTime(
+                (System.currentTimeMillis() - startUpStart).toInt(), peerPreviews)
+            }
+            fpsCounter.resetAndStart()
+            ticker.start()
+            composeWorkBench.isInteractive = true
+
+            if (StudioFlags.COMPOSE_ANIMATED_PREVIEW_SHOW_CLICK.get()) {
+              // While in interactive mode, display a small ripple when clicking
+              surface.enableMouseClickDisplay()
+            }
+            surface.background = INTERACTIVE_BACKGROUND_COLOR
+            interactiveMode = ComposePreviewManager.InteractiveMode.READY
+          }
+        }
+        else { // Disable interactive
+          onInteractivePreviewStop()
+          forceRefresh().invokeOnCompletion {
+            interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
+          }
         }
       }
-      else { // Disable interactive
-        interactiveMode = ComposePreviewManager.InteractiveMode.STOPPING
-        surface.background = defaultSurfaceBackground
-        surface.disableMouseClickDisplay()
-        composeWorkBench.isInteractive = false
-        composeWorkBench.hasComponentsOverlay = true
-        ticker.stop()
-        previewElementProvider.clearInstanceIdFilter()
-        logInteractiveSessionMetrics()
+    }
+    get() = if (interactiveMode == ComposePreviewManager.InteractiveMode.READY) previewElementProvider.instanceFilter else null
+
+  private fun onInteractivePreviewStop() {
+    interactiveMode = ComposePreviewManager.InteractiveMode.STOPPING
+    surface.background = defaultSurfaceBackground
+    surface.disableMouseClickDisplay()
+    composeWorkBench.isInteractive = false
+    composeWorkBench.hasComponentsOverlay = true
+    ticker.stop()
+    previewElementProvider.clearInstanceIdFilter()
+    logInteractiveSessionMetrics()
+  }
+
+  private val animationInspection = AtomicBoolean(false)
+
+  override var animationInspectionPreviewElementInstance: PreviewElementInstance?
+    set(value) {
+      if ((!animationInspection.get() && value != null) || (animationInspection.get() && value == null)) {
+        if (value != null) {
+          if (interactiveMode != ComposePreviewManager.InteractiveMode.DISABLED) {
+            onInteractivePreviewStop()
+          }
+          LOG.debug("Animation Preview open for preview: $value")
+          ComposePreviewAnimationManager.onAnimationInspectorOpened()
+          previewElementProvider.instanceFilter = value
+          animationInspection.set(true)
+          composeWorkBench.hasComponentsOverlay = false
+
+          // Open the animation inspection panel
+          composeWorkBench.bottomPanel = ComposePreviewAnimationManager.createAnimationInspectorPanel(surface, this) {
+            // Close this inspection panel, making all the necessary UI changes (e.g. changing background and refreshing the preview) before
+            // opening a new one.
+            animationInspectionPreviewElementInstance = null
+          }
+          surface.background = INTERACTIVE_BACKGROUND_COLOR
+        }
+        else {
+          onAnimationInspectionStop()
+        }
         forceRefresh().invokeOnCompletion {
           interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
         }
       }
     }
-  }
+    get() = if (animationInspection.get()) previewElementProvider.instanceFilter else null
 
-  private val animationInspection = AtomicBoolean(false)
-
-  override var animationInspectionPreviewElementInstance:
-    PreviewElementInstance? by Delegates.observable(null as PreviewElementInstance?) { _, oldValue, newValue ->
-    if (oldValue != newValue) {
-      animationInspection.set(newValue != null)
-      if (animationInspection.get()) {
-        LOG.debug("Animation Preview open for preview: $newValue")
-        previewElementProvider.instanceFilter = newValue
-        composeWorkBench.hasComponentsOverlay = false
-
-        // Open the animation inspection panel
-        composeWorkBench.bottomPanel = ComposePreviewAnimationManager.createAnimationInspectorPanel(surface, this) {
-          // Close this inspection panel, making all the necessary UI changes (e.g. changing background and refreshing the preview) before
-          // opening a new one.
-          animationInspectionPreviewElementInstance = null
-        }
-        surface.background = INTERACTIVE_BACKGROUND_COLOR
-      }
-      else {
-        // Close the animation inspection panel
-        surface.background = defaultSurfaceBackground
-        ComposePreviewAnimationManager.closeCurrentInspector()
-        // Swap the components back
-        composeWorkBench.bottomPanel = null
-        composeWorkBench.hasComponentsOverlay = true
-        previewElementProvider.instanceFilter = null
-      }
-      forceRefresh()
-    }
+  private fun onAnimationInspectionStop() {
+    animationInspection.set(false)
+    // Close the animation inspection panel
+    surface.background = defaultSurfaceBackground
+    ComposePreviewAnimationManager.closeCurrentInspector()
+    // Swap the components back
+    composeWorkBench.bottomPanel = null
+    composeWorkBench.hasComponentsOverlay = true
+    previewElementProvider.instanceFilter = null
   }
 
   private val liveLiteralsManager = LiveLiteralsService.getInstance(project).apply {
@@ -556,7 +581,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override fun onDeactivate() {
     activationLock.withLock {
       LOG.debug("onDeactivate")
-      setInteractivePreviewElementInstance(null)
+      interactivePreviewElementInstance = null
       isLiveLiteralsEnabled = false
       isActive.set(false)
 
