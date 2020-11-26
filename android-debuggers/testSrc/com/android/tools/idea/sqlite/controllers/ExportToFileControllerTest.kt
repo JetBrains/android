@@ -64,6 +64,7 @@ private const val nonAsciiSuffix = " ąę"
 private const val table1 = "t1$nonAsciiSuffix"
 private const val table2 = "t2$nonAsciiSuffix"
 private const val table3 = "t3$nonAsciiSuffix"
+private const val view1 = "v1$nonAsciiSuffix"
 private const val column1 = "c1$nonAsciiSuffix"
 private const val column2 = "c2$nonAsciiSuffix"
 private const val databaseFileName = "db$nonAsciiSuffix.db"
@@ -173,6 +174,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     verifyNoMoreInteractions(notifyExportComplete)
 
     val actualFiles = decompress(exportRequest.dstPath).sorted()
+    assertThat(actualFiles).isEqualTo(expectedOutput.map { it.path }.sorted())
     actualFiles.zip(expectedOutput.sortedBy { it.path }) { actualPath, (expectedPath, expectedValues) ->
       assertThat(actualPath.toFile().canonicalPath).isEqualTo(expectedPath.toFile().canonicalPath)
       assertThat(actualPath.toLines()).isEqualTo(expectedValues.toCsvOutputLines(exportRequest.delimiter))
@@ -191,6 +193,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
       table3 to (3..33).toTwoColumnTable()
     )
     tableValuePairs.forEach { (table, values) -> fillDatabase(database, table, values) }
+    database.execute("create view '$view1' as select * from '$table1'") // to verify if views also get exported
 
     val dstPath = tempDirTestFixture.toNioPath().resolve("$outputFileName.zip")
     val exportRequest = ExportDatabaseRequest(database, CSV(COMMA), dstPath)

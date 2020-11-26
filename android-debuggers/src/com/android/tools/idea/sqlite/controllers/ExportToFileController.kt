@@ -109,8 +109,8 @@ class ExportToFileController(
   }
 
   private suspend fun exportDatabaseToCsv(database: SqliteDatabaseId, format: CSV, dstPath: Path) = withContext(taskDispatcher) {
-    // TODO(161081452): clarify if to export views (or only tables)
-    val tableNames: List<String> = databaseRepository.fetchSchema(database).tables.map { it.name }
+    // TODO(161081452): expose an option to let the user decide if to export views; defaulting now to not exporting views
+    val tableNames: List<String> = databaseRepository.fetchSchema(database).tables.filter { !it.isView }.map { it.name }
     val dstDir = dstPath.parent
 
     val dstDirReady = dstDir.exists() || dstDir.toFile().mkdirs()
