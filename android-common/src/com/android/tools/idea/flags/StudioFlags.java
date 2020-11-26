@@ -349,6 +349,11 @@ public final class StudioFlags {
     "Enable binary cache of classes used in preview",
     true);
 
+  public static final Flag<Boolean> NELE_STATE_LIST_PICKER = Flag.create(
+    NELE, "state.list.picker", "Enable State List Picker",
+    "Enable state list picker for selector drawable.",
+    true);
+
   //endregion
 
   //region Navigation Editor
