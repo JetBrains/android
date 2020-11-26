@@ -39,7 +39,7 @@ public class AndroidJUnitConfigurationType extends JUnitConfigurationType {
   private static final String ANDROID_JUNIT_DESCRIPTION = "Android JUnit test configuration";
   private static final String ANDROID_JUNIT_NAME = "Android JUnit";
   private static final String ANDROID_JUNIT_ID = "AndroidJUnit";
-  private static final NotNullLazyValue<Icon> ANDROID_TEST_ICON = NotNullLazyValue.create(() -> {
+  private static final NotNullLazyValue<Icon> ANDROID_TEST_ICON = NotNullLazyValue.lazy(() -> {
     LayeredIcon icon = new LayeredIcon(2);
     icon.setIcon(StudioIcons.Shell.Filetree.ANDROID_PROJECT, 0);
     icon.setIcon(AllIcons.Nodes.JunitTestMark, 1);

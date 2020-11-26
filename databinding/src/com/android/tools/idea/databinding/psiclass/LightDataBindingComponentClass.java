@@ -145,7 +145,7 @@ public class LightDataBindingComponentClass extends AndroidLightClassBase implem
         }
       , false);
 
-    myContainingFile = NotNullLazyValue.createAtomic(() -> {
+    myContainingFile = NotNullLazyValue.atomicLazy(() -> {
       String packageName = myMode.packageName;
       if (packageName.endsWith(".")) {
         packageName = packageName.substring(0, packageName.length() - 1);
