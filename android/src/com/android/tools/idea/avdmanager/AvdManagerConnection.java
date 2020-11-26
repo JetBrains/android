@@ -430,7 +430,6 @@ public class AvdManagerConnection {
     String skinPath = info.getProperties().get(AVD_INI_SKIN_PATH);
     if (skinPath != null) {
       FileSystem fileSystem = myFileOp.getFileSystem();
-
       DeviceSkinUpdater.updateSkins(fileSystem.getPath(skinPath).getFileName(), null, fileSystem);
     }
 
