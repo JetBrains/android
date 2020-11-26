@@ -83,6 +83,8 @@
 
     <lang.inspectionSuppressor language="kotlin" implementationClass="com.android.tools.compose.ComposeSuppressor"/>
 
+    <postFormatProcessor implementation="com.android.tools.compose.formatting.ComposePostFormatProcessor"/>
+
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
