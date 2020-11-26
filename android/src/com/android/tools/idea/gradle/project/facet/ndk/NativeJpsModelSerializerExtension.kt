@@ -15,21 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.facet.ndk
 
-import org.jdom.Element
-import org.jetbrains.jps.model.JpsDummyElement
-import org.jetbrains.jps.model.JpsElementFactory
-import org.jetbrains.jps.model.ex.JpsElementTypeWithDummyProperties
-import org.jetbrains.jps.model.module.JpsModuleSourceRootType
+import org.jetbrains.jps.model.serialization.JpsModelSerializerExtension
 import org.jetbrains.jps.model.serialization.module.JpsModuleSourceRootPropertiesSerializer
 
-object NativeHeaderRootType : JpsElementTypeWithDummyProperties(), JpsModuleSourceRootType<JpsDummyElement>
-
-object NativeHeaderRootTypeSerializer : JpsModuleSourceRootPropertiesSerializer<JpsDummyElement>(
-  NativeHeaderRootType, "native-header-root") {
-  override fun loadProperties(sourceRootTag: Element): JpsDummyElement {
-    return JpsElementFactory.getInstance().createDummyElement();
-  }
-
-  override fun saveProperties(properties: JpsDummyElement, sourceRootTag: Element) {
+class NativeJpsModelSerializerExtension : JpsModelSerializerExtension() {
+  override fun getModuleSourceRootPropertiesSerializers(): List<JpsModuleSourceRootPropertiesSerializer<*>> {
+    return listOf(NativeHeaderRootTypeSerializer, NativeSourceRootTypeSerializer)
   }
 }
