@@ -791,6 +791,24 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     assertSameElements(actualNames, names);
   }
 
+  public static void verifyPlugins(@NotNull Map<String, Map<String,Object>> infos, @NotNull List<PluginModel> models) {
+    HashMap<String, Map<String,Object>> mutableInfos = new HashMap<>(infos);
+    for (PluginModel model : models) {
+      Map<String,Object> info = mutableInfos.get(model.name().forceString());
+      assertNotNull(info);
+      String expectedVersion = (String) info.get("version");
+      if (expectedVersion != null) {
+        assertEquals(expectedVersion, model.version().forceString());
+      }
+      Boolean expectedApply = (Boolean) info.get("apply");
+      if (expectedApply != null) {
+        assertEquals(expectedApply, model.apply().toBoolean());
+      }
+      mutableInfos.remove(model.name().forceString());
+    }
+    assertEmpty(mutableInfos.entrySet());
+  }
+
   @NotNull
   private BuildModelContext createContext() {
     return BuildModelContext.create(getProject(), new BuildModelContext.ResolvedConfigurationFileLocationProvider() {

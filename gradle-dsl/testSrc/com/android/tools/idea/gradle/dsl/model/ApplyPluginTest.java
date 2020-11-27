@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import java.io.File;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -359,6 +360,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.PLUGINS_BLOCK_WITH_VERSION);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
+    verifyPlugins(ImmutableMap.of("com.android.application", ImmutableMap.of("version", "2.3")), buildModel.plugins());
   }
 
   @Test
