@@ -499,6 +499,10 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
       return processListElement(expression);
     }
 
+    if (parent instanceof GradleDslInfixExpression) {
+      return createInfixElement(expression);
+    }
+
     return createDslElement(expression);
   }
 }
