@@ -44,6 +44,8 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.*
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardPointNecessity
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardRegionNecessity
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginRelatedDependency
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.Companion.INSERT_OLD_USAGE_TYPE
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction
@@ -658,6 +660,39 @@ enum class AgpUpgradeComponentNecessity {
   MANDATORY_INDEPENDENT,
   OPTIONAL_CODEPENDENT,
   OPTIONAL_INDEPENDENT,
+
+  ;
+
+  companion object {
+    fun standardPointNecessity(current: GradleVersion, new: GradleVersion, change: GradleVersion) = when {
+      current > new -> throw IllegalArgumentException("inconsistency: current ($current) > new ($new)")
+      current >= change && new >= change -> IRRELEVANT_PAST
+      current < change && new >= change -> MANDATORY_CODEPENDENT
+      current < change && new < change -> IRRELEVANT_FUTURE
+      else -> throw RuntimeException("cannot happen")
+    }
+
+    /** [replacementAvailable] must be less than [originalRemoved]. */
+    fun standardRegionNecessity(
+      current: GradleVersion,
+      new: GradleVersion,
+      replacementAvailable: GradleVersion,
+      originalRemoved: GradleVersion
+    ): AgpUpgradeComponentNecessity {
+      return when {
+        current > new -> throw IllegalArgumentException("inconsistency: current ($current) > new ($new)")
+        replacementAvailable > originalRemoved ->
+          throw IllegalArgumentException("internal error: replacementAvailable ($replacementAvailable) > originalRemoved ($originalRemoved")
+        current >= originalRemoved && new >= originalRemoved -> IRRELEVANT_PAST
+        current < replacementAvailable && new < replacementAvailable -> IRRELEVANT_FUTURE
+        current < replacementAvailable && new >= originalRemoved -> MANDATORY_CODEPENDENT
+        current < originalRemoved && new >= originalRemoved -> MANDATORY_INDEPENDENT
+        current < replacementAvailable && new >= replacementAvailable -> OPTIONAL_CODEPENDENT
+        current >= replacementAvailable && new < originalRemoved -> OPTIONAL_INDEPENDENT
+        else -> throw RuntimeException("cannot happen")
+      }
+    }
+  }
 }
 
 // Each individual refactoring involved in an AGP Upgrade is implemented as its own refactoring processor.  For a "batch" upgrade, most
@@ -711,23 +746,6 @@ sealed class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactorin
   }
 
   abstract fun necessity(): AgpUpgradeComponentNecessity
-
-  /** see the comment above [AgpUpgradeComponentNecessity] */
-  protected fun standardPointNecessity(change: GradleVersion) = when {
-    current < change && new >= change -> MANDATORY_CODEPENDENT
-    new < change -> IRRELEVANT_FUTURE
-    else -> IRRELEVANT_PAST
-  }
-
-  /** see the comment above [AgpUpgradeComponentNecessity] */
-  protected fun standardRegionNecessity(replacementAvailable: GradleVersion, originalRemoved: GradleVersion) = when {
-    current < replacementAvailable && new >= originalRemoved -> MANDATORY_CODEPENDENT
-    current < originalRemoved && new >= originalRemoved -> MANDATORY_INDEPENDENT
-    new < replacementAvailable -> IRRELEVANT_FUTURE
-    current >= originalRemoved -> IRRELEVANT_PAST
-    current < replacementAvailable -> OPTIONAL_CODEPENDENT
-    else -> OPTIONAL_INDEPENDENT
-  }
 
   public final override fun findUsages(): Array<out UsageInfo> {
     if (!isEnabled) {
@@ -882,7 +900,7 @@ class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProce
   var gradleVersion: GradleVersion
     @VisibleForTesting set
 
-  override fun necessity() = standardPointNecessity(GradleVersion(3, 0, 0))
+  override fun necessity() = standardPointNecessity(current, new, GradleVersion(3, 0, 0))
 
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
@@ -1145,7 +1163,7 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity() = standardPointNecessity(ACTIVATED_VERSION)
+  override fun necessity() = standardPointNecessity(current, new, ACTIVATED_VERSION)
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     fun usageType(model: LanguageLevelPropertyModel): UsageType? = when {
@@ -1330,7 +1348,7 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity() = standardRegionNecessity(IMPLEMENTATION_API_INTRODUCED, COMPILE_REMOVED)
+  override fun necessity() = standardRegionNecessity(current, new, IMPLEMENTATION_API_INTRODUCED, COMPILE_REMOVED)
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
@@ -1459,7 +1477,7 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity() = standardRegionNecessity(COMPATIBLE_WITH, INCOMPATIBLE_VERSION)
+  override fun necessity() = standardRegionNecessity(current, new, COMPATIBLE_WITH, INCOMPATIBLE_VERSION)
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = ArrayList<UsageInfo>()
