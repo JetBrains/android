@@ -43,6 +43,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression;
@@ -439,10 +440,13 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     if (referenceExpression == null) {
       return false;
     }
-    // TODO(b/165576187): This allows us to parse plugins with versions, but (as with the Kotlin equivalent) we lose the association of
-    //  Dsl and Psi.  We also are more permissive, parsing any kind of infix-like operator rather than just `version`
-    if (referenceExpression.getFirstChild() instanceof GrApplicationStatement && blockElement instanceof PluginsDslElement) {
-      return parseGrApplication((GrApplicationStatement) referenceExpression.getFirstChild(), blockElement);
+    if (referenceExpression.getFirstChild() instanceof GrApplicationStatement) {
+      PsiElement operator = referenceExpression.getLastChild();
+      if (operator.textMatches("version") || operator.textMatches("apply")) {
+        // TODO(b/165576187): as with the Kotlin version, the association between Dsl and Psi is not right for individual plugin
+        //  properties, because the tree structures are not aligned.
+        return processPluginDeclaration(statement, blockElement);
+      }
     }
 
     GrCommandArgumentList argumentList = getNextSiblingOfType(referenceExpression, GrCommandArgumentList.class);
@@ -512,6 +516,27 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     propertyElement.setElementType(REGULAR);
     blockElement.addParsedElement(propertyElement);
     return true;
+  }
+
+  boolean processPluginDeclaration(GrApplicationStatement statement, GradlePropertiesDslElement parent) {
+    GradlePropertiesDslElement pluginElement;
+    if (parent instanceof GradleDslInfixExpression) {
+      pluginElement = parent;
+    }
+    else {
+      pluginElement = new GradleDslInfixExpression(parent, statement);
+      parent.addParsedElement(pluginElement);
+    }
+    GrReferenceExpression referenceExpression = (GrReferenceExpression)statement.getFirstChild();
+    GrApplicationStatement innerApplicationStatement = (GrApplicationStatement)referenceExpression.getFirstChild();
+    boolean success = parseGrApplication(innerApplicationStatement, pluginElement);
+    PsiElement operator = referenceExpression.getLastChild();
+    PsiElement operand = statement.getLastChild().getFirstChild();
+    if (!(operand instanceof GrExpression)) return false;
+    GrExpression value = (GrExpression) operand;
+    GradleDslElement propertyElement = getExpressionElement(pluginElement, value, GradleNameElement.from(operator, this), value);
+    pluginElement.addParsedElement(propertyElement);
+    return success;
   }
 
   @NotNull
