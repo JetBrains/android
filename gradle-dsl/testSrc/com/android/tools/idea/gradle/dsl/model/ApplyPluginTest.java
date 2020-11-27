@@ -380,6 +380,54 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testPluginsBlockWithVersionSetVersion() throws Exception {
+    writeToBuildFile(TestFile.PLUGINS_BLOCK_WITH_VERSION);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    PluginModel pluginModel = buildModel.plugins().get(0);
+    pluginModel.version().setValue("3.4");
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.PLUGINS_BLOCK_WITH_VERSION_SET_VERSION_EXPECTED);
+    verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
+    verifyPlugins(ImmutableMap.of("com.android.application", ImmutableMap.of("version", "3.4")), buildModel.plugins());
+  }
+
+  @Test
+  public void testPluginsBlockWithApplySetApply() throws Exception {
+    writeToBuildFile(TestFile.PLUGINS_BLOCK_WITH_APPLY);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    PluginModel pluginModel = buildModel.plugins().get(0);
+    pluginModel.apply().setValue(true);
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.PLUGINS_BLOCK_WITH_APPLY_SET_APPLY_EXPECTED);
+    verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
+    verifyPlugins(ImmutableMap.of("com.android.application", ImmutableMap.of("apply", true)), buildModel.plugins());
+  }
+
+  @Test
+  public void testPluginsBlockWithVersionAndApplySetVersion() throws Exception {
+    writeToBuildFile(TestFile.PLUGINS_BLOCK_WITH_VERSION_AND_APPLY);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    PluginModel pluginModel = buildModel.plugins().get(0);
+    pluginModel.version().setValue("3.4");
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.PLUGINS_BLOCK_WITH_VERSION_AND_APPLY_SET_VERSION_EXPECTED);
+    verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
+    verifyPlugins(ImmutableMap.of("com.android.application", ImmutableMap.of("version", "3.4", "apply", false)), buildModel.plugins());
+  }
+
+  @Test
+  public void testPluginsBlockWithVersionAndApplySetApply() throws Exception {
+    writeToBuildFile(TestFile.PLUGINS_BLOCK_WITH_VERSION_AND_APPLY);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    PluginModel pluginModel = buildModel.plugins().get(0);
+    pluginModel.apply().setValue(true);
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.PLUGINS_BLOCK_WITH_VERSION_AND_APPLY_SET_APPLY_EXPECTED);
+    verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
+    verifyPlugins(ImmutableMap.of("com.android.application", ImmutableMap.of("version", "2.3", "apply", true)), buildModel.plugins());
+  }
+
+  @Test
   public void testPluginsFromApplyAndPluginsBlock() throws Exception {
     writeToBuildFile(TestFile.PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK);
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -494,8 +542,12 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     APPLY_PLUGINS_FROM_PLUGINS_BLOCK("applyPluginsFromPluginsBlock"),
     PLUGINS_BLOCK_WITH_REPEATED_PLUGINS("pluginsBlockWithRepeatedPlugins"),
     PLUGINS_BLOCK_WITH_VERSION("pluginsBlockWithVersion"),
+    PLUGINS_BLOCK_WITH_VERSION_SET_VERSION_EXPECTED("pluginsBlockWithVersionSetVersionExpected"),
     PLUGINS_BLOCK_WITH_APPLY("pluginsBlockWithApply"),
+    PLUGINS_BLOCK_WITH_APPLY_SET_APPLY_EXPECTED("pluginsBlockWithApplySetApplyExpected"),
     PLUGINS_BLOCK_WITH_VERSION_AND_APPLY("pluginsBlockWithVersionAndApply"),
+    PLUGINS_BLOCK_WITH_VERSION_AND_APPLY_SET_VERSION_EXPECTED("pluginsBlockWithVersionAndApplySetVersionExpected"),
+    PLUGINS_BLOCK_WITH_VERSION_AND_APPLY_SET_APPLY_EXPECTED("pluginsBlockWithVersionAndApplySetApplyExpected"),
     PLUGINS_UNSUPPORTED_SYNTAX("pluginsWithUnsupportedSyntax"),
     PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK("pluginsFromApplyAndPluginsBlock"),
     PLUGIN_REMOVE("pluginRemove"),
