@@ -56,6 +56,11 @@
       <category>Compose Android</category>
     </intentionAction>
 
+    <intentionAction>
+      <className>com.android.tools.compose.intentions.ComposeWrapModifiersAction</className>
+      <category>Compose Android</category>
+    </intentionAction>
+
     <defaultLiveTemplates file="templates/AndroidCompose.xml"/>
     <defaultLiveTemplates file="templates/AndroidComposePreview.xml"/>
 
