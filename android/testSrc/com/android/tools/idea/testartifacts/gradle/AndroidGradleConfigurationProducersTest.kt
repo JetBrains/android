@@ -22,6 +22,8 @@ import com.android.tools.idea.testartifacts.createAndroidGradleTestConfiguration
 
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN
+import com.android.tools.idea.testing.TestProjectPaths.UNIT_TESTING
+import com.google.common.truth.Truth
 import junit.framework.TestCase
 
 /**
@@ -82,5 +84,16 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     loadProject(TEST_ARTIFACTS_KOTLIN)
     TestCase.assertNull(createAndroidGradleConfigurationFromFile(
       project, "app/src/androidTest/java/com/example/android/kotlin/ExampleInstrumentedTest.kt"))
+  }
+
+  @Throws(Exception::class)
+  fun testAndroidGradleTestTasksProviderDoesntCreateJavaModulesTestTasks() {
+    loadProject(UNIT_TESTING)
+    // Here we test to verify that the configuration tasks aren't provided by the AndroidGradleTestTasksProvider.
+    // We do that by verifying the tasks value.
+    val gradleJavaConfiguration = createAndroidGradleTestConfigurationFromClass(
+      project, "com.example.javalib.JavaLibJavaTest")
+    TestCase.assertNotNull(gradleJavaConfiguration)
+    Truth.assertThat(gradleJavaConfiguration!!.settings.taskNames).isEqualTo(listOf(":javalib:test"))
   }
 }
