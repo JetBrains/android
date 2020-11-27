@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer
@@ -761,6 +762,27 @@ internal fun createMapElement(expression : GradleDslSettableExpression) : PsiEle
   expression.reset()
   return expression.psiElement
 
+}
+
+/**
+ * Given an existing infix expression, add a property to it.
+ */
+internal fun createInfixElement(literal: GradleDslLiteral): PsiElement? {
+  val parent = literal.parent as? GradleDslInfixExpression ?: return null
+  val parentPsi = parent.create() ?: return null
+
+  val expressionPsi = literal.unsavedValue ?: return null
+
+  val psiFactory = KtPsiFactory(parentPsi.project)
+  // FIXME(xof): escaping of name
+  val newInfixExpression = psiFactory.createExpression("${parentPsi.text} ${literal.name} ${expressionPsi.text}") as KtBinaryExpression
+  val newParentPsi = parentPsi.replace(newInfixExpression) as KtBinaryExpression
+  parent.psiElement = newParentPsi
+
+  literal.psiElement = newParentPsi.right
+  literal.commit()
+  literal.reset()
+  return literal.psiElement
 }
 
 /**

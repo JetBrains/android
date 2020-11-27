@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.FakeMethodElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer
@@ -364,6 +365,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     return when (literal.parent) {
       is GradleDslExpressionList -> createListElement(literal)
       is GradleDslExpressionMap -> createMapElement(literal)
+      is GradleDslInfixExpression -> createInfixElement(literal)
       else -> createDslElement(literal)
     }
   }

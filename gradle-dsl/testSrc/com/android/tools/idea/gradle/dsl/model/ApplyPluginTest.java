@@ -380,6 +380,18 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testPluginsBlockWithVersionSetApply() throws Exception {
+    writeToBuildFile(TestFile.PLUGINS_BLOCK_WITH_VERSION);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    PluginModel pluginModel = buildModel.plugins().get(0);
+    pluginModel.apply().setValue(true);
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.PLUGINS_BLOCK_WITH_VERSION_SET_APPLY_EXPECTED);
+    verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
+    verifyPlugins(ImmutableMap.of("com.android.application", ImmutableMap.of("version", "2.3", "apply", true)), buildModel.plugins());
+  }
+
+  @Test
   public void testPluginsBlockWithVersionSetVersion() throws Exception {
     writeToBuildFile(TestFile.PLUGINS_BLOCK_WITH_VERSION);
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -401,6 +413,18 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     verifyFileContents(myBuildFile, TestFile.PLUGINS_BLOCK_WITH_APPLY_SET_APPLY_EXPECTED);
     verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
     verifyPlugins(ImmutableMap.of("com.android.application", ImmutableMap.of("apply", true)), buildModel.plugins());
+  }
+
+  @Test
+  public void testPluginsBlockWithApplySetVersion() throws Exception {
+    writeToBuildFile(TestFile.PLUGINS_BLOCK_WITH_APPLY);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    PluginModel pluginModel = buildModel.plugins().get(0);
+    pluginModel.version().setValue("3.4");
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.PLUGINS_BLOCK_WITH_APPLY_SET_VERSION_EXPECTED);
+    verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
+    verifyPlugins(ImmutableMap.of("com.android.application", ImmutableMap.of("version", "3.4", "apply", false)), buildModel.plugins());
   }
 
   @Test
@@ -542,9 +566,11 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     APPLY_PLUGINS_FROM_PLUGINS_BLOCK("applyPluginsFromPluginsBlock"),
     PLUGINS_BLOCK_WITH_REPEATED_PLUGINS("pluginsBlockWithRepeatedPlugins"),
     PLUGINS_BLOCK_WITH_VERSION("pluginsBlockWithVersion"),
+    PLUGINS_BLOCK_WITH_VERSION_SET_APPLY_EXPECTED("pluginsBlockWithVersionSetApplyExpected"),
     PLUGINS_BLOCK_WITH_VERSION_SET_VERSION_EXPECTED("pluginsBlockWithVersionSetVersionExpected"),
     PLUGINS_BLOCK_WITH_APPLY("pluginsBlockWithApply"),
     PLUGINS_BLOCK_WITH_APPLY_SET_APPLY_EXPECTED("pluginsBlockWithApplySetApplyExpected"),
+    PLUGINS_BLOCK_WITH_APPLY_SET_VERSION_EXPECTED("pluginsBlockWithApplySetVersionExpected"),
     PLUGINS_BLOCK_WITH_VERSION_AND_APPLY("pluginsBlockWithVersionAndApply"),
     PLUGINS_BLOCK_WITH_VERSION_AND_APPLY_SET_VERSION_EXPECTED("pluginsBlockWithVersionAndApplySetVersionExpected"),
     PLUGINS_BLOCK_WITH_VERSION_AND_APPLY_SET_APPLY_EXPECTED("pluginsBlockWithVersionAndApplySetApplyExpected"),
