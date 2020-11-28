@@ -33,7 +33,6 @@ import com.android.repository.impl.installer.AbstractInstaller;
 import com.android.repository.impl.installer.AbstractInstallerFactory;
 import com.android.repository.impl.installer.AbstractUninstaller;
 import com.android.repository.impl.manager.LocalRepoLoaderImpl;
-import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
 import com.android.repository.util.InstallerUtil;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -60,11 +59,9 @@ public class PatchInstallingRestarter {
   private static final String OLD_PACKAGE_XML_FN = "package.xml.old";
 
   private final AndroidSdkHandler mySdkHandler;
-  private final FileOp myFileOp;
 
-  public PatchInstallingRestarter(@NotNull AndroidSdkHandler sdkHandler, @NotNull FileOp fileOp) {
+  public PatchInstallingRestarter(@NotNull AndroidSdkHandler sdkHandler) {
     mySdkHandler = sdkHandler;
-    myFileOp = fileOp;
   }
 
   /**
@@ -136,11 +133,11 @@ public class PatchInstallingRestarter {
           InstallerFactory dummyFactory = new DummyInstallerFactory();
           dummyFactory.setListenerFactory(new StudioSdkInstallListenerFactory(mySdkHandler));
           if (remote) {
-            Installer installer = dummyFactory.createInstaller((RemotePackage)pendingPackage, mgr, new StudioDownloader(), myFileOp);
+            Installer installer = dummyFactory.createInstaller((RemotePackage)pendingPackage, mgr, new StudioDownloader());
             installer.complete(progress);
           }
           else {
-            Uninstaller uninstaller = dummyFactory.createUninstaller((LocalPackage)pendingPackage, mgr, myFileOp);
+            Uninstaller uninstaller = dummyFactory.createUninstaller((LocalPackage)pendingPackage, mgr);
             uninstaller.complete(progress);
           }
         }
@@ -181,9 +178,8 @@ public class PatchInstallingRestarter {
     @Override
     protected Installer doCreateInstaller(@NotNull RemotePackage p,
                                           @NotNull RepoManager mgr,
-                                          @NotNull Downloader downloader,
-                                          @NotNull FileOp fop) {
-      return new AbstractInstaller(p, mgr, downloader, fop) {
+                                          @NotNull Downloader downloader) {
+      return new AbstractInstaller(p, mgr, downloader) {
         @Override
         protected boolean doComplete(@Nullable Path installTemp,
                                      @NotNull ProgressIndicator progress) {
@@ -200,8 +196,8 @@ public class PatchInstallingRestarter {
 
     @NotNull
     @Override
-    protected Uninstaller doCreateUninstaller(@NotNull LocalPackage p, @NotNull RepoManager mgr, @NotNull FileOp fop) {
-      return new AbstractUninstaller(p, mgr, fop) {
+    protected Uninstaller doCreateUninstaller(@NotNull LocalPackage p, @NotNull RepoManager mgr) {
+      return new AbstractUninstaller(p, mgr) {
         @Override
         protected boolean doPrepare(@Nullable Path installTemp,
                                     @NonNull ProgressIndicator progress) {

@@ -24,7 +24,6 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform
 import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
 
 import com.android.SdkConstants;
-import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -100,7 +99,7 @@ public class AndroidSdkInitializer implements Runnable {
 
     if (androidSdkPath != null) {
       AndroidSdkHandler handler = AndroidSdkHandler.getInstance(androidSdkPath.toPath());
-      new PatchInstallingRestarter(handler, FileOpUtils.create()).restartAndInstallIfNecessary();
+      new PatchInstallingRestarter(handler).restartAndInstallIfNecessary();
       // We need to start the system info monitoring even in case when user never
       // runs a single emulator instance: e.g., incompatible hypervisor might be
       // the reason why emulator is never run, and that's exactly the data
@@ -214,7 +213,7 @@ public class AndroidSdkInitializer implements Runnable {
     sdkLocationCandidates.put("Last SDK used by Android tools",
                               AndroidSdkInitializer::getLastSdkPathUsedByAndroidTools);
 
-    String sdkPath = null;
+    String sdkPath;
     for (Map.Entry<String, Callable<String>> locationCandidate : sdkLocationCandidates.entrySet()) {
       try {
         String pathDescription = locationCandidate.getKey();

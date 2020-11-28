@@ -74,7 +74,7 @@ public class PatchRunner {
   /**
    * Run the IJ patcher by reflection.
    */
-  public boolean run(@NotNull File destination, @NotNull File patchFile, @NotNull ProgressIndicator progress)
+  public boolean run(@NotNull Path destination, @NotNull Path patchFile, @NotNull ProgressIndicator progress)
     throws RestartRequiredException {
     Object ui;
     try {
@@ -106,7 +106,7 @@ public class PatchRunner {
 
     try {
       progress.logInfo("Running patcher...");
-      if (!(Boolean)doInstall.invoke(null, patchFile.getPath(), ui, destination.getPath())) {
+      if (!(Boolean)doInstall.invoke(null, patchFile.toString(), ui, destination.toString())) {
         progress.logWarning("Failed to apply patch");
         return false;
       }

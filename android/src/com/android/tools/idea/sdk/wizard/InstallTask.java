@@ -70,7 +70,6 @@ class InstallTask extends Task.Backgroundable {
   private Collection<UpdatablePackage> myInstallRequests;
   private Collection<LocalPackage> myUninstallRequests;
   private final RepoManager myRepoManager;
-  private final FileOp myFileOp;
   private final InstallerFactory myInstallerFactory;
   private boolean myBackgrounded;
   @Nullable
@@ -86,7 +85,6 @@ class InstallTask extends Task.Backgroundable {
     super(null, "Installing Android SDK", true, PerformInBackgroundOption.ALWAYS_BACKGROUND);
     myLogger = logger;
     myRepoManager = sdkHandler.getSdkManager(logger);
-    myFileOp = sdkHandler.getFileOp();
     myInstallerFactory = installerFactory;
     mySettingsController = settings;
   }
@@ -214,8 +212,8 @@ class InstallTask extends Task.Backgroundable {
     if (!(op instanceof Installer)) {
       Downloader downloader = new StudioDownloader();
       downloader.setDownloadIntermediatesLocation(
-        myFileOp.toFile(myRepoManager.getLocalPath().resolve(AbstractPackageOperation.DOWNLOAD_INTERMEDIATES_DIR_FN)));
-      op = myInstallerFactory.createInstaller((RemotePackage)p, myRepoManager, downloader, myFileOp);
+        myRepoManager.getLocalPath().resolve(AbstractPackageOperation.DOWNLOAD_INTERMEDIATES_DIR_FN));
+      op = myInstallerFactory.createInstaller((RemotePackage)p, myRepoManager, downloader);
     }
     return op;
   }
@@ -225,7 +223,7 @@ class InstallTask extends Task.Backgroundable {
     // If there's already an uninstaller in progress for this package, reuse it.
     PackageOperation op = myRepoManager.getInProgressInstallOperation(p);
     if (!(op instanceof Uninstaller) || op.getInstallStatus() == PackageOperation.InstallStatus.FAILED) {
-      op = myInstallerFactory.createUninstaller((LocalPackage)p, myRepoManager, myFileOp);
+      op = myInstallerFactory.createUninstaller((LocalPackage)p, myRepoManager);
     }
     return op;
   }

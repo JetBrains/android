@@ -51,7 +51,7 @@ class ComponentInstaller(private val sdkHandler: AndroidSdkHandler) {
     val factory = BasicInstallerFactory()
 
     packages.map {
-      factory.createInstaller(it, sdkManager, downloader, sdkHandler.fileOp)
+      factory.createInstaller(it, sdkManager, downloader)
     }.forEach { installer ->
       // Intentionally don't register any listeners on the installer, so we don't recurse on haxm
       // TODO: This is a hack. Any future rewrite of this shouldn't require this behavior.
@@ -95,7 +95,7 @@ class ComponentInstaller(private val sdkHandler: AndroidSdkHandler) {
     // is executed unconditionally, whereas in most cases it should be dependent on the next operation success status -
     // like stack unwinding after an exception.
     packagesToUninstall.map {
-      factory.createUninstaller(it, sdkManager, sdkHandler.fileOp)
+      factory.createUninstaller(it, sdkManager)
     }.forEach { uninstaller ->
       progressMax += progressIncrement
       if (uninstaller.prepare(progress.createSubProgress(progressMax))) {
