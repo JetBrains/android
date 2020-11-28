@@ -109,9 +109,9 @@ public class InstallTaskTest extends AndroidTestCase {
     myOperations.put(myAvailable1, myInstaller);
     myOperations.put(myAvailable2, myInstaller2);
 
-    when(factory.createInstaller(eq(myAvailable1), eq(repoManager), any(), eq(myFileOp))).thenReturn(myInstaller);
-    when(factory.createInstaller(eq(myAvailable2), eq(repoManager), any(), eq(myFileOp))).thenReturn(myInstaller2);
-    when(factory.createUninstaller(existing1, repoManager, myFileOp)).thenReturn(myUninstaller);
+    when(factory.createInstaller(eq(myAvailable1), eq(repoManager), any())).thenReturn(myInstaller);
+    when(factory.createInstaller(eq(myAvailable2), eq(repoManager), any())).thenReturn(myInstaller2);
+    when(factory.createUninstaller(existing1, repoManager)).thenReturn(myUninstaller);
   }
 
   public void testPrepare() {
@@ -295,7 +295,7 @@ public class InstallTaskTest extends AndroidTestCase {
   public void testBackground() throws Exception {
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
     InstallerFactory factory = mock(InstallerFactory.class);
-    when(factory.createInstaller(eq(myAvailable1), any(), any(), any())).thenReturn(myInstaller);
+    when(factory.createInstaller(eq(myAvailable1), any(), any())).thenReturn(myInstaller);
 
     InstallSelectedPackagesStep installStep =
       new InstallSelectedPackagesStep(new ArrayList<>(ImmutableList.of(new UpdatablePackage(myAvailable1))),
@@ -327,7 +327,7 @@ public class InstallTaskTest extends AndroidTestCase {
     // This would normally be done by the wizard frame
     Disposer.dispose(wizard);
 
-    when(factory.createInstaller(eq(myAvailable1), any(), any(), any())).thenReturn(myInstaller2);
+    when(factory.createInstaller(eq(myAvailable1), any(), any())).thenReturn(myInstaller2);
     InstallSelectedPackagesStep installStep2 =
       new InstallSelectedPackagesStep(new ArrayList<>(ImmutableList.of(new UpdatablePackage(myAvailable1))),
                                       new ArrayList<>(), mySdkHandler, true, factory, false);

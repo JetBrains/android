@@ -15,25 +15,27 @@
  */
 package com.android.tools.idea.sdk;
 
+import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeSettingsController;
+import com.android.testutils.InMemoryFileSystemUtilsKt;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.LightPlatformTestCase;
-import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.Headers;
+import com.sun.net.httpserver.HttpServer;
+import java.net.InetSocketAddress;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import java.io.File;
-import java.net.InetSocketAddress;
-import java.net.URL;
-import java.util.List;
 
 public class StudioDownloaderTest extends LightPlatformTestCase {
   private static final String LOCALHOST = "127.0.0.1";
@@ -126,24 +128,25 @@ public class StudioDownloaderTest extends LightPlatformTestCase {
 
   public void testHttpNoCacheHeaders() throws Exception {
     createServerContextThatMirrorsRequestHeaders();
+    FileSystem fs = InMemoryFileSystemUtilsKt.createFileSystem();
 
-    File downloadResult = FileUtil.createTempFile("studio_downloader_test", "txt");
-    downloadResult.deleteOnExit();
+    Path downloadResult = FileOpUtils.getNewTempDir("studio_downloader_test", fs).resolve("download.txt");
 
     FakeSettingsController settingsController = new FakeSettingsController(true);
     StudioDownloader downloader = new StudioDownloader(settingsController);
     String headers;
 
     downloader.downloadFully(new URL(myUrl), downloadResult, null, new FakeProgressIndicator());
-    headers = FileUtil.loadFile(downloadResult);
+    headers = new String(Files.readAllBytes(downloadResult));
     assertEquals(EXPECTED_NO_CACHE_HEADERS, headers);
 
     downloader.downloadFullyWithCaching(new URL(myUrl), downloadResult, null, new FakeProgressIndicator());
-    headers = FileUtil.loadFile(downloadResult);
+    headers = new String(Files.readAllBytes(downloadResult));
     assertEquals(EXPECTED_HEADERS_IF_CACHING_ALLOWED, headers);
   }
 
   public void testResumableDownloads() throws Exception {
+    FileSystem fs = InMemoryFileSystemUtilsKt.createFileSystem();
     // Create some sizeable custom content to download.
     int howMany = (1 << 20);
     String stuff = "A quick brown brown fox jumps over the lazy dog.";
@@ -153,18 +156,16 @@ public class StudioDownloaderTest extends LightPlatformTestCase {
     }
     createServerContextThatReturnsCustomContent(contentBuffer.toString());
 
-    File downloadResult = new File(FileUtil.getTempDirectory(), "studio_partial_downloads_test.txt");
-    assertTrue(!downloadResult.exists() || downloadResult.delete());
-    downloadResult.deleteOnExit();
+    Path downloadResult = FileOpUtils.getNewTempDir("testResumableDownloads", fs).resolve("studio_partial_downloads_test.txt");
 
     FakeSettingsController settingsController = new FakeSettingsController(true);
     StudioDownloader downloader = new StudioDownloader(settingsController);
-    File intermediatesLocation = new File(FileUtil.getTempDirectory(), "intermediates");
+    Path intermediatesLocation = FileOpUtils.getNewTempDir("intermediates", fs);
     downloader.setDownloadIntermediatesLocation(intermediatesLocation);
 
     int CANCELLATIONS_COUNT = 10;
     AtomicInteger currentCancellationsCount = new AtomicInteger(0);
-    File interimDownload = new File(intermediatesLocation, downloadResult.getName()
+    Path interimDownload = intermediatesLocation.resolve(downloadResult.getFileName().toString()
                                                            + StudioDownloader.DOWNLOAD_SUFFIX_FN);
     for (int i = 0; i < CANCELLATIONS_COUNT; ++i) {
       try {
@@ -172,8 +173,7 @@ public class StudioDownloaderTest extends LightPlatformTestCase {
           @Override
           public void setFraction(double fraction) {
             super.setFraction(fraction);
-            int p = (int)(fraction * 100);
-            if (p % CANCELLATIONS_COUNT == 0 && (p / CANCELLATIONS_COUNT >= currentCancellationsCount.get())) {
+            if (fraction * CANCELLATIONS_COUNT >= currentCancellationsCount.get()) {
               currentCancellationsCount.incrementAndGet();
               cancel();
             }
@@ -184,17 +184,15 @@ public class StudioDownloaderTest extends LightPlatformTestCase {
       catch (ProcessCanceledException e) {
         // ignore
       }
-/* b/147223426
-      assertFalse(downloadResult.exists());
-      assertTrue(interimDownload.exists());
-b/147223426 */
+      assertFalse(Files.exists(downloadResult));
+      assertTrue(Files.exists(interimDownload));
     }
     // Now complete it without cancellations.
     downloader.downloadFullyWithCaching(new URL(myUrl), downloadResult, null, new FakeProgressIndicator());
-    assertTrue(downloadResult.exists());
-    assertFalse(interimDownload.exists());
+    assertTrue(Files.exists(downloadResult));
+    assertFalse(Files.exists(interimDownload));
 
-    String downloadedContent = FileUtil.loadFile(downloadResult);
+    String downloadedContent = new String(Files.readAllBytes(downloadResult));
     assertEquals(contentBuffer.toString(), downloadedContent);
   }
 
@@ -211,7 +209,7 @@ b/147223426 */
     assertEquals("http://" + TEST_URL_BASE, downloader.prepareUrl(new URL("http://" + TEST_URL_BASE)));
   }
 
-  public void testDownloadProgressIndicator() throws Exception {
+  public void testDownloadProgressIndicator() {
     FakeProgressIndicator parentProgress = new FakeProgressIndicator();
 
     {

@@ -48,13 +48,13 @@ class HttpArtifactResolver(
         }
       }
       if (downloadedFile != null) {
-        jarPaths.populateJars(mapOf(artifactCoordinate to downloadedFile.toPath()))
+        jarPaths.populateJars(mapOf(artifactCoordinate to downloadedFile))
       }
     }
     return jarPaths.getInspectorJar(artifactCoordinate)
   }
 
-  private fun ArtifactCoordinate.getTmpFile() = tmpDir.resolve(fileName).toFile()
+  private fun ArtifactCoordinate.getTmpFile() = tmpDir.resolve(fileName)
 
   private fun ArtifactCoordinate.toGMavenUrl() = URL(
     "http://maven.google.com/${groupId.replace('.', '/')}/${artifactId}/${version}/${fileName}")

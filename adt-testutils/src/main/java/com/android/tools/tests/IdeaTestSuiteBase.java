@@ -177,9 +177,8 @@ public class IdeaTestSuiteBase {
   private static void unzip(File offlineRepoZip, File outDir) {
     try {
       InstallerUtil.unzip(
-        offlineRepoZip,
-        outDir,
-        FileOpUtils.create(),
+        offlineRepoZip.toPath(),
+        outDir.toPath(),
         offlineRepoZip.length(),
         new FakeProgressIndicator());
     }

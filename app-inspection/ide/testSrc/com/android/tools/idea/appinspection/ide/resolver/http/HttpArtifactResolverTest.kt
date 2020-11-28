@@ -26,7 +26,6 @@ import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 import java.io.InputStream
 import java.net.URL
 import java.nio.file.Files
@@ -42,13 +41,13 @@ class HttpArtifactResolverTest {
   private val fakeDownloader = object : Downloader {
     override fun downloadAndStream(url: URL, indicator: ProgressIndicator): InputStream? = null
     override fun downloadFully(url: URL, indicator: ProgressIndicator): Path? = null
-    override fun downloadFully(url: URL, target: File, checksum: String?, indicator: ProgressIndicator) {}
-    override fun setDownloadIntermediatesLocation(intermediatesLocation: File) {}
+    override fun downloadFully(url: URL, target: Path, checksum: String?, indicator: ProgressIndicator) {}
+    override fun setDownloadIntermediatesLocation(intermediatesLocation: Path) {}
 
-    override fun downloadFullyWithCaching(url: URL, target: File, checksum: String?, indicator: ProgressIndicator) {
+    override fun downloadFullyWithCaching(url: URL, target: Path, checksum: String?, indicator: ProgressIndicator) {
       // Fake download by resolving the URL against the local testData directory.
       val srcFile = testData.resolve(url.path.substringAfter('/'))
-      Files.copy(srcFile, target.toPath())
+      Files.copy(srcFile, target)
     }
   }
 

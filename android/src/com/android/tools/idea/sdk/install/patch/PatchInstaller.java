@@ -23,7 +23,6 @@ import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.installer.AbstractInstaller;
 import com.android.repository.impl.meta.Archive;
-import com.android.repository.io.FileOp;
 import com.android.repository.util.InstallerUtil;
 import java.io.IOException;
 import java.net.URL;
@@ -37,15 +36,14 @@ import org.jetbrains.annotations.Nullable;
 class PatchInstaller extends AbstractInstaller implements PatchOperation {
 
   private static final String PATCH_JAR_FN = "patch.jar";
-  private LocalPackage myExisting;
+  private final LocalPackage myExisting;
   private Path myPatchFile;
 
   public PatchInstaller(@Nullable LocalPackage existing,
                         @NotNull RemotePackage p,
                         @NotNull Downloader downloader,
-                        @NotNull RepoManager mgr,
-                        @NotNull FileOp fop) {
-    super(p, mgr, downloader, fop);
+                        @NotNull RepoManager mgr) {
+    super(p, mgr, downloader);
     myExisting = existing;
   }
 
@@ -55,7 +53,7 @@ class PatchInstaller extends AbstractInstaller implements PatchOperation {
     if (myPatchFile == null) {
       myPatchFile = installTemp.resolve(PATCH_JAR_FN);
     }
-    return PatchInstallerUtil.installPatch(this, myPatchFile, mFop, progress);
+    return PatchInstallerUtil.installPatch(this, myPatchFile, progress);
   }
 
   @Override
@@ -139,7 +137,7 @@ class PatchInstaller extends AbstractInstaller implements PatchOperation {
     }
     try {
       Path patchFile = tempDir.resolve(PATCH_JAR_FN);
-      getDownloader().downloadFullyWithCaching(url, mFop.toFile(patchFile), patch.getChecksum(), progress);
+      getDownloader().downloadFullyWithCaching(url, patchFile, patch.getChecksum(), progress);
       return patchFile;
     }
     catch (IOException e) {
