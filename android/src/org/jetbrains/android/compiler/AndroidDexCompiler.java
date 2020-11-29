@@ -55,17 +55,17 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
 
   @Override
   @NotNull
-  public ProcessingItem[] getProcessingItems(CompileContext context) {
+  public ProcessingItem[] getProcessingItems(@NotNull CompileContext context) {
     return ApplicationManager.getApplication().runReadAction(new PrepareAction(context));
   }
 
   @Override
-  public ProcessingItem[] process(CompileContext context, ProcessingItem[] items) {
+  public ProcessingItem[] process(@NotNull CompileContext context, @NotNull ProcessingItem[] items) {
     if (!AndroidCompileUtil.isFullBuild(context)) {
       return ProcessingItem.EMPTY_ARRAY;
     }
 
-    if (items != null && items.length > 0) {
+    if (items.length > 0) {
       context.getProgressIndicator().setText("Generating " + AndroidBuildCommonUtils.CLASSES_FILE_NAME + "...");
       return new ProcessAction(context, items).compute();
     }
