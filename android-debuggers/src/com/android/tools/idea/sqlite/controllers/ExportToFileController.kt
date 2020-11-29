@@ -16,18 +16,31 @@
 package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.sqlite.OfflineModeManager.DownloadProgress
+import com.android.tools.idea.sqlite.OfflineModeManager.DownloadState.COMPLETED
+import com.android.tools.idea.sqlite.cli.SqliteCliArgs
+import com.android.tools.idea.sqlite.cli.SqliteCliClientImpl
+import com.android.tools.idea.sqlite.cli.SqliteCliProvider.Companion.SQLITE3_PATH_ENV
+import com.android.tools.idea.sqlite.cli.SqliteCliProvider.Companion.SQLITE3_PATH_PROPERTY
+import com.android.tools.idea.sqlite.cli.SqliteCliProviderImpl
+import com.android.tools.idea.sqlite.cli.SqliteCliResponse
 import com.android.tools.idea.sqlite.cli.SqliteQueries
+import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.Delimiter
 import com.android.tools.idea.sqlite.model.ExportFormat.CSV
+import com.android.tools.idea.sqlite.model.ExportFormat.DB
 import com.android.tools.idea.sqlite.model.ExportRequest
 import com.android.tools.idea.sqlite.model.ExportRequest.ExportDatabaseRequest
 import com.android.tools.idea.sqlite.model.ExportRequest.ExportQueryResultsRequest
 import com.android.tools.idea.sqlite.model.ExportRequest.ExportTableRequest
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId.FileSqliteDatabaseId
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId.LiveSqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.model.createSqliteStatement
+import com.android.tools.idea.sqlite.model.isInMemoryDatabase
 import com.android.tools.idea.sqlite.model.isQueryStatement
 import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.ui.exportToFile.ExportToFileDialogView
@@ -35,7 +48,12 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.exists
+import com.intellij.util.io.isDirectory
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.withContext
 import java.io.Closeable
@@ -47,11 +65,17 @@ import java.util.concurrent.Executor
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
+/**
+ * @param downloadDatabase allows to download a database from the device (works for file-based databases (i.e. not in-memory))
+ * @param deleteDatabase allows to delete files downloaded using [downloadDatabase]
+ */
 @UiThread
 class ExportToFileController(
   private val project: Project,
   private val view: ExportToFileDialogView,
   private val databaseRepository: DatabaseRepository,
+  private val downloadDatabase: (LiveSqliteDatabaseId, handleError: (String, Throwable?) -> Unit) -> Flow<DownloadProgress>,
+  private val deleteDatabase: (DatabaseFileData) -> Unit,
   taskExecutor: Executor,
   edtExecutor: Executor,
   private val notifyExportComplete: (ExportRequest) -> Unit,
@@ -88,6 +112,10 @@ class ExportToFileController(
       is ExportDatabaseRequest -> {
         when (params.format) {
           is CSV -> exportDatabaseToCsv(params.srcDatabase, params.format as CSV, params.dstPath)
+          is DB -> {
+            if (params.srcDatabase.isInMemoryDatabase()) throwNotSupportedParams(params)
+            else exportDatabaseToDb(params.srcDatabase, params.dstPath)
+          }
           else -> throwNotSupportedParams(params)
         }
       }
@@ -108,16 +136,13 @@ class ExportToFileController(
     }
   }
 
+  @Suppress("BlockingMethodInNonBlockingContext") // IO on taskDispatcher
   private suspend fun exportDatabaseToCsv(database: SqliteDatabaseId, format: CSV, dstPath: Path) = withContext(taskDispatcher) {
     // TODO(161081452): expose an option to let the user decide if to export views; defaulting now to not exporting views
     val tableNames: List<String> = databaseRepository.fetchSchema(database).tables.filter { !it.isView }.map { it.name }
-    val dstDir = dstPath.parent
-
-    val dstDirReady = dstDir.exists() || dstDir.toFile().mkdirs()
-    if (!dstDirReady) throw IllegalStateException("Unable to access or create the destination folder.")
 
     // TODO(161081452): skip temporary files (write directly to zip stream)
-    @Suppress("BlockingMethodInNonBlockingContext") // IO on taskDispatcher
+    val dstDir = findOrCreateDir(dstPath.parent)
     val tmpDir = Files.createTempDirectory(dstDir, ".tmp")
     Closeable { FileUtil.delete(tmpDir) }.use {
       val tmpFileToEntryName: List<TempExportedData> = tableNames.mapIndexed { ix, name ->
@@ -128,6 +153,69 @@ class ExportToFileController(
 
       createZipFile(dstPath, tmpFileToEntryName)
     }
+  }
+
+  @Suppress("BlockingMethodInNonBlockingContext")
+  /**
+   * Exports the whole database to a single sqlite3 db file (binary format). Downloads the database from the device if needed.
+   * @param database file-based database (i.e. not in-memory)
+   */
+  private suspend fun exportDatabaseToDb(database: SqliteDatabaseId, dstPath: Path) = withContext(taskDispatcher) {
+    findOrCreateDir(dstPath.parent)
+
+    // TODO(161081452): [P1] verify behaviour when switching modes (online->offline or offline->online) while export operation in progress
+    val cloneOperationResult = when (database) {
+      is FileSqliteDatabaseId -> {
+        cloneDatabase(database.databaseFileData.mainFile.toNioPath(), dstPath)
+      }
+      is LiveSqliteDatabaseId -> {
+        downloadDatabase(database).let { files ->
+          Closeable { files.forEach { deleteDatabase(it) } }.use {
+            files.let {
+              if (it.size != 1) throw IllegalStateException("Unexpected number of downloaded database files: ${it.size}")
+              cloneDatabase(it.single().mainFile.toNioPath(), dstPath)
+            }
+          }
+        }
+      }
+    }
+
+    if (cloneOperationResult.exitCode != 0) throw IllegalStateException("Issue while exporting database: ${cloneOperationResult.errOutput}")
+  }
+
+  private suspend fun cloneDatabase(srcPath: Path, dstPath: Path): SqliteCliResponse = withContext(taskDispatcher) {
+    SqliteCliClientImpl(requireSqlite3(), taskDispatcher).runSqliteCliCommand(
+      SqliteCliArgs
+        .builder()
+        .database(srcPath)
+        .clone(dstPath)
+        .build()
+    )
+  }
+
+  private fun requireSqlite3(): Path = SqliteCliProviderImpl(project).getSqliteCli() ?: throw IllegalStateException(
+    "Unable to find sqlite3 tool (part of Android SDK's platform-tools). " +
+    "As a workaround consider setting an environment variable $SQLITE3_PATH_ENV or " +
+    "a system property $SQLITE3_PATH_PROPERTY pointing to the file."
+  )
+
+  private suspend fun downloadDatabase(database: LiveSqliteDatabaseId) = withContext(taskDispatcher) {
+    val flow = downloadDatabase(database) { message, throwable ->
+      throw IllegalStateException("Issue while downloading database (${database.name}): $message", throwable)
+    }
+
+    flow
+      .filter { it.downloadState == COMPLETED }
+      .map { it.filesDownloaded }
+      .toList()
+      .flatten()
+  }
+
+  private suspend fun findOrCreateDir(dir: Path): Path = withContext(taskDispatcher) {
+    val dirExists = dir.exists() && dir.isDirectory()
+    val dirReady = dirExists || dir.toFile().mkdirs()
+    if (!dirReady) throw IllegalStateException("Unable to access or create directory: $dir.")
+    dir
   }
 
   private suspend fun exportTableToCsv(database: SqliteDatabaseId, srcTable: String, format: CSV, dstPath: Path) =
@@ -201,7 +289,8 @@ class ExportToFileController(
       }
 
   private fun throwNotSupportedParams(params: ExportRequest) {
-    throw IllegalArgumentException("Unsupported export format: $params")
+    // TODO(161081452): refine error handling
+    throw IllegalArgumentException("Unsupported export request: $params")
   }
 
   private data class TempExportedData(val tempFile: Path, val finalFileName: String)
