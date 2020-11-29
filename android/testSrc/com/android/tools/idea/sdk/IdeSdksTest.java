@@ -80,7 +80,7 @@ public class IdeSdksTest extends PlatformTestCase {
     myIdeInfo = IdeInfo.getInstance();
 
     AndroidTestCaseHelper.removeExistingAndroidSdks();
-    myAndroidSdkPath = getSdk();
+    myAndroidSdkPath = getSdk().toFile();
 
     AndroidFacet facet = createAndAddAndroidFacet(myModule);
     facet.getProperties().ALLOW_USER_CONFIGURATION = false;

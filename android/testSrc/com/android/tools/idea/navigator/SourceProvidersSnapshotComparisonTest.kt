@@ -22,7 +22,6 @@ import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.dumpSourceProviders
-import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.PathUtil
@@ -87,7 +86,7 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
 
     AndroidGradleTests.prepareProjectForImportCore(srcPath, projectPath) { projectRoot ->
       // Override settings just for tests (e.g. sdk.dir)
-      AndroidGradleTests.updateLocalProperties(projectRoot, TestUtils.getSdk())
+      AndroidGradleTests.updateLocalProperties(projectRoot, TestUtils.getSdk().toFile())
     }
 
     val project = PlatformTestUtil.loadAndOpenProject(projectPath.toPath())

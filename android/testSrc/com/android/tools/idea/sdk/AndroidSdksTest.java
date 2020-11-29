@@ -37,7 +37,6 @@ import com.android.sdklib.repository.generated.common.v1.LibraryType;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.testing.Sdks;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
@@ -67,7 +66,7 @@ public class AndroidSdksTest extends PlatformTestCase {
     initMocks(this);
     when(myIdeInfo.isAndroidStudio()).thenReturn(true);
 
-    mySdkPath = getSdk();
+    mySdkPath = getSdk().toFile();
 
     Sdks.allowAccessToSdk(getTestRootDisposable());
 

@@ -23,9 +23,8 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.testFramework.PlatformTestCase;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Tests for {@link SdkSync}.
@@ -42,7 +41,7 @@ public class SdkSyncTest extends PlatformTestCase {
     super.setUp();
     AndroidTestCaseHelper.removeExistingAndroidSdks();
     myLocalProperties = new LocalProperties(myProject);
-    myAndroidSdkPath = TestUtils.getSdk();
+    myAndroidSdkPath = TestUtils.getSdk().toFile();
     myIdeSdks = IdeSdks.getInstance();
     new IdeComponents(getProject()).replaceApplicationService(IdeSdks.class, myIdeSdks);
     mySdkSync = new SdkSync();

@@ -1,5 +1,45 @@
 package com.android.tools.idea.gradle.adtimport;
 
+import static com.android.SdkConstants.ANDROID_LIBRARY_REFERENCE_FORMAT;
+import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.CURRENT_BUILD_TOOLS_VERSION;
+import static com.android.SdkConstants.DOT_GRADLE;
+import static com.android.SdkConstants.DOT_JAVA;
+import static com.android.SdkConstants.DOT_PNG;
+import static com.android.SdkConstants.DOT_XML;
+import static com.android.SdkConstants.FD_GRADLE;
+import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_WIN;
+import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
+import static com.android.SdkConstants.FN_PROJECT_PROPERTIES;
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.testutils.TestUtils.getSdk;
+import static com.android.tools.idea.gradle.adtimport.GradleImport.ANDROID_GRADLE_PLUGIN;
+import static com.android.tools.idea.gradle.adtimport.GradleImport.CURRENT_COMPILE_VERSION;
+import static com.android.tools.idea.gradle.adtimport.GradleImport.MAVEN_REPOSITORY;
+import static com.android.tools.idea.gradle.adtimport.GradleImport.NL;
+import static com.android.tools.idea.gradle.adtimport.GradleImport.isAdtProjectDir;
+import static com.android.tools.idea.gradle.adtimport.GradleImport.isEclipseWorkspaceDir;
+import static com.android.tools.idea.gradle.adtimport.GradleImport.isIgnoredFile;
+import static com.android.tools.idea.gradle.adtimport.GradleImport.isTextFile;
+import static com.android.tools.idea.gradle.adtimport.ImportSummary.MSG_FOLDER_STRUCTURE;
+import static com.android.tools.idea.gradle.adtimport.ImportSummary.MSG_FOOTER;
+import static com.android.tools.idea.gradle.adtimport.ImportSummary.MSG_GUESSED_VERSIONS;
+import static com.android.tools.idea.gradle.adtimport.ImportSummary.MSG_HEADER;
+import static com.android.tools.idea.gradle.adtimport.ImportSummary.MSG_MANIFEST;
+import static com.android.tools.idea.gradle.adtimport.ImportSummary.MSG_REPLACED_JARS;
+import static com.android.tools.idea.gradle.adtimport.ImportSummary.MSG_REPLACED_LIBS;
+import static com.android.tools.idea.gradle.adtimport.ImportSummary.MSG_RISKY_PROJECT_LOCATION;
+import static com.android.tools.idea.gradle.adtimport.ImportSummary.MSG_UNHANDLED;
+import static com.android.tools.idea.gradle.adtimport.ImportSummary.MSG_USER_HOME_PROGUARD;
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.google.common.base.Charsets.UTF_8;
+import static com.google.common.truth.Truth.assertAbout;
+import static java.io.File.separator;
+import static java.io.File.separatorChar;
+import static org.junit.Assert.assertNotEquals;
+
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.prefs.AndroidLocation;
@@ -22,29 +62,23 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.util.SystemInfo;
-import org.jetbrains.android.AndroidTestCase;
-
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static com.android.SdkConstants.*;
-import static com.android.testutils.TestUtils.getSdk;
-import static com.android.tools.idea.gradle.adtimport.GradleImport.*;
-import static com.android.tools.idea.gradle.adtimport.ImportSummary.*;
-import static com.android.tools.idea.testing.FileSubject.file;
-import static com.google.common.base.Charsets.UTF_8;
-import static com.google.common.truth.Truth.assertAbout;
-import static java.io.File.separator;
-import static java.io.File.separatorChar;
-import static org.junit.Assert.assertNotEquals;
+import javax.imageio.ImageIO;
+import org.jetbrains.android.AndroidTestCase;
 
 /**
  * Unit tests for the Gradle importer.
@@ -482,7 +516,7 @@ public class GradleImportTest extends AndroidTestCase {
 
   @SuppressWarnings("ResultOfMethodCallIgnored")
   public void testImportAndroidSample() throws Exception {
-    File samples = new File(getSdk().getPath(), "samples");
+    File samples = getSdk().resolve("samples").toFile();
     if (!samples.exists()) {
       return;
     }
@@ -3278,7 +3312,7 @@ public class GradleImportTest extends AndroidTestCase {
       gradleProjectDir = destDir;
     }
 
-    importer.setSdkLocation(getSdk());
+    importer.setSdkLocation(getSdk().toFile());
 
     if (customizer != null) {
       customizer.customize(importer);
@@ -3299,7 +3333,7 @@ public class GradleImportTest extends AndroidTestCase {
     summary = summary.replace("\r", "");
     summary = stripOutRiskyPathMessage(summary, rootDir);
 
-    summary = summary.replace(getSdk().getPath(), "$ANDROID_SDK_ROOT");
+    summary = summary.replace(getSdk().toString(), "$ANDROID_SDK_ROOT");
     summary = summary.replace(separatorChar, '/');
     summary = summary.replace(adtProjectDir.getPath().replace(separatorChar, '/'), "$ROOT");
     File parentFile = adtProjectDir.getParentFile();
@@ -3784,7 +3818,7 @@ public class GradleImportTest extends AndroidTestCase {
   static {
     String candidate = CURRENT_BUILD_TOOLS_VERSION;
     FakeProgressIndicator progress = new FakeProgressIndicator();
-    AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(getSdk().toPath());
+    AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(getSdk());
     BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(progress, false);
     if (buildTool != null) {
       candidate = buildTool.getRevision().toString();

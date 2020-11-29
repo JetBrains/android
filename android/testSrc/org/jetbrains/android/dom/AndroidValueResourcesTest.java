@@ -517,10 +517,10 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
   // Fails when sandboxed, as the fixture tries to write to themes_holo.xml in the SDK
   public void ignore_testNavigationInPlatformXml1_NavigateFromParentAttr() throws Exception {
     VirtualFile themes_holo =
-      LocalFileSystem.getInstance().findFileByPath(TestUtils.getPlatformFile("data/res/values/themes_holo.xml").toString());
+      LocalFileSystem.getInstance().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/themes_holo.xml").toString());
     assertNotNull(themes_holo);
     VirtualFile themes =
-      LocalFileSystem.getInstance().findFileByPath(TestUtils.getPlatformFile("data/res/values/themes.xml").toString());
+      LocalFileSystem.getInstance().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/themes.xml").toString());
     assertNotNull(themes);
 
     // In themes_holo.xml: point to value of "Theme" in the parent attribute on line:
@@ -546,10 +546,10 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
   // Fails when sandboxed, as the fixture tries to write to themes_holo.xml in the SDK
   public void ignore_testNavigationInPlatformXml2_NavigateFromNameAttr() throws Exception {
     VirtualFile themes_holo =
-      LocalFileSystem.getInstance().findFileByPath(TestUtils.getPlatformFile("data/res/values/themes_holo.xml").toString());
+      LocalFileSystem.getInstance().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/themes_holo.xml").toString());
     assertNotNull(themes_holo);
     VirtualFile themes =
-      LocalFileSystem.getInstance().findFileByPath(TestUtils.getPlatformFile("data/res/values/themes.xml").toString());
+      LocalFileSystem.getInstance().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/themes.xml").toString());
     assertNotNull(themes);
 
     // In themes_holo.xml: point to value of "Theme" in the name attribute on line:
@@ -575,10 +575,10 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
   // Fails when sandboxed, as the fixture tries to write to themes_holo.xml in the SDK
   public void ignore_testNavigationInPlatformXml3() throws Exception {
     VirtualFile themes_holo =
-      LocalFileSystem.getInstance().findFileByPath(TestUtils.getPlatformFile("data/res/values/themes_holo.xml").toString());
+      LocalFileSystem.getInstance().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/themes_holo.xml").toString());
     assertNotNull(themes_holo);
     VirtualFile colors_holo =
-      LocalFileSystem.getInstance().findFileByPath(TestUtils.getPlatformFile("data/res/values/colors_holo.xml").toString());
+      LocalFileSystem.getInstance().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/colors_holo.xml").toString());
     assertNotNull(colors_holo);
 
     // In themes_holo.xml: point to value of "bright_foreground_holo_light" on line:

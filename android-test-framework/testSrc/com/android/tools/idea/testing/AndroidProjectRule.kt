@@ -217,7 +217,7 @@ class AndroidProjectRule private constructor(
     if (projectModuleBuilders != null) {
       if (IdeSdks.getInstance().androidSdkPath != TestUtils.getSdk()) {
         println("Tests: Replacing Android SDK from ${IdeSdks.getInstance().androidSdkPath} to ${TestUtils.getSdk()}")
-        AndroidGradleTests.setUpSdks(fixture, TestUtils.getSdk())
+        AndroidGradleTests.setUpSdks(fixture, TestUtils.getSdk().toFile())
       }
       invokeAndWaitIfNeeded {
         // Similarly to AndroidGradleTestCase, sync (fake sync here) requires SDKs to be set up and cleaned after the test to behave

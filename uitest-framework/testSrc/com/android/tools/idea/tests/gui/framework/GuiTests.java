@@ -169,7 +169,7 @@ public final class GuiTests {
   }
 
   public static void setUpSdks() {
-    File androidSdkPath = TestUtils.getSdk();
+    File androidSdkPath = TestUtils.getSdk().toFile();
     IdeSdks ideSdks = IdeSdks.getInstance();
     File currentAndroidSdkPath = ideSdks.getAndroidSdkPath();
 

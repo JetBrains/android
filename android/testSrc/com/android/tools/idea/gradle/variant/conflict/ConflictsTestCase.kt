@@ -39,6 +39,6 @@ abstract class ConflictsTestCase : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
-    AndroidGradleTests.setUpSdks(myFixture, TestUtils.getSdk())
+    AndroidGradleTests.setUpSdks(myFixture, TestUtils.getSdk().toFile())
   }
 }

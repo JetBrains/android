@@ -24,7 +24,7 @@ class AndroidSdkTest {
   @Test
   fun `get required SDK packages doesn't return emulator on Chrome OS`() {
     val sdk = AndroidSdk(true).apply {
-      updateState(AndroidSdkHandler.getInstance(TestUtils.getSdk().toPath()))
+      updateState(AndroidSdkHandler.getInstance(TestUtils.getSdk()))
     }
     val packages = sdk.getRequiredSdkPackages(true)
     assertThat(packages).containsExactly("platform-tools")

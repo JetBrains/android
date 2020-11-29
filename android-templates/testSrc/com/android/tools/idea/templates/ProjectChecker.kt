@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker.Request
 import com.android.tools.idea.npw.model.render
-import com.android.tools.idea.npw.model.titleToTemplateRenderer
 import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
 import com.android.tools.idea.npw.module.recipes.androidProject.androidProjectRecipe
 import com.android.tools.idea.npw.module.recipes.automotiveModule.generateAutomotiveModule
@@ -51,7 +50,6 @@ import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.TemplateData
 import com.android.tools.idea.wizard.template.Thumb
-import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.android.tools.idea.wizard.template.WizardParameterData
 import com.google.common.base.Charsets.UTF_8
 import com.google.common.io.Files
@@ -102,7 +100,7 @@ data class ProjectChecker(
   private fun createProject(fixture: JavaCodeInsightTestFixture, moduleName: String) {
     val project = fixture.project!!
     IdeComponents(project).replaceProjectService(PostProjectBuildTasksExecutor::class.java, mock(PostProjectBuildTasksExecutor::class.java))
-    AndroidGradleTests.setUpSdks(fixture, getSdk())
+    AndroidGradleTests.setUpSdks(fixture, getSdk().toFile())
     val projectRoot = project.guessProjectDir()!!.toIoFile()
     println("Checking project $moduleName in $projectRoot")
     project.create()
