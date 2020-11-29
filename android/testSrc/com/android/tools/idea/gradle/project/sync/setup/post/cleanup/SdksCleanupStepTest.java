@@ -63,7 +63,7 @@ public class SdksCleanupStepTest extends PlatformTestCase {
   public void testUpdateSdkWithMissingDocumentation() {
     createSdk();
     try {
-      IAndroidTarget target = findLatestAndroidTarget(getSdk());
+      IAndroidTarget target = findLatestAndroidTarget(getSdk().toFile());
       Sdk spy = spy(mySdk);
       File mockJdkHome = new File(getProject().getBasePath(), "jdkHome");
       when(spy.getHomePath()).thenReturn(mockJdkHome.getPath());
@@ -79,7 +79,7 @@ public class SdksCleanupStepTest extends PlatformTestCase {
   public void testUpdateSdkWithSourcesInstalled() {
     createSdk();
     try {
-      IAndroidTarget target = findLatestAndroidTarget(getSdk());
+      IAndroidTarget target = findLatestAndroidTarget(getSdk().toFile());
       Sdk spy = spy(mySdk);
       File mockJdkHome = new File(getProject().getBasePath(), "jdkHome");
       when(spy.getHomePath()).thenReturn(mockJdkHome.getPath());
@@ -197,7 +197,7 @@ public class SdksCleanupStepTest extends PlatformTestCase {
   }
 
   private void createSdk() {
-    File sdkPath = getSdk();
+    File sdkPath = getSdk().toFile();
     Sdks.allowAccessToSdk(getTestRootDisposable());
     IAndroidTarget target = findLatestAndroidTarget(sdkPath);
 

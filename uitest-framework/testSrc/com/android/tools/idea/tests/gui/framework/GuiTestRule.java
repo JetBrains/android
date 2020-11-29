@@ -443,7 +443,7 @@ public class GuiTestRule implements TestRule {
     LocalProperties localProperties = new LocalProperties(projectPath);
     localProperties.setAndroidSdkPath(IdeSdks.getInstance().getAndroidSdkPath());
     if (mySetNdkPath) {
-      localProperties.setAndroidNdkPath(TestUtils.getNdk());
+      localProperties.setAndroidNdkPath(TestUtils.getNdk().toFile());
     }
     localProperties.save();
   }

@@ -21,11 +21,7 @@ import com.android.testutils.TestUtils;
 import com.google.common.truth.Truth;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.Uninterruptibles;
-import com.intellij.openapi.util.SystemInfo;
-import com.intellij.testFramework.LightPlatformCodeInsightTestCase;
 import com.intellij.testFramework.LightPlatformTestCase;
-import com.intellij.testFramework.PlatformTestCase;
-
 import java.nio.file.Path;
 import java.util.concurrent.ExecutionException;
 
@@ -48,7 +44,7 @@ public class AdbServiceTest extends LightPlatformTestCase {
    */
   public void testBasics() throws ExecutionException {
     // Prepare
-    Path adb = TestUtils.getSdk().toPath().resolve("platform-tools").resolve(SdkConstants.FN_ADB);
+    Path adb = TestUtils.getSdk().resolve("platform-tools").resolve(SdkConstants.FN_ADB);
 
     // Act
     ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(adb.toFile());
@@ -60,7 +56,7 @@ public class AdbServiceTest extends LightPlatformTestCase {
 
   public void testInvalidAdbFile() {
     // Prepare
-    Path invalidAdbPath = TestUtils.getSdk().toPath().resolve("platform-tools").resolve(SdkConstants.FN_ADB).resolve("not-a-file");
+    Path invalidAdbPath = TestUtils.getSdk().resolve("platform-tools").resolve(SdkConstants.FN_ADB).resolve("not-a-file");
 
     // Act
     ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(invalidAdbPath.toFile());
@@ -80,7 +76,7 @@ public class AdbServiceTest extends LightPlatformTestCase {
    */
   public void testReinit() throws ExecutionException {
     // Prepare
-    Path adb = TestUtils.getSdk().toPath().resolve("platform-tools").resolve(SdkConstants.FN_ADB);
+    Path adb = TestUtils.getSdk().resolve("platform-tools").resolve(SdkConstants.FN_ADB);
 
     // Act
     ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(adb.toFile());

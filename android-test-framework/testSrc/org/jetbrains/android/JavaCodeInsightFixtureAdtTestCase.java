@@ -32,6 +32,6 @@ public abstract class JavaCodeInsightFixtureAdtTestCase extends JavaCodeInsightF
   }
 
   public static void addJdk(JavaModuleFixtureBuilder<?> builder) {
-    builder.addJdk(TestUtils.getMockJdk().getAbsolutePath());
+    builder.addJdk(TestUtils.getMockJdk().toString());
   }
 }

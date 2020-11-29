@@ -5,12 +5,12 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.IdeaTestUtil;
 import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import com.intellij.pom.java.LanguageLevel;
 
 /**
  * A specialized version of LightJavaCodeInsightFixtureTestCase that sets up
@@ -30,7 +30,7 @@ public abstract class LightJavaCodeInsightFixtureAdtTestCase extends LightJavaCo
     return new ProjectDescriptor(LanguageLevel.HIGHEST) {
       @Override
       public Sdk getSdk() {
-        String path = TestUtils.getMockJdk().getAbsolutePath();
+        String path = TestUtils.getMockJdk().toString();
         return IdeaTestUtil.createMockJdk("java 1.7", path);
       }
     };

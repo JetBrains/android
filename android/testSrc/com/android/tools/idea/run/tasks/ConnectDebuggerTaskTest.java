@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.run.tasks;
 
-import static com.android.utils.FileUtils.join;
-
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
@@ -36,7 +34,6 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.command.impl.DummyProject;
 import com.intellij.openapi.project.Project;
-import java.io.File;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
@@ -86,7 +83,7 @@ public class ConnectDebuggerTaskTest extends AndroidTestCase {
     AndroidDebugBridge.enableFakeAdbServerMode(myServer.getPort());
     AndroidDebugBridge.initIfNeeded(true);
     AndroidDebugBridge bridge =
-      AndroidDebugBridge.createBridge(new File(TestUtils.getSdk(), join("platform-tools", "adb")).getCanonicalPath(), false);
+        AndroidDebugBridge.createBridge(TestUtils.getSdk().resolve("platform-tools/adb").toRealPath().toString(), false);
     assertNotNull("Failed to create debug bridge", bridge);
 
     // Connect a fake test device

@@ -61,6 +61,6 @@ internal fun initProjectSystemService(project: Project, disposable: Disposable, 
 /** Sets `adb` location in the project (needed when using `adb` in e.g. [com.intellij.testFramework.LightPlatformTestCase]) */
 internal fun initAdbFileProvider(project: Project) {
   AdbFileProvider {
-    TestUtils.getSdk().resolve("platform-tools").resolve(SdkConstants.FN_ADB)
+    TestUtils.getSdk().resolve("platform-tools").resolve(SdkConstants.FN_ADB).toFile()
   }.storeInProject(project)
 }

@@ -93,7 +93,7 @@ public class AndroidSdkSourcesBrowsingTest extends AndroidTestCase {
       myFixture.getEditor().getCaretModel().getOffset());
     VirtualFile activityVFile = element.getNavigationElement().getContainingFile().getVirtualFile();
 
-    String expectedActivityFilePath = TestUtils.getPlatformFile("android.jar") + "!/android/app/Activity.class";
+    String expectedActivityFilePath = TestUtils.resolvePlatformPath("android.jar") + "!/android/app/Activity.class";
     assertTrue("Expected: " + expectedActivityFilePath + "\nActual: " + activityVFile.getPath(),
                FileUtil.pathsEqual(expectedActivityFilePath, activityVFile.getPath()));
   }
