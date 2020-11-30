@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.animation
 
 import androidx.compose.animation.tooling.ComposeAnimatedProperty
 import androidx.compose.animation.tooling.ComposeAnimation
+import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.common.surface.DesignSurface
@@ -202,9 +203,14 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
 
     val animationTab = AnimationTab(animation)
     animationTabs[animation] = animationTab
-    val tabName = animation.label ?: message("animation.inspector.tab.default.title")
+    val tabName = animation.label
+                  ?: when (animation.type) {
+                    ComposeAnimationType.ANIMATED_VALUE -> message("animation.inspector.tab.animated.value.default.title")
+                    ComposeAnimationType.TRANSITION_ANIMATION -> message("animation.inspector.tab.transition.animation.default.title")
+                    else -> message("animation.inspector.tab.default.title")
+                  }
     tabNamesCount[tabName] = tabNamesCount.getOrDefault(tabName, 0) + 1
-    tabbedPane.insertTab("${tabName} #${tabNamesCount[tabName]}", null, animationTab, null, tabbedPane.tabCount)
+    tabbedPane.insertTab("$tabName #${tabNamesCount[tabName]}", null, animationTab, null, tabbedPane.tabCount)
   }
 
   /**
@@ -249,31 +255,27 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     /**
      * Listens to [startStateComboBox] changes.
      */
-    private val startStateChangeListener = object : ActionListener {
-      override fun actionPerformed(e: ActionEvent?) {
-        if (isSwappingStates) {
-          // The is no need to trigger the callback, since we're going to make a follow up call to update the end state.
-          // Also, we only log start state changes if not swapping states, which has its own tracking. Therefore, we can early return here.
-          return
-        }
-        if (!isUpdatingAnimationStates) {
-          logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_START_STATE)
-        }
-        updateSeekableAnimation()
+    private val startStateChangeListener = ActionListener {
+      if (isSwappingStates) {
+        // The is no need to trigger the callback, since we're going to make a follow up call to update the end state.
+        // Also, we only log start state changes if not swapping states, which has its own tracking. Therefore, we can early return here.
+        return@ActionListener
       }
+      if (!isUpdatingAnimationStates) {
+        logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_START_STATE)
+      }
+      updateSeekableAnimation()
     }
 
     /**
      * Listens to [endStateComboBox] changes.
      */
-    private val endStateChangeListener = object : ActionListener {
-      override fun actionPerformed(e: ActionEvent?) {
-        if (!isUpdatingAnimationStates && !isSwappingStates) {
-          // Only log end state changes if not swapping states, which has its own tracking.
-          logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_END_STATE)
-        }
-        updateSeekableAnimation()
+    private val endStateChangeListener = ActionListener {
+      if (!isUpdatingAnimationStates && !isSwappingStates) {
+        // Only log end state changes if not swapping states, which has its own tracking.
+        logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_END_STATE)
       }
+      updateSeekableAnimation()
     }
 
     private val startStateComboBox = ComboBox(DefaultComboBoxModel(arrayOf<Any>()))
@@ -307,11 +309,10 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     }
 
     init {
-      startStateComboBox.addActionListener(startStateChangeListener)
-      endStateComboBox.addActionListener(endStateChangeListener)
-
       add(createPlaybackControllers(), TabularLayout.Constraint(0, 0))
-      add(createAnimationStateComboboxes(), TabularLayout.Constraint(0, 2))
+      if (animation.type == ComposeAnimationType.TRANSITION_ANIMATION) {
+        add(createAnimationStateComboboxes(), TabularLayout.Constraint(0, 2))
+      }
       val splitterWrapper = JPanel(BorderLayout()).apply {
         border = MatteBorder(1, 0, 0, 0, JBColor.border()) // Top border separating the splitter and the playback toolbar
       }
@@ -358,7 +359,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         // so we need to add as many loops to the timeline as necessary to display all the iterations.
         ceil(maxDuration / maxDurationPerIteration.toDouble()).toLong()
       }
-      // Othewise, the max duration fits the window, so we just need one loop that keeps repeating when loop mode is active.
+      // Otherwise, the max duration fits the window, so we just need one loop that keeps repeating when loop mode is active.
       else 1
     }
 
@@ -383,6 +384,9 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
      * Creates a couple of comboboxes representing the start and end states of the animation.
      */
     private fun createAnimationStateComboboxes(): JComponent {
+      startStateComboBox.addActionListener(startStateChangeListener)
+      endStateComboBox.addActionListener(endStateChangeListener)
+
       val states = arrayOf(message("animation.inspector.states.combobox.placeholder.message"))
       val statesToolbar = JPanel(TabularLayout("Fit,Fit,Fit,Fit"))
       startStateComboBox.model = DefaultComboBoxModel(states)
