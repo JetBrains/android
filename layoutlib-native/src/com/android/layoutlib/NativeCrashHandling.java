@@ -15,10 +15,9 @@
  */
 package com.android.layoutlib;
 
-import com.intellij.ide.plugins.PluginManagerCore;
+import com.android.layoutlib.bridge.Bridge;
 import com.intellij.internal.statistic.analytics.StudioCrashDetails;
 import com.intellij.internal.statistic.analytics.StudioCrashDetection;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.BaseComponent;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -27,13 +26,12 @@ public class NativeCrashHandling implements BaseComponent {
 
   @Override
   public void initComponent() {
-    // If the previous run of Studio ended on a JVM crash, disable layoutlib native.
+    // If the previous run of Studio ended on a JVM crash caused by Layoutlib, pass the information to the Layoutlib Bridge
     List<StudioCrashDetails> crashes = StudioCrashDetection.reapCrashDescriptions();
     for (StudioCrashDetails crash : crashes) {
       if (isCrashCausedByLayoutlib(crash)) {
-        PluginManagerCore.disablePlugin("com.android.layoutlib.native");
-        PluginManagerCore.enablePlugin("com.android.layoutlib.standard");
-        ApplicationManager.getApplication().restart();
+        Bridge.setNativeCrash(true);
+        return;
       }
     }
   }
