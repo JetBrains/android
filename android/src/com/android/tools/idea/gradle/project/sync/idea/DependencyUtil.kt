@@ -23,15 +23,17 @@ import com.android.SdkConstants.FN_ANNOTATIONS_ZIP
 import com.android.SdkConstants.FN_FRAMEWORK_LIBRARY
 import com.android.builder.model.level2.Library
 import com.android.ide.common.gradle.model.IdeBaseArtifact
-import com.android.ide.common.gradle.model.IdeVariant
 import com.android.ide.common.gradle.model.IdeLibrary
+import com.android.ide.common.gradle.model.IdeVariant
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.getModuleName
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.io.FilePaths
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.DataNode
+import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.LibraryData
 import com.intellij.openapi.externalSystem.model.project.LibraryDependencyData
@@ -54,6 +56,7 @@ import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.model.data.CompositeBuildData
+import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.linkProjectLibrary
 import org.jetbrains.plugins.gradle.settings.GradleExecutionWorkspace
@@ -108,7 +111,7 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
   val compositeData = ExternalSystemApiUtil.find(projectDataNode, CompositeBuildData.KEY)?.data
 
   // These maps keep track of all the dependencies that we have already seen. This allows us to skip over processing
-  // dependencies multiple times which more specific scopes.
+  // dependencies multiple times with more specific scopes.
   val processedLibraries = mutableMapOf<String, LibraryDependencyData>()
   val processedModuleDependencies = mutableMapOf<String, ModuleDependencyData>()
 
@@ -279,7 +282,7 @@ private fun computeModuleIdForLibraryTarget(
 
 private fun setupAndroidDependenciesForArtifact(
   artifact: IdeBaseArtifact,
-  moduleDataNode: DataNode<ModuleData>,
+  moduleDataNode: DataNode<out ModuleData>,
   shouldExportDependencies: Boolean,
   scope: DependencyScope,
   projectDataNode: DataNode<ProjectData>,
@@ -431,3 +434,87 @@ private fun getExtraSdkLibraries(
     }
   }
 }
+
+//****************************************************************************************************************************
+/* Below are methods related to the processing of dependencies for Android modules when module per source set is being used */
+//****************************************************************************************************************************
+
+fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
+  idToModuleData: (String) -> ModuleData?,
+  additionalArtifactsMapper: (ArtifactId, ArtifactPath) -> AdditionalArtifactsPaths,
+  androidModel: AndroidModuleModel,
+  variant: IdeVariant
+) {
+  // The DataNode tree should have a ProjectData node as a parent of the ModuleData node. We don't throw an
+  // exception here as other intellij plugins can manipulate the tree, we do not want to break an import
+  // completely due to a badly behaved plugin.
+  @Suppress("UNCHECKED_CAST") val projectDataNode = parent as? DataNode<ProjectData>
+  if (projectDataNode == null) {
+    RESOLVER_LOG.error(
+      "Couldn't find project data for module ${data.moduleName}, incorrect tree structure."
+    )
+    return
+  }
+
+  // We need the composite information to compute the module IDs we compute here to only traverse the data
+  // node tree once.
+  val compositeData = ExternalSystemApiUtil.find(projectDataNode, CompositeBuildData.KEY)?.data
+
+  fun populateDependenciesFromArtifact(
+    gradleSourceSetData: DataNode<GradleSourceSetData>,
+    ideBaseArtifact: IdeBaseArtifact,
+    dependencyScope: DependencyScope
+  ) {
+    val processedLibraries = mutableMapOf<String, LibraryDependencyData>()
+    val processedModuleDependencies = mutableMapOf<String, ModuleDependencyData>()
+
+    // Setup the dependencies for the main artifact, the main dependencies are done first since there scope is more permissive.
+    // This allows us to just skip the dependency if it is already present.
+    setupAndroidDependenciesForArtifact(
+      ideBaseArtifact,
+      gradleSourceSetData,
+      androidModel.features.shouldExportDependencies(),
+      dependencyScope,
+      projectDataNode,
+      compositeData,
+      idToModuleData,
+      additionalArtifactsMapper,
+      processedLibraries,
+      processedModuleDependencies
+    )
+
+    var orderIndex = 0
+    processedModuleDependencies.forEach { (_, moduleDependencyData) ->
+      moduleDependencyData.order = orderIndex++
+      gradleSourceSetData.createChild(ProjectKeys.MODULE_DEPENDENCY, moduleDependencyData)
+    }
+    processedLibraries.forEach { (_, libraryDependencyData) ->
+      libraryDependencyData.order =  orderIndex++
+      gradleSourceSetData.createChild(ProjectKeys.LIBRARY_DEPENDENCY, libraryDependencyData)
+    }
+  }
+
+  populateDependenciesFromArtifact(findSourceSetDataForArtifact(variant.mainArtifact), variant.mainArtifact,
+                                   DependencyScope.COMPILE)
+  variant.unitTestArtifact?.also {
+    populateDependenciesFromArtifact(findSourceSetDataForArtifact(it), it, DependencyScope.TEST);
+  }
+  variant.androidTestArtifact?.also {
+    populateDependenciesFromArtifact(findSourceSetDataForArtifact(it), it, DependencyScope.TEST);
+  }
+
+  // Workaround for now, we set each root module to export a dependencies to its main artifacts module.
+  val mainModuleNode = findSourceSetDataForArtifact(variant.mainArtifact)
+  val moduleDependencyData = ModuleDependencyData(this.data, mainModuleNode.data)
+  moduleDependencyData.scope = DependencyScope.COMPILE
+  moduleDependencyData.isExported = true
+  moduleDependencyData.order = 0
+  createChild(ProjectKeys.MODULE_DEPENDENCY, moduleDependencyData)
+}
+
+fun DataNode<ModuleData>.findSourceSetDataForArtifact(ideBaseArtifact: IdeBaseArtifact) : DataNode<GradleSourceSetData> {
+  return ExternalSystemApiUtil.find(this, GradleSourceSetData.KEY) {
+    it.data.externalName.substringAfterLast(":") == getModuleName(ideBaseArtifact)
+  } ?: throw ExternalSystemException("Missing GradleSourceSetData data for artifact!")
+}
+
