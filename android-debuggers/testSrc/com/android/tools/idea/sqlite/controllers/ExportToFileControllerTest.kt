@@ -169,7 +169,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
 
     values.filter { (c1, _) -> c1 > "5" }.let { expectedValues ->
       assertThat(expectedValues).isNotEmpty()
-      testExportToCsv(exportRequest, expectedValues)
+      testExport(exportRequest, expectedValues.toCsvOutputLines(exportRequest.delimiter))
     }
   }
 
@@ -184,19 +184,19 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     val dstPath = tempDirTestFixture.toNioPath().resolve(outputFileName)
     val exportRequest = ExportTableRequest(database, table1, CSV(TAB), dstPath)
 
-    testExportToCsv(exportRequest, expectedValues = values)
+    testExport(exportRequest, expectedValues = values.toCsvOutputLines(exportRequest.delimiter))
   }
 
-  /** Overload suitable for single file CSV output (e.g. exporting a query or a single table). */
-  private fun testExportToCsv(exportRequest: ExportRequest, expectedValues: TwoColumnTable) =
-    testExportToCsv(
+  /** Overload suitable for single file output (e.g. exporting a query or a single table). */
+  private fun testExport(exportRequest: ExportRequest, expectedValues: List<String>) =
+    testExport(
       exportRequest,
-      expectedOutput = listOf(ExpectedOutputFile(exportRequest.dstPath, expectedValues)),
-      decompress = { file -> listOf(file) } // no-op
+      decompress = { file -> listOf(file) },
+      expectedOutput = listOf(ExpectedOutputFile(exportRequest.dstPath, expectedValues)) // no-op
     )
 
-  /** Overload suitable for a general case (provide a [decompress] function if required to get the underlying CSV files). */
-  private fun testExportToCsv(exportRequest: ExportRequest, expectedOutput: List<ExpectedOutputFile>, decompress: (Path) -> List<Path>) {
+  /** Overload suitable for a general case (provide a [decompress] function if required to get the underlying output files). */
+  private fun testExport(exportRequest: ExportRequest, decompress: (Path) -> List<Path>, expectedOutput: List<ExpectedOutputFile>) {
     // given: an export request
     // when: an export request is submitted
     submitExportRequest(exportRequest)
@@ -209,7 +209,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     assertThat(actualFiles).isEqualTo(expectedOutput.map { it.path }.sorted())
     actualFiles.zip(expectedOutput.sortedBy { it.path }) { actualPath, (expectedPath, expectedValues) ->
       assertThat(actualPath.toFile().canonicalPath).isEqualTo(expectedPath.toFile().canonicalPath)
-      assertThat(actualPath.toLines()).isEqualTo(expectedValues.toCsvOutputLines(exportRequest.delimiter))
+      assertThat(actualPath.toLines()).isEqualTo(expectedValues)
     }
   }
 
@@ -227,9 +227,11 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
 
     val tmpDir = tempDirTestFixture.findOrCreateDir("unzipped")
     val decompress: (Path) -> List<Path> = { it.unzipTo(tmpDir.toNioPath()) }
-    val expectedOutput = tableValuePairs.map { (table, values) -> ExpectedOutputFile(tmpDir.toNioPath().resolve("$table.csv"), values) }
+    val expectedOutput = tableValuePairs.map { (table, values) ->
+      ExpectedOutputFile(tmpDir.toNioPath().resolve("$table.csv"), values.toCsvOutputLines(exportRequest.delimiter))
+    }
 
-    testExportToCsv(exportRequest, expectedOutput, decompress)
+    testExport(exportRequest, decompress, expectedOutput)
   }
 
   fun testExportDatabaseToDbLiveDb() = testExportDatabaseToDb(DatabaseType.Live)
@@ -239,28 +241,45 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
   private fun testExportDatabaseToDb(databaseType: DatabaseType) {
     // given: a database
     val database = createEmptyDatabase(databaseType)
-    val expectedTableNames = listOf(table1, table2, table3)
-    val expectedViewNames = listOf(view1, view2)
-    populateDatabase(database, expectedTableNames, expectedViewNames)
+    val expectedTables = listOf(table1, table2, table3)
+    val expectedViews = listOf(view1, view2)
+    populateDatabase(database, expectedTables, expectedViews)
 
-    val srcPath = when (database) {
-      is FileSqliteDatabaseId -> database.databaseFileData.mainFile.toNioPath()
-      is LiveSqliteDatabaseId -> Paths.get(database.path)
+    // given: an export request
+    val exportRequest = let {
+      val dstPath = tempDirTestFixture.findOrCreateDir("destination-dir").toNioPath().resolve("$outputFileName.db")
+      ExportDatabaseRequest(database, DB, dstPath)
     }
-    val dstPath = tempDirTestFixture.findOrCreateDir("destination-dir").toNioPath().resolve("$outputFileName.db")
-    val exportRequest = ExportDatabaseRequest(database, DB, dstPath)
 
-    // when: an export request is submitted
-    submitExportRequest(exportRequest)
+    // given: a set of expected outputs
 
-    // then: compare output file with expected output (by comparing .dump schema output)
-    val expectedSchema = runSqliteCliCommand(SqliteCliArgs.builder().database(srcPath).dump().build()).checkSuccess().stdOutput
-    val actualSchema = runSqliteCliCommand(SqliteCliArgs.builder().database(dstPath).dump().build()).checkSuccess().stdOutput
-    val actualTableNames = runSqliteCliCommand(SqliteCliArgs.builder().database(dstPath).queryTableList().build()).checkSuccess().stdOutput
-    val actualViewNames = runSqliteCliCommand(SqliteCliArgs.builder().database(dstPath).queryViewList().build()).checkSuccess().stdOutput
-    assertThat(actualTableNames).isEqualTo(expectedTableNames.joinToString(separator = System.lineSeparator()))
-    assertThat(actualViewNames).isEqualTo(expectedViewNames.joinToString(separator = System.lineSeparator()))
-    assertThat(actualSchema).isEqualTo(expectedSchema)
+    val (actualTablesPath, actualViewsPath, actualSchemaPath) = tempDirTestFixture.findOrCreateDir("db-as-txt").toNioPath().let { dir ->
+      listOf("actual-tables.txt", "actual-views.txt", "actual-schema.txt").map { dir.resolve(it) }
+    }
+
+    val databaseToTextFiles: (Path) -> List<Path> = { path ->
+      runSqlite3Command(SqliteCliArgs.builder().database(path).output(actualTablesPath).queryTableList().build()).checkSuccess()
+      runSqlite3Command(SqliteCliArgs.builder().database(path).output(actualViewsPath).queryViewList().build()).checkSuccess()
+      runSqlite3Command(SqliteCliArgs.builder().database(path).output(actualSchemaPath).dump().build()).checkSuccess()
+      listOf(actualSchemaPath, actualTablesPath, actualViewsPath)
+    }
+
+    val expectedSchema = let {
+      val srcPath = when (database) {
+        is FileSqliteDatabaseId -> database.databaseFileData.mainFile.toNioPath()
+        is LiveSqliteDatabaseId -> Paths.get(database.path) // we use the fact that in the test setup, live db is backed by a local file
+      }
+      runSqlite3Command(SqliteCliArgs.builder().database(srcPath).dump().build()).checkSuccess().stdOutput.split(System.lineSeparator())
+    }
+
+    val expected: List<ExpectedOutputFile> = listOf(
+      ExpectedOutputFile(actualTablesPath, expectedTables),
+      ExpectedOutputFile(actualViewsPath, expectedViews),
+      ExpectedOutputFile(actualSchemaPath, expectedSchema)
+    )
+
+    // when/then:
+    testExport(exportRequest, databaseToTextFiles, expected)
   }
 
   fun testInvalidRequestFileDb() = testInvalidRequest(DatabaseType.File)
@@ -354,7 +373,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     getJdbcDatabaseConnection(testRootDisposable, databaseFile, FutureCallbackExecutor.wrap(taskExecutor)).await()
   }
 
-  private fun runSqliteCliCommand(args: List<SqliteCliArg>): SqliteCliResponse = runDispatching {
+  private fun runSqlite3Command(args: List<SqliteCliArg>): SqliteCliResponse = runDispatching {
     withContext(taskExecutor.asCoroutineDispatcher()) {
       sqliteCliClient.runSqliteCliCommand(args)
     }
@@ -371,7 +390,7 @@ private val ExportRequest.delimiter get(): Char = (format as CSV).delimiter.deli
 
 private enum class DatabaseType { Live, File }
 
-private data class ExpectedOutputFile(val path: Path, val values: TwoColumnTable)
+private data class ExpectedOutputFile(val path: Path, val values: List<String>)
 
 private typealias TwoColumnTable = List<Pair<String, String>>
 
