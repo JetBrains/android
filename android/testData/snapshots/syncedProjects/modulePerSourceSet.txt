@@ -694,6 +694,45 @@ PROJECT             : testModulePerSourceSet
             Name                : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
         ORDER_ENTRY         : testModulePerSourceSet.lib
+    MODULE              : testModulePerSourceSet.app.androidTest
+        ExternalModuleType  : sourceSet
+        LinkedProjectId     : :app:androidTest
+        LinkedProjectPath   : <PROJECT>/app
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testModulePerSourceSet.app.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.app.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/app/testModulePerSourceSet.app.androidTest.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testModulePerSourceSet.app.main
+        ExternalModuleType  : sourceSet
+        LinkedProjectId     : :app:main
+        LinkedProjectPath   : <PROJECT>/app
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testModulePerSourceSet.app.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.app.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/app/testModulePerSourceSet.app.main.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testModulePerSourceSet.app.unitTest
+        ExternalModuleType  : sourceSet
+        LinkedProjectId     : :app:unitTest
+        LinkedProjectPath   : <PROJECT>/app
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testModulePerSourceSet.app.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.app.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/app/testModulePerSourceSet.app.unitTest.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        ORDER_ENTRY         : <Module source>
     MODULE              : testModulePerSourceSet.dyn_feature
         ExternalModuleGroup : testModulePerSourceSet
         ExternalModuleVersion         : unspecified
@@ -837,6 +876,45 @@ PROJECT             : testModulePerSourceSet
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
             VersionString       : version <JDK_VERSION>
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testModulePerSourceSet.dyn_feature.androidTest
+        ExternalModuleType  : sourceSet
+        LinkedProjectId     : :dyn_feature:androidTest
+        LinkedProjectPath   : <PROJECT>/dyn_feature
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testModulePerSourceSet.dyn_feature.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.dyn_feature.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/dyn_feature/testModulePerSourceSet.dyn_feature.androidTest.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testModulePerSourceSet.dyn_feature.main
+        ExternalModuleType  : sourceSet
+        LinkedProjectId     : :dyn_feature:main
+        LinkedProjectPath   : <PROJECT>/dyn_feature
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testModulePerSourceSet.dyn_feature.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.dyn_feature.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/dyn_feature/testModulePerSourceSet.dyn_feature.main.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testModulePerSourceSet.dyn_feature.unitTest
+        ExternalModuleType  : sourceSet
+        LinkedProjectId     : :dyn_feature:unitTest
+        LinkedProjectPath   : <PROJECT>/dyn_feature
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testModulePerSourceSet.dyn_feature.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.dyn_feature.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/dyn_feature/testModulePerSourceSet.dyn_feature.unitTest.iml [-]
+        ModuleTypeName      : JAVA_MODULE
         ORDER_ENTRY         : <Module source>
     MODULE              : testModulePerSourceSet.jav
         ExternalModuleGroup : testModulePerSourceSet
@@ -1320,6 +1398,45 @@ PROJECT             : testModulePerSourceSet
             *CLASSES            : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-<VERSION>/jars/classes.jar!/
         ORDER_ENTRY         : testModulePerSourceSet.jav
+    MODULE              : testModulePerSourceSet.lib.androidTest
+        ExternalModuleType  : sourceSet
+        LinkedProjectId     : :lib:androidTest
+        LinkedProjectPath   : <PROJECT>/lib
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testModulePerSourceSet.lib.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.lib.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/lib/testModulePerSourceSet.lib.androidTest.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testModulePerSourceSet.lib.main
+        ExternalModuleType  : sourceSet
+        LinkedProjectId     : :lib:main
+        LinkedProjectPath   : <PROJECT>/lib
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testModulePerSourceSet.lib.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.lib.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/lib/testModulePerSourceSet.lib.main.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testModulePerSourceSet.lib.unitTest
+        ExternalModuleType  : sourceSet
+        LinkedProjectId     : :lib:unitTest
+        LinkedProjectPath   : <PROJECT>/lib
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testModulePerSourceSet.lib.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.lib.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/lib/testModulePerSourceSet.lib.unitTest.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        ORDER_ENTRY         : <Module source>
     MODULE              : testModulePerSourceSet.nested1
         ExternalModuleGroup : testModulePerSourceSet
         ExternalModuleVersion         : unspecified
@@ -1464,6 +1581,19 @@ PROJECT             : testModulePerSourceSet
             HomePath            : <ANDROID_SDK>
             VersionString       : version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
+    MODULE              : testModulePerSourceSet.nested1.androidTest
+        ExternalModuleType  : sourceSet
+        LinkedProjectId     : :nested1:androidTest
+        LinkedProjectPath   : <PROJECT>/nested1
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testModulePerSourceSet.nested1.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested1.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/nested1/testModulePerSourceSet.nested1.androidTest.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        ORDER_ENTRY         : <Module source>
     MODULE              : testModulePerSourceSet.nested1.deep
         ExternalModuleGroup : testModulePerSourceSet.nested1
         ExternalModuleVersion         : unspecified
@@ -1607,6 +1737,71 @@ PROJECT             : testModulePerSourceSet
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
             VersionString       : version <JDK_VERSION>
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testModulePerSourceSet.nested1.deep.androidTest
+        ExternalModuleType  : sourceSet
+        LinkedProjectId     : :nested1:deep:androidTest
+        LinkedProjectPath   : <PROJECT>/nested1/deep
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testModulePerSourceSet.nested1.deep.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested1.deep.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/nested1/deep/testModulePerSourceSet.nested1.deep.androidTest.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testModulePerSourceSet.nested1.deep.main
+        ExternalModuleType  : sourceSet
+        LinkedProjectId     : :nested1:deep:main
+        LinkedProjectPath   : <PROJECT>/nested1/deep
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testModulePerSourceSet.nested1.deep.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested1.deep.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/nested1/deep/testModulePerSourceSet.nested1.deep.main.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testModulePerSourceSet.nested1.deep.unitTest
+        ExternalModuleType  : sourceSet
+        LinkedProjectId     : :nested1:deep:unitTest
+        LinkedProjectPath   : <PROJECT>/nested1/deep
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testModulePerSourceSet.nested1.deep.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested1.deep.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/nested1/deep/testModulePerSourceSet.nested1.deep.unitTest.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testModulePerSourceSet.nested1.main
+        ExternalModuleType  : sourceSet
+        LinkedProjectId     : :nested1:main
+        LinkedProjectPath   : <PROJECT>/nested1
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testModulePerSourceSet.nested1.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested1.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/nested1/testModulePerSourceSet.nested1.main.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testModulePerSourceSet.nested1.unitTest
+        ExternalModuleType  : sourceSet
+        LinkedProjectId     : :nested1:unitTest
+        LinkedProjectPath   : <PROJECT>/nested1
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testModulePerSourceSet.nested1.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested1.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/nested1/testModulePerSourceSet.nested1.unitTest.iml [-]
+        ModuleTypeName      : JAVA_MODULE
         ORDER_ENTRY         : <Module source>
     MODULE              : testModulePerSourceSet.nested2
         ExternalModuleGroup : testModulePerSourceSet
@@ -1810,6 +2005,19 @@ PROJECT             : testModulePerSourceSet
             HomePath            : <ANDROID_SDK>
             VersionString       : version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
+    MODULE              : testModulePerSourceSet.nested2.androidTest
+        ExternalModuleType  : sourceSet
+        LinkedProjectId     : :nested2:androidTest
+        LinkedProjectPath   : <PROJECT>/nested2
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testModulePerSourceSet.nested2.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested2.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/nested2/testModulePerSourceSet.nested2.androidTest.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        ORDER_ENTRY         : <Module source>
     MODULE              : testModulePerSourceSet.nested2.deep
         ExternalModuleGroup : testModulePerSourceSet.nested2
         ExternalModuleVersion         : unspecified
@@ -1953,6 +2161,58 @@ PROJECT             : testModulePerSourceSet
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
             VersionString       : version <JDK_VERSION>
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testModulePerSourceSet.nested2.deep.androidTest
+        ExternalModuleType  : sourceSet
+        LinkedProjectId     : :nested2:deep:androidTest
+        LinkedProjectPath   : <PROJECT>/nested2/deep
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testModulePerSourceSet.nested2.deep.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested2.deep.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/nested2/deep/testModulePerSourceSet.nested2.deep.androidTest.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testModulePerSourceSet.nested2.deep.main
+        ExternalModuleType  : sourceSet
+        LinkedProjectId     : :nested2:deep:main
+        LinkedProjectPath   : <PROJECT>/nested2/deep
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testModulePerSourceSet.nested2.deep.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested2.deep.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/nested2/deep/testModulePerSourceSet.nested2.deep.main.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testModulePerSourceSet.nested2.deep.unitTest
+        ExternalModuleType  : sourceSet
+        LinkedProjectId     : :nested2:deep:unitTest
+        LinkedProjectPath   : <PROJECT>/nested2/deep
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testModulePerSourceSet.nested2.deep.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested2.deep.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/nested2/deep/testModulePerSourceSet.nested2.deep.unitTest.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testModulePerSourceSet.nested2.main
+        ExternalModuleType  : sourceSet
+        LinkedProjectId     : :nested2:main
+        LinkedProjectPath   : <PROJECT>/nested2
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testModulePerSourceSet.nested2.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested2.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/nested2/testModulePerSourceSet.nested2.main.iml [-]
+        ModuleTypeName      : JAVA_MODULE
         ORDER_ENTRY         : <Module source>
     MODULE              : testModulePerSourceSet.nested2.trans
         ExternalModuleGroup : testModulePerSourceSet.nested2
@@ -2124,6 +2384,58 @@ PROJECT             : testModulePerSourceSet
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
             VersionString       : version <JDK_VERSION>
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testModulePerSourceSet.nested2.trans.deep2.androidTest
+        ExternalModuleType  : sourceSet
+        LinkedProjectId     : :nested2:trans:deep2:androidTest
+        LinkedProjectPath   : <PROJECT>/nested2/trans/deep2
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testModulePerSourceSet.nested2.trans.deep2.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested2.trans.deep2.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/nested2/trans/deep2/testModulePerSourceSet.nested2.trans.deep2.androidTest.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testModulePerSourceSet.nested2.trans.deep2.main
+        ExternalModuleType  : sourceSet
+        LinkedProjectId     : :nested2:trans:deep2:main
+        LinkedProjectPath   : <PROJECT>/nested2/trans/deep2
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testModulePerSourceSet.nested2.trans.deep2.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested2.trans.deep2.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/nested2/trans/deep2/testModulePerSourceSet.nested2.trans.deep2.main.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testModulePerSourceSet.nested2.trans.deep2.unitTest
+        ExternalModuleType  : sourceSet
+        LinkedProjectId     : :nested2:trans:deep2:unitTest
+        LinkedProjectPath   : <PROJECT>/nested2/trans/deep2
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testModulePerSourceSet.nested2.trans.deep2.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested2.trans.deep2.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/nested2/trans/deep2/testModulePerSourceSet.nested2.trans.deep2.unitTest.iml [-]
+        ModuleTypeName      : JAVA_MODULE
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testModulePerSourceSet.nested2.unitTest
+        ExternalModuleType  : sourceSet
+        LinkedProjectId     : :nested2:unitTest
+        LinkedProjectPath   : <PROJECT>/nested2
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testModulePerSourceSet.nested2.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested2.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/nested2/testModulePerSourceSet.nested2.unitTest.iml [-]
+        ModuleTypeName      : JAVA_MODULE
         ORDER_ENTRY         : <Module source>
     RUN_CONFIGURATION   : app
         *class*             : AndroidRunConfiguration
