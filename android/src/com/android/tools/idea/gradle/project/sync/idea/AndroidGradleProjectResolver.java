@@ -624,9 +624,23 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
   @Override
   public void populateModuleContentRoots(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
+    DataNode<AndroidModuleModel> androidModuleModelNode = ExternalSystemApiUtil.find(ideModule, AndroidProjectKeys.ANDROID_MODEL);
+    // Only process android modules.
+    if (androidModuleModelNode == null) {
+      super.populateModuleContentRoots(gradleModule, ideModule);
+      return;
+    }
+
     nextResolver.populateModuleContentRoots(gradleModule, ideModule);
 
-    ContentRootUtilKt.setupAndroidContentEntries(ideModule);
+    if (StudioFlags.USE_MODULE_PER_SOURCE_SET.get()) {
+      ContentRootUtilKt.setupAndroidContentEntriesPerSourceSet(
+        ideModule,
+        androidModuleModelNode.getData()
+      );
+    } else {
+      ContentRootUtilKt.setupAndroidContentEntries(ideModule);
+    }
   }
 
   private static boolean hasArtifacts(@Nullable ExternalProject externalProject) {
