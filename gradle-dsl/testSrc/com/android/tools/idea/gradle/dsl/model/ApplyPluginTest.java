@@ -517,6 +517,16 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testRemovePluginFromPluginDsl() throws Exception {
+    writeToBuildFile(TestFile.PLUGINS_BLOCK_WITH_VERSION_AND_APPLY);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
+    buildModel.plugins().get(0).remove();
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, "");
+  }
+
+  @Test
   public void testGetPsiElement() throws Exception {
     writeToBuildFile(TestFile.APPLIED_PLUGINS_BLOCK);
     GradleBuildModel buildModel = getGradleBuildModel();
