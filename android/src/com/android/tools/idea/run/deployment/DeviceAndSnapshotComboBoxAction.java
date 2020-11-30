@@ -42,6 +42,7 @@ import java.util.function.IntUnaryOperator;
 import java.util.function.Supplier;
 import javax.swing.*;
 import javax.swing.GroupLayout.Group;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -313,6 +314,11 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     Project project = event.getProject();
 
     if (project == null) {
+      presentation.setVisible(false);
+      return;
+    }
+
+    if (!AndroidUtils.hasAndroidFacets(project)) {
       presentation.setVisible(false);
       return;
     }
