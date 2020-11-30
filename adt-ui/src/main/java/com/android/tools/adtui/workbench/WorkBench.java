@@ -19,6 +19,7 @@ import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_P
 
 import com.android.annotations.Nullable;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.stdui.ActionData;
 import com.android.tools.adtui.workbench.AttachedToolWindow.ButtonDragListener;
 import com.android.tools.adtui.workbench.AttachedToolWindow.DragEvent;
 import com.google.common.annotations.VisibleForTesting;
@@ -166,10 +167,14 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   }
 
   public void loadingStopped(@NotNull String message) {
+    loadingStopped(message, null);
+  }
+
+  public void loadingStopped(@NotNull String message, @Nullable ActionData actionData) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("loadingStopped " + message);
     }
-    myLoadingPanel.abortLoading(message, AllIcons.General.Warning);
+    myLoadingPanel.abortLoading(message, AllIcons.General.Warning, actionData);
   }
 
   /**

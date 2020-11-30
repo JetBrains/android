@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.customview.preview
 
+import com.android.ide.common.rendering.api.Bridge
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.workbench.WorkBench
@@ -24,6 +25,7 @@ import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
@@ -293,6 +295,10 @@ class CustomViewPreviewRepresentation(
    * Refresh the preview surfaces
    */
   private fun refresh() {
+    if (Bridge.hasNativeCrash()) {
+      workbench.handleLayoutlibNativeCrash { refresh() }
+      return
+    }
     val psiFile = AndroidPsiUtils.getPsiFileSafely(psiFilePointer) ?: run {
       LOG.warn("refresh with invalid PsiFile")
       return

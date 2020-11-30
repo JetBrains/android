@@ -16,7 +16,9 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.annotations.concurrency.GuardedBy
+import com.android.ide.common.rendering.api.Bridge
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.common.util.ControllableTicker
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
@@ -797,6 +799,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
       if (DumbService.isDumb(project)) {
         LOG.debug("Project is in dumb mode, not able to refresh")
+        return@launch
+      }
+
+      if (Bridge.hasNativeCrash() && composeWorkBench is ComposePreviewViewImpl) {
+        composeWorkBench.handleLayoutlibNativeCrash { refresh() }
         return@launch
       }
 

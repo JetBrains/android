@@ -17,6 +17,7 @@
 package com.android.tools.idea.layoutlib;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.Bridge;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
@@ -111,6 +112,9 @@ public class LayoutLibraryLoader {
   @NotNull
   public static synchronized LayoutLibrary load(@NotNull IAndroidTarget target, @NotNull Map<String, Map<String, Integer>> enumMap)
     throws RenderingException {
+    if (Bridge.hasNativeCrash()) {
+      throw new RenderingException("Rendering disabled following a crash");
+    }
     LayoutLibrary library = ourLibraryCache.get(target);
     if (library == null || library.isDisposed()) {
       library = loadImpl(target, enumMap);
