@@ -221,15 +221,20 @@ class ComposePreviewAnimationManagerTest {
     ComposePreviewAnimationManager.onAnimationSubscribed(clock, animationWithSameLabel)
     UIUtil.pump() // Wait for the tab to be added on the UI thread
 
-    val animationWithNullLabel = createComposeAnimation()
-    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animationWithNullLabel)
+    val animatedValueWithNullLabel = createComposeAnimation(type = ComposeAnimationType.ANIMATED_VALUE)
+    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animatedValueWithNullLabel)
     UIUtil.pump() // Wait for the tab to be added on the UI thread
 
-    assertEquals(3, inspector.tabCount())
+    val transitionAnimationWithNullLabel = createComposeAnimation(type = ComposeAnimationType.TRANSITION_ANIMATION)
+    ComposePreviewAnimationManager.onAnimationSubscribed(clock, transitionAnimationWithNullLabel)
+    UIUtil.pump() // Wait for the tab to be added on the UI thread
+
+    assertEquals(4, inspector.tabCount())
 
     assertEquals("repeatedLabel #1", inspector.getTabTitleAt(0))
     assertEquals("repeatedLabel #2", inspector.getTabTitleAt(1)) // repeated titles get their index incremented
-    assertEquals("TransitionAnimation #1", inspector.getTabTitleAt(2)) // null labels use default title
+    assertEquals("Animated Value #1", inspector.getTabTitleAt(2)) // null labels use default title
+    assertEquals("Transition Animation #1", inspector.getTabTitleAt(3)) // null labels use default title
   }
 
   @Test
@@ -267,11 +272,12 @@ class ComposePreviewAnimationManagerTest {
     return ComposePreviewAnimationManager.currentInspector!!
   }
 
-  private fun createComposeAnimation(label: String? = null) = object : ComposeAnimation {
-    override val animationObject = Any()
-    override val type = ComposeAnimationType.ANIMATED_VALUE
-    override val label = label
-  }
+  private fun createComposeAnimation(label: String? = null, type: ComposeAnimationType = ComposeAnimationType.ANIMATED_VALUE) =
+    object : ComposeAnimation {
+      override val animationObject = Any()
+      override val type = type
+      override val label = label
+    }
 
   private fun AnimationInspectorPanel.tabbedPane() = tabbedPane.component as JBEditorTabs
 
