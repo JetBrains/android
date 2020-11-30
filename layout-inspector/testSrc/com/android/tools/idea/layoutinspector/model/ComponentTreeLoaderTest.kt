@@ -42,7 +42,7 @@ import org.mockito.internal.verification.Times
 import java.awt.Image
 import java.awt.Polygon
 import java.awt.image.BufferedImage
-import java.io.File
+import java.nio.file.Files
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
@@ -202,8 +202,8 @@ class ComponentTreeLoaderTest {
 
   @Test
   fun testFallback() {
-    val imageFile = File(getWorkspaceRoot().toFile(), "$TEST_DATA_PATH/image1.png")
-    val imageBytes = imageFile.readBytes()
+    val imageFile = getWorkspaceRoot().resolve("$TEST_DATA_PATH/image1.png")
+    val imageBytes = Files.readAllBytes(imageFile)
     val event = LayoutInspectorProto.LayoutInspectorEvent.newBuilder(event).apply {
       tree = LayoutInspectorProto.ComponentTreeEvent.newBuilder(tree).apply {
         payloadType = PNG_AS_REQUESTED

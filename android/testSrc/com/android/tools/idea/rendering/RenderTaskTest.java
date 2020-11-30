@@ -47,6 +47,8 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -193,8 +195,7 @@ public class RenderTaskTest extends AndroidTestCase {
         BufferedImage result = task.renderDrawable(resourceValue).get();
         assertNotNull(result);
 
-        File goldenImage = new File(getTestDataPath() + "/drawables/custom-golden.png");
-
+        Path goldenImage = Paths.get(getTestDataPath(), "drawables/custom-golden.png");
         ImageDiffUtil.assertImageSimilar(goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
       }
       catch (Exception ex) {
