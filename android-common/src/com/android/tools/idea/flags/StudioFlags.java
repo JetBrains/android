@@ -809,6 +809,12 @@ public final class StudioFlags {
     "If enabled, you can import UTP test results and display them in test result panel.",
     true
   );
+
+  public static final Flag<Boolean> UTP_INSTRUMENTATION_TESTING = Flag.create(
+    TESTING, "utp.instrumentation.testing", "Run instrumentation tests via UTP",
+    "If enabled, switch to running instrumentation tests via UTP.",
+    false
+  );
   //endregion
 
   //region Memory
