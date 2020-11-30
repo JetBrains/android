@@ -16,6 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.idea;
 
 import static com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION;
+import static com.android.projectmodel.VariantUtil.ARTIFACT_NAME_ANDROID_TEST;
+import static com.android.projectmodel.VariantUtil.ARTIFACT_NAME_MAIN;
+import static com.android.projectmodel.VariantUtil.ARTIFACT_NAME_UNIT_TEST;
 import static com.android.tools.idea.flags.StudioFlags.DISABLE_FORCED_UPGRADES;
 import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.simulateRegisteredSyncError;
@@ -53,6 +56,7 @@ import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.PathUtil.getJarPathForClass;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
+import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getModuleId;
 
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
@@ -156,8 +160,10 @@ import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
 import org.jetbrains.plugins.gradle.model.ExternalSourceSet;
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider;
+import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil;
+import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionWorkspace;
 
@@ -210,7 +216,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       return null;
     }
 
-    createAndAttachModelsToDataNode(moduleDataNode, gradleModule, androidModels);
+    createAndAttachModelsToDataNode(projectDataNode, moduleDataNode, gradleModule, androidModels);
     if (androidModels != null) {
       CompilerOutputUtilKt.setupCompilerOutputPaths(moduleDataNode);
     }
@@ -296,7 +302,8 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
    * @param gradleModule  the module in question
    * @param androidModels the android project models obtained from this module (null is none found)
    */
-  private void createAndAttachModelsToDataNode(@NotNull DataNode<ModuleData> moduleNode,
+  private void createAndAttachModelsToDataNode(@NotNull DataNode<ProjectData> projectDataNode,
+                                               @NotNull DataNode<ModuleData> moduleNode,
                                                @NotNull IdeaModule gradleModule,
                                                @Nullable IdeAndroidModels androidModels) {
     String moduleName = moduleNode.getData().getInternalName();
@@ -357,7 +364,22 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       issueData.forEach(it -> moduleNode.createChild(SYNC_ISSUE, it));
     }
     // We also need to patch java modules as we disabled the kapt resolver.
-    // Setup Kapt this functionality should be done by KaptProjectResolverExtension if possible.
+    // Setup Kapt this functionality should be done by KaptProjectResovlerExtension if possible.
+    // If we have module per sourceSet turned on we need to fill in the GradleSourceSetData for each of the artifacts.
+    if (StudioFlags.USE_MODULE_PER_SOURCE_SET.get() && androidModel != null) {
+      IdeVariant variant = androidModel.getSelectedVariant();
+      createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, variant.getMainArtifact());
+      IdeBaseArtifact unitTest = variant.getUnitTestArtifact();
+      if (unitTest != null) {
+        createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, unitTest);
+      }
+      IdeBaseArtifact androidTest = variant.getAndroidTestArtifact();
+      if (androidTest != null) {
+        createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, androidTest);
+      }
+    }
+    // TODO - IMPORTANT: Check patching kapt information to source sets.
+    // Setup Kapt this functionality should be done by KaptProjectResovlerExtension if possible.
     patchMissingKaptInformationOntoModelAndDataNode(androidModel, moduleNode, kaptGradleModel);
 
     // 5 - Populate extra things
@@ -442,6 +464,37 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
                                      ideModels.getAndroidProject(),
                                      variants,
                                      ideModels.getSelectedVariantName());
+  }
+
+  private void createAndSetupGradleSourceSetDataNode(@NotNull DataNode<ModuleData> parentDataNode,
+                                                     @NotNull IdeaModule gradleModule,
+                                                     @NotNull IdeBaseArtifact artifact) {
+    String moduleId = computeModuleIdForArtifact(resolverCtx, gradleModule, artifact);
+    String readableArtifactName = getModuleName(artifact);
+    String moduleExternalName = gradleModule.getName() + ":" + readableArtifactName;
+    String moduleInternalName =
+      parentDataNode.getData().getInternalName() + "." + readableArtifactName;
+
+    GradleSourceSetData sourceSetData =
+      new GradleSourceSetData(moduleId, moduleExternalName, moduleInternalName, parentDataNode.getData().getModuleFileDirectoryPath(),
+                              parentDataNode.getData().getLinkedExternalProjectPath());
+
+    parentDataNode.createChild(GradleSourceSetData.KEY, sourceSetData);
+  }
+
+  private static String computeModuleIdForArtifact(@NotNull ProjectResolverContext resolverCtx,
+                                                   @NotNull IdeaModule gradleModule,
+                                                   @NotNull IdeBaseArtifact baseArtifact) {
+    return getModuleId(resolverCtx, gradleModule) + ":" + getModuleName(baseArtifact);
+  }
+
+  public static String getModuleName(@NotNull IdeBaseArtifact artifact) {
+    switch (artifact.getName()) {
+      case ARTIFACT_NAME_MAIN: return "main";
+      case ARTIFACT_NAME_UNIT_TEST: return "unitTest";
+      case ARTIFACT_NAME_ANDROID_TEST: return "androidTest";
+    }
+    return artifact.getName();
   }
 
   /**
