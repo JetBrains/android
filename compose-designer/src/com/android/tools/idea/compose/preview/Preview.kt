@@ -198,7 +198,7 @@ private const val FPS_LIMIT = 60
  * @param previewProvider [PreviewElementProvider] to obtain the [PreviewElement]s.
  */
 class ComposePreviewRepresentation(psiFile: PsiFile,
-                                   previewProvider: PreviewElementProvider,
+                                   previewProvider: PreviewElementProvider<PreviewElement>,
                                    composePreviewViewProvider: ComposePreviewViewProvider) :
   PreviewRepresentation, ComposePreviewManagerEx, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
   private val LOG = Logger.getInstance(ComposePreviewRepresentation::class.java)
@@ -210,13 +210,15 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   /**
    * [PreviewElementProvider] containing the pinned previews.
    */
-  private val memoizedPinnedPreviewProvider = PinnedPreviewElementManager.getPreviewElementProvider(project)
+  private val memoizedPinnedPreviewProvider = FilteredPreviewElementProvider<PreviewElementInstance>(PinnedPreviewElementManager.getPreviewElementProvider(project)) {
+    !(it.previewBodyPsi?.containingFile?.isEquivalentTo(psiFilePointer.containingFile) ?: false)
+  }
 
   /**
    * [PreviewElementProvider] used to save the result of a call to `previewProvider`. Calls to `previewProvider` can potentially
    * be slow. This saves the last result and it is refreshed on demand when we know is not running on the UI thread.
    */
-  private val memoizedElementsProvider = MemoizedPreviewElementProvider(previewProvider) {
+  private val memoizedElementsProvider = MemoizedPreviewElementProvider<PreviewElement>(previewProvider) {
     ReadAction.compute<Long, Throwable> {
       psiFilePointer.element?.modificationStamp ?: -1
     }

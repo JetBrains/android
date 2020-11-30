@@ -28,7 +28,7 @@ import org.junit.Test
 /**
  * Utility method to get the array of Composable FQN from a given [PreviewElementProvider].
  */
-private fun PreviewElementProvider.previewNamesArray(): Array<String> =
+private fun <P: PreviewElement> PreviewElementProvider<P>.previewNamesArray(): Array<String> =
   previewElements.map { it.composableMethodFqn }.toList().toTypedArray()
 
 /**
@@ -57,7 +57,7 @@ class PreviewFiltersTest {
 
       override fun instances(): Sequence<PreviewElementInstance> = templateInstances.asSequence()
     }
-    val staticPreviewProvider = StaticPreviewProvider(listOf(
+    val staticPreviewProvider = StaticPreviewProvider<PreviewElement>(listOf(
       SinglePreviewElementInstance.forTesting("PreviewMethod1", groupName = "GroupA"),
       SinglePreviewElementInstance.forTesting("SeparatePreview", groupName = "GroupA"),
       SinglePreviewElementInstance.forTesting("PreviewMethod2", groupName = "GroupB"),

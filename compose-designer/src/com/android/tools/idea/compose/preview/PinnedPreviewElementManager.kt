@@ -189,8 +189,8 @@ interface PinnedPreviewElementManager: ModificationTracker {
      * and that are not meant to be only from the current opened editor.
      */
     @JvmStatic
-    fun getPreviewElementProvider(project: Project): PreviewElementInstanceProvider = if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
-      object : PreviewElementInstanceProvider {
+    fun getPreviewElementProvider(project: Project): PreviewElementProvider<PreviewElementInstance> = if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
+      object : PreviewElementProvider<PreviewElementInstance> {
         @get:Slow
         override val previewElements: Sequence<PreviewElementInstance>
           get() = project.getService(PinnedPreviewElementManagerImpl::class.java).previewElements

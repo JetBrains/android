@@ -1,6 +1,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.ComposeProjectRule
+import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -14,7 +15,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-private fun PreviewElementProvider.toDebugString(): String =
+private fun <P: PreviewElement> PreviewElementProvider<P>.toDebugString(): String =
   previewElements.map { it.composableMethodFqn }.sorted().joinToString("\n")
 
 private const val COMPOSABLE_ANNOTATION_PACKAGE =  "androidx.compose.runtime"
