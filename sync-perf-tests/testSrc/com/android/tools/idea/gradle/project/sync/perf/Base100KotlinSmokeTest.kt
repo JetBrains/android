@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.perf
 
-class Base100KotlinSmokeTest: AbstractGradleSyncPerfSmokeTestCase() {
+class Base100KotlinSmokeTest: AbstractGradleSyncSmokeTestCase() {
   override val relativePath: String = TestProjectPaths.BASE100_KOTLIN
   //Do not build (times out in pre submit)
   override val buildTask: String? = null

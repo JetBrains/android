@@ -36,7 +36,7 @@ import org.junit.Test
 import java.io.File
 
 @RunsInEdt
-abstract class AbstractGradleSyncPerfSmokeTestCase {
+abstract class AbstractGradleSyncSmokeTestCase {
   abstract val relativePath: String
   protected open val buildTask: String? = "assembleDebug"
   protected open val buildTaskTimeout: Long? = null
@@ -98,11 +98,11 @@ abstract class AbstractGradleSyncPerfSmokeTestCase {
       }
     }
   }
+}
 
-  private fun disableExpensivePlatformAssertions(fixture: CodeInsightTestFixture) {
-    ApplicationInfoImpl.setInStressTest(true)
-    Disposer.register(fixture.testRootDisposable, {
-      ApplicationInfoImpl.setInStressTest(false)
-    })
-  }
+fun disableExpensivePlatformAssertions(fixture: CodeInsightTestFixture) {
+  ApplicationInfoImpl.setInStressTest(true)
+  Disposer.register(fixture.testRootDisposable, {
+    ApplicationInfoImpl.setInStressTest(false)
+  })
 }
