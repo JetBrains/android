@@ -91,6 +91,7 @@ import com.android.tools.idea.gradle.project.sync.SingleVariantSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
+import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys;
 import com.android.tools.idea.gradle.project.sync.idea.issues.AgpUpgradeRequiredException;
 import com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheck;
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidExtraModelProvider;
@@ -126,6 +127,7 @@ import com.intellij.openapi.externalSystem.model.project.LibraryPathType;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
 import com.intellij.openapi.module.Module;
@@ -145,6 +147,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.ZipException;
 import kotlin.Unit;
@@ -640,6 +644,13 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   public void populateModuleDependencies(@NotNull IdeaModule gradleModule,
                                          @NotNull DataNode<ModuleData> ideModule,
                                          @NotNull DataNode<ProjectData> ideProject) {
+    DataNode<AndroidModuleModel> androidModelNode = ExternalSystemApiUtil.find(ideModule, AndroidProjectKeys.ANDROID_MODEL);
+    // Don't process non-android modules here.
+    if (androidModelNode == null) {
+      super.populateModuleDependencies(gradleModule, ideModule, ideProject);
+      return;
+    }
+
     // Call all the other resolvers to ensure that any dependencies that they need to provide are added.
     nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject);
     // In AndroidStudio pre-3.0 all dependencies need to be exported, the common resolvers do not set this.
@@ -686,12 +697,14 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       libraryFilePaths = LibraryFilePaths.getInstance(project);
     }
 
-    DependencyUtilKt.setupAndroidDependenciesForModule(ideModule, (id) -> {
+    Function<String, ModuleData> moduleDataLookup = (id) -> {
       if (workspace != null) {
         return workspace.findModuleDataByModuleId(id);
       }
       return null;
-    }, (artifactId, artifactPath) -> {
+    };
+
+    BiFunction<String, File, AdditionalArtifactsPaths> artifactLookup = (artifactId, artifactPath) -> {
       // First check to see if we just obtained any paths from Gradle. Since we don't request all the paths this can be null
       // or contain an imcomplete set of entries. In order to complete this set we need to obtains the reminder from LibraryFilePaths cache.
       AdditionalClassifierArtifacts artifacts = additionalArtifactsMap.get(artifactId);
@@ -707,7 +720,19 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         }
       }
       return null;
-    });
+    };
+
+    if (StudioFlags.USE_MODULE_PER_SOURCE_SET.get()) {
+      DependencyUtilKt.setupAndroidDependenciesForMpss(
+        ideModule,
+        moduleDataLookup::apply,
+        artifactLookup::apply,
+        androidModelNode.getData(),
+        androidModelNode.getData().getSelectedVariant()
+      );
+    } else {
+      DependencyUtilKt.setupAndroidDependenciesForModule(ideModule, moduleDataLookup::apply, artifactLookup::apply);
+    }
   }
 
   @Override
