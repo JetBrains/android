@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
+import com.android.ide.common.gradle.model.IdeAndroidArtifact
 import com.android.ide.common.gradle.model.IdeBaseArtifact
 import com.android.ide.common.gradle.model.IdeSourceProvider
 import com.android.ide.common.gradle.model.IdeVariant
+import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
+import com.android.projectmodel.ARTIFACT_NAME_MAIN
+import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.intellij.openapi.externalSystem.model.DataNode
+import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.ContentRootData
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
@@ -38,6 +43,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll
 import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.annotations.SystemDependent
+import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 
@@ -137,8 +143,7 @@ private fun IdeVariant.processGeneratedSources(
 ) {
 
   fun IdeBaseArtifact.applicableGeneratedSourceFolders(): Collection<File> = GradleUtil.getGeneratedSourceFoldersToUse(this, androidModel)
-  fun File.processAs(type: ExternalSystemSourceType) = processor(this.absolutePath, type)
-  fun Collection<File>.processAs(type: ExternalSystemSourceType) = forEach { it.processAs(type) }
+  fun Collection<File>.processAs(type: ExternalSystemSourceType) = forEach { processor(it.absolutePath, type) }
 
   // Note: This only works with Gradle plugin versions 1.2 or higher. However we should be fine not supporting
   // this far back.
@@ -168,3 +173,74 @@ private fun IdeSourceProvider.processAll(
     processor(it.absolutePath, if (forTest) TEST else SOURCE)
   }
 }
+
+//****************************************************************************************************************************
+/* Below are methods related to the processing of content roots for Android modules when module per source set is being used */
+//****************************************************************************************************************************
+
+private typealias ArtifactSelector = (IdeVariant) -> IdeBaseArtifact?
+private typealias SourceProviderSelector = (AndroidModuleModel) -> List<IdeSourceProvider>
+
+fun DataNode<ModuleData>.setupAndroidContentEntriesPerSourceSet(
+  androidModel: AndroidModuleModel
+) {
+  val variant = androidModel.selectedVariant
+  // Go over all modules GradleSourceSetData nodes and set up the required content roots from the artifacts.
+  fun DataNode<GradleSourceSetData>.populateContentEntries(
+    artifactSelector: ArtifactSelector,
+    sourceProviderSelector: SourceProviderSelector
+  ) {
+    val contentRoots = collectContentRootDataForArtifact(artifactSelector, sourceProviderSelector, androidModel, variant)
+
+    // Add the ContentRootData nodes to the module.
+    contentRoots.forEach { contentRootData ->
+      createChild(ProjectKeys.CONTENT_ROOT, contentRootData)
+    }
+  }
+
+  findSourceSetDataForArtifact(variant.mainArtifact)
+    .populateContentEntries(IdeVariant::mainArtifact, AndroidModuleModel::getActiveSourceProviders)
+  variant.unitTestArtifact?.also {
+    findSourceSetDataForArtifact(it)
+      .populateContentEntries(IdeVariant::unitTestArtifact, AndroidModuleModel::getUnitTestSourceProviders)
+  }
+  variant.androidTestArtifact?.also {
+    findSourceSetDataForArtifact(it)
+      .populateContentEntries(IdeVariant::androidTestArtifact, AndroidModuleModel::getAndroidTestSourceProviders)
+  }
+}
+
+private fun collectContentRootDataForArtifact(
+  artifactSelector: ArtifactSelector,
+  sourceProviderSelector: SourceProviderSelector,
+  androidModel: AndroidModuleModel,
+  selectedVariant: IdeVariant
+) : Collection<ContentRootData> {
+  val artifact = artifactSelector(selectedVariant) ?: throw ExternalSystemException("Couldn't find artifact for descriptor")
+
+  val newContentRoots = mutableListOf<ContentRootData>()
+
+  // Function passed in to the methods below to register each source path with a ContentRootData object.
+  fun addSourceFolder(path: @SystemDependent String, sourceType: ExternalSystemSourceType?) {
+    val contentRootData = ContentRootData(GradleConstants.SYSTEM_ID, path)
+    if (sourceType != null) {
+      contentRootData.storePath(sourceType, path)
+    }
+    newContentRoots.add(contentRootData)
+  }
+
+  sourceProviderSelector(androidModel).forEach { sourceProvider ->
+    sourceProvider.processAll(artifact.isTestArtifact, ::addSourceFolder)
+  }
+
+  fun IdeBaseArtifact.applicableGeneratedSourceFolders(): Collection<File> = GradleUtil.getGeneratedSourceFoldersToUse(this, androidModel)
+  fun Collection<File>.processAs(type: ExternalSystemSourceType) = forEach { addSourceFolder(it.absolutePath, type) }
+
+  artifact.applicableGeneratedSourceFolders().processAs(if (artifact.isTestArtifact) TEST_GENERATED else SOURCE_GENERATED)
+  if (artifact is IdeAndroidArtifact) {
+    artifact.generatedResourceFolders.processAs(if (artifact.isTestArtifact) TEST_RESOURCE_GENERATED else RESOURCE_GENERATED)
+  }
+
+  return newContentRoots
+}
+
