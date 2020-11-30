@@ -15,6 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.perf
 
-class AverageSmokeTest: AbstractGradleSyncPerfSmokeTestCase() {
+class AverageSmokeTest: AbstractGradleSyncSmokeTestCase() {
   override val relativePath: String = TestProjectPaths.SYNC_AVERAGE_PERF_PROJECT
 }

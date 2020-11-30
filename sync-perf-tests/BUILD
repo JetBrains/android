@@ -79,6 +79,11 @@ iml_module(
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.SantaTrackerPerfTest",
             "tags": SYNC_PERFGATE_TAGS,
         },
+        "ExtraLarge": {
+            "data": ["//prebuilts/studio/buildbenchmarks:ExtraLarge_project"],
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.ExtraLargePerfTest",
+            "tags": SYNC_PERFGATE_TAGS,
+        },
         # This split test target contains AveragePerfTest, and other unspecified tests if
         # they exist. Additional targets should be made if this one begins taking a long time.
         "other": {

@@ -68,7 +68,7 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
   val ruleChain = org.junit.rules.RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   companion object {
-    const val MEMORY_MEASUREMENT_INTERVAL_MILLIS: Long = 100
+    const val MEMORY_MEASUREMENT_INTERVAL_MILLIS: Long = 1000
     const val HISTOGRAM_SAMPLES = 80
     const val HISTOGRAM_LEVELS = 20
     const val BENCHMARK_PROJECT = "Android Studio Sync Test"
@@ -100,6 +100,7 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
     GradleSettings.getInstance(projectRule.project).linkedProjectsSettings = listOf(projectSettings)
 
     projectRule.fixture.testDataPath = getModulePath ("sync-perf-tests") + File.separator + "testData"
+    disableExpensivePlatformAssertions(projectRule.fixture)
   }
 
   @After
@@ -324,6 +325,10 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
         usedMemory.add(usage)
         metricMemoryUsed.addSamples(memoryBenchmark, MetricSample(currentInstant.toEpochMilli(), usage))
         nextReading = nextReading.plusMillis(MEMORY_MEASUREMENT_INTERVAL_MILLIS)
+        if (nextReading < currentInstant) {
+          val toSkip: Long = 1 + (Duration.between(nextReading, currentInstant).toMillis() / MEMORY_MEASUREMENT_INTERVAL_MILLIS)
+          nextReading = currentInstant.plusMillis(MEMORY_MEASUREMENT_INTERVAL_MILLIS * toSkip)
+        }
       }
       metricMemoryUsed.commit("Memory")
     }

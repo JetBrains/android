@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.perf
 
-class SantaTrackerSmokeTest: AbstractGradleSyncPerfSmokeTestCase() {
+class SantaTrackerSmokeTest: AbstractGradleSyncSmokeTestCase() {
   override val relativePath: String = TestProjectPaths.SANTA_TRACKER
   // Use assembleDevelopmentDebug to prevent signing tasks
   override val buildTask: String = ":santa-tracker:assembleDevelopmentDebug"
