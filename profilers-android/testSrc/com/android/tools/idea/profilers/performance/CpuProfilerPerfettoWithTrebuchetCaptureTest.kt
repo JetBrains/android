@@ -34,6 +34,6 @@ class CpuProfilerPerfettoWithTrebuchetCaptureTest : CpuProfilerMemoryLoadTestBas
     loadCaptureAndReport(
       "Perfetto-Trebuchet-10-sec",
       CpuProfilerTestUtils.getTraceFile("performance/perfetto_10s_tanks.trace"),
-      "system_server", 1193)
+      "com.google.android.tanks", 7366)
   }
 }

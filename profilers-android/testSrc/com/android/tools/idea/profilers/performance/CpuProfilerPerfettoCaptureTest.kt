@@ -49,7 +49,7 @@ class CpuProfilerPerfettoCaptureTest : CpuProfilerMemoryLoadTestBase() {
     loadCaptureAndReport(
       "Perfetto-TPD-10-sec",
       getTraceFile("performance/perfetto_10s_tanks.trace"),
-      "system_server", 1193)
+      "com.google.android.tanks", 7366)
   }
 
   @Test

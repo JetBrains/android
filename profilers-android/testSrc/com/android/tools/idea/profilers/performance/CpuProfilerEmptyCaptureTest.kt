@@ -29,7 +29,7 @@ class CpuProfilerEmptyCaptureTest : CpuProfilerMemoryLoadTestBase() {
     // empty_trace.trace is a 0-byte file, so the processIdHint does not matter. Passing non-zero, because 0 is usually assigned
     // for imported traces and we want to make sure we are benchmarking the live capture flow.
     loadCaptureAndReport("Empty", CpuProfilerTestUtils.getTraceFile("empty_trace.trace"),
-                         "system_server", 1)
+                         "com.google.android.tanks", 1)
   }
 }
 
