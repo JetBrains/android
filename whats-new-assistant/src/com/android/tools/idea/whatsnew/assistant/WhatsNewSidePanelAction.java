@@ -59,7 +59,7 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
     }
 
     action.update(e);
-    presentation.setDescription(AndroidBundle.message("whatsnew.action.custom.description",
+    presentation.setDescription(AndroidBundle.message("whats.new.action.custom.description",
                                                       ApplicationNamesInfo.getInstance().getFullProductName()));
   }
 

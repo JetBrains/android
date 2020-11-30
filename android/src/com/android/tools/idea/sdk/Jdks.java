@@ -26,7 +26,7 @@ import com.google.common.collect.Lists;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.projectRoots.JavaSdk;
@@ -59,7 +59,7 @@ public final class Jdks {
 
   @NotNull
   public static Jdks getInstance() {
-    return ServiceManager.getService(Jdks.class);
+    return ApplicationManager.getApplication().getService(Jdks.class);
   }
 
   @NonInjectable

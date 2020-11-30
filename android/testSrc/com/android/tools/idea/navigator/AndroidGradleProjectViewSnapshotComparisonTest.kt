@@ -21,15 +21,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludesViewNode
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.*
-import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
-import com.android.tools.idea.testing.GradleIntegrationTest
-import com.android.tools.idea.testing.SnapshotComparisonTest
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths
-import com.android.tools.idea.testing.assertIsEqualToSnapshot
-import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
-import com.intellij.ide.impl.ProjectUtil
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.projectView.impl.GroupByTypeComparator
@@ -148,7 +140,7 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     }
 
     val project = PlatformTestUtil.loadAndOpenProject(projectPath.toPath())
-    val text = project.dumpAndroidProjectView()
+    val text = dumpAndroidProjectView(project)
     PlatformTestUtil.forceCloseProjectWithoutSaving(project)
 
     assertIsEqualToSnapshot(text)
@@ -177,8 +169,9 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     projectDir: String,
     patch: ((projectRootPath: File) -> Unit)? = null,
     projectViewSettings: ProjectViewSettings = ProjectViewSettings()
-  ): String =
-    importSyncAndDumpProject(projectDir, patch, projectViewSettings, Unit, { _, _ -> Unit })
+  ): String {
+    return importSyncAndDumpProject(projectDir, patch, projectViewSettings, Unit, { _, _ -> Unit })
+  }
 
   private fun <T : Any> importSyncAndDumpProject(
     projectDir: String,
@@ -191,17 +184,19 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     patch?.invoke(projectRootPath)
     importProject()
 
-    return project.dumpAndroidProjectView(projectViewSettings, initialState, filter)
+    return dumpAndroidProjectView(project, projectViewSettings, initialState, filter)
   }
 
-  private fun Project.dumpAndroidProjectView(): String = dumpAndroidProjectView(initialState = Unit) { _, _ -> Unit }
+  private fun dumpAndroidProjectView(project: Project): String {
+    return dumpAndroidProjectView<Unit>(project, initialState = Unit) { _, _ -> Unit }
+  }
 
-  private fun <T : Any> Project.dumpAndroidProjectView(
+  private fun <T : Any> dumpAndroidProjectView(
+    project: Project,
     projectViewSettings: ProjectViewSettings = ProjectViewSettings(),
     initialState: T,
     filter: (element: AbstractTreeNode<*>, state: T) -> T?
   ): String {
-
     val androidSdk: File = IdeSdks.getInstance().androidSdkPath!!
 
     fun String.replaceVariableParts(): String {
@@ -229,7 +224,7 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     fun PresentationData.toTestText(): String {
       val icon = getIcon(false)?.getIconText()
       val iconText =
-        (icon as? IconLoader.CachedImageIcon)?.originalPath
+        (icon as? IconLoader.CachedImageIcon)?.originalPath?.let { if (it.startsWith("/")) it else "/${it}" }
         ?: (icon as? ImageIconUIResource)?.let { it.description ?: "ImageIconUIResource(?)" }
         ?: icon?.let { "$it (${it.javaClass.simpleName})" }
       val nodeText =
@@ -238,13 +233,15 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
 
       return buildString {
         append(nodeText)
-        if (iconText != null) append(" (icon: $iconText)")
+        if (iconText != null) {
+          append(" (icon: $iconText)")
+        }
       }
         .replaceVariableParts()
     }
 
     fun createAndDumpProjectView(): String {
-      val viewPane = AndroidProjectViewPane(this)
+      val viewPane = AndroidProjectViewPane(project)
       // We need to create a component to initialize the view pane.
       viewPane.createComponent()
       val treeStructure: AbstractTreeStructure? = viewPane.treeStructure

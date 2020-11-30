@@ -26,8 +26,8 @@ import com.android.tools.idea.util.addDependencies
 import com.android.tools.idea.util.dependsOn
 import com.android.tools.idea.util.userWantsToAdd
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ex.ApplicationManagerEx
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
@@ -43,7 +43,7 @@ class NlDependencyManager private constructor() {
 
   companion object {
     @JvmStatic
-    fun getInstance(): NlDependencyManager = ServiceManager.getService(NlDependencyManager::class.java)
+    fun getInstance(): NlDependencyManager = ApplicationManager.getApplication().getService(NlDependencyManager::class.java)
   }
 
   data class AddDependenciesResult(val hadMissingDependencies: Boolean, val dependenciesPresent: Boolean)

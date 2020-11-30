@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding
 
-import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.ModificationTracker
 import net.jcip.annotations.ThreadSafe
 import java.util.concurrent.atomic.AtomicLong
@@ -30,7 +30,7 @@ class ViewBindingEnabledTrackingService : ModificationTracker {
   companion object {
     @JvmStatic
     val instance: ViewBindingEnabledTrackingService
-      get() = ServiceManager.getService(ViewBindingEnabledTrackingService::class.java)
+      get() = ApplicationManager.getApplication().getService(ViewBindingEnabledTrackingService::class.java)
   }
 
   private val modificationCount = AtomicLong(0)

@@ -62,6 +62,6 @@ class ProguardR8UsageTypeProviderTest : ProguardR8TestCase() {
 
     val representation = myFixture.getUsageViewTreeTextRepresentation(info)
 
-    assertThat(representation).contains("Referenced in Shrinker Config files (1 usage)")
+    assertThat(representation).contains("Referenced in Shrinker Config files (1)")
   }
 }

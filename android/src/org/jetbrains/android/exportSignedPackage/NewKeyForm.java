@@ -149,7 +149,7 @@ public abstract class NewKeyForm {
     String dname = getDName();
 
     if (keystorePassword.indexOf('"') >= 0 || keyPassword.indexOf('"') >= 0) {
-      throw new CommitStepException("Passwords cannot contain quote character");
+      throw new CommitStepException(AndroidBundle.message("android.export.package.passwords.cannot.contain.quote.character"));
     }
 
     boolean createdStore = false;
@@ -233,7 +233,7 @@ public abstract class NewKeyForm {
       myCertificate = (X509Certificate)certificate;
     }
     catch (Exception e) {
-      throw new CommitStepException("Error: " + e.getMessage());
+      throw new CommitStepException(AndroidBundle.message("android.extract.package.error.0.message", e.getMessage()));
     }
     finally {
       if (fis != null) {

@@ -19,11 +19,7 @@ import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.intellij.facet.FacetManager;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.compiler.ClassPostProcessingCompiler;
-import com.intellij.openapi.compiler.CompileContext;
-import com.intellij.openapi.compiler.CompileScope;
-import com.intellij.openapi.compiler.CompilerMessageCategory;
-import com.intellij.openapi.compiler.ValidityState;
+import com.intellij.openapi.compiler.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.CompilerModuleExtension;
@@ -31,15 +27,6 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import org.jetbrains.android.compiler.tools.AndroidDxWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -50,6 +37,11 @@ import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Android Dex compiler.
@@ -147,7 +139,7 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
                                                                         module.getName() +
                                                                         " because file " +
                                                                         AndroidBuildCommonUtils.PROGUARD_OUTPUT_JAR_NAME +
-                                                                        " doesn't exist", null, -1, -1);
+                                                                        " doesn't exist", null, -1, -1, null, Collections.singleton(module.getName()));
               continue;
             }
 
@@ -160,7 +152,7 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
             if (outputDir == null) {
               myContext.addMessage(CompilerMessageCategory.INFORMATION,
                                    "Dex won't be launched for module " + module.getName() + " because it doesn't contain compiled files",
-                                   null, -1, -1);
+                                   null, -1, -1, null, Collections.singleton(module.getName()));
               continue;
             }
 
@@ -190,7 +182,7 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
 
           if (platform == null) {
             myContext.addMessage(CompilerMessageCategory.ERROR,
-                                 AndroidBundle.message("android.compilation.error.specify.platform", module.getName()), null, -1, -1);
+                                 AndroidBundle.message("android.compilation.error.specify.platform", module.getName()), null, -1, -1, null, Collections.singleton(module.getName()));
             continue;
           }
 
@@ -260,7 +252,7 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
       for (CompilerMessageCategory category : messages.keySet()) {
         List<String> messageList = messages.get(category);
         for (String message : messageList) {
-          myContext.addMessage(category, '[' + module.getName() + "] " + message, null, -1, -1);
+          myContext.addMessage(category, '[' + module.getName() + "] " + message, null, -1, -1, null, Collections.singleton(module.getName()));
         }
       }
     }

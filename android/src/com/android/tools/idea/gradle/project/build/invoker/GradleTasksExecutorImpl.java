@@ -57,8 +57,8 @@ import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
+import com.intellij.compiler.CompilerConfiguration;
 import com.intellij.compiler.CompilerManagerImpl;
-import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerManager;
@@ -241,7 +241,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         List<String> commandLineArguments = Lists.newArrayList(buildConfiguration.getCommandLineOptions());
 
         if (!commandLineArguments.contains(PARALLEL_BUILD_OPTION) &&
-            CompilerWorkspaceConfiguration.getInstance(project).PARALLEL_COMPILATION) {
+            CompilerConfiguration.getInstance(project).isParallelCompilationEnabled()) {
           commandLineArguments.add(PARALLEL_BUILD_OPTION);
         }
 
@@ -353,7 +353,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
           else {
             buildState.buildFinished(FAILED);
             BuildEnvironment buildEnvironment =
-              GradleExecutionHelper.getBuildEnvironment(connection, id, taskListener, cancellationTokenSource);
+              GradleExecutionHelper.getBuildEnvironment(connection, id, taskListener, cancellationTokenSource, executionSettings);
             GradleProjectResolverExtension projectResolverChain = GradleProjectResolver.createProjectResolverChain();
             ExternalSystemException userFriendlyError =
                 projectResolverChain.getUserFriendlyError(buildEnvironment, buildError, myRequest.getBuildFilePath().getPath(), null);

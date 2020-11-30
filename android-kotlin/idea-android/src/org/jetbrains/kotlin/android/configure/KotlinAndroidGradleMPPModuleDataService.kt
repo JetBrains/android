@@ -95,7 +95,7 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
             for (activeSourceSetInfo in activeSourceSetInfos) {
                 val activeCompilation = activeSourceSetInfo.kotlinModule as? KotlinCompilation ?: continue
                 for (sourceSet in activeCompilation.sourceSets) {
-                    if (! sourceSet.actualPlatforms.supports(KotlinPlatform.ANDROID)) {
+                    if (isRootOrIntermediateSourceSet(activeCompilation.sourceSets, sourceSet)) {
                         val sourceSetId = activeSourceSetInfo.sourceSetIdsByName[sourceSet.name] ?: continue
                         val sourceSetNode = ExternalSystemApiUtil.findFirstRecursively(projectNode) {
                             (it.data as? ModuleData)?.id == sourceSetId
@@ -122,6 +122,16 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
                 GradleProjectImportHandler.getInstances(project).forEach { it.importByModule(kotlinFacet, nodeToImport) }
             }
         }
+    }
+
+    private fun isRootOrIntermediateSourceSet(sourceSets: Iterable<KotlinSourceSet>, sourceSet: KotlinSourceSet): Boolean {
+      return sourceSets.any { anySourceSet -> sourceSet.name in anySourceSet.dependsOnSourceSets } ||
+             /**
+            * TODO Sebastian Sellmair
+            *  Currently default `dependsOn` edges are not correct for android source sets:
+            *  Android source sets are not declaring `dependsOn("commonMain")` by default
+            */
+           !sourceSet.actualPlatforms.supports(KotlinPlatform.ANDROID)
     }
 
     private fun getDependeeModuleNodes(
@@ -178,7 +188,7 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
             .flatMap { ExternalSystemApiUtil.getChildren(it, GradleSourceSetData.KEY) }
             .filter {
                 val ktModule = it.kotlinSourceSet?.kotlinModule
-                ktModule != null && ktModule.isTestModule == testScope
+                ktModule != null && !ktModule.isTestModule
             }
         val commonSourceSetName = KotlinSourceSet.commonName(testScope)
         val isAndroidModule = getAndroidModuleModel(moduleNode) != null
@@ -210,16 +220,12 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
                 }
             }
 
-        val testKotlinModules =
-            gradleSourceSetDataNodes.filter { it.kotlinSourceSet?.isTestModule ?: false }.mapNotNull { modelsProvider.findIdeModule(it.data) }
-                .toSet()
-
         gradleSourceSetDataNodes.forEach { node ->
             val module = modelsProvider.findIdeModule(node.data) ?: return
             addModuleDependencyIfNeeded(rootModel, module, testScope, node.kotlinSourceSet?.isTestModule ?: false)
             val dependeeRootModel = modelsProvider.getModifiableRootModel(module)
             dependeeRootModel.getModuleDependencies(testScope).forEach { transitiveDependee ->
-                addModuleDependencyIfNeeded(rootModel, transitiveDependee, testScope, testKotlinModules.contains(transitiveDependee))
+                addModuleDependencyIfNeeded(rootModel, transitiveDependee, testScope, false)
             }
         }
     }

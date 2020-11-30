@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.GradleFiles
 import com.android.tools.idea.res.AndroidRClassBase
+import com.android.tools.idea.res.isResourceDeclaration
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
@@ -35,7 +36,6 @@ import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.augment.ManifestClass
 import org.jetbrains.android.dom.AndroidDomElement
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription
-import com.android.tools.idea.res.isResourceDeclaration
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.plugins.groovy.GroovyLanguage
 
@@ -49,7 +49,7 @@ class GradleUsageTypeProvider : UsageTypeProvider {
   }
 
   companion object {
-    private val GRADLE_USAGE_TYPE = UsageType("{0} in Gradle build script")
+    private val GRADLE_USAGE_TYPE = UsageType("In Gradle build script")
   }
 }
 
@@ -72,7 +72,7 @@ class AndroidOldXmlUsageProvider : UsageTypeProvider {
     }
   }
   companion object {
-    private val ANDROID_RESOURCES_XML_USAGE_TYPE = UsageType("{0} in Android resources XML")
+    private val ANDROID_RESOURCES_XML_USAGE_TYPE = UsageType("In Android resources XML")
   }
 }
 

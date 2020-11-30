@@ -21,7 +21,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.deployable.ApplicationIdResolver;
 import com.android.tools.idea.run.deployable.DeviceVersion;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import java.util.List;
 import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +32,7 @@ public class DeploymentApplicationService implements Disposable {
 
   @NotNull
   public static DeploymentApplicationService getInstance() {
-    return ServiceManager.getService(DeploymentApplicationService.class);
+    return ApplicationManager.getApplication().getService(DeploymentApplicationService.class);
   }
 
   private DeploymentApplicationService() {

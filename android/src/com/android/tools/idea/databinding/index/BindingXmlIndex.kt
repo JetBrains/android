@@ -153,7 +153,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
 
   override fun getIndexer(): SingleEntryIndexer<BindingXmlData> {
     return object : SingleEntryIndexer<BindingXmlData>(false) {
-      override fun computeValue(inputData: FileContent): BindingXmlData? {
+      override fun computeValue(inputData: FileContent): BindingXmlData {
         var isDataBindingLayout = false
         var customBindingName: String? = null
         var viewBindingIgnore = false
@@ -300,7 +300,7 @@ private class EscapingXmlReader(text: CharSequence): Reader() {
       var nextChar: Char = delegate.read().takeIf { it >= 0 }?.toChar() ?: break
       var skipChar = false
       if (nextChar == '&') {
-        assert(buffer.isEmpty())
+        assert(buffer.length == 0)
 
         buffer.append(nextChar)
         while (true) {
