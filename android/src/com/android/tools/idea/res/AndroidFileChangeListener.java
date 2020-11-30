@@ -44,7 +44,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
-import com.intellij.openapi.vfs.newvfs.events.VFileContentChangeEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileCopyEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent;
@@ -176,11 +175,7 @@ public class AndroidFileChangeListener implements Disposable {
       return false;
     }
 
-    if (JavaFileType.INSTANCE.getDefaultExtension().equals(extension) || KotlinFileType.EXTENSION.equals(extension)) {
-      return false;
-    }
-
-    return true;
+    return !JavaFileType.INSTANCE.getDefaultExtension().equals(extension) && !KotlinFileType.EXTENSION.equals(extension);
   }
 
   /**
@@ -235,17 +230,14 @@ public class AndroidFileChangeListener implements Disposable {
     if (isRelevantFileType(fileType)) {
       return true;
     }
-    else {
-      PsiDirectory parent = file.getParent();
-      if (parent != null) {
-        String parentName = parent.getName();
-        if (parentName.startsWith(FD_RES_RAW)) {
-          return true;
-        }
-      }
+
+    PsiDirectory parent = file.getParent();
+    if (parent == null) {
+      return false;
     }
 
-    return false;
+    String parentName = parent.getName();
+    return parentName.startsWith(FD_RES_RAW);
   }
 
 
@@ -334,9 +326,8 @@ public class AndroidFileChangeListener implements Disposable {
             onFileOrDirectoryCreated(parentFile, (String)renameEvent.getNewValue());
           }
         }
-        else if (event instanceof VFileContentChangeEvent) {
-          // Content changes are not handled at the VFS level but either in fileWithNoDocumentChanged, documentChanged or MyPsiListener.
-        }
+        // VFileContentChangeEvent changes are not handled at the VFS level, but either in
+        // fileWithNoDocumentChanged, documentChanged or MyPsiListener.
       }
     }
 
@@ -657,7 +648,7 @@ public class AndroidFileChangeListener implements Disposable {
 
     @Override
     public void beforePropertyChange(@NotNull PsiTreeChangeEvent event) {
-      if (PsiTreeChangeEvent.PROP_FILE_NAME == event.getPropertyName()) {
+      if (PsiTreeChangeEvent.PROP_FILE_NAME.equals(event.getPropertyName())) {
         PsiElement child = event.getChild();
         if (child instanceof PsiFile) {
           PsiFile psiFile = (PsiFile)child;
@@ -675,7 +666,7 @@ public class AndroidFileChangeListener implements Disposable {
 
     @Override
     public void propertyChanged(@NotNull PsiTreeChangeEvent event) {
-      if (PsiTreeChangeEvent.PROP_FILE_NAME == event.getPropertyName()) {
+      if (PsiTreeChangeEvent.PROP_FILE_NAME.equals(event.getPropertyName())) {
         PsiElement child = event.getElement();
         if (child instanceof PsiFile) {
           PsiFile psiFile = (PsiFile)child;
