@@ -172,7 +172,7 @@ private fun NlDesignSurface.logSurfaceStatus(log: Logger) {
 @Slow
 internal fun NlDesignSurface.updatePreviewsAndRefresh(
   quickRefresh: Boolean,
-  previewElementProvider: PreviewElementInstanceProvider,
+  previewElementProvider: PreviewElementProvider<PreviewElementInstance>,
   log: Logger,
   psiFile: PsiFile,
   parentDisposable: Disposable,
