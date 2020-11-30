@@ -28,6 +28,7 @@ import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapS
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorModel
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Stopwatch
 import com.google.common.base.Ticker
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats
@@ -58,6 +59,35 @@ class TraceProcessorServiceImpl(
     @JvmStatic
     fun getInstance(): TraceProcessorService {
       return ServiceManager.getService(TraceProcessorServiceImpl::class.java)
+    }
+
+    @VisibleForTesting
+    fun buildCpuDataRequestProto(traceId: Long, processIds: List<Int>): QueryBatchRequest {
+      val queryBuilder = QueryBatchRequest.newBuilder()
+        // Query metadata for all processes, as we need the info from everything to reference in the scheduling events.
+        .addQuery(QueryParameters.newBuilder()
+                    .setTraceId(traceId)
+                    .setProcessMetadataRequest(QueryParameters.ProcessMetadataParameters.getDefaultInstance()))
+        // Query scheduling for all processes, as we need it to build the cpu/core data series anyway.
+        .addQuery(QueryParameters.newBuilder()
+                    .setTraceId(traceId)
+                    .setSchedRequest(QueryParameters.SchedulingEventsParameters.getDefaultInstance()))
+        // Query all CPU data.
+        .addQuery(QueryParameters.newBuilder()
+                    .setTraceId(traceId)
+                    .setCpuCoreCountersRequest(QueryParameters.CpuCoreCountersParameters.getDefaultInstance()))
+
+      // Now let's add the queries that we limit for the processes we're interested in:
+      for (id in processIds) {
+        queryBuilder.addQuery(QueryParameters.newBuilder()
+                                .setTraceId(traceId)
+                                .setTraceEventsRequest(QueryParameters.TraceEventsParameters.newBuilder().setProcessId(id.toLong())))
+        queryBuilder.addQuery(QueryParameters.newBuilder()
+                                .setTraceId(traceId)
+                                .setProcessCountersRequest(QueryParameters.ProcessCountersParameters.newBuilder().setProcessId(id.toLong())))
+      }
+
+      return queryBuilder.build()
     }
   }
 
@@ -156,33 +186,11 @@ class TraceProcessorServiceImpl(
 
   override fun loadCpuData(traceId: Long, processIds: List<Int>, tracker: FeatureTracker): SystemTraceModelAdapter {
     val methodStopwatch = Stopwatch.createStarted(ticker)
-    val queryBuilder = QueryBatchRequest.newBuilder()
-      // Query metadata for all processes, as we need the info from everything to reference in the scheduling events.
-      .addQuery(QueryParameters.newBuilder()
-                  .setTraceId(traceId)
-                  .setProcessMetadataRequest(QueryParameters.ProcessMetadataParameters.getDefaultInstance()))
-      // Query scheduling for all processes, as we need it to build the cpu/core data series anyway.
-      .addQuery(QueryParameters.newBuilder()
-                  .setTraceId(traceId)
-                  .setSchedRequest(QueryParameters.SchedulingEventsParameters.getDefaultInstance()))
-      // Query all CPU data.
-      .addQuery(QueryParameters.newBuilder()
-                  .setTraceId(traceId)
-                  .setCpuCoreCountersRequest(QueryParameters.CpuCoreCountersParameters.getDefaultInstance()))
-
-    // Now let's add the queries that we limit for the processes we're interested in:
-    for (id in processIds) {
-      queryBuilder.addQuery(QueryParameters.newBuilder()
-                              .setTraceId(traceId)
-                              .setTraceEventsRequest(QueryParameters.TraceEventsParameters.newBuilder().setProcessId(id.toLong())))
-      queryBuilder.addQuery(QueryParameters.newBuilder()
-                              .setTraceId(traceId)
-                              .setProcessCountersRequest(QueryParameters.ProcessCountersParameters.newBuilder().setProcessId(id.toLong())))
-    }
+    val queryProto = Companion.buildCpuDataRequestProto(traceId, processIds)
 
     LOGGER.info("TPD Service: Querying cpu data for trace $traceId.")
     val queryStopwatch = Stopwatch.createStarted(ticker)
-    val queryResult = executeBatchQuery(traceId, queryBuilder.build(), tracker)
+    val queryResult = executeBatchQuery(traceId, queryProto, tracker)
     queryStopwatch.stop()
     val queryTimeMs = queryStopwatch.elapsed(TimeUnit.MILLISECONDS)
 
