@@ -20,8 +20,6 @@ import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.Mockito
-import java.awt.KeyboardFocusManager
 import javax.swing.JList
 import javax.swing.plaf.basic.BasicComboBoxUI
 
@@ -63,7 +61,7 @@ class CommonComboBoxTest {
     assertThat(comboBox.getClientProperty(OUTLINE_PROPERTY)).isNull()
 
     // Show outline based on the edited text when editing:
-    val editor = acquireFocus()
+    val editor = comboBox.editor.editorComponent as CommonTextField<*>
     editor.text = "Error"
     assertThat(comboBox.getClientProperty(OUTLINE_PROPERTY)).isEqualTo(ERROR_VALUE)
     editor.text = "Warning"
@@ -73,13 +71,5 @@ class CommonComboBoxTest {
 
     // Verify that the model value has not changed:
     assertThat(model.value).isEqualTo("FixedValue")
-  }
-
-  private fun acquireFocus(): CommonTextField<*> {
-    val manager = Mockito.mock(KeyboardFocusManager::class.java)
-    KeyboardFocusManager.setCurrentKeyboardFocusManager(manager)
-    val textField = comboBox.editor.editorComponent as CommonTextField<*>
-    Mockito.`when`(manager.focusOwner).thenReturn(textField)
-    return textField
   }
 }
