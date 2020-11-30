@@ -29,6 +29,6 @@ class CpuProfilerAtraceCaptureTest : CpuProfilerMemoryLoadTestBase() {
     loadCaptureAndReport(
       "Atrace-10-sec",
       CpuProfilerTestUtils.getTraceFile("performance/atrace_10s_tanks.trace"),
-      "system_server", 1193)
+      "com.google.android.tanks", 7366)
   }
 }
