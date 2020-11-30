@@ -51,8 +51,6 @@ final class Updater {
   @Nullable
   private final RunnerAndConfigurationSettings myConfigurationAndSettings;
 
-  private final boolean mySnapshotsEnabled;
-
   static final class Builder {
     @Nullable
     private Project myProject;
@@ -71,8 +69,6 @@ final class Updater {
 
     @Nullable
     private RunnerAndConfigurationSettings myConfigurationAndSettings;
-
-    private boolean mySnapshotsEnabled;
 
     @NotNull
     Builder setProject(@NotNull Project project) {
@@ -111,12 +107,6 @@ final class Updater {
     }
 
     @NotNull
-    Builder setSnapshotsEnabled(boolean snapshotsEnabled) {
-      mySnapshotsEnabled = snapshotsEnabled;
-      return this;
-    }
-
-    @NotNull
     Updater build() {
       return new Updater(this);
     }
@@ -135,9 +125,7 @@ final class Updater {
     myDevicesSelectedService = builder.myDevicesSelectedService;
 
     myDevices = builder.myDevices;
-
     myConfigurationAndSettings = builder.myConfigurationAndSettings;
-    mySnapshotsEnabled = builder.mySnapshotsEnabled;
   }
 
   void update() {
@@ -209,18 +197,21 @@ final class Updater {
   }
 
   private void updateInToolbarForMultipleDevices() {
-    Set<Key> selectedKeys = myDevicesSelectedService.getDeviceKeysSelectedWithDialog();
+    Set<Target> selectedTargets = myDevicesSelectedService.getTargetsSelectedWithDialog();
 
-    Set<Key> keys = myDevices.stream()
+    Set<Target> targets = myDevices.stream()
       .map(Device::getKey)
+      .map(Target::new)
       .collect(Collectors.toSet());
 
-    if (selectedKeys.retainAll(keys)) {
-      myDevicesSelectedService.setDeviceKeysSelectedWithDialog(selectedKeys);
+    if (selectedTargets.retainAll(targets)) {
+      myDevicesSelectedService.setTargetsSelectedWithDialog(selectedTargets);
 
-      if (selectedKeys.isEmpty()) {
+      if (selectedTargets.isEmpty()) {
         myDevicesSelectedService.setMultipleDevicesSelectedInComboBox(false);
-        myDevicesSelectedService.setDeviceSelectedWithComboBox(myDevicesSelectedService.getDeviceSelectedWithComboBox(myDevices));
+
+        Target selectedTarget = myDevicesSelectedService.getTargetSelectedWithComboBox(myDevices).orElse(null);
+        myDevicesSelectedService.setTargetSelectedWithComboBox(selectedTarget);
 
         updateInToolbarForSingleDevice();
         return;
@@ -228,7 +219,7 @@ final class Updater {
     }
 
     myPresentation.setIcon(StudioIcons.DeviceExplorer.MULTIPLE_DEVICES);
-    myPresentation.setText("Multiple Devices (" + selectedKeys.size() + ")");
+    myPresentation.setText("Multiple Devices (" + selectedTargets.size() + ")");
   }
 
   private void updateInToolbarForSingleDevice() {
@@ -239,8 +230,12 @@ final class Updater {
       return;
     }
 
-    Device device = myDevicesSelectedService.getDeviceSelectedWithComboBox(myDevices);
-    assert device != null;
+    Key key = myDevicesSelectedService.getTargetSelectedWithComboBox(myDevices).orElseThrow(AssertionError::new).getDeviceKey();
+
+    Device device = myDevices.stream()
+      .filter(d -> d.matches(key))
+      .findFirst()
+      .orElseThrow(AssertionError::new);
 
     myPresentation.setIcon(device.getIcon());
     myPresentation.setText(getText(device), false);
@@ -248,9 +243,6 @@ final class Updater {
 
   @NotNull
   private String getText(@NotNull Device device) {
-    Key key = Devices.containsAnotherDeviceWithSameName(myDevices, device) ? device.getKey() : null;
-    Snapshot snapshot = mySnapshotsEnabled ? device.getSnapshot() : null;
-
-    return Devices.getText(device, key, snapshot);
+    return Devices.getText(device, Devices.containsAnotherDeviceWithSameName(myDevices, device) ? device.getKey() : null, null);
   }
 }

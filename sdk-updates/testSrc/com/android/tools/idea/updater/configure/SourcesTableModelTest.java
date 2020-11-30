@@ -37,7 +37,6 @@ import com.android.sdklib.repository.sources.RemoteSiteType;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.testFramework.ApplicationRule;
-import java.io.File;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -60,8 +59,8 @@ public class SourcesTableModelTest {
     myModel.setRefreshCallback(() -> {});
     SdkUpdaterConfigurable configurable = mock(SdkUpdaterConfigurable.class);
     MockFileOp fop = new MockFileOp();
-    RepoManager repoManager = new RepoManagerImpl(fop);
-    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), new File("/android"), fop, repoManager);
+    RepoManager repoManager = new RepoManagerImpl();
+    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(fop.toPath("/sdk"), fop.toPath("/android"), fop, repoManager);
     LocalSourceProvider localSourceProvider = sdkHandler.getUserSourceProvider(new FakeProgressIndicator());
     localSourceProvider.getSources(null, new FakeProgressIndicator(), false);
     localSourceProvider.addSource(new SimpleRepositorySource(

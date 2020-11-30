@@ -20,6 +20,7 @@ import com.android.tools.idea.LogAnonymizerUtil.anonymize
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.rendering.RenderService
+import com.android.tools.idea.rendering.classloading.ClassTransform
 import com.android.tools.idea.rendering.classloading.combine
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -31,11 +32,9 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.uipreview.ModuleClassLoader.NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS
 import org.jetbrains.android.uipreview.ModuleClassLoader.PROJECT_DEFAULT_TRANSFORMS
-import org.jetbrains.org.objectweb.asm.ClassVisitor
 import java.lang.IllegalStateException
 import java.util.Collections
 import java.util.WeakHashMap
-import java.util.function.Function.identity
 
 private val DUMMY_HOLDER = Any()
 
@@ -84,25 +83,44 @@ class ModuleClassLoaderManager {
   /**
    * Returns a project class loader to use for rendering. May cache instances across render sessions.
    */
+  @JvmOverloads
   @Synchronized
-  fun getShared(parent: ClassLoader?, module: Module, holder: Any): ModuleClassLoader {
+  fun getShared(parent: ClassLoader?, module: Module, holder: Any,
+                additionalProjectTransformation: ClassTransform = ClassTransform.identity,
+                additionalNonProjectTransformation: ClassTransform = ClassTransform.identity,
+                onNewModuleClassLoader: Runnable = Runnable {}): ModuleClassLoader {
     var moduleClassLoader = cache[module]
+    val combinedProjectTransformations: ClassTransform by lazy {
+      combine(PROJECT_DEFAULT_TRANSFORMS, additionalProjectTransformation)
+    }
+    val combinedNonProjectTransformations: ClassTransform by lazy {
+      combine(PROJECT_DEFAULT_TRANSFORMS, additionalNonProjectTransformation)
+    }
 
     var oldClassLoader: ModuleClassLoader? = null
     if (moduleClassLoader != null) {
-      // We treat the null parent case as a request of the current shared ClassLoader without simply knowing the parent, so do NOT recreate
-      if (parent != null && moduleClassLoader.parent != parent) {
-        LOG.debug("Parent has changed, discarding ModuleClassLoader")
+      val invalidate = when {
+        parent != null && moduleClassLoader.parent != parent -> {
+          LOG.debug("Parent has changed, discarding ModuleClassLoader")
+          true
+        }
+        !moduleClassLoader.isUpToDate -> {
+          LOG.debug("Files have changed, discarding ModuleClassLoader")
+          true
+        }
+        !moduleClassLoader.areTransformationsUpToDate(combinedProjectTransformations, combinedNonProjectTransformations) -> {
+          LOG.debug("Transformations have changed, discarding ModuleClassLoader")
+          true
+        }
+        else -> {
+          LOG.debug("ModuleClassLoader is up to date")
+          false
+        }
+      }
+
+      if (invalidate) {
         oldClassLoader = moduleClassLoader
         moduleClassLoader = null
-      }
-      else if (!moduleClassLoader.isUpToDate) {
-        LOG.debug("Files have changed, discarding ModuleClassLoader")
-        oldClassLoader = moduleClassLoader
-        moduleClassLoader = null
-      }
-      else {
-        LOG.debug("ModuleClassLoader is up to date")
       }
     }
 
@@ -110,9 +128,10 @@ class ModuleClassLoaderManager {
       // Make sure the helper service is initialized
       module.project.getService(ModuleClassLoaderProjectHelperService::class.java)
       LOG.debug { "Loading new class loader for module ${anonymize(module)}" }
-      moduleClassLoader = ModuleClassLoader(parent, module)
+      moduleClassLoader = ModuleClassLoader(parent, module, combinedProjectTransformations, combinedNonProjectTransformations)
       cache[module] = moduleClassLoader
       oldClassLoader?.let { release(it, DUMMY_HOLDER) }
+      onNewModuleClassLoader.run()
     }
 
     holders.computeIfAbsent(moduleClassLoader) { createHoldersSet() }.apply { add(holder) }
@@ -128,8 +147,8 @@ class ModuleClassLoaderManager {
   fun getPrivate(parent: ClassLoader?,
                  module: Module,
                  holder: Any,
-                 additionalProjectTransformation: java.util.function.Function<ClassVisitor, ClassVisitor> = identity(),
-                 additionalNonProjectTransformation: java.util.function.Function<ClassVisitor, ClassVisitor> = identity()): ModuleClassLoader {
+                 additionalProjectTransformation: ClassTransform = ClassTransform.identity,
+                 additionalNonProjectTransformation: ClassTransform = ClassTransform.identity): ModuleClassLoader {
     // Make sure the helper service is initialized
     module.project.getService(ModuleClassLoaderProjectHelperService::class.java)
 

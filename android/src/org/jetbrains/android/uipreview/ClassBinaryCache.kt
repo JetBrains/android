@@ -15,21 +15,35 @@
  */
 package org.jetbrains.android.uipreview
 
-import java.net.URL
-
 /**
  * Interface to record and retrieve class binary data.
  */
 interface ClassBinaryCache {
   /**
    * Return class binary data or null if unknown.
+   *
+   * @param fqcn FQCN for the class
+   * @param transformationId it represents the transformations applied to the class. The same FQCN can be stored more than once
+   *  with different transformations applied.
    */
-  fun get(fqcn: String): ByteArray?
+  fun get(fqcn: String, transformationId: String): ByteArray?
+
+  /**
+   * Return class binary data or null if unknown.
+   *
+   * @param fqcn FQCN for the class
+   */
+  fun get(fqcn: String): ByteArray? = get(fqcn, "")
 
   /**
    * Record class binary [data] with the associated [libraryPath].
    */
-  fun put(fqcn: String, libraryPath: String, data: ByteArray)
+  fun put(fqcn: String, transformationId: String, libraryPath: String, data: ByteArray)
+
+  /**
+   * Record class binary [data] with the associated [libraryPath].
+   */
+  fun put(fqcn: String, libraryPath: String, data: ByteArray) = put(fqcn, "", libraryPath, data)
 
   /**
    * Sets [paths] of the dependencies from which classes are cached.
@@ -39,8 +53,8 @@ interface ClassBinaryCache {
   companion object {
     @JvmField
     val NO_CACHE = object : ClassBinaryCache {
-      override fun get(fqcn: String): ByteArray? = null
-      override fun put(fqcn: String, libraryPath: String, data: ByteArray) { }
+      override fun get(fqcn: String, transformationId: String): ByteArray? = null
+      override fun put(fqcn: String, transformationId: String, libraryPath: String, data: ByteArray) { }
       override fun setDependencies(paths: Collection<String>) { }
     }
   }

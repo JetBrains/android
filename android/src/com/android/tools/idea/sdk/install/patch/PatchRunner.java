@@ -15,21 +15,22 @@
  */
 package com.android.tools.idea.sdk.install.patch;
 
+import com.android.io.CancellableFileIo;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.io.FileOp;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.lang.UrlClassLoader;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
+import java.awt.Component;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
+import java.nio.file.Path;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The Studio side of the integration between studio and the IJ patcher.
@@ -60,21 +61,20 @@ public class PatchRunner {
    */
   private static final String PATCH_GENERATOR_CLASS_NAME = "com.android.tools.idea.sdk.updater.PatchGenerator";
 
-  private final Class myRunnerClass;
-  private final Class myUiBaseClass;
-  private final Class myUiClass;
-  private final Class myGeneratorClass;
+  private final Class<?> myRunnerClass;
+  private final Class<?> myUiBaseClass;
+  private final Class<?> myUiClass;
+  private final Class<?> myGeneratorClass;
   private final File myPatcherJar;
 
   /**
    * Cache of patcher classes. Key is jar file, subkey is class name.
    */
-  private static Map<LocalPackage, PatchRunner> ourCache = ContainerUtil.createWeakMap();
+  private static final Map<LocalPackage, PatchRunner> ourCache = ContainerUtil.createWeakMap();
 
   /**
    * Run the IJ patcher by reflection.
    */
-  @SuppressWarnings("unchecked")
   public boolean run(@NotNull File destination, @NotNull File patchFile, @NotNull ProgressIndicator progress)
     throws RestartRequiredException {
     Object ui;
@@ -139,7 +139,6 @@ public class PatchRunner {
    * @param destination         The patch file to generate.
    * @return {@code true} if the generation succeeded.
    */
-  @SuppressWarnings("unchecked")
   public boolean generatePatch(@Nullable File existingRoot,
                                @NotNull File newRoot,
                                @Nullable String existingDescription,
@@ -168,16 +167,16 @@ public class PatchRunner {
 
   @Nullable
   private static File getPatcherFile(@Nullable LocalPackage patcherPackage, @NotNull FileOp fop) {
-    File patcherFile = patcherPackage == null ? null : new File(patcherPackage.getLocation(), PATCHER_JAR_FN);
-    return patcherFile != null && fop.exists(patcherFile) ? patcherFile : null;
+    Path patcherFile = patcherPackage == null ? null : patcherPackage.getLocation().resolve(PATCHER_JAR_FN);
+    return patcherFile != null && CancellableFileIo.exists(patcherFile) ? fop.toFile(patcherFile) : null;
   }
 
   @VisibleForTesting
   PatchRunner(@NotNull File jarFile,
-              @NotNull Class runnerClass,
-              @NotNull Class uiBaseClass,
-              @NotNull Class uiClass,
-              @NotNull Class generatorClass) {
+              @NotNull Class<?> runnerClass,
+              @NotNull Class<?> uiBaseClass,
+              @NotNull Class<?> uiClass,
+              @NotNull Class<?> generatorClass) {
     myPatcherJar = jarFile;
     myRunnerClass = runnerClass;
     myUiBaseClass = uiBaseClass;
@@ -229,10 +228,10 @@ public class PatchRunner {
           return null;
         }
         ClassLoader loader = getClassLoader(patcherFile);
-        Class runnerClass = Class.forName(RUNNER_CLASS_NAME, true, loader);
-        Class uiBaseClass = Class.forName(UPDATER_UI_CLASS_NAME, true, loader);
-        Class uiClass = Class.forName(REPO_UI_CLASS_NAME, true, loader);
-        Class generatorClass = Class.forName(PATCH_GENERATOR_CLASS_NAME, true, loader);
+        Class<?> runnerClass = Class.forName(RUNNER_CLASS_NAME, true, loader);
+        Class<?> uiBaseClass = Class.forName(UPDATER_UI_CLASS_NAME, true, loader);
+        Class<?> uiClass = Class.forName(REPO_UI_CLASS_NAME, true, loader);
+        Class<?> generatorClass = Class.forName(PATCH_GENERATOR_CLASS_NAME, true, loader);
 
         result = new PatchRunner(patcherFile, runnerClass, uiBaseClass, uiClass, generatorClass);
         ourCache.put(runnerPackage, result);

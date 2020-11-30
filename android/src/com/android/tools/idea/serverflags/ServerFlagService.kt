@@ -18,7 +18,7 @@ package com.android.tools.idea.serverflags
 import com.google.protobuf.Message
 
 interface ServerFlagService {
-  val initialized : Boolean
+  val initialized: Boolean
   val configurationVersion: Long
   val names: List<String>
 
@@ -26,16 +26,16 @@ interface ServerFlagService {
   fun getInt(name: String): Int?
   fun getFloat(name: String): Float?
   fun getBoolean(name: String): Boolean?
+  fun <T : Message> getProtoOrNull(name: String, instance: T): T?
 
   fun getString(name: String, defaultValue: String): String = getString(name) ?: defaultValue
   fun getInt(name: String, defaultValue: Int): Int = getInt(name) ?: defaultValue
   fun getFloat(name: String, defaultValue: Float): Float = getFloat(name) ?: defaultValue
   fun getBoolean(name: String, defaultValue: Boolean): Boolean = getBoolean(name) ?: defaultValue
-
-  fun <T : Message> getProtoMessage(name: String, defaultInstance: T): T
+  fun <T : Message> getProto(name: String, defaultInstance: T) = getProtoOrNull(name, defaultInstance) ?: defaultInstance
 
   companion object {
-    var instance : ServerFlagService = ServerFlagServiceEmpty()
+    var instance: ServerFlagService = ServerFlagServiceEmpty()
       internal set
   }
 }

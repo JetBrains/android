@@ -30,15 +30,6 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
     super.setUp()
     myFixture.stubComposableAnnotation()
     StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
-    myFixture.addFileToProject(
-      "src/androidx/ui/layout/Container.kt",
-      // language=kotlin
-      """
-    package androidx.ui.layout
-
-    class Container
-    """.trimIndent()
-    )
 
     myFixture.addFileToProject(
       "src/androidx/compose/foundation/layout/ColumnAndRow.kt",
@@ -46,9 +37,11 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
     package androidx.compose.foundation.layout
 
-    class Row
-    class Column
-    class Box
+    import androidx.compose.Composable
+
+    inline fun Row(content: @Composable () -> Unit) {}
+    inline fun Column(content: @Composable () -> Unit) {}
+    inline fun Box(content: @Composable () -> Unit) {}
     """.trimIndent()
     )
   }
@@ -81,7 +74,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
 
     WriteCommandAction.runWriteCommandAction(myFixture.project, Runnable {
       // Within unit tests ListPopupImpl.showInBestPositionFor doesn't open popup and acts like fist item was selected.
-      // In our case wrap in Container will be selected.
+      // In our case wrap in Box will be selected.
       action!!.invoke(myFixture.project, myFixture.editor, myFixture.file)
     })
 
@@ -105,7 +98,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
-  fun testSurroundWithContainer() {
+  fun testSurroundWithBox() {
 
     myFixture.loadNewFile(
       "src/com/example/Test.kt",
@@ -125,7 +118,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
     )
 
     WriteCommandAction.runWriteCommandAction(myFixture.project, Runnable {
-      ComposeSurroundWithContainerAction().invoke(myFixture.project, myFixture.editor, myFixture.file)
+      ComposeSurroundWithBoxAction().invoke(myFixture.project, myFixture.editor, myFixture.file)
     })
 
     myFixture.checkResult(

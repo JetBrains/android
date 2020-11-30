@@ -89,7 +89,7 @@ public class SdksCleanupStepTest extends PlatformTestCase {
       assertThat(urls).asList().containsExactly("http://developer.android.com/reference/");
 
       // Simulate the case that sources are installed after the initial sync.
-      createDirectory(new File(mockJdkHome, join(FD_PKG_SOURCES, new File(target.getPath(IAndroidTarget.SOURCES)).getName())));
+      createDirectory(new File(mockJdkHome, join(FD_PKG_SOURCES, target.getPath(IAndroidTarget.SOURCES).getFileName().toString())));
       updateSdkIfNeeded(spy, AndroidSdks.getInstance(), target);
 
       // Verify that Javadoc is set to empty since sources are now available.

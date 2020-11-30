@@ -122,7 +122,7 @@ public final class SelectMultipleDevicesDialogTest {
     Clock clock = Clock.fixed(Instant.parse("2018-11-28T01:15:27Z"), ZoneId.of("America/Los_Angeles"));
 
     DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(), project -> properties, clock, () -> false);
-    service.setDeviceKeysSelectedWithDialog(Collections.singleton(key));
+    service.setTargetsSelectedWithDialog(Collections.singleton(new Target(key)));
 
     initDialog(() -> false, new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device)), project -> service);
 
@@ -163,7 +163,7 @@ public final class SelectMultipleDevicesDialogTest {
     TableModel model = new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device));
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
-    Mockito.when(service.getDeviceKeysSelectedWithDialog()).thenReturn(Collections.singleton(key));
+    Mockito.when(service.getTargetsSelectedWithDialog()).thenReturn(Collections.singleton(new Target(key)));
 
     // Act
     initDialog(() -> true, model, project -> service);

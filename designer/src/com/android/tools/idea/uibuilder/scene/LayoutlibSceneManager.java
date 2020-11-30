@@ -55,6 +55,7 @@ import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
@@ -114,7 +115,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.ide.PooledThreadExecutor;
-import org.jetbrains.org.objectweb.asm.ClassVisitor;
 
 /**
  * {@link SceneManager} that creates a Scene from an NlModel representing a layout using layoutlib.
@@ -211,12 +211,19 @@ public class LayoutlibSceneManager extends SceneManager {
   /**
    * Additional bytecode transform to apply to project classes when loaded.
    */
-  private Function<ClassVisitor, ClassVisitor> myAdditionalProjectTransform = Function.identity();
+  private ClassTransform myAdditionalProjectTransform = ClassTransform.getIdentity();
 
   /**
    * Additional bytecode transform to apply to non project classes when loaded.
    */
-  private Function<ClassVisitor, ClassVisitor> myAdditionalNonProjectTransform = Function.identity();
+  private ClassTransform myAdditionalNonProjectTransform = ClassTransform.getIdentity();
+
+  /**
+   * Handler called when a new class loader has been instantiated. This allows resetting some state that
+   * might be specific to the classes currently loaded.
+   */
+  @NotNull
+  private Runnable myOnNewModuleClassLoader = () -> {};
 
   /**
    * When true, this will force the current {@link RenderTask} to be disposed and re-created on the next render. This will also
@@ -1069,7 +1076,8 @@ public class LayoutlibSceneManager extends SceneManager {
 
     taskBuilder
       .setProjectClassesTransform(myAdditionalProjectTransform)
-      .setNonProjectClassesTransform(myAdditionalNonProjectTransform);
+      .setNonProjectClassesTransform(myAdditionalNonProjectTransform)
+      .setOnNewClassLoader(myOnNewModuleClassLoader);
 
     return taskBuilder;
   }
@@ -1507,18 +1515,20 @@ public class LayoutlibSceneManager extends SceneManager {
 
   /**
    * Executes the given {@link Runnable} callback synchronously. Then calls {@link #executeCallbacks()} and requests render afterwards.
+   * Returns true if the callback was executed successfully and on time, and the render was requested.
    */
-  public CompletableFuture<Void> executeCallbacksAndRequestRender(@Nullable Runnable callback) {
+  public boolean executeCallbacksAndRequestRender(@Nullable Runnable callback) {
     try {
       if (callback != null) {
         RenderService.getRenderAsyncActionExecutor()
-          .runAsyncActionWithTimeout(30, TimeUnit.MILLISECONDS, Executors.callable(callback)).get();
+          .runAsyncActionWithTimeout(30, TimeUnit.MILLISECONDS, Executors.callable(callback)).get(30, TimeUnit.MILLISECONDS);
       }
-      return executeCallbacks().thenCompose(b -> requestRender());
+      executeCallbacks().thenCompose(b -> requestRender());
+      return true;
     }
     catch (Exception e) {
       Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacksAndRequestRender did not complete successfully", e);
-      return CompletableFuture.completedFuture(null);
+      return false;
     }
   }
 
@@ -1562,7 +1572,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * Sets an additional Java bytecode transformation to be applied to the loaded project classes.
    */
   @NotNull
-  public void setProjectClassesTransform(@NotNull Function<ClassVisitor, ClassVisitor> transform) {
+  public void setProjectClassesTransform(@NotNull ClassTransform transform) {
     myAdditionalProjectTransform = transform;
   }
 
@@ -1570,8 +1580,16 @@ public class LayoutlibSceneManager extends SceneManager {
    * Sets an additional Java bytecode transformation to be applied to the loaded non project classes.
    */
   @NotNull
-  public void setNonProjectClassesTransform(@NotNull Function<ClassVisitor, ClassVisitor> transform) {
+  public void setNonProjectClassesTransform(@NotNull ClassTransform transform) {
     myAdditionalNonProjectTransform = transform;
+  }
+
+  /**
+   * Sets a callback to be notified when a new class loader has been instantiated.
+   */
+  @NotNull
+  public void setOnNewClassLoader(@NotNull Runnable runnable) {
+    myOnNewModuleClassLoader = runnable;
   }
 
   @Override

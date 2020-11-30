@@ -48,7 +48,11 @@ import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toPathString
 import com.android.utils.reflection.qualifiedName
 import com.google.common.collect.ImmutableList
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.fileEditor.impl.LoadTextUtil.getTextByBinaryPresentation
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbService
@@ -62,14 +66,20 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.text.nullize
-import org.jetbrains.android.dom.manifest.cachedValueFromPrimaryManifest
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.util.AndroidUtils
+import org.kxml2.io.KXmlParser
+import org.xmlpull.v1.XmlPullParser
+import java.io.StringReader
+import java.nio.file.Path
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
-private val PACKAGE_NAME = Key.create<CachedValue<String?>>("merged.manifest.package.name")
+private val PACKAGE_NAME_KEY = Key.create<CachedValue<String?>>("main.manifest.package.name")
 private val LOG: Logger get() = Logger.getInstance("DefaultModuleSystem.kt")
 
 /** Creates a map for the given pairs, filtering out null values. */
@@ -133,6 +143,8 @@ class DefaultModuleSystem(override val module: Module) :
 
     return null
   }
+
+  override fun getDependencyPath(coordinate: GradleCoordinate): Path? = null
 
   // We don't offer maven artifact support for JPS projects because there aren't any use cases that requires this feature.
   // JPS also import their dependencies as modules and don't translate very well to the original maven artifacts.
@@ -198,43 +210,12 @@ class DefaultModuleSystem(override val module: Module) :
   }
 
   override fun getPackageName(): String? {
-    val facet = AndroidFacet.getInstance(module) ?: return null
-    var rawPackageName: String? = null
-
-    if (AndroidManifestIndex.indexEnabled()) {
-      rawPackageName = DumbService.getInstance(module.project)
-        .runReadActionInSmartMode(Computable { getPackageNameFromIndex(facet) })
-    }
-
-    return rawPackageName ?: getPackageNameByParsingPrimaryManifest(facet)
+    return getPackageName(module)
   }
 
   override fun getNotRuntimeConfigurationSpecificApplicationIdProviderForLegacyUse(): ApplicationIdProvider {
     return NonGradleApplicationIdProvider(
       AndroidFacet.getInstance(module) ?: throw IllegalStateException("Cannot find AndroidFacet. Module: ${module.name}"))
-  }
-
-  private fun getPackageNameByParsingPrimaryManifest(facet: AndroidFacet): String? {
-    val cachedValue = facet.cachedValueFromPrimaryManifest {
-      packageName.nullize(true)
-    }
-    return facet.putUserDataIfAbsent(PACKAGE_NAME, cachedValue).value
-  }
-
-  private fun getPackageNameFromIndex(facet: AndroidFacet): String? {
-    if (DumbService.isDumb(module.project)) {
-      return null
-    }
-    return try {
-      facet.queryPackageNameFromManifestIndex()
-    }
-    catch (e: IndexNotReadyException) {
-      // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
-      //  We need to refactor the callers of this to require a *smart*
-      //  read action, at which point we can remove this try-catch.
-      LOG.debug(e)
-      null
-    }
   }
 
   override fun getManifestOverrides(): ManifestOverrides {
@@ -301,4 +282,73 @@ private class UserData<T>(
     val facet = thisRef.module.androidFacet ?: error("Not an Android module")
     facet.putUserData(key, value)
   }
+}
+
+fun getPackageName(module: Module): String? {
+  val facet = AndroidFacet.getInstance(module) ?: return null
+  var rawPackageName: String? = null
+
+  if (AndroidManifestIndex.indexEnabled()) {
+    rawPackageName = DumbService.getInstance(module.project)
+      .runReadActionInSmartMode(Computable { getPackageNameFromIndex(facet) })
+  }
+
+  return rawPackageName ?: getPackageNameByParsingPrimaryManifest(facet)
+}
+
+private fun getPackageNameFromIndex(facet: AndroidFacet): String? {
+  if (DumbService.isDumb(facet.module.project)) {
+    return null
+  }
+  return try {
+    facet.queryPackageNameFromManifestIndex()
+  }
+  catch (e: IndexNotReadyException) {
+    // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+    //                  We need to refactor the callers of this to require a *smart* read
+    //                  action, at which point we can remove this try-catch.
+    LOG.debug(e)
+    null
+  }
+}
+
+private fun getPackageNameByParsingPrimaryManifest(facet: AndroidFacet): String? {
+  val manifestFile = SourceProviderManager.getInstance(facet).mainManifestFile ?: return null
+  val cachedValue: CachedValue<String?> = CachedValuesManager.getManager(facet.module.project).createCachedValue {
+    val packageName = readPackageNameFromManifest(manifestFile)
+    return@createCachedValue CachedValueProvider.Result.create(packageName, manifestFile)
+  }
+  return facet.putUserDataIfAbsent(PACKAGE_NAME_KEY, cachedValue).value
+}
+
+private fun readPackageNameFromManifest(manifestFile: VirtualFile): String? {
+  try {
+    val parser = KXmlParser().apply {
+      setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true)
+      setInput(StringReader(runCancellableReadAction { getText(manifestFile) }))
+    }
+    if (parser.nextTag() == XmlPullParser.START_TAG) {
+      return parser.getAttributeValue(null, "package").nullize(nullizeSpaces = true)
+    }
+  }
+  catch (e: Exception) {
+    LOG.warn(e)
+  }
+  return null
+}
+
+/**
+ * Returns potentially unsaved contents of [manifestFile].
+ */
+private fun getText(manifestFile: VirtualFile): String {
+  val document = FileDocumentManager.getInstance().getCachedDocument(manifestFile)
+                 ?: return getTextByBinaryPresentation(manifestFile.contentsToByteArray(), manifestFile).toString()
+  return document.text
+}
+
+private fun <T> runCancellableReadAction(computable: Computable<T>): T {
+  if (ApplicationManager.getApplication().isReadAccessAllowed) {
+    return computable.compute()
+  }
+  return ReadAction.nonBlocking(computable::compute).executeSynchronously()
 }

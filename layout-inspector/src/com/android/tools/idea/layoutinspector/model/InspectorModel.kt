@@ -41,6 +41,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
 
   @Suppress("unused")
   private val memoryProbe = InspectorMemoryProbe(this)
+  private val idLookup = mutableMapOf<Long, ViewNode>()
 
   var selection: ViewNode? by Delegates.observable(null as ViewNode?) { _, old, new ->
     if (new != old) {
@@ -69,7 +70,12 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   /**
    * Get a ViewNode by drawId
    */
-  override operator fun get(id: Long) = root.flatten().find { it.drawId == id }
+  override operator fun get(id: Long): ViewNode? {
+    if (idLookup.isEmpty()) {
+      root.flatten().forEach { idLookup[it.drawId] = it }
+    }
+    return idLookup[id]
+  }
 
   /**
    * Get a ViewNode by viewId name
@@ -148,6 +154,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
 
     updateRoot(allIds)
     lastGeneration = generation
+    idLookup.clear()
     updating = false
     modificationListeners.forEach { it(oldWindow, windows[newWindow?.id], structuralChange) }
   }

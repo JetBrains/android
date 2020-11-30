@@ -35,14 +35,13 @@ import com.android.tools.idea.tests.gui.uibuilder.RenderTaskLeakCheckRule
 import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import icons.StudioIcons
-import junit.framework.TestCase.assertFalse
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.exception.ComponentLookupException
 import org.fest.swing.fixture.JPopupMenuFixture
 import org.fest.swing.timing.Wait
 import org.fest.swing.util.PatternTextMatcher
 import org.junit.After
-import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -236,7 +235,7 @@ class ComposePreviewTest {
 
     // Commented until b/156216008 is solved
     //assertFalse(composePreview.hasRenderErrors())
-    assertEquals(1, composePreview.designSurface.allSceneViews.count())
+    composePreview.waitForSceneViewsCount(1)
 
     val editor = fixture.editor
     editor.invokeAction(EditorFixture.EditorAction.TEXT_END)
@@ -265,7 +264,7 @@ class ComposePreviewTest {
     composePreview.waitForRenderToFinish()
 
     // Check the new preview has been added
-    assertEquals(2, composePreview.designSurface.allSceneViews.count())
+    composePreview.waitForSceneViewsCount(2)
 
     editor.close()
   }
@@ -276,9 +275,7 @@ class ComposePreviewTest {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
     val composePreview = openComposePreview(fixture, "MultipleComposePreviews.kt")
 
-    assertEquals(3, composePreview.designSurface
-      .allSceneViews
-      .size)
+    composePreview.waitForSceneViewsCount(3)
 
     composePreview.designSurface
       .allSceneViews
@@ -289,9 +286,7 @@ class ComposePreviewTest {
     composePreview
       .waitForRenderToFinish()
 
-    assertEquals(1, composePreview.designSurface
-      .allSceneViews
-      .size)
+    composePreview.waitForSceneViewsCount(1)
 
     composePreview
       .findActionButtonByText("Stop Interactive Preview")
@@ -300,15 +295,13 @@ class ComposePreviewTest {
     composePreview
       .waitForRenderToFinish()
 
-    assertEquals(3, composePreview.designSurface
-      .allSceneViews
-      .size)
+    composePreview.waitForSceneViewsCount(3)
 
     fixture.editor.close()
   }
 
   @Test
-  @Ignore // TODO(b/172894609): AnimationDemo is not detected as animation
+  @Ignore("b/172894609") // The test is broken because of the zoom levels issue (b/174145654)
   @Throws(Exception::class)
   fun testAnimationButtonWhileInteractiveSwitch() {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
@@ -319,8 +312,8 @@ class ComposePreviewTest {
         .allSceneViews
         .first()
         .toolbar()
-        .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
-    assertTrue(animButton.isEnabled)
+        .findButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
+    assertNotNull(animButton)
 
     composePreview.designSurface
       .allSceneViews
@@ -336,9 +329,9 @@ class ComposePreviewTest {
         .allSceneViews
         .first()
         .toolbar()
-        .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
+        .findButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
     // Animation inspector can't be open for a preview if it's in interactive mode.
-    assertFalse(animButton.isEnabled)
+    assertNull(animButton)
 
     composePreview
       .findActionButtonByText("Stop Interactive Preview")
@@ -352,15 +345,16 @@ class ComposePreviewTest {
         .allSceneViews
         .first()
         .toolbar()
-        .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
+        .findButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
     // Animation inspector can be open again after exiting interactive mode.
-    assertTrue(animButton.isEnabled)
+    assertNotNull(animButton)
 
     fixture.editor.close()
   }
 
   @Test
   @RunIn(TestGroup.UNRELIABLE) // b/160776556
+  @Ignore("b/172894609") // The test is broken because of the zoom levels issue (b/174145654)
   @Throws(Exception::class)
   fun testAnimationInspector() {
     fun SplitEditorFixture.findAnimationInspector() =
@@ -374,22 +368,19 @@ class ComposePreviewTest {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
     val composePreview = openComposePreview(fixture, "Animations.kt")
 
-    assertEquals(2, composePreview.designSurface
-      .allSceneViews
-      .size)
+    composePreview.waitForSceneViewsCount(2)
 
     composePreview.designSurface
       .allSceneViews
       .first()
       .toolbar()
-      .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR).click()
+      .findButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
+      .click()
 
     composePreview
       .waitForRenderToFinish()
 
-    assertEquals(1, composePreview.designSurface
-      .allSceneViews
-      .size)
+    composePreview.waitForSceneViewsCount(1)
 
     assertNotNull(composePreview.findAnimationInspector())
 
@@ -397,14 +388,12 @@ class ComposePreviewTest {
       .allSceneViews
       .first()
       .toolbar()
-      .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR).click()
+      .findButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
+      .click()
 
-    composePreview
-      .waitForRenderToFinish()
+    composePreview.waitForRenderToFinish()
 
-    assertEquals(2, composePreview.designSurface
-      .allSceneViews
-      .size)
+    composePreview.waitForSceneViewsCount(2)
 
     assertNull(composePreview.findAnimationInspector())
 
@@ -413,6 +402,7 @@ class ComposePreviewTest {
 
   @Test
   @RunIn(TestGroup.UNRELIABLE) // b/160776556
+  @Ignore("b/172894609") // This test should check that opening animation preview in one file closes the one in another file if it's open.
   @Throws(Exception::class)
   fun testOnlyOneAnimationInspectorCanBeOpen() {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
@@ -423,7 +413,7 @@ class ComposePreviewTest {
       .allSceneViews
       .first()
       .toolbar()
-      .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
+      .findButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
 
     var interactivePreviewButton =
       composePreview.designSurface
@@ -442,7 +432,7 @@ class ComposePreviewTest {
         .allSceneViews
         .first()
         .toolbar()
-        .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
+        .findButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
     assertTrue(animButton.isEnabled)
 
     interactivePreviewButton =
@@ -461,7 +451,7 @@ class ComposePreviewTest {
         .allSceneViews
         .first()
         .toolbar()
-        .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
+        .findButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
 
     // The button should be disabled, as the animation inspector is open in Animations.kt
     assertFalse(animButton.isEnabled)
@@ -485,7 +475,7 @@ class ComposePreviewTest {
         .allSceneViews
         .first()
         .toolbar()
-        .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
+        .findButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
         .isEnabled
     }
 

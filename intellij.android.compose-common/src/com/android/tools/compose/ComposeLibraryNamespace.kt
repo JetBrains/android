@@ -59,6 +59,9 @@ enum class ComposeLibraryNamespace(val packageName: String) {
 
   /** Annotation FQN for `Preview` annotated parameters. */
   val previewParameterAnnotationName = "$previewPackage.PreviewParameter"
+
+  /** FqName of @Composable function that loads a string resource. **/
+  val stringResourceFunctionFqName = "$packageName.res.stringResource"
 }
 
 /** Only composables with this annotations will be rendered to the surface. */

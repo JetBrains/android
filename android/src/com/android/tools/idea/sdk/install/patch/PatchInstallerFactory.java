@@ -91,7 +91,7 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
       // Uninstall case. Only useful on windows, since it locks in-use files.
       if (fop.isWindows()) {
         try {
-          if (FileUtilKt.recursiveSize(fop.toPath(((LocalPackage)p).getLocation())) >= PSEUDO_PATCH_CUTOFF) {
+          if (FileUtilKt.recursiveSize(((LocalPackage)p).getLocation()) >= PSEUDO_PATCH_CUTOFF) {
             // Don't pseudo-patch if the file is too big.
             return false;
           }

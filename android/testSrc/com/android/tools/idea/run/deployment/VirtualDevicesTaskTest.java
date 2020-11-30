@@ -57,7 +57,6 @@ public final class VirtualDevicesTaskTest {
     AsyncSupplier<Collection<VirtualDevice>> task = new VirtualDevicesTask.Builder()
       .setExecutorService(MoreExecutors.newDirectExecutorService())
       .setGetAvds(() -> avds)
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> false)
       .setFileSystem(myFileSystem)
       .setNewLaunchableAndroidDevice(avd -> myAndroidDevice)
       .build();
@@ -88,7 +87,6 @@ public final class VirtualDevicesTaskTest {
     AsyncSupplier<Collection<VirtualDevice>> task = new VirtualDevicesTask.Builder()
       .setExecutorService(MoreExecutors.newDirectExecutorService())
       .setGetAvds(() -> avds)
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
       .setFileSystem(myFileSystem)
       .setNewLaunchableAndroidDevice(avd -> myAndroidDevice)
       .build();
@@ -97,24 +95,15 @@ public final class VirtualDevicesTaskTest {
     Future<Collection<VirtualDevice>> future = task.get();
 
     // Assert
-    Object device1 = new VirtualDevice.Builder()
+    Object device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
       .setKey(new VirtualDevicePath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd"))
       .setAndroidDevice(myAndroidDevice)
       .setNameKey(new VirtualDeviceName("Pixel_4_API_30"))
+      .addSnapshot(new Snapshot(myFileSystem.getPath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd/snapshots/default_boot")))
       .build();
 
-    Object device2 = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(new VirtualDevicePathAndSnapshotPath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd",
-                                                   "/home/juancnuno/.android/avd/Pixel_4_API_30.avd/snapshots/default_boot"))
-      .setAndroidDevice(myAndroidDevice)
-      .setNameKey(new VirtualDeviceNameAndSnapshotPath("Pixel_4_API_30",
-                                                       "/home/juancnuno/.android/avd/Pixel_4_API_30.avd/snapshots/default_boot"))
-      .setSnapshot(new Snapshot(myFileSystem.getPath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd/snapshots/default_boot")))
-      .build();
-
-    assertEquals(Arrays.asList(device1, device2), future.get());
+    assertEquals(Collections.singletonList(device), future.get());
   }
 
   private static @NotNull AvdInfo mockAvd(@NotNull @SuppressWarnings("SameParameterValue") String displayName,
@@ -135,7 +124,6 @@ public final class VirtualDevicesTaskTest {
     VirtualDevicesTask task = new VirtualDevicesTask.Builder()
       .setExecutorService(MoreExecutors.newDirectExecutorService())
       .setGetAvds(Collections::emptyList)
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> false)
       .setFileSystem(myFileSystem)
       .setNewLaunchableAndroidDevice(avd -> myAndroidDevice)
       .build();
@@ -155,7 +143,6 @@ public final class VirtualDevicesTaskTest {
     VirtualDevicesTask task = new VirtualDevicesTask.Builder()
       .setExecutorService(MoreExecutors.newDirectExecutorService())
       .setGetAvds(Collections::emptyList)
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> false)
       .setFileSystem(myFileSystem)
       .setNewLaunchableAndroidDevice(avd -> myAndroidDevice)
       .build();
@@ -176,7 +163,6 @@ public final class VirtualDevicesTaskTest {
     VirtualDevicesTask task = new VirtualDevicesTask.Builder()
       .setExecutorService(MoreExecutors.newDirectExecutorService())
       .setGetAvds(Collections::emptyList)
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> false)
       .setFileSystem(myFileSystem)
       .setNewLaunchableAndroidDevice(avd -> myAndroidDevice)
       .build();
@@ -200,7 +186,6 @@ public final class VirtualDevicesTaskTest {
     VirtualDevicesTask task = new VirtualDevicesTask.Builder()
       .setExecutorService(MoreExecutors.newDirectExecutorService())
       .setGetAvds(Collections::emptyList)
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> false)
       .setFileSystem(myFileSystem)
       .setNewLaunchableAndroidDevice(avd -> myAndroidDevice)
       .build();

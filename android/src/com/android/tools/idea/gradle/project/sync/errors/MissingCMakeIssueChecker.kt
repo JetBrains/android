@@ -20,6 +20,7 @@ import com.android.repository.Revision
 import com.android.repository.api.LocalPackage
 import com.android.repository.api.RemotePackage
 import com.android.repository.api.RepoManager
+import com.android.repository.io.FileOp
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.InstallCmakeQuickFix
@@ -199,7 +200,8 @@ open class MissingCMakeIssueChecker : GradleIssueChecker {
   private fun getAlreadyInstalled(cmakePackages: Collection<LocalPackage>, cmakeVersion: Revision): File? {
     for (localCmakePackage in cmakePackages) {
       if (localCmakePackage.version == cmakeVersion) {
-        return localCmakePackage.location
+        val fileOp = AndroidSdks.getInstance().tryToChooseSdkHandler().fileOp
+        return fileOp.toFile(localCmakePackage.location)
       }
     }
     return null

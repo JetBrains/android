@@ -161,7 +161,6 @@
                              displayName="Memory Settings"
                              provider="com.android.tools.idea.memorysettings.MemorySettingsConfigurableProvider"
                              id="memory.settings"/>
-    <project.converterProvider implementation="com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationConverterProvider"/>
 
     <statistic.eventLog.eventLoggerProvider implementation="com.android.tools.idea.stats.AndroidStudioStatisticsEventLoggerProvider"/>
   </extensions>

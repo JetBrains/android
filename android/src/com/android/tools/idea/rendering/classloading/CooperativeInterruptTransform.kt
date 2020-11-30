@@ -33,11 +33,12 @@ private fun java.lang.reflect.Method.toMethodType(): Method = Method(name, Type.
 class CooperativeInterruptTransform(delegate: ClassVisitor,
                                     private val checkPercentage: Int = 1,
                                     private val shouldInstrument: (String, String) -> Boolean = { _, _ -> true }) :
-  ClassVisitor(Opcodes.ASM7, delegate) {
+  ClassVisitor(Opcodes.ASM7, delegate), ClassVisitorUniqueIdProvider {
   init {
     if (checkPercentage !in 1..100) throw IllegalArgumentException("checkPercentage must be in [1, 100]")
   }
 
+  override val uniqueId: String = "${CooperativeInterruptTransform::className},$checkPercentage,$shouldInstrument"
   private val loopBreakerType = Type.getType(LoopBreaker::class.java)
   private val loopCheckMethod = LoopBreaker::checkLoop.javaMethod!!.toMethodType()
   private val threadLocalRandomType = Type.getType(ThreadLocalRandom::class.java)

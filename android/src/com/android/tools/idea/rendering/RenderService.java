@@ -31,6 +31,7 @@ import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
+import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
@@ -66,7 +67,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-import org.jetbrains.org.objectweb.asm.ClassVisitor;
 
 /**
  * The {@link RenderService} provides rendering and layout information for Android layouts. This is a wrapper around the layout library.
@@ -385,12 +385,19 @@ public class RenderService implements Disposable {
     /**
      * Additional bytecode transform to apply to project classes when loaded.
      */
-    private Function<ClassVisitor, ClassVisitor> myAdditionalProjectTransform = Function.identity();
+    private ClassTransform myAdditionalProjectTransform = ClassTransform.getIdentity();
 
     /**
      * Additional bytecode transform to apply to non project classes when loaded.
      */
-    private Function<ClassVisitor, ClassVisitor> myAdditionalNonProjectTransform = Function.identity();
+    private ClassTransform myAdditionalNonProjectTransform = ClassTransform.getIdentity();
+
+    /**
+     * Handler called when a new class loader has been instantiated. This allows resetting some state that
+     * might be specific to the classes currently loaded.
+     */
+    @NotNull
+    private Runnable myOnNewModuleClassLoader = () -> {};
 
     private RenderTaskBuilder(@NotNull RenderService service,
                               @NotNull AndroidFacet facet,
@@ -540,7 +547,7 @@ public class RenderService implements Disposable {
      * Sets an additional Java bytecode transformation to be applied to the loaded project classes.
      */
     @NotNull
-    public RenderTaskBuilder setProjectClassesTransform(@NotNull Function<ClassVisitor, ClassVisitor> transform) {
+    public RenderTaskBuilder setProjectClassesTransform(@NotNull ClassTransform transform) {
       myAdditionalProjectTransform = transform;
       return this;
     }
@@ -549,8 +556,17 @@ public class RenderService implements Disposable {
      * Sets an additional Java bytecode transformation to be applied to the loaded non project classes.
      */
     @NotNull
-    public RenderTaskBuilder setNonProjectClassesTransform(@NotNull Function<ClassVisitor, ClassVisitor> transform) {
+    public RenderTaskBuilder setNonProjectClassesTransform(@NotNull ClassTransform transform) {
       myAdditionalNonProjectTransform = transform;
+      return this;
+    }
+
+    /**
+     * Sets a callback to be notified when a new class loader has been instantiated.
+     */
+    @NotNull
+    public RenderTaskBuilder setOnNewClassLoader(@NotNull Runnable runnable) {
+      myOnNewModuleClassLoader = runnable;
       return this;
     }
 
@@ -614,7 +630,7 @@ public class RenderService implements Disposable {
             new RenderTask(myFacet, myService, myConfiguration, myLogger, layoutLib,
                            device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myDownscaleFactor, stackTraceCaptureElement, myManifestProvider,
-                           privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform);
+                           privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader);
           if (myPsiFile instanceof XmlFile) {
             task.setXmlFile((XmlFile)myPsiFile);
           }

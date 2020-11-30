@@ -44,6 +44,7 @@ import static java.nio.file.StandardOpenOption.WRITE;
 
 import com.android.SdkConstants;
 import com.android.ddmlib.IDevice;
+import com.android.io.CancellableFileIo;
 import com.android.prefs.AndroidLocation;
 import com.android.prefs.AndroidLocation.AndroidLocationException;
 import com.android.repository.Revision;
@@ -52,7 +53,6 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
-import com.android.repository.io.impl.FileSystemFileOp;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Abi;
@@ -190,7 +190,7 @@ public class AvdManagerConnection {
 
   @NotNull
   public synchronized static AvdManagerConnection getAvdManagerConnection(@NotNull AndroidSdkHandler handler) {
-    File sdkPath = handler.getLocation();
+    File sdkPath = handler.getFileOp().toFile(handler.getLocation());
     if (!ourCache.containsKey(sdkPath)) {
       ourCache.put(sdkPath, ourConnectionFactory.apply(handler));
     }
@@ -258,11 +258,11 @@ public class AvdManagerConnection {
     if (sdkPackage == null) {
       return null;
     }
-    File binaryFile = new File(sdkPackage.getLocation(), filename);
-    if (!myFileOp.exists(binaryFile)) {
+    Path binaryFile = sdkPackage.getLocation().resolve(filename);
+    if (CancellableFileIo.notExists(binaryFile)) {
       return null;
     }
-    return binaryFile;
+    return myFileOp.toFile(binaryFile);
   }
 
   @Nullable
@@ -430,7 +430,7 @@ public class AvdManagerConnection {
     String skinPath = info.getProperties().get(AVD_INI_SKIN_PATH);
     if (skinPath != null) {
       FileSystem fileSystem =
-        myFileOp instanceof FileSystemFileOp ? ((FileSystemFileOp)myFileOp).getFileSystem() : FileSystems.getDefault();
+        myFileOp instanceof FileOp ? ((FileOp)myFileOp).getFileSystem() : FileSystems.getDefault();
 
       DeviceSkinUpdater.updateSkins(fileSystem.getPath(skinPath).getFileName(), null, fileSystem);
     }

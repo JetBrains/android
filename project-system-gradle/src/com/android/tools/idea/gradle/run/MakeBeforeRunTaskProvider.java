@@ -61,7 +61,6 @@ import com.android.tools.idea.run.PreferGradleMake;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.stats.RunStats;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
-import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
@@ -628,11 +627,6 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @NotNull
   private Module[] getModules(@Nullable DataContext context, @Nullable RunConfiguration configuration) {
     if (configuration instanceof ModuleRunProfile) {
-      // If running JUnit tests for "whole project", all the modules should be compiled, but getModules() return an empty array.
-      // See http://b.android.com/230678
-      if (configuration instanceof AndroidJUnitConfiguration) {
-        return ((AndroidJUnitConfiguration)configuration).getModulesToCompile();
-      }
       // ModuleBasedConfiguration includes Android and JUnit run configurations, including "JUnit: Rerun Failed Tests",
       // which is AbstractRerunFailedTestsAction.MyRunProfile.
       return ((ModuleRunProfile)configuration).getModules();

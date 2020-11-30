@@ -21,7 +21,6 @@ import static com.android.SdkConstants.FD_PKG_SOURCES;
 import static com.android.SdkConstants.FD_SOURCES;
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
 import static com.android.sdklib.IAndroidTarget.RESOURCES;
-import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refreshAndFindFileByIoFile;
@@ -69,6 +68,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.serviceContainer.NonInjectable;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -313,7 +313,7 @@ public class AndroidSdks {
    */
   @Nullable
   public File findPlatformSources(@NotNull IAndroidTarget target) {
-    String path = target.getPath(IAndroidTarget.SOURCES);
+    String path = target.getPath(IAndroidTarget.SOURCES).toString();
     if (path != null) {
       File platformSource = new File(path);
       if (platformSource.isDirectory()) {
@@ -371,7 +371,7 @@ public class AndroidSdks {
       }
     }
 
-    String resFolderPath = target.getPath(RESOURCES);
+    String resFolderPath = target.getPath(RESOURCES).toString();
     VirtualFile resFolder = findFileInLocalFileSystem(resFolderPath);
     if (resFolder != null) {
       result.add(new OrderRoot(resFolder, CLASSES));
@@ -428,10 +428,10 @@ public class AndroidSdks {
   }
 
   @Nullable
-  private static VirtualFile getRoot(@NotNull OptionalLibrary library) {
-    File jar = library.getJar();
+  private VirtualFile getRoot(@NotNull OptionalLibrary library) {
+    Path jar = library.getJar();
     if (jar != null) {
-      return findFileInJarFileSystem(jar);
+      return findFileInJarFileSystem(mySdkData.getSdkHandler().getFileOp().toFile(jar));
     }
     return null;
   }

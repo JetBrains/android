@@ -90,8 +90,7 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
     override fun getLastSyncResult() = SyncResult.SUCCESS
   }
 
-  override fun getBuildManager(): ProjectSystemBuildManager =
-    throw UnsupportedOperationException("ProjectSystemBuildManager is not supported by the DefaultProjectSystem")
+  override fun getBuildManager(): ProjectSystemBuildManager = DefaultBuildManager
 
   override val projectSystem = this
 

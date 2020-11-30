@@ -241,7 +241,7 @@ class DownloadableFontCacheServiceImpl extends FontLoader implements Downloadabl
   @Nullable
   protected File locateSdkHome() {
     AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-    return sdkHandler.getLocation();
+    return sdkHandler.getLocation().toFile();
   }
 
   @Override

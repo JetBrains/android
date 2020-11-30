@@ -149,7 +149,7 @@ public class RenderLogger implements IRenderLogger {
    * @see #ignoreFidelityWarning(Object)
    */
   @VisibleForTesting
-  static void resetFidelityErrorsFilters() {
+  public static void resetFidelityErrorsFilters() {
     ourIgnoreAllFidelityWarnings = false;
     if (ourIgnoredFidelityWarnings != null) {
       ourIgnoredFidelityWarnings.clear();

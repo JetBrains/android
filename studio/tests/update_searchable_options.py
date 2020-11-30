@@ -35,15 +35,15 @@ def generate_searchable_options(work_dir, out_dir):
     for info in zip_file.infolist():
       extract_file(zip_file, info, work_dir)
 
-  properties_file = "%s/studio.properties" % work_dir
-  with open(properties_file, "w") as props:
+  vmoptions_file = "%s/studio.vmoptions" % work_dir
+  with open(vmoptions_file, "w") as props:
     props.writelines([
-        "idea.config.path=%s/config\n" % work_dir,
-        "idea.system.path=%s/system\n" % work_dir,
-        "user.home=%s/home\n" % work_dir])
+        "-Didea.config.path=%s/config\n" % work_dir,
+        "-Didea.system.path=%s/system\n" % work_dir,
+        "-Duser.home=%s/home\n" % work_dir])
 
   env = {
-      "STUDIO_PROPERTIES": properties_file,
+      "STUDIO_VM_OPTIONS": vmoptions_file,
       "XDG_DATA_HOME": "%s/data" % work_dir,
       "SHELL": os.getenv("SHELL")
   }

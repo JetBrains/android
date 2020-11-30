@@ -112,7 +112,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
     val NAME: ID<String, AndroidManifestRawText> = ID.create(::NAME.qualifiedName)
 
     @JvmStatic
-    fun indexEnabled() = ApplicationManager.getApplication().isUnitTestMode || StudioFlags.ANDROID_MANIFEST_INDEX_ENABLED.get()
+    fun indexEnabled() = StudioFlags.ANDROID_MANIFEST_INDEX_ENABLED.get()
 
     /**
      * Returns corresponding [AndroidFacet]s by given key(package name)

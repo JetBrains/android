@@ -30,6 +30,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -49,11 +50,11 @@ public class LayoutLibraryLoader {
   @NotNull
   private static LayoutLibrary loadImpl(@NotNull IAndroidTarget target, @NotNull Map<String, Map<String, Integer>> enumMap)
     throws RenderingException {
-    final String fontFolderPath = FileUtil.toSystemIndependentName((target.getPath(IAndroidTarget.FONTS)));
-    final VirtualFile fontFolder = LocalFileSystem.getInstance().findFileByPath(fontFolderPath);
+    final Path fontFolderPath = (target.getPath(IAndroidTarget.FONTS));
+    final VirtualFile fontFolder = LocalFileSystem.getInstance().findFileByNioFile(fontFolderPath);
     if (fontFolder == null || !fontFolder.isDirectory()) {
       throw new RenderingException(
-        LayoutlibBundle.message("android.directory.cannot.be.found.error", FileUtil.toSystemDependentName(fontFolderPath)));
+        LayoutlibBundle.message("android.directory.cannot.be.found.error", fontFolderPath));
     }
 
     final String platformFolderPath = target.isPlatform() ? target.getLocation() : target.getParent().getLocation();
@@ -80,12 +81,12 @@ public class LayoutLibraryLoader {
     final Map<String, String> buildPropMap = ProjectProperties.parsePropertyFile(new BufferingFileWrapper(buildProp), logger);
     final ILayoutLog layoutLog = new LayoutLogWrapper(LOG);
 
-    String dataPath = FileUtil.toSystemIndependentName(target.getPath(IAndroidTarget.DATA));
+    String dataPath = FileUtil.toSystemIndependentName(target.getPath(IAndroidTarget.DATA).toString());
 
     // We instantiate the local Bridge implementation and pass it to the LayoutLibrary instance
     library =
       LayoutLibrary.load(new com.android.layoutlib.bridge.Bridge(), new LayoutlibClassLoader(LayoutLibraryLoader.class.getClassLoader()));
-    if (!library.init(buildPropMap, new File(fontFolder.getPath()), getNativeLibraryPath(dataPath), dataPath + "icu/", enumMap, layoutLog)) {
+    if (!library.init(buildPropMap, new File(fontFolder.getPath()), getNativeLibraryPath(dataPath), dataPath + "/icu/", enumMap, layoutLog)) {
       throw new RenderingException(LayoutlibBundle.message("layoutlib.init.failed"));
     }
     return library;
@@ -93,7 +94,7 @@ public class LayoutLibraryLoader {
 
   @NotNull
   private static String getNativeLibraryPath(@NotNull String dataPath) {
-    return dataPath + getPlatformName() + (SystemInfo.is64Bit ? "/lib64/" : "/lib/");
+    return dataPath + "/" + getPlatformName() + (SystemInfo.is64Bit ? "/lib64/" : "/lib/");
   }
 
   @NotNull

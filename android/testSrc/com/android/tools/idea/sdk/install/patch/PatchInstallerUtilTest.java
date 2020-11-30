@@ -15,22 +15,20 @@
  */
 package com.android.tools.idea.sdk.install.patch;
 
+import static com.android.repository.testframework.FakePackage.FakeLocalPackage;
+import static com.android.repository.testframework.FakePackage.FakeRemotePackage;
+import static junit.framework.TestCase.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.testframework.FakeDependency;
 import com.android.repository.testframework.FakeRepoManager;
 import com.google.common.collect.ImmutableList;
-import org.junit.Test;
-
-import java.io.File;
 import java.util.List;
-
-import static com.android.repository.testframework.FakePackage.FakeLocalPackage;
-import static com.android.repository.testframework.FakePackage.FakeRemotePackage;
-import static junit.framework.Assert.assertNull;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.TestCase.assertEquals;
+import org.junit.Test;
 
 /**
  * Tests for {@link PatchInstallerUtil}
@@ -40,55 +38,55 @@ import static junit.framework.TestCase.assertEquals;
 public class PatchInstallerUtilTest {
 
   @Test
-  public void getDependantPatcher() throws Exception {
+  public void getDependantPatcher() {
     LocalPackage target = new FakeLocalPackage("patcher;v2");
     List<LocalPackage> local = ImmutableList.of(new FakeLocalPackage("patcher;v1"), target, new FakeLocalPackage("patcher;v3"));
     FakeRemotePackage update = new FakeRemotePackage("p");
     List<RemotePackage> remote = ImmutableList.of(update, new FakeRemotePackage("patcher;v4"));
     update.setDependencies(ImmutableList.of(new FakeDependency(target.getPath())));
     RepositoryPackages packages = new RepositoryPackages(local, remote);
-    FakeRepoManager mgr = new FakeRepoManager(new File("/sdk"), packages);
+    FakeRepoManager mgr = new FakeRepoManager(packages);
     LocalPackage patcher = PatchInstallerUtil.getDependantPatcher(update, mgr);
     assertEquals(target, patcher);
   }
 
   @Test
-  public void dependantPatcherNotInstalled() throws Exception {
+  public void dependantPatcherNotInstalled() {
     FakeLocalPackage target = new FakeLocalPackage("patcher;v2");
     List<LocalPackage> local = ImmutableList.of(new FakeLocalPackage("patcher;v1"), new FakeLocalPackage("patcher;v3"));
     FakeRemotePackage update = new FakeRemotePackage("p");
     List<RemotePackage> remote = ImmutableList.of(update, new FakeRemotePackage("patcher;v4"));
     update.setDependencies(ImmutableList.of(new FakeDependency(target.getPath())));
     RepositoryPackages packages = new RepositoryPackages(local, remote);
-    FakeRepoManager mgr = new FakeRepoManager(new File("/sdk"), packages);
+    FakeRepoManager mgr = new FakeRepoManager(packages);
     LocalPackage patcher = PatchInstallerUtil.getDependantPatcher(update, mgr);
     assertNull(patcher);
   }
 
   @Test
-  public void getLatestPatcher() throws Exception {
+  public void getLatestPatcher() {
     LocalPackage target = new FakeLocalPackage("patcher;v3");
     List<LocalPackage> local = ImmutableList.of(new FakeLocalPackage("patcher;v1"), target, new FakeLocalPackage("patcher;v2"));
     RepositoryPackages packages = new RepositoryPackages(local, ImmutableList.of());
-    FakeRepoManager mgr = new FakeRepoManager(new File("/sdk"), packages);
+    FakeRepoManager mgr = new FakeRepoManager(packages);
     LocalPackage patcher = PatchInstallerUtil.getLatestPatcher(mgr);
     assertEquals(target, patcher);
   }
 
   @Test
-  public void noLatestPatcher() throws Exception {
+  public void noLatestPatcher() {
     List<LocalPackage> local = ImmutableList.of(new FakeLocalPackage("foo"));
     RepositoryPackages packages = new RepositoryPackages(local, ImmutableList.of());
-    FakeRepoManager mgr = new FakeRepoManager(new File("/sdk"), packages);
+    FakeRepoManager mgr = new FakeRepoManager(packages);
     LocalPackage patcher = PatchInstallerUtil.getLatestPatcher(mgr);
     assertNull(patcher);
   }
 
   @Test
-  public void comparePaths() throws Exception {
+  public void comparePaths() {
     assertTrue(PatchInstallerUtil.comparePatcherPaths("patcher;v1", "patcher;v2") < 0);
     assertTrue(PatchInstallerUtil.comparePatcherPaths("patcher;v2", "patcher;v1") > 0);
-    assertTrue(PatchInstallerUtil.comparePatcherPaths("patcher;v2", "patcher;v2") == 0);
+    assertEquals(0, PatchInstallerUtil.comparePatcherPaths("patcher;v2", "patcher;v2"));
     assertTrue(PatchInstallerUtil.comparePatcherPaths("bogus", "patcher;v2") < 0);
     assertTrue(PatchInstallerUtil.comparePatcherPaths("patcher;v1", "bogus") > 0);
   }

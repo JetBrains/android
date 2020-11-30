@@ -16,6 +16,21 @@
 
 package com.android.tools.idea.avdmanager;
 
+import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_PLAY_STORE_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.CHROMEOS_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_X86_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.TV_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
+import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.OTHER;
+import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.RECOMMENDED;
+import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.X86;
+import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.getClassificationForDevice;
+import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.getClassificationFromParts;
+import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.systemImageMatchesDevice;
+
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.impl.meta.TypeDetails;
@@ -34,14 +49,6 @@ import com.android.sdklib.repository.targets.SystemImageManager;
 import com.android.testutils.NoErrorsOrWarningsLogger;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.android.AndroidTestCase;
-
-import java.io.File;
-
-import static com.android.sdklib.repository.targets.SystemImage.*;
-import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.getClassificationForDevice;
-import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.getClassificationFromParts;
-import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.*;
-import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.systemImageMatchesDevice;
 
 public class ChooseSystemImagePanelTest extends AndroidTestCase {
 
@@ -75,7 +82,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
 
     // Google API image
     String gapiPath = "system-images;android-23;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgGapi = new FakePackage.FakeLocalPackage(gapiPath);
+    FakePackage.FakeLocalPackage pkgGapi = new FakePackage.FakeLocalPackage(gapiPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsGapi =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsGapi.setTag(IdDisplay.create("google_apis", "Google APIs"));
@@ -83,12 +90,11 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     detailsGapi.setVendor(IdDisplay.create("google", "Google"));
     detailsGapi.setApiLevel(23);
     pkgGapi.setTypeDetails((TypeDetails) detailsGapi);
-    pkgGapi.setInstalledPath(new File(SDK_LOCATION, "23-marshmallow-x86"));
-    fileOp.recordExistingFile(new File(pkgGapi.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    fileOp.recordExistingFile(pkgGapi.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Google API 29 image
     String gapi29Path = "system-images;android-29;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgGapi29 = new FakePackage.FakeLocalPackage(gapi29Path);
+    FakePackage.FakeLocalPackage pkgGapi29 = new FakePackage.FakeLocalPackage(gapi29Path, fileOp);
     DetailsTypes.SysImgDetailsType detailsGapi29 =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsGapi29.setTag(IdDisplay.create("google_apis", "Google APIs"));
@@ -96,12 +102,11 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     detailsGapi29.setVendor(IdDisplay.create("google", "Google"));
     detailsGapi29.setApiLevel(29);
     pkgGapi29.setTypeDetails((TypeDetails) detailsGapi29);
-    pkgGapi29.setInstalledPath(new File(SDK_LOCATION, "29-Q-x86"));
-    fileOp.recordExistingFile(new File(pkgGapi29.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    fileOp.recordExistingFile(pkgGapi29.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Google API 30 image
     String gapi30Path = "system-images;android-30;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgGapi30 = new FakePackage.FakeLocalPackage(gapi30Path);
+    FakePackage.FakeLocalPackage pkgGapi30 = new FakePackage.FakeLocalPackage(gapi30Path, fileOp);
     DetailsTypes.SysImgDetailsType detailsGapi30 =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsGapi30.setTag(IdDisplay.create("google_apis", "Google APIs"));
@@ -109,12 +114,11 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     detailsGapi30.setVendor(IdDisplay.create("google", "Google"));
     detailsGapi30.setApiLevel(30);
     pkgGapi30.setTypeDetails((TypeDetails)detailsGapi30);
-    pkgGapi30.setInstalledPath(new File(SDK_LOCATION, "30-R-x86"));
-    fileOp.recordExistingFile(new File(pkgGapi30.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    fileOp.recordExistingFile(pkgGapi30.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Play Store image
     String psPath = "system-images;android-24;google_apis_playstore;x86";
-    FakePackage.FakeLocalPackage pkgPs = new FakePackage.FakeLocalPackage(psPath);
+    FakePackage.FakeLocalPackage pkgPs = new FakePackage.FakeLocalPackage(psPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsPs =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsPs.setTag(IdDisplay.create("google_apis_playstore", "Google Play"));
@@ -122,12 +126,11 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     detailsPs.setVendor(IdDisplay.create("google", "Google"));
     detailsPs.setApiLevel(24);
     pkgPs.setTypeDetails((TypeDetails) detailsPs);
-    pkgPs.setInstalledPath(new File(SDK_LOCATION, "24-nougat-x86"));
-    fileOp.recordExistingFile(new File(pkgPs.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    fileOp.recordExistingFile(pkgPs.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Android Wear image
     String wearPath = "system-images;android-25;android-wear;x86";
-    FakePackage.FakeLocalPackage pkgWear = new FakePackage.FakeLocalPackage(wearPath);
+    FakePackage.FakeLocalPackage pkgWear = new FakePackage.FakeLocalPackage(wearPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsWear =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsWear.setTag(IdDisplay.create("android-wear", "Wear OS"));
@@ -135,12 +138,11 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     detailsWear.setVendor(IdDisplay.create("google", "Google"));
     detailsWear.setApiLevel(25);
     pkgWear.setTypeDetails((TypeDetails)detailsWear);
-    pkgWear.setInstalledPath(new File(SDK_LOCATION, "25-wear-x86"));
-    fileOp.recordExistingFile(new File(pkgWear.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    fileOp.recordExistingFile(pkgWear.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Android Wear API29 image
     String wear29Path = "system-images;android-29;android-wear;x86";
-    FakePackage.FakeLocalPackage pkgWear29 = new FakePackage.FakeLocalPackage(wear29Path);
+    FakePackage.FakeLocalPackage pkgWear29 = new FakePackage.FakeLocalPackage(wear29Path, fileOp);
     DetailsTypes.SysImgDetailsType detailsWear29 =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsWear29.setTag(IdDisplay.create("android-wear", "Wear OS"));
@@ -148,12 +150,11 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     detailsWear29.setVendor(IdDisplay.create("google", "Google"));
     detailsWear29.setApiLevel(29);
     pkgWear29.setTypeDetails((TypeDetails)detailsWear29);
-    pkgWear29.setInstalledPath(new File(SDK_LOCATION, "29-wear-x86"));
-    fileOp.recordExistingFile(new File(pkgWear29.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    fileOp.recordExistingFile(pkgWear29.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Android Wear for China image
     String wearCnPath = "system-images;android-25;android-wear-cn;x86";
-    FakePackage.FakeLocalPackage pkgCnWear = new FakePackage.FakeLocalPackage(wearCnPath);
+    FakePackage.FakeLocalPackage pkgCnWear = new FakePackage.FakeLocalPackage(wearCnPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsWearCn =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsWearCn.setTag(IdDisplay.create("android-wear", "Wear OS for China"));
@@ -161,12 +162,11 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     detailsWearCn.setVendor(IdDisplay.create("google", "Google"));
     detailsWearCn.setApiLevel(25);
     pkgCnWear.setTypeDetails((TypeDetails)detailsWearCn);
-    pkgCnWear.setInstalledPath(new File(SDK_LOCATION, "25-wear-cn-x86"));
-    fileOp.recordExistingFile(new File(pkgCnWear.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    fileOp.recordExistingFile(pkgCnWear.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Android Automotive image
     String automotivePath = "system-images;android-28;android-automotive;x86";
-    FakePackage.FakeLocalPackage pkgAutomotive = new FakePackage.FakeLocalPackage(automotivePath);
+    FakePackage.FakeLocalPackage pkgAutomotive = new FakePackage.FakeLocalPackage(automotivePath, fileOp);
     DetailsTypes.SysImgDetailsType detailsAutomotive =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsAutomotive.setTag(IdDisplay.create("android-automotive", "Android Automotive"));
@@ -174,12 +174,11 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     detailsAutomotive.setVendor(IdDisplay.create("google", "Google"));
     detailsAutomotive.setApiLevel(28);
     pkgAutomotive.setTypeDetails((TypeDetails)detailsAutomotive);
-    pkgAutomotive.setInstalledPath(new File(SDK_LOCATION, "28-automotive-x86"));
-    fileOp.recordExistingFile(new File(pkgAutomotive.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    fileOp.recordExistingFile(pkgAutomotive.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Android Automotive with Play Store image
     String automotivePsPath = "system-images;android-28;android-automotive-playstore;x86";
-    FakePackage.FakeLocalPackage pkgAutomotivePs = new FakePackage.FakeLocalPackage(automotivePsPath);
+    FakePackage.FakeLocalPackage pkgAutomotivePs = new FakePackage.FakeLocalPackage(automotivePsPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsAutomotivePs =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsAutomotivePs.setTag(IdDisplay.create("android-automotive-playstore", "Android Automotive with Google Play"));
@@ -187,37 +186,36 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     detailsAutomotivePs.setVendor(IdDisplay.create("google", "Google"));
     detailsAutomotivePs.setApiLevel(28);
     pkgAutomotivePs.setTypeDetails((TypeDetails)detailsAutomotivePs);
-    pkgAutomotivePs.setInstalledPath(new File(SDK_LOCATION, "28-automotive-playstore-x86"));
-    fileOp.recordExistingFile(new File(pkgAutomotivePs.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    fileOp.recordExistingFile(pkgAutomotivePs.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     packages.setLocalPkgInfos(ImmutableList.of(pkgGapi, pkgGapi29, pkgGapi30, pkgPs, pkgWear, pkgWear29, pkgCnWear, pkgAutomotive, pkgAutomotivePs));
 
-    RepoManager mgr = new FakeRepoManager(new File(SDK_LOCATION), packages);
+    RepoManager mgr = new FakeRepoManager(fileOp.toPath(SDK_LOCATION), packages);
 
     AndroidSdkHandler sdkHandler =
-      new AndroidSdkHandler(new File(SDK_LOCATION), new File(AVD_LOCATION), fileOp, mgr);
+      new AndroidSdkHandler(fileOp.toPath(SDK_LOCATION), fileOp.toPath(AVD_LOCATION), fileOp, mgr);
 
     FakeProgressIndicator progress = new FakeProgressIndicator();
     SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
 
     ISystemImage gapiImage = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(gapiPath, progress).getLocation());
+      fileOp.toFile(sdkHandler.getLocalPackage(gapiPath, progress).getLocation()));
     ISystemImage gapi29Image = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(gapi29Path, progress).getLocation());
+      fileOp.toFile(sdkHandler.getLocalPackage(gapi29Path, progress).getLocation()));
     ISystemImage gapi30Image = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(gapi30Path, progress).getLocation());
+      fileOp.toFile(sdkHandler.getLocalPackage(gapi30Path, progress).getLocation()));
     ISystemImage playStoreImage = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(psPath, progress).getLocation());
+      fileOp.toFile(sdkHandler.getLocalPackage(psPath, progress).getLocation()));
     ISystemImage wearImage = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(wearPath, progress).getLocation());
+      fileOp.toFile(sdkHandler.getLocalPackage(wearPath, progress).getLocation()));
     ISystemImage wear29Image = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(wear29Path, progress).getLocation());
+      fileOp.toFile(sdkHandler.getLocalPackage(wear29Path, progress).getLocation()));
     ISystemImage wearCnImage = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(wearCnPath, progress).getLocation());
+      fileOp.toFile(sdkHandler.getLocalPackage(wearCnPath, progress).getLocation()));
     ISystemImage automotiveImage = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(automotivePath, progress).getLocation());
+      fileOp.toFile(sdkHandler.getLocalPackage(automotivePath, progress).getLocation()));
     ISystemImage automotivePsImage = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(automotivePsPath, progress).getLocation());
+      fileOp.toFile(sdkHandler.getLocalPackage(automotivePsPath, progress).getLocation()));
 
     myGapiImageDescription = new SystemImageDescription(gapiImage);
     myGapi29ImageDescription = new SystemImageDescription(gapi29Image);

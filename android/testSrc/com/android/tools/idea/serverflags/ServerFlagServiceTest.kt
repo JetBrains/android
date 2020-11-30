@@ -82,7 +82,7 @@ class ServerFlagServiceTest {
     checkNull(service, ServerFlagService::getInt)
     checkNull(service, ServerFlagService::getFloat)
     checkNull(service, ServerFlagService::getString)
-    checkProto(service, "missing", "default")
+    checkProtoNull(service, "missing")
   }
 
   @Test
@@ -91,7 +91,7 @@ class ServerFlagServiceTest {
     checkException(service, "boolean", ServerFlagService::getInt)
     checkException(service, "int", ServerFlagService::getFloat)
     checkException(service, "float", ServerFlagService::getString)
-    checkException(service, "string") { s, name -> s.getProtoMessage(name, TEST_PROTO) }
+    checkException(service, "string") { s, name -> s.getProto(name, TEST_PROTO) }
     checkException(service, "proto", ServerFlagService::getBoolean)
   }
 
@@ -103,11 +103,14 @@ class ServerFlagServiceTest {
         value = ByteString.copyFromUtf8("some bytes")
       }.build()
     }.build()
-    
+
     val map = mapOf("proto" to proto)
     val service = ServerFlagServiceImpl(CONFIGURATION_VERSION, map)
-    val retrieved = service.getProtoMessage("proto", TEST_PROTO)
+    val retrieved = service.getProto("proto", TEST_PROTO)
     assertThat(retrieved).isEqualTo(TEST_PROTO)
+
+    val retrievedOrNull = service.getProtoOrNull("proto", TEST_PROTO)
+    assertThat(retrievedOrNull).isNull()
   }
 
   @Test
@@ -133,8 +136,8 @@ class ServerFlagServiceTest {
       content = "default"
     }.build()
 
-    assertThat((service.getProtoMessage("proto", default) as ServerFlagTest).content).isEqualTo("content")
-    assertThat((service.getProtoMessage("missing", default) as ServerFlagTest).content).isEqualTo("default")
+    assertThat((service.getProto("proto", default) as ServerFlagTest).content).isEqualTo("content")
+    assertThat((service.getProto("missing", default) as ServerFlagTest).content).isEqualTo("default")
     assertThat(CONFIGURATION_VERSION).isEqualTo(service.configurationVersion)
     assertThat(listOf("boolean", "int", "float", "string", "proto")).containsExactlyElementsIn(service.names)
   }
@@ -187,7 +190,11 @@ Value: foo
   }
 
   private fun checkProto(service: ServerFlagService, name: String, expected: String) {
-    assertThat(service.getProtoMessage(name, TEST_PROTO).content).isEqualTo(expected)
+    assertThat(service.getProto(name, TEST_PROTO).content).isEqualTo(expected)
+  }
+
+  private fun checkProtoNull(service: ServerFlagService, name: String) {
+    assertThat(service.getProtoOrNull(name, TEST_PROTO)).isNull()
   }
 
   private fun <T> checkException(service: ServerFlagService, name: String, retrieve: (ServerFlagService, String) -> T?) {

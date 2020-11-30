@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class DeviceAndSnapshotComboBoxTarget implements DeployTarget {
   @NotNull
@@ -56,5 +57,15 @@ final class DeviceAndSnapshotComboBoxTarget implements DeployTarget {
     myDevices.forEach(device -> device.addTo(futures, project));
 
     return futures;
+  }
+
+  @Override
+  public int hashCode() {
+    return myDevices.hashCode();
+  }
+
+  @Override
+  public boolean equals(@Nullable Object object) {
+    return object instanceof DeviceAndSnapshotComboBoxTarget && myDevices.equals(((DeviceAndSnapshotComboBoxTarget)object).myDevices);
   }
 }

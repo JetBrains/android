@@ -35,7 +35,6 @@ import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.io.FileOp;
-import com.android.repository.io.impl.FileSystemFileOp;
 import com.android.sdklib.FileOpFileWrapper;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Storage;
@@ -216,10 +215,10 @@ public class AvdWizardUtils {
       // The file is in the emulator component
       LocalPackage emulatorPackage = sdkHandler.getLocalPackage(FD_EMULATOR, new StudioLoggerProgressIndicator(AvdWizardUtils.class));
       if (emulatorPackage != null) {
-        File hardwareDefs = new File(emulatorPackage.getLocation(), FD_LIB + File.separator + FN_HARDWARE_INI);
+        Path hardwareDefs = emulatorPackage.getLocation().resolve(FD_LIB + File.separator + FN_HARDWARE_INI);
         FileOp fop = sdkHandler.getFileOp();
         ourHardwareProperties = HardwareProperties.parseHardwareDefinitions(
-          new FileOpFileWrapper(hardwareDefs, fop, false), new LogWrapper(Logger.getInstance(AvdManagerConnection.class)));
+          new FileOpFileWrapper(fop.toFile(hardwareDefs), fop, false), new LogWrapper(Logger.getInstance(AvdManagerConnection.class)));
       }
     }
     HardwareProperties.HardwareProperty hwProp = (ourHardwareProperties == null) ? null : ourHardwareProperties.get(name);
@@ -259,7 +258,7 @@ public class AvdWizardUtils {
                                                   @Nullable SystemImageDescription image,
                                                   @NotNull FileOp operations) {
     FileSystem fileSystem =
-      operations instanceof FileSystemFileOp ? ((FileSystemFileOp)operations).getFileSystem() : FileSystems.getDefault();
+      operations instanceof FileOp ? ((FileOp)operations).getFileSystem() : FileSystems.getDefault();
 
     return device == null ? null : DeviceSkinUpdater.updateSkins(fileSystem.getPath(device.getPath()), image, fileSystem).toFile();
   }

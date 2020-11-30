@@ -39,7 +39,6 @@ import com.google.wireless.android.sdk.stats.MachineDetails
 import com.google.wireless.android.sdk.stats.ProductDetails
 import com.google.wireless.android.sdk.stats.ProductDetails.SoftwareLifeCycleChannel
 import com.google.wireless.android.sdk.stats.StudioProjectChange
-import com.google.wireless.android.sdk.stats.UserSentiment
 import com.intellij.ide.AppLifecycleListener
 import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.plugins.PluginManagerCore
@@ -230,7 +229,7 @@ object AndroidStudioUsageTracker {
       eventQueue.removeIdleListener(runner)
 
       val now = AnalyticsSettings.dateProvider.now()
-      val dialog = SatisfactionDialog(DEFAULT_SATISFACTION_SURVEY, LegacySurveyLogger)
+      val dialog = SingleChoiceDialog(DEFAULT_SATISFACTION_SURVEY, LegacyChoiceLogger)
       dialog.show()
       AnalyticsSettings.lastSentimentQuestionDate = now
       AnalyticsSettings.lastSentimentAnswerDate = now

@@ -16,6 +16,12 @@
 
 package org.jetbrains.android.sdk;
 
+import static com.android.SdkConstants.FD_PLATFORMS;
+import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
+import static com.android.sdklib.IAndroidTarget.ANDROID_JAR;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.util.PathUtil.getCanonicalPath;
+
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.OptionalLibrary;
@@ -28,18 +34,11 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static com.android.SdkConstants.FD_PLATFORMS;
-import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
-import static com.android.sdklib.IAndroidTarget.ANDROID_JAR;
-import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.util.PathUtil.getCanonicalPath;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidPlatform {
   @NotNull private final AndroidSdkData mySdkData;
@@ -130,7 +129,7 @@ public class AndroidPlatform {
         }
         IAndroidTarget resultTarget = null;
         for (IAndroidTarget target : sdkData.getTargets()) {
-          String targetsFrameworkLibPath = getCanonicalPath(target.getPath(ANDROID_JAR));
+          String targetsFrameworkLibPath = target.getPath(ANDROID_JAR).normalize().toString();
           if (frameworkLibrary.getPath().equals(targetsFrameworkLibPath)) {
             if (target.isPlatform()) {
               if (resultTarget == null) resultTarget = target;
@@ -144,7 +143,7 @@ public class AndroidPlatform {
               }
               else {
                 for (OptionalLibrary optionalLibrary : libraries) {
-                  if (!jarPaths.contains(getCanonicalPath(optionalLibrary.getJar().getAbsolutePath()))) {
+                  if (!jarPaths.contains(getCanonicalPath(optionalLibrary.getJar().toAbsolutePath().toString()))) {
                     ok = false;
                   }
                 }

@@ -254,6 +254,11 @@ public final class StudioFlags {
     "Enable the SceneView left bar that displays the overlay actions.",
     true);
 
+  public static final Flag<Boolean> NELE_SHOW_LAYOUTLIB_LEGACY = Flag.create(
+    NELE, "hide.layoutlib.legacy", "Show the legacy version of Layoutlib.",
+    "Show users ways of reverting to the legacy version of Layoutlib.",
+    false);
+
 
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
@@ -532,14 +537,6 @@ public final class StudioFlags {
     "feature.on.feature",
     "Enable feature-on-feature dependencies",
     "Enables Studio to understand feature-on-feature dependencies when launching dynamic apps.",
-    false
-  );
-
-  public static final Flag<Boolean> GRADLE_UNIT_TESTING = Flag.create(
-    RUNDEBUG,
-    "run.unit.tests.via.gradle",
-    "Run Android unit tests through Gradle",
-    "Switch to running unit tests via Gradle Tooling API instead of JUnit",
     false
   );
   //endregion
@@ -1085,6 +1082,16 @@ public final class StudioFlags {
   public static final Flag<Boolean> ENABLE_NEW_DEVICE_MANAGER_PANEL = Flag.create(
     DEVICE_MANAGER, "enable.device.manager", "Enable new Device Manager panel",
     "Enables the new Device Manager panel on the right. It will be a replacement for an AVD manager with additional functionality",
+    false
+  );
+  // endregion
+
+  //region Auto-import
+  private static final FlagGroup AUTO_IMPORT = new FlagGroup(FLAGS, "auto.import", "Auto-import Support");
+  public static final Flag<Boolean> ENABLE_AUTO_IMPORT = Flag.create(
+    AUTO_IMPORT, "enable", "Enable auto-import support",
+    "Enables the code path where we get indices from dl.google.com/android/studio/gmaven/index and generate corresponding " +
+    "lookup table from class names to GMaven coordinates. It will be a replacement for the hardcoded mapping data in MavenClassRegistry",
     false
   );
   // endregion

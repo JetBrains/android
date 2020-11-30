@@ -20,17 +20,13 @@ import static org.junit.Assert.assertArrayEquals;
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.Separator;
-import java.nio.file.FileSystem;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.junit.Before;
 import org.junit.Rule;
@@ -85,90 +81,6 @@ public final class PopupActionGroupTest {
 
     // Assert
     Object[] children = {
-      myActionManager.getAction(SelectMultipleDevicesAction.ID),
-      myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
-      myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
-
-    assertArrayEquals(children, group.getChildren(null));
-  }
-
-  @Test
-  public void newSelectDeviceActionOrSnapshotActionGroupHasGeneralSnapshot() {
-    // Arrange
-    FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
-
-    Device deviceWithNoSnapshot = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    Device deviceWithQuickBootSnapshot = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(new VirtualDevicePathAndSnapshotPath("/home/user/.android/avd/Pixel_4_API_30.avd",
-                                                   "/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/default_boot"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshot(new Snapshot(fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/default_boot")))
-      .build();
-
-    Device deviceWithGeneralSnapshot = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(new VirtualDevicePathAndSnapshotPath("/home/user/.android/avd/Pixel_4_API_30.avd",
-                                                   "/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-11-02_14-54-34"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshot(new Snapshot(fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-11-02_14-54-34")))
-      .build();
-
-    List<Device> devices = Arrays.asList(deviceWithNoSnapshot, deviceWithQuickBootSnapshot, deviceWithGeneralSnapshot);
-
-    Mockito.when(myComboBoxAction.areSnapshotsEnabled()).thenReturn(true);
-
-    // Act
-    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, () -> false);
-
-    // Assert
-    Object[] children = {
-      myActionManager.getAction(Heading.AVAILABLE_DEVICES_ID),
-      new SnapshotActionGroup(devices),
-      Separator.getInstance(),
-      myActionManager.getAction(SelectMultipleDevicesAction.ID),
-      myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
-      myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
-
-    assertArrayEquals(children, group.getChildren(null));
-  }
-
-  @Test
-  public void newSelectDeviceActionOrSnapshotActionGroup() {
-    // Arrange
-    FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
-
-    Device deviceWithNoSnapshot = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    Device deviceWithQuickBootSnapshot = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(new VirtualDevicePathAndSnapshotPath("/home/user/.android/avd/Pixel_4_API_30.avd",
-                                                   "/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/default_boot"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshot(new Snapshot(fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/default_boot")))
-      .build();
-
-    Collection<Device> devices = Arrays.asList(deviceWithNoSnapshot, deviceWithQuickBootSnapshot);
-
-    Mockito.when(myComboBoxAction.areSnapshotsEnabled()).thenReturn(true);
-
-    // Act
-    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, () -> false);
-
-    // Assert
-    Object[] children = {
-      myActionManager.getAction(Heading.AVAILABLE_DEVICES_ID),
-      SelectDeviceAction.newSelectDeviceAction(deviceWithNoSnapshot, myComboBoxAction),
-      Separator.getInstance(),
       myActionManager.getAction(SelectMultipleDevicesAction.ID),
       myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
       myActionManager.getAction(RunAndroidAvdManagerAction.ID)};

@@ -57,8 +57,7 @@ public final class EmulatorAdvFeatures {
           sdkHandler.getLocalPackage(FD_EMULATOR, progressIndicator);
         if (emulatorPackage != null) {
             FileOp fop = sdkHandler.getFileOp();
-            File emuAdvFeaturesFile = new File(
-              emulatorPackage.getLocation(), FD_LIB + File.separator + featuresFile);
+            File emuAdvFeaturesFile = fop.toFile(emulatorPackage.getLocation().resolve(FD_LIB + File.separator + featuresFile));
 
             if (fop.exists(emuAdvFeaturesFile)) {
                 return ProjectProperties.parsePropertyFile(

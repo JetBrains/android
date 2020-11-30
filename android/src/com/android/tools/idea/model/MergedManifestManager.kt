@@ -21,18 +21,22 @@ import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.concurrency.ThrottlingAsyncSupplier
 import com.android.tools.idea.util.androidFacet
+import com.android.utils.TraceUtils
 import com.android.utils.concurrency.AsyncSupplier
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.util.ProgressIndicatorUtils
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ModificationTracker
+import com.intellij.openapi.util.RecursionManager
 import org.jetbrains.android.facet.AndroidFacet
 import java.time.Duration
 import java.util.concurrent.ExecutionException
@@ -118,48 +122,59 @@ private class MergedManifestSupplier(private val module: Module) : AsyncSupplier
   )
   fun getOrCreateSnapshotInCallingThread(): MergedManifestSnapshot {
     ApplicationManager.getApplication().assertReadAccessAllowed()
-    val future = SettableFuture.create<MergedManifestSnapshot>()
-    val snapshotBeingComputed = synchronized(callingThreadLock) {
-      if (snapshotBeingComputedInCallingThread == null) {
-        snapshotBeingComputedInCallingThread = future
-      }
-      snapshotBeingComputedInCallingThread!!
+    val manifestSnapshot = RecursionManager.doPreventingRecursion(module, true, ::doGetOrCreateSnapshotInCallingThread)
+    if (manifestSnapshot != null) {
+      return manifestSnapshot
     }
-    if (snapshotBeingComputed === future) {
-      // No other calling thread was computing the merged manifest when we acquired
-      // the lock, so we need to actually compute it on this thread.
-      val cachedSnapshot = now
-      val snapshot = try {
-        getOrCreateSnapshot(cachedSnapshot)
+
+    logger<MergedManifestSupplier>().warn(
+        "Infinite recursion detected when computing merged manifest for module ${module.name}\n" + TraceUtils.getCurrentStack())
+    return MergedManifestSnapshotFactory.createEmptyMergedManifestSnapshot(module)
+  }
+
+  private fun doGetOrCreateSnapshotInCallingThread(): MergedManifestSnapshot {
+    while (true) {
+      val future = SettableFuture.create<MergedManifestSnapshot>()
+      val snapshotBeingComputed = synchronized(callingThreadLock) {
+        if (snapshotBeingComputedInCallingThread == null) {
+          snapshotBeingComputedInCallingThread = future
+        }
+        snapshotBeingComputedInCallingThread!!
       }
-      catch (t: Throwable) {
+      if (snapshotBeingComputed === future) {
+        // No other calling thread was computing the merged manifest when we acquired
+        // the lock, so we need to actually compute it on this thread.
+        val cachedSnapshot = now
+        val snapshot = try {
+          getOrCreateSnapshot(cachedSnapshot)
+        }
+        catch (t: Throwable) {
+          synchronized(callingThreadLock) {
+            snapshotBeingComputedInCallingThread = null
+          }
+          future.setException(t)
+          throw t
+        }
         synchronized(callingThreadLock) {
           snapshotBeingComputedInCallingThread = null
+          snapshotFromCallingThread = snapshot
         }
-        future.setException(t)
-        throw t
+        future.set(snapshot)
+        return snapshot
       }
-      synchronized(callingThreadLock) {
-        snapshotBeingComputedInCallingThread = null
-        snapshotFromCallingThread = snapshot
+
+      // Otherwise, block on the already-executing computation and use the result.
+      // It must be up to date because another thread can't invalidate the merged manifest
+      // without the write lock, which it can't obtain until this thread gives up its read access.
+      try {
+        return ProgressIndicatorUtils.awaitWithCheckCanceled(snapshotBeingComputed)
       }
-      future.set(snapshot)
-      return snapshot
-    }
-    // Otherwise, block on the already-executing computation and use the result.
-    // It must be up to date because another thread can't invalidate the merged manifest
-    // without the write lock, which it can't obtain until this thread gives up its read access.
-    try {
-      return snapshotBeingComputed.get()
-    }
-    catch (e: ExecutionException) {
-      if (e.cause is ProcessCanceledException) {
-        // The thread that was already computing the merged manifest was canceled,
-        // but this thread may still be active. If it is, we should try again.
+      catch (e: ProcessCanceledException) {
+        // Either this thread was cancelled or the snapshotBeingComputed future got cancelled.
+        // Check if this thread was cancelled and throw a ProcessCanceledException if so.
         ProgressManager.checkCanceled()
-        return getOrCreateSnapshotInCallingThread()
+        // This thread is still active - try again.
       }
-      throw e
     }
   }
 

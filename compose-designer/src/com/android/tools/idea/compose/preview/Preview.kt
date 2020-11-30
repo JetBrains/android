@@ -16,41 +16,25 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.annotations.concurrency.GuardedBy
-import com.android.ide.common.resources.configuration.FolderConfiguration
-import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.model.NlModelBuilder
-import com.android.tools.idea.common.model.updateFileContentBlocking
-import com.android.tools.idea.common.surface.DelegateInteractionHandler
-import com.android.tools.idea.common.surface.LayoutlibInteractionHandler
 import com.android.tools.idea.common.util.ControllableTicker
-import com.android.tools.idea.common.util.asLogString
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
 import com.android.tools.idea.compose.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
-import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
-import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
-import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.util.FpsCalculator
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.android.tools.idea.compose.preview.util.containsOffset
 import com.android.tools.idea.compose.preview.util.isComposeErrorResult
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
-import com.android.tools.idea.compose.preview.util.matchElementsToModels
-import com.android.tools.idea.compose.preview.util.modelAffinity
-import com.android.tools.idea.compose.preview.util.requestComposeRender
 import com.android.tools.idea.compose.preview.util.sortByDisplayAndSourcePosition
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
-import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.editors.setupOnSaveListener
@@ -64,14 +48,11 @@ import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.classloading.CooperativeInterruptTransform
 import com.android.tools.idea.rendering.classloading.HasLiveLiteralsTransform
 import com.android.tools.idea.rendering.classloading.LiveLiteralsTransform
-import com.android.tools.idea.rendering.classloading.multiTransformOf
-import com.android.tools.idea.run.util.StopWatch
+import com.android.tools.idea.rendering.classloading.toClassTransform
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
-import com.android.tools.idea.uibuilder.scene.RenderListener
-import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.application.subscribe
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -81,31 +62,25 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.fileEditor.FileEditor
-import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
-import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBColor
+import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Color
 import java.time.Duration
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
-import java.util.function.BiFunction
 import javax.swing.JComponent
 import kotlin.concurrent.withLock
 import kotlin.properties.Delegates
@@ -122,9 +97,9 @@ private val INTERACTIVE_BACKGROUND_COLOR = JBColor(Color(203, 210, 217),
  * @param composePreviewManager [ComposePreviewManager] of the Preview.
  * @param previewElement the [PreviewElement] associated to this model
  */
-private class ModelDataContext(private val project: Project,
-                               private val composePreviewManager: ComposePreviewManager,
-                               private val previewElement: PreviewElement) : DataContext {
+private class PreviewElementDataContext(private val project: Project,
+                                        private val composePreviewManager: ComposePreviewManager,
+                                        private val previewElement: PreviewElement) : DataContext {
   override fun getData(dataId: String): Any? = when (dataId) {
     COMPOSE_PREVIEW_MANAGER.name -> composePreviewManager
     COMPOSE_PREVIEW_ELEMENT.name -> previewElement
@@ -155,7 +130,7 @@ fun LayoutlibSceneManager.changeRequiresReinflate(showDecorations: Boolean, isIn
  * @param isLiveLiteralsEnabled if true, the classes will be instrumented with live literals support.
  * @param onLiveLiteralsFound callback called when the classes have compiler live literals support. This callback will only be called if
  *  [isLiveLiteralsEnabled] is false. If true, the classes are assumed to have this support.
- * @param forceReinflate forces re-inflating the layout.
+ * @param resetLiveLiteralsFound callback called when the classes are about to be reloaded so the live literals state can be discarded.
  */
 private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
                                            showDecorations: Boolean,
@@ -163,34 +138,32 @@ private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
                                            requestPrivateClassLoader: Boolean,
                                            isLiveLiteralsEnabled: Boolean,
                                            onLiveLiteralsFound: () -> Unit,
-                                           forceReinflate: Boolean = true): LayoutlibSceneManager =
+                                           resetLiveLiteralsFound: () -> Unit): LayoutlibSceneManager =
   sceneManager.apply {
-    val usePrivateClassLoader = requestPrivateClassLoader
-                                || StudioFlags.COMPOSE_LIVE_LITERALS.get()
-                                || StudioFlags.COMPOSE_PREVIEW_INTERRUPTIBLE.get()
-    val reinflate = forceReinflate || changeRequiresReinflate(showDecorations, isInteractive, usePrivateClassLoader)
+    val usePrivateClassLoader = requestPrivateClassLoader || isLiveLiteralsEnabled
+    val reinflate = changeRequiresReinflate(showDecorations, isInteractive, usePrivateClassLoader)
     setTransparentRendering(!showDecorations)
     setShrinkRendering(!showDecorations)
     setUseImagePool(false)
     interactive = isInteractive
     isUsePrivateClassLoader = usePrivateClassLoader
+    setOnNewClassLoader(resetLiveLiteralsFound)
     if (isLiveLiteralsEnabled) {
-      setProjectClassesTransform { sourceVisitor ->
-        multiTransformOf(
+      setProjectClassesTransform(
+        toClassTransform(
           { if (StudioFlags.COMPOSE_PREVIEW_INTERRUPTIBLE.get()) CooperativeInterruptTransform(it) else it },
           { LiveLiteralsTransform(it) }
-        ).apply(sourceVisitor)
-      }
+        ))
     }
     else {
-      setProjectClassesTransform { sourceVisitor ->
-        multiTransformOf(
+      setProjectClassesTransform(
+        toClassTransform(
           { if (StudioFlags.COMPOSE_PREVIEW_INTERRUPTIBLE.get()) CooperativeInterruptTransform(it) else it },
           // Live literals is not enabled but we pass the [HasLiveLiteralsTransform] to identify if the current project
           // has live literals enabled.
           { HasLiveLiteralsTransform(it, onLiveLiteralsFound = onLiveLiteralsFound) }
-        ).apply(sourceVisitor)
-      }
+        )
+      )
     }
     setQuality(0.7f)
     setShowDecorations(showDecorations)
@@ -225,7 +198,8 @@ private const val FPS_LIMIT = 60
  * @param previewProvider [PreviewElementProvider] to obtain the [PreviewElement]s.
  */
 class ComposePreviewRepresentation(psiFile: PsiFile,
-                                   previewProvider: PreviewElementProvider) :
+                                   previewProvider: PreviewElementProvider,
+                                   composePreviewViewProvider: ComposePreviewViewProvider) :
   PreviewRepresentation, ComposePreviewManagerEx, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
   private val LOG = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val project = psiFile.project
@@ -280,7 +254,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         val quickRefresh = shouldQuickRefresh() // We should call this before assigning newValue to instanceIdFilter
         val peerPreviews = previewElementProvider.previewElements.count()
         previewElementProvider.instanceFilter = previewElement
-        sceneComponentProvider.enabled = false
+        composeWorkBench.hasComponentsOverlay = false
         val startUpStart = System.currentTimeMillis()
         forceRefresh(quickRefresh).invokeOnCompletion {
           surface.layoutlibSceneManagers.forEach { it.resetTouchEventsCounter() }
@@ -288,7 +262,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
             (System.currentTimeMillis() - startUpStart).toInt(), peerPreviews)
           fpsCounter.resetAndStart()
           ticker.start()
-          delegateInteractionHandler.delegate = interactiveInteractionHandler
+          composeWorkBench.isInteractive = true
 
           if (StudioFlags.COMPOSE_ANIMATED_PREVIEW_SHOW_CLICK.get()) {
             // While in interactive mode, display a small ripple when clicking
@@ -302,9 +276,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         interactiveMode = ComposePreviewManager.InteractiveMode.STOPPING
         surface.background = defaultSurfaceBackground
         surface.disableMouseClickDisplay()
-        delegateInteractionHandler.delegate = staticPreviewInteractionHandler
+        composeWorkBench.isInteractive = false
+        composeWorkBench.hasComponentsOverlay = true
         ticker.stop()
-        sceneComponentProvider.enabled = true
         previewElementProvider.clearInstanceIdFilter()
         logInteractiveSessionMetrics()
         forceRefresh().invokeOnCompletion {
@@ -323,7 +297,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       if (animationInspection.get()) {
         LOG.debug("Animation Preview open for preview: $newValue")
         previewElementProvider.instanceFilter = newValue
-        sceneComponentProvider.enabled = false
+        composeWorkBench.hasComponentsOverlay = false
+
         // Open the animation inspection panel
         composeWorkBench.bottomPanel = ComposePreviewAnimationManager.createAnimationInspectorPanel(surface, this) {
           // Close this inspection panel, making all the necessary UI changes (e.g. changing background and refreshing the preview) before
@@ -338,7 +313,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         ComposePreviewAnimationManager.closeCurrentInspector()
         // Swap the components back
         composeWorkBench.bottomPanel = null
-        sceneComponentProvider.enabled = true
+        composeWorkBench.hasComponentsOverlay = true
         previewElementProvider.instanceFilter = null
       }
       forceRefresh()
@@ -372,40 +347,32 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       forceRefresh()
     }
 
-  private val sceneComponentProvider = ComposeSceneComponentProvider()
-  private val delegateInteractionHandler = DelegateInteractionHandler()
-  private val surface = createPreviewDesignSurface(
-    project, navigationHandler, delegateInteractionHandler, psiFilePointer, this) { surface, model ->
-    LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener(), { RealTimeSessionClock() }).apply {
-      addRenderListener(object : RenderListener {
-        override fun onInflateStarted() {
-          // Reset to false since we don't know if there are live literals available. Once the inflation happens, we will be able to know
-          // if there were live literals when we instrumented the code.
-          // If live literals is already enabled, we assume there hasLiveLiterals is true.
-          hasLiveLiterals = isLiveLiteralsEnabled
-        }
-
-        override fun onRenderCompleted() {}
-      })
-    }
-  }
-
-  private val composeWorkBench = ComposePreviewPanel(project, psiFilePointer, projectBuildStatusManager, surface, this)
-
-  private val staticPreviewInteractionHandler = NlInteractionHandler(surface)
-  private val interactiveInteractionHandler by lazy { LayoutlibInteractionHandler(surface) }
+  private val composeWorkBench: ComposePreviewView = composePreviewViewProvider.invoke(
+    project,
+    psiFilePointer,
+    projectBuildStatusManager,
+    navigationHandler, {
+      return@invoke when (it) {
+        COMPOSE_PREVIEW_MANAGER.name -> this@ComposePreviewRepresentation
+        // The Compose preview NlModels do not point to the actual file but to a synthetic file
+        // generated for Layoutlib. This ensures we return the right file.
+        CommonDataKeys.VIRTUAL_FILE.name -> psiFilePointer.virtualFile
+        CommonDataKeys.PROJECT.name -> project
+        else -> null
+      }
+    }, this)
+  private val surface: NlDesignSurface
+    get() = composeWorkBench.mainSurface
 
   /**
    * Default background used by the surface. This is used to restore the state after disabling the interactive preview.
    */
   private val defaultSurfaceBackground: Color = surface.background
 
-  private val modelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater()
-
   /**
    * List of [PreviewElement] being rendered by this editor
    */
-  var previewElements: List<PreviewElement> = emptyList()
+  private var previewElements: List<PreviewElement> = emptyList()
 
   /**
    * Counts the current number of simultaneous executions of [refresh] method. Being inside the [refresh] indicates that the this preview
@@ -462,13 +429,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   init {
     Disposer.register(this, ticker)
 
-    // Start handling events for the static preview.
-    delegateInteractionHandler.delegate = staticPreviewInteractionHandler
-
     isLiveLiteralsEnabled = StudioFlags.COMPOSE_ALWAYS_ON_LIVE_LITERALS.get()
   }
 
-  override val component: JComponent = composeWorkBench
+  override val component: JComponent = composeWorkBench.component
 
   // region Lifecycle handling
   /**
@@ -648,6 +612,32 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    */
   override fun updateNotifications(parentEditor: FileEditor) = composeWorkBench.updateNotifications(parentEditor)
 
+  private fun toPreviewXmlString(instance: PreviewElementInstance): String =
+    instance.toPreviewXml()
+      // Whether to paint the debug boundaries or not
+      .toolsAttribute("paintBounds", showDebugBoundaries.toString())
+      .toolsAttribute("forceCompositionInvalidation", isLiveLiteralsEnabled.toString())
+      .apply {
+        if (animationInspection.get()) {
+          // If the animation inspection is active, start the PreviewAnimationClock with the current epoch time.
+          toolsAttribute("animationClockStartTime", System.currentTimeMillis().toString())
+        }
+      }
+      .buildString()
+
+  private fun getPreviewDataContextForPreviewElement(previewElement: PreviewElement) =
+    PreviewElementDataContext(project, this@ComposePreviewRepresentation, previewElement)
+
+  private fun configureLayoutlibSceneManagerForPreviewElement(previewElement: PreviewElement,
+                                                              layoutlibSceneManager: LayoutlibSceneManager) =
+    configureLayoutlibSceneManager(layoutlibSceneManager,
+                                   showDecorations = previewElement.displaySettings.showDecoration,
+                                   isInteractive = interactiveMode.isStartingOrReady(),
+                                   requestPrivateClassLoader = usePrivateClassLoader(),
+                                   isLiveLiteralsEnabled = isLiveLiteralsEnabled,
+                                   onLiveLiteralsFound = { hasLiveLiterals = true },
+                                   resetLiveLiteralsFound = { hasLiveLiterals = isLiveLiteralsEnabled })
+
   /**
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The call will block until all the given [PreviewElement]s have completed rendering. If [quickRefresh]
@@ -656,7 +646,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    */
   private suspend fun doRefreshSync(filePreviewElements: List<PreviewElement>, quickRefresh: Boolean) {
     if (LOG.isDebugEnabled) LOG.debug("doRefresh of ${filePreviewElements.count()} elements.")
-    val stopwatch = if (LOG.isDebugEnabled) StopWatch() else null
     val psiFile = ReadAction.compute<PsiFile?, Throwable> {
       val element = psiFilePointer.element
 
@@ -669,6 +658,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
     } ?: return
 
+    // The surface might have been deactivated while we waited for the read lock, check again.
+    if (!isActive.get()) {
+      refreshedWhileDeactivated.set(true)
+      return
+    }
+
     // Cache available groups
     availableGroups = previewElementProvider.allAvailableGroups
 
@@ -676,172 +671,33 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     onRestoreState?.invoke()
     onRestoreState = null
 
-    val facet = AndroidFacet.getInstance(psiFile)!!
-    val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
-
-    val isFirstRender = !hasRenderedAtLeastOnce.get()
-    // Retrieve the models that were previously displayed so we can reuse them instead of creating new ones.
-    val existingModels = surface.models.toMutableList()
-    val previewElementsList = previewElementProvider.previewElements.toList().sortByDisplayAndSourcePosition()
-
-    val modelIndices = matchElementsToModels(existingModels, previewElementsList)
-    // Now we generate all the models (or reuse) for the PreviewElements.
-    val models = previewElementsList
-      .map {
-        val xmlOutput = it.toPreviewXml()
-          // Whether to paint the debug boundaries or not
-          .toolsAttribute("paintBounds", showDebugBoundaries.toString())
-          .toolsAttribute("forceCompositionInvalidation", isLiveLiteralsEnabled.toString())
-          .apply {
-            if (animationInspection.get()) {
-              // If the animation inspection is active, start the PreviewAnimationClock with the current epoch time.
-              toolsAttribute("animationClockStartTime", System.currentTimeMillis().toString())
-            }
-          }
-          .buildString()
-
-        Pair(it, xmlOutput)
-      }
-      .mapIndexed { idx, it ->
-        val (previewElement, fileContents) = it
-
-        if (LOG.isDebugEnabled) {
-          LOG.debug("""Preview found at ${stopwatch?.duration?.toMillis()}ms
-              displayName=${previewElement.displaySettings.name}
-              methodName=${previewElement.composableMethodFqn}
-
-              ${fileContents}
-          """.trimIndent())
+    val showingPreviewElements = surface.updatePreviewsAndRefresh(
+      quickRefresh,
+      previewElementProvider,
+      LOG,
+      psiFile,
+      this,
+      {
+        if (!hasRenderedAtLeastOnce.getAndSet(true)) {
+          // We zoom to fit to have better initial zoom level when first build is completed
+          UIUtil.invokeLaterIfNeeded { surface.zoomToFit() }
         }
-
-        val model = if (modelIndices[idx] >= 0) {
-          // If model index for this preview element >= 0 then an existing model that can be reused is found. See matchElementsToModels for
-          // more details.
-          val reusedModel = existingModels[modelIndices[idx]]
-          val affinity = modelAffinity(reusedModel.dataContext, previewElement)
-          // If the model is for the same element (affinity=0) and we know that it is not spoiled by previous actions (quickRefresh)
-          // we can skip reinflate and therefore refresh much quicker
-          val forceReinflate = !(affinity == 0 && quickRefresh)
-
-          LOG.debug("Re-using model ${reusedModel.virtualFile.name}")
-          reusedModel.updateFileContentBlocking(fileContents)
-          // Reconfigure the model by setting the new display name and applying the configuration values
-          reusedModel.modelDisplayName = previewElement.displaySettings.name
-          reusedModel.dataContext = ModelDataContext(project, this, previewElement)
-          // We call addModel even though the model might not be new. If we try to add an existing model,
-          // this will trigger a new render which is exactly what we want.
-          configureLayoutlibSceneManager(surface.addModelWithoutRender(reusedModel) as LayoutlibSceneManager,
-                                         showDecorations = previewElement.displaySettings.showDecoration,
-                                         isInteractive = interactiveMode.isStartingOrReady(),
-                                         requestPrivateClassLoader = usePrivateClassLoader(),
-                                         isLiveLiteralsEnabled = isLiveLiteralsEnabled,
-                                         onLiveLiteralsFound = { hasLiveLiterals = true },
-                                         forceReinflate = forceReinflate)
-          reusedModel
-        }
-        else {
-          val now = System.currentTimeMillis()
-          LOG.debug("No models to reuse were found. New model $now.")
-          val file = ComposeAdapterLightVirtualFile("compose-model-$now.xml", fileContents) { psiFilePointer.virtualFile }
-          val configuration = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
-          val newModel = NlModel.builder(facet, file, configuration)
-            .withParentDisposable(this@ComposePreviewRepresentation)
-            .withModelDisplayName(previewElement.displaySettings.name)
-            .withModelUpdater(modelUpdater)
-            .withComponentRegistrar(surface.componentRegistrar)
-            .withDataContext(ModelDataContext(project, this, previewElement))
-            .withXmlProvider(BiFunction<Project, VirtualFile, XmlFile> { project, virtualFile ->
-              NlModelBuilder.getDefaultFile(project, virtualFile).also {
-                it.putUserData(ModuleUtilCore.KEY_MODULE, facet.module)
-              }
-            })
-            .build()
-          configureLayoutlibSceneManager(surface.addModelWithoutRender(newModel) as LayoutlibSceneManager,
-                                         showDecorations = previewElement.displaySettings.showDecoration,
-                                         isInteractive = interactiveMode.isStartingOrReady(),
-                                         isLiveLiteralsEnabled = isLiveLiteralsEnabled,
-                                         onLiveLiteralsFound = { hasLiveLiterals = true },
-                                         requestPrivateClassLoader = usePrivateClassLoader())
-          newModel
-        }
-
-        val offset = ReadAction.compute<Int, Throwable> {
-          previewElement.previewElementDefinitionPsi?.element?.textOffset ?: 0
-        }
-
-        val defaultFile = previewElement.previewElementDefinitionPsi?.virtualFile?.let {
-          AndroidPsiUtils.getPsiFileSafely(project, it)
-        } ?: psiFile
-
-        navigationHandler.setDefaultLocation(model, defaultFile, offset)
-
-        previewElement.configuration.applyTo(model.configuration)
-
-        model to previewElement
-      }
-      .toList()
-
-    existingModels.removeAll(models.map { it.first })
-
-    // Remove and dispose pre-existing models that were not used.
-    // This will happen if the user removes one or more previews.
-    if (LOG.isDebugEnabled) LOG.debug("Removing ${existingModels.size} model(s)")
-    existingModels.forEach {
-      surface.removeModel(it)
-      Disposer.dispose(it)
-    }
-    val newSceneManagers = models
-      .map {
-        val (model, previewElement) = it
-        surface.getSceneManager(model) as LayoutlibSceneManager
-      }
-
-    surface.repaint()
-    if (newSceneManagers.isNotEmpty()) {
-      CompletableFuture.allOf(*newSceneManagers
-        .map { it.requestComposeRender() }
-        .toTypedArray())
-        .await()
-      hasRenderedAtLeastOnce.set(true)
-    }
-    else {
+      },
+      this::toPreviewXmlString,
+      this::getPreviewDataContextForPreviewElement,
+      this::configureLayoutlibSceneManagerForPreviewElement
+    )
+    showingPreviewElements.ifEmpty {
       composeWorkBench.showModalErrorMessage(message("panel.no.previews.defined"))
     }
 
-    if (LOG.isDebugEnabled) {
-      LOG.debug("Render completed in ${stopwatch?.duration?.toMillis()}ms")
-
-      // Log any rendering errors
-      surface.layoutlibSceneManagers
-        .forEach {
-          val modelName = it.model.modelDisplayName
-          it.renderResult?.let { result ->
-            val logger = result.logger
-            LOG.debug("""modelName="$modelName" result
-                  | ${result}
-                  | hasErrors=${logger.hasErrors()}
-                  | missingClasses=${logger.missingClasses}
-                  | messages=${logger.messages.asLogString()}
-                  | exceptions=${logger.brokenClasses.values + logger.classesWithIncorrectFormat.values}
-                """.trimMargin())
-          }
-        }
-    }
-
-    if (models.size >= filePreviewElements.size) {
+    if (showingPreviewElements.size >= filePreviewElements.size) {
       previewElements = filePreviewElements
     }
     else {
       // Some preview elements did not result in model creations. This could be because of failed PreviewElements instantiation.
       // TODO(b/160300892): Add better error handling for failed instantiations.
       LOG.warn("Some preview elements have failed")
-    }
-
-    // We zoom to fit to have better initial zoom level when first build is completed
-    if (isFirstRender) {
-      withContext(uiThread) {
-        surface.zoomToFit()
-      }
     }
   }
 
@@ -879,25 +735,16 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           // configured and that we are showing the right size for components. For example, if the user switches on/off
           // decorations, that will not generate/remove new PreviewElements but will change the surface settings.
           uniqueRefreshLauncher.launch {
-            surface.models
-              .mapNotNull {
-                val sceneManager = surface.getSceneManager(it) as? LayoutlibSceneManager ?: return@mapNotNull null
-                val previewElement = it.dataContext.getData(COMPOSE_PREVIEW_ELEMENT) ?: return@mapNotNull null
-                previewElement to sceneManager
-              }
-              .forEach {
-                val (previewElement, sceneManager) = it
-                // When showing decorations, show the full device size
-                configureLayoutlibSceneManager(sceneManager,
-                                               showDecorations = previewElement.displaySettings.showDecoration,
-                                               isInteractive = interactiveMode.isStartingOrReady(),
-                                               requestPrivateClassLoader = usePrivateClassLoader(),
-                                               isLiveLiteralsEnabled = isLiveLiteralsEnabled,
-                                               onLiveLiteralsFound = { hasLiveLiterals = true },
-                                               forceReinflate = false)
-                  .requestComposeRender()
-                  .await()
-              }
+            surface.refreshExistingPreviewElements { previewElement, sceneManager ->
+              // When showing decorations, show the full device size
+              configureLayoutlibSceneManager(sceneManager,
+                                             showDecorations = previewElement.displaySettings.showDecoration,
+                                             isInteractive = interactiveMode.isStartingOrReady(),
+                                             requestPrivateClassLoader = usePrivateClassLoader(),
+                                             isLiveLiteralsEnabled = isLiveLiteralsEnabled,
+                                             onLiveLiteralsFound = { hasLiveLiterals = true },
+                                             resetLiveLiteralsFound = { hasLiveLiterals = isLiveLiteralsEnabled })
+            }
           }?.join()
         }
         else {

@@ -15,22 +15,18 @@
  */
 package org.jetbrains.android.resourceManagers;
 
-import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
-import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xml.ConvertContext;
+import java.nio.file.Path;
 import java.util.Collection;
-import java.util.List;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -62,9 +58,8 @@ public class FrameworkResourceManager extends ResourceManager {
     if (platform == null) {
       return null;
     }
-    String resPath = platform.getTarget().getPath(IAndroidTarget.RESOURCES);
-    resPath = FileUtil.toSystemIndependentName(resPath);
-    return LocalFileSystem.getInstance().findFileByPath(resPath);
+    Path resPath = platform.getTarget().getPath(IAndroidTarget.RESOURCES);
+    return LocalFileSystem.getInstance().findFileByNioFile(resPath);
   }
 
   @Override

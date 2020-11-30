@@ -241,8 +241,7 @@ object TypeResolver {
 
       "value",
       "valueFrom",
-      "valueTo",
-      SdkConstants.ATTR_LAYOUT_DIMENSION_RATIO -> NelePropertyType.FLOAT
+      "valueTo" -> NelePropertyType.FLOAT
 
       SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT,
       SdkConstants.ATTR_LAYOUT_WIDTH_PERCENT,

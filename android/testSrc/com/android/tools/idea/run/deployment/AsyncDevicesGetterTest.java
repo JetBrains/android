@@ -52,7 +52,7 @@ public final class AsyncDevicesGetterTest {
     // noinspection unchecked
     myGetName = Mockito.mock(Function.class);
 
-    myGetter = new AsyncDevicesGetter(myRule.getProject(), () -> false, new KeyToConnectionTimeMap(clock), myGetName);
+    myGetter = new AsyncDevicesGetter(myRule.getProject(), new KeyToConnectionTimeMap(clock), myGetName);
   }
 
   @Test

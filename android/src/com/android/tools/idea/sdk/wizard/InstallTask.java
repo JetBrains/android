@@ -15,37 +15,51 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
-import com.android.repository.impl.installer.AbstractPackageOperation;
-import com.google.common.annotations.VisibleForTesting;
-import com.android.repository.api.*;
+import com.android.repository.api.Downloader;
+import com.android.repository.api.Installer;
+import com.android.repository.api.InstallerFactory;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.PackageOperation;
 import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.RepoPackage;
+import com.android.repository.api.SettingsController;
+import com.android.repository.api.Uninstaller;
+import com.android.repository.api.UpdatablePackage;
+import com.android.repository.impl.installer.AbstractPackageOperation;
 import com.android.repository.io.FileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.intellij.notification.*;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationDisplayType;
+import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationListener;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
-import com.intellij.openapi.progress.*;
+import com.intellij.openapi.progress.PerformInBackgroundOption;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.progress.impl.ProgressSuspender;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
-import java.io.File;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.event.HyperlinkEvent;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import javax.swing.event.HyperlinkEvent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link Task} that installs SDK packages.
@@ -197,9 +211,10 @@ class InstallTask extends Task.Backgroundable {
   private PackageOperation getOrCreateInstaller(@NotNull RepoPackage p) {
     // If there's already an installer in progress for this package, reuse it.
     PackageOperation op = myRepoManager.getInProgressInstallOperation(p);
-    if (op == null || !(op instanceof Installer)) {
+    if (!(op instanceof Installer)) {
       Downloader downloader = new StudioDownloader();
-      downloader.setDownloadIntermediatesLocation(new File(myRepoManager.getLocalPath(), AbstractPackageOperation.DOWNLOAD_INTERMEDIATES_DIR_FN));
+      downloader.setDownloadIntermediatesLocation(
+        myFileOp.toFile(myRepoManager.getLocalPath().resolve(AbstractPackageOperation.DOWNLOAD_INTERMEDIATES_DIR_FN)));
       op = myInstallerFactory.createInstaller((RemotePackage)p, myRepoManager, downloader, myFileOp);
     }
     return op;
@@ -209,7 +224,7 @@ class InstallTask extends Task.Backgroundable {
   private PackageOperation getOrCreateUninstaller(@NotNull RepoPackage p) {
     // If there's already an uninstaller in progress for this package, reuse it.
     PackageOperation op = myRepoManager.getInProgressInstallOperation(p);
-    if (op == null || !(op instanceof Uninstaller) || op.getInstallStatus() == PackageOperation.InstallStatus.FAILED) {
+    if (!(op instanceof Uninstaller) || op.getInstallStatus() == PackageOperation.InstallStatus.FAILED) {
       op = myInstallerFactory.createUninstaller((LocalPackage)p, myRepoManager, myFileOp);
     }
     return op;

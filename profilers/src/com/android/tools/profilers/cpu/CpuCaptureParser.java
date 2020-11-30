@@ -209,11 +209,11 @@ public class CpuCaptureParser {
       super();
     }
 
-    private ParsingFailureException(@NotNull String string) {
+    protected ParsingFailureException(@NotNull String string) {
       super(string);
     }
 
-    private ParsingFailureException(@NotNull String string, @NotNull Throwable cause) {
+    protected ParsingFailureException(@NotNull String string, @NotNull Throwable cause) {
       super(string, cause);
     }
   }
@@ -225,6 +225,34 @@ public class CpuCaptureParser {
   public static class PreProcessorFailureException extends ParsingFailureException {
     private PreProcessorFailureException() {
       super();
+    }
+  }
+
+  public static class InvalidPathParsingFailureException extends ParsingFailureException {
+    private InvalidPathParsingFailureException(@NotNull String traceFilePath) {
+      super(String.format("Trace not parsed. Path doesn't exist or points to a directory: '%s'.", traceFilePath));
+    }
+  }
+
+  public static class ReadErrorParsingFailureException extends ParsingFailureException {
+    private ReadErrorParsingFailureException(@NotNull String traceFilePath, @NotNull IOException readError) {
+      super(String.format("Trace not parsed. Unable to read file: '%s'.", traceFilePath), readError);
+    }
+  }
+
+  public static class UnknownParserParsingFailureException extends ParsingFailureException {
+    private UnknownParserParsingFailureException(@NotNull String traceFilePath) {
+      super(String.format("Trace not parsed. Couldn't identify the correct parser for '%s'.", traceFilePath));
+    }
+  }
+
+  public static class FileHeaderParsingFailureException extends ParsingFailureException {
+    private FileHeaderParsingFailureException(@NotNull String traceFilePath, @NotNull CpuTraceType type) {
+      super(String.format("Trace file '%s' expected to be of type %s but failed header verification.", traceFilePath, type));
+    }
+
+    private FileHeaderParsingFailureException(@NotNull String traceFilePath, @NotNull CpuTraceType type, @NotNull Throwable cause) {
+      super(String.format("Trace file '%s' expected to be of type %s but failed header verification.", traceFilePath, type), cause);
     }
   }
 
@@ -247,7 +275,7 @@ public class CpuCaptureParser {
     public void run() {
       if (!traceFile.exists() || traceFile.isDirectory()) {
         // Nothing to be parsed. We shouldn't even try to do it.
-        throw new ParsingFailureException("Trace not parsed, as its path doesn't exist or points to a directory.");
+        throw new InvalidPathParsingFailureException(traceFile.getAbsolutePath());
       }
 
       // In order to check if this is a PreProcessor failure, we check if the file is the same size as the marker (few bytes)
@@ -261,7 +289,7 @@ public class CpuCaptureParser {
             throw new PreProcessorFailureException();
           }
         } catch (IOException e) {
-          throw new ParsingFailureException("Unable to read traceFile.", e);
+          throw new ReadErrorParsingFailureException(traceFile.getAbsolutePath(), e);
         }
       }
     }
@@ -397,8 +425,7 @@ public class CpuCaptureParser {
       }
 
       if (unknownType) {
-        throw new ParsingFailureException(
-          String.format("Trace file cannot be parsed. Couldn't identify the correct parser for '%s'.", traceFile.getAbsolutePath()));
+        throw new UnknownParserParsingFailureException(traceFile.getAbsolutePath());
       }
       return null;
     }
@@ -426,17 +453,15 @@ public class CpuCaptureParser {
                                              @NotNull Supplier<TraceParser> parserSupplier) {
 
       if (traceInputVerification != null) {
-        boolean inputVerification = false;
+        boolean inputVerification;
         try {
           inputVerification = traceInputVerification.test(traceFile);
         } catch (Throwable t) {
-          throw new ParsingFailureException(
-            "Trace " + traceFile.getAbsolutePath() + " expected to be of type " + type + " but failed input verification.", t);
+          throw new FileHeaderParsingFailureException(traceFile.getAbsolutePath(), type, t);
         }
         if (!inputVerification) {
           if (expectedToBeCorrectParser) {
-            throw new ParsingFailureException(
-              "Trace " + traceFile.getAbsolutePath() + " expected to be of type " + type + " but failed input verification.");
+            throw new FileHeaderParsingFailureException(traceFile.getAbsolutePath(), type);
           }
           else {
             return null;
@@ -455,7 +480,8 @@ public class CpuCaptureParser {
       catch (Throwable t) {
         // If we expected this to be the correct parser or we already checked that this parser can take this trace, then we need to throw
         if (expectedToBeCorrectParser || traceInputVerification != null) {
-          throw new ParsingFailureException("Trace " + traceFile.getAbsolutePath() + " failed to be parsed as " + type, t);
+          throw new ParsingFailureException(String.format("Trace file '%s' failed to be parsed as %s.", traceFile.getAbsolutePath(), type),
+                                            t);
         }
         else {
           return null;
@@ -506,9 +532,29 @@ public class CpuCaptureParser {
         metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PREPROCESS_FAILURE);
         myServices.showNotification(CpuProfilerNotifications.PREPROCESS_FAILURE);
       }
+      else if (throwable.getCause() instanceof InvalidPathParsingFailureException) {
+        metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PATH_INVALID);
+        myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
+      }
+      else if (throwable.getCause() instanceof ReadErrorParsingFailureException) {
+        metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_READ_ERROR);
+        myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
+      }
+      else if (throwable.getCause() instanceof UnknownParserParsingFailureException) {
+        metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PARSER_UNKNOWN);
+        myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
+      }
+      else if (throwable.getCause() instanceof FileHeaderParsingFailureException) {
+        metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_FILE_HEADER_ERROR);
+        myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
+      }
+      else if (throwable.getCause() instanceof ParsingFailureException) {
+        metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PARSER_ERROR);
+        myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
+      }
       else {
         LOGGER.warn("Unable to parse capture: " + throwable.getMessage(), throwable);
-        metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILURE);
+        metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_CAUSE_UNKNOWN);
         myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
       }
 

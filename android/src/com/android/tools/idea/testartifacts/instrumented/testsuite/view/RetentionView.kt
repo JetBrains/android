@@ -82,7 +82,7 @@ import javax.swing.event.HyperlinkEvent
  * Shows the Android Test Retention artifacts
  */
 class RetentionView(private val androidSdkHandler: AndroidSdkHandler
-                    = AndroidSdkHandler.getInstance(IdeSdks.getInstance().androidSdkPath),
+                    = AndroidSdkHandler.getInstance(IdeSdks.getInstance().androidSdkPath?.toPath()),
                     private val progressIndicator: ProgressIndicator
                     = StudioLoggerProgressIndicator(RetentionView::class.java),
                     private val runtime: Runtime
@@ -112,15 +112,15 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
     }
 
     override fun getData(dataId: String): Any? {
-      when (dataId) {
-        EMULATOR_SNAPSHOT_ID_KEY.name -> return snapshotId
-        EMULATOR_SNAPSHOT_FILE_KEY.name -> return snapshotFile
-        EMULATOR_SNAPSHOT_LAUNCH_PARAMETERS.name -> return snapshotProto?.launchParametersList
-        PACKAGE_NAME_KEY.name -> return packageName
-        RETENTION_AUTO_CONNECT_DEBUGGER_KEY.name -> return true
-        RETENTION_ON_FINISH_KEY.name -> return Runnable { myRetentionDebugButton.isEnabled = true }
-        DEVICE_NAME_KEY.name -> return androidDevice!!.deviceName
-        else -> return null
+      return when (dataId) {
+        EMULATOR_SNAPSHOT_ID_KEY.name -> snapshotId
+        EMULATOR_SNAPSHOT_FILE_KEY.name -> snapshotFile
+        EMULATOR_SNAPSHOT_LAUNCH_PARAMETERS.name -> snapshotProto?.launchParametersList
+        PACKAGE_NAME_KEY.name -> packageName
+        RETENTION_AUTO_CONNECT_DEBUGGER_KEY.name -> true
+        RETENTION_ON_FINISH_KEY.name -> Runnable { myRetentionDebugButton.isEnabled = true }
+        DEVICE_NAME_KEY.name -> androidDevice!!.deviceName
+        else -> null
       }
     }
   }
@@ -137,7 +137,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
   }
   val myRetentionHelperLabel = JLabel(AllIcons.General.ContextHelp).apply {
     HelpTooltip().setDescription(
-      "Debug from the retentio state will load the snapshot at the point of failure, and attach to the debugger."
+      "Debug from the retention state will load the snapshot at the point of failure, and attach to the debugger."
     ).installOn(this)
   }
   val myInfoText = SwingHelper.createHtmlViewer(true, null, null, null).apply {
@@ -192,7 +192,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
 
   @VisibleForTesting
   var image: Image? = null
-  private val observer = ImageObserver { img, infoflags, x, y, width, height ->
+  private val observer = ImageObserver { _, infoflags, _, _, width, height ->
     if (infoflags and ImageObserver.WIDTH == 0 || infoflags and ImageObserver.HEIGHT == 0) {
       return@ImageObserver true
     }
@@ -234,6 +234,10 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
    */
   @UiThread
   fun setSnapshotFile(snapshotFile: File?) {
+    if (myRetentionPanel.getSnapshotFile()?.canonicalPath
+      == snapshotFile?.canonicalPath) {
+      return
+    }
     myRetentionPanel.setSnapshotFile(
       snapshotFile)
     myRetentionDebugButton.isEnabled = false
@@ -281,8 +285,8 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
         return
       }
       val emulatorPackage = androidSdkHandler.getLocalPackage(SdkConstants.FD_EMULATOR, progressIndicator)
-      val emulatorBinary = File(emulatorPackage?.location, SdkConstants.FN_EMULATOR)
-      if (!androidSdkHandler.fileOp.exists(emulatorBinary)) {
+      val emulatorBinary = emulatorPackage?.location?.resolve(SdkConstants.FN_EMULATOR)?.let { androidSdkHandler.fileOp.toFile(it) }
+      if (emulatorBinary == null || !androidSdkHandler.fileOp.exists(emulatorBinary)) {
         AppUIUtil.invokeOnEdt {
           myRetentionDebugButton.toolTipText = "Missing emulator executables. Please download the emulator from SDK manager."
         }
@@ -307,7 +311,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
         }.let {
           if (it) {
             AppUIUtil.invokeOnEdt {
-              myRetentionDebugButton.toolTipText = "Snapshot not loadable, reason: ${lines}"
+              myRetentionDebugButton.toolTipText = "Snapshot not loadable, reason: $lines"
             }
             return
           }

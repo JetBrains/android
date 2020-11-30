@@ -186,6 +186,8 @@ class TestProjectSystem @JvmOverloads constructor(
       override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope {
         return module.getModuleWithDependenciesAndLibrariesScope(scopeType != ScopeType.MAIN)
       }
+
+      override fun getDependencyPath(coordinate: GradleCoordinate): Path? = null
     }
 
     return TestAndroidModuleSystemImpl()

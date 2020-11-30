@@ -42,7 +42,7 @@ import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginDependency
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
-import com.android.tools.idea.gradle.project.upgrade.AgpGradleVersionRefactoringProcessor.Companion.CompatibleGradleVersion.*
+import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.*
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginRelatedDependency
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.Companion.INSERT_OLD_USAGE_TYPE
@@ -84,10 +84,13 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantProcessorEvent
 import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter
 import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.lang.properties.psi.Property
+import com.intellij.notification.NotificationListener
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Factory
 import com.intellij.openapi.util.Ref
@@ -577,6 +580,39 @@ class AgpUpgradeRefactoringProcessor(
   }
 }
 
+internal fun notifyCancelledUpgrade(project: Project, processor: AgpUpgradeRefactoringProcessor) {
+  val current = processor.current
+  val new = processor.new
+  val listener = NotificationListener { notification, _ ->
+    notification.expire()
+    ApplicationManager.getApplication().executeOnPooledThread {
+      showAndInvokeAgpUpgradeRefactoringProcessor(project, current, new)
+    }
+  }
+  val notification = ProjectUpgradeNotification(
+    AndroidBundle.message("project.upgrade.notifyCancelledUpgrade.title"),
+    AndroidBundle.message("project.upgrade.notifyCancelledUpgrade.body"),
+    listener)
+  notification.notify(project)
+}
+
+/**
+ * This function is a default entry point to the AGP Upgrade Assistant, responsible for showing suitable UI for gathering user input
+ * to the process, and then running the processor under that user input's direction.
+ */
+internal fun showAndInvokeAgpUpgradeRefactoringProcessor(project: Project, current: GradleVersion, new: GradleVersion) {
+  val processor = AgpUpgradeRefactoringProcessor(project, current, new)
+  val runProcessor = showAndGetAgpUpgradeDialog(processor)
+  if (runProcessor) {
+    DumbService.getInstance(project).smartInvokeLater { processor.run() }
+  }
+  else {
+    // TODO(xof): This adds a notification when the user selects Cancel from the dialog box, but not when they select Cancel from the
+    //  refactoring preview.
+    notifyCancelledUpgrade(project, processor)
+  }
+}
+
 /**
 One common way to characterise a compatibility change is that some old feature f_o is deprecated in favour of some new feature f_n from
 version v_n (when the new feature f_n is available); the old feature f_o is finally removed in version v_o.  That is, feature f_n is
@@ -980,22 +1016,6 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
     val GRADLE_URL_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.agpGradleVersionRefactoringProcessor.gradleUrlUsageType"))
     val WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.agpGradleVersionRefactoringProcessor.wellKnownGradlePluginUsageType"))
 
-    enum class CompatibleGradleVersion(val version: GradleVersion) {
-      // versions earlier than 4.4 (corresponding to AGP 3.0.0 and below) are not needed because
-      // we no longer support running such early versions of Gradle given our required JDKs, so upgrading to
-      // them using this functionality is a non-starter.
-      VERSION_4_4(GradleVersion.parse("4.4")),
-      VERSION_4_6(GradleVersion.parse("4.6")),
-      VERSION_MIN(GradleVersion.parse(GRADLE_MINIMUM_VERSION)),
-      VERSION_4_10_1(GradleVersion.parse("4.10.1")),
-      VERSION_5_1_1(GradleVersion.parse("5.1.1")),
-      VERSION_5_4_1(GradleVersion.parse("5.4.1")),
-      VERSION_5_6_4(GradleVersion.parse("5.6.4")),
-      VERSION_6_1_1(GradleVersion.parse("6.1.1")),
-      VERSION_6_5(GradleVersion.parse("6.5")),
-      VERSION_FOR_DEV(GradleVersion.parse(GRADLE_LATEST_VERSION))
-    }
-
     fun getCompatibleGradleVersion(agpVersion: GradleVersion): CompatibleGradleVersion {
       val agpVersionMajorMinor = GradleVersion(agpVersion.major, agpVersion.minor)
       val compatibleGradleVersion = when {
@@ -1044,6 +1064,22 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
       "androidx.navigation:navigation-safe-args-gradle-plugin" to ::`androidx-navigation-safeargs-gradle-plugin-compatibility-info`,
     )
   }
+}
+
+enum class CompatibleGradleVersion(val version: GradleVersion) {
+  // versions earlier than 4.4 (corresponding to AGP 3.0.0 and below) are not needed because
+  // we no longer support running such early versions of Gradle given our required JDKs, so upgrading to
+  // them using this functionality is a non-starter.
+  VERSION_4_4(GradleVersion.parse("4.4")),
+  VERSION_4_6(GradleVersion.parse("4.6")),
+  VERSION_MIN(GradleVersion.parse(GRADLE_MINIMUM_VERSION)),
+  VERSION_4_10_1(GradleVersion.parse("4.10.1")),
+  VERSION_5_1_1(GradleVersion.parse("5.1.1")),
+  VERSION_5_4_1(GradleVersion.parse("5.4.1")),
+  VERSION_5_6_4(GradleVersion.parse("5.6.4")),
+  VERSION_6_1_1(GradleVersion.parse("6.1.1")),
+  VERSION_6_5(GradleVersion.parse("6.5")),
+  VERSION_FOR_DEV(GradleVersion.parse(GRADLE_LATEST_VERSION))
 }
 
 class GradleVersionUsageInfo(

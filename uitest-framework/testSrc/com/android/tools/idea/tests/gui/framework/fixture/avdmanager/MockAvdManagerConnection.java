@@ -29,7 +29,6 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,8 +59,8 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
   }
 
   @NotNull
-  private File getAdbBinary() {
-    return new File(mySdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_PLATFORM_TOOLS_FOLDER, SdkConstants.FN_ADB));
+  private String getAdbBinary() {
+    return mySdkHandler.getLocation().resolve(SdkConstants.OS_SDK_PLATFORM_TOOLS_FOLDER).resolve(SdkConstants.FN_ADB).toString();
   }
 
   public boolean deleteAvdByDisplayName(@NotNull String avdName) {
@@ -72,7 +71,7 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
   public void killEmulator() {
     try {
       AndroidDebugBridge.initIfNeeded(false);
-      AndroidDebugBridge adb = AndroidDebugBridge.createBridge(getAdbBinary().getAbsolutePath(), false);
+      AndroidDebugBridge adb = AndroidDebugBridge.createBridge(getAdbBinary(), false);
 
       Collection<IDevice> emulatorDevices = new ArrayList<>();
       assert adb != null;
@@ -131,7 +130,7 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
 
   public void tapRunningAvd(int x, int y) {
     try {
-      exec(getAdbBinary().getAbsolutePath() + " shell input tap " + x + " " + y);
+      exec(getAdbBinary() + " shell input tap " + x + " " + y);
     }
     catch (Exception e) {
       throw new RuntimeException(e);
@@ -140,7 +139,7 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
 
   public void tapBackButtonOnRunningAvd() {
     try {
-      exec(getAdbBinary().getAbsolutePath() + " shell input keyevent 4");
+      exec(getAdbBinary() + " shell input keyevent 4");
     }
     catch (Exception e) {
       throw new RuntimeException(e);

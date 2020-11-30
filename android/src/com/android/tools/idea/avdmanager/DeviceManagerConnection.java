@@ -19,6 +19,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.devices.DeviceParser;
 import com.android.sdklib.devices.DeviceWriter;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.utils.ILogger;
 import com.android.tools.idea.log.LogWrapper;
@@ -28,6 +29,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.ContainerUtil;
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,16 +50,16 @@ public class DeviceManagerConnection {
   private static final Logger IJ_LOG = Logger.getInstance(AvdManagerConnection.class);
   private static final ILogger SDK_LOG = new LogWrapper(IJ_LOG).alwaysLogAsDebug(true).allowVerbose(false);
   private static final DeviceManagerConnection NULL_CONNECTION = new DeviceManagerConnection(null);
-  private static Map<File, DeviceManagerConnection> ourCache = ContainerUtil.createWeakMap();
+  private static Map<Path, DeviceManagerConnection> ourCache = ContainerUtil.createWeakMap();
   private DeviceManager ourDeviceManager;
-  @Nullable private File mySdkPath;
+  @Nullable private Path mySdkPath;
 
-  public DeviceManagerConnection(@Nullable File sdkPath) {
+  public DeviceManagerConnection(@Nullable Path sdkPath) {
     mySdkPath = sdkPath;
   }
 
   @NotNull
-  public static DeviceManagerConnection getDeviceManagerConnection(@NotNull File sdkPath) {
+  public static DeviceManagerConnection getDeviceManagerConnection(@NotNull Path sdkPath) {
     if (!ourCache.containsKey(sdkPath)) {
       ourCache.put(sdkPath, new DeviceManagerConnection(sdkPath));
     }
@@ -66,7 +68,8 @@ public class DeviceManagerConnection {
 
   @NotNull
   public static DeviceManagerConnection getDefaultDeviceManagerConnection() {
-    File sdkPath = AndroidSdks.getInstance().tryToChooseSdkHandler().getLocation();
+    AndroidSdkHandler handler = AndroidSdks.getInstance().tryToChooseSdkHandler();
+    Path sdkPath = handler.getLocation();
     if (sdkPath != null) {
       return getDeviceManagerConnection(sdkPath);
     }

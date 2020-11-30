@@ -96,6 +96,7 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -654,7 +655,8 @@ public class SdkUpdaterConfigPanel implements Disposable {
    * Validates {@link #mySdkLocationTextField} and shows appropriate errors in the UI if needed.
    */
   private void validate() {
-    File nullableSdkLocation = myConfigurable.getRepoManager().getLocalPath();
+    Path nullableSdkPath = myConfigurable.getRepoManager().getLocalPath();
+    File nullableSdkLocation = nullableSdkPath == null ? null : myConfigurable.getSdkHandler().getFileOp().toFile(nullableSdkPath);
     @NotNull File sdkLocation = nullableSdkLocation == null ? new File("") : nullableSdkLocation;
 
     Validator.Result result = PathValidator.forAndroidSdkLocation().validate(sdkLocation);
@@ -696,8 +698,6 @@ public class SdkUpdaterConfigPanel implements Disposable {
 
   /**
    * Gets the consolidated list of {@link PackageNodeModel}s from our children so they can be applied.
-   *
-   * @return
    */
   public Collection<PackageNodeModel> getStates() {
     List<PackageNodeModel> result = Lists.newArrayList();

@@ -121,7 +121,7 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
     // that use the emulator that are not running within Bazel.
     generatedSdkLocation = sdkLocation
 
-    val sdkManager = AndroidSdkHandler.getInstance(sdkLocation)
+    val sdkManager = AndroidSdkHandler.getInstance(sdkLocation.toPath())
     val avdMan = AvdManagerConnection.getAvdManagerConnection(sdkManager)
 
     var avd: AvdInfo?

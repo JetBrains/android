@@ -17,9 +17,9 @@ package com.android.tools.idea.testartifacts;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
-import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.intellij.execution.Location;
 import com.intellij.execution.PsiLocation;
+import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -40,7 +40,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.findRelativeFile;
 import static org.junit.Assert.assertNotNull;
 
 /**
- * Collection of utility methods for testing {@link AndroidTestRunConfiguration}s, {@link AndroidJUnitConfiguration}s and their interactions
+ * Collection of utility methods for testing {@link AndroidTestRunConfiguration}s.
  */
 public class TestConfigurationTesting {
   @Nullable
@@ -49,23 +49,8 @@ public class TestConfigurationTesting {
   }
 
   @Nullable
-  public static AndroidJUnitConfiguration createJUnitConfigurationFromClass(@NotNull Project project, @NotNull String qualifiedName) {
-    return createConfigurationFromClass(project, qualifiedName, AndroidJUnitConfiguration.class);
-  }
-
-  @Nullable
-  public static AndroidJUnitConfiguration createJUnitConfigurationFromDirectory(@NotNull Project project, @NotNull String directory) {
-    return createConfigurationFromDirectory(project, directory, AndroidJUnitConfiguration.class);
-  }
-
-  @Nullable
   public static AndroidTestRunConfiguration createAndroidTestConfigurationFromDirectory(@NotNull Project project, @NotNull String directory) {
     return createConfigurationFromDirectory(project, directory, AndroidTestRunConfiguration.class);
-  }
-
-  @Nullable
-  public static AndroidJUnitConfiguration createJUnitConfigurationFromFile(@NotNull Project project, @NotNull String file) {
-    return createConfigurationFromFile(project, file, AndroidJUnitConfiguration.class);
   }
 
   @Nullable
@@ -119,8 +104,12 @@ public class TestConfigurationTesting {
     if (settings == null) {
       return null;
     }
+    // Save the run configuration in the project.
+    RunManager runManager = RunManager.getInstance(project);
+    runManager.addConfiguration(settings);
+
     RunConfiguration configuration = settings.getConfiguration();
-    if (configuration instanceof AndroidTestRunConfiguration || configuration instanceof AndroidJUnitConfiguration) {
+    if (configuration instanceof AndroidTestRunConfiguration) {
       return configuration;
     }
     return null;

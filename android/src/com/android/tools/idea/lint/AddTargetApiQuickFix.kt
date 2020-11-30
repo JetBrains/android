@@ -59,7 +59,7 @@ import java.util.Locale
 class AddTargetApiQuickFix(private val api: Int,
                            private val requiresApi: Boolean,
                            private val element: PsiElement,
-                           private val filter: Class<out PsiModifierListOwner>?) : LintIdeQuickFix {
+                           private val requireClass: Boolean = false) : LintIdeQuickFix {
 
   private fun getAnnotationValue(fullyQualified: Boolean): String {
     return AddTargetVersionCheckQuickFix.getVersionField(api, fullyQualified)
@@ -162,8 +162,8 @@ class AddTargetApiQuickFix(private val api: Int,
     return when (element.language) {
       JavaLanguage.INSTANCE -> {
         var container: PsiModifierListOwner?
-        if (filter != null) {
-          container = PsiTreeUtil.getParentOfType<PsiModifierListOwner>(element, filter)
+        if (requireClass) {
+          container = PsiTreeUtil.getParentOfType<PsiModifierListOwner>(element, PsiClass::class.java)
         }
         else {
           container = PsiTreeUtil.getParentOfType(element, PsiMethod::class.java, PsiClass::class.java)

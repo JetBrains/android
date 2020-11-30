@@ -30,5 +30,6 @@
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" />
     <orderEntry type="module" module-name="android.sdktools.ddmlib" />
     <orderEntry type="module" module-name="analytics-tracker" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" />
   </component>
 </module>

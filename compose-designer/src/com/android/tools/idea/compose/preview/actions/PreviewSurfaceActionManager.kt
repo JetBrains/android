@@ -68,9 +68,6 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
           StudioFlags.COMPOSE_PIN_PREVIEW.ifEnabled {
             PinPreviewElementAction { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()
           },
-          StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.ifEnabled {
-            ComposePreviewElementPickerAction { sceneView.scene.sceneManager.model.dataContext }
-          },
           StudioFlags.COMPOSE_ANIMATION_INSPECTOR.ifEnabled {
             AnimationInspectorAction { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()
           },

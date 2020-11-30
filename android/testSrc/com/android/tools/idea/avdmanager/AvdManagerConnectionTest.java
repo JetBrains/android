@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.AndroidTestCase;
 
 public class AvdManagerConnectionTest extends AndroidTestCase {
-  private static final File ANDROID_PREFS_ROOT = new File("/android-home");
+  private static final String ANDROID_PREFS_ROOT = "/android-home";
 
   private AvdManager mAvdManager;
   private AvdManagerConnection mAvdManagerConnection;
@@ -58,7 +58,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     recordGoogleApisSysImg23(mFileOp);
     recordEmulatorVersion_23_4_5(mFileOp);
 
-    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(new File("/sdk"), ANDROID_PREFS_ROOT, mFileOp);
+    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(mFileOp.toPath("/sdk"), mFileOp.toPath(ANDROID_PREFS_ROOT), mFileOp);
 
     mAvdManager = AvdManager.getInstance(androidSdkHandler, new File(ANDROID_PREFS_ROOT, "avd"), new NullLogger());
 
@@ -129,52 +129,51 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
   public void testDoesSystemImageSupportQemu2() {
     String AVD_LOCATION = "/avd";
     String SDK_LOCATION = "/sdk";
-    MockFileOp fileOp = new MockFileOp();
     RepositoryPackages packages = new RepositoryPackages();
 
     // QEMU-1 image
     String q1Path = "system-images;android-q1;google_apis;x86";
-    FakePackage.FakeLocalPackage q1Package = new FakePackage.FakeLocalPackage(q1Path);
+    FakePackage.FakeLocalPackage q1Package = new FakePackage.FakeLocalPackage(q1Path, mFileOp);
     DetailsTypes.SysImgDetailsType q1Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     q1Details.setTag(IdDisplay.create("google_apis", "Google APIs"));
     q1Package.setTypeDetails((TypeDetails)q1Details);
-    fileOp.recordExistingFile(new File(q1Package.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    mFileOp.recordExistingFile(q1Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // QEMU-2 image
     String q2Path = "system-images;android-q2;google_apis;x86";
-    FakePackage.FakeLocalPackage q2Package = new FakePackage.FakeLocalPackage(q2Path);
+    FakePackage.FakeLocalPackage q2Package = new FakePackage.FakeLocalPackage(q2Path, mFileOp);
     DetailsTypes.SysImgDetailsType q2Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     q2Details.setTag(IdDisplay.create("google_apis", "Google APIs"));
     q2Package.setTypeDetails((TypeDetails)q2Details);
-    fileOp.recordExistingFile(new File(q2Package.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    mFileOp.recordExistingFile(q2Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
     // Add a file that indicates QEMU-2 support
-    mFileOp.recordExistingFile(q2Package.getLocation().getPath() + "/kernel-ranchu");
+    mFileOp.recordExistingFile(q2Package.getLocation().resolve("kernel-ranchu"));
 
     // QEMU-2-64 image
     String q2_64Path = "system-images;android-q2-64;google_apis;x86";
-    FakePackage.FakeLocalPackage q2_64Package = new FakePackage.FakeLocalPackage(q2_64Path);
+    FakePackage.FakeLocalPackage q2_64Package = new FakePackage.FakeLocalPackage(q2_64Path, mFileOp);
     DetailsTypes.SysImgDetailsType q2_64Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     q2_64Details.setTag(IdDisplay.create("google_apis", "Google APIs"));
     q2_64Package.setTypeDetails((TypeDetails)q2_64Details);
-    fileOp.recordExistingFile(new File(q2_64Package.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    mFileOp.recordExistingFile(q2_64Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
     // Add a file that indicates QEMU-2 support
-    mFileOp.recordExistingFile(q2_64Package.getLocation().getPath() + "/kernel-ranchu-64");
+    mFileOp.recordExistingFile(q2_64Package.getLocation().resolve("kernel-ranchu-64"));
 
     packages.setLocalPkgInfos(ImmutableList.of(q1Package, q2Package, q2_64Package));
-    FakeRepoManager mgr = new FakeRepoManager(new File(SDK_LOCATION), packages);
+    FakeRepoManager mgr = new FakeRepoManager(mFileOp.toPath(SDK_LOCATION), packages);
 
     AndroidSdkHandler sdkHandler =
-      new AndroidSdkHandler(new File(SDK_LOCATION), new File(AVD_LOCATION), fileOp, mgr);
+      new AndroidSdkHandler(mFileOp.toPath(SDK_LOCATION), mFileOp.toPath(AVD_LOCATION), mFileOp, mgr);
 
     FakeProgressIndicator progress = new FakeProgressIndicator();
     SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
 
     ISystemImage q1Image =
-      systemImageManager.getImageAt(Objects.requireNonNull(sdkHandler.getLocalPackage(q1Path, progress)).getLocation());
+      systemImageManager.getImageAt(mFileOp.toFile(Objects.requireNonNull(sdkHandler.getLocalPackage(q1Path, progress)).getLocation()));
     ISystemImage q2Image =
-      systemImageManager.getImageAt(Objects.requireNonNull(sdkHandler.getLocalPackage(q2Path, progress)).getLocation());
+      systemImageManager.getImageAt(mFileOp.toFile(Objects.requireNonNull(sdkHandler.getLocalPackage(q2Path, progress)).getLocation()));
     ISystemImage q2_64Image =
-      systemImageManager.getImageAt(Objects.requireNonNull(sdkHandler.getLocalPackage(q2_64Path, progress)).getLocation());
+      systemImageManager.getImageAt(mFileOp.toFile(Objects.requireNonNull(sdkHandler.getLocalPackage(q2_64Path, progress)).getLocation()));
 
     assert q1Image != null;
     SystemImageDescription q1ImageDescription = new SystemImageDescription(q1Image);
@@ -242,7 +241,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     // Create a new AvdManagerConnection that doesn't remember the
     // previous list of packages
-    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(new File("/sdk").getAbsoluteFile(), ANDROID_PREFS_ROOT, mFileOp);
+    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(mFileOp.toPath("/sdk"), mFileOp.toPath(ANDROID_PREFS_ROOT), mFileOp);
     AvdManagerConnection managerConnection = new AvdManagerConnection(androidSdkHandler, MoreExecutors.newDirectExecutorService());
 
     File bogusEmulatorFile = managerConnection.getEmulatorBinary();

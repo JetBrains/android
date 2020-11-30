@@ -66,7 +66,7 @@ public class FirstRunWizard extends DynamicWizard {
     if (myMode == FirstRunWizardMode.NEW_INSTALL) {
       boolean sdkExists = false;
       if (initialSdkLocation.isDirectory()) {
-        AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(initialSdkLocation);
+        AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(initialSdkLocation.toPath());
         ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
         sdkExists = !sdkHandler.getSdkManager(progress).getPackages().getLocalPackages().isEmpty();
       }

@@ -33,7 +33,13 @@ public class AndroidLintGradleDynamicVersionInspection extends AndroidLintInspec
                                          @NotNull PsiElement endElement,
                                          @NotNull String message,
                                          @Nullable LintFix fixData) {
-    GradleCoordinate plus = LintFix.getData(fixData, GradleCoordinate.class);
+    String gc = LintFix.getString(fixData, GradleDetector.KEY_COORDINATE, null);
+    GradleCoordinate plus;
+    if (gc != null) {
+      plus = GradleCoordinate.parseCoordinateString(gc);
+    } else {
+      plus = null;
+    }
     //noinspection ConstantConditions
     if (plus != null && plus.getArtifactId() != null) {
       return new LintIdeQuickFix[]{

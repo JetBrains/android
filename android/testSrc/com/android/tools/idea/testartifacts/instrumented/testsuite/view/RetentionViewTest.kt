@@ -39,9 +39,10 @@ import org.junit.rules.TemporaryFolder
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.anyString
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 import java.io.ByteArrayInputStream
-import java.io.File
 import java.io.FileOutputStream
 import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
@@ -64,7 +65,7 @@ class RetentionViewTest {
 
   private lateinit var retentionView: RetentionView
   private lateinit var androidSdkHandler: AndroidSdkHandler
-  private val sdkPath = File("/sdk")
+  private val sdkPath = "/sdk"
 
   @Mock
   private lateinit var mockRuntime: Runtime
@@ -76,11 +77,11 @@ class RetentionViewTest {
   @Before
   fun setUp() {
     MockitoAnnotations.initMocks(this)
-    val p = FakeLocalPackage(SdkConstants.FD_EMULATOR)
+    val p = FakeLocalPackage(SdkConstants.FD_EMULATOR, mockFileOp)
     mockFileOp.recordExistingFile(p.location.resolve(SdkConstants.FN_EMULATOR))
     val packages = RepositoryPackages(listOf(p), listOf())
-    val mgr: RepoManager = FakeRepoManager(sdkPath, packages)
-    androidSdkHandler = AndroidSdkHandler(sdkPath, sdkPath, mockFileOp, mgr)
+    val mgr: RepoManager = FakeRepoManager(mockFileOp.toPath(sdkPath), packages)
+    androidSdkHandler = AndroidSdkHandler(mockFileOp.toPath(sdkPath), mockFileOp.toPath(sdkPath), mockFileOp, mgr)
     `when`(mockRuntime.exec(any(Array<String>::class.java))).thenReturn(mockProcess)
     `when`(mockRuntime.exec(anyString())).thenReturn(mockProcess)
     retentionView = RetentionView(androidSdkHandler, FakeProgressIndicator(), mockRuntime)
@@ -158,9 +159,53 @@ class RetentionViewTest {
     ApplicationManager.getApplication().invokeAndWait {
       retentionView.setSnapshotFile(snapshotFile)
     }
-    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5000, TimeUnit.SECONDS)
+    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
     ApplicationManager.getApplication().invokeAndWait {
       assertThat(retentionView.myRetentionDebugButton.isEnabled).isTrue()
+    }
+  }
+
+  @Test
+  fun loadSameSnapshotWithPb() {
+    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
+    val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
+    // RetentionView needs a real file so that it can parse the file name extension for compression format.
+    val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
+    assertThat(url).isNotNull()
+    with(FileOutputStream(snapshotFile)) {
+      IOUtils.copy(url.openStream(), this)
+    }
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.setSnapshotFile(snapshotFile)
+      retentionView.setSnapshotFile(snapshotFile)
+    }
+    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    ApplicationManager.getApplication().invokeAndWait {
+      assertThat(retentionView.myRetentionDebugButton.isEnabled).isTrue()
+    }
+    verify(mockRuntime, times(1)).exec(anyString())
+  }
+
+  @Test
+  fun unloadSnapshot() {
+    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
+    val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
+    // RetentionView needs a real file so that it can parse the file name extension for compression format.
+    val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
+    assertThat(url).isNotNull()
+    with(FileOutputStream(snapshotFile)) {
+      IOUtils.copy(url.openStream(), this)
+    }
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.setSnapshotFile(snapshotFile)
+    }
+    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.setSnapshotFile(null)
+    }
+    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    ApplicationManager.getApplication().invokeAndWait {
+      assertThat(retentionView.image).isNull()
     }
   }
 

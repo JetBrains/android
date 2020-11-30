@@ -38,7 +38,7 @@ public class AndroidLintFontValidationErrorInspection extends AndroidLintInspect
                                          @NotNull PsiElement endElement,
                                          @NotNull String message,
                                          @Nullable LintFix fixData) {
-    if (Objects.equals(LintFix.getData(fixData, String.class), APPCOMPAT_LIB_ARTIFACT_ID)) {
+    if (Objects.equals(LintFix.getString(fixData, FontDetector.KEY_ARTIFACT_ID, null), APPCOMPAT_LIB_ARTIFACT_ID)) {
       return new LintIdeQuickFix[]{new UpgradeAppCompatV7Fix()};
     }
 

@@ -16,12 +16,8 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.preview.util.hasBeenBuiltSuccessfully
-import com.android.tools.idea.gradle.project.build.BuildContext
-import com.android.tools.idea.gradle.project.build.BuildStatus
-import com.android.tools.idea.gradle.project.build.GradleBuildListener
-import com.android.tools.idea.gradle.project.build.GradleBuildState
-import com.android.tools.idea.gradle.util.BuildMode
-import com.android.tools.idea.gradle.util.isSuccess
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
+import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
@@ -72,20 +68,19 @@ class ProjectBuildStatusManager(parentDisposable: Disposable, editorFile: PsiFil
     }
 
   init {
-    GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
-      // We do not have to check isDisposed inside the callbacks since they won't get called if parentDisposable is disposed
-      override fun buildStarted(context: BuildContext) {
-        LOG.debug("buildStarted $context")
-        if (context.buildMode == BuildMode.CLEAN) {
+    ProjectSystemService.getInstance(project).projectSystem.getBuildManager().addBuildListener(parentDisposable, object : ProjectSystemBuildManager.BuildListener {
+      override fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) {
+        LOG.debug("buildStarted $mode")
+        if (mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
           status = NeedsBuild
         }
       }
 
-      override fun buildFinished(buildStatus: BuildStatus, context: BuildContext?) {
-        LOG.debug("buildFinished $buildStatus $context")
+      override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
+        LOG.debug("buildFinished $result")
         lastModificationCount = modificationTracker.modificationCount
-        if (context?.buildMode == BuildMode.CLEAN) return
-        if (buildStatus.isSuccess()) {
+        if (result.mode == ProjectSystemBuildManager.BuildMode.CLEAN) return
+        if (result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
           status = Ready()
         }
         else {

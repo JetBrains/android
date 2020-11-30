@@ -24,7 +24,7 @@ import static com.android.tools.idea.rendering.classloading.ClassConverter.getMi
 import static com.android.tools.idea.rendering.classloading.ClassConverter.isValidClassFile;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.jdkToClassVersion;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.rewriteClass;
-import static com.android.tools.idea.rendering.classloading.UtilKt.multiTransformOf;
+import static com.android.tools.idea.rendering.classloading.UtilKt.toClassTransform;
 import static com.google.common.truth.Truth.assertThat;
 import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_PROTECTED;
 import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC;
@@ -47,10 +47,14 @@ import static org.jetbrains.org.objectweb.asm.Opcodes.V1_7;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.util.text.StringUtil;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.regex.Pattern;
 import junit.framework.TestCase;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.org.objectweb.asm.ClassReader;
 import org.jetbrains.org.objectweb.asm.ClassVisitor;
 import org.jetbrains.org.objectweb.asm.ClassWriter;
@@ -139,25 +143,26 @@ public class ClassConverterTest extends TestCase {
     Class<?> clz = classLoader.loadClass("Test");
     assertNotNull(clz);
     Object result = clz.getMethod("test").invoke(null);
-    assertEquals(Integer.valueOf(42), result);
+    assertEquals(42, result);
     Class<?> oldClz = clz;
 
-    data = rewriteClass(data, visitor -> new VersionClassTransform(visitor, 48, Integer.MIN_VALUE), classLoader);
+    data = rewriteClass(data, toClassTransform(visitor -> new VersionClassTransform(visitor, 48, Integer.MIN_VALUE)),
+                        classLoader);
     assertEquals(48, getMajorVersion(data));
     classLoader = new TestClassLoader(ImmutableMap.of("Test", data));
     clz = classLoader.loadClass("Test");
     assertNotNull(clz);
     assertNotSame(clz, oldClz);
     result = clz.getMethod("test").invoke(null);
-    assertEquals(Integer.valueOf(42), result);
+    assertEquals(42, result);
 
-    data = rewriteClass(data, visitor -> new VersionClassTransform(visitor, Integer.MAX_VALUE, 52), classLoader); // latest known
+    data = rewriteClass(data, toClassTransform(visitor -> new VersionClassTransform(visitor, Integer.MAX_VALUE, 52)), classLoader); // latest known
     assertEquals(52, getMajorVersion(data));
     classLoader = new TestClassLoader(ImmutableMap.of("Test", data));
     clz = classLoader.loadClass("Test");
     assertNotNull(clz);
     result = clz.getMethod("test").invoke(null);
-    assertEquals(Integer.valueOf(42), result);
+    assertEquals(42, result);
 
     // Make sure that that class cannot actually be loaded in the regular way
     try {
@@ -248,7 +253,7 @@ public class ClassConverterTest extends TestCase {
     byte[] data = ClassConverterTest.dumpTestViewClass();
 
     assertTrue(isValidClassFile(data));
-    byte[] modified = rewriteClass(data, visitor -> new ViewMethodWrapperTransform(visitor), ClassConverter.class.getClassLoader());
+    byte[] modified = rewriteClass(data, toClassTransform(ViewMethodWrapperTransform::new), ClassConverter.class.getClassLoader());
     assertTrue(isValidClassFile(data));
 
     // Parse both classes and compare
@@ -290,18 +295,18 @@ public class ClassConverterTest extends TestCase {
       }
     };
     Class<?> clazz = loader.loadClass("FirstClass");
-    Object o = clazz.newInstance();
+    Object o = clazz.getDeclaredConstructor().newInstance();
     int outValue = (Integer)clazz.getMethod("test").invoke(o);
     assertEquals(1, outValue);
     clazz = loader.loadClass("SecondClass");
-    o = clazz.newInstance();
+    o = clazz.getDeclaredConstructor().newInstance();
     outValue = (Integer)clazz.getMethod("test").invoke(o);
     assertEquals(2, outValue);
 
 
     // Modify the classes and repeat.
-    final byte[] modifiedFirstData = rewriteClass(firstData, visitor -> new VersionClassTransform(visitor, 50, 0), loader);
-    final byte[] modifiedSecondData = rewriteClass(secondData, visitor -> new VersionClassTransform(visitor, 50, 0), loader);
+    final byte[] modifiedFirstData = rewriteClass(firstData, toClassTransform(visitor -> new VersionClassTransform(visitor, 50, 0)), loader);
+    final byte[] modifiedSecondData = rewriteClass(secondData, toClassTransform(visitor -> new VersionClassTransform(visitor, 50, 0)), loader);
     loader = new ClassLoader() {
       @Override
       protected Class<?> findClass(String name) throws ClassNotFoundException {
@@ -315,24 +320,24 @@ public class ClassConverterTest extends TestCase {
       }
     };
     clazz = loader.loadClass("FirstClass");
-    o = clazz.newInstance();
+    o = clazz.getDeclaredConstructor().newInstance();
     outValue = (Integer)clazz.getMethod("test").invoke(o);
     assertEquals(1, outValue);
     clazz = loader.loadClass("SecondClass");
-    o = clazz.newInstance();
+    o = clazz.getDeclaredConstructor().newInstance();
     outValue = (Integer)clazz.getMethod("test").invoke(o);
     assertEquals(2, outValue);
   }
 
   /**
-   * Ensure that {@link UtilKt#multiTransformOf} produces a valid visitor that calls all the other ones.
+   * Ensure that {@link UtilKt#toClassTransform} produces a valid visitor that calls all the other ones.
    */
   public void testMultiTransform() {
     byte[] data = ClassConverterTest.dumpTestViewClass();
 
     {
       Set<String> called = new HashSet<>();
-      rewriteClass(data, multiTransformOf(
+      rewriteClass(data, toClassTransform(
         visitor -> new TestVisitor(visitor, name -> called.add("Visitor1")),
         visitor -> new TestVisitor(visitor, name -> called.add("Visitor2"))
       ), ClassConverterTest.class.getClassLoader());
@@ -342,14 +347,55 @@ public class ClassConverterTest extends TestCase {
     {
       Set<String> called = new HashSet<>();
       rewriteClass(data,
-                   multiTransformOf(visitor -> new TestVisitor(visitor, name -> called.add("Visitor1"))),
+                   toClassTransform(visitor -> new TestVisitor(visitor, name -> called.add("Visitor1"))),
                    ClassConverterTest.class.getClassLoader());
       assertThat(called).containsExactly("Visitor1");
     }
 
     {
       // Check that this does not cause any problems
-      rewriteClass(data, multiTransformOf(), ClassConverterTest.class.getClassLoader());
+      rewriteClass(data, toClassTransform(), ClassConverterTest.class.getClassLoader());
+    }
+  }
+
+  /**
+   * Ensure that {@link UtilKt#toClassTransform} produces a valid visitor that calls all the other ones.
+   */
+  public void testClassVisitorsGroup() {
+    {
+      ClassTransform visitorGroup = toClassTransform(
+        visitor -> new TestVisitor(visitor, name -> {}),
+        visitor -> new TestVisitorWithId(visitor, "AnId")
+      );
+
+      assertTrue(visitorGroup.getDebugId().startsWith("TestVisitorWithId AnId"));
+      assertTrue("Second element is expected to be an instance id", Pattern.matches(
+        TestVisitor.class.getCanonicalName() + ":\\p{Alnum}*\n",
+        StringUtil.substringAfter(visitorGroup.getDebugId(), "\n")));
+    }
+
+    {
+      ClassTransform visitorGroup = toClassTransform(
+        visitor -> new TestVisitorWithId(visitor, "Id1"),
+        // Identity should not be printed to the output
+        Function.identity(),
+        visitor -> new TestVisitorWithId(visitor, "Id2")
+      );
+
+      assertEquals("TestVisitorWithId Id2\n" +
+                   "TestVisitorWithId Id1\n", visitorGroup.getDebugId());
+    }
+
+    // Check the same as above without using identity. In this case, because the instance is not the same,
+    // it should be returned as part of the id.
+    {
+      ClassTransform visitorGroup = toClassTransform(
+        visitor -> new TestVisitorWithId(visitor, "Id1"),
+        visitor -> new TestVisitorWithId(visitor, "Id1")
+      );
+
+      assertEquals("TestVisitorWithId Id1\n" +
+                   "TestVisitorWithId Id1\n", visitorGroup.getDebugId());
     }
   }
 
@@ -461,6 +507,25 @@ public class ClassConverterTest extends TestCase {
       onVisited.accept(name);
 
       super.visit(version, access, name, signature, superName, interfaces);
+    }
+  }
+
+  /**
+   * {@link TestVisitor} with a {@link ClassVisitorUniqueIdProvider}
+   */
+  private static class TestVisitorWithId extends TestVisitor implements ClassVisitorUniqueIdProvider {
+    private final String parameter;
+
+    private TestVisitorWithId(ClassVisitor classVisitor, String parameter) {
+      super(classVisitor, ignore -> {});
+
+      this.parameter = parameter;
+    }
+
+    @NotNull
+    @Override
+    public String getUniqueId() {
+      return "TestVisitorWithId " + parameter;
     }
   }
 }

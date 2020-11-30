@@ -6,7 +6,7 @@ import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_VIEW_HOLDER;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 import static com.android.tools.idea.flags.StudioFlags.NELE_CLASS_BINARY_CACHE;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.getCurrentClassVersion;
-import static com.android.tools.idea.rendering.classloading.UtilKt.multiTransformOf;
+import static com.android.tools.idea.rendering.classloading.UtilKt.toClassTransform;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AndroidManifestPackageNameUtils;
@@ -19,6 +19,7 @@ import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.RenderSecurityManager;
+import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.classloading.ConstantRemapperManager;
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform;
 import com.android.tools.idea.rendering.classloading.RenderClassLoader;
@@ -53,7 +54,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -61,7 +61,6 @@ import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.org.objectweb.asm.ClassVisitor;
 
 /**
  * Render class loader responsible for loading classes in custom views and local and library classes
@@ -106,19 +105,19 @@ public final class ModuleClassLoader extends RenderClassLoader {
    * the onDraw, onMeasure and onLayout methods are replaced with methods that capture any exceptions thrown.
    * This way we avoid custom views breaking the rendering.
    */
-  static final Function<ClassVisitor, ClassVisitor> PROJECT_DEFAULT_TRANSFORMS = multiTransformOf(
-    visitor -> new ViewMethodWrapperTransform(visitor),
+  static final ClassTransform PROJECT_DEFAULT_TRANSFORMS = toClassTransform(
+    ViewMethodWrapperTransform::new,
     visitor -> new VersionClassTransform(visitor, getCurrentClassVersion(), 0),
-    visitor -> new ThreadLocalRenameTransform(visitor),
+    ThreadLocalRenameTransform::new,
     // Leave this transformation as last so the rest of the transformations operate on the regular names.
     visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
   );
 
-  static final Function<ClassVisitor, ClassVisitor> NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS = multiTransformOf(
-    visitor -> new ViewMethodWrapperTransform(visitor),
+  static final ClassTransform NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS = toClassTransform(
+    ViewMethodWrapperTransform::new,
     visitor -> new VersionClassTransform(visitor, getCurrentClassVersion(), 0),
-    visitor -> new ThreadLocalRenameTransform(visitor),
-    visitor -> new PreviewAnimationClockMethodTransform(visitor),
+    ThreadLocalRenameTransform::new,
+    PreviewAnimationClockMethodTransform::new,
     // Leave this transformation as last so the rest of the transformations operate on the regular names.
     visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
   );
@@ -166,15 +165,15 @@ public final class ModuleClassLoader extends RenderClassLoader {
   }
 
   ModuleClassLoader(@Nullable ClassLoader parent, @NotNull Module module,
-                    @NotNull Function<ClassVisitor, ClassVisitor> projectTransformations,
-                    @NotNull Function<ClassVisitor, ClassVisitor> nonProjectTransformations) {
+                    @NotNull ClassTransform projectTransformations,
+                    @NotNull ClassTransform nonProjectTransformations) {
     this(parent, module, projectTransformations, nonProjectTransformations,
          NELE_CLASS_BINARY_CACHE.get() ? ClassBinaryCacheManager.getInstance().getCache(module) : ClassBinaryCache.NO_CACHE);
   }
 
   private ModuleClassLoader(@Nullable ClassLoader parent, @NotNull Module module,
-                    @NotNull Function<ClassVisitor, ClassVisitor> projectTransformations,
-                    @NotNull Function<ClassVisitor, ClassVisitor> nonProjectTransformations,
+                    @NotNull ClassTransform projectTransformations,
+                    @NotNull ClassTransform nonProjectTransformations,
                     @NotNull ClassBinaryCache cache) {
     super(parent, projectTransformations, nonProjectTransformations, ModuleClassLoader::nonProjectClassNameLookup, cache);
     myModuleReference = new WeakReference<>(module);

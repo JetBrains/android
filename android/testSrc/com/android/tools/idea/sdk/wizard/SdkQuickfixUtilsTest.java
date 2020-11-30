@@ -45,18 +45,18 @@ import java.util.Collections;
 public class SdkQuickfixUtilsTest extends AndroidGradleTestCase {
   RepoManager myRepoManager;
   AndroidSdkHandler mySdkHandler;
+  MockFileOp fileOp = new MockFileOp();
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this.getClass());
 
-    MockFileOp fileOp = new MockFileOp();
     RepositoryPackages packages = new RepositoryPackages();
-    File sdkPath = new File("/sdk");
-    File avdPath = new File("/avd");
-    myRepoManager = spy(new FakeRepoManager(sdkPath, packages));
-    mySdkHandler = new AndroidSdkHandler(sdkPath, avdPath, fileOp, myRepoManager);
+    String sdkPath = "/sdk";
+    String avdPath = "/avd";
+    myRepoManager = spy(new FakeRepoManager(fileOp.toPath(sdkPath), packages));
+    mySdkHandler = new AndroidSdkHandler(fileOp.toPath(sdkPath), fileOp.toPath(avdPath), fileOp, myRepoManager);
     assertNotNull(mySdkHandler);
     FakeProgressIndicator progress = new FakeProgressIndicator();
     assertSame(myRepoManager, mySdkHandler.getSdkManager(progress));
@@ -85,7 +85,7 @@ public class SdkQuickfixUtilsTest extends AndroidGradleTestCase {
   }
 
   public void testCreateDialogNoRepoReloadsWhenUninstallsOnly() {
-    LocalPackage localPackage = new FakePackage.FakeLocalPackage("some;sdk;package");
+    LocalPackage localPackage = new FakePackage.FakeLocalPackage("some;sdk;package", fileOp);
 
     ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(null, null, null,
                                                              Collections.emptyList(), ImmutableList.of(localPackage), mySdkHandler,
@@ -98,7 +98,7 @@ public class SdkQuickfixUtilsTest extends AndroidGradleTestCase {
   }
 
   public void testCreateDialogNoUncachedRepoReloads() {
-    LocalPackage localPackage = new FakePackage.FakeLocalPackage("some;sdk;package");
+    LocalPackage localPackage = new FakePackage.FakeLocalPackage("some;sdk;package", fileOp);
     try {
       SdkQuickfixUtils.createDialog(null, null, ImmutableList.of("some;other;package"),
                                     null, ImmutableList.of(localPackage), mySdkHandler,

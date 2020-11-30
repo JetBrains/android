@@ -37,7 +37,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -48,7 +47,6 @@ import org.jetbrains.annotations.Nullable;
 final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice>> {
   private final @NotNull ExecutorService myExecutorService;
   private final @NotNull Supplier<@NotNull Collection<@NotNull AvdInfo>> myGetAvds;
-  private final @NotNull BooleanSupplier mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
 
   @NotNull
   private final FileSystem myFileSystem;
@@ -61,7 +59,6 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
   static final class Builder {
     private @Nullable ExecutorService myExecutorService;
     private @Nullable Supplier<@NotNull Collection<@NotNull AvdInfo>> myGetAvds;
-    private @Nullable BooleanSupplier mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
     private @Nullable FileSystem myFileSystem;
     private @Nullable Function<@NotNull AvdInfo, @NotNull AndroidDevice> myNewLaunchableAndroidDevice;
     private @Nullable LaunchCompatibilityChecker myChecker;
@@ -73,11 +70,6 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
 
     @NotNull Builder setGetAvds(@NotNull Supplier<@NotNull Collection<@NotNull AvdInfo>> getAvds) {
       myGetAvds = getAvds;
-      return this;
-    }
-
-    @NotNull Builder setSelectDeviceSnapshotComboBoxSnapshotsEnabled(@NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabled) {
-      mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
       return this;
     }
 
@@ -108,9 +100,6 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
     assert builder.myGetAvds != null;
     myGetAvds = builder.myGetAvds;
 
-    assert builder.mySelectDeviceSnapshotComboBoxSnapshotsEnabled != null;
-    mySelectDeviceSnapshotComboBoxSnapshotsEnabled = builder.mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
-
     assert builder.myFileSystem != null;
     myFileSystem = builder.myFileSystem;
 
@@ -128,21 +117,11 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
 
   @NotNull
   private Collection<VirtualDevice> getVirtualDevices() {
-    Collection<VirtualDevice> deviceCollection;
-
     Collection<AvdInfo> avdCollection = myGetAvds.get();
-    Stream<AvdInfo> avdStream = avdCollection.stream();
 
-    if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled.getAsBoolean()) {
-      deviceCollection = avdStream
-        .map(avd -> newDisconnectedDevice(avd, null))
-        .collect(Collectors.toList());
-    }
-    else {
-      deviceCollection = avdStream
-        .flatMap(this::newDisconnectedDevices)
-        .collect(Collectors.toList());
-    }
+    Collection<VirtualDevice> deviceCollection = avdCollection.stream()
+      .map(avd -> newDisconnectedDevice(avd, getSnapshots(avd)))
+      .collect(Collectors.toList());
 
     if (!hasDuplicateKeys(deviceCollection)) {
       return deviceCollection;
@@ -152,18 +131,6 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
     logDebugStrings(avdCollection);
 
     return newListWithoutDuplicateKeys(deviceCollection);
-  }
-
-  @NotNull
-  private Stream<VirtualDevice> newDisconnectedDevices(@NotNull AvdInfo device) {
-    Stream.Builder<VirtualDevice> builder = Stream.<VirtualDevice>builder()
-      .add(newDisconnectedDevice(device, null));
-
-    getSnapshots(device).stream()
-      .map(snapshot -> newDisconnectedDevice(device, snapshot))
-      .forEach(builder::add);
-
-    return builder.build();
   }
 
   @NotNull
@@ -222,30 +189,15 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
     return new Snapshot(snapshotDirectory, name);
   }
 
-  @NotNull
-  private VirtualDevice newDisconnectedDevice(@NotNull AvdInfo avd, @Nullable Snapshot snapshot) {
-    Key key;
-    Key nameKey;
-
-    if (snapshot == null) {
-      key = new VirtualDevicePath(avd.getDataFolderPath());
-      nameKey = new VirtualDeviceName(avd.getName());
-    }
-    else {
-      String path = snapshot.getDirectory().toString();
-
-      key = new VirtualDevicePathAndSnapshotPath(avd.getDataFolderPath(), path);
-      nameKey = new VirtualDeviceNameAndSnapshotPath(avd.getName(), path);
-    }
-
+  private @NotNull VirtualDevice newDisconnectedDevice(@NotNull AvdInfo avd, @NotNull Collection<@NotNull Snapshot> snapshots) {
     AndroidDevice device = myNewLaunchableAndroidDevice.apply(avd);
 
     VirtualDevice.Builder builder = new VirtualDevice.Builder()
       .setName(avd.getDisplayName())
-      .setKey(key)
+      .setKey(new VirtualDevicePath(avd.getDataFolderPath()))
       .setAndroidDevice(device)
-      .setNameKey(nameKey)
-      .setSnapshot(snapshot);
+      .setNameKey(new VirtualDeviceName(avd.getName()))
+      .addAllSnapshots(snapshots);
 
     if (myChecker == null) {
       return builder.build();

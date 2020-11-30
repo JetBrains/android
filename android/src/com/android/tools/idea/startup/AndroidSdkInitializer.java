@@ -33,6 +33,7 @@ import com.android.tools.idea.sdk.install.patch.PatchInstallingRestarter;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -66,8 +67,8 @@ public class AndroidSdkInitializer implements Runnable {
   // Default install location from users home dir.
   @NonNls private static final String ANDROID_SDK_DEFAULT_INSTALL_DIR =
     SystemInfo.isWindows ? FileUtil.join(System.getenv("LOCALAPPDATA"), "Android", "Sdk")
-                         : SystemInfo.isMac ? FileUtil.join("Library", "Android", "sdk")
-                                            : FileUtil.join("Library", "Sdk");
+                         : SystemInfo.isMac ? FileUtil.join(SystemProperties.getUserHome(), "Library", "Android", "sdk")
+                                            : FileUtil.join(SystemProperties.getUserHome(), "Android", "Sdk");
 
   @Override
   public void run() {
@@ -98,7 +99,7 @@ public class AndroidSdkInitializer implements Runnable {
     }
 
     if (androidSdkPath != null) {
-      AndroidSdkHandler handler = AndroidSdkHandler.getInstance(androidSdkPath);
+      AndroidSdkHandler handler = AndroidSdkHandler.getInstance(androidSdkPath.toPath());
       new PatchInstallingRestarter(handler, FileOpUtils.create()).restartAndInstallIfNecessary();
       // We need to start the system info monitoring even in case when user never
       // runs a single emulator instance: e.g., incompatible hypervisor might be
@@ -198,14 +199,20 @@ public class AndroidSdkInitializer implements Runnable {
     }
     LOG.info("Unable to locate SDK within the Android studio installation.");
 
+    return getAndroidSdkOrDefault(System.getenv(), AndroidSdkType.getInstance());
+  }
+
+  @VisibleForTesting
+  @NotNull
+  static File getAndroidSdkOrDefault(Map<String, String> env, AndroidSdkType instance) {
     // The order of insertion matters as it defines SDK locations precedence.
     Map<String, Callable<String>> sdkLocationCandidates = new LinkedHashMap<>();
     sdkLocationCandidates.put(SdkConstants.ANDROID_HOME_ENV + " environment variable",
-                              () -> System.getenv(SdkConstants.ANDROID_HOME_ENV));
+                              () -> env.get(SdkConstants.ANDROID_HOME_ENV));
     sdkLocationCandidates.put(SdkConstants.ANDROID_SDK_ROOT_ENV + " environment variable",
-                              () -> System.getenv(SdkConstants.ANDROID_SDK_ROOT_ENV));
+                              () -> env.get(SdkConstants.ANDROID_SDK_ROOT_ENV));
     sdkLocationCandidates.put("Last SDK used by Android tools",
-                              () -> getLastSdkPathUsedByAndroidTools());
+                              AndroidSdkInitializer::getLastSdkPathUsedByAndroidTools);
 
     String sdkPath = null;
     for (Map.Entry<String, Callable<String>> locationCandidate : sdkLocationCandidates.entrySet()) {
@@ -213,7 +220,7 @@ public class AndroidSdkInitializer implements Runnable {
         String pathDescription = locationCandidate.getKey();
         sdkPath = locationCandidate.getValue().call();
         String msg;
-        if (!isEmpty(sdkPath) && AndroidSdkType.getInstance().isValidSdkHome(sdkPath)) {
+        if (!isEmpty(sdkPath) && instance.isValidSdkHome(sdkPath)) {
           msg = String.format("%1$s: '%2$s'", pathDescription, sdkPath);
         }
         else {

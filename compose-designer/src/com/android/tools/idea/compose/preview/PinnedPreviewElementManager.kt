@@ -11,6 +11,8 @@ import com.google.common.collect.Sets
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.ModificationTracker
+import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
@@ -60,6 +62,11 @@ private class PinnedPreviewElementInstance(
 
 @Service
 class PinnedPreviewElementManagerImpl internal constructor(val project: Project) : PinnedPreviewElementManager {
+  /**
+   * Tracks the modifications in pin/unpin calls.
+   */
+  private val modificationTracker: SimpleModificationTracker = SimpleModificationTracker()
+
   private val pinnedElements = Sets.newConcurrentHashSet<PinnedElementReference>()
 
   internal val previewElements: Sequence<PreviewElement>
@@ -89,29 +96,36 @@ class PinnedPreviewElementManagerImpl internal constructor(val project: Project)
         .distinct()
 
       // Clean-up any elements from the file path cache that do not exist anymore
-      pinnedElements.removeIf { !foundPreviewElementPaths.contains(it.containingFilePath) }
+      if (pinnedElements.removeIf { !foundPreviewElementPaths.contains(it.containingFilePath) }) {
+        modificationTracker.incModificationCount()
+      }
 
       return foundPreviewElements
     }
 
   override fun pin(element: PreviewElementInstance): Boolean {
-    return pinnedElements.add(element.asPinnedElement() ?: return false)
+    return pinnedElements.add(element.asPinnedElement() ?: return false).also {
+      if (it) modificationTracker.incModificationCount()
+    }
   }
 
   override fun unpin(element: PreviewElementInstance): Boolean {
-    return pinnedElements.remove(element.asPinnedElement() ?: return false)
+    return pinnedElements.remove(element.asPinnedElement() ?: return false).also {
+      if (it) modificationTracker.incModificationCount()
+    }
   }
 
   override fun isPinned(element: PreviewElement) = pinnedElements.contains(element.asPinnedElement())
+  override fun getModificationCount(): Long = modificationTracker.modificationCount
 }
 
-private object NopPinnedPreviewElementManager : PinnedPreviewElementManager {
+private object NopPinnedPreviewElementManager : PinnedPreviewElementManager, ModificationTracker by ModificationTracker.NEVER_CHANGED {
   override fun pin(element: PreviewElementInstance): Boolean = false
   override fun unpin(element: PreviewElementInstance): Boolean = false
   override fun isPinned(element: PreviewElement): Boolean = false
 }
 
-interface PinnedPreviewElementManager {
+interface PinnedPreviewElementManager: ModificationTracker {
   /**
    * Pins the given [PreviewElementInstance]. Returns true if the element was not pinned and was successfully pinned.
    */
@@ -149,7 +163,7 @@ interface PinnedPreviewElementManager {
       }
     }
     else {
-      EmptyPreviewElementProvider
+      EmptyPreviewElementInstanceProvider
     }
   }
 }
