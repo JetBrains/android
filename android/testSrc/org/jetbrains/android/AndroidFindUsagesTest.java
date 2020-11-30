@@ -1,19 +1,5 @@
 
-/*
- * Copyright 2000-2009 JetBrains s.r.o.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- */
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
@@ -91,411 +77,411 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
     }
 
     public void testFontResource() {
-      super.testFontResource("Usage (1 usage)\n" +
-                             " Found usages (1 usage)\n" +
-                             "  Resource reference in code (1 usage)\n" +
-                             "   app (1 usage)\n" +
-                             "    p1.p2 (1 usage)\n" +
-                             "     Example (1 usage)\n" +
-                             "      f() (1 usage)\n" +
+      super.testFontResource("<root> (1)\n" +
+                             " Found usages (1)\n" +
+                             "  Resource reference in code (1)\n" +
+                             "   app (1)\n" +
+                             "    p1.p2 (1)\n" +
+                             "     Example (1)\n" +
+                             "      f() (1)\n" +
                              "       4int id1 = R.font.new_font;\n");
     }
 
     public void testFileResource() {
-      super.testFileResource("Usage (3 usages)\n" +
-                             " Found usages (3 usages)\n" +
-                             "  Resource reference in code (1 usage)\n" +
-                             "   app (1 usage)\n" +
-                             "    p1.p2 (1 usage)\n" +
-                             "     Class1 (1 usage)\n" +
-                             "      f() (1 usage)\n" +
-                             "       5int id1 = R.drawable.picture3;\n" +
-                             "  Usage in Android resources XML (2 usages)\n" +
-                             "   app (2 usages)\n" +
-                             "    res" + File.separatorChar + "layout (1 usage)\n" +
-                             "     fu1_layout.xml (1 usage)\n" +
+      super.testFileResource("<root> (3)\n" +
+                             " Found usages (3)\n" +
+                             "  In Android resources XML (2)\n" +
+                             "   app (2)\n" +
+                             "    res" + File.separatorChar + "layout (1)\n" +
+                             "     fu1_layout.xml (1)\n" +
                              "      3<TextView android:background=\"@drawable/picture3\"/>\n" +
-                             "    res" + File.separatorChar + "values (1 usage)\n" +
-                             "     styles.xml (1 usage)\n" +
-                             "      3<item name=\"android:windowBackground\">@drawable/picture3</item>\n");
+                             "    res" + File.separatorChar + "values (1)\n" +
+                             "     styles.xml (1)\n" +
+                             "      3<item name=\"android:windowBackground\">@drawable/picture3</item>\n" +
+                             "  Resource reference in code (1)\n" +
+                             "   app (1)\n" +
+                             "    p1.p2 (1)\n" +
+                             "     Class1 (1)\n" +
+                             "      f() (1)\n" +
+                             "       5int id1 = R.drawable.picture3;\n");
     }
 
     public void testFileResourceNoEditor() {
-      super.testFileResourceNoEditor("Usage (1 usage)\n" +
-                                     " Found usages (1 usage)\n" +
-                                     "  Resource reference in code (1 usage)\n" +
-                                     "   app (1 usage)\n" +
-                                     "    p1.p2 (1 usage)\n" +
-                                     "     Foo (1 usage)\n" +
-                                     "      f() (1 usage)\n" +
+      super.testFileResourceNoEditor("<root> (1)\n" +
+                                     " Found usages (1)\n" +
+                                     "  Resource reference in code (1)\n" +
+                                     "   app (1)\n" +
+                                     "    p1.p2 (1)\n" +
+                                     "     Foo (1)\n" +
+                                     "      f() (1)\n" +
                                      "       5int id1 = R.layout.layout;\n");
     }
 
     public void testFileResourceField() {
-      super.testFileResourceField("Usage (2 usages)\n" +
-                                  " Found usages (2 usages)\n" +
-                                  "  Resource reference in code (1 usage)\n" +
-                                  "   app (1 usage)\n" +
-                                  "    p1.p2 (1 usage)\n" +
-                                  "     Fu3 (1 usage)\n" +
-                                  "      f() (1 usage)\n" +
-                                  "       5int id1 = R.drawable.picture3;\n" +
-                                  "  Usage in Android resources XML (1 usage)\n" +
-                                  "   app (1 usage)\n" +
-                                  "    res" + File.separatorChar + "layout (1 usage)\n" +
-                                  "     layout.xml (1 usage)\n" +
-                                  "      3android:background=\"@drawable/picture3\">\n");
+      super.testFileResourceField("<root> (2)\n" +
+                                  " Found usages (2)\n" +
+                                  "  In Android resources XML (1)\n" +
+                                  "   app (1)\n" +
+                                  "    res" + File.separatorChar + "layout (1)\n" +
+                                  "     layout.xml (1)\n" +
+                                  "      3android:background=\"@drawable/picture3\">\n" +
+                                  "  Resource reference in code (1)\n" +
+                                  "   app (1)\n" +
+                                  "    p1.p2 (1)\n" +
+                                  "     Fu3 (1)\n" +
+                                  "      f() (1)\n" +
+                                  "       5int id1 = R.drawable.picture3;\n");
     }
 
     public void testIdDeclarations() {
-      super.testIdDeclarations("Usage (2 usages)\n" +
-                               " Found usages (2 usages)\n" +
-                               "  Usage in Android resources XML (2 usages)\n" +
-                               "   app (2 usages)\n" +
-                               "    res" + File.separatorChar + "layout (2 usages)\n" +
-                               "     f12_layout.xml (2 usages)\n" +
+      super.testIdDeclarations("<root> (2)\n" +
+                               " Found usages (2)\n" +
+                               "  In Android resources XML (2)\n" +
+                               "   app (2)\n" +
+                               "    res" + File.separatorChar + "layout (2)\n" +
+                               "     f12_layout.xml (2)\n" +
                                "      26android:layout_below=\"@+id/second\"\n" +
                                "      27android:labelFor=\"@id/second\"\n");
     }
 
     public void testIdResource() {
-      super.testIdResource("Usage (2 usages)\n" +
-                           " Found usages (2 usages)\n" +
-                           "  Resource reference in code (1 usage)\n" +
-                           "   app (1 usage)\n" +
-                           "    p1.p2 (1 usage)\n" +
-                           "     Class1 (1 usage)\n" +
-                           "      f() (1 usage)\n" +
-                           "       8int id3 = R.id.anchor;\n" +
-                           "  Usage in Android resources XML (1 usage)\n" +
-                           "   app (1 usage)\n" +
-                           "    res" + File.separatorChar + "layout (1 usage)\n" +
-                           "     fu7_layout.xml (1 usage)\n" +
-                           "      5<TextView android:layout_alignRight=\"@id/anchor\"/>\n");
+      super.testIdResource("<root> (2)\n" +
+                           " Found usages (2)\n" +
+                           "  In Android resources XML (1)\n" +
+                           "   app (1)\n" +
+                           "    res" + File.separatorChar + "layout (1)\n" +
+                           "     fu7_layout.xml (1)\n" +
+                           "      5<TextView android:layout_alignRight=\"@id/anchor\"/>\n" +
+                           "  Resource reference in code (1)\n" +
+                           "   app (1)\n" +
+                           "    p1.p2 (1)\n" +
+                           "     Class1 (1)\n" +
+                           "      f() (1)\n" +
+                           "       8int id3 = R.id.anchor;\n");
     }
 
     public void testIdResourceDeclaration() {
-      super.testIdResourceDeclaration("Usage (2 usages)\n" +
-                                      " Found usages (2 usages)\n" +
-                                      "  Resource reference in code (1 usage)\n" +
-                                      "   app (1 usage)\n" +
-                                      "    p1.p2 (1 usage)\n" +
-                                      "     Class1 (1 usage)\n" +
-                                      "      f() (1 usage)\n" +
-                                      "       8int id3 = R.id.anchor;\n" +
-                                      "  Usage in Android resources XML (1 usage)\n" +
-                                      "   app (1 usage)\n" +
-                                      "    res" + File.separatorChar + "layout (1 usage)\n" +
-                                      "     fu9_layout.xml (1 usage)\n" +
-                                      "      5<TextView android:layout_alignRight=\"@id/anchor\"/>\n");
+      super.testIdResourceDeclaration("<root> (2)\n" +
+                                      " Found usages (2)\n" +
+                                      "  In Android resources XML (1)\n" +
+                                      "   app (1)\n" +
+                                      "    res" + File.separatorChar + "layout (1)\n" +
+                                      "     fu9_layout.xml (1)\n" +
+                                      "      5<TextView android:layout_alignRight=\"@id/anchor\"/>\n" +
+                                      "  Resource reference in code (1)\n" +
+                                      "   app (1)\n" +
+                                      "    p1.p2 (1)\n" +
+                                      "     Class1 (1)\n" +
+                                      "      f() (1)\n" +
+                                      "       8int id3 = R.id.anchor;\n");
     }
 
     public void testIdResourceField() {
-      super.testIdResourceField("Usage (2 usages)\n" +
-                                " Found usages (2 usages)\n" +
-                                "  Resource reference in code (1 usage)\n" +
-                                "   app (1 usage)\n" +
-                                "    p1.p2 (1 usage)\n" +
-                                "     Fu6 (1 usage)\n" +
-                                "      f() (1 usage)\n" +
-                                "       5int id1 = R.id.anchor;\n" +
-                                "  Usage in Android resources XML (1 usage)\n" +
-                                "   app (1 usage)\n" +
-                                "    res" + File.separatorChar + "layout (1 usage)\n" +
-                                "     layout.xml (1 usage)\n" +
-                                "      7<TextView android:layout_alignRight=\"@id/anchor\"/>\n");
+      super.testIdResourceField("<root> (2)\n" +
+                                " Found usages (2)\n" +
+                                "  In Android resources XML (1)\n" +
+                                "   app (1)\n" +
+                                "    res" + File.separatorChar + "layout (1)\n" +
+                                "     layout.xml (1)\n" +
+                                "      7<TextView android:layout_alignRight=\"@id/anchor\"/>\n" +
+                                "  Resource reference in code (1)\n" +
+                                "   app (1)\n" +
+                                "    p1.p2 (1)\n" +
+                                "     Fu6 (1)\n" +
+                                "      f() (1)\n" +
+                                "       5int id1 = R.id.anchor;\n");
     }
 
     public void testStringArray() {
-      super.testStringArray("Usage (2 usages)\n" +
-                            " Found usages (2 usages)\n" +
-                            "  Resource reference in code (1 usage)\n" +
-                            "   app (1 usage)\n" +
-                            "    p1.p2 (1 usage)\n" +
-                            "     Class1 (1 usage)\n" +
-                            "      f() (1 usage)\n" +
-                            "       9int id4 = R.array.str_arr;\n" +
-                            "  Usage in Android resources XML (1 usage)\n" +
-                            "   app (1 usage)\n" +
-                            "    res" + File.separatorChar + "layout (1 usage)\n" +
-                            "     stringArray.xml (1 usage)\n" +
-                            "      3<ListView android:entries=\"@array/str_arr\"/>\n");
+      super.testStringArray("<root> (2)\n" +
+                            " Found usages (2)\n" +
+                            "  In Android resources XML (1)\n" +
+                            "   app (1)\n" +
+                            "    res" + File.separatorChar + "layout (1)\n" +
+                            "     stringArray.xml (1)\n" +
+                            "      3<ListView android:entries=\"@array/str_arr\"/>\n" +
+                            "  Resource reference in code (1)\n" +
+                            "   app (1)\n" +
+                            "    p1.p2 (1)\n" +
+                            "     Class1 (1)\n" +
+                            "      f() (1)\n" +
+                            "       9int id4 = R.array.str_arr;\n");
     }
 
     public void testStyleable() throws Throwable {
-      super.testStyleable("Usage (2 usages)\n" +
-                          " Found usages (2 usages)\n" +
-                          "  Resource reference in code (2 usages)\n" +
-                          "   app (2 usages)\n" +
-                          "    p1.p2 (2 usages)\n" +
-                          "     MyView (2 usages)\n" +
-                          "      MyView(Context, AttributeSet, int) (2 usages)\n" +
+      super.testStyleable("<root> (2)\n" +
+                          " Found usages (2)\n" +
+                          "  Resource reference in code (2)\n" +
+                          "   app (2)\n" +
+                          "    p1.p2 (2)\n" +
+                          "     MyView (2)\n" +
+                          "      MyView(Context, AttributeSet, int) (2)\n" +
                           "       13TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.MyView);\n" +
                           "       14int answer = a.getInt(R.styleable.MyView_answer, 0);\n");
     }
 
     public void testStyleableAttr() throws Throwable {
-      super.testStyleableAttr("Usage (3 usages)\n" +
-                              " Found usages (3 usages)\n" +
-                              "  Resource reference in code (2 usages)\n" +
-                              "   app (2 usages)\n" +
-                              "    p1.p2 (2 usages)\n" +
-                              "     MyView (2 usages)\n" +
-                              "      MyView(Context, AttributeSet, int) (2 usages)\n" +
+      super.testStyleableAttr("<root> (3)\n" +
+                              " Found usages (3)\n" +
+                              "  In Android resources XML (1)\n" +
+                              "   app (1)\n" +
+                              "    res" + File.separatorChar + "values (1)\n" +
+                              "     attrs.xml (1)\n" +
+                              "      4<attr name=\"answer\">\n" +
+                              "  Resource reference in code (2)\n" +
+                              "   app (2)\n" +
+                              "    p1.p2 (2)\n" +
+                              "     MyView (2)\n" +
+                              "      MyView(Context, AttributeSet, int) (2)\n" +
                               "       12int attribute = R.attr.answer;\n" +
-                              "       14int answer = a.getInt(R.styleable.MyView_answer, 0);\n" +
-                              "  Usage in Android resources XML (1 usage)\n" +
-                              "   app (1 usage)\n" +
-                              "    res" + File.separatorChar + "values (1 usage)\n" +
-                              "     attrs.xml (1 usage)\n" +
-                              "      4<attr name=\"answer\">\n");
+                              "       14int answer = a.getInt(R.styleable.MyView_answer, 0);\n");
     }
 
     public void testStyleInheritance() {
-      super.testStyleInheritance("Usage (3 usages)\n" +
-                                 " Found usages (3 usages)\n" +
-                                 "  Usage in Android resources XML (3 usages)\n" +
-                                 "   app (3 usages)\n" +
-                                 "    res" + File.separatorChar + "values (3 usages)\n" +
-                                 "     f10_values.xml (3 usages)\n" +
+      super.testStyleInheritance("<root> (3)\n" +
+                                 " Found usages (3)\n" +
+                                 "  In Android resources XML (3)\n" +
+                                 "   app (3)\n" +
+                                 "    res" + File.separatorChar + "values (3)\n" +
+                                 "     f10_values.xml (3)\n" +
                                  "      6<style name=\"myStyle.s\">\n" +
                                  "      10<style name=\"style1\" parent=\"myStyle\">\n" +
                                  "      14<style name=\"myStyle.s.a\">\n");
     }
 
     public void testStyleInheritance1() {
-      super.testStyleInheritance1("Usage (3 usages)\n" +
-                                  " Found usages (3 usages)\n" +
-                                  "  Usage in Android resources XML (3 usages)\n" +
-                                  "   app (3 usages)\n" +
-                                  "    res" + File.separatorChar + "values (3 usages)\n" +
-                                  "     f11_values.xml (3 usages)\n" +
+      super.testStyleInheritance1("<root> (3)\n" +
+                                  " Found usages (3)\n" +
+                                  "  In Android resources XML (3)\n" +
+                                  "   app (3)\n" +
+                                  "    res" + File.separatorChar + "values (3)\n" +
+                                  "     f11_values.xml (3)\n" +
                                   "      6<style name=\"myStyle.s\">\n" +
                                   "      10<style name=\"style1\" parent=\"myStyle\">\n" +
                                   "      14<style name=\"myStyle.s.a\">\n");
     }
 
     public void testStyleInheritance2() {
-      super.testStyleInheritance2("Usage (3 usages)\n" +
-                                  " Found usages (3 usages)\n" +
-                                  "  Usage in Android resources XML (3 usages)\n" +
-                                  "   app (3 usages)\n" +
-                                  "    res" + File.separatorChar + "values (3 usages)\n" +
-                                  "     f14_values.xml (3 usages)\n" +
+      super.testStyleInheritance2("<root> (3)\n" +
+                                  " Found usages (3)\n" +
+                                  "  In Android resources XML (3)\n" +
+                                  "   app (3)\n" +
+                                  "    res" + File.separatorChar + "values (3)\n" +
+                                  "     f14_values.xml (3)\n" +
                                   "      6<style name=\"myStyle.s\">\n" +
                                   "      10<style name=\"style1\" parent=\"myStyle\">\n" +
                                   "      14<style name=\"myStyle.s.a\">\n");
     }
 
     public void testValueItemResource() {
-      super.testValueItemResource("Usage (2 usages)\n" +
-                                  " Found usages (2 usages)\n" +
-                                  "  Resource reference in code (1 usage)\n" +
-                                  "   app (1 usage)\n" +
-                                  "    p1.p2 (1 usage)\n" +
-                                  "     Class1 (1 usage)\n" +
-                                  "      f() (1 usage)\n" +
-                                  "       7int id3 = R.string.hi;\n" +
-                                  "  Usage in Android resources XML (1 usage)\n" +
-                                  "   app (1 usage)\n" +
-                                  "    res" + File.separatorChar + "layout (1 usage)\n" +
-                                  "     fu5_layout.xml (1 usage)\n" +
-                                  "      3<TextView android:text=\"@string/hi\"/>\n");
+      super.testValueItemResource("<root> (2)\n" +
+                                  " Found usages (2)\n" +
+                                  "  In Android resources XML (1)\n" +
+                                  "   app (1)\n" +
+                                  "    res" + File.separatorChar + "layout (1)\n" +
+                                  "     fu5_layout.xml (1)\n" +
+                                  "      3<TextView android:text=\"@string/hi\"/>\n" +
+                                  "  Resource reference in code (1)\n" +
+                                  "   app (1)\n" +
+                                  "    p1.p2 (1)\n" +
+                                  "     Class1 (1)\n" +
+                                  "      f() (1)\n" +
+                                  "       7int id3 = R.string.hi;\n");
     }
 
     public void testValueResource() {
-      super.testValueResource("Usage (2 usages)\n" +
-                              " Found usages (2 usages)\n" +
-                              "  Resource reference in code (1 usage)\n" +
-                              "   app (1 usage)\n" +
-                              "    p1.p2 (1 usage)\n" +
-                              "     Class1 (1 usage)\n" +
-                              "      f() (1 usage)\n" +
-                              "       6int id2 = R.string.hello;\n" +
-                              "  Usage in Android resources XML (1 usage)\n" +
-                              "   app (1 usage)\n" +
-                              "    res" + File.separatorChar + "layout (1 usage)\n" +
-                              "     fu2_layout.xml (1 usage)\n" +
-                              "      3<TextView android:text=\"@string/hello\"/>\n");
+      super.testValueResource("<root> (2)\n" +
+                              " Found usages (2)\n" +
+                              "  In Android resources XML (1)\n" +
+                              "   app (1)\n" +
+                              "    res" + File.separatorChar + "layout (1)\n" +
+                              "     fu2_layout.xml (1)\n" +
+                              "      3<TextView android:text=\"@string/hello\"/>\n" +
+                              "  Resource reference in code (1)\n" +
+                              "   app (1)\n" +
+                              "    p1.p2 (1)\n" +
+                              "     Class1 (1)\n" +
+                              "      f() (1)\n" +
+                              "       6int id2 = R.string.hello;\n");
     }
 
     public void testValueResource1() {
-      super.testValueResource1("Usage (2 usages)\n" +
-                               " Found usages (2 usages)\n" +
-                               "  Resource reference in code (1 usage)\n" +
-                               "   app (1 usage)\n" +
-                               "    p1.p2 (1 usage)\n" +
-                               "     Class1 (1 usage)\n" +
-                               "      f() (1 usage)\n" +
-                               "       6int id2 = R.string.hello;\n" +
-                               "  Usage in Android resources XML (1 usage)\n" +
-                               "   app (1 usage)\n" +
-                               "    res" + File.separatorChar + "layout (1 usage)\n" +
-                               "     layout.xml (1 usage)\n" +
-                               "      5<TextView android:text=\"@string/hello\"/>\n");
+      super.testValueResource1("<root> (2)\n" +
+                               " Found usages (2)\n" +
+                               "  In Android resources XML (1)\n" +
+                               "   app (1)\n" +
+                               "    res" + File.separatorChar + "layout (1)\n" +
+                               "     layout.xml (1)\n" +
+                               "      5<TextView android:text=\"@string/hello\"/>\n" +
+                               "  Resource reference in code (1)\n" +
+                               "   app (1)\n" +
+                               "    p1.p2 (1)\n" +
+                               "     Class1 (1)\n" +
+                               "      f() (1)\n" +
+                               "       6int id2 = R.string.hello;\n");
     }
 
     public void testValueResource2() {
-      super.testValueResource2("Usage (2 usages)\n" +
-                               " Found usages (2 usages)\n" +
-                               "  Resource reference in code (1 usage)\n" +
-                               "   app (1 usage)\n" +
-                               "    p1.p2 (1 usage)\n" +
-                               "     Class1 (1 usage)\n" +
-                               "      f() (1 usage)\n" +
-                               "       6int id2 = R.string.hello;\n" +
-                               "  Usage in Android resources XML (1 usage)\n" +
-                               "   app (1 usage)\n" +
-                               "    res" + File.separatorChar + "layout (1 usage)\n" +
-                               "     layout.xml (1 usage)\n" +
-                               "      5<TextView android:text=\"@string/hello\"/>\n");
+      super.testValueResource2("<root> (2)\n" +
+                               " Found usages (2)\n" +
+                               "  In Android resources XML (1)\n" +
+                               "   app (1)\n" +
+                               "    res" + File.separatorChar + "layout (1)\n" +
+                               "     layout.xml (1)\n" +
+                               "      5<TextView android:text=\"@string/hello\"/>\n" +
+                               "  Resource reference in code (1)\n" +
+                               "   app (1)\n" +
+                               "    p1.p2 (1)\n" +
+                               "     Class1 (1)\n" +
+                               "      f() (1)\n" +
+                               "       6int id2 = R.string.hello;\n");
     }
 
     public void testValueResource3() {
-      super.testValueResource3("Usage (2 usages)\n" +
-                               " Found usages (2 usages)\n" +
-                               "  Resource reference in code (1 usage)\n" +
-                               "   app (1 usage)\n" +
-                               "    p1.p2 (1 usage)\n" +
-                               "     Class1 (1 usage)\n" +
-                               "      f() (1 usage)\n" +
-                               "       6int id2 = R.string.hello;\n" +
-                               "  Usage in Android resources XML (1 usage)\n" +
-                               "   app (1 usage)\n" +
-                               "    res" + File.separatorChar + "layout (1 usage)\n" +
-                               "     layout.xml (1 usage)\n" +
-                               "      5<TextView android:text=\"@string/hello\"/>\n");
+      super.testValueResource3("<root> (2)\n" +
+                               " Found usages (2)\n" +
+                               "  In Android resources XML (1)\n" +
+                               "   app (1)\n" +
+                               "    res" + File.separatorChar + "layout (1)\n" +
+                               "     layout.xml (1)\n" +
+                               "      5<TextView android:text=\"@string/hello\"/>\n" +
+                               "  Resource reference in code (1)\n" +
+                               "   app (1)\n" +
+                               "    p1.p2 (1)\n" +
+                               "     Class1 (1)\n" +
+                               "      f() (1)\n" +
+                               "       6int id2 = R.string.hello;\n");
     }
 
     public void testValueResource4() {
-      super.testValueResource4("Usage (2 usages)\n" +
-                               " Found usages (2 usages)\n" +
-                               "  Resource reference in code (1 usage)\n" +
-                               "   app (1 usage)\n" +
-                               "    p1.p2 (1 usage)\n" +
-                               "     Class1 (1 usage)\n" +
-                               "      f() (1 usage)\n" +
-                               "       6int id2 = R.string.hello;\n" +
-                               "  Usage in Android resources XML (1 usage)\n" +
-                               "   app (1 usage)\n" +
-                               "    res" + File.separatorChar + "layout (1 usage)\n" +
-                               "     layout.xml (1 usage)\n" +
-                               "      5<TextView android:text=\"@string/hello\"/>\n");
+      super.testValueResource4("<root> (2)\n" +
+                               " Found usages (2)\n" +
+                               "  In Android resources XML (1)\n" +
+                               "   app (1)\n" +
+                               "    res" + File.separatorChar + "layout (1)\n" +
+                               "     layout.xml (1)\n" +
+                               "      5<TextView android:text=\"@string/hello\"/>\n" +
+                               "  Resource reference in code (1)\n" +
+                               "   app (1)\n" +
+                               "    p1.p2 (1)\n" +
+                               "     Class1 (1)\n" +
+                               "      f() (1)\n" +
+                               "       6int id2 = R.string.hello;\n");
     }
 
     public void testValueResource5() {
-      super.testValueResource5("Usage (2 usages)\n" +
-                               " Found usages (2 usages)\n" +
-                               "  Resource reference in code (1 usage)\n" +
-                               "   app (1 usage)\n" +
-                               "    p1.p2 (1 usage)\n" +
-                               "     Class1 (1 usage)\n" +
-                               "      f() (1 usage)\n" +
-                               "       6int id2 = R.string.hello;\n" +
-                               "  Usage in Android resources XML (1 usage)\n" +
-                               "   app (1 usage)\n" +
-                               "    res" + File.separatorChar + "layout (1 usage)\n" +
-                               "     layout.xml (1 usage)\n" +
-                               "      5<TextView android:text=\"@string/hello\"/>\n");
+      super.testValueResource5("<root> (2)\n" +
+                               " Found usages (2)\n" +
+                               "  In Android resources XML (1)\n" +
+                               "   app (1)\n" +
+                               "    res" + File.separatorChar + "layout (1)\n" +
+                               "     layout.xml (1)\n" +
+                               "      5<TextView android:text=\"@string/hello\"/>\n" +
+                               "  Resource reference in code (1)\n" +
+                               "   app (1)\n" +
+                               "    p1.p2 (1)\n" +
+                               "     Class1 (1)\n" +
+                               "      f() (1)\n" +
+                               "       6int id2 = R.string.hello;\n");
     }
 
     public void testValueResource6() {
-      super.testValueResource6("Usage (2 usages)\n" +
-                               " Found usages (2 usages)\n" +
-                               "  Resource reference in code (1 usage)\n" +
-                               "   app (1 usage)\n" +
-                               "    p1.p2 (1 usage)\n" +
-                               "     Class1 (1 usage)\n" +
-                               "      f() (1 usage)\n" +
-                               "       6int id2 = R.string.hello;\n" +
-                               "  Usage in Android resources XML (1 usage)\n" +
-                               "   app (1 usage)\n" +
-                               "    res" + File.separatorChar + "layout (1 usage)\n" +
-                               "     layout.xml (1 usage)\n" +
-                               "      5<TextView android:text=\"@string/hello\"/>\n");
+      super.testValueResource6("<root> (2)\n" +
+                               " Found usages (2)\n" +
+                               "  In Android resources XML (1)\n" +
+                               "   app (1)\n" +
+                               "    res" + File.separatorChar + "layout (1)\n" +
+                               "     layout.xml (1)\n" +
+                               "      5<TextView android:text=\"@string/hello\"/>\n" +
+                               "  Resource reference in code (1)\n" +
+                               "   app (1)\n" +
+                               "    p1.p2 (1)\n" +
+                               "     Class1 (1)\n" +
+                               "      f() (1)\n" +
+                               "       6int id2 = R.string.hello;\n");
     }
 
     public void testValueResource7() {
-      super.testValueResource7("Usage (2 usages)\n" +
-                               " Found usages (2 usages)\n" +
-                               "  Resource reference in code (1 usage)\n" +
-                               "   app (1 usage)\n" +
-                               "    p1.p2 (1 usage)\n" +
-                               "     Class1 (1 usage)\n" +
-                               "      f() (1 usage)\n" +
-                               "       6int id2 = R.string.hello;\n" +
-                               "  Usage in Android resources XML (1 usage)\n" +
-                               "   app (1 usage)\n" +
-                               "    res" + File.separatorChar + "layout (1 usage)\n" +
-                               "     layout.xml (1 usage)\n" +
-                               "      5<TextView android:text=\"@string/hello\"/>\n");
+      super.testValueResource7("<root> (2)\n" +
+                               " Found usages (2)\n" +
+                               "  In Android resources XML (1)\n" +
+                               "   app (1)\n" +
+                               "    res" + File.separatorChar + "layout (1)\n" +
+                               "     layout.xml (1)\n" +
+                               "      5<TextView android:text=\"@string/hello\"/>\n" +
+                               "  Resource reference in code (1)\n" +
+                               "   app (1)\n" +
+                               "    p1.p2 (1)\n" +
+                               "     Class1 (1)\n" +
+                               "      f() (1)\n" +
+                               "       6int id2 = R.string.hello;\n");
     }
 
     public void testValueResource8() {
-      super.testValueResource8("Usage (2 usages)\n" +
-                               " Found usages (2 usages)\n" +
-                               "  Resource reference in code (1 usage)\n" +
-                               "   app (1 usage)\n" +
-                               "    p1.p2 (1 usage)\n" +
-                               "     Class1 (1 usage)\n" +
-                               "      f() (1 usage)\n" +
-                               "       6int id2 = R.string.hello;\n" +
-                               "  Usage in Android resources XML (1 usage)\n" +
-                               "   app (1 usage)\n" +
-                               "    res" + File.separatorChar + "layout (1 usage)\n" +
-                               "     layout.xml (1 usage)\n" +
-                               "      5<TextView android:text=\"@string/hello\"/>\n");
+      super.testValueResource8("<root> (2)\n" +
+                               " Found usages (2)\n" +
+                               "  In Android resources XML (1)\n" +
+                               "   app (1)\n" +
+                               "    res" + File.separatorChar + "layout (1)\n" +
+                               "     layout.xml (1)\n" +
+                               "      5<TextView android:text=\"@string/hello\"/>\n" +
+                               "  Resource reference in code (1)\n" +
+                               "   app (1)\n" +
+                               "    p1.p2 (1)\n" +
+                               "     Class1 (1)\n" +
+                               "      f() (1)\n" +
+                               "       6int id2 = R.string.hello;\n");
     }
 
     public void testValueResource9() {
-      super.testValueResource9("Usage (3 usages)\n" +
-                               " Found usages (3 usages)\n" +
-                               "  Resource reference in code (1 usage)\n" +
-                               "   app (1 usage)\n" +
-                               "    p1.p2 (1 usage)\n" +
-                               "     Class1 (1 usage)\n" +
-                               "      f() (1 usage)\n" +
-                               "       6int id2 = R.string.hello;\n" +
-                               "  Usage in Android resources XML (2 usages)\n" +
-                               "   app (2 usages)\n" +
-                               "    res" + File.separatorChar + "layout (1 usage)\n" +
-                               "     layout.xml (1 usage)\n" +
+      super.testValueResource9("<root> (3)\n" +
+                               " Found usages (3)\n" +
+                               "  In Android resources XML (2)\n" +
+                               "   app (2)\n" +
+                               "    res" + File.separatorChar + "layout (1)\n" +
+                               "     layout.xml (1)\n" +
                                "      5<TextView android:text=\"@string/hello\"/>\n" +
-                               "    res" + File.separatorChar + "values (1 usage)\n" +
-                               "     f13_values.xml (1 usage)\n" +
-                               "      9<item>@string/hello</item>\n");
+                               "    res" + File.separatorChar + "values (1)\n" +
+                               "     f13_values.xml (1)\n" +
+                               "      9<item>@string/hello</item>\n" +
+                               "  Resource reference in code (1)\n" +
+                               "   app (1)\n" +
+                               "    p1.p2 (1)\n" +
+                               "     Class1 (1)\n" +
+                               "      f() (1)\n" +
+                               "       6int id2 = R.string.hello;\n");
     }
 
     public void testValueResourceField() {
-      super.testValueResourceField("Usage (2 usages)\n" +
-                                   " Found usages (2 usages)\n" +
-                                   "  Resource reference in code (1 usage)\n" +
-                                   "   app (1 usage)\n" +
-                                   "    p1.p2 (1 usage)\n" +
-                                   "     Fu4 (1 usage)\n" +
-                                   "      f() (1 usage)\n" +
-                                   "       5int id1 = R.string.hello;\n" +
-                                   "  Usage in Android resources XML (1 usage)\n" +
-                                   "   app (1 usage)\n" +
-                                   "    res" + File.separatorChar + "layout (1 usage)\n" +
-                                   "     layout.xml (1 usage)\n" +
-                                   "      5<TextView android:text=\"@string/hello\"/>\n");
+      super.testValueResourceField("<root> (2)\n" +
+                                   " Found usages (2)\n" +
+                                   "  In Android resources XML (1)\n" +
+                                   "   app (1)\n" +
+                                   "    res" + File.separatorChar + "layout (1)\n" +
+                                   "     layout.xml (1)\n" +
+                                   "      5<TextView android:text=\"@string/hello\"/>\n" +
+                                   "  Resource reference in code (1)\n" +
+                                   "   app (1)\n" +
+                                   "    p1.p2 (1)\n" +
+                                   "     Fu4 (1)\n" +
+                                   "      f() (1)\n" +
+                                   "       5int id1 = R.string.hello;\n");
     }
 
     public void testValueItemResourceField() {
-      super.testValueItemResourceField("Usage (2 usages)\n" +
-                                       " Found usages (2 usages)\n" +
-                                       "  Resource reference in code (1 usage)\n" +
-                                       "   app (1 usage)\n" +
-                                       "    p1.p2 (1 usage)\n" +
-                                       "     Fu6 (1 usage)\n" +
-                                       "      f() (1 usage)\n" +
-                                       "       5int id1 = R.string.hi;\n" +
-                                       "  Usage in Android resources XML (1 usage)\n" +
-                                       "   app (1 usage)\n" +
-                                       "    res" + File.separatorChar + "layout (1 usage)\n" +
-                                       "     layout.xml (1 usage)\n" +
-                                       "      6<TextView android:text=\"@string/hi\"/>\n");
+      super.testValueItemResourceField("<root> (2)\n" +
+                                       " Found usages (2)\n" +
+                                       "  In Android resources XML (1)\n" +
+                                       "   app (1)\n" +
+                                       "    res" + File.separatorChar + "layout (1)\n" +
+                                       "     layout.xml (1)\n" +
+                                       "      6<TextView android:text=\"@string/hi\"/>\n" +
+                                       "  Resource reference in code (1)\n" +
+                                       "   app (1)\n" +
+                                       "    p1.p2 (1)\n" +
+                                       "     Fu6 (1)\n" +
+                                       "      f() (1)\n" +
+                                       "       5int id1 = R.string.hi;\n");
     }
 
     public void testStyleItemAttrFromJava() throws Throwable {
@@ -601,97 +587,93 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
     }
 
     public void testFontResource() {
-      super.testFontResource("Usage (2 usages)\n" +
+      super.testFontResource("<root> (2)\n" +
                              " Targets\n" +
                              "  @font/new_font\n" +
-                             " Found usages (2 usages)\n" +
-                             "  Android resource file (1 usage)\n" +
-                             "   app (1 usage)\n" +
-                             "    res" + File.separatorChar + "font (1 usage)\n" +
-                             "     new_font.ttf (1 usage)\n" +
+                             " Found usages (2)\n" +
+                             "  Android resource file (1)\n" +
+                             "   app (1)\n" +
+                             "    res" + File.separatorChar + "font (1)\n" +
+                             "     new_font.ttf (1)\n" +
                              "      Android resource file font/new_font.ttf\n" +
-                             "  Resource reference in code (1 usage)\n" +
-                             "   app (1 usage)\n" +
-                             "    p1.p2 (1 usage)\n" +
-                             "     Example (1 usage)\n" +
-                             "      f() (1 usage)\n" +
+                             "  Resource reference in code (1)\n" +
+                             "   app (1)\n" +
+                             "    p1.p2 (1)\n" +
+                             "     Example (1)\n" +
+                             "      f() (1)\n" +
                              "       4int id1 = R.font.new_font;\n");
     }
 
     public void testFileResource() {
-      super.testFileResource("Usage (4 usages)\n" +
-                             " Targets\n" +
-                             "  @drawable/picture3\n" +
-                             " Found usages (4 usages)\n" +
-                             "  Android resource file (1 usage)\n" +
-                             "   app (1 usage)\n" +
-                             "    res" + File.separatorChar + "drawable (1 usage)\n" +
-                             "     picture3.gif (1 usage)\n" +
+      super.testFileResource("<root> (4)\n" +
+                             " Found usages (4)\n" +
+                             "  Android resource file (1)\n" +
+                             "   app (1)\n" +
+                             "    res" + File.separatorChar + "drawable (1)\n" +
+                             "     picture3.gif (1)\n" +
                              "      Android resource file drawable/picture3.gif\n" +
-                             "  Resource reference Android resources XML (2 usages)\n" +
-                             "   app (2 usages)\n" +
-                             "    res" + File.separatorChar + "layout (1 usage)\n" +
-                             "     fu1_layout.xml (1 usage)\n" +
+                             "  In Android resources XML (2)\n" +
+                             "   app (2)\n" +
+                             "    res" + File.separatorChar + "layout (1)\n" +
+                             "     fu1_layout.xml (1)\n" +
                              "      3<TextView android:background=\"@drawable/picture3\"/>\n" +
-                             "    res" + File.separatorChar + "values (1 usage)\n" +
-                             "     styles.xml (1 usage)\n" +
+                             "    res" + File.separatorChar + "values (1)\n" +
+                             "     styles.xml (1)\n" +
                              "      3<item name=\"android:windowBackground\">@drawable/picture3</item>\n" +
-                             "  Resource reference in code (1 usage)\n" +
-                             "   app (1 usage)\n" +
-                             "    p1.p2 (1 usage)\n" +
-                             "     Class1 (1 usage)\n" +
-                             "      f() (1 usage)\n" +
+                             "  Resource reference in code (1)\n" +
+                             "   app (1)\n" +
+                             "    p1.p2 (1)\n" +
+                             "     Class1 (1)\n" +
+                             "      f() (1)\n" +
                              "       5int id1 = R.drawable.picture3;\n");
     }
 
     public void testFileResourceNoEditor() {
-      super.testFileResourceNoEditor("Usage (2 usages)\n" +
-                                     " Found usages (2 usages)\n" +
-                                     "  Resource reference Android resources XML (1 usage)\n" +
-                                     "   app (1 usage)\n" +
-                                     "    res" + File.separatorChar + "layout (1 usage)\n" +
-                                     "     layout.xml (1 usage)\n" +
+      super.testFileResourceNoEditor("<root> (2)\n" +
+                                     " Found usages (2)\n" +
+                                     "  In Android resources XML (1)\n" +
+                                     "   app (1)\n" +
+                                     "    res" + File.separatorChar + "layout (1)\n" +
+                                     "     layout.xml (1)\n" +
                                      "      1<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                                     "  Resource reference in code (1 usage)\n" +
-                                     "   app (1 usage)\n" +
-                                     "    p1.p2 (1 usage)\n" +
-                                     "     Foo (1 usage)\n" +
-                                     "      f() (1 usage)\n" +
+                                     "  Resource reference in code (1)\n" +
+                                     "   app (1)\n" +
+                                     "    p1.p2 (1)\n" +
+                                     "     Foo (1)\n" +
+                                     "      f() (1)\n" +
                                      "       5int id1 = R.layout.layout;\n");
     }
 
     public void testFileResourceField() {
-      super.testFileResourceField("Usage (3 usages)\n" +
-                                  " Targets\n" +
-                                  "  @drawable/picture3\n" +
-                                  " Found usages (3 usages)\n" +
-                                  "  Android resource file (1 usage)\n" +
-                                  "   app (1 usage)\n" +
-                                  "    res" + File.separatorChar + "drawable (1 usage)\n" +
-                                  "     picture3.gif (1 usage)\n" +
+      super.testFileResourceField("<root> (3)\n" +
+                                  " Found usages (3)\n" +
+                                  "  Android resource file (1)\n" +
+                                  "   app (1)\n" +
+                                  "    res" + File.separatorChar + "drawable (1)\n" +
+                                  "     picture3.gif (1)\n" +
                                   "      Android resource file drawable/picture3.gif\n" +
-                                  "  Resource reference Android resources XML (1 usage)\n" +
-                                  "   app (1 usage)\n" +
-                                  "    res" + File.separatorChar + "layout (1 usage)\n" +
-                                  "     layout.xml (1 usage)\n" +
+                                  "  In Android resources XML (1)\n" +
+                                  "   app (1)\n" +
+                                  "    res" + File.separatorChar + "layout (1)\n" +
+                                  "     layout.xml (1)\n" +
                                   "      3android:background=\"@drawable/picture3\">\n" +
-                                  "  Resource reference in code (1 usage)\n" +
-                                  "   app (1 usage)\n" +
-                                  "    p1.p2 (1 usage)\n" +
-                                  "     Fu3 (1 usage)\n" +
-                                  "      f() (1 usage)\n" +
+                                  "  Resource reference in code (1)\n" +
+                                  "   app (1)\n" +
+                                  "    p1.p2 (1)\n" +
+                                  "     Fu3 (1)\n" +
+                                  "      f() (1)\n" +
                                   "       5int id1 = R.drawable.picture3;\n");
     }
 
     public void testIdDeclarations() {
-      super.testIdDeclarations("Usage (3 usages)\n" +
+      super.testIdDeclarations("<root> (3)\n" +
                                " Targets\n" +
                                "  @id/second\n" +
-                               " Found usages (3 usages)\n" +
-                               "  Resource declaration in Android resources XML (2 usages)\n" +
-                               "   app (2 usages)\n" +
-                               "    res" + File.separatorChar + "layout (2 usages)\n" +
-                               "     f12_layout.xml (2 usages)\n" +
+                               " Found usages (3)\n" +
+                               "  In Android resources XML (3)\n" +
+                               "   app (3)\n" +
+                               "    res" + File.separatorChar + "layout (3)\n" +
+                               "     f12_layout.xml (3)\n" +
                                "      16android:id=\"@+id/second\"\n" +
                                "      26android:layout_below=\"@+id/second\"\n" +
                                "  Resource reference Android resources XML (1 usage)\n" +
@@ -814,27 +796,27 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     // Styleable attr fields are not yet found in the new Find Usages pipeline
     public void testStyleableAttr_TODO() throws Throwable {
-      super.testStyleableAttr("Usage (1 usage)\n" +
+      super.testStyleableAttr("<root> (1)\n" +
                               " Targets\n" +
                               "  @styleable/MyView_answer\n" +
-                              " Found usages (1 usage)\n" +
-                              "  Resource reference in code (1 usage)\n" +
-                              "   app (1 usage)\n" +
-                              "    p1.p2 (1 usage)\n" +
-                              "     MyView (1 usage)\n" +
-                              "      MyView(Context, AttributeSet, int) (1 usage)\n" +
+                              " Found usages (1)\n" +
+                              "  Resource reference in code (1)\n" +
+                              "   app (1)\n" +
+                              "    p1.p2 (1)\n" +
+                              "     MyView (1)\n" +
+                              "      MyView(Context, AttributeSet, int) (1)\n" +
                               "       14int answer = a.getInt(R.styleable.MyView_answer, 0);\n");
     }
 
     public void testStyleInheritance() {
-      super.testStyleInheritance("Usage (4 usages)\n" +
+      super.testStyleInheritance("<root> (4)\n" +
                                  " Targets\n" +
                                  "  @style/myStyle\n" +
-                                 " Found usages (4 usages)\n" +
-                                 "  Resource declaration in Android resources XML (1 usage)\n" +
-                                 "   app (1 usage)\n" +
-                                 "    res" + File.separatorChar + "values (1 usage)\n" +
-                                 "     f10_values.xml (1 usage)\n" +
+                                 " Found usages (4)\n" +
+                                 "  In Android resources XML (4)\n" +
+                                 "   app (4)\n" +
+                                 "    res/values (4)\n" +
+                                 "     f10_values.xml (4)\n" +
                                  "      2<style name=\"myStyle\">\n" +
                                  "  Resource reference Android resources XML (3 usages)\n" +
                                  "   app (3 usages)\n" +
@@ -846,14 +828,14 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
     }
 
     public void testStyleInheritance1() {
-      super.testStyleInheritance1("Usage (4 usages)\n" +
+      super.testStyleInheritance1("<root> (4)\n" +
                                   " Targets\n" +
                                   "  @style/myStyle\n" +
-                                  " Found usages (4 usages)\n" +
-                                  "  Resource declaration in Android resources XML (1 usage)\n" +
-                                  "   app (1 usage)\n" +
-                                  "    res" + File.separatorChar + "values (1 usage)\n" +
-                                  "     f11_values.xml (1 usage)\n" +
+                                  " Found usages (4)\n" +
+                                  "  In Android resources XML (4)\n" +
+                                  "   app (4)\n" +
+                                  "    res/values (4)\n" +
+                                  "     f11_values.xml (4)\n" +
                                   "      2<style name=\"myStyle\">\n" +
                                   "  Resource reference Android resources XML (3 usages)\n" +
                                   "   app (3 usages)\n" +
@@ -865,14 +847,14 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
     }
 
     public void testStyleInheritance2() {
-      super.testStyleInheritance2("Usage (4 usages)\n" +
+      super.testStyleInheritance2("<root> (4)\n" +
                                   " Targets\n" +
                                   "  @style/myStyle\n" +
-                                  " Found usages (4 usages)\n" +
-                                  "  Resource declaration in Android resources XML (1 usage)\n" +
-                                  "   app (1 usage)\n" +
-                                  "    res" + File.separatorChar + "values (1 usage)\n" +
-                                  "     f14_values.xml (1 usage)\n" +
+                                  " Found usages (4)\n" +
+                                  "  In Android resources XML (4)\n" +
+                                  "   app (4)\n" +
+                                  "    res/values (4)\n" +
+                                  "     f14_values.xml (4)\n" +
                                   "      2<style name=\"myStyle\">\n" +
                                   "  Resource reference Android resources XML (3 usages)\n" +
                                   "   app (3 usages)\n" +
@@ -1526,13 +1508,13 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       "}\n");
     myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
     Collection<UsageInfo> references = findUsages(file.getVirtualFile(), myFixture);
-    String expected = "Usage (1 usage)\n" +
-                      " Found usages (1 usage)\n" +
-                      "  Unclassified usage (1 usage)\n" +
-                      "   app (1 usage)\n" +
-                      "    p1.p2 (1 usage)\n" +
-                      "     Example (1 usage)\n" +
-                      "      bar() (1 usage)\n" +
+    String expected = "<root> (1)\n" +
+                      " Found usages (1)\n" +
+                      "  Unclassified (1)\n" +
+                      "   app (1)\n" +
+                      "    p1.p2 (1)\n" +
+                      "     Example (1)\n" +
+                      "      bar() (1)\n" +
                       "       6foo();\n";
     assertThat(myFixture.getUsageViewTreeTextRepresentation(references)).isEqualTo(expected);
   }
@@ -1552,14 +1534,14 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       "}\n");
     myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
     Collection<UsageInfo> references = findUsages(file.getVirtualFile(), myFixture);
-    String expected = "Usage (1 usage)\n" +
-                      " Found usages (1 usage)\n" +
-                      "  Function call (1 usage)\n" +
-                      "   app (1 usage)\n" +
-                      "    p1.p2 (1 usage)\n" +
-                      "     Example.kt (1 usage)\n" +
-                      "      Example (1 usage)\n" +
-                      "       bar (1 usage)\n" +
+    String expected = "<root> (1)\n" +
+                      " Found usages (1)\n" +
+                      "  Function call (1)\n" +
+                      "   app (1)\n" +
+                      "    p1.p2 (1)\n" +
+                      "     Example.kt (1)\n" +
+                      "      Example (1)\n" +
+                      "       bar (1)\n" +
                       "        6foo();\n";
     assertThat(myFixture.getUsageViewTreeTextRepresentation(references)).isEqualTo(expected);
   }

@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.layoutlib;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.Bridge;
 import com.android.ide.common.rendering.api.DrawableParams;
 import com.android.ide.common.rendering.api.LayoutLog;
@@ -25,12 +24,12 @@ import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.Result.Status;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.sdk.LoadStatus;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManager;
+import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.PluginId;
-
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Map;
@@ -78,7 +77,7 @@ public class LayoutLibrary implements Disposable {
         if (ApplicationManager.getApplication().isUnitTestMode()) {
             return true;
         }
-        IdeaPluginDescriptor nativePlugin = PluginManager.getPlugin(PluginId.findId(LAYOUTLIB_NATIVE_PLUGIN));
+        IdeaPluginDescriptor nativePlugin = PluginManagerCore.getPlugin(PluginId.findId(LAYOUTLIB_NATIVE_PLUGIN));
         return nativePlugin != null && nativePlugin.isEnabled();
     }
 

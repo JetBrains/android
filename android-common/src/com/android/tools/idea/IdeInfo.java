@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea;
 
-import com.intellij.openapi.components.Service;
-import com.intellij.openapi.components.ServiceManager;
-import org.jetbrains.annotations.NotNull;
-
 import static com.intellij.util.PlatformUtils.getPlatformPrefix;
+
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.Service;
+import org.jetbrains.annotations.NotNull;
 
 @Service
 public final class IdeInfo {
   @NotNull
   public static IdeInfo getInstance() {
-    return ServiceManager.getService(IdeInfo.class);
+    return ApplicationManager.getApplication().getService(IdeInfo.class);
   }
 
   public boolean isAndroidStudio() {

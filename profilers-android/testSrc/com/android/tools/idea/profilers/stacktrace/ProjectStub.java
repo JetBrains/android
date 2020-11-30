@@ -16,11 +16,15 @@
 package com.android.tools.idea.profilers.stacktrace;
 
 import com.intellij.openapi.extensions.ExtensionsArea;
+import com.intellij.openapi.extensions.PluginDescriptor;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.ExceptionUtilRt;
 import com.intellij.util.messages.MessageBus;
+import java.util.Map;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -105,6 +109,13 @@ final class ProjectStub extends UserDataHolderBase implements Project {
     throw new UnsupportedOperationException("getExtensionArea is not implement in : " + getClass());
   }
 
+  @NotNull
+  @Override
+  public <T> Class<T> loadClass(@NotNull String className,
+                                @NotNull PluginDescriptor pluginDescriptor) throws ClassNotFoundException {
+    throw new ClassNotFoundException();
+  }
+
   @Override
   public boolean isDisposed() {
     return false;
@@ -139,5 +150,26 @@ final class ProjectStub extends UserDataHolderBase implements Project {
 
   @Override
   public void dispose() {
+  }
+
+  @Override
+  public @NotNull
+  RuntimeException createError(@NotNull @NonNls String message, @NotNull PluginId pluginId) {
+    return new RuntimeException(message);
+  }
+
+  @Override
+  public @NotNull
+  RuntimeException createError(@NotNull @NonNls String message,
+                               @NotNull PluginId pluginId,
+                               @Nullable Map<String, String> attachments) {
+    return new RuntimeException(message);
+  }
+
+  @Override
+  public @NotNull
+  RuntimeException createError(@NotNull Throwable error, @NotNull PluginId pluginId) {
+    ExceptionUtilRt.rethrowUnchecked(error);
+    return new RuntimeException(error);
   }
 }

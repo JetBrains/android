@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl
 
-import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.vfs.VfsUtil
@@ -25,6 +24,7 @@ import org.junit.Test
 import java.io.File
 
 class KotlinParserTest : PlatformTestCase() {
+  val FN_BUILD_GRADLE_KTS = "build.gradle.kts"
   @Test
   fun testKotlinParserEnabledByDefault() {
     runWriteAction {

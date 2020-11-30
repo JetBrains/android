@@ -15,13 +15,9 @@
  */
 package com.android.tools.idea.gradle.repositories
 
-import com.android.ide.common.repository.GoogleMavenRepository
-import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.repository.*
 import com.android.ide.common.repository.GradleCoordinate.ArtifactType
 import com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_LOWER
-import com.android.ide.common.repository.GradleVersion
-import com.android.ide.common.repository.MavenRepositories
-import com.android.ide.common.repository.SdkMavenRepository
 import com.android.repository.io.FileOp
 import com.android.repository.io.FileOpUtils
 import com.android.sdklib.repository.AndroidSdkHandler
@@ -38,7 +34,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Multimap
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
@@ -339,7 +334,7 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
 
   companion object {
     @JvmStatic
-    fun get(): RepositoryUrlManager = ServiceManager.getService(
+    fun get(): RepositoryUrlManager = ApplicationManager.getApplication().getService(
       RepositoryUrlManager::class.java)
   }
 }

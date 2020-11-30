@@ -22,7 +22,7 @@ import static java.util.Collections.sort;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 public class GradleLocalCache {
   @NotNull
   public static GradleLocalCache getInstance() {
-    return ServiceManager.getService(GradleLocalCache.class);
+    return ApplicationManager.getApplication().getService(GradleLocalCache.class);
   }
 
   @Nullable

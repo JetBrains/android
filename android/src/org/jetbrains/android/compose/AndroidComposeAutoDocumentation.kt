@@ -30,17 +30,14 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.IndexNotReadyException
+import com.intellij.openapi.project.Project
 import com.intellij.util.Alarm
 import java.beans.PropertyChangeListener
 
 /**
  * Automatically shows quick documentation for Compose functions during code completion
  */
-class AndroidComposeAutoDocumentation(
-  private val docManager: DocumentationManager,
-  private val lookupManager: LookupManager,
-  private val completionService: CompletionService
-) {
+internal class AndroidComposeAutoDocumentation(private val project: Project) {
   private var documentationOpenedByCompose = false
 
   private val lookupListener = PropertyChangeListener { evt ->
@@ -66,12 +63,14 @@ class AndroidComposeAutoDocumentation(
 
   init {
     if (COMPOSE_EDITOR_SUPPORT.get() && COMPOSE_AUTO_DOCUMENTATION.get () && !ApplicationManager.getApplication().isUnitTestMode) {
-      lookupManager.addPropertyChangeListener(lookupListener)
+      LookupManager.getInstance(project).addPropertyChangeListener(lookupListener)
     }
   }
 
   private fun showJavaDoc(lookup: Lookup) {
-    if (lookupManager.activeLookup !== lookup) return
+    if (LookupManager.getInstance(project).activeLookup !== lookup) {
+      return
+    }
 
     // If we open doc when lookup is not visible, doc will have wrong parent window (editor window instead of lookup).
     if ((lookup as? LookupImpl)?.isVisible != true) {
@@ -80,7 +79,7 @@ class AndroidComposeAutoDocumentation(
     }
 
     val psiElement = lookup.currentItem?.psiElement ?: return
-
+    val docManager = DocumentationManager.getInstance(project)
     if (!psiElement.isComposableFunction()) {
       // Close documentation for not composable function if it was opened by [AndroidComposeAutoDocumentation].
       // Case docManager.docInfoHint?.isFocused == true: user clicked on doc window and after that clicked on lookup and selected another
@@ -97,7 +96,7 @@ class AndroidComposeAutoDocumentation(
     if (docManager.docInfoHint != null) return  // will auto-update
 
     val currentItem = lookup.currentItem
-    if (currentItem != null && currentItem.isValid && completionService.currentCompletion != null) {
+    if (currentItem != null && currentItem.isValid && CompletionService.getCompletionService().currentCompletion != null) {
       try {
         docManager.showJavaDocInfo(lookup.editor, lookup.psiFile, false) {
           documentationOpenedByCompose = false

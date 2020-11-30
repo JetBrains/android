@@ -21,11 +21,7 @@ import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
-import com.android.tools.idea.transport.DeployableFile
-import com.android.tools.idea.transport.TransportClient
-import com.android.tools.idea.transport.TransportFileManager
-import com.android.tools.idea.transport.TransportService
-import com.android.tools.idea.transport.TransportServiceProxy
+import com.android.tools.idea.transport.*
 import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.profiler.proto.Common
 import com.intellij.openapi.Disposable

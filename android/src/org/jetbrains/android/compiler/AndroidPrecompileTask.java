@@ -39,6 +39,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -224,7 +225,7 @@ public class AndroidPrecompileTask implements CompileTask {
                                                               "' have different ProGuard options: " +
                                                               firstArtifact.getName() +
                                                               ", " +
-                                                              artifact.getName(), null, -1, -1);
+                                                              artifact.getName(), null, -1, -1, null, Collections.singleton(moduleName));
             success = false;
             break;
           }
@@ -268,7 +269,7 @@ public class AndroidPrecompileTask implements CompileTask {
       if (manifestMergerProp != null && Boolean.parseBoolean(manifestMergerProp.getFirst())) {
         context.addMessage(CompilerMessageCategory.WARNING,
                            "[" + module.getName() + "] " + AndroidBundle.message("android.manifest.merger.not.supported.error"),
-                           manifestMergerProp.getSecond().getUrl(), -1, -1);
+                           manifestMergerProp.getSecond().getUrl(), -1, -1, null, Collections.singleton(module.getName()));
       }
 
       if (facet.getConfiguration().isAppProject()) {
@@ -293,7 +294,7 @@ public class AndroidPrecompileTask implements CompileTask {
                     message += "change packaging type of module " + depModule.getName() + " to 'apklib' in pom.xml file or ";
                   }
                   message += "change dependency scope to 'Provided'.";
-                  context.addMessage(CompilerMessageCategory.WARNING, message, null, -1, -1);
+                  context.addMessage(CompilerMessageCategory.WARNING, message, null, -1, -1, null, Collections.singleton(module.getName()));
                 }
               }
             }

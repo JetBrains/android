@@ -15,21 +15,23 @@
  */
 package com.android.tools.idea.editors;
 
-import com.intellij.codeInspection.unused.ImplicitPropertyUsageProvider;
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
+import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
+import static com.android.SdkConstants.SDK_DIR_PROPERTY;
+
+import com.intellij.lang.properties.codeInspection.unused.ImplicitPropertyUsageProvider;
 import com.intellij.lang.properties.psi.Property;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.SdkConstants.*;
-
 /**
  * Provider which defines some properties as implicitly used, such that they don't get
  * flagged by the inspections as unused.
  */
-public class GradleImplicitPropertyUsageProvider extends ImplicitPropertyUsageProvider {
+final class GradleImplicitPropertyUsageProvider implements ImplicitPropertyUsageProvider {
   @Override
-  protected boolean isUsed(@NotNull Property property) {
+  public boolean isUsed(@NotNull Property property) {
     PsiFile file = property.getContainingFile();
     boolean caseSensitive = file.getViewProvider().getVirtualFile().isCaseSensitive();
     if (Comparing.equal(file.getName(), FN_GRADLE_WRAPPER_PROPERTIES, caseSensitive)) {

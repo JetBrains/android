@@ -21,8 +21,8 @@ import com.android.tools.idea.resources.aar.CachingData
 import com.android.tools.idea.resources.aar.FrameworkResourceRepository
 import com.android.tools.idea.resources.aar.RESOURCE_CACHE_DIRECTORY
 import com.google.common.hash.Hashing
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
-import com.intellij.openapi.components.ServiceManager
 import org.jetbrains.annotations.TestOnly
 import java.io.File
 import java.nio.file.Files
@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap
  */
 class FrameworkResourceRepositoryManager {
   companion object {
-    @JvmStatic fun getInstance() = ServiceManager.getService(FrameworkResourceRepositoryManager::class.java)!!
+    @JvmStatic fun getInstance() = ApplicationManager.getApplication().getService(FrameworkResourceRepositoryManager::class.java)!!
   }
 
   private data class CacheKey(val path: Path, val useCompiled9Patches: Boolean)

@@ -71,6 +71,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -103,12 +104,6 @@ import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 import org.jetbrains.jps.model.java.JavaSourceRootProperties;
 import org.jetbrains.jps.model.java.JavaSourceRootType;
 import org.jetbrains.jps.model.java.JpsJavaExtensionService;
-
-import javax.swing.event.HyperlinkEvent;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.regex.Matcher;
 
 public class AndroidCompileUtil {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.compiler.AndroidCompileUtil");
@@ -190,7 +185,8 @@ public class AndroidCompileUtil {
                 line = Integer.parseInt(matcher.group(2));
               }
             }
-            context.addMessage(category, (module != null ? '[' + module.getName() + "] " : "") + message, url, line, -1);
+            String moduleName = module != null? module.getName() : null;
+            context.addMessage(category, (moduleName != null ? '[' + moduleName + "] " : "") + message, url, line, -1, null, moduleName != null? Collections.singleton(moduleName) : Collections.emptyList());
           }
         }
       }
@@ -546,7 +542,7 @@ public class AndroidCompileUtil {
     final CompilerProjectExtension extension = CompilerProjectExtension.getInstance(project);
     if (extension == null) {
       if (context != null) {
-        context.addMessage(CompilerMessageCategory.ERROR, "Cannot get compiler settings for project " + project.getName(), null, -1, -1);
+        context.addMessage(CompilerMessageCategory.ERROR, "Cannot get compiler settings for project " + project.getName(), null, -1, -1, null, Collections.singleton(module.getName()));
       }
       return null;
     }
@@ -554,7 +550,7 @@ public class AndroidCompileUtil {
     final String projectOutputDirUrl = extension.getCompilerOutputUrl();
     if (projectOutputDirUrl == null) {
       if (context != null) {
-        context.addMessage(CompilerMessageCategory.ERROR, "Cannot find output directory for project " + project.getName(), null, -1, -1);
+        context.addMessage(CompilerMessageCategory.ERROR, "Cannot find output directory for project " + project.getName(), null, -1, -1, null, Collections.singleton(module.getName()));
       }
       return null;
     }
@@ -570,7 +566,7 @@ public class AndroidCompileUtil {
       else {
         if (context != null) {
           context.addMessage(CompilerMessageCategory.ERROR, "Cannot create directory " + pngCacheDirOsPath + " because file already exists",
-                             null, -1, -1);
+                             null, -1, -1, null, Collections.singleton(module.getName()));
         }
         return null;
       }
@@ -582,7 +578,7 @@ public class AndroidCompileUtil {
 
     if (!pngCacheDir.mkdirs()) {
       if (context != null) {
-        context.addMessage(CompilerMessageCategory.ERROR, "Cannot create directory " + pngCacheDirOsPath, null, -1, -1);
+        context.addMessage(CompilerMessageCategory.ERROR, "Cannot create directory " + pngCacheDirOsPath, null, -1, -1, null, Collections.singleton(module.getName()));
       }
       return null;
     }

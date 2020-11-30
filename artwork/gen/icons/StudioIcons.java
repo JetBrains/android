@@ -12,7 +12,7 @@ import javax.swing.*;
  */
 public final class StudioIcons {
   private static @NotNull Icon load(@NotNull String path, long cacheKey, int flags) {
-    return IconManager.getInstance().loadRasterizedIcon(path, StudioIcons.class, cacheKey, flags);
+    return IconManager.getInstance().loadRasterizedIcon(path, StudioIcons.class.getClassLoader(), cacheKey, flags);
   }
 
   public static final class Avd {
@@ -102,13 +102,13 @@ public final class StudioIcons {
   }
 
   public static final class Cursors {
-    /** 32x32 */ public static final @NotNull Icon EW_RESIZE = load("/studio/icons/cursors/ew-resize.svg", -7274134314819400903L, 0);
-    /** 32x32 */ public static final @NotNull Icon GRAB = load("/studio/icons/cursors/grab.svg", -9148468669517695373L, 0);
-    /** 32x32 */ public static final @NotNull Icon GRABBING = load("/studio/icons/cursors/grabbing.svg", 2166232782907237413L, 0);
-    /** 32x32 */ public static final @NotNull Icon MOVE = load("/studio/icons/cursors/move.svg", 6230314801948651984L, 0);
-    /** 32x32 */ public static final @NotNull Icon NESW_RESIZE = load("/studio/icons/cursors/nesw-resize.svg", -4883929295662796774L, 0);
-    /** 32x32 */ public static final @NotNull Icon NS_RESIZE = load("/studio/icons/cursors/ns-resize.svg", -929693207884973917L, 0);
-    /** 32x32 */ public static final @NotNull Icon NWSE_RESIZE = load("/studio/icons/cursors/nwse-resize.svg", -6131249053729294209L, 0);
+    /** 32x32 */ public static final @NotNull Icon EW_RESIZE = load("studio/icons/cursors/ew-resize.svg", -7274134314819400903L, 0);
+    /** 32x32 */ public static final @NotNull Icon GRAB = load("studio/icons/cursors/grab.svg", -9148468669517695373L, 0);
+    /** 32x32 */ public static final @NotNull Icon GRABBING = load("studio/icons/cursors/grabbing.svg", 2166232782907237413L, 0);
+    /** 32x32 */ public static final @NotNull Icon MOVE = load("studio/icons/cursors/move.svg", 6230314801948651984L, 0);
+    /** 32x32 */ public static final @NotNull Icon NESW_RESIZE = load("studio/icons/cursors/nesw-resize.svg", -4883929295662796774L, 0);
+    /** 32x32 */ public static final @NotNull Icon NS_RESIZE = load("studio/icons/cursors/ns-resize.svg", -929693207884973917L, 0);
+    /** 32x32 */ public static final @NotNull Icon NWSE_RESIZE = load("studio/icons/cursors/nwse-resize.svg", -6131249053729294209L, 0);
   }
 
   public static final class DatabaseInspector {
@@ -125,26 +125,26 @@ public final class StudioIcons {
   }
 
   public static final class DeviceConfiguration {
-    /** 16x16 */ public static final @NotNull Icon COUNTRY_CODE = load("/studio/icons/device-configuration/country-code.svg", -6405018790512292857L, 2);
-    /** 16x16 */ public static final @NotNull Icon DENSITY = load("/studio/icons/device-configuration/density.svg", -8133467874362105311L, 2);
-    /** 16x16 */ public static final @NotNull Icon DIMENSION = load("/studio/icons/device-configuration/dimension.svg", -2310882805149993447L, 2);
-    /** 16x16 */ public static final @NotNull Icon KEYBOARD = load("/studio/icons/device-configuration/keyboard.svg", 3218034774343728538L, 2);
-    /** 16x16 */ public static final @NotNull Icon LAYOUT_DIRECTION = load("/studio/icons/device-configuration/layout-direction.svg", 3314308338284211517L, 2);
-    /** 16x16 */ public static final @NotNull Icon LOCALE = load("/studio/icons/device-configuration/locale.svg", -872686294861902776L, 2);
-    /** 16x16 */ public static final @NotNull Icon NAVIGATION_METHOD = load("/studio/icons/device-configuration/navigation-method.svg", -5059625012799929198L, 2);
-    /** 16x16 */ public static final @NotNull Icon NAVIGATION_STATE = load("/studio/icons/device-configuration/navigation-state.svg", 6279862295584848204L, 2);
-    /** 16x16 */ public static final @NotNull Icon NETWORK_CODE = load("/studio/icons/device-configuration/network-code.svg", 4336635421333062469L, 2);
-    /** 16x16 */ public static final @NotNull Icon NIGHT_MODE = load("/studio/icons/device-configuration/night-mode.svg", 6751505044156820646L, 2);
-    /** 16x16 */ public static final @NotNull Icon ORIENTATION = load("/studio/icons/device-configuration/orientation.svg", -266603419761437456L, 2);
-    /** 16x16 */ public static final @NotNull Icon SCREEN_HEIGHT = load("/studio/icons/device-configuration/screen-height.svg", 2569230773892227405L, 2);
-    /** 16x16 */ public static final @NotNull Icon SCREEN_RATIO = load("/studio/icons/device-configuration/screen-ratio.svg", 6946542512286761717L, 2);
-    /** 16x16 */ public static final @NotNull Icon SCREEN_SIZE = load("/studio/icons/device-configuration/screen-size.svg", -6845702732942800133L, 2);
-    /** 16x16 */ public static final @NotNull Icon SCREEN_WIDTH = load("/studio/icons/device-configuration/screen-width.svg", -5425388567873380223L, 2);
-    /** 16x16 */ public static final @NotNull Icon SMALLEST_SCREEN_SIZE = load("/studio/icons/device-configuration/smallest-screen-size.svg", 6726711351710650917L, 2);
-    /** 16x16 */ public static final @NotNull Icon TEXT_INPUT = load("/studio/icons/device-configuration/text-input.svg", -66845347904350082L, 2);
-    /** 16x16 */ public static final @NotNull Icon TOUCH_SCREEN = load("/studio/icons/device-configuration/touch-screen.svg", 1247973386033161714L, 2);
-    /** 16x16 */ public static final @NotNull Icon UI_MODE = load("/studio/icons/device-configuration/ui-mode.svg", 5338107437486759804L, 2);
-    /** 16x16 */ public static final @NotNull Icon VERSION = load("/studio/icons/device-configuration/version.svg", 1671679741635738722L, 2);
+    /** 16x16 */ public static final @NotNull Icon COUNTRY_CODE = load("studio/icons/device-configuration/country-code.svg", -6405018790512292857L, 2);
+    /** 16x16 */ public static final @NotNull Icon DENSITY = load("studio/icons/device-configuration/density.svg", -8133467874362105311L, 2);
+    /** 16x16 */ public static final @NotNull Icon DIMENSION = load("studio/icons/device-configuration/dimension.svg", -2310882805149993447L, 2);
+    /** 16x16 */ public static final @NotNull Icon KEYBOARD = load("studio/icons/device-configuration/keyboard.svg", 3218034774343728538L, 2);
+    /** 16x16 */ public static final @NotNull Icon LAYOUT_DIRECTION = load("studio/icons/device-configuration/layout-direction.svg", 3314308338284211517L, 2);
+    /** 16x16 */ public static final @NotNull Icon LOCALE = load("studio/icons/device-configuration/locale.svg", -872686294861902776L, 2);
+    /** 16x16 */ public static final @NotNull Icon NAVIGATION_METHOD = load("studio/icons/device-configuration/navigation-method.svg", -5059625012799929198L, 2);
+    /** 16x16 */ public static final @NotNull Icon NAVIGATION_STATE = load("studio/icons/device-configuration/navigation-state.svg", 6279862295584848204L, 2);
+    /** 16x16 */ public static final @NotNull Icon NETWORK_CODE = load("studio/icons/device-configuration/network-code.svg", 4336635421333062469L, 2);
+    /** 16x16 */ public static final @NotNull Icon NIGHT_MODE = load("studio/icons/device-configuration/night-mode.svg", 6751505044156820646L, 2);
+    /** 16x16 */ public static final @NotNull Icon ORIENTATION = load("studio/icons/device-configuration/orientation.svg", -266603419761437456L, 2);
+    /** 16x16 */ public static final @NotNull Icon SCREEN_HEIGHT = load("studio/icons/device-configuration/screen-height.svg", 2569230773892227405L, 2);
+    /** 16x16 */ public static final @NotNull Icon SCREEN_RATIO = load("studio/icons/device-configuration/screen-ratio.svg", 6946542512286761717L, 2);
+    /** 16x16 */ public static final @NotNull Icon SCREEN_SIZE = load("studio/icons/device-configuration/screen-size.svg", -6845702732942800133L, 2);
+    /** 16x16 */ public static final @NotNull Icon SCREEN_WIDTH = load("studio/icons/device-configuration/screen-width.svg", -5425388567873380223L, 2);
+    /** 16x16 */ public static final @NotNull Icon SMALLEST_SCREEN_SIZE = load("studio/icons/device-configuration/smallest-screen-size.svg", 6726711351710650917L, 2);
+    /** 16x16 */ public static final @NotNull Icon TEXT_INPUT = load("studio/icons/device-configuration/text-input.svg", -66845347904350082L, 2);
+    /** 16x16 */ public static final @NotNull Icon TOUCH_SCREEN = load("studio/icons/device-configuration/touch-screen.svg", 1247973386033161714L, 2);
+    /** 16x16 */ public static final @NotNull Icon UI_MODE = load("studio/icons/device-configuration/ui-mode.svg", 5338107437486759804L, 2);
+    /** 16x16 */ public static final @NotNull Icon VERSION = load("studio/icons/device-configuration/version.svg", 1671679741635738722L, 2);
   }
 
   public static final class DeviceExplorer {
@@ -176,61 +176,61 @@ public final class StudioIcons {
 
   public static final class LayoutEditor {
     public static final class Extras {
-      /** 24x24 */ public static final @NotNull Icon DOWNLOAD_OVERLAY_LEGACY_LARGE = load("/studio/icons/layout-editor/extras/download-overlay-legacy-large.svg", -4603040831505779325L, 2);
-      /** 16x16 */ public static final @NotNull Icon DOWNLOAD_OVERLAY_LEGACY = load("/studio/icons/layout-editor/extras/download-overlay-legacy.svg", -1306445403753524762L, 2);
-      /** 16x16 */ public static final @NotNull Icon PALETTE_DOWNLOAD_SELECTED = load("/studio/icons/layout-editor/extras/palette-download-selected.svg", -6520934645100795088L, 0);
-      /** 16x16 */ public static final @NotNull Icon PALETTE_DOWNLOAD = load("/studio/icons/layout-editor/extras/palette-download.svg", -612403820227949672L, 2);
-      /** 24x24 */ public static final @NotNull Icon PIPETTE_LARGE = load("/studio/icons/layout-editor/extras/pipette-large.svg", 6592678781647011964L, 2);
-      /** 16x16 */ public static final @NotNull Icon PIPETTE = load("/studio/icons/layout-editor/extras/pipette.svg", -3615772689540665999L, 2);
-      /** 16x16 */ public static final @NotNull Icon ROOT_INLINE_SELECTED = load("/studio/icons/layout-editor/extras/root-inline-selected.svg", 8041655775354480310L, 0);
-      /** 16x16 */ public static final @NotNull Icon ROOT_INLINE = load("/studio/icons/layout-editor/extras/root-inline.svg", -5308230700314429004L, 2);
-      /** 16x16 */ public static final @NotNull Icon VISIBILITY_GONE_INLINE_SELECTED = load("/studio/icons/layout-editor/extras/visibility-gone-inline-selected.svg", -6137761646880356395L, 0);
-      /** 16x16 */ public static final @NotNull Icon VISIBILITY_GONE_INLINE = load("/studio/icons/layout-editor/extras/visibility-gone-inline.svg", -1692230448983267686L, 2);
+      /** 24x24 */ public static final @NotNull Icon DOWNLOAD_OVERLAY_LEGACY_LARGE = load("studio/icons/layout-editor/extras/download-overlay-legacy-large.svg", -4603040831505779325L, 2);
+      /** 16x16 */ public static final @NotNull Icon DOWNLOAD_OVERLAY_LEGACY = load("studio/icons/layout-editor/extras/download-overlay-legacy.svg", -1306445403753524762L, 2);
+      /** 16x16 */ public static final @NotNull Icon PALETTE_DOWNLOAD_SELECTED = load("studio/icons/layout-editor/extras/palette-download-selected.svg", -6520934645100795088L, 0);
+      /** 16x16 */ public static final @NotNull Icon PALETTE_DOWNLOAD = load("studio/icons/layout-editor/extras/palette-download.svg", -612403820227949672L, 2);
+      /** 24x24 */ public static final @NotNull Icon PIPETTE_LARGE = load("studio/icons/layout-editor/extras/pipette-large.svg", 6592678781647011964L, 2);
+      /** 16x16 */ public static final @NotNull Icon PIPETTE = load("studio/icons/layout-editor/extras/pipette.svg", -3615772689540665999L, 2);
+      /** 16x16 */ public static final @NotNull Icon ROOT_INLINE_SELECTED = load("studio/icons/layout-editor/extras/root-inline-selected.svg", 8041655775354480310L, 0);
+      /** 16x16 */ public static final @NotNull Icon ROOT_INLINE = load("studio/icons/layout-editor/extras/root-inline.svg", -5308230700314429004L, 2);
+      /** 16x16 */ public static final @NotNull Icon VISIBILITY_GONE_INLINE_SELECTED = load("studio/icons/layout-editor/extras/visibility-gone-inline-selected.svg", -6137761646880356395L, 0);
+      /** 16x16 */ public static final @NotNull Icon VISIBILITY_GONE_INLINE = load("studio/icons/layout-editor/extras/visibility-gone-inline.svg", -1692230448983267686L, 2);
     }
 
     public static final class Menu {
-      /** 16x16 */ public static final @NotNull Icon CAST = load("/studio/icons/layout-editor/menu/cast.svg", 7942599325197794817L, 2);
-      /** 16x16 */ public static final @NotNull Icon GROUP = load("/studio/icons/layout-editor/menu/group.svg", 3261162986806787205L, 2);
-      /** 16x16 */ public static final @NotNull Icon ITEM = load("/studio/icons/layout-editor/menu/item.svg", -5356719346008934769L, 2);
-      /** 16x16 */ public static final @NotNull Icon MENU = load("/studio/icons/layout-editor/menu/menu.svg", 8162758691992467150L, 2);
-      /** 16x16 */ public static final @NotNull Icon SEARCH = load("/studio/icons/layout-editor/menu/search.svg", -1880493903304901736L, 2);
-      /** 16x16 */ public static final @NotNull Icon SWITCH = load("/studio/icons/layout-editor/menu/switch.svg", -4633855078210083207L, 2);
+      /** 16x16 */ public static final @NotNull Icon CAST = load("studio/icons/layout-editor/menu/cast.svg", 7942599325197794817L, 2);
+      /** 16x16 */ public static final @NotNull Icon GROUP = load("studio/icons/layout-editor/menu/group.svg", 3261162986806787205L, 2);
+      /** 16x16 */ public static final @NotNull Icon ITEM = load("studio/icons/layout-editor/menu/item.svg", -5356719346008934769L, 2);
+      /** 16x16 */ public static final @NotNull Icon MENU = load("studio/icons/layout-editor/menu/menu.svg", 8162758691992467150L, 2);
+      /** 16x16 */ public static final @NotNull Icon SEARCH = load("studio/icons/layout-editor/menu/search.svg", -1880493903304901736L, 2);
+      /** 16x16 */ public static final @NotNull Icon SWITCH = load("studio/icons/layout-editor/menu/switch.svg", -4633855078210083207L, 2);
     }
 
     public static final class Motion {
-      /** 16x16 */ public static final @NotNull Icon ADD_CONSTRAINT_SET = load("/studio/icons/layout-editor/motion/add-constraint-set.svg", 1567504458105428602L, 2);
-      /** 16x16 */ public static final @NotNull Icon ADD_GESTURE = load("/studio/icons/layout-editor/motion/add-gesture.svg", 1568861149773526106L, 2);
-      /** 16x16 */ public static final @NotNull Icon ADD_KEYFRAME = load("/studio/icons/layout-editor/motion/add-keyframe.svg", 4944557387156951463L, 2);
-      /** 16x16 */ public static final @NotNull Icon ADD_TRANSITION = load("/studio/icons/layout-editor/motion/add-transition.svg", 9194071676050025678L, 2);
-      /** 16x16 */ public static final @NotNull Icon BASE_LAYOUT = load("/studio/icons/layout-editor/motion/base-layout.svg", 6994449884104825233L, 2);
-      /** 16x16 */ public static final @NotNull Icon CONSTRAINT_SET = load("/studio/icons/layout-editor/motion/constraint-set.svg", -4968154309653337853L, 2);
-      /** 16x16 */ public static final @NotNull Icon END_CONSTRAINT_SELECTED = load("/studio/icons/layout-editor/motion/end-constraint-selected.svg", -1493946427617841283L, 2);
-      /** 16x16 */ public static final @NotNull Icon END_CONSTRAINT = load("/studio/icons/layout-editor/motion/end-constraint.svg", 8951938763455934820L, 2);
-      /** 16x16 */ public static final @NotNull Icon GESTURE = load("/studio/icons/layout-editor/motion/gesture.svg", -5279209786580355472L, 2);
-      /** 16x16 */ public static final @NotNull Icon GO_TO_END = load("/studio/icons/layout-editor/motion/go-to-end.svg", -1042515831673610218L, 2);
-      /** 16x16 */ public static final @NotNull Icon GO_TO_START = load("/studio/icons/layout-editor/motion/go-to-start.svg", 7856290473481422013L, 2);
-      /** 16x16 */ public static final @NotNull Icon KEYFRAME = load("/studio/icons/layout-editor/motion/keyframe.svg", -6271788614706262465L, 2);
-      /** 16x16 */ public static final @NotNull Icon LOOP = load("/studio/icons/layout-editor/motion/loop.svg", -7305645440425086976L, 2);
-      /** 16x16 */ public static final @NotNull Icon MAX_SCALE = load("/studio/icons/layout-editor/motion/max-scale.svg", 2288195273702650142L, 2);
-      /** 16x16 */ public static final @NotNull Icon MIN_SCALE = load("/studio/icons/layout-editor/motion/min-scale.svg", -6561843062356095799L, 2);
-      /** 16x16 */ public static final @NotNull Icon MOTION_LAYOUT = load("/studio/icons/layout-editor/motion/motion-layout.svg", 1394878088952081381L, 2);
-      /** 16x16 */ public static final @NotNull Icon NEXT_TICK = load("/studio/icons/layout-editor/motion/next-tick.svg", 7769153742645846110L, 2);
-      /** 16x16 */ public static final @NotNull Icon PAUSE = load("/studio/icons/layout-editor/motion/pause.svg", -8489643897206833400L, 2);
-      /** 16x16 */ public static final @NotNull Icon PLAY_BACKWARD = load("/studio/icons/layout-editor/motion/play-backward.svg", -6082792465141957556L, 2);
-      /** 16x16 */ public static final @NotNull Icon PLAY_FORWARD = load("/studio/icons/layout-editor/motion/play-forward.svg", 1797737590574914341L, 2);
-      /** 16x16 */ public static final @NotNull Icon PLAY_YOYO = load("/studio/icons/layout-editor/motion/play-yoyo.svg", 3949521846391977572L, 2);
-      /** 16x16 */ public static final @NotNull Icon PLAY = load("/studio/icons/layout-editor/motion/play.svg", -513511394561550052L, 2);
-      /** 16x16 */ public static final @NotNull Icon PREVIOUS_TICK = load("/studio/icons/layout-editor/motion/previous-tick.svg", 4742324462102535933L, 2);
-      /** 16x16 */ public static final @NotNull Icon SLOW_MOTION = load("/studio/icons/layout-editor/motion/slow-motion.svg", 6079676395018086399L, 2);
-      /** 16x16 */ public static final @NotNull Icon START_CONSTRAINT = load("/studio/icons/layout-editor/motion/start-constraint.svg", 2857951727402611634L, 2);
-      /** 16x16 */ public static final @NotNull Icon TIMELINE_ADD = load("/studio/icons/layout-editor/motion/timeline-add.svg", -6195456658474349080L, 2);
-      /** 16x16 */ public static final @NotNull Icon TIMELINE_END_CONSTRAINT = load("/studio/icons/layout-editor/motion/timeline-end-constraint.svg", -4094566725048345511L, 2);
-      /** 16x16 */ public static final @NotNull Icon TIMELINE_KEYFRAME_HEADER = load("/studio/icons/layout-editor/motion/timeline-keyframe-header.svg", 1090056128385010394L, 2);
-      /** 16x16 */ public static final @NotNull Icon TIMELINE_KEYFRAME_SELECTED = load("/studio/icons/layout-editor/motion/timeline-keyframe-selected.svg", 6183783743253607033L, 2);
-      /** 16x16 */ public static final @NotNull Icon TIMELINE_KEYFRAME = load("/studio/icons/layout-editor/motion/timeline-keyframe.svg", -3384598763945928609L, 2);
-      /** 16x16 */ public static final @NotNull Icon TIMELINE_START_CONSTRAINT_SELECTED = load("/studio/icons/layout-editor/motion/timeline-start-constraint-selected.svg", -6791510278291170176L, 2);
-      /** 16x16 */ public static final @NotNull Icon TIMELINE_START_CONSTRAINT = load("/studio/icons/layout-editor/motion/timeline-start-constraint.svg", -2481885075206972812L, 2);
-      /** 16x16 */ public static final @NotNull Icon TRANSITION = load("/studio/icons/layout-editor/motion/transition.svg", -8140059623289253739L, 2);
+      /** 16x16 */ public static final @NotNull Icon ADD_CONSTRAINT_SET = load("studio/icons/layout-editor/motion/add-constraint-set.svg", 1567504458105428602L, 2);
+      /** 16x16 */ public static final @NotNull Icon ADD_GESTURE = load("studio/icons/layout-editor/motion/add-gesture.svg", 1568861149773526106L, 2);
+      /** 16x16 */ public static final @NotNull Icon ADD_KEYFRAME = load("studio/icons/layout-editor/motion/add-keyframe.svg", 4944557387156951463L, 2);
+      /** 16x16 */ public static final @NotNull Icon ADD_TRANSITION = load("studio/icons/layout-editor/motion/add-transition.svg", 9194071676050025678L, 2);
+      /** 16x16 */ public static final @NotNull Icon BASE_LAYOUT = load("studio/icons/layout-editor/motion/base-layout.svg", 6994449884104825233L, 2);
+      /** 16x16 */ public static final @NotNull Icon CONSTRAINT_SET = load("studio/icons/layout-editor/motion/constraint-set.svg", -4968154309653337853L, 2);
+      /** 16x16 */ public static final @NotNull Icon END_CONSTRAINT_SELECTED = load("studio/icons/layout-editor/motion/end-constraint-selected.svg", -1493946427617841283L, 2);
+      /** 16x16 */ public static final @NotNull Icon END_CONSTRAINT = load("studio/icons/layout-editor/motion/end-constraint.svg", 8951938763455934820L, 2);
+      /** 16x16 */ public static final @NotNull Icon GESTURE = load("studio/icons/layout-editor/motion/gesture.svg", -5279209786580355472L, 2);
+      /** 16x16 */ public static final @NotNull Icon GO_TO_END = load("studio/icons/layout-editor/motion/go-to-end.svg", -1042515831673610218L, 2);
+      /** 16x16 */ public static final @NotNull Icon GO_TO_START = load("studio/icons/layout-editor/motion/go-to-start.svg", 7856290473481422013L, 2);
+      /** 16x16 */ public static final @NotNull Icon KEYFRAME = load("studio/icons/layout-editor/motion/keyframe.svg", -6271788614706262465L, 2);
+      /** 16x16 */ public static final @NotNull Icon LOOP = load("studio/icons/layout-editor/motion/loop.svg", -7305645440425086976L, 2);
+      /** 16x16 */ public static final @NotNull Icon MAX_SCALE = load("studio/icons/layout-editor/motion/max-scale.svg", 2288195273702650142L, 2);
+      /** 16x16 */ public static final @NotNull Icon MIN_SCALE = load("studio/icons/layout-editor/motion/min-scale.svg", -6561843062356095799L, 2);
+      /** 16x16 */ public static final @NotNull Icon MOTION_LAYOUT = load("studio/icons/layout-editor/motion/motion-layout.svg", 1394878088952081381L, 2);
+      /** 16x16 */ public static final @NotNull Icon NEXT_TICK = load("studio/icons/layout-editor/motion/next-tick.svg", 7769153742645846110L, 2);
+      /** 16x16 */ public static final @NotNull Icon PAUSE = load("studio/icons/layout-editor/motion/pause.svg", -8489643897206833400L, 2);
+      /** 16x16 */ public static final @NotNull Icon PLAY_BACKWARD = load("studio/icons/layout-editor/motion/play-backward.svg", -6082792465141957556L, 2);
+      /** 16x16 */ public static final @NotNull Icon PLAY_FORWARD = load("studio/icons/layout-editor/motion/play-forward.svg", 1797737590574914341L, 2);
+      /** 16x16 */ public static final @NotNull Icon PLAY_YOYO = load("studio/icons/layout-editor/motion/play-yoyo.svg", 3949521846391977572L, 2);
+      /** 16x16 */ public static final @NotNull Icon PLAY = load("studio/icons/layout-editor/motion/play.svg", -513511394561550052L, 2);
+      /** 16x16 */ public static final @NotNull Icon PREVIOUS_TICK = load("studio/icons/layout-editor/motion/previous-tick.svg", 4742324462102535933L, 2);
+      /** 16x16 */ public static final @NotNull Icon SLOW_MOTION = load("studio/icons/layout-editor/motion/slow-motion.svg", 6079676395018086399L, 2);
+      /** 16x16 */ public static final @NotNull Icon START_CONSTRAINT = load("studio/icons/layout-editor/motion/start-constraint.svg", 2857951727402611634L, 2);
+      /** 16x16 */ public static final @NotNull Icon TIMELINE_ADD = load("studio/icons/layout-editor/motion/timeline-add.svg", -6195456658474349080L, 2);
+      /** 16x16 */ public static final @NotNull Icon TIMELINE_END_CONSTRAINT = load("studio/icons/layout-editor/motion/timeline-end-constraint.svg", -4094566725048345511L, 2);
+      /** 16x16 */ public static final @NotNull Icon TIMELINE_KEYFRAME_HEADER = load("studio/icons/layout-editor/motion/timeline-keyframe-header.svg", 1090056128385010394L, 2);
+      /** 16x16 */ public static final @NotNull Icon TIMELINE_KEYFRAME_SELECTED = load("studio/icons/layout-editor/motion/timeline-keyframe-selected.svg", 6183783743253607033L, 2);
+      /** 16x16 */ public static final @NotNull Icon TIMELINE_KEYFRAME = load("studio/icons/layout-editor/motion/timeline-keyframe.svg", -3384598763945928609L, 2);
+      /** 16x16 */ public static final @NotNull Icon TIMELINE_START_CONSTRAINT_SELECTED = load("studio/icons/layout-editor/motion/timeline-start-constraint-selected.svg", -6791510278291170176L, 2);
+      /** 16x16 */ public static final @NotNull Icon TIMELINE_START_CONSTRAINT = load("studio/icons/layout-editor/motion/timeline-start-constraint.svg", -2481885075206972812L, 2);
+      /** 16x16 */ public static final @NotNull Icon TRANSITION = load("studio/icons/layout-editor/motion/transition.svg", -8140059623289253739L, 2);
     }
 
     public static final class Palette {
@@ -501,20 +501,20 @@ public final class StudioIcons {
   }
 
   public static final class LayoutInspector {
-    /** 16x16 */ public static final @NotNull Icon CLEAR_OVERLAY = load("/studio/icons/layout-inspector/clear-overlay.svg", 7202017734371670193L, 2);
-    /** 16x16 */ public static final @NotNull Icon COLOR_PICKER = load("/studio/icons/layout-inspector/color-picker.svg", 6021856461484559940L, 2);
-    /** 16x16 */ public static final @NotNull Icon LOAD_OVERLAY = load("/studio/icons/layout-inspector/load-overlay.svg", 8884037285144017601L, 2);
-    /** 16x16 */ public static final @NotNull Icon MODE_2D = load("/studio/icons/layout-inspector/mode-2d.svg", 3956074451153461726L, 2);
-    /** 16x16 */ public static final @NotNull Icon MODE_3D = load("/studio/icons/layout-inspector/mode-3d.svg", 1061848752959895656L, 2);
-    /** 16x16 */ public static final @NotNull Icon RESET_VIEW = load("/studio/icons/layout-inspector/reset-view.svg", -5316384752952678581L, 2);
+    /** 16x16 */ public static final @NotNull Icon CLEAR_OVERLAY = load("studio/icons/layout-inspector/clear-overlay.svg", 7202017734371670193L, 2);
+    /** 16x16 */ public static final @NotNull Icon COLOR_PICKER = load("studio/icons/layout-inspector/color-picker.svg", 6021856461484559940L, 2);
+    /** 16x16 */ public static final @NotNull Icon LOAD_OVERLAY = load("studio/icons/layout-inspector/load-overlay.svg", 8884037285144017601L, 2);
+    /** 16x16 */ public static final @NotNull Icon MODE_2D = load("studio/icons/layout-inspector/mode-2d.svg", 3956074451153461726L, 2);
+    /** 16x16 */ public static final @NotNull Icon MODE_3D = load("studio/icons/layout-inspector/mode-3d.svg", 1061848752959895656L, 2);
+    /** 16x16 */ public static final @NotNull Icon RESET_VIEW = load("studio/icons/layout-inspector/reset-view.svg", -5316384752952678581L, 2);
   }
 
   public static final class Logcat {
     public static final class Toolbar {
-      /** 16x16 */ public static final @NotNull Icon SETTINGS = load("/studio/icons/logcat/toolbar/settings.svg", 8661200190395343530L, 2);
-      /** 16x16 */ public static final @NotNull Icon SNAPSHOT = load("/studio/icons/logcat/toolbar/snapshot.svg", -3379704893135137765L, 2);
-      /** 16x16 */ public static final @NotNull Icon VIDEO_CAPTURE = load("/studio/icons/logcat/toolbar/video-capture.svg", 1552605722654562194L, 2);
-      /** 16x16 */ public static final @NotNull Icon WRAP_TEXT = load("/studio/icons/logcat/toolbar/wrap-text.svg", -3023085265376989150L, 2);
+      /** 16x16 */ public static final @NotNull Icon SETTINGS = load("studio/icons/logcat/toolbar/settings.svg", 8661200190395343530L, 2);
+      /** 16x16 */ public static final @NotNull Icon SNAPSHOT = load("studio/icons/logcat/toolbar/snapshot.svg", -3379704893135137765L, 2);
+      /** 16x16 */ public static final @NotNull Icon VIDEO_CAPTURE = load("studio/icons/logcat/toolbar/video-capture.svg", 1552605722654562194L, 2);
+      /** 16x16 */ public static final @NotNull Icon WRAP_TEXT = load("studio/icons/logcat/toolbar/wrap-text.svg", -3023085265376989150L, 2);
     }
   }
 
@@ -531,104 +531,104 @@ public final class StudioIcons {
 
   public static final class NavEditor {
     public static final class ExistingDestinations {
-      /** 73x94 */ public static final @NotNull Icon ACTIVITY = load("/studio/icons/nav-editor/existing-destinations/activity.svg", 1460438687821283693L, 2);
-      /** 73x94 */ public static final @NotNull Icon DESTINATION = load("/studio/icons/nav-editor/existing-destinations/destination.svg", -8593642985879440775L, 2);
-      /** 53x78 */ public static final @NotNull Icon NESTED = load("/studio/icons/nav-editor/existing-destinations/nested.svg", -3401511147173859667L, 2);
-      /** 73x94 */ public static final @NotNull Icon PLACEHOLDER = load("/studio/icons/nav-editor/existing-destinations/placeholder.svg", -2628868004447793859L, 2);
+      /** 73x94 */ public static final @NotNull Icon ACTIVITY = load("studio/icons/nav-editor/existing-destinations/activity.svg", 1460438687821283693L, 2);
+      /** 73x94 */ public static final @NotNull Icon DESTINATION = load("studio/icons/nav-editor/existing-destinations/destination.svg", -8593642985879440775L, 2);
+      /** 53x78 */ public static final @NotNull Icon NESTED = load("studio/icons/nav-editor/existing-destinations/nested.svg", -3401511147173859667L, 2);
+      /** 73x94 */ public static final @NotNull Icon PLACEHOLDER = load("studio/icons/nav-editor/existing-destinations/placeholder.svg", -2628868004447793859L, 2);
     }
 
     public static final class Properties {
-      /** 16x16 */ public static final @NotNull Icon ACTION = load("/studio/icons/nav-editor/properties/action.svg", 9071540957107703120L, 2);
-      /** 16x16 */ public static final @NotNull Icon ARGUMENT = load("/studio/icons/nav-editor/properties/argument.svg", 7638035016737525196L, 2);
-      /** 16x16 */ public static final @NotNull Icon DEEPLINK = load("/studio/icons/nav-editor/properties/deeplink.svg", 4372010186382963245L, 2);
-      /** 16x16 */ public static final @NotNull Icon GLOBAL_ACTION = load("/studio/icons/nav-editor/properties/global-action.svg", 79676203681661817L, 2);
-      /** 16x16 */ public static final @NotNull Icon POP_ACTION = load("/studio/icons/nav-editor/properties/pop-action.svg", -3877974873335907877L, 2);
-      /** 16x16 */ public static final @NotNull Icon SOURCE = load("/studio/icons/nav-editor/properties/source.svg", -2594678411179703567L, 2);
+      /** 16x16 */ public static final @NotNull Icon ACTION = load("studio/icons/nav-editor/properties/action.svg", 9071540957107703120L, 2);
+      /** 16x16 */ public static final @NotNull Icon ARGUMENT = load("studio/icons/nav-editor/properties/argument.svg", 7638035016737525196L, 2);
+      /** 16x16 */ public static final @NotNull Icon DEEPLINK = load("studio/icons/nav-editor/properties/deeplink.svg", 4372010186382963245L, 2);
+      /** 16x16 */ public static final @NotNull Icon GLOBAL_ACTION = load("studio/icons/nav-editor/properties/global-action.svg", 79676203681661817L, 2);
+      /** 16x16 */ public static final @NotNull Icon POP_ACTION = load("studio/icons/nav-editor/properties/pop-action.svg", -3877974873335907877L, 2);
+      /** 16x16 */ public static final @NotNull Icon SOURCE = load("studio/icons/nav-editor/properties/source.svg", -2594678411179703567L, 2);
     }
 
     public static final class Surface {
-      /** 56x56 */ public static final @NotNull Icon DEEPLINK = load("/studio/icons/nav-editor/surface/deeplink.svg", -3173325413811656938L, 2);
-      /** 56x56 */ public static final @NotNull Icon POP_ACTION = load("/studio/icons/nav-editor/surface/pop-action.svg", -6626240543408425964L, 2);
-      /** 56x56 */ public static final @NotNull Icon START_DESTINATION = load("/studio/icons/nav-editor/surface/start-destination.svg", -7694545907387064857L, 2);
+      /** 56x56 */ public static final @NotNull Icon DEEPLINK = load("studio/icons/nav-editor/surface/deeplink.svg", -3173325413811656938L, 2);
+      /** 56x56 */ public static final @NotNull Icon POP_ACTION = load("studio/icons/nav-editor/surface/pop-action.svg", -6626240543408425964L, 2);
+      /** 56x56 */ public static final @NotNull Icon START_DESTINATION = load("studio/icons/nav-editor/surface/start-destination.svg", -7694545907387064857L, 2);
     }
 
     public static final class Toolbar {
-      /** 16x16 */ public static final @NotNull Icon ACTION = load("/studio/icons/nav-editor/toolbar/action.svg", -8905670794680066959L, 2);
-      /** 16x16 */ public static final @NotNull Icon ADD_DESTINATION = load("/studio/icons/nav-editor/toolbar/add-destination.svg", 693971312509264003L, 2);
-      /** 16x16 */ public static final @NotNull Icon ASSIGN_START = load("/studio/icons/nav-editor/toolbar/assign-start.svg", 2511555673269733050L, 2);
-      /** 16x16 */ public static final @NotNull Icon AUTO_ARRANGE = load("/studio/icons/nav-editor/toolbar/auto-arrange.svg", -1740125312111053972L, 2);
-      /** 16x16 */ public static final @NotNull Icon DEEPLINK = load("/studio/icons/nav-editor/toolbar/deeplink.svg", 4554828892389597688L, 2);
-      /** 16x16 */ public static final @NotNull Icon NESTED_GRAPH = load("/studio/icons/nav-editor/toolbar/nested-graph.svg", -6154396111253415823L, 2);
+      /** 16x16 */ public static final @NotNull Icon ACTION = load("studio/icons/nav-editor/toolbar/action.svg", -8905670794680066959L, 2);
+      /** 16x16 */ public static final @NotNull Icon ADD_DESTINATION = load("studio/icons/nav-editor/toolbar/add-destination.svg", 693971312509264003L, 2);
+      /** 16x16 */ public static final @NotNull Icon ASSIGN_START = load("studio/icons/nav-editor/toolbar/assign-start.svg", 2511555673269733050L, 2);
+      /** 16x16 */ public static final @NotNull Icon AUTO_ARRANGE = load("studio/icons/nav-editor/toolbar/auto-arrange.svg", -1740125312111053972L, 2);
+      /** 16x16 */ public static final @NotNull Icon DEEPLINK = load("studio/icons/nav-editor/toolbar/deeplink.svg", 4554828892389597688L, 2);
+      /** 16x16 */ public static final @NotNull Icon NESTED_GRAPH = load("studio/icons/nav-editor/toolbar/nested-graph.svg", -6154396111253415823L, 2);
     }
 
     public static final class Tree {
-      /** 16x16 */ public static final @NotNull Icon ACTIVITY = load("/studio/icons/nav-editor/tree/activity.svg", -1725814066386288854L, 2);
-      /** 16x16 */ public static final @NotNull Icon FRAGMENT = load("/studio/icons/nav-editor/tree/fragment.svg", -8889621128329436147L, 2);
-      /** 16x16 */ public static final @NotNull Icon INCLUDE_GRAPH = load("/studio/icons/nav-editor/tree/include-graph.svg", -2429162155455394728L, 2);
-      /** 16x16 */ public static final @NotNull Icon NESTED_GRAPH = load("/studio/icons/nav-editor/tree/nested-graph.svg", -455359996827436713L, 2);
-      /** 16x16 */ public static final @NotNull Icon PLACEHOLDER = load("/studio/icons/nav-editor/tree/placeholder.svg", 1720166078892344253L, 2);
+      /** 16x16 */ public static final @NotNull Icon ACTIVITY = load("studio/icons/nav-editor/tree/activity.svg", -1725814066386288854L, 2);
+      /** 16x16 */ public static final @NotNull Icon FRAGMENT = load("studio/icons/nav-editor/tree/fragment.svg", -8889621128329436147L, 2);
+      /** 16x16 */ public static final @NotNull Icon INCLUDE_GRAPH = load("studio/icons/nav-editor/tree/include-graph.svg", -2429162155455394728L, 2);
+      /** 16x16 */ public static final @NotNull Icon NESTED_GRAPH = load("studio/icons/nav-editor/tree/nested-graph.svg", -455359996827436713L, 2);
+      /** 16x16 */ public static final @NotNull Icon PLACEHOLDER = load("studio/icons/nav-editor/tree/placeholder.svg", 1720166078892344253L, 2);
     }
   }
 
   public static final class Profiler {
     public static final class Events {
-      /** 22x22 */ public static final @NotNull Icon ALLOCATION_TRACKING_FULL = load("/studio/icons/profiler/events/allocation-tracking-full.svg", -7539703526207082721L, 2);
-      /** 22x22 */ public static final @NotNull Icon ALLOCATION_TRACKING_NONE = load("/studio/icons/profiler/events/allocation-tracking-none.svg", -9036993259759385056L, 2);
-      /** 22x22 */ public static final @NotNull Icon ALLOCATION_TRACKING_SAMPLED = load("/studio/icons/profiler/events/allocation-tracking-sampled.svg", -1085715403593925418L, 2);
-      /** 22x22 */ public static final @NotNull Icon BACK_BUTTON = load("/studio/icons/profiler/events/back-button.svg", 3112280027094274353L, 2);
-      /** 22x22 */ public static final @NotNull Icon GARBAGE_EVENT = load("/studio/icons/profiler/events/garbage-event.svg", -8310441577950544224L, 2);
-      /** 22x22 */ public static final @NotNull Icon GPS = load("/studio/icons/profiler/events/gps.svg", 391993986512011730L, 2);
-      /** 22x22 */ public static final @NotNull Icon KEYBOARD_EVENT = load("/studio/icons/profiler/events/keyboard-event.svg", -50813414595004354L, 2);
-      /** 22x22 */ public static final @NotNull Icon ROTATE_EVENT = load("/studio/icons/profiler/events/rotate-event.svg", 5756191706147256061L, 2);
-      /** 22x22 */ public static final @NotNull Icon VOLUME_DOWN = load("/studio/icons/profiler/events/volume-down.svg", 70650392454850731L, 2);
-      /** 22x22 */ public static final @NotNull Icon VOLUME_UP = load("/studio/icons/profiler/events/volume-up.svg", 3450304328795564814L, 2);
+      /** 22x22 */ public static final @NotNull Icon ALLOCATION_TRACKING_FULL = load("studio/icons/profiler/events/allocation-tracking-full.svg", -7539703526207082721L, 2);
+      /** 22x22 */ public static final @NotNull Icon ALLOCATION_TRACKING_NONE = load("studio/icons/profiler/events/allocation-tracking-none.svg", -9036993259759385056L, 2);
+      /** 22x22 */ public static final @NotNull Icon ALLOCATION_TRACKING_SAMPLED = load("studio/icons/profiler/events/allocation-tracking-sampled.svg", -1085715403593925418L, 2);
+      /** 22x22 */ public static final @NotNull Icon BACK_BUTTON = load("studio/icons/profiler/events/back-button.svg", 3112280027094274353L, 2);
+      /** 22x22 */ public static final @NotNull Icon GARBAGE_EVENT = load("studio/icons/profiler/events/garbage-event.svg", -8310441577950544224L, 2);
+      /** 22x22 */ public static final @NotNull Icon GPS = load("studio/icons/profiler/events/gps.svg", 391993986512011730L, 2);
+      /** 22x22 */ public static final @NotNull Icon KEYBOARD_EVENT = load("studio/icons/profiler/events/keyboard-event.svg", -50813414595004354L, 2);
+      /** 22x22 */ public static final @NotNull Icon ROTATE_EVENT = load("studio/icons/profiler/events/rotate-event.svg", 5756191706147256061L, 2);
+      /** 22x22 */ public static final @NotNull Icon VOLUME_DOWN = load("studio/icons/profiler/events/volume-down.svg", 70650392454850731L, 2);
+      /** 22x22 */ public static final @NotNull Icon VOLUME_UP = load("studio/icons/profiler/events/volume-up.svg", 3450304328795564814L, 2);
     }
 
     public static final class Files {
-      /** 16x16 */ public static final @NotNull Icon PROFILER_CAPTURE = load("/studio/icons/profiler/files/profiler-capture.png", 0L, 1);
+      /** 16x16 */ public static final @NotNull Icon PROFILER_CAPTURE = load("studio/icons/profiler/files/profiler-capture.png", 0L, 1);
     }
 
     public static final class Overlays {
-      /** 16x16 */ public static final @NotNull Icon ARRAY_STACK = load("/studio/icons/profiler/overlays/array-stack.svg", -2624166456579466855L, 0);
-      /** 16x16 */ public static final @NotNull Icon CLASS_STACK = load("/studio/icons/profiler/overlays/class-stack.svg", -7617593965268697776L, 0);
-      /** 16x16 */ public static final @NotNull Icon FIELD_STACK = load("/studio/icons/profiler/overlays/field-stack.svg", -4504649205650046197L, 0);
-      /** 16x16 */ public static final @NotNull Icon INTERFACE_STACK = load("/studio/icons/profiler/overlays/interface-stack.svg", 7902907405577251399L, 0);
-      /** 16x16 */ public static final @NotNull Icon METHOD_STACK = load("/studio/icons/profiler/overlays/method-stack.svg", 4883549742894697131L, 0);
-      /** 16x16 */ public static final @NotNull Icon PACKAGE_STACK = load("/studio/icons/profiler/overlays/package-stack.svg", 6312069166894373436L, 0);
-      /** 16x16 */ public static final @NotNull Icon THREAD_SUSPENDED_STACK = load("/studio/icons/profiler/overlays/thread-suspended-stack.svg", 3728281770061071649L, 0);
-      /** 20x20 */ public static final @NotNull Icon TRANSPARENT_TILE = load("/studio/icons/profiler/overlays/transparent-tile.svg", 5628672494685163841L, 0);
+      /** 16x16 */ public static final @NotNull Icon ARRAY_STACK = load("studio/icons/profiler/overlays/array-stack.svg", -2624166456579466855L, 0);
+      /** 16x16 */ public static final @NotNull Icon CLASS_STACK = load("studio/icons/profiler/overlays/class-stack.svg", -7617593965268697776L, 0);
+      /** 16x16 */ public static final @NotNull Icon FIELD_STACK = load("studio/icons/profiler/overlays/field-stack.svg", -4504649205650046197L, 0);
+      /** 16x16 */ public static final @NotNull Icon INTERFACE_STACK = load("studio/icons/profiler/overlays/interface-stack.svg", 7902907405577251399L, 0);
+      /** 16x16 */ public static final @NotNull Icon METHOD_STACK = load("studio/icons/profiler/overlays/method-stack.svg", 4883549742894697131L, 0);
+      /** 16x16 */ public static final @NotNull Icon PACKAGE_STACK = load("studio/icons/profiler/overlays/package-stack.svg", 6312069166894373436L, 0);
+      /** 16x16 */ public static final @NotNull Icon THREAD_SUSPENDED_STACK = load("studio/icons/profiler/overlays/thread-suspended-stack.svg", 3728281770061071649L, 0);
+      /** 20x20 */ public static final @NotNull Icon TRANSPARENT_TILE = load("studio/icons/profiler/overlays/transparent-tile.svg", 5628672494685163841L, 0);
     }
 
     public static final class Sessions {
-      /** 16x16 */ public static final @NotNull Icon ALLOCATIONS = load("/studio/icons/profiler/sessions/allocations.svg", -7502527280733067856L, 2);
-      /** 16x16 */ public static final @NotNull Icon BOOKMARK = load("/studio/icons/profiler/sessions/bookmark.svg", -409545614505742791L, 2);
-      /** 16x16 */ public static final @NotNull Icon CPU = load("/studio/icons/profiler/sessions/cpu.svg", 504809494470731488L, 2);
-      /** 16x16 */ public static final @NotNull Icon HEAP = load("/studio/icons/profiler/sessions/heap.svg", -8085296329329630326L, 2);
-      /** 16x16 */ public static final @NotNull Icon SAVE = load("/studio/icons/profiler/sessions/save.svg", -4027118038203442191L, 2);
+      /** 16x16 */ public static final @NotNull Icon ALLOCATIONS = load("studio/icons/profiler/sessions/allocations.svg", -7502527280733067856L, 2);
+      /** 16x16 */ public static final @NotNull Icon BOOKMARK = load("studio/icons/profiler/sessions/bookmark.svg", -409545614505742791L, 2);
+      /** 16x16 */ public static final @NotNull Icon CPU = load("studio/icons/profiler/sessions/cpu.svg", 504809494470731488L, 2);
+      /** 16x16 */ public static final @NotNull Icon HEAP = load("studio/icons/profiler/sessions/heap.svg", -8085296329329630326L, 2);
+      /** 16x16 */ public static final @NotNull Icon SAVE = load("studio/icons/profiler/sessions/save.svg", -4027118038203442191L, 2);
     }
 
     public static final class Sidebar {
-      /** 44x44 */ public static final @NotNull Icon FILE = load("/studio/icons/profiler/sidebar/file.svg", 420396439766621853L, 2);
-      /** 44x44 */ public static final @NotNull Icon ISSUE = load("/studio/icons/profiler/sidebar/issue.svg", -89703417210320745L, 2);
+      /** 44x44 */ public static final @NotNull Icon FILE = load("studio/icons/profiler/sidebar/file.svg", 420396439766621853L, 2);
+      /** 44x44 */ public static final @NotNull Icon ISSUE = load("studio/icons/profiler/sidebar/issue.svg", -89703417210320745L, 2);
     }
 
     public static final class Toolbar {
-      /** 16x16 */ public static final @NotNull Icon CAPTURE_CLOCK = load("/studio/icons/profiler/toolbar/capture-clock.svg", 3441683744563454289L, 0);
-      /** 16x16 */ public static final @NotNull Icon CLOCK = load("/studio/icons/profiler/toolbar/clock.svg", -6968489103953582155L, 2);
-      /** 16x16 */ public static final @NotNull Icon COLLAPSE_SESSION = load("/studio/icons/profiler/toolbar/collapse-session.svg", -3997554684561302916L, 2);
-      /** 16x16 */ public static final @NotNull Icon EXPAND_SESSION = load("/studio/icons/profiler/toolbar/expand-session.svg", -8644598481268380018L, 2);
-      /** 16x16 */ public static final @NotNull Icon FORCE_GARBAGE_COLLECTION = load("/studio/icons/profiler/toolbar/force-garbage-collection.svg", 6133963305628546453L, 2);
-      /** 16x16 */ public static final @NotNull Icon GOTO_LIVE = load("/studio/icons/profiler/toolbar/goto-live.svg", 8227221903814917863L, 2);
-      /** 16x16 */ public static final @NotNull Icon HEAP_DUMP = load("/studio/icons/profiler/toolbar/heap-dump.svg", -7956148510422841176L, 2);
-      /** 16x16 */ public static final @NotNull Icon PAUSE_LIVE = load("/studio/icons/profiler/toolbar/pause-live.svg", -5451017705187036457L, 2);
-      /** 16x16 */ public static final @NotNull Icon RECORD = load("/studio/icons/profiler/toolbar/record.svg", 2197265987768799328L, 2);
-      /** 16x16 */ public static final @NotNull Icon STOP_RECORDING = load("/studio/icons/profiler/toolbar/stop-recording.svg", 4257595885381349255L, 2);
-      /** 16x16 */ public static final @NotNull Icon STOP_SESSION = load("/studio/icons/profiler/toolbar/stop-session.svg", -1439702489817924309L, 2);
+      /** 16x16 */ public static final @NotNull Icon CAPTURE_CLOCK = load("studio/icons/profiler/toolbar/capture-clock.svg", 3441683744563454289L, 0);
+      /** 16x16 */ public static final @NotNull Icon CLOCK = load("studio/icons/profiler/toolbar/clock.svg", -6968489103953582155L, 2);
+      /** 16x16 */ public static final @NotNull Icon COLLAPSE_SESSION = load("studio/icons/profiler/toolbar/collapse-session.svg", -3997554684561302916L, 2);
+      /** 16x16 */ public static final @NotNull Icon EXPAND_SESSION = load("studio/icons/profiler/toolbar/expand-session.svg", -8644598481268380018L, 2);
+      /** 16x16 */ public static final @NotNull Icon FORCE_GARBAGE_COLLECTION = load("studio/icons/profiler/toolbar/force-garbage-collection.svg", 6133963305628546453L, 2);
+      /** 16x16 */ public static final @NotNull Icon GOTO_LIVE = load("studio/icons/profiler/toolbar/goto-live.svg", 8227221903814917863L, 2);
+      /** 16x16 */ public static final @NotNull Icon HEAP_DUMP = load("studio/icons/profiler/toolbar/heap-dump.svg", -7956148510422841176L, 2);
+      /** 16x16 */ public static final @NotNull Icon PAUSE_LIVE = load("studio/icons/profiler/toolbar/pause-live.svg", -5451017705187036457L, 2);
+      /** 16x16 */ public static final @NotNull Icon RECORD = load("studio/icons/profiler/toolbar/record.svg", 2197265987768799328L, 2);
+      /** 16x16 */ public static final @NotNull Icon STOP_RECORDING = load("studio/icons/profiler/toolbar/stop-recording.svg", 4257595885381349255L, 2);
+      /** 16x16 */ public static final @NotNull Icon STOP_SESSION = load("studio/icons/profiler/toolbar/stop-session.svg", -1439702489817924309L, 2);
     }
   }
 
   public static final class ResourcePicker {
-    /** 16x16 */ public static final @NotNull Icon WEB_FONT = load("/studio/icons/resource-picker/web-font.svg", 7054039795166324247L, 2);
+    /** 16x16 */ public static final @NotNull Icon WEB_FONT = load("studio/icons/resource-picker/web-font.svg", 7054039795166324247L, 2);
   }
 
   public static final class Shell {
@@ -656,11 +656,11 @@ public final class StudioIcons {
     }
 
     public static final class Menu {
-      /** 16x16 */ public static final @NotNull Icon ANDROID_PREVIEW = load("/studio/icons/shell/menu/android-preview.svg", 2893708398343195662L, 2);
-      /** 16x16 */ public static final @NotNull Icon AVD_MANAGER = load("/studio/icons/shell/menu/avd-manager.svg", 1788321619504684044L, 2);
-      /** 16x16 */ public static final @NotNull Icon LAYOUT_INSPECTOR = load("/studio/icons/shell/menu/layout-inspector.svg", 1189077149919135642L, 2);
-      /** 16x16 */ public static final @NotNull Icon PROFILER = load("/studio/icons/shell/menu/profiler.svg", 4551157701195856815L, 2);
-      /** 16x16 */ public static final @NotNull Icon THEME_EDITOR = load("/studio/icons/shell/menu/theme-editor.svg", 8337911850572134079L, 2);
+      /** 16x16 */ public static final @NotNull Icon ANDROID_PREVIEW = load("studio/icons/shell/menu/android-preview.svg", 2893708398343195662L, 2);
+      /** 16x16 */ public static final @NotNull Icon AVD_MANAGER = load("studio/icons/shell/menu/avd-manager.svg", 1788321619504684044L, 2);
+      /** 16x16 */ public static final @NotNull Icon LAYOUT_INSPECTOR = load("studio/icons/shell/menu/layout-inspector.svg", 1189077149919135642L, 2);
+      /** 16x16 */ public static final @NotNull Icon PROFILER = load("studio/icons/shell/menu/profiler.svg", 4551157701195856815L, 2);
+      /** 16x16 */ public static final @NotNull Icon THEME_EDITOR = load("studio/icons/shell/menu/theme-editor.svg", 8337911850572134079L, 2);
     }
 
     public static final class StatusBar {
@@ -672,13 +672,13 @@ public final class StudioIcons {
     }
 
     public static final class Telemetry {
-      /** 24x24 */ public static final @NotNull Icon SENTIMENT_DISSATISFIED = load("/studio/icons/shell/telemetry/sentiment-dissatisfied.svg", -5297832406993908541L, 2);
-      /** 16x16 */ public static final @NotNull Icon SENTIMENT_NEGATIVE = load("/studio/icons/shell/telemetry/sentiment-negative.svg", -3822177325498744831L, 2);
-      /** 24x24 */ public static final @NotNull Icon SENTIMENT_NEUTRAL = load("/studio/icons/shell/telemetry/sentiment-neutral.svg", -3765483347954226907L, 2);
-      /** 16x16 */ public static final @NotNull Icon SENTIMENT_POSITIVE = load("/studio/icons/shell/telemetry/sentiment-positive.svg", 5225040686475033453L, 2);
-      /** 24x24 */ public static final @NotNull Icon SENTIMENT_SATISFIED = load("/studio/icons/shell/telemetry/sentiment-satisfied.svg", 2453948797583984713L, 2);
-      /** 24x24 */ public static final @NotNull Icon SENTIMENT_VERY_DISSATISFIED = load("/studio/icons/shell/telemetry/sentiment-very-dissatisfied.svg", -385308350251314210L, 2);
-      /** 24x24 */ public static final @NotNull Icon SENTIMENT_VERY_SATISFIED = load("/studio/icons/shell/telemetry/sentiment-very-satisfied.svg", 3212818039666602201L, 2);
+      /** 24x24 */ public static final @NotNull Icon SENTIMENT_DISSATISFIED = load("studio/icons/shell/telemetry/sentiment-dissatisfied.svg", -5297832406993908541L, 2);
+      /** 16x16 */ public static final @NotNull Icon SENTIMENT_NEGATIVE = load("studio/icons/shell/telemetry/sentiment-negative.svg", -3822177325498744831L, 2);
+      /** 24x24 */ public static final @NotNull Icon SENTIMENT_NEUTRAL = load("studio/icons/shell/telemetry/sentiment-neutral.svg", -3765483347954226907L, 2);
+      /** 16x16 */ public static final @NotNull Icon SENTIMENT_POSITIVE = load("studio/icons/shell/telemetry/sentiment-positive.svg", 5225040686475033453L, 2);
+      /** 24x24 */ public static final @NotNull Icon SENTIMENT_SATISFIED = load("studio/icons/shell/telemetry/sentiment-satisfied.svg", 2453948797583984713L, 2);
+      /** 24x24 */ public static final @NotNull Icon SENTIMENT_VERY_DISSATISFIED = load("studio/icons/shell/telemetry/sentiment-very-dissatisfied.svg", -385308350251314210L, 2);
+      /** 24x24 */ public static final @NotNull Icon SENTIMENT_VERY_SATISFIED = load("studio/icons/shell/telemetry/sentiment-very-satisfied.svg", 3212818039666602201L, 2);
     }
 
     public static final class ToolWindows {
@@ -716,27 +716,27 @@ public final class StudioIcons {
     }
 
     public static final class Toolbar {
-      /** 16x16 */ public static final @NotNull Icon APPLY_ALL_CHANGES = load("/studio/icons/shell/toolbar/apply-all-changes.svg", -5870806389439344281L, 2);
-      /** 16x16 */ public static final @NotNull Icon APPLY_CODE_SWAP = load("/studio/icons/shell/toolbar/apply-code-swap.svg", -5993307414820741969L, 2);
-      /** 16x16 */ public static final @NotNull Icon ATTACH_DEBUGGER = load("/studio/icons/shell/toolbar/attach-debugger.svg", -7247215501019191967L, 2);
-      /** 16x16 */ public static final @NotNull Icon BUILD = load("/studio/icons/shell/toolbar/build.svg", -7988951020995812589L, 2);
-      /** 16x16 */ public static final @NotNull Icon DEBUG = load("/studio/icons/shell/toolbar/debug.svg", 3795714837180522076L, 2);
-      /** 16x16 */ public static final @NotNull Icon DEVICE_MANAGER = load("/studio/icons/shell/toolbar/device-manager.svg", -9153566041703739763L, 2);
-      /** 16x16 */ public static final @NotNull Icon GRADLE_SYNC = load("/studio/icons/shell/toolbar/gradle-sync.svg", 4195698423798966675L, 2);
-      /** 16x16 */ public static final @NotNull Icon INSTANT_RUN = load("/studio/icons/shell/toolbar/instant-run.svg", -7128428532509879697L, 2);
-      /** 16x16 */ public static final @NotNull Icon PROFILER = load("/studio/icons/shell/toolbar/profiler.svg", -3533137939583288778L, 2);
-      /** 16x16 */ public static final @NotNull Icon PROJECT_STRUCTURE = load("/studio/icons/shell/toolbar/project-structure.svg", 2035313859943448482L, 2);
-      /** 16x16 */ public static final @NotNull Icon RUN_WITH_COVERAGE = load("/studio/icons/shell/toolbar/run-with-coverage.svg", -70217462564568903L, 2);
-      /** 16x16 */ public static final @NotNull Icon RUN = load("/studio/icons/shell/toolbar/run.svg", 315030659650671846L, 2);
-      /** 16x16 */ public static final @NotNull Icon SDK_MANAGER = load("/studio/icons/shell/toolbar/sdk-manager.svg", -672387422563045584L, 2);
-      /** 16x16 */ public static final @NotNull Icon SEARCH = load("/studio/icons/shell/toolbar/search.svg", -7883409931600775129L, 2);
-      /** 16x16 */ public static final @NotNull Icon STOP = load("/studio/icons/shell/toolbar/stop.svg", -216498989436263185L, 2);
-      /** 16x16 */ public static final @NotNull Icon USER_PROFILE_ACTIVE = load("/studio/icons/shell/toolbar/user-profile-active.svg", 105514235442856842L, 2);
-      /** 16x16 */ public static final @NotNull Icon USER_PROFILE = load("/studio/icons/shell/toolbar/user-profile.svg", 8757161221281122299L, 2);
+      /** 16x16 */ public static final @NotNull Icon APPLY_ALL_CHANGES = load("studio/icons/shell/toolbar/apply-all-changes.svg", -5870806389439344281L, 2);
+      /** 16x16 */ public static final @NotNull Icon APPLY_CODE_SWAP = load("studio/icons/shell/toolbar/apply-code-swap.svg", -5993307414820741969L, 2);
+      /** 16x16 */ public static final @NotNull Icon ATTACH_DEBUGGER = load("studio/icons/shell/toolbar/attach-debugger.svg", -7247215501019191967L, 2);
+      /** 16x16 */ public static final @NotNull Icon BUILD = load("studio/icons/shell/toolbar/build.svg", -7988951020995812589L, 2);
+      /** 16x16 */ public static final @NotNull Icon DEBUG = load("studio/icons/shell/toolbar/debug.svg", 3795714837180522076L, 2);
+      /** 16x16 */ public static final @NotNull Icon DEVICE_MANAGER = load("studio/icons/shell/toolbar/device-manager.svg", -9153566041703739763L, 2);
+      /** 16x16 */ public static final @NotNull Icon GRADLE_SYNC = load("studio/icons/shell/toolbar/gradle-sync.svg", 4195698423798966675L, 2);
+      /** 16x16 */ public static final @NotNull Icon INSTANT_RUN = load("studio/icons/shell/toolbar/instant-run.svg", -7128428532509879697L, 2);
+      /** 16x16 */ public static final @NotNull Icon PROFILER = load("studio/icons/shell/toolbar/profiler.svg", -3533137939583288778L, 2);
+      /** 16x16 */ public static final @NotNull Icon PROJECT_STRUCTURE = load("studio/icons/shell/toolbar/project-structure.svg", 2035313859943448482L, 2);
+      /** 16x16 */ public static final @NotNull Icon RUN_WITH_COVERAGE = load("studio/icons/shell/toolbar/run-with-coverage.svg", -70217462564568903L, 2);
+      /** 16x16 */ public static final @NotNull Icon RUN = load("studio/icons/shell/toolbar/run.svg", 315030659650671846L, 2);
+      /** 16x16 */ public static final @NotNull Icon SDK_MANAGER = load("studio/icons/shell/toolbar/sdk-manager.svg", -672387422563045584L, 2);
+      /** 16x16 */ public static final @NotNull Icon SEARCH = load("studio/icons/shell/toolbar/search.svg", -7883409931600775129L, 2);
+      /** 16x16 */ public static final @NotNull Icon STOP = load("studio/icons/shell/toolbar/stop.svg", -216498989436263185L, 2);
+      /** 16x16 */ public static final @NotNull Icon USER_PROFILE_ACTIVE = load("studio/icons/shell/toolbar/user-profile-active.svg", 105514235442856842L, 2);
+      /** 16x16 */ public static final @NotNull Icon USER_PROFILE = load("studio/icons/shell/toolbar/user-profile.svg", 8757161221281122299L, 2);
     }
   }
 
   public static final class Test {
-    /** 16x16 */ public static final @NotNull Icon RECORD_ESPRESSO_TEST = load("/studio/icons/test/record-espresso-test.svg", -5735679820649522903L, 2);
+    /** 16x16 */ public static final @NotNull Icon RECORD_ESPRESSO_TEST = load("studio/icons/test/record-espresso-test.svg", -5735679820649522903L, 2);
   }
 }

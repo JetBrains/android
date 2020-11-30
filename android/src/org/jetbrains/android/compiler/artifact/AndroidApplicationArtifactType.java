@@ -16,14 +16,13 @@ import com.intellij.packaging.elements.PackagingElementOutputKind;
 import com.intellij.packaging.elements.PackagingElementResolvingContext;
 import com.intellij.packaging.impl.artifacts.ArtifactUtil;
 import com.intellij.packaging.ui.PackagingSourceItem;
-import com.intellij.util.containers.ContainerUtil;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import javax.swing.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import javax.swing.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class AndroidApplicationArtifactType extends ArtifactType {
   public AndroidApplicationArtifactType() {
@@ -74,7 +73,7 @@ public class AndroidApplicationArtifactType extends ArtifactType {
   }
 
   public static ArtifactType getInstance() {
-    return ContainerUtil.findInstance(getAllTypes(), AndroidApplicationArtifactType.class);
+    return EP_NAME.findExtension(AndroidApplicationArtifactType.class);
   }
 
   private class MyTemplate extends ArtifactTemplate {

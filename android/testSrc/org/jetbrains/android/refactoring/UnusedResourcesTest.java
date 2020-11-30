@@ -57,15 +57,15 @@ public class UnusedResourcesTest extends AndroidTestCase {
                                                                       null);
 
     assertThat(myFixture.getUsageViewTreeTextRepresentation(Arrays.asList(processor.findUsages())))
-      .isEqualTo("Usage (2 usages)\n" +
-                 " Found usages (2 usages)\n" +
-                 "  Android resource file (2 usages)\n" +
-                 "   app (2 usages)\n" +
-                 "    res" + File.separatorChar +  "drawable-hdpi (1 usage)\n" +
-                 "     ic_action_custom.png (1 usage)\n" +
+      .isEqualTo("<root> (2)\n" +
+                 " Found usages (2)\n" +
+                 "  Android resource file (2)\n" +
+                 "   app (2)\n" +
+                 "    res" + File.separatorChar +  "drawable-hdpi (1)\n" +
+                 "     ic_action_custom.png (1)\n" +
                  "      Android resource file drawable-hdpi/ic_action_custom.png\n" +
-                 "    res" + File.separatorChar +  "raw (1 usage)\n" +
-                 "     foo.bin (1 usage)\n" +
+                 "    res" + File.separatorChar +  "raw (1)\n" +
+                 "     foo.bin (1)\n" +
                  "      Android resource file raw/foo.bin\n");
   }
 }
