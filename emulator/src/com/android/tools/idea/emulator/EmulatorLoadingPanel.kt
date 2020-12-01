@@ -70,7 +70,6 @@ class EmulatorLoadingPanel(
   ) : LoadingDecorator(panel, parentDisposable, startDelayMs, false, AsyncProcessIcon.Big("Loading")) {
 
     override fun customizeLoadingLayer(parent: JPanel, text: JLabel, icon: AsyncProcessIcon): NonOpaquePanel {
-      customizeStatusText(text)
       val roundedPanel = RoundedPanel(FlowLayout(FlowLayout.CENTER, JLabel().iconTextGap * 3, 0), 8).apply {
         border = JBEmptyBorder(8)
         background = primaryPanelBackground
