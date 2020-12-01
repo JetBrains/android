@@ -190,7 +190,7 @@ fun performRecommendedPluginUpgrade(
   return false
 }
 
-// TODO(xof): this is too weak; it doesn't catch modifications to:
+// TODO(b/174543899): this is too weak; it doesn't catch modifications to:
 //  - the root project's build.gradle[.kts]
 //  - gradle-wrapper.properties
 //  - gradle properties files
