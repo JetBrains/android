@@ -15,10 +15,10 @@
  */
 package com.android.tools.adtui.model.formatter;
 
-import gnu.trove.TIntArrayList;
-import org.jetbrains.annotations.NotNull;
-
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import java.text.DecimalFormat;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * An auxiliary object that formats the axis by determining the marker placement positions and their
@@ -107,7 +107,7 @@ public abstract class BaseAxisFormatter {
     int index = getMultiplierIndex(range, mSwitchThreshold);
     int base = getUnitBase(index);
     int minInterval = getUnitMinimalInterval(index);
-    TIntArrayList factors = getUnitBaseFactors(index);
+    IntList factors = getUnitBaseFactors(index);
     return getInterval(range / mMultiplier, numTicks, base, minInterval, factors)
            * mMultiplier;
   }
@@ -149,7 +149,7 @@ public abstract class BaseAxisFormatter {
    * @throws IndexOutOfBoundsException If index is out of the expected range.
    */
   @NotNull
-  protected abstract TIntArrayList getUnitBaseFactors(int index);
+  protected abstract IntList getUnitBaseFactors(int index);
 
   /**
    * @return Given a value, returns the index of the unit that should be used.
@@ -180,7 +180,7 @@ public abstract class BaseAxisFormatter {
    *                    AxisComponent.
    */
   protected static int getInterval(double range, int maxTicks, int base,
-                                   int minInterval, TIntArrayList baseFactors) {
+                                   int minInterval, IntList baseFactors) {
     // Find the target interval based on the max num ticks we can render within the range.
     double interval = Math.max(minInterval, range / maxTicks);
 
@@ -197,8 +197,8 @@ public abstract class BaseAxisFormatter {
     // that way we always get integral intervals.
     if (multiplier > 1) {
       for (int i = 1; i < baseFactors.size(); i++) {
-        if (multiplier > baseFactors.get(i)) {
-          multiplier = baseFactors.get(i - 1);
+        if (multiplier > baseFactors.getInt(i)) {
+          multiplier = baseFactors.getInt(i - 1);
           break;
         }
       }
@@ -215,8 +215,8 @@ public abstract class BaseAxisFormatter {
    * e.g. for a base of 60, the result would be {60, 30, 15, 5, 1}
    */
   @NotNull
-  protected static TIntArrayList getMultiplierFactors(int base) {
-    TIntArrayList factors = new TIntArrayList();
+  protected static IntList getMultiplierFactors(int base) {
+    IntList factors = new IntArrayList();
     while (base > 1) {
       // Find the smallest factor that can divide base.
       int divider = 2;

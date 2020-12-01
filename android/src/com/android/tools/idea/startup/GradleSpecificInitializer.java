@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.startup;
 
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.intellij.openapi.actionSystem.Anchor.AFTER;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.DEFAULT_JDK_NAME;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
@@ -31,6 +30,7 @@ import com.android.tools.idea.actions.AndroidNewProjectAction;
 import com.android.tools.idea.actions.AndroidOpenFileAction;
 import com.android.tools.idea.actions.CreateLibraryFromFilesAction;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
+import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
@@ -264,7 +264,7 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
     if (sdk != null) {
       String sdkHomePath = sdk.getHomePath();
       assert sdkHomePath != null;
-      ideSdks.createAndroidSdkPerAndroidTarget(toSystemDependentPath(sdkHomePath));
+      ideSdks.createAndroidSdkPerAndroidTarget(FilePaths.stringToFile(sdkHomePath));
       return;
     }
 

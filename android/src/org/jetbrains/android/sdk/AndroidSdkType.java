@@ -1,7 +1,6 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.sdk;
 
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
@@ -9,6 +8,7 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.getTargetPresentableName
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
@@ -82,7 +82,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
     if (isEmpty(path)) {
       return false;
     }
-    File sdkPath = toSystemDependentPath(path);
+    File sdkPath = FilePaths.stringToFile(path);
     return validateAndroidSdk(sdkPath, false).success;
   }
 

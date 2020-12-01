@@ -17,7 +17,6 @@
 package com.android.tools.idea.concurrency
 
 import com.google.common.base.Function
-import com.google.common.util.concurrent.*
 import com.google.common.util.concurrent.AsyncFunction
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
@@ -26,21 +25,27 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.ListenableFutureTask
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
+import com.google.common.util.concurrent.SettableFuture
 import com.intellij.ide.IdeEventQueue
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.util.AtomicNotNullLazyValue
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.Alarm
 import com.intellij.util.Alarm.ThreadToUse
-import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.IncorrectOperationException
-import org.jetbrains.ide.PooledThreadExecutor
+import com.intellij.util.concurrency.AppExecutorUtil
 import java.awt.EventQueue.isDispatchThread
 import java.awt.Toolkit
-import java.util.concurrent.*
+import java.util.concurrent.Callable
+import java.util.concurrent.CancellationException
+import java.util.concurrent.CompletionStage
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.Executor
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 /**
  * Wrapper function to apply transform function to ListenableFuture after it get done
@@ -118,19 +123,19 @@ fun <T> readOnPooledThread(function: () -> T): ListenableFuture<T> {
   return MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService()).submit<T> { ReadAction.compute<T, Throwable>(function) }
 }
 
-private object MyAlarm : AtomicNotNullLazyValue<Alarm>() {
-  override fun compute() = Alarm(ThreadToUse.POOLED_THREAD, ApplicationManager.getApplication())
+private val MyAlarm by lazy {
+  Alarm(ThreadToUse.POOLED_THREAD, ApplicationManager.getApplication())
 }
 
 fun <V> delayedValue(value: V, delayMillis: Int): ListenableFuture<V> {
   val result = SettableFuture.create<V>()
-  MyAlarm.value.addRequest({ result.set(value) }, delayMillis)
+  MyAlarm.addRequest({ result.set(value) }, delayMillis)
   return result
 }
 
 fun <V> delayedOperation(callable: Callable<V>, delayMillis: Int): ListenableFuture<V> {
   val result = SettableFuture.create<V>()
-  MyAlarm.value.addRequest(
+  MyAlarm.addRequest(
     Runnable {
       try {
         result.set(callable.call())
@@ -146,7 +151,7 @@ fun <V> delayedOperation(callable: Callable<V>, delayMillis: Int): ListenableFut
 
 fun <V> delayedError(t: Throwable, delayMillis: Int): ListenableFuture<V> {
   val result = SettableFuture.create<V>()
-  MyAlarm.value.addRequest({ result.setException(t) }, delayMillis)
+  MyAlarm.addRequest({ result.setException(t) }, delayMillis)
   return result
 }
 

@@ -51,7 +51,7 @@ import java.util.jar.Manifest
  */
 object GuiTestLauncher {
 
-  private val LOG = Logger.getInstance("#com.intellij.testGuiFramework.launcher.GuiTestLauncher")
+  private val LOG = Logger.getInstance(GuiTestLauncher::class.java)
 
   var process: Process? = null
   private var vmOptionsFile: File? = null

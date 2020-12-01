@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.apk.debugging;
 
+import com.android.tools.idea.io.FilePaths;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * User-selected .so file that contains debug symbols.
@@ -38,7 +36,7 @@ public class DebuggableSharedObjectFile {
   }
 
   public DebuggableSharedObjectFile(@NotNull VirtualFile file) {
-    File filePath = toSystemDependentPath(file.getPath());
+    File filePath = FilePaths.stringToFile(file.getPath());
     path = filePath.getPath();
   }
 

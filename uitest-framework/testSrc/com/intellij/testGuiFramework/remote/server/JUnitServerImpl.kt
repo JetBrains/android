@@ -50,7 +50,7 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
   private val RECEIVE_THREAD = "JUnit Server Receive Thread"
   private val postingMessages: BlockingQueue<MessageFromServer> = LinkedBlockingQueue()
   private val receivingMessages: BlockingQueue<MessageFromClient> = LinkedBlockingQueue()
-  private val LOG = Logger.getInstance("#com.intellij.testGuiFramework.remote.server.JUnitServerImpl")
+  private val LOG = Logger.getInstance(JUnitServerImpl::class.java)
 
   private val serverSocket = ServerSocket(0, 50, InetAddress.getLoopbackAddress())
   lateinit private var serverSendThread: ServerSendThread

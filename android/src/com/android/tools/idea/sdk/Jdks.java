@@ -38,7 +38,8 @@ import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.SystemProperties;
-import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.ApiStatus;
@@ -84,8 +85,8 @@ public final class Jdks {
   }
 
   @Nullable
-  public JavaSdkVersion findVersion(@NotNull File jdkRoot) {
-    return getVersion(jdkRoot.getPath());
+  public JavaSdkVersion findVersion(@NotNull Path jdkRoot) {
+    return getVersion(jdkRoot.toString());
   }
 
   @Nullable
@@ -109,11 +110,11 @@ public final class Jdks {
   @Nullable
   public Sdk createEmbeddedJdk() {
     if (myIdeInfo.isAndroidStudio()) {
-      File path = EmbeddedDistributionPaths.getInstance().tryToGetEmbeddedJdkPath();
+      Path path = EmbeddedDistributionPaths.getInstance().tryToGetEmbeddedJdkPath();
       if (path == null) {
         return null;
       }
-      Sdk jdk = createJdk(path.getPath());
+      Sdk jdk = createJdk(path.toString());
       assert jdk != null;
       return jdk;
     }

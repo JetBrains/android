@@ -159,17 +159,13 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
       @Override
       protected NonOpaquePanel customizeLoadingLayer(JPanel parent, JLabel text, AsyncProcessIcon icon) {
         final NonOpaquePanel panel = super.customizeLoadingLayer(parent, text, icon);
-        Font font = text.getFont();
-        text.setFont(font.deriveFont(font.getStyle(), font.getSize() + 6));
-        //noinspection UseJBColor
-        text.setForeground(ColorUtil.toAlpha(Color.BLACK, 100));
         panel.setOpaque(true);
         return panel;
       }
     });
     myLoadingPanel.add(myOutputPreviewPanel);
     myOutputPreviewScrollPane.getViewport().setView(myLoadingPanel);
-    myLoadingPanel.setLoadingText("Rendering preview images");
+    myLoadingPanel.setLoadingText("Rendering preview images...");
     myLoadingPanel.startLoading();
 
     myDefaultPaths = defaultPaths;

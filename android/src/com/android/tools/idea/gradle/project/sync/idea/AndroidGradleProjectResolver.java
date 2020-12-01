@@ -38,7 +38,6 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI;
 import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS;
 import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.getModuleIdForModule;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.utils.BuildScriptUtil.findGradleSettingsFile;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS;
@@ -96,6 +95,7 @@ import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.GradlePluginUpgrade;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -294,7 +294,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
                                                @NotNull IdeaModule gradleModule,
                                                @Nullable AndroidProject androidProject) {
     String moduleName = moduleNode.getData().getInternalName();
-    File rootModulePath = toSystemDependentPath(moduleNode.getData().getLinkedExternalProjectPath());
+    File rootModulePath = FilePaths.stringToFile(moduleNode.getData().getLinkedExternalProjectPath());
 
     VariantGroup variantGroup = resolverCtx.getExtraProject(gradleModule, VariantGroup.class);
     // The ProjectSyncIssues model was introduced in the Android Gradle plugin 3.6, it contains all the
@@ -875,7 +875,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @NotNull
   private LocalProperties getLocalProperties() {
-    File projectDir = toSystemDependentPath(resolverCtx.getProjectPath());
+    File projectDir = FilePaths.stringToFile(resolverCtx.getProjectPath());
     try {
       return new LocalProperties(projectDir);
     }

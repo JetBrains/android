@@ -66,6 +66,7 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -186,10 +187,10 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     assert location != null;
 
     myState.put(WizardConstants.KEY_SDK_INSTALL_LOCATION, location.getAbsolutePath());
-    File file = EmbeddedDistributionPaths.getInstance().tryToGetEmbeddedJdkPath();
+    Path file = EmbeddedDistributionPaths.getInstance().tryToGetEmbeddedJdkPath();
     if (file != null) {
       // There is no embedded JDK in IDEA
-      myState.put(WizardConstants.KEY_JDK_LOCATION, file.getPath());
+      myState.put(WizardConstants.KEY_JDK_LOCATION, file.toString());
     }
 
     myComponentTree = createComponentTree(myMode, !isChromeOSAndIsNotHWAccelerated() && myMode.shouldCreateAvd());

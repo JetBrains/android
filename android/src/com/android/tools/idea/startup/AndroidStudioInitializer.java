@@ -27,6 +27,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.run.deployment.ModifyDeviceSetAction;
 import com.android.tools.idea.run.deployment.MultipleDevicesAction;
 import com.android.tools.idea.run.deployment.RunOnMultipleDevicesAction;
@@ -177,7 +178,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
       getLog().info("Unable to find Studio home directory");
       return;
     }
-    File studioHomePath = toSystemDependentPath(studioHome);
+    File studioHomePath = FilePaths.stringToFile(studioHome);
     if (!studioHomePath.isDirectory()) {
       getLog().info(String.format("The path '%1$s' does not belong to an existing directory", studioHomePath.getPath()));
       return;

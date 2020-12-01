@@ -31,7 +31,8 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
-import java.io.File;
+import java.nio.file.Paths;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link JdkImportCheck#validateJdk()}.
@@ -82,7 +83,7 @@ public class JdkImportCheckTest extends AndroidGradleTestCase {
     when(myMockIdeSdks.getJdk()).thenReturn(jdk);
     when(jdk.getHomePath()).thenReturn(pathToJdk10);
     when(myMockIdeSdks.getRunningVersionOrDefault()).thenReturn(JavaSdkVersion.JDK_1_8);
-    when(myMockJdks.findVersion(new File(pathToJdk10))).thenReturn(JavaSdkVersion.JDK_10);
+    when(myMockJdks.findVersion(Paths.get(pathToJdk10))).thenReturn(JavaSdkVersion.JDK_10);
 
     assertThat(runValidateJdkAndGetMessage()).startsWith(
       "The version of selected Jdk doesn't match the Jdk used by Studio. Please choose a valid Jdk 8 directory.\n" +
@@ -98,7 +99,7 @@ public class JdkImportCheckTest extends AndroidGradleTestCase {
     when(myMockIdeSdks.getJdk()).thenReturn(jdk);
     when(jdk.getHomePath()).thenReturn(pathToJdk10);
     when(myMockIdeSdks.getRunningVersionOrDefault()).thenReturn(JavaSdkVersion.JDK_1_8);
-    when(myMockJdks.findVersion(new File(pathToJdk10))).thenReturn(JavaSdkVersion.JDK_10);
+    when(myMockJdks.findVersion(Paths.get(pathToJdk10))).thenReturn(JavaSdkVersion.JDK_10);
 
     assertThat(runValidateJdkAndGetMessage()).startsWith(
       "The Jdk installation is invalid.\n" +
@@ -113,7 +114,7 @@ public class JdkImportCheckTest extends AndroidGradleTestCase {
     when(myMockIdeSdks.getJdk()).thenReturn(jdk);
     when(jdk.getHomePath()).thenReturn(pathToJdk8);
     when(myMockIdeSdks.getRunningVersionOrDefault()).thenReturn(JavaSdkVersion.JDK_1_8);
-    when(myMockJdks.findVersion(new File(pathToJdk8))).thenReturn(JavaSdkVersion.JDK_1_8);
+    when(myMockJdks.findVersion(Paths.get(pathToJdk8))).thenReturn(JavaSdkVersion.JDK_1_8);
     when(myMockIdeSdks.getJdk()).thenReturn(jdk);
     when(jdk.getHomePath()).thenReturn("/path/to/jdk8");
 

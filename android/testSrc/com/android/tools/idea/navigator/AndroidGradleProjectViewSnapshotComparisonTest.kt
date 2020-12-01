@@ -139,7 +139,7 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
       AndroidGradleTests.updateLocalProperties(projectRoot, TestUtils.getSdk())
     }
 
-    val project = PlatformTestUtil.loadAndOpenProject(projectPath.toPath())
+    val project = PlatformTestUtil.loadAndOpenProject(projectPath.toPath(), testRootDisposable)
     val text = dumpAndroidProjectView(project)
     PlatformTestUtil.forceCloseProjectWithoutSaving(project)
 

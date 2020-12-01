@@ -25,6 +25,7 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,23 +34,18 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
 
   @Nullable private AvdListDialog myDialog;
 
+  public RunAndroidAvdManagerAction(){
+    super(AndroidBundle.messagePointer("android.run.avd.manager.action.text"));
+    addTextOverride(ActionPlaces.TOOLBAR, AndroidBundle.messagePointer("action.add.device.definition.text")); // Layout editor device menu
+    addTextOverride(ActionPlaces.POPUP, AndroidBundle.messagePointer("action.open.avd.manager.text")); // "run target" menu
+  }
+
   @Override
   public void update(@NotNull AnActionEvent event) {
     Presentation presentation = event.getPresentation();
 
-    switch (event.getPlace()) {
-      case ActionPlaces.TOOLBAR:
-        // Layout editor device menu
-        presentation.setText("Add Device Definition...");
-        presentation.setIcon(null);
-        break;
-      case ActionPlaces.UNKNOWN:
-        // run target menu
-        presentation.setText("Open AVD Manager");
-        break;
-      default:
-        presentation.setText("AVD Manager");
-        break;
+    if (ActionPlaces.TOOLBAR.equals(event.getPlace())) {
+      presentation.setIcon(null);
     }
 
     if (isChromeOSAndIsNotHWAccelerated()) {
