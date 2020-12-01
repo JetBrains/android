@@ -13,7 +13,6 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/app-inspection/api:intellij.android.app-inspection.api[module]",
