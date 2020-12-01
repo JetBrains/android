@@ -43,6 +43,7 @@ public class ApkVirtualFolder extends LightVirtualFileBase {
     throw new IOException();
   }
 
+  @NotNull
   @Override
   public InputStream getInputStream() throws IOException {
     throw new IOException();
