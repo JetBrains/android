@@ -55,6 +55,7 @@ import com.android.tools.idea.gradle.dsl.parser.crashlytics.CrashlyticsDslElemen
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
@@ -80,7 +81,10 @@ import org.jetbrains.annotations.TestOnly;
 
 public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleBuildModel {
   @NonNls private static final String PLUGIN = "plugin";
+  // TODO(xof): duplication with PluginModelImpl strings
   @NonNls private static final String ID = "id";
+  @NonNls private static final String VERSION = "version";
+  @NonNls private static final String APPLY = "apply";
 
   public GradleBuildModelImpl(@NotNull GradleBuildFile buildDslFile) {
     super(buildDslFile);
@@ -148,6 +152,38 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     pluginsDslElement.setNewElement(literal);
 
     return new PluginModelImpl(literal, literal);
+  }
+
+  @Override
+  public @NotNull PluginModel applyPlugin(@NotNull String plugin, @NotNull String version, boolean apply) {
+    // For this method, the existence of an apply block is irrelevant, as the features of the plugins Dsl are not supported
+    // with an apply operator.
+
+    PluginsDslElement pluginsElement = myGradleDslFile.ensurePropertyElementAt(PLUGINS, 0);
+    GradleDslInfixExpression expression = new GradleDslInfixExpression(pluginsElement, null);
+
+    // id '<plugin>'
+    GradleDslLiteral idLiteral = new GradleDslLiteral(expression, GradleNameElement.create(ID));
+    idLiteral.setElementType(PropertyType.REGULAR);
+    idLiteral.setValue(plugin.trim());
+    // ... version '<version>'
+    GradleDslLiteral versionLiteral = new GradleDslLiteral(expression, GradleNameElement.create(VERSION));
+    versionLiteral.setElementType(PropertyType.REGULAR);
+    versionLiteral.setValue(version.trim());
+    // ... apply <boolean>
+    GradleDslLiteral applyLiteral = new GradleDslLiteral(expression, GradleNameElement.create(APPLY));
+    applyLiteral.setElementType(PropertyType.REGULAR);
+    applyLiteral.setValue(apply);
+
+    // link everything up
+    // TODO(xof): simplify with .setNewLiteral?
+    expression.setNewElement(idLiteral);
+    expression.setNewElement(versionLiteral);
+    expression.setNewElement(applyLiteral);
+    pluginsElement.setNewElement(expression);
+
+    // TODO(xof): how should we handle the case where we already have a plugin declaration for this plugin?
+    return new PluginModelImpl(expression, idLiteral, versionLiteral, applyLiteral);
   }
 
   @Override

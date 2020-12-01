@@ -493,6 +493,32 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testAddPluginDslWithPluginsBlock() throws Exception {
+    writeToBuildFile(TestFile.ADD_PLUGIN_TO_PLUGINS_BLOCK);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
+
+    buildModel.applyPlugin("com.google.firebase.crashlytics", "17.3.0", false);
+    verifyPlugins(ImmutableList.of("com.android.application", "com.google.firebase.crashlytics"), buildModel.plugins());
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.ADD_PLUGIN_DSL_TO_PLUGINS_BLOCK_EXPECTED);
+    verifyPlugins(ImmutableList.of("com.android.application", "com.google.firebase.crashlytics"), buildModel.plugins());
+  }
+
+  @Test
+  public void testAddPluginDslWithApplyBlock() throws Exception {
+    writeToBuildFile(TestFile.ADD_AND_APPLY_PLUGIN);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
+
+    buildModel.applyPlugin("com.google.firebase.crashlytics", "17.3.0", false);
+    verifyPlugins(ImmutableList.of("com.android.application", "com.google.firebase.crashlytics"), buildModel.plugins());
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_PLUGIN_DSL_EXPECTED);
+    verifyPlugins(ImmutableList.of("com.android.application", "com.google.firebase.crashlytics"), buildModel.plugins());
+  }
+
+  @Test
   public void testOnlyParsePluginsWithCorrectSyntax() throws Exception {
     writeToBuildFile(TestFile.PLUGINS_UNSUPPORTED_SYNTAX);
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -542,6 +568,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
   enum TestFile implements TestFileName {
     ADD_PLUGIN_TO_PLUGINS_BLOCK("addPluginToPluginsBlock"),
     ADD_PLUGIN_TO_PLUGINS_BLOCK_EXPECTED("addPluginToPluginsBlockExpected"),
+    ADD_PLUGIN_DSL_TO_PLUGINS_BLOCK_EXPECTED("addPluginDslToPluginsBlockExpected"),
     APPLIED_KOTLIN_PLUGIN("appliedKotlinPlugin"),
     APPLIED_PLUGINS_BLOCK("appliedPluginsBlock"),
     APPLIED_PLUGINS_BLOCK_WITH_REPEATED_PLUGINS("appliedPluginsBlockWithRepeatedPlugins"),
@@ -563,6 +590,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     ADD_AND_RESET_ALREADY_EXISTING_PLUGIN("addAndResetAlreadyExistingPlugin"),
     ADD_AND_APPLY_PLUGIN("addAndApplyPlugin"),
     ADD_AND_APPLY_PLUGIN_EXPECTED("addAndApplyPluginExpected"),
+    ADD_AND_APPLY_PLUGIN_DSL_EXPECTED("addAndApplyPluginDslExpected"),
     ADD_AND_APPLY_ALREADY_EXISTING_PLUGIN("addAndApplyAlreadyExistingPlugin"),
     ADD_EXISTING_PLUGIN_TO_PLUGINS_AND_APPLY_BLOCKS("addExistingPluginToPluginsAndApplyBlocks"),
     SET_PLUGIN_NAME("setPluginName"),

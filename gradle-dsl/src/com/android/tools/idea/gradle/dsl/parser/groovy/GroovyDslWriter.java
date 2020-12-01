@@ -98,6 +98,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
 
   @Override
   public PsiElement createDslElement(@NotNull GradleDslElement element) {
+    if (element instanceof GradleDslInfixExpression) return createDslInfixExpression((GradleDslInfixExpression) element);
     GroovyPsiElement psiElement = ensureGroovyPsi(element.getPsiElement());
     if (psiElement != null) {
       return psiElement;
@@ -481,6 +482,25 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
   @Override
   public void applyDslExpressionMap(@NotNull GradleDslExpressionMap expressionMap) {
     maybeUpdateName(expressionMap, this);
+  }
+
+  public PsiElement createDslInfixExpression(@NotNull GradleDslInfixExpression expression) {
+    if (expression.getPsiElement() != null) {
+      return expression.getPsiElement();
+    }
+    GradleDslElement parent = expression.getParent();
+    if (parent == null) return null;
+    PsiElement parentPsi = parent.create();
+    GradleDslElement firstElement = expression.getCurrentElements().get(0);
+    if (!(firstElement instanceof GradleDslLiteral)) return null;
+    GradleDslLiteral firstLiteral = (GradleDslLiteral) firstElement;
+    expression.setPsiElement(parentPsi);
+    PsiElement elementPsi = createDslElement(firstLiteral);
+    expression.setPsiElement(elementPsi);
+    applyDslLiteral(firstLiteral);
+    firstLiteral.reset();
+    firstLiteral.commit();
+    return expression.getPsiElement();
   }
 
   @Override
