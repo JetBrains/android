@@ -90,6 +90,7 @@ public final class AndroidIcons {
     /** 512x512 */ public static final @NotNull Icon AndroidModule = load("icons/wizards/android_module.png", 0L, 0);
     /** 512x512 */ public static final @NotNull Icon AutomotiveModule = load("icons/wizards/automotive_module.png", 0L, 0);
     /** 512x512 */ public static final @NotNull Icon BenchmarkModule = load("icons/wizards/benchmark_module.png", 0L, 0);
+    /** 512x512 */ public static final @NotNull Icon CppConfigure = load("icons/wizards/cpp_configure.png", 0L, 0);
     /** 512x512 */ public static final @NotNull Icon DynamicFeatureModule = load("icons/wizards/dynamic_feature_module.png", 0L, 0);
     /** 512x512 */ public static final @NotNull Icon EclipseModule = load("icons/wizards/eclipse_module.png", 0L, 0);
     /** 512x512 */ public static final @NotNull Icon GradleModule = load("icons/wizards/gradle_module.png", 0L, 0);
@@ -97,7 +98,9 @@ public final class AndroidIcons {
     /** 512x512 */ public static final @NotNull Icon MobileModule = load("icons/wizards/mobile_module.png", 0L, 0);
 
     public static final class Navigation {
-      /** 256x256 */ public static final @NotNull Icon BottomNavigation = load("icons/wizards/navigation/bottom_navigation.png", 0L, 1);
+      /** 512x512 */ public static final @NotNull Icon BottomNavigation = load("icons/wizards/navigation/bottom_navigation.png", 0L, 0);
+      /** 512x512 */ public static final @NotNull Icon NavigationDrawer = load("icons/wizards/navigation/navigation_drawer.png", 0L, 0);
+      /** 512x512 */ public static final @NotNull Icon NavigationTabs = load("icons/wizards/navigation/navigation_tabs.png", 0L, 0);
     }
 
     /** 256x256 */ public static final @NotNull Icon NoActivity = load("icons/wizards/no_activity.png", 0L, 7);
