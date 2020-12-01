@@ -18,12 +18,12 @@ package com.android.tools.idea.gradle.ui;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 
 import com.intellij.ui.ComboboxWithBrowseButton;
-import java.io.File;
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
 public class SdkUiUtils {
   @NotNull
-  public static File getLocationFromComboBoxWithBrowseButton(@NotNull ComboboxWithBrowseButton comboboxWithBrowseButton) {
+  public static Path getLocationFromComboBoxWithBrowseButton(@NotNull ComboboxWithBrowseButton comboboxWithBrowseButton) {
     Object item = comboboxWithBrowseButton.getComboBox().getEditor().getItem();
     if (item instanceof LabelAndFileForLocation) {
       return ((LabelAndFileForLocation)item).getFile();

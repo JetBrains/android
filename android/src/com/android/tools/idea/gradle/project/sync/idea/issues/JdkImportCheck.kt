@@ -26,7 +26,6 @@ import com.android.tools.idea.sdk.Jdks
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.issue.BuildIssue
-import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.invokeLater
@@ -35,10 +34,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JdkUtil
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
-import com.intellij.pom.Navigatable
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import java.io.File
+import java.nio.file.Paths
 import java.util.concurrent.CompletableFuture
 
 class JdkImportCheckException(reason: String) : AndroidSyncException(reason)
@@ -73,7 +71,7 @@ class JdkImportIssueChecker : GradleIssueChecker {
         val ideSdks = IdeSdks.getInstance()
         if (!ideSdks.isUsingJavaHomeJdk) {
           val jdkFromHome = IdeSdks.getJdkFromJavaHome()
-          if (jdkFromHome != null && ideSdks.validateJdkPath(File(jdkFromHome)) != null) {
+          if (jdkFromHome != null && ideSdks.validateJdkPath(Paths.get(jdkFromHome)) != null) {
             addQuickFix(UseJavaHomeAsJdkQuickFix(jdkFromHome))
           }
         }
@@ -81,7 +79,7 @@ class JdkImportIssueChecker : GradleIssueChecker {
         if (issueQuickFixes.isEmpty()) {
           val embeddedJdkPath = EmbeddedDistributionPaths.getInstance().tryToGetEmbeddedJdkPath()
           // TODO: Check we REALLY need to check isJdkRunnableOnPlatform. This spawns a process.
-          if (embeddedJdkPath != null && Jdks.isJdkRunnableOnPlatform(embeddedJdkPath.absolutePath)) {
+          if (embeddedJdkPath != null && Jdks.isJdkRunnableOnPlatform(embeddedJdkPath.toAbsolutePath().toString())) {
             addQuickFix(UseEmbeddedJdkQuickFix())
           } else {
             addQuickFix(DownloadAndroidStudioQuickFix())
@@ -102,7 +100,7 @@ private class UseJavaHomeAsJdkQuickFix(val javaHome: String) : DescribedBuildIss
   override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
     val future = CompletableFuture<Nothing>()
     invokeLater {
-      runWriteAction { IdeSdks.getInstance().setJdkPath(File(javaHome)) }
+      runWriteAction { IdeSdks.getInstance().setJdkPath(Paths.get(javaHome)) }
       GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_JDK_CHANGED_TO_CURRENT)
       future.complete(null)
     }
@@ -176,7 +174,7 @@ private fun validateJdk(jdk: Sdk?): String? {
   val selectedJdkMsg = "Selected Jdk location is $jdkHomePath.\n"
   // Check if the version of selected Jdk is the same with the Jdk IDE uses.
   val runningJdkVersion = IdeSdks.getInstance().runningVersionOrDefault
-  if (!StudioFlags.ALLOW_DIFFERENT_JDK_VERSION.get() && !IdeSdks.isJdkSameVersion(File(jdkHomePath), runningJdkVersion)) {
+  if (!StudioFlags.ALLOW_DIFFERENT_JDK_VERSION.get() && !IdeSdks.isJdkSameVersion(Paths.get(jdkHomePath), runningJdkVersion)) {
     return "The version of selected Jdk doesn't match the Jdk used by Studio. Please choose a valid Jdk " +
            runningJdkVersion.description + " directory.\n" + selectedJdkMsg
   }
