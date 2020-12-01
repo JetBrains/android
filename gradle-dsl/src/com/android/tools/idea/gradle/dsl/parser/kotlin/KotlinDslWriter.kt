@@ -114,6 +114,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
   override fun createDslElement(element: GradleDslElement): PsiElement? {
     // If we are trying to create an extra block, we should skip this step as we don't use proper blocks for extra properties in KTS.
     if (element is ExtDslElement) return getParentPsi(element)
+    if (element is GradleDslInfixExpression) return createDslInfixExpression(element)
     val psiElement = element.psiElement
     if (psiElement != null) return psiElement
     var anchorAfter = element.anchor
@@ -639,6 +640,21 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
 
   override fun applyDslExpressionMap(expressionMap: GradleDslExpressionMap) {
     maybeUpdateName(expressionMap, this)
+  }
+
+  fun createDslInfixExpression(expression: GradleDslInfixExpression): PsiElement? {
+    expression.psiElement?.also { return it }
+
+    val parentPsi = expression.parent?.create() ?: return null
+    val firstLiteral = expression.currentElements[0] as? GradleDslLiteral ?: return null
+
+    expression.psiElement = parentPsi
+    val literalPsi = createDslElement(firstLiteral)
+    expression.psiElement = literalPsi
+    applyDslLiteral(firstLiteral)
+    firstLiteral.reset()
+    firstLiteral.commit()
+    return expression.psiElement
   }
 
   override fun applyDslPropertiesElement(element: GradlePropertiesDslElement) {
