@@ -22,8 +22,6 @@ import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.GROUP_ID;
 
 import com.android.Version;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.repository.io.FileOp;
-import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
@@ -38,11 +36,9 @@ public class LatestKnownPluginVersionProvider {
 
   @NotNull
   public String get() {
-    FileOp fileOp = FileOpUtils.create();
-
     List<File> repoPaths = EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths();
     Optional<GradleCoordinate> highestValueCoordinate = repoPaths.stream()
-      .map(repoPath -> getHighestInstalledVersion(GROUP_ID, ARTIFACT_ID, repoPath, null /* filter */, true /* allow preview */, fileOp))
+      .map(repoPath -> getHighestInstalledVersion(GROUP_ID, ARTIFACT_ID, repoPath.toPath(), null /* filter */, true /* allow preview */))
       .filter(Objects::nonNull)
       .max(COMPARE_PLUS_HIGHER);
 
