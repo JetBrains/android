@@ -42,6 +42,7 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.util.io.URLUtil
 import java.io.File
 import java.io.StringWriter
+import java.time.Duration
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
 import javax.xml.transform.OutputKeys
@@ -58,6 +59,7 @@ fun exportAndroidTestMatrixResultXmlFile(project: Project,
                                          toolWindowId: String?,
                                          exportConfig: ExportTestResultsConfiguration,
                                          exportFile: File,
+                                         executionDuration: Duration,
                                          rootResultsNode: AndroidTestResultsTreeNode,
                                          runConfiguration: RunConfiguration,
                                          devices: List<AndroidDevice>,
@@ -70,7 +72,8 @@ fun exportAndroidTestMatrixResultXmlFile(project: Project,
       PerformInBackgroundOption.ALWAYS_BACKGROUND) {
       override fun run(indicator: ProgressIndicator) {
         indicator.isIndeterminate = true
-        val outputText = createOutputText(exportConfig, rootResultsNode, runConfiguration, devices, toolWindowId) ?: return
+        val outputText = createOutputText(exportConfig, executionDuration, rootResultsNode, runConfiguration, devices, toolWindowId)
+                         ?: return
         val (resultFile, errorMessage) = invokeAndWaitIfNeeded {
           runWriteAction {
             exportFile.parentFile.mkdirs()
@@ -126,6 +129,7 @@ fun exportAndroidTestMatrixResultXmlFile(project: Project,
 
 @WorkerThread
 private fun createOutputText(exportConfig: ExportTestResultsConfiguration,
+                             executionDuration: Duration,
                              rootResultsNode: AndroidTestResultsTreeNode,
                              runConfiguration: RunConfiguration,
                              devices: List<AndroidDevice>,
@@ -133,7 +137,7 @@ private fun createOutputText(exportConfig: ExportTestResultsConfiguration,
   val transformerHandler = createTransformerHandler(exportConfig, runConfiguration, toolWindowId) ?: return null
   val writer = StringWriter()
   transformerHandler.setResult(StreamResult(writer))
-  AndroidTestResultsXmlFormatter(rootResultsNode, devices, runConfiguration, transformerHandler).execute()
+  AndroidTestResultsXmlFormatter(executionDuration, rootResultsNode, devices, runConfiguration, transformerHandler).execute()
   return writer.toString()
 }
 

@@ -66,7 +66,7 @@ class ExportUtilsTest {
     val fileContent = exportAndGetContent(ExportTestResultsConfiguration.ExportFormat.Xml)
     assertThat(fileContent).contains("""<suite name="testDeviceName1" duration="1234" status="passed">""")
     assertThat(fileContent).contains("""<suite name="testDeviceName2" duration="7777" status="failed">""")
-    assertThat(fileContent).contains("""<androidTestMatrix>""")
+    assertThat(fileContent).contains("""<androidTestMatrix executionDuration="1234">""")
     assertThat(fileContent).contains("""<device id="testDeviceId1" deviceName="testDeviceName1" deviceType="LOCAL_EMULATOR" version="23">""")
     assertThat(fileContent).contains("""<device id="testDeviceId2" deviceName="testDeviceName2" deviceType="LOCAL_PHYSICAL_DEVICE" version="24">""")
     assertThat(fileContent).contains("""<testsuite deviceId="testDeviceId1" testCount="1" result="PASSED">""")
@@ -99,7 +99,8 @@ class ExportUtilsTest {
 
     val countDownLatch = CountDownLatch(1)
     var fileContent: String? = null
-    exportAndroidTestMatrixResultXmlFile(projectRule.project, "run", exportConfig, outputFile, resultsNode, runConfig, devices) {
+    exportAndroidTestMatrixResultXmlFile(projectRule.project, "run", exportConfig, outputFile,
+                                         Duration.ofMillis(1234), resultsNode, runConfig, devices) {
       fileContent = Files.asCharSource(outputFile, Charsets.UTF_8).read()
       countDownLatch.countDown()
     }
