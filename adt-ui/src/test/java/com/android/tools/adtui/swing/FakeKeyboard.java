@@ -16,7 +16,7 @@
 package com.android.tools.adtui.swing;
 
 import com.intellij.openapi.util.SystemInfo;
-import gnu.trove.TIntHashSet;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import java.awt.Component;
 import java.awt.KeyboardFocusManager;
 import java.awt.event.InputEvent;
@@ -34,7 +34,7 @@ public final class FakeKeyboard {
   public static final int MENU_KEY_CODE = SystemInfo.isMac ? KeyEvent.VK_META : KeyEvent.VK_CONTROL;
   public static final Key MENU_KEY = SystemInfo.isMac ? Key.META : Key.CTRL;
 
-  private final TIntHashSet myPressedKeys = new TIntHashSet();
+  private final IntOpenHashSet myPressedKeys = new IntOpenHashSet();
   @Nullable private Component myFocus;
 
   /**

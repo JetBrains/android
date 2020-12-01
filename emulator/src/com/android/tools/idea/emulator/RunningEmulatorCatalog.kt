@@ -29,7 +29,7 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil.getTempDirectory
 import com.intellij.openapi.util.text.StringUtil.parseInt
 import com.intellij.util.Alarm
-import gnu.trove.TObjectLongHashMap
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap
 import org.jetbrains.annotations.TestOnly
 import java.io.IOException
 import java.nio.charset.StandardCharsets.UTF_8
@@ -64,7 +64,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
   @GuardedBy("updateLock")
   private var listeners: List<Listener> = emptyList()
   @GuardedBy("updateLock")
-  private val updateIntervalsByListener = TObjectLongHashMap<Listener>()
+  private val updateIntervalsByListener = Object2LongOpenHashMap<Listener>()
   /** Long.MAX_VALUE means no updates. A negative value means that the update interval needs to be calculated. */
   @GuardedBy("updateLock")
   private var updateInterval: Long = Long.MAX_VALUE
