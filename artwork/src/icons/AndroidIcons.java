@@ -31,7 +31,6 @@ public class AndroidIcons {
     public static final Icon GradleModule = load("/icons/wizards/gradle_module.png"); // 256x256
     public static final Icon InstantDynamicFeatureModule = load("/icons/wizards/instant_dynamic_feature_module.png"); // 256x256
     public static final Icon MobileModule = load("/icons/wizards/mobile_module.png"); // 256x256
-    public static final Icon ThingsModule = load("/icons/wizards/things_module.png"); // 256x256
     public static final Icon TvModule = load("/icons/wizards/tv_module.png"); // 256x256
     public static final Icon WearModule = load("/icons/wizards/wear_module.png"); // 256x256
     public static final Icon NoActivity = load("/icons/wizards/no_activity.png"); // 256x256

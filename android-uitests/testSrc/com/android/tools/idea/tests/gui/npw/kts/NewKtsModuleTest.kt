@@ -53,7 +53,6 @@ class NewKtsModuleTest {
    * 4. Add a new Java "Automotive" Module and selected "Use kts script".
    * 5. Add a new Java "Wear OS" Module and selected "Use kts script".
    * 6. Add a new Java "Android Tv" Module and selected "Use kts script".
-   * 7. Add a new Java "Android Things" Module and selected "Use kts script".
    * - Make sure the projects can build ("Build" > "Make Project")
    * - The new Module build.gradle.kts should be in "Kotlin Script", ie "applicationId = xxx", instead of "applicationId xxx"
    */
@@ -66,7 +65,6 @@ class NewKtsModuleTest {
     addNewJavaAutomotiveWithKtsModule()
     addNewJavaWearWithKtsModule()
     addNewJavaAndroidTvWithKtsModule()
-    addNewJavaAndroidThingsWithKtsModule()
 
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
   }
@@ -170,26 +168,6 @@ class NewKtsModuleTest {
     assertThat(guiTest.getProjectFileText("tv/$FN_BUILD_GRADLE_KTS")).apply {
       contains("plugins {")
       contains("""androidx.leanback:leanback:""")
-    }
-  }
-
-  private fun addNewJavaAndroidThingsWithKtsModule() {
-    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
-    NewModuleWizardFixture.find(guiTest.ideFrame())
-      .clickNextAndroidThingsModule()
-      .enterModuleName("things")
-      .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
-      .setSourceLanguage(Language.Java)
-      .setUseKtsBuildFiles(true)
-      .wizard()
-      .clickNext()
-      .chooseActivity("Empty Activity")
-      .clickNext()
-      .clickFinishAndWaitForSyncToFinish()
-
-    assertThat(guiTest.getProjectFileText("things/$FN_BUILD_GRADLE_KTS")).apply {
-      contains("plugins {")
-      contains("""id("com.android.application")""")
     }
   }
 

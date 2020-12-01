@@ -76,12 +76,6 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
   }
 
   @NotNull
-  public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> clickNextAndroidThingsModule() {
-    clickNextToStep(message("android.wizard.module.new.things"), message("android.wizard.module.new.things"));
-    return new ConfigureAndroidModuleStepFixture<>(this, target().getRootPane());
-  }
-
-  @NotNull
   public ConfigureDynamicFeatureStepFixture<NewModuleWizardFixture> clickNextToDynamicFeature() {
     clickNextToStep(message("android.wizard.module.new.dynamic.module"), message("android.wizard.module.config.title"));
     return new ConfigureDynamicFeatureStepFixture<>(this, target().getRootPane());
