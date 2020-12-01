@@ -83,7 +83,7 @@ class EmulatorToolWindowManagerTest {
     val contentManager = toolWindow.contentManager
     assertThat(contentManager.contents).isEmpty()
 
-    val tempFolder = emulatorRule.root.toPath()
+    val tempFolder = emulatorRule.root
     val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554, standalone = false)
     val emulator2 = emulatorRule.newEmulator(FakeEmulator.createTabletAvd(tempFolder), 8555, standalone = true)
     val emulator3 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder), 8556, standalone = false)
@@ -164,7 +164,7 @@ class EmulatorToolWindowManagerTest {
     val contentManager = toolWindow.contentManager
     assertThat(contentManager.contents).isEmpty()
 
-    val tempFolder = emulatorRule.root.toPath()
+    val tempFolder = emulatorRule.root
     val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554, standalone = false)
 
     toolWindow.show()
@@ -194,7 +194,7 @@ class EmulatorToolWindowManagerTest {
     val contentManager = toolWindow.contentManager
     assertThat(contentManager.contents).isEmpty()
 
-    val tempFolder = emulatorRule.root.toPath()
+    val tempFolder = emulatorRule.root
     val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554, standalone = false)
 
     toolWindow.show()

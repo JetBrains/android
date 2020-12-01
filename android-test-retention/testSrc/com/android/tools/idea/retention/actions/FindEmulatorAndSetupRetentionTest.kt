@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.retention.actions
 
+import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.FakeEmulator
@@ -40,7 +41,7 @@ import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.io.File
+import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -53,7 +54,7 @@ class FindEmulatorAndSetupRetentionTest {
   @get:Rule
   val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
   lateinit var tempFolder: Path
-  lateinit var snapshotFile: File
+  lateinit var snapshotFile: Path
   lateinit var emulator: FakeEmulator
   lateinit var dataContext: DataContext
   lateinit var parentDataContext : DataContext
@@ -62,9 +63,9 @@ class FindEmulatorAndSetupRetentionTest {
 
   @Before
   fun setUp() {
-    tempFolder = emulatorRule.root.toPath()
+    tempFolder = emulatorRule.root
     snapshotFile = emulatorRule.newFile()
-    snapshotFile.writeText("file content")
+    Files.writeString(snapshotFile, "file content")
     emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554)
 
     parentDataContext = DataContext { projectRule.project }
@@ -74,8 +75,8 @@ class FindEmulatorAndSetupRetentionTest {
           return snapshotId
         }
         if (dataId == EMULATOR_SNAPSHOT_FILE_KEY.name) {
-          assertThat(snapshotFile.exists()).isTrue()
-          assertThat(snapshotFile.canRead()).isTrue()
+          assertThat(snapshotFile).exists()
+          assertThat(Files.isReadable(snapshotFile)).isTrue()
           return snapshotFile
         }
         if (dataId == PACKAGE_NAME_KEY.name) {
