@@ -19,6 +19,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import java.lang.RuntimeException
 import java.nio.file.Path
 
 /**
@@ -38,6 +39,7 @@ interface DeviceFileDownloaderService {
    * Returns a map where each on-device path is mapped to the corresponding VirtualFile.
    *
    * If the device corresponding to [deviceSerialNumber] is not found, the future fails with [IllegalArgumentException].
+   * If the download fails because it's not possible to execute adb commands, the future fails with [FileDownloadFailedException].
    *
    * @param deviceSerialNumber the serial number of the device from which the files should be downloaded.
    * @param onDevicePaths the paths of files to be downloaded from the device.
@@ -60,4 +62,6 @@ interface DeviceFileDownloaderService {
    * and the caller should make sure to not delete a folder and the files inside it.
    */
   fun deleteFiles(virtualFiles: List<VirtualFile>): ListenableFuture<Unit>
+
+  data class FileDownloadFailedException(override val cause: Throwable?) : RuntimeException(cause)
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.explorer
 
 import com.android.annotations.concurrency.UiThread
+import com.android.ddmlib.AdbCommandRejectedException
 import com.android.tools.idea.concurrency.catching
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
@@ -72,6 +73,8 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
         require(deviceFileSystem != null)
         doDownload(deviceFileSystem, onDevicePaths, downloadProgress, localDestinationDirectory)
       }
+    }.catching(edtExecutor, AdbCommandRejectedException::class.java) {
+      throw DeviceFileDownloaderService.FileDownloadFailedException(it)
     }
   }
 
@@ -100,6 +103,7 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
       }
 
       Futures
+        // if a future fails, the AggregateFuture resulting from `allAsList` logs the error
         .allAsList(futurePairs)
         .transform(taskExecutor) { pairs -> pairs.map { it.first to it.second }.toMap() }
     }

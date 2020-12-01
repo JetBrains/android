@@ -137,4 +137,22 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
       }
     }
   }
+
+  fun testFileDownloadFailedExceptionIsHandled() {
+    // Prepare
+    `when`(deviceFileDownloaderService.downloadFiles(any(), any(), any(), any()))
+      .thenThrow(DeviceFileDownloaderService.FileDownloadFailedException::class.java)
+
+    // Act
+    runDispatching {
+      try {
+        fileDatabaseManager.loadDatabaseFileData("processName", processDescriptor, liveDatabaseId)
+        fail()
+      }
+      catch (e: FileDatabaseException) { }
+      catch (e: Throwable) {
+        fail("Expected IOException, but got Throwable")
+      }
+    }
+  }
 }
