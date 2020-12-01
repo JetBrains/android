@@ -538,6 +538,33 @@ class AndroidTestSuiteViewTest {
   }
 
   @Test
+  fun durationInStatusTextCanBeOverritten() {
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, myClock=mockClock)
+    view.testExecutionDurationOverride = Duration.ofSeconds(10)
+
+    fun runTestCase(device: AndroidDevice, suite: AndroidTestSuite, testcase: AndroidTestCase, result: AndroidTestCaseResult) {
+      view.onTestCaseStarted(device, suite, testcase)
+      testcase.result = result
+      view.onTestCaseFinished(device, suite, testcase)
+    }
+
+    val device1 = device("deviceId1", "deviceName1")
+
+    view.onTestSuiteScheduled(device1)
+
+    `when`(mockClock.millis()).thenReturn(Duration.ofHours(2).plusSeconds(1).plusMillis(123).toMillis())
+
+    val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
+    view.onTestSuiteStarted(device1, testsuiteOnDevice1)
+    runTestCase(device1, testsuiteOnDevice1, AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.FAILED)
+    runTestCase(device1, testsuiteOnDevice1, AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.FAILED)
+    view.onTestSuiteFinished(device1, testsuiteOnDevice1)
+
+    assertThat(view.myStatusText.text).isEqualTo("<html><nobr><b><font color='#d67b76'>2 failed</font></b></nobr></html>")
+    assertThat(view.myStatusBreakdownText.text).isEqualTo("2 tests, 10 s")
+  }
+
+  @Test
   fun deviceSelectorAndTestStatusColumnAreHiddenWhenSingleDevice() {
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, myClock=mockClock)
 
