@@ -53,6 +53,7 @@ import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.awt.Dimension;
 import java.util.Collection;
 import java.util.Collections;
@@ -65,7 +66,6 @@ import java.util.function.Predicate;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
  * Implementation of the {@link ViewEditor} abstraction presented
@@ -183,7 +183,7 @@ public class ViewEditorImpl extends ViewEditor {
     // Measure unweighted bounds
     XmlTag parentTag = parent.getTagDeprecated();
     return task.measureChildren(parentTag, filter)
-      .whenCompleteAsync((map, ex) -> task.dispose(), PooledThreadExecutor.INSTANCE)
+      .whenCompleteAsync((map, ex) -> task.dispose(), AppExecutorUtil.getAppExecutorService())
       .thenApply(map -> {
         if (map == null) {
           return Collections.emptyMap();
