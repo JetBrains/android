@@ -53,7 +53,7 @@ private class PinnedPreviewElementInstance(
   private val basePreviewElement: PreviewElementInstance) : PreviewElementInstance(), PreviewElement by basePreviewElement {
   override val instanceId: String = "PINNED#${basePreviewElement.instanceId}"
   override val displaySettings: PreviewDisplaySettings = PreviewDisplaySettings(
-      "$PIN_EMOJI ${basePreviewElement.displaySettings.name}",
+      basePreviewElement.displaySettings.name,
       message("pinned.group.name"),
       basePreviewElement.displaySettings.showDecoration,
       basePreviewElement.displaySettings.showBackground,
@@ -118,6 +118,13 @@ class PinnedPreviewElementManagerImpl internal constructor(val project: Project)
       true
     } ?: false
 
+  override fun unpinAll(): Boolean = pinnedElements.removeAll(pinnedElements).also { removed ->
+    if (removed) {
+      pinsModificationTracker.incModificationCount()
+      listenerCollection.forEach { it.pinsChanged() }
+    }
+  }
+
   override fun isPinned(element: PreviewElement) = pinnedElements.contains(element.asPinnedElement())
 
   override fun addListener(listener: PinnedPreviewElementManager.Listener) {
@@ -134,6 +141,7 @@ class PinnedPreviewElementManagerImpl internal constructor(val project: Project)
 private object NopPinnedPreviewElementManager : PinnedPreviewElementManager, ModificationTracker by ModificationTracker.NEVER_CHANGED {
   override fun pin(elements: Collection<PreviewElementInstance>): Boolean = false
   override fun unpin(elements: Collection<PreviewElementInstance>): Boolean = false
+  override fun unpinAll(): Boolean = false
   override fun isPinned(element: PreviewElement): Boolean = false
   override fun addListener(listener: PinnedPreviewElementManager.Listener) {}
 
@@ -165,6 +173,11 @@ interface PinnedPreviewElementManager: ModificationTracker {
    * Unpins the given [PreviewElementInstance]. Returns true if the element was pinned and was successfully unpinned.
    */
   fun unpin(element: PreviewElementInstance): Boolean = unpin(listOf(element))
+
+  /**
+   * Unpins all the current pinned [PreviewElementInstance]. Returns true if there was at least one pinned instance.
+   */
+  fun unpinAll(): Boolean
 
   /**
    * Returns true if the given [PreviewElement] is pinned. Only [PreviewElementInstance]s can be pinned.

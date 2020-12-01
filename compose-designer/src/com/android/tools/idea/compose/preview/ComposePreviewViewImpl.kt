@@ -33,13 +33,18 @@ import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
@@ -142,7 +147,7 @@ private fun createOverlayPanel(vararg components: JComponent): JPanel =
     }
   }
 
-private class PinnedLabelPanel: JPanel(BorderLayout()) {
+private class PinnedLabelPanel(val onPinClick: () -> Unit = {}): JPanel(BorderLayout()) {
   private val pinnedLabelBackground = UIUtil.toAlpha(UIUtil.getPanelBackground().darker(), 0x20)
   private val pinnedPanelLabel = JLabel("").apply {
     font = UIUtil.getLabelFont()
@@ -156,11 +161,21 @@ private class PinnedLabelPanel: JPanel(BorderLayout()) {
     border = JBUI.Borders.empty(25, 20, 20, 20)
     isOpaque = false
 
-    add(JPanel(VerticalFlowLayout()).apply {
+    add(JPanel().apply {
       isOpaque = false
       add(JPanel().apply {
         border = BorderFactory.createCompoundBorder(FilledRoundedBorder(pinnedLabelBackground, 10, 4),
-                                                    JBUI.Borders.empty(0, 20))
+                                                    JBUI.Borders.emptyRight(5))
+        val clickAction = object: AnAction(null, null, AllIcons.General.Pin_tab) {
+          override fun actionPerformed(e: AnActionEvent) {
+            onPinClick()
+          }
+        }
+        val unpinButton = ActionButton(clickAction,
+                                       PresentationFactory().getPresentation(clickAction),
+                                       "PinnedToolbar",
+                                       ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
+        add(unpinButton)
         add(pinnedPanelLabel)
       })
     }, BorderLayout.LINE_START)
@@ -208,11 +223,19 @@ internal class ComposePreviewViewImpl(private val project: Project,
 
   override val component: JComponent = this
 
-  private val pinnedPanelLabel by lazy {
-    PinnedLabelPanel()
+  private val pinnedPanelLabel: PinnedLabelPanel by lazy {
+    UIUtil.invokeAndWaitIfNeeded<PinnedLabelPanel> {
+      PinnedLabelPanel {
+        setPinnedSurfaceVisibility(false)
+        PinnedPreviewElementManager.getInstance(project).unpinAll()
+      }
+    }
   }
-  private val pinnedPanel by lazy {
-    createOverlayPanel(pinnedPanelLabel, pinnedSurface)
+
+  private val pinnedPanel: JPanel by lazy {
+    UIUtil.invokeAndWaitIfNeeded<JPanel> {
+      createOverlayPanel(pinnedPanelLabel, pinnedSurface)
+    }
   }
 
   private val staticPreviewInteractionHandler = NlInteractionHandler(mainSurface)
