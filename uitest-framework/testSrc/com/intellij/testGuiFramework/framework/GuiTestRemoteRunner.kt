@@ -161,7 +161,7 @@ open class GuiTestRemoteRunner(testClass: Class<*>): BlockJUnit4ClassRunner(test
   }
 
   companion object {
-    private val LOG = Logger.getInstance("#com.intellij.testGuiFramework.framework.GuiTestRemoteRunner")
+    private val LOG = Logger.getInstance(GuiTestRemoteRunner::class.java)
 
     init {
       LOG.setLevel(Level.INFO)
