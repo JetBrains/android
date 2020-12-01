@@ -129,6 +129,8 @@ internal class PinnedPreviewElementManagerTest {
       pinnedPreviewElementProvider.toDebugString()
     )
     assertEquals(4, modifications)
+
+    assertFalse(pinnedPreviewManager.unpinAll())
   }
 
   @Test
@@ -198,5 +200,23 @@ internal class PinnedPreviewElementManagerTest {
       elementsInFile[1] as PreviewElementInstance)))
     assertEquals("Only one modification expected for multiple pins", 1, modifications)
     assertEquals(0, pinnedPreviewElementProvider.previewElements.count())
+  }
+
+  @Test
+  fun `unpinAll removes all elements`() {
+    val elementsInFile = AnnotationFilePreviewElementFinder.findPreviewMethods(project, file1.virtualFile).toList()
+    val pinnedPreviewManager = PinnedPreviewElementManager.getInstance(project)
+    val pinnedPreviewElementProvider = PinnedPreviewElementManager.getPreviewElementProvider(project)
+    var modifications = 0
+    pinnedPreviewManager.addListener { modifications++ }
+    assertFalse(pinnedPreviewManager.unpinAll())
+    assertEquals("unpinAll should not trigger a modification when there are no elements", 0, modifications)
+    assertTrue(pinnedPreviewManager.pin(listOf(
+      elementsInFile[0] as PreviewElementInstance,
+      elementsInFile[1] as PreviewElementInstance)))
+    modifications = 0
+    assertTrue(pinnedPreviewManager.unpinAll())
+    assertEquals("Only one modification expected for multiple pins", 1, modifications)
+    assertFalse(pinnedPreviewManager.unpinAll())
   }
 }

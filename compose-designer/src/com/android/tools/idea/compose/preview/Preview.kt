@@ -744,7 +744,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     } else false
     val hasMainPreviewElements = previewElementProvider.previewElements.any()
 
-    composeWorkBench.setPinnedSurfaceVisibility(hasPinnedElements)
     if (hasPinnedElements) {
       // TODO: The label will display the name of the file where pinned previews come from. If there are multiple files
       // then we temporarily display the label "Pinned"
@@ -756,6 +755,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       composeWorkBench.pinnedLabel = singleFileName
     }
 
+    composeWorkBench.setPinnedSurfaceVisibility(hasPinnedElements)
     if (!hasPinnedElements && !hasMainPreviewElements) {
       composeWorkBench.showModalErrorMessage(message("panel.no.previews.defined"))
     }
