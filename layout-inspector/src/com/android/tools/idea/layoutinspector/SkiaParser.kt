@@ -268,7 +268,10 @@ class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
   private fun findPath(): File? {
     return if (serverVersion == null) {
       // devbuild
-      File(StudioPathManager.getBinariesRoot(), "tools/base/dynamic-layout-inspector/${serverName}")
+      if (StudioPathManager.isRunningFromSources()) {
+        File(StudioPathManager.getBinariesRoot(), "tools/base/dynamic-layout-inspector/${serverName}")
+      }
+      else null
     }
     else {
       val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
