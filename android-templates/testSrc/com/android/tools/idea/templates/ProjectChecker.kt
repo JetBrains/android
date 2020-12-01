@@ -28,7 +28,6 @@ import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidMo
 import com.android.tools.idea.npw.module.recipes.androidProject.androidProjectRecipe
 import com.android.tools.idea.npw.module.recipes.automotiveModule.generateAutomotiveModule
 import com.android.tools.idea.npw.module.recipes.pureLibrary.generatePureLibrary
-import com.android.tools.idea.npw.module.recipes.thingsModule.generateThingsModule
 import com.android.tools.idea.npw.module.recipes.tvModule.generateTvModule
 import com.android.tools.idea.npw.module.recipes.wearModule.generateWearModule
 import com.android.tools.idea.npw.project.setGradleWrapperExecutable
@@ -165,7 +164,6 @@ data class ProjectChecker(
       FormFactor.Wear -> { data: TemplateData -> this.generateWearModule(data as ModuleTemplateData, appTitle, false) }
       FormFactor.Tv -> { data: TemplateData -> this.generateTvModule(data as ModuleTemplateData, appTitle, false) }
       FormFactor.Automotive -> { data: TemplateData -> this.generateAutomotiveModule(data as ModuleTemplateData, appTitle, false) }
-      FormFactor.Things -> { data: TemplateData -> this.generateThingsModule(data as ModuleTemplateData, appTitle, false) }
       FormFactor.Generic -> { data: TemplateData -> this.generatePureLibrary(data as ModuleTemplateData, "LibraryTemplate", false) }
     }
 

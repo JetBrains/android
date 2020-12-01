@@ -27,8 +27,6 @@ public class StudioIllustrations {
     public static final Icon GLASS = load("/studio/illustrations/form-factors/glass.svg"); // 64x64
     public static final Icon MOBILE_LARGE = load("/studio/illustrations/form-factors/mobile-large.svg"); // 100x100
     public static final Icon MOBILE = load("/studio/illustrations/form-factors/mobile.svg"); // 64x64
-    public static final Icon THINGS_LARGE = load("/studio/illustrations/form-factors/things-large.svg"); // 100x100
-    public static final Icon THINGS = load("/studio/illustrations/form-factors/things.svg"); // 64x64
     public static final Icon TV_LARGE = load("/studio/illustrations/form-factors/tv-large.svg"); // 100x100
     public static final Icon TV = load("/studio/illustrations/form-factors/tv.svg"); // 64x64
     public static final Icon WEAR_LARGE = load("/studio/illustrations/form-factors/wear-large.svg"); // 100x100

@@ -37,7 +37,6 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
     if (StudioFlags.NPW_NEW_NATIVE_MODULE.get()) AndroidNativeLibraryModuleTemplateGalleryEntry() else null,
     WearModuleTemplateGalleryEntry(),
     TvModuleTemplateGalleryEntry(),
-    ThingsModuleTemplateGalleryEntry(),
     AutomotiveModuleTemplateGalleryEntry()
   )
 
@@ -69,13 +68,6 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
     message("android.wizard.module.new.automotive.description"),
     if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.AUTOMOTIVE else AndroidIcons.Wizards.AutomotiveModule,
     FormFactor.Automotive
-  )
-
-  private class ThingsModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
-    message("android.wizard.module.new.things"),
-    message("android.wizard.module.new.things.description"),
-    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.ANDROID_THINGS else AndroidIcons.Wizards.ThingsModule,
-    FormFactor.Things
   )
 
   private class TvModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(

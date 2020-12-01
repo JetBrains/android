@@ -57,9 +57,7 @@ enum class FormFactor(
   TV("TV", "Android TV", LOLLIPOP, LOWEST_ACTIVE_API_TV, HIGHEST_KNOWN_API_TV, FormFactors.TV,
      FormFactors.TV_LARGE, listOf(TV_TAG)),
   AUTOMOTIVE("Automotive", "Automotive", VersionCodes.P, VersionCodes.P, HIGHEST_KNOWN_API, FormFactors.CAR,
-             FormFactors.CAR_LARGE, listOf(AUTOMOTIVE_TAG)),
-  THINGS("Things", "Android Things", VersionCodes.N, VersionCodes.N, HIGHEST_KNOWN_API, FormFactors.THINGS,
-         FormFactors.THINGS_LARGE);
+             FormFactors.CAR_LARGE, listOf(AUTOMOTIVE_TAG));
 
   val maxOfflineApiLevel: Int = min(maxOfflineApiLevel, HIGHEST_KNOWN_STABLE_API)
 

@@ -23,7 +23,6 @@ import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
 import com.android.tools.idea.npw.module.recipes.automotiveModule.generateAutomotiveModule
 import com.android.tools.idea.npw.module.recipes.genericModule.generateGenericModule
-import com.android.tools.idea.npw.module.recipes.thingsModule.generateThingsModule
 import com.android.tools.idea.npw.module.recipes.tvModule.generateTvModule
 import com.android.tools.idea.npw.module.recipes.wearModule.generateWearModule
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
@@ -160,9 +159,6 @@ class NewAndroidModuleModel(
       FormFactor.Tv -> { data: TemplateData ->
         generateTvModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get())
       }
-      FormFactor.Things -> { data: TemplateData ->
-        generateThingsModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get())
-      }
       FormFactor.Generic -> { data: TemplateData ->
         generateGenericModule(data as ModuleTemplateData)
       }
@@ -221,7 +217,6 @@ private fun FormFactor.toModuleRenderingLoggingEvent() = when(this) {
   FormFactor.Mobile -> RenderLoggingEvent.ANDROID_MODULE
   FormFactor.Tv -> RenderLoggingEvent.ANDROID_TV_MODULE
   FormFactor.Automotive -> RenderLoggingEvent.AUTOMOTIVE_MODULE
-  FormFactor.Things -> RenderLoggingEvent.THINGS_MODULE
   FormFactor.Wear -> RenderLoggingEvent.ANDROID_WEAR_MODULE
   FormFactor.Generic -> RenderLoggingEvent.ANDROID_MODULE // TODO(b/145975555)
 }
