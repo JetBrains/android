@@ -15,10 +15,10 @@ public final class WhatsNewAssistantIcons {
   }
 
   public static final class Preview {
-    /** 29x29 */ public static final @NotNull Icon Whats_new_icon = load("preview/whats_new_icon.png", 0L, 1);
+    /** 30x30 */ public static final @NotNull Icon Whats_new_icon = load("preview/whats_new_icon.png", 0L, 1);
   }
 
   public static final class Stable {
-    /** 29x29 */ public static final @NotNull Icon Whats_new_icon = load("stable/whats_new_icon.png", 0L, 1);
+    /** 30x30 */ public static final @NotNull Icon Whats_new_icon = load("stable/whats_new_icon.png", 0L, 1);
   }
 }
