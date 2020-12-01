@@ -86,6 +86,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
@@ -114,7 +115,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
  * {@link SceneManager} that creates a Scene from an NlModel representing a layout using layoutlib.
@@ -349,7 +349,7 @@ public class LayoutlibSceneManager extends SceneManager {
     this(
       model,
       designSurface,
-      PooledThreadExecutor.INSTANCE,
+      AppExecutorUtil.getAppExecutorService(),
       MergingRenderingQueue::new,
       sceneComponentProvider,
       sceneUpdateListener,
@@ -378,7 +378,7 @@ public class LayoutlibSceneManager extends SceneManager {
     this(
       model,
       designSurface,
-      PooledThreadExecutor.INSTANCE,
+      AppExecutorUtil.getAppExecutorService(),
       MergingRenderingQueue::new,
       new LayoutlibSceneManagerHierarchyProvider(),
       null,
@@ -714,7 +714,7 @@ public class LayoutlibSceneManager extends SceneManager {
       return render(trigger).thenRun(() -> notifyListenersModelLayoutComplete(animate));
     } else {
       return requestRender(trigger)
-        .whenCompleteAsync((result, ex) -> notifyListenersModelLayoutComplete(animate), PooledThreadExecutor.INSTANCE);
+        .whenCompleteAsync((result, ex) -> notifyListenersModelLayoutComplete(animate), AppExecutorUtil.getAppExecutorService());
     }
   }
 
@@ -1017,7 +1017,7 @@ public class LayoutlibSceneManager extends SceneManager {
         fireOnInflateComplete();
         return logIfSuccessful(result, null, CommonUsageTracker.RenderResultType.INFLATE);
       })
-      .whenCompleteAsync(this::notifyModelUpdateIfSuccessful, PooledThreadExecutor.INSTANCE);
+      .whenCompleteAsync(this::notifyModelUpdateIfSuccessful, AppExecutorUtil.getAppExecutorService());
   }
 
   @Nullable
