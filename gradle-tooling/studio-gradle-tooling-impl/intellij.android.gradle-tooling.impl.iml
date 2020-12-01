@@ -33,6 +33,6 @@
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="android.sdktools.builder-model" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
-    <orderEntry type="library" name="org.jetbrains.kotlin:gradle-tooling:211-1.4.10-release-IJ1012" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="org.jetbrains.kotlin:gradle-tooling:211-1.4.10-release-IJ1012" level="project" />
   </component>
 </module>
