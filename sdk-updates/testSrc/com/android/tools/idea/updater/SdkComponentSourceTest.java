@@ -343,16 +343,6 @@ public class SdkComponentSourceTest {
     //  .maskExtensions(ExternalComponentSource.EP_NAME, Collections.singletonList(myTestComponentSource), myDisposable);
     UpdateSettings settings = new UpdateSettings() {
       @Override
-      public List<String> getKnownExternalUpdateSources() {
-        return getEnabledExternalUpdateSources();
-      }
-
-      @Override
-      public List<String> getEnabledExternalUpdateSources() {
-        return ImmutableList.of(myTestComponentSource.getName());
-      }
-
-      @Override
       @NotNull
       public List<String> getIgnoredBuildNumbers() {
         return ImmutableList.of(id.get());
@@ -376,17 +366,7 @@ public class SdkComponentSourceTest {
     //  .maskExtensions(ExternalComponentSource.EP_NAME, Collections.singletonList(myTestComponentSource), myDisposable);
 
     ProgressIndicator progress = new StudioProgressIndicatorAdapter(new FakeProgressIndicator(), null);
-    UpdateSettings settings = new UpdateSettings() {
-      @Override
-      public List<String> getKnownExternalUpdateSources() {
-        return getEnabledExternalUpdateSources();
-      }
-
-      @Override
-      public List<String> getEnabledExternalUpdateSources() {
-        return ImmutableList.of(myTestComponentSource.getName());
-      }
-    };
+    UpdateSettings settings = new UpdateSettings();
 
     Collection<ExternalUpdate> updates = UpdateChecker.INSTANCE.checkExternalUpdates(true, settings, progress);
     assertEquals(1, updates.size());
@@ -410,17 +390,7 @@ public class SdkComponentSourceTest {
     //  .maskExtensions(ExternalComponentSource.EP_NAME, Collections.singletonList(myTestComponentSource), myDisposable);
 
     ProgressIndicator progress = new StudioProgressIndicatorAdapter(new FakeProgressIndicator(), null);
-    UpdateSettings settings = new UpdateSettings() {
-      @Override
-      public List<String> getKnownExternalUpdateSources() {
-        return getEnabledExternalUpdateSources();
-      }
-
-      @Override
-      public List<String> getEnabledExternalUpdateSources() {
-        return ImmutableList.of(myTestComponentSource.getName());
-      }
-    };
+    UpdateSettings settings = new UpdateSettings();
 
     Collection<ExternalUpdate> updates = UpdateChecker.INSTANCE.checkExternalUpdates(true, settings, progress);
     assertEquals(1, updates.size());

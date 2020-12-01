@@ -3,7 +3,6 @@ package com.android.tools.adtui.util;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.SystemInfoRt;
 import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.lang.reflect.InvocationTargetException;
@@ -29,14 +28,12 @@ public class CausedFocusEventWrapper {
   @Nullable
   private Enum<?> getCause(FocusEvent e) {
     Enum<?> cause = null;
-    if (SystemInfoRt.IS_AT_LEAST_JAVA9) {
-      try {
-        Method getCause = FocusEvent.class.getMethod("getCause");
-        cause = (Enum<?>)getCause.invoke(e);
-      }
-      catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
-        Logger.getInstance(CausedFocusEventWrapper.class).error("Failed to get FocusEvent cause", ex);
-      }
+    try {
+      Method getCause = FocusEvent.class.getMethod("getCause");
+      cause = (Enum<?>)getCause.invoke(e);
+    }
+    catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
+      Logger.getInstance(CausedFocusEventWrapper.class).error("Failed to get FocusEvent cause", ex);
     }
     return cause;
   }
@@ -62,13 +59,8 @@ public class CausedFocusEventWrapper {
   }
 
   public static boolean isFocusEventWithCause(AWTEvent e) {
-    if (SystemInfoRt.IS_AT_LEAST_JAVA9) {
-      // On Java9+ all the FocusEvents have cause.
-      return e instanceof FocusEvent;
-    }
-    else {
-      return e instanceof FocusEvent;
-    }
+    // On Java9+ all the FocusEvents have cause.
+    return e instanceof FocusEvent;
   }
 
   @Nullable

@@ -22,7 +22,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_7;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_9;
-import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.doReturn;
@@ -48,10 +47,13 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -64,7 +66,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Tests for {@link IdeSdks}.
  */
-public class IdeSdksTest extends PlatformTestCase {
+public class IdeSdksTest extends HeavyPlatformTestCase {
   private IdeInfo myIdeInfo;
 
   private File myAndroidSdkPath;
@@ -193,12 +195,12 @@ public class IdeSdksTest extends PlatformTestCase {
     ApplicationManager.getApplication().runWriteAction(() -> myIdeSdks.setUseEmbeddedJdk());
 
     // The path of the JDK should be the same as the embedded one.
-    File jdkPath = myIdeSdks.getJdkPath();
+    Path jdkPath = myIdeSdks.getJdkPath();
     assertNotNull(jdkPath);
 
-    File embeddedJdkPath = myEmbeddedDistributionPaths.getEmbeddedJdkPath();
-    assertTrue(String.format("'%1$s' should be the embedded one ('%2$s')", jdkPath.getPath(), embeddedJdkPath.getPath()),
-               filesEqual(jdkPath, embeddedJdkPath));
+    Path embeddedJdkPath = myEmbeddedDistributionPaths.getEmbeddedJdkPath();
+    assertTrue(String.format("'%1$s' should be the embedded one ('%2$s')", jdkPath, embeddedJdkPath),
+               FileUtil.pathsEqual(jdkPath.toString(), embeddedJdkPath.toString()));
   }
 
   public void testIsJavaSameVersionNull() {
@@ -208,7 +210,7 @@ public class IdeSdksTest extends PlatformTestCase {
   public void testIsJavaSameVersionTrue() {
     Jdks spyJdks = spy(Jdks.getInstance());
     ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), Jdks.class, spyJdks, getTestRootDisposable());
-    File fakeFile = new File(myProject.getBasePath());
+    Path fakeFile = Paths.get(myProject.getBasePath());
     doReturn(JDK_1_8).when(spyJdks).findVersion(same(fakeFile));
     assertTrue(IdeSdks.isJdkSameVersion(fakeFile, JDK_1_8));
   }
@@ -216,7 +218,7 @@ public class IdeSdksTest extends PlatformTestCase {
   public void testIsJavaSameVersionLower() {
     Jdks spyJdks = spy(Jdks.getInstance());
     ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), Jdks.class, spyJdks, getTestRootDisposable());
-    File fakeFile = new File(myProject.getBasePath());
+    Path fakeFile = Paths.get(myProject.getBasePath());
     doReturn(JDK_1_7).when(spyJdks).findVersion(same(fakeFile));
     assertFalse(IdeSdks.isJdkSameVersion(fakeFile, JDK_1_8));
   }
@@ -224,7 +226,7 @@ public class IdeSdksTest extends PlatformTestCase {
   public void testIsJavaSameVersionHigher() {
     Jdks spyJdks = spy(Jdks.getInstance());
     ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), Jdks.class, spyJdks, getTestRootDisposable());
-    File fakeFile = new File(myProject.getBasePath());
+    Path fakeFile = Paths.get(myProject.getBasePath());
     doReturn(JDK_1_9).when(spyJdks).findVersion(same(fakeFile));
     assertFalse(IdeSdks.isJdkSameVersion(fakeFile, JDK_1_8));
   }
@@ -233,7 +235,7 @@ public class IdeSdksTest extends PlatformTestCase {
     myIdeSdks.initializeJdkEnvVariable(null);
     assertThat(myIdeSdks.isJdkEnvVariableDefined()).isFalse();
     assertThat(myIdeSdks.isJdkEnvVariableValid()).isFalse();
-    assertThat(myIdeSdks.getEnvVariableJdkFile()).isNull();
+    assertThat((Object)myIdeSdks.getEnvVariableJdkFile()).isNull();
     assertThat(myIdeSdks.getEnvVariableJdkValue()).isNull();
     assertThat(myIdeSdks.isUsingEnvVariableJdk()).isFalse();
     assertThat(myIdeSdks.setUseEnvVariableJdk(true)).isFalse();
@@ -245,7 +247,7 @@ public class IdeSdksTest extends PlatformTestCase {
     myIdeSdks.initializeJdkEnvVariable(invalidPath);
     assertThat(myIdeSdks.isJdkEnvVariableDefined()).isTrue();
     assertThat(myIdeSdks.isJdkEnvVariableValid()).isFalse();
-    assertThat(myIdeSdks.getEnvVariableJdkFile()).isNull();
+    assertThat((Object)myIdeSdks.getEnvVariableJdkFile()).isNull();
     assertThat(myIdeSdks.getEnvVariableJdkValue()).isEqualTo(invalidPath);
     assertThat(myIdeSdks.isUsingEnvVariableJdk()).isFalse();
     assertThat(myIdeSdks.setUseEnvVariableJdk(true)).isFalse();
@@ -257,7 +259,7 @@ public class IdeSdksTest extends PlatformTestCase {
     myIdeSdks.initializeJdkEnvVariable(validPath);
     assertThat(myIdeSdks.isJdkEnvVariableDefined()).isTrue();
     assertThat(myIdeSdks.isJdkEnvVariableValid()).isTrue();
-    assertThat(myIdeSdks.getEnvVariableJdkFile()).isEqualTo(new File(validPath));
+    assertThat((Object)myIdeSdks.getEnvVariableJdkFile()).isEqualTo(Paths.get(validPath));
     assertThat(myIdeSdks.getEnvVariableJdkValue()).isEqualTo(validPath);
     assertThat(myIdeSdks.isUsingEnvVariableJdk()).isTrue();
     assertThat(myIdeSdks.setUseEnvVariableJdk(false)).isTrue();

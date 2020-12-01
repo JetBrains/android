@@ -17,7 +17,6 @@ package com.android.tools.idea.testartifacts.scopes;
 
 import static com.android.SdkConstants.DOT_JAR;
 import static com.android.sdklib.IAndroidTarget.ANDROID_JAR;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
 
 import com.android.builder.model.AndroidArtifact;
@@ -26,6 +25,7 @@ import com.android.ide.common.gradle.model.IdeJavaArtifact;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.intellij.execution.JUnitPatcher;
 import com.intellij.execution.configurations.JavaParameters;
@@ -117,7 +117,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     // in the classpath.
     List<String> mockableJars = new ArrayList<>();
     for (String path : classPath.getPathList()) {
-      if (toSystemDependentPath(path).getName().startsWith("mockable-")) {
+      if (FilePaths.stringToFile(path).getName().startsWith("mockable-")) {
         // PathsList stores strings - use the one that's actually stored there.
         mockableJars.add(path);
       }

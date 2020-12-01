@@ -138,34 +138,4 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends PlatformTestCas
   private String createLibraryName(@NotNull File jarFilePath) {
     return GradleConstants.SYSTEM_ID.getReadableName() + ": " + getModule().getName() + "." + getNameWithoutExtension(jarFilePath.getName());
   }
-
-  public void testDoSetUpModuleWithCompiledJar() throws IOException {
-    Module module = getModule();
-    String moduleName = module.getName();
-
-    File buildFolderPath = createTempDir("build");
-    File jarFilePath = new File(buildFolderPath, moduleName + ".jar");
-    createIfNotExists(jarFilePath);
-
-    Project project = getProject();
-    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(project);
-
-    Map<String, Set<File>> artifactsByConfiguration = new HashMap<>();
-    artifactsByConfiguration.put("default", Collections.singleton(jarFilePath));
-
-    JavaModuleModel model =
-      JavaModuleModel
-        .create(moduleName, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), artifactsByConfiguration,
-                Collections.emptyList(), null, buildFolderPath, null, true);
-    ModuleSetupContext context = new ModuleSetupContext.Factory().create(module, modelsProvider);
-    mySetupStep.doSetUpModule(context, model);
-
-    ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
-
-    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(project);
-    Library[] libraries = libraryTable.getLibraries();
-    assertThat(libraries).isEmpty();
-
-    assertAbout(libraryDependencies()).that(module).doesNotHaveDependencies();
-  }
 }

@@ -11,7 +11,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
-import com.intellij.util.containers.OrderedSet;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -526,7 +526,7 @@ public class AndroidJpsUtil {
                                                            boolean withCacheDirs,
                                                            @NotNull BuildDataPaths dataPaths,
                                                            boolean checkExistence) {
-    final Collection<String> result = new OrderedSet<String>();
+    final Collection<String> result = new LinkedHashSet<>();
     addCompilableResourceDirsForModule(extension, withCacheDirs, dataPaths, result, checkExistence);
 
     for (JpsAndroidModuleExtension depExtension : getAllAndroidDependencies(extension.getModule(), true)) {

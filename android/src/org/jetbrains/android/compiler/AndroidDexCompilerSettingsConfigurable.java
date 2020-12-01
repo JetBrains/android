@@ -86,7 +86,9 @@ public class AndroidDexCompilerSettingsConfigurable implements SearchableConfigu
       myConfig.PROGUARD_VM_OPTIONS = myProguardVmOptionsEditor.getText();
     }
     finally {
-      BuildManager.getInstance().clearState(myProject);
+      if (!myProject.isDefault()) {
+        BuildManager.getInstance().clearState(myProject);
+      }
     }
   }
 

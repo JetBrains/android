@@ -390,9 +390,9 @@ public final class GradleUtil {
         executionSettings = new GradleExecutionSettings(gradlePath.getPath(), null, LOCAL, null, false);
       }
 
-      File jdkPath = IdeSdks.getInstance().getJdkPath();
+      Path jdkPath = IdeSdks.getInstance().getJdkPath();
       if (jdkPath != null) {
-        executionSettings.setJavaHome(jdkPath.getPath());
+        executionSettings.setJavaHome(jdkPath.toString());
       }
     }
     if(executionSettings == null) {

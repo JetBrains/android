@@ -83,6 +83,7 @@ import com.intellij.ui.content.ContentManagerListener;
 import com.intellij.util.Function;
 import com.intellij.util.SystemProperties;
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -449,7 +450,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         selectSdkDialog.setModal(true);
         if (selectSdkDialog.showAndGet()) {
           String jdkHome = selectSdkDialog.getJdkHome();
-          invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(() -> ideSdks.setJdkPath(new File(jdkHome))));
+          invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(() -> ideSdks.setJdkPath(Paths.get(jdkHome))));
         }
       }
     };

@@ -1,3 +1,4 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.gradle.adtimport;
 
 import static com.android.SdkConstants.ANDROID_LIBRARY_REFERENCE_FORMAT;
@@ -3408,7 +3409,7 @@ public class GradleImportTest extends AndroidTestCase {
     removeJcenter(new File(base, "build.gradle"));
     AndroidGradleTests.updateToolingVersionsAndPaths(base);
     GeneralCommandLine cmdLine = new GeneralCommandLine(args).withWorkDirectory(pwd);
-    cmdLine.withEnvironment("JAVA_HOME", EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getAbsolutePath());
+    cmdLine.withEnvironment("JAVA_HOME", EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().normalize().toAbsolutePath().toString());
     cmdLine.withEnvironment("ANDROID_SDK_HOME", AndroidLocation.getFolder());
     CapturingProcessHandler process = new CapturingProcessHandler(cmdLine);
     // Building currently takes about 30s, so a 5min timeout should give a safe margin.

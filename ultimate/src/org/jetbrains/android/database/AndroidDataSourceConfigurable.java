@@ -460,6 +460,11 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
     myDataBaseComboBox.getEditor().setItem(StringUtil.notNullize(state.databaseName));
   }
 
+  @Override
+  public JComponent getCommonBar() {
+    return null;
+  }
+
   private void registerDeviceListener() {
     AndroidDebugBridge.addDeviceChangeListener(myDeviceListener);
   }

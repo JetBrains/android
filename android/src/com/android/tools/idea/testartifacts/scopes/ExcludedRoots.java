@@ -39,6 +39,7 @@ import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -103,7 +104,8 @@ class ExcludedRoots {
   @Nullable
   private static File urlToFilePath(@NotNull String url) {
     if (url.startsWith(JAR_PROTOCOL_PREFIX)) {
-      return getJarFromJarUrl(url);
+      Path p = getJarFromJarUrl(url);
+      return p == null ? null : p.toFile();
     }
     String path = urlToPath(url);
     return new File(toSystemDependentPath(path));

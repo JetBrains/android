@@ -16,10 +16,9 @@
 package com.android.tools.adtui.model;
 
 import com.intellij.util.containers.OrderedSet;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 /**
  * Model to be used when a list wants to support ordered drag and drop operations. This class currently only manages the ordering of
@@ -142,11 +141,11 @@ public class DragAndDropListModel<T extends DragAndDropModelListElement> extends
    * @param <T>
    */
   private static final class OrderedElement<T extends DragAndDropModelListElement> {
-    private int myId;
+    private final int myId;
     @Nullable
     private T myElement;
 
-    public OrderedElement(@NotNull T element) {
+    private OrderedElement(@NotNull T element) {
       myId = element.getId();
       myElement = element;
     }
@@ -181,7 +180,7 @@ public class DragAndDropListModel<T extends DragAndDropModelListElement> extends
 
     @Override
     public boolean equals(Object obj) {
-      return obj instanceof DragAndDropListModel.OrderedElement && getId() == ((OrderedElement)obj).getId();
+      return obj instanceof DragAndDropListModel.OrderedElement && getId() == ((OrderedElement<?>)obj).getId();
     }
   }
 }

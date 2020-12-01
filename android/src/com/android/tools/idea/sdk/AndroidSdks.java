@@ -22,7 +22,6 @@ import static com.android.SdkConstants.FD_SOURCES;
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
 import static com.android.sdklib.IAndroidTarget.RESOURCES;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refreshAndFindFileByIoFile;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createUniqueSdkName;
@@ -46,6 +45,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.OptionalLibrary;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
@@ -141,7 +141,7 @@ public class AndroidSdks {
     File javaDocPath = findJavadocFolder(new File(getPlatformPath(target)));
 
     if (javaDocPath == null) {
-      File sdkDir = toSystemDependentPath(sdk.getHomePath());
+      File sdkDir = FilePaths.stringToFile(sdk.getHomePath());
       if (sdkDir != null) {
         javaDocPath = findJavadocFolder(sdkDir);
       }
@@ -302,7 +302,7 @@ public class AndroidSdks {
     sdkModificator.setName(name);
 
     if (addRoots) {
-      List<OrderRoot> newRoots = getLibraryRootsForTarget(target, toSystemDependentPath(sdkModificator.getHomePath()), true);
+      List<OrderRoot> newRoots = getLibraryRootsForTarget(target, FilePaths.stringToFile(sdkModificator.getHomePath()), true);
       sdkModificator.removeAllRoots();
       for (OrderRoot orderRoot : newRoots) {
         sdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
