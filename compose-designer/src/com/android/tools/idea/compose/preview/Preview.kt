@@ -740,6 +740,24 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         this::configureLayoutlibSceneManagerForPreviewElement
       ).isNotEmpty()
     } else false
+    val hasMainPreviewElements = previewElementProvider.previewElements.any()
+
+    composeWorkBench.setPinnedSurfaceVisibility(hasPinnedElements)
+    if (hasPinnedElements) {
+      // TODO: The label will display the name of the file where pinned previews come from. If there are multiple files
+      // then we temporarily display the label "Pinned"
+      val singleFileName = memoizedPinnedPreviewProvider
+                             .previewElements
+                             .mapNotNull { it.previewBodyPsi?.virtualFile?.name }
+                             .distinct()
+                             .singleOrNull() ?: "Pinned"
+      composeWorkBench.pinnedLabel = singleFileName
+    }
+
+    if (!hasPinnedElements && !hasMainPreviewElements) {
+      composeWorkBench.showModalErrorMessage(message("panel.no.previews.defined"))
+    }
+
     val showingPreviewElements = surface.updatePreviewsAndRefresh(
       quickRefresh,
       previewElementProvider,
@@ -751,16 +769,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       this::getPreviewDataContextForPreviewElement,
       this::configureLayoutlibSceneManagerForPreviewElement
     )
-
-    composeWorkBench.setPinnedSurfaceVisibility(hasPinnedElements)
-    if (hasPinnedElements) {
-      // TODO: This is a temporary label. It will display the pinned file name when we allow per-file pinning.
-      composeWorkBench.pinnedLabel = "Pinned"
-    }
-
-    if (!hasPinnedElements && showingPreviewElements.isEmpty()) {
-      composeWorkBench.showModalErrorMessage(message("panel.no.previews.defined"))
-    }
 
     if (showingPreviewElements.size >= filePreviewElements.size) {
       previewElements = filePreviewElements
