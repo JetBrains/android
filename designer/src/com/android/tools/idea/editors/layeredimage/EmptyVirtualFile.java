@@ -97,6 +97,7 @@ final class EmptyVirtualFile extends VirtualFile {
     return myFile.getParent();
   }
 
+  @NotNull
   @Override
   public InputStream getInputStream() throws IOException {
     return new ByteArrayInputStream(EMPTY_ARRAY);
