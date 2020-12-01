@@ -124,7 +124,8 @@ private const val MAX_FIRST_COMPONENT_PROPORTION: Float = 0.9f
  * @param module a module which this test suite view belongs to. If null is given, some functions such as source code lookup
  * will be disabled in this view.
  * @param toolWindowId a tool window ID of which this view is to be displayed in.
- * @param runConfiguration a run configuration of a test. This is used for exporting test results into XML.
+ * @param runConfiguration a run configuration of a test. This is used for exporting test results into XML. Null is given
+ * when this view displays an imported test result.
  */
 class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   parentDisposable: Disposable,
@@ -193,6 +194,12 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   // A timestamp when the test execution is scheduled.
   private var myTestStartTimeMillis: Long = 0
   private var myTestFinishedTimeMillis: Long = 0
+
+  private val myIsImportedResult: Boolean = runConfiguration == null
+
+  // If not null, this value is used as the test execution time instead of a measured
+  // duration by myClock.
+  var testExecutionDurationOverride: Duration? = null
 
   init {
     val testArtifactSearchScopes = module?.let { getInstance(module) }
@@ -344,7 +351,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     }
 
     if (myTestFinishedTimeMillis != 0L) {
-      val testDuration = Duration.ofMillis(myTestFinishedTimeMillis - myTestStartTimeMillis)
+      val testDuration = testExecutionDurationOverride ?: Duration.ofMillis(myTestFinishedTimeMillis - myTestStartTimeMillis)
       val roundedTestDuration = if (testDuration < Duration.ofHours(1)) {
         testDuration
       } else {
@@ -433,11 +440,16 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
         myTestFinishedTimeMillis = myClock.millis()
         showSystemNotification()
         showNotificationBalloonIfToolWindowIsNotActive()
-        myExportTestResultsAction.apply {
-          devices = myScheduledDevices.toList()
-          rootResultsNode = myResultsTableView.rootResultsNode
+
+        // Don't allow re-exporting the imported result.
+        if (!myIsImportedResult) {
+          myExportTestResultsAction.apply {
+            devices = myScheduledDevices.toList()
+            rootResultsNode = myResultsTableView.rootResultsNode
+            executionDuration = Duration.ofMillis(myTestFinishedTimeMillis - myTestStartTimeMillis)
+          }
+          saveHistory()
         }
-        saveHistory()
       }
       updateProgress()
       myResultsTableView.refreshTable()
@@ -539,6 +551,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
             setResult(StreamResult(FileWriter(outputFile)))
           }
           AndroidTestResultsXmlFormatter(
+            Duration.ofMillis(myTestFinishedTimeMillis - myTestStartTimeMillis),
             myResultsTableView.rootResultsNode,
             myScheduledDevices.toList(),
             runConfiguration,
