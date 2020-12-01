@@ -22,7 +22,7 @@ import org.junit.rules.ExternalResource
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
-import java.io.File
+import java.nio.file.Files
 import java.nio.file.Path
 
 /**
@@ -55,10 +55,10 @@ class FakeEmulatorRule : TestRule {
     return tempDirectory.apply(emulatorResource.apply(base, description), description)
   }
 
-  val root: File
-    get() = tempDirectory.root
+  val root: Path
+    get() = tempDirectory.root.toPath()
 
-  fun newFile(): File = File.createTempFile("junit", null, tempDirectory.root)
+  fun newFile(): Path = Files.createTempFile(root, "junit", null)
 
   fun newEmulator(avdFolder: Path, grpcPort: Int, standalone: Boolean = false): FakeEmulator {
     val dir = registrationDirectory ?: throw IllegalStateException()
@@ -70,7 +70,7 @@ class FakeEmulatorRule : TestRule {
   private inner class FakeEmulatorTestConfiguration : RuntimeConfiguration() {
 
     override fun getDesktopOrUserHomeDirectory(): Path {
-      return root.toPath()
+      return root
     }
 
     override fun newGrpcChannelBuilder(host: String, port: Int): ManagedChannelBuilder<*> {
