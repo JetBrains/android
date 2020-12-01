@@ -568,18 +568,21 @@ class DependencyManagementTest : DependencyTestCase() {
   }
 
   fun testChangeLibraryDependencyScope() {
-    var module = project.findModuleByName("mainModule") as PsAndroidModule
-    val libraryDependency = module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "implementation")!!.first()
-    assertThat(libraryDependency, notNullValue())
-    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "compile"), nullValue())
+    val oldConfig = "implementation"
+    val newConfig = "api"
 
-    module.modifyDependencyConfiguration(libraryDependency, newConfigurationName = "compile")
+    var module = project.findModuleByName("mainModule") as PsAndroidModule
+    val libraryDependency = module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", oldConfig)!!.first()
+    assertThat(libraryDependency, notNullValue())
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", newConfig), nullValue())
+
+    module.modifyDependencyConfiguration(libraryDependency, newConfigurationName = newConfig)
 
     assertThat(module.isModified, equalTo(true))
     assertThat(project.isModified, equalTo(true))
 
-    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "implementation"), nullValue())
-    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "compile")?.firstOrNull(),
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", oldConfig), nullValue())
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", newConfig)?.firstOrNull(),
                sameInstance(libraryDependency))
 
     project.applyChanges()
@@ -588,8 +591,8 @@ class DependencyManagementTest : DependencyTestCase() {
 
     module = project.findModuleByName("mainModule") as PsAndroidModule
 
-    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "implementation"), nullValue())
-    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "compile"), notNullValue())
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", oldConfig), nullValue())
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", newConfig), notNullValue())
   }
 
   fun testEditLibraryDependencyVersion() {
