@@ -16,7 +16,7 @@
 package com.android.tools.idea.common.editor;
 
 import com.android.annotations.concurrency.UiThread;
-import com.android.layoutlib.bridge.Bridge;
+import com.android.ide.common.rendering.api.Bridge;
 import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.workbench.ToolWindowDefinition;
 import com.android.tools.adtui.workbench.WorkBench;
