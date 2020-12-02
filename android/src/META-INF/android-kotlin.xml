@@ -77,7 +77,6 @@
 
         <referencesSearch implementation="org.jetbrains.kotlin.AndroidExtensionsReferenceSearchExecutor"/>
 
-        <externalProjectDataService implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidGradleLibraryDataService"/>
         <externalProjectDataService implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidGradleMPPModuleDataService"/>
 
         <registryKey key="kotlin.android.import.mpp.all.transitive"
