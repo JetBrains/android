@@ -24,11 +24,11 @@ final class Devices {
   }
 
   static boolean containsAnotherDeviceWithSameName(@NotNull Collection<Device> devices, @NotNull Device device) {
-    Object key = device.getKey().getDeviceKey();
+    Object key = device.getKey();
     Object name = device.getName();
 
     return devices.stream()
-      .filter(d -> !d.getKey().getDeviceKey().equals(key))
+      .filter(d -> !d.getKey().equals(key))
       .map(Device::getName)
       .anyMatch(name::equals);
   }
@@ -36,7 +36,7 @@ final class Devices {
   @NotNull
   static String getText(@NotNull Device device, @Nullable Key key, @Nullable Snapshot snapshot) {
     String snapshotName = snapshot == null ? null : snapshot.toString();
-    return getText(device.getName(), key == null ? null : key.getDeviceKey(), snapshotName, device.getValidityReason());
+    return getText(device.getName(), key == null ? null : key.asNonprefixedKey().toString(), snapshotName, device.getValidityReason());
   }
 
   @NotNull

@@ -19,7 +19,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A serial number returned by IDevice.getSerialNumber
+ * A serial number returned by IDevice.getSerialNumber. These are usually used for physical devices but are also used for virtual devices
+ * when IDevice.getAvdPath returns null and when IDevice.getAvdName returns null or "&lt;build&gt;". The AVD Manager won't know about these
+ * virtual devices.
  */
 public final class SerialNumber extends Key {
   static final String PREFIX = "SerialNumber@";
@@ -36,11 +38,6 @@ public final class SerialNumber extends Key {
   @Override
   @NotNull NonprefixedKey asNonprefixedKey() {
     return new NonprefixedKey(myValue);
-  }
-
-  @Override
-  @NotNull String getDeviceKey() {
-    return myValue;
   }
 
   @Override

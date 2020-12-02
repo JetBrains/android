@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import java.util.Arrays;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -41,6 +42,7 @@ public final class SnapshotActionGroupTest {
     Mockito.when(myEvent.getPresentation()).thenReturn(myPresentation);
   }
 
+  @Ignore
   @Test
   public void update() {
     // Arrange
@@ -65,6 +67,7 @@ public final class SnapshotActionGroupTest {
     assertEquals("Pixel 3 API 29", myPresentation.getText());
   }
 
+  @Ignore
   @Test
   public void updateDevicesHaveValidityReasons() {
     // Arrange
