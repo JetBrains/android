@@ -50,4 +50,5 @@ message Survey {
   optional int32 interval_days = 3;  // days between survey being asked
   optional int32 answer_count = 4;   // number of answers to be selected
   repeated Option options = 5;       // list of survey options
+  optional string name = 6;          // unique name for this survey
 }
