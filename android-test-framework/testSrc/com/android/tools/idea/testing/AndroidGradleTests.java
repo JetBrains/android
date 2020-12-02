@@ -615,9 +615,8 @@ public class AndroidGradleTests {
   public static void overrideJdkTo8() throws IOException {
     String jdk8Path = getEmbeddedJdk8Path();
     @NotNull IdeSdks ideSdks = IdeSdks.getInstance();
-    ideSdks.cleanJdkEnvVariableInitialization();
     LOG.info("Using JDK from " + jdk8Path);
-    ideSdks.initializeJdkEnvVariable(jdk8Path);
+    ideSdks.overrideJdkEnvVariable(jdk8Path);
     assertTrue("Could not use JDK from " + jdk8Path, ideSdks.isJdkEnvVariableValid());
   }
 
