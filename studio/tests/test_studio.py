@@ -160,6 +160,14 @@ class StudioTests(unittest.TestCase):
           self.assertFalse(is_symlink, f.filename + " should not be a symlink")
       self.assertTrue(found, "Android Studio.*.app/Contents/jre/jdk/Contents/MacOS/libjli.dylib not found")
 
+  def test_all_files_writable(self):
+    for platform in PLATFORMS:
+      name = "tools/adt/idea/studio/android-studio.%s.zip" % platform
+      with zipfile.ZipFile(name) as file:
+        for f in file.infolist():
+          print("%s %x" % (f.filename, f.external_attr))
+          self.assertTrue(f.external_attr & 0x1800000 == 0x1800000, "All files have to be readable and writable by the owner")
+
   def test_kotlin_plugin_not_duplicated(self):
     # Motive: bundling the Kotlin plugin is handled specially in BaseIdeaProperties.groovy
     name = "tools/adt/idea/studio/android-studio.mac.zip"
