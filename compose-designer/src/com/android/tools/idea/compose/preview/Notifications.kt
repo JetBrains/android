@@ -163,24 +163,14 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
     }
 
     val previewManager = fileEditor.getComposePreviewManager() ?: return null
-    val previewStatus = previewManager.status() ?: return null
+    val previewStatus = previewManager.status()
     if (LOG.isDebugEnabled) {
       LOG.debug(previewStatus.toString())
     }
 
-    // Show a notification with a Loader if the preview is refreshing.
-    if (previewStatus.isRefreshing) {
-      LOG.debug("Refresh in progress")
-      return EditorNotificationPanel().apply {
-        setText(message("notification.preview.is.refreshing"))
-        icon(AnimatedIcon.Default())
-      }
-    }
-
-    val gradleBuildState = GradleBuildState.getInstance(project)
     // Do not show the notification while the build is in progress but refresh is not.
-    if (gradleBuildState.isBuildInProgress) {
-      LOG.debug("Build in progress")
+    if (previewStatus.isRefreshing) {
+      LOG.debug("Refreshing")
       return null
     }
 
