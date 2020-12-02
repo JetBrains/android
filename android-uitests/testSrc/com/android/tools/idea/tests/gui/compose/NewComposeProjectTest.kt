@@ -51,7 +51,7 @@ class NewComposeProjectTest {
    * Test steps:
    * 1. Create new default "Empty Compose Activity" Project
    * Verify:
-   * 1. Check that app/build.gradle has dependencies for "androidx.compose.ui:ui-framework" and "androidx.compose.ui:ui-tooling"
+   * 1. Check that app/build.gradle has dependencies for "androidx.ui:ui-framework" and "androidx.ui:ui-tooling"
    * 2. Check that the main activity has functions annotated with @Composable and @Preview
    */
   @Test
@@ -61,7 +61,7 @@ class NewComposeProjectTest {
     guiTest.getProjectFileText("app/build.gradle").run {
       assertThat(this).contains("implementation \"androidx.compose.ui:ui:")
       assertThat(this).contains("implementation \"androidx.compose.material:material:")
-      assertThat(this).contains("implementation \"androidx.compose.ui:ui-tooling:")
+      assertThat(this).contains("implementation \"androidx.ui:ui-tooling:")
     }
     guiTest.getProjectFileText("app/src/main/java/com/google/myapplication/MainActivity.kt").run {
       assertThat(this).contains("@Composable")

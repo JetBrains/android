@@ -63,7 +63,7 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
       "src/Test.kt",
       // language=kotlin
       """
-        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.ui.tooling.preview.Preview
         import androidx.compose.Composable
 
         @Composable
@@ -84,7 +84,7 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
       "$modulePath/src/main/java/com/example/mylibrary/TestLibraryFile.kt",
       // language=kotlin
       """
-        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.ui.tooling.preview.Preview
         import androidx.compose.Composable
 
         @Composable
@@ -104,7 +104,7 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
       // language=kotlin
       """
         import androidx.compose.Composable
-        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.ui.tooling.preview.Preview
 
         @Preview
         @Composable

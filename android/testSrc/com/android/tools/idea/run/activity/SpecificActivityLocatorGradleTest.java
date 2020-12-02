@@ -26,7 +26,7 @@ public class SpecificActivityLocatorGradleTest extends AndroidGradleTestCase {
     loadProject(TestProjectPaths.UI_TOOLING_DEPENDENCY);
 
     final String appActivity = "com.android.test.uitoolingdependency.MainActivity";
-    final String externalActivity = "androidx.compose.ui.tooling.preview.PreviewActivity";
+    final String externalActivity = "androidx.ui.tooling.preview.PreviewActivity";
 
     Project project = myAndroidFacet.getModule().getProject();
     GlobalSearchScope projectScope = GlobalSearchScope.projectScope(project);

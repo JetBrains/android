@@ -29,7 +29,7 @@ fun CodeInsightTestFixture.stubComposableAnnotation(composableAnnotationPackage:
   )
 }
 
-fun CodeInsightTestFixture.stubPreviewAnnotation(previewAnnotationPackage: String = "androidx.compose.ui.tooling.preview") {
+fun CodeInsightTestFixture.stubPreviewAnnotation(previewAnnotationPackage: String = "androidx.ui.tooling.preview") {
   addFileToProject(
     "src/${previewAnnotationPackage.replace(".", "/")}/Preview.kt",
     // language=kotlin

@@ -1,4 +1,4 @@
-package androidx.compose.ui.tooling.preview.animation;
+package androidx.ui.tooling.preview.animation;
 
 import androidx.compose.animation.tooling.ComposeAnimation;
 

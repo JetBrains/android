@@ -42,7 +42,7 @@ android {
 
     composeOptions {
         kotlinCompilerExtensionVersion = "+"
-        kotlinCompilerVersion = "1.4.20"
+        kotlinCompilerVersion = "1.4.10"
     }
 
     kotlinOptions {
@@ -56,6 +56,6 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:+'
     implementation 'androidx.compose.ui:ui:+'
     implementation 'androidx.compose.material:material:+'
-    implementation 'androidx.compose.ui:ui-tooling:+'
+    implementation 'androidx.ui:ui-tooling:+'
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.3.0-alpha06"
 }

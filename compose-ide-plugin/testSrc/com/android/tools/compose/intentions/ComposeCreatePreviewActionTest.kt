@@ -73,7 +73,7 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureTestCase() {
       package com.example
 
       import androidx.compose.Composable
-      import androidx.compose.ui.tooling.preview.Preview
+      import androidx.ui.tooling.preview.Preview
 
       @Preview
       @Composable
@@ -121,7 +121,7 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureTestCase() {
       package com.example
 
       import androidx.compose.Composable
-      import androidx.compose.ui.tooling.preview.Preview
+      import androidx.ui.tooling.preview.Preview
 
       @Preview
       @Composable
@@ -172,7 +172,7 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureTestCase() {
       package com.example
 
       import androidx.compose.Composable
-      import androidx.compose.ui.tooling.preview.Preview
+      import androidx.ui.tooling.preview.Preview
 
 
       @Preview

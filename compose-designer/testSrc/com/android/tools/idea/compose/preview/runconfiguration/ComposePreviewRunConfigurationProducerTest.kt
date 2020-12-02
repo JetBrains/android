@@ -48,7 +48,7 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
       "src/Test.kt",
       // language=kotlin
       """
-        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.ui.tooling.preview.Preview
         import androidx.compose.Composable
 
         @Composable
@@ -97,8 +97,8 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
       """
         package my.composable.app
 
-        import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.ui.tooling.preview.PreviewParameter
+        import androidx.ui.tooling.preview.Preview
+        import androidx.ui.tooling.preview.PreviewParameter
         import androidx.compose.Composable
 
         class Names: CollectionPreviewParameterProvider<String>(listOf("Android", "Studio"))
@@ -124,7 +124,7 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
       "$modulePath/src/main/java/com/example/mylibrary/TestLibraryFile.kt",
       // language=kotlin
       """
-        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.ui.tooling.preview.Preview
         import androidx.compose.Composable
 
         @Composable
@@ -145,7 +145,7 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
       "src/TestNotPreview.kt",
       // language=kotlin
       """
-        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.ui.tooling.preview.Preview
         import androidx.compose.Composable
 
         @Preview
