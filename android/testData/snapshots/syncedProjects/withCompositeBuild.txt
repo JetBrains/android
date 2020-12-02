@@ -17,7 +17,6 @@ PROJECT             : testWithCompositeBuild
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : false
-            BuildFolderPath     : <PROJECT>/TestCompositeLib1/build [-]
         CONENT_ENTRY        : file://<PROJECT>/TestCompositeLib1
             EXCLUDE_FOLDER      : file://<PROJECT>/TestCompositeLib1/.gradle
             EXCLUDE_FOLDER      : file://<PROJECT>/TestCompositeLib1/build [-]
@@ -1049,7 +1048,6 @@ PROJECT             : testWithCompositeBuild
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : false
-            BuildFolderPath     : <PROJECT>/TestCompositeLib3/build [-]
         CONENT_ENTRY        : file://<PROJECT>/TestCompositeLib3
             EXCLUDE_FOLDER      : file://<PROJECT>/TestCompositeLib3/.gradle
             EXCLUDE_FOLDER      : file://<PROJECT>/TestCompositeLib3/build [-]
@@ -1998,7 +1996,6 @@ PROJECT             : testWithCompositeBuild
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : true
-            BuildFolderPath     : <PROJECT>/TestCompositeLib2/build
         CONENT_ENTRY        : file://<PROJECT>/TestCompositeLib2
             JavaSource          : file://<PROJECT>/TestCompositeLib2/src/main/java
             EXCLUDE_FOLDER      : file://<PROJECT>/TestCompositeLib2/.gradle
@@ -2028,7 +2025,6 @@ PROJECT             : testWithCompositeBuild
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : true
-            BuildFolderPath     : <PROJECT>/TestCompositeLib4/build
         CONENT_ENTRY        : file://<PROJECT>/TestCompositeLib4
             JavaSource          : file://<PROJECT>/TestCompositeLib4/src/main/java
             EXCLUDE_FOLDER      : file://<PROJECT>/TestCompositeLib4/.gradle
@@ -2055,7 +2051,6 @@ PROJECT             : testWithCompositeBuild
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : false
-            BuildFolderPath     : <PROJECT>/build [-]
         CONENT_ENTRY        : file://<PROJECT>
             EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER      : file://<PROJECT>/build [-]

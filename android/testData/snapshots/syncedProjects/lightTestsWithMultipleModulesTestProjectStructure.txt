@@ -13,7 +13,6 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : false
-            BuildFolderPath     :  [-]
         ORDER_ENTRY         : <Module source>
     MODULE              : app
         LinkedProjectId     : :app

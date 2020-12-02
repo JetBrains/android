@@ -17,7 +17,6 @@ PROJECT             : testPsdDependencyDeleteModule
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : false
-            BuildFolderPath     : <PROJECT>/build [-]
         CONENT_ENTRY        : file://<PROJECT>
             EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER      : file://<PROJECT>/build [-]
@@ -513,7 +512,6 @@ PROJECT             : testPsdDependencyDeleteModule
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : true
-            BuildFolderPath     : <PROJECT>/jModuleK/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleK
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleK/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleK/build [-]
@@ -593,7 +591,6 @@ PROJECT             : testPsdDependencyDeleteModule
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : true
-            BuildFolderPath     : <PROJECT>/jModuleL/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleL
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleL/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleL/build [-]
@@ -637,7 +634,6 @@ PROJECT             : testPsdDependencyDeleteModule
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : true
-            BuildFolderPath     : <PROJECT>/jModuleM/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleM
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleM/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleM/build [-]
@@ -681,7 +677,6 @@ PROJECT             : testPsdDependencyDeleteModule
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : true
-            BuildFolderPath     : <PROJECT>/jModuleZ/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleZ
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/build [-]
@@ -777,7 +772,6 @@ PROJECT             : testPsdDependencyDeleteModule
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : true
-            BuildFolderPath     : <PROJECT>/jModuleZ/nestedZ/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleZ/nestedZ
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/nestedZ/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/nestedZ/build [-]

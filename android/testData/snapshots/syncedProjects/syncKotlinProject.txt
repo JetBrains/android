@@ -17,7 +17,6 @@ PROJECT             : testSyncKotlinProject
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : false
-            BuildFolderPath     : <PROJECT>/build [-]
         CONENT_ENTRY        : file://<PROJECT>
             EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER      : file://<PROJECT>/build [-]
@@ -1248,7 +1247,6 @@ PROJECT             : testSyncKotlinProject
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : true
-            BuildFolderPath     : <PROJECT>/contentLib/build
         FACET               : Kotlin
             TypeId              : kotlin-language
             ExternalSource      : GRADLE

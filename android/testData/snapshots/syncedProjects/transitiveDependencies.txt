@@ -17,7 +17,6 @@ PROJECT             : testTransitiveDependencies
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : false
-            BuildFolderPath     : <PROJECT>/build [-]
         CONENT_ENTRY        : file://<PROJECT>
             EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER      : file://<PROJECT>/build [-]
@@ -514,7 +513,6 @@ PROJECT             : testTransitiveDependencies
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : true
-            BuildFolderPath     : <PROJECT>/javalib1/build [-]
         CONENT_ENTRY        : file://<PROJECT>/javalib1
             JavaSource          : file://<PROJECT>/javalib1/src/main/java
             EXCLUDE_FOLDER      : file://<PROJECT>/javalib1/.gradle [-]
@@ -580,7 +578,6 @@ PROJECT             : testTransitiveDependencies
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : true
-            BuildFolderPath     : <PROJECT>/javalib2/build [-]
         CONENT_ENTRY        : file://<PROJECT>/javalib2
             JavaSource          : file://<PROJECT>/javalib2/src/main/java
             EXCLUDE_FOLDER      : file://<PROJECT>/javalib2/.gradle [-]

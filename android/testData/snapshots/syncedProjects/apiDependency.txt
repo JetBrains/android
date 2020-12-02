@@ -17,7 +17,6 @@ PROJECT             : testApiDependency
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : false
-            BuildFolderPath     : <PROJECT>/build [-]
         CONENT_ENTRY        : file://<PROJECT>
             EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER      : file://<PROJECT>/build [-]
@@ -503,7 +502,6 @@ PROJECT             : testApiDependency
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : true
-            BuildFolderPath     : <PROJECT>/jlib/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jlib
             EXCLUDE_FOLDER      : file://<PROJECT>/jlib/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jlib/build [-]
@@ -547,7 +545,6 @@ PROJECT             : testApiDependency
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : true
-            BuildFolderPath     : <PROJECT>/jlib0/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jlib0
             EXCLUDE_FOLDER      : file://<PROJECT>/jlib0/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jlib0/build [-]
