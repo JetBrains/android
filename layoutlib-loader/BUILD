@@ -14,7 +14,7 @@ iml_module(
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
-        "//prebuilts/studio/layoutlib/data:layoutlib_native",
+        "//prebuilts/studio/layoutlib/data:layoutlib",
     ],
 )
 
@@ -30,6 +30,6 @@ iml_module(
         "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader[module, test]",
         "//tools/adt/idea/.idea/libraries:Guava[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8[test]",
-        "//prebuilts/studio/layoutlib/data:layoutlib_native[test]",
+        "//prebuilts/studio/layoutlib/data:layoutlib[test]",
     ],
 )

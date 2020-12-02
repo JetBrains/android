@@ -1952,9 +1952,9 @@ Android Studio Preview.app/Contents/plugins/Kotlin/lib/noarg-ide-plugin.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/sam-with-receiver-ide-plugin.jar
 Android Studio Preview.app/Contents/plugins/android-apk/lib/android-apk.jar
 Android Studio Preview.app/Contents/plugins/android-compose-ide-plugin/lib/android-compose-ide-plugin.jar
-Android Studio Preview.app/Contents/plugins/android-layoutlib-native/lib/android-layoutlib-native.jar
-Android Studio Preview.app/Contents/plugins/android-layoutlib-native/lib/layoutlib-api.jar
-Android Studio Preview.app/Contents/plugins/android-layoutlib-native/lib/layoutlib_native.jar
+Android Studio Preview.app/Contents/plugins/android-layoutlib-legacy/lib/android-layoutlib-legacy.jar
+Android Studio Preview.app/Contents/plugins/android-layoutlib-legacy/lib/layoutlib-api.jar
+Android Studio Preview.app/Contents/plugins/android-layoutlib-legacy/lib/layoutlib_legacy.jar
 Android Studio Preview.app/Contents/plugins/android-layoutlib/lib/android-layoutlib.jar
 Android Studio Preview.app/Contents/plugins/android-layoutlib/lib/layoutlib-api.jar
 Android Studio Preview.app/Contents/plugins/android-layoutlib/lib/layoutlib.jar

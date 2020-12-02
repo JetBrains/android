@@ -14,18 +14,11 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-  <id>com.android.layoutlib.native</id>
-  <name>Layoutlib Native</name>
+  <id>com.android.layoutlib.legacy</id>
+  <name>Layoutlib Legacy</name>
   <version>1.0</version>
   <vendor>Google</vendor>
 
   <description>Provides a library for rendering Android resources</description>
-
-  <application-components>
-    <component>
-      <implementation-class>com.android.layoutlib.NativeCrashHandling</implementation-class>
-      <headless-implementation-class/>
-    </component>
-  </application-components>
 
 </idea-plugin>
