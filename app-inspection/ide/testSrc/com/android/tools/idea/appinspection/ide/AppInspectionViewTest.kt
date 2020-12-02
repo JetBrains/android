@@ -24,21 +24,17 @@ import com.android.tools.idea.appinspection.ide.resolver.TestArtifactResolver
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
-import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverRequest
-import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverResult
-import com.android.tools.idea.appinspection.inspector.ide.resolver.FailureResult
-import com.android.tools.idea.appinspection.inspector.ide.resolver.SuccessfulResult
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID_2
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID_3
 import com.android.tools.idea.appinspection.test.TEST_ARTIFACT
 import com.android.tools.idea.appinspection.test.TEST_JAR
+import com.android.tools.idea.appinspection.test.TEST_JAR_PATH
 import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.appinspection.test.createCreateInspectorResponse
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -64,6 +60,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.nio.file.Path
 
 class TestAppInspectorTabProvider1 : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID)
 class TestAppInspectorTabProvider2 : AppInspectorTabProvider by StubTestAppInspectorTabProvider(
@@ -611,7 +608,6 @@ class AppInspectionViewTest {
   @Test
   fun launchLibraryInspectors() = runBlocking<Unit> {
     val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
-    val resolvedJar = AppInspectorJar("resolved")
     val resolvedInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID) {
       override val inspectorLaunchParams = LibraryInspectorLaunchParams(
         TEST_JAR, TEST_ARTIFACT
@@ -631,14 +627,11 @@ class AppInspectionViewTest {
     }
 
     val resolver = object : ArtifactResolver {
-      override suspend fun <T : ArtifactResolverRequest> resolveArtifacts(requests: List<T>,
-                                                                          project: Project): List<ArtifactResolverResult<T>> {
-        return requests.map {
-          if (it.artifactCoordinate.groupId == "unresolvable") {
-            FailureResult(it)
-          } else {
-            SuccessfulResult(it, resolvedJar)
-          }
+      override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path? {
+        return if (artifactCoordinate.groupId == "unresolvable") {
+          null
+        } else {
+          TEST_JAR_PATH
         }
       }
     }

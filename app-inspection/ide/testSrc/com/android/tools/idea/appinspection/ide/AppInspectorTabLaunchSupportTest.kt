@@ -24,10 +24,6 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
-import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverRequest
-import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverResult
-import com.android.tools.idea.appinspection.inspector.ide.resolver.FailureResult
-import com.android.tools.idea.appinspection.inspector.ide.resolver.SuccessfulResult
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createFakeProcessDescriptor
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
@@ -46,6 +42,8 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.nio.file.Path
+import java.nio.file.Paths
 
 
 class AppInspectorTabLaunchSupportTest {
@@ -91,14 +89,11 @@ class AppInspectorTabLaunchSupportTest {
   @Test
   fun getApplicableTabProviders() = runBlocking<Unit> {
     val resolver = object : ArtifactResolver {
-      override suspend fun <T : ArtifactResolverRequest> resolveArtifacts(requests: List<T>,
-                                                                          project: Project): List<ArtifactResolverResult<T>> {
-        return requests.map {
-          if (it.artifactCoordinate == unresolvedLibrary) {
-            FailureResult(it)
-          } else {
-            SuccessfulResult(it, resolvedJar)
-          }
+      override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path? {
+        return if (artifactCoordinate == unresolvedLibrary) {
+          null
+        } else {
+          Paths.get("resolved", "jar")
         }
       }
     }
@@ -157,7 +152,7 @@ class AppInspectorTabLaunchSupportTest {
           assertThat(tab.jar).isSameAs(TEST_JAR)
         }
         else -> {
-          assertThat(tab.jar).isSameAs(resolvedJar)
+          assertThat(tab.jar).isEqualTo(AppInspectorJar("jar", "resolved", "resolved"))
         }
       }
     }

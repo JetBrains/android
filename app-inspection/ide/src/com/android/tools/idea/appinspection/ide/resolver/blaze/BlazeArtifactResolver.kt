@@ -19,14 +19,11 @@ import com.android.tools.idea.appinspection.ide.resolver.AppInspectorJarPaths
 import com.android.tools.idea.appinspection.ide.resolver.http.HttpArtifactResolver
 import com.android.tools.idea.appinspection.ide.resolver.moduleSystem.ModuleSystemArtifactResolver
 import com.android.tools.idea.appinspection.inspector.api.io.FileService
+import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
-import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverRequest
-import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverResult
-import com.android.tools.idea.appinspection.inspector.ide.resolver.FailureResult
-import com.android.tools.idea.appinspection.inspector.ide.resolver.SuccessfulResult
 import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+import java.nio.file.Path
 
 /**
  * Special handling for blaze projects:
@@ -59,17 +56,11 @@ class BlazeArtifactResolver @TestOnly constructor(
     jarPaths: AppInspectorJarPaths
   ) : this(jarPaths, HttpArtifactResolver(fileService, jarPaths), ModuleSystemArtifactResolver(jarPaths))
 
-  override suspend fun <T : ArtifactResolverRequest> resolveArtifacts(requests: List<T>,
-                                                                      project: Project): List<ArtifactResolverResult<T>> {
-    val failedRequests = httpArtifactResolver.resolveArtifacts(requests, project)
-      .filterIsInstance<FailureResult<T>>()
-      .map { it.request }
-    moduleSystemArtifactResolver.resolveArtifacts(failedRequests, project)
-
-    return requests.map { request ->
-      jarPaths.getInspectorJar(request.artifactCoordinate)?.let {
-        SuccessfulResult(request, it)
-      } ?: FailureResult(request)
+  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path? {
+    if (httpArtifactResolver.resolveArtifact(artifactCoordinate, project) == null) {
+      moduleSystemArtifactResolver.resolveArtifact(artifactCoordinate, project)
     }
+
+    return jarPaths.getInspectorJar((artifactCoordinate))
   }
 }

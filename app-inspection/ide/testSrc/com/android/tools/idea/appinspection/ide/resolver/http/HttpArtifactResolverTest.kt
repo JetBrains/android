@@ -19,10 +19,8 @@ import com.android.repository.api.Downloader
 import com.android.repository.api.ProgressIndicator
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.appinspection.ide.resolver.AppInspectorJarPaths
-import com.android.tools.idea.appinspection.ide.resolver.TestArtifactResolverRequest
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.service.TestFileService
-import com.android.tools.idea.appinspection.inspector.ide.resolver.SuccessfulResult
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.runBlocking
@@ -61,15 +59,11 @@ class HttpArtifactResolverTest {
 
 
     val resolver = HttpArtifactResolver(fileService, jarPaths, fakeDownloader)
-    val request = TestArtifactResolverRequest(
-      ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01", ArtifactCoordinate.Type.AAR))
-    val results = resolver.resolveArtifacts(listOf(request), androidProjectRule.project)
+    val request = ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01", ArtifactCoordinate.Type.AAR)
+    val jar = resolver.resolveArtifact(request, androidProjectRule.project)
 
-    assertThat(results).hasSize(1)
-
-    val result = results[0] as SuccessfulResult<TestArtifactResolverRequest>
-    assertThat(result.request).isSameAs(request)
-    assertThat(result.jar.name).isEqualTo("inspector.jar")
-    assertThat(jarPaths.getInspectorJar(request.artifactCoordinate)).isSameAs(result.jar)
+    assertThat(jar).isNotNull()
+    assertThat(jar!!.fileName.toString()).isEqualTo("inspector.jar")
+    assertThat(jarPaths.getInspectorJar(request)).isSameAs(jar)
   }
 }

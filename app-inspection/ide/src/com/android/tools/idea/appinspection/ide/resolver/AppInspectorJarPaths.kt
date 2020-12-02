@@ -16,7 +16,6 @@
 package com.android.tools.idea.appinspection.ide.resolver
 
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.io.FileService
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.google.common.annotations.VisibleForTesting
@@ -37,7 +36,10 @@ const val INSPECTOR_JARS_DIR = "inspector-jars"
 private const val INSPECTOR_JAR = "inspector.jar"
 
 /**
- * This class exposes functionality that allows user to access and populate inspector jars on a simple file system cache.
+ * This class supports file system cache functionality so the framework can query for,
+ * as well as populate new inspector jars.
+ *
+ * It is an internal class not meant to be exposed to users.
  *
  * Note the inspector jars are keyed by their respective library's [ArtifactCoordinate].
  *
@@ -53,17 +55,17 @@ class AppInspectorJarPaths(private val fileService: FileService) {
    *
    * Concurrent data structure is used here because it could be accessed by multiple threads at the same time.
    */
-  private val jars = ConcurrentHashMap<ArtifactCoordinate, AppInspectorJar>()
+  private val jars = ConcurrentHashMap<ArtifactCoordinate, Path>()
 
   /**
    * Gets the cached inspector jar based on the provided coordinate. Null if it's not in cache.
    */
-  fun getInspectorJar(inspector: ArtifactCoordinate): AppInspectorJar? {
+  fun getInspectorJar(inspector: ArtifactCoordinate): Path? {
     if (!jars.containsKey(inspector)) {
       val cachePath = fileService.getOrCreateCacheDir(INSPECTOR_JARS_DIR)
       val jarPath = Paths.get(cachePath.toString(), inspector.groupId, inspector.artifactId, inspector.version, INSPECTOR_JAR)
       if (jarPath.exists()) {
-        jars[inspector] = AppInspectorJar(INSPECTOR_JAR, jarPath.parent.toString(), jarPath.parent.toString())
+        jars[inspector] = jarPath
       }
     }
     return jars[inspector]
@@ -76,9 +78,7 @@ class AppInspectorJarPaths(private val fileService: FileService) {
   fun populateJars(inspectorJars: Map<ArtifactCoordinate, Path>) {
     inspectorJars.forEach { (url, path) ->
       try {
-        val jarPath = unzipInspectorJarFromLibrary(url, path)
-        jars[url] = AppInspectorJar(jarPath.fileName.toString(), jarPath.parent.toString(),
-                                    jarPath.parent.toString())
+        jars[url] = unzipInspectorJarFromLibrary(url, path)
       }
       catch (e: IOException) {
         Logger.getInstance(AppInspectorJarPaths::class.java).error(e)

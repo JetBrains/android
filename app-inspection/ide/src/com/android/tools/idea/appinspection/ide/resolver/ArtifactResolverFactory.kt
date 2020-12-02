@@ -31,7 +31,7 @@ class ArtifactResolverFactory @NonInjectable @TestOnly constructor(
   private val fileService: FileService
 ) : ArtifactResolverFactory {
   // This is used by intellij platform in reflection to create service.
-  constructor(): this(IdeFileService("app-inspection"))
+  constructor() : this(IdeFileService("app-inspection"))
 
   private val jarPaths = AppInspectorJarPaths(fileService)
 
