@@ -19,9 +19,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Either a virtual device name returned by IDevice.getAvdName or a serial number returned by IDevice.getSerialNumber.
+ * Either a virtual device name returned by AvdInfo.getName and IDevice.getAvdName or a serial number returned by IDevice.getSerialNumber.
  * DevicesSelectedService wrote them as is, without a prefix (hence nonprefixed); now it writes them with "VirtualDeviceName@", etc prefixes
- * ("VirtualDeviceName@Pixel_4_API_30") to better ensure that virtual device names aren't compared with serial numbers.
+ * ("VirtualDeviceName@Pixel_4_API_30") to better ensure that AsyncDevicesGetter doesn't match virtual device names with serial numbers.
+ *
+ * <p>Eventually no user will have persisted nonprefixed keys. At that point this class can be deleted.
  */
 final class NonprefixedKey extends Key {
   private final @NotNull String myValue;
@@ -38,11 +40,6 @@ final class NonprefixedKey extends Key {
   @Override
   @NotNull NonprefixedKey asNonprefixedKey() {
     return this;
-  }
-
-  @Override
-  @NotNull String getDeviceKey() {
-    return myValue;
   }
 
   @Override

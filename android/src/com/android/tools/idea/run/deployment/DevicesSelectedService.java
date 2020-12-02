@@ -150,7 +150,10 @@ final class DevicesSelectedService {
       properties.unsetValue(DEVICE_KEY_SELECTED_WITH_COMBO_BOX);
     }
     else {
-      properties.setValue(DEVICE_KEY_SELECTED_WITH_COMBO_BOX, targetSelectedWithComboBox.getDeviceKey().toString());
+      Object key = targetSelectedWithComboBox.getDeviceKey();
+      assert !(key instanceof NonprefixedKey);
+
+      properties.setValue(DEVICE_KEY_SELECTED_WITH_COMBO_BOX, key.toString());
       properties.setValue(TIME_DEVICE_KEY_WAS_SELECTED_WITH_COMBO_BOX, myClock.instant().toString());
     }
   }
@@ -195,8 +198,8 @@ final class DevicesSelectedService {
 
   void setTargetsSelectedWithDialog(@NotNull Set<@NotNull Target> targetsSelectedWithDialog) {
     String[] array = targetsSelectedWithDialog.stream()
-      .map(Target::getDeviceKey)
-      .map(Key::toString)
+      .map(DevicesSelectedService::getDeviceKey)
+      .map(Object::toString)
       .toArray(String[]::new);
 
     PropertiesComponent properties = myPropertiesComponentGetInstance.apply(myProject);
@@ -207,5 +210,12 @@ final class DevicesSelectedService {
     else {
       properties.setValues(DEVICE_KEYS_SELECTED_WITH_DIALOG, array);
     }
+  }
+
+  private static @NotNull Object getDeviceKey(@NotNull Target target) {
+    Object key = target.getDeviceKey();
+    assert !(key instanceof NonprefixedKey);
+
+    return key;
   }
 }

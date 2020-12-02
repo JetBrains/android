@@ -19,7 +19,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A virtual device path returned by AvdInfo.getDataFolderPath and IDevice.getAvdPath
+ * A virtual device path returned by AvdInfo.getDataFolderPath and IDevice.getAvdPath. These are the primary virtual device identifiers and
+ * should be used over virtual device names and serial numbers if possible.
  */
 final class VirtualDevicePath extends Key {
   static final String PREFIX = "VirtualDevicePath@";
@@ -36,11 +37,6 @@ final class VirtualDevicePath extends Key {
   @Override
   @NotNull NonprefixedKey asNonprefixedKey() {
     return new NonprefixedKey(myValue);
-  }
-
-  @Override
-  @NotNull String getDeviceKey() {
-    return myValue;
   }
 
   @Override

@@ -148,7 +148,7 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
     }
 
     if (myDeviceNameMultiset.count(device.getName()) != 1) {
-      return device.getKey().getDeviceKey();
+      return device.getKey().asNonprefixedKey().toString();
     }
 
     return "";
