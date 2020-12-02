@@ -17,7 +17,6 @@ PROJECT             : project
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : false
-            BuildFolderPath     : <PROJECT>/build [-]
         CONENT_ENTRY        : file://<PROJECT>
             EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER      : file://<PROJECT>/build [-]

@@ -17,7 +17,6 @@ PROJECT             : testWithBuildSrc
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : false
-            BuildFolderPath     : <PROJECT>/build [-]
         CONENT_ENTRY        : file://<PROJECT>
             EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER      : file://<PROJECT>/build [-]
@@ -576,7 +575,6 @@ PROJECT             : testWithBuildSrc
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : true
-            BuildFolderPath     : <PROJECT>/buildSrc/build
         CONENT_ENTRY        : file://<PROJECT>/buildSrc
             JavaSource          : file://<PROJECT>/buildSrc/src/main/java
             EXCLUDE_FOLDER      : file://<PROJECT>/buildSrc/.gradle
@@ -667,7 +665,6 @@ PROJECT             : testWithBuildSrc
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : true
-            BuildFolderPath     : <PROJECT>/buildSrc/lib1/build
         CONENT_ENTRY        : file://<PROJECT>/buildSrc/lib1
             JavaSource          : file://<PROJECT>/buildSrc/lib1/src/main/java
             EXCLUDE_FOLDER      : file://<PROJECT>/buildSrc/lib1/.gradle [-]
@@ -698,7 +695,6 @@ PROJECT             : testWithBuildSrc
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : true
-            BuildFolderPath     : <PROJECT>/buildSrc/lib2/build
         CONENT_ENTRY        : file://<PROJECT>/buildSrc/lib2
             JavaSource          : file://<PROJECT>/buildSrc/lib2/src/main/java
             EXCLUDE_FOLDER      : file://<PROJECT>/buildSrc/lib2/.gradle [-]

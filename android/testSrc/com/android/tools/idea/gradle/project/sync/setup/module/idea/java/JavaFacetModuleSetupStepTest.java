@@ -107,10 +107,8 @@ public class JavaFacetModuleSetupStepTest extends PlatformTestCase {
                                                boolean buildable) {
     assertSame(javaModel, facet.getJavaModuleModel());
     JavaFacetConfiguration configuration = facet.getConfiguration();
-    assertEquals(toSystemIndependentName(buildFolderPath.getPath()), configuration.BUILD_FOLDER_PATH);
     assertEquals(buildable, configuration.BUILDABLE);
 
-    verify(javaModel).getBuildFolderPath();
     verify(javaModel).isBuildable();
   }
 

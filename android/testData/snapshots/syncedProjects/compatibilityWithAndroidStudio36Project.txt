@@ -17,7 +17,6 @@ PROJECT             : AS36
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : false
-            BuildFolderPath     : <PROJECT>/build [-]
         CONENT_ENTRY        : file://<PROJECT>
             EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER      : file://<PROJECT>/build [-]
@@ -581,7 +580,6 @@ PROJECT             : AS36
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : false
-            BuildFolderPath     : <PROJECT>/features/build [-]
         CONENT_ENTRY        : file://<PROJECT>/features
             EXCLUDE_FOLDER      : file://<PROJECT>/features/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/features/build [-]
@@ -893,7 +891,6 @@ PROJECT             : AS36
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : false
-            BuildFolderPath     : <PROJECT>/libs/build [-]
         CONENT_ENTRY        : file://<PROJECT>/libs
             EXCLUDE_FOLDER      : file://<PROJECT>/libs/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/libs/build [-]
@@ -1457,7 +1454,6 @@ PROJECT             : AS36
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : true
-            BuildFolderPath     : <PROJECT>/libs/java_lib/build [-]
         CONENT_ENTRY        : file://<PROJECT>/libs/java_lib
             JavaSource          : file://<PROJECT>/libs/java_lib/src/main/java
             EXCLUDE_FOLDER      : file://<PROJECT>/libs/java_lib/.gradle [-]

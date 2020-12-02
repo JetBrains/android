@@ -177,7 +177,6 @@ PROJECT             : My Application
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : true
-            BuildFolderPath     : <PROJECT>/lib/build [-]
         CONENT_ENTRY        : file://<PROJECT>/lib
             JavaSource          : file://<PROJECT>/lib/src/main/java
             EXCLUDE_FOLDER      : file://<PROJECT>/lib/.gradle [-]
