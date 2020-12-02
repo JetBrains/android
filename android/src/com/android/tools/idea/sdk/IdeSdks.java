@@ -54,11 +54,13 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ex.ProjectEx;
@@ -104,13 +106,8 @@ public class IdeSdks {
   @NotNull private final EmbeddedDistributionPaths myEmbeddedDistributionPaths;
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final Map<String, LocalPackage> localPackagesByPrefix = new HashMap<>();
-  private boolean myUseJdkEnvVariable = false;
-  private boolean myIsJdkEnvVariableValid = false;
-  private Boolean myIsJdkEnvVariableDefined;
-  private File myEnvVariableJdkFile = null;
-  private String myEnvVariableJdkValue = null;
-  private Sdk myEnvVariableJdkSdk = null;
-  private final Object myEnvVariableLock = new Object();
+
+  private final EnvVariableSettings myEnvVariableSettings = new EnvVariableSettings();
 
   @NotNull
   public static IdeSdks getInstance() {
@@ -277,72 +274,28 @@ public class IdeSdks {
   }
 
   /**
+   * Clean environment variable settings initialization, this method should only be used by tests that called
+   * IdeSdks#initializeJdkEnvVariable(java.lang.String).
+   */
+  public void cleanJdkEnvVariableInitialization() {
+    myEnvVariableSettings.cleanInitialization();
+  }
+
+  /**
+   * Allow to override the value of the environment variable {JDK_LOCATION_ENV_VARIABLE_NAME}, this method should only be used by tests that
+   * need to use a different JDK from a thread that can perform write actions.
+   */
+  public void overrideJdkEnvVariable(@Nullable String envVariableValue) {
+    myEnvVariableSettings.overrideValue(envVariableValue);
+  }
+
+  /**
    * Indicate if the user has selected the JDK location pointed by {@value JDK_LOCATION_ENV_VARIABLE_NAME}. This is the default when Studio
    * starts with a valid {@value JDK_LOCATION_ENV_VARIABLE_NAME}.
    * @return {@code true} iff {@value JDK_LOCATION_ENV_VARIABLE_NAME} is valid and is the current JDK location selection.
    */
   public boolean isUsingEnvVariableJdk() {
-    synchronized (myEnvVariableLock) {
-      initializeJdkEnvVariable();
-      return myUseJdkEnvVariable;
-    }
-  }
-
-  public void initializeJdkEnvVariable() {
-    synchronized (myEnvVariableLock) {
-      if (myIsJdkEnvVariableDefined != null) {
-        return;
-      }
-      initializeJdkEnvVariable(System.getenv(JDK_LOCATION_ENV_VARIABLE_NAME));
-    }
-  }
-
-  public void cleanJdkEnvVariableInitialization() {
-    synchronized (myEnvVariableLock) {
-      myIsJdkEnvVariableDefined = null;
-    }
-  }
-
-  public void initializeJdkEnvVariable(@Nullable String envVariableValue) {
-    // Read env variable only once and initialize the rest of variables accordingly. myIsJdkEnvVariableDefined null means that this function
-    // has not been called yet.
-    synchronized (myEnvVariableLock) {
-      if (myIsJdkEnvVariableDefined != null) {
-        return;
-      }
-      myEnvVariableJdkValue = envVariableValue;
-      if (myEnvVariableJdkValue == null) {
-        // Environment variable is not defined.
-        myIsJdkEnvVariableDefined = Boolean.FALSE;
-        myEnvVariableJdkFile = null;
-        myIsJdkEnvVariableValid = false;
-        myUseJdkEnvVariable = false;
-        return;
-      }
-      myIsJdkEnvVariableDefined = Boolean.TRUE;
-      myEnvVariableJdkFile = validateJdkPath(new File(toSystemDependentName(myEnvVariableJdkValue)));
-      if (myEnvVariableJdkFile == null) {
-        // Environment variable is defined but not valid
-        LOG.warn("The provided JDK path is invalid: " + myEnvVariableJdkValue);
-        myIsJdkEnvVariableValid = false;
-        myUseJdkEnvVariable = false;
-        return;
-      }
-      try {
-        myEnvVariableJdkSdk = createJdk(myEnvVariableJdkFile);
-      }
-      catch (Throwable exc) {
-        LOG.warn("Could not use provided jdk from " + myEnvVariableJdkValue, exc);
-        // Environment variable is defined and a valid JDK but could not create Jdk from it
-        myIsJdkEnvVariableValid = false;
-        myUseJdkEnvVariable = false;
-        return;
-      }
-      // Environment variable is defined and valid
-      myIsJdkEnvVariableValid = true;
-      myUseJdkEnvVariable = true;
-      LOG.info("Using Gradle JDK from " + JDK_LOCATION_ENV_VARIABLE_NAME + "=" + myEnvVariableJdkValue);
-    }
+    return myEnvVariableSettings.isUseJdkEnvVariable();
   }
 
   /**
@@ -350,10 +303,7 @@ public class IdeSdks {
    * @return {@code true} iff the variable is defined
    */
   public boolean isJdkEnvVariableDefined() {
-    synchronized (myEnvVariableLock) {
-      initializeJdkEnvVariable();
-      return myIsJdkEnvVariableDefined;
-    }
+    return myEnvVariableSettings.isJdkEnvVariableDefined();
   }
 
   /**
@@ -362,10 +312,7 @@ public class IdeSdks {
    *          {@link IdeSdks#validateJdkPath(File)})
    */
   public boolean isJdkEnvVariableValid() {
-    synchronized (myEnvVariableLock) {
-      initializeJdkEnvVariable();
-      return myIsJdkEnvVariableValid;
-    }
+    return myEnvVariableSettings.IsJdkEnvVariableValid();
   }
 
   /**
@@ -374,10 +321,7 @@ public class IdeSdks {
    */
   @Nullable
   public File getEnvVariableJdkFile() {
-    synchronized (myEnvVariableLock) {
-      initializeJdkEnvVariable();
-      return myEnvVariableJdkFile;
-    }
+    return myEnvVariableSettings.getJdkFile();
   }
 
 
@@ -387,27 +331,17 @@ public class IdeSdks {
    */
   @Nullable
   public String getEnvVariableJdkValue() {
-    synchronized (myEnvVariableLock) {
-      initializeJdkEnvVariable();
-      return myEnvVariableJdkValue;
-    }
+    return myEnvVariableSettings.getVariableValue();
   }
 
   /**
    * Indicate if {@value JDK_LOCATION_ENV_VARIABLE_NAME} should be used as JDK location or not. This setting can be changed iff the
    * environment variable points to a valid JDK location.
-   * @param useJdkEnvVariable
+   * @param useJdkEnvVariable indicates is the environment variable should be used or not.
    * @return {@code true} if this setting can be changed.
    */
   public boolean setUseEnvVariableJdk(boolean useJdkEnvVariable) {
-    synchronized (myEnvVariableLock) {
-      initializeJdkEnvVariable();
-      if (!isJdkEnvVariableValid()) {
-        return false;
-      }
-      myUseJdkEnvVariable = useJdkEnvVariable;
-      return true;
-    }
+    return myEnvVariableSettings.setUseJdkEnvVariable(useJdkEnvVariable);
   }
 
   /**
@@ -834,10 +768,8 @@ public class IdeSdks {
   @Nullable
   public Sdk getJdk() {
     // b/161405154  If STUDIO_GRADLE_JDK is valid and selected then return the corresponding Sdk
-    synchronized (myEnvVariableLock) {
-      if (isUsingEnvVariableJdk()) {
-        return myEnvVariableJdkSdk;
-      }
+    if (myEnvVariableSettings.isUseJdkEnvVariable()) {
+      return myEnvVariableSettings.getSdk();
     }
     return getJdk(getRunningVersionOrDefault());
   }
@@ -1093,5 +1025,163 @@ public class IdeSdks {
     }
     JavaSdkVersion version = Jdks.getInstance().findVersion(jdkLocation);
     return version != null && version.compareTo(expectedVersion) == 0;
+  }
+
+  private class EnvVariableSettings {
+    private Sdk mySdk;
+    private String myVariableValue;
+    private File myJdkFile;
+    private boolean myUseJdkEnvVariable;
+    private boolean myInitialized;
+    private final Object myInitializationLock = new Object();
+
+    public EnvVariableSettings() {
+      cleanInitialization();
+    }
+
+    public void cleanInitialization() {
+      synchronized (myInitializationLock) {
+        myVariableValue = null;
+        myJdkFile = null;
+        mySdk = null;
+        myUseJdkEnvVariable = false;
+        myInitialized = false;
+      }
+    }
+
+    private void initialize() {
+      synchronized (myInitializationLock) {
+        if (myInitialized) {
+          return;
+        }
+      }
+      initialize(System.getenv(JDK_LOCATION_ENV_VARIABLE_NAME));
+    }
+
+    public boolean isUseJdkEnvVariable() {
+      initialize();
+      return myUseJdkEnvVariable;
+    }
+
+    boolean isJdkEnvVariableDefined() {
+      initialize();
+      return myVariableValue != null;
+    }
+
+    public boolean IsJdkEnvVariableValid() {
+      initialize();
+      return mySdk != null;
+    }
+
+    public File getJdkFile() {
+      initialize();
+      return myJdkFile;
+    }
+
+    public Sdk getSdk() {
+      initialize();
+      return mySdk;
+    }
+
+    public String getVariableValue() {
+      initialize();
+      return myVariableValue;
+    }
+
+    public boolean setUseJdkEnvVariable(boolean use) {
+      initialize();
+      // Allow changes only when the Jdk is valid.
+      if (!this.IsJdkEnvVariableValid()) {
+        return false;
+      }
+      myUseJdkEnvVariable = use;
+      return true;
+    }
+
+    private void setInitialization(@Nullable String variableValue, @Nullable File jdkFile, @Nullable Sdk sdk) {
+      myVariableValue = variableValue;
+      myJdkFile = jdkFile;
+      mySdk = sdk;
+      myUseJdkEnvVariable = (variableValue != null) && (jdkFile != null) && (sdk != null);
+      myInitialized = true;
+    }
+
+    private void setNotDefined() {
+      setInitialization(/* envVariableValue */ null, /* file */ null, /* sdk */null);
+    }
+
+    private void setDefinedButInvalid(@NotNull String envVariableValue) {
+      setInitialization(envVariableValue, /* file */ null, /* sdk */null);
+    }
+
+    private void setValid(@NotNull String envVariableValue, @NotNull File envVariableJdkFile, @NotNull Sdk envVariableJdkSdk) {
+      setInitialization(envVariableValue, envVariableJdkFile, envVariableJdkSdk);
+    }
+
+    private void initialize(@Nullable String value) {
+      // Read env variable only once and initialize the settings accordingly. myEnvVariableSettings null means that this function has not been
+      // called yet.
+      File envVariableJdkFile;
+      synchronized (myInitializationLock) {
+        if (myInitialized) {
+          return;
+        }
+        if (value == null) {
+          setNotDefined();
+          return;
+        }
+        envVariableJdkFile = validateJdkPath(new File(toSystemDependentName(value)));
+        if (envVariableJdkFile == null) {
+          setDefinedButInvalid(value);
+          LOG.warn("The provided JDK path is invalid: " + value);
+          return;
+        }
+      }
+      // Environment variable is defined and valid, make sure it is safe to use EDT to prevent a deadlock (b/174675513)
+      File finalEnvVariableJdkFile = envVariableJdkFile;
+      Runnable createJdkTask = () -> {
+        synchronized (myInitializationLock) {
+          // Check initialization again (another thread could have called this already when waiting for EDT)
+          if (!myInitialized) {
+            try {
+              @Nullable Sdk jdk = createJdk(finalEnvVariableJdkFile);
+              if (jdk != null) {
+                setValid(value, finalEnvVariableJdkFile, jdk);
+                LOG.info("Using Gradle JDK from " + JDK_LOCATION_ENV_VARIABLE_NAME + "=" + value);
+              }
+              else {
+                setDefinedButInvalid(value);
+                LOG.warn("Could not use provided jdk from " + value);
+              }
+            }
+            catch (Throwable exc) {
+              setDefinedButInvalid(value);
+              LOG.warn("Could not use provided jdk from " + value, exc);
+            }
+          }
+        }
+      };
+      Application application = ApplicationManager.getApplication();
+      boolean onReadAction = application.isReadAccessAllowed();
+      boolean hasWriteIntendLock = application.isWriteThread();
+      if (onReadAction && !hasWriteIntendLock) {
+        // Cannot initialize if write access is not allowed since this would cause a deadlock while waiting for EDT.
+        application.invokeLater(createJdkTask);
+        throw new AssertionError("Cannot create JDK from a read action without write intend");
+      }
+      else {
+        application.invokeAndWait(createJdkTask);
+      }
+    }
+
+    public void overrideValue(@Nullable String value) {
+      ExternalSystemApiUtil.doWriteAction(() -> {
+        // Need to lock initialization to prevent other threads to use the environment variable instead of the override value.
+        synchronized (myInitializationLock) {
+          myInitialized = false;
+          initialize(value);
+        }
+      });
+    }
   }
 }
