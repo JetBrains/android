@@ -43,7 +43,6 @@ import com.android.tools.idea.editors.setupOnSaveListener
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_BUILD_ON_SAVE
-import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.util.BuildListener
 import com.android.tools.idea.gradle.util.setupBuildListener
 import com.android.tools.idea.rendering.RenderService
@@ -641,7 +640,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override fun status(): ComposePreviewManager.Status {
     val isRefreshing = (refreshCallsCount.get() > 0 ||
                         DumbService.isDumb(project) ||
-                        GradleBuildState.getInstance(project).isBuildInProgress)
+                        projectBuildStatusManager.isBuilding)
 
     // If we are refreshing, we avoid spending time checking other conditions like errors or if the preview
     // is out of date.

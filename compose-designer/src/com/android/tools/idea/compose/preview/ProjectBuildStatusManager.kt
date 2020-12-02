@@ -24,6 +24,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.PsiFile
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Consumer
 
 /** The project status */
@@ -55,6 +56,7 @@ class ProjectBuildStatusManager(parentDisposable: Disposable, editorFile: PsiFil
   private val modificationTracker: ModificationTracker = editorFile.virtualFile
   private var lastModificationCount = modificationTracker.modificationCount
   private val project: Project = editorFile.project
+  private val _isBuilding = AtomicBoolean(false)
   var status: ProjectStatus = NotReady
     get() = if (isBuildOutOfDate()) {
       OutOfDate
@@ -66,10 +68,12 @@ class ProjectBuildStatusManager(parentDisposable: Disposable, editorFile: PsiFil
         field = value
       }
     }
+  val isBuilding: Boolean get() = _isBuilding.get()
 
   init {
     ProjectSystemService.getInstance(project).projectSystem.getBuildManager().addBuildListener(parentDisposable, object : ProjectSystemBuildManager.BuildListener {
       override fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) {
+        _isBuilding.set(true)
         LOG.debug("buildStarted $mode")
         if (mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
           status = NeedsBuild
@@ -77,6 +81,7 @@ class ProjectBuildStatusManager(parentDisposable: Disposable, editorFile: PsiFil
       }
 
       override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
+        _isBuilding.set(false)
         LOG.debug("buildFinished $result")
         lastModificationCount = modificationTracker.modificationCount
         if (result.mode == ProjectSystemBuildManager.BuildMode.CLEAN) return
