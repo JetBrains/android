@@ -29,6 +29,7 @@ import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResol
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverRequest
 import com.android.tools.idea.appinspection.inspector.ide.resolver.FailureResult
 import com.android.tools.idea.appinspection.inspector.ide.resolver.SuccessfulResult
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.project.Project
 import javax.swing.JComponent
 
@@ -60,6 +61,14 @@ class AppInspectorTabLaunchSupport(
                                      provider -> provider.isApplicable() && provider.inspectorLaunchParams is LibraryInspectorLaunchParams
                                    }
                                    .takeIf { it.isNotEmpty() } ?: return emptyList()
+
+    if (StudioFlags.ENABLE_APP_INSPECTION_DEV_MODE.get()) {
+      // If in dev mode, launch with the provided development inspector jar.
+      return applicableTabProviders
+        .map {
+          LaunchableInspectorTabLaunchParams(it, it.inspectorLaunchParams.inspectorAgentJar)
+        }
+    }
 
     // Build a map of ArtifactCoordinate -> AppInspectorTabProvider for easy reverse lookup in the following code.
     val artifactToProvider = applicableTabProviders.associateBy {
@@ -117,7 +126,6 @@ class AppInspectorTabLaunchSupport(
       .filter { it.isApplicable() && it.inspectorLaunchParams is FrameworkInspectorLaunchParams }
       .map { LaunchableInspectorTabLaunchParams(it, it.inspectorLaunchParams.inspectorAgentJar) }
   }
-
 
   suspend fun getApplicableTabLaunchParams(process: ProcessDescriptor): List<InspectorTabLaunchParams> {
     return getApplicableFrameworkInspectors() + getApplicableLibraryInspectors(process)

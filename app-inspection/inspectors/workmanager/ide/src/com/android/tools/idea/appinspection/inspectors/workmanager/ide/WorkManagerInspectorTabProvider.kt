@@ -41,8 +41,7 @@ class WorkManagerInspectorTabProvider : AppInspectorTabProvider {
   override val icon: Icon = StudioIcons.LayoutEditor.Palette.LIST_VIEW
   override val inspectorLaunchParams = LibraryInspectorLaunchParams(
     AppInspectorJar("workmanager-inspection.jar",
-                    developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/work/",
-                    releaseDirectory = "plugins/android/resources/app-inspection/"),
+                    developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/work/"),
     ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01", ArtifactCoordinate.Type.AAR)
   )
 
