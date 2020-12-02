@@ -121,8 +121,7 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
    * Confirm that setting Jdk path also changes the result of isUsingEnvVariableJdk
    */
   public void testIsUsingEnvVariableJdk() {
-    myIdeSdks.cleanJdkEnvVariableInitialization();
-    myIdeSdks.initializeJdkEnvVariable(myInitialJdkPath.getAbsolutePath());
+    myIdeSdks.overrideJdkEnvVariable(myInitialJdkPath.getAbsolutePath());
     assertThat(myIdeSdks.isUsingEnvVariableJdk()).isTrue();
     ApplicationManager.getApplication().runWriteAction(() -> {myIdeSdks.setJdkPath(myJavaHomePath);});
     assertThat(myIdeSdks.isUsingEnvVariableJdk()).isFalse();

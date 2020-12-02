@@ -227,7 +227,7 @@ public class IdeSdksTest extends PlatformTestCase {
   }
 
   public void testJdkEnvVariableNotDefined() {
-    myIdeSdks.initializeJdkEnvVariable(null);
+    myIdeSdks.overrideJdkEnvVariable(null);
     assertThat(myIdeSdks.isJdkEnvVariableDefined()).isFalse();
     assertThat(myIdeSdks.isJdkEnvVariableValid()).isFalse();
     assertThat(myIdeSdks.getEnvVariableJdkFile()).isNull();
@@ -239,7 +239,7 @@ public class IdeSdksTest extends PlatformTestCase {
 
   public void testJdkEnvVariableNotValid() {
     String invalidPath = "not_a_valid_path";
-    myIdeSdks.initializeJdkEnvVariable(invalidPath);
+    myIdeSdks.overrideJdkEnvVariable(invalidPath);
     assertThat(myIdeSdks.isJdkEnvVariableDefined()).isTrue();
     assertThat(myIdeSdks.isJdkEnvVariableValid()).isFalse();
     assertThat(myIdeSdks.getEnvVariableJdkFile()).isNull();
@@ -251,7 +251,7 @@ public class IdeSdksTest extends PlatformTestCase {
 
   public void testJdkEnvVariableValid() {
     String validPath = IdeSdks.getJdkFromJavaHome();
-    myIdeSdks.initializeJdkEnvVariable(validPath);
+    myIdeSdks.overrideJdkEnvVariable(validPath);
     assertThat(myIdeSdks.isJdkEnvVariableDefined()).isTrue();
     assertThat(myIdeSdks.isJdkEnvVariableValid()).isTrue();
     assertThat(myIdeSdks.getEnvVariableJdkFile()).isEqualTo(new File(validPath));
