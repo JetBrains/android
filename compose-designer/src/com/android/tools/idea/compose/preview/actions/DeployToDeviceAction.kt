@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
+import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfiguration
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType
@@ -41,14 +42,21 @@ import org.jetbrains.kotlin.idea.util.module
  */
 internal class DeployToDeviceAction(private val dataContextProvider: () -> DataContext)
   : AnAction(message("action.deploy.title"), null, RUN_ON_DEVICE) {
+
   override fun actionPerformed(e: AnActionEvent) {
-    dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT)?.let {
+    previewElement()?.let {
       val psiElement = it.previewBodyPsi?.element
       val project = psiElement?.project ?: return@actionPerformed
       val module = psiElement.module ?: return@actionPerformed
 
       runPreviewConfiguration(project, module, it)
     }
+  }
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    e.presentation.isEnabled = !isRefreshing()
+                               && previewElement()?.previewBodyPsi?.element?.module?.isNonLibraryAndroidModule() == true
   }
 
   private fun runPreviewConfiguration(project: Project, module: Module, previewElement: PreviewElement) {
@@ -76,11 +84,7 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
     ProgramRunnerUtil.executeConfiguration(configurationAndSettings, DefaultRunExecutor.getRunExecutorInstance())
   }
 
-  override fun update(e: AnActionEvent) {
-    super.update(e)
-    // TODO(b/152183978): listen to gradle events to disable the button when build is in progress.
-    val dataContext = dataContextProvider()
-    e.presentation.isEnabled =
-      dataContext.getData(COMPOSE_PREVIEW_ELEMENT)?.previewBodyPsi?.element?.module?.isNonLibraryAndroidModule() == true
-  }
+  private fun previewElement() = dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT)
+
+  private fun isRefreshing() = dataContextProvider().getData(COMPOSE_PREVIEW_MANAGER)?.status()?.isRefreshing == true
 }
