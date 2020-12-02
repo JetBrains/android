@@ -26,11 +26,9 @@ import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvide
 import com.android.tools.idea.appinspection.inspector.ide.FrameworkInspectorLaunchParams
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
-import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverRequest
-import com.android.tools.idea.appinspection.inspector.ide.resolver.FailureResult
-import com.android.tools.idea.appinspection.inspector.ide.resolver.SuccessfulResult
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.project.Project
+import java.nio.file.Path
 import javax.swing.JComponent
 
 /**
@@ -87,7 +85,7 @@ class AppInspectorTabLaunchSupport(
 
     // The inspectors for these compatible libraries need to be resolved.
     val resolvableInfos = compatibleLibraries.map {
-      DefaultArtifactResolverRequest(artifactToProvider[it.libraryCoordinate]!!, it.getTargetLibraryCoordinate())
+      InspectorJarContext(artifactToProvider[it.libraryCoordinate]!!, it.getTargetLibraryCoordinate())
     }
 
     // Show a static info message for these incompatible inspectors.
@@ -100,22 +98,23 @@ class AppInspectorTabLaunchSupport(
   }
 
   private suspend fun processCompatibleLibraries(
-    resolvableLibraries: List<DefaultArtifactResolverRequest>
+    resolvableLibraries: List<InspectorJarContext>
   ): List<InspectorTabLaunchParams> {
-    val resolvedArtifacts = artifactResolver.resolveArtifacts(resolvableLibraries, project)
+    val artifacts = resolvableLibraries.associateWith { artifactResolver.resolveArtifact(it.targetLibrary, project) }
+
+    // Partition the artifacts based on whether they were resolved or not.
+    val (resolved, unresolved) = artifacts.entries.partition { it.value != null }
 
     // These are inspector tabs whose jars we managed to resolve and can launch.
-    val resolvedInspectorTabs = resolvedArtifacts
-      .filterIsInstance<SuccessfulResult<DefaultArtifactResolverRequest>>()
-      .map { result ->
-        LaunchableInspectorTabLaunchParams(result.request.provider, result.jar)
+    val resolvedInspectorTabs = resolved
+      .map { pair ->
+        LaunchableInspectorTabLaunchParams(pair.key.provider, pair.value!!.toAppInspectorJar())
       }
 
     // We didn't manage to resolve artifacts for these tabs, so we show an empty tab with an info message.
-    val unresolvedInspectorTabs = resolvedArtifacts
-      .filterIsInstance<FailureResult<DefaultArtifactResolverRequest>>()
-      .map { result ->
-        StaticInspectorTabLaunchParams(result.request.provider, result.request.artifactCoordinate.toUnresolvedInspectorMessage())
+    val unresolvedInspectorTabs = unresolved
+      .map { pair ->
+        StaticInspectorTabLaunchParams(pair.key.provider, pair.key.targetLibrary.toUnresolvedInspectorMessage())
       }
 
     return resolvedInspectorTabs + unresolvedInspectorTabs
@@ -130,12 +129,16 @@ class AppInspectorTabLaunchSupport(
   suspend fun getApplicableTabLaunchParams(process: ProcessDescriptor): List<InspectorTabLaunchParams> {
     return getApplicableFrameworkInspectors() + getApplicableLibraryInspectors(process)
   }
+
+  private fun Path.toAppInspectorJar(): AppInspectorJar {
+    return AppInspectorJar(fileName.toString(), parent.toString(), parent.toString())
+  }
 }
 
-private class DefaultArtifactResolverRequest(
+private class InspectorJarContext(
   val provider: AppInspectorTabProvider,
-  targetLibrary: ArtifactCoordinate
-) : ArtifactResolverRequest(targetLibrary)
+  val targetLibrary: ArtifactCoordinate
+)
 
 /**
  * Collects all of the information necessary to launch an inspector tab, live or dead, in [AppInspectionView].

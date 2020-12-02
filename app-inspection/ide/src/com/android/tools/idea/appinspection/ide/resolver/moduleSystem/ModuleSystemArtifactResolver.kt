@@ -20,14 +20,9 @@ import com.android.tools.idea.appinspection.api.toGradleCoordinate
 import com.android.tools.idea.appinspection.ide.resolver.AppInspectorJarPaths
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
-import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverRequest
-import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverResult
-import com.android.tools.idea.appinspection.inspector.ide.resolver.FailureResult
-import com.android.tools.idea.appinspection.inspector.ide.resolver.SuccessfulResult
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.util.projectStructure.allModules
-import org.jetbrains.kotlin.utils.addToStdlib.cast
 import java.nio.file.Path
 
 /**
@@ -41,26 +36,16 @@ import java.nio.file.Path
  * third_party repository.
  */
 class ModuleSystemArtifactResolver(private val jarPaths: AppInspectorJarPaths) : ArtifactResolver {
-  override suspend fun <T : ArtifactResolverRequest> resolveArtifacts(
-    requests: List<T>,
-    project: Project
-  ): List<ArtifactResolverResult<T>> {
-    requests.associate { request ->
+  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path? {
+    if (jarPaths.getInspectorJar(artifactCoordinate) == null) {
       var path: Path? = null
       for (module in project.allModules()) {
         val moduleSystem = project.getProjectSystem().getModuleSystem(module)
-        path = moduleSystem.getDependencyPath(request.artifactCoordinate.toGradleCoordinate()) ?: continue
+        path = moduleSystem.getDependencyPath(artifactCoordinate.toGradleCoordinate()) ?: continue
         break
       }
-      request.artifactCoordinate to path?.resolve(request.artifactCoordinate.blazeFileName)
-    }.filterValues { it != null }
-      .cast<Map<ArtifactCoordinate, Path>>()
-      .let { jarPaths.populateJars(it) }
-
-    return requests.map { request ->
-      jarPaths.getInspectorJar(request.artifactCoordinate)?.let { jar ->
-        SuccessfulResult(request, jar)
-      } ?: FailureResult(request)
+      path?.resolve(artifactCoordinate.blazeFileName)
     }
+    return jarPaths.getInspectorJar(artifactCoordinate)
   }
 }

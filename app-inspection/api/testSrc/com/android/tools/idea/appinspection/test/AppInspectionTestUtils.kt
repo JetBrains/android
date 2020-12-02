@@ -26,12 +26,16 @@ import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
+import java.nio.file.Path
+import java.nio.file.Paths
 
 const val INSPECTOR_ID = "test.inspector.1"
 const val INSPECTOR_ID_2 = "test.inspector.2"
 const val INSPECTOR_ID_3 = "test.inspector.3"
 
-val TEST_JAR = AppInspectorJar("test")
+val TEST_JAR_PATH: Path = Paths.get("test","resolved")
+val TEST_JAR = AppInspectorJar(TEST_JAR_PATH.fileName.toString(), TEST_JAR_PATH.parent.toString(), TEST_JAR_PATH.parent.toString())
+
 
 const val TEST_PROJECT = "test.project"
 
