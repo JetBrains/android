@@ -231,7 +231,7 @@ studio_plugin(
 )
 
 studio_plugin(
-    name = "com.android.layoutlib.standard",
+    name = "com.android.layoutlib",
     directory = "android-layoutlib",
     modules = {
         "android-layoutlib.jar": ["//tools/adt/idea/layoutlib:intellij.android.layoutlib"],
@@ -244,10 +244,10 @@ studio_plugin(
 )
 
 studio_plugin(
-    name = "com.android.layoutlib.native",
-    directory = "android-layoutlib-native",
+    name = "com.android.layoutlib.legacy",
+    directory = "android-layoutlib-legacy",
     modules = {
-        "android-layoutlib-native.jar": ["//tools/adt/idea/layoutlib-native:intellij.android.layoutlib-native"],
+        "android-layoutlib-legacy.jar": ["//tools/adt/idea/layoutlib-legacy:intellij.android.layoutlib-legacy"],
         "layoutlib-api.jar": ["//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api"],
     },
     provided = [
@@ -413,8 +413,8 @@ android_studio(
         ":org.jetbrains.android",
         ":com.android.tools.apk",
         ":com.android.tools.ndk",
-        ":com.android.layoutlib.standard",
-        ":com.android.layoutlib.native",
+        ":com.android.layoutlib",
+        ":com.android.layoutlib.legacy",
         ":androidx.compose.plugins.idea",
         ":com.google.services.firebase",
         ":com.google.gct.testing",
@@ -602,7 +602,7 @@ iml_module(
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module]",
         "//tools/vendor/google/android-apk[module]",
         "//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin[module]",
-        "//tools/adt/idea/layoutlib-native:intellij.android.layoutlib-native[module]",
+        "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module]",
         "//tools/vendor/google/android-ndk[module]",
         "//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as[module]",
         "//tools/vendor/google/firebase[module]",

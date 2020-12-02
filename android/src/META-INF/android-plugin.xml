@@ -25,8 +25,8 @@
   <depends>org.jetbrains.kotlin</depends>
 
   <!-- One of the layoutlib plugins is required -->
-  <depends optional="true" config-file="layoutlib-native.xml">com.android.layoutlib.native</depends>
-  <depends optional="true" config-file="layoutlib-standard.xml">com.android.layoutlib.standard</depends>
+  <depends optional="true" config-file="layoutlib.xml">com.android.layoutlib</depends>
+  <depends optional="true" config-file="layoutlib-legacy.xml">com.android.layoutlib.legacy</depends>
 
   <depends optional="true" config-file="androidstudio.xml">com.intellij.modules.androidstudio</depends>
   <depends optional="true" config-file="database-support.xml">com.intellij.database</depends>

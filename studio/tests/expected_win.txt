@@ -1461,9 +1461,9 @@ android-studio/plugins/Kotlin/lib/noarg-ide-plugin.jar
 android-studio/plugins/Kotlin/lib/sam-with-receiver-ide-plugin.jar
 android-studio/plugins/android-apk/lib/android-apk.jar
 android-studio/plugins/android-compose-ide-plugin/lib/android-compose-ide-plugin.jar
-android-studio/plugins/android-layoutlib-native/lib/android-layoutlib-native.jar
-android-studio/plugins/android-layoutlib-native/lib/layoutlib-api.jar
-android-studio/plugins/android-layoutlib-native/lib/layoutlib_native.jar
+android-studio/plugins/android-layoutlib-legacy/lib/android-layoutlib-legacy.jar
+android-studio/plugins/android-layoutlib-legacy/lib/layoutlib-api.jar
+android-studio/plugins/android-layoutlib-legacy/lib/layoutlib_legacy.jar
 android-studio/plugins/android-layoutlib/lib/android-layoutlib.jar
 android-studio/plugins/android-layoutlib/lib/layoutlib-api.jar
 android-studio/plugins/android-layoutlib/lib/layoutlib.jar

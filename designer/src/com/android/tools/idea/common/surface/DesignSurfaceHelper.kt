@@ -112,8 +112,8 @@ fun WorkBench<DesignSurface>.handleLayoutlibNativeCrash(runnable: Runnable) {
     if (StudioFlags.NELE_SHOW_LAYOUTLIB_LEGACY.get()) {
       ActionData("Switch to legacy rendering engine") {
         Bridge.setNativeCrash(false)
-        PluginManagerCore.disablePlugin("com.android.layoutlib.native")
-        PluginManagerCore.enablePlugin("com.android.layoutlib.standard")
+        PluginManagerCore.disablePlugin("com.android.layoutlib")
+        PluginManagerCore.enablePlugin("com.android.layoutlib.legacy")
         PluginManagerConfigurable.shutdownOrRestartApp()
       }
     }
