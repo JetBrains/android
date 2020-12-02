@@ -15,7 +15,7 @@
  */
 package com.android.layoutlib;
 
-import com.android.layoutlib.bridge.Bridge;
+import com.android.ide.common.rendering.api.Bridge;
 import com.intellij.internal.statistic.analytics.StudioCrashDetails;
 import com.intellij.internal.statistic.analytics.StudioCrashDetection;
 import com.intellij.openapi.components.BaseComponent;
