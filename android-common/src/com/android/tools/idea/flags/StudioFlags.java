@@ -1078,6 +1078,13 @@ public final class StudioFlags {
     "Enables the top-level App Inspection tool window, which will contain tabs to various feature inspectors",
     true
   );
+
+  public static final Flag<Boolean> ENABLE_APP_INSPECTION_DEV_MODE = Flag.create(
+    APP_INSPECTION, "enable.dev.mode", "Enable App Inspection Dev Mode",
+    "Enables development mode for App Inspection. Dev mode turns off features of bundling, which includes version checking " +
+    "and dynamic resolving of inspector artifacts from maven. This is useful for devs who want to load locally built inspectors.",
+    false
+  );
   // endregion
 
   // region WorkManager Inspector
