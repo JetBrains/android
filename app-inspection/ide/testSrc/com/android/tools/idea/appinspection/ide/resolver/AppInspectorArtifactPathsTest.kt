@@ -21,7 +21,7 @@ import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordin
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-class AppInspectorJarPathsTest {
+class AppInspectorArtifactPathsTest {
 
   @Test
   fun findJars() {
@@ -31,7 +31,7 @@ class AppInspectorJarPathsTest {
       override val tmpRoot = testData.resolve("tmp")
     }
 
-    val jarPaths = AppInspectorJarPaths(fileService)
+    val jarPaths = AppInspectorArtifactPaths(fileService)
     val basePath = fileService.getOrCreateCacheDir(INSPECTOR_JARS_DIR)
 
     val artifact1 = ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-alpha01", ArtifactCoordinate.Type.JAR)
@@ -39,9 +39,9 @@ class AppInspectorJarPathsTest {
     val artifact2 = ArtifactCoordinate("androidx.sqlite", "sqlite", "2.1.0", ArtifactCoordinate.Type.JAR)
     val artifact2Path = basePath.resolve("androidx.sqlite").resolve("sqlite").resolve("2.1.0").resolve("inspector.jar")
 
-    assertThat(jarPaths.getInspectorJar(artifact1)).isEqualTo(artifact1Path)
-    assertThat(jarPaths.getInspectorJar(artifact2)).isEqualTo(artifact2Path)
+    assertThat(jarPaths.getInspectorArchive(artifact1)).isEqualTo(artifact1Path)
+    assertThat(jarPaths.getInspectorArchive(artifact2)).isEqualTo(artifact2Path)
 
-    assertThat(jarPaths.getInspectorJar(ArtifactCoordinate("a", "b", "1.0.0", ArtifactCoordinate.Type.JAR))).isNull()
+    assertThat(jarPaths.getInspectorArchive(ArtifactCoordinate("a", "b", "1.0.0", ArtifactCoordinate.Type.JAR))).isNull()
   }
 }

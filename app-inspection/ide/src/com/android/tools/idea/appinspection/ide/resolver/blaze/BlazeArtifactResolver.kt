@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver.blaze
 
-import com.android.tools.idea.appinspection.ide.resolver.AppInspectorJarPaths
 import com.android.tools.idea.appinspection.ide.resolver.http.HttpArtifactResolver
 import com.android.tools.idea.appinspection.ide.resolver.moduleSystem.ModuleSystemArtifactResolver
 import com.android.tools.idea.appinspection.inspector.api.io.FileService
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.project.Project
-import org.jetbrains.annotations.TestOnly
 import java.nio.file.Path
 
 /**
@@ -46,21 +45,16 @@ import java.nio.file.Path
  * The file name is then computed from the maven coordinate, yielding:
  *   ${WORKSPACE_ROOT}/third_party/java/androidx/work/runtime/work-runtime.aar
  */
-class BlazeArtifactResolver @TestOnly constructor(
-  private val jarPaths: AppInspectorJarPaths,
+class BlazeArtifactResolver @VisibleForTesting constructor(
   private val httpArtifactResolver: ArtifactResolver,
   private val moduleSystemArtifactResolver: ArtifactResolver
 ) : ArtifactResolver {
   constructor(
     fileService: FileService,
-    jarPaths: AppInspectorJarPaths
-  ) : this(jarPaths, HttpArtifactResolver(fileService, jarPaths), ModuleSystemArtifactResolver(jarPaths))
+    project: Project
+  ) : this(HttpArtifactResolver(fileService), ModuleSystemArtifactResolver(project))
 
-  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path? {
-    if (httpArtifactResolver.resolveArtifact(artifactCoordinate, project) == null) {
-      moduleSystemArtifactResolver.resolveArtifact(artifactCoordinate, project)
-    }
-
-    return jarPaths.getInspectorJar((artifactCoordinate))
+  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path? {
+    return httpArtifactResolver.resolveArtifact(artifactCoordinate) ?: moduleSystemArtifactResolver.resolveArtifact(artifactCoordinate)
   }
 }

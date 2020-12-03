@@ -17,7 +17,6 @@ package com.android.tools.idea.appinspection.ide.resolver.moduleSystem
 
 import com.android.tools.idea.appinspection.api.blazeFileName
 import com.android.tools.idea.appinspection.api.toGradleCoordinate
-import com.android.tools.idea.appinspection.ide.resolver.AppInspectorJarPaths
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -35,17 +34,14 @@ import java.nio.file.Path
  * In blaze projects, this resolver looks at artifacts located inside google3's
  * third_party repository.
  */
-class ModuleSystemArtifactResolver(private val jarPaths: AppInspectorJarPaths) : ArtifactResolver {
-  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path? {
-    if (jarPaths.getInspectorJar(artifactCoordinate) == null) {
-      var path: Path? = null
-      for (module in project.allModules()) {
-        val moduleSystem = project.getProjectSystem().getModuleSystem(module)
-        path = moduleSystem.getDependencyPath(artifactCoordinate.toGradleCoordinate()) ?: continue
-        break
-      }
-      path?.resolve(artifactCoordinate.blazeFileName)
+class ModuleSystemArtifactResolver(private val project: Project) : ArtifactResolver {
+  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path? {
+    var path: Path? = null
+    for (module in project.allModules()) {
+      val moduleSystem = project.getProjectSystem().getModuleSystem(module)
+      path = moduleSystem.getDependencyPath(artifactCoordinate.toGradleCoordinate()) ?: continue
+      break
     }
-    return jarPaths.getInspectorJar(artifactCoordinate)
+    return path?.resolve(artifactCoordinate.blazeFileName)
   }
 }

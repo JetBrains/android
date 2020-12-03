@@ -17,8 +17,8 @@
   <depends>org.intellij.intelliLang</depends>
   <extensions defaultExtensionNs="com.intellij">
     <applicationService
-        serviceInterface="com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverFactory"
-        serviceImplementation="com.android.tools.idea.appinspection.ide.resolver.ArtifactResolverFactory"/>
+        serviceInterface="com.android.tools.idea.appinspection.ide.InspectorArtifactService"
+        serviceImplementation="com.android.tools.idea.appinspection.ide.InspectorArtifactServiceImpl"/>
     <facet.toolWindow id="App Inspection"
                       facetIdList="android,apk"
                       anchor="bottom"

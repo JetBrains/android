@@ -16,7 +16,6 @@
 package com.android.tools.idea.appinspection.inspector.ide.resolver
 
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
-import com.intellij.openapi.project.Project
 import java.nio.file.Path
 
 /**
@@ -27,5 +26,5 @@ interface ArtifactResolver {
    * Attempts to resolve the requested artifact and returns the path of the resolved jar.
    * Null if artifact can't be resolved for some reason.
    */
-  suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path?
+  suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path?
 }

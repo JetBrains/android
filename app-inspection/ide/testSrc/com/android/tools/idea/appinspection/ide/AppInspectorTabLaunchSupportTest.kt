@@ -23,7 +23,6 @@ import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordin
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
-import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createFakeProcessDescriptor
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
@@ -56,8 +55,6 @@ class AppInspectorTabLaunchSupportTest {
   @get:Rule
   val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionServiceRule)!!.around(projectRule)!!
 
-  private val resolvedJar = AppInspectorJar("resolved")
-
   private val notApplicableInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID) {
     override fun isApplicable() = false
   }
@@ -88,20 +85,19 @@ class AppInspectorTabLaunchSupportTest {
    */
   @Test
   fun getApplicableTabProviders() = runBlocking<Unit> {
-    val resolver = object : ArtifactResolver {
-      override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path? {
-        return if (artifactCoordinate == unresolvedLibrary) {
-          null
-        } else {
-          Paths.get("resolved", "jar")
-        }
-      }
-    }
     val support = AppInspectorTabLaunchSupport(
       { listOf(notApplicableInspector, frameworkInspector, incompatibleLibraryInspector, libraryInspector, unresolvedLibraryInspector) },
       appInspectionServiceRule.apiServices,
       projectRule.project,
-      resolver
+      object : InspectorArtifactService {
+        override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path? {
+          return if (artifactCoordinate == unresolvedLibrary) {
+            null
+          } else {
+            Paths.get("resolved", "jar")
+          }
+        }
+      }
     )
 
     transportService.setCommandHandler(

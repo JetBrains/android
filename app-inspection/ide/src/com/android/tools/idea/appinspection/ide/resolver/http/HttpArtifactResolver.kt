@@ -17,13 +17,12 @@ package com.android.tools.idea.appinspection.ide.resolver.http
 
 import com.android.repository.api.ConsoleProgressIndicator
 import com.android.repository.api.Downloader
-import com.android.tools.idea.appinspection.ide.resolver.AppInspectorJarPaths
 import com.android.tools.idea.appinspection.inspector.api.io.FileService
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.sdk.StudioDownloader
-import com.intellij.openapi.project.Project
+import com.intellij.util.io.exists
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.net.URL
@@ -31,27 +30,20 @@ import java.nio.file.Path
 
 class HttpArtifactResolver(
   fileService: FileService,
-  private val jarPaths: AppInspectorJarPaths,
   private val downloader: Downloader = StudioDownloader()
 ) : ArtifactResolver {
   private val tmpDir = fileService.getOrCreateTempDir("http-tmp")
-  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path? {
-    if (jarPaths.getInspectorJar(artifactCoordinate) == null) {
-      val downloadedFile = withContext(AndroidDispatchers.ioThread) {
-        try {
-          downloader.downloadFullyWithCaching(artifactCoordinate.toGMavenUrl(), artifactCoordinate.getTmpFile(), null,
-                                              ConsoleProgressIndicator())
-          artifactCoordinate.getTmpFile()
-        }
-        catch (e: IOException) {
-          null
-        }
+  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path? {
+    return withContext(AndroidDispatchers.ioThread) {
+      try {
+        downloader.downloadFullyWithCaching(artifactCoordinate.toGMavenUrl(), artifactCoordinate.getTmpFile(), null,
+                                            ConsoleProgressIndicator())
+        artifactCoordinate.getTmpFile().takeIf { it.exists() }
       }
-      if (downloadedFile != null) {
-        jarPaths.populateJars(mapOf(artifactCoordinate to downloadedFile))
+      catch (e: IOException) {
+        null
       }
     }
-    return jarPaths.getInspectorJar(artifactCoordinate)
   }
 
   private fun ArtifactCoordinate.getTmpFile() = tmpDir.resolve(fileName)

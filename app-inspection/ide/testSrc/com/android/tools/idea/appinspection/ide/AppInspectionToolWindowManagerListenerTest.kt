@@ -2,7 +2,6 @@ package com.android.tools.idea.appinspection.ide
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
-import com.android.tools.idea.appinspection.ide.resolver.TestArtifactResolver
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionToolWindowManagerListener
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
@@ -80,7 +79,7 @@ class AppInspectionToolWindowManagerListenerTest {
     val inspectionView = withContext(uiDispatcher) {
       AppInspectionView(
         projectRule.project, appInspectionServiceRule.apiServices, ideServices,
-        appInspectionServiceRule.scope, uiDispatcher, TestArtifactResolver()
+        appInspectionServiceRule.scope, uiDispatcher
       ) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }

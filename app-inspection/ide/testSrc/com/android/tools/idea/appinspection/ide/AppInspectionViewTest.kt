@@ -21,7 +21,6 @@ import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
-import com.android.tools.idea.appinspection.ide.resolver.TestArtifactResolver
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
@@ -30,7 +29,6 @@ import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordin
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
-import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID_2
@@ -111,7 +109,7 @@ class AppInspectionViewTest {
     val tabsAdded = CompletableDeferred<Unit>()
     launch(uiDispatcher) {
       val inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
-                                             appInspectionServiceRule.scope, uiDispatcher, TestArtifactResolver()) {
+                                             appInspectionServiceRule.scope, uiDispatcher) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
@@ -138,7 +136,7 @@ class AppInspectionViewTest {
       val inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices,
                                              ideServices,
                                              { listOf(TestAppInspectorTabProvider1()) },
-                                             appInspectionServiceRule.scope, uiDispatcher, TestArtifactResolver()) {
+                                             appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
@@ -163,7 +161,7 @@ class AppInspectionViewTest {
     val tabsAdded = CompletableDeferred<Unit>()
     launch(uiDispatcher) {
       val inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
-                                             appInspectionServiceRule.scope, uiDispatcher, TestArtifactResolver()) {
+                                             appInspectionServiceRule.scope, uiDispatcher) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
@@ -216,7 +214,7 @@ class AppInspectionViewTest {
     val restartedTabAdded = CompletableDeferred<Unit>()
     launch(uiDispatcher) {
       inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
-                                         appInspectionServiceRule.scope, uiDispatcher, TestArtifactResolver()) {
+                                         appInspectionServiceRule.scope, uiDispatcher) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
@@ -315,7 +313,7 @@ class AppInspectionViewTest {
     launch(uiDispatcher) {
       inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
                                          { listOf(TestAppInspectorTabProvider1()) },
-                                         appInspectionServiceRule.scope, uiDispatcher, TestArtifactResolver()) {
+                                         appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
@@ -368,7 +366,7 @@ class AppInspectionViewTest {
       inspectionView = AppInspectionView(
         projectRule.project, appInspectionServiceRule.apiServices, ideServices,
         { listOf(TestAppInspectorTabProvider1(), TestAppInspectorTabProvider2(), supportsOfflineInspector) },
-        appInspectionServiceRule.scope, uiDispatcher, TestArtifactResolver()) {
+        appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
@@ -411,7 +409,7 @@ class AppInspectionViewTest {
       inspectionView = AppInspectionView(
         projectRule.project, appInspectionServiceRule.apiServices, ideServices,
         { listOf(TestAppInspectorTabProvider1(), TestAppInspectorTabProvider2(), supportsOfflineInspector) },
-        appInspectionServiceRule.scope, uiDispatcher, TestArtifactResolver()) {
+        appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
@@ -458,7 +456,7 @@ class AppInspectionViewTest {
       val inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices,
                                              ideServices,
                                              { listOf(provider) },
-                                             appInspectionServiceRule.scope, uiDispatcher, TestArtifactResolver()) {
+                                             appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
@@ -500,7 +498,7 @@ class AppInspectionViewTest {
       val inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices,
                                              ideServices,
                                              { listOf(provider) },
-                                             appInspectionServiceRule.scope, uiDispatcher, TestArtifactResolver()) {
+                                             appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
@@ -535,7 +533,7 @@ class AppInspectionViewTest {
       val inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices,
                                              ideServices,
                                              { listOf(TestAppInspectorTabProvider1()) },
-                                             appInspectionServiceRule.scope, uiDispatcher, TestArtifactResolver()) {
+                                             appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
@@ -572,7 +570,7 @@ class AppInspectionViewTest {
       val inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices,
                                              ideServices,
                                              { listOf(provider) },
-                                             appInspectionServiceRule.scope, uiDispatcher, TestArtifactResolver()) {
+                                             appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
@@ -608,7 +606,7 @@ class AppInspectionViewTest {
 
     val inspectionView = withContext(uiDispatcher) {
       AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
-                        appInspectionServiceRule.scope, uiDispatcher, TestArtifactResolver()) {
+                        appInspectionServiceRule.scope, uiDispatcher) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
     }
@@ -665,16 +663,6 @@ class AppInspectionViewTest {
       )
     }
 
-    val resolver = object : ArtifactResolver {
-      override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path? {
-        return if (artifactCoordinate.groupId == "unresolvable") {
-          null
-        } else {
-          Paths.get("path/to/inspector.jar")
-        }
-      }
-    }
-
     val launchParamsVerifiedDeferred = CompletableDeferred<Unit>()
     val apiServices = object : AppInspectionApiServices by appInspectionServiceRule.apiServices {
       override suspend fun launchInspector(params: LaunchParameters): AppInspectorMessenger {
@@ -685,12 +673,23 @@ class AppInspectionViewTest {
         return appInspectionServiceRule.apiServices.launchInspector(params)
       }
     }
-
     launch(uiDispatcher) {
-      val inspectionView = AppInspectionView(projectRule.project, apiServices,
-                                             ideServices,
-                                             { listOf(resolvedInspector, unresolvableInspector, incompatibleInspector) },
-                                             appInspectionServiceRule.scope, uiDispatcher, resolver) {
+      val inspectionView = AppInspectionView(
+        projectRule.project, apiServices,
+        ideServices,
+        { listOf(resolvedInspector, unresolvableInspector, incompatibleInspector) },
+        appInspectionServiceRule.scope,
+        uiDispatcher,
+        object : InspectorArtifactService {
+          override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path? {
+            return if (artifactCoordinate.groupId == "unresolvable") {
+              null
+            } else {
+              Paths.get("path/to/inspector.jar")
+            }
+          }
+        }
+      ) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)

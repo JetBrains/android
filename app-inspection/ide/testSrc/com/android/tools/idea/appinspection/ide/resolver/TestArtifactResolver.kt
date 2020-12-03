@@ -18,7 +18,6 @@ package com.android.tools.idea.appinspection.ide.resolver
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.appinspection.test.TEST_JAR_PATH
-import com.intellij.openapi.project.Project
 import java.nio.file.Path
 
 /**
@@ -27,7 +26,7 @@ import java.nio.file.Path
  * It uses the provided lambda to determine what to return. The default is [TEST_JAR_PATH].
  */
 class TestArtifactResolver(private val function: (ArtifactCoordinate) -> Path? = { TEST_JAR_PATH }) : ArtifactResolver {
-  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path? {
+  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path? {
     return function(artifactCoordinate)
   }
 }
