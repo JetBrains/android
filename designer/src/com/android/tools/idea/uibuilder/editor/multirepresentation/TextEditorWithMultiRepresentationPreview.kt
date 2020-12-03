@@ -16,11 +16,23 @@
 package com.android.tools.idea.uibuilder.editor.multirepresentation
 
 import com.android.tools.idea.common.editor.SeamlessTextEditorWithPreview
+import com.android.tools.idea.common.editor.setEditorLayout
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.TextEditor
+import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.project.Project
 import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
+
+/**
+ * Converts the [PreferredVisibility] value into the equivalent [TextEditorWithPreview.Layout].
+ */
+private fun PreferredVisibility?.toTextEditorLayout(): TextEditorWithPreview.Layout? =
+  when (this) {
+    PreferredVisibility.HIDDEN -> TextEditorWithPreview.Layout.SHOW_EDITOR
+    PreferredVisibility.VISIBLE -> TextEditorWithPreview.Layout.SHOW_EDITOR_AND_PREVIEW
+    else -> null
+  }
 
 /**
  * A generic [SeamlessTextEditorWithPreview] where a preview part of it is [MultiRepresentationPreview]. It keeps track of number of
@@ -39,13 +51,19 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
    */
   private var firstActivation = true
 
+  /**
+   * True if the layout has been set explicitly when restoring the state. When it has been set explicitly,
+   * the editor will not try to set the preferred layout from the [PreviewRepresentation.preferredInitialVisibility].
+   */
+  private var layoutSetExplicitly = false
+
   init {
     isPureTextEditor = preview.representationNames.isEmpty()
     preview.onRepresentationsUpdated = {
       isPureTextEditor = preview.representationNames.isEmpty()
     }
     preview.registerShortcuts(component)
-    preview.component.addComponentListener(object: ComponentListener {
+    preview.component.addComponentListener(object : ComponentListener {
       override fun componentResized(e: ComponentEvent?) {}
       override fun componentMoved(e: ComponentEvent?) {}
 
@@ -65,7 +83,8 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
    * the number of [deselectNotify] calls.
    */
   private fun isEditorSelected(): Boolean {
-    val selectedEditors = FileEditorManager.getInstance(project).selectedEditors.filterIsInstance<TextEditorWithMultiRepresentationPreview<*>>()
+    val selectedEditors = FileEditorManager.getInstance(
+      project).selectedEditors.filterIsInstance<TextEditorWithMultiRepresentationPreview<*>>()
     return selectedEditors.any { it == this }
   }
 
@@ -89,6 +108,12 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
       // This is the first time the editor is being activated so trigger the onInit initialization.
       firstActivation = false
       preview.onInit()
+
+      if (!layoutSetExplicitly) {
+        preview.currentRepresentation?.preferredInitialVisibility?.toTextEditorLayout()?.let {
+          setLayout(it)
+        }
+      }
     }
 
     // The editor has been selected, but only activate if it's visible.
@@ -100,5 +125,15 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
     if (isEditorSelected()) return
 
     deactivate()
+  }
+
+  /**
+   * Set the layout (code, split or only design) of the panel explicitly.
+   */
+  protected fun setLayout(layout: Layout?) {
+    if (layout != null) {
+      layoutSetExplicitly = true
+      setEditorLayout(layout)
+    }
   }
 }
