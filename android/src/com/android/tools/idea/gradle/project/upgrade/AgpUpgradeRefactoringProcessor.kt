@@ -1361,6 +1361,12 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
         name.endsWith("Compile") -> name.removeSuffix("Compile").appendCapitalized(compileReplacement)
         name == "runtime" -> "runtimeOnly"
         name.endsWith("Runtime") -> "${name}Only"
+        name == "provided" -> "compileOnly"
+        name.endsWith("Provided") -> "${name.removeSuffix("Provided")}CompileOnly"
+        name == "apk" -> "runtimeOnly"
+        name.endsWith("Apk") -> "${name.removeSuffix("Apk")}RuntimeOnly"
+        name == "publish" -> "runtimeOnly"
+        name.endsWith("Publish") -> "${name.removeSuffix("Publish")}RuntimeOnly"
         else -> null
       }
     }
