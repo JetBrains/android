@@ -227,7 +227,7 @@ class ComposePreviewTest {
   }
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE) // b/149464527
+  @Ignore("b/149464527")
   @Throws(Exception::class)
   fun testAddAdditionalPreview() {
     val fixture = getSyncedProjectFixture()
