@@ -107,24 +107,22 @@ class ComposePreviewTest {
     }
   }
 
+  private fun getSyncedProjectFixture() = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication",
+                                                                                             null,
+                                                                                             null,
+                                                                                             "1.4.20",
+                                                                                             GuiTestRule.DEFAULT_IMPORT_AND_SYNC_WAIT)
+
   @Test
   @Throws(Exception::class)
   fun testOpenAndClosePreview() {
-    openAndClosePreview(guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication",
-                                                                           null,
-                                                                           null,
-                                                                           "1.4.0",
-                                                                           GuiTestRule.DEFAULT_IMPORT_AND_SYNC_WAIT))
+    openAndClosePreview(getSyncedProjectFixture())
   }
 
   @Test
   @Throws(Exception::class)
   fun testCopyPreviewImage() {
-    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication",
-                                                                     null,
-                                                                     null,
-                                                                     "1.4.0",
-                                                                     GuiTestRule.DEFAULT_IMPORT_AND_SYNC_WAIT)
+    val fixture = getSyncedProjectFixture()
     val composePreview = openComposePreview(fixture)
 
     // Commented until b/156216008 is solved
@@ -175,7 +173,7 @@ class ComposePreviewTest {
   @RunIn(TestGroup.PERFORMANCE)
   @Throws(Exception::class)
   fun testOpenAndClosePreviewWithBleak() {
-    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    val fixture = getSyncedProjectFixture()
     guiTest.runWithBleak { openAndClosePreview(fixture) }
   }
 
@@ -211,7 +209,7 @@ class ComposePreviewTest {
   @Test
   @Throws(Exception::class)
   fun testRemoveExistingPreview() {
-    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    val fixture = getSyncedProjectFixture()
     val composePreview = openComposePreview(fixture)
 
     // Commented until b/156216008 is solved
@@ -232,7 +230,7 @@ class ComposePreviewTest {
   @RunIn(TestGroup.UNRELIABLE) // b/149464527
   @Throws(Exception::class)
   fun testAddAdditionalPreview() {
-    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    val fixture = getSyncedProjectFixture()
     val composePreview = openComposePreview(fixture)
 
     // Commented until b/156216008 is solved
@@ -274,7 +272,7 @@ class ComposePreviewTest {
   @Test
   @Throws(Exception::class)
   fun testInteractiveSwitch() {
-    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    val fixture = getSyncedProjectFixture()
     val composePreview = openComposePreview(fixture, "MultipleComposePreviews.kt")
 
     composePreview.waitForSceneViewsCount(3)
@@ -306,7 +304,7 @@ class ComposePreviewTest {
   @Ignore("b/172894609") // Ignore while we don't update the Compose version. We fixed a bug that fails to detect animations.
   @Throws(Exception::class)
   fun testAnimationButtonWhileInteractiveSwitch() {
-    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    val fixture = getSyncedProjectFixture()
     val composePreview = openComposePreview(fixture, "Animations.kt")
 
     var animButton =
@@ -371,7 +369,7 @@ class ComposePreviewTest {
         null
       }
 
-    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    val fixture = getSyncedProjectFixture()
     val composePreview = openComposePreview(fixture, "Animations.kt").waitForSceneViewsCount(2)
 
     composePreview.designSurface
@@ -405,7 +403,7 @@ class ComposePreviewTest {
   @Ignore("b/172894609") // This test should check that opening animation preview in one file closes the one in another file if it's open.
   @Throws(Exception::class)
   fun testOnlyOneAnimationInspectorCanBeOpen() {
-    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    val fixture = getSyncedProjectFixture()
     val composePreview = openComposePreview(fixture, "Animations.kt")
 
     var animButton =
@@ -486,7 +484,7 @@ class ComposePreviewTest {
   @RunIn(TestGroup.UNRELIABLE) // b/155879999
   @Throws(Exception::class)
   fun testDeployPreview() {
-    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    val fixture = getSyncedProjectFixture()
 
     // Enable the fake ADB server and attach a fake device to which the preview will be deployed.
     AndroidDebugBridgeUtils.enableFakeAdbServerMode(adbRule.fakeAdbServerPort)
