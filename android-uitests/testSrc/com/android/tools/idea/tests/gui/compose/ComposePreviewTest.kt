@@ -199,7 +199,7 @@ class ComposePreviewTest {
 
     composePreview
       .getNotificationsFixture()
-      .waitForNotificationContains("out of date")
+      .waitForNotificationContains("syntax errors")
 
     // Undo modifications and close editor to return to the initial state
     editor.select("(${modification})")
