@@ -21,10 +21,10 @@ import com.android.tools.lint.checks.DeprecatedSdkRegistry
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.util.PathUtil
 import com.intellij.util.io.HttpRequests
-import java.io.File
 import java.net.URL
+import java.nio.file.Path
+import java.nio.file.Paths
 
 /** A [DeprecatedSdkRegistry] that uses IDE mechanisms (including proxy config) to download data. */
 object IdeDeprecatedSdkRegistry : DeprecatedSdkRegistry(getCacheDir()) {
@@ -39,8 +39,9 @@ object IdeDeprecatedSdkRegistry : DeprecatedSdkRegistry(getCacheDir()) {
   }
 }
 
-private fun getCacheDir(): File? =
-  if (ApplicationManager.getApplication().isUnitTestMode || GuiTestingService.getInstance().isGuiTestingMode)
-    null
-  else
-    File(PathUtil.getCanonicalPath(PathManager.getSystemPath()), DEPRECATED_SDK_CACHE_DIR_KEY)
+private fun getCacheDir(): Path? {
+  if (ApplicationManager.getApplication().isUnitTestMode || GuiTestingService.getInstance().isGuiTestingMode) {
+    return null
+  }
+  return Paths.get(PathManager.getSystemPath()).normalize().resolve(DEPRECATED_SDK_CACHE_DIR_KEY)
+}

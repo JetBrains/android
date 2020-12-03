@@ -35,6 +35,7 @@ import com.android.tools.idea.diagnostics.crash.GenericStudioReport;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository;
 import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.lint.common.LintResult;
 import com.android.tools.idea.model.AndroidModel;
@@ -43,10 +44,10 @@ import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.res.FileResourceReader;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository;
 import com.android.tools.lint.detector.api.DefaultPosition;
 import com.android.tools.lint.detector.api.Desugaring;
 import com.android.tools.lint.detector.api.Location;
@@ -67,6 +68,7 @@ import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -76,7 +78,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -255,12 +256,14 @@ public class AndroidLintIdeClient extends LintIdeClient {
   public File getCacheDir(@Nullable String name, boolean create) {
     if (MAVEN_GOOGLE_CACHE_DIR_KEY.equals(name)) {
       // Share network cache with existing implementation
-      return IdeGoogleMavenRepository.INSTANCE.getCacheDir();
+      Path cacheDir = IdeGoogleMavenRepository.INSTANCE.getCacheDir();
+      return cacheDir == null ? null : cacheDir.toFile();
     }
 
     if (DEPRECATED_SDK_CACHE_DIR_KEY.equals(name)) {
       // Share network cache with existing implementation
-      return IdeDeprecatedSdkRegistry.INSTANCE.getCacheDir();
+      Path cacheDir = IdeDeprecatedSdkRegistry.INSTANCE.getCacheDir();
+      return cacheDir == null ? null : cacheDir.toFile();
     }
 
     return super.getCacheDir(name, create);

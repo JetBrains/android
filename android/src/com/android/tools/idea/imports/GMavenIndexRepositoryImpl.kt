@@ -27,7 +27,6 @@ import java.net.URL
 import java.nio.file.Path
 import java.nio.file.Paths
 
-
 /** Key used in cache directories to locate the gmaven.index network cache. */
 const val GMAVEN_INDEX_CACHE_DIR_KEY = "gmaven.index"
 private const val BASE_URL = "https://dl.google.com/android/studio/gmaven/index/test/"
@@ -35,7 +34,7 @@ private const val BASE_URL = "https://dl.google.com/android/studio/gmaven/index/
 /**
  * An implementation of [GMavenIndexRepository] to provide data about the GMaven indices on [BASE_URL].
  */
-class GMavenIndexRepositoryImpl : GMavenIndexRepository, NetworkCache(BASE_URL, GMAVEN_INDEX_CACHE_DIR_KEY, getCacheDir()?.toFile()) {
+class GMavenIndexRepositoryImpl : GMavenIndexRepository, NetworkCache(BASE_URL, GMAVEN_INDEX_CACHE_DIR_KEY, getCacheDir()) {
   /**
    * Reads the data by given relative URL to the base URL.
    *
@@ -63,8 +62,9 @@ class GMavenIndexRepositoryImpl : GMavenIndexRepository, NetworkCache(BASE_URL, 
 }
 
 private fun getCacheDir(): Path? {
-  val isTestMode = ApplicationManager.getApplication().isUnitTestMode || GuiTestingService.getInstance().isGuiTestingMode
-  if (isTestMode) return null
+  if (ApplicationManager.getApplication().isUnitTestMode || GuiTestingService.getInstance().isGuiTestingMode) {
+    return null
+  }
 
   return Paths.get(PathManager.getSystemPath(), GMAVEN_INDEX_CACHE_DIR_KEY)
 }
