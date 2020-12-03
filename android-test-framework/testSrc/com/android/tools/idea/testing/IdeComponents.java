@@ -29,6 +29,12 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Methods for replacing services in tests.
+ *
+ * @deprecated Use methods defined in {@link ServiceContainerUtil} directly.
+ */
+@Deprecated
 public final class IdeComponents {
   private Project myProject;
   private final Disposable myDisposable;
@@ -57,13 +63,6 @@ public final class IdeComponents {
     myDisposable = disposable;
   }
 
-  @NotNull
-  public <T> T mockApplicationService(@NotNull Class<T> serviceType) {
-    T mock = mock(serviceType);
-    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), serviceType, mock, myDisposable);
-    return mock;
-  }
-
   public <T> void replaceApplicationService(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
     ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), serviceType, newServiceInstance, myDisposable);
   }
@@ -74,6 +73,13 @@ public final class IdeComponents {
 
   public <T> void replaceModuleService(@NotNull Module module, @NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
     ServiceContainerUtil.replaceService(module, serviceType, newServiceInstance, myDisposable);
+  }
+
+  @NotNull
+  public <T> T mockApplicationService(@NotNull Class<T> serviceType) {
+    T mock = mock(serviceType);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), serviceType, mock, myDisposable);
+    return mock;
   }
 
   @NotNull
