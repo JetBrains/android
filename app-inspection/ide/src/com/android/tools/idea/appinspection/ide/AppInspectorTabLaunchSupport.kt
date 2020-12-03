@@ -90,8 +90,11 @@ class AppInspectorTabLaunchSupport(
 
     // Show a static info message for these incompatible inspectors.
     val incompatibleInspectorTabs = incompatibleLibraries.map {
-      StaticInspectorTabLaunchParams(artifactToProvider[it.libraryCoordinate]!!,
-                                     artifactToProvider[it.libraryCoordinate]!!.toIncompatibleVersionMessage())
+      val appInspectorTabProvider = artifactToProvider[it.libraryCoordinate]!!
+      val message =
+        if (it.status == LibraryCompatbilityInfo.Status.APP_PROGUARDED) appProguardedMessage
+        else appInspectorTabProvider.toIncompatibleVersionMessage()
+      StaticInspectorTabLaunchParams(appInspectorTabProvider, message)
     }
 
     return processCompatibleLibraries(resolvableInfos) + incompatibleInspectorTabs
@@ -171,3 +174,5 @@ internal fun AppInspectorTabProvider.toIncompatibleVersionMessage() =
                               (inspectorLaunchParams as LibraryInspectorLaunchParams).minVersionLibraryCoordinate.toString())
 
 private fun ArtifactCoordinate.toUnresolvedInspectorMessage() = AppInspectionBundle.message("unresolved.inspector", this.toString())
+
+internal val appProguardedMessage = AppInspectionBundle.message("app.proguarded")

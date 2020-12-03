@@ -48,6 +48,10 @@ data class LibraryCompatbilityInfo(
     LIBRARY_MISSING,
 
     /**
+     * Application was proguarded.
+     */
+    APP_PROGUARDED,
+    /**
      * An error was encountered in finding and reading the version of the library.
      */
     ERROR

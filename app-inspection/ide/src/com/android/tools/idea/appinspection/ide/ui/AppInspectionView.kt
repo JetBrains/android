@@ -25,9 +25,11 @@ import com.android.tools.idea.appinspection.ide.AppInspectorTabLaunchSupport
 import com.android.tools.idea.appinspection.ide.StaticInspectorTabLaunchParams
 import com.android.tools.idea.appinspection.ide.LaunchableInspectorTabLaunchParams
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
+import com.android.tools.idea.appinspection.ide.appProguardedMessage
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.ide.toIncompatibleVersionMessage
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionAppProguardedException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLibraryMissingException
@@ -270,6 +272,9 @@ class AppInspectionView(
         }
         catch (e: AppInspectionLibraryMissingException) {
           withContext(uiDispatcher) { tab.setComponent(EmptyStatePanel(provider.toIncompatibleVersionMessage())) }
+        }
+        catch (e: AppInspectionAppProguardedException) {
+          withContext(uiDispatcher) { tab.setComponent(EmptyStatePanel(appProguardedMessage)) }
         }
         catch (e: Exception) {
           Logger.getInstance(AppInspectionView::class.java).error(e)
