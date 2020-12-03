@@ -83,6 +83,7 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.io.URLUtil;
@@ -225,6 +226,9 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
       for (PathString file : resourceFiles) {
         loadResourceFile(file, repository, shouldParseResourceIds);
       }
+    }
+    catch (ProcessCanceledException e) {
+      throw e;
     }
     catch (Exception e) {
       LOG.error("Failed to load resources from " + myResourceDirectoryOrFile.toString(), e);
