@@ -40,12 +40,7 @@ internal class SourceCodeEditorWithMultiRepresentationPreview(project: Project, 
       textEditor.setState(state.editorState)
       preview.setState(state.previewState)
 
-      when (state.selectedLayout) {
-        Layout.SHOW_EDITOR -> selectTextMode(false)
-        Layout.SHOW_EDITOR_AND_PREVIEW -> selectSplitMode(false)
-        Layout.SHOW_PREVIEW -> selectDesignMode(false)
-        else -> return
-      }
+      layout = state.selectedLayout
     } else {
       super.setState(state)
     }

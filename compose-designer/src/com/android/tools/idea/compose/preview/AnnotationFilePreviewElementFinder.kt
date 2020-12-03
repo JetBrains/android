@@ -16,6 +16,8 @@ package com.android.tools.idea.compose.preview
  * limitations under the License.
  */
 import com.android.annotations.concurrency.Slow
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_NAME
+import com.android.tools.compose.COMPOSABLE_FQ_NAMES
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
 import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
 import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
@@ -34,6 +36,37 @@ import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElementOfType
+
+/**
+ * Finds any methods annotated with any of the given [annotations] FQCN or the given [shortAnnotationName].
+ */
+fun hasAnnotatedMethods(project: Project, vFile: VirtualFile,
+                        annotations: Set<String>,
+                        shortAnnotationName: String): Boolean = ReadAction.compute<Boolean, Throwable> {
+  // This method can not call any methods that require smart mode.
+  fun isFullNamePreviewAnnotation(annotation: KtAnnotationEntry) =
+    // We use text() to avoid obtaining the FQN as that requires smart mode
+    annotations.any { previewFqn ->
+      annotation.text.startsWith("@$previewFqn")
+    }
+
+  val psiFile = PsiManager.getInstance(project).findFile(vFile)
+  // Look into the imports first to avoid resolving the class name into all methods.
+  val hasPreviewImport = PsiTreeUtil.findChildrenOfType(psiFile, KtImportDirective::class.java)
+    .any { annotations.contains(it.importedFqName?.asString()) }
+
+  return@compute if (hasPreviewImport) {
+    PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java)
+      .any {
+        it.shortName?.asString() == shortAnnotationName || isFullNamePreviewAnnotation(it)
+      }
+  }
+  else {
+    // The annotation is not imported so check if the method is using full name import.
+    PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java)
+      .any(::isFullNamePreviewAnnotation)
+  }
+}
 
 /**
  * [FilePreviewElementFinder] that uses `@Preview` annotations.
@@ -56,31 +89,11 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
       .filter { it.isPreviewAnnotation() }
   }
 
-  override fun hasPreviewMethods(project: Project, vFile: VirtualFile): Boolean = ReadAction.compute<Boolean, Throwable> {
-    // This method can not call any methods that require smart mode.
-    fun isFullNamePreviewAnnotation(annotation: KtAnnotationEntry) =
-      // We use text() to avoid obtaining the FQN as that requires smart mode
-      PREVIEW_ANNOTATION_FQNS.any { previewFqn ->
-        annotation.text.startsWith("@$previewFqn")
-      }
+  override fun hasPreviewMethods(project: Project, vFile: VirtualFile): Boolean =
+    hasAnnotatedMethods(project, vFile, PREVIEW_ANNOTATION_FQNS, COMPOSE_PREVIEW_ANNOTATION_NAME)
 
-    val psiFile = PsiManager.getInstance(project).findFile(vFile)
-    val hasPreviewImport = PsiTreeUtil.findChildrenOfType(psiFile, KtImportDirective::class.java)
-      .any { PREVIEW_ANNOTATION_FQNS.contains(it.importedFqName?.asString()) }
-
-    return@compute if (hasPreviewImport) {
-      PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java)
-        .any {
-          it.shortName?.asString() == COMPOSE_PREVIEW_ANNOTATION_NAME ||
-          isFullNamePreviewAnnotation(it)
-        }
-    }
-    else {
-      // The Preview annotation is not imported so only
-      PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java)
-        .any(::isFullNamePreviewAnnotation)
-    }
-  }
+  override fun hasComposableMethods(project: Project, vFile: VirtualFile): Boolean =
+    hasAnnotatedMethods(project, vFile, COMPOSABLE_FQ_NAMES, COMPOSABLE_ANNOTATION_NAME)
 
   /**
    * Returns all the `@Composable` functions in the [vFile] that are also tagged with `@Preview`.

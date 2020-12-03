@@ -25,6 +25,16 @@ import java.awt.Component
 import javax.swing.JComponent
 
 /**
+ * Utility method that ensures the current [TextEditorWithPreview.Layout] for this editor is the given [layout].
+ */
+fun <P: FileEditor> SeamlessTextEditorWithPreview<P>.setEditorLayout(layout: TextEditorWithPreview.Layout) = when (layout) {
+  TextEditorWithPreview.Layout.SHOW_PREVIEW -> selectDesignMode(false)
+  TextEditorWithPreview.Layout.SHOW_EDITOR_AND_PREVIEW -> selectSplitMode(false)
+  TextEditorWithPreview.Layout.SHOW_EDITOR -> selectTextMode(false)
+  else -> {}
+}
+
+/**
  * This Editor allows seamless switch between pure [TextEditor] and [TextEditorWithPreview]. It allows switching between those by changing
  * [isPureTextEditor] property. This editor records the true state of [TextEditorWithPreview] and hides toolbar and preview part of the
  * [TextEditorWithPreview] leaving only [TextEditor] visible when [isPureTextEditor] is true. When [isPureTextEditor] is false it behaves as
@@ -58,20 +68,10 @@ open class SeamlessTextEditorWithPreview<P : FileEditor>(textEditor: TextEditor,
       setPureTextEditorVisibility()
     }
     else {
-      setSplitTextEditorVisibility()
+      // Restore the visibility of the components depending on the current layout.
+      if (layout != null) setEditorLayout(layout)
     }
   }
-
-  /**
-   * Restore the visibility of the components depending on the current [layout].
-   */
-  private fun setSplitTextEditorVisibility() =
-    when (layout) {
-      Layout.SHOW_PREVIEW -> selectDesignMode(false)
-      Layout.SHOW_EDITOR_AND_PREVIEW -> selectSplitMode(false)
-      Layout.SHOW_EDITOR -> selectTextMode(false)
-      null -> {}
-    }
 
   /**
    * Setting visibility values [isPureTextEditor]=true, see [setSplitTextEditorVisibility] for more details.
@@ -89,7 +89,8 @@ open class SeamlessTextEditorWithPreview<P : FileEditor>(textEditor: TextEditor,
         setPureTextEditorVisibility()
       }
       else {
-        setSplitTextEditorVisibility()
+        // Restore the visibility of the components depending on the current layout.
+        if (layout != null) setEditorLayout(layout)
       }
       field = value
     }

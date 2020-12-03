@@ -39,6 +39,7 @@ import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.util.BuildListener
 import com.android.tools.idea.gradle.util.setupBuildListener
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -115,6 +116,7 @@ class CustomViewPreviewRepresentation(
 
   private val previewId = "$CUSTOM_VIEW_PREVIEW_ID${psiFile.virtualFile!!.path}"
   private val currentStatePropertyName = "${previewId}_SELECTED"
+  override val preferredInitialVisibility: PreferredVisibility? = null
   private fun dimensionsPropertyNameForClass(className: String) = "${previewId}_${className}_DIMENSIONS"
   private fun wrapContentWidthPropertyNameForClass(className: String) = "${previewId}_${className}_WRAP_CONTENT_W"
   private fun wrapContentHeightPropertyNameForClass(className: String) = "${previewId}_${className}_WRAP_CONTENT_H"
