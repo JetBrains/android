@@ -489,6 +489,42 @@ class AppInspectionViewTest {
   }
 
   @Test
+  fun launchInspectorFailsDueToAppProguarded_emptyMessageAdded() = runBlocking<Unit> {
+    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+    val tabsAdded = CompletableDeferred<Unit>()
+    val provider = TestAppInspectorTabProvider2()
+    launch(uiDispatcher) {
+      val inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices,
+                                             ideServices,
+                                             { listOf(provider) },
+                                             appInspectionServiceRule.scope, uiDispatcher, TestArtifactResolver()) {
+        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+      }
+      Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+      inspectionView.tabsChangedFlow.first {
+        assertThat(inspectionView.inspectorTabs.size).isEqualTo(1)
+        val tab = inspectionView.inspectorTabs[0]
+        tab.waitForContent()
+        val emptyPanel = tab.containerPanel.getComponent(0) as EmptyStatePanel
+        assertThat(emptyPanel.reasonText).isEqualTo(AppInspectionBundle.message("app.proguarded"))
+        tabsAdded.complete(Unit)
+      }
+    }
+
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION,
+                                       TestAppInspectorCommandHandler(timer, createInspectorResponse = createCreateInspectorResponse(
+                                         AppInspection.AppInspectionResponse.Status.ERROR,
+                                         AppInspection.CreateInspectorResponse.Status.APP_PROGUARDED, "error"))
+    )
+
+    // Attach to a fake process.
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+
+    tabsAdded.join()
+  }
+
+  @Test
   fun launchInspectorFailsDueToServiceError() = runBlocking<Unit> {
     val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
     val tabsAdded = CompletableDeferred<Unit>()

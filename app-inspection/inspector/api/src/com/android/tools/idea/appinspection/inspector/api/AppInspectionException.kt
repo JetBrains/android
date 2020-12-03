@@ -58,3 +58,8 @@ class AppInspectionVersionIncompatibleException(message: String) : AppInspection
  * Thrown when the targeted library does not exist in the app.
  */
 class AppInspectionLibraryMissingException(message: String) : AppInspectionServiceException(message)
+
+/**
+ * Thrown when target app was proguarded.
+ */
+class AppInspectionAppProguardedException(message: String) : AppInspectionServiceException(message)

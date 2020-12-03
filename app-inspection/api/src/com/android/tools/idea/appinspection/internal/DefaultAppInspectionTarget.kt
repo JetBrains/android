@@ -20,6 +20,7 @@ import com.android.tools.app.inspection.AppInspection
 import com.android.tools.app.inspection.AppInspection.AppInspectionCommand
 import com.android.tools.app.inspection.AppInspection.CreateInspectorCommand
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionAppProguardedException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLibraryMissingException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionServiceException
@@ -120,22 +121,17 @@ internal class DefaultAppInspectionTarget(
           filter = { it.appInspectionResponse.commandId == commandId }
         )
         val event = transport.executeCommand(appInspectionCommand, eventQuery)
-        when (event.appInspectionResponse.createInspectorResponse.status) {
-          AppInspection.CreateInspectorResponse.Status.SUCCESS -> {
-            val connection = AppInspectorConnection(transport, params.inspectorId, event.timestamp, scope.createChildScope(false))
-            inspectorDisposableJobs[params.inspectorId] = scope.launch {
-              connection.awaitForDisposal()
-              messengers.remove(params.inspectorId)
-              inspectorDisposableJobs.remove(params.inspectorId)
-            }
-            connection
+        if (event.appInspectionResponse.createInspectorResponse.status == AppInspection.CreateInspectorResponse.Status.SUCCESS) {
+          val connection = AppInspectorConnection(transport, params.inspectorId, event.timestamp, scope.createChildScope(false))
+          inspectorDisposableJobs[params.inspectorId] = scope.launch {
+            connection.awaitForDisposal()
+            messengers.remove(params.inspectorId)
+            inspectorDisposableJobs.remove(params.inspectorId)
           }
-          AppInspection.CreateInspectorResponse.Status.GENERIC_SERVICE_ERROR -> throw event.appInspectionResponse.getException(
-            params.inspectorId)
-          AppInspection.CreateInspectorResponse.Status.VERSION_INCOMPATIBLE -> throw event.appInspectionResponse.getException(
-            params.inspectorId)
-          AppInspection.CreateInspectorResponse.Status.LIBRARY_MISSING -> throw event.appInspectionResponse.getException(params.inspectorId)
-          else -> throw event.appInspectionResponse.getException(params.inspectorId)
+          connection
+        }
+        else {
+          throw event.appInspectionResponse.getException(params.inspectorId)
         }
       }
     }
@@ -197,6 +193,7 @@ private fun AppInspection.AppInspectionResponse.getException(inspectorId: String
   return when (this.createInspectorResponse.status) {
     AppInspection.CreateInspectorResponse.Status.VERSION_INCOMPATIBLE -> AppInspectionVersionIncompatibleException(message)
     AppInspection.CreateInspectorResponse.Status.LIBRARY_MISSING -> AppInspectionLibraryMissingException(message)
+    AppInspection.CreateInspectorResponse.Status.APP_PROGUARDED -> AppInspectionAppProguardedException(message)
     else -> AppInspectionLaunchException(message)
   }
 }
@@ -208,6 +205,7 @@ internal fun AppInspection.LibraryCompatibilityInfo.toLibraryCompatibilityInfo(
     AppInspection.LibraryCompatibilityInfo.Status.COMPATIBLE -> LibraryCompatbilityInfo.Status.COMPATIBLE
     AppInspection.LibraryCompatibilityInfo.Status.INCOMPATIBLE -> LibraryCompatbilityInfo.Status.INCOMPATIBLE
     AppInspection.LibraryCompatibilityInfo.Status.LIBRARY_MISSING -> LibraryCompatbilityInfo.Status.LIBRARY_MISSING
+    AppInspection.LibraryCompatibilityInfo.Status.APP_PROGUARDED -> LibraryCompatbilityInfo.Status.APP_PROGUARDED
     else -> LibraryCompatbilityInfo.Status.ERROR
   }
   return LibraryCompatbilityInfo(artifactCoordinate, responseStatus, version, errorMessage)
