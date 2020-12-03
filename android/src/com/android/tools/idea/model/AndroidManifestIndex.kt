@@ -112,7 +112,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
     val NAME: ID<String, AndroidManifestRawText> = ID.create(::NAME.qualifiedName)
 
     @JvmStatic
-    fun indexEnabled() = ApplicationManager.getApplication().isUnitTestMode || StudioFlags.ANDROID_MANIFEST_INDEX_ENABLED.get()
+    fun indexEnabled() = StudioFlags.ANDROID_MANIFEST_INDEX_ENABLED.get()
 
     /**
      * Returns corresponding [AndroidFacet]s by given key(package name)
@@ -211,20 +211,9 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
     @JvmStatic
     private fun doGetDataForManifestFile(project: Project, manifestFile: VirtualFile): AndroidManifestRawText? {
       ProgressManager.checkCanceled()
-      val index = FileBasedIndex.getInstance()
-      val scope = GlobalSearchScope.fileScope(project, manifestFile)
-      val values = mutableListOf<AndroidManifestRawText>()
-
-      // TODO (b/166625311) use FileBasedIndex#getFileData
-      for (key in index.getAllKeys(NAME, project)) {
-        index.processValues(NAME, key, manifestFile, { _, value ->
-          values.add(value)
-          true
-        }, scope)
-      }
-      // It's guaranteed that there's at most one entry: <package name, android manifest raw text>.
-      check(values.size <= 1)
-      return values.firstOrNull()
+      val data: MutableMap<String, AndroidManifestRawText> = FileBasedIndex.getInstance().getFileData(NAME, manifestFile, project)
+      check(data.values.size <= 1)
+      return data.values.firstOrNull()
     }
   }
 

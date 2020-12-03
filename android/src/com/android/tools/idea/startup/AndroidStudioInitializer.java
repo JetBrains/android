@@ -30,6 +30,7 @@ import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.deployment.RunOnMultipleDevicesAction;
 import com.android.tools.idea.run.deployment.SelectMultipleDevicesAction;
+import com.android.tools.idea.progress.StudioProgressManagerAdapter;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.GcPauseWatcher;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
@@ -88,6 +89,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     @Override
     public void beforeApplicationLoaded(@NotNull Application application, @NotNull String configPath) {
       AndroidStudioAnalytics.initialize(new AndroidStudioAnalyticsImpl());
+      StudioProgressManagerAdapter.initialize();
     }
   }
 

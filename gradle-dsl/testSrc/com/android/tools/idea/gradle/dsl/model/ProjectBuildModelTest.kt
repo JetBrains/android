@@ -327,6 +327,20 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildSrcBuildFile, TestFile.BUILD_SRC_ANDROID_GRADLE_PLUGIN_DEPENDENCY_EXPECTED)
   }
 
+  @Test
+  fun testGetAllIncludedBuildModels() {
+    // We reuse build files here since we just need any sufficiently rich project for this test.
+    writeToSubModuleBuildFile(TestFile.ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER_SUB)
+    writeToBuildFile(TestFile.ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER)
+    writeToSettingsFile(subModuleSettingsText)
+    writeToNewSubModuleFile("a", TestFile.ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER_APPLIED)
+
+    val pbm = projectBuildModel
+    val args = mutableListOf<Pair<Int, Int?>>()
+    pbm.getAllIncludedBuildModels { n, total -> args.add(n to total) }
+    assertEquals(listOf(1 to null, 2 to null, 3 to 4, 4 to 4), args)
+  }
+
   enum class TestFile(val path: @SystemDependent String): TestFileName {
     APPLIED_FILES_SHARED("appliedFilesShared"),
     APPLIED_FILES_SHARED_APPLIED("appliedFilesSharedApplied"),

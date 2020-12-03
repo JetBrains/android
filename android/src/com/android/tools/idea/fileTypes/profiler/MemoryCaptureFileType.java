@@ -25,7 +25,7 @@ public class MemoryCaptureFileType extends AndroidProfilerCaptureFileType {
 
   public static final String EXTENSION = "hprof";
 
-  private static final MemoryCaptureFileType myInstance = new MemoryCaptureFileType();
+  private static final MemoryCaptureFileType INSTANCE = new MemoryCaptureFileType();
 
   @NotNull
   @Override
@@ -46,6 +46,6 @@ public class MemoryCaptureFileType extends AndroidProfilerCaptureFileType {
   }
 
   public static FileType getInstance() {
-    return myInstance;
+    return INSTANCE;
   }
 }

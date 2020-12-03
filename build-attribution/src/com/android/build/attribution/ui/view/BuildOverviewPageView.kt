@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.view
 
+import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.durationStringHtml
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
@@ -23,6 +24,8 @@ import com.android.build.attribution.ui.percentageStringHtml
 import com.android.build.attribution.ui.warningIcon
 import com.android.tools.adtui.TabularLayout
 import com.intellij.icons.AllIcons
+import com.intellij.ide.BrowserUtil
+import com.intellij.openapi.ui.Messages
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.HorizontalLayout
@@ -36,6 +39,7 @@ import javax.swing.JButton
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
+import javax.swing.event.HyperlinkEvent
 
 class BuildOverviewPageView(
   val model: BuildAnalyzerViewModel,
@@ -78,7 +82,7 @@ class BuildOverviewPageView(
 
   private val garbageCollectionIssuePanel = JPanel().apply {
     name = "memory"
-    layout = BorderLayout(5, 5)
+    layout = VerticalLayout(5)
     val gcTime = model.reportUiData.buildSummary.garbageCollectionTime
     val panelHeader = "<b>Gradle Daemon Memory Utilization</b>"
     val descriptionText: String = buildString {
@@ -97,10 +101,45 @@ class BuildOverviewPageView(
     }
     val icon = if (model.shouldWarnAboutGC) warningIcon() else AllIcons.General.Information
 
-    add(htmlTextLabelWithFixedLines(panelHeader), BorderLayout.NORTH)
-    add(JLabel(icon).apply { verticalAlignment = SwingConstants.TOP }, BorderLayout.WEST)
-    add(htmlTextLabelWithFixedLines(descriptionText), BorderLayout.CENTER)
-    add(controlsPanel, BorderLayout.SOUTH)
+    val defaultGCUsageWarning = htmlTextLabelWithFixedLines("""
+      |The default garbage collector was used in this build running with JDK ${model.reportUiData.buildSummary.javaVersionUsed}.<br/>
+      |Note that the default GC was changed starting with JDK 9. This could impact your build performance by as much as 10%.<br/>
+      |<b>Recommendation:</b> <a href="${BuildAnalyzerBrowserLinks.CONFIGURE_GC.name}">Fine tune your JVM</a>.<br/>
+      |<a href="suppress">Don't show this again</a>.
+    """.trimMargin())
+    defaultGCUsageWarning.name = "no-gc-setting-warning"
+    defaultGCUsageWarning.addHyperlinkListener { e ->
+      if (e.eventType == HyperlinkEvent.EventType.ACTIVATED) {
+        if (e.description == "suppress") {
+          val confirmationResult = Messages.showOkCancelDialog(
+            "Click OK to hide this warning in future builds.",
+            "Confirm Warning Suppression",
+            Messages.getOkButton(),
+            Messages.getCancelButton(),
+            Messages.getInformationIcon()
+          )
+          if (confirmationResult == Messages.OK) {
+            actionHandlers.dontShowAgainNoGCSettingWarningClicked()
+            defaultGCUsageWarning.isVisible = false
+          }
+        }
+        else {
+          BuildAnalyzerBrowserLinks.valueOf(e.description).let {
+            BrowserUtil.browse(it.urlTarget)
+            actionHandlers.helpLinkClicked(it)
+          }
+        }
+      }
+    }
+
+    add(htmlTextLabelWithFixedLines(panelHeader))
+    add(JPanel().apply {
+      layout = BorderLayout(5, 5)
+      add(JLabel(icon).apply { verticalAlignment = SwingConstants.TOP }, BorderLayout.WEST)
+      add(htmlTextLabelWithFixedLines(descriptionText), BorderLayout.CENTER)
+    })
+    add(controlsPanel)
+    if (model.shouldWarnAboutNoGCSetting) add(defaultGCUsageWarning)
   }
 
   override val component: JPanel = JPanel().apply {

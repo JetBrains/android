@@ -1,5 +1,4 @@
 // Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
-
 package com.android.tools.idea.run;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
@@ -8,6 +7,7 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_FEATURE;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.flags.StudioFlags;
@@ -48,22 +48,28 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.WriteExternalException;
+import com.intellij.openapi.vfs.VirtualFile;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import org.jdom.Element;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kxml2.io.KXmlParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 /**
  * Base {@link com.intellij.execution.configurations.RunConfiguration} for all Android run configs.
@@ -186,7 +192,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (AndroidPlatform.getInstance(facet.getModule()) == null) {
       errors.add(ValidationError.fatal(AndroidBundle.message("select.platform.error")));
     }
-    if (Manifest.getMainManifest(facet) == null && facet.getConfiguration().getProjectType() != PROJECT_TYPE_INSTANTAPP) {
+    if (facet.getConfiguration().getProjectType() != PROJECT_TYPE_INSTANTAPP && !isManifestValid(facet)) {
       errors.add(ValidationError.fatal(AndroidBundle.message("android.manifest.not.found.error")));
     }
     errors.addAll(getDeployTargetContext().getCurrentDeployTargetState().validate(facet));
@@ -212,6 +218,23 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     errors.addAll(myProfilerState.validate());
 
     return errors;
+  }
+
+  private boolean isManifestValid(@NotNull AndroidFacet facet) {
+    VirtualFile manifestFile = SourceProviderManager.getInstance(facet).getMainManifestFile();
+    if (manifestFile == null) {
+      return false;
+    }
+    ProgressManager.checkCanceled();
+    try (InputStream stream = manifestFile.getInputStream()) {
+      KXmlParser parser = new KXmlParser();
+      parser.setInput(stream, UTF_8.name());
+      parser.nextTag();
+      return "manifest".equals(parser.getName());
+    }
+    catch (IOException | XmlPullParserException e) {
+      return false;
+    }
   }
 
   /**

@@ -31,6 +31,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
@@ -172,7 +173,7 @@ class SafeArgsGeneratedKotlinCodeMatchTest {
     uast.accept(object : AbstractUastVisitor() {
       override fun visitClass(node: UClass): Boolean {
         val descriptor = (node as KotlinUClass).sourcePsi?.descriptor as? ClassDescriptor
-        descriptor?.takeIf { it.visibility == Visibilities.PUBLIC }?.toDescription()?.let {
+        descriptor?.takeIf { it.visibility == DescriptorVisibilities.PUBLIC }?.toDescription()?.let {
           descriptions.add(it)
         }
         return super.visitClass(node)
@@ -185,12 +186,12 @@ class SafeArgsGeneratedKotlinCodeMatchTest {
     isCompanionObject = this.isCompanionObject,
     qualifiedName = this.fqNameSafe.asString(),
     constructor = (this.unsubstitutedPrimaryConstructor as? FunctionDescriptor)
-      ?.takeIf { it.visibility == Visibilities.PUBLIC }
+      ?.takeIf { it.visibility == DescriptorVisibilities.PUBLIC }
       ?.toDescription(),
     methods = this.unsubstitutedMemberScope.getContributedDescriptors(DescriptorKindFilter.FUNCTIONS)
       .asSequence()
       .filterIsInstance<FunctionDescriptor>()
-      .filter { it.visibility == Visibilities.PUBLIC }
+      .filter { it.visibility == DescriptorVisibilities.PUBLIC }
       .map { it.toDescription() }
       .filter { !IGNORED_METHODS.contains(it.name) }
       .sortedBy { it.name }

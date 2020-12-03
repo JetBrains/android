@@ -290,7 +290,7 @@ object AndroidAttributeFact {
       "layout_constraintCircle" -> return NelePropertyType.ID
       "layout_constraintCircleAngle" -> return NelePropertyType.INTEGER
       "layout_constraintCircleRadius" -> return NelePropertyType.DIMENSION
-      "layout_constraintDimensionRatio" -> return NelePropertyType.FLOAT
+      "layout_constraintDimensionRatio" -> return NelePropertyType.STRING
       "layout_constraintEnd_toEndOf" -> return NelePropertyType.ID
       "layout_constraintEnd_toStartOf" -> return NelePropertyType.ID
       "layout_constraintGuide_begin" -> return NelePropertyType.DIMENSION

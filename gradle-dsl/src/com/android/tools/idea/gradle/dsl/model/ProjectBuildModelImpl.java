@@ -30,6 +30,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -134,9 +136,17 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
   @NotNull
   @Override
   public List<GradleBuildModel> getAllIncludedBuildModels() {
+    return getAllIncludedBuildModels((i, j) -> {});
+  }
+
+  @NotNull
+  @Override
+  public List<GradleBuildModel> getAllIncludedBuildModels(@NotNull BiConsumer<Integer, Integer> func) {
+    final Integer[] nModelsSeen = {0};
     List<GradleBuildModel> allModels = new ArrayList<>();
     if (myProjectBuildFile != null) {
       allModels.add(new GradleBuildModelImpl(myProjectBuildFile));
+      func.accept(++nModelsSeen[0], null);
     }
 
     // TODO(b/166739137): buildSrc is actually more like an included build; buildSrc could in principle have sub-projects, libraries, etc.,
@@ -145,6 +155,7 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
     VirtualFile buildSrcVirtualFile = myBuildModelContext.getGradleBuildFile(buildSrc);
     if (buildSrcVirtualFile != null) {
       allModels.add(getModuleBuildModel(buildSrcVirtualFile));
+      func.accept(++nModelsSeen[0], null);
     }
 
     GradleSettingsModel settingsModel = getProjectSettingsModel();
@@ -152,23 +163,23 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
       return allModels;
     }
 
-    allModels.addAll(settingsModel.modulePaths().stream().map((modulePath) -> {
+    Set<String> modulePaths = settingsModel.modulePaths();
+    Integer nModelsToConsider = nModelsSeen[0] + modulePaths.size();
+
+    allModels.addAll(modulePaths.stream().map((modulePath) -> {
+      GradleBuildModel model = null;
       // This should have already been added above
-      if (modulePath.equals(":")) {
-        return null;
+      if (!modulePath.equals(":")) {
+        File moduleDir = settingsModel.moduleDirectory(modulePath);
+        if (moduleDir != null) {
+          VirtualFile file = myBuildModelContext.getGradleBuildFile(moduleDir);
+          if (file != null) {
+            model = getModuleBuildModel(file);
+          }
+        }
       }
-
-      File moduleDir = settingsModel.moduleDirectory(modulePath);
-      if (moduleDir == null) {
-        return null;
-      }
-
-      VirtualFile file = myBuildModelContext.getGradleBuildFile(moduleDir);
-      if (file == null) {
-        return null;
-      }
-
-      return getModuleBuildModel(file);
+      func.accept(++nModelsSeen[0], nModelsToConsider);
+      return model;
     }).filter(Objects::nonNull).collect(Collectors.toList()));
     return allModels;
   }

@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.controllers
 
+import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
@@ -32,6 +33,7 @@ import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.memorysettings.MemorySettingsConfigurable
 import com.android.tools.idea.testing.IdeComponents
+import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
@@ -66,7 +68,8 @@ class BuildAnalyzerViewControllerTest {
   val task2 = mockTask(":app", "resources", "resources.plugin", 1000)
   val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000)
 
-  val model = BuildAnalyzerViewModel(MockUiData(tasksList = listOf(task1, task2, task3)))
+  val warningSuppressions = BuildAttributionWarningsFilter()
+  val model = BuildAnalyzerViewModel(MockUiData(tasksList = listOf(task1, task2, task3)), warningSuppressions = warningSuppressions)
   val analytics = BuildAttributionUiAnalytics(projectRule.project, uiSizeProvider = { Dimension(300, 200) })
   val buildSessionId = UUID.randomUUID().toString()
   val issueReporter = Mockito.mock(TaskIssueReporter::class.java)
@@ -76,6 +79,7 @@ class BuildAnalyzerViewControllerTest {
   fun setUp() {
     val ideComponents = IdeComponents(projectRule.project, disposableRule.disposable)
     showSettingsUtilMock = ideComponents.mockApplicationService(ShowSettingsUtil::class.java)
+    ideComponents.replaceProjectService(BuildAttributionWarningsFilter::class.java, warningSuppressions)
     UsageTracker.setWriterForTest(tracker)
     analytics.newReportSessionId(buildSessionId)
   }
@@ -374,6 +378,23 @@ class BuildAnalyzerViewControllerTest {
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
       assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.OPEN_MEMORY_SETTINGS_BUTTON_CLICKED)
+    }
+  }
+
+  @Test
+  @RunsInEdt
+  fun testSuppressNoGCSettingWarning() {
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
+
+    // Act
+    controller.dontShowAgainNoGCSettingWarningClicked()
+
+    // Verify
+    assertThat(warningSuppressions.suppressNoGCSettingWarning).isTrue()
+
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
+      assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.UNKNOWN_TYPE)
     }
   }
 

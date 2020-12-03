@@ -380,6 +380,41 @@ class NavXmlIndexTest {
   }
 
   @Test
+  fun camelCaseIdsInNavigationTagAreSupported() {
+    StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(true)
+
+    val file = fixture.addFileToProject(
+      "navigation/main.xml",
+      //language=XML
+      """
+      <!-- Recommend syntax is "camel_case_graph" but "camelCaseGraph" works too -->
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+                  xmlns:app="http://schemas.android.com/apk/res-auto"
+                  xmlns:tools="http://schemas.android.com/tools"
+                  android:id="@+id/camelCaseGraph"
+                  app:startDestination="@id/fragment">
+
+          <fragment android:id="@+id/fragment"
+                    android:name="test.safeargs.Fragment"
+                    tools:layout="@layout/fragment" />
+
+      </navigation>
+    """.trimIndent()).virtualFile
+
+    val navXmlIndex = NavXmlIndex()
+    val map = navXmlIndex.indexer.map(FileContentImpl.createByFile(file))
+
+    assertThat(map).hasSize(1)
+
+    val data = map.values.first()
+    data.root.toDestination()!!.let { dest ->
+      assertThat(dest.id).isEqualTo("camelCaseGraph")
+      assertThat(dest.name).isEqualTo(".CamelCaseGraph")
+    }
+    verifySerializationLogic(navXmlIndex.valueExternalizer, data)
+  }
+
+  @Test
   fun indexRecoversFromUnrelatedXml() {
     StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(true)
 

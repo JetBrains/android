@@ -19,6 +19,7 @@ import com.android.SdkConstants.GRADLE_DISTRIBUTION_URL_PROPERTY
 import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.SdkConstants.GRADLE_MINIMUM_VERSION
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.max
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.flags.StudioFlags
@@ -27,6 +28,7 @@ import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
@@ -40,6 +42,7 @@ import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginDependency
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
+import com.android.tools.idea.gradle.project.upgrade.AgpGradleVersionRefactoringProcessor.Companion.CompatibleGradleVersion.*
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginRelatedDependency
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.Companion.INSERT_OLD_USAGE_TYPE
@@ -84,13 +87,16 @@ import com.intellij.lang.properties.psi.Property
 import com.intellij.navigation.ItemPresentation
 import com.intellij.navigation.NavigationItem
 import com.intellij.navigation.PsiElementNavigationItem
+import com.intellij.notification.NotificationListener
 import com.intellij.openapi.actionSystem.TypeSafeDataProvider
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Factory
 import com.intellij.openapi.util.Ref
@@ -547,11 +553,58 @@ class AgpUpgradeRefactoringProcessor(
    * state or performing other user interface actions, which (if parsing were to happen in their scope) might block the whole UI.
    */
   fun ensureParsedModels() {
-    // this may look like a property access but it is in fact a call to retrieve (from cache or, if empty, by parsing) the complete
-    // project Build Dsl model.
     // TODO(b/169667833): add methods that explicitly compute and cache the list or retrieve it from cache (computeAllIncluded... /
-    //  retrieveAllIncluded..., maybe?) and use that here.  Deprecate the old getAllIncluded... method).
-    buildModel.allIncludedBuildModels
+    //  retrieveAllIncluded..., maybe?) and use that here.  Deprecate the old getAllIncluded... methods).
+    val progressManager = ProgressManager.getInstance()
+    // Running synchronously here brings up a modal progress dialog.  On the one hand this isn't ideal because it prevents other work from
+    // being done; on the other hand it is cancellable, shows numeric progress and takes around 30 seconds for a project with 1k modules.
+    //
+    // Moving to an asynchronous process would involve modifying callers to do the subsequent work after parsing in callbacks.
+    progressManager.runProcessWithProgressSynchronously(
+      {
+        val indicator = progressManager.progressIndicator
+        buildModel.getAllIncludedBuildModels { seen, total ->
+          indicator?.let {
+            indicator.checkCanceled()
+            // both "Parsing file ..." and "Parsing module ..." here are in general slightly wrong (given included and settings files).
+            indicator.text = "Parsing file $seen${if (total != null) " of $total" else ""}"
+            indicator.isIndeterminate = total == null
+            total?.let { indicator.fraction = seen.toDouble() / total.toDouble() }
+          }
+        }
+      },
+      commandName, true, project)
+  }
+}
+
+internal fun notifyCancelledUpgrade(project: Project, processor: AgpUpgradeRefactoringProcessor) {
+  val current = processor.current
+  val new = processor.new
+  val listener = NotificationListener { notification, _ ->
+    notification.expire()
+    ApplicationManager.getApplication().executeOnPooledThread {
+      showAndInvokeAgpUpgradeRefactoringProcessor(project, current, new)
+    }
+  }
+  val notification = ProjectUpgradeNotification(
+    "Android Gradle Plugin Upgrade Cancelled", "<a href=\"resume\">Resume upgrade</a>.", listener)
+  notification.notify(project)
+}
+
+/**
+ * This function is a default entry point to the AGP Upgrade Assistant, responsible for showing suitable UI for gathering user input
+ * to the process, and then running the processor under that user input's direction.
+ */
+internal fun showAndInvokeAgpUpgradeRefactoringProcessor(project: Project, current: GradleVersion, new: GradleVersion) {
+  val processor = AgpUpgradeRefactoringProcessor(project, current, new)
+  val runProcessor = showAndGetAgpUpgradeDialog(processor)
+  if (runProcessor) {
+    DumbService.getInstance(project).smartInvokeLater { processor.run() }
+  }
+  else {
+    // TODO(xof): This adds a notification when the user selects Cancel from the dialog box, but not when they select Cancel from the
+    //  refactoring preview.
+    notifyCancelledUpgrade(project, processor)
   }
 }
 
@@ -800,21 +853,11 @@ class AgpVersionUsageInfo(
 }
 
 class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
-  constructor(project: Project, current: GradleVersion, new: GradleVersion, gradleVersion: GradleVersion): super(project, current, new) {
-    this.gradleVersion = gradleVersion
+  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new) {
+    this.gradleVersion = AgpGradleVersionRefactoringProcessor.getCompatibleGradleVersion(new).version
   }
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor) {
-    // FIXME(xof): this is (theoretically) wrong; the version in question is the version of Gradle that the project
-    //  will use, after refactoring, not necessarily the minimum-supported version of Gradle.
-    //  This means this refactoring is intertwingled with the refactoring which upgrades the Gradle version in the wrapper properties,
-    //  though in practice it is not currently a problem (the behaviour changed in Gradle 4.0).
-    //  Further: we have the opportunity to make this correct if we can rely on the order of processing UsageInfos
-    //  because if we assure ourselves that the Gradle upgrade happens before this one, we can (in principle)
-    //  inspect the buildModel or the project to determine the appropriate version of Gradle.
-    //  However: at least if we have gone through a preview, the UsageInfo ordering is randomized as
-    //  BaseRefactoringProcessor#customizeUsagesView / UsageViewUtil#getNotExcludedUsageInfos makes a Set of
-    //  them.
-    this.gradleVersion = GradleVersion.tryParse(GRADLE_MINIMUM_VERSION)!!
+    this.gradleVersion = AgpGradleVersionRefactoringProcessor.getCompatibleGradleVersion(processor.new).version
   }
 
   var gradleVersion: GradleVersion
@@ -894,14 +937,14 @@ class RepositoriesNoGMavenUsageInfo(
 
 class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
-  constructor(project: Project, current: GradleVersion, new: GradleVersion, gradleVersion: GradleVersion): super(project, current, new) {
-    this.gradleVersion = gradleVersion
+  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new) {
+    this.compatibleGradleVersion = getCompatibleGradleVersion(new)
   }
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor) {
-    gradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION)
+    compatibleGradleVersion = getCompatibleGradleVersion(processor.new)
   }
 
-  val gradleVersion: GradleVersion
+  val compatibleGradleVersion: CompatibleGradleVersion
 
   override fun necessity() = MANDATORY_CODEPENDENT
 
@@ -915,12 +958,39 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         val gradleWrapper = GradleWrapper.get(ioFile, project)
         val currentGradleVersion = gradleWrapper.gradleVersion ?: return@forEach
         val parsedCurrentGradleVersion = GradleVersion.tryParse(currentGradleVersion) ?: return@forEach
-        if (!GradleUtil.isSupportedGradleVersion(parsedCurrentGradleVersion)) {
-          val updatedUrl = gradleWrapper.getUpdatedDistributionUrl(gradleVersion.toString(), true);
+        if (compatibleGradleVersion.version > parsedCurrentGradleVersion) {
+          val updatedUrl = gradleWrapper.getUpdatedDistributionUrl(compatibleGradleVersion.version.toString(), true);
           val virtualFile = VfsUtil.findFileByIoFile(ioFile, true) ?: return@forEach
           val propertiesFile = PsiManager.getInstance(project).findFile(virtualFile) as? PropertiesFile ?: return@forEach
           val property = propertiesFile.findPropertyByKey(GRADLE_DISTRIBUTION_URL_PROPERTY) ?: return@forEach
-          usages.add(GradleVersionUsageInfo(WrappedPsiElement(property.psiElement, this, USAGE_TYPE), current, new, gradleVersion, updatedUrl))
+          val wrappedPsiElement = WrappedPsiElement(property.psiElement, this, GRADLE_URL_USAGE_TYPE)
+          usages.add(GradleVersionUsageInfo(wrappedPsiElement, current, new, compatibleGradleVersion.version, updatedUrl))
+        }
+      }
+    }
+
+    // Check plugins for compatibility with our minimum Gradle version even if we're not upgrading (because the project has a higher
+    // version, for example) because some compatibility issues are related to the (AGP,Gradle) version pair rather than just directly
+    // the Gradle version.  (Also, this makes it substantially easier to test the action of this processor on a file at a time.)
+    buildModel.allIncludedBuildModels.forEach model@{ model ->
+      model.buildscript().dependencies().artifacts(CLASSPATH).forEach dep@{ dep ->
+        GradleVersion.tryParse(dep.version().toString())?.let { currentVersion ->
+          WELL_KNOWN_GRADLE_PLUGIN_TABLE["${dep.group()}:${dep.name()}"]?.let { info ->
+            val minVersion = info(compatibleGradleVersion)
+            if (minVersion <= currentVersion) return@dep
+            val resultModel = dep.version().resultModel
+            val element = resultModel.rawElement
+            val psiElement = when (element) {
+              null -> return@dep
+              // TODO(xof): most likely we need a range in PsiElement, if the dependency is expressed in compactNotation
+              is FakeArtifactElement -> element.realExpression.psiElement
+              else -> element.psiElement
+            }
+            psiElement?.let {
+              val wrappedPsiElement = WrappedPsiElement(psiElement, this, WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE)
+              usages.add(WellKnownGradlePluginUsageInfo(wrappedPsiElement, current, new, dep, resultModel, minVersion.toString()))
+            }
+          }
         }
       }
     }
@@ -930,7 +1000,7 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(GRADLE_VERSION)
 
-  override fun getCommandName(): String = "Upgrade Gradle version to $gradleVersion"
+  override fun getCommandName(): String = "Upgrade Gradle version to ${compatibleGradleVersion.version}"
 
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.gradleVersion"
 
@@ -940,12 +1010,77 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = "Upgrade Gradle version to $gradleVersion"
+      override fun getProcessedElementsHeader() = "Upgrade Gradle version to ${compatibleGradleVersion.version}"
     }
   }
 
   companion object {
-    val USAGE_TYPE = UsageType("Update Gradle distribution URL")
+    val GRADLE_URL_USAGE_TYPE = UsageType("Update Gradle distribution URL")
+    val WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE = UsageType("Update version of Gradle plugin")
+
+    enum class CompatibleGradleVersion(val version: GradleVersion) {
+      // versions earlier than 4.4 (corresponding to AGP 3.0.0 and below) are not needed because
+      // we no longer support running such early versions of Gradle given our required JDKs, so upgrading to
+      // them using this functionality is a non-starter.
+      VERSION_4_4(GradleVersion.parse("4.4")),
+      VERSION_4_6(GradleVersion.parse("4.6")),
+      VERSION_MIN(GradleVersion.parse(GRADLE_MINIMUM_VERSION)),
+      VERSION_4_10_1(GradleVersion.parse("4.10.1")),
+      VERSION_5_1_1(GradleVersion.parse("5.1.1")),
+      VERSION_5_4_1(GradleVersion.parse("5.4.1")),
+      VERSION_5_6_4(GradleVersion.parse("5.6.4")),
+      VERSION_6_1_1(GradleVersion.parse("6.1.1")),
+      VERSION_6_5(GradleVersion.parse("6.5")),
+      VERSION_FOR_DEV(GradleVersion.parse(GRADLE_LATEST_VERSION))
+    }
+
+    fun getCompatibleGradleVersion(agpVersion: GradleVersion): CompatibleGradleVersion {
+      val agpVersionMajorMinor = GradleVersion(agpVersion.major, agpVersion.minor)
+      val compatibleGradleVersion = when {
+        GradleVersion.parse("3.1") >= agpVersionMajorMinor -> VERSION_4_4
+        GradleVersion.parse("3.2") >= agpVersionMajorMinor -> VERSION_4_6
+        GradleVersion.parse("3.3") >= agpVersionMajorMinor -> VERSION_4_10_1
+        GradleVersion.parse("3.4") >= agpVersionMajorMinor -> VERSION_5_1_1
+        GradleVersion.parse("3.5") >= agpVersionMajorMinor -> VERSION_5_4_1
+        GradleVersion.parse("3.6") >= agpVersionMajorMinor -> VERSION_5_6_4
+        GradleVersion.parse("4.0") >= agpVersionMajorMinor -> VERSION_6_1_1
+        GradleVersion.parse("4.1") >= agpVersionMajorMinor -> VERSION_6_5
+        else -> VERSION_FOR_DEV
+      }
+      return when {
+        compatibleGradleVersion.version < VERSION_MIN.version -> VERSION_MIN
+        else -> compatibleGradleVersion
+      }
+    }
+
+    fun `kotlin-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
+      when (compatibleGradleVersion) {
+        VERSION_4_4 -> GradleVersion.parse("1.1.3")
+        VERSION_4_6 -> GradleVersion.parse("1.2.51")
+        VERSION_MIN -> GradleVersion.parse("1.2.51")
+        VERSION_4_10_1 -> GradleVersion.parse("1.3.0")
+        VERSION_5_1_1 -> GradleVersion.parse("1.3.10")
+        VERSION_5_4_1 -> GradleVersion.parse("1.3.10")
+        VERSION_5_6_4 -> GradleVersion.parse("1.3.10")
+        VERSION_6_1_1 -> GradleVersion.parse("1.3.20")
+        VERSION_6_5 -> GradleVersion.parse("1.3.20")
+        VERSION_FOR_DEV -> GradleVersion.parse("1.3.20")
+    }
+
+    fun `androidx-navigation-safeargs-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
+      when (compatibleGradleVersion) {
+        VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1, VERSION_6_5 ->
+          GradleVersion.parse("2.0.0")
+        // TODO(xof): for Studio 4.2 / AGP 4.2, this is correct.  For Studio 4.3 / AGP 7.0, it might not be: a feature deprecated in
+        //  AGP 4 might be removed in AGP 7.0 (see b/159542337) at which point we would need to upgrade the version to whatever the
+        //  version is that doesn't use that deprecated interface (2.3.2?  2.4.0?  3.0.0?  Who knows?)
+        VERSION_FOR_DEV -> GradleVersion.parse("2.0.0")
+      }
+
+    val WELL_KNOWN_GRADLE_PLUGIN_TABLE = mapOf(
+      "org.jetbrains.kotlin:kotlin-gradle-plugin" to ::`kotlin-gradle-plugin-compatibility-info`,
+      "androidx.navigation:navigation-safe-args-gradle-plugin" to ::`androidx-navigation-safeargs-gradle-plugin-compatibility-info`
+    )
   }
 }
 
@@ -975,6 +1110,21 @@ class GradleVersionUsageInfo(
       documentManager.commitDocument(document)
     }
   }
+}
+
+class WellKnownGradlePluginUsageInfo(
+  element: WrappedPsiElement,
+  current: GradleVersion,
+  new: GradleVersion,
+  val dependency: ArtifactDependencyModel,
+  val resultModel: GradlePropertyModel,
+  val version: String
+): GradleBuildModelUsageInfo(element, current, new) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    resultModel.setValue(version)
+  }
+
+  override fun getTooltipText() = "Update version of ${dependency.group()}:${dependency.name()} to $version"
 }
 
 class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
@@ -1400,8 +1550,9 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
         if (seenFabricMavenRepository && !repositories.hasGoogleMavenRepository()) {
           // TODO(xof): in theory this could collide with the refactoring to add google() to pre-3.0.0 projects.  In practice there's
           //  probably little overlap in fabric upgrades with such old projects.
+          val compatibleGradleVersion = AgpGradleVersionRefactoringProcessor.getCompatibleGradleVersion(new)
           val wrappedPsiElement = WrappedPsiElement(repositoriesOrHigherPsiElement, this, ADD_GMAVEN_REPOSITORY_USAGE_TYPE)
-          val usageInfo = AddGoogleMavenRepositoryUsageInfo(wrappedPsiElement, current, new, repositories)
+          val usageInfo = AddGoogleMavenRepositoryUsageInfo(wrappedPsiElement, current, new, repositories, compatibleGradleVersion.version)
           usages.add(usageInfo)
         }
       }
@@ -1580,11 +1731,11 @@ class AddGoogleMavenRepositoryUsageInfo(
   element: PsiElement,
   current: GradleVersion,
   new: GradleVersion,
-  private val repositories: RepositoriesModel
+  private val repositories: RepositoriesModel,
+  private val gradleVersion: GradleVersion
 ) : GradleBuildModelUsageInfo(element, current, new) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    // as with NoGMavenUsageInfo this use of GRADLE_MINIMUM_VERSION is theoretically wrong and in practice fine.
-    repositories.addGoogleMavenRepository(GradleVersion.parse(GRADLE_MINIMUM_VERSION))
+    repositories.addGoogleMavenRepository(gradleVersion)
   }
 
   override fun getTooltipText() = "Add the Google Maven repository"

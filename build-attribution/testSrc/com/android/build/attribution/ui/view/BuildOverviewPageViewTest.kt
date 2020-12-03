@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.view
 
+import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.defaultTotalBuildDurationMs
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
@@ -33,7 +34,8 @@ import javax.swing.JLabel
 
 class BuildOverviewPageViewTest {
 
-  private val model = BuildAnalyzerViewModel(MockUiData())
+  private val warningSuppressions = BuildAttributionWarningsFilter()
+  private val model = BuildAnalyzerViewModel(MockUiData(), warningSuppressions)
   private val mockHandlers = Mockito.mock(ViewActionHandlers::class.java)
 
   @Test
@@ -103,7 +105,7 @@ class BuildOverviewPageViewTest {
 
   @Test
   fun testMemoryUtilizationInfo() {
-    val model = BuildAnalyzerViewModel(MockUiData(gcTimeMs = (defaultTotalBuildDurationMs * 0.8).toLong()))
+    val model = BuildAnalyzerViewModel(MockUiData(gcTimeMs = (defaultTotalBuildDurationMs * 0.8).toLong()), warningSuppressions)
     val view = BuildOverviewPageView(model, mockHandlers)
     val memoryPanel = TreeWalker(view.component).descendants().single { it.name == "memory" }
 
@@ -114,6 +116,24 @@ class BuildOverviewPageViewTest {
     Truth.assertThat(button.text).isEqualTo("Edit memory settings")
     button.doClick()
     Mockito.verify(mockHandlers).openMemorySettings()
+  }
+
+  @Test
+  fun testNoGcSettingWarning() {
+    val mockData = MockUiData().apply {
+      buildSummary = mockBuildOverviewData(javaVersionUsed = 11, isGarbageCollectorSettingSet = false)
+    }
+    val model = BuildAnalyzerViewModel(mockData, warningSuppressions)
+    val view = BuildOverviewPageView(model, mockHandlers)
+    val memoryPanel = TreeWalker(view.component).descendants().single { it.name == "memory" }
+
+    Truth.assertThat(model.shouldWarnAboutNoGCSetting).isTrue()
+    Truth.assertThat(memoryPanel.isVisible).isTrue()
+
+    val textPane = TreeWalker(memoryPanel).descendants().single { it.name == "no-gc-setting-warning" }
+
+    Truth.assertThat(textPane.isVisible).isTrue()
+    Truth.assertThat(visibleText(textPane)).contains("The default garbage collector was used in this build running with JDK 11.")
   }
 
   private fun visibleText(component: Component): String? = when (component) {

@@ -42,6 +42,7 @@ import org.jetbrains.kotlin.asJava.classes.createTypeFromCanonicalText
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.asJava.toPsiParameters
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
+import org.jetbrains.kotlin.builtins.StandardNames
 import org.jetbrains.kotlin.codegen.ClassBuilderMode
 import org.jetbrains.kotlin.codegen.signature.BothSignatureWriter
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
@@ -261,7 +262,7 @@ private fun KtTypeReference.equalsToPsiType(unboxedPsiType: PsiType): Boolean {
     }
   }
   if (unboxedPsiType is PsiPrimitiveType) {
-    if (!KotlinBuiltIns.FQ_NAMES.primitiveTypeShortNames.contains(Name.identifier(shortName))) {
+    if (!StandardNames.FqNames.primitiveTypeShortNames.contains(Name.identifier(shortName))) {
       return false
     }
   }
