@@ -48,6 +48,11 @@ import javax.swing.BorderFactory
 import javax.swing.JComponent
 
 /**
+ * Tag name used to persist the multi preview state.
+ */
+internal const val MULTI_PREVIEW_STATE_TAG = "multi-preview-state"
+
+/**
  * Type for [PreviewRepresentation]s to store their settings as key/value pairs.
  */
 typealias PreviewRepresentationState = Map<String, String>
@@ -66,7 +71,7 @@ data class Representation(
  * [FileEditorState] for [MultiRepresentationPreview]. It saves the state of the individual [PreviewRepresentation]s and restore the state
  * of each one.
  */
-@Tag("multi-preview-state")
+@Tag(MULTI_PREVIEW_STATE_TAG)
 data class MultiRepresentationPreviewFileEditorState(
   @Attribute("selected")
   var selectedRepresentationName: RepresentationName = "",

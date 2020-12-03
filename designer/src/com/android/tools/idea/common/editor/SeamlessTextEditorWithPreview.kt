@@ -42,10 +42,8 @@ open class SeamlessTextEditorWithPreview<P : FileEditor>(textEditor: TextEditor,
     val mainComponent = super.getComponent()
     if (toolbarComponent == null) {
       toolbarComponent = TreeWalker(mainComponent).descendantStream().filter { it is SplitEditorToolbar }.findFirst().orElseThrow { IllegalStateException("TextEditorWithPreview should have a toolbar.") }
-      saveTrueVisibility()
       // Apply visibility values overridden by this
       if (isPureTextEditor) {
-        toolbarComponent?.isVisible = false
         setPureTextEditorVisibility()
       }
     }
@@ -60,33 +58,23 @@ open class SeamlessTextEditorWithPreview<P : FileEditor>(textEditor: TextEditor,
       setPureTextEditorVisibility()
     }
     else {
-      // Save true visibility only if we're not in pure text editor mode, otherwise we'd override the visibility to be text-only
-      saveTrueVisibility()
+      setSplitTextEditorVisibility()
     }
   }
 
-  private var myIsEditorVisible = true
-  private var myIsPreviewVisible = false
-
   /**
-   * When switching to [isPureTextEditor]=true we are overriding visibility values for [myEditor] and [myPreview]. Namely, [myEditor] is
-   * always visible and [myPreview] is always hidden. Thus, to be able to restore true values when switching back, we have to save those.
+   * Restore the visibility of the components depending on the current [layout].
    */
-  private fun saveTrueVisibility() {
-    myIsEditorVisible = myEditor.component.isVisible
-    myIsPreviewVisible = myPreview.component.isVisible
-  }
+  private fun setSplitTextEditorVisibility() =
+    when (layout) {
+      Layout.SHOW_PREVIEW -> selectDesignMode(false)
+      Layout.SHOW_EDITOR_AND_PREVIEW -> selectSplitMode(false)
+      Layout.SHOW_EDITOR -> selectTextMode(false)
+      null -> {}
+    }
 
   /**
-   * Restoring true visibility values of [myEditor] and [myPreview] when switching to [isPureTextEditor]=false.
-   */
-  private fun restoreTrueVisibility() {
-    myEditor.component.isVisible = myIsEditorVisible
-    myPreview.component.isVisible = myIsPreviewVisible
-  }
-
-  /**
-   * Setting visibility values [isPureTextEditor]=true, see [saveTrueVisibility] for more details.
+   * Setting visibility values [isPureTextEditor]=true, see [setSplitTextEditorVisibility] for more details.
    */
   private fun setPureTextEditorVisibility() {
     myEditor.component.isVisible = true
@@ -96,16 +84,12 @@ open class SeamlessTextEditorWithPreview<P : FileEditor>(textEditor: TextEditor,
   // Even though isPureTextEditor is meant to be persistent this editor delegates keeping the state persistent to the clients
   var isPureTextEditor: Boolean = true
     set(value) {
-      if (value == field) {
-        return
-      }
       toolbarComponent?.isVisible = !value
       if (value) {
-        saveTrueVisibility()
         setPureTextEditorVisibility()
       }
       else {
-        restoreTrueVisibility()
+        setSplitTextEditorVisibility()
       }
       field = value
     }
