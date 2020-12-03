@@ -121,6 +121,13 @@ public class AbiSplitApksTest extends DebuggerTestBase {
 
     ideFrame.requestProjectSyncAndWaitForSyncToFinish(Wait.seconds(GRADLE_SYNC_TIMEOUT_SECONDS));
 
+    // ndk.dir will be deprecated soon.
+    // Remove it now in test. When ndk.dir is deprecated, will update the test if necessary.
+    EditorFixture editor = ideFrame.getEditor().open("local.properties")
+      .select("(ndk.dir=.*)")
+      .enterText(" ");
+    ideFrame.requestProjectSyncAndWaitForSyncToFinish(Wait.seconds(GRADLE_SYNC_TIMEOUT_SECONDS));
+
     String expectedApkName = "app-x86_64-debug.apk";
     // Request debugging and wait for Gradle build to finish.
     assertTrue("Build failed", ideFrame.actAndWaitForBuildToFinish(it -> it.debugApp("app", "Google Nexus 5X")).isBuildSuccessful());
