@@ -28,12 +28,14 @@ import com.google.common.base.Preconditions.checkState
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.util.IconLoader
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.core.Robot
 import org.fest.swing.edt.GuiQuery
 import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.timing.Pause
 import org.fest.swing.timing.Wait
+import javax.swing.Icon
 import javax.swing.JComponent
 
 /**
@@ -91,6 +93,16 @@ class SplitEditorFixture(val robot: Robot, val editor: SplitEditor<out FileEdito
       robot(), target(), object : GenericTypeMatcher<ActionButton>(ActionButton::class.java) {
       override fun isMatching(component: ActionButton): Boolean {
         return text == component.action.templateText
+      }
+    })
+    return ActionButtonFixture(robot(), button)
+  }
+
+  fun findActionButtonByIcon(icon: Icon): ActionButtonFixture {
+    val button = waitUntilShowing(
+      robot(), target(), object : GenericTypeMatcher<ActionButton>(ActionButton::class.java) {
+      override fun isMatching(component: ActionButton): Boolean {
+        return component.icon == icon || IconLoader.getDisabledIcon(icon) == component.icon
       }
     })
     return ActionButtonFixture(robot(), button)

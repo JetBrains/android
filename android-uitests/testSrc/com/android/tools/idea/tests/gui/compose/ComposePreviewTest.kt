@@ -35,6 +35,7 @@ import com.android.tools.idea.tests.gui.uibuilder.RenderTaskLeakCheckRule
 import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import icons.StudioIcons
+import icons.StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.exception.ComponentLookupException
 import org.fest.swing.exception.WaitTimedOutError
@@ -287,6 +288,11 @@ class ComposePreviewTest {
       .waitForRenderToFinish()
 
     composePreview.waitForSceneViewsCount(1)
+
+    val animationInspectorButton = composePreview
+      .findActionButtonByIcon(ANIMATION_INSPECTOR)
+    // There are no animations, so it's disabled
+    assertFalse(animationInspectorButton.isEnabled)
 
     composePreview
       .findActionButtonByText("Stop Interactive Preview")
