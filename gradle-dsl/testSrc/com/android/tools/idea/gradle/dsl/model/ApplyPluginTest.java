@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
@@ -385,6 +386,8 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.PLUGINS_BLOCK_WITH_VERSION);
     GradleBuildModel buildModel = getGradleBuildModel();
     PluginModel pluginModel = buildModel.plugins().get(0);
+    assertEquals(STRING, pluginModel.version().getValueType());
+    assertEquals(NONE, pluginModel.apply().getValueType());
     pluginModel.apply().setValue(true);
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.PLUGINS_BLOCK_WITH_VERSION_SET_APPLY_EXPECTED);
@@ -421,6 +424,8 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.PLUGINS_BLOCK_WITH_APPLY);
     GradleBuildModel buildModel = getGradleBuildModel();
     PluginModel pluginModel = buildModel.plugins().get(0);
+    assertEquals(NONE, pluginModel.version().getValueType());
+    assertEquals(BOOLEAN, pluginModel.apply().getValueType());
     pluginModel.version().setValue("3.4");
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.PLUGINS_BLOCK_WITH_APPLY_SET_VERSION_EXPECTED);
