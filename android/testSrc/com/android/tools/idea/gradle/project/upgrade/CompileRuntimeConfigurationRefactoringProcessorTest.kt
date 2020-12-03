@@ -177,6 +177,14 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
   }
 
   @Test
+  fun testMoreObscureConfigurations() {
+    writeToBuildFile(TestFileName("CompileRuntimeConfiguration/MoreObscureConfigurations"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/MoreObscureConfigurationsExpected"))
+  }
+
+  @Test
   fun testIsNotAlwaysNoOpOnSimpleApplication() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleApplication"))
     val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
