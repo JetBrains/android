@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
@@ -452,6 +453,46 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testPluginsBlockNoDslSetVersion() throws Exception {
+    writeToBuildFile(TestFile.PLUGINS_BLOCK_NO_DSL);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    PluginModel pluginModel = buildModel.plugins().get(0);
+    assertEquals(NONE, pluginModel.version().getValueType());
+    assertEquals(NONE, pluginModel.apply().getValueType());
+    pluginModel.version().setValue("3.4");
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.PLUGINS_BLOCK_NO_DSL_SET_VERSION_EXPECTED);
+  }
+
+  @Test
+  public void testPluginsBlockNoDslSetApply() throws Exception {
+    writeToBuildFile(TestFile.PLUGINS_BLOCK_NO_DSL);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    PluginModel pluginModel = buildModel.plugins().get(0);
+    assertEquals(NONE, pluginModel.version().getValueType());
+    assertEquals(NONE, pluginModel.apply().getValueType());
+    pluginModel.apply().setValue(false);
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.PLUGINS_BLOCK_NO_DSL_SET_APPLY_EXPECTED);
+  }
+
+  @Test
+  public void testPluginsBlockNoDslSetVersionAndApply() throws Exception {
+    writeToBuildFile(TestFile.PLUGINS_BLOCK_NO_DSL);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    PluginModel pluginModel = buildModel.plugins().get(0);
+    assertEquals(NONE, pluginModel.version().getValueType());
+    assertEquals(NONE, pluginModel.apply().getValueType());
+    pluginModel.version().setValue("3.4");
+    // TODO(b/175192157): this is a bit of a hack: we need to regenerate the plugin model because the previous transform invalidates the
+    //  underlying Dsl.  (I think this is a semi-general issue with PropertyTransforms)
+    pluginModel = buildModel.plugins().get(0);
+    pluginModel.apply().setValue(false);
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.PLUGINS_BLOCK_NO_DSL_SET_VERSION_AND_APPLY_EXPECTED);
+  }
+
+  @Test
   public void testPluginsFromApplyAndPluginsBlock() throws Exception {
     writeToBuildFile(TestFile.PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK);
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -602,6 +643,10 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     APPLY_PLUGIN_AT_START_EXPECTED("applyPluginAtStartExpected"),
     APPLY_REPEATED_PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK("applyRepeatedPluginsFromApplyAndPluginsBlocks"),
     APPLY_PLUGINS_FROM_PLUGINS_BLOCK("applyPluginsFromPluginsBlock"),
+    PLUGINS_BLOCK_NO_DSL("pluginsBlockNoDsl"),
+    PLUGINS_BLOCK_NO_DSL_SET_APPLY_EXPECTED("pluginsBlockNoDslSetApplyExpected"),
+    PLUGINS_BLOCK_NO_DSL_SET_VERSION_EXPECTED("pluginsBlockNoDslSetVersionExpected"),
+    PLUGINS_BLOCK_NO_DSL_SET_VERSION_AND_APPLY_EXPECTED("pluginsBlockNoDslSetVersionAndApplyExpected"),
     PLUGINS_BLOCK_WITH_REPEATED_PLUGINS("pluginsBlockWithRepeatedPlugins"),
     PLUGINS_BLOCK_WITH_VERSION("pluginsBlockWithVersion"),
     PLUGINS_BLOCK_WITH_VERSION_SET_APPLY_EXPECTED("pluginsBlockWithVersionSetApplyExpected"),

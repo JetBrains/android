@@ -19,6 +19,8 @@ import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.InfixPropertyTransform;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.LiteralToInfixTransform;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
@@ -48,10 +50,6 @@ public class PluginModelImpl implements PluginModel {
   private final GradleDslElement myCompleteElement;
   @NotNull
   private final GradleDslSimpleExpression myDslElement;
-  @Nullable
-  private final GradleDslSimpleExpression myVersionElement;
-  @Nullable
-  private final GradleDslSimpleExpression myApplyElement;
 
   @NotNull
   public static List<PluginModelImpl> create(@NotNull GradlePropertiesDslElement dslElement) {
@@ -85,11 +83,9 @@ public class PluginModelImpl implements PluginModel {
       }
       else if (e instanceof GradleDslInfixExpression) {
         GradleDslInfixExpression infixExpression = (GradleDslInfixExpression) e;
-        // FIXME: these casts, nullability checks, etc.
+        // FIXME(xof): cast, nullability check, etc.
         GradleDslSimpleExpression pluginElement = (GradleDslSimpleExpression)infixExpression.getElement(ID);
-        GradleDslSimpleExpression applyElement = (GradleDslSimpleExpression)infixExpression.getElement(APPLY);
-        GradleDslSimpleExpression versionElement = (GradleDslSimpleExpression)infixExpression.getElement(VERSION);
-        results.add(new PluginModelImpl(infixExpression, pluginElement, versionElement, applyElement));
+        results.add(new PluginModelImpl(infixExpression, pluginElement));
       }
     }
 
@@ -118,48 +114,31 @@ public class PluginModelImpl implements PluginModel {
   public PluginModelImpl(@NotNull GradleDslElement completeElement, @NotNull GradleDslSimpleExpression element) {
     myDslElement = element;
     myCompleteElement = completeElement;
-    // FIXME(xof)
-    myVersionElement = null;
-    myApplyElement = null;
-
-  }
-
-  public PluginModelImpl(
-    @NotNull GradleDslInfixExpression completeElement,
-    @NotNull GradleDslSimpleExpression element,
-    @Nullable GradleDslSimpleExpression versionElement,
-    @Nullable GradleDslSimpleExpression applyElement
-  ) {
-    myDslElement = element;
-    myCompleteElement = completeElement;
-    myVersionElement = versionElement;
-    myApplyElement = applyElement;
   }
 
   @NotNull
   @Override
   public ResolvedPropertyModel name() {
+    // TODO(xof): need to transformize this so we can get rid of myDslElement
     return GradlePropertyModelBuilder.create(myDslElement).buildResolved();
   }
 
   @NotNull
   @Override
   public ResolvedPropertyModel version() {
-    // FIXME(xof): this needs transforms
-    if (myCompleteElement instanceof GradleDslInfixExpression) {
-      return GradlePropertyModelBuilder.create((GradleDslInfixExpression) myCompleteElement, VERSION).buildResolved();
-    }
-    return GradlePropertyModelBuilder.create(myVersionElement).buildResolved();
+    return GradlePropertyModelBuilder.create(myCompleteElement)
+      .addTransform(new LiteralToInfixTransform(VERSION))
+      .addTransform(new InfixPropertyTransform(VERSION))
+      .buildResolved();
   }
 
   @NotNull
   @Override
   public ResolvedPropertyModel apply() {
-    // FIXME(xof): so does this
-    if (myCompleteElement instanceof GradleDslInfixExpression) {
-      return GradlePropertyModelBuilder.create((GradleDslInfixExpression) myCompleteElement, APPLY).buildResolved();
-    }
-    return GradlePropertyModelBuilder.create(myApplyElement).buildResolved();
+    return GradlePropertyModelBuilder.create(myCompleteElement)
+      .addTransform(new LiteralToInfixTransform(APPLY))
+      .addTransform(new InfixPropertyTransform(APPLY))
+      .buildResolved();
   }
 
   @Override
