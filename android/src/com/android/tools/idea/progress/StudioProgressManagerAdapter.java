@@ -16,6 +16,7 @@
 package com.android.tools.idea.progress;
 
 import com.android.ProgressManagerAdapter;
+import com.android.annotations.NonNull;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 
@@ -38,6 +39,14 @@ public final class StudioProgressManagerAdapter extends ProgressManagerAdapter {
   @Override
   protected void doCheckCanceled() throws ProcessCanceledException {
     ProgressManager.checkCanceled();
+  }
+
+  @Override
+  protected void doThrowIfCancellation(@NonNull Throwable t) {
+    if (t instanceof ProcessCanceledException) {
+      throw (ProcessCanceledException)t;
+    }
+    super.doThrowIfCancellation(t);
   }
 
   private StudioProgressManagerAdapter() {}
