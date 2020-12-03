@@ -40,8 +40,8 @@ import com.android.tools.profilers.energy.EnergyMonitorTooltip;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.HeapDumpStage;
-import com.android.tools.profilers.memory.MemoryMonitorTooltip;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
+import com.android.tools.profilers.memory.MemoryMonitorTooltip;
 import com.android.tools.profilers.network.NetworkMonitorTooltip;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.sessions.SessionsView;
@@ -529,7 +529,7 @@ public class StudioProfilersViewTest {
   public void captureCpuStageGoesBackToCpuStageThenBackToMonitorStage() {
     myProfilers.setStage(CpuCaptureStage.create(myProfilers,
                                                 ProfilersTestData.DEFAULT_CONFIG,
-                                                TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.VALID_TRACE_PATH),
+                                                TestUtils.resolveWorkspacePath(CpuProfilerUITestUtils.VALID_TRACE_PATH).toFile(),
                                                 ProfilersTestData.SESSION_DATA.getSessionId()));
     myView.getBackButton().doClick();
     assertThat(myProfilers.getStage()).isInstanceOf(CpuProfilerStage.class);

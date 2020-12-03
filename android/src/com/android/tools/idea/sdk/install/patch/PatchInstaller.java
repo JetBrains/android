@@ -15,17 +15,21 @@
  */
 package com.android.tools.idea.sdk.install.patch;
 
-import com.android.repository.api.*;
+import com.android.repository.api.Downloader;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.PackageOperation;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
 import com.android.repository.impl.installer.AbstractInstaller;
 import com.android.repository.impl.meta.Archive;
 import com.android.repository.io.FileOp;
 import com.android.repository.util.InstallerUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Installer for binary diff packages, as built by {@code com.intellij.updater.Runner}.
@@ -34,7 +38,7 @@ class PatchInstaller extends AbstractInstaller implements PatchOperation {
 
   private static final String PATCH_JAR_FN = "patch.jar";
   private LocalPackage myExisting;
-  private File myPatchFile;
+  private Path myPatchFile;
 
   public PatchInstaller(@Nullable LocalPackage existing,
                         @NotNull RemotePackage p,
@@ -46,16 +50,16 @@ class PatchInstaller extends AbstractInstaller implements PatchOperation {
   }
 
   @Override
-  protected boolean doComplete(@Nullable File installTemp,
+  protected boolean doComplete(@Nullable Path installTemp,
                                @NotNull ProgressIndicator progress) {
     if (myPatchFile == null) {
-      myPatchFile = new File(installTemp, PATCH_JAR_FN);
+      myPatchFile = installTemp.resolve(PATCH_JAR_FN);
     }
     return PatchInstallerUtil.installPatch(this, myPatchFile, mFop, progress);
   }
 
   @Override
-  protected boolean doPrepare(@NotNull File tempDir,
+  protected boolean doPrepare(@NotNull Path tempDir,
                               @NotNull ProgressIndicator progress) {
     LocalPackage local = getRepoManager().getPackages().getLocalPackages().get(getPackage().getPath());
     Archive archive = getPackage().getArchive();
@@ -108,7 +112,7 @@ class PatchInstaller extends AbstractInstaller implements PatchOperation {
 
   @NotNull
   @Override
-  public File getNewFilesRoot() {
+  public Path getNewFilesRoot() {
     // PatchInstaller doesn't need to generate a patch on the fly, so it doesn't have or need this information.
     throw new UnsupportedOperationException("PatchInstaller can't generate patches");
   }
@@ -125,8 +129,8 @@ class PatchInstaller extends AbstractInstaller implements PatchOperation {
    * @return {@code null} if unsuccessful.
    */
   @Nullable
-  private File downloadPatchFile(@NotNull Archive.PatchType patch,
-                                 @NotNull File tempDir,
+  private Path downloadPatchFile(@NotNull Archive.PatchType patch,
+                                 @NotNull Path tempDir,
                                  @NotNull ProgressIndicator progress) {
     URL url = InstallerUtil.resolveUrl(patch.getUrl(), getPackage(), progress);
     if (url == null) {
@@ -134,8 +138,8 @@ class PatchInstaller extends AbstractInstaller implements PatchOperation {
       return null;
     }
     try {
-      File patchFile = new File(tempDir, PATCH_JAR_FN);
-      getDownloader().downloadFullyWithCaching(url, patchFile, patch.getChecksum(), progress);
+      Path patchFile = tempDir.resolve(PATCH_JAR_FN);
+      getDownloader().downloadFullyWithCaching(url, mFop.toFile(patchFile), patch.getChecksum(), progress);
       return patchFile;
     }
     catch (IOException e) {

@@ -16,6 +16,7 @@
 package com.android.tools.adtui.workbench;
 
 import com.android.annotations.Nullable;
+import com.android.tools.adtui.stdui.ActionData;
 import com.android.tools.adtui.stdui.EmptyStatePanel;
 import com.android.tools.adtui.stdui.IconChunk;
 import com.android.tools.adtui.stdui.TextChunk;
@@ -98,10 +99,17 @@ public class WorkBenchLoadingPanel extends JPanel {
    * Replaces loading animation with the given message.
    */
   public void abortLoading(String message, @SuppressWarnings("SameParameterValue") Icon icon) {
+    abortLoading(message, icon, null);
+  }
+
+  /**
+   * Replaces loading animation with the given message.
+   */
+  public void abortLoading(String message, @SuppressWarnings("SameParameterValue") Icon icon, ActionData actionData) {
     if (myMessagePanel != null) {
       super.remove(myMessagePanel);
     }
-    myMessagePanel = new EmptyStatePanel(new LabelData(new IconChunk(icon), new TextChunk(message)));
+    myMessagePanel = new EmptyStatePanel(new LabelData(new IconChunk(icon), new TextChunk(message)), null, actionData);
     super.remove(myLoadingPanel);
     super.add(myMessagePanel);
   }

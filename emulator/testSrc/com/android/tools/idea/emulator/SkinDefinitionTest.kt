@@ -16,9 +16,9 @@
 package com.android.tools.idea.emulator
 
 import com.android.emulator.control.Rotation.SkinRotation
-import com.android.testutils.TestUtils
-import com.android.tools.adtui.ImageUtils
 import com.android.testutils.ImageDiffUtil
+import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.webp.WebpMetadata
 import com.android.tools.idea.emulator.FakeEmulator.Companion.getSkinFolder
 import com.google.common.truth.Truth.assertThat
@@ -27,7 +27,7 @@ import org.junit.Test
 import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
-import java.io.File
+import java.nio.file.Path
 
 /**
  * Tests for [SkinDefinition] and related classes.
@@ -198,8 +198,8 @@ class SkinDefinitionTest {
     ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.0)
   }
 
-  private fun getGoldenFile(name: String): File {
-    return TestUtils.getWorkspaceRoot().toPath().resolve("${GOLDEN_FILE_PATH}/${name}.png").toFile()
+  private fun getGoldenFile(name: String): Path {
+    return getWorkspaceRoot().resolve("${GOLDEN_FILE_PATH}/${name}.png")
   }
 }
 

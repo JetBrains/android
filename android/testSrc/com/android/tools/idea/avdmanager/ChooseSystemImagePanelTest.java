@@ -199,23 +199,23 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
 
     ISystemImage gapiImage = systemImageManager.getImageAt(
-      fileOp.toFile(sdkHandler.getLocalPackage(gapiPath, progress).getLocation()));
+      sdkHandler.getLocalPackage(gapiPath, progress).getLocation());
     ISystemImage gapi29Image = systemImageManager.getImageAt(
-      fileOp.toFile(sdkHandler.getLocalPackage(gapi29Path, progress).getLocation()));
+      sdkHandler.getLocalPackage(gapi29Path, progress).getLocation());
     ISystemImage gapi30Image = systemImageManager.getImageAt(
-      fileOp.toFile(sdkHandler.getLocalPackage(gapi30Path, progress).getLocation()));
+      sdkHandler.getLocalPackage(gapi30Path, progress).getLocation());
     ISystemImage playStoreImage = systemImageManager.getImageAt(
-      fileOp.toFile(sdkHandler.getLocalPackage(psPath, progress).getLocation()));
+      sdkHandler.getLocalPackage(psPath, progress).getLocation());
     ISystemImage wearImage = systemImageManager.getImageAt(
-      fileOp.toFile(sdkHandler.getLocalPackage(wearPath, progress).getLocation()));
+      sdkHandler.getLocalPackage(wearPath, progress).getLocation());
     ISystemImage wear29Image = systemImageManager.getImageAt(
-      fileOp.toFile(sdkHandler.getLocalPackage(wear29Path, progress).getLocation()));
+      sdkHandler.getLocalPackage(wear29Path, progress).getLocation());
     ISystemImage wearCnImage = systemImageManager.getImageAt(
-      fileOp.toFile(sdkHandler.getLocalPackage(wearCnPath, progress).getLocation()));
+      sdkHandler.getLocalPackage(wearCnPath, progress).getLocation());
     ISystemImage automotiveImage = systemImageManager.getImageAt(
-      fileOp.toFile(sdkHandler.getLocalPackage(automotivePath, progress).getLocation()));
+      sdkHandler.getLocalPackage(automotivePath, progress).getLocation());
     ISystemImage automotivePsImage = systemImageManager.getImageAt(
-      fileOp.toFile(sdkHandler.getLocalPackage(automotivePsPath, progress).getLocation()));
+      sdkHandler.getLocalPackage(automotivePsPath, progress).getLocation());
 
     myGapiImageDescription = new SystemImageDescription(gapiImage);
     myGapi29ImageDescription = new SystemImageDescription(gapi29Image);

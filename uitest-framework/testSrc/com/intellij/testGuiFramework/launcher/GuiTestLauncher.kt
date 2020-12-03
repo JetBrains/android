@@ -18,6 +18,7 @@ package com.intellij.testGuiFramework.launcher
 import com.android.prefs.AndroidLocation
 import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.aspects.AspectsAgentLogUtil
 import com.android.tools.tests.IdeaTestSuiteBase
@@ -30,6 +31,7 @@ import org.apache.log4j.Level
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
+import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.jar.Attributes
 import java.util.jar.JarOutputStream
@@ -174,10 +176,10 @@ object GuiTestLauncher {
     if (System.getProperty("enable.bleak") == "true") {
       options += "-Denable.bleak=true"
       options += "-Xmx16g"
-      val jvmtiAgent = File(TestUtils.getWorkspaceRoot(),
-                            "bazel-bin/tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents/libjnibleakhelper.so")
-      if (jvmtiAgent.exists()) {
-        options += "-agentpath:${jvmtiAgent.absolutePath}"
+      val jvmtiAgent =
+          getWorkspaceRoot().resolve("bazel-bin/tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents/libjnibleakhelper.so")
+      if (Files.exists(jvmtiAgent)) {
+        options += "-agentpath:$jvmtiAgent"
         options += "-Dbleak.jvmti.enabled=true"
         options += "-Djava.library.path=${System.getProperty("java.library.path")}:${jvmtiAgent.parent}"
       } else {
@@ -192,7 +194,7 @@ object GuiTestLauncher {
     }
     if (TestUtils.runningFromBazel()) {
       if (!IdeaTestSuiteBase.isUnbundledBazelTestTarget()) {
-        options += "-Didea.home.path=${TestUtils.getWorkspaceFile("tools/idea")}"
+        options += "-Didea.home.path=${resolveWorkspacePath("tools/idea").toFile()}"
       }
       options += "-Didea.system.path=${IdeaTestSuiteBase.createTmpDir("idea/system")}"
       options += "-Didea.config.path=${IdeaTestSuiteBase.createTmpDir("idea/config")}"
@@ -206,7 +208,7 @@ object GuiTestLauncher {
   }
 
   private fun getJdkPathForGradle(): String? {
-    val jdk = File(getWorkspaceRoot(), "prebuilts/studio/jdk")
+    val jdk = File(getWorkspaceRoot().toFile(), "prebuilts/studio/jdk")
     if (jdk.exists()) {
       return File(jdk, "BUILD").toPath().toRealPath().toFile().getParentFile().absolutePath
     }

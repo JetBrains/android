@@ -21,7 +21,7 @@ import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.layoutinspector.InspectorModelDescriptor
 import com.android.tools.idea.layoutinspector.InspectorViewDescriptor
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
@@ -29,7 +29,7 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 object DemoExample {
 
   fun setUpDemo(fixture: CodeInsightTestFixture, body: InspectorViewDescriptor.() -> Unit = {}): InspectorModelDescriptor.() -> Unit {
-    fixture.testDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/layout-inspector/testData/resource").path
+    fixture.testDataPath = resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/resource").toString()
     fixture.copyFileToProject(FN_ANDROID_MANIFEST_XML)
     fixture.copyFileToProject("res/color/app_text_color.xml")
     fixture.copyFileToProject("res/drawable/background_choice.xml")

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup.module;
+package com.android.tools.profilers
 
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.module.Module;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.adtui.model.FakeTimer
 
-public abstract class ModuleCleanupStep {
-  public abstract void cleanUpModule(@NotNull Module module, @NotNull IdeModifiableModelsProvider ideModelsProvider);
+interface WithFakeTimer {
+  val timer: FakeTimer
+
+  fun tickOneSec() = tick(FakeTimer.ONE_SECOND_IN_NS)
+  fun tick(ns: Long) = timer.tick(ns)
+
+  fun <T> tickOneSecThen(get: () -> T) = tickThen(FakeTimer.ONE_SECOND_IN_NS, get)
+  fun <T> tickThen(ns: Long, get: () -> T): T {
+    tick(ns)
+    return get()
+  }
 }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.RangeSelectionComponent
 import com.android.tools.adtui.RangeTooltipComponent
 import com.android.tools.adtui.TreeWalker
@@ -161,7 +161,7 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
     myStage.profilerConfigModel.profilingConfiguration = FakeIdeProfilerServices.ATRACE_CONFIG
     CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService,
                                              CpuProfilerTestUtils.traceFileToByteString(
-                                               TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
+                                               resolveWorkspacePath(TOOLTIP_TRACE_DATA_FILE).toFile()))
 
     myIdeServices.enableCpuCaptureStage(false)
     myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
@@ -198,7 +198,7 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
       myStage,
       myCpuService,
       myTransportService,
-      CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
+      CpuProfilerTestUtils.traceFileToByteString(resolveWorkspacePath(TOOLTIP_TRACE_DATA_FILE).toFile()))
     val captureId = myStage.capture!!.traceId
     myStage.studioProfilers.sessionsManager.endCurrentSession()
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)

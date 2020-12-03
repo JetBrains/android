@@ -949,6 +949,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy-agent/1.9.10:jar",
         "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy/1.9.10:jar",
         "//prebuilts/tools/common/m2/repository/org/antlr/antlr4-runtime/4.5.2-1:jar",
+        "//prebuilts/tools/common/m2/repository/org/apache/commons/commons-compress/1.12:jar",
         "//prebuilts/tools/common/m2/repository/org/apache/httpcomponents/httpclient/4.5.3:jar",
         "//prebuilts/tools/common/m2/repository/org/apache/httpcomponents/httpcore/4.4.6:jar",
         "//prebuilts/tools/common/m2/repository/org/checkerframework/checker-qual/2.10.0:jar",

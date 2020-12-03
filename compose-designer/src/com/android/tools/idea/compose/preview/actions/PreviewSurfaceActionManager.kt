@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.flags.ifDisabled
 import com.android.flags.ifEnabled
 import com.android.tools.idea.common.actions.CopyResultImageAction
 import com.android.tools.idea.common.actions.LayoutlibSceneManagerRefreshIconAction
@@ -69,7 +70,9 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
             PinPreviewElementAction { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()
           },
           StudioFlags.COMPOSE_ANIMATION_INSPECTOR.ifEnabled {
-            AnimationInspectorAction { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()
+            StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_SWITCH.ifDisabled {
+              AnimationInspectorAction { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()
+            }
           },
           StudioFlags.COMPOSE_ANIMATED_PREVIEW.ifEnabled {
             EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()

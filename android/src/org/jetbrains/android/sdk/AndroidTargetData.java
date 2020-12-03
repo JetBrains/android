@@ -297,7 +297,7 @@ public class AndroidTargetData {
     }
 
     return FrameworkResourceRepositoryManager.getInstance().getExistingFrameworkResources(
-      mySdkData.getSdkHandler().getFileOp().toFile(resFolderOrJar),
+      resFolderOrJar,
       myTarget instanceof CompatibilityRenderTarget,
       languages);
   }

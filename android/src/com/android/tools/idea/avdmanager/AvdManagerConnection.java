@@ -115,7 +115,6 @@ import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -127,6 +126,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
@@ -162,7 +162,7 @@ public class AvdManagerConnection {
     new SystemImageUpdateDependency(MNC_API_LEVEL_23, GOOGLE_APIS_TAG, 12),
   };
 
-  private static final Map<File, AvdManagerConnection> ourCache = ContainerUtil.createWeakMap();
+  private static final Map<Path, AvdManagerConnection> ourCache = ContainerUtil.createWeakMap();
   private static long ourMemorySize = -1;
 
   private static Function<AndroidSdkHandler, AvdManagerConnection> ourConnectionFactory = AvdManagerConnection::new;
@@ -190,7 +190,7 @@ public class AvdManagerConnection {
 
   @NotNull
   public synchronized static AvdManagerConnection getAvdManagerConnection(@NotNull AndroidSdkHandler handler) {
-    File sdkPath = handler.getFileOp().toFile(handler.getLocation());
+    Path sdkPath = handler.getLocation();
     if (!ourCache.containsKey(sdkPath)) {
       ourCache.put(sdkPath, ourConnectionFactory.apply(handler));
     }
@@ -429,9 +429,7 @@ public class AvdManagerConnection {
 
     String skinPath = info.getProperties().get(AVD_INI_SKIN_PATH);
     if (skinPath != null) {
-      FileSystem fileSystem =
-        myFileOp instanceof FileOp ? ((FileOp)myFileOp).getFileSystem() : FileSystems.getDefault();
-
+      FileSystem fileSystem = myFileOp.getFileSystem();
       DeviceSkinUpdater.updateSkins(fileSystem.getPath(skinPath).getFileName(), null, fileSystem);
     }
 
@@ -861,21 +859,21 @@ public class AvdManagerConnection {
                                    @NotNull ScreenOrientation orientation,
                                    boolean isCircular,
                                    @Nullable String sdCard,
-                                   @Nullable File skinFolder,
+                                   @Nullable Path skinFolder,
                                    @NotNull Map<String, String> hardwareProperties,
                                    boolean removePrevious) {
     if (!initIfNecessary()) {
       return null;
     }
 
-    File avdFolder;
+    Path avdFolder;
     try {
       if (currentInfo != null) {
-        avdFolder = new File(currentInfo.getDataFolderPath());
+        avdFolder = myFileOp.toPath(currentInfo.getDataFolderPath());
       }
       else {
         assert myAvdManager != null;
-        avdFolder = AvdInfo.getDefaultAvdFolder(myAvdManager, avdName, myFileOp, true);
+        avdFolder = myFileOp.toPath(AvdInfo.getDefaultAvdFolder(myAvdManager, avdName, myFileOp, true));
       }
     }
     catch (AndroidLocationException e) {
@@ -888,9 +886,10 @@ public class AvdManagerConnection {
     String skinName = null;
 
     if (skinFolder == null && isCircular) {
-      skinFolder = getRoundSkin(systemImageDescription);
+      File skin = getRoundSkin(systemImageDescription);
+      skinFolder = skin == null ? null : myFileOp.toPath(skin);
     }
-    if (FileUtil.filesEqual(skinFolder, AvdWizardUtils.NO_SKIN)) {
+    if (skinFolder != null && FileUtil.filesEqual(myFileOp.toFile(skinFolder), AvdWizardUtils.NO_SKIN)) {
       skinFolder = null;
     }
     if (skinFolder == null) {
@@ -974,17 +973,17 @@ public class AvdManagerConnection {
   }
 
   @Nullable
-  private static File getRoundSkin(SystemImageDescription systemImageDescription) {
-    File[] skins = systemImageDescription.getSkins();
-    for (File skin : skins) {
-      if (skin.getName().contains("Round")) {
-        return skin;
+  private File getRoundSkin(SystemImageDescription systemImageDescription) {
+    Path[] skins = systemImageDescription.getSkins();
+    for (Path skin : skins) {
+      if (skin.getFileName().toString().contains("Round")) {
+        return myFileOp.toFile(skin);
       }
     }
     return null;
   }
 
-  public static boolean doesSystemImageSupportQemu2(@Nullable SystemImageDescription description, @NotNull FileOp fileOp) {
+  public static boolean doesSystemImageSupportQemu2(@Nullable SystemImageDescription description) {
     if (description == null) {
       return false;
     }
@@ -992,19 +991,13 @@ public class AvdManagerConnection {
     if (systemImage == null) {
       return false;
     }
-    File location = systemImage.getLocation();
-    if (!fileOp.isDirectory(location)) {
+    Path location = systemImage.getLocation();
+    try (Stream<Path> files = CancellableFileIo.list(location)) {
+      return files.anyMatch(file -> file.getFileName().toString().startsWith("kernel-ranchu"));
+    }
+    catch (IOException e) {
       return false;
     }
-    String[] files = fileOp.list(location, null);
-    if (files != null) {
-      for (String filename : files) {
-        if (filename.startsWith("kernel-ranchu")) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 
   public boolean avdExists(String candidate) {

@@ -141,13 +141,13 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
 
     ISystemImage QImage = systemImageManager.getImageAt(
-      fileOp.toFile(sdkHandler.getLocalPackage(qPath, progress).getLocation()));
+      sdkHandler.getLocalPackage(qPath, progress).getLocation());
     ISystemImage marshmallowImage = systemImageManager.getImageAt(
-      fileOp.toFile(sdkHandler.getLocalPackage(marshmallowPath, progress).getLocation()));
+      sdkHandler.getLocalPackage(marshmallowPath, progress).getLocation());
     ISystemImage NPreviewImage = systemImageManager.getImageAt(
-      fileOp.toFile(sdkHandler.getLocalPackage(NPreviewPath, progress).getLocation()));
+      sdkHandler.getLocalPackage(NPreviewPath, progress).getLocation());
     ISystemImage ZuluImage = systemImageManager.getImageAt(
-      fileOp.toFile(sdkHandler.getLocalPackage(zuluPath, progress).getLocation()));
+      sdkHandler.getLocalPackage(zuluPath, progress).getLocation());
 
     mySnapshotSystemImage = ZuluImage; // Re-use Zulu for the snapshot test
 

@@ -156,7 +156,7 @@ abstract class EditorActionsFloatingToolbar(
     hiddenZoomLabelTimer = null
   }
 
-  override fun zoomChanged() = UIUtil.invokeLaterIfNeeded {
+  override fun zoomChanged(previousScale: Double, newScale: Double) = UIUtil.invokeLaterIfNeeded {
     zoomToolbars.forEach { it.updateActionsImmediately() }
     hiddenZoomLabelComponent?.isVisible = true
     hiddenZoomLabelTimer?.restart()

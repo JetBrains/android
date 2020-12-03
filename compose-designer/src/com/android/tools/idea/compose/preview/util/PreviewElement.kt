@@ -525,8 +525,8 @@ class ParametrizedPreviewElementTemplate(private val basePreviewElement: Preview
 /**
  * A [PreviewElementProvider] that instantiates any [PreviewElementTemplate]s in the [delegate].
  */
-class PreviewElementTemplateInstanceProvider(private val delegate: PreviewElementProvider)
-  : PreviewElementProvider {
+class PreviewElementTemplateInstanceProvider(private val delegate: PreviewElementProvider<PreviewElement>)
+  : PreviewElementProvider<PreviewElementInstance> {
   override val previewElements: Sequence<PreviewElementInstance>
     get() = delegate.previewElements.flatMap {
       when (it) {

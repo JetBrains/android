@@ -511,14 +511,15 @@ public final class CpuProfilerStageTest extends AspectObserver {
     // Select valid capture no dialog should be presented.
     myStage.getProfilerConfigModel().setProfilingConfiguration(FakeIdeProfilerServices.ATRACE_CONFIG);
     CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService,
-                                             CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(ATRACE_DATA_FILE)));
+                                             CpuProfilerTestUtils.traceFileToByteString(
+                                               TestUtils.resolveWorkspacePath(ATRACE_DATA_FILE).toFile()));
     assertThat(myServices.getNotification()).isNull();
 
     // Select invalid capture we should see dialog.
     myTimer.setCurrentTimeNs(1); // Update the timer to give the second trace a different trace id.
     CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService,
                                              CpuProfilerTestUtils
-                                               .traceFileToByteString(TestUtils.getWorkspaceFile(ATRACE_MISSING_DATA_FILE)));
+                                               .traceFileToByteString(TestUtils.resolveWorkspacePath(ATRACE_MISSING_DATA_FILE).toFile()));
     assertThat(myServices.getNotification()).isEqualTo(CpuProfilerNotifications.ATRACE_BUFFER_OVERFLOW);
   }
 

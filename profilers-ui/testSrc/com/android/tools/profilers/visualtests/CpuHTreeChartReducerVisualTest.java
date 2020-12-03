@@ -23,19 +23,18 @@ import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.visualtests.VisualTest;
 import com.android.tools.perflib.vmtrace.VmTraceParser;
 import com.android.tools.profilers.cpu.CaptureNode;
-import com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.art.ArtTraceHandler;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer;
+import java.awt.GridLayout;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 
 public class CpuHTreeChartReducerVisualTest extends VisualTest {
   private static final String TEST_RESOURCE_DIR = "tools/adt/idea/profilers-ui/testData/visualtests/";
@@ -74,7 +73,7 @@ public class CpuHTreeChartReducerVisualTest extends VisualTest {
   }
 
   private static CaptureNode parseAndGetHNode() {
-    File file = TestUtils.getWorkspaceFile(TEST_RESOURCE_DIR + "cpu_trace.trace");
+    File file = TestUtils.resolveWorkspacePath(TEST_RESOURCE_DIR + "cpu_trace.trace").toFile();
     ArtTraceHandler traceHandler = new ArtTraceHandler();
     VmTraceParser parser = new VmTraceParser(file, traceHandler);
     try {

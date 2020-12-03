@@ -16,7 +16,7 @@
 package com.android.tools.idea.emulator.dialogs
 
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
@@ -48,7 +48,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.io.File
+import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import javax.swing.Icon
@@ -442,8 +442,8 @@ class ManageSnapshotsDialogTest {
   }
 
   @Suppress("SameParameterValue")
-  private fun getGoldenFile(name: String): File {
-    return TestUtils.getWorkspaceRoot().toPath().resolve("$GOLDEN_FILE_PATH/${name}.png").toFile()
+  private fun getGoldenFile(name: String): Path {
+    return getWorkspaceRoot().resolve("$GOLDEN_FILE_PATH/${name}.png")
   }
 }
 

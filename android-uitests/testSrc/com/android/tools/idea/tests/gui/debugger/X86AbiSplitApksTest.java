@@ -121,6 +121,13 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
 
     ideFrame.requestProjectSyncAndWaitForSyncToFinish(Wait.seconds(TIMEOUT_SECONDS));
 
+    // ndk.dir will be deprecated soon.
+    // Remove it now in test. When ndk.dir is deprecated, will update the test if necessary.
+    EditorFixture editor = ideFrame.getEditor().open("local.properties")
+      .select("(ndk.dir=.*)")
+      .enterText(" ");
+    ideFrame.requestProjectSyncAndWaitForSyncToFinish(Wait.seconds(90));
+
     String expectedApkName = "app-x86-debug.apk";
 
     // Request debugging and wait for build to complete.

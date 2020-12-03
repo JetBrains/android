@@ -27,7 +27,7 @@ import com.android.ddmlib.internal.jdwp.chunkhandler.JdwpPacket
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.mock
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
@@ -169,7 +169,7 @@ DONE.
 
   @Test
   fun testLoadComponentTree() {
-    val image = ImageIO.read(File(TestUtils.getWorkspaceRoot(), "$TEST_DATA_PATH/image1.png"))
+    val image = ImageIO.read(File(getWorkspaceRoot().toFile(), "$TEST_DATA_PATH/image1.png"))
     val lookup = mock<ViewNodeAndResourceLookup>()
     val resourceLookup = mock<ResourceLookup>()
     val legacyClient = mock<LegacyClient>()
@@ -231,7 +231,7 @@ DONE.
   @Suppress("UndesirableClassUsage")
   @Test
   fun testRefreshImages() {
-    val image1 = ImageIO.read(File(TestUtils.getWorkspaceRoot(), "$TEST_DATA_PATH/image1.png"))
+    val image1 = ImageIO.read(File(getWorkspaceRoot().toFile(), "$TEST_DATA_PATH/image1.png"))
     val lookup = mock<ViewNodeAndResourceLookup>()
     val resourceLookup = mock<ResourceLookup>()
     val legacyClient = mock<LegacyClient>()
@@ -288,7 +288,7 @@ DONE.
       .image, 0.0)
 
     // Update the image returned by the device and verify the draw image is not refreshed yet
-    val image2 = ImageIO.read(File(TestUtils.getWorkspaceRoot(), "$TEST_DATA_PATH/image2.png"))
+    val image2 = ImageIO.read(File(getWorkspaceRoot().toFile(), "$TEST_DATA_PATH/image2.png"))
     rawImage.width = image2.width
     rawImage.height = image2.height
     rawImage.bpp = 8

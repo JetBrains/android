@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.refreshFiles;
 import static com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture.actAndWaitForGradleProjectSyncToFinish;
@@ -433,7 +432,7 @@ public class GuiTestRule implements TestRule {
   protected boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectDirPath, gradleVersion, null);
     File path = TestUtils.runningFromBazel() ?
-                getWorkspaceFile("tools/external/gradle/gradle-" + gradleVersion + "-bin.zip") :
+                TestUtils.resolveWorkspacePath("tools/external/gradle/gradle-" + gradleVersion + "-bin.zip").toFile() :
                 EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);
     assertAbout(file()).that(path).named("Gradle distribution path").isFile();
     wrapper.updateDistributionUrl(path);
@@ -444,7 +443,7 @@ public class GuiTestRule implements TestRule {
     LocalProperties localProperties = new LocalProperties(projectPath);
     localProperties.setAndroidSdkPath(IdeSdks.getInstance().getAndroidSdkPath());
     if (mySetNdkPath) {
-      localProperties.setAndroidNdkPath(TestUtils.getNdk());
+      localProperties.setAndroidNdkPath(TestUtils.getNdk().toFile());
     }
     localProperties.save();
   }

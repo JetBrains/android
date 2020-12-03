@@ -36,7 +36,7 @@ iml_module(
     split_test_targets = {
         "gradle": {
             "tags": ["cpu:3"],
-            "shard_count": 2,
+            "shard_count": 3,
             "test_filter": "com.android.tools.idea.compose.gradle",
         },
         "non-gradle": {},

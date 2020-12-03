@@ -169,7 +169,7 @@ public final class GuiTests {
   }
 
   public static void setUpSdks() {
-    File androidSdkPath = TestUtils.getSdk();
+    File androidSdkPath = TestUtils.getSdk().toFile();
     IdeSdks ideSdks = IdeSdks.getInstance();
     File currentAndroidSdkPath = ideSdks.getAndroidSdkPath();
 
@@ -343,8 +343,8 @@ public final class GuiTests {
 
   @NotNull
   public static File getTestProjectsRootDirPath() {
-    String testDataPath = toCanonicalPath(toSystemDependentName(
-      TestUtils.getWorkspaceFile("tools/adt/idea/android-uitests").getAbsolutePath()));
+    String testDataPath =
+      toCanonicalPath(toSystemDependentName(TestUtils.resolveWorkspacePath("tools/adt/idea/android-uitests").toString()));
     return new File(testDataPath, "testData");
   }
 

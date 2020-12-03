@@ -106,7 +106,11 @@ class AarResourceRepositoryCache private constructor() {
       return null // No caching if the resource directory doesn't exist.
     }
     library.location?.let {
-      modificationTime = modificationTime.coerceAtLeast(Files.getLastModifiedTime(it.toPath()!!))
+      try {
+        modificationTime = modificationTime.coerceAtLeast(Files.getLastModifiedTime(it.toPath()!!))
+      }
+      catch (ignore: NoSuchFileException) {
+      }
     }
     val contentVersion = modificationTime.toString()
 

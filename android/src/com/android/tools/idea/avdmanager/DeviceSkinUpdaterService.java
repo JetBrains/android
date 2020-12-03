@@ -129,7 +129,6 @@ final class DeviceSkinUpdaterService {
       .map(SystemImage::getSkins)
       .flatMap(Arrays::stream)
       .filter(Objects::nonNull)
-      .map(File::toPath)
       .map(updateSkins);
   }
 }

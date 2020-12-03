@@ -35,6 +35,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.PathUtil
 import java.io.File
+import java.time.Duration
 
 /**
  * Exports Android instrumentation test results into XML or HTML.
@@ -48,6 +49,7 @@ class ExportAndroidTestResultsAction :
                   ActionsBundle.message("action.ExportTestResults.description"),
                   AllIcons.ToolbarDecorator.Export) {
 
+  var executionDuration: Duration? = null
   var devices: List<AndroidDevice>? = null
   var rootResultsNode: AndroidTestResultsTreeNode? = null
   var runConfiguration: RunConfiguration? = null
@@ -55,9 +57,11 @@ class ExportAndroidTestResultsAction :
 
   @UiThread
   override fun update(e: AnActionEvent) {
-    e.presentation.isEnabled = devices?.isEmpty() == false &&
+    e.presentation.isEnabled = e.project != null &&
+                               devices?.isEmpty() == false &&
                                rootResultsNode?.results?.getTestResultSummary()?.isTerminalState == true &&
-                               runConfiguration != null
+                               runConfiguration != null &&
+                               executionDuration != null
   }
 
   @UiThread
@@ -65,6 +69,7 @@ class ExportAndroidTestResultsAction :
     val project = e.project ?: return
     val rootResultsNode = rootResultsNode ?: return
     val runConfiguration = runConfiguration ?: return
+    val executionDuration = executionDuration ?: return
     val devices = devices ?: return
     val exportConfig = ExportTestResultsConfiguration.getInstance(project)
     val defaultFileName = ExecutionBundle.message(
@@ -72,7 +77,8 @@ class ExportAndroidTestResultsAction :
       PathUtil.suggestFileName(runConfiguration.name)
     ) + "." + exportConfig.exportFormat.defaultExtension
     val exportFile = showExportTestResultsDialog(exportConfig, project, defaultFileName) ?: return
-    exportAndroidTestMatrixResultXmlFile(project, toolWindowId, exportConfig, exportFile, rootResultsNode, runConfiguration, devices)
+    exportAndroidTestMatrixResultXmlFile(
+      project, toolWindowId, exportConfig, exportFile, executionDuration, rootResultsNode, runConfiguration, devices)
   }
 
   @UiThread

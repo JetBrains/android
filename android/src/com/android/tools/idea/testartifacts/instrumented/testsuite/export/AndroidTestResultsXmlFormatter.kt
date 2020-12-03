@@ -30,6 +30,7 @@ import org.xml.sax.Attributes
 import org.xml.sax.ContentHandler
 import org.xml.sax.helpers.AttributesImpl
 import java.text.SimpleDateFormat
+import java.time.Duration
 import java.util.Date
 import java.util.Locale
 
@@ -37,6 +38,7 @@ import java.util.Locale
  * Formatter for a [AndroidTestResultsTreeNode] object and exports in XML file.
  */
 class AndroidTestResultsXmlFormatter(
+  private val executionDuration: Duration,
   private val rootResultsNode: AndroidTestResultsTreeNode,
   private val devices: List<AndroidDevice>,
   private val runConfiguration: RunConfiguration,
@@ -192,7 +194,10 @@ class AndroidTestResultsXmlFormatter(
   }
 
   private fun addAndroidTestMatrixElement() {
-    addElement("androidTestMatrix") {
+    addElement(
+      "androidTestMatrix",
+      mapOf("executionDuration" to executionDuration.toMillis().toString())
+    ) {
       devices.forEach { device ->
         addElement("device",
                    mapOf(

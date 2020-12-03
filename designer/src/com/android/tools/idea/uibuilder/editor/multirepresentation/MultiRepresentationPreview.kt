@@ -146,12 +146,6 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
     }
 
   /**
-   * If [updateRepresentations] is called while this preview is not active, this flag will become true. [updateRepresentations] will
-   * be called as soon as this preview becomes active.
-   */
-  private val updateRepresentationsOnActivation = AtomicBoolean(false)
-
-  /**
    * [AtomicBoolean] to track activations.
    * Indicates whether the current preview is active. If false, the preview might be hidden or in the background.
    */
@@ -197,7 +191,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
     }
   }
 
-  private fun updateRepresentationsImpl() = UIUtil.invokeLaterIfNeeded {
+  protected fun updateRepresentations() = UIUtil.invokeLaterIfNeeded {
     if (Disposer.isDisposed(this)) {
       return@invokeLaterIfNeeded
     }
@@ -206,8 +200,6 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
     if (file == null || !file.isValid) {
       return@invokeLaterIfNeeded
     }
-
-    updateRepresentationsOnActivation.set(false)
 
     val providers = providers.filter { it.accept(project, file.virtualFile) }.toList()
     val providerNames = providers.map { it.displayName }.toSet()
@@ -240,16 +232,6 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
     representationSelectionToolbar.isVisible = representations.size > 1
 
     onRepresentationsUpdated?.invoke()
-  }
-
-  protected fun updateRepresentations() = UIUtil.invokeLaterIfNeeded {
-    if (!isActive.get()) {
-      // Schedule the update for when the preview becomes active
-      updateRepresentationsOnActivation.set(true)
-      return@invokeLaterIfNeeded
-    }
-
-    updateRepresentationsImpl()
   }
 
   var onRepresentationsUpdated: (() -> Unit)? = null
@@ -358,7 +340,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
    * [onDeactivate] might be called multiple times.
    */
   fun onInit() {
-    updateRepresentationsImpl()
+    updateRepresentations()
   }
 
   /**
@@ -366,10 +348,6 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
    */
   fun onActivate() {
     if (isActive.getAndSet(true)) return
-    if (updateRepresentationsOnActivation.getAndSet(false)) {
-      // First activation, update the representations. onActivate will be called by the updateRepresentations.
-      updateRepresentations()
-    }
 
     if (!currentRepresentationIsActive.getAndSet(true)) {
       LOG.debug { "[$instanceId] Activating '$currentRepresentationName'" }

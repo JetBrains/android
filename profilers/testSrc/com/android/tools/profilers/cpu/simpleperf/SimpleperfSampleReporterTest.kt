@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu.simpleperf
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.TracePreProcessor
@@ -74,7 +74,7 @@ class SimpleperfSampleReporterTest {
 
   @Test
   fun unknownSymbolsSymbolizedWhenProvidingSymDir() {
-    val symDir = listOf(TestUtils.getWorkspaceFile("tools/adt/idea/profilers/testData").absolutePath)
+    val symDir = listOf(resolveWorkspacePath("tools/adt/idea/profilers/testData").toString())
     val rawTrace = CpuProfilerTestUtils.traceFileToByteString("simpleperf_trace_without_symbols.trace")
 
     // When providing a path to SimpleperfSampleReporter, we should include the --symdir flag in the report-sample command.
@@ -109,7 +109,7 @@ class SimpleperfSampleReporterTest {
   @Test
   fun unknownSymbolsNotSymbolizedWhenProvidingInvalidSymDir() {
     val symDir = listOf(
-      TestUtils.getWorkspaceFile("tools/adt/idea/profilers/testData/cputraces").absolutePath) // Dir without valid .so files
+      resolveWorkspacePath("tools/adt/idea/profilers/testData/cputraces").toString()) // Dir without valid .so files
     val rawTrace = CpuProfilerTestUtils.traceFileToByteString("simpleperf_trace_without_symbols.trace")
 
     // When providing a path to SimpleperfSampleReporter, we should include the --symdir flag in the report-sample command.
@@ -127,21 +127,21 @@ class SimpleperfSampleReporterTest {
 
   @Test
   fun providingMultipleSymDirsResultsInMultipleFlags() {
-    val symDir1 = TestUtils.getWorkspaceFile("tools/adt/idea/profilers/testData/cputraces")
-    val symDir2 = TestUtils.getWorkspaceFile("tools/adt/idea/profilers/testData")
+    val symDir1 = resolveWorkspacePath("tools/adt/idea/profilers/testData/cputraces").toString()
+    val symDir2 = resolveWorkspacePath("tools/adt/idea/profilers/testData").toString()
     // Passing a linked set is important for this test so we have predictable iteration order and can make the index checks below
     val rawTrace = CpuProfilerTestUtils.traceFileToByteString("simpleperf_trace_without_symbols.trace")
 
     // When providing multiples path to SimpleperfSampleReporter, we should include a --symdir flag in the report-sample command
     // corresponding to each directory passed.
     val command = sampleReporter.getReportSampleCommand(rawTrace, FileUtil.createTempFile("any", "file", true),
-                                                  listOf(symDir1.absolutePath, symDir2.absolutePath))
+                                                  listOf(symDir1, symDir2))
     assertThat(command.count { it == "--symdir" }).isEqualTo(2)
 
     val firstSymDirIndex = command.indexOfFirst { it == "--symdir" }
-    assertThat(command[firstSymDirIndex + 1]).isEqualTo(symDir1.absolutePath)
+    assertThat(command[firstSymDirIndex + 1]).isEqualTo(symDir1)
 
     val secondSymDirIndex = command.indexOfLast { it == "--symdir" }
-    assertThat(command[secondSymDirIndex + 1]).isEqualTo(symDir2.absolutePath)
+    assertThat(command[secondSymDirIndex + 1]).isEqualTo(symDir2)
   }
 }

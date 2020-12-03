@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.editors.layoutInspector
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import java.io.File
 
 fun getTestFile() : File =
-  TestUtils.getWorkspaceFile("tools/adt/idea/android-layout-inspector/testData/editors/layoutInspector/LayoutCapture.li")
+  resolveWorkspacePath("tools/adt/idea/android-layout-inspector/testData/editors/layoutInspector/LayoutCapture.li").toFile()

@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
-import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkModuleCleanupStep;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;

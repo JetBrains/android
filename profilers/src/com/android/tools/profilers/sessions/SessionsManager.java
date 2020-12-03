@@ -242,12 +242,14 @@ public class SessionsManager extends AspectModel<SessionAspect> {
 
     // Note: we only add to a growing list of sessions at the moment.
     // If there are multiple groups being updated (e.g., one session ends and another one starts), we want to
-    // process the new session at last. The last one being processed will be the selected session. The order
-    // of completed sessions don't matter.
+    // process the new session at last. The last one being processed will be the selected session.
     List<EventGroup> sortedGroups = Lists.newArrayList(groups);
     // Each group should have up to two events. The first event is the start event, and the second one is the end.
-    // So the new session should have one event, while completed sessions have two events.
-    Collections.sort(sortedGroups, Comparator.comparingInt(EventGroup::getEventsCount).reversed());
+    // So the new session should have one event, while completed sessions have two events. The order of completed
+    // sessions usually doesn't matter, but when a new project is loaded, every session is perceived as new and we
+    // want to select the last imported one.
+    Collections.sort(sortedGroups, Comparator.comparing(EventGroup::getEventsCount, Comparator.reverseOrder())
+      .thenComparingLong(g -> g.getEventsCount() > 0 ? g.getEvents(0).getSession().getSessionStarted().getStartTimestampEpochMs() : 0));
     sortedGroups.forEach(group -> {
       SessionItem sessionItem = mySessionItems.get(group.getGroupId());
       boolean sessionStateChanged = false;
@@ -342,7 +344,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   }
 
   /**
-   * Change the current selected session explicitly, such as when importing an old session or caputre files, or the user manually navigate
+   * Change the current selected session explicitly, such as when importing an old session or captured files, or the user manually navigate
    * to a different session via the sessions panel.
    * This has the effect of disabling the auto-process selection logic. Also see {@link StudioProfilers#setAutoProfilingEnabled(boolean)}.
    */

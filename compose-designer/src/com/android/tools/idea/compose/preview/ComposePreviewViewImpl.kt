@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.editor.PanZoomListener
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
@@ -26,12 +27,20 @@ import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvide
 import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
 import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
+import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileEditor
@@ -40,10 +49,15 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.EditorNotifications
+import com.intellij.ui.FilledRoundedBorder
 import com.intellij.ui.JBSplitter
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
+import java.awt.event.AdjustmentEvent
+import javax.swing.BorderFactory
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.OverlayLayout
 
@@ -98,6 +112,16 @@ interface ComposePreviewView {
    * If the content is not already visible, shows a "Building" message.
    */
   fun showBuildingMessage()
+
+  /**
+   * If called the pinned previews will be shown/hidden at the top.
+   */
+  fun setPinnedSurfaceVisibility(visible: Boolean)
+
+  /**
+   * Sets an optional label on top of the pinned surface. If empty, the label will not be displayed.
+   */
+  var pinnedLabel: String
 }
 
 fun interface ComposePreviewViewProvider {
@@ -107,6 +131,55 @@ fun interface ComposePreviewViewProvider {
              navigationHandler: PreviewNavigationHandler,
              dataProvider: DataProvider,
              parentDisposable: Disposable): ComposePreviewView
+}
+
+/**
+ * Creates a [JPanel] using an [OverlayLayout] containing all the given [JComponent]s.
+ */
+private fun createOverlayPanel(vararg components: JComponent): JPanel =
+  object : JPanel() {
+    // Since the overlay panel is transparent, we can not use optimized drawing or it will produce rendering artifacts.
+    override fun isOptimizedDrawingEnabled(): Boolean = false
+  }.apply<JPanel> {
+    layout = OverlayLayout(this)
+    components.forEach {
+      add(it)
+    }
+  }
+
+private class PinnedLabelPanel(val onPinClick: () -> Unit = {}): JPanel(BorderLayout()) {
+  private val pinnedLabelBackground = UIUtil.toAlpha(UIUtil.getPanelBackground().darker(), 0x20)
+  private val pinnedPanelLabel = JLabel("").apply {
+    font = UIUtil.getLabelFont()
+  }
+
+  var text: String
+    get() = pinnedPanelLabel.text
+    set(value) { pinnedPanelLabel.text = value }
+
+  init {
+    border = JBUI.Borders.empty(25, 20, 20, 20)
+    isOpaque = false
+
+    add(JPanel().apply {
+      isOpaque = false
+      add(JPanel().apply {
+        border = BorderFactory.createCompoundBorder(FilledRoundedBorder(pinnedLabelBackground, 10, 4),
+                                                    JBUI.Borders.emptyRight(5))
+        val clickAction = object: AnAction(null, null, AllIcons.General.Pin_tab) {
+          override fun actionPerformed(e: AnActionEvent) {
+            onPinClick()
+          }
+        }
+        val unpinButton = ActionButton(clickAction,
+                                       PresentationFactory().getPresentation(clickAction),
+                                       "PinnedToolbar",
+                                       ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
+        add(unpinButton)
+        add(pinnedPanelLabel)
+      })
+    }, BorderLayout.LINE_START)
+  }
 }
 
 /**
@@ -135,17 +208,35 @@ internal class ComposePreviewViewImpl(private val project: Project,
 
   override val pinnedSurface by lazy {
     createPreviewDesignSurface(
-      project, navigationHandler, delegateInteractionHandler, dataProvider, parentDisposable) { surface, model ->
+      project, navigationHandler, delegateInteractionHandler, dataProvider, parentDisposable, DesignSurface.ZoomControlsPolicy.HIDDEN,
+      GridSurfaceLayoutManager(NlConstants.DEFAULT_SCREEN_OFFSET_X, NlConstants.DEFAULT_SCREEN_OFFSET_Y, NlConstants.SCREEN_DELTA,
+                               NlConstants.SCREEN_DELTA)) { surface, model ->
       LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener(), { RealTimeSessionClock() })
     }
   }
 
   override val mainSurface = createPreviewDesignSurface(
-    project, navigationHandler, delegateInteractionHandler, dataProvider, parentDisposable) { surface, model ->
+    project, navigationHandler, delegateInteractionHandler, dataProvider, parentDisposable,
+    DesignSurface.ZoomControlsPolicy.VISIBLE) { surface, model ->
     LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener(), { RealTimeSessionClock() })
   }
 
   override val component: JComponent = this
+
+  private val pinnedPanelLabel: PinnedLabelPanel by lazy {
+    UIUtil.invokeAndWaitIfNeeded<PinnedLabelPanel> {
+      PinnedLabelPanel {
+        setPinnedSurfaceVisibility(false)
+        PinnedPreviewElementManager.getInstance(project).unpinAll()
+      }
+    }
+  }
+
+  private val pinnedPanel: JPanel by lazy {
+    UIUtil.invokeAndWaitIfNeeded<JPanel> {
+      createOverlayPanel(pinnedPanelLabel, pinnedSurface)
+    }
+  }
 
   private val staticPreviewInteractionHandler = NlInteractionHandler(mainSurface)
   private val interactiveInteractionHandler by lazy { LayoutlibInteractionHandler(mainSurface) }
@@ -168,32 +259,37 @@ internal class ComposePreviewViewImpl(private val project: Project,
   private val notificationPanel = NotificationPanel(
     ExtensionPointName.create("com.android.tools.idea.compose.preview.composeEditorNotificationProvider"))
 
+  override var pinnedLabel: String
+    get() = pinnedPanelLabel.text
+    set(value) {
+      pinnedPanelLabel.text = value
+      pinnedPanelLabel.isVisible = value.isNotBlank()
+    }
+
   init {
     // Start handling events for the static preview.
     delegateInteractionHandler.delegate = staticPreviewInteractionHandler
+
+    mainSurface.addPanZoomListener(object: PanZoomListener {
+      override fun zoomChanged(previousScale: Double, newScale: Double) {
+        // Always keep the ratio from the fit scale from the pinned and main surfaces. This allows to zoom in/out in a
+        // synchronized way without them ever going out of sync because of hitting the max/min limit.
+        val zoomToFitDelta = pinnedSurface.getFitScale(false) - mainSurface.getFitScale(false)
+
+        pinnedSurface.setScale(newScale + zoomToFitDelta)
+      }
+
+      override fun panningChanged(adjustmentEvent: AdjustmentEvent?) {}
+    })
 
     val contentPanel = JPanel(BorderLayout()).apply {
       val actionsToolbar = ActionsToolbar(parentDisposable, mainSurface)
       add(actionsToolbar.toolbarComponent, BorderLayout.NORTH)
 
-      val overlayPanel = object : JPanel() {
-        // Since the overlay panel is transparent, we can not use optimized drawing or it will produce rendering artifacts.
-        override fun isOptimizedDrawingEnabled(): Boolean = false
-      }
-
-      if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
-        surfaceSplitter.firstComponent = pinnedSurface
-      }
+      // surfaceSplitter.firstComponent will contain the pinned surface elements
       surfaceSplitter.secondComponent = mainSurface
 
-      overlayPanel.apply {
-        layout = OverlayLayout(this)
-
-        add(notificationPanel)
-        add(surfaceSplitter)
-      }
-
-      mainPanelSplitter.firstComponent = overlayPanel
+      mainPanelSplitter.firstComponent = createOverlayPanel(notificationPanel, surfaceSplitter)
       add(mainPanelSplitter, BorderLayout.CENTER)
     }
 
@@ -207,6 +303,15 @@ internal class ComposePreviewViewImpl(private val project: Project,
     if (isMessageVisible) {
       showLoading(message("panel.building"))
       hideContent()
+    }
+  }
+
+  override fun setPinnedSurfaceVisibility(visible: Boolean) = UIUtil.invokeLaterIfNeeded {
+    if (StudioFlags.COMPOSE_PIN_PREVIEW.get() && visible) {
+      surfaceSplitter.firstComponent = pinnedPanel
+    }
+    else {
+      surfaceSplitter.firstComponent = null
     }
   }
 

@@ -19,27 +19,23 @@ import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.TaskContainer
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
-import com.google.common.truth.Expect
+import com.android.ide.common.attribution.AndroidGradlePluginAttributionData.JavaInfo
 import com.google.common.truth.Truth.assertThat
-import org.jetbrains.kotlin.utils.keysToMap
-import org.junit.Rule
 import org.junit.Test
 
 class GarbageCollectionAnalyzerTest {
 
-  @get:Rule
-  val expect = Expect.createAndEnableStackTrace()!!
-
-  val analyzersProxy = BuildEventsAnalyzersProxy(BuildAttributionWarningsFilter(), TaskContainer(), PluginContainer())
-  val analyzersWrapper = BuildEventsAnalyzersWrapper(
-    analyzersProxy.getBuildEventsAnalyzers(),
-    analyzersProxy.getBuildAttributionReportAnalyzers()
-  )
-
   @Test
   fun testAnalyzer() {
+    val analyzersProxy = BuildEventsAnalyzersProxy(BuildAttributionWarningsFilter(), TaskContainer(), PluginContainer())
+    val analyzersWrapper = BuildEventsAnalyzersWrapper(analyzersProxy.getBuildEventsAnalyzers(),
+                                                       analyzersProxy.getBuildAttributionReportAnalyzers())
+
     analyzersWrapper.onBuildStart()
-    analyzersWrapper.onBuildSuccess(AndroidGradlePluginAttributionData(garbageCollectionData = mapOf(("gc1" to 500L), ("gc2" to 200L))))
+    analyzersWrapper.onBuildSuccess(AndroidGradlePluginAttributionData(
+      garbageCollectionData = mapOf(("gc1" to 500L), ("gc2" to 200L)),
+      javaInfo = JavaInfo("11.0.8", "N/A", "", emptyList())
+    ))
 
     assertThat(analyzersProxy.getTotalGarbageCollectionTimeMs()).isEqualTo(700)
 
@@ -48,31 +44,27 @@ class GarbageCollectionAnalyzerTest {
     assertThat(analyzersProxy.getGarbageCollectionData()[1].name).isEqualTo("gc2")
     assertThat(analyzersProxy.getGarbageCollectionData()[0].collectionTimeMs).isEqualTo(500)
     assertThat(analyzersProxy.getGarbageCollectionData()[1].collectionTimeMs).isEqualTo(200)
+    assertThat(analyzersProxy.isGCSettingSet()).isFalse()
+    assertThat(analyzersProxy.getJavaVersion()).isEqualTo(11)
   }
 
   @Test
-  fun testG1GCDetectedWhenBothUsed() {
-    testG1GCDetectionWithInput(listOf("G1 Old Generation", "G1 Young Generation"), true)
-    testG1GCDetectionWithInput(listOf("G1 Old Generation"), true)
-    testG1GCDetectionWithInput(listOf("G1 Young Generation"), true)
-    testG1GCDetectionWithInput(listOf(), false)
-    testG1GCDetectionWithInput(listOf("PS MarkSweep", "PS Scavenge"), false)
-    testG1GCDetectionWithInput(listOf("Copy", "MarkSweepCompact"), false)
-    testG1GCDetectionWithInput(listOf("ConcurrentMarkSweep", "ParNew"), false)
-    testG1GCDetectionWithInput(listOf("global", "scavenge"), false)
-    testG1GCDetectionWithInput(listOf("MarkSweepCompact", "ParNew"), false)
-    testG1GCDetectionWithInput(listOf("Shenandoah Cycles", "Shenandoah Pauses"), false)
-    testG1GCDetectionWithInput(listOf("ZGC"), false)
-    testG1GCDetectionWithInput(listOf("Epsilon Heap"), false)
+  fun testJava8VersionParsed() {
+    val analyzer = GarbageCollectionAnalyzer(BuildAttributionWarningsFilter())
+
+    analyzer.onBuildStart()
+    analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(javaInfo = JavaInfo(version = "1.8.1")))
+
+    assertThat(analyzer.javaVersion).isEqualTo(8)
   }
 
-  private fun testG1GCDetectionWithInput(gcNames: List<String>, expectedResult: Boolean) {
-    analyzersWrapper.onBuildStart()
-    analyzersWrapper.onBuildSuccess(AndroidGradlePluginAttributionData(
-      garbageCollectionData = gcNames.keysToMap { 100L }
-    ))
+  @Test
+  fun testGcParameterDetected() {
+    val analyzer = GarbageCollectionAnalyzer(BuildAttributionWarningsFilter())
 
-    expect.withMessage("For GC names $gcNames")
-      .that(analyzersProxy.isAffectedByPotentialG1GCRegression()).isEqualTo(expectedResult)
+    analyzer.onBuildStart()
+    analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(javaInfo = JavaInfo(vmArguments = listOf("-Xmx8G", "-XX:+UseSerialGC"))))
+
+    assertThat(analyzer.isSettingSet).isTrue()
   }
 }

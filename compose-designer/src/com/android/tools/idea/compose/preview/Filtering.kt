@@ -26,14 +26,14 @@ import com.google.common.annotations.VisibleForTesting
  * @param groupName the name of the group that will be used to filter the [PreviewElement]s returned from the [delegate].
  */
 @VisibleForTesting
-class GroupNameFilteredPreviewProvider(private val delegate: PreviewElementProvider, var groupName: String? = null) :
-  PreviewElementProvider {
-  private val filteredPreviewElementProvider = FilteredPreviewElementProvider(
+class GroupNameFilteredPreviewProvider<P: PreviewElement>(private val delegate: PreviewElementProvider<P>, var groupName: String? = null) :
+  PreviewElementProvider<P> {
+  private val filteredPreviewElementProvider = FilteredPreviewElementProvider<P>(
     delegate) {
     groupName == null || groupName == it.displaySettings.group
   }
 
-  override val previewElements: Sequence<PreviewElement>
+  override val previewElements: Sequence<P>
     get() = filteredPreviewElementProvider.previewElements.ifEmpty { delegate.previewElements }
 
   /**
@@ -48,18 +48,19 @@ class GroupNameFilteredPreviewProvider(private val delegate: PreviewElementProvi
  * @param delegate the source [PreviewElementProvider] to be filtered.
  */
 @VisibleForTesting
-class SinglePreviewElementInstanceFilteredPreviewProvider(private val delegate: PreviewElementProvider): PreviewElementProvider {
+class SinglePreviewElementInstanceFilteredPreviewProvider(private val delegate: PreviewElementProvider<PreviewElementInstance>): PreviewElementProvider<PreviewElementInstance> {
   /**
    * The Composable [PreviewElementInstance] to filter. If no [PreviewElementInstance] is defined by that intsance, then this filter will
    * return all the available previews.
    */
+  @Volatile
   var instance: PreviewElementInstance? = null
 
   private val filteredPreviewElementProvider = FilteredPreviewElementProvider(delegate) {
     (it as? PreviewElementInstance) == instance
   }
 
-  override val previewElements: Sequence<PreviewElement>
+  override val previewElements: Sequence<PreviewElementInstance>
     get() = filteredPreviewElementProvider.previewElements.ifEmpty { delegate.previewElements }
 
 }

@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.naveditor
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.naveditor.scene.TestableThumbnailManager
 import com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_BASIC
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.util.Disposer
@@ -106,7 +105,7 @@ abstract class NavTestCase(private val projectDirectory: String = NAVIGATION_EDI
     // Now that the Android plugin is kept in a separate place, we need to look in a relative position instead
     private val navEditorPluginHome: String
       get() {
-        val adtPath = TestUtils.getWorkspaceFile("tools/adt/idea/nav/editor").path
+        val adtPath = resolveWorkspacePath("tools/adt/idea/nav/editor").toString()
         return if (File(adtPath).exists()) {
           adtPath
         }

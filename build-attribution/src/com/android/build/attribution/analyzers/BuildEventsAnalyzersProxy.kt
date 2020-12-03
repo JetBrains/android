@@ -57,7 +57,8 @@ interface BuildEventsAnalysisResult {
    * Total time spent in garbage collection for this build.
    */
   fun getTotalGarbageCollectionTimeMs(): Long
-  fun isAffectedByPotentialG1GCRegression(): Boolean
+  fun getJavaVersion(): Int?
+  fun isGCSettingSet(): Boolean?
 }
 
 /**
@@ -121,12 +122,16 @@ class BuildEventsAnalyzersProxy(
     return garbageCollectionAnalyzer.garbageCollectionData
   }
 
-  override fun isAffectedByPotentialG1GCRegression(): Boolean {
-    return garbageCollectionAnalyzer.isAffectedByPotentialG1GCRegression()
-  }
-
   override fun getTotalGarbageCollectionTimeMs(): Long {
     return getGarbageCollectionData().sumByLong { it.collectionTimeMs }
+  }
+
+  override fun getJavaVersion(): Int? {
+    return garbageCollectionAnalyzer.javaVersion
+  }
+
+  override fun isGCSettingSet(): Boolean? {
+    return garbageCollectionAnalyzer.isSettingSet
   }
 
   override fun getTotalConfigurationData(): ProjectConfigurationData {

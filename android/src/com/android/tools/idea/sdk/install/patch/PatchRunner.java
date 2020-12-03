@@ -18,7 +18,6 @@ package com.android.tools.idea.sdk.install.patch;
 import com.android.io.CancellableFileIo;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
-import com.android.repository.io.FileOp;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.lang.UrlClassLoader;
@@ -65,7 +64,7 @@ public class PatchRunner {
   private final Class<?> myUiBaseClass;
   private final Class<?> myUiClass;
   private final Class<?> myGeneratorClass;
-  private final File myPatcherJar;
+  private final Path myPatcherJar;
 
   /**
    * Cache of patcher classes. Key is jar file, subkey is class name.
@@ -166,13 +165,13 @@ public class PatchRunner {
   }
 
   @Nullable
-  private static File getPatcherFile(@Nullable LocalPackage patcherPackage, @NotNull FileOp fop) {
+  private static Path getPatcherFile(@Nullable LocalPackage patcherPackage) {
     Path patcherFile = patcherPackage == null ? null : patcherPackage.getLocation().resolve(PATCHER_JAR_FN);
-    return patcherFile != null && CancellableFileIo.exists(patcherFile) ? fop.toFile(patcherFile) : null;
+    return patcherFile != null && CancellableFileIo.exists(patcherFile) ? patcherFile : null;
   }
 
   @VisibleForTesting
-  PatchRunner(@NotNull File jarFile,
+  PatchRunner(@NotNull Path jarFile,
               @NotNull Class<?> runnerClass,
               @NotNull Class<?> uiBaseClass,
               @NotNull Class<?> uiClass,
@@ -188,10 +187,10 @@ public class PatchRunner {
    * Gets a class loader for the given jar.
    */
   @NotNull
-  private static ClassLoader getClassLoader(@NotNull File patcherJar) {
+  private static ClassLoader getClassLoader(@NotNull Path patcherJar) {
     ClassLoader loader;
     try {
-      loader = UrlClassLoader.build().urls(patcherJar.toURI().toURL()).parent(PatchInstaller.class.getClassLoader()).get();
+      loader = UrlClassLoader.build().urls(patcherJar.toUri().toURL()).parent(PatchInstaller.class.getClassLoader()).get();
     }
     catch (MalformedURLException e) {
       // Shouldn't happen
@@ -201,7 +200,7 @@ public class PatchRunner {
   }
 
   @NotNull
-  public File getPatcherJar() {
+  public Path getPatcherJar() {
     return myPatcherJar;
   }
 
@@ -210,19 +209,19 @@ public class PatchRunner {
 
   public interface Factory {
     @Nullable
-    PatchRunner getPatchRunner(@NotNull LocalPackage runnerPackage, @NotNull ProgressIndicator progress, @NotNull FileOp fop);
+    PatchRunner getPatchRunner(@NotNull LocalPackage runnerPackage, @NotNull ProgressIndicator progress);
   }
 
   public static class DefaultFactory implements Factory {
     @Override
     @Nullable
-    public PatchRunner getPatchRunner(@NotNull LocalPackage runnerPackage, @NotNull ProgressIndicator progress, @NotNull FileOp fop) {
+    public PatchRunner getPatchRunner(@NotNull LocalPackage runnerPackage, @NotNull ProgressIndicator progress) {
       PatchRunner result = ourCache.get(runnerPackage);
       if (result != null) {
         return result;
       }
       try {
-        File patcherFile = getPatcherFile(runnerPackage, fop);
+        Path patcherFile = getPatcherFile(runnerPackage);
         if (patcherFile == null) {
           progress.logWarning("Failed to find patcher JAR!");
           return null;

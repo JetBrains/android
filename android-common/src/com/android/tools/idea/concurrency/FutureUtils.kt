@@ -36,7 +36,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.util.Alarm
 import com.intellij.util.Alarm.ThreadToUse
 import com.intellij.util.IncorrectOperationException
-import org.jetbrains.ide.PooledThreadExecutor
+import com.intellij.util.concurrency.AppExecutorUtil
 import java.awt.EventQueue.isDispatchThread
 import java.awt.Toolkit
 import java.util.concurrent.Callable
@@ -138,7 +138,7 @@ fun <T> executeOnPooledThread(action: () -> T): ListenableFuture<T> {
 fun <T> ListenableFuture<T>.toCompletionStage(): CompletionStage<T> = ListenableFutureToCompletionStageAdapter(this)
 
 fun <T> readOnPooledThread(function: () -> T): ListenableFuture<T> {
-  return MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE).submit<T> { ReadAction.compute<T, Throwable>(function) }
+  return MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService()).submit<T> { ReadAction.compute<T, Throwable>(function) }
 }
 
 private object MyAlarm : AtomicNotNullLazyValue<Alarm>() {

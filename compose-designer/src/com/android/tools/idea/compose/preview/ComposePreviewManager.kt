@@ -106,9 +106,9 @@ interface ComposePreviewManager {
   var groupFilter: PreviewGroup
 
   /**
-   * If [elementInstance] is not null sets [PreviewElementInstance] to run in the interactive mode or exits interactive mode if null.
+   * Represents the [PreviewElementInstance] open in the Interactive Preview. Null if no preview is in interactive mode.
    */
-  fun setInteractivePreviewElementInstance(elementInstance: PreviewElementInstance?)
+  var interactivePreviewElementInstance: PreviewElementInstance?
 
   /**
    * Represents the [PreviewElementInstance] open in the Animation Inspector. Null if no preview is being inspected.

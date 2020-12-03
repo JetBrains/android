@@ -19,6 +19,7 @@ import com.android.emulator.control.EmulatorStatus
 import com.android.prefs.AndroidLocation
 import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.getSdk
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.emulator.EmptyStreamObserver
 import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.EmulatorController.ConnectionState
@@ -277,20 +278,17 @@ class EmulatorRule(val commandParameters: List<String> = COMMAND_PARAMETERS_EMBE
 }
 
 fun getAdbBinary(): Path {
-  return TestUtils.getWorkspaceFile("prebuilts/studio/sdk/linux/platform-tools/adb").toPath()
+  return resolveWorkspacePath("prebuilts/studio/sdk/linux/platform-tools/adb")
 }
 
 private fun getEmulatorBinary(): Path {
-  return TestUtils.getWorkspaceFile("prebuilts/android-emulator/linux-x86_64/emulator").toPath()
+  return resolveWorkspacePath("prebuilts/android-emulator/linux-x86_64/emulator")
 }
 
 private fun getSystemImage(): Path {
   if (TestUtils.runningFromBazel()) {
     // Bazel environment.
-    val workspaceRoot = TestUtils.getWorkspaceRoot().toPath()
-    val imageDir = workspaceRoot.resolve("external/system_image_latest_default_x86_64")
-    check(Files.exists(imageDir)) { "The ${imageDir} directory doesn't exist" }
-    return imageDir
+    return resolveWorkspacePath("external/system_image_latest_default_x86_64")
   }
 
   // IDE environment.

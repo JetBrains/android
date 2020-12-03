@@ -202,7 +202,6 @@ PROJECT             : testLightTestsWithMultipleModulesTestProjectStructureInAnd
         FACET               : Java-Gradle
             TypeId              : java-gradle
             Buildable           : false
-            BuildFolderPath     :  [-]
         CONENT_ENTRY        : file://<TEMP>
             JavaSource          : file://<TEMP>/gen
             JavaSource          : file://<TEMP>/src

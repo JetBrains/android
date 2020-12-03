@@ -16,7 +16,9 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.annotations.concurrency.GuardedBy
+import com.android.ide.common.rendering.api.Bridge
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.common.util.ControllableTicker
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
@@ -41,7 +43,6 @@ import com.android.tools.idea.editors.setupOnSaveListener
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_BUILD_ON_SAVE
-import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.util.BuildListener
 import com.android.tools.idea.gradle.util.setupBuildListener
 import com.android.tools.idea.rendering.RenderService
@@ -198,7 +199,7 @@ private const val FPS_LIMIT = 60
  * @param previewProvider [PreviewElementProvider] to obtain the [PreviewElement]s.
  */
 class ComposePreviewRepresentation(psiFile: PsiFile,
-                                   previewProvider: PreviewElementProvider,
+                                   previewProvider: PreviewElementProvider<PreviewElement>,
                                    composePreviewViewProvider: ComposePreviewViewProvider) :
   PreviewRepresentation, ComposePreviewManagerEx, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
   private val LOG = Logger.getInstance(ComposePreviewRepresentation::class.java)
@@ -208,12 +209,17 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private val projectBuildStatusManager = ProjectBuildStatusManager(this, psiFile)
 
   /**
+   * [PreviewElementProvider] containing the pinned previews.
+   */
+  private val memoizedPinnedPreviewProvider = FilteredPreviewElementProvider<PreviewElementInstance>(PinnedPreviewElementManager.getPreviewElementProvider(project)) {
+    !(it.previewBodyPsi?.containingFile?.isEquivalentTo(psiFilePointer.containingFile) ?: false)
+  }
+
+  /**
    * [PreviewElementProvider] used to save the result of a call to `previewProvider`. Calls to `previewProvider` can potentially
    * be slow. This saves the last result and it is refreshed on demand when we know is not running on the UI thread.
    */
-  private val memoizedElementsProvider = MemoizedPreviewElementProvider(
-    CombinedPreviewElementProvider(listOf(previewProvider, PinnedPreviewElementManager.getPreviewElementProvider(project)))
-  ) {
+  private val memoizedElementsProvider = MemoizedPreviewElementProvider<PreviewElement>(previewProvider) {
     ReadAction.compute<Long, Throwable> {
       psiFilePointer.element?.modificationStamp ?: -1
     }
@@ -243,81 +249,106 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private val fpsCounter = FpsCalculator { System.nanoTime() }
 
-  override fun setInteractivePreviewElementInstance(previewElement: PreviewElementInstance?) {
-    if (previewElementProvider.instanceFilter != previewElement) {
-      LOG.debug("New single preview element focus: $previewElement")
-      val isInteractive = previewElement != null
-      // The order matters because we first want to change the composable being previewed and then start interactive loop when enabled
-      // but we want to stop the loop first and then change the composable when disabled
-      if (isInteractive) { // Enable interactive
-        interactiveMode = ComposePreviewManager.InteractiveMode.STARTING
-        val quickRefresh = shouldQuickRefresh() // We should call this before assigning newValue to instanceIdFilter
-        val peerPreviews = previewElementProvider.previewElements.count()
-        previewElementProvider.instanceFilter = previewElement
-        composeWorkBench.hasComponentsOverlay = false
-        val startUpStart = System.currentTimeMillis()
-        forceRefresh(quickRefresh).invokeOnCompletion {
-          surface.layoutlibSceneManagers.forEach { it.resetTouchEventsCounter() }
-          InteractivePreviewUsageTracker.getInstance(surface).logStartupTime(
-            (System.currentTimeMillis() - startUpStart).toInt(), peerPreviews)
-          fpsCounter.resetAndStart()
-          ticker.start()
-          composeWorkBench.isInteractive = true
-
-          if (StudioFlags.COMPOSE_ANIMATED_PREVIEW_SHOW_CLICK.get()) {
-            // While in interactive mode, display a small ripple when clicking
-            surface.enableMouseClickDisplay()
+  override var interactivePreviewElementInstance: PreviewElementInstance?
+    set(value) {
+      if ((interactiveMode == ComposePreviewManager.InteractiveMode.DISABLED && value != null) ||
+          (interactiveMode == ComposePreviewManager.InteractiveMode.READY && value == null)) {
+        LOG.debug("New single preview element focus: $value")
+        val isInteractive = value != null
+        val isFromAnimationInspection = animationInspection.get()
+        // The order matters because we first want to change the composable being previewed and then start interactive loop when enabled
+        // but we want to stop the loop first and then change the composable when disabled
+        if (isInteractive) { // Enable interactive
+          if (isFromAnimationInspection) {
+            onAnimationInspectionStop()
           }
-          surface.background = INTERACTIVE_BACKGROUND_COLOR
-          interactiveMode = ComposePreviewManager.InteractiveMode.READY
+          interactiveMode = ComposePreviewManager.InteractiveMode.STARTING
+          val quickRefresh = shouldQuickRefresh() && !isFromAnimationInspection// We should call this before assigning newValue to instanceIdFilter
+          val peerPreviews = previewElementProvider.previewElements.count()
+          previewElementProvider.instanceFilter = value
+          composeWorkBench.hasComponentsOverlay = false
+          val startUpStart = System.currentTimeMillis()
+          forceRefresh(quickRefresh).invokeOnCompletion {
+            surface.layoutlibSceneManagers.forEach { it.resetTouchEventsCounter() }
+            if (!isFromAnimationInspection) { // Currently it will re-create classloader and will be slower that switch from static
+              InteractivePreviewUsageTracker.getInstance(surface).logStartupTime(
+                (System.currentTimeMillis() - startUpStart).toInt(), peerPreviews)
+            }
+            fpsCounter.resetAndStart()
+            ticker.start()
+            composeWorkBench.isInteractive = true
+
+            if (StudioFlags.COMPOSE_ANIMATED_PREVIEW_SHOW_CLICK.get()) {
+              // While in interactive mode, display a small ripple when clicking
+              surface.enableMouseClickDisplay()
+            }
+            surface.background = INTERACTIVE_BACKGROUND_COLOR
+            interactiveMode = ComposePreviewManager.InteractiveMode.READY
+          }
+        }
+        else { // Disable interactive
+          onInteractivePreviewStop()
+          forceRefresh().invokeOnCompletion {
+            interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
+          }
         }
       }
-      else { // Disable interactive
-        interactiveMode = ComposePreviewManager.InteractiveMode.STOPPING
-        surface.background = defaultSurfaceBackground
-        surface.disableMouseClickDisplay()
-        composeWorkBench.isInteractive = false
-        composeWorkBench.hasComponentsOverlay = true
-        ticker.stop()
-        previewElementProvider.clearInstanceIdFilter()
-        logInteractiveSessionMetrics()
+    }
+    get() = if (interactiveMode == ComposePreviewManager.InteractiveMode.READY) previewElementProvider.instanceFilter else null
+
+  private fun onInteractivePreviewStop() {
+    interactiveMode = ComposePreviewManager.InteractiveMode.STOPPING
+    surface.background = defaultSurfaceBackground
+    surface.disableMouseClickDisplay()
+    composeWorkBench.isInteractive = false
+    composeWorkBench.hasComponentsOverlay = true
+    ticker.stop()
+    previewElementProvider.clearInstanceIdFilter()
+    logInteractiveSessionMetrics()
+  }
+
+  private val animationInspection = AtomicBoolean(false)
+
+  override var animationInspectionPreviewElementInstance: PreviewElementInstance?
+    set(value) {
+      if ((!animationInspection.get() && value != null) || (animationInspection.get() && value == null)) {
+        if (value != null) {
+          if (interactiveMode != ComposePreviewManager.InteractiveMode.DISABLED) {
+            onInteractivePreviewStop()
+          }
+          LOG.debug("Animation Preview open for preview: $value")
+          ComposePreviewAnimationManager.onAnimationInspectorOpened()
+          previewElementProvider.instanceFilter = value
+          animationInspection.set(true)
+          composeWorkBench.hasComponentsOverlay = false
+
+          // Open the animation inspection panel
+          composeWorkBench.bottomPanel = ComposePreviewAnimationManager.createAnimationInspectorPanel(surface, this) {
+            // Close this inspection panel, making all the necessary UI changes (e.g. changing background and refreshing the preview) before
+            // opening a new one.
+            animationInspectionPreviewElementInstance = null
+          }
+          surface.background = INTERACTIVE_BACKGROUND_COLOR
+        }
+        else {
+          onAnimationInspectionStop()
+        }
         forceRefresh().invokeOnCompletion {
           interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
         }
       }
     }
-  }
+    get() = if (animationInspection.get()) previewElementProvider.instanceFilter else null
 
-  private val animationInspection = AtomicBoolean(false)
-
-  override var animationInspectionPreviewElementInstance:
-    PreviewElementInstance? by Delegates.observable(null as PreviewElementInstance?) { _, oldValue, newValue ->
-    if (oldValue != newValue) {
-      animationInspection.set(newValue != null)
-      if (animationInspection.get()) {
-        LOG.debug("Animation Preview open for preview: $newValue")
-        previewElementProvider.instanceFilter = newValue
-        composeWorkBench.hasComponentsOverlay = false
-
-        // Open the animation inspection panel
-        composeWorkBench.bottomPanel = ComposePreviewAnimationManager.createAnimationInspectorPanel(surface, this) {
-          // Close this inspection panel, making all the necessary UI changes (e.g. changing background and refreshing the preview) before
-          // opening a new one.
-          animationInspectionPreviewElementInstance = null
-        }
-        surface.background = INTERACTIVE_BACKGROUND_COLOR
-      }
-      else {
-        // Close the animation inspection panel
-        surface.background = defaultSurfaceBackground
-        ComposePreviewAnimationManager.closeCurrentInspector()
-        // Swap the components back
-        composeWorkBench.bottomPanel = null
-        composeWorkBench.hasComponentsOverlay = true
-        previewElementProvider.instanceFilter = null
-      }
-      forceRefresh()
-    }
+  private fun onAnimationInspectionStop() {
+    animationInspection.set(false)
+    // Close the animation inspection panel
+    surface.background = defaultSurfaceBackground
+    ComposePreviewAnimationManager.closeCurrentInspector()
+    // Swap the components back
+    composeWorkBench.bottomPanel = null
+    composeWorkBench.hasComponentsOverlay = true
+    previewElementProvider.instanceFilter = null
   }
 
   private val liveLiteralsManager = LiveLiteralsService.getInstance(project).apply {
@@ -361,6 +392,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         else -> null
       }
     }, this)
+
+  private val pinnedSurface: NlDesignSurface
+    get() = composeWorkBench.pinnedSurface
   private val surface: NlDesignSurface
     get() = composeWorkBench.mainSurface
 
@@ -504,6 +538,16 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         refresh()
       }
     })
+
+    if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
+      val listener = PinnedPreviewElementManager.Listener {
+        refresh()
+      }
+      PinnedPreviewElementManager.getInstance(project).addListener(listener)
+      Disposer.register(this) {
+        PinnedPreviewElementManager.getInstance(project).removeListener(listener)
+      }
+    }
   }
 
   override fun onActivate() {
@@ -540,7 +584,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override fun onDeactivate() {
     activationLock.withLock {
       LOG.debug("onDeactivate")
-      setInteractivePreviewElementInstance(null)
+      interactivePreviewElementInstance = null
       isLiveLiteralsEnabled = false
       isActive.set(false)
 
@@ -586,6 +630,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override var isBuildOnSaveEnabled: Boolean = false
     get() = COMPOSE_PREVIEW_BUILD_ON_SAVE.get() && field
 
+  private var lastPinsModificationCount = PinnedPreviewElementManager.getInstance(project).modificationCount
+
   private fun hasErrorsAndNeedsBuild(): Boolean = !hasRenderedAtLeastOnce.get() || surface.layoutlibSceneManagers
     .any { it.renderResult.isComposeErrorResult() }
 
@@ -594,7 +640,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override fun status(): ComposePreviewManager.Status {
     val isRefreshing = (refreshCallsCount.get() > 0 ||
                         DumbService.isDumb(project) ||
-                        GradleBuildState.getInstance(project).isBuildInProgress)
+                        projectBuildStatusManager.isBuilding)
 
     // If we are refreshing, we avoid spending time checking other conditions like errors or if the preview
     // is out of date.
@@ -638,6 +684,16 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                    onLiveLiteralsFound = { hasLiveLiterals = true },
                                    resetLiveLiteralsFound = { hasLiveLiterals = isLiveLiteralsEnabled })
 
+  private fun onAfterRender() {
+    if (!hasRenderedAtLeastOnce.get()) {
+      // We zoom to fit to have better initial zoom level when first build is completed
+      UIUtil.invokeLaterIfNeeded {
+        surface.zoomToFit()
+        hasRenderedAtLeastOnce.set(true)
+      }
+    }
+  }
+
   /**
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The call will block until all the given [PreviewElement]s have completed rendering. If [quickRefresh]
@@ -671,25 +727,49 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     onRestoreState?.invoke()
     onRestoreState = null
 
+    val hasPinnedElements = if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
+      lastPinsModificationCount = PinnedPreviewElementManager.getInstance(project).modificationCount
+      pinnedSurface.updatePreviewsAndRefresh(
+        false,
+        memoizedPinnedPreviewProvider,
+        LOG,
+        psiFile,
+        this,
+        this::onAfterRender,
+        this::toPreviewXmlString,
+        this::getPreviewDataContextForPreviewElement,
+        this::configureLayoutlibSceneManagerForPreviewElement
+      ).isNotEmpty()
+    } else false
+    val hasMainPreviewElements = previewElementProvider.previewElements.any()
+
+    if (hasPinnedElements) {
+      // TODO: The label will display the name of the file where pinned previews come from. If there are multiple files
+      // then we temporarily display the label "Pinned"
+      val singleFileName = memoizedPinnedPreviewProvider
+                             .previewElements
+                             .mapNotNull { it.previewBodyPsi?.virtualFile?.name }
+                             .distinct()
+                             .singleOrNull() ?: "Pinned"
+      composeWorkBench.pinnedLabel = singleFileName
+    }
+
+    composeWorkBench.setPinnedSurfaceVisibility(hasPinnedElements)
+    if (!hasPinnedElements && !hasMainPreviewElements) {
+      composeWorkBench.showModalErrorMessage(message("panel.no.previews.defined"))
+    }
+
     val showingPreviewElements = surface.updatePreviewsAndRefresh(
       quickRefresh,
       previewElementProvider,
       LOG,
       psiFile,
       this,
-      {
-        if (!hasRenderedAtLeastOnce.getAndSet(true)) {
-          // We zoom to fit to have better initial zoom level when first build is completed
-          UIUtil.invokeLaterIfNeeded { surface.zoomToFit() }
-        }
-      },
+      this::onAfterRender,
       this::toPreviewXmlString,
       this::getPreviewDataContextForPreviewElement,
       this::configureLayoutlibSceneManagerForPreviewElement
     )
-    showingPreviewElements.ifEmpty {
-      composeWorkBench.showModalErrorMessage(message("panel.no.previews.defined"))
-    }
 
     if (showingPreviewElements.size >= filePreviewElements.size) {
       previewElements = filePreviewElements
@@ -721,6 +801,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         return@launch
       }
 
+      if (Bridge.hasNativeCrash() && composeWorkBench is ComposePreviewViewImpl) {
+        composeWorkBench.handleLayoutlibNativeCrash { refresh() }
+        return@launch
+      }
+
       refreshCallsCount.incrementAndGet()
       try {
         val filePreviewElements = withContext(workerThread) {
@@ -729,7 +814,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
             .sortByDisplayAndSourcePosition()
         }
 
-        if (filePreviewElements == previewElements) {
+        val needsFullRefresh = filePreviewElements != previewElements ||
+                               PinnedPreviewElementManager.getInstance(project).modificationCount != lastPinsModificationCount
+
+        if (!needsFullRefresh) {
           LOG.debug("No updates on the PreviewElements, just refreshing the existing ones")
           // In this case, there are no new previews. We need to make sure that the surface is still correctly
           // configured and that we are showing the right size for components. For example, if the user switches on/off

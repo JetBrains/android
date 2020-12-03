@@ -22,6 +22,7 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.SwingHelper
 import javax.swing.Icon
 import javax.swing.JComponent
+import javax.swing.JEditorPane
 
 
 fun TimeWithPercentage.durationString() = durationString(timeMs)
@@ -52,13 +53,13 @@ fun warningIcon(): Icon = AllIcons.General.BalloonWarning
  * Label with auto-wrapping turned on that accepts html text.
  * Used in Build Analyzer to render long multi-line text.
  */
-fun htmlTextLabelWithLinesWrap(htmlBodyContent: String): JComponent =
+fun htmlTextLabelWithLinesWrap(htmlBodyContent: String): JEditorPane =
   SwingHelper.createHtmlViewer(true, null, null, null).apply {
     border = JBUI.Borders.empty()
     SwingHelper.setHtml(this, htmlBodyContent, null)
   }
 
-fun htmlTextLabelWithFixedLines(htmlBodyContent: String): JComponent =
+fun htmlTextLabelWithFixedLines(htmlBodyContent: String): JEditorPane =
   SwingHelper.createHtmlViewer(false, null, null, null).apply {
     border = JBUI.Borders.empty()
     SwingHelper.setHtml(this, htmlBodyContent, null)

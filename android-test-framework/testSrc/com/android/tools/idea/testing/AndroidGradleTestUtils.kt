@@ -62,8 +62,9 @@ import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
 import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.getLatestAndroidPlatform
+import com.android.testutils.TestUtils.getSdk
+import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
@@ -660,7 +661,7 @@ fun setupTestProjectFromAndroidModel(
 ) {
   val modelCache = ModelCache.create()
   if (IdeSdks.getInstance().androidSdkPath === null) {
-    AndroidGradleTests.setUpSdks(project, project, TestUtils.getSdk())
+    AndroidGradleTests.setUpSdks(project, project, getSdk().toFile())
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
   }
 
@@ -976,8 +977,8 @@ interface GradleIntegrationTest {
    * The base testData directory to be used in tests.
    */
   fun resolveTestDataPath(testDataPath: @SystemIndependent String): File {
-    val testDataDirectory = File(TestUtils.getWorkspaceRoot(), toSystemDependentName(getTestDataDirectoryWorkspaceRelativePath()))
-    return testDataDirectory.resolve(toSystemDependentName(testDataPath))
+    val testDataDirectory = getWorkspaceRoot().resolve(toSystemDependentName(getTestDataDirectoryWorkspaceRelativePath()))
+    return testDataDirectory.resolve(toSystemDependentName(testDataPath)).toFile()
   }
 }
 

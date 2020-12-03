@@ -106,7 +106,7 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
       }
     }
 
-    return getSdk();
+    return getSdk().toFile();
   }
 
   @Override

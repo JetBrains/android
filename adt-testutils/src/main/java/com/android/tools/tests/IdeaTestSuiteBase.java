@@ -15,8 +15,6 @@
  */
 package com.android.tools.tests;
 
-import static com.android.testutils.TestUtils.getWorkspaceRoot;
-
 import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
@@ -28,7 +26,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import org.jetbrains.annotations.NotNull;
@@ -49,13 +46,13 @@ public class IdeaTestSuiteBase {
     }
   }
 
-  private static void setProperties() {
+  private static void setProperties() throws IOException {
     if (!isUnbundledBazelTestTarget()) {
-      System.setProperty("idea.home.path", TestUtils.getWorkspaceFile("tools/idea").getPath());
+      System.setProperty("idea.home.path", TestUtils.resolveWorkspacePath("tools/idea").toString());
     }
     System.setProperty("idea.system.path", createTmpDir("idea/system").toString());
     System.setProperty("idea.config.path", createTmpDir("idea/config").toString());
-    System.setProperty("idea.log.path", TestUtils.getTestOutputDir().getPath());
+    System.setProperty("idea.log.path", TestUtils.getTestOutputDir().toString());
     System.setProperty("gradle.user.home", createTmpDir(".gradle").toString());
     System.setProperty("user.home", TMP_DIR);
 
@@ -63,7 +60,7 @@ public class IdeaTestSuiteBase {
     System.setProperty("java.util.prefs.userRoot", createTmpDir("userRoot").toString());
     System.setProperty("java.util.prefs.systemRoot", createTmpDir("systemRoot").toString());
 
-    System.setProperty("local.gradle.distribution.path", new File(getWorkspaceRoot(), "tools/external/gradle/").getAbsolutePath());
+    System.setProperty("local.gradle.distribution.path", TestUtils.getWorkspaceRoot().resolve("tools/external/gradle/").toString());
     // See AndroidLocation.java for more information on this system property.
     System.setProperty("ANDROID_PREFS_ROOT", createTmpDir(".android").toString());
     System.setProperty("layoutlib.thread.timeout", "60000");
@@ -104,10 +101,10 @@ public class IdeaTestSuiteBase {
    */
   private static void setRealJdkPathForGradle() {
     try {
-      File jdk = new File(getWorkspaceRoot(), "prebuilts/studio/jdk");
-      if (jdk.exists()) {
-        File file = new File(jdk, "BUILD").toPath().toRealPath().toFile();
-        System.setProperty("studio.dev.jdk", file.getParentFile().getAbsolutePath());
+      Path jdk = TestUtils.getWorkspaceRoot().resolve("prebuilts/studio/jdk");
+      if (Files.exists(jdk)) {
+        Path file = jdk.resolve("BUILD").toRealPath();
+        System.setProperty("studio.dev.jdk", file.getParent().toString());
       }
     }
     catch (IOException e) {
@@ -120,7 +117,7 @@ public class IdeaTestSuiteBase {
    */
   protected static void setUpSourceZip(@NotNull String sourceZip, @NotNull String outputPath, DiffSpec... diffSpecs) {
     File sourceZipFile = getWorkspaceFileAndEnsureExistence(sourceZip);
-    File outDir = new File(getWorkspaceRoot(), outputPath);
+    File outDir = TestUtils.getWorkspaceRoot().resolve(outputPath).toFile();
     if (!outDir.isDirectory() && !outDir.mkdirs()) {
       throw new RuntimeException("Failed to create output directory: " + outDir);
     }
@@ -164,17 +161,17 @@ public class IdeaTestSuiteBase {
 
   protected static void unzipIntoOfflineMavenRepo(@NotNull String repoZip) {
     File offlineRepoZip = getWorkspaceFileAndEnsureExistence(repoZip);
-    File outDir = TestUtils.getPrebuiltOfflineMavenRepo();
+    File outDir = TestUtils.getPrebuiltOfflineMavenRepo().toFile();
     unzip(offlineRepoZip, outDir);
   }
 
   @NotNull
   private static File getWorkspaceFileAndEnsureExistence(@NotNull String relativePath) {
-    File file = new File(getWorkspaceRoot(), relativePath);
-    if (!file.exists()) {
+    Path file = TestUtils.getWorkspaceRoot().resolve(relativePath);
+    if (!Files.exists(file)) {
       throw new IllegalArgumentException(relativePath + " does not exist");
     }
-    return file;
+    return file.toFile();
   }
 
   private static void unzip(File offlineRepoZip, File outDir) {

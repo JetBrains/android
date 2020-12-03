@@ -18,12 +18,12 @@ package com.android.tools.idea.emulator
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.actions.ZoomType
-import com.android.testutils.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.setPortableUiFont
@@ -60,6 +60,7 @@ import java.awt.Dimension
 import java.awt.Point
 import java.awt.datatransfer.DataFlavor
 import java.io.File
+import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -204,7 +205,7 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testDnD() {
-    val adb = TestUtils.getWorkspaceRoot().resolve("$TEST_DATA_PATH/fake-adb")
+    val adb = getWorkspaceRoot().toFile().resolve("$TEST_DATA_PATH/fake-adb")
     val savedAdbPath = System.getProperty(ADB_PATH_PROPERTY)
     if (savedAdbPath != null) {
       Disposer.register(testRootDisposable) { System.setProperty(ADB_PATH_PROPERTY, savedAdbPath) }
@@ -277,7 +278,7 @@ class EmulatorToolWindowPanelTest {
 
   private fun createWindowPanel(): EmulatorToolWindowPanel {
     val catalog = RunningEmulatorCatalog.getInstance()
-    val tempFolder = emulatorRule.root.toPath()
+    val tempFolder = emulatorRule.root
     emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554)
     emulator.start()
     val emulators = catalog.updateNow().get()
@@ -302,8 +303,8 @@ class EmulatorToolWindowPanelTest {
     ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.04)
   }
 
-  private fun getGoldenFile(name: String): File {
-    return TestUtils.getWorkspaceRoot().toPath().resolve("$TEST_DATA_PATH/golden/${name}.png").toFile()
+  private fun getGoldenFile(name: String): Path {
+    return getWorkspaceRoot().resolve("$TEST_DATA_PATH/golden/${name}.png")
   }
 }
 

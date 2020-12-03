@@ -16,14 +16,10 @@
 
 package org.jetbrains.kotlin.android.lint
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.intellij.codeInspection.InspectionProfileEntry
-import com.intellij.facet.FacetManager
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
 import com.intellij.util.PathUtil
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.jetbrains.kotlin.android.KotlinAndroidTestCase
 import org.jetbrains.kotlin.idea.test.ConfigLibraryUtil
 import org.jetbrains.kotlin.test.InTextDirectivesUtils
@@ -36,7 +32,7 @@ abstract class AbstractKotlinLintTest : KotlinAndroidTestCase() {
         super.setUp()
         (myFixture as CodeInsightTestFixtureImpl).setVirtualFileFilter { false } // Allow access to tree elements.
 
-        val kotlinPlugin = TestUtils.getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin")
+        val kotlinPlugin = resolveWorkspacePath("prebuilts/tools/common/kotlin-plugin/Kotlin")
         val compilerLib = "$kotlinPlugin/kotlinc/lib"
         ConfigLibraryUtil.addLibrary(myModule, "androidExtensionsRuntime", compilerLib, arrayOf("android-extensions-runtime.jar"))
         ConfigLibraryUtil.addLibrary(myModule, "kotlinStdlib", compilerLib, arrayOf("kotlin-stdlib.jar"))

@@ -50,7 +50,6 @@ import com.android.tools.profiler.proto.Transport.VersionResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.Server;
-import io.grpc.ServerServiceDefinition;
 import io.grpc.StatusRuntimeException;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
@@ -85,7 +84,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
 
   @Before
   public void setUp() throws Exception {
-    myServicePath = TestUtils.createTempDirDeletedOnExit().getAbsolutePath();
+    myServicePath = TestUtils.createTempDirDeletedOnExit().toString();
     myDataStore = new DataStoreService(SERVICE_NAME, myServicePath, getPollTicker()::run, new FakeLogService());
     myService = InProcessServerBuilder
       .forName(myServicePath)

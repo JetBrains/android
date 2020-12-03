@@ -85,6 +85,7 @@ import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
+import java.awt.AWTEvent;
 import java.awt.Adjustable;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -93,6 +94,8 @@ import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.PointerInfo;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.event.AWTEventListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -158,6 +161,18 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     SceneViewAlignment(float swingValue) {
       mySwingAlignmentXValue = swingValue;
     }
+  }
+
+  /**
+   * Determines the visibility of the zoom controls in this surface.
+   */
+  public enum ZoomControlsPolicy {
+    /** The zoom controls will always be visible. */
+    VISIBLE,
+    /** The zoom controls will never be visible. */
+    HIDDEN,
+    /** The zoom controls will only be visible when the mouse is over the surface. */
+    AUTO_HIDE
   }
 
   /**
@@ -243,6 +258,15 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   private final Function<DesignSurface, DesignSurfaceActionHandler> myActionHandlerProvider;
 
+  /**
+   * See {@link ZoomControlsPolicy}.
+   */
+  @NotNull
+  private final ZoomControlsPolicy myZoomControlsPolicy;
+
+  @NotNull
+  private final AWTEventListener myOnHoverListener;
+
   public DesignSurface(
     @NotNull Project project,
     @NotNull Disposable parentDisposable,
@@ -250,9 +274,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Function<DesignSurface, InteractionHandler> interactionProviderCreator,
     boolean isEditable,
     @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider,
-    @NotNull Function<DesignSurface, DesignSurfaceActionHandler> designSurfaceActionHandlerProvider) {
+    @NotNull Function<DesignSurface, DesignSurfaceActionHandler> designSurfaceActionHandlerProvider,
+    @NotNull ZoomControlsPolicy zoomControlsPolicy) {
     this(project, parentDisposable, actionManagerProvider, interactionProviderCreator, isEditable, ZoomType.FIT_INTO,
-         positionableLayoutManagerProvider, designSurfaceActionHandlerProvider, new DefaultSelectionModel());
+         positionableLayoutManagerProvider, designSurfaceActionHandlerProvider, new DefaultSelectionModel(), zoomControlsPolicy);
   }
 
   public DesignSurface(
@@ -264,7 +289,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull ZoomType onChangedZoom,
     @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider,
     @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider,
-    @NotNull SelectionModel selectionModel) {
+    @NotNull SelectionModel selectionModel,
+    @NotNull ZoomControlsPolicy zoomControlsPolicy) {
     super(new BorderLayout());
 
     myConfigurationListener = flags -> {
@@ -308,6 +334,14 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myZoomControlsLayerPane.setOpaque(false);
     myZoomControlsLayerPane.setLayout(new BorderLayout());
     myZoomControlsLayerPane.setFocusable(false);
+
+    myOnHoverListener = event -> {
+      if (event.getID() == MouseEvent.MOUSE_ENTERED || event.getID() == MouseEvent.MOUSE_EXITED) {
+        myZoomControlsLayerPane.setVisible(
+          SwingUtilities.isDescendingFrom(((MouseEvent)event).getComponent(), DesignSurface.this)
+        );
+      }
+    };
 
     mySceneViewPanel = new SceneViewPanel(() -> getInteractionManager().getLayers(), positionableLayoutManagerProvider.apply(this));
     mySceneViewPanel.setBackground(getBackground());
@@ -380,6 +414,15 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myActionManager.registerActionsShortcuts(myLayeredPane);
 
     myZoomControlsLayerPane.add(myActionManager.createDesignSurfaceToolbar(), BorderLayout.EAST);
+    myZoomControlsPolicy = zoomControlsPolicy;
+
+    if (myZoomControlsPolicy == ZoomControlsPolicy.AUTO_HIDE) {
+      myZoomControlsLayerPane.setVisible(false);
+      Toolkit.getDefaultToolkit().addAWTEventListener(myOnHoverListener, AWTEvent.MOUSE_EVENT_MASK);
+    }
+    else if (myZoomControlsPolicy == ZoomControlsPolicy.HIDDEN) {
+      myZoomControlsLayerPane.setVisible(false);
+    }
   }
 
   @SurfaceScreenScalingFactor
@@ -702,6 +745,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @Override
   public void dispose() {
     myInteractionManager.stopListening();
+    Toolkit.getDefaultToolkit().removeAWTEventListener(myOnHoverListener);
     synchronized (myRenderFutures) {
       for (CompletableFuture<Void> future : myRenderFutures) {
         try {
@@ -932,7 +976,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @see #getFitScale(Dimension, boolean)
    */
   @SurfaceScale
-  protected double getFitScale(boolean fitInto) {
+  public double getFitScale(boolean fitInto) {
     int availableWidth = getExtentSize().width;
     int availableHeight = getExtentSize().height;
     return getFitScale(getPreferredContentSize(availableWidth, availableHeight), fitInto);
@@ -947,9 +991,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @return The scale to make the content fit the design surface
    * @see {@link #getScreenScalingFactor()}
    */
-  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
   @SurfaceScale
-  public double getFitScale(@AndroidCoordinate Dimension size, boolean fitInto) {
+  protected double getFitScale(@AndroidCoordinate Dimension size, boolean fitInto) {
     // Fit to zoom
 
     int availableWidth = getExtentSize().width;
@@ -1141,6 +1184,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       androidY = Coordinates.getAndroidYDip(view, y);
     }
 
+    double previousScale = myScale;
     myScale = newScale;
     NlModel model = Iterables.getFirst(getModels(), null);
     if (model != null) {
@@ -1154,7 +1198,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
 
     revalidateScrollArea();
-    notifyScaleChanged();
+    notifyScaleChanged(previousScale, myScale);
     return true;
   }
 
@@ -1208,10 +1252,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return 1;
   }
 
-  private void notifyScaleChanged() {
+  private void notifyScaleChanged(double previousScale, double newScale) {
     if (myZoomListeners != null) {
       for (PanZoomListener myZoomListener : myZoomListeners) {
-        myZoomListener.zoomChanged();
+        myZoomListener.zoomChanged(previousScale, newScale);
       }
     }
   }
@@ -1311,12 +1355,16 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       for (SceneManager manager : getSceneManagers()) {
         manager.activate(this);
       }
+      if (myZoomControlsPolicy == ZoomControlsPolicy.AUTO_HIDE) {
+        Toolkit.getDefaultToolkit().addAWTEventListener(myOnHoverListener, AWTEvent.MOUSE_EVENT_MASK);
+      }
     }
     myIsActive = true;
   }
 
   public void deactivate() {
     if (myIsActive) {
+      Toolkit.getDefaultToolkit().removeAWTEventListener(myOnHoverListener);
       for (SceneManager manager : getSceneManagers()) {
         manager.deactivate(this);
       }

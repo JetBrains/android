@@ -160,7 +160,8 @@ public class NavDesignSurface extends DesignSurface {
   public NavDesignSurface(@NotNull Project project, @Nullable DesignerEditorPanel editorPanel, @NotNull Disposable parentDisposable) {
     super(project, parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface), NavInteractionHandler::new,
           true, (surface) -> new SinglePositionableContentLayoutManager(),
-          (surface) -> new NavDesignSurfaceActionHandler((NavDesignSurface)surface));
+          (surface) -> new NavDesignSurfaceActionHandler((NavDesignSurface)surface),
+          ZoomControlsPolicy.VISIBLE);
     // TODO: add nav-specific issues
     // getIssueModel().addIssueProvider(new NavIssueProvider(project));
     myEditorPanel = editorPanel;
@@ -499,7 +500,7 @@ public class NavDesignSurface extends DesignSurface {
   }
 
   @Override
-  protected double getFitScale(boolean fitInto) {
+  public double getFitScale(boolean fitInto) {
     return Math.min(super.getFitScale(fitInto), 1.0);
   }
 

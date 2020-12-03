@@ -255,7 +255,6 @@ private fun ProjectDumper.dump(facet: Facet<*>) {
 
 private fun ProjectDumper.dump(javaFacetConfiguration: JavaFacetConfiguration) {
   prop("Buildable") { javaFacetConfiguration.BUILDABLE.toString() }
-  prop("BuildFolderPath") { javaFacetConfiguration.BUILD_FOLDER_PATH.toPrintablePath() }
 }
 
 private fun ProjectDumper.dump(gradleFacetConfiguration: GradleFacetConfiguration) {

@@ -19,7 +19,7 @@ import com.android.emulator.control.ImageFormat
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.waitForCondition
@@ -52,8 +52,8 @@ import java.awt.datatransfer.StringSelection
 import java.awt.event.FocusEvent
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.KEY_PRESSED
-import java.io.File
 import java.nio.file.Files
+import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.regex.Pattern
@@ -349,8 +349,8 @@ class EmulatorViewTest {
     ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.0)
   }
 
-  private fun getGoldenFile(name: String): File {
-    return TestUtils.getWorkspaceRoot().toPath().resolve("${GOLDEN_FILE_PATH}/${name}.png").toFile()
+  private fun getGoldenFile(name: String): Path {
+    return getWorkspaceRoot().resolve("${GOLDEN_FILE_PATH}/${name}.png")
   }
 }
 

@@ -17,8 +17,18 @@ package com.android.tools.idea.sdk.install.patch;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
+import com.android.io.CancellableFileIo;
 import com.android.repository.Revision;
-import com.android.repository.api.*;
+import com.android.repository.api.Downloader;
+import com.android.repository.api.Installer;
+import com.android.repository.api.InstallerFactory;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.RepoPackage;
+import com.android.repository.api.Repository;
+import com.android.repository.api.Uninstaller;
 import com.android.repository.impl.installer.AbstractInstaller;
 import com.android.repository.impl.installer.AbstractInstallerFactory;
 import com.android.repository.impl.installer.AbstractUninstaller;
@@ -31,12 +41,13 @@ import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.install.StudioSdkInstallListenerFactory;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.intellij.openapi.ui.Messages;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * Facility for processing SDK patches that require a restart of Studio.
@@ -62,72 +73,81 @@ public class PatchInstallingRestarter {
    * matching that in the pending XML, do the install complete actions (write package.xml and fire listeners) and clean up.
    */
   public void restartAndInstallIfNecessary() {
-    File sdkLocation = mySdkHandler.getLocation().toFile();
-    File patchesDir = new File(sdkLocation, PatchInstallerUtil.PATCHES_DIR_NAME);
+    Path sdkLocation = mySdkHandler.getLocation();
+    if (sdkLocation == null) {
+      return;
+    }
+    Path patchesDir = sdkLocation.resolve(PatchInstallerUtil.PATCHES_DIR_NAME);
     StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(PatchInstallerFactory.class);
-    if (patchesDir.exists()) {
-      File[] subDirs = patchesDir.listFiles(file -> file.isDirectory() && file.getName().startsWith(PatchInstallerUtil.PATCH_DIR_PREFIX));
-      for (File patchDir : subDirs) {
-        processPatch(sdkLocation, progress, patchDir);
-      }
+    try (Stream<Path> subDirs = CancellableFileIo.list(patchesDir)) {
+      subDirs.filter(file -> CancellableFileIo.isDirectory(file) && file.getFileName().toString().startsWith(PatchInstallerUtil.PATCH_DIR_PREFIX))
+        .forEach(patchDir -> processPatch(sdkLocation, progress, patchDir));
+    }
+    catch (IOException e) {
+      // We couldn't process patches, so just go ahead with startup.
     }
   }
 
   /**
    * Either restart and install the given patch or delete it (if it's already installed).
    */
-  private void processPatch(File androidSdkPath, StudioLoggerProgressIndicator progress, File patchDir) {
+  private void processPatch(Path androidSdkPath, StudioLoggerProgressIndicator progress, Path patchDir) {
     RepoPackage pendingPackage = null;
-    File installDir = null;
+    Path installDir = null;
     try {
       RepoManager mgr = mySdkHandler.getSdkManager(progress);
-      Repository repo = InstallerUtil.readPendingPackageXml(patchDir, mgr, myFileOp, progress);
+      Repository repo = InstallerUtil.readPendingPackageXml(patchDir, mgr, progress);
       if (repo != null) {
-        File patch = new File(patchDir, PatchInstallerUtil.PATCH_JAR_FN);
+        Path patch = patchDir.resolve(PatchInstallerUtil.PATCH_JAR_FN);
         pendingPackage = repo.getLocalPackage();
         boolean remote = false;
         if (pendingPackage != null) {
           // If the pending package was local, use the corresponding installed local package.
-          installDir = myFileOp.toFile(mgr.getPackages().getLocalPackages().get(pendingPackage.getPath()).getLocation());
+          installDir = mgr.getPackages().getLocalPackages().get(pendingPackage.getPath()).getLocation();
         }
         else {
           // Otherwise it's remote.
           pendingPackage = repo.getRemotePackage().get(0);
-          installDir = ((RemotePackage)pendingPackage).getInstallDir(mgr, progress, myFileOp);
+          installDir = ((RemotePackage)pendingPackage).getInstallDir(mgr, progress);
           remote = true;
         }
-        File existingPackageXml = new File(installDir, LocalRepoLoaderImpl.PACKAGE_XML_FN);
-        File oldPackageXml = new File(patchDir, OLD_PACKAGE_XML_FN);
-        if (patch.exists() && existingPackageXml.renameTo(oldPackageXml)) {
-          // This will exit the app.
-          //Main.installPatch("sdk", PatchInstallerUtil.PATCH_JAR_FN, FileUtil.getTempDirectory(), patch, installDir.getAbsolutePath(), Main.PATCHER_MAIN);
-          throw new UnsupportedOperationException("TODO: Merge");
+        Path existingPackageXml = installDir.resolve(LocalRepoLoaderImpl.PACKAGE_XML_FN);
+        Path oldPackageXml = patchDir.resolve(OLD_PACKAGE_XML_FN);
+        if (CancellableFileIo.exists(patch)) {
+          try {
+            Files.move(existingPackageXml, oldPackageXml);
+            // This will exit the app.
+            //Main.installPatch("sdk", PatchInstallerUtil.PATCH_JAR_FN, FileUtil.getTempDirectory(), patch, installDir.getAbsolutePath(), Main.PATCHER_MAIN);
+            //return;
+            throw new UnsupportedOperationException("TODO: Merge");
+          }
+          catch (IOException ignore) {
+            // fall through to the logic below
+          }
         }
-        else {
-          // The patch is already installed, or was cancelled.
+        // The patch is already installed, or was cancelled.
 
-          String relativePath = FileOpUtils.makeRelative(androidSdkPath, installDir, myFileOp);
-          // Use the old mechanism to get the version, since it's actually part of the package itself. Thus we can tell if the patch
-          // has already been applied.
-          Revision rev = AndroidBuildCommonUtils.parsePackageRevision(androidSdkPath.getPath(), relativePath);
-          if (rev != null && rev.equals(pendingPackage.getVersion())) {
-            // We need to make sure the listeners are fired, so create an installer that does nothing and invoke it.
-            InstallerFactory dummyFactory = new DummyInstallerFactory();
-            dummyFactory.setListenerFactory(new StudioSdkInstallListenerFactory(mySdkHandler));
-            if (remote) {
-              Installer installer = dummyFactory.createInstaller((RemotePackage)pendingPackage, mgr, new StudioDownloader(), myFileOp);
-              installer.complete(progress);
-            }
-            else {
-              Uninstaller uninstaller = dummyFactory.createUninstaller((LocalPackage)pendingPackage, mgr, myFileOp);
-              uninstaller.complete(progress);
-            }
+        String relativePath = androidSdkPath.relativize(installDir).toString();
+        // Use the old mechanism to get the version, since it's actually part of the package itself. Thus we can tell if the patch
+        // has already been applied.
+        Revision rev = AndroidBuildCommonUtils.parsePackageRevision(androidSdkPath.toString(), relativePath);
+        if (rev != null && rev.equals(pendingPackage.getVersion())) {
+          // We need to make sure the listeners are fired, so create an installer that does nothing and invoke it.
+          InstallerFactory dummyFactory = new DummyInstallerFactory();
+          dummyFactory.setListenerFactory(new StudioSdkInstallListenerFactory(mySdkHandler));
+          if (remote) {
+            Installer installer = dummyFactory.createInstaller((RemotePackage)pendingPackage, mgr, new StudioDownloader(), myFileOp);
+            installer.complete(progress);
           }
           else {
-            // something went wrong. Move the old package.xml back into place.
-            progress.logWarning("Failed to find version information in " + new File(androidSdkPath, SdkConstants.FN_SOURCE_PROP));
-            oldPackageXml.renameTo(existingPackageXml);
+            Uninstaller uninstaller = dummyFactory.createUninstaller((LocalPackage)pendingPackage, mgr, myFileOp);
+            uninstaller.complete(progress);
           }
+        }
+        else {
+          // something went wrong. Move the old package.xml back into place.
+          progress.logWarning("Failed to find version information in " + androidSdkPath.resolve(SdkConstants.FN_SOURCE_PROP));
+          Files.move(oldPackageXml, existingPackageXml);
         }
       }
     }
@@ -144,7 +164,7 @@ public class PatchInstallingRestarter {
 
     // If we get here we either got an error or the patch was already installed. Delete the patch dir.
     try {
-      myFileOp.deleteFileOrFolder(patchDir);
+      FileOpUtils.deleteFileOrFolder(patchDir);
     }
     catch (Exception e) {
       progress.logWarning("Problem during patch cleanup", e);
@@ -165,13 +185,13 @@ public class PatchInstallingRestarter {
                                           @NotNull FileOp fop) {
       return new AbstractInstaller(p, mgr, downloader, fop) {
         @Override
-        protected boolean doComplete(@Nullable File installTemp,
+        protected boolean doComplete(@Nullable Path installTemp,
                                      @NotNull ProgressIndicator progress) {
           return true;
         }
 
         @Override
-        protected boolean doPrepare(@NotNull File installTempPath,
+        protected boolean doPrepare(@NotNull Path installTempPath,
                                     @NotNull ProgressIndicator progress) {
           return false;
         }
@@ -183,13 +203,13 @@ public class PatchInstallingRestarter {
     protected Uninstaller doCreateUninstaller(@NotNull LocalPackage p, @NotNull RepoManager mgr, @NotNull FileOp fop) {
       return new AbstractUninstaller(p, mgr, fop) {
         @Override
-        protected boolean doPrepare(@Nullable File installTemp,
+        protected boolean doPrepare(@Nullable Path installTemp,
                                     @NonNull ProgressIndicator progress) {
           return false;
         }
 
         @Override
-        protected boolean doComplete(@Nullable File installTemp,
+        protected boolean doComplete(@Nullable Path installTemp,
                                      @NonNull ProgressIndicator progress) {
           return true;
         }

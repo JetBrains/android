@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.view
 
+import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.defaultTotalBuildDurationMs
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
@@ -33,7 +34,8 @@ import javax.swing.JLabel
 
 class BuildOverviewPageViewTest {
 
-  private val model = BuildAnalyzerViewModel(MockUiData())
+  private val warningSuppressions = BuildAttributionWarningsFilter()
+  private val model = BuildAnalyzerViewModel(MockUiData(), warningSuppressions)
   private val mockHandlers = Mockito.mock(ViewActionHandlers::class.java)
 
   @Test
@@ -103,7 +105,7 @@ class BuildOverviewPageViewTest {
 
   @Test
   fun testMemoryUtilizationInfo() {
-    val model = BuildAnalyzerViewModel(MockUiData(gcTimeMs = (defaultTotalBuildDurationMs * 0.8).toLong()))
+    val model = BuildAnalyzerViewModel(MockUiData(gcTimeMs = (defaultTotalBuildDurationMs * 0.8).toLong()), warningSuppressions)
     val view = BuildOverviewPageView(model, mockHandlers)
     val memoryPanel = TreeWalker(view.component).descendants().single { it.name == "memory" }
 
@@ -117,29 +119,21 @@ class BuildOverviewPageViewTest {
   }
 
   @Test
-  fun testG1GCSuggestionShowsUpWhenDetected() {
-    val model = BuildAnalyzerViewModel(MockUiData(suggestChangeGC = true))
+  fun testNoGcSettingWarning() {
+    val mockData = MockUiData().apply {
+      buildSummary = mockBuildOverviewData(javaVersionUsed = 11, isGarbageCollectorSettingSet = false)
+    }
+    val model = BuildAnalyzerViewModel(mockData, warningSuppressions)
     val view = BuildOverviewPageView(model, mockHandlers)
     val memoryPanel = TreeWalker(view.component).descendants().single { it.name == "memory" }
 
-    Truth.assertThat(
-      TreeWalker(memoryPanel).descendants()
-        .filterIsInstance<JEditorPane>()
-        .any { it.text.contains("G1 Garbage Collector was used in this build.") }
-    ).isTrue()
-  }
+    Truth.assertThat(model.shouldWarnAboutNoGCSetting).isTrue()
+    Truth.assertThat(memoryPanel.isVisible).isTrue()
 
-  @Test
-  fun testG1GCSuggestionNotShownWhenNotDetected() {
-    val model = BuildAnalyzerViewModel(MockUiData(suggestChangeGC = false))
-    val view = BuildOverviewPageView(model, mockHandlers)
-    val memoryPanel = TreeWalker(view.component).descendants().single { it.name == "memory" }
+    val textPane = TreeWalker(memoryPanel).descendants().single { it.name == "no-gc-setting-warning" }
 
-    Truth.assertThat(
-      TreeWalker(memoryPanel).descendants()
-        .filterIsInstance<JEditorPane>()
-        .any { it.text.contains("G1 Garbage Collector was used in this build.") }
-    ).isFalse()
+    Truth.assertThat(textPane.isVisible).isTrue()
+    Truth.assertThat(visibleText(textPane)).contains("The default garbage collector was used in this build running with JDK 11.")
   }
 
   private fun visibleText(component: Component): String? = when (component) {
@@ -151,6 +145,6 @@ class BuildOverviewPageViewTest {
 
   private fun clearHtml(html: String): String = UIUtil.getHtmlBody(html)
     .trimIndent()
-    .replace("\n", "")
-    .replace("<br>", "\n")
+    .replace("\n","")
+    .replace("<br>","\n")
 }

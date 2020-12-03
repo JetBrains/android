@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.editor;
 
 import com.android.annotations.concurrency.UiThread;
+import com.android.layoutlib.bridge.Bridge;
 import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.workbench.ToolWindowDefinition;
 import com.android.tools.adtui.workbench.WorkBench;
@@ -24,6 +25,7 @@ import com.android.tools.idea.actions.DesignerDataKeys;
 import com.android.tools.idea.common.error.IssuePanelSplitter;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
@@ -268,6 +270,10 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
           mySurface.goingToSetModel(model).join();
           myWorkBench.setLoadingText("Waiting for build to finish...");
           SyncUtil.runWhenSmartAndSyncedOnEdt(myProject, this, result -> {
+            if (Bridge.hasNativeCrash()) {
+              DesignSurfaceHelper.handleLayoutlibNativeCrash(myWorkBench, this::initNeleModel);
+              return;
+            }
             myWorkBench.setLoadingText("Initializing...");
             if (result.isSuccessful()) {
               initNeleModelOnEventDispatchThread(model);

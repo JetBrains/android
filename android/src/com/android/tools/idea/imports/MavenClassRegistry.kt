@@ -398,10 +398,12 @@ object MavenClassRegistry {
         // Not available prior to AndroidX
         Library(artifact = "androidx.benchmark:benchmark-junit4", import = "androidx.benchmark.junit4")
 
+      "Preview" ->
+        Library(artifact = "androidx.ui:ui-tooling", import = "androidx.ui.tooling.preview")
+
       "CameraX",
       "ImageAnalysis",
       "ImageAnalysisConfig",
-      "Preview",
       "PreviewConfig",
       "ImageCapture",
       "ImageCaptureConfig" ->
@@ -448,7 +450,7 @@ object MavenClassRegistry {
         Library(artifact = "androidx.concurrent:concurrent-listenablefuture-callback", import = "androidx.concurrent.futures")
 
       "Composable" ->
-        Library(artifact = "androidx.compose:compose-runtime", import = "androidx.compose")
+        Library(artifact = "androidx.compose.runtime:runtime", import = "androidx.compose.runtime")
 
       // Material Design library
       "Snackbar",

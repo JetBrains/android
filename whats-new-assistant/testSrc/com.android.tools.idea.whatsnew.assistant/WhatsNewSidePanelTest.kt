@@ -61,7 +61,7 @@ class WhatsNewSidePanelTest : AndroidTestCase() {
       })
 
     val tmpDir = TestUtils.createTempDirDeletedOnExit()
-    val localPath = tmpDir.toPath().resolve("local-3.3.0.xml")
+    val localPath = tmpDir.resolve("local-3.3.0.xml")
     Mockito.`when`(mockUrlProvider.getLocalConfig(ArgumentMatchers.anyString())).thenReturn(localPath)
   }
 

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.window
 import com.intellij.openapi.project.Project
@@ -82,7 +82,7 @@ class InspectorModelTest {
 
   @Test
   fun testChildCreated() {
-    val image1 = ImageIO.read(File(TestUtils.getWorkspaceRoot(), "${TEST_DATA_PATH}/image1.png"))
+    val image1 = ImageIO.read(File(getWorkspaceRoot().toFile(), "${TEST_DATA_PATH}/image1.png"))
     val model = model {
       view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") {
         view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type") {

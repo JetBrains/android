@@ -809,6 +809,12 @@ public final class StudioFlags {
     "If enabled, you can import UTP test results and display them in test result panel.",
     true
   );
+
+  public static final Flag<Boolean> UTP_INSTRUMENTATION_TESTING = Flag.create(
+    TESTING, "utp.instrumentation.testing", "Run instrumentation tests via UTP",
+    "If enabled, switch to running instrumentation tests via UTP.",
+    false
+  );
   //endregion
 
   //region Memory
@@ -1041,6 +1047,13 @@ public final class StudioFlags {
     "Enable pinning compose previews",
     "If enabled, a user can pin a preview",
     false
+  );
+
+  public static final Flag<Boolean> COMPOSE_INTERACTIVE_ANIMATION_SWITCH = Flag.create(
+    COMPOSE, "preview.switch.animation.interactive",
+    "Enable animation inspection switch from interactive preview (and disable from static preview)",
+    "If enabled, a user can switch to animation inspection from interactive preview",
+    true
   );
   //endregion
 

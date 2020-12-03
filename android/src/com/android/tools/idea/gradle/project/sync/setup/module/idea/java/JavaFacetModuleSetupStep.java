@@ -27,10 +27,7 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 
 public class JavaFacetModuleSetupStep extends JavaModuleSetupStep {
   @Override
@@ -46,10 +43,7 @@ public class JavaFacetModuleSetupStep extends JavaModuleSetupStep {
       facet.setJavaModuleModel(javaModuleModel);
     }
 
-    File buildFolderPath = javaModuleModel.getBuildFolderPath();
-
     JavaFacetConfiguration facetProperties = facet.getConfiguration();
-    facetProperties.BUILD_FOLDER_PATH = buildFolderPath != null ? toSystemIndependentName(buildFolderPath.getPath()) : "";
     facetProperties.BUILDABLE = javaModuleModel.isBuildable();
   }
 

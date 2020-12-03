@@ -525,7 +525,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
   }
 
   @Override
-  public void zoomChanged() {
+  public void zoomChanged(double previousScale, double newScale) {
     VisualizationToolProjectSettings.getInstance(myProject).getProjectState().setScale(mySurface.getScale());
   }
 

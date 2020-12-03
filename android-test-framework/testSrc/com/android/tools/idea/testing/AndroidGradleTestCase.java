@@ -20,8 +20,6 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.testutils.TestUtils.getSdk;
-import static com.android.testutils.TestUtils.getWorkspaceRoot;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
 import static com.android.tools.idea.testing.AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates;
@@ -33,6 +31,7 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -163,13 +162,13 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   public void setUpFixture(IdeaProjectTestFixture projectFixture) throws Exception {
     JavaCodeInsightTestFixture fixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectFixture);
     fixture.setUp();
-    fixture.setTestDataPath(new File(getWorkspaceRoot(), getTestDataDirectoryWorkspaceRelativePath()).getCanonicalPath());
+    fixture.setTestDataPath(TestUtils.getWorkspaceRoot().toRealPath().resolve(getTestDataDirectoryWorkspaceRelativePath()).toString());
     ensureSdkManagerAvailable();
 
     Project project = fixture.getProject();
     FileUtil.ensureExists(new File(toSystemDependentName(project.getBasePath())));
     LocalFileSystem.getInstance().refreshAndFindFileByPath(project.getBasePath());
-    AndroidGradleTests.setUpSdks(fixture, getSdk());
+    AndroidGradleTests.setUpSdks(fixture, TestUtils.getSdk().toFile());
     myFixture = fixture;
   }
 

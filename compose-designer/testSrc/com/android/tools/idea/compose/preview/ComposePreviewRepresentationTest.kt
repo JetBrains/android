@@ -54,6 +54,11 @@ private class TestComposePreviewView(override val pinnedSurface: NlDesignSurface
 
   override fun showBuildingMessage() {
   }
+
+  override fun setPinnedSurfaceVisibility(visible: Boolean) {
+  }
+
+  override var pinnedLabel: String = ""
 }
 
 class ComposePreviewRepresentationTest {
@@ -104,7 +109,7 @@ class ComposePreviewRepresentationTest {
 
     val composeView = TestComposePreviewView(pinnedSurface, mainSurface)
     val preview = ReadAction.compute<ComposePreviewRepresentation, Throwable> {
-      ComposePreviewRepresentation(composeTest, object : PreviewElementProvider {
+      ComposePreviewRepresentation(composeTest, object : PreviewElementProvider<PreviewElement> {
         override val previewElements: Sequence<PreviewElement>
           get() = ReadAction.compute<Sequence<PreviewElement>, Throwable> {
             AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)

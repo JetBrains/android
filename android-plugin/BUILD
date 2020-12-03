@@ -5,6 +5,12 @@ iml_module(
     name = "intellij.android.plugin",
     srcs = ["src"],
     iml_files = ["intellij.android.plugin.iml"],
+    test_srcs = ["testSrc"],
+    test_tags = [
+        "cpu:3",
+        "block-network",
+        "no_test_mac",  # b/174646037
+    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

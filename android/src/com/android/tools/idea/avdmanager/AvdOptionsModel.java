@@ -824,7 +824,7 @@ public final class AvdOptionsModel extends WizardModel {
       () -> {
         myCreatedAvd = connection.createOrUpdateAvd(
           myAvdInfo, avdName, device, systemImage, mySelectedAvdOrientation.get(),
-          isCircular, sdCardFinal, skinFile, hardwareProperties, myRemovePreviousAvd.get());
+          isCircular, sdCardFinal, skinFile == null ? null : skinFile.toPath(), hardwareProperties, myRemovePreviousAvd.get());
         if (myAvdCreatedCallback != null) {
           myAvdCreatedCallback.run();
         }

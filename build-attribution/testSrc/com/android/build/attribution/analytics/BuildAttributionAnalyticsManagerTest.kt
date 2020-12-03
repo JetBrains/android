@@ -119,6 +119,8 @@ class BuildAttributionAnalyticsManagerTest {
       override fun getAlwaysRunTasks() = listOf(AlwaysRunTaskData(pluginATask, AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE))
 
       override fun getTasksSharingOutput() = listOf(TasksSharingOutputData("test", listOf(pluginATask, buildScriptTask)))
+      override fun getJavaVersion(): Int? = null
+      override fun isGCSettingSet(): Boolean? = null
     }
   }
 

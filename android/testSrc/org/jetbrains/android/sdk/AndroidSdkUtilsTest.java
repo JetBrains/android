@@ -44,7 +44,7 @@ public class AndroidSdkUtilsTest extends PlatformTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    mySdkPath = TestUtils.getSdk();
+    mySdkPath = TestUtils.getSdk().toFile();
 
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override

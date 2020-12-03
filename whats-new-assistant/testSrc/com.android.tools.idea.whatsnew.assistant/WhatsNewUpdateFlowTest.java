@@ -28,8 +28,8 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.util.ui.UIUtil;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -55,8 +55,8 @@ public final class WhatsNewUpdateFlowTest {
   private WhatsNewBundleCreator myBundleCreator;
 
   @Before
-  public void mockUrlProvider() throws MalformedURLException {
-    myRule.getFixture().setTestDataPath(TestUtils.getWorkspaceFile("tools/adt/idea/android/testData").getPath());
+  public void mockUrlProvider() throws IOException {
+    myRule.getFixture().setTestDataPath(TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString());
     myBundleCreator = AssistantBundleCreator.EP_NAME.findExtension(WhatsNewBundleCreator.class);
 
     WhatsNewURLProvider mockUrlProvider = Mockito.mock(WhatsNewURLProvider.class);
@@ -74,8 +74,8 @@ public final class WhatsNewUpdateFlowTest {
       }
     });
 
-    File tmpDir = TestUtils.createTempDirDeletedOnExit();
-    Path localPath = tmpDir.toPath().resolve("local-3.6.0.xml");
+    Path tmpDir = TestUtils.createTempDirDeletedOnExit();
+    Path localPath = tmpDir.resolve("local-3.6.0.xml");
     Mockito.when(mockUrlProvider.getLocalConfig(REVISION)).thenReturn(localPath);
 
     myBundleCreator.setURLProvider(mockUrlProvider);

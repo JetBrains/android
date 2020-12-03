@@ -16,8 +16,8 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.repository.testframework.MockFileOp
-import com.android.testutils.TestUtils
 import com.android.testutils.ImageDiffUtil
+import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.FakeSdkRule
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -88,23 +88,16 @@ class SkiaParserTest {
 
     val child1 = root.children[0]
     assertThat(child1.id).isEqualTo(1)
-    ImageDiffUtil.assertImageSimilar(
-      File(TestUtils.getWorkspaceRoot(), "$TEST_DATA_PATH/buildTreeImg1.png"),
-      child1.image as BufferedImage, 0.0)
+    ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/buildTreeImg1.png"), child1.image as BufferedImage, 0.0)
 
     val child2 = root.children[1]
     assertThat(child2.id).isEqualTo(4)
-    ImageDiffUtil.assertImageSimilar(
-      File(TestUtils.getWorkspaceRoot(), "$TEST_DATA_PATH/buildTreeImg2.png"),
-      child2.image as BufferedImage, 0.0)
+    ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/buildTreeImg2.png"), child2.image as BufferedImage, 0.0)
 
     val child3 = root.children[2]
     assertThat(child3.id).isEqualTo(1)
-    ImageDiffUtil.assertImageSimilar(
-      File(TestUtils.getWorkspaceRoot(), "$TEST_DATA_PATH/buildTreeImg3.png"),
-      child3.image as BufferedImage, 0.0)
+    ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/buildTreeImg3.png"), child3.image as BufferedImage, 0.0)
   }
-
 }
 
 // TODO: test with downloading (currently no way to mock out installation)

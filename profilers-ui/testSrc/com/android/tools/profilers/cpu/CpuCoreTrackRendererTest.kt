@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.chart.statechart.StateChart
 import com.android.tools.adtui.common.DataVisualizationColors
 import com.android.tools.adtui.model.FakeTimer
@@ -35,7 +35,7 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.io.FileInputStream
+import java.nio.file.Files
 
 class CpuCoreTrackRendererTest {
   private val timer = FakeTimer()
@@ -52,7 +52,7 @@ class CpuCoreTrackRendererTest {
   fun setUp() {
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     DataVisualizationColors.doInitialize(
-      FileInputStream(TestUtils.getWorkspaceFile("tools/adt/idea/profilers-ui/testData/data-colors.json")))
+        Files.newInputStream(resolveWorkspacePath("tools/adt/idea/profilers-ui/testData/data-colors.json")))
   }
 
   @Test

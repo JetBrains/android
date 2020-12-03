@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.export
 
+import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.google.common.io.Resources
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runWriteAction
@@ -30,6 +31,7 @@ import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.nio.charset.StandardCharsets
+import java.time.Duration
 
 @RunWith(JUnit4::class)
 @RunsInEdt
@@ -46,17 +48,46 @@ class ImportUtilsTest {
     .around(temporaryDirectoryRule)
 
   @Test
-  fun importShouldSuccess() {
+  fun importTestHistory() {
+    importXmlFile("testHistory")
+  }
+
+  @Test
+  fun importTestHistoryWithExecutionDuration() {
+    val view = importXmlFile("testHistoryWithExecutionDuration")
+    assertTrue(Duration.ofSeconds(5)) {
+      view.testExecutionDurationOverride == Duration.ofMillis(2934)
+    }
+  }
+
+  private fun assertTrue(timeout: Duration, conditionFunc: () -> Boolean) {
+    val timeoutTime = System.currentTimeMillis() + timeout.toMillis()
+    while (timeoutTime > System.currentTimeMillis()) {
+      if (conditionFunc()) {
+        return
+      }
+      Thread.sleep(10)
+    }
+    assertThat(conditionFunc()).isTrue()
+  }
+
+  private fun importXmlFile(fileName: String): AndroidTestSuiteView {
     lateinit var xmlFile: VirtualFile
     runWriteAction {
       val inputDir = temporaryDirectoryRule.newVirtualDirectory("inputDir")
-      xmlFile = inputDir.createChildData(this, "testHistory.xml")
+      xmlFile = inputDir.createChildData(this, "${fileName}.xml")
       xmlFile.setBinaryContent(
         Resources.toString(
-          Resources.getResource("com/android/tools/idea/testartifacts/instrumented/testsuite/export/testHistory.xml"),
+          Resources.getResource("com/android/tools/idea/testartifacts/instrumented/testsuite/export/${fileName}.xml"),
           StandardCharsets.UTF_8).toByteArray())
     }
 
-    assertThat(importAndroidTestMatrixResultXmlFile(projectRule.project, xmlFile)).isTrue()
+    lateinit var testSuiteView: AndroidTestSuiteView
+    val succeeded = importAndroidTestMatrixResultXmlFile(projectRule.project, xmlFile) { env ->
+      testSuiteView = requireNotNull(env.contentToReuse?.executionConsole as? AndroidTestSuiteView)
+    }
+    assertThat(succeeded).isTrue()
+
+    return testSuiteView
   }
 }

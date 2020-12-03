@@ -16,8 +16,8 @@
 package com.android.tools.idea.compose.gradle.documentation
 
 import com.android.testutils.ImageDiffUtil
-import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.documentation.ComposeDocumentationProvider
+import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ReadAction
@@ -32,7 +32,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.awt.image.BufferedImage
-import java.io.File
+import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 
 class ComposeDocumentationProviderTest {
@@ -71,8 +71,7 @@ class ComposeDocumentationProviderTest {
     assertTrue(generatedDoc.contains("<img src='file://DefaultPreview' alt='preview:DefaultPreview' width='\\d+' height='\\d+'>".toRegex()))
 
     val previewImage = composeDocProvider.getLocalImageForElementAsync(previewMethod).get(5, TimeUnit.SECONDS) as BufferedImage
-    ImageDiffUtil.assertImageSimilar(File("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender.png"),
-                                     previewImage,
-                                     0.0)
+    ImageDiffUtil.assertImageSimilar(Paths.get("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender.png"),
+                                     previewImage, 0.0)
   }
 }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lint.common
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.util.StudioPathManager
 import com.android.tools.lint.checks.CommentDetector
 import com.android.tools.lint.client.api.LintClient
@@ -24,8 +24,6 @@ import com.google.common.collect.Lists
 import com.google.common.collect.Sets
 import com.google.common.truth.Truth.assertThat
 import com.intellij.analysis.AnalysisScope
-import com.intellij.analytics.AndroidStudioAnalytics
-import com.intellij.analytics.NullAndroidStudioAnalytics
 import com.intellij.codeInsight.daemon.impl.ShowIntentionsPass
 import com.intellij.codeInsight.daemon.impl.ShowIntentionsPass.IntentionsInfo
 import com.intellij.codeInsight.intention.IntentionAction
@@ -73,7 +71,7 @@ class LintIdeTest : UsefulTestCase() {
     super.setUp()
 
     // Compute the workspace root before any IDE code starts messing with user.dir:
-    TestUtils.getWorkspaceRoot()
+    getWorkspaceRoot()
     VfsRootAccess.allowRootAccess(testRootDisposable, FileUtil.toCanonicalPath(androidPluginHome))
 
     val factory = IdeaTestFixtureFactory.getFixtureFactory()

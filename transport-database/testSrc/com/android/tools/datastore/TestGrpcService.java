@@ -16,18 +16,22 @@
 package com.android.tools.datastore;
 
 import com.android.testutils.TestUtils;
-import io.grpc.*;
+import io.grpc.BindableService;
+import io.grpc.Channel;
+import io.grpc.ClientInterceptors;
+import io.grpc.Server;
+import io.grpc.ServerInterceptors;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
-import org.junit.Assert;
-import org.junit.rules.ExternalResource;
-import org.junit.rules.TestName;
-
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import org.junit.Assert;
+import org.junit.rules.ExternalResource;
+import org.junit.rules.TestName;
 
 /**
  * JUnit rule for tests that have a datastore and need to fake a connection to it.
@@ -41,7 +45,7 @@ public final class TestGrpcService extends ExternalResource {
   private String myGrpcName;
   private Server myServer;
   private ServicePassThrough myDataStoreService;
-  private File myTestFile;
+  private Path myTestFile;
   private DataStoreDatabase myDatabase;
   private TestGrpcFile myRpcFile;
   private TestName myMethodName;
@@ -78,9 +82,8 @@ public final class TestGrpcService extends ExternalResource {
     myServer = builder.build();
     myServer.start();
     // TODO: Update to work on windows. PathUtil.getTempPath() fails with bazel
-    myTestFile = new File(TestUtils.createTempDirDeletedOnExit(), "datastoredb");
-    myTestFile.deleteOnExit();
-    myDatabase = new DataStoreDatabase(myTestFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE, new FakeLogService());
+    myTestFile = TestUtils.createTempDirDeletedOnExit().resolve("datastoredb");
+    myDatabase = new DataStoreDatabase(myTestFile.toString(), DataStoreDatabase.Characteristic.DURABLE, new FakeLogService());
     myDataStoreService.getBackingNamespaces()
                       .forEach(namespace -> myDataStoreService.setBackingStore(namespace, myDatabase.getConnection()));
   }

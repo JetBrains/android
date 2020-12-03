@@ -15,10 +15,10 @@
  */
 package org.jetbrains.kotlin.android
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.getSdk
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import org.jetbrains.kotlin.android.quickfix.AbstractAndroidQuickFixMultiFileTest
 import org.jetbrains.kotlin.idea.test.ConfigLibraryUtil
-import java.io.File
 
 abstract class ParcelQuickFixTest : AbstractAndroidQuickFixMultiFileTest() {
 
@@ -29,11 +29,11 @@ abstract class ParcelQuickFixTest : AbstractAndroidQuickFixMultiFileTest() {
   override fun setUp() {
     super.setUp()
 
-    val androidSdk = TestUtils.getSdk()
-    val androidJarDir = File(androidSdk, "platforms").listFiles().first { it.name.startsWith("android-") }
+    val androidSdk = getSdk()
+    val androidJarDir = androidSdk.resolve("platforms").toFile().listFiles().first { it.name.startsWith("android-") }
     ConfigLibraryUtil.addLibrary(myFixture.module, "androidJar", androidJarDir.absolutePath, arrayOf("android.jar"))
 
-    val kotlinPlugin = TestUtils.getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin")
+    val kotlinPlugin = resolveWorkspacePath("prebuilts/tools/common/kotlin-plugin/Kotlin")
     ConfigLibraryUtil.addLibrary(myFixture.module, "androidExtensionsRuntime", "$kotlinPlugin/kotlinc/lib", arrayOf("android-extensions-runtime.jar"))
   }
 

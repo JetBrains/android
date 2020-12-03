@@ -35,7 +35,7 @@ import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.io.FileOp;
-import com.android.sdklib.FileOpFileWrapper;
+import com.android.sdklib.PathFileWrapper;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
@@ -216,9 +216,8 @@ public class AvdWizardUtils {
       LocalPackage emulatorPackage = sdkHandler.getLocalPackage(FD_EMULATOR, new StudioLoggerProgressIndicator(AvdWizardUtils.class));
       if (emulatorPackage != null) {
         Path hardwareDefs = emulatorPackage.getLocation().resolve(FD_LIB + File.separator + FN_HARDWARE_INI);
-        FileOp fop = sdkHandler.getFileOp();
         ourHardwareProperties = HardwareProperties.parseHardwareDefinitions(
-          new FileOpFileWrapper(fop.toFile(hardwareDefs), fop, false), new LogWrapper(Logger.getInstance(AvdManagerConnection.class)));
+          new PathFileWrapper(hardwareDefs), new LogWrapper(Logger.getInstance(AvdManagerConnection.class)));
       }
     }
     HardwareProperties.HardwareProperty hwProp = (ourHardwareProperties == null) ? null : ourHardwareProperties.get(name);

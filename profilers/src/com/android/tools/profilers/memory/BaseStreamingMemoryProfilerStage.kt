@@ -48,6 +48,7 @@ import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveA
 import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.android.tools.profilers.stacktrace.CodeLocation
 import com.android.tools.profilers.stacktrace.CodeNavigator
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.diagnostic.Logger
 import io.grpc.StatusRuntimeException
@@ -86,13 +87,7 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
 
   private val allocationSamplingRateUpdatable = Updatable {
     if (isLiveAllocationTrackingReady) {
-      // Find the last sampling info and see if it is different from the current, if so,
-      val dataRangeMaxUs = timeline.dataRange.max
-      val data = allocationSamplingRateDataSeries.getDataForRange(Range(dataRangeMaxUs, dataRangeMaxUs))
-      // If no data available, keep the current settings.
-      if (data.isNotEmpty()) {
-        liveAllocationSamplingMode = getModeFromFrequency(data.last().value.currentRate.samplingNumInterval)
-      }
+      getLiveAllocationSamplingModeFromData()?.let { liveAllocationSamplingMode = it }
     }
   }
 
@@ -328,6 +323,16 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
       events.map { SeriesData(it.timestamp.nanosToMicros(), GcDurationData(it.memoryGc.duration.nanosToMicros())) }
     }
 
+  // This method is factored out just for testing the allocation sampling mode after the stage has exited,
+  // because `exit()` unregisters all updatables, leaving the field `liveAllocationSamplingMode` stale.
+  @VisibleForTesting
+  fun getLiveAllocationSamplingModeFromData(): LiveAllocationSamplingMode? {
+    // Find the last sampling info and see if it is different from the current, if so,
+    val dataRangeMaxUs = timeline.dataRange.max
+    val data = allocationSamplingRateDataSeries.getDataForRange(Range(dataRangeMaxUs, dataRangeMaxUs))
+    // If no data available, keep the current settings.
+    return data.lastOrNull()?.let{ getModeFromFrequency(it.value.currentRate.samplingNumInterval) }
+  }
 
   companion object {
     const val LIVE_ALLOCATION_SAMPLING_PREF = "memory.live.allocation.mode"

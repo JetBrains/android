@@ -24,13 +24,10 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.testutils.TestUtils.getKotlinVersionForTests;
-import static com.android.testutils.TestUtils.getSdk;
-import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.util.StudioPathManager.getSourcesRoot;
-import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.copyDir;
@@ -94,7 +91,6 @@ import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.config.KotlinCompilerVersion;
 
 public class AndroidGradleTests {
   private static final Logger LOG = Logger.getInstance(AndroidGradleTests.class);
@@ -178,7 +174,7 @@ public class AndroidGradleTests {
         }
 
         // Override settings just for tests (e.g. sdk.dir)
-        updateLocalProperties(path, getSdk());
+        updateLocalProperties(path, TestUtils.getSdk().toFile());
         updateGradleProperties(path);
         // We need the wrapper for import to succeed
         createGradleWrapper(path, gradleVersion != null ? gradleVersion : GRADLE_LATEST_VERSION);
@@ -221,7 +217,7 @@ public class AndroidGradleTests {
       contents = updateLocalRepositories(contents, localRepositories);
 
       if (!contents.equals(contentsOrig)) {
-        write(contents, path, Charsets.UTF_8);
+        Files.write(contents, path, Charsets.UTF_8);
       }
     }
     else if (path.getPath().endsWith(EXT_GRADLE_KTS) && path.isFile()) {
@@ -252,7 +248,7 @@ public class AndroidGradleTests {
       contents = updateLocalRepositories(contents, localRepositories);
 
       if (!contents.equals(contentsOrig)) {
-        write(contents, path, Charsets.UTF_8);
+        Files.write(contents, path, Charsets.UTF_8);
       }
     }
   }
@@ -351,11 +347,11 @@ public class AndroidGradleTests {
   public static Collection<File> getLocalRepositoryDirectories() {
     List<File> repositories = new ArrayList<>();
     if (TestUtils.runningFromBazel()) {
-      repositories.add(TestUtils.getPrebuiltOfflineMavenRepo());
+      repositories.add(TestUtils.getPrebuiltOfflineMavenRepo().toFile());
     }
     else {
-      repositories.add(TestUtils.getPrebuiltOfflineMavenRepo());
-      repositories.add(getWorkspaceFile("out/repo"));
+      repositories.add(TestUtils.getPrebuiltOfflineMavenRepo().toFile());
+      repositories.add(TestUtils.resolveWorkspacePath("out/repo").toFile());
     }
 
     // Read optional repositories passed as JVM property (see ADDITIONAL_REPOSITORY_PROPERTY)

@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.compose.gradle.renderer
 
-import com.android.testutils.ImageDiffUtil
+import com.android.io.writeImage
+import com.android.testutils.ImageDiffUtil.assertImageSimilar
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
@@ -24,9 +25,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
-import java.io.FileOutputStream
-import javax.imageio.ImageIO
+import java.nio.file.Paths
 
 class SinglePreviewElementRendererTest {
   @get:Rule
@@ -39,7 +38,7 @@ class SinglePreviewElementRendererTest {
   fun testInvalidPreview() {
     assertNull(renderPreviewElement(projectRule.androidFacet(":app"),
                                     SinglePreviewElementInstance.forTesting(
-                                                                                                         "google.simpleapplication.MainActivityKt.InvalidPreview")).get())
+                                        "google.simpleapplication.MainActivityKt.InvalidPreview")).get())
   }
 
   /**
@@ -49,11 +48,10 @@ class SinglePreviewElementRendererTest {
   fun testDefaultPreviewRendering() {
     val defaultRender = renderPreviewElement(
       projectRule.androidFacet(":app"),
-      SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.DefaultPreview")).get()
-    ImageIO.write(defaultRender, "png", FileOutputStream(File("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender.png")))
-    ImageDiffUtil.assertImageSimilar(File("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender.png"),
-                                     defaultRender!!,
-                                     0.0)
+      SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.DefaultPreview")).get()!!
+    val path = Paths.get("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender.png")
+    defaultRender.writeImage("png", path)
+    assertImageSimilar(path, defaultRender, 0.0)
   }
 
   /**
@@ -66,11 +64,10 @@ class SinglePreviewElementRendererTest {
       SinglePreviewElementInstance.forTesting(
         "google.simpleapplication.MainActivityKt.DefaultPreview",
         showBackground = true,
-        backgroundColor = "#F00")).get()
-    ImageDiffUtil.assertImageSimilar(
-      File("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender-withBackground.png"),
-      defaultRenderWithBackground!!,
-      0.0)
+        backgroundColor = "#F00")).get()!!
+    assertImageSimilar(Paths.get("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender-withBackground.png"),
+                       defaultRenderWithBackground,
+                       0.0)
   }
 
   /**
@@ -81,8 +78,8 @@ class SinglePreviewElementRendererTest {
   fun testEmptyRender() {
     val defaultRender = renderPreviewElement(
       projectRule.androidFacet(":app"),
-      SinglePreviewElementInstance.forTesting("google.simpleapplication.OtherPreviewsKt.EmptyPreview")).get()
+      SinglePreviewElementInstance.forTesting("google.simpleapplication.OtherPreviewsKt.EmptyPreview")).get()!!
 
-    assertTrue(defaultRender!!.width > 0 && defaultRender.height > 0)
+    assertTrue(defaultRender.width > 0 && defaultRender.height > 0)
   }
 }

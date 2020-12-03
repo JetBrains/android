@@ -401,7 +401,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.CreateNewAppModuleWithDefaultsTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "no_crostini",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -428,7 +427,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AddNewBuildTypeTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "no_crostini",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -461,7 +459,6 @@ java_test(
     ],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "no_crostini",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [
@@ -548,7 +545,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.OpenCloseVisualizationToolTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "no_crostini",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -604,7 +600,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.CreateNewFlavorsTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "no_crostini",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -638,7 +633,6 @@ java_test(
     ],
     tags = COMMON_TAGS + [
         "qa_sanity",  # fails 1 out of 3000 runs
-        "no_crostini",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -656,7 +650,6 @@ java_test(
     ],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "no_crostini",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -719,7 +712,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.CreateNewMobileProjectTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "no_crostini",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1113,6 +1105,21 @@ java_test(
         "testData/CodeGeneration/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.intellijplatform.GotoDeclarationTest"],
+    tags = COMMON_TAGS + [
+        "qa_sanity",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
+    name = "AddInstantModuleTest",
+    size = "large",
+    data = COMMON_DATA + glob([
+        "testData/MinSdk24App/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.AddInstantModuleTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
     ],

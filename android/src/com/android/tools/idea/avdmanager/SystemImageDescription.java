@@ -28,6 +28,8 @@ import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.PlatformTarget;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.google.common.base.Objects;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -137,7 +139,7 @@ public final class SystemImageDescription {
     return mySystemImage.getRevision();
   }
 
-  public File[] getSkins() {
+  public Path[] getSkins() {
     return mySystemImage.getSkins();
   }
 
@@ -182,9 +184,9 @@ public final class SystemImageDescription {
 
     @NonNull
     @Override
-    public File getLocation() {
+    public Path getLocation() {
       assert false : "Can't get location for remote image";
-      return new File("");
+      return Paths.get("");
     }
 
     @NonNull
@@ -207,8 +209,8 @@ public final class SystemImageDescription {
 
     @NonNull
     @Override
-    public File[] getSkins() {
-      return new File[0];
+    public Path[] getSkins() {
+      return new Path[0];
     }
 
     @NonNull
