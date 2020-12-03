@@ -20,7 +20,6 @@ import com.android.tools.idea.appinspection.inspector.api.io.FileService
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.util.io.ZipUtil
 import com.intellij.util.io.exists
 import org.jetbrains.kotlin.utils.ThreadSafe
 import java.io.IOException
@@ -33,11 +32,15 @@ import java.util.concurrent.ConcurrentHashMap
 @VisibleForTesting
 const val INSPECTOR_JARS_DIR = "inspector-jars"
 
-private const val INSPECTOR_JAR = "inspector.jar"
+
+/**
+ * The name for the inspector artifact located inside libraries.
+ */
+const val INSPECTOR_JAR = "inspector.jar"
 
 /**
  * This class supports file system cache functionality so the framework can query for,
- * as well as populate new inspector jars.
+ * as well as populate new inspector archives.
  *
  * It is an internal class not meant to be exposed to users.
  *
@@ -47,7 +50,7 @@ private const val INSPECTOR_JAR = "inspector.jar"
  *   $cache_dir/<group_id>/<artifact_id>/<version>/inspector.jar
  */
 @ThreadSafe
-class AppInspectorJarPaths(private val fileService: FileService) {
+class AppInspectorArtifactPaths(private val fileService: FileService) {
 
   /**
    * In memory representation of the cached inspector jars that have been accessed or populated during the life of the application. At the
@@ -60,7 +63,7 @@ class AppInspectorJarPaths(private val fileService: FileService) {
   /**
    * Gets the cached inspector jar based on the provided coordinate. Null if it's not in cache.
    */
-  fun getInspectorJar(inspector: ArtifactCoordinate): Path? {
+  fun getInspectorArchive(inspector: ArtifactCoordinate): Path? {
     if (!jars.containsKey(inspector)) {
       val cachePath = fileService.getOrCreateCacheDir(INSPECTOR_JARS_DIR)
       val jarPath = Paths.get(cachePath.toString(), inspector.groupId, inspector.artifactId, inspector.version, INSPECTOR_JAR)
@@ -72,39 +75,26 @@ class AppInspectorJarPaths(private val fileService: FileService) {
   }
 
   /**
-   * Extracts the inspector jar from the provided library and adds it to the file cache.
-   */
-  @WorkerThread
-  fun populateJars(inspectorJars: Map<ArtifactCoordinate, Path>) {
-    inspectorJars.forEach { (url, path) ->
-      try {
-        jars[url] = unzipInspectorJarFromLibrary(url, path)
-      }
-      catch (e: IOException) {
-        Logger.getInstance(AppInspectorJarPaths::class.java).error(e)
-      }
-    }
-  }
-
-  /**
-   * Unzips the library to a temporary scratch directory and then copy the inspector jar to the cache directory.
+   * Given an inspector archive, insert it into the cache.
    *
-   * The directory structure of the cache contains the coordinate information of the artifact in question:
+   * This method has the side effect of copying the inspector archive from wherever it is
+   * to this class's internal cache location.
+   *
+   * The directory structure of the cache contains the coordinate information of the artifact
+   * in question:
    *   $cache_dir/<group_id>/<artifact_id>/<version>/inspector.jar
-   *
-   * Returns the resulting inspector jar's path.
    */
   @WorkerThread
-  private fun unzipInspectorJarFromLibrary(url: ArtifactCoordinate, libraryPath: Path): Path {
-    val tempDir = fileService.getOrCreateTempDir(INSPECTOR_JARS_DIR)
-    ZipUtil.extract(libraryPath.toFile(), tempDir.toFile()) { _, name -> name == INSPECTOR_JAR }
-
-    val srcFile = tempDir.resolve(INSPECTOR_JAR)
-    val destDir = fileService.getOrCreateCacheDir(INSPECTOR_JARS_DIR).resolve(url.groupId).resolve(url.artifactId).resolve(url.version)
-    Files.createDirectories(destDir)
-    val destFile = destDir.resolve(INSPECTOR_JAR)
-
-    Files.move(srcFile, destFile, StandardCopyOption.REPLACE_EXISTING)
-    return destFile
+  fun populateInspectorArchive(artifactCoordinate: ArtifactCoordinate, archive: Path) {
+    try {
+      val destDir = fileService.getOrCreateCacheDir(INSPECTOR_JARS_DIR).resolve(artifactCoordinate.groupId).resolve(
+        artifactCoordinate.artifactId).resolve(artifactCoordinate.version)
+      Files.createDirectories(destDir)
+      val destFile = destDir.resolve(archive.fileName)
+      jars[artifactCoordinate] = Files.copy(archive, destFile, StandardCopyOption.REPLACE_EXISTING)
+    }
+    catch (e: IOException) {
+      Logger.getInstance(AppInspectorArtifactPaths::class.java).error(e)
+    }
   }
 }

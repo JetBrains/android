@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.inspector.ide.resolver
+package com.android.tools.idea.appinspection.ide
 
+import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.appinspection.test.TEST_JAR_PATH
 import com.intellij.openapi.project.Project
+import java.nio.file.Path
 
-/**
- * A factory for creating [ArtifactResolver].
- */
-interface ArtifactResolverFactory {
-  /**
-   * Creates an [ArtifactResolver] based on the project.
-   */
-  fun getArtifactResolver(project: Project): ArtifactResolver
+class TestInspectorArtifactService : InspectorArtifactService {
+  override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path? {
+    return TEST_JAR_PATH
+  }
 }

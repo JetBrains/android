@@ -22,6 +22,7 @@ import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.AppInspectorTabLaunchSupport
+import com.android.tools.idea.appinspection.ide.InspectorArtifactService
 import com.android.tools.idea.appinspection.ide.LaunchableInspectorTabLaunchParams
 import com.android.tools.idea.appinspection.ide.StaticInspectorTabLaunchParams
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
@@ -40,7 +41,6 @@ import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameter
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
-import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ide.ActivityTracker
@@ -67,14 +67,14 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JSeparator
 
-class AppInspectionView(
+class AppInspectionView @VisibleForTesting constructor(
   private val project: Project,
   private val apiServices: AppInspectionApiServices,
   private val ideServices: AppInspectionIdeServices,
   private val getTabProviders: () -> Collection<AppInspectorTabProvider>,
   private val scope: CoroutineScope,
   private val uiDispatcher: CoroutineDispatcher,
-  private val artifactResolver: ArtifactResolver,
+  private val artifactService: InspectorArtifactService,
   getPreferredProcesses: () -> List<String>
 ) : Disposable {
   val component = JPanel(TabularLayout("*", "Fit,Fit,*"))
@@ -115,7 +115,6 @@ class AppInspectionView(
               ideServices: AppInspectionIdeServices,
               scope: CoroutineScope,
               uiDispatcher: CoroutineDispatcher,
-              artifactResolver: ArtifactResolver,
               getPreferredProcesses: () -> List<String>) :
     this(project,
          apiServices,
@@ -123,7 +122,7 @@ class AppInspectionView(
          { AppInspectorTabProvider.EP_NAME.extensionList },
          scope,
          uiDispatcher,
-         artifactResolver,
+         InspectorArtifactService.instance,
          getPreferredProcesses)
 
   private fun showCrashNotification(inspectorName: String) {
@@ -205,7 +204,7 @@ class AppInspectionView(
   }
 
   private fun launchInspectorTabsForCurrentProcess(force: Boolean = false) = scope.launch {
-    val launchSupport = AppInspectorTabLaunchSupport(getTabProviders, apiServices, project, artifactResolver)
+    val launchSupport = AppInspectorTabLaunchSupport(getTabProviders, apiServices, project, artifactService)
     // Triage the applicable inspector tab providers into those that can be launched, and those that can't.
     val applicableTabs = launchSupport.getApplicableTabLaunchParams(currentProcess)
     val launchableInspectors = applicableTabs

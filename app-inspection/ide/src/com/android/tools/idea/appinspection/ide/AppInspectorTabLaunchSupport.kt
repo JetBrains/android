@@ -25,7 +25,6 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.FrameworkInspectorLaunchParams
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
-import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.project.Project
 import java.nio.file.Path
@@ -41,7 +40,7 @@ class AppInspectorTabLaunchSupport(
   private val getTabProviders: () -> Collection<AppInspectorTabProvider>,
   private val apiServices: AppInspectionApiServices,
   private val project: Project,
-  private val artifactResolver: ArtifactResolver
+  private val artifactService: InspectorArtifactService,
 ) {
 
   /**
@@ -103,7 +102,9 @@ class AppInspectorTabLaunchSupport(
   private suspend fun processCompatibleLibraries(
     resolvableLibraries: List<InspectorJarContext>
   ): List<InspectorTabLaunchParams> {
-    val artifacts = resolvableLibraries.associateWith { artifactResolver.resolveArtifact(it.targetLibrary, project) }
+    val artifacts = resolvableLibraries.associateWith {
+      artifactService.getOrResolveInspectorArtifact(it.targetLibrary, project)
+    }
 
     // Partition the artifacts based on whether they were resolved or not.
     val (resolved, unresolved) = artifacts.entries.partition { it.value != null }

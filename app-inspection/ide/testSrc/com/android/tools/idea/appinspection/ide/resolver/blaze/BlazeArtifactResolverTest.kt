@@ -15,40 +15,29 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver.blaze
 
-import com.android.tools.idea.appinspection.ide.resolver.AppInspectorJarPaths
 import com.android.tools.idea.appinspection.ide.resolver.TestArtifactResolver
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
-import com.android.tools.idea.appinspection.inspector.api.service.TestFileService
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.appinspection.test.TEST_JAR_PATH
-import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
-import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Path
 
 class BlazeArtifactResolverTest {
-  @get:Rule
-  val androidProjectRule = AndroidProjectRule.inMemory()
-
   @Test
   fun resolveHttpFailsAndThenResolvesAgainstGoogle3() = runBlocking {
-    val fileService = TestFileService()
-    val jarPaths = AppInspectorJarPaths(fileService)
     val httpResolver = TestArtifactResolver { null }
     val artifactResolvedDeferred = CompletableDeferred<Unit>()
     val blazeArtifactResolver = object : ArtifactResolver {
-      override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path? {
+      override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path {
         artifactResolvedDeferred.complete(Unit)
         return TEST_JAR_PATH
       }
     }
-    val resolver = BlazeArtifactResolver(jarPaths, httpResolver, blazeArtifactResolver)
+    val resolver = BlazeArtifactResolver(httpResolver, blazeArtifactResolver)
     resolver.resolveArtifact(
       ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01", ArtifactCoordinate.Type.AAR),
-      androidProjectRule.project
     )
     artifactResolvedDeferred.await()
   }

@@ -18,7 +18,6 @@ package com.android.tools.idea.appinspection.ide.resolver.http
 import com.android.repository.api.Downloader
 import com.android.repository.api.ProgressIndicator
 import com.android.testutils.TestUtils.resolveWorkspacePath
-import com.android.tools.idea.appinspection.ide.resolver.AppInspectorJarPaths
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.service.TestFileService
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -54,15 +53,12 @@ class HttpArtifactResolverTest {
   @Test
   fun downloadAndCacheArtifact() = runBlocking<Unit> {
     val fileService = TestFileService()
-    val jarPaths = AppInspectorJarPaths(fileService)
 
-
-    val resolver = HttpArtifactResolver(fileService, jarPaths, fakeDownloader)
+    val resolver = HttpArtifactResolver(fileService, fakeDownloader)
     val request = ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01", ArtifactCoordinate.Type.AAR)
-    val jar = resolver.resolveArtifact(request, androidProjectRule.project)
+    val jar = resolver.resolveArtifact(request)
 
     assertThat(jar).isNotNull()
-    assertThat(jar!!.fileName.toString()).isEqualTo("inspector.jar")
-    assertThat(jarPaths.getInspectorJar(request)).isSameAs(jar)
+    assertThat(jar!!.fileName.toString()).isEqualTo("work-runtime-2.5.0-beta01.aar")
   }
 }
