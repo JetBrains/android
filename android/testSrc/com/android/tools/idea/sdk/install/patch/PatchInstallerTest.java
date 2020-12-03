@@ -18,6 +18,7 @@ package com.android.tools.idea.sdk.install.patch;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.MockFileOp;
+import com.android.testutils.InMemoryFileSystemUtilsKt;
 import java.awt.Component;
 import java.io.File;
 import junit.framework.TestCase;
@@ -36,13 +37,12 @@ public class PatchInstallerTest extends TestCase {
 
   public void testRunInstaller() {
     FakeProgressIndicator progress = new FakeProgressIndicator(true);
-    String localPackageLocation = new File("/sdk/pkg").getAbsolutePath();
-    ourFileOp.recordExistingFile(new File(localPackageLocation, "sourceFile").getAbsolutePath(),
+    ourFileOp.recordExistingFile("/sdk/pkg/sourceFile",
                            "the source to which the diff will be applied");
-    String patchFile = new File("/patchfile").getAbsolutePath();
-    ourFileOp.recordExistingFile(patchFile, "the patch contents");
+    ourFileOp.recordExistingFile("/patchfile", "the patch contents");
     PatchRunner runner = new PatchRunner(ourFileOp.toPath("dummy"), FakeRunner.class, FakeUIBase.class, FakeUI.class, FakeGenerator.class);
-    boolean result = runner.run(new File(localPackageLocation), new File(patchFile), progress);
+    boolean result = runner.run(new File(InMemoryFileSystemUtilsKt.getPlatformSpecificPath("/sdk/pkg")),
+                                new File(InMemoryFileSystemUtilsKt.getPlatformSpecificPath("/patchfile")), progress);
     progress.assertNoErrorsOrWarnings();
     assertTrue(result);
     assertTrue(FakeRunner.ourDidRun);
