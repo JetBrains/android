@@ -183,7 +183,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     pluginsElement.setNewElement(expression);
 
     // TODO(xof): how should we handle the case where we already have a plugin declaration for this plugin?
-    return new PluginModelImpl(expression, idLiteral, versionLiteral, applyLiteral);
+    return new PluginModelImpl(expression, idLiteral);
   }
 
   @Override
