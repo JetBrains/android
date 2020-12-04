@@ -115,8 +115,12 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     ApplyDslElement applyDslElement = myGradleDslFile.getPropertyElement(APPLY_BLOCK_NAME, ApplyDslElement.class);
     // If no plugins declaration exist, create a PluginDslElement to apply plugins
     if (pluginsDslElement == null && applyDslElement == null) {
-      pluginsDslElement = new PluginsDslElement(myGradleDslFile, GradleNameElement.fake(PLUGINS.name));
-      myGradleDslFile.addNewElementAt(0, pluginsDslElement);
+      int at = 0;
+      List<GradleDslElement> elements = myGradleDslFile.getAllElements();
+      if (elements.size() > 0 && elements.get(0) instanceof BuildScriptDslElement) {
+        at += 1;
+      }
+      pluginsDslElement = myGradleDslFile.ensurePropertyElementAt(PLUGINS, at);
     }
     else if (pluginsDslElement == null) {
       Map<String, PluginModelImpl> models = PluginModelImpl.deduplicatePlugins(PluginModelImpl.create(applyDslElement));
@@ -157,9 +161,14 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @Override
   public @NotNull PluginModel applyPlugin(@NotNull String plugin, @NotNull String version, boolean apply) {
     // For this method, the existence of an apply block is irrelevant, as the features of the plugins Dsl are not supported
-    // with an apply operator.
+    // with an apply operator; we must always find the plugins block.
 
-    PluginsDslElement pluginsElement = myGradleDslFile.ensurePropertyElementAt(PLUGINS, 0);
+    int at = 0;
+    List<GradleDslElement> elements = myGradleDslFile.getAllElements();
+    if (elements.size() > 0 && elements.get(0) instanceof BuildScriptDslElement) {
+      at += 1;
+    }
+    PluginsDslElement pluginsElement = myGradleDslFile.ensurePropertyElementAt(PLUGINS, at);
     GradleDslInfixExpression expression = new GradleDslInfixExpression(pluginsElement, null);
 
     // id '<plugin>'
