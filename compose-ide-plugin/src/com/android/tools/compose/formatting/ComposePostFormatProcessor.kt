@@ -17,6 +17,7 @@ package com.android.tools.compose.formatting
 
 import com.android.tools.compose.ComposeLibraryNamespace
 import com.intellij.application.options.CodeStyle
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -42,12 +43,12 @@ import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
  */
 class ComposePostFormatProcessor : PostFormatProcessor {
   override fun processElement(source: PsiElement, settings: CodeStyleSettings): PsiElement {
-    if (source.containingFile !is KtFile) return source
+    if (source.containingFile !is KtFile || DumbService.isDumb(source.project)) return source
     return ComposeModifierProcessor(settings).process(source)
   }
 
   override fun processText(source: PsiFile, rangeToReformat: TextRange, settings: CodeStyleSettings): TextRange {
-    if (source !is KtFile) return rangeToReformat
+    if (source !is KtFile || DumbService.isDumb(source.project)) return rangeToReformat
     return ComposeModifierProcessor(settings).processText(source, rangeToReformat)
   }
 }
