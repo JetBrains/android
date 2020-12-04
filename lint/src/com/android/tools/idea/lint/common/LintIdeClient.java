@@ -92,7 +92,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -100,6 +102,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -743,6 +746,9 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Override
   @NonNull
   public ClassLoader createUrlClassLoader(@NonNull URL[] urls, @NonNull ClassLoader parent) {
-    return UrlClassLoader.build().parent(parent).urls(urls).get();
+    return UrlClassLoader.build()
+      .parent(parent)
+      .files(Arrays.stream(urls).map(it -> Paths.get(it.getPath())).collect(Collectors.toList()))
+      .get();
   }
 }
