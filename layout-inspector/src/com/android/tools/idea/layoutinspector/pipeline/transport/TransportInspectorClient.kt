@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.transport
+package com.android.tools.idea.layoutinspector.pipeline.transport
 
 import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
@@ -30,6 +30,7 @@ import com.android.tools.idea.layoutinspector.isDeviceMatch
 import com.android.tools.idea.layoutinspector.model.ComponentTreeLoader
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.stats.AndroidStudioUsageTracker
@@ -95,7 +96,7 @@ var isCapturingModeOn: Boolean
   get() = PropertiesComponent.getInstance().getBoolean(IS_CAPTURING_KEY, true)
   set(value) = PropertiesComponent.getInstance().setValue(IS_CAPTURING_KEY, value, true)
 
-class DefaultInspectorClient(
+class TransportInspectorClient(
   model: InspectorModel,
   parentDisposable: Disposable,
   channelNameForTest: String = TransportService.CHANNEL_NAME,
@@ -109,7 +110,7 @@ class DefaultInspectorClient(
   private val scope = AndroidCoroutineScope(this)
 
   @VisibleForTesting
-  val processManager = DefaultProcessManager(client.transportStub, streamManager, scope, this)
+  val processManager = TransportProcessManager(client.transportStub, streamManager, scope, this)
 
   @VisibleForTesting
   var transportPoller = TransportEventPoller.createPoller(client.transportStub,
@@ -129,7 +130,7 @@ class DefaultInspectorClient(
 
   private val listeners: MutableList<TransportEventListener> = mutableListOf()
 
-  override val provider = DefaultPropertiesProvider(this, model)
+  override val provider = TransportPropertiesProvider(this, model)
 
   private var loggedInitialRender = false
 
@@ -227,7 +228,7 @@ class DefaultInspectorClient(
           callback(layoutInspectorEvent)
         }
         catch (ex: Exception) {
-          Logger.getInstance(DefaultInspectorClient::class.java.name).warn(ex)
+          Logger.getInstance(TransportInspectorClient::class.java.name).warn(ex)
         }
         groupLastResponseTimes[rootId] = it.timestamp
       }
@@ -549,7 +550,7 @@ class DefaultInspectorClient(
       }
     }
     catch (ex: Exception) {
-      Logger.getInstance(DefaultInspectorClient::class.java).warn(ex)
+      Logger.getInstance(TransportInspectorClient::class.java).warn(ex)
       errorMessage = ex.message ?: ex.javaClass.simpleName
     }
     if (errorMessage.isNotEmpty()) {
@@ -576,7 +577,7 @@ class DefaultInspectorClient(
       return true
     }
     catch (ex: Exception) {
-      Logger.getInstance(DefaultInspectorClient::class.java).error(ex)
+      Logger.getInstance(TransportInspectorClient::class.java).error(ex)
       return false
     }
   }
@@ -592,7 +593,7 @@ class DefaultInspectorClient(
         }
 
         override fun onFailure(ex: Throwable) {
-          Logger.getInstance(DefaultInspectorClient::class.java).error(ex)
+          Logger.getInstance(TransportInspectorClient::class.java).error(ex)
           whenFailure()
         }
       }, MoreExecutors.directExecutor())

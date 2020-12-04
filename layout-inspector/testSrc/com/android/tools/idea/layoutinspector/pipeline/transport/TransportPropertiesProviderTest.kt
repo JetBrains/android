@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.transport
+package com.android.tools.idea.layoutinspector.pipeline.transport
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.ide.common.rendering.api.ResourceNamespace
@@ -60,7 +60,7 @@ import java.awt.Color
 import java.util.concurrent.TimeUnit
 
 @RunsInEdt
-class DefaultPropertiesProviderTest {
+class TransportPropertiesProviderTest {
   private var generationInAgent = 1
   private val projectRule = AndroidProjectRule.withSdk()
   private val inspectorRule = LayoutInspectorTransportRule(projectRule = projectRule)

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.transport
+package com.android.tools.idea.layoutinspector.pipeline.transport
 
 import com.android.tools.idea.layoutinspector.DEFAULT_DEVICE
 import com.android.tools.idea.layoutinspector.DEFAULT_PROCESS
@@ -33,7 +33,7 @@ import org.junit.Test
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-class DefaultInspectorClientTest {
+class TransportInspectorClientTest {
   @get:Rule
   val transportRule = LayoutInspectorTransportRule().withDefaultDevice()
 

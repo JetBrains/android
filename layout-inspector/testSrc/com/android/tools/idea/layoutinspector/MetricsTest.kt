@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector
 
-import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorClient
 import com.android.tools.idea.layoutinspector.ui.SelectProcessAction
 import com.android.tools.idea.layoutinspector.util.ProcessManagerAsserts
 import com.android.tools.idea.stats.AnonymizerUtil
@@ -115,7 +115,7 @@ class MetricsTest2 {
     assertEquals(0, usages.size)
 
     // Now start the process
-    val client = inspectorRule.inspectorClient as DefaultInspectorClient
+    val client = inspectorRule.inspectorClient as TransportInspectorClient
     inspectorRule.addProcess(DEFAULT_DEVICE, DEFAULT_PROCESS)
     val waiter = ProcessManagerAsserts(client.processManager)
     waiter.assertDeviceWithProcesses(DEFAULT_DEVICE.serial, DEFAULT_PROCESS.pid)

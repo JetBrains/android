@@ -20,8 +20,8 @@ import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
-import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorClient
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
@@ -174,7 +174,7 @@ class TransportRule(
     transportService.setCommandHandler(Commands.Command.CommandType.LAYOUT_INSPECTOR, inspectorHandler)
     originalClientFactory = InspectorClient.clientFactory
     InspectorClient.clientFactory = {
-      model, parentDisposable -> listOf(DefaultInspectorClient(model, parentDisposable, TEST_CHANNEL_NAME))
+      model, parentDisposable -> listOf(TransportInspectorClient(model, parentDisposable, TEST_CHANNEL_NAME))
     }
 
     // Start ADB with fake server and its port.

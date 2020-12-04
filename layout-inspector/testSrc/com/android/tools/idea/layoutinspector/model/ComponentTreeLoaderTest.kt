@@ -24,7 +24,7 @@ import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.layoutinspector.SkiaParserService
 import com.android.tools.idea.layoutinspector.UnsupportedPictureVersionException
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorClient
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.layoutinspector.SkiaViewNode
@@ -147,7 +147,7 @@ class ComponentTreeLoaderTest {
       ))
     ))
 
-    val client: DefaultInspectorClient = mock()
+    val client: TransportInspectorClient = mock()
     val payload = "samplepicture".toByteArray()
     `when`(client.getPayload(111)).thenReturn(payload)
     val skiaParser: SkiaParserService = mock()
@@ -210,7 +210,7 @@ class ComponentTreeLoaderTest {
       }.build()
     }.build()
 
-    val client: DefaultInspectorClient = mock()
+    val client: TransportInspectorClient = mock()
     `when`(client.getPayload(111)).thenReturn(imageBytes)
 
     val (window, _) = ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, projectRule.project)!!
@@ -228,7 +228,7 @@ class ComponentTreeLoaderTest {
   @Test
   fun testUnsupportedSkpVersion() {
     val banner = InspectorBanner(projectRule.project)
-    val client: DefaultInspectorClient = mock()
+    val client: TransportInspectorClient = mock()
     val payload = "samplepicture".toByteArray()
     `when`(client.getPayload(111)).thenReturn(payload)
 
@@ -247,7 +247,7 @@ class ComponentTreeLoaderTest {
   @Test
   fun testInvalidSkp() {
     val banner = InspectorBanner(projectRule.project)
-    val client: DefaultInspectorClient = mock()
+    val client: TransportInspectorClient = mock()
     val payload = "samplepicture".toByteArray()
     `when`(client.getPayload(111)).thenReturn(payload)
 
@@ -266,7 +266,7 @@ class ComponentTreeLoaderTest {
   @Test
   fun testOtherProblem() {
     val banner = InspectorBanner(projectRule.project)
-    val client: DefaultInspectorClient = mock()
+    val client: TransportInspectorClient = mock()
     val payload = "samplepicture".toByteArray()
     `when`(client.getPayload(111)).thenReturn(payload)
 
@@ -291,7 +291,7 @@ class ComponentTreeLoaderTest {
       }.build()
     }.build()
 
-    val client: DefaultInspectorClient = mock()
+    val client: TransportInspectorClient = mock()
     val skiaParser: SkiaParserService = mock()
     val (window, generation) =
       ComponentTreeLoader.loadComponentTree(eventTreeEvent, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.transport
+package com.android.tools.idea.layoutinspector.pipeline.transport
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.ide.common.rendering.api.ResourceReference
@@ -21,13 +21,14 @@ import com.android.tools.idea.layoutinspector.common.StringTableImpl
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
-import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.LambdaPropertyItem
 import com.android.tools.idea.layoutinspector.properties.NAMESPACE_INTERNAL
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertySection
+import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.properties.addInternalProperties
 import com.android.tools.idea.layoutinspector.resource.SourceLocation
 import com.android.tools.idea.res.colorToString
@@ -53,7 +54,7 @@ private val INT32_FIELD_DESCRIPTOR = Property.getDescriptor().findFieldByNumber(
 private val INT64_FIELD_DESCRIPTOR = Property.getDescriptor().findFieldByNumber(Property.INT64_VALUE_FIELD_NUMBER)
 private val DOUBLE_FIELD_DESCRIPTOR = Property.getDescriptor().findFieldByNumber(Property.DOUBLE_VALUE_FIELD_NUMBER)
 private val FLOAT_FIELD_DESCRIPTOR = Property.getDescriptor().findFieldByNumber(Property.FLOAT_VALUE_FIELD_NUMBER)
-private val EMPTY_PROPERTIES_DATA = DefaultPropertiesProvider.PropertiesData(
+private val EMPTY_PROPERTIES_DATA = TransportPropertiesProvider.PropertiesData(
   PropertiesTable.emptyTable(), ImmutableTable.of(), ImmutableTable.of())
 
 private const val SOME_UNKNOWN_ANIM_VALUE = "@anim/?"
@@ -63,7 +64,7 @@ private const val SOME_UNKNOWN_INTERPOLATOR_VALUE = "@interpolator/?"
 private const val ANIMATION_PACKAGE = "android.view.animation"
 private const val FRAMEWORK_INTERPOLATOR_PREFIX = "@android:interpolator"
 
-class DefaultPropertiesProvider(
+class TransportPropertiesProvider(
   private val client: InspectorClient,
   private val model: InspectorModel
 ): PropertiesProvider {

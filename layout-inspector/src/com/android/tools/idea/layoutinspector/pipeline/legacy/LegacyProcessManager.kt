@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.legacydevice
+package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.sdklib.SdkVersionInfo
-import com.android.tools.idea.ddms.DevicePropertyUtil
-import com.android.tools.idea.layoutinspector.transport.InspectorProcessManager
+import com.android.tools.idea.layoutinspector.pipeline.InspectorProcessManager
 import com.android.tools.idea.transport.TransportServiceProxy
 import com.android.tools.idea.util.ListenerCollection
 import com.android.tools.profiler.proto.Common

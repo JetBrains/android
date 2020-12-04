@@ -16,8 +16,8 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.testutils.MockitoKt
-import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
-import com.android.tools.idea.layoutinspector.legacydevice.LegacyTreeLoader
+import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
+import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.ui.SelectProcessAction
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
