@@ -21,15 +21,14 @@ import com.android.repository.io.FileOp;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.lang.UrlClassLoader;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.awt.*;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
+import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The Studio side of the integration between studio and the IJ patcher.
@@ -190,15 +189,7 @@ public class PatchRunner {
    */
   @NotNull
   private static ClassLoader getClassLoader(@NotNull File patcherJar) {
-    ClassLoader loader;
-    try {
-      loader = UrlClassLoader.build().urls(patcherJar.toURI().toURL()).parent(PatchInstaller.class.getClassLoader()).get();
-    }
-    catch (MalformedURLException e) {
-      // Shouldn't happen
-      throw new AssertionError("Failed to create URL from file: " + patcherJar, e);
-    }
-    return loader;
+    return UrlClassLoader.build().files(List.of(patcherJar.toPath())).parent(PatchInstaller.class.getClassLoader()).get();
   }
 
   @NotNull
