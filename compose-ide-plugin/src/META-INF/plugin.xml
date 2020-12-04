@@ -61,6 +61,9 @@
       <category>Compose Android</category>
     </intentionAction>
 
+    <lang.foldingBuilder language="kotlin" implementationClass="com.android.tools.compose.ComposeFoldingBuilder"/>
+
+
     <defaultLiveTemplates file="templates/AndroidCompose.xml"/>
     <defaultLiveTemplates file="templates/AndroidComposePreview.xml"/>
 
