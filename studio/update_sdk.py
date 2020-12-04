@@ -6,7 +6,9 @@ import sys
 import zipfile
 import tarfile
 import re
+import glob
 import shutil
+import xml.etree.ElementTree as ET
 
 # A list of files not included in the SDK because they are maked by files in the root lib directory
 # This should be sorted out at a different leve, but for now removing them here
@@ -199,7 +201,12 @@ def check_artifacts(dir):
     print(files)
     sys.exit("Unexpected artifacts in " + dir)
 
-  return "AI-" + version_major, files[0], files[1], files[2], files[3], files[4]
+  manifest = None
+  manifests = glob.glob(dir + "/manifest_*.xml")
+  if len(manifests) == 1:
+    manifest = os.path.basename(manifests[0])
+
+  return "AI-" + version_major, files[0], files[1], files[2], files[3], files[4], manifest
 
 
 def download(workspace, bid):
@@ -221,7 +228,7 @@ sudo apt install android-fetch-artifact""")
     sys.exit("--bid argument needs to be set to download")
   dir = tempfile.mkdtemp(prefix="studio_sdk", suffix=bid)
 
-  for artifact in ["android-studio-*-sources.zip", "android-studio-*.mac.zip", "android-studio-*.tar.gz", "android-studio-*.win.zip", "updater-full.jar"]:
+  for artifact in ["android-studio-*-sources.zip", "android-studio-*.mac.zip", "android-studio-*.tar.gz", "android-studio-*.win.zip", "updater-full.jar", "manifest_%s.xml" % bid]:
     os.system(
         "%s %s --bid %s --target studio-sdk '%s' %s"
         % (fetch_artifact, auth_flag, bid, artifact, dir))
@@ -266,7 +273,7 @@ def write_metadata(path, data):
       file.write(k + ": " + str(v) + "\n")
 
 def extract(workspace, dir, delete_after, metadata):
-  version, sources, mac, linux, win, updater = check_artifacts(dir)
+  version, sources, mac, linux, win, updater, manifest = check_artifacts(dir)
   path = workspace + "/prebuilts/studio/intellij-sdk/" + version
 
   # Don't delete yet, use for a timestamp-less diff of jars, to reduce git/review pressure
@@ -300,6 +307,11 @@ def extract(workspace, dir, delete_after, metadata):
   if old_path:
     preserve_old(old_path, path)
 
+  if manifest:
+    xml = ET.parse(dir + "/" + manifest)
+    for project in xml.getroot().findall("project"):
+      metadata[project.get("path")] = project.get("revision")
+
   if delete_after:
     shutil.rmtree(dir)
   if old_path:
@@ -321,9 +333,12 @@ def main(workspace, args):
   if bid:
     metadata["build_id"] = bid
     path = download(workspace, bid)
-    delete_path = True
+    delete_path = not args.debug_download
   if path:
     version, mac_bundle_name = extract(workspace, path, delete_path, metadata)
+    if args.debug_download:
+      print("Dowloaded artifacts kept at " + path)
+
 
   update_files(workspace, version, mac_bundle_name)
 
@@ -344,6 +359,11 @@ if __name__ == "__main__":
       default="",
       dest="version",
       help="The version of an SDK already in prebuilts to update the project's xmls")
+  parser.add_argument(
+      "--debug_download",
+      action="store_true",
+      dest="debug_download",
+      help="Keeps the downloaded artifacts for debugging")
   workspace = os.path.join(
       os.path.dirname(os.path.realpath(__file__)), "../../../..")
   args = parser.parse_args()
