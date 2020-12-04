@@ -17,7 +17,6 @@ package com.android.tools.idea.emulator
 
 import com.android.ddmlib.IDevice
 import com.android.emulator.control.KeyboardEvent
-import com.android.flags.junit.RestoreFlagRule
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.setPortableUiFont
@@ -27,6 +26,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.run.AppDeploymentListener
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.application.ApplicationManager
@@ -53,10 +53,9 @@ import java.util.concurrent.TimeUnit
 class EmulatorToolWindowManagerTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val emulatorRule = FakeEmulatorRule()
-  private val flagRule = RestoreFlagRule(StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS)
   private var nullableToolWindow: ToolWindow? = null
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(flagRule).around(emulatorRule).around(EdtRule())
+  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
 
   private val project
     get() = projectRule.project
@@ -186,7 +185,7 @@ class EmulatorToolWindowManagerTest {
 
   @Test
   fun testUiStatePreservation() {
-    StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.override(true)
+    StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.override(true, projectRule.fixture.testRootDisposable)
 
     val factory = EmulatorToolWindowFactory()
     assertThat(factory.shouldBeAvailable(project)).isTrue()
