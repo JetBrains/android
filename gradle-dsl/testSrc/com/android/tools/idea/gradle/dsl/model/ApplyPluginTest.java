@@ -565,6 +565,30 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testAddPluginAfterBuildscript() throws Exception {
+    writeToBuildFile(TestFile.ADD_PLUGIN_AFTER_BUILDSCRIPT);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    assertSize(0, buildModel.plugins());
+
+    buildModel.applyPlugin("com.android.application");
+    verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.ADD_PLUGIN_AFTER_BUILDSCRIPT_EXPECTED);
+  }
+
+  @Test
+  public void testAddPluginDslAfterBuildscript() throws Exception {
+    writeToBuildFile(TestFile.ADD_PLUGIN_AFTER_BUILDSCRIPT);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    assertSize(0, buildModel.plugins());
+
+    buildModel.applyPlugin("com.android.application", "4.2.0", false);
+    verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.ADD_PLUGIN_DSL_AFTER_BUILDSCRIPT_EXPECTED);
+  }
+
+  @Test
   public void testOnlyParsePluginsWithCorrectSyntax() throws Exception {
     writeToBuildFile(TestFile.PLUGINS_UNSUPPORTED_SYNTAX);
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -615,6 +639,9 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     ADD_PLUGIN_TO_PLUGINS_BLOCK("addPluginToPluginsBlock"),
     ADD_PLUGIN_TO_PLUGINS_BLOCK_EXPECTED("addPluginToPluginsBlockExpected"),
     ADD_PLUGIN_DSL_TO_PLUGINS_BLOCK_EXPECTED("addPluginDslToPluginsBlockExpected"),
+    ADD_PLUGIN_AFTER_BUILDSCRIPT("addPluginAfterBuildscript"),
+    ADD_PLUGIN_AFTER_BUILDSCRIPT_EXPECTED("addPluginAfterBuildscriptExpected"),
+    ADD_PLUGIN_DSL_AFTER_BUILDSCRIPT_EXPECTED("addPluginDslAfterBuildscriptExpected"),
     APPLIED_KOTLIN_PLUGIN("appliedKotlinPlugin"),
     APPLIED_PLUGINS_BLOCK("appliedPluginsBlock"),
     APPLIED_PLUGINS_BLOCK_WITH_REPEATED_PLUGINS("appliedPluginsBlockWithRepeatedPlugins"),
