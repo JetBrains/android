@@ -200,6 +200,16 @@ class AndroidProjectRule private constructor(
   }
 
   override fun before(description: Description) {
+    try {
+      doBeforeActions(description)
+    } catch (t: Throwable){
+      // cleanup if init failed
+      mockitoCleaner.cleanupAndTearDown()
+      throw t
+    }
+  }
+
+  private fun doBeforeActions(description: Description) {
     mockitoCleaner.setup()
     fixture = if (lightFixture) {
       createLightFixture()
@@ -333,7 +343,7 @@ class AndroidProjectRule private constructor(
     }
     fixture.tearDown()
     userHome?.let { System.setProperty("user.home", it) } ?: System.clearProperty("user.home")
-    mockitoCleaner.cleanupAndTearDown();
+    mockitoCleaner.cleanupAndTearDown()
     AndroidTestBase.checkUndisposedAndroidRelatedObjects()
   }
 }
