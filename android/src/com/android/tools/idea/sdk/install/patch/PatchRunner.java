@@ -27,6 +27,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -188,15 +189,7 @@ public class PatchRunner {
    */
   @NotNull
   private static ClassLoader getClassLoader(@NotNull Path patcherJar) {
-    ClassLoader loader;
-    try {
-      loader = UrlClassLoader.build().urls(patcherJar.toUri().toURL()).parent(PatchInstaller.class.getClassLoader()).get();
-    }
-    catch (MalformedURLException e) {
-      // Shouldn't happen
-      throw new AssertionError("Failed to create URL from file: " + patcherJar, e);
-    }
-    return loader;
+    return UrlClassLoader.build().files(Collections.singletonList(patcherJar)).parent(PatchInstaller.class.getClassLoader()).get();
   }
 
   @NotNull
