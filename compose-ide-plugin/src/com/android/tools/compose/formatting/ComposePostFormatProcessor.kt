@@ -15,7 +15,7 @@
  */
 package com.android.tools.compose.formatting
 
-import com.android.tools.compose.ComposeLibraryNamespace
+import com.android.tools.compose.isModifierChainLongerThanTwo
 import com.intellij.application.options.CodeStyle
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.TextRange
@@ -26,16 +26,11 @@ import com.intellij.psi.codeStyle.CommonCodeStyleSettings
 import com.intellij.psi.impl.source.codeStyle.CodeFormatterFacade
 import com.intellij.psi.impl.source.codeStyle.PostFormatProcessor
 import com.intellij.psi.impl.source.codeStyle.PostFormatProcessorHelper
-import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.formatter.kotlinCommonSettings
-import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
-import org.jetbrains.kotlin.js.translate.callTranslator.getReturnType
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
-import org.jetbrains.kotlin.psi.psiUtil.getChildrenOfType
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
 /**
  * Runs after explicit code formatting invocation and for Modifier(androidx.compose.ui.Modifier) chain that is two modifiers or longer,
@@ -81,18 +76,11 @@ class ComposeModifierProcessor(private val settings: CodeStyleSettings) : KtTree
 /**
  * Returns true if it's Modifier(androidx.compose.ui.Modifier) chain that is two modifiers or longer.
  */
-internal fun isModifierChainThatNeedToBeWrapped(element: KtElement): Boolean {
+private fun isModifierChainThatNeedToBeWrapped(element: KtElement): Boolean {
   // Take very top KtDotQualifiedExpression, e.g for `Modifier.adjust1().adjust2()` take whole expression, not only `Modifier.adjust1()`.
-  if (element is KtDotQualifiedExpression && element.parent !is KtDotQualifiedExpression) {
-    // Take only long chain (more than two expressions), e.g take `Modifier.adjust1().adjust2()`,don't take `Modifier.adjust1()`
-    if (element.getChildrenOfType<KtDotQualifiedExpression>().isNotEmpty()) {
-      val fqName = element.resolveToCall(BodyResolveMode.PARTIAL)?.getReturnType()?.fqName?.asString()
-      if (fqName == ComposeLibraryNamespace.ANDROIDX_COMPOSE.composeModifierClassName) {
-        return true
-      }
-    }
-  }
-  return false
+  return element is KtDotQualifiedExpression &&
+         element.parent !is KtDotQualifiedExpression &&
+         isModifierChainLongerThanTwo(element)
 }
 
 /**

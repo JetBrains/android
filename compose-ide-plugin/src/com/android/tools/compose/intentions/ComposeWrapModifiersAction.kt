@@ -16,8 +16,8 @@
 package com.android.tools.compose.intentions
 
 import com.android.tools.compose.ComposeBundle
-import com.android.tools.compose.formatting.isModifierChainThatNeedToBeWrapped
 import com.android.tools.compose.formatting.wrapModifierChain
+import com.android.tools.compose.isModifierChainLongerThanTwo
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.application.options.CodeStyle
 import com.intellij.codeInsight.intention.IntentionAction
@@ -51,7 +51,7 @@ class ComposeWrapModifiersAction : IntentionAction {
       else -> {
         val elementAtCaret = file.findElementAt(editor.caretModel.offset)?.parentOfType<KtDotQualifiedExpression>()
         val topLevelExpression = elementAtCaret?.getLastParentOfTypeInRowWithSelf<KtDotQualifiedExpression>() ?: return false
-        isModifierChainThatNeedToBeWrapped(topLevelExpression) &&
+        isModifierChainLongerThanTwo(topLevelExpression) &&
         NO_NEW_LINE_BEFORE_DOT.containsMatchIn(topLevelExpression.text)
       }
     }
