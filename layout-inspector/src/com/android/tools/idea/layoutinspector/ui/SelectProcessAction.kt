@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.ui
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.profiler.proto.Common

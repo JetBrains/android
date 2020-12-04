@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.legacydevice
+package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.Client
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
-import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.stats.AndroidStudioUsageTracker
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto

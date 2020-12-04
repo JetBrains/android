@@ -21,10 +21,10 @@ import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.SkiaParserService
 import com.android.tools.idea.layoutinspector.UnsupportedPictureVersionException
 import com.android.tools.idea.layoutinspector.common.StringTableImpl
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorClient
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.RequestedNodeInfo
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
-import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.layoutinspector.LayoutInspectorUtils.makeRequestedNodeInfo
 import com.android.tools.layoutinspector.SkiaViewNode
@@ -47,7 +47,7 @@ import javax.imageio.ImageIO
 private val LOAD_TIMEOUT = TimeUnit.SECONDS.toMillis(20)
 
 /**
- * A [TreeLoader] that uses a [DefaultInspectorClient] to fetch a view tree from an API 29+ device, and parses it into [ViewNode]s
+ * A [TreeLoader] that uses a [TransportInspectorClient] to fetch a view tree from an API 29+ device, and parses it into [ViewNode]s
  */
 object ComponentTreeLoader : TreeLoader {
 
@@ -100,8 +100,8 @@ private class ComponentTreeLoaderImpl(
     }, LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC)
 
   fun loadComponentTree(client: InspectorClient, skiaParser: SkiaParserService, project: Project): AndroidWindow? {
-    val defaultClient = client as? DefaultInspectorClient ?: throw UnsupportedOperationException(
-      "ComponentTreeLoaderImpl requires a DefaultClient")
+    val transportClient = client as? TransportInspectorClient ?: throw UnsupportedOperationException(
+      "ComponentTreeLoaderImpl requires a TransportInspectorClient")
     val time = System.currentTimeMillis()
     if (time - loadStartTime.get() < LOAD_TIMEOUT) {
       return null
@@ -109,7 +109,7 @@ private class ComponentTreeLoaderImpl(
     return try {
       val rootView = loadRootView() ?: return null
       val window = AndroidWindow(rootView, rootView.drawId, tree.payloadType, tree.payloadId) @Slow { scale, window ->
-        val bytes = defaultClient.getPayload(window.payloadId)
+        val bytes = transportClient.getPayload(window.payloadId)
         if (bytes.isNotEmpty()) {
           val root = window.root
           try {
@@ -136,7 +136,7 @@ private class ComponentTreeLoaderImpl(
     bytes: ByteArray,
     skiaParser: SkiaParserService,
     project: Project,
-    client: DefaultInspectorClient,
+    client: TransportInspectorClient,
     rootView: ViewNode,
     scale: Double
   ) {

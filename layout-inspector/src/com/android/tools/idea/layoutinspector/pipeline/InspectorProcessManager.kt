@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.transport
+package com.android.tools.idea.layoutinspector.pipeline
 
 import com.android.tools.idea.util.ListenerCollection
 import com.android.tools.profiler.proto.Common

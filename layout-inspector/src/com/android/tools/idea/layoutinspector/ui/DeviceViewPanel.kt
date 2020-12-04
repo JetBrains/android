@@ -28,10 +28,10 @@ import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
-import com.android.tools.idea.layoutinspector.transport.DisconnectedClient
-import com.android.tools.idea.layoutinspector.transport.InspectorClient
-import com.android.tools.idea.layoutinspector.transport.isCapturingModeOn
+import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.transport.isCapturingModeOn
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -342,7 +342,7 @@ class DeviceViewPanel(
 
     override fun update(event: AnActionEvent) {
       val currentClient = client(event)
-      val isLiveInspector = currentClient.isConnected && currentClient is DefaultInspectorClient
+      val isLiveInspector = currentClient.isConnected && currentClient is TransportInspectorClient
       val isLowerThenApi29 = currentClient.isConnected && currentClient.selectedStream.device.featureLevel < 29
       event.presentation.isEnabled = isLiveInspector || !currentClient.isConnected
       super.update(event)
@@ -365,7 +365,7 @@ class DeviceViewPanel(
         isCapturingModeOn = state
       }
       else {
-        (currentClient as? DefaultInspectorClient)?.isCapturing = state
+        (currentClient as? TransportInspectorClient)?.isCapturing = state
       }
     }
 

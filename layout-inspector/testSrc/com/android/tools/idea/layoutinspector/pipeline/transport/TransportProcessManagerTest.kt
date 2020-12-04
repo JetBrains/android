@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.transport
+package com.android.tools.idea.layoutinspector.pipeline.transport
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.layoutinspector.DEFAULT_DEVICE
@@ -45,12 +45,12 @@ private val OTHER_PROCESS = Common.Process.newBuilder().apply {
   state = Common.Process.State.ALIVE
 }.build()!!
 
-class DefaultProcessManagerTest {
+class TransportProcessManagerTest {
   private var timer: FakeTimer? = FakeTimer()
   private var transportService: FakeTransportService? = FakeTransportService(timer!!)
   private var client: TransportClient? = null
   private var streamManager: TransportStreamManager? = null
-  private var processManager: DefaultProcessManager? = null
+  private var processManager: TransportProcessManager? = null
   private var scope: CoroutineScope? = null
 
   @get:Rule
@@ -66,7 +66,7 @@ class DefaultProcessManagerTest {
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
     streamManager = TransportStreamManager.createManager(client!!.transportStub, executor.asCoroutineDispatcher())
     scope = CoroutineScope(executor.asCoroutineDispatcher() + SupervisorJob())
-    processManager = DefaultProcessManager(client!!.transportStub, streamManager!!, scope!!, disposableRule.disposable)
+    processManager = TransportProcessManager(client!!.transportStub, streamManager!!, scope!!, disposableRule.disposable)
   }
 
   @After

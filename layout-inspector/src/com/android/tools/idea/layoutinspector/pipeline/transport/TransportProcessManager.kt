@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.transport
+package com.android.tools.idea.layoutinspector.pipeline.transport
 
+import com.android.tools.idea.layoutinspector.pipeline.InspectorProcessManager
 import com.android.tools.idea.transport.manager.StreamConnected
 import com.android.tools.idea.transport.manager.StreamDisconnected
 import com.android.tools.idea.transport.manager.StreamEventQuery
@@ -46,7 +47,7 @@ import java.util.function.Consumer
  * [processListeners] gives a notification whenever the data in [processes] is changed
  */
 // TODO(b/150618894): Investigate if this functionality should be shared with the App Inspector.
-class DefaultProcessManager(
+class TransportProcessManager(
   private val transportStub: TransportServiceBlockingStub,
   manager: TransportStreamManager,
   scope: CoroutineScope,

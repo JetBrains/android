@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.util
 
-import com.android.tools.idea.layoutinspector.transport.InspectorProcessManager
+import com.android.tools.idea.layoutinspector.pipeline.InspectorProcessManager
 import java.util.concurrent.TimeUnit
 
 /**
