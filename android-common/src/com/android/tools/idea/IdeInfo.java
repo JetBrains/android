@@ -32,6 +32,11 @@ public final class IdeInfo {
     return "AndroidStudio".equals(getPlatformPrefix());
   }
 
+  public boolean isGameTools() {
+    return isGameTool();
+  }
+
+  // TODO: Remove static method to support dependency injection.
   public static boolean isGameTool() {
     return "AndroidGameDevelopmentTools".equals(getPlatformPrefix());
   }
