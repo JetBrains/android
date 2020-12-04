@@ -22,8 +22,8 @@ import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.AppInspectorTabLaunchSupport
-import com.android.tools.idea.appinspection.ide.StaticInspectorTabLaunchParams
 import com.android.tools.idea.appinspection.ide.LaunchableInspectorTabLaunchParams
+import com.android.tools.idea.appinspection.ide.StaticInspectorTabLaunchParams
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
 import com.android.tools.idea.appinspection.ide.appProguardedMessage
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
@@ -208,22 +208,22 @@ class AppInspectionView(
     val launchSupport = AppInspectorTabLaunchSupport(getTabProviders, apiServices, project, artifactResolver)
     // Triage the applicable inspector tab providers into those that can be launched, and those that can't.
     val applicableTabs = launchSupport.getApplicableTabLaunchParams(currentProcess)
-    val launchableInspectorTabs = applicableTabs
+    val launchableInspectors = applicableTabs
       .filterIsInstance<LaunchableInspectorTabLaunchParams>()
-      .map { AppInspectorTabShell(it.provider) }
+      .associateWith { AppInspectorTabShell(it.provider) }
     val deadInspectorTabs = applicableTabs
       .filterIsInstance<StaticInspectorTabLaunchParams>()
       .map { AppInspectorTabShell(it.provider).also { shell -> shell.setComponent(it.toInfoMessageTab()) } }
 
-    launchableInspectorTabs.forEach { tab ->
-      val provider = tab.provider
+    launchableInspectors.forEach { (params, tab) ->
+      val provider = params.provider
       launch {
         try {
           val client = apiServices.launchInspector(
             LaunchParameters(
               currentProcess,
               provider.inspectorId,
-              provider.inspectorLaunchParams.inspectorAgentJar,
+              params.jar,
               project.name,
               (provider.inspectorLaunchParams as? LibraryInspectorLaunchParams)?.minVersionLibraryCoordinate,
               force
@@ -285,7 +285,7 @@ class AppInspectionView(
     withContext(uiDispatcher)
     {
       inspectorTabs.clear()
-      (launchableInspectorTabs + deadInspectorTabs).sorted().forEach { tab ->
+      (launchableInspectors.values + deadInspectorTabs).sorted().forEach { tab ->
         inspectorTabs.add(tab)
       }
       updateUi()
