@@ -34,6 +34,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
@@ -804,8 +805,8 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
     val buildSrcDir = File(getBaseDirPath(project), "buildSrc").toVirtualFile()
-    // Using the buildModel, look for classpath dependencies on AGP, and if we find one, record it as a usage.
     buildModel.allIncludedBuildModels.forEach model@{ model ->
+      // Using the buildModel, look for classpath dependencies on AGP, and if we find one, record it as a usage.
       model.buildscript().dependencies().artifacts(CLASSPATH).forEach dep@{ dep ->
         when (isUpdatablePluginDependency(new, dep)) {
           YES -> {
@@ -827,6 +828,7 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
           else -> Unit
         }
       }
+      // buildSrc run-time dependencies are project build-time (classpath) dependencies.
       if (model.moduleRootDirectory.toVirtualFile() == buildSrcDir) {
         model.dependencies().artifacts().forEach dep@{ dep ->
           when (isUpdatablePluginRelatedDependency(new, dep)) {
@@ -847,6 +849,23 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
               }
             }
             else -> Unit
+          }
+        }
+      }
+      // Examine plugins for plugin Dsl declarations.
+      model.plugins().forEach { plugin ->
+        if (plugin.version().valueType == STRING && plugin.name().toString().startsWith("com.android")) {
+          val version = GradleVersion.tryParse(plugin.version().toString()) ?: return@forEach
+          if (version == current && version < new)  {
+            val resultModel = plugin.version().resultModel
+            val psiElement = when (val element = resultModel.rawElement) {
+              null -> return@forEach
+              else -> element.psiElement
+            }
+            val presentableText = AndroidBundle.message("project.upgrade.agpClasspathDependencyRefactoringProcessor.target.presentableText")
+            psiElement?.let {
+              usages.add(AgpVersionUsageInfo(WrappedPsiElement(it, this, USAGE_TYPE, presentableText), current, new, resultModel))
+            }
           }
         }
       }
