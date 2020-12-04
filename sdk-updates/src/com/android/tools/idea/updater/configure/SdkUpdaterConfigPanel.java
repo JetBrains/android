@@ -388,6 +388,8 @@ public class SdkUpdaterConfigPanel implements Disposable {
             }
 
             mySelectedSdkLocation.setValue(sdkLocation);
+            // Pick up changes done by the wizard.
+            refresh(false);
           }
 
           @NotNull
