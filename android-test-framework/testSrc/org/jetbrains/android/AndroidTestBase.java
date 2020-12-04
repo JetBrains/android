@@ -71,7 +71,7 @@ import org.mockito.internal.progress.ThreadSafeMockingProgress;
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestBase extends UsefulTestCase {
   protected JavaCodeInsightTestFixture myFixture;
-  protected MockitoThreadLocalsCleaner mockitoCleaner = new MockitoThreadLocalsCleaner();
+  private final MockitoThreadLocalsCleaner mockitoCleaner = new MockitoThreadLocalsCleaner();
 
   @Override
   protected void setUp() throws Exception {
@@ -97,11 +97,11 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     for (Future<Void> future : futures) {
       future.get();
     }
+    myFixture = null;
+
+    super.tearDown();
 
     mockitoCleaner.cleanupAndTearDown();
-
-    myFixture = null;
-    super.tearDown();
     checkUndisposedAndroidRelatedObjects();
   }
 
