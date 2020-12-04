@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.pipeline
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.model.TreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorClient
 import com.android.tools.idea.layoutinspector.properties.EmptyPropertiesProvider

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.model
+package com.android.tools.idea.layoutinspector.pipeline
 
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.intellij.openapi.project.Project
 
@@ -25,8 +26,6 @@ import com.intellij.openapi.project.Project
 interface TreeLoader {
   /**
    * Load the component tree corresponding to the given [data] (implementation specific).
-   * [scale] is the factor by which generated images should be scaled. For example, if we expect to draw the view at half the resolution of
-   * the connected device, [scale] should be 0.5.
    * Returns:
    *  - The loaded [AndroidWindow], or null if all windows are gone.
    *  - a generation id, that can be used to ensure other responses (e.g. properties) are up to date
