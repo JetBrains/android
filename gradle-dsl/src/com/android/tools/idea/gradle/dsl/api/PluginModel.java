@@ -32,6 +32,12 @@ public interface PluginModel {
   @NotNull
   ResolvedPropertyModel name();
 
+  @NotNull
+  ResolvedPropertyModel version();
+
+  @NotNull
+  ResolvedPropertyModel apply();
+
   void remove();
 
   @Nullable
