@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.model
+package com.android.tools.idea.layoutinspector.pipeline.transport
 
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -21,8 +21,14 @@ import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.SkiaParserService
 import com.android.tools.idea.layoutinspector.UnsupportedPictureVersionException
 import com.android.tools.idea.layoutinspector.common.StringTableImpl
+import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.ComponentImageLoader
+import com.android.tools.idea.layoutinspector.model.ComposeViewNode
+import com.android.tools.idea.layoutinspector.model.DrawViewChild
+import com.android.tools.idea.layoutinspector.model.DrawViewImage
+import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
-import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorClient
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.RequestedNodeInfo
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
@@ -49,7 +55,7 @@ private val LOAD_TIMEOUT = TimeUnit.SECONDS.toMillis(20)
 /**
  * A [TreeLoader] that uses a [TransportInspectorClient] to fetch a view tree from an API 29+ device, and parses it into [ViewNode]s
  */
-object ComponentTreeLoader : TreeLoader {
+object TransportTreeLoader : TreeLoader {
 
   override fun loadComponentTree(
     data: Any?,
@@ -70,7 +76,7 @@ object ComponentTreeLoader : TreeLoader {
     val event = maybeEvent as? LayoutInspectorProto.LayoutInspectorEvent ?: return null
     val window: AndroidWindow? =
       if (event.tree.hasRoot()) {
-        ComponentTreeLoaderImpl(event.tree, resourceLookup).loadComponentTree(client, skiaParser, project) ?: return null
+        TransportTreeLoaderImpl(event.tree, resourceLookup).loadComponentTree(client, skiaParser, project) ?: return null
       }
       else {
         null
@@ -84,7 +90,7 @@ object ComponentTreeLoader : TreeLoader {
   }
 }
 
-private class ComponentTreeLoaderImpl(
+private class TransportTreeLoaderImpl(
   private val tree: LayoutInspectorProto.ComponentTreeEvent,
   private val resourceLookup: ResourceLookup?
 ) {
@@ -101,7 +107,7 @@ private class ComponentTreeLoaderImpl(
 
   fun loadComponentTree(client: InspectorClient, skiaParser: SkiaParserService, project: Project): AndroidWindow? {
     val transportClient = client as? TransportInspectorClient ?: throw UnsupportedOperationException(
-      "ComponentTreeLoaderImpl requires a TransportInspectorClient")
+      "TransportTreeLoaderImpl requires a TransportInspectorClient")
     val time = System.currentTimeMillis()
     if (time - loadStartTime.get() < LOAD_TIMEOUT) {
       return null
@@ -203,7 +209,7 @@ private class ComponentTreeLoaderImpl(
     }
     catch (ex: Exception) {
       errorMessage = "Problem launching renderer. Rotation disabled."
-      Logger.getInstance(ComponentTreeLoaderImpl::class.java).warn(ex)
+      Logger.getInstance(TransportTreeLoaderImpl::class.java).warn(ex)
       null
     }
     return Pair(inspectorView, errorMessage)
@@ -256,32 +262,5 @@ private class ComponentTreeLoaderImpl(
 
   private fun packagePrefix(packageName: String): String {
     return if (packageName.isEmpty()) "" else "$packageName."
-  }
-}
-
-@VisibleForTesting
-class ComponentImageLoader(private val nodeMap: Map<Long, ViewNode>, skiaRoot: SkiaViewNode) {
-  private val nonImageSkiaNodes = skiaRoot.flatten().filter { it.image == null }.associateBy {  it.id }
-
-  fun loadImages(drawChildren: ViewNode.() -> MutableList<DrawViewNode>) {
-      for ((drawId, node) in nodeMap) {
-        val remainingChildren = LinkedHashSet(node.children)
-        val skiaNode = nonImageSkiaNodes[drawId]
-        if (skiaNode != null) {
-          for (childSkiaNode in skiaNode.children) {
-            val image = childSkiaNode.image
-            if (image != null) {
-              node.drawChildren().add(DrawViewImage(image, node))
-            }
-            else {
-              val viewForSkiaChild = nodeMap[childSkiaNode.id] ?: continue
-              val actualChild = viewForSkiaChild.parentSequence.find { remainingChildren.contains(it) } ?: continue
-              remainingChildren.remove(actualChild)
-              node.drawChildren().add(DrawViewChild(actualChild))
-            }
-          }
-        }
-        remainingChildren.mapTo(node.drawChildren()) { DrawViewChild(it) }
-      }
   }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.model
+package com.android.tools.idea.layoutinspector.pipeline.transport
 
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
@@ -23,8 +23,9 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.layoutinspector.SkiaParserService
 import com.android.tools.idea.layoutinspector.UnsupportedPictureVersionException
+import com.android.tools.idea.layoutinspector.model.DrawViewImage
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorClient
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.layoutinspector.SkiaViewNode
@@ -46,7 +47,7 @@ import java.nio.file.Files
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
-class ComponentTreeLoaderTest {
+class TransportTreeLoaderTest {
 
   private val eventStr = """
       tree {
@@ -155,7 +156,7 @@ class ComponentTreeLoaderTest {
       .thenReturn(skiaResponse)
 
     val (window, _) =
-      ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
+      TransportTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
     window!!.refreshImages(1.0)
     val tree = window.root
     assertThat(tree.drawId).isEqualTo(1)
@@ -213,7 +214,7 @@ class ComponentTreeLoaderTest {
     val client: TransportInspectorClient = mock()
     `when`(client.getPayload(111)).thenReturn(imageBytes)
 
-    val (window, _) = ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, projectRule.project)!!
+    val (window, _) = TransportTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, projectRule.project)!!
     window!!.refreshImages(1.0)
     val tree = window.root
 
@@ -236,7 +237,7 @@ class ComponentTreeLoaderTest {
     `when`(skiaParser.getViewTree(eq(payload), any(), any(), any())).thenAnswer { throw UnsupportedPictureVersionException(123) }
 
     val (window, _) =
-      ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
+      TransportTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
     window!!.refreshImages(1.0)
     verify(client).requestScreenshotMode()
     assertThat(banner.text.text).isEqualTo("No renderer supporting SKP version 123 found. Rotation disabled.")
@@ -255,7 +256,7 @@ class ComponentTreeLoaderTest {
     `when`(skiaParser.getViewTree(eq(payload), any(), any(), any())).thenReturn(null)
 
     val (window, _) =
-      ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
+      TransportTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
     window!!.refreshImages(1.0)
     verify(client).requestScreenshotMode()
     assertThat(banner.text.text).isEqualTo("Invalid picture data received from device. Rotation disabled.")
@@ -274,7 +275,7 @@ class ComponentTreeLoaderTest {
     `when`(skiaParser.getViewTree(eq(payload), any(), any(), any())).thenAnswer { throw Exception() }
 
     val (window, _) =
-      ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
+      TransportTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
     window!!.refreshImages(1.0)
     verify(client).requestScreenshotMode()
     assertThat(banner.text.text).isEqualTo("Problem launching renderer. Rotation disabled.")
@@ -294,7 +295,7 @@ class ComponentTreeLoaderTest {
     val client: TransportInspectorClient = mock()
     val skiaParser: SkiaParserService = mock()
     val (window, generation) =
-      ComponentTreeLoader.loadComponentTree(eventTreeEvent, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
+      TransportTreeLoader.loadComponentTree(eventTreeEvent, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
     assertThat(window).isNull()
     assertThat(generation).isEqualTo(17)
   }

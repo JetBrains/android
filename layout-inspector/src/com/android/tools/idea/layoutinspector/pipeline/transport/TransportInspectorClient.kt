@@ -27,7 +27,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
 import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.isDeviceMatch
-import com.android.tools.idea.layoutinspector.model.ComponentTreeLoader
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -162,7 +161,7 @@ class TransportInspectorClient(
 
   private var debugAttributesOverridden = false
 
-  override val treeLoader = ComponentTreeLoader
+  override val treeLoader = TransportTreeLoader
 
   private val SELECTION_LOCK = Any()
 
