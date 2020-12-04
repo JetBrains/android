@@ -17,10 +17,10 @@ package com.android.tools.idea.run.deployment;
 
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import javax.swing.Icon;
 import javax.swing.table.AbstractTableModel;
 import org.jetbrains.annotations.NotNull;
@@ -32,35 +32,44 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
   private static final int SERIAL_NUMBER_MODEL_COLUMN_INDEX = 3;
   private static final int SNAPSHOT_MODEL_COLUMN_INDEX = 4;
 
-  @NotNull
-  private final List<Boolean> mySelected;
-
-  @NotNull
-  private final List<Device> myDevices;
+  private final @NotNull List<@NotNull SelectMultipleDevicesDialogTableModelRow> myRows;
 
   @NotNull
   private final Multiset<String> myDeviceNameMultiset;
 
   SelectMultipleDevicesDialogTableModel(@NotNull List<Device> devices) {
-    int size = devices.size();
-    mySelected = new ArrayList<>(Collections.nCopies(size, false));
-
-    myDevices = devices;
-    myDevices.sort(new DeviceComparator());
+    myRows = devices.stream()
+      .sorted(new DeviceComparator())
+      .map(SelectMultipleDevicesDialogTableModelRow::new)
+      .collect(Collectors.toList());
 
     myDeviceNameMultiset = devices.stream()
       .map(Device::getName)
-      .collect(Collectors.toCollection(() -> HashMultiset.create(size)));
+      .collect(Collectors.toCollection(() -> HashMultiset.create(devices.size())));
   }
 
-  @NotNull
-  Device getDeviceAt(int modelRowIndex) {
-    return myDevices.get(modelRowIndex);
+  @NotNull Set<@NotNull Target> getSelectedTargets() {
+    return myRows.stream()
+      .filter(SelectMultipleDevicesDialogTableModelRow::isSelected)
+      .map(SelectMultipleDevicesDialogTableModelRow::getDevice)
+      .map(Device::getKey)
+      .map(Target::new)
+      .collect(Collectors.toSet());
+  }
+
+  void setSelectedTargets(@NotNull Set<@NotNull Target> selectedTargets) {
+    Set<Key> keys = selectedTargets.stream()
+      .map(Target::getDeviceKey)
+      .collect(Collectors.toSet());
+
+    IntStream.range(0, myRows.size())
+      .filter(modelRowIndex -> myRows.get(modelRowIndex).getDevice().hasKeyContainedBy(keys))
+      .forEach(modelRowIndex -> setValueAt(true, modelRowIndex, SELECTED_MODEL_COLUMN_INDEX));
   }
 
   @Override
   public int getRowCount() {
-    return myDevices.size();
+    return myRows.size();
   }
 
   @Override
@@ -124,16 +133,13 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
   public Object getValueAt(int modelRowIndex, int modelColumnIndex) {
     switch (modelColumnIndex) {
       case SELECTED_MODEL_COLUMN_INDEX:
-        return mySelected.get(modelRowIndex);
+        return myRows.get(modelRowIndex).isSelected();
       case TYPE_MODEL_COLUMN_INDEX:
-        return myDevices.get(modelRowIndex).getIcon();
+        return myRows.get(modelRowIndex).getDevice().getIcon();
       case DEVICE_MODEL_COLUMN_INDEX:
-        Device device = myDevices.get(modelRowIndex);
-        String reason = device.getValidityReason();
-
-        return reason == null ? device.getName() : "<html>" + device.getName() + "<br>" + reason;
+        return myRows.get(modelRowIndex).getDeviceCellText();
       case SERIAL_NUMBER_MODEL_COLUMN_INDEX:
-        return getSerialNumber(myDevices.get(modelRowIndex));
+        return getSerialNumber(myRows.get(modelRowIndex).getDevice());
       case SNAPSHOT_MODEL_COLUMN_INDEX:
         return "";
       default:
@@ -156,7 +162,7 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
 
   @Override
   public void setValueAt(@NotNull Object value, int modelRowIndex, int modelColumnIndex) {
-    mySelected.set(modelRowIndex, (Boolean)value);
+    myRows.get(modelRowIndex).setSelected((Boolean)value);
     fireTableCellUpdated(modelRowIndex, modelColumnIndex);
   }
 }

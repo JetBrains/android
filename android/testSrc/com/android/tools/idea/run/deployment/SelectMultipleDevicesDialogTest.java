@@ -32,7 +32,6 @@ import java.util.Collections;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import javax.swing.Action;
-import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Rule;
@@ -49,11 +48,11 @@ public final class SelectMultipleDevicesDialogTest {
   private SelectMultipleDevicesDialog myDialog;
 
   private void initDialog(@NotNull BooleanSupplier runOnMultipleDevicesActionEnabledGet,
-                          @NotNull TableModel tableModel,
+                          @NotNull SelectMultipleDevicesDialogTableModel model,
                           @NotNull Function<@NotNull Project, @NotNull DevicesSelectedService> devicesSelectedServiceGetInstance) {
     ApplicationManager.getApplication().invokeAndWait(() -> myDialog = new SelectMultipleDevicesDialog(myRule.getProject(),
                                                                                                        runOnMultipleDevicesActionEnabledGet,
-                                                                                                       tableModel,
+                                                                                                       model,
                                                                                                        devicesSelectedServiceGetInstance));
   }
 
@@ -65,7 +64,7 @@ public final class SelectMultipleDevicesDialogTest {
   @Test
   public void selectMultipleDevicesDialogRunOnMultipleDevicesActionIsEnabled() {
     // Arrange
-    TableModel model = Mockito.mock(TableModel.class);
+    SelectMultipleDevicesDialogTableModel model = Mockito.mock(SelectMultipleDevicesDialogTableModel.class);
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
 
     // Act
@@ -78,7 +77,7 @@ public final class SelectMultipleDevicesDialogTest {
   @Test
   public void selectMultipleDevicesDialog() {
     // Arrange
-    TableModel model = Mockito.mock(TableModel.class);
+    SelectMultipleDevicesDialogTableModel model = Mockito.mock(SelectMultipleDevicesDialogTableModel.class);
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
 
     // Act
@@ -136,7 +135,7 @@ public final class SelectMultipleDevicesDialogTest {
   @Test
   public void initOkAction() {
     // Arrange
-    TableModel model = Mockito.mock(TableModel.class);
+    SelectMultipleDevicesDialogTableModel model = Mockito.mock(SelectMultipleDevicesDialogTableModel.class);
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
 
     // Act
@@ -160,7 +159,7 @@ public final class SelectMultipleDevicesDialogTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    TableModel model = new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device));
+    SelectMultipleDevicesDialogTableModel model = new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device));
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
     Mockito.when(service.getTargetsSelectedWithDialog()).thenReturn(Collections.singleton(new Target(key)));
@@ -170,5 +169,27 @@ public final class SelectMultipleDevicesDialogTest {
 
     // Assert
     assertTrue(myDialog.getOKAction().isEnabled());
+  }
+
+  @Test
+  public void doOkAction() {
+    // Arrange
+    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(key)
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
+    initDialog(() -> false, new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device)), project -> service);
+
+    // Act
+    myDialog.getTable().setSelected(true, 0);
+    ApplicationManager.getApplication().invokeAndWait(() -> myDialog.getOKAction().actionPerformed(null));
+
+    // Assert
+    Mockito.verify(service).setTargetsSelectedWithDialog(Collections.singleton(new Target(key)));
   }
 }
