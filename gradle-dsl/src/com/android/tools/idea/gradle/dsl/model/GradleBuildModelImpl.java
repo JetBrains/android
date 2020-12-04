@@ -163,23 +163,12 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     GradleDslInfixExpression expression = new GradleDslInfixExpression(pluginsElement, null);
 
     // id '<plugin>'
-    GradleDslLiteral idLiteral = new GradleDslLiteral(expression, GradleNameElement.create(ID));
-    idLiteral.setElementType(PropertyType.REGULAR);
-    idLiteral.setValue(plugin.trim());
+    GradleDslLiteral idLiteral = expression.setNewLiteral(ID, plugin);
     // ... version '<version>'
-    GradleDslLiteral versionLiteral = new GradleDslLiteral(expression, GradleNameElement.create(VERSION));
-    versionLiteral.setElementType(PropertyType.REGULAR);
-    versionLiteral.setValue(version.trim());
+    expression.setNewLiteral(VERSION, version);
     // ... apply <boolean>
-    GradleDslLiteral applyLiteral = new GradleDslLiteral(expression, GradleNameElement.create(APPLY));
-    applyLiteral.setElementType(PropertyType.REGULAR);
-    applyLiteral.setValue(apply);
-
+    expression.setNewLiteral(APPLY, apply);
     // link everything up
-    // TODO(xof): simplify with .setNewLiteral?
-    expression.setNewElement(idLiteral);
-    expression.setNewElement(versionLiteral);
-    expression.setNewElement(applyLiteral);
     pluginsElement.setNewElement(expression);
 
     // TODO(xof): how should we handle the case where we already have a plugin declaration for this plugin?
