@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
+
 import com.intellij.psi.PsiElement;
 import java.util.Collection;
 import java.util.List;
@@ -56,6 +58,13 @@ public class GradleDslInfixExpression extends GradlePropertiesDslElement impleme
   public @NotNull GradleDslExpression copy() {
     // TODO(xof): copy the properties
     return new GradleDslInfixExpression(myParent, null);
+  }
+
+  @Override
+  public @NotNull GradleDslLiteral setNewLiteral(@NotNull String property, @NotNull Object value) {
+    GradleDslLiteral literal = super.setNewLiteral(property, value);
+    literal.setElementType(REGULAR);
+    return literal;
   }
 
   @Override

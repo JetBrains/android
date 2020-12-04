@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.ext;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableMap;
@@ -49,8 +50,8 @@ public final class ExtDslElement extends GradleDslBlockElement {
    */
   @Override
   @NotNull
-  public GradleDslElement setNewLiteral(@NotNull String property, @NotNull Object object) {
-    GradleDslElement element = super.setNewLiteral(property, object);
+  public GradleDslLiteral setNewLiteral(@NotNull String property, @NotNull Object object) {
+    GradleDslLiteral element = super.setNewLiteral(property, object);
     element.setUseAssignment(true);
     return element;
   }
