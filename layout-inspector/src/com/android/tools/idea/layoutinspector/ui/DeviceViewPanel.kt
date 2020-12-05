@@ -21,9 +21,11 @@ import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.Zoomable
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtPrimaryPanel
-import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.adtui.common.AdtUiCursorType
+import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.editor.ActionToolbarUtil
+import com.android.tools.idea.appinspection.api.process.ProcessesModel
+import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
@@ -77,6 +79,7 @@ const val DEVICE_VIEW_ACTION_TOOLBAR_NAME = "DeviceViewPanel.ActionToolbar"
  * Panel that shows the device screen in the layout inspector.
  */
 class DeviceViewPanel(
+  private val processes: ProcessesModel,
   private val layoutInspector: LayoutInspector,
   private val viewSettings: DeviceViewSettings,
   disposableParent: Disposable
@@ -311,7 +314,13 @@ class DeviceViewPanel(
 
   private fun createToolbar(): ActionToolbar {
     val leftGroup = DefaultActionGroup()
-    leftGroup.add(SelectProcessAction(layoutInspector))
+    leftGroup.add(SelectProcessAction(processes,
+                                      supportsOffline = false,
+                                      createProcessLabel = (SelectProcessAction)::createCompactProcessLabel,
+                                      stopPresentation = SelectProcessAction.StopPresentation(
+                                        "Stop inspector",
+                                        "Stop running the layout inspector against the current process"),
+                                      onStopAction = { processes.stop() }))
     leftGroup.add(Separator.getInstance())
     leftGroup.add(ViewMenuAction)
     leftGroup.add(ToggleOverlayAction)
@@ -343,7 +352,7 @@ class DeviceViewPanel(
     override fun update(event: AnActionEvent) {
       val currentClient = client(event)
       val isLiveInspector = currentClient.isConnected && currentClient is TransportInspectorClient
-      val isLowerThenApi29 = currentClient.isConnected && currentClient.selectedStream.device.featureLevel < 29
+      val isLowerThenApi29 = currentClient.isConnected && currentClient.selectedProcess!!.device.apiLevel < 29
       event.presentation.isEnabled = isLiveInspector || !currentClient.isConnected
       super.update(event)
       event.presentation.description = when {

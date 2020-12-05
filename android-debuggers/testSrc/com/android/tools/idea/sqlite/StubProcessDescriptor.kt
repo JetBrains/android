@@ -28,7 +28,9 @@ class StubProcessDescriptor : ProcessDescriptor {
     override val version: String = "8.0"
     override val codename: String = "O"
   }
-
+  override val abiCpuArch = "x86"
   override val name = "processName"
   override val isRunning = true
+  override val pid = 123
+  override val streamId = 123456L
 }

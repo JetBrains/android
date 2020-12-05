@@ -15,39 +15,54 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.ddmlib.AndroidDebugBridge
+import com.android.tools.idea.appinspection.api.process.ProcessesModel
+import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.profiler.proto.Common
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.util.Disposer
 import org.jetbrains.annotations.TestOnly
+import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 
 @VisibleForTesting
 const val SHOW_ERROR_MESSAGES_IN_DIALOG = false
 
-class LayoutInspector(val layoutInspectorModel: InspectorModel, parentDisposable: Disposable) : Disposable {
+/**
+ * Create the top level class which manages the high level state of layout inspection.
+ *
+ * @param executor An executor used for doing background work like loading tree data and
+ *    initializing the model. Exposed mainly for testing, where a direct executor can provide
+ *    consistent behavior over performance.
+ */
+class LayoutInspector(
+  adb: AndroidDebugBridge,
+  val processes: ProcessesModel,
+  val layoutInspectorModel: InspectorModel,
+  parentDisposable: Disposable,
+  @TestOnly private val executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor) {
+
   val currentClient: InspectorClient
     get() = currentClientReference.get()
 
   private val currentClientReference = AtomicReference<InspectorClient>(DisconnectedClient)
   private val latestLoadTime = AtomicLong(-1)
 
-  val allClients: List<InspectorClient> = InspectorClient.createInstances(layoutInspectorModel, this)
+  val allClients: List<InspectorClient> = InspectorClient.createInstances(adb, processes, layoutInspectorModel, parentDisposable)
+
+  private val sequentialDispatcher = MoreExecutors.newSequentialExecutor(executor)
 
   init {
     allClients.forEach { registerClientListeners(it) }
-    Disposer.register(parentDisposable, this)
-  }
-
-  override fun dispose() {
   }
 
   private fun registerClientListeners(client: InspectorClient) {
@@ -80,19 +95,21 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel, parentDisposable
   }
 
   private fun loadComponentTree(event: Any) {
-    // TODO: this should only run once at a time. If more requests are made while one is being processed, the last request should be
-    // processed after the existing run is complete, and intermediate ones should be dropped.
-    val time = System.currentTimeMillis()
-    val allIds = currentClient.treeLoader.getAllWindowIds(event, currentClient)
-    val (window, generation) = currentClient.treeLoader.loadComponentTree(event, layoutInspectorModel.resourceLookup,
-                                                                          currentClient, layoutInspectorModel.project) ?: return
-    if (allIds != null) {
-      synchronized(latestLoadTime) {
-         if (latestLoadTime.get() > time) {
-          return
+    // TODO: If there are many calls to loadComponentTree done before the first one finishes,
+    //  intermediate requests are needless and could be skipped.
+    sequentialDispatcher.execute {
+      val time = System.currentTimeMillis()
+      val treeLoader = currentClient.treeLoader
+      val allIds = treeLoader.getAllWindowIds(event)
+      val (window, generation) = treeLoader.loadComponentTree(event, layoutInspectorModel.resourceLookup) ?: return@execute
+      if (allIds != null) {
+        synchronized(latestLoadTime) {
+          if (latestLoadTime.get() > time) {
+            return@execute
+          }
+          latestLoadTime.set(time)
+          layoutInspectorModel.update(window, allIds, generation)
         }
-        latestLoadTime.set(time)
-        layoutInspectorModel.update(window, allIds, generation)
       }
     }
   }

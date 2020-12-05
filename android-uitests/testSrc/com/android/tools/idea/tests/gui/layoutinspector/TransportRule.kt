@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.layoutinspector
 
+import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorClient
@@ -97,7 +99,7 @@ class TransportRule(
     }
   }
 
-  private var originalClientFactory: ((InspectorModel, Disposable) -> List<InspectorClient>)? = null
+  private lateinit var originalClientFactory: ((AndroidDebugBridge, ProcessesModel, InspectorModel, Disposable) -> List<InspectorClient>)
 
   /**
    * Add a specific [LayoutInspectorProto.LayoutInspectorCommand] handler.
@@ -167,7 +169,7 @@ class TransportRule(
     transportService.setCommandHandler(Commands.Command.CommandType.LAYOUT_INSPECTOR, inspectorHandler)
     originalClientFactory = InspectorClient.clientFactory
     InspectorClient.clientFactory = {
-      model, parentDisposable -> listOf(TransportInspectorClient(model, parentDisposable, grpcServer.name))
+      adb, processes, model, parentDisposable -> listOf(TransportInspectorClient(adb, processes, model, parentDisposable, grpcServer.name))
     }
 
     // Start ADB with fake server and its port.
@@ -175,6 +177,6 @@ class TransportRule(
   }
 
   private fun after() {
-    InspectorClient.clientFactory = originalClientFactory!!
+    InspectorClient.clientFactory = originalClientFactory
   }
 }

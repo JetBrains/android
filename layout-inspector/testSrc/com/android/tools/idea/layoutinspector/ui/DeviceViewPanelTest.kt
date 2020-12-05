@@ -15,22 +15,25 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.PropertySetterRule
 import com.android.tools.adtui.actions.ZoomType
-import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.adtui.common.AdtUiCursorType
+import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.adtui.common.TestAdtUiCursorsProvider
 import com.android.tools.adtui.common.replaceAdtUiCursorWithPredefinedCursor
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeMouse.Button
-import com.android.tools.adtui.swing.FakeMouse.Button.LEFT
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.layoutinspector.DEFAULT_DEVICE
-import com.android.tools.idea.layoutinspector.DEFAULT_PROCESS
-import com.android.tools.idea.layoutinspector.DEFAULT_STREAM
+import com.android.tools.idea.appinspection.api.process.ProcessesModel
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.appinspection.test.TestProcessNotifier
+import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.LayoutInspectorTransportRule
+import com.android.tools.idea.layoutinspector.LayoutInspectorRule
+import com.android.tools.idea.layoutinspector.MODERN_DEVICE
+import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
@@ -39,6 +42,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorRule
 import com.android.tools.idea.layoutinspector.pipeline.transport.isCapturingModeOn
 import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
 import com.android.tools.idea.layoutinspector.window
@@ -46,6 +50,7 @@ import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspec
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
@@ -56,8 +61,10 @@ import com.intellij.ui.components.JBScrollPane
 import junit.framework.TestCase
 import org.jetbrains.android.util.AndroidBundle
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Point
@@ -71,19 +78,23 @@ import javax.swing.JViewport
 
 @RunsInEdt
 class DeviceViewPanelWithFullInspectorTest {
-  @get:Rule
-  val edtRule = EdtRule()
+  private val transportRule = TransportInspectorRule()
+  private val inspectorRule = LayoutInspectorRule()
+    .withTransportClient(transportRule.grpcServer, transportRule.scheduler)
 
   @get:Rule
-  val inspectorRule = LayoutInspectorTransportRule().withDefaultDevice()
+  val ruleChain = RuleChain.outerRule(transportRule).around(inspectorRule).around(EdtRule())!!
 
+  // Used by all tests that install command handlers
   private var latch: CountDownLatch? = null
   private val commands = mutableListOf<Type>()
 
   @Test
   fun testLiveControlEnabledAndSetByDefaultWhenDisconnected() {
     val settings = DeviceViewSettings()
-    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, inspectorRule.testRootDisposable))
+    val toolbar = getToolbar(
+      DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
+
     val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
     assertThat(checkbox.isEnabled).isTrue()
     assertThat(checkbox.isSelected).isTrue()
@@ -92,9 +103,12 @@ class DeviceViewPanelWithFullInspectorTest {
 
   @Test
   fun testLiveControlEnabledAndNotSetInSnapshotModeWhenDisconnected() {
-    inspectorRule.inSnapshotMode()
+    isCapturingModeOn = false
+
     val settings = DeviceViewSettings()
-    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, inspectorRule.testRootDisposable))
+    val toolbar = getToolbar(
+      DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
+
     val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
     assertThat(checkbox.isEnabled).isTrue()
     assertThat(checkbox.isSelected).isFalse()
@@ -104,9 +118,12 @@ class DeviceViewPanelWithFullInspectorTest {
   @Test
   fun testLiveControlEnabledAndSetByDefaultWhenConnected() {
     installCommandHandlers()
-    inspectorRule.attach()
+    connect(MODERN_DEVICE.createProcess())
+
     val settings = DeviceViewSettings()
-    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, inspectorRule.testRootDisposable))
+    val toolbar = getToolbar(
+      DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
+
     val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
     assertThat(checkbox.isEnabled).isTrue()
     assertThat(checkbox.isSelected).isTrue()
@@ -116,10 +133,14 @@ class DeviceViewPanelWithFullInspectorTest {
 
   @Test
   fun testLiveControlEnabledAndNotSetInSnapshotModeWhenConnected() {
+    isCapturingModeOn = false
     installCommandHandlers()
-    inspectorRule.inSnapshotMode().attach()
+    connect(MODERN_DEVICE.createProcess())
+
     val settings = DeviceViewSettings()
-    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, inspectorRule.testRootDisposable))
+    val toolbar = getToolbar(
+      DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
+
     val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
     assertThat(checkbox.isEnabled).isTrue()
     assertThat(checkbox.isSelected).isFalse()
@@ -130,15 +151,19 @@ class DeviceViewPanelWithFullInspectorTest {
   @Test
   fun testTurnOnSnapshotModeWhenDisconnected() {
     installCommandHandlers()
+
     val stats = inspectorRule.inspectorModel.stats.live
     stats.toggledToLive()
     val settings = DeviceViewSettings()
-    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, inspectorRule.testRootDisposable))
+    val toolbar = getToolbar(
+      DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
+
     val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
     FakeUi(checkbox).mouse.click(10, 10)
     assertThat(checkbox.isEnabled).isTrue()
     assertThat(checkbox.isSelected).isFalse()
     assertThat(checkbox.toolTipText).isNull()
+
     assertThat(commands).isEmpty()
     assertThat(isCapturingModeOn).isFalse()
     assertThat(stats.currentModeIsLive).isTrue() // unchanged
@@ -147,11 +172,14 @@ class DeviceViewPanelWithFullInspectorTest {
   @Test
   fun testTurnOnLiveModeWhenDisconnected() {
     installCommandHandlers()
-    inspectorRule.inSnapshotMode()
+    isCapturingModeOn = false
+
     val stats = inspectorRule.inspectorModel.stats.live
     stats.toggledToRefresh()
     val settings = DeviceViewSettings()
-    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, inspectorRule.testRootDisposable))
+    val toolbar = getToolbar(
+      DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
+
     val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
     toolbar.size = Dimension(800, 200)
     toolbar.doLayout()
@@ -159,6 +187,7 @@ class DeviceViewPanelWithFullInspectorTest {
     assertThat(checkbox.isEnabled).isTrue()
     assertThat(checkbox.isSelected).isTrue()
     assertThat(checkbox.toolTipText).isNull()
+
     assertThat(commands).isEmpty()
     assertThat(isCapturingModeOn).isTrue()
     assertThat(stats.currentModeIsLive).isFalse() // unchanged
@@ -169,15 +198,20 @@ class DeviceViewPanelWithFullInspectorTest {
     val stats = inspectorRule.inspectorModel.stats.live
     stats.toggledToLive()
     latch = CountDownLatch(2)
+
     installCommandHandlers()
-    inspectorRule.attach()
+    connect(MODERN_DEVICE.createProcess())
+
     val settings = DeviceViewSettings()
-    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, inspectorRule.testRootDisposable))
+    val toolbar = getToolbar(
+      DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
     val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
+
     FakeUi(checkbox).mouse.click(10, 10)
     assertThat(checkbox.isEnabled).isTrue()
     assertThat(checkbox.isSelected).isFalse()
     assertThat(checkbox.toolTipText).isNull()
+
     assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
     assertThat(commands).containsExactly(Type.START, Type.STOP).inOrder()
     assertThat(stats.currentModeIsLive).isFalse()
@@ -188,17 +222,23 @@ class DeviceViewPanelWithFullInspectorTest {
     val stats = inspectorRule.inspectorModel.stats.live
     stats.toggledToRefresh()
     latch = CountDownLatch(2)
+
     installCommandHandlers()
-    inspectorRule.inSnapshotMode().attach()
+    isCapturingModeOn = false
+    connect(MODERN_DEVICE.createProcess())
+
     val settings = DeviceViewSettings()
-    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, inspectorRule.testRootDisposable))
+    val toolbar = getToolbar(
+      DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
     val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
     toolbar.size = Dimension(800, 200)
     toolbar.doLayout()
+
     FakeUi(checkbox).mouse.click(10, 10)
     assertThat(checkbox.isEnabled).isTrue()
     assertThat(checkbox.isSelected).isTrue()
     assertThat(checkbox.toolTipText).isNull()
+
     assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
     assertThat(commands).containsExactly(Type.REFRESH, Type.START).inOrder()
     assertThat(stats.currentModeIsLive).isTrue()
@@ -206,7 +246,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
   private fun installCommandHandlers() {
     for (type in Type.values()) {
-      inspectorRule.withCommandHandler(type, ::saveCommand)
+      transportRule.addCommandHandler(type, ::saveCommand)
     }
   }
 
@@ -214,6 +254,11 @@ class DeviceViewPanelWithFullInspectorTest {
   private fun saveCommand(command: Commands.Command, events: MutableList<Common.Event>) {
     latch?.countDown()
     commands.add(command.layoutInspector.type)
+  }
+
+  private fun connect(process: ProcessDescriptor) {
+    inspectorRule.processes.selectedProcess = process
+    transportRule.scheduler.advanceBy(1100, TimeUnit.MILLISECONDS)
   }
 }
 
@@ -230,8 +275,11 @@ class DeviceViewPanelTest {
   val projectRule = ProjectRule()
 
   @get:Rule
+  val adbRule = FakeAdbRule()
+
+  @get:Rule
   val clientFactoryRule = PropertySetterRule(
-    { _, _ -> listOf(mock<TransportInspectorClient>()) },
+    { _, _, _, _ -> listOf(mock<TransportInspectorClient>()) },
     InspectorClient.Companion::clientFactory)
 
   @Before
@@ -245,7 +293,9 @@ class DeviceViewPanelTest {
   fun testZoomOnConnect() {
     val viewSettings = DeviceViewSettings(scalePercent = 100)
     val model = InspectorModel(projectRule.project)
-    val panel = DeviceViewPanel(LayoutInspector(model, disposableRule.disposable), viewSettings, disposableRule.disposable)
+    val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
+    val inspector = LayoutInspector(adbRule.bridge, processes, model, disposableRule.disposable, MoreExecutors.directExecutor())
+    val panel = DeviceViewPanel(processes, inspector, viewSettings, disposableRule.disposable)
 
     val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
     scrollPane.setSize(200, 300)
@@ -280,9 +330,12 @@ class DeviceViewPanelTest {
   @Test
   fun testFocusableActionButtons() {
     val model = model { view(1, 0, 0, 1200, 1600, qualifiedName = "RelativeLayout") }
-    val inspector = LayoutInspector(model, disposableRule.disposable)
+    val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
+    val inspector = LayoutInspector(adbRule.bridge, processes, model, disposableRule.disposable, MoreExecutors.directExecutor())
     val settings = DeviceViewSettings()
-    val toolbar = getToolbar(DeviceViewPanel(inspector, settings, disposableRule.disposable))
+    val panel = DeviceViewPanel(processes, inspector, settings, disposableRule.disposable)
+    val toolbar = getToolbar(panel)
+
     toolbar.components.forEach { assertThat(it.isFocusable).isTrue() }
   }
 
@@ -303,7 +356,9 @@ class DeviceViewPanelTest {
     testPan({ _, _ -> }, { _, _ -> }, Button.MIDDLE)
   }
 
-  private fun testPan(startPan: (FakeUi, DeviceViewPanel) -> Unit, endPan: (FakeUi, DeviceViewPanel) -> Unit, panButton: Button = LEFT) {
+  private fun testPan(startPan: (FakeUi, DeviceViewPanel) -> Unit,
+                      endPan: (FakeUi, DeviceViewPanel) -> Unit,
+                      panButton: Button = Button.LEFT) {
     val model = model {
       view(ROOT, 0, 0, 100, 200) {
         view(VIEW1, 25, 30, 50, 50) {
@@ -312,8 +367,11 @@ class DeviceViewPanelTest {
       }
     }
 
-    val panel = DeviceViewPanel(LayoutInspector(model, disposableRule.disposable),
-                                DeviceViewSettings(scalePercent = 100), disposableRule.disposable)
+    val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
+    val inspector = LayoutInspector(adbRule.bridge, processes, model, disposableRule.disposable, MoreExecutors.directExecutor())
+    val settings = DeviceViewSettings(scalePercent = 100)
+    val panel = DeviceViewPanel(processes, inspector, settings, disposableRule.disposable)
+
     val contentPanel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first()
     val viewport = flatten(panel).filterIsInstance<JViewport>().first()
 
@@ -339,17 +397,22 @@ class DeviceViewPanelTest {
 }
 
 @RunsInEdt
-class DeviceViewPanelLegacyTest {
+class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
   @get:Rule
   val edtRule = EdtRule()
 
   @get:Rule
-  val inspectorRule = LayoutInspectorTransportRule().withLegacyClient().withDefaultDevice().attach()
+  val inspectorRule = LayoutInspectorRule().withLegacyClient()
 
   @Test
   fun testLiveControlDisabled() {
+    inspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess()
+    assertThat(inspectorRule.inspectorClient.selectedProcess).isNotNull()
+
     val settings = DeviceViewSettings()
-    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, inspectorRule.testRootDisposable))
+        val toolbar = getToolbar(
+      DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
+
     val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
     assertThat(checkbox.isEnabled).isFalse()
     assertThat(checkbox.toolTipText).isEqualTo("Live updates not available for devices below API 29")
@@ -357,19 +420,26 @@ class DeviceViewPanelLegacyTest {
 }
 
 @RunsInEdt
-class DeviceViewPanelLegacyWithApi29DeviceTest {
+class DeviceViewPanelLegacyClientOnModernDeviceTest {
   @get:Rule
   val edtRule = EdtRule()
 
   @get:Rule
-  val inspectorRule = LayoutInspectorTransportRule().withLegacyClient()
+  val inspectorRule = LayoutInspectorRule().withLegacyClient()
 
+  // TODO: Re-enable after refactoring inspector launching logic to allow this to happen
+  //  In production, if we have a 29+ device, the inspector client always runs, but for tests,
+  //  we should allow a bit more flexibility.
   @Test
+  @Ignore
   fun testLiveControlDisabled() {
-    inspectorRule.addProcess(DEFAULT_DEVICE, DEFAULT_PROCESS)
-    inspectorRule.attachTo(DEFAULT_STREAM, DEFAULT_PROCESS)
+    inspectorRule.processes.selectedProcess = MODERN_DEVICE.createProcess()
+    assertThat(inspectorRule.inspectorClient.selectedProcess).isNotNull()
+
     val settings = DeviceViewSettings()
-    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, inspectorRule.testRootDisposable))
+        val toolbar = getToolbar(
+      DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
+
     val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
     assertThat(checkbox.isEnabled).isFalse()
     assertThat(checkbox.toolTipText).isEqualTo(AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY))

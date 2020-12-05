@@ -114,7 +114,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
 
   private fun updateConnectionNotification(client: InspectorClient) {
     InspectorBannerService.getInstance(project).notification =
-      if (client is LegacyClient && client.selectedStream.device.apiLevel >= 29)
+      if (client is LegacyClient && client.selectedProcess?.device?.apiLevel ?: 0 >= 29)
         StatusNotificationImpl(AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY), emptyList())
       else null
   }
