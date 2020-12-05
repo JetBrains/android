@@ -37,16 +37,17 @@ import java.util.concurrent.Executor
  * [selectedProcess] (if set) and prevents further updates from being accepted, until the model is
  * resumed.
  *
- * @param acceptProcess An filter which affects which processes are added to the model.
+ * @param acceptProcess A filter which affects which processes are added to the model. If not
+ *   specified, all processes are accepted.
  */
 class ProcessesModel(private val executor: Executor,
                      private val processNotifier: ProcessNotifier,
-                     private val acceptProcess: (ProcessDescriptor) -> Boolean,
+                     private val acceptProcess: (ProcessDescriptor) -> Boolean = { true },
                      private val getPreferredProcessNames: () -> List<String>) : Disposable {
 
   @TestOnly
   constructor(processNotifier: ProcessNotifier, getPreferredProcessNames: () -> List<String>) :
-    this(MoreExecutors.directExecutor(), processNotifier, { true }, getPreferredProcessNames)
+    this(MoreExecutors.directExecutor(), processNotifier, getPreferredProcessNames = getPreferredProcessNames)
 
   @TestOnly
   constructor(processNotifier: ProcessNotifier,

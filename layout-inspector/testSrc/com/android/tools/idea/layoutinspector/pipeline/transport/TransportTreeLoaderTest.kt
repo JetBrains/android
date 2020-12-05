@@ -128,6 +128,17 @@ class TransportTreeLoaderTest {
   @get:Rule
   val projectRule = ProjectRule()
 
+  /**
+   * Creates a mock [TransportInspectorClient] with tree loader initialized.
+   *
+   * Callers can continue to mock the returned client if necessary.
+   */
+  private fun createMockTransportClient(): TransportInspectorClient {
+    val client: TransportInspectorClient = mock()
+    `when`(client.treeLoader).thenReturn(TransportTreeLoader(projectRule.project, client))
+    return client
+  }
+
   @Test
   fun testLoad() {
     val image1: Image = mock()
@@ -148,15 +159,14 @@ class TransportTreeLoaderTest {
       ))
     ))
 
-    val client: TransportInspectorClient = mock()
+    val client = createMockTransportClient()
     val payload = "samplepicture".toByteArray()
     `when`(client.getPayload(111)).thenReturn(payload)
     val skiaParser: SkiaParserService = mock()
     `when`(skiaParser.getViewTree(eq(payload), argThat { req -> req.map { it.id }.sorted() == listOf(1L, 2L, 3L, 4L) }, any(), any()))
       .thenReturn(skiaResponse)
 
-    val (window, _) =
-      TransportTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
+    val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), skiaParser)!!
     window!!.refreshImages(1.0)
     val tree = window.root
     assertThat(tree.drawId).isEqualTo(1)
@@ -211,10 +221,10 @@ class TransportTreeLoaderTest {
       }.build()
     }.build()
 
-    val client: TransportInspectorClient = mock()
+    val client = createMockTransportClient()
     `when`(client.getPayload(111)).thenReturn(imageBytes)
 
-    val (window, _) = TransportTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, projectRule.project)!!
+    val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project))!!
     window!!.refreshImages(1.0)
     val tree = window.root
 
@@ -229,15 +239,14 @@ class TransportTreeLoaderTest {
   @Test
   fun testUnsupportedSkpVersion() {
     val banner = InspectorBanner(projectRule.project)
-    val client: TransportInspectorClient = mock()
+    val client = createMockTransportClient()
     val payload = "samplepicture".toByteArray()
     `when`(client.getPayload(111)).thenReturn(payload)
 
     val skiaParser: SkiaParserService = mock()
     `when`(skiaParser.getViewTree(eq(payload), any(), any(), any())).thenAnswer { throw UnsupportedPictureVersionException(123) }
 
-    val (window, _) =
-      TransportTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
+    val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), skiaParser)!!
     window!!.refreshImages(1.0)
     verify(client).requestScreenshotMode()
     assertThat(banner.text.text).isEqualTo("No renderer supporting SKP version 123 found. Rotation disabled.")
@@ -248,15 +257,14 @@ class TransportTreeLoaderTest {
   @Test
   fun testInvalidSkp() {
     val banner = InspectorBanner(projectRule.project)
-    val client: TransportInspectorClient = mock()
+    val client = createMockTransportClient()
     val payload = "samplepicture".toByteArray()
     `when`(client.getPayload(111)).thenReturn(payload)
 
     val skiaParser: SkiaParserService = mock()
     `when`(skiaParser.getViewTree(eq(payload), any(), any(), any())).thenReturn(null)
 
-    val (window, _) =
-      TransportTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
+    val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), skiaParser)!!
     window!!.refreshImages(1.0)
     verify(client).requestScreenshotMode()
     assertThat(banner.text.text).isEqualTo("Invalid picture data received from device. Rotation disabled.")
@@ -267,15 +275,14 @@ class TransportTreeLoaderTest {
   @Test
   fun testOtherProblem() {
     val banner = InspectorBanner(projectRule.project)
-    val client: TransportInspectorClient = mock()
+    val client = createMockTransportClient()
     val payload = "samplepicture".toByteArray()
     `when`(client.getPayload(111)).thenReturn(payload)
 
     val skiaParser: SkiaParserService = mock()
     `when`(skiaParser.getViewTree(eq(payload), any(), any(), any())).thenAnswer { throw Exception() }
 
-    val (window, _) =
-      TransportTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
+    val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), skiaParser)!!
     window!!.refreshImages(1.0)
     verify(client).requestScreenshotMode()
     assertThat(banner.text.text).isEqualTo("Problem launching renderer. Rotation disabled.")
@@ -292,10 +299,9 @@ class TransportTreeLoaderTest {
       }.build()
     }.build()
 
-    val client: TransportInspectorClient = mock()
+    val client = createMockTransportClient()
     val skiaParser: SkiaParserService = mock()
-    val (window, generation) =
-      TransportTreeLoader.loadComponentTree(eventTreeEvent, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
+    val (window, generation) = client.treeLoader.loadComponentTree(eventTreeEvent, ResourceLookup(projectRule.project), skiaParser)!!
     assertThat(window).isNull()
     assertThat(generation).isEqualTo(17)
   }

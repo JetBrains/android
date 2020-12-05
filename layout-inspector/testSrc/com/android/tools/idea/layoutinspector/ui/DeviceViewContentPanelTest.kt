@@ -54,7 +54,7 @@ class DeviceViewContentPanelTest {
 
   @get:Rule
   val clientFactoryRule = PropertySetterRule(
-    { _, _ -> listOf(mock()) },
+    { _, _, _, _ -> listOf(mock()) },
     InspectorClient.Companion::clientFactory)
 
   @Test

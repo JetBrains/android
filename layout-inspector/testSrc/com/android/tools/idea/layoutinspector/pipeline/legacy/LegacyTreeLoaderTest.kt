@@ -29,6 +29,8 @@ import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.workbench.PropertiesComponentMock
+import com.android.tools.idea.appinspection.api.process.ProcessesModel
+import com.android.tools.idea.appinspection.test.TestProcessNotifier
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -42,7 +44,6 @@ import com.android.tools.idea.layoutinspector.view
 import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -72,9 +73,6 @@ class LegacyTreeLoaderTest {
   @get:Rule
   val adb = FakeAdbRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
-
   @Before
   fun init() {
     val propertiesComponent = PropertiesComponentMock()
@@ -99,6 +97,26 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
 DONE.
 """.trim()
 
+  /**
+   * Creates a real [LegacyClient] that's good enough for most tests and provides access to an
+   * internally constructed [LegacyTreeLoader]
+   */
+  private fun createSimpleLegacyClient(): LegacyClient {
+    return LegacyClient(adb.bridge, ProcessesModel(TestProcessNotifier()) { listOf() }, model {})
+  }
+
+  /**
+   * Creates a mock [LegacyClient] with tree loader and screenshots initialized.
+   *
+   * Callers can continue to mock the returned client if necessary.
+   */
+  private fun createMockLegacyClient(): LegacyClient {
+    val legacyClient = mock<LegacyClient>()
+    `when`(legacyClient.latestScreenshots).thenReturn(mutableMapOf())
+    `when`(legacyClient.treeLoader).thenReturn(LegacyTreeLoader(adb.bridge, legacyClient))
+    return legacyClient
+  }
+
   @Test
   fun testParseNodes() {
     val lookup = mock<ViewNodeAndResourceLookup>()
@@ -107,7 +125,9 @@ DONE.
     `when`(resourceLookup.dpi).thenReturn(-1)
     val provider = LegacyPropertiesProvider()
     val propertiesUpdater = LegacyPropertiesProvider.Updater(lookup)
-    val (root, hash) = LegacyTreeLoader.parseLiveViewNode(treeSample.toByteArray(Charsets.UTF_8), propertiesUpdater)!!
+
+    val treeLoader = createSimpleLegacyClient().treeLoader
+    val (root, hash) = treeLoader.parseLiveViewNode(treeSample.toByteArray(Charsets.UTF_8), propertiesUpdater)!!
     propertiesUpdater.apply(provider)
     provider.requestProperties(root)
     assertThat(hash).isEqualTo("com.android.internal.policy.DecorView@41673e3")
@@ -158,12 +178,10 @@ DONE.
     ByteBufferUtil.putString(responseBytes, window1)
     responseBytes.putInt(window2.length)
     ByteBufferUtil.putString(responseBytes, window2)
-    val ddmClient = FakeClientBuilder().registerResponse(requestMatcher, CHUNK_VULW, responseBytes).build()
 
-    val legacyClient = LegacyClient(model {}, disposableRule.disposable)
-    legacyClient.selectedClient = ddmClient
-
-    val result = LegacyTreeLoader.getAllWindowIds(null, legacyClient)
+    val legacyClient = createSimpleLegacyClient()
+    legacyClient.treeLoader.ddmClientOverride = FakeClientBuilder().registerResponse(requestMatcher, CHUNK_VULW, responseBytes).build()
+    val result = legacyClient.treeLoader.getAllWindowIds(null)
     assertThat(result).containsExactly(window1, window2)
   }
 
@@ -172,12 +190,10 @@ DONE.
     val image = ImageIO.read(File(getWorkspaceRoot().toFile(), "$TEST_DATA_PATH/image1.png"))
     val lookup = mock<ViewNodeAndResourceLookup>()
     val resourceLookup = mock<ResourceLookup>()
-    val legacyClient = mock<LegacyClient>()
+    val legacyClient = createMockLegacyClient()
     val device = mock<IDevice>()
     val client = mock<ClientImpl>()
     `when`(lookup.resourceLookup).thenReturn(resourceLookup)
-    `when`(legacyClient.selectedClient).thenReturn(client)
-    `when`(legacyClient.latestScreenshots).thenReturn(mutableMapOf())
     `when`(device.density).thenReturn(560)
     `when`(client.device).thenReturn(device)
     `when`(client.send(argThat { argument ->
@@ -198,9 +214,10 @@ DONE.
     doAnswer { it.getArgument<Int>(0).let { idx -> image.getRGB(idx % image.width, idx / image.width)} }
       .`when`(rawImage).getARGB(anyInt())
     `when`(device.getScreenshot(anyLong(), any())).thenReturn(rawImage)
-    val (window, _) = LegacyTreeLoader.loadComponentTree(
+    legacyClient.treeLoader.ddmClientOverride = client
+    val (window, _) = legacyClient.treeLoader.loadComponentTree(
       LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")),
-      resourceLookup, legacyClient, mock())!!
+      resourceLookup)!!
     window.refreshImages(1.0)
 
     assertThat(window.id).isEqualTo("window1")
@@ -234,11 +251,9 @@ DONE.
     val image1 = ImageIO.read(File(getWorkspaceRoot().toFile(), "$TEST_DATA_PATH/image1.png"))
     val lookup = mock<ViewNodeAndResourceLookup>()
     val resourceLookup = mock<ResourceLookup>()
-    val legacyClient = mock<LegacyClient>()
+    val legacyClient = createMockLegacyClient()
     val device = mock<IDevice>()
     val client = mock<ClientImpl>()
-    `when`(legacyClient.selectedClient).thenReturn(client)
-    `when`(legacyClient.latestScreenshots).thenReturn(mutableMapOf())
     `when`(client.device).thenReturn(device)
     `when`(lookup.resourceLookup).thenReturn(resourceLookup)
     `when`(client.send(argThat { argument ->
@@ -264,9 +279,10 @@ DONE.
     doAnswer { it.getArgument<Int>(0).let { idx -> image1.getRGB(idx % image1.width, idx / image1.width)} }
       .`when`(rawImage).getARGB(anyInt())
     `when`(device.getScreenshot(anyLong(), any())).thenReturn(rawImage)
-    val (window, _) = LegacyTreeLoader.loadComponentTree(
+    legacyClient.treeLoader.ddmClientOverride = client
+    val (window, _) = legacyClient.treeLoader.loadComponentTree(
       LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")),
-      resourceLookup, legacyClient, mock())!!
+      resourceLookup)!!
     val model = InspectorModel(mock())
     model.update(window, listOf("window1"), 0)
 
@@ -301,9 +317,8 @@ DONE.
       .image, 0.0)
 
     // Update and verify the image is updated
-    val (updatedWindow, _) = LegacyTreeLoader.loadComponentTree(
-      LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")),
-      resourceLookup, legacyClient, mock())!!
+    val (updatedWindow, _) = legacyClient.treeLoader.loadComponentTree(
+      LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")), resourceLookup)!!
     model.update(updatedWindow, listOf("window1"), 1)
 
     window.refreshImages(1.0)

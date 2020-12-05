@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline
 
-import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
+import com.android.ddmlib.AndroidDebugBridge
+import com.android.tools.idea.appinspection.api.process.ProcessesModel
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
@@ -24,12 +26,10 @@ import com.android.tools.idea.layoutinspector.properties.EmptyPropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
-import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Event.EventGroupIds
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.project.Project
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
 
@@ -46,26 +46,6 @@ interface InspectorClient {
    * Register a handler for when the current process starts and ends.
    */
   fun registerProcessChanged(callback: (InspectorClient) -> Unit)
-
-  /**
-   * Returns a sequence of the known devices seen from this client.
-   */
-  fun getStreams(): Sequence<Common.Stream>
-
-  /**
-   * Returns a sequence of the known processes for the specified device/stream.
-   */
-  fun getProcesses(stream: Common.Stream): Sequence<Common.Process>
-
-  /**
-   * Attach to a preferred process.
-   */
-  fun attachIfSupported(preferredProcess: LayoutInspectorPreferredProcess): Future<*>?
-
-  /**
-   * Attach to a specific process.
-   */
-  fun attach(stream: Common.Stream, process: Common.Process)
 
   /**
    * Disconnect from the current process.
@@ -97,19 +77,9 @@ interface InspectorClient {
   val treeLoader: TreeLoader
 
   /**
-   * True, if a connection to a device is currently open.
+   * The process to which this client is currently connected.
    */
-  val isConnected: Boolean
-
-  /**
-   * If [isConnected] contains the current selected device stream.
-   */
-  val selectedStream: Common.Stream
-
-  /**
-   * If [isConnected] contains the current selected process.
-   */
-  val selectedProcess: Common.Process
+  val selectedProcess: ProcessDescriptor?
 
   /**
    * True, if the current connection is currently receiving live updates.
@@ -121,42 +91,43 @@ interface InspectorClient {
    */
   val provider: PropertiesProvider
 
+  /**
+   * Return true if the current client is actively connected to the current process.
+   */
+  val isConnected: Boolean get() = selectedProcess != null
+
   companion object {
     /**
      * Provide a way for tests to generate a mock client.
      */
     @VisibleForTesting
-    var clientFactory: (model: InspectorModel, parentDisposable: Disposable) -> List<InspectorClient> = { model, parentDisposable ->
-      listOf(TransportInspectorClient(model, parentDisposable), LegacyClient(model, parentDisposable))
+    var clientFactory: (adb: AndroidDebugBridge, processes: ProcessesModel, model: InspectorModel, parentDisposable: Disposable) -> List<InspectorClient> = { adb, processes, model, parentDisposable ->
+      listOf(TransportInspectorClient(adb, processes, model, parentDisposable), LegacyClient(adb, processes, model))
     }
 
     /**
      * Use this method to create a new client.
      */
-    fun createInstances(model: InspectorModel, parentDisposable: Disposable): List<InspectorClient> = clientFactory(model, parentDisposable)
+    fun createInstances(adb: AndroidDebugBridge,
+                        processes: ProcessesModel,
+                        model: InspectorModel,
+                        parentDisposable: Disposable): List<InspectorClient> = clientFactory(adb, processes, model, parentDisposable)
   }
 }
 
 object DisconnectedClient : InspectorClient {
-  override val treeLoader: TreeLoader = object: TreeLoader {
-    override fun loadComponentTree(
-      data: Any?, resourceLookup: ResourceLookup, client: InspectorClient, project: Project
-    ): Pair<AndroidWindow, Int>? = null
-    override fun getAllWindowIds(data: Any?, client: InspectorClient) = listOf<Any>()
-  }
   override fun register(groupId: EventGroupIds, callback: (Any) -> Unit) {}
   override fun registerProcessChanged(callback: (InspectorClient) -> Unit) {}
-  override fun getStreams(): Sequence<Common.Stream> = emptySequence()
-  override fun getProcesses(stream: Common.Stream): Sequence<Common.Process> = emptySequence()
-  override fun attachIfSupported(preferredProcess: LayoutInspectorPreferredProcess): Future<*>? = null
-  override fun attach(stream: Common.Stream, process: Common.Process) {}
   override fun disconnect(): Future<Nothing> = CompletableFuture.completedFuture(null)
   override fun execute(command: LayoutInspectorCommand) {}
   override fun refresh() {}
   override fun logEvent(type: DynamicLayoutInspectorEventType) {}
-  override val isConnected = false
-  override val selectedStream: Common.Stream = Common.Stream.getDefaultInstance()
-  override val selectedProcess: Common.Process = Common.Process.getDefaultInstance()
+
+  override val treeLoader = object : TreeLoader {
+    override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup): Pair<AndroidWindow?, Int>? = null
+    override fun getAllWindowIds(data: Any?): List<*> = emptyList<Any>()
+  }
+  override val selectedProcess: ProcessDescriptor? = null
   override val isCapturing = false
   override val provider = EmptyPropertiesProvider
 }

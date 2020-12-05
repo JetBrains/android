@@ -39,8 +39,11 @@ class TransportProcessDescriptor(
       return "DeviceDescriptor(manufacturer='$manufacturer', model='$model', serial='$serial', isEmulator='$isEmulator', apiLevel='$apiLevel')"
     }
   }
+  override val abiCpuArch: String = process.abiCpuArch
   override val name: String = process.name
   override val isRunning: Boolean = process.state != Common.Process.State.DEAD
+  override val pid: Int = process.pid
+  override val streamId: Long = stream.streamId
 
   override fun toString(): String {
     return "ProcessDescriptor(device='$device', name='$name', isRunning='$isRunning')"

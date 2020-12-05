@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.inspector
 
+import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_TOOL_WINDOW_ID
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.ui.DEVICE_VIEW_ACTION_TOOLBAR_NAME
 import com.android.tools.idea.layoutinspector.ui.LayerSpacingSliderAction
-import com.android.tools.idea.layoutinspector.ui.SelectProcessAction
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentTreeFixture
