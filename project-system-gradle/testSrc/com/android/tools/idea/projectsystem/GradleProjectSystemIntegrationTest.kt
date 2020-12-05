@@ -17,7 +17,7 @@ package com.android.tools.idea.projectsystem
 
 import com.android.SdkConstants
 import com.android.projectmodel.ExternalLibrary
-import com.android.testutils.truth.FileSubject.assertThat
+import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
