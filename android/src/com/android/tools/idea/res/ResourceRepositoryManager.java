@@ -300,7 +300,7 @@ public final class ResourceRepositoryManager implements Disposable {
    *     and the framework resources cannot be determined for the module
    * @see #getAppResources()
    * @see #getFrameworkResources(Set)
-   * @see #getExistingResourcesForNamespace(ResourceNamespace)
+   * @see #getCachedResourcesForNamespace(ResourceNamespace)
    */
   @Slow
   @Nullable
@@ -317,8 +317,8 @@ public final class ResourceRepositoryManager implements Disposable {
    * @see #getResourcesForNamespace(ResourceNamespace)
    */
   @Nullable
-  public ResourceRepository getExistingResourcesForNamespace(@NotNull ResourceNamespace namespace) {
-    return namespace.equals(ResourceNamespace.ANDROID) ? getExistingFrameworkResources(Collections.emptySet()) : getExistingAppResources();
+  public ResourceRepository getCachedResourcesForNamespace(@NotNull ResourceNamespace namespace) {
+    return namespace.equals(ResourceNamespace.ANDROID) ? getCachedFrameworkResources(Collections.emptySet()) : getCachedAppResources();
   }
 
   /**
@@ -334,12 +334,12 @@ public final class ResourceRepositoryManager implements Disposable {
    * or block waiting for a read action lock.
    *
    * @return the computed repository
-   * @see #getExistingAppResources()
+   * @see #getCachedAppResources()
    */
   @Slow
   @NotNull
   public LocalResourceRepository getAppResources() {
-    LocalResourceRepository appResources = getExistingAppResources();
+    LocalResourceRepository appResources = getCachedAppResources();
     if (appResources != null) {
       return appResources;
     }
@@ -370,7 +370,7 @@ public final class ResourceRepositoryManager implements Disposable {
    * @see #getAppResources()
    */
   @Nullable
-  public LocalResourceRepository getExistingAppResources() {
+  public LocalResourceRepository getCachedAppResources() {
     synchronized (APP_RESOURCES_LOCK) {
       return myAppResources;
     }
@@ -384,12 +384,12 @@ public final class ResourceRepositoryManager implements Disposable {
    * or block waiting for a read action lock.
    *
    * @return the computed repository
-   * @see #getExistingProjectResources()
+   * @see #getCachedProjectResources()
    */
   @Slow
   @NotNull
   public LocalResourceRepository getProjectResources() {
-    LocalResourceRepository projectResources = getExistingProjectResources();
+    LocalResourceRepository projectResources = getCachedProjectResources();
     if (projectResources != null) {
       return projectResources;
     }
@@ -416,7 +416,7 @@ public final class ResourceRepositoryManager implements Disposable {
    * @see #getProjectResources()
    */
   @Nullable
-  public LocalResourceRepository getExistingProjectResources() {
+  public LocalResourceRepository getCachedProjectResources() {
     synchronized (PROJECT_RESOURCES_LOCK) {
       return myProjectResources;
     }
@@ -430,12 +430,12 @@ public final class ResourceRepositoryManager implements Disposable {
    * or block waiting for a read action lock.
    *
    * @return the computed repository
-   * @see #getExistingModuleResources()
+   * @see #getCachedModuleResources()
    */
   @Slow
   @NotNull
   public LocalResourceRepository getModuleResources() {
-    LocalResourceRepository moduleResources = getExistingModuleResources();
+    LocalResourceRepository moduleResources = getCachedModuleResources();
     if (moduleResources != null) {
       return moduleResources;
     }
@@ -462,7 +462,7 @@ public final class ResourceRepositoryManager implements Disposable {
    * @see #getModuleResources()
    */
   @Nullable
-  public LocalResourceRepository getExistingModuleResources() {
+  public LocalResourceRepository getCachedModuleResources() {
     synchronized (MODULE_RESOURCES_LOCK) {
       return myModuleResources;
     }
@@ -553,13 +553,13 @@ public final class ResourceRepositoryManager implements Disposable {
    * @return the framework repository, or null if the repository hasn't been loaded yet
    */
   @Nullable
-  public ResourceRepository getExistingFrameworkResources(@NotNull Set<String> languages) {
+  public ResourceRepository getCachedFrameworkResources(@NotNull Set<String> languages) {
     AndroidPlatform androidPlatform = AndroidPlatform.getInstance(myFacet.getModule());
     if (androidPlatform == null) {
       return null;
     }
 
-    return androidPlatform.getSdkData().getTargetData(androidPlatform.getTarget()).getExistingFrameworkResources(languages);
+    return androidPlatform.getSdkData().getTargetData(androidPlatform.getTarget()).getCachedFrameworkResources(languages);
   }
 
   /**
@@ -672,8 +672,8 @@ public final class ResourceRepositoryManager implements Disposable {
     try {
       resetVisibility();
 
-      ProjectResourceRepository projectResources = (ProjectResourceRepository)getExistingProjectResources();
-      AppResourceRepository appResources = (AppResourceRepository)getExistingAppResources();
+      ProjectResourceRepository projectResources = (ProjectResourceRepository)getCachedProjectResources();
+      AppResourceRepository appResources = (AppResourceRepository)getCachedAppResources();
       if (projectResources != null) {
         projectResources.updateRoots();
       }
