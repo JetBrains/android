@@ -341,7 +341,7 @@ public class ResourceNotificationManager {
 
     private ModuleEventObserver(@NotNull AndroidFacet facet) {
       myFacet = facet;
-      myGeneration = ResourceRepositoryManager.getAppResources(facet).getModificationCount();
+      myGeneration = getAppResourcesModificationCount();
     }
 
     @Override
@@ -393,7 +393,7 @@ public class ResourceNotificationManager {
       if (myFacet.isDisposed()) {
         return;
       }
-      long generation = ResourceRepositoryManager.getAppResources(myFacet).getModificationCount();
+      long generation = getAppResourcesModificationCount();
       if (reason.size() == 1 && reason.contains(Reason.RESOURCE_EDIT) && generation == myGeneration) {
         // Notified of an edit in some file that could potentially affect the resources, but
         // it didn't cause the modification stamp to increase: ignore. (If there are other reasons,
@@ -410,6 +410,11 @@ public class ResourceNotificationManager {
       for (ResourceChangeListener listener : listeners) {
         listener.resourcesChanged(reason);
       }
+    }
+
+    private long getAppResourcesModificationCount() {
+      LocalResourceRepository appResources = ResourceRepositoryManager.getInstance(myFacet).getExistingAppResources();
+      return appResources == null ? 0 : appResources.getModificationCount();
     }
 
     private boolean hasListeners() {
