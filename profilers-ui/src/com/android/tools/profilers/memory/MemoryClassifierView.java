@@ -650,24 +650,31 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
   @Nullable
   public static MemoryObjectTreeNode<ClassifierSet> findSmallestSuperSetNode(@NotNull MemoryObjectTreeNode<ClassifierSet> rootNode,
                                                                              @NotNull ClassifierSet targetSet) {
-    return findSmallestSuperSetNode(rootNode, targetSet.getInstancesStream().collect(Collectors.toSet()));
+    Set<InstanceObject> target = targetSet.getInstancesStream().collect(Collectors.toSet());
+    return rootNode.getAdapter().isSupersetOf(target) ? findSmallestSuperSetNode(rootNode, target) : null;
   }
 
-  @Nullable
+  @NotNull
   private static MemoryObjectTreeNode<ClassifierSet> findSmallestSuperSetNode(@NotNull MemoryObjectTreeNode<ClassifierSet> rootNode,
                                                                               @NotNull Set<InstanceObject> targetSet) {
-    if (rootNode.getAdapter().isSupersetOf(targetSet)) {
-      for (MemoryObjectTreeNode<ClassifierSet> child : rootNode.getChildren()) {
-        MemoryObjectTreeNode<ClassifierSet> result = findSmallestSuperSetNode(child, targetSet);
-        if (result != null) {
-          return result;
-        }
-      }
+    // At any point, we maintain that `rootNode` is the only subtree that can cover `targetSet`.
+    // Given that nodes' immediate instances don't overlap:
+    // - If `rootNode`'s immediate instances overlap with `targetSet`, then it's also the smallest superset.
+    // - If `rootNode` doesn't immediately overlap with `targetSet` but it has 2+ children that overlap with `targetSet`, it must
+    //   also be the smallest superset
 
+    // Get children first for the side-effect of possibly pushing down the node's instances to its children
+    List<MemoryObjectTreeNode<ClassifierSet>> childNodes = rootNode.getChildren();
+
+    if (rootNode.getAdapter().immediateInstancesOverlapWith(targetSet)) {
       return rootNode;
     }
 
-    return null;
+    List<MemoryObjectTreeNode<ClassifierSet>> subResults = childNodes.stream()
+      .filter(node -> node.getAdapter().overlapsWith(targetSet))
+      .collect(Collectors.toList());
+    assert !subResults.isEmpty();
+    return subResults.size() == 1 ? findSmallestSuperSetNode(subResults.get(0), targetSet) : rootNode;
   }
 
   /**
