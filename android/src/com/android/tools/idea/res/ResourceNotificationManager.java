@@ -412,7 +412,7 @@ public class ResourceNotificationManager {
     }
 
     private long getAppResourcesModificationCount() {
-      LocalResourceRepository appResources = ResourceRepositoryManager.getInstance(myFacet).getExistingAppResources();
+      LocalResourceRepository appResources = ResourceRepositoryManager.getInstance(myFacet).getCachedAppResources();
       return appResources == null ? 0 : appResources.getModificationCount();
     }
 

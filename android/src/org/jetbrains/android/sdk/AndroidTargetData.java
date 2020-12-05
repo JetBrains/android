@@ -289,14 +289,14 @@ public class AndroidTargetData {
    */
   @Slow
   @Nullable
-  public synchronized ResourceRepository getExistingFrameworkResources(@NotNull Set<String> languages) {
+  public synchronized ResourceRepository getCachedFrameworkResources(@NotNull Set<String> languages) {
     Path resFolderOrJar = myTarget.getPath(IAndroidTarget.RESOURCES);
     if (!Files.exists(resFolderOrJar)) {
       LOG.error(String.format("\"%s\" directory or file cannot be found", resFolderOrJar.toString()));
       return null;
     }
 
-    return FrameworkResourceRepositoryManager.getInstance().getExistingFrameworkResources(
+    return FrameworkResourceRepositoryManager.getInstance().getCachedFrameworkResources(
       resFolderOrJar,
       myTarget instanceof CompatibilityRenderTarget,
       languages);
