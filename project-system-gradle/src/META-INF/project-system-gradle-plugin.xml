@@ -21,11 +21,14 @@
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceInterface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider"
                         serviceImplementation="com.android.tools.idea.projectsystem.gradle.GradleModelSource"/>
-    <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
+    <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider"/>
     <androidStudioInitializer id="Startup.AndroidGradleOpenProjectProcessorInitializer"
                               implementation="com.android.tools.idea.projectsystem.gradle.AndroidGradleOpenProjectProcessorInitializer"/>
     <androidStudioInitializer id="Startup.AndroidGradleDisableAutoImportInitializer"
                               implementation="com.android.tools.idea.projectsystem.gradle.AndroidGradleDisableAutoImportInitializer"/>
+    <projectTaskRunner implementation="com.android.tools.idea.gradle.project.build.AndroidProjectTaskRunner"
+                       id="android"
+                       order="first, before gradle"/>
   </extensions>
   <actions>
     <group id="Internal.Android.Gradle" internal="true">
