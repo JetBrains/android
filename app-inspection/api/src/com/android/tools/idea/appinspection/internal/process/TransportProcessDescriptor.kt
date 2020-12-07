@@ -33,6 +33,8 @@ class TransportProcessDescriptor(
     override val serial: String = stream.device.serial
     override val isEmulator: Boolean = stream.device.isEmulator
     override val apiLevel: Int = stream.device.apiLevel
+    override val version: String = stream.device.version
+    override val codename: String? = stream.device.codename.takeUnless { it.isNullOrBlank() }
 
     override fun toString(): String {
       return "DeviceDescriptor(manufacturer='$manufacturer', model='$model', serial='$serial', isEmulator='$isEmulator', apiLevel='$apiLevel')"
