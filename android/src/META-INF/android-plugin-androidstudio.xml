@@ -111,7 +111,7 @@
     </action>
 
     <action id="WelcomeScreen.RunAndroidAvdManager" class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
-            icon="StudioIcons.Shell.Menu.AVD_MANAGER">
+            icon="StudioIcons.Shell.Menu.AVD_MANAGER" text="AVD Manager">
       <add-to-group group-id="WelcomeScreen.Configure" anchor="first" />
     </action>
 

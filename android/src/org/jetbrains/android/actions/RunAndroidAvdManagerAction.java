@@ -37,12 +37,6 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
 
   @Nullable private AvdListDialog myDialog;
 
-  public RunAndroidAvdManagerAction(){
-    super(AndroidBundle.messagePointer("android.run.avd.manager.action.text"));
-    addTextOverride(ActionPlaces.TOOLBAR, AndroidBundle.messagePointer("action.add.device.definition.text")); // Layout editor device menu
-    addTextOverride(ActionPlaces.POPUP, AndroidBundle.messagePointer("action.open.avd.manager.text")); // "run target" menu
-  }
-
   @Override
   public void update(@NotNull AnActionEvent event) {
     Presentation presentation = event.getPresentation();
