@@ -26,9 +26,9 @@ import javax.swing.JTextField
 import javax.swing.event.DocumentEvent
 
 class PrimaryModuleImportSettings : ModuleImportSettings {
-  private val moduleNameLabel = JBLabel("Module name")
-  private val moduleNameField = JTextField()
-  private val primaryModuleState = JBLabel()
+  val moduleNameLabel = JBLabel("Module name")
+  val moduleNameField = JTextField()
+  val primaryModuleState = JBLabel()
 
   override fun isModuleSelected(): Boolean = true
 
@@ -58,7 +58,7 @@ class PrimaryModuleImportSettings : ModuleImportSettings {
 
   override fun setValidationStatus(statusSeverity: MessageType?, statusDescription: String?) {
     primaryModuleState.icon = statusSeverity?.defaultIcon
-    primaryModuleState.text = Strings.nullToEmpty(statusDescription)
+    primaryModuleState.text = """<html>${Strings.nullToEmpty(statusDescription)}</html>""" // <html> allows text to wrap
   }
 
   override fun setVisible(visible: Boolean) {
