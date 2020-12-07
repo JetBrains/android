@@ -30,10 +30,11 @@ class ProcessListSorter(nameHint: String) {
       // We do a ByDescending on the first check, because we want the process that return TRUE to
       // be LOWER (so at the beginning).
       compareByDescending { process: ProcessModel -> nameHintLower.contains(process.getLowerName()) }
-        // Then if our name starts with < then we have a process whose name did not resolve, so we give them a lower priority.
+        // Then if its name starts with < then we have a process whose name did not resolve, so we give them a lower priority.
+        // Since startsWith returns a boolean, the comparator will sort the ones with false before.
         .thenBy { process: ProcessModel -> process.getLowerName().startsWith("<") }
-        // Then who has more threads.
-        .thenBy { process: ProcessModel -> 0 - process.getThreads().size }
+        // Then which one has more threads.
+        .thenByDescending { process: ProcessModel -> process.getThreads().size }
         // Then by name.
         .thenBy { process: ProcessModel -> process.getSafeProcessName() }
         // Last tiebreaker is the id.
