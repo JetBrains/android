@@ -49,7 +49,7 @@ class AppInspectionProcessesModelTest {
     // Verify the added target.
     assertThat(model.processes.size).isEqualTo(1)
     with(model.processes.first()) {
-      assertThat(this.model).isEqualTo(FakeTransportService.FAKE_DEVICE.model)
+      assertThat(this.device.model).isEqualTo(FakeTransportService.FAKE_DEVICE.model)
       assertThat(this.processName).isEqualTo(FakeTransportService.FAKE_PROCESS.name)
     }
     val selectedName = model.selectedProcess!!.processName

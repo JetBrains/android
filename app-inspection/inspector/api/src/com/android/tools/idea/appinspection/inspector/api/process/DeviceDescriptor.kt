@@ -16,15 +16,21 @@
 package com.android.tools.idea.appinspection.inspector.api.process
 
 /**
- * Basic information about a process running on a device.
+ * Basic information about a device.
  */
-interface ProcessDescriptor {
-  /** Information about the device this process is running on. */
-  val device: DeviceDescriptor
+interface DeviceDescriptor {
+  /** The manufacturer of the device. */
+  val manufacturer: String
 
-  /** The fully qualified name of the process. */
-  val processName: String
+  /** The model of the device. */
+  val model: String
 
-  /** Whether this process is actively running or not. If not running, that implies it has been terminated. */
-  val isRunning: Boolean
+  /** The serial number of the device. */
+  val serial: String
+
+  /** Whether this process is running on a virtual device or a physical one. */
+  val isEmulator: Boolean
+
+  /** The API level of this device. See also: AndroidVersion.VersionCodes */
+  val apiLevel: Int
 }

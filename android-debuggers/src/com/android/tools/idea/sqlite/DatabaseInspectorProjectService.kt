@@ -243,7 +243,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     ideServices = appInspectionIdeServices
 
     appPackageName = withContext(workerDispatcher) {
-      PackageNameProvider.getPackageName(project, processDescriptor.serial, processDescriptor.processName).await()
+      PackageNameProvider.getPackageName(project, processDescriptor.device.serial, processDescriptor.processName).await()
     }
   }
 

@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.inspector.api.process
+package com.android.tools.idea.sqlite
 
-/**
- * Basic information about a process running on a device.
- */
-interface ProcessDescriptor {
-  /** Information about the device this process is running on. */
-  val device: DeviceDescriptor
+import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 
-  /** The fully qualified name of the process. */
-  val processName: String
+class StubProcessDescriptor : ProcessDescriptor {
+  override val device = object : DeviceDescriptor {
+    override val manufacturer = "manufacturer"
+    override val model = "model"
+    override val serial = "serial"
+    override val isEmulator = false
+    override val apiLevel = 26
+  }
 
-  /** Whether this process is actively running or not. If not running, that implies it has been terminated. */
-  val isRunning: Boolean
+  override val processName = "processName"
+  override val isRunning = true
 }
