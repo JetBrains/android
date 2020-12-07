@@ -155,10 +155,10 @@ class ComposePreviewRepresentationProvider(
           emptySequence()
         else
           try {
-            filePreviewElementProvider().findPreviewMethods(psiFile.project, psiFile.virtualFile)
+            filePreviewElementProvider().findPreviewMethods(psiFile.project, psiFile.virtualFile).asSequence()
           }
           catch (_: IndexNotReadyException) {
-            emptySequence<PreviewElement>()
+            emptySequence()
           }
     }
     val hasPreviewMethods = filePreviewElementProvider().hasPreviewMethods(psiFile.project, psiFile.virtualFile)

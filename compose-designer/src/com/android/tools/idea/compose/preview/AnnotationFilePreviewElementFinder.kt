@@ -72,11 +72,11 @@ fun hasAnnotatedMethods(project: Project, vFile: VirtualFile,
  * [FilePreviewElementFinder] that uses `@Preview` annotations.
  */
 object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
-  private fun findAllPreviewAnnotations(project: Project, vFile: VirtualFile): Sequence<KtAnnotationEntry> {
+  private fun findAllPreviewAnnotations(project: Project, vFile: VirtualFile): Collection<KtAnnotationEntry> {
     if (DumbService.isDumb(project)) {
       Logger.getInstance(AnnotationFilePreviewElementFinder::class.java)
         .debug("findPreviewMethods called while indexing. No annotations will be found")
-      return sequenceOf()
+      return emptyList()
     }
 
     val kotlinAnnotations: Sequence<PsiElement> = ReadAction.compute<Sequence<PsiElement>, Throwable> {
@@ -87,6 +87,7 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
     return kotlinAnnotations
       .filterIsInstance<KtAnnotationEntry>()
       .filter { it.isPreviewAnnotation() }
+      .toList()
   }
 
   override fun hasPreviewMethods(project: Project, vFile: VirtualFile): Boolean =
@@ -99,9 +100,10 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
    * Returns all the `@Composable` functions in the [vFile] that are also tagged with `@Preview`.
    */
   @Slow
-  override fun findPreviewMethods(project: Project, vFile: VirtualFile): Sequence<PreviewElement> {
-    return findAllPreviewAnnotations(project, vFile)
-      .mapNotNull { ReadAction.compute<UAnnotation?, Throwable> { it.psiOrParent?.toUElementOfType() }?.toPreviewElement() }
-      .distinct()
-  }
+  override fun findPreviewMethods(project: Project, vFile: VirtualFile): Collection<PreviewElement> =
+    DumbService.getInstance(project).runReadActionInSmartMode<Collection<PreviewElement>> {
+      findAllPreviewAnnotations(project, vFile)
+        .mapNotNull { (it.psiOrParent.toUElementOfType() as? UAnnotation)?.toPreviewElement() }
+        .distinct()
+    }
 }

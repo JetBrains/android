@@ -114,7 +114,7 @@ class ComposePreviewRepresentationTest {
       ComposePreviewRepresentation(composeTest, object : PreviewElementProvider<PreviewElement> {
         override val previewElements: Sequence<PreviewElement>
           get() = ReadAction.compute<Sequence<PreviewElement>, Throwable> {
-            AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+            AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).asSequence()
           }
 
       }, PreferredVisibility.VISIBLE) { _, _, _, _, _, _ -> composeView }
