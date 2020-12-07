@@ -19,8 +19,8 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
+import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
-import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
@@ -157,7 +157,7 @@ class AppInspectionViewTest {
   fun disposeInspectorWhenSelectionChanges() = runBlocking<Unit> {
     val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
 
-    lateinit var processModel: AppInspectionProcessModel
+    lateinit var processesModel: ProcessesModel
     val tabsAdded = CompletableDeferred<Unit>()
     launch(uiDispatcher) {
       val inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
@@ -166,7 +166,7 @@ class AppInspectionViewTest {
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 
-      processModel = inspectionView.processModel
+      processesModel = inspectionView.processesModel
       inspectionView.tabsChangedFlow.first {
         assertThat(inspectionView.inspectorTabs.size).isEqualTo(2)
         inspectionView.inspectorTabs.forEach { it.waitForContent() }
@@ -197,7 +197,7 @@ class AppInspectionViewTest {
       }
     })
 
-    processModel.setSelectedProcess(processModel.processes.first { it != processModel.selectedProcess })
+    processesModel.selectedProcess = processesModel.processes.first { it != processesModel.selectedProcess }
 
     disposed.join()
   }
@@ -636,7 +636,7 @@ class AppInspectionViewTest {
     firstProcessReadyDeferred.await()
 
     // Stop inspection.
-    inspectionView.processModel.stopInspection(inspectionView.processModel.selectedProcess!!)
+    inspectionView.processesModel.stop()
 
     // Wait for the offline inspector tabs to be added.
     deadProcessAddedDeferred.await()

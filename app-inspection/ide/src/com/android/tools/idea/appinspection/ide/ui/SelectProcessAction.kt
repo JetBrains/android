@@ -17,8 +17,8 @@ package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.ColoredIconGenerator
+import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
-import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.intellij.openapi.actionSystem.AnAction
@@ -37,7 +37,7 @@ private val ICON_COLOR = JBColor(0x6E6E6E, 0xAFB1B3)
 private val ICON_PHONE = ColoredIconGenerator.generateColoredIcon(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE, ICON_COLOR)
 private val ICON_EMULATOR = ColoredIconGenerator.generateColoredIcon(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, ICON_COLOR)
 
-class SelectProcessAction(private val model: AppInspectionProcessModel, private val onStopAction: ((ProcessDescriptor) -> Unit)? = null) :
+class SelectProcessAction(private val model: ProcessesModel, private val onStopAction: ((ProcessDescriptor) -> Unit)? = null) :
   DropDownAction(AppInspectionBundle.message("action.select.process"), AppInspectionBundle.message("action.select.process.desc"),
                  ICON_PHONE) {
 
@@ -98,18 +98,21 @@ class SelectProcessAction(private val model: AppInspectionProcessModel, private 
 
   override fun displayTextInToolbar() = true
 
-  class ConnectAction(private val processDescriptor: ProcessDescriptor, private val model: AppInspectionProcessModel) :
+  class ConnectAction(private val processDescriptor: ProcessDescriptor, private val model: ProcessesModel) :
     ToggleAction(processDescriptor.buildProcessName()) {
     override fun isSelected(event: AnActionEvent): Boolean {
       return processDescriptor == model.selectedProcess
     }
 
     override fun setSelected(event: AnActionEvent, state: Boolean) {
-      model.setSelectedProcess(processDescriptor, isUserAction = true)
+      // If the model was stopped earlier, we should resume it now as we have received a user
+      // action indicating they want to re-engage with it again.
+      model.resume()
+      model.selectedProcess = processDescriptor
     }
   }
 
-  private class DeviceAction(processDescriptor: ProcessDescriptor, private val model: AppInspectionProcessModel)
+  private class DeviceAction(processDescriptor: ProcessDescriptor, private val model: ProcessesModel)
     : DropDownAction(processDescriptor.device.buildDeviceName(), null, processDescriptor.device.toIcon()) {
     override fun displayTextInToolbar() = true
 
