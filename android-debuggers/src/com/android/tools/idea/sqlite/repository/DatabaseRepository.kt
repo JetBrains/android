@@ -20,6 +20,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
+import com.android.tools.idea.sqlite.model.DatabaseIdNotFoundException
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteSchema
@@ -205,7 +206,7 @@ class DatabaseRepositoryImpl(private val project: Project, taskExecutor: Executo
   private suspend fun getDatabaseConnection(databaseId: SqliteDatabaseId): DatabaseConnection = withContext(workerDispatcher) {
     val completableDeferred = CompletableDeferred<DatabaseConnection?>()
     repositoryChannel.send(RepositoryActions.GetConnection(databaseId, completableDeferred))
-    completableDeferred.await() ?: error("Database '$databaseId not found")
+    completableDeferred.await() ?: throw DatabaseIdNotFoundException("Database '$databaseId not found")
   }
 
   private data class WhereExpression(val expression: String, val parameters: List<SqliteValue>)

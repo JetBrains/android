@@ -1667,4 +1667,17 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }
+
+  fun testDatabaseNotAddedIfNotFoundInRepository() {
+    val newDatabaseId = SqliteDatabaseId.fromLiveDatabase("new-db", 99)
+    runDispatching {
+      databaseInspectorController.addSqliteDatabase(newDatabaseId)
+    }
+
+    assertFalse(databaseRepository.openDatabases.contains(newDatabaseId))
+
+    // `updateDatabases` is invoked once with empty list when the controller adds the listener to the view.
+    // here we are testing that it is not invoked more then once.
+    verify(databaseInspectorView, times(1)).updateDatabases(any())
+  }
 }

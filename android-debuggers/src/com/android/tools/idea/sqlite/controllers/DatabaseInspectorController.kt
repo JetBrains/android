@@ -33,6 +33,7 @@ import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.controllers.SqliteEvaluatorController.EvaluationParams
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
+import com.android.tools.idea.sqlite.model.DatabaseIdNotFoundException
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
@@ -320,15 +321,18 @@ class DatabaseInspectorControllerImpl(
   }
 
   private suspend fun readDatabaseSchema(databaseId: SqliteDatabaseId): SqliteSchema? {
-    try {
+    return try {
       val schema = databaseRepository.fetchSchema(databaseId)
-      return filterSqliteSchema(schema)
+      filterSqliteSchema(schema)
     }
     catch (e: LiveInspectorException) {
-      return null
+      null
     }
     catch (e: AppInspectionConnectionException) {
-      return null
+      null
+    }
+    catch (e: DatabaseIdNotFoundException) {
+      null
     }
     catch (e: Exception) {
       withContext(uiDispatcher) { view.reportError("Error reading Sqlite database", e) }
