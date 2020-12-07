@@ -98,7 +98,7 @@ fun hasExistingClassFile(psiFile: PsiFile?) = if (psiFile is PsiClassOwner) {
     }
   }
   ReadAction.compute<List<String>, Throwable> { psiFile.classes.mapNotNull { it.qualifiedName } }
-    .mapNotNull { androidModuleSystem?.findClassFile(it) }
+    .mapNotNull { androidModuleSystem?.moduleClassFileFinder?.findClassFile(it) }
     .firstOrNull() != null
 }
 else false

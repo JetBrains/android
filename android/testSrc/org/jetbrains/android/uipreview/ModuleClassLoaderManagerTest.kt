@@ -59,7 +59,7 @@ class ModuleClassLoaderManagerTest {
         { TestClassVisitorWithId("non-project-id2") }
       )
       moduleClassLoader = ModuleClassLoaderManager.get()
-        .getShared(null, project.module, this@ModuleClassLoaderManagerTest, projectTransformations, nonProjectTransformations)
+        .getShared(null, ModuleRenderContext.forModule(project.module), this@ModuleClassLoaderManagerTest, projectTransformations, nonProjectTransformations)
       assertNotNull(moduleClassLoader)
       ModuleClassLoaderManager.get().release(moduleClassLoader!!, this@ModuleClassLoaderManagerTest)
     }
@@ -75,7 +75,7 @@ class ModuleClassLoaderManagerTest {
         { TestClassVisitorWithId("non-project-id2") }
       )
       val newClassLoader = ModuleClassLoaderManager.get()
-        .getShared(null, project.module, this@ModuleClassLoaderManagerTest, projectTransformations, nonProjectTransformations)
+        .getShared(null, ModuleRenderContext.forModule(project.module), this@ModuleClassLoaderManagerTest, projectTransformations, nonProjectTransformations)
       assertEquals("No changes into the transformations. Same class loader was expected", newClassLoader, moduleClassLoader)
       ModuleClassLoaderManager.get().release(newClassLoader, this@ModuleClassLoaderManagerTest)
     }
@@ -90,7 +90,7 @@ class ModuleClassLoaderManagerTest {
         { TestClassVisitorWithId("non-project-id2") }
       )
       val newClassLoader = ModuleClassLoaderManager.get()
-        .getShared(null, project.module, this@ModuleClassLoaderManagerTest, projectTransformations, nonProjectTransformations)
+        .getShared(null, ModuleRenderContext.forModule(project.module), this@ModuleClassLoaderManagerTest, projectTransformations, nonProjectTransformations)
       assertNotNull(newClassLoader)
       assertNotEquals(newClassLoader, moduleClassLoader)
       ModuleClassLoaderManager.get().release(moduleClassLoader!!, this@ModuleClassLoaderManagerTest)
@@ -106,7 +106,7 @@ class ModuleClassLoaderManagerTest {
         { TestClassVisitorWithId("non-project-id1") }
       )
       val newClassLoader = ModuleClassLoaderManager.get()
-        .getShared(null, project.module, this, projectTransformations, nonProjectTransformations)
+        .getShared(null, ModuleRenderContext.forModule(project.module), this, projectTransformations, nonProjectTransformations)
       assertNotNull(newClassLoader)
       assertNotEquals(newClassLoader, moduleClassLoader)
       ModuleClassLoaderManager.get().release(moduleClassLoader!!, this@ModuleClassLoaderManagerTest)
@@ -118,9 +118,9 @@ class ModuleClassLoaderManagerTest {
   @Test
   fun `ensure stats are not activated accidentally`() {
     run {
-      val sharedClassLoader = ModuleClassLoaderManager.get().getShared(null, project.module, this@ModuleClassLoaderManagerTest)
+      val sharedClassLoader = ModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(project.module), this@ModuleClassLoaderManagerTest)
       assertTrue(sharedClassLoader.stats is NopModuleClassLoadedDiagnostics)
-      val privateClassLoader = ModuleClassLoaderManager.get().getPrivate(null, project.module, this@ModuleClassLoaderManagerTest)
+      val privateClassLoader = ModuleClassLoaderManager.get().getPrivate(null, ModuleRenderContext.forModule(project.module), this@ModuleClassLoaderManagerTest)
       assertTrue(privateClassLoader.stats is NopModuleClassLoadedDiagnostics)
       ModuleClassLoaderManager.get().release(privateClassLoader, this@ModuleClassLoaderManagerTest)
     }
@@ -129,9 +129,9 @@ class ModuleClassLoaderManagerTest {
     run {
       // The shared class loader will be reused so, even though we are reactivating the diagnostics,
       // it should be not using them.
-      val sharedClassLoader = ModuleClassLoaderManager.get().getShared(null, project.module, this@ModuleClassLoaderManagerTest)
+      val sharedClassLoader = ModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(project.module), this@ModuleClassLoaderManagerTest)
       assertTrue(sharedClassLoader.stats is NopModuleClassLoadedDiagnostics)
-      val privateClassLoader = ModuleClassLoaderManager.get().getPrivate(null, project.module, this@ModuleClassLoaderManagerTest)
+      val privateClassLoader = ModuleClassLoaderManager.get().getPrivate(null, ModuleRenderContext.forModule(project.module), this@ModuleClassLoaderManagerTest)
       assertFalse(privateClassLoader.stats is NopModuleClassLoadedDiagnostics)
       ModuleClassLoaderManager.get().release(sharedClassLoader, this@ModuleClassLoaderManagerTest)
       ModuleClassLoaderManager.get().release(privateClassLoader, this@ModuleClassLoaderManagerTest)

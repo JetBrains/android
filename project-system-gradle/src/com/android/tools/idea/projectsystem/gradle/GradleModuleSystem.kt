@@ -95,8 +95,9 @@ class GradleModuleSystem(
   private val projectBuildModelHandler: ProjectBuildModelHandler,
   private val moduleHierarchyProvider: ModuleHierarchyProvider,
 ) : AndroidModuleSystem,
-    ClassFileFinder by GradleClassFileFinder(module),
     SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
+
+  override val moduleClassFileFinder: ClassFileFinder = GradleClassFileFinder(module)
 
   private val dependencyCompatibility = GradleDependencyCompatibilityAnalyzer(this, projectBuildModelHandler)
 

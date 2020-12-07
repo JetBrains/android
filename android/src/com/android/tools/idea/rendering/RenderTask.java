@@ -78,6 +78,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.awt.image.BufferedImage;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -101,6 +102,7 @@ import java.util.function.Function;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
+import org.jetbrains.android.uipreview.ModuleRenderContext;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -231,15 +233,20 @@ public class RenderTask {
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
     Module module = facet.getModule();
     ModuleClassLoaderManager manager = ModuleClassLoaderManager.get();
+    WeakReference<RenderTask> xmlFileProvider = new WeakReference<>(this);
+    ModuleRenderContext moduleRenderContext = ModuleRenderContext.forFile(module, () -> {
+      RenderTask task = xmlFileProvider.get();
+      return task != null ? task.getXmlFile() : null;
+    });
     if (privateClassLoader) {
       myModuleClassLoader = manager.getPrivate(
         myLayoutLib.getClassLoader(),
-        module,
+        moduleRenderContext,
         this, additionalProjectTransform, additionalNonProjectTransform);
       onNewModuleClassLoader.run();
     } else {
       myModuleClassLoader = manager.getShared(myLayoutLib.getClassLoader(),
-                                              module,
+                                              moduleRenderContext,
                                               this,
                                               additionalProjectTransform,
                                               additionalNonProjectTransform,
