@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.ide
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.app.inspection.AppInspection
+import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.ide.resolver.TestArtifactResolver
@@ -25,7 +26,9 @@ import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
@@ -64,6 +67,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.nio.file.Paths
 
 class TestAppInspectorTabProvider1 : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID)
 class TestAppInspectorTabProvider2 : AppInspectorTabProvider by StubTestAppInspectorTabProvider(
@@ -611,7 +615,7 @@ class AppInspectionViewTest {
   @Test
   fun launchLibraryInspectors() = runBlocking<Unit> {
     val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
-    val resolvedJar = AppInspectorJar("resolved")
+    val resolvedJar = AppInspectorJar("inspector.jar", "path/to", "path/to")
     val resolvedInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID) {
       override val inspectorLaunchParams = LibraryInspectorLaunchParams(
         TEST_JAR, TEST_ARTIFACT
@@ -643,8 +647,19 @@ class AppInspectionViewTest {
       }
     }
 
+    val launchParamsVerifiedDeferred = CompletableDeferred<Unit>()
+    val apiServices = object : AppInspectionApiServices by appInspectionServiceRule.apiServices {
+      override suspend fun launchInspector(params: LaunchParameters): AppInspectorMessenger {
+        // Verify the jar being launched is the one returned by resolver.
+        assertThat(params.inspectorJar.releaseDirectory).isEqualTo(Paths.get("path", "to").toString())
+        assertThat(params.inspectorJar.name).isEqualTo("inspector.jar")
+        launchParamsVerifiedDeferred.complete(Unit)
+        return appInspectionServiceRule.apiServices.launchInspector(params)
+      }
+    }
+
     launch(uiDispatcher) {
-      val inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices,
+      val inspectionView = AppInspectionView(projectRule.project, apiServices,
                                              ideServices,
                                              { listOf(resolvedInspector, unresolvableInspector, incompatibleInspector) },
                                              appInspectionServiceRule.scope, uiDispatcher, resolver) {
@@ -706,5 +721,7 @@ class AppInspectionViewTest {
     // Attach to a fake process.
     transportService.addDevice(FakeTransportService.FAKE_DEVICE)
     transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+
+    launchParamsVerifiedDeferred.await()
   }
 }
