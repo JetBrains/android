@@ -562,7 +562,7 @@ interface FilePreviewElementFinder {
    *
    * This method always runs on smart mode.
    */
-  fun findPreviewMethods(project: Project, vFile: VirtualFile): Sequence<PreviewElement>
+  fun findPreviewMethods(project: Project, vFile: VirtualFile): Collection<PreviewElement>
 }
 
 /**

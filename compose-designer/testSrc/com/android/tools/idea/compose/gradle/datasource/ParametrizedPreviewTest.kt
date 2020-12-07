@@ -83,8 +83,7 @@ class ParametrizedPreviewTest {
 
     val elements = PreviewElementTemplateInstanceProvider(
       StaticPreviewProvider(AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
-                              .filter { it.displaySettings.name == "TestWithProvider" }
-                              .toList()))
+                              .filter { it.displaySettings.name == "TestWithProvider" }))
       .previewElements
     assertEquals(3, elements.count())
 
@@ -105,8 +104,7 @@ class ParametrizedPreviewTest {
 
     val elements = PreviewElementTemplateInstanceProvider(
       StaticPreviewProvider(AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
-                              .filter { it.displaySettings.name == "TestLorem" }
-                              .toList()))
+                              .filter { it.displaySettings.name == "TestLorem" }))
       .previewElements
     assertEquals(1, elements.count())
 
