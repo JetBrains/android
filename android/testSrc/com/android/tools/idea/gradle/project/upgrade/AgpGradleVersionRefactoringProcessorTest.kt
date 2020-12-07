@@ -215,6 +215,24 @@ class AgpGradleVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase(
     verifyFileContents(buildFile, TestFileName("AgpGradleVersion/SafeArgsVersionInInterpolatedVariable"))
   }
 
+  @Test
+  fun testAndroidJUnit5VersionTo400() {
+    writeToBuildFile(TestFileName("AgpGradleVersion/AndroidJUnit5Version"))
+    val processor = AgpGradleVersionRefactoringProcessor(project, GradleVersion.parse("3.6.0"), GradleVersion.parse("4.0.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("AgpGradleVersion/AndroidJUnit5VersionTo400Expected"))
+  }
+
+  @Test
+  fun testAndroidJUnit5VersionTo410() {
+    writeToBuildFile(TestFileName("AgpGradleVersion/AndroidJUnit5Version"))
+    val processor = AgpGradleVersionRefactoringProcessor(project, GradleVersion.parse("3.6.0"), GradleVersion.parse("4.1.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("AgpGradleVersion/AndroidJUnit5VersionTo410Expected"))
+  }
+
   // TODO(b/159420573): test that with a sufficiently new (>= GRADLE_MINIMUM_VERSION) declared version of gradle, this
   //  processor does nothing.  (Need to programmatically write the properties file so that it doesn't fail when
   //  GRADLE_MINIMUM_VERSION changes)
