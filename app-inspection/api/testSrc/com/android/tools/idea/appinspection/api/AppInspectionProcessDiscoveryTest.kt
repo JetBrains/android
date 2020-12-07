@@ -133,8 +133,8 @@ class AppInspectionProcessDiscoveryTest {
 
     // Verify
     assertThat(processesList).hasSize(1)
-    assertThat(processesList[0].manufacturer).isEqualTo(FakeTransportService.FAKE_DEVICE.manufacturer)
-    assertThat(processesList[0].model).isEqualTo(FakeTransportService.FAKE_DEVICE.model)
+    assertThat(processesList[0].device.manufacturer).isEqualTo(FakeTransportService.FAKE_DEVICE.manufacturer)
+    assertThat(processesList[0].device.model).isEqualTo(FakeTransportService.FAKE_DEVICE.model)
     assertThat(processesList[0].processName).isEqualTo(FakeTransportService.FAKE_PROCESS.name)
   }
 
