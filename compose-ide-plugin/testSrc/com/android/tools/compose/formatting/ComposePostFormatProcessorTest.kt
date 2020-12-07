@@ -16,24 +16,40 @@
 package com.android.tools.compose.formatting
 
 
+import com.android.tools.compose.ComposeFqNames
 import com.android.tools.compose.ComposeLibraryNamespace
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.project.DefaultModuleSystem
+import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.loadNewFile
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.project.Project
 import com.intellij.psi.codeStyle.CodeStyleManager
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
-import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.core.formatter.KotlinCodeStyleSettings
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 
 /**
  * Test for [ComposePostFormatProcessor].
  */
-class ComposePostFormatProcessorTest : JavaCodeInsightFixtureTestCase() {
-  override fun setUp() {
-    super.setUp()
+class ComposePostFormatProcessorTest {
+  @get:Rule
+  val projectRule = AndroidProjectRule.onDisk()
+
+  private val myFixture: CodeInsightTestFixture by lazy { projectRule.fixture }
+
+  private val project: Project by lazy { myFixture.project }
+
+  @Before
+  fun setUp() {
     StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
-    myFixture.stubComposableAnnotation()
+    (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
+    myFixture.stubComposableAnnotation(ComposeFqNames.root)
     myFixture.addFileToProject(
       "src/${ComposeLibraryNamespace.ANDROIDX_COMPOSE.packageName.replace(".", "/")}/Modifier.kt",
       // language=kotlin
@@ -46,8 +62,6 @@ class ComposePostFormatProcessorTest : JavaCodeInsightFixtureTestCase() {
         fun adjust():Modifier {}
       }
     }
-
-    fun Modifier.extentionFunction():Modifier { return this}
     """.trimIndent()
     )
 
@@ -55,9 +69,10 @@ class ComposePostFormatProcessorTest : JavaCodeInsightFixtureTestCase() {
     settings.CONTINUATION_INDENT_FOR_CHAINED_CALLS = false
   }
 
+  @Test
   fun testWrapModifierChain() {
-    myFixture.configureByText(
-      KotlinFileType.INSTANCE,
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
       """
       package com.example
 
@@ -92,9 +107,10 @@ class ComposePostFormatProcessorTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testDontWrapShortModifierChain() {
-    myFixture.configureByText(
-      KotlinFileType.INSTANCE,
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
       """
       package com.example
 
