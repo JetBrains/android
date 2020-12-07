@@ -134,7 +134,24 @@
             icon="StudioIcons.LayoutEditor.Toolbar.ACCESSIBILITY"
             class="com.android.tools.idea.uibuilder.surface.LayoutValidatorAction">
     </action>
+
+    <action id="Android.CreateSampleDataDirectory" class="com.android.tools.idea.actions.CreateSampleDataDirectory">
+      <add-to-group group-id="NewGroup" anchor="after" relative-to-action="Android.CreateResourceDirectory"/>
+    </action>
+
+    <action internal="true" id="Android.GenerateLayoutTestSkeletonAction" class="com.android.tools.idea.uibuilder.actions.GenerateLayoutTestSkeletonAction">
+      <add-to-group group-id="Internal.Android" anchor="after" relative-to-action="Android.TerminateAdbAction"/>
+    </action>
+
+    <action id="StoreDefaultLayout" class="com.android.tools.idea.common.actions.StoreDefaultWindowLayoutAction" overrides="true"/>
+    <action id="RestoreDefaultLayout" class="com.android.tools.idea.common.actions.RestoreDefaultWindowLayoutAction" overrides="true"/>
   </actions>
+
+  <!--  Configurables-->
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationConfigurable groupId="editor" groupWeight="115" id="nele.options"
+                             provider="com.android.tools.idea.uibuilder.options.NlOptionsConfigurableProvider"/>
+  </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
     <moduleService serviceImplementation="com.android.tools.idea.uibuilder.palette.NlPaletteModel" />

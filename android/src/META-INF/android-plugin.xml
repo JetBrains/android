@@ -102,9 +102,6 @@
     <action id="Android.CreateResourceDirectory" class="org.jetbrains.android.actions.CreateResourceDirectoryAction">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="Android.CreateResourcesActionGroup"/>
     </action>
-    <action id="Android.CreateSampleDataDirectory" class="com.android.tools.idea.actions.CreateSampleDataDirectory">
-      <add-to-group group-id="NewGroup" anchor="after" relative-to-action="Android.CreateResourceDirectory"/>
-    </action>
     <action id="Android.ConvertToNinePatch" class="com.android.tools.idea.actions.ConvertToNinePatchAction">
       <add-to-group group-id="ProjectViewPopupMenu" anchor="last" />
     </action>
@@ -148,7 +145,6 @@
       <action internal="true" id="Android.StopGradleDaemons" class="com.android.tools.idea.gradle.actions.StopGradleDaemonsAction" />
       <action internal="true" id="Android.GetAdbAction" class="com.android.tools.idea.ddms.actions.GetAdbAction" />
       <action internal="true" id="Android.TerminateAdbAction" class="com.android.tools.idea.ddms.actions.TerminateAdbAction" />
-      <action internal="true" id="Android.GenerateLayoutTestSkeletonAction" class="com.android.tools.idea.uibuilder.actions.GenerateLayoutTestSkeletonAction"/>
       <action internal="true" id="StatisticsViewer" class="com.android.tools.idea.stats.ShowStatisticsViewerAction"/>
       <action internal="true" id="Android.EditFlags" class="com.android.tools.idea.flags.ShowStudioFlagsDialogAction"/>
       <action internal="true" id="Android.ShowRoomSchema" class="com.android.tools.idea.actions.ShowRoomSchemaAction"/>
@@ -232,8 +228,6 @@
     <!--    overrides="true"-->
     <!--    text="Submit _Feedback"-->
     <!--    description="Submit feedback to the Android Studio team"/>-->
-    <action id="StoreDefaultLayout" class="com.android.tools.idea.common.actions.StoreDefaultWindowLayoutAction" overrides="true"/>
-    <action id="RestoreDefaultLayout" class="com.android.tools.idea.common.actions.RestoreDefaultWindowLayoutAction" overrides="true"/>
     <action class="com.android.tools.idea.rendering.webp.ConvertToWebpAction" id="ConvertToWebp">
       <add-to-group group-id="ProjectViewPopupMenu"/>
       <add-to-group group-id="Images.EditorPopupMenu" relative-to-action="RefactoringMenu" anchor="after"/>
