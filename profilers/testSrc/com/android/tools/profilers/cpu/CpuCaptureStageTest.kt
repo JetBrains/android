@@ -116,6 +116,7 @@ class CpuCaptureStageTest {
 
   @Test
   fun trackGroupModelsAreSetForAtrace() {
+    services.setListBoxOptionsMatcher { option -> option.contains("system_server") }
     val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                        CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), SESSION_ID)
     profilers.stage = stage
@@ -146,6 +147,7 @@ class CpuCaptureStageTest {
 
   @Test
   fun trackGroupModelsAreSetForPerfetto() {
+    services.setListBoxOptionsMatcher { option -> option.contains("system_server") }
     val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                        CpuProfilerTestUtils.getTraceFile("perfetto.trace"), SESSION_ID)
     profilers.stage = stage
@@ -170,8 +172,8 @@ class CpuCaptureStageTest {
     assertThat(rssMemoryTrackGroup.title).isEqualTo("Process Memory (RSS)")
 
     val threadsTrackGroup = stage.trackGroupModels[3]
-    assertThat(threadsTrackGroup.title).isEqualTo("Threads (41)")
-    assertThat(threadsTrackGroup.size).isEqualTo(41)
+    assertThat(threadsTrackGroup.title).isEqualTo("Threads (17)")
+    assertThat(threadsTrackGroup.size).isEqualTo(17)
   }
 
   @Test
@@ -248,7 +250,7 @@ class CpuCaptureStageTest {
 
   @Test
   fun nullCaptureHintSelectsCaptureFromDialog() {
-    services.setListBoxOptionsIndex(1)
+    services.setListBoxOptionsMatcher { option -> option.contains("system_server") }
     val stage = CpuCaptureStage(profilers, ProfilersTestData.DEFAULT_CONFIG, CpuProfilerTestUtils.getTraceFile("perfetto.trace"),
                                 SESSION_ID, null, 0)
     profilers.stage = stage

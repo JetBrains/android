@@ -39,6 +39,24 @@ class ProcessListSorterTest {
   }
 
   @Test
+  fun validPackageNameHasPriority() {
+    val processList: List<ProcessModel> = listOf(
+      ProcessModel(1, "com.google.app", mapOf(), mapOf()),
+      ProcessModel(1, "aaa", mapOf(), mapOf()))
+
+    val sorter = ProcessListSorter("")
+
+    assertThat(sorter.sort(processList)).containsExactly(
+      ProcessModel(1, "com.google.app", mapOf(), mapOf()),
+      ProcessModel(1, "aaa", mapOf(), mapOf())
+    ).inOrder()
+    assertThat(sorter.sort(processList.reversed())).containsExactly(
+      ProcessModel(1, "com.google.app", mapOf(), mapOf()),
+      ProcessModel(1, "aaa", mapOf(), mapOf())
+    ).inOrder()
+  }
+
+  @Test
   fun processWithNameHasPriority() {
     val processList: List<ProcessModel> = listOf(
       ProcessModel(1, "<10548>", mapOf(), mapOf()),
