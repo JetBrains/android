@@ -84,7 +84,7 @@ public abstract class RenderClassLoader extends ClassLoader {
 
   @NotNull
   private UrlClassLoader createJarClassLoader(@NotNull List<URL> urls) {
-    return new UrlClassLoader(UrlClassLoader.build().parent(this).urls(urls).setLogErrorOnMissingJar(false)) {
+    return new UrlClassLoader(UrlClassLoader.build().parent(this).urls(urls).disallowLock().setLogErrorOnMissingJar(false)) {
       // TODO(b/151089727): Fix this (see RenderClassLoader#getResources)
       @Override
       public Enumeration<URL> getResources(String name) throws IOException {

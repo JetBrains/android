@@ -189,7 +189,7 @@ public class PatchRunner {
    */
   @NotNull
   private static ClassLoader getClassLoader(@NotNull File patcherJar) {
-    return UrlClassLoader.build().files(List.of(patcherJar.toPath())).parent(PatchInstaller.class.getClassLoader()).get();
+    return UrlClassLoader.build().files(List.of(patcherJar.toPath())).disallowLock().parent(PatchInstaller.class.getClassLoader()).get();
   }
 
   @NotNull
