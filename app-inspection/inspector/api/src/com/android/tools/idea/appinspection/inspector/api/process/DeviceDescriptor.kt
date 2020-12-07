@@ -33,4 +33,10 @@ interface DeviceDescriptor {
 
   /** The API level of this device. See also: AndroidVersion.VersionCodes */
   val apiLevel: Int
+
+  /** The OS build as a string, e.g. "5.1.1" */
+  val version: String
+
+  /** Codename for the OS, set for preview builds but null for production releases. */
+  val codename: String?
 }
