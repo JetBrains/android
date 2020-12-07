@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.lint;
 
+import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.ide.common.repository.GoogleMavenRepository.MAVEN_GOOGLE_CACHE_DIR_KEY;
 import static com.android.tools.lint.checks.DeprecatedSdkRegistryKt.DEPRECATED_SDK_CACHE_DIR_KEY;
 
+import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
@@ -28,6 +30,7 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.util.PathString;
 import com.android.manifmerger.Actions;
 import com.android.repository.api.RemotePackage;
+import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository;
@@ -38,12 +41,16 @@ import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
+import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.FileResourceReader;
+import com.android.tools.idea.res.FrameworkResourceRepositoryManager;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.lint.client.api.PlatformLookup;
+import com.android.tools.lint.client.api.LintClient;
+import com.android.tools.lint.client.api.ResourceRepositoryScope;
 import com.android.tools.lint.detector.api.DefaultPosition;
 import com.android.tools.lint.detector.api.Desugaring;
 import com.android.tools.lint.detector.api.Location;
@@ -61,12 +68,15 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.xml.XmlTagValue;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -370,19 +380,28 @@ public class AndroidLintIdeClient extends LintIdeClient {
   }
 
 
-  @Nullable
+  @NonNull
   @Override
-  public ResourceRepository getResourceRepository(@NotNull com.android.tools.lint.detector.api.Project project,
-                                                  boolean includeModuleDependencies,
-                                                  boolean includeLibraries) {
+  public ResourceRepository getResources(@NonNull com.android.tools.lint.detector.api.Project project,
+                                         @NonNull ResourceRepositoryScope scope) {
     final Module module = findModuleForLintProject(myProject, project);
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        if (includeLibraries) {
+        if (scope == ResourceRepositoryScope.ANDROID) {
+          IAndroidTarget target = project.getBuildTarget();
+          if (target != null) {
+            return FrameworkResourceRepositoryManager.getInstance().getFrameworkResources(
+              target.getPath(IAndroidTarget.RESOURCES),
+              // TBD: Do we need to get the framework resources to provide all languages?
+              false, Collections.emptySet());
+          }  else {
+            return super.getResources(project, scope); // can't find framework: empty repository
+          }
+        } else if (scope.includesLibraries()) {
           return ResourceRepositoryManager.getAppResources(facet);
         }
-        else if (includeModuleDependencies) {
+        else if (scope.includesDependencies()) {
           return ResourceRepositoryManager.getProjectResources(facet);
         }
         else {
@@ -391,21 +410,21 @@ public class AndroidLintIdeClient extends LintIdeClient {
       }
     }
 
-    return null;
+    return super.getResources(project, scope);
   }
 
   @Override
   @NonNull
-  public Location.Handle createResourceItemHandle(@NonNull ResourceItem item) {
+  public Location.ResourceItemHandle createResourceItemHandle(@NonNull ResourceItem item, boolean nameOnly, boolean valueOnly) {
     XmlTag tag = IdeResourcesUtil.getItemTag(myProject, item);
     if (tag != null) {
       PathString source = item.getSource();
       assert source != null : item;
       File file = source.toFile();
       assert file != null : item;
-      return new LocationHandle(file, tag);
+      return new LocationHandle(file, item, tag, nameOnly, valueOnly);
     }
-    return super.createResourceItemHandle(item);
+    return super.createResourceItemHandle(item, nameOnly, valueOnly);
   }
 
   @NonNull
@@ -432,12 +451,18 @@ public class AndroidLintIdeClient extends LintIdeClient {
     return FileResourceReader.createXmlPullParser(resourcePath);
   }
 
-  private static class LocationHandle implements Location.Handle, Computable<Location> {
+  private class LocationHandle extends Location.ResourceItemHandle
+      implements Location.Handle, Computable<Location> {
     private final File myFile;
     private final XmlElement myNode;
+    private final boolean myNameOnly;
+    private final boolean myValueOnly;
     private Object myClientData;
 
-    LocationHandle(File file, XmlElement node) {
+    LocationHandle(File file, ResourceItem item, XmlElement node, boolean nameOnly, boolean valueOnly) {
+      super(AndroidLintIdeClient.this, item, nameOnly, valueOnly);
+      myNameOnly = nameOnly;
+      myValueOnly = valueOnly;
       myFile = file;
       myNode = node;
     }
@@ -453,11 +478,22 @@ public class AndroidLintIdeClient extends LintIdeClient {
       // For elements, don't highlight the entire element range; instead, just
       // highlight the element name
       if (myNode instanceof XmlTag) {
-        String tag = ((XmlTag)myNode).getName();
-        int index = myNode.getText().indexOf(tag);
-        if (index != -1) {
-          int start = textRange.getStartOffset() + index;
-          textRange = new TextRange(start, start + tag.length());
+        XmlTag element = (XmlTag)myNode;
+        if (myNameOnly) {
+          XmlAttribute attribute = element.getAttribute(ATTR_NAME);
+          if (attribute != null) {
+            textRange = attribute.getValueTextRange();
+          }
+        } else if (myValueOnly) {
+          XmlTagValue value = element.getValue();
+          textRange = value.getTextRange();
+        } else {
+          String tag = element.getName();
+          int index = myNode.getText().indexOf(tag);
+          if (index != -1) {
+            int start = textRange.getStartOffset() + index;
+            textRange = new TextRange(start, start + tag.length());
+          }
         }
       }
 

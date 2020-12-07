@@ -18,7 +18,14 @@ package com.android.tools.idea.lint.common;
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 import com.android.annotations.NonNull;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
+import com.android.ide.common.resources.ResourceVisitor;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.util.PathString;
+import com.android.resources.ResourceType;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.client.api.Configuration;
 import com.android.tools.lint.client.api.ConfigurationHierarchy;
@@ -27,6 +34,7 @@ import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
+import com.android.tools.lint.client.api.ResourceRepositoryScope;
 import com.android.tools.lint.client.api.UastParser;
 import com.android.tools.lint.client.api.XmlParser;
 import com.android.tools.lint.detector.api.Context;
@@ -41,6 +49,8 @@ import com.android.tools.lint.helpers.DefaultUastParser;
 import com.android.tools.lint.model.LintModelLintOptions;
 import com.android.tools.lint.model.LintModelModule;
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.io.Files;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.Disposable;
@@ -58,7 +68,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.util.AbstractProgressIndicatorExBase;
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -112,7 +121,7 @@ public class LintIdeClient extends LintClient implements Disposable {
 
   protected final LintResult myLintResult;
 
-  public LintIdeClient(@NonNull Project project, @NotNull LintResult lintResult) {
+  public LintIdeClient(@NonNull Project project, @NonNull LintResult lintResult) {
     super(CLIENT_STUDIO);
     myProject = project;
     myLintResult = lintResult;
@@ -144,6 +153,46 @@ public class LintIdeClient extends LintClient implements Disposable {
     return driver;
   }
 
+  @NonNull
+  @Override
+  public ResourceRepository getResources(@NonNull com.android.tools.lint.detector.api.Project project,
+                                         @NonNull ResourceRepositoryScope scope) {
+    // Non-Android: Empty repository
+    return new AbstractResourceRepository() {
+      @NonNull
+      @Override
+      protected ListMultimap<String, ResourceItem> getResourcesInternal(@NonNull ResourceNamespace namespace,
+                                                                        @NonNull ResourceType resourceType) {
+        return ImmutableListMultimap.of();
+      }
+
+      @NonNull
+      @Override
+      public ResourceVisitor.VisitResult accept(@NonNull ResourceVisitor visitor) {
+        return ResourceVisitor.VisitResult.ABORT;
+      }
+
+      @NonNull
+      @Override
+      public Collection<ResourceItem> getPublicResources(@NonNull ResourceNamespace namespace,
+                                                         @NonNull ResourceType type) {
+        return Collections.emptyList();
+      }
+
+      @NonNull
+      @Override
+      public Set<ResourceNamespace> getNamespaces() {
+        return Collections.emptySet();
+      }
+
+      @NonNull
+      @Override
+      public Collection<SingleNamespaceResourceRepository> getLeafResourceRepositories() {
+        return Collections.emptyList();
+      }
+    };
+  }
+
   /**
    * Returns an {@link ApiLookup} service.
    *
@@ -151,7 +200,7 @@ public class LintIdeClient extends LintClient implements Disposable {
    * @return an API lookup if one can be found
    */
   @Nullable
-  public static ApiLookup getApiLookup(@NotNull Project project) {
+  public static ApiLookup getApiLookup(@NonNull Project project) {
     return ApiLookup.get(LintIdeSupport.get().createClient(project, new LintIgnoredResult()));
   }
 
@@ -207,8 +256,8 @@ public class LintIdeClient extends LintClient implements Disposable {
   }
 
   @Nullable
-  protected Module findModuleForLintProject(@NotNull Project project,
-                                            @NotNull com.android.tools.lint.detector.api.Project lintProject) {
+  protected Module findModuleForLintProject(@NonNull Project project,
+                                            @NonNull com.android.tools.lint.detector.api.Project lintProject) {
     if (myModuleMap != null) {
       Module module = myModuleMap.get(lintProject);
       if (module != null) {
@@ -437,13 +486,13 @@ public class LintIdeClient extends LintClient implements Disposable {
     }
   }
 
-  @NotNull
+  @NonNull
   @Override
   public XmlParser getXmlParser() {
     return new DomPsiParser(this);
   }
 
-  @NotNull
+  @NonNull
   @Override
   public UastParser getUastParser(@Nullable com.android.tools.lint.detector.api.Project project) {
     return new DefaultUastParser(project, myProject) {
@@ -470,7 +519,7 @@ public class LintIdeClient extends LintClient implements Disposable {
     };
   }
 
-  @NotNull
+  @NonNull
   @Override
   public GradleVisitor getGradleVisitor() {
     return new LintIdeGradleVisitor();
@@ -523,7 +572,7 @@ public class LintIdeClient extends LintClient implements Disposable {
     });
   }
 
-  @NotNull
+  @NonNull
   private String readFile(@NonNull LintEditorResult lintEditorResult, @NonNull File file) {
     final VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
 
@@ -599,7 +648,7 @@ public class LintIdeClient extends LintClient implements Disposable {
     return ApplicationInfoEx.getInstanceEx().getStrictVersion();
   }
 
-  @NotNull
+  @NonNull
   @Override
   public String getClientDisplayName() {
     // Returns for example "Android Studio" (but isn't hardcoded such that
@@ -658,11 +707,6 @@ public class LintIdeClient extends LintClient implements Disposable {
     return result;
   }
 
-  @Override
-  public boolean supportsProjectResources() {
-    return true;
-  }
-
   @Nullable
   @Override
   public URLConnection openConnection(@NonNull URL url) throws IOException {
@@ -681,7 +725,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   }
 
   @Override
-  @NotNull
+  @NonNull
   public ClassLoader createUrlClassLoader(@NonNull URL[] urls, @NonNull ClassLoader parent) {
     return UrlClassLoader.build().parent(parent).urls(urls).get();
   }
