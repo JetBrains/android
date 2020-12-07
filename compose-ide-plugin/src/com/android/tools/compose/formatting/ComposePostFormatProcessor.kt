@@ -15,6 +15,7 @@
  */
 package com.android.tools.compose.formatting
 
+import com.android.tools.compose.isComposeEnabled
 import com.android.tools.compose.isModifierChainLongerThanTwo
 import com.intellij.application.options.CodeStyle
 import com.intellij.openapi.project.DumbService
@@ -38,12 +39,12 @@ import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
  */
 class ComposePostFormatProcessor : PostFormatProcessor {
   override fun processElement(source: PsiElement, settings: CodeStyleSettings): PsiElement {
-    if (source.containingFile !is KtFile || DumbService.isDumb(source.project)) return source
+    if (source.containingFile !is KtFile || !isComposeEnabled(source) || DumbService.isDumb(source.project)) return source
     return ComposeModifierProcessor(settings).process(source)
   }
 
   override fun processText(source: PsiFile, rangeToReformat: TextRange, settings: CodeStyleSettings): TextRange {
-    if (source !is KtFile || DumbService.isDumb(source.project)) return rangeToReformat
+    if (source !is KtFile || !isComposeEnabled(source) || DumbService.isDumb(source.project)) return rangeToReformat
     return ComposeModifierProcessor(settings).processText(source, rangeToReformat)
   }
 }
@@ -51,10 +52,16 @@ class ComposePostFormatProcessor : PostFormatProcessor {
 class ComposeModifierProcessor(private val settings: CodeStyleSettings) : KtTreeVisitorVoid() {
   private val myPostProcessor = PostFormatProcessorHelper(settings.kotlinCommonSettings)
 
+  private fun updateResultRange(oldTextLength: Int, newTextLength: Int) {
+    myPostProcessor.updateResultRange(oldTextLength, newTextLength)
+  }
+
   override fun visitKtElement(element: KtElement) {
     super.visitElement(element)
-    if (isModifierChainThatNeedToBeWrapped(element)) {
+    if (element.isPhysical && isModifierChainThatNeedToBeWrapped(element)) {
+      val oldTextLength: Int = element.textLength
       wrapModifierChain(element as KtDotQualifiedExpression, settings)
+      updateResultRange(oldTextLength, element.textLength)
     }
   }
 
@@ -93,6 +100,6 @@ internal fun wrapModifierChain(element: KtDotQualifiedExpression, settings: Code
   ) { tempSettings: CodeStyleSettings ->
     tempSettings.kotlinCommonSettings.METHOD_CALL_CHAIN_WRAP = CommonCodeStyleSettings.WRAP_ALWAYS
     tempSettings.kotlinCommonSettings.WRAP_FIRST_METHOD_IN_CALL_CHAIN = true
-    CodeFormatterFacade(tempSettings, element.containingFile.language).processElement(element.node)
+    CodeFormatterFacade(tempSettings, element.language).processElement(element.node)
   }
 }
