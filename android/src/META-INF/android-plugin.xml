@@ -113,7 +113,10 @@
       <action id="Android.RunAndroidAvdManager"
               class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
               icon="StudioIcons.Shell.Toolbar.DEVICE_MANAGER"
-      />
+      >
+        <override-text place="toolbar"/> <!-- Layout editor device menu -->
+        <override-text place="popup"/> <!-- "run target" menu -->
+      </action>
       <action id="Android.GenerateSourcesAction" class="org.jetbrains.android.actions.AndroidRegenerateSourcesAction"/>
       <separator/>
       <action id="ResourceExplorer.open"
