@@ -77,15 +77,15 @@
     <postStartupActivity implementation="com.android.tools.compose.ComposeAutoDocumentation$MyStartupActivity"/>
 
     <completion.contributor language="kotlin"
-                            implementationClass="com.android.tools.compose.ComposeCompletionContributor"
+                            implementationClass="com.android.tools.compose.code.completion.ComposeCompletionContributor"
                             order="first, before KotlinCompletionContributor"/>
 
     <weigher key="completion"
-             implementationClass="com.android.tools.compose.AndroidComposeCompletionWeigher"
+             implementationClass="com.android.tools.compose.code.completion.ComposeCompletionWeigher"
              id="android.compose"
              order="first"/>
     <weigher key="completion"
-             implementationClass="com.android.tools.compose.ComposeModifiersCompletionWeigher"
+             implementationClass="com.android.tools.compose.code.completion.ComposeModifiersCompletionWeigher"
              id="android.compose.modifiers"
              order="first"/>
 

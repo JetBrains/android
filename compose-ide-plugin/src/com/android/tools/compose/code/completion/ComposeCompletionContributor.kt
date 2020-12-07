@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.compose
+package com.android.tools.compose.code.completion
 
+import com.android.tools.compose.COMPOSABLE_FQ_NAMES
+import com.android.tools.compose.ComposeLibraryNamespace
+import com.android.tools.compose.ComposeSettings
+import com.android.tools.compose.isComposableFunction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_INSERT_HANDLER
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_PRESENTATION
@@ -33,8 +37,6 @@ import com.intellij.codeInsight.template.Template
 import com.intellij.codeInsight.template.TemplateEditingAdapter
 import com.intellij.codeInsight.template.TemplateManager
 import com.intellij.codeInsight.template.impl.ConstantNode
-import com.intellij.codeInspection.InspectionSuppressor
-import com.intellij.codeInspection.SuppressQuickFix
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
@@ -234,7 +236,7 @@ private val SHORT_NAMES_WITH_DOTS = BasicLookupElementFactory.SHORT_NAMES_RENDER
  * See [com.intellij.codeInsight.completion.PrioritizedLookupElement] for more information on how ordering of lookup elements works and how
  * to debug it.
  */
-class AndroidComposeCompletionWeigher : CompletionWeigher() {
+class ComposeCompletionWeigher : CompletionWeigher() {
   override fun weigh(element: LookupElement, location: CompletionLocation): Int {
     return when {
       !StudioFlags.COMPOSE_EDITOR_SUPPORT.get() -> 0
@@ -284,7 +286,7 @@ private fun InsertionContext.isNextElementOpenCurlyBrace() = getNextElementIgnor
 
 private fun InsertionContext.isNextElementOpenParenthesis() = getNextElementIgnoringWhitespace()?.text?.startsWith("(") == true
 
-class ComposeInsertHandler(private val descriptor: FunctionDescriptor) : KotlinCallableInsertHandler(CallType.DEFAULT) {
+private class ComposeInsertHandler(private val descriptor: FunctionDescriptor) : KotlinCallableInsertHandler(CallType.DEFAULT) {
   override fun handleInsert(context: InsertionContext, item: LookupElement) = with(context) {
     super.handleInsert(context, item)
 
@@ -348,19 +350,5 @@ class ComposeInsertHandler(private val descriptor: FunctionDescriptor) : KotlinC
         }
       }
     })
-  }
-}
-
-class ComposeSuppressor : InspectionSuppressor {
-  override fun isSuppressedFor(element: PsiElement, toolId: String): Boolean {
-    return StudioFlags.COMPOSE_EDITOR_SUPPORT.get() &&
-           toolId == "FunctionName" &&
-           element.language == KotlinLanguage.INSTANCE &&
-           element.node.elementType == KtTokens.IDENTIFIER &&
-           element.parent.isComposableFunction()
-  }
-
-  override fun getSuppressActions(element: PsiElement?, toolId: String): Array<SuppressQuickFix> {
-    return SuppressQuickFix.EMPTY_ARRAY
   }
 }
