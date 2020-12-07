@@ -20,6 +20,9 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.idea.inspections.FunctionNameInspection
 
+/**
+ * Test for [ComposeSuppressor].
+ */
 class ComposeSuppressorTest : JavaCodeInsightFixtureTestCase() {
 
   override fun setUp() {
