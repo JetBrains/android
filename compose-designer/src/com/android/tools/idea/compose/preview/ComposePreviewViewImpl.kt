@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.editor.PanZoomListener
 import com.android.tools.idea.common.editor.ActionsToolbar
@@ -62,6 +63,7 @@ import javax.swing.JPanel
 import javax.swing.OverlayLayout
 
 private const val SPLITTER_DIVIDER_WIDTH_PX = 3
+private const val COMPOSE_PREVIEW_DOC_URL = "https://d.android.com/jetpack/compose/preview"
 
 /**
  * Interface that isolates the view of the Compose view so it can be replaced for testing.
@@ -359,7 +361,10 @@ internal class ComposePreviewViewImpl(private val project: Project,
       }
       else {
         hideContent()
-        loadingStopped(message("panel.no.previews.defined"))
+        loadingStopped(message("panel.no.previews.defined"),
+                       null,
+                       UrlData(message("panel.no.previews.action"), COMPOSE_PREVIEW_DOC_URL),
+                       null)
       }
     }
 
