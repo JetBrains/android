@@ -21,7 +21,7 @@ import org.junit.Test
 class ProcessListSorterTest {
 
   @Test
-  fun `matching hint`() {
+  fun nameHintMatches() {
     val processList: List<ProcessModel> = listOf(
       ProcessModel(1, "com.google.app", mapOf(), mapOf()),
       ProcessModel(1, "another.google.app", mapOf(), mapOf()))
@@ -39,7 +39,7 @@ class ProcessListSorterTest {
   }
 
   @Test
-  fun `has a proper name`() {
+  fun processWithNameHasPriority() {
     val processList: List<ProcessModel> = listOf(
       ProcessModel(1, "<10548>", mapOf(), mapOf()),
       ProcessModel(1, "another.google.app", mapOf(), mapOf()))
@@ -57,7 +57,7 @@ class ProcessListSorterTest {
   }
 
   @Test
-  fun `threads size`() {
+  fun processWithMoreThreadsHasPriority() {
     val thread5 = ThreadModel(5, 1, "Thread", listOf(), listOf())
     val thread6 = ThreadModel(6, 1, "Thread", listOf(), listOf())
 
@@ -78,7 +78,7 @@ class ProcessListSorterTest {
   }
 
   @Test
-  fun `alphabetical name`() {
+  fun sortAlphabetically() {
     val processList: List<ProcessModel> = listOf(
       ProcessModel(1, "com.google.app.a", mapOf(), mapOf()),
       ProcessModel(1, "com.google.app.b", mapOf(), mapOf()))
@@ -96,7 +96,7 @@ class ProcessListSorterTest {
   }
 
   @Test
-  fun `id`() {
+  fun sortById() {
     val processList: List<ProcessModel> = listOf(
       ProcessModel(1, "com.google.app.a", mapOf(), mapOf()),
       ProcessModel(2, "com.google.app.a", mapOf(), mapOf()))
