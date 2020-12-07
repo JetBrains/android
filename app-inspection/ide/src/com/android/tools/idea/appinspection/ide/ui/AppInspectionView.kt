@@ -16,11 +16,13 @@
 package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.annotations.concurrency.UiThread
+import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
+import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.AppInspectorTabLaunchSupport
 import com.android.tools.idea.appinspection.ide.InspectorArtifactService
 import com.android.tools.idea.appinspection.ide.LaunchableInspectorTabLaunchParams
@@ -28,7 +30,6 @@ import com.android.tools.idea.appinspection.ide.StaticInspectorTabLaunchParams
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
 import com.android.tools.idea.appinspection.ide.appProguardedMessage
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
-import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.ide.toIncompatibleVersionMessage
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionAppProguardedException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
@@ -67,6 +68,16 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JSeparator
 
+/**
+ * Return true if the process it represents is inspectable.
+ *
+ * Currently, a process is deemed inspectable if the device it's running on is O+ and if it's debuggable. The latter condition is
+ * guaranteed to be true because transport pipeline only provides debuggable processes, so there is no need to check.
+ */
+private fun ProcessDescriptor.isInspectable(): Boolean {
+  return this.device.apiLevel >= AndroidVersion.VersionCodes.O
+}
+
 class AppInspectionView @VisibleForTesting constructor(
   private val project: Project,
   private val apiServices: AppInspectionApiServices,
@@ -100,7 +111,7 @@ class AppInspectionView @VisibleForTesting constructor(
   val inspectorTabs = mutableListOf<AppInspectorTabShell>()
 
   @VisibleForTesting
-  val processModel: AppInspectionProcessModel
+  val processesModel: ProcessesModel
 
   @VisibleForTesting
   val selectProcessAction: SelectProcessAction
@@ -141,12 +152,12 @@ class AppInspectionView @VisibleForTesting constructor(
 
   init {
     val edtExecutor = EdtExecutorService.getInstance()
-    processModel = AppInspectionProcessModel(edtExecutor, apiServices.processNotifier, getPreferredProcesses)
-    Disposer.register(this, processModel)
-    selectProcessAction = SelectProcessAction(processModel) {
+    processesModel = ProcessesModel(edtExecutor, apiServices.processNotifier, { it.isInspectable() }, getPreferredProcesses)
+    Disposer.register(this, processesModel)
+    selectProcessAction = SelectProcessAction(processesModel) {
       scope.launch {
         apiServices.stopInspectors(it)
-        processModel.stopInspection(it)
+        processesModel.stop()
       }
     }
     val group = DefaultActionGroup().apply { add(selectProcessAction) }
@@ -160,11 +171,11 @@ class AppInspectionView @VisibleForTesting constructor(
     }, TabularLayout.Constraint(1, 0))
     component.add(inspectorPanel, TabularLayout.Constraint(2, 0))
 
-    processModel.addSelectedProcessListeners(edtExecutor) {
+    processesModel.addSelectedProcessListeners(edtExecutor) {
       // Force a UI update NOW instead of waiting to poll.
       ActivityTracker.getInstance().inc()
 
-      val selectedProcess = processModel.selectedProcess
+      val selectedProcess = processesModel.selectedProcess
       if (selectedProcess != null && !selectedProcess.isRunning) {
         // If a process was just killed, we'll get notified about that by being sent a dead
         // process. In that case, remove all inspectors except for those that opted-in to stay up
@@ -311,7 +322,7 @@ class AppInspectionView @VisibleForTesting constructor(
     inspectorPanel.repaint()
   }
 
-  internal fun isInspectionActive() = processModel.selectedProcess?.isRunning ?: false
+  internal fun isInspectionActive() = processesModel.selectedProcess?.isRunning ?: false
 
   override fun dispose() {
   }

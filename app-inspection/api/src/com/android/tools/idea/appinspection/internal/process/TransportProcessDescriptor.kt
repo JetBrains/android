@@ -53,13 +53,3 @@ class TransportProcessDescriptor(
  * so this convenience method provides cleaner syntax for casting.
  */
 internal fun ProcessDescriptor.toTransportImpl() = this as TransportProcessDescriptor
-
-/**
- * Return true if the process it represents is inspectable.
- *
- * Currently, a process is deemed inspectable if the device it's running on is O+ and if it's debuggable. The latter condition is
- * guaranteed to be true because transport pipeline only provides debuggable processes, so there is no need to check.
- */
-internal fun ProcessDescriptor.isInspectable(): Boolean {
-  return this.device.apiLevel >= AndroidVersion.VersionCodes.O
-}
