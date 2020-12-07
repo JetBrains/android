@@ -237,7 +237,7 @@
       <add-to-group group-id="RefactoringMenu"/>
     </action>
     <action id="AndroidAddRTLSupport" class="com.android.tools.idea.actions.AndroidAddRtlSupportAction"
-            text="Add RTL Support Where Possible..." description="Add light-to-left (RTL) support where possible">
+            text="Add RTL Support Where Possible..." description="Add right-to-left (RTL) support where possible">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
     <action id="AgpUpgrade" class="com.android.tools.idea.gradle.project.upgrade.AgpUpgradeAction"
