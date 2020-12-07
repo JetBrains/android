@@ -318,9 +318,9 @@ class CpuCaptureParserTest {
   }
 
   @Test
-  fun parsingPerfetto_userSelectFirst() {
+  fun parsingPerfetto_userSelectSpecificProcess() {
     val services = FakeIdeProfilerServices()
-    services.setListBoxOptionsIndex(0)
+    services.setListBoxOptionsMatcher { option -> option.contains("system_server") }
 
     val parser = CpuCaptureParser(services)
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
@@ -330,7 +330,7 @@ class CpuCaptureParserTest {
     assertThat(futureCapture.isCompletedExceptionally).isFalse()
     val capture = futureCapture.get()
     assertThat(capture).isNotNull()
-    assertThat(capture.threads).hasSize(41)
+    assertThat(capture.threads).hasSize(17)
   }
 
   @Test
