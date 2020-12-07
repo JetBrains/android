@@ -56,7 +56,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.intellij.images.fileTypes.ImageFileTypeManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
@@ -745,7 +744,7 @@ public class ResourceNotificationManager {
       events.stream()
         .filter(e -> {
           VirtualFile file = e.getFile();
-          if (file == null || !ImageFileTypeManager.getInstance().isImage(file)) {
+          if (file == null) {
             return false;
           }
 
