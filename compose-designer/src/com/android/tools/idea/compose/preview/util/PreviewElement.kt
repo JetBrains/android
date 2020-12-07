@@ -35,16 +35,16 @@ import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager
+import org.jetbrains.android.uipreview.ModuleRenderContext
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.allConstructors
@@ -477,15 +477,17 @@ class ParametrizedPreviewElementTemplate(private val basePreviewElement: Preview
   override fun instances(): Sequence<PreviewElementInstance> {
     assert(parameterProviders.isNotEmpty()) { "ParametrizedPreviewElement used with no parameters" }
 
-    val module = ReadAction.compute<Module?, Throwable> {
-      basePreviewElement.previewBodyPsi?.element?.module
+    val file = ReadAction.compute<PsiFile?, Throwable> {
+      basePreviewElement.previewBodyPsi?.containingFile
     } ?: return sequenceOf()
     if (parameterProviders.size > 1) {
       Logger.getInstance(ParametrizedPreviewElementTemplate::class.java).warn(
         "Currently only one ParameterProvider is supported, rest will be ignored")
     }
 
-    val classLoader = ModuleClassLoaderManager.get().getPrivate(ParametrizedPreviewElementTemplate::class.java.classLoader, module, this)
+    val moduleRenderContext = ModuleRenderContext.forFile(file)
+    val classLoader = ModuleClassLoaderManager.get().getPrivate(ParametrizedPreviewElementTemplate::class.java.classLoader,
+                                                                moduleRenderContext, this)
     try {
       return parameterProviders.map {
         try {

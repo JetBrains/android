@@ -30,10 +30,11 @@ import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiFile
 import org.jetbrains.android.uipreview.ModuleClassLoader.NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS
 import org.jetbrains.android.uipreview.ModuleClassLoader.PROJECT_DEFAULT_TRANSFORMS
 import org.jetbrains.annotations.TestOnly
-import java.lang.IllegalStateException
+import org.jetbrains.kotlin.idea.util.module
 import java.util.Collections
 import java.util.WeakHashMap
 
@@ -74,6 +75,31 @@ private class ModuleClassLoaderProjectHelperService(val project: Project): Proje
 }
 
 /**
+ * Class providing the context for a ModuleClassLoader in which is being used.
+ * Gradle class resolution depends only on [Module] but ASWB will also need the file to be able to
+ * correctly resolve the classes.
+ */
+class ModuleRenderContext private constructor(val module: Module, val fileProvider: () -> PsiFile?) {
+  val project: Project
+    get() = module.project
+
+  companion object {
+    @JvmStatic
+    fun forFile(module: Module, fileProvider: () -> PsiFile?) = ModuleRenderContext(module, fileProvider)
+
+    @JvmStatic
+    fun forFile(file: PsiFile) = ModuleRenderContext(file.module!!) { file }
+
+    /**
+     * Always use one of the methods that can provide a file, only use this for testing.
+     */
+    @TestOnly
+    @JvmStatic
+    fun forModule(module: Module) = ModuleRenderContext(module) { null }
+  }
+}
+
+/**
  * A [ClassLoader] for the [Module] dependencies.
  */
 class ModuleClassLoaderManager {
@@ -90,10 +116,11 @@ class ModuleClassLoaderManager {
    */
   @JvmOverloads
   @Synchronized
-  fun getShared(parent: ClassLoader?, module: Module, holder: Any,
+  fun getShared(parent: ClassLoader?, moduleRenderContext: ModuleRenderContext, holder: Any,
                 additionalProjectTransformation: ClassTransform = ClassTransform.identity,
                 additionalNonProjectTransformation: ClassTransform = ClassTransform.identity,
                 onNewModuleClassLoader: Runnable = Runnable {}): ModuleClassLoader {
+    val module: Module = moduleRenderContext.module
     var moduleClassLoader = cache[module]
     val combinedProjectTransformations: ClassTransform by lazy {
       combine(PROJECT_DEFAULT_TRANSFORMS, additionalProjectTransformation)
@@ -131,10 +158,10 @@ class ModuleClassLoaderManager {
 
     if (moduleClassLoader == null) {
       // Make sure the helper service is initialized
-      module.project.getService(ModuleClassLoaderProjectHelperService::class.java)
+      moduleRenderContext.module.project.getService(ModuleClassLoaderProjectHelperService::class.java)
       LOG.debug { "Loading new class loader for module ${anonymize(module)}" }
       val diagnostics = if (captureDiagnostics) ModuleClassLoadedDiagnosticsImpl() else NopModuleClassLoadedDiagnostics
-      moduleClassLoader = ModuleClassLoader(parent, module, combinedProjectTransformations, combinedNonProjectTransformations, diagnostics)
+      moduleClassLoader = ModuleClassLoader(parent, moduleRenderContext, combinedProjectTransformations, combinedNonProjectTransformations, diagnostics)
       cache[module] = moduleClassLoader
       oldClassLoader?.let { release(it, DUMMY_HOLDER) }
       onNewModuleClassLoader.run()
@@ -151,15 +178,15 @@ class ModuleClassLoaderManager {
   @JvmOverloads
   @Synchronized
   fun getPrivate(parent: ClassLoader?,
-                 module: Module,
+                 moduleRenderContext: ModuleRenderContext,
                  holder: Any,
                  additionalProjectTransformation: ClassTransform = ClassTransform.identity,
                  additionalNonProjectTransformation: ClassTransform = ClassTransform.identity): ModuleClassLoader {
     // Make sure the helper service is initialized
-    module.project.getService(ModuleClassLoaderProjectHelperService::class.java)
+    moduleRenderContext.module.project.getService(ModuleClassLoaderProjectHelperService::class.java)
 
     val diagnostics = if (captureDiagnostics) ModuleClassLoadedDiagnosticsImpl() else NopModuleClassLoadedDiagnostics
-    return ModuleClassLoader(parent, module,
+    return ModuleClassLoader(parent, moduleRenderContext,
                       combine(PROJECT_DEFAULT_TRANSFORMS, additionalProjectTransformation),
                       combine(NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS, additionalNonProjectTransformation),
                              diagnostics).apply {

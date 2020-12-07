@@ -109,6 +109,10 @@ class TestProjectSystem @JvmOverloads constructor(
     class TestAndroidModuleSystemImpl : AndroidModuleSystem {
       override val module = module
 
+      override val moduleClassFileFinder: ClassFileFinder = object : ClassFileFinder {
+        override fun findClassFile(fqcn: String): VirtualFile? = null
+      }
+
       override fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>)
         : Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> {
         val found = mutableListOf<GradleCoordinate>()
@@ -168,8 +172,6 @@ class TestProjectSystem @JvmOverloads constructor(
       override fun canGeneratePngFromVectorGraphics(): CapabilityStatus {
         return CapabilityNotSupported()
       }
-
-      override fun findClassFile(fqcn: String): VirtualFile? = null
 
       override fun getOrCreateSampleDataDirectory(): PathString? = null
 
