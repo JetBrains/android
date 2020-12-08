@@ -1919,11 +1919,22 @@ class MigrateToBuildFeaturesRefactoringProcessor : AgpUpgradeComponentRefactorin
     val usages = ArrayList<UsageInfo>()
     buildModel.allIncludedBuildModels.forEach model@{ model ->
       val androidModel = model.android()
+      if (androidModel.dataBinding().enabled().getValue(BOOLEAN_TYPE) != null) {
+        run dataBinding@{
+          val psiElement = androidModel.dataBinding().enabled().psiElement ?: return@dataBinding
+          val wrappedPsiElement = WrappedPsiElement(psiElement, this, DATA_BINDING_ENABLED_USAGE_TYPE)
+          val usageInfo = DataBindingEnabledUsageInfo(wrappedPsiElement, androidModel)
+          usages.add(usageInfo)
+        }
+      }
+
       if (androidModel.viewBinding().enabled().getValue(BOOLEAN_TYPE) != null) {
-        val psiElement = androidModel.viewBinding().enabled().psiElement ?: return@model
-        val wrappedPsiElement = WrappedPsiElement(psiElement, this, VIEW_BINDING_ENABLED_USAGE_TYPE)
-        val usageInfo = ViewBindingEnabledUsageInfo(wrappedPsiElement, androidModel)
-        usages.add(usageInfo)
+        run viewBinding@{
+          val psiElement = androidModel.viewBinding().enabled().psiElement ?: return@viewBinding
+          val wrappedPsiElement = WrappedPsiElement(psiElement, this, VIEW_BINDING_ENABLED_USAGE_TYPE)
+          val usageInfo = ViewBindingEnabledUsageInfo(wrappedPsiElement, androidModel)
+          usages.add(usageInfo)
+        }
       }
     }
     return usages.toArray(UsageInfo.EMPTY_ARRAY)
@@ -1940,6 +1951,7 @@ class MigrateToBuildFeaturesRefactoringProcessor : AgpUpgradeComponentRefactorin
   }
 
   companion object {
+    val DATA_BINDING_ENABLED_USAGE_TYPE = UsageType("Migrate dataBinding enabled to buildFeatures")
     val VIEW_BINDING_ENABLED_USAGE_TYPE = UsageType("Migrate viewBinding enabled to buildFeatures")
   }
 }
