@@ -26,6 +26,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
@@ -34,6 +35,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.REFERENCE_TO_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel
@@ -1925,6 +1927,22 @@ class MigrateToBuildFeaturesRefactoringProcessor : AgpUpgradeComponentRefactorin
       override fun getProcessedElementsHeader() = "Migrate enabled booleans to buildFeatures"
     }
   }
+}
+
+class ViewBindingEnabledUsageInfo(element: WrappedPsiElement, val androidModel: AndroidModel): GradleBuildModelUsageInfo(element) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    val valueModel = androidModel.viewBinding().enabled().unresolvedModel
+
+    val value: Any = when(valueModel.valueType) {
+      GradlePropertyModel.ValueType.BOOLEAN -> valueModel.getValue(BOOLEAN_TYPE) ?: return
+      GradlePropertyModel.ValueType.REFERENCE -> valueModel.getValue(REFERENCE_TO_TYPE) ?: return
+      else -> return
+    }
+    androidModel.buildFeatures().viewBinding().setValue(value)
+    androidModel.viewBinding().enabled().delete()
+  }
+
+  override fun getTooltipText() = "Migrate viewBinding enabled to buildFeatures"
 }
 
 /**
