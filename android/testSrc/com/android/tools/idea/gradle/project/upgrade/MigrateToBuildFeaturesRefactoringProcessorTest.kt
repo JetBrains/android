@@ -42,4 +42,20 @@ class MigrateToBuildFeaturesRefactoringProcessorTest: UpgradeGradleFileModelTest
       expect.that(processor.necessity()).isEqualTo(u)
     }
   }
+
+  @Test
+  fun testViewBindingEnabledLiteral() {
+    writeToBuildFile(TestFileName("MigrateToBuildFeatures/ViewBindingEnabledLiteral"))
+    val processor = MigrateToBuildFeaturesRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("7.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("MigrateToBuildFeatures/ViewBindingEnabledLiteralExpected"))
+  }
+
+  @Test
+  fun testViewBindingEnabledReference() {
+    writeToBuildFile(TestFileName("MigrateToBuildFeatures/ViewBindingEnabledReference"))
+    val processor = MigrateToBuildFeaturesRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("7.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("MigrateToBuildFeatures/ViewBindingEnabledReferenceExpected"))
+  }
 }
