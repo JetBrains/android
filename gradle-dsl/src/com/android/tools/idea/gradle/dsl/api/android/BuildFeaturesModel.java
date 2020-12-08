@@ -24,6 +24,9 @@ public interface BuildFeaturesModel extends GradleDslModel {
   ResolvedPropertyModel compose();
 
   @NotNull
+  ResolvedPropertyModel dataBinding();
+
+  @NotNull
   ResolvedPropertyModel mlModelBinding();
 
   @NotNull
