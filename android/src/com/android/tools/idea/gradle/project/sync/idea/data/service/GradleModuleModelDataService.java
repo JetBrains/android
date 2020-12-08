@@ -67,16 +67,16 @@ public class GradleModuleModelDataService extends ModuleModelDataService<GradleM
   protected void importData(@NotNull Collection<DataNode<GradleModuleModel>> toImport,
                             @NotNull Project project,
                             @NotNull IdeModifiableModelsProvider modelsProvider,
-                            @NotNull Map<String, GradleModuleModel> modelsByModuleName) {
+                            @NotNull Map<String, DataNode<GradleModuleModel>> modelsByModuleName) {
     for (Module module : modelsProvider.getModules()) {
-      GradleModuleModel gradleModuleModel = modelsByModuleName.get(module.getName());
-      if (gradleModuleModel == null) {
+      DataNode<GradleModuleModel> gradleModuleModelDataNode = modelsByModuleName.get(module.getName());
+      if (gradleModuleModelDataNode == null) {
         // This happens when there is an orphan IDEA module that does not map to a Gradle project. One way for this to happen is when
         // opening a project created in another machine, and Gradle import assigns a different name to a module. Then, user decides
         // not to delete the orphan module when Studio prompts to do so.
         removeAllFacets(modelsProvider.getModifiableFacetModel(module), GradleFacet.getFacetTypeId());      }
       else {
-        myModuleSetup.setUpModule(module, modelsProvider, gradleModuleModel);
+        myModuleSetup.setUpModule(module, modelsProvider, gradleModuleModelDataNode.getData());
       }
     }
     // Create extra build participant for modules from build src. This will be used to locate the IDE module from dependency module in ModuleFinder.

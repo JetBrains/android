@@ -81,10 +81,12 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
   public override fun importData(toImport: Collection<DataNode<AndroidModuleModel>>,
                                  project: Project,
                                  modelsProvider: IdeModifiableModelsProvider,
-                                 modelsByModuleName: Map<String, AndroidModuleModel>) {
+                                 modelsByModuleName: Map<String, DataNode<AndroidModuleModel>>) {
     val moduleValidator = myModuleValidatorFactory.create(project)
     for (module in modelsProvider.modules) {
-      val androidModel = modelsByModuleName[module.name]
+
+      val androidModelDataNode = modelsByModuleName[module.name]
+      val androidModel = androidModelDataNode?.data
       if (androidModel != null) {
         // The SDK needs to be set here for Android modules, unfortunately we can't use intellijs
         // code to set this us as we need to reload the SDKs in case AGP has just downloaded it.
