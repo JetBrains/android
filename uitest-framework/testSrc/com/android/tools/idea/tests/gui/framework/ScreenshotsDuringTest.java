@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 import static com.intellij.openapi.util.io.FileUtil.ensureExists;
 
 /**
- * Rule that takes a screenshot every second.
+ * Rule that takes a screenshot at certain intervals (default 100ms)
  */
 public class ScreenshotsDuringTest extends TestWatcher {
   private final @NotNull Supplier<Robot> myRobotSupplier;
