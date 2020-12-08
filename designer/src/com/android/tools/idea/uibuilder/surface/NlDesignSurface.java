@@ -975,7 +975,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   @Override
-  public final Object getData(@NotNull String dataId) {
+  public Object getData(@NotNull String dataId) {
     Object data = myDelegateDataProvider != null ? myDelegateDataProvider.getData(dataId) : null;
     if (data != null) {
       return data;

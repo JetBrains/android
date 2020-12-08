@@ -48,15 +48,14 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
     `when`(panel.state).thenReturn(DesignerEditorPanel.State.FULL)
     designerEditor = mock(DesignerEditor::class.java)
     `when`(designerEditor.component).thenReturn(panel)
-    val textEditorComponent = mock(JComponent::class.java)
+    val textEditorComponent = object: JComponent() {}
     textEditor = mock(TextEditor::class.java)
     `when`(textEditor.component).thenReturn(textEditorComponent)
     `when`(textEditor.file).thenReturn(mock(VirtualFile::class.java))
     val editor = mock(Editor::class.java)
     `when`(editor.contentComponent).thenReturn(mock(JComponent::class.java))
     `when`(textEditor.editor).thenReturn(editor)
-    val component = mock(JComponent::class.java)
-    `when`(component.getActionForKeyStroke(any(KeyStroke::class.java))).thenCallRealMethod()
+    val component = object: JComponent() {}
     splitEditor = object : DesignToolsSplitEditor(textEditor, designerEditor, project) {
       // The fact that we have to call registerModeNavigationShortcuts here repeating the behavior in SplitEditor is incorrect
       // and should be fixed. However, we can not use the original getComponent method since it calls getComponent of
