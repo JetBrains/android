@@ -291,6 +291,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         }
         else { // Disable interactive
           onInteractivePreviewStop()
+          onStaticPreviewStart()
           forceRefresh().invokeOnCompletion {
             interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
           }
@@ -299,12 +300,15 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     }
     get() = if (interactiveMode == ComposePreviewManager.InteractiveMode.READY) previewElementProvider.instanceFilter else null
 
+  private fun onStaticPreviewStart() {
+    composeWorkBench.hasComponentsOverlay = true
+    surface.background = defaultSurfaceBackground
+  }
+
   private fun onInteractivePreviewStop() {
     interactiveMode = ComposePreviewManager.InteractiveMode.STOPPING
-    surface.background = defaultSurfaceBackground
     surface.disableMouseClickDisplay()
     composeWorkBench.isInteractive = false
-    composeWorkBench.hasComponentsOverlay = true
     ticker.stop()
     previewElementProvider.clearInstanceIdFilter()
     logInteractiveSessionMetrics()
@@ -335,6 +339,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         }
         else {
           onAnimationInspectionStop()
+          onStaticPreviewStart()
         }
         forceRefresh().invokeOnCompletion {
           interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
@@ -346,11 +351,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private fun onAnimationInspectionStop() {
     animationInspection.set(false)
     // Close the animation inspection panel
-    surface.background = defaultSurfaceBackground
     ComposePreviewAnimationManager.closeCurrentInspector()
     // Swap the components back
     composeWorkBench.bottomPanel = null
-    composeWorkBench.hasComponentsOverlay = true
     previewElementProvider.instanceFilter = null
   }
 
