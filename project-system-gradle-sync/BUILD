@@ -16,6 +16,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
     ],
 )
 
@@ -55,5 +56,6 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle[test]",
     ],
 )
