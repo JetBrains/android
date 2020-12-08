@@ -130,14 +130,12 @@ class SafeArgsGeneratedJavaCodeMatchTest {
     val scope = fixture.findClass("FooClass").resolveScope
 
     allGeneratedCode.forEach { generated ->
-      val psiClass = psiFacade.findClass(generated.qualifiedName, scope)
-      val psiDescription = (psiClass?.toUElement() as? UClass)?.javaPsi?.toDescription()
-      expect.withMessage(generated.qualifiedName).that(psiDescription).isNotNull()
-      psiDescription?.let {
-        expect.withMessage(generated.qualifiedName).that(psiDescription.qualifiedName).isEqualTo(generated.qualifiedName)
-        expect.withMessage(generated.qualifiedName).that(psiDescription.methods).containsExactlyElementsIn(generated.methods)
-        expect.withMessage(generated.qualifiedName).that(psiDescription.fields).containsExactlyElementsIn(generated.fields)
-      }
+      val psiClass = psiFacade.findClass(generated.qualifiedName, scope)!!
+      val psiDescription = psiClass.toDescription()
+
+      expect.withMessage(generated.qualifiedName).that(psiDescription.qualifiedName).isEqualTo(generated.qualifiedName)
+      expect.withMessage(generated.qualifiedName).that(psiDescription.methods).containsExactlyElementsIn(generated.methods)
+      expect.withMessage(generated.qualifiedName).that(psiDescription.fields).containsExactlyElementsIn(generated.fields)
     }
   }
 
