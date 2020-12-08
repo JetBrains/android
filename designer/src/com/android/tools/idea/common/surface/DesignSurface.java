@@ -34,7 +34,6 @@ import com.android.tools.idea.common.error.IssuePanel;
 import com.android.tools.idea.common.error.LintIssueProvider;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.AndroidCoordinate;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DefaultSelectionModel;
 import com.android.tools.idea.common.model.ItemTransferable;
@@ -1150,33 +1149,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       return false;
     }
 
-    Point oldViewPosition = getScrollPosition();
-
-    if (x < 0 || y < 0) {
-      x = oldViewPosition.x + myScrollPane.getWidth() / 2;
-      y = oldViewPosition.y + myScrollPane.getHeight() / 2;
-    }
-
-    SceneView view = getFocusedSceneView();
-
-    @AndroidDpCoordinate int androidX = 0;
-    @AndroidDpCoordinate int androidY = 0;
-    if (view != null) {
-      androidX = Coordinates.getAndroidXDip(view, x);
-      androidY = Coordinates.getAndroidYDip(view, y);
-    }
-
     double previousScale = myScale;
     myScale = newScale;
     NlModel model = Iterables.getFirst(getModels(), null);
     if (model != null) {
       storeCurrentScale(model);
-    }
-
-    if (view != null) {
-      @SwingCoordinate int shiftedX = Coordinates.getSwingXDip(view, androidX);
-      @SwingCoordinate int shiftedY = Coordinates.getSwingYDip(view, androidY);
-      myScrollPane.getViewport().setViewPosition(new Point(oldViewPosition.x + shiftedX - x, oldViewPosition.y + shiftedY - y));
     }
 
     revalidateScrollArea();

@@ -31,6 +31,7 @@ import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.AndroidStudioKotlinPluginUtils;
 import com.android.tools.idea.common.editor.DesignerEditorPanel;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DnDTransferComponent;
 import com.android.tools.idea.common.model.DnDTransferItem;
@@ -473,6 +474,32 @@ public class NavDesignSurface extends DesignSurface {
   @Override
   public boolean isLayoutDisabled() {
     return false;
+  }
+
+  @Override
+  public boolean setScale(double scale, int x, int y) {
+    SceneView view = getFocusedSceneView();
+    if (view == null) {
+      // There is no scene view. Nothing we can do.
+      return false;
+    }
+
+    Point oldViewPosition = getScrollPosition();
+    if (x < 0 || y < 0) {
+      x = oldViewPosition.x + myScrollPane.getWidth() / 2;
+      y = oldViewPosition.y + myScrollPane.getHeight() / 2;
+    }
+
+    @AndroidDpCoordinate int androidX = Coordinates.getAndroidXDip(view, x);
+    @AndroidDpCoordinate int androidY = Coordinates.getAndroidYDip(view, y);
+
+    boolean ret = super.setScale(scale, x, y);
+
+    @SwingCoordinate int shiftedX = Coordinates.getSwingXDip(view, androidX);
+    @SwingCoordinate int shiftedY = Coordinates.getSwingYDip(view, androidY);
+    myScrollPane.getViewport().setViewPosition(new Point(oldViewPosition.x + shiftedX - x, oldViewPosition.y + shiftedY - y));
+
+    return ret;
   }
 
   @Override
