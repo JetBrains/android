@@ -27,6 +27,7 @@ import com.intellij.util.lang.UrlClassLoader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.function.Function;
@@ -70,7 +71,7 @@ public abstract class RenderClassLoader extends ClassLoader {
     this(parent, Function.identity());
   }
 
-  protected abstract List<URL> getExternalJars();
+  protected abstract List<Path> getExternalJars();
 
   @Override
   protected Class<?> findClass(String name) throws ClassNotFoundException {
@@ -83,8 +84,8 @@ public abstract class RenderClassLoader extends ClassLoader {
   }
 
   @NotNull
-  private UrlClassLoader createJarClassLoader(@NotNull List<URL> urls) {
-    return new UrlClassLoader(UrlClassLoader.build().parent(this).urls(urls).disallowLock().setLogErrorOnMissingJar(false)) {
+  private UrlClassLoader createJarClassLoader(@NotNull List<Path> files) {
+    return new UrlClassLoader(UrlClassLoader.build().parent(this).files(files).allowLock(false).setLogErrorOnMissingJar(false)) {
       // TODO(b/151089727): Fix this (see RenderClassLoader#getResources)
       @Override
       public Enumeration<URL> getResources(String name) throws IOException {
@@ -138,7 +139,7 @@ public abstract class RenderClassLoader extends ClassLoader {
   }
 
   @NotNull
-  protected Class<?> loadClass(@NotNull String fqcn, @NotNull byte[] data) {
+  protected Class<?> loadClass(@NotNull String fqcn, byte @NotNull [] data) {
     if (!isValidClassFile(data)) {
       throw new ClassFormatError(fqcn);
     }
@@ -158,7 +159,7 @@ public abstract class RenderClassLoader extends ClassLoader {
   }
 
   @NotNull
-  protected Class<?> defineClassAndPackage(@NotNull String name, @NotNull byte[] b, int offset, int len) {
+  protected Class<?> defineClassAndPackage(@NotNull String name, byte @NotNull [] b, int offset, int len) {
     int i = name.lastIndexOf('.');
     if (i > 0) {
       String packageName = name.substring(0, i);
@@ -171,10 +172,10 @@ public abstract class RenderClassLoader extends ClassLoader {
   }
 
   protected boolean areDependenciesUpToDate() {
-    List<URL> updatedDependencies = getExternalJars();
-    List<URL> currentDependencies;
+    List<Path> updatedDependencies = getExternalJars();
+    List<Path> currentDependencies;
     synchronized (myJarClassLoaderLock) {
-      currentDependencies = myJarClassLoader.get().getUrls();
+      currentDependencies = myJarClassLoader.get().getFiles();
     }
 
     if (updatedDependencies.size() != currentDependencies.size()) {

@@ -1,3 +1,4 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.uipreview;
 
 import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_ADAPTER;
@@ -29,7 +30,6 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.idea.util.FileExtensions;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
-import com.android.utils.SdkUtils;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ReadAction;
@@ -40,8 +40,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -106,7 +105,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
   /** Map from fully qualified class name to the corresponding last modified info for each class loaded by this class loader */
   private Map<String, ClassModificationTimestamp> myClassFilesLastModified;
 
-  private final List<URL> mAdditionalLibraries;
+  private final List<Path> mAdditionalLibraries;
 
   private static class ClassModificationTimestamp {
     public final long timestamp;
@@ -136,19 +135,14 @@ public final class ModuleClassLoader extends RenderClassLoader {
   }
 
   @NotNull
-  private static List<URL> getAdditionalLibraries() {
+  private static List<Path> getAdditionalLibraries() {
     String layoutlibDistributionPath = StudioEmbeddedRenderTarget.getEmbeddedLayoutLibPath();
     if (layoutlibDistributionPath == null) {
       return Collections.emptyList(); // Error is already logged by getEmbeddedLayoutLibPath
     }
 
     String relativeCoroutineLibPath = FileUtil.toSystemIndependentName("data/layoutlib-coroutines.jar");
-    try {
-      return Lists.newArrayList(SdkUtils.fileToUrl(new File(layoutlibDistributionPath, relativeCoroutineLibPath)));
-    } catch (MalformedURLException e) {
-      LOG.error("Failed to find layoutlib-coroutines library", e);
-      return Collections.emptyList();
-    }
+    return List.of(new File(layoutlibDistributionPath, relativeCoroutineLibPath).toPath());
   }
 
   @Override
@@ -441,7 +435,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
    */
   @Override
   @NotNull
-  protected List<URL> getExternalJars() {
+  protected List<Path> getExternalJars() {
     return Lists.newArrayList(
       Iterables.concat(mAdditionalLibraries, ClassLoadingUtilsKt.getLibraryDependenciesJars(myModuleReference.get())));
   }

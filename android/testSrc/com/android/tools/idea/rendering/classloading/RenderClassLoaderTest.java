@@ -15,12 +15,26 @@
  */
 package com.android.tools.idea.rendering.classloading;
 
-import com.google.common.collect.ImmutableList;
+import static junit.framework.TestCase.assertNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.intellij.openapi.diagnostic.DefaultLogger;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.TestLoggerFactory;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -29,21 +43,6 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.net.URL;
-import java.nio.file.Files;
-import java.util.List;
-
-import static junit.framework.TestCase.assertNull;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 
 public class RenderClassLoaderTest {
@@ -87,11 +86,10 @@ public class RenderClassLoaderTest {
     File jarSource = new File(AndroidTestBase.getTestDataPath(), "rendering/renderClassLoader/lib.jar");
     File testJarFile = File.createTempFile("RenderClassLoader", ".jar");
     FileUtil.copy(jarSource, testJarFile);
-    URL testJarFileUrl = testJarFile.toURI().toURL();
     RenderClassLoader loader = new RenderClassLoader(this.getClass().getClassLoader()) {
       @Override
-      protected List<URL> getExternalJars() {
-        return ImmutableList.of(testJarFileUrl);
+      protected List<Path> getExternalJars() {
+        return List.of(testJarFile.toPath());
       }
     };
 
@@ -118,8 +116,8 @@ public class RenderClassLoaderTest {
 
     RenderClassLoader loader = new RenderClassLoader(this.getClass().getClassLoader()) {
       @Override
-      protected List<URL> getExternalJars() {
-        return ImmutableList.of();
+      protected List<Path> getExternalJars() {
+        return Collections.emptyList();
       }
 
       @NotNull
