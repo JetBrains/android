@@ -36,11 +36,11 @@ import com.intellij.ui.tree.StructureTreeModel
 import com.intellij.ui.treeStructure.SimpleNode
 import com.intellij.ui.treeStructure.SimpleTreeStructure
 import com.intellij.ui.treeStructure.Tree
-import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.tree.TreeUtil
 import org.jetbrains.annotations.NonNls
 import java.awt.BorderLayout
 import java.awt.CardLayout
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.BorderFactory
@@ -121,7 +121,7 @@ class BuildAttributionTreeView(
     tree: Tree,
     private val uiAnalytics: BuildAttributionUiAnalytics
   ) {
-    private val viewMap = ContainerUtil.newConcurrentMap<String, JComponent>()
+    private val viewMap = ConcurrentHashMap<String, JComponent>()
     private val enabledViewRef = AtomicReference<String>()
     private val panel: JPanel = JPanel(CardLayout())
 
