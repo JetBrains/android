@@ -23,11 +23,13 @@ import org.jetbrains.org.objectweb.asm.commons.Remapper
  * [Remapper] that renames all class references to certain packages and adds them the given prefix.
  * The names used are JVM internal names and thus separated with "/".
  */
-private class RepackageRemapper(private val packagePrefixes: Collection<String>,
+private class RepackageRemapper(packagePrefixes: Collection<String>,
                                 private val remappedPrefix: String) : Remapper() {
+  private val packagePrefixes = packagePrefixes.toTypedArray()
+
   override fun map(internalName: String): String {
-    if (packagePrefixes.any { internalName.startsWith(it) }) {
-      return "$remappedPrefix$internalName"
+    for (element in packagePrefixes) {
+      if (internalName.startsWith(element)) return "$remappedPrefix$internalName"
     }
 
     return internalName
