@@ -117,6 +117,16 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     verifyFileContents(buildFile, TestFileName("GMavenRepository/AGP2ProjectExpected"))
   }
 
+  @Test
+  fun testEnabledEffectOnMigrateBuildFeatures() {
+    writeToBuildFile(TestFileName("MigrateToBuildFeatures/ViewBindingEnabledLiteral"))
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("3.6.0"), GradleVersion.parse("7.0.0"))
+    processor.classpathRefactoringProcessor.isEnabled = false
+    processor.componentRefactoringProcessors.forEach { it.isEnabled = it is MigrateToBuildFeaturesRefactoringProcessor }
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("MigrateToBuildFeatures/ViewBindingEnabledLiteralExpected"))
+  }
+
   @Ignore("gradle-wrapper.properties is not a build file") // TODO(b/152854665)
   fun testEnabledEffectOnAgpGradleVersion() {
     writeToBuildFile(TestFileName("AgpGradleVersion/OldGradleVersion"))
