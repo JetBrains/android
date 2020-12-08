@@ -96,6 +96,28 @@ class RecordingOptionsView @JvmOverloads constructor(private val recordingModel:
     onSelectionChanged()
   }
 
+  override fun setEnabled(enabled: Boolean) {
+    super.setEnabled(enabled)
+    // Set enabled status according to model
+    if (enabled) {
+      onRecordingChanged()
+      onSelectionChanged()
+      configComponents?.apply {
+        button.isEnabled = true
+      }
+    }
+    // Disable everything
+    else {
+      startStopButton.isEnabled = false
+      builtInRadios.forEach { it.isEnabled = false }
+      configComponents?.apply {
+        menu.isEnabled = false
+        radio.isEnabled = false
+        button.isEnabled = false
+      }
+    }
+  }
+
   private fun makeRows(): List<Pair<JComponent, String>> {
     val builtInRows = builtInRadios zip recordingModel.builtInOptions.map {it.description}
     return configComponents?.let {
@@ -113,11 +135,11 @@ class RecordingOptionsView @JvmOverloads constructor(private val recordingModel:
 
   private fun onSelectionChanged() = when {
     recordingModel.isSelectedOptionBuiltIn -> {
-      startStopButton.isEnabled = true
+      startStopButton.isEnabled = !recordingModel.isRecording || recordingModel.canStop()
       builtInRadios[recordingModel.builtInOptions.indexOf(recordingModel.selectedOption)].isSelected = true
     }
     recordingModel.isSelectedOptionCustom -> {
-      startStopButton.isEnabled = true
+      startStopButton.isEnabled = !recordingModel.isRecording || recordingModel.canStop()
       configComponents!!.radio.isSelected = true
       configComponents.menu.selectedItem = recordingModel.selectedOption!!
     }

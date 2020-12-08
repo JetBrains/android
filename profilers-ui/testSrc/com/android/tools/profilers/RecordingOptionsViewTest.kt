@@ -147,6 +147,47 @@ class RecordingOptionsViewTest(configs: Array<RecordingOption>, editAction: ((Mu
     assertThat(grid.mode).isEqualTo(FlexibleGrid.Mode.Compact)
   }
 
+  @Test
+  fun `disabling and re-enabling restores the same states in components`() {
+    view.apply {
+      checkEnabledSameBeforeAfter()
+      allRadios[0].doClick()
+      checkEnabledSameBeforeAfter()
+      startStopButton.doClick()
+      checkEnabledSameBeforeAfter()
+    }
+  }
+
+  private fun checkEnabledSameBeforeAfter() {
+    view.apply {
+      // Remember state before disabling/enabling
+      val startStopButtonEnabled = startStopButton.isEnabled
+      val builtInRadiosEnabled = builtInRadios.map { it.isEnabled }
+      val configComponentsEnabled = configComponents?.let { Triple(it.radio.isEnabled, it.menu.isEnabled, it.button.isEnabled) }
+
+      // Check everything disabled
+      isEnabled = false
+      assertThat(startStopButton.isEnabled).isFalse()
+      builtInRadios.forEach { assertThat(it.isEnabled).isFalse() }
+      configComponents?.apply {
+        assertThat(radio.isEnabled).isFalse()
+        assertThat(menu.isEnabled).isFalse()
+        assertThat(button.isEnabled).isFalse()
+      }
+
+      // Check everything restored
+      isEnabled = true
+      assertThat(startStopButton.isEnabled).isEqualTo(startStopButtonEnabled)
+      (builtInRadiosEnabled zip builtInRadios).forEach { (before, radio) -> assertThat(radio.isEnabled).isEqualTo(before) }
+      configComponents?.apply {
+        val (radioEnabled, menuEnabled, buttonEnabled) = configComponentsEnabled!!
+        assertThat(radio.isEnabled).isEqualTo(radioEnabled)
+        assertThat(menu.isEnabled).isEqualTo(menuEnabled)
+        assertThat(button.isEnabled).isEqualTo(buttonEnabled)
+      }
+    }
+  }
+
   companion object {
     private val EditConfigActions = arrayOf<((MutableComboBoxModel<RecordingOption>) -> Unit)?>(
       null,
