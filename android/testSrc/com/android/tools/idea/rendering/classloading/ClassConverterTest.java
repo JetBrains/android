@@ -47,7 +47,7 @@ import static org.jetbrains.org.objectweb.asm.Opcodes.V1_6;
 import static org.jetbrains.org.objectweb.asm.Opcodes.V1_7;
 
 import com.google.common.collect.Lists;
-import java.net.URL;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -451,7 +451,7 @@ public class ClassConverterTest extends TestCase {
     return cw.toByteArray();
   }
 
-  private static class TestClassLoader extends RenderClassLoader {
+  private static final class TestClassLoader extends RenderClassLoader {
     final byte[] myData;
 
     public TestClassLoader(byte[] data) {
@@ -460,7 +460,7 @@ public class ClassConverterTest extends TestCase {
     }
 
     @Override
-    protected List<URL> getExternalJars() {
+    protected List<Path> getExternalJars() {
       return Collections.emptyList();
     }
 

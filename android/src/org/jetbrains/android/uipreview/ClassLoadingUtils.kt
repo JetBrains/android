@@ -17,7 +17,6 @@ package org.jetbrains.android.uipreview
 
 import com.android.SdkConstants
 import com.android.tools.idea.model.AndroidModel
-import com.android.utils.SdkUtils
 import com.google.common.io.Files
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VfsUtilCore
@@ -25,39 +24,32 @@ import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import java.io.File
-import java.net.MalformedURLException
-import java.net.URL
+import java.nio.file.Path
 
 /**
  * Returns a stream of JAR files of the referenced libraries for the [Module] of this class loader.
  */
-private fun Module.getExternalLibraryJars(): Sequence<File> {
-  val facet = AndroidFacet.getInstance(this)
+private fun getExternalLibraryJars(module: Module): Sequence<File> {
+  val facet = AndroidFacet.getInstance(module)
   if (facet != null && AndroidModel.isRequired(facet)) {
     val model = AndroidModel.get(facet)
     if (model != null) {
-      return model.classJarProvider.getModuleExternalLibraries(this).asSequence()
+      return model.classJarProvider.getModuleExternalLibraries(module).asSequence()
     }
   }
-  return AndroidRootUtil.getExternalLibraries(this).asSequence().map { file: VirtualFile? -> VfsUtilCore.virtualToIoFile(file!!) }
+  return AndroidRootUtil.getExternalLibraries(module).asSequence().map { file: VirtualFile? -> VfsUtilCore.virtualToIoFile(file!!) }
 }
 
 /**
  * Returns the list of external JAR files referenced by the class loader.
  */
-internal fun Module?.getLibraryDependenciesJars(): List<URL> {
-  if (this == null || this.isDisposed) {
+internal fun getLibraryDependenciesJars(module: Module?): List<Path> {
+  if (module == null || module.isDisposed) {
     return emptyList()
   }
-  return this.getExternalLibraryJars()
-    .filter { file: File -> SdkConstants.EXT_JAR == Files.getFileExtension(file.name) && file.exists() }
-    .mapNotNull {
-      try {
-        SdkUtils.fileToUrl(it)
-      }
-      catch (e: MalformedURLException) {
-        null
-      }
-    }
+
+  return getExternalLibraryJars(module)
+    .filter { SdkConstants.EXT_JAR == Files.getFileExtension(it.name) && it.exists() }
+    .map { it.toPath() }
     .toList()
 }

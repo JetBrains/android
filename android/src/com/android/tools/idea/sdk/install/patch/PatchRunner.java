@@ -19,12 +19,13 @@ import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.io.FileOp;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.containers.CollectionFactory;
 import com.intellij.util.lang.UrlClassLoader;
 import java.awt.*;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -68,7 +69,7 @@ public class PatchRunner {
   /**
    * Cache of patcher classes. Key is jar file, subkey is class name.
    */
-  private static Map<LocalPackage, PatchRunner> ourCache = ContainerUtil.createWeakMap();
+  private static Map<LocalPackage, PatchRunner> ourCache = CollectionFactory.createWeakMap();
 
   /**
    * Run the IJ patcher by reflection.
@@ -187,9 +188,8 @@ public class PatchRunner {
   /**
    * Gets a class loader for the given jar.
    */
-  @NotNull
-  private static ClassLoader getClassLoader(@NotNull File patcherJar) {
-    return UrlClassLoader.build().files(List.of(patcherJar.toPath())).disallowLock().parent(PatchInstaller.class.getClassLoader()).get();
+  private static @NotNull ClassLoader getClassLoader(@NotNull Path patcherJar) {
+    return UrlClassLoader.build().files(List.of(patcherJar)).allowLock(false).parent(PatchInstaller.class.getClassLoader()).get();
   }
 
   @NotNull
@@ -219,7 +219,7 @@ public class PatchRunner {
           progress.logWarning("Failed to find patcher JAR!");
           return null;
         }
-        ClassLoader loader = getClassLoader(patcherFile);
+        ClassLoader loader = getClassLoader(patcherFile.toPath());
         Class runnerClass = Class.forName(RUNNER_CLASS_NAME, true, loader);
         Class uiBaseClass = Class.forName(UPDATER_UI_CLASS_NAME, true, loader);
         Class uiClass = Class.forName(REPO_UI_CLASS_NAME, true, loader);
