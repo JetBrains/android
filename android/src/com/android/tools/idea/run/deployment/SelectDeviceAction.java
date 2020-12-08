@@ -24,7 +24,10 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@SuppressWarnings("ComponentNotRegistered")
+/**
+ * An action for each device in the drop down without a snapshot sublist. When a user selects a device, SelectDeviceAction will set a target
+ * for the device in DeviceAndSnapshotComboBoxAction.
+ */
 public final class SelectDeviceAction extends AnAction {
   @NotNull
   private final Device myDevice;
@@ -32,23 +35,8 @@ public final class SelectDeviceAction extends AnAction {
   @NotNull
   private final DeviceAndSnapshotComboBoxAction myComboBoxAction;
 
-  private final boolean mySnapshotActionGroupChild;
-
-  @NotNull
-  static AnAction newSelectDeviceAction(@NotNull Device device, @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
-    return new SelectDeviceAction(device, comboBoxAction, false);
-  }
-
-  @NotNull
-  static AnAction newSnapshotActionGroupChild(@NotNull Device device, @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
-    return new SelectDeviceAction(device, comboBoxAction, true);
-  }
-
-  private SelectDeviceAction(@NotNull Device device,
-                             @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction,
-                             boolean snapshotActionGroupChild) {
+  SelectDeviceAction(@NotNull Device device, @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
     myDevice = device;
-    mySnapshotActionGroupChild = snapshotActionGroupChild;
     myComboBoxAction = comboBoxAction;
   }
 
@@ -61,12 +49,6 @@ public final class SelectDeviceAction extends AnAction {
   @Override
   public void update(@NotNull AnActionEvent event) {
     Presentation presentation = event.getPresentation();
-
-    if (mySnapshotActionGroupChild) {
-      presentation.setText("Cold Boot", false);
-      return;
-    }
-
     presentation.setIcon(myDevice.getIcon());
 
     Collection<Device> devices = myComboBoxAction.getDevices(Objects.requireNonNull(event.getProject())).orElseThrow(AssertionError::new);
@@ -87,19 +69,11 @@ public final class SelectDeviceAction extends AnAction {
     }
 
     SelectDeviceAction action = (SelectDeviceAction)object;
-
-    return myDevice.equals(action.myDevice) &&
-           myComboBoxAction.equals(action.myComboBoxAction) &&
-           mySnapshotActionGroupChild == action.mySnapshotActionGroupChild;
+    return myDevice.equals(action.myDevice) && myComboBoxAction.equals(action.myComboBoxAction);
   }
 
   @Override
   public int hashCode() {
-    int hashCode = myDevice.hashCode();
-
-    hashCode = 31 * hashCode + myComboBoxAction.hashCode();
-    hashCode = 31 * hashCode + Boolean.hashCode(mySnapshotActionGroupChild);
-
-    return hashCode;
+    return 31 * myDevice.hashCode() + myComboBoxAction.hashCode();
   }
 }

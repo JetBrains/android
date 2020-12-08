@@ -19,18 +19,14 @@ import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
-import java.nio.file.FileSystem;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -81,38 +77,13 @@ public final class SelectDeviceActionTest {
 
     Mockito.when(myComboBoxAction.getDevices(myProject)).thenReturn(Optional.of(Arrays.asList(device1, device2)));
 
-    AnAction action = SelectDeviceAction.newSelectDeviceAction(device1, myComboBoxAction);
+    AnAction action = new SelectDeviceAction(device1, myComboBoxAction);
 
     // Act
     action.update(myEvent);
 
     // Assert
     assertEquals("LGE Nexus 5X [00fff9d2279fa601]", myPresentation.getText());
-  }
-
-  @Ignore
-  @Test
-  public void updateDeviceHasSnapshot() {
-    // Arrange
-    FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
-
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 3 API 29")
-      .setKey(new NonprefixedKey("Pixel_3_API_29/snap_2018-08-07_16-27-58"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .addSnapshot(new Snapshot(fileSystem.getPath("/home/juancnuno/.android/avd/Pixel_3_API_29.avd/snapshots/snap_2018-08-07_16-27-58")))
-      .build();
-
-    Mockito.when(myComboBoxAction.getDevices(myProject)).thenReturn(Optional.of(Collections.singletonList(device)));
-    Mockito.when(myComboBoxAction.areSnapshotsEnabled()).thenReturn(true);
-
-    AnAction action = SelectDeviceAction.newSelectDeviceAction(device, myComboBoxAction);
-
-    // Act
-    action.update(myEvent);
-
-    // Assert
-    assertEquals("Pixel 3 API 29 - snap_2018-08-07_16-27-58", myPresentation.getText());
   }
 
   @Test
@@ -127,7 +98,7 @@ public final class SelectDeviceActionTest {
 
     Mockito.when(myComboBoxAction.getDevices(myProject)).thenReturn(Optional.of(Collections.singletonList(device)));
 
-    AnAction action = SelectDeviceAction.newSelectDeviceAction(device, myComboBoxAction);
+    AnAction action = new SelectDeviceAction(device, myComboBoxAction);
 
     // Act
     action.update(myEvent);
@@ -147,7 +118,7 @@ public final class SelectDeviceActionTest {
 
     Mockito.when(myComboBoxAction.getDevices(myProject)).thenReturn(Optional.of(Collections.singletonList(device)));
 
-    AnAction action = SelectDeviceAction.newSelectDeviceAction(device, myComboBoxAction);
+    AnAction action = new SelectDeviceAction(device, myComboBoxAction);
 
     // Act
     action.update(myEvent);
@@ -167,7 +138,7 @@ public final class SelectDeviceActionTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    AnAction action = SelectDeviceAction.newSelectDeviceAction(device, myComboBoxAction);
+    AnAction action = new SelectDeviceAction(device, myComboBoxAction);
 
     // Act
     action.actionPerformed(myEvent);
