@@ -1915,7 +1915,17 @@ class MigrateToBuildFeaturesRefactoringProcessor : AgpUpgradeComponentRefactorin
     builder.setKind(MIGRATE_TO_BUILD_FEATURES)
 
   override fun findComponentUsages(): Array<out UsageInfo> {
-    return UsageInfo.EMPTY_ARRAY
+    val usages = ArrayList<UsageInfo>()
+    buildModel.allIncludedBuildModels.forEach model@{ model ->
+      val androidModel = model.android()
+      if (androidModel.viewBinding().enabled().getValue(BOOLEAN_TYPE) != null) {
+        val psiElement = androidModel.viewBinding().enabled().psiElement ?: return@model
+        val wrappedPsiElement = WrappedPsiElement(psiElement, this, VIEW_BINDING_ENABLED_USAGE_TYPE)
+        val usageInfo = ViewBindingEnabledUsageInfo(wrappedPsiElement, androidModel)
+        usages.add(usageInfo)
+      }
+    }
+    return usages.toArray(UsageInfo.EMPTY_ARRAY)
   }
 
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
@@ -1926,6 +1936,10 @@ class MigrateToBuildFeaturesRefactoringProcessor : AgpUpgradeComponentRefactorin
 
       override fun getProcessedElementsHeader() = "Migrate enabled booleans to buildFeatures"
     }
+  }
+
+  companion object {
+    val VIEW_BINDING_ENABLED_USAGE_TYPE = UsageType("Migrate viewBinding enabled to buildFeatures")
   }
 }
 
