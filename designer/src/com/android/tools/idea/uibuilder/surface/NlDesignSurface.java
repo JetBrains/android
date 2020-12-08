@@ -80,6 +80,7 @@ import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.Update;
 import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.Collection;
 import java.util.Collections;
@@ -90,6 +91,8 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.swing.JViewport;
+import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -386,6 +389,15 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @SurfaceScale private final double myMinScale;
   @SurfaceScale private final double myMaxScale;
 
+  // properties to calculate the correct viewport position when its size is changed.
+  @Nullable private Dimension myCurrentViewportSize = null;
+  @SwingCoordinate
+  @NotNull
+  private final Point myZoomCenterInViewport = new Point();
+  @SwingCoordinate
+  @NotNull
+  private final Point myZoomCenter = new Point();
+
   private boolean myIsRenderingSynchronously = false;
   private boolean myIsAnimationScrubbing = false;
 
@@ -428,6 +440,54 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
     myMinScale = minScale;
     myMaxScale = maxScale;
+
+    myScrollPane.getViewport().addChangeListener(e -> {
+      // Calculate the viewport position of scroll view when its size is changed.
+      // When the view size is changed, the new center position should have same weight in both x and y axis as before.
+      // Consider the size of the view is 1000 * 2000 and the zoom center is at (800, 1500). So the weight is 0.8 on x-axis and 0.75 on
+      // y-axis.
+      // When view size changes to 500 * 1000, the new center should be (400, 750) because we want to keep same weights
+      // We calculate the new viewport position to achieve above behavior.
+      // FIXME: This doesn't work when scaling makes re-layout when using GridLayout.
+      //        Consider to use hovered SceneView to determine the new viewport position in that case.
+      JViewport port = (JViewport)e.getSource();
+      Dimension newViewportSize = port.getViewSize();
+      if (newViewportSize == null ||
+          newViewportSize.width == 0 ||
+          newViewportSize.height == 0 ||
+          newViewportSize.equals(myCurrentViewportSize)) {
+        return;
+      }
+      if (myCurrentViewportSize == null) {
+        // Do nothing. The view position should be default value (usually it is (0, 0))
+        myCurrentViewportSize = newViewportSize;
+        return;
+      }
+
+      int zoomCenterX = myZoomCenter.x;
+      int zoomCenterY = myZoomCenter.y;
+      int zoomCenterInViewportX = myZoomCenterInViewport.x;
+      int zoomCenterInViewportY = myZoomCenterInViewport.y;
+
+      double weightInPaneX = zoomCenterInViewportX / (double)myCurrentViewportSize.width;
+      double weightInPaneY = zoomCenterInViewportY / (double)myCurrentViewportSize.height;
+
+      int newViewWidth = newViewportSize.width;
+      int newViewHeight = newViewportSize.height;
+      double newZoomCenterInViewportX = newViewWidth * weightInPaneX;
+      double newZoomCenterInViewportY = newViewHeight * weightInPaneY;
+
+      int newViewPositionX = (int)(newZoomCenterInViewportX - zoomCenterX);
+      int newViewPositionY = (int)(newZoomCenterInViewportY - zoomCenterY);
+
+      // Make sure the view port position doesn't go out of bound. (It may happen when zooming-out)
+      newViewPositionX = Math.max(0, Math.min(newViewPositionX, newViewWidth - port.getWidth()));
+      newViewPositionY = Math.max(0, Math.min(newViewPositionY, newViewHeight - port.getHeight()));
+
+      myCurrentViewportSize = newViewportSize;
+
+      port.setViewPosition(new Point(newViewPositionX, newViewPositionY));
+    });
 
     if (NELE_LAYOUT_SCANNER_IN_EDITOR.get()) {
       myValidatorControl = new NlLayoutScannerControl(this, this);
@@ -878,6 +938,32 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     @SurfaceScale double currentScale = getScale();
     @SurfaceScale double scaleOfActual = 1d / getScreenScalingFactor();
     return (currentScale > scaleOfActual && canZoomOut()) || (currentScale < scaleOfActual && canZoomIn());
+  }
+
+  @Override
+  public boolean setScale(double scale, int x, int y) {
+    if (x < 0 || y < 0) {
+      // This happens when zooming is triggered by shortcut or zoom buttons.
+      // We use the center point of scroll pane as scaling center.
+      myZoomCenter.x = myScrollPane.getViewport().getWidth() / 2;
+      myZoomCenter.y = myScrollPane.getViewport().getHeight() / 2;
+
+      // Convert the center point in scroll pane to view port coordinate system.
+      Point scrollPosition = getScrollPosition();
+      myZoomCenterInViewport.x = scrollPosition.x + myZoomCenter.x;
+      myZoomCenterInViewport.y = scrollPosition.y + myZoomCenter.y;
+    }
+    else {
+      // This happens when zooming is triggered by mouse wheel or magnify (e.g. the gesture of track pad)
+      myZoomCenterInViewport.x = x;
+      myZoomCenterInViewport.y = y;
+
+      // The given zoom center is in Viewport coordinate, we need to calculate the point in scroll pane.
+      Point center = SwingUtilities.convertPoint(myScrollPane.getViewport().getView(), x, y, myScrollPane.getViewport());
+      myZoomCenter.x = center.x;
+      myZoomCenter.y = center.y;
+    }
+    return super.setScale(scale, x, y);
   }
 
   @Override
