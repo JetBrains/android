@@ -16,6 +16,9 @@
 package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.tools.idea.run.AndroidRunConfiguration
+import com.android.tools.idea.stats.RunStats
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.ComposeDeployEvent
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.project.Project
 import org.jdom.Element
@@ -25,6 +28,17 @@ private const val COMPOSABLE_FQN_ATR_NAME = "composable-fqn"
 
 /** A run configuration to launch the Compose tooling PreviewActivity to a device/emulator passing a @Composable via intent parameter. */
 open class ComposePreviewRunConfiguration(project: Project, factory: ConfigurationFactory) : AndroidRunConfiguration(project, factory) {
+
+  /**
+   * Represents where this Run Configuration was triggered from.
+   */
+  enum class TriggerSource(val eventType: ComposeDeployEvent.ComposeDeployEventType) {
+    UNKNOWN(ComposeDeployEvent.ComposeDeployEventType.UNKNOWN_EVENT_TYPE),
+    TOOLBAR(ComposeDeployEvent.ComposeDeployEventType.DEPLOY_FROM_TOOLBAR),
+    GUTTER(ComposeDeployEvent.ComposeDeployEventType.DEPLOY_FROM_GUTTER)
+  }
+
+  var triggerSource = TriggerSource.UNKNOWN
 
   var composableMethodFqn: String? = null
     set(value) {
@@ -50,6 +64,14 @@ open class ComposePreviewRunConfiguration(project: Project, factory: Configurati
     //                    accepts either project or global scope.
     @Suppress("LeakingThis")
     setLaunchActivity("androidx.compose.ui.tooling.preview.PreviewActivity", true)
+  }
+
+  override fun updateExtraRunStats(runStats: RunStats) {
+    super.updateExtraRunStats(runStats)
+    val studioEvent = AndroidStudioEvent.newBuilder()
+      .setKind(AndroidStudioEvent.EventKind.COMPOSE_DEPLOY)
+      .setComposeDeployEvent(ComposeDeployEvent.newBuilder().setType(triggerSource.eventType))
+    runStats.addAdditionalOnCommitEvent(studioEvent)
   }
 
   private fun updateActivityExtraFlags() {

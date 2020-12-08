@@ -23,6 +23,8 @@ import com.android.tools.idea.kotlin.getClassName
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.actions.LazyRunConfigurationProducer
 import com.intellij.execution.configurations.runConfigurationType
+import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.editor.EditorGutter
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
@@ -54,6 +56,8 @@ open class ComposePreviewRunConfigurationProducer : LazyRunConfigurationProducer
       configuration.name = it.name!!
       configuration.composableMethodFqn = it.composePreviewFunctionFqn()
       configuration.setModule(context.module)
+      updateConfigurationTriggerToGutterIfNeeded(configuration, context)
+
       it.valueParameters.forEach { parameter ->
         parameter.annotationEntries.firstOrNull { annotation ->
           annotation.fqNameMatches(PREVIEW_PARAMETER_FQNS)
@@ -74,9 +78,23 @@ open class ComposePreviewRunConfigurationProducer : LazyRunConfigurationProducer
       return false
     }
     context.containingComposePreviewFunction()?.let {
-      return configuration.name == it.name && configuration.composableMethodFqn == it.composePreviewFunctionFqn()
+      val createdFromContext = configuration.composableMethodFqn == it.composePreviewFunctionFqn()
+      if (createdFromContext) {
+        // Handle configurations that already exist (e.g. that could have been created from the Preview toolbar).
+        updateConfigurationTriggerToGutterIfNeeded(configuration, context)
+      }
+      return createdFromContext
     }
     return false
+  }
+}
+
+/**
+ * When producing the configuration from the gutter icon, update its [ComposePreviewRunConfiguration.TriggerSource] so we can keep track.
+ */
+private fun updateConfigurationTriggerToGutterIfNeeded(configuration: ComposePreviewRunConfiguration, context: ConfigurationContext) {
+  if (PlatformDataKeys.CONTEXT_COMPONENT.getData(context.dataContext) is EditorGutter) {
+    configuration.triggerSource = ComposePreviewRunConfiguration.TriggerSource.GUTTER
   }
 }
 
