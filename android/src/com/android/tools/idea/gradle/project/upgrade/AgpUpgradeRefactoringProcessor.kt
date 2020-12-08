@@ -1960,6 +1960,22 @@ class ViewBindingEnabledUsageInfo(element: WrappedPsiElement, val androidModel: 
   override fun getTooltipText() = "Migrate viewBinding enabled to buildFeatures"
 }
 
+class DataBindingEnabledUsageInfo(element: WrappedPsiElement, val androidModel: AndroidModel): GradleBuildModelUsageInfo(element) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    val valueModel = androidModel.dataBinding().enabled().unresolvedModel
+
+    val value: Any = when(valueModel.valueType) {
+      GradlePropertyModel.ValueType.BOOLEAN -> valueModel.getValue(BOOLEAN_TYPE) ?: return
+      GradlePropertyModel.ValueType.REFERENCE -> valueModel.getValue(REFERENCE_TO_TYPE) ?: return
+      else -> return
+    }
+    androidModel.buildFeatures().dataBinding().setValue(value)
+    androidModel.dataBinding().enabled().delete()
+  }
+
+  override fun getTooltipText() = "Migrate dataBinding enabled to buildFeatures"
+}
+
 /**
  * Usage Types for usages coming from [AgpUpgradeComponentRefactoringProcessor]s.
  *
