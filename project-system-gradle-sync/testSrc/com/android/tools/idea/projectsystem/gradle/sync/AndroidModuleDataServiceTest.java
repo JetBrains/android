@@ -25,19 +25,25 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
+import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.ProjectFiles;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.facet.FacetManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
+import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
+import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.util.Collections;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 import org.mockito.Mock;
 
 /**
@@ -87,11 +93,19 @@ public class AndroidModuleDataServiceTest extends AndroidGradleTestCase {
     AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
     assertNotNull(androidModel);
 
-    DataNode<AndroidModuleModel> dataNode = new DataNode<>(ANDROID_MODEL, androidModel, null);
+    ExternalProjectInfo externalInfo =
+      ProjectDataManager.getInstance().getExternalProjectData(getProject(), GradleConstants.SYSTEM_ID, getProjectFolderPath().getPath());
+    assertNotNull("Initial import failed", externalInfo);
+    DataNode<ProjectData> projectStructure = externalInfo.getExternalProjectStructure();
+    assertNotNull("No project structure was found", projectStructure);
+
+    //noinspection unchecked
+    DataNode<AndroidModuleModel> androidModelNode = (DataNode<AndroidModuleModel>)ExternalSystemApiUtil
+      .findFirstRecursively(projectStructure, (node) -> ANDROID_MODEL.equals(node.getKey()));
     Project project = getProject();
 
     when(myModuleSetupContextFactory.create(appModule, myModelsProvider)).thenReturn(myModuleSetupContext);
-    myService.importData(Collections.singletonList(dataNode), mock(ProjectData.class), project, myModelsProvider);
+    myService.importData(Collections.singletonList(androidModelNode), mock(ProjectData.class), project, myModelsProvider);
 
     assertNotNull(FacetManager.getInstance(appModule).findFacet(AndroidFacet.ID, AndroidFacet.NAME));
     verify(myValidator).validate(appModule, androidModel);
