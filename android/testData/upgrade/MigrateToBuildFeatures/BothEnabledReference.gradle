@@ -1,0 +1,12 @@
+ext {
+  fancy = true
+}
+
+android {
+  dataBinding {
+    enabled fancy
+  }
+  viewBinding {
+    enabled fancy
+  }
+}

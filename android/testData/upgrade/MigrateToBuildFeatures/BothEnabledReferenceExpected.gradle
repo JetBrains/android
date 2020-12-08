@@ -1,0 +1,10 @@
+ext {
+  fancy = true
+}
+
+android {
+  buildFeatures {
+    dataBinding fancy
+    viewBinding fancy
+  }
+}

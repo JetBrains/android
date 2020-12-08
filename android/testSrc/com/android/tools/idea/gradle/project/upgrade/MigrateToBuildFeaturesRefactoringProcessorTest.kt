@@ -58,4 +58,36 @@ class MigrateToBuildFeaturesRefactoringProcessorTest: UpgradeGradleFileModelTest
     processor.run()
     verifyFileContents(buildFile, TestFileName("MigrateToBuildFeatures/ViewBindingEnabledReferenceExpected"))
   }
+
+  @Test
+  fun testDataBindingEnabledLiteral() {
+    writeToBuildFile(TestFileName("MigrateToBuildFeatures/DataBindingEnabledLiteral"))
+    val processor = MigrateToBuildFeaturesRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("7.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("MigrateToBuildFeatures/DataBindingEnabledLiteralExpected"))
+  }
+
+  @Test
+  fun testDataBindingEnabledReference() {
+    writeToBuildFile(TestFileName("MigrateToBuildFeatures/DataBindingEnabledReference"))
+    val processor = MigrateToBuildFeaturesRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("7.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("MigrateToBuildFeatures/DataBindingEnabledReferenceExpected"))
+  }
+
+  @Test
+  fun testBothEnabledLiterals() {
+    writeToBuildFile(TestFileName("MigrateToBuildFeatures/BothEnabledLiterals"))
+    val processor = MigrateToBuildFeaturesRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("7.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("MigrateToBuildFeatures/BothEnabledLiteralsExpected"))
+  }
+
+  @Test
+  fun testBothEnabledReference() {
+    writeToBuildFile(TestFileName("MigrateToBuildFeatures/BothEnabledReference"))
+    val processor = MigrateToBuildFeaturesRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("7.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("MigrateToBuildFeatures/BothEnabledReferenceExpected"))
+  }
 }
