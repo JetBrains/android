@@ -75,6 +75,7 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.Upgra
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GMAVEN_REPOSITORY
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GRADLE_VERSION
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.JAVA8_DEFAULT
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TO_BUILD_FEATURES
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.EXECUTE
@@ -1898,6 +1899,32 @@ class AddBuildTypeFirebaseCrashlyticsUsageInfo(
   }
 
   override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.addBuildTypeFirebaseCrashlyticsUsageInfo.tooltipText")
+}
+
+class MigrateToBuildFeaturesRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
+  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+
+  override fun necessity() = standardRegionNecessity(current, new, GradleVersion.parse("4.0.0-alpha05"), GradleVersion.parse("7.0.0"))
+
+  override fun getCommandName() = "Migrate enabled booleans to buildFeatures"
+
+  override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
+    builder.setKind(MIGRATE_TO_BUILD_FEATURES)
+
+  override fun findComponentUsages(): Array<out UsageInfo> {
+    return UsageInfo.EMPTY_ARRAY
+  }
+
+  override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
+    return object : UsageViewDescriptorAdapter() {
+      override fun getElements(): Array<PsiElement> {
+        return PsiElement.EMPTY_ARRAY
+      }
+
+      override fun getProcessedElementsHeader() = "Migrate enabled booleans to buildFeatures"
+    }
+  }
 }
 
 /**
