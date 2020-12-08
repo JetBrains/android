@@ -276,7 +276,8 @@ class AgpUpgradeRefactoringProcessor(
     AgpGradleVersionRefactoringProcessor(this),
     Java8DefaultRefactoringProcessor(this),
     CompileRuntimeConfigurationRefactoringProcessor(this),
-    FabricCrashlyticsRefactoringProcessor(this)
+    FabricCrashlyticsRefactoringProcessor(this),
+    MigrateToBuildFeaturesRefactoringProcessor(this)
   )
 
   val targets = mutableListOf<PsiElement>()
