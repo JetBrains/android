@@ -249,7 +249,6 @@ fun getExistingModuleTemplateDataBuilder(module: Module): ModuleTemplateDataBuil
     setProjectDefaults(project)
     language = if (module.hasKotlinFacet()) Language.Kotlin else Language.Java
     topOut = project.guessProjectDir()!!.toIoFile()
-    debugKeyStoreSha1 = KeystoreUtils.getSha1DebugKeystoreSilently(null)
     applicationPackage = ""
     overridePathCheck = false
   }
