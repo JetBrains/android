@@ -135,6 +135,8 @@ class StartUpTest(unittest.TestCase):
                   "Kotlin",
                   "Layoutlib",
                   "Layoutlib Legacy",
+                  "Machine Learning Code Completion",
+                  "Machine Learning Code Completion Models",
                   "Mercurial",
                   "Next File Prediction",
                   "Properties",
@@ -148,7 +150,7 @@ class StartUpTest(unittest.TestCase):
                   "Test Recorder",
                   "TestNG",
                   "TextMate Bundles",
-                  "Webp Support",
+                  "WebP Support",
                   "YAML",
                   "com.intellij.platform.images"
               ], descs)
