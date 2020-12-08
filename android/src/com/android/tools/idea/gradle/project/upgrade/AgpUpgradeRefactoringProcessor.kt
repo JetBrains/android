@@ -1910,7 +1910,7 @@ class MigrateToBuildFeaturesRefactoringProcessor : AgpUpgradeComponentRefactorin
 
   override fun necessity() = standardRegionNecessity(current, new, GradleVersion.parse("4.0.0-alpha05"), GradleVersion.parse("7.0.0"))
 
-  override fun getCommandName() = "Migrate enabled booleans to buildFeatures"
+  override fun getCommandName(): String = AndroidBundle.message("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.commandName")
 
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(MIGRATE_TO_BUILD_FEATURES)
@@ -1946,13 +1946,13 @@ class MigrateToBuildFeaturesRefactoringProcessor : AgpUpgradeComponentRefactorin
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = "Migrate enabled booleans to buildFeatures"
+      override fun getProcessedElementsHeader(): String = AndroidBundle.message("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.usageView.header")
     }
   }
 
   companion object {
-    val DATA_BINDING_ENABLED_USAGE_TYPE = UsageType("Migrate dataBinding enabled to buildFeatures")
-    val VIEW_BINDING_ENABLED_USAGE_TYPE = UsageType("Migrate viewBinding enabled to buildFeatures")
+    val DATA_BINDING_ENABLED_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.dataBindingEnabledUsageType"))
+    val VIEW_BINDING_ENABLED_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.viewBindingEnabledUsageType"))
   }
 }
 
@@ -1969,7 +1969,7 @@ class ViewBindingEnabledUsageInfo(element: WrappedPsiElement, val androidModel: 
     androidModel.viewBinding().enabled().delete()
   }
 
-  override fun getTooltipText() = "Migrate viewBinding enabled to buildFeatures"
+  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.viewBindingEnabledUsageInfo.tooltipText")
 }
 
 class DataBindingEnabledUsageInfo(element: WrappedPsiElement, val androidModel: AndroidModel): GradleBuildModelUsageInfo(element) {
@@ -1985,7 +1985,7 @@ class DataBindingEnabledUsageInfo(element: WrappedPsiElement, val androidModel: 
     androidModel.dataBinding().enabled().delete()
   }
 
-  override fun getTooltipText() = "Migrate dataBinding enabled to buildFeatures"
+  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.dataBindingEnabledUsageInfo.tooltipText")
 }
 
 /**
