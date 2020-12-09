@@ -18,6 +18,7 @@ package com.android.tools.idea.lint.common;
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 import com.android.annotations.NonNull;
+import com.android.ide.common.util.PathString;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.client.api.Configuration;
 import com.android.tools.lint.client.api.ConfigurationHierarchy;
@@ -55,6 +56,7 @@ import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.util.AbstractProgressIndicatorExBase;
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils;
 import com.intellij.openapi.project.Project;
@@ -542,6 +544,8 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Override
   @NonNull
   public String readFile(@NonNull File file) {
+    ProgressManager.checkCanceled();
+
     if (myLintResult instanceof LintEditorResult) {
       return readFile((LintEditorResult)myLintResult, file);
     }
@@ -584,6 +588,18 @@ public class LintIdeClient extends LintClient implements Disposable {
       return "";
     }
     return content;
+  }
+
+  @Override
+  public byte @NotNull [] readBytes(@NotNull File file) throws IOException {
+    ProgressManager.checkCanceled();
+    return super.readBytes(file);
+  }
+
+  @Override
+  public byte @NotNull [] readBytes(@NotNull PathString resourcePath) throws IOException {
+    ProgressManager.checkCanceled();
+    return super.readBytes(resourcePath);
   }
 
   @Nullable
