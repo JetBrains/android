@@ -24,6 +24,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.psi.search.PsiSearchScopeUtil
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -61,6 +62,7 @@ class DumbModeTest {
         </navigation>
       """.trimIndent()
     val navFile = safeArgsRule.fixture.addFileToProject("res/navigation/main.xml", xmlContent)
+    dispatchAllInvocationEvents()
     val moduleCache = SafeArgsCacheModuleService.getInstance(safeArgsRule.androidFacet)
     // 1 NavArgumentData
     assertThat(getNumberOfArgs(moduleCache.args)).isEqualTo(1)
@@ -116,6 +118,7 @@ class DumbModeTest {
           </fragment>
         </navigation>
       """.trimIndent())
+    dispatchAllInvocationEvents()
     val fragmentClass = safeArgsRule.fixture.addClass("public class MainFragment {}")
 
     val dumbScope = fragmentClass.resolveScope

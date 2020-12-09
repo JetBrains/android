@@ -27,11 +27,11 @@ import static com.android.resources.ResourceFolderType.DRAWABLE;
 import static com.android.resources.ResourceFolderType.FONT;
 import static com.android.resources.ResourceFolderType.VALUES;
 import static com.android.tools.idea.res.AndroidFileChangeListener.isRelevantFile;
+import static com.android.tools.idea.res.IdeResourcesUtil.getResourceTypeForResourceTag;
 import static com.android.tools.idea.resources.base.RepositoryLoader.portableFileName;
 import static com.android.tools.idea.resources.base.ResourceSerializationUtil.createPersistentCache;
 import static com.android.tools.idea.resources.base.ResourceSerializationUtil.writeResourcesToStream;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static com.android.tools.idea.res.IdeResourcesUtil.getResourceTypeForResourceTag;
 
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.GuardedBy;
@@ -111,6 +111,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlProcessingInstruction;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlText;
+import com.intellij.serviceContainer.AlreadyDisposedException;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.io.File;
 import java.io.IOException;
@@ -211,8 +212,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   @NotNull private final WolfTheProblemSolver myWolfTheProblemSolver;
   @NotNull private final PsiDocumentManager myPsiDocumentManager;
 
-  @NotNull private final Object SCAN_LOCK = new Object();
-  @Nullable private Set<PsiFile> myPendingScans;
+  @NotNull private final Object scanLock = new Object();
+  @NotNull private final Set<VirtualFile> myPendingScans = new HashSet<>();
 
   @VisibleForTesting static int ourFullRescans;
   @VisibleForTesting static int ourLayoutlibCacheFlushes;
@@ -571,7 +572,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   // Schedule a rescan to convert any map ResourceItems to PSI if needed, and return true if conversion
   // is needed (incremental updates which rely on PSI are not possible).
   private boolean convertToPsiIfNeeded(@NotNull PsiFile psiFile, @NotNull ResourceFolderType folderType) {
-    ResourceItemSource<? extends ResourceItem> resFile = mySources.get(psiFile.getVirtualFile());
+    VirtualFile virtualFile = psiFile.getVirtualFile();
+    ResourceItemSource<? extends ResourceItem> resFile = mySources.get(virtualFile);
     if (resFile instanceof PsiResourceFile) {
       return false;
     }
@@ -580,7 +582,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     if (LOG.isDebugEnabled()) {
       LOG.debug("Converting to PSI ", psiFile);
     }
-    scheduleScan(psiFile, folderType);
+    scheduleScan(virtualFile, folderType);
     return true;
   }
 
@@ -609,79 +611,87 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
   @Override
   boolean isScanPending(@NotNull PsiFile psiFile) {
-    synchronized (SCAN_LOCK) {
-      return myPendingScans != null && myPendingScans.contains(psiFile);
+    return isScanPending(psiFile.getVirtualFile());
+  }
+
+  boolean isScanPending(@NotNull VirtualFile virtualFile) {
+    synchronized (scanLock) {
+      return myPendingScans.contains(virtualFile);
     }
   }
 
   void scheduleScan(@NotNull VirtualFile virtualFile) {
-    ReadAction.run(() -> {
-      PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
-      if (psiFile != null) {
-        ResourceFolderType folderType = IdeResourcesUtil.getFolderType(psiFile);
-        if (folderType != null) {
-          scheduleScan(psiFile, folderType);
-        }
-      }
-    });
+    ResourceFolderType folderType = IdeResourcesUtil.getFolderType(virtualFile);
+    if (folderType != null) {
+      scheduleScan(virtualFile, folderType);
+    }
   }
 
-  @VisibleForTesting
-  void scheduleScan(@NotNull PsiFile psiFile, @NotNull ResourceFolderType folderType) {
-    synchronized (SCAN_LOCK) {
-      if (isScanPending(psiFile)) {
+  private void scheduleScan(@NotNull VirtualFile virtualFile, @NotNull ResourceFolderType folderType) {
+    synchronized (scanLock) {
+      if (!myPendingScans.add(virtualFile)) {
         return;
       }
-
-      if (myPendingScans == null) {
-        myPendingScans = new HashSet<>();
-      }
-      myPendingScans.add(psiFile);
     }
 
     ApplicationManager.getApplication().invokeLater(() -> {
-      if (!psiFile.isValid()) return;
+      if (!virtualFile.isValid() || !isScanPending(virtualFile)) {
+        return;
+      }
+      PsiFile psiFile = findPsiFile(virtualFile);
+      if (psiFile == null) {
+        return;
+      }
 
       ApplicationManager.getApplication().runWriteAction(() -> {
-        if (isScanPending(psiFile)) {
+        if (isScanPending(virtualFile)) {
           scan(psiFile, folderType);
-          synchronized (SCAN_LOCK) {
-            // myPendingScans cannot be null since it contains psiFile.
-            myPendingScans.remove(psiFile);
-            if (myPendingScans.isEmpty()) {
-              myPendingScans = null;
-            }
+          synchronized (scanLock) {
+            myPendingScans.remove(virtualFile);
           }
         }
       });
     });
   }
 
+  @Nullable
+  private PsiFile findPsiFile(@NotNull VirtualFile virtualFile) {
+    try {
+      return PsiManager.getInstance(getProject()).findFile(virtualFile);
+    }
+    catch (AlreadyDisposedException e) {
+      return null;
+    }
+  }
+
   @Override
   public void sync() {
     super.sync();
 
-    List<PsiFile> files;
-    synchronized (SCAN_LOCK) {
-      if (myPendingScans == null || myPendingScans.isEmpty()) {
+    List<VirtualFile> files;
+    synchronized (scanLock) {
+      if (myPendingScans.isEmpty()) {
         return;
       }
       files = new ArrayList<>(myPendingScans);
     }
 
     ApplicationManager.getApplication().runWriteAction(() -> {
-      for (PsiFile file : files) {
-        if (file.isValid()) {
-          ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
+      for (VirtualFile virtualFile : files) {
+        if (virtualFile.isValid()) {
+          ResourceFolderType folderType = IdeResourcesUtil.getFolderType(virtualFile);
           if (folderType != null) {
-            scan(file, folderType);
+            PsiFile psiFile = findPsiFile(virtualFile);
+            if (psiFile != null) {
+              scan(psiFile, folderType);
+            }
           }
         }
       }
     });
 
-    synchronized (SCAN_LOCK) {
-      myPendingScans = null;
+    synchronized (scanLock) {
+      myPendingScans.clear();
     }
   }
 
@@ -1002,7 +1012,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     protected void onChange(@Nullable PsiFile psiFile) {
       ResourceFolderType folderType = IdeResourcesUtil.getFolderType(psiFile);
       if (folderType != null && psiFile != null && isResourceFile(psiFile)) {
-        scheduleScan(psiFile, folderType);
+        scheduleScan(psiFile.getVirtualFile(), folderType);
       }
     }
   }
@@ -1019,7 +1029,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     public void childAdded(@NotNull PsiTreeChangeEvent event) {
       PsiFile psiFile = event.getFile();
       if (psiFile != null && isRelevantFile(psiFile)) {
-        if (isScanPending(psiFile)) {
+        VirtualFile virtualFile = psiFile.getVirtualFile();
+        if (isScanPending(virtualFile)) {
           return;
         }
         // Some child was added within a file.
@@ -1035,7 +1046,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                 if (convertToPsiIfNeeded(psiFile, folderType)) {
                   return;
                 }
-                ResourceItemSource<? extends ResourceItem> source = mySources.get(psiFile.getVirtualFile());
+                ResourceItemSource<? extends ResourceItem> source = mySources.get(virtualFile);
                 if (source != null) {
                   assert source instanceof PsiResourceFile;
                   PsiResourceFile psiResourceFile = (PsiResourceFile)source;
@@ -1044,7 +1055,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                     ResourceType type = getResourceTypeForResourceTag(tag);
                     if (type == ResourceType.STYLEABLE) {
                       // Can't handle declare styleable additions incrementally yet; need to update paired attr items.
-                      scheduleScan(psiFile, folderType);
+                      scheduleScan(virtualFile, folderType);
                       return;
                     }
                     if (type != null) {
@@ -1077,7 +1088,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                 }
               }
 
-              scheduleScan(psiFile, folderType);
+              scheduleScan(virtualFile, folderType);
               // Else: fall through and do full file rescan.
             } else if (parent instanceof XmlText) {
               // If the edit is within an item tag.
@@ -1092,7 +1103,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
               // Can ignore comment edits or new comments.
               return;
             }
-            scheduleScan(psiFile, folderType);
+            scheduleScan(virtualFile, folderType);
           } else if (FolderTypeRelationship.isIdGeneratingFolderType(folderType) && psiFile.getFileType() == XmlFileType.INSTANCE) {
             if (parent instanceof XmlComment || child instanceof XmlComment) {
               return;
@@ -1123,7 +1134,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                   }
                 }
                 return;
-              } else if (child instanceof XmlAttribute || parent instanceof XmlAttribute) {
+              }
+
+              if (child instanceof XmlAttribute || parent instanceof XmlAttribute) {
                 // We check both because invalidation might come from XmlAttribute if it is inserted at once.
                 XmlAttribute attribute = parent instanceof XmlAttribute ? (XmlAttribute)parent : (XmlAttribute)child;
 
@@ -1161,12 +1174,13 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     public void childRemoved(@NotNull PsiTreeChangeEvent event) {
       PsiFile psiFile = event.getFile();
       if (psiFile != null && isRelevantFile(psiFile)) {
-        if (isScanPending(psiFile)) {
+        VirtualFile virtualFile = psiFile.getVirtualFile();
+        if (isScanPending(virtualFile)) {
           return;
         }
         // Some child was removed within a file.
-        ResourceFolderType folderType = IdeResourcesUtil.getFolderType(psiFile);
-        if (folderType != null && isResourceFile(psiFile)) {
+        ResourceFolderType folderType = IdeResourcesUtil.getFolderType(virtualFile);
+        if (folderType != null && isResourceFile(virtualFile)) {
           PsiElement child = event.getChild();
           PsiElement parent = event.getParent();
 
@@ -1208,7 +1222,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                 if (convertToPsiIfNeeded(psiFile, folderType)) {
                   return;
                 }
-                ResourceItemSource<? extends ResourceItem> source = mySources.get(psiFile.getVirtualFile());
+                ResourceItemSource<? extends ResourceItem> source = mySources.get(virtualFile);
                 if (source != null) {
                   PsiResourceFile resourceFile = (PsiResourceFile)source;
                   String name;
@@ -1218,7 +1232,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                       name = item.getName();
                     } else {
                       // Can't find the name of the deleted tag; just do a full rescan
-                      scheduleScan(psiFile, folderType);
+                      scheduleScan(virtualFile, folderType);
                       return;
                     }
                   } else {
@@ -1241,7 +1255,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                 }
               }
 
-              scheduleScan(psiFile, folderType);
+              scheduleScan(virtualFile, folderType);
             } else if (parent instanceof XmlText) {
               // If the edit is within an item tag.
               XmlText text = (XmlText)parent;
@@ -1253,13 +1267,13 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
               return;
             } else {
               // Some other change: do full file rescan.
-              scheduleScan(psiFile, folderType);
+              scheduleScan(virtualFile, folderType);
             }
           } else if (FolderTypeRelationship.isIdGeneratingFolderType(folderType) && psiFile.getFileType() == XmlFileType.INSTANCE) {
             // TODO: Handle removals of id's (values an attributes) incrementally.
-            scheduleScan(psiFile, folderType);
+            scheduleScan(virtualFile, folderType);
           } else if (folderType == FONT) {
-            clearFontCache(psiFile.getVirtualFile());
+            clearFontCache(virtualFile);
           }
         }
       }
@@ -1271,16 +1285,17 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     public void childReplaced(@NotNull PsiTreeChangeEvent event) {
       PsiFile psiFile = event.getFile();
       if (psiFile != null) {
-        if (isScanPending(psiFile)) {
+        VirtualFile virtualFile = psiFile.getVirtualFile();
+        if (isScanPending(virtualFile)) {
           return;
         }
         // This method is called when you edit within a file.
-        if (isRelevantFile(psiFile)) {
+        if (isRelevantFile(virtualFile)) {
           // First determine if the edit is non-consequential.
           // That's the case if the XML edited is not a resource file (e.g. the manifest file),
           // or if it's within a file that is not a value file or an id-generating file (layouts and menus),
           // such as editing the content of a drawable XML file.
-          ResourceFolderType folderType = IdeResourcesUtil.getFolderType(psiFile);
+          ResourceFolderType folderType = IdeResourcesUtil.getFolderType(virtualFile);
           if (folderType != null && FolderTypeRelationship.isIdGeneratingFolderType(folderType) &&
               psiFile.getFileType() == XmlFileType.INSTANCE) {
             // The only way the edit affected the set of resources was if the user added or removed an
@@ -1296,7 +1311,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
             if (parent instanceof XmlElement && child instanceof XmlElement) {
               if (event.getOldChild() == event.getNewChild()) {
                 // We're not getting accurate PSI information: we have to do a full file scan.
-                scheduleScan(psiFile, folderType);
+                scheduleScan(virtualFile, folderType);
                 return;
               }
               if (child instanceof XmlAttributeValue) {
@@ -1325,7 +1340,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                       }
                     }
 
-                    scheduleScan(psiFile, folderType);
+                    scheduleScan(virtualFile, folderType);
                     return;
                   }
                 }
@@ -1358,7 +1373,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                     }
                   }
 
-                  scheduleScan(psiFile, folderType);
+                  scheduleScan(virtualFile, folderType);
                   return;
                 }
               }
@@ -1371,7 +1386,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
             // TODO: Handle adding/removing elements in layouts incrementally.
 
-            scheduleScan(psiFile, folderType);
+            scheduleScan(virtualFile, folderType);
           } else if (folderType == VALUES) {
             // This is a folder that *may* contain XML files. Check if this is a relevant XML edit.
             PsiElement parent = event.getParent();
@@ -1514,7 +1529,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
             // Fall through: We were not able to directly manipulate the repository to accommodate
             // the edit, so re-scan the whole value file instead.
-            scheduleScan(psiFile, folderType);
+            scheduleScan(virtualFile, folderType);
           } else if (folderType == COLOR) {
             PsiElement parent = event.getParent();
             if (parent instanceof XmlElement) {
@@ -1674,12 +1689,12 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
       PsiFile psiFile = event.getFile();
       if (psiFile != null && isRelevantFile(psiFile)) {
-        VirtualFile file = psiFile.getVirtualFile();
-        if (file != null) {
+        VirtualFile virtualFile = psiFile.getVirtualFile();
+        if (virtualFile != null) {
           ResourceFolderType folderType = IdeResourcesUtil.getFolderType(psiFile);
           if (folderType != null && isResourceFile(psiFile)) {
             // TODO: If I get an XmlText change and the parent is the resources tag or it's a layout, nothing to do.
-            scheduleScan(psiFile, folderType);
+            scheduleScan(virtualFile, folderType);
           }
         }
       } else {
@@ -1691,7 +1706,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   }
 
   void onFileCreated(@NotNull VirtualFile file) {
-    scan(file);
+    scheduleScan(file);
   }
 
   @NotNull
