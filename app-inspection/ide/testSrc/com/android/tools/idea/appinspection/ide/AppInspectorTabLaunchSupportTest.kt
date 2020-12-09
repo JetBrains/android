@@ -123,11 +123,11 @@ class AppInspectorTabLaunchSupportTest {
     val processReadyDeferred = CompletableDeferred<Unit>()
 
     appInspectionServiceRule.addProcessListener(object : ProcessListener {
-      override fun onProcessConnected(descriptor: ProcessDescriptor) {
+      override fun onProcessConnected(process: ProcessDescriptor) {
         processReadyDeferred.complete(Unit)
       }
 
-      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+      override fun onProcessDisconnected(process: ProcessDescriptor) {
       }
     })
 
