@@ -69,7 +69,6 @@ class TasksPageViewTest {
   @Test
   @RunsInEdt
   fun testCreateView() {
-    assertThat(model.modelUpdatedListener).isNotNull()
     assertThat(view.component.name).isEqualTo("tasks-view")
     assertThat(view.groupingCheckBox.isSelected).isFalse()
     assertThat(view.treeHeaderLabel.text).isEqualTo(model.treeHeaderText)

@@ -52,8 +52,6 @@ import javax.swing.JCheckBox
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.JViewport
-import javax.swing.RepaintManager
 import javax.swing.ScrollPaneConstants
 import javax.swing.SwingConstants
 import javax.swing.tree.DefaultTreeModel
@@ -198,7 +196,7 @@ class TasksPageView(
 
   init {
     updateViewFromModel(true)
-    model.setModelUpdatedListener(this::updateViewFromModel)
+    model.addModelUpdatedListener(this::updateViewFromModel)
   }
 
   private fun updateViewFromModel(treeStructureChanged: Boolean) {
