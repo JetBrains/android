@@ -33,8 +33,7 @@ class ChooseActivityTypeStepTest {
   @Test
   fun testNoTemplateForExistingModule() {
     assertThat(Template.NoActivity.validate(
-      moduleApiLevel = 5,
-      isNewModule = false, isAndroidxProject = false, isJetifierEnabled = false, language = Java,
+      moduleApiLevel = 5, isNewModule = false, isAndroidxProject = false, language = Java,
       messageKeys = messageKeys))
       .isEqualTo("No activity template was selected")
   }
@@ -42,8 +41,7 @@ class ChooseActivityTypeStepTest {
   @Test
   fun testNoTemplateForNewModule() {
     assertThat(mock(Template::class.java).validate(
-      moduleApiLevel = 5,
-      isNewModule = true, isAndroidxProject = false, isJetifierEnabled = false, language = Java,
+      moduleApiLevel = 5, isNewModule = true, isAndroidxProject = false, language = Java,
       messageKeys = messageKeys))
       .isEqualTo("")
   }
@@ -54,8 +52,7 @@ class ChooseActivityTypeStepTest {
     `when`(template.minSdk).thenReturn(9)
 
     assertThat(template.validate(
-      moduleApiLevel = 5,
-      isNewModule = true, isAndroidxProject = true, isJetifierEnabled = false, language = Java,
+      moduleApiLevel = 5, isNewModule = true, isAndroidxProject = true, language = Java,
       messageKeys = messageKeys))
       .isEqualTo(message("android.wizard.activity.invalid.min.sdk", 9))
   }
@@ -66,34 +63,9 @@ class ChooseActivityTypeStepTest {
     `when`(template.constraints).thenReturn(listOf(TemplateConstraint.AndroidX))
 
     assertThat(template.validate(
-      moduleApiLevel = 5,
-      isNewModule = false, isAndroidxProject = false, isJetifierEnabled = false, language = Java,
+      moduleApiLevel = 5, isNewModule = false, isAndroidxProject = false, language = Java,
       messageKeys = messageKeys))
       .isEqualTo(message("android.wizard.activity.invalid.androidx"))
-  }
-
-  @Test
-  fun testTemplateRequiringJetifier() {
-    val template = mock(Template::class.java)
-    `when`(template.constraints).thenReturn(listOf(TemplateConstraint.Jetifier))
-
-    assertThat(template.validate(
-      moduleApiLevel = 5,
-      isNewModule = false, isAndroidxProject = true, isJetifierEnabled = false, language = Java,
-      messageKeys = messageKeys))
-      .isEqualTo(message("android.wizard.activity.invalid.jetifier"))
-  }
-
-  @Test
-  fun testTemplateRequiringJetifierOnNonAndroidXProject() {
-    val template = mock(Template::class.java)
-    `when`(template.constraints).thenReturn(listOf(TemplateConstraint.Jetifier))
-
-    assertThat(template.validate(
-      moduleApiLevel = 5,
-      isNewModule = false, isAndroidxProject = false, isJetifierEnabled = false, language = Java,
-      messageKeys = messageKeys))
-      .isEqualTo("")
   }
 
   @Test
@@ -103,7 +75,7 @@ class ChooseActivityTypeStepTest {
 
     assertThat(template.validate(
       moduleApiLevel = 5,
-      isNewModule = true, isAndroidxProject = false, isJetifierEnabled = false, language = Java,
+      isNewModule = true, isAndroidxProject = false, language = Java,
       messageKeys = messageKeys))
       .isEqualTo(message("android.wizard.activity.invalid.needs.kotlin"))
   }
@@ -115,7 +87,7 @@ class ChooseActivityTypeStepTest {
 
     assertThat(template.validate(
       moduleApiLevel = 5,
-      isNewModule = false, isAndroidxProject = false, isJetifierEnabled = false, language = Java,
+      isNewModule = false, isAndroidxProject = false, language = Java,
       messageKeys = messageKeys))
       .isEmpty()
   }

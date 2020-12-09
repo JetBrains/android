@@ -19,7 +19,6 @@ import com.android.tools.idea.wizard.template.renderIf
 
 fun androidProjectGradleProperties(
   addAndroidXSupport: Boolean,
-  addJetifierSupport: Boolean,
   generateKotlin: Boolean,
   overridePathCheck: Boolean?
 ): String {
@@ -28,10 +27,6 @@ fun androidProjectGradleProperties(
 # Android operating system, and which are packaged with your app"s APK
 # https://developer.android.com/topic/libraries/support-library/androidx-rn
 android.useAndroidX=true
-"""
-  }
-
-  val jetifierBlock = renderIf(addJetifierSupport) { """
 # Automatically convert third-party libraries to use AndroidX
 android.enableJetifier=true
 """
@@ -69,7 +64,6 @@ org.gradle.jvmargs=-Xmx${maxHeapSize}m -Dfile.encoding=UTF-8
 # org.gradle.parallel=true
 
 $androidXBlock
-$jetifierBlock
 $kotlinStyleBlock
 $overridePathCheckBlock
 """

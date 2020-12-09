@@ -46,7 +46,6 @@ import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.isAndroidx
-import org.jetbrains.android.refactoring.isJetifierEnabled
 import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
@@ -142,10 +141,10 @@ abstract class ChooseGalleryItemStep(
     val moduleApiLevel = sdkInfo?.minApiLevel ?: facet?.getModuleInfo()?.minSdkVersion?.featureLevel ?: Integer.MAX_VALUE
 
     val project = renderModel.project
+    val isAndroidxProject = project.isAndroidx()
 
     invalidParameterMessage.set(
-      renderModel.newTemplate.validate(moduleApiLevel, isNewModule, project.isAndroidx(), project.isJetifierEnabled(),
-                                       renderModel.language.value, messageKeys)
+      renderModel.newTemplate.validate(moduleApiLevel, isNewModule, isAndroidxProject, renderModel.language.value, messageKeys)
     )
 
     if (invalidParameterMessage.get() == "" && !hasComposeMinAgpVersion(project, renderModel.newTemplate.category)) {
@@ -187,14 +186,12 @@ fun getDefaultSelectedTemplateIndex(
 fun Template.validate(moduleApiLevel: Int,
                       isNewModule: Boolean,
                       isAndroidxProject: Boolean,
-                      isJetifierEnabled: Boolean,
                       language: Language,
                       messageKeys: WizardGalleryItemsStepMessageKeys
 ): String = when {
   this == Template.NoActivity -> if (isNewModule) "" else message(messageKeys.itemNotFound)
   moduleApiLevel < this.minSdk -> message(messageKeys.invalidMinSdk, this.minSdk)
   constraints.contains(TemplateConstraint.AndroidX) && !isAndroidxProject -> message(messageKeys.invalidAndroidX)
-  constraints.contains(TemplateConstraint.Jetifier) && isAndroidxProject && !isJetifierEnabled -> message(messageKeys.invalidJetifier)
   constraints.contains(TemplateConstraint.Kotlin) && language != Language.Kotlin && isNewModule -> message(messageKeys.invalidNeedsKotlin)
   else -> ""
 }
@@ -205,6 +202,5 @@ data class WizardGalleryItemsStepMessageKeys(
   val itemNotFound: String,
   val invalidMinSdk: String,
   val invalidAndroidX: String,
-  val invalidJetifier: String,
   val invalidNeedsKotlin: String
 )
