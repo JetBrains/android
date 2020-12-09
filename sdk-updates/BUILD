@@ -34,6 +34,7 @@ iml_module(
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",
     ],
+    test_resources = ["testResources"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
