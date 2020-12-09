@@ -53,6 +53,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProcessCanceledException;
@@ -69,10 +70,8 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaDirectoryService;
 import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiPackage;
 import com.intellij.util.PathUtil;
 import com.intellij.util.lang.UrlClassLoader;
@@ -557,13 +556,13 @@ public class LintIdeClient extends LintClient implements Disposable {
     }
 
     return runReadAction(() -> {
-      PsiFile psiFile = PsiManager.getInstance(myProject).findFile(vFile);
-      if (psiFile == null) {
-        LOG.info("Cannot find file " + file.getPath() + " in the PSI");
+      Document document = FileDocumentManager.getInstance().getDocument(vFile);
+      if (document == null) {
+        LOG.info("Cannot create document for file " + file.getPath());
         return null;
       }
       else {
-        return psiFile.getText();
+        return document.getText();
       }
     });
   }
@@ -609,25 +608,20 @@ public class LintIdeClient extends LintClient implements Disposable {
     }
 
     return runReadAction(() -> {
-      final Module module = lintResult.getModule();
-      final Project project = module.getProject();
-      final PsiFile psiFile = PsiManager.getInstance(project).findFile(vFile);
-
-      if (psiFile == null) {
+      final Document document = FileDocumentManager.getInstance().getDocument(vFile);
+      if (document == null) {
         return null;
       }
-      final Document document = PsiDocumentManager.getInstance(project).getDocument(psiFile);
 
-      if (document != null) {
-        final DocumentListener listener = new DocumentListener() {
-          @Override
-          public void documentChanged(@NotNull DocumentEvent event) {
-            lintResult.markDirty();
-          }
-        };
-        document.addDocumentListener(listener, this);
-      }
-      return psiFile.getText();
+      final DocumentListener listener = new DocumentListener() {
+        @Override
+        public void documentChanged(@NotNull DocumentEvent event) {
+          lintResult.markDirty();
+        }
+      };
+      document.addDocumentListener(listener, this);
+
+      return document.getText();
     });
   }
 
