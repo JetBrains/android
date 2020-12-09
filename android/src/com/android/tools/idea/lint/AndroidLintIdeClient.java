@@ -414,27 +414,6 @@ public class AndroidLintIdeClient extends LintIdeClient {
     return FileResourceReader.createXmlPullParser(resourcePath);
   }
 
-  @Override
-  protected void notifyReadCanceled(StackTraceElement[] stackDumpRaw, long cancelTimeMs, long actionTimeMs) {
-    StringBuilder sb = new StringBuilder();
-    for (StackTraceElement e : stackDumpRaw) {
-      sb.append(e.toString());
-      sb.append("\n");
-    }
-    String stackDump = sb.toString();
-
-    StudioCrashReporter.getInstance().submit(
-      new GenericStudioReport.Builder("LintReadActionDelay")
-        .addDataNoPii("summary",
-                      "Android Lint either took too long to run a read action (" + actionTimeMs + "ms),\n" +
-                      "or took too long to cancel and yield to a pending write action (" + cancelTimeMs + "ms)")
-        .addDataNoPii("timeToCancelMs", String.valueOf(cancelTimeMs))
-        .addDataNoPii("readActionTimeMs", String.valueOf(actionTimeMs))
-        .addDataNoPii("stackDump", stackDump)
-        .build()
-    );
-  }
-
   private static class LocationHandle implements Location.Handle, Computable<Location> {
     private final File myFile;
     private final XmlElement myNode;
