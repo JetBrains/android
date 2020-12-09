@@ -54,6 +54,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -117,6 +118,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
   @Override
   @NotNull
   public byte[] readBytes(@NotNull PathString resourcePath) throws IOException {
+    ProgressManager.checkCanceled();
     return FileResourceReader.readBytes(resourcePath);
   }
 
@@ -408,6 +410,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
   @Override
   @Nullable
   public XmlPullParser createXmlPullParser(@NotNull PathString resourcePath) throws IOException {
+    ProgressManager.checkCanceled();
     return FileResourceReader.createXmlPullParser(resourcePath);
   }
 
