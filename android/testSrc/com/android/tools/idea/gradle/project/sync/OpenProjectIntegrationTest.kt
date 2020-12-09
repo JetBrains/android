@@ -91,25 +91,6 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
     }
   }
 
-  fun testReopenWithoutModules() {
-    val projectRoot = prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
-    openPreparedProject("project") { }
-
-    val projectRootVirtualFile = VfsUtil.findFileByIoFile(projectRoot, false)!!
-    // Tests always run in do not generate *.iml files mode.
-    assertThat(projectRootVirtualFile.findFileByRelativePath(".idea/modules.xml")).isNull()
-
-    runWriteAction {
-      projectRootVirtualFile.findFileByRelativePath(".idea/modules/app/project.app.iml")!!.delete("test")
-      projectRootVirtualFile.findFileByRelativePath(".idea/modules/project.iml")!!.delete("test")
-    }
-
-    openPreparedProject("project") { project ->
-      assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS)
-      project.verifyModelsAttached()
-    }
-  }
-
   fun testOpen36Project() {
     addJdk8ToTable()
     prepareGradleProject(TestProjectPaths.RUN_APP_36, "project")
