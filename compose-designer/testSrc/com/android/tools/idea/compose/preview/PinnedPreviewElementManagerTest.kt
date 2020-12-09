@@ -131,6 +131,7 @@ internal class PinnedPreviewElementManagerTest {
     assertEquals(4, modifications)
 
     assertFalse(pinnedPreviewManager.unpinAll())
+
   }
 
   @Test
@@ -170,9 +171,13 @@ internal class PinnedPreviewElementManagerTest {
     val pinnedPreviewElementProvider = PinnedPreviewElementManager.getPreviewElementProvider(project)
     val startModificationCount = pinnedPreviewManager.modificationCount
     assertFalse(pinnedPreviewManager.unpin(elementsInFile[0] as PreviewElementInstance))
+    assertFalse(pinnedPreviewManager.isPinned(elementsInFile[0] as PreviewElementInstance))
+    assertFalse(pinnedPreviewManager.isPinned(file1))
     assertEquals("There were no pinned elements, no modifications expected", startModificationCount, pinnedPreviewManager.modificationCount)
     assertEquals(0, pinnedPreviewElementProvider.previewElements.count())
     assertTrue(pinnedPreviewManager.pin(elementsInFile[0] as PreviewElementInstance))
+    assertTrue(pinnedPreviewManager.isPinned(elementsInFile[0] as PreviewElementInstance))
+    assertTrue(pinnedPreviewManager.isPinned(file1))
     assertEquals(startModificationCount + 1, pinnedPreviewManager.modificationCount)
     assertFalse(pinnedPreviewManager.unpin(elementsInFile[1] as PreviewElementInstance))
     assertEquals(startModificationCount + 1, pinnedPreviewManager.modificationCount)
@@ -206,7 +211,6 @@ internal class PinnedPreviewElementManagerTest {
   fun `unpinAll removes all elements`() {
     val elementsInFile = AnnotationFilePreviewElementFinder.findPreviewMethods(project, file1.virtualFile).toList()
     val pinnedPreviewManager = PinnedPreviewElementManager.getInstance(project)
-    val pinnedPreviewElementProvider = PinnedPreviewElementManager.getPreviewElementProvider(project)
     var modifications = 0
     pinnedPreviewManager.addListener { modifications++ }
     assertFalse(pinnedPreviewManager.unpinAll())
@@ -215,8 +219,14 @@ internal class PinnedPreviewElementManagerTest {
       elementsInFile[0] as PreviewElementInstance,
       elementsInFile[1] as PreviewElementInstance)))
     modifications = 0
+    assertTrue(pinnedPreviewManager.isPinned(file1))
+    assertTrue(pinnedPreviewManager.isPinned(elementsInFile[0] as PreviewElementInstance))
+    assertTrue(pinnedPreviewManager.isPinned(elementsInFile[1] as PreviewElementInstance))
     assertTrue(pinnedPreviewManager.unpinAll())
     assertEquals("Only one modification expected for multiple pins", 1, modifications)
+    assertFalse(pinnedPreviewManager.isPinned(file1))
+    assertFalse(pinnedPreviewManager.isPinned(elementsInFile[0] as PreviewElementInstance))
+    assertFalse(pinnedPreviewManager.isPinned(elementsInFile[1] as PreviewElementInstance))
     assertFalse(pinnedPreviewManager.unpinAll())
   }
 }
