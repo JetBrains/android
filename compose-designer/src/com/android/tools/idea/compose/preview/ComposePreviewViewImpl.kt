@@ -34,11 +34,9 @@ import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
@@ -129,6 +127,11 @@ interface ComposePreviewView {
    * Sets an optional label on top of the pinned surface. If empty, the label will not be displayed.
    */
   var pinnedLabel: String
+
+  /**
+   * Sets an optional label on top of the main surface. If empty, the label will not be displayed.
+   */
+  var mainSurfaceLabel: String
 }
 
 fun interface ComposePreviewViewProvider {
@@ -137,7 +140,9 @@ fun interface ComposePreviewViewProvider {
              projectBuildStatusManager: ProjectBuildStatusManager,
              navigationHandler: PreviewNavigationHandler,
              dataProvider: DataProvider,
-             parentDisposable: Disposable): ComposePreviewView
+             parentDisposable: Disposable,
+             onPinFileAction: AnAction?,
+             onUnPinAction: AnAction?): ComposePreviewView
 }
 
 /**
@@ -154,10 +159,16 @@ private fun createOverlayPanel(vararg components: JComponent): JPanel =
     }
   }
 
-private class PinnedLabelPanel(val onPinClick: () -> Unit = {}): JPanel(BorderLayout()) {
+private class PinnedLabelPanel(pinAction: AnAction? = null): JPanel(BorderLayout()) {
   private val pinnedLabelBackground = UIUtil.toAlpha(UIUtil.getPanelBackground().darker(), 0x20)
   private val pinnedPanelLabel = JLabel("").apply {
     font = UIUtil.getLabelFont()
+  }
+  private val pinnedButton = pinAction?.let {
+    ActionButton(it,
+                 PresentationFactory().getPresentation(it),
+                 "PinnedToolbar",
+                 ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
   }
 
   var text: String
@@ -173,19 +184,16 @@ private class PinnedLabelPanel(val onPinClick: () -> Unit = {}): JPanel(BorderLa
       add(JPanel().apply {
         border = BorderFactory.createCompoundBorder(FilledRoundedBorder(pinnedLabelBackground, 10, 4),
                                                     JBUI.Borders.emptyRight(5))
-        val clickAction = object: AnAction(null, null, AllIcons.General.Pin_tab) {
-          override fun actionPerformed(e: AnActionEvent) {
-            onPinClick()
-          }
+        pinnedButton?.let {
+          add(it)
         }
-        val unpinButton = ActionButton(clickAction,
-                                       PresentationFactory().getPresentation(clickAction),
-                                       "PinnedToolbar",
-                                       ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
-        add(unpinButton)
         add(pinnedPanelLabel)
       })
     }, BorderLayout.LINE_START)
+  }
+
+  fun update() {
+    pinnedButton?.update()
   }
 }
 
@@ -206,7 +214,9 @@ internal class ComposePreviewViewImpl(private val project: Project,
                                       private val projectBuildStatusManager: ProjectBuildStatusManager,
                                       navigationHandler: PreviewNavigationHandler,
                                       dataProvider: DataProvider,
-                                      parentDisposable: Disposable) :
+                                      parentDisposable: Disposable,
+                                      onPinFileAction: AnAction?,
+                                      onUnPinAction: AnAction?) :
   WorkBench<DesignSurface>(project, "Compose Preview", null, parentDisposable), ComposePreviewView {
   private val log = Logger.getInstance(ComposePreviewViewImpl::class.java)
 
@@ -230,18 +240,21 @@ internal class ComposePreviewViewImpl(private val project: Project,
 
   override val component: JComponent = this
 
-  private val pinnedPanelLabel: PinnedLabelPanel by lazy {
-    UIUtil.invokeAndWaitIfNeeded<PinnedLabelPanel> {
-      PinnedLabelPanel {
-        setPinnedSurfaceVisibility(false)
-        PinnedPreviewElementManager.getInstance(project).unpinAll()
-      }
-    }
+  private val pinnedPanelLabel = PinnedLabelPanel(onUnPinAction)
+  private val mainSurfacePinLabel = PinnedLabelPanel(onPinFileAction).apply {
+    // By default, hide until the label has been set.
+    isVisible = false
   }
 
   private val pinnedPanel: JPanel by lazy {
     UIUtil.invokeAndWaitIfNeeded<JPanel> {
       createOverlayPanel(pinnedPanelLabel, pinnedSurface)
+    }
+  }
+
+  private val mainSurfacePanel: JPanel by lazy {
+    UIUtil.invokeAndWaitIfNeeded<JPanel> {
+      createOverlayPanel(mainSurfacePinLabel, mainSurface)
     }
   }
 
@@ -273,6 +286,13 @@ internal class ComposePreviewViewImpl(private val project: Project,
       pinnedPanelLabel.isVisible = value.isNotBlank()
     }
 
+  override var mainSurfaceLabel: String
+    get() = mainSurfacePinLabel.text
+    set(value) {
+      mainSurfacePinLabel.text = value
+      mainSurfacePinLabel.isVisible = value.isNotBlank()
+    }
+
   init {
     // Start handling events for the static preview.
     delegateInteractionHandler.delegate = staticPreviewInteractionHandler
@@ -294,7 +314,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
       add(actionsToolbar.toolbarComponent, BorderLayout.NORTH)
 
       // surfaceSplitter.firstComponent will contain the pinned surface elements
-      surfaceSplitter.secondComponent = mainSurface
+      surfaceSplitter.secondComponent = mainSurfacePanel
 
       mainPanelSplitter.firstComponent = createOverlayPanel(notificationPanel, surfaceSplitter)
       add(mainPanelSplitter, BorderLayout.CENTER)
@@ -320,6 +340,9 @@ internal class ComposePreviewViewImpl(private val project: Project,
     else {
       surfaceSplitter.firstComponent = null
     }
+    mainSurfacePinLabel.isVisible = mainSurfacePinLabel.text.isNotBlank()
+    pinnedPanelLabel.update()
+    mainSurfacePinLabel.update()
   }
 
   override fun showModalErrorMessage(message: String) = UIUtil.invokeLaterIfNeeded {

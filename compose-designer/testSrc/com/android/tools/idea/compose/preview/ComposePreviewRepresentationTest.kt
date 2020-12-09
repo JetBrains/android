@@ -61,6 +61,7 @@ internal class TestComposePreviewView(override val pinnedSurface: NlDesignSurfac
   }
 
   override var pinnedLabel: String = ""
+  override var mainSurfaceLabel: String = ""
 }
 
 class ComposePreviewRepresentationTest {
@@ -117,7 +118,7 @@ class ComposePreviewRepresentationTest {
             AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).asSequence()
           }
 
-      }, PreferredVisibility.VISIBLE) { _, _, _, _, _, _ -> composeView }
+      }, PreferredVisibility.VISIBLE) { _, _, _, _, _, _, _, _ -> composeView }
     }
     Disposer.register(fixture.testRootDisposable, preview)
     ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()

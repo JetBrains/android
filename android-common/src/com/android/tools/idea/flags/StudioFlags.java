@@ -1057,6 +1057,13 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> COMPOSE_INDIVIDUAL_PIN_PREVIEW = Flag.create(
+    COMPOSE, "preview.individual.pin.enable",
+    "Enable pinning of individual compose previews",
+    "If enabled, a user can pin a single preview within a file",
+    false
+  );
+
   public static final Flag<Boolean> COMPOSE_INTERACTIVE_ANIMATION_SWITCH = Flag.create(
     COMPOSE, "preview.switch.animation.interactive",
     "Enable animation inspection switch from interactive preview (and disable from static preview)",

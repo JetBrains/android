@@ -22,6 +22,8 @@ import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.common.util.ControllableTicker
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
+import com.android.tools.idea.compose.preview.actions.PinAllPreviewElementsAction
+import com.android.tools.idea.compose.preview.actions.UnpinAllPreviewElementsAction
 import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
 import com.android.tools.idea.compose.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
@@ -50,9 +52,9 @@ import com.android.tools.idea.rendering.classloading.CooperativeInterruptTransfo
 import com.android.tools.idea.rendering.classloading.HasLiveLiteralsTransform
 import com.android.tools.idea.rendering.classloading.LiveLiteralsTransform
 import com.android.tools.idea.rendering.classloading.toClassTransform
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
-import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
@@ -397,7 +399,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         CommonDataKeys.PROJECT.name -> project
         else -> null
       }
-    }, this)
+    }, this,
+    PinAllPreviewElementsAction(
+      {
+        PinnedPreviewElementManager.getInstance(project).isPinned(psiFile)
+      }, previewElementProvider),
+    UnpinAllPreviewElementsAction)
 
   private val pinnedSurface: NlDesignSurface
     get() = composeWorkBench.pinnedSurface
@@ -739,8 +746,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     } else false
 
     composeWorkBench.setPinnedSurfaceVisibility(hasPinnedElements)
+    val pinnedManager = PinnedPreviewElementManager.getInstance(project)
     if (hasPinnedElements) {
-      lastPinsModificationCount = PinnedPreviewElementManager.getInstance(project).modificationCount
+      lastPinsModificationCount = pinnedManager.modificationCount
       pinnedSurface.updatePreviewsAndRefresh(
         false,
         memoizedPinnedPreviewProvider,
@@ -761,6 +769,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                              .singleOrNull() ?: "Pinned"
       composeWorkBench.pinnedLabel = singleFileName
     }
+
+    composeWorkBench.mainSurfaceLabel = if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
+      psiFile.name
+    } else ""
 
     val showingPreviewElements = surface.updatePreviewsAndRefresh(
       quickRefresh,
@@ -819,7 +831,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
         val pinnedPreviewElements = if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
           withContext(workerThread) {
-            memoizedElementsProvider.previewElements
+            memoizedPinnedPreviewProvider.previewElements
               .toList()
               .sortByDisplayAndSourcePosition()
           }
