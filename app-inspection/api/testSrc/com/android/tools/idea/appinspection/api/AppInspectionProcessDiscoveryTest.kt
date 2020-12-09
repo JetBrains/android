@@ -94,11 +94,11 @@ class AppInspectionProcessDiscoveryTest {
   fun makeNewConnectionFiresListener() {
     val latch = CountDownLatch(1)
     appInspectionRule.addProcessListener(object : ProcessListener {
-      override fun onProcessConnected(descriptor: ProcessDescriptor) {
+      override fun onProcessConnected(process: ProcessDescriptor) {
         latch.countDown()
       }
 
-      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+      override fun onProcessDisconnected(process: ProcessDescriptor) {
       }
     })
 
@@ -119,12 +119,12 @@ class AppInspectionProcessDiscoveryTest {
     val latch = CountDownLatch(1)
     val processesList = mutableListOf<ProcessDescriptor>()
     appInspectionRule.addProcessListener(object : ProcessListener {
-      override fun onProcessConnected(descriptor: ProcessDescriptor) {
-        processesList.add(descriptor)
+      override fun onProcessConnected(process: ProcessDescriptor) {
+        processesList.add(process)
         latch.countDown()
       }
 
-      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+      override fun onProcessDisconnected(process: ProcessDescriptor) {
       }
     })
 
@@ -143,11 +143,11 @@ class AppInspectionProcessDiscoveryTest {
     val processConnectLatch = CountDownLatch(1)
     val processDisconnectLatch = CountDownLatch(1)
     appInspectionRule.addProcessListener(object : ProcessListener {
-      override fun onProcessConnected(descriptor: ProcessDescriptor) {
+      override fun onProcessConnected(process: ProcessDescriptor) {
         processConnectLatch.countDown()
       }
 
-      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+      override fun onProcessDisconnected(process: ProcessDescriptor) {
         processDisconnectLatch.countDown()
       }
     })
@@ -168,7 +168,7 @@ class AppInspectionProcessDiscoveryTest {
     val secondProcessLatch = CountDownLatch(1)
     val processDisconnectLatch = CountDownLatch(1)
     appInspectionRule.addProcessListener(object : ProcessListener {
-      override fun onProcessConnected(descriptor: ProcessDescriptor) {
+      override fun onProcessConnected(process: ProcessDescriptor) {
         if (firstProcessLatch.count > 0) {
           firstProcessLatch.countDown()
         } else {
@@ -176,7 +176,7 @@ class AppInspectionProcessDiscoveryTest {
         }
       }
 
-      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+      override fun onProcessDisconnected(process: ProcessDescriptor) {
         processDisconnectLatch.countDown()
       }
     })
@@ -199,11 +199,11 @@ class AppInspectionProcessDiscoveryTest {
   fun twoProcessWithSamePidFromDifferentStream() {
     val latch = CountDownLatch(2)
     appInspectionRule.addProcessListener(object : ProcessListener {
-      override fun onProcessConnected(descriptor: ProcessDescriptor) {
+      override fun onProcessConnected(process: ProcessDescriptor) {
         latch.countDown()
       }
 
-      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+      override fun onProcessDisconnected(process: ProcessDescriptor) {
       }
     })
 
@@ -226,11 +226,11 @@ class AppInspectionProcessDiscoveryTest {
   fun processesRunningOnTwoIdenticalDeviceModels() {
     val latch = CountDownLatch(2)
     appInspectionRule.addProcessListener(object : ProcessListener {
-      override fun onProcessConnected(descriptor: ProcessDescriptor) {
+      override fun onProcessConnected(process: ProcessDescriptor) {
         latch.countDown()
       }
 
-      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+      override fun onProcessDisconnected(process: ProcessDescriptor) {
       }
     })
 
@@ -257,12 +257,12 @@ class AppInspectionProcessDiscoveryTest {
     val latch = CountDownLatch(1)
     lateinit var processDescriptor: ProcessDescriptor
     appInspectionRule.addProcessListener(object : ProcessListener {
-      override fun onProcessConnected(descriptor: ProcessDescriptor) {
-        processDescriptor = descriptor
+      override fun onProcessConnected(process: ProcessDescriptor) {
+        processDescriptor = process
         latch.countDown()
       }
 
-      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+      override fun onProcessDisconnected(process: ProcessDescriptor) {
       }
     })
 
@@ -310,7 +310,7 @@ class AppInspectionProcessDiscoveryTest {
     var firstProcessTimestamp: Long? = null
     var secondProcessTimestamp: Long? = null
     appInspectionRule.addProcessListener(object : ProcessListener {
-      override fun onProcessConnected(descriptor: ProcessDescriptor) {
+      override fun onProcessConnected(process: ProcessDescriptor) {
         if (firstProcessReadyLatch.count > 0) {
           firstProcessTimestamp = timer.currentTimeNs
           firstProcessReadyLatch.countDown()
@@ -320,7 +320,7 @@ class AppInspectionProcessDiscoveryTest {
         }
       }
 
-      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+      override fun onProcessDisconnected(process: ProcessDescriptor) {
         processDisconnectLatch.countDown()
       }
     })

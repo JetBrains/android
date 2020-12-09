@@ -270,11 +270,11 @@ class AppInspectionTargetTest {
     transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
     val processReadyDeferred = CompletableDeferred<Unit>()
     appInspectionRule.apiServices.processNotifier.addProcessListener(MoreExecutors.directExecutor(), object : ProcessListener {
-      override fun onProcessConnected(descriptor: ProcessDescriptor) {
+      override fun onProcessConnected(process: ProcessDescriptor) {
         processReadyDeferred.complete(Unit)
       }
 
-      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+      override fun onProcessDisconnected(process: ProcessDescriptor) {
       }
     })
     processReadyDeferred.await()
