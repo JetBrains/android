@@ -27,7 +27,6 @@ import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.lint.UpgradeConstraintLayoutFix;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.XmlUtils;
@@ -384,25 +383,6 @@ public class RenderLogger implements IRenderLogger {
       }
       else if (description.equals(throwable.getLocalizedMessage()) || description.equals(throwable.getMessage())) {
         description = "Exception raised during rendering: " + description;
-      }
-      else if (message != null && message.equals("onMeasure error") &&
-               throwable.toString()
-                 .startsWith("java.lang.NoSuchMethodError: android.support.constraint.solver.widgets.Guideline.setRelative")) {
-        RenderProblem.Html problem = RenderProblem.create(WARNING);
-        String issue = "214853";
-        problem.tag(issue);
-        problem.throwable(throwable);
-        HtmlBuilder builder = problem.getHtmlBuilder();
-        builder.add("You appear to be using constraint layout version alpha3 or earlier; you must use version alpha4 or later " +
-                    "with this version of the layout editor (because the API for guidelines changed incompatibly as of alpha4.)");
-        builder.add(" (");
-        builder.addLink("Update Library", getLinkManager().createRunnableLink(() -> UpgradeConstraintLayoutFix.apply(myModule)));
-        builder.add(", ");
-        ShowExceptionFix detailsFix = new ShowExceptionFix(getProject(), throwable);
-        builder.addLink("Show Exception", getLinkManager().createRunnableLink(detailsFix));
-        builder.add(")");
-        addMessage(problem);
-        return;
       }
       else if (message != null && message.startsWith("Failed to configure parser for ") && message.endsWith(DOT_PNG)) {
         // See if it looks like a mismatched bitmap/color; if so, make a more intuitive error message
