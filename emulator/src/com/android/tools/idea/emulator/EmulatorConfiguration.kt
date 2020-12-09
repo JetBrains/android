@@ -48,21 +48,22 @@ class EmulatorConfiguration private constructor(
      */
     fun readAvdDefinition(avdId: String, avdFolder: Path): EmulatorConfiguration? {
       val file = avdFolder.resolve("hardware-qemu.ini")
-      val hardwareIni = readKeyValueFile(file, setOf("android.sdk.root", "hw.audioOutput"))
-      val sdkPath = hardwareIni?.get("android.sdk.root") ?: System.getenv(ANDROID_SDK_ROOT_ENV) ?: ""
-      val androidSdkRoot = avdFolder.fileSystem.getPath(sdkPath)
-      val hasAudioOutput = hardwareIni?.get("hw.audioOutput")?.toBoolean() ?: true
+      val keysToExtract1 = setOf("android.sdk.root", "hw.audioOutput", "hw.lcd.height", "hw.lcd.width", "hw.lcd.density")
+      val hardwareIni = readKeyValueFile(file, keysToExtract1) ?: return null
 
-      val keysToExtract = setOf("avd.ini.displayname", "hw.lcd.height", "hw.lcd.width", "hw.lcd.density",
-                                "hw.sensors.orientation", "hw.initialOrientation", "showDeviceFrame", "skin.path")
-      val configIni = readKeyValueFile(avdFolder.resolve("config.ini"), keysToExtract) ?: return null
+      val sdkPath = hardwareIni.get("android.sdk.root") ?: System.getenv(ANDROID_SDK_ROOT_ENV) ?: ""
+      val androidSdkRoot = avdFolder.fileSystem.getPath(sdkPath)
+      val displayWidth = parseInt(hardwareIni["hw.lcd.width"], 0)
+      val displayHeight = parseInt(hardwareIni["hw.lcd.height"], 0)
+      val density = parseInt(hardwareIni["hw.lcd.density"], 0)
+      val hasAudioOutput = hardwareIni.get("hw.audioOutput")?.toBoolean() ?: true
+
+      val keysToExtract2 = setOf("avd.ini.displayname", "hw.sensors.orientation", "hw.initialOrientation", "showDeviceFrame", "skin.path")
+      val configIni = readKeyValueFile(avdFolder.resolve("config.ini"), keysToExtract2) ?: return null
 
       val avdName = configIni["avd.ini.displayname"] ?: avdId.replace('_', ' ')
-      val displayWidth = parseInt(configIni["hw.lcd.width"], 0)
-      val displayHeight = parseInt(configIni["hw.lcd.height"], 0)
       val initialOrientation = if ("landscape".equals(configIni["hw.initialOrientation"], ignoreCase = true))
-          SkinRotation.LANDSCAPE  else SkinRotation.PORTRAIT
-      val density = parseInt(configIni["hw.lcd.density"], 0)
+          SkinRotation.LANDSCAPE else SkinRotation.PORTRAIT
       val skinPath = getSkinPath(configIni, androidSdkRoot)
       val hasOrientationSensors = configIni["hw.sensors.orientation"]?.equals("yes", ignoreCase = true) ?: true
       if (displayWidth <= 0 || displayHeight <= 0) {

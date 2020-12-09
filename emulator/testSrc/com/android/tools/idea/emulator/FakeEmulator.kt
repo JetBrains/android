@@ -679,6 +679,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.cpu.arch = x86
           hw.cpu.model = qemu32
           hw.cpu.ncore = 4
+          hw.lcd.density=480
+          hw.lcd.height=2960
+          hw.lcd.width=1440
           hw.ramSize = 1536
           hw.screen = multi-touch
           hw.dPad = false
@@ -757,6 +760,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.cpu.arch = x86
           hw.cpu.model = qemu32
           hw.cpu.ncore = 4
+          hw.lcd.density=320
+          hw.lcd.height=2560
+          hw.lcd.width=1600
           hw.ramSize = 2048
           hw.screen = multi-touch
           hw.dPad = false
@@ -833,6 +839,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.cpu.arch = x86
           hw.cpu.model = qemu32
           hw.cpu.ncore = 4
+          hw.lcd.density=240
+          hw.lcd.height=320
+          hw.lcd.width=320
           hw.ramSize = 1536
           hw.screen = multi-touch
           hw.dPad = false
