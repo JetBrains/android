@@ -41,7 +41,7 @@ class WarningsDataPageModelImplTest {
 
   var modelUpdateListenerCallsCount = 0
   val model: WarningsDataPageModel = WarningsDataPageModelImpl(mockData).apply {
-    setModelUpdatedListener { modelUpdateListenerCallsCount++ }
+    addModelUpdatedListener { modelUpdateListenerCallsCount++ }
   }
 
   @Test

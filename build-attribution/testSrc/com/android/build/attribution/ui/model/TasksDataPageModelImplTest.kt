@@ -34,7 +34,7 @@ class TasksDataPageModelImplTest {
   var modelUpdateListenerCallsCount = 0
   var modelUpdateListenerCallsWithTreeUpdateCount = 0
   val model: TasksDataPageModel = TasksDataPageModelImpl(mockData).apply {
-    setModelUpdatedListener { treeUpdated ->
+    addModelUpdatedListener { treeUpdated ->
       modelUpdateListenerCallsCount++
       if (treeUpdated) modelUpdateListenerCallsWithTreeUpdateCount++
     }

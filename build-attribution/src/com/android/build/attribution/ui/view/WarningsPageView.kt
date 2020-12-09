@@ -155,7 +155,7 @@ class WarningsPageView(
 
   init {
     updateViewFromModel(true)
-    model.setModelUpdatedListener(this::updateViewFromModel)
+    model.addModelUpdatedListener(this::updateViewFromModel)
   }
 
   private fun updateViewFromModel(treeStructureChanged: Boolean) {

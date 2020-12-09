@@ -73,7 +73,6 @@ class WarningsPageViewTest {
   @Test
   @RunsInEdt
   fun testCreateView() {
-    assertThat(model.modelUpdatedListener).isNotNull()
     assertThat(view.component.name).isEqualTo("warnings-view")
     assertThat(view.treeHeaderLabel.text).isEqualTo(model.treeHeaderText)
 
@@ -132,7 +131,7 @@ class WarningsPageViewTest {
   fun testEmptyState() {
     val data = MockUiData(tasksList = emptyList()).apply {
       annotationProcessors = object : AnnotationProcessorsReport {
-        override val nonIncrementalProcessors = emptyList < AnnotationProcessorUiData>()
+        override val nonIncrementalProcessors = emptyList<AnnotationProcessorUiData>()
       }
     }
     val model = WarningsDataPageModelImpl(data)

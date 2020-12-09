@@ -26,10 +26,10 @@ import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.N
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState.WARNING_ICON
 import com.android.build.attribution.ui.view.chart.ChartValueProvider
 import com.android.build.attribution.ui.warningsCountString
-import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.awt.Color
+import java.util.concurrent.CopyOnWriteArrayList
 import javax.swing.tree.DefaultMutableTreeNode
 
 /**
@@ -76,7 +76,7 @@ interface TasksDataPageModel {
   fun selectPageById(tasksPageId: TasksPageId)
 
   /** Install the listener that will be called on model state changes. */
-  fun setModelUpdatedListener(listener: (treeStructureChanged: Boolean) -> Unit)
+  fun addModelUpdatedListener(listener: (treeStructureChanged: Boolean) -> Unit)
   fun getNodeDescriptorById(pageId: TasksPageId): TasksTreePresentableNodeDescriptor?
 
   enum class Grouping(
@@ -93,9 +93,7 @@ class TasksDataPageModelImpl(
   override val reportData: BuildAttributionReportUiData
 ) : TasksDataPageModel {
 
-  @VisibleForTesting
-  var modelUpdatedListener: ((treeStructureChanged: Boolean) -> Unit)? = null
-    private set
+  private val modelUpdatedListeners: MutableList<((treeStructureChanged: Boolean) -> Unit)> = CopyOnWriteArrayList()
 
   override val selectedGrouping: TasksDataPageModel.Grouping
     get() = selectedPageId.grouping
@@ -192,8 +190,8 @@ class TasksDataPageModelImpl(
     notifyModelChanges()
   }
 
-  override fun setModelUpdatedListener(listener: (Boolean) -> Unit) {
-    modelUpdatedListener = listener
+  override fun addModelUpdatedListener(listener: (Boolean) -> Unit) {
+    modelUpdatedListeners.add(listener)
   }
 
   override fun getNodeDescriptorById(pageId: TasksPageId): TasksTreePresentableNodeDescriptor? =
@@ -201,7 +199,7 @@ class TasksDataPageModelImpl(
 
   private fun notifyModelChanges() {
     if (modelChanged) {
-      modelUpdatedListener?.invoke(treeStructureChanged)
+      modelUpdatedListeners.forEach { it.invoke(treeStructureChanged) }
       treeStructureChanged = false
       modelChanged = false
     }

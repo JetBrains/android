@@ -25,10 +25,10 @@ import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState
 import com.android.build.attribution.ui.warningsCountString
-import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
+import java.util.concurrent.CopyOnWriteArrayList
 import javax.swing.tree.DefaultMutableTreeNode
 
 interface WarningsDataPageModel {
@@ -62,7 +62,7 @@ interface WarningsDataPageModel {
   fun selectPageById(warningsPageId: WarningsPageId)
 
   /** Install the listener that will be called on model state changes. */
-  fun setModelUpdatedListener(listener: (Boolean) -> Unit)
+  fun addModelUpdatedListener(listener: (Boolean) -> Unit)
 
   /** Retrieve node descriptor by it's page id. Null if node does not exist in currently presented tree structure. */
   fun getNodeDescriptorById(pageId: WarningsPageId): WarningsTreePresentableNodeDescriptor?
@@ -71,9 +71,8 @@ interface WarningsDataPageModel {
 class WarningsDataPageModelImpl(
   override val reportData: BuildAttributionReportUiData
 ) : WarningsDataPageModel {
-  @VisibleForTesting
-  var modelUpdatedListener: ((Boolean) -> Unit)? = null
-    private set
+
+  private val modelUpdatedListeners: MutableList<((treeStructureChanged: Boolean) -> Unit)> = CopyOnWriteArrayList()
 
   override val treeHeaderText: String
     get() = treeStructure.treeStats.let { treeStats ->
@@ -138,8 +137,8 @@ class WarningsDataPageModelImpl(
     treeStructure.pageIdToNode[warningsPageId]?.let { selectNode(it) }
   }
 
-  override fun setModelUpdatedListener(listener: (Boolean) -> Unit) {
-    modelUpdatedListener = listener
+  override fun addModelUpdatedListener(listener: (Boolean) -> Unit) {
+    modelUpdatedListeners.add(listener)
   }
 
   override fun getNodeDescriptorById(pageId: WarningsPageId): WarningsTreePresentableNodeDescriptor? =
@@ -153,7 +152,7 @@ class WarningsDataPageModelImpl(
 
   private fun notifyModelChanges() {
     if (modelChanged) {
-      modelUpdatedListener?.invoke(treeStructureChanged)
+      modelUpdatedListeners.forEach { it.invoke(treeStructureChanged) }
       modelChanged = false
       treeStructureChanged = false
     }
