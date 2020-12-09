@@ -175,59 +175,15 @@ public class LintIdeClient extends LintClient implements Disposable {
       return;
     }
 
-    // We use a custom progress indicator to track action cancellation latency,
-    // and to collect a stack dump at the time of cancellation.
-    class ProgressIndicatorWithCancellationInfo extends AbstractProgressIndicatorExBase {
+    long startMs = System.currentTimeMillis();
+    boolean success = ProgressIndicatorUtils.runInReadActionWithWriteActionPriority(runnable);
 
-      final Thread readActionThread;
-
-      // These fields are marked volatile since they will be accessed by two threads (the EDT and the read action thread).
-      // Notice that they are set before the progress indicator is marked as cancelled; this establishes a happens-before
-      // relationship with myCanceled (also volatile), thereby ensuring that the new values are visible
-      // to threads which have detected cancellation.
-      volatile StackTraceElement[] cancelStackDump;
-      volatile long cancelStartTimeMs = -1;
-
-      ProgressIndicatorWithCancellationInfo(Thread readActionThread) {
-        this.readActionThread = readActionThread;
-      }
-
-      @Override
-      public void cancel() {
-        if (!isCanceled()) {
-          cancelStartTimeMs = System.currentTimeMillis();
-          cancelStackDump = readActionThread.getStackTrace();
-        }
-        super.cancel();
-      }
+    long elapsedMs = System.currentTimeMillis() - startMs;
+    if (elapsedMs >= 20000) {
+      LOG.warn("Android Lint took a long time to run a read action (" + elapsedMs + " ms)");
     }
 
-    ProgressIndicatorWithCancellationInfo progressIndicator = new ProgressIndicatorWithCancellationInfo(Thread.currentThread());
-    long actionStartTimeMs = System.currentTimeMillis();
-    boolean successful = ProgressIndicatorUtils.runInReadActionWithWriteActionPriority(runnable, progressIndicator);
-
-    if (!successful) {
-      LOG.info("Android Lint read action canceled due to pending write action");
-
-      StackTraceElement[] stackDumpRaw = progressIndicator.cancelStackDump;
-      if (stackDumpRaw != null) {
-
-        // If the read action was canceled *after* being started, then the EDT still has to wait
-        // for the read action to check for cancellation and throw a ProcessCanceledException.
-        // If this takes a while, it will freeze the UI. We want to know about that.
-        long currTimeMs = System.currentTimeMillis();
-        long cancelTimeMs = currTimeMs - progressIndicator.cancelStartTimeMs;
-
-        // Even if the read action was quick to cancel, we still want to report long-running
-        // read actions because those could lead to frequent cancellations or Lint never finishing.
-        long actionTimeMs = currTimeMs - actionStartTimeMs;
-
-        // Report both in the same crash report so that one does not get discarded by the crash report rate limiter.
-        if (cancelTimeMs > 200 || actionTimeMs > 1000) {
-          notifyReadCanceled(stackDumpRaw, cancelTimeMs, actionTimeMs);
-        }
-      }
-
+    if (!success) {
       throw new ProcessCanceledException();
     }
   }
@@ -681,11 +637,6 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Override
   public String getRelativePath(@Nullable File baseFile, @Nullable File file) {
     return FileUtilRt.getRelativePath(baseFile, file);
-  }
-
-  protected void notifyReadCanceled(StackTraceElement[] stackDumpRaw, long cancelTimeMs, long actionTimeMs) {
-    LOG.info("Android Lint either took too long to run a read action (" + actionTimeMs + "ms),\n" +
-             "or took too long to cancel and yield to a pending write action (" + cancelTimeMs + "ms)");
   }
 
   @NonNull
