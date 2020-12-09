@@ -195,6 +195,7 @@ public class ModelBuilder {
       SyncNlModel model = SyncNlModel.create(surface, myFixture.getProject(), myModelDisplayName, myFacet, xmlFile.getVirtualFile());
       when(surface.getModel()).thenReturn(model);
       when(surface.getModels()).thenReturn(ImmutableList.of(model));
+      when(surface.getConfiguration()).thenReturn(model.getConfiguration());
       when(surface.getConfigurations()).thenReturn(ImmutableList.of(model.getConfiguration()));
 
       // TODO: NlDesignSurface should not be referenced from here.
