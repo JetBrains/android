@@ -27,14 +27,11 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.util.PathString;
 import com.android.manifmerger.Actions;
-import com.android.repository.Revision;
 import com.android.repository.api.RemotePackage;
-import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.diagnostics.crash.GenericStudioReport;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.editors.manifest.ManifestUtils;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository;
 import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.lint.common.LintResult;
@@ -205,40 +202,6 @@ public class AndroidLintIdeClient extends LintIdeClient {
     }
 
     return null;
-  }
-
-  @Override
-  @Nullable
-  public Revision getBuildToolsRevision(@NonNull com.android.tools.lint.detector.api.Project project) {
-    if (project.isGradleProject()) {
-      Module module = getModule(project);
-      if (module != null) {
-        AndroidModuleModel model = AndroidModuleModel.get(module);
-        if (model != null) {
-          GradleVersion version = model.getModelVersion();
-          if (version != null && version.isAtLeast(2, 1, 0)) {
-            String buildToolsVersion = model.getAndroidProject().getBuildToolsVersion();
-            if (buildToolsVersion != null) {
-              AndroidSdkHandler sdk = getSdk();
-              if (sdk != null) {
-                try {
-                  Revision revision = Revision.parseRevision(buildToolsVersion);
-                  BuildToolInfo buildToolInfo = sdk.getBuildToolInfo(revision, getRepositoryLogger());
-                  if (buildToolInfo != null) {
-                    return buildToolInfo.getRevision();
-                  }
-                }
-                catch (NumberFormatException ignore) {
-                  // Fall through and use the latest
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    return super.getBuildToolsRevision(project);
   }
 
   @Override
