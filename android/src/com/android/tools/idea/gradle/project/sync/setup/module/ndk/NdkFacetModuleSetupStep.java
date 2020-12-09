@@ -24,8 +24,10 @@ import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetupStep;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 public class NdkFacetModuleSetupStep extends NdkModuleSetupStep {
   @Override
@@ -39,7 +41,8 @@ public class NdkFacetModuleSetupStep extends NdkModuleSetupStep {
       ModifiableFacetModel model = ideModelsProvider.getModifiableFacetModel(module);
       NdkFacetType facetType = NdkFacet.getFacetType();
       facet = facetType.createFacet(module, NdkFacet.getFacetName(), facetType.createDefaultConfiguration(), null);
-      model.addFacet(facet);
+      //noinspection UnstableApiUsage
+      model.addFacet(facet, ExternalSystemApiUtil.toExternalSource(GradleConstants.SYSTEM_ID));
     }
     configureFacet(facet, ndkModuleModel);
   }
