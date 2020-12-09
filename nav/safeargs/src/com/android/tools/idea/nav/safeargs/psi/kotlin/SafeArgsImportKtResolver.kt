@@ -108,7 +108,7 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
     // Copied from KotlinAddImportAction
     object : ListPopupImpl(project, getVariantSelectionPopup(project, file, suggestions)) {
       override fun getListElementRenderer(): ListCellRenderer<AutoImportVariant> {
-        val baseRenderer = super.getListElementRenderer() as PopupListElementRenderer
+        val baseRenderer = super.getListElementRenderer() as PopupListElementRenderer<AutoImportVariant>
         val psiRenderer = DefaultPsiElementCellRenderer()
         return ListCellRenderer { list, value, index, isSelected, cellHasFocus ->
           JPanel(BorderLayout()).apply {
