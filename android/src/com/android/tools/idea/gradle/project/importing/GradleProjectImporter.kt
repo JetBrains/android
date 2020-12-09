@@ -89,26 +89,28 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
       ProjectManagerEx.getInstanceEx().openProject(
         projectFolderPath.toPath(),
         OpenProjectTask(
-          forceOpenInNewFrame,
-          projectToClose,
-          false,
-          false,
-          newProject,
-          null,
-          true,
-          null,
-          null,
-          -1,
-          -1,
-          true,
-          false,
-          true,
-          null,
-          false,
-          false,
-          null,
-          null,
-          null))
+          forceOpenInNewFrame = forceOpenInNewFrame,
+          projectToClose = projectToClose,
+          isNewProject = false,
+          useDefaultProjectAsTemplate = false,
+          project = newProject,
+          projectName = null,
+          showWelcomeScreen = true,
+          callback = null,
+          frame = null,
+          line = -1,
+          column = -1,
+          isRefreshVfsNeeded = true,
+          runConfigurators = false,
+          runConversionBeforeOpen = true,
+          projectWorkspaceId = null,
+          isProjectCreatedWithWizard = false,
+          sendFrameBack = false,
+          beforeInit = null,
+          beforeOpen = null,
+          preparedToOpen = null
+        )
+      )
     }
     catch (e: Throwable) {
       if (ApplicationManager.getApplication().isUnitTestMode) {
