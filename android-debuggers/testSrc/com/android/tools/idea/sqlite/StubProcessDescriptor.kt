@@ -29,6 +29,6 @@ class StubProcessDescriptor : ProcessDescriptor {
     override val codename: String = "O"
   }
 
-  override val processName = "processName"
+  override val name = "processName"
   override val isRunning = true
 }

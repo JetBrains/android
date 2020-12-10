@@ -141,7 +141,7 @@ class ProcessesModel(private val executor: Executor,
   fun isProcessPreferred(processDescriptor: ProcessDescriptor?, includeDead: Boolean = false): Boolean {
     return processDescriptor != null
            && (processDescriptor.isRunning || includeDead)
-           && getPreferredProcessNames().contains(processDescriptor.processName)
+           && getPreferredProcessNames().contains(processDescriptor.name)
   }
 
   @GuardedBy("lock")
