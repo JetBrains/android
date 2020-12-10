@@ -55,7 +55,7 @@ import javax.swing.tree.TreePath
 
 class VariablesTableTest : AndroidGradleTestCase() {
 
-  private lateinit var defaultTestDialog: TestDialog
+  private var defaultTestDialog: TestDialog? = null
 
   private fun contextFor(project: PsProject) = object : PsContext {
     override val analyzerDaemon: PsAnalyzerDaemon get() = throw UnsupportedOperationException()
