@@ -131,16 +131,7 @@ abstract public class SceneManager implements Disposable {
    * Update the SceneView of SceneManager. The SceneView may be recreated if needed.
    */
   public final void updateSceneView() {
-    // Remove the current SceneViews before they are disposed
-    for (SceneView sceneView : getSceneViews()) {
-      myDesignSurface.removeSceneView(sceneView);
-    }
     createSceneView();
-
-    // Add the newly allocated SceneViews
-    for (SceneView sceneView : getSceneViews()) {
-      myDesignSurface.addSceneView(sceneView);
-    }
   }
 
   @Deprecated // A SceneManager can have more than one SceneView. Use getSceneViews() instead
@@ -164,7 +155,6 @@ abstract public class SceneManager implements Disposable {
   @Override
   public void dispose() {
     for (SceneView sceneView : getSceneViews()) {
-      myDesignSurface.removeSceneView(sceneView);
       sceneView.dispose();
     }
   }
