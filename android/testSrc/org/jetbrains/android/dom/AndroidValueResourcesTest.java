@@ -676,6 +676,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
     myFixture.setReadEditorMarkupModel(true);
 
+/* b/175036743
     IdentifierHighlighterPassFactory.doWithHighlightingEnabled(getProject(), getTestRootDisposable(), () -> {
       List<HighlightInfo> highlightInfos = myFixture.doHighlighting();
       // With new resources pipeline, all highlight usages of resources are found.
@@ -700,6 +701,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
         Pair.create(HighlightInfoType.ELEMENT_UNDER_CARET_SEVERITY, "fXoo"),
         Pair.create( HighlightSeverity.ERROR, "@string/foo"));
     });
+b/175036743 */
   }
 
   public void dispatchEvents() {
