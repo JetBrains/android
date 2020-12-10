@@ -52,6 +52,7 @@ import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+@org.junit.Ignore("b/175036532")
 public class OverlayLayerTest {
   public static final int SCREEN_VIEW_WIDTH = 200;
   public static final int SCREEN_VIEW_HEIGHT = 200;
