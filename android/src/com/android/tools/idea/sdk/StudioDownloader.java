@@ -41,6 +41,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.Locale;
@@ -131,7 +132,7 @@ public class StudioDownloader implements Downloader {
     if (file == null) {
       return null;
     }
-    return Files.newInputStream(file, StandardOpenOption.DELETE_ON_CLOSE);
+    return CancellableFileIo.newInputStream(file, StandardOpenOption.DELETE_ON_CLOSE);
   }
 
   @Override
@@ -250,9 +251,9 @@ public class StudioDownloader implements Downloader {
                             @NotNull ProgressIndicator indicator) throws IOException {
     String suffix = url.getPath();
     suffix = suffix.substring(suffix.lastIndexOf('/') + 1);
-    FileSystem fs = mDownloadIntermediatesLocation == null ? FileSystems.getDefault() : mDownloadIntermediatesLocation.getFileSystem();
-    Path tempDir = FileOpUtils.getNewTempDir("StudioDownloader", fs);
-    Path tempFile = tempDir.resolve(suffix);
+    Path tempDir =
+      mDownloadIntermediatesLocation == null ? Paths.get(System.getProperty("java.io.tmpdir")) : mDownloadIntermediatesLocation;
+    Path tempFile = Files.createTempFile(tempDir, suffix, "");
     PathUtils.addRemovePathHook(tempFile);
     downloadFully(url, tempFile, null, indicator);
     return tempFile;
