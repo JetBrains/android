@@ -341,10 +341,12 @@ abstract class GradleSyncProjectComparisonTest : GradleSyncIntegrationTestCase()
       val after = openPreparedProject("project") { project ->
         project.saveAndDump()
       }
+/* b/175036530
       assertAreEqualToSnapshots(
         before to ".same",
         after to ".same_but_iml_present"
       )
+b/175036530 */
     }
 
     fun testSwitchingVariantsWithReopen_simpleApplication() {
