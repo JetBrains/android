@@ -36,6 +36,7 @@ import com.android.tools.idea.sqlite.model.Delimiter.TAB
 import com.android.tools.idea.sqlite.model.Delimiter.VERTICAL_BAR
 import com.android.tools.idea.sqlite.model.ExportFormat.CSV
 import com.android.tools.idea.sqlite.model.ExportFormat.DB
+import com.android.tools.idea.sqlite.model.ExportFormat.SQL
 import com.android.tools.idea.sqlite.model.ExportRequest
 import com.android.tools.idea.sqlite.model.ExportRequest.ExportDatabaseRequest
 import com.android.tools.idea.sqlite.model.ExportRequest.ExportQueryResultsRequest
@@ -187,7 +188,34 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     testExport(exportRequest, expectedValues = values.toCsvOutputLines(exportRequest.delimiter))
   }
 
-  /** Overload suitable for single file output (e.g. exporting a query or a single table). */
+  fun testExportTableToSqlFileDb() = testExportTableToSql(DatabaseType.File)
+
+  fun testExportTableToSqlLiveDb() = testExportTableToSql(DatabaseType.Live)
+
+  private fun testExportTableToSql(databaseType: DatabaseType) {
+    val database = createEmptyDatabase(databaseType)
+    val tableName = populateDatabase(database, listOf(table1), listOf(view1)).single().name
+
+    val dstPath = tempDirTestFixture.toNioPath().resolve(outputFileName)
+    val exportRequest = ExportTableRequest(database, table1, SQL, dstPath)
+
+    val expectedOutput = runSqlite3Command(
+      SqliteCliArgs
+        .builder()
+        .database(database.backingFile)
+        .dumpTable(tableName)
+        .build()
+    ).checkSuccess().stdOutput.split(System.lineSeparator())
+      .also { lines ->
+        assertThat(lines).isNotEmpty()
+        assertThat(lines.filter { it.contains("create table .*$tableName".toRegex(RegexOption.IGNORE_CASE)) }).isNotEmpty()
+        assertThat(lines.filter { it.contains("insert into .*$tableName".toRegex(RegexOption.IGNORE_CASE)) }).isNotEmpty()
+      }
+
+    testExport(exportRequest, expectedOutput)
+  }
+
+    /** Overload suitable for single file output (e.g. exporting a query or a single table). */
   private fun testExport(exportRequest: ExportRequest, expectedValues: List<String>) =
     testExport(
       exportRequest,
@@ -264,13 +292,13 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
       listOf(actualSchemaPath, actualTablesPath, actualViewsPath)
     }
 
-    val expectedSchema = let {
-      val srcPath = when (database) {
-        is FileSqliteDatabaseId -> database.databaseFileData.mainFile.toNioPath()
-        is LiveSqliteDatabaseId -> Paths.get(database.path) // we use the fact that in the test setup, live db is backed by a local file
-      }
-      runSqlite3Command(SqliteCliArgs.builder().database(srcPath).dump().build()).checkSuccess().stdOutput.split(System.lineSeparator())
-    }
+    val expectedSchema = runSqlite3Command(
+      SqliteCliArgs
+        .builder()
+        .database(database.backingFile)
+        .dump()
+        .build()
+    ).checkSuccess().stdOutput.split(System.lineSeparator())
 
     val expected: List<ExpectedOutputFile> = listOf(
       ExpectedOutputFile(actualTablesPath, expectedTables),
@@ -281,6 +309,12 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     // when/then:
     testExport(exportRequest, databaseToTextFiles, expected)
   }
+
+  private val SqliteDatabaseId.backingFile : Path
+    get() = when (this) {
+      is FileSqliteDatabaseId -> databaseFileData.mainFile.toNioPath()
+      is LiveSqliteDatabaseId -> Paths.get(path) // we use the fact that in the test setup, live db is backed by a local file
+    }
 
   fun testInvalidRequestFileDb() = testInvalidRequest(DatabaseType.File)
 
