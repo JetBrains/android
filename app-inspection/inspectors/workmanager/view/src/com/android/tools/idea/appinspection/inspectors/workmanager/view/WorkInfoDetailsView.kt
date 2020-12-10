@@ -4,6 +4,7 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
+import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkSelectionModel
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.WorkManagerInspectorEvent
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.roots.ui.componentsList.components.ScrollablePanel
@@ -34,6 +35,7 @@ class WorkInfoDetailsView(client: WorkManagerInspectorClient,
                           work: WorkInfo,
                           ideServices: AppInspectionIdeServices,
                           scope: CoroutineScope,
+                          workSelectionModel: WorkSelectionModel,
                           tab: WorkManagerInspectorTab) : JPanel() {
 
 
@@ -55,7 +57,7 @@ class WorkInfoDetailsView(client: WorkManagerInspectorClient,
 
     val idListProvider = IdListProvider(client, work) {
       client.tracker.trackWorkSelected(WorkManagerInspectorEvent.Context.DETAILS_CONTEXT)
-      tab.selectedWork = it
+      workSelectionModel.setSelectedWork(it, WorkSelectionModel.Context.DETAILS)
     }
     detailsPanel.preferredScrollableViewportSize
     val scrollPane = JBScrollPane(detailsPanel)
