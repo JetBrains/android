@@ -156,6 +156,6 @@ private fun DeviceDescriptor.buildDeviceName(): String {
   return deviceNameBuilder.toString()
 }
 
-private fun ProcessDescriptor.buildProcessName() = "$processName${if (isRunning) "" else " [DEAD]"}"
+private fun ProcessDescriptor.buildProcessName() = "$name${if (isRunning) "" else " [DEAD]"}"
 
 private fun DeviceDescriptor?.toIcon() = if (this?.isEmulator == true) ICON_EMULATOR else ICON_PHONE

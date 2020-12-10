@@ -70,7 +70,7 @@ class OfflineModeManagerImpl(private val project: Project, private val fileDatab
         emit(OfflineModeManager.DownloadProgress(OfflineModeManager.DownloadState.IN_PROGRESS, emptyList(), databasesToDownload.size))
 
         when {
-            isOfflineModeAllowed(appPackageName ?: processDescriptor.processName) -> {
+            isOfflineModeAllowed(appPackageName ?: processDescriptor.name) -> {
               downloadFiles(databasesToDownload, appPackageName, processDescriptor, downloadedFiles, handleError)
             }
             else -> {
@@ -108,7 +108,7 @@ class OfflineModeManagerImpl(private val project: Project, private val fileDatab
     databasesToDownload.forEach { liveSqliteDatabaseId ->
       try {
         val databaseFileData = fileDatabaseManager.loadDatabaseFileData(
-          appPackageName ?: processDescriptor.processName,
+          appPackageName ?: processDescriptor.name,
           processDescriptor,
           liveSqliteDatabaseId
         )

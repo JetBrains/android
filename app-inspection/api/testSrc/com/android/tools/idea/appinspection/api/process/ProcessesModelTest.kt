@@ -50,9 +50,9 @@ class ProcessesModelTest {
     assertThat(model.processes.size).isEqualTo(1)
     with(model.processes.first()) {
       assertThat(this.device.model).isEqualTo(FakeTransportService.FAKE_DEVICE.model)
-      assertThat(this.processName).isEqualTo(FakeTransportService.FAKE_PROCESS.name)
+      assertThat(this.name).isEqualTo(FakeTransportService.FAKE_PROCESS.name)
     }
-    val selectedName = model.selectedProcess!!.processName
+    val selectedName = model.selectedProcess!!.name
     model.selectedProcess!!.let { selectedProcess ->
       assertThat(selectedProcess.isRunning).isTrue()
       assertThat(model.isProcessPreferred(selectedProcess)).isTrue()
@@ -63,7 +63,7 @@ class ProcessesModelTest {
     // Once disconnected, the process remains but in a terminated state
     assertThat(model.processes.size).isEqualTo(1)
     model.selectedProcess!!.let { selectedProcess ->
-      assertThat(selectedProcess.processName).isEqualTo(selectedName)
+      assertThat(selectedProcess.name).isEqualTo(selectedName)
       assertThat(selectedProcess.isRunning).isFalse()
       assertThat(model.isProcessPreferred(selectedProcess)).isFalse()
       assertThat(model.isProcessPreferred(selectedProcess, includeDead = true)).isTrue()
@@ -185,7 +185,7 @@ class ProcessesModelTest {
     // Stop inspection and check the new selected process is dead
     model.stop()
     val deadProcess = model.selectedProcess!!
-    assertThat(deadProcess.processName).isEqualTo(fakeProcessB.processName)
+    assertThat(deadProcess.name).isEqualTo(fakeProcessB.name)
     assertThat(deadProcess.isRunning).isFalse()
 
     // Cannot update the selected process when the model is stopped
@@ -217,15 +217,15 @@ class ProcessesModelTest {
     testNotifier.fireConnected(fakeProcessB)
     testNotifier.fireConnected(fakeProcessC)
     testNotifier.fireConnected(fakeProcessD)
-    assertThat(model.processes.map { it.processName }).containsExactly("B", "D")
+    assertThat(model.processes.map { it.name }).containsExactly("B", "D")
 
     testNotifier.fireDisconnected(fakeProcessA)
-    assertThat(model.processes.filter { it.isRunning }.map { it.processName }).containsExactly("B", "D")
+    assertThat(model.processes.filter { it.isRunning }.map { it.name }).containsExactly("B", "D")
     testNotifier.fireDisconnected(fakeProcessB)
-    assertThat(model.processes.filter { it.isRunning }.map { it.processName }).containsExactly("D")
+    assertThat(model.processes.filter { it.isRunning }.map { it.name }).containsExactly("D")
     testNotifier.fireDisconnected(fakeProcessC)
-    assertThat(model.processes.filter { it.isRunning }.map { it.processName }).containsExactly("D")
+    assertThat(model.processes.filter { it.isRunning }.map { it.name }).containsExactly("D")
     testNotifier.fireDisconnected(fakeProcessD)
-    assertThat(model.processes.filter { it.isRunning }.map { it.processName }).isEmpty()
+    assertThat(model.processes.filter { it.isRunning }.map { it.name }).isEmpty()
   }
 }

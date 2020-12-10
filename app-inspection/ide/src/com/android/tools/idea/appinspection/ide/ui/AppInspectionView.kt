@@ -262,7 +262,7 @@ class AppInspectionView @VisibleForTesting constructor(
           // This happens when trying to launch an inspector on a process/device that no longer exists. In that case, we can safely
           // ignore the attempt. We can count on the UI to be refreshed soon to remove the option.
           withContext(uiDispatcher) {
-            tab.setComponent(EmptyStatePanel(AppInspectionBundle.message("process.does.not.exist", currentProcess.processName)))
+            tab.setComponent(EmptyStatePanel(AppInspectionBundle.message("process.does.not.exist", currentProcess.name)))
           }
         }
         catch (e: AppInspectionLaunchException) {

@@ -23,7 +23,7 @@ interface ProcessDescriptor {
   val device: DeviceDescriptor
 
   /** The fully qualified name of the process. */
-  val processName: String
+  val name: String
 
   /** Whether this process is actively running or not. If not running, that implies it has been terminated. */
   val isRunning: Boolean
