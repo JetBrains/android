@@ -51,6 +51,7 @@ open class AbstractBuildAttributionReportBuilderTest {
     override fun getProjectsConfigurationData(): List<ProjectConfigurationData> = emptyList()
     override fun getAlwaysRunTasks(): List<AlwaysRunTaskData> = emptyList()
     override fun getNonCacheableTasks(): List<TaskData> = emptyList()
+    override fun getAppliedPlugins(): Map<String, List<PluginData>> = emptyMap()
     override fun getTasksSharingOutput(): List<TasksSharingOutputData> = emptyList()
     override fun getGarbageCollectionData(): List<GarbageCollectionData> = emptyList()
     override fun getTotalGarbageCollectionTimeMs(): Long = 0

@@ -22,10 +22,12 @@ import com.android.build.attribution.data.GarbageCollectionData
 import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.PluginConfigurationData
 import com.android.build.attribution.data.PluginContainer
+import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
+import kotlinx.collections.immutable.toImmutableMap
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 
 interface BuildEventsAnalysisResult {
@@ -47,6 +49,12 @@ interface BuildEventsAnalysisResult {
   fun getAlwaysRunTasks(): List<AlwaysRunTaskData>
   fun getNonCacheableTasks(): List<TaskData>
   fun getTasksSharingOutput(): List<TasksSharingOutputData>
+
+  /**
+   * returns a list of all applied plugins for each configured project.
+   * May contain internal plugins
+   */
+  fun getAppliedPlugins(): Map<String, List<PluginData>>
 
   /**
    * List of garbage collection data for this build.
@@ -150,6 +158,10 @@ class BuildEventsAnalyzersProxy(
 
   override fun getProjectsConfigurationData(): List<ProjectConfigurationData> {
     return projectConfigurationAnalyzer.projectsConfigurationData
+  }
+
+  override fun getAppliedPlugins(): Map<String, List<PluginData>> {
+    return projectConfigurationAnalyzer.allAppliedPlugins.toImmutableMap()
   }
 
   override fun getAlwaysRunTasks(): List<AlwaysRunTaskData> {
