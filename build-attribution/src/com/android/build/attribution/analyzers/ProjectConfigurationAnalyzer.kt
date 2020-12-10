@@ -47,6 +47,12 @@ class ProjectConfigurationAnalyzer(override val warningsFilter: BuildAttribution
   val projectsConfigurationData = ArrayList<ProjectConfigurationData>()
 
   /**
+   * Contains a list of all applied plugins for each configured project.
+   * May contain internal plugins
+   */
+  val allAppliedPlugins = mutableMapOf<String, List<PluginData>>()
+
+  /**
    * Builder for configuration data of the currently being configured project
    * If no projects are being configured currently, then it will be null
    */
@@ -66,6 +72,10 @@ class ProjectConfigurationAnalyzer(override val warningsFilter: BuildAttribution
     else if (projectConfigurationBuilder != null) {
       // project configuration finished
       if (event is ProjectConfigurationFinishEvent && event.result is ProjectConfigurationSuccessResult) {
+        allAppliedPlugins[event.descriptor.project.projectPath] =
+          (event.result as ProjectConfigurationSuccessResult).pluginApplicationResults.map {
+            getPlugin(it.plugin, event.descriptor.project.projectPath)
+          }
         projectsConfigurationData.add(projectConfigurationBuilder!!.build(event.result.endTime - event.result.startTime))
         projectConfigurationBuilder = null
       }
