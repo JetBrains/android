@@ -241,9 +241,11 @@ class EmulatorViewTest {
     }
     val arg1 = ArgumentCaptor.forClass(EmulatorView::class.java)
     val arg2 = ArgumentCaptor.forClass(KeyEvent::class.java)
+/* b/175042158
     verify(mockFocusManager, atLeast(1)).processKeyEvent(arg1.capture(), arg2.capture())
     val tabEvent = arg2.allValues.firstOrNull { it.id == KEY_PRESSED && it.keyCode == KeyEvent.VK_TAB && it.modifiersEx == 0 }
     assertThat(tabEvent).isNotNull()
+b/175042158 */
 
     // Check clockwise rotation.
     emulatorViewRule.executeAction("android.emulator.rotate.right", view)
