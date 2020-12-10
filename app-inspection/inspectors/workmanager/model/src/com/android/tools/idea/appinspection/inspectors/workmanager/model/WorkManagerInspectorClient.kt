@@ -92,6 +92,13 @@ class WorkManagerInspectorClient(private val messenger: AppInspectorMessenger,
     filteredWorks.indexOfFirst(predicate)
   }
 
+  /**
+   * Returns the first [WorkInfo] matching the given [predicate], or null if the list does not contain such element.
+   */
+  fun firstOrNull(predicate: (WorkInfo) -> Boolean) = synchronized(lock) {
+    filteredWorks.firstOrNull(predicate)
+  }
+
 
   /**
    * Returns a chain of works with topological ordering containing the selected work.
@@ -192,6 +199,7 @@ class WorkManagerInspectorClient(private val messenger: AppInspectorMessenger,
             }
           }
           works[index] = newWork.build()
+          updateFilteredWork()
         }
       }
       Event.OneOfCase.ONEOF_NOT_SET -> {

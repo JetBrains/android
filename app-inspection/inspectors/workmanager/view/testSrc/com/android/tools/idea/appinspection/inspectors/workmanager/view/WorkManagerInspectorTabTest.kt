@@ -370,6 +370,41 @@ class WorkManagerInspectorTabTest {
   }
 
   @Test
+  fun updateUnSelectedWorkInfo_detailsViewUpdateAccordingly() = runBlocking {
+    sendWorkAddedEvent(fakeWorkInfo)
+    val dependentWork = fakeWorkInfo.toBuilder().setId(fakeWorkInfo.getDependents(0)).build()
+    sendWorkAddedEvent(dependentWork)
+    lateinit var inspectorTab: WorkManagerInspectorTab
+    lateinit var oldDependentWorkLabel: HyperlinkLabel
+    launch(uiDispatcher) {
+      inspectorTab = WorkManagerInspectorTab(client, ideServices, scope)
+      inspectorTab.isDetailsViewVisible = true
+      val table = inspectorTab.getTable()
+      table.selectionModel.setSelectionInterval(0, 0)
+      val detailsPanel = inspectorTab.getDetailsView()!!
+      val workContinuationPanel = detailsPanel.getCategoryPanel("WorkContinuation") as JPanel
+      val chainComponent = workContinuationPanel.getValueComponent("Unique work chain") as JPanel
+      assertThat(chainComponent.componentCount).isEqualTo(2)
+      oldDependentWorkLabel = chainComponent.getComponent(1) as HyperlinkLabel
+      assertThat(oldDependentWorkLabel.text).isEqualTo("dependentsId")
+    }.join()
+
+    sendWorkStateUpdatedEvent(dependentWork.id, WorkInfo.State.FAILED)
+    launch(uiDispatcher) {
+      val detailsPanel = inspectorTab.getDetailsView()!!
+      assertThat(detailsPanel).isNotEqualTo(oldDependentWorkLabel)
+      val workContinuationPanel = detailsPanel.getCategoryPanel("WorkContinuation") as JPanel
+      val chainComponent = workContinuationPanel.getValueComponent("Unique work chain") as JPanel
+      assertThat(chainComponent.componentCount).isEqualTo(2)
+      val newDependentWorkLabel = chainComponent.getComponent(1) as HyperlinkLabel
+      assertThat(newDependentWorkLabel.text).isEqualTo("dependentsId")
+      // Ideally, we want to check if the two labels are with different icons.
+      // Unfortunately, [HyperlinkLabel] does not have icon access so we compare labels directly.
+      assertThat(oldDependentWorkLabel).isNotEqualTo(newDependentWorkLabel)
+    }.join()
+  }
+
+  @Test
   fun closeDetailsView() = runBlocking {
     sendWorkAddedEvent(fakeWorkInfo)
     launch(uiDispatcher) {

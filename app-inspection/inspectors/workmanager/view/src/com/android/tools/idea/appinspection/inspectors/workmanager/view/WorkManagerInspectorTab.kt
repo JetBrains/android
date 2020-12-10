@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.appinspection.inspectors.workmanager.view
 
-import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
+import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkSelectionModel
 import com.intellij.ui.JBSplitter
 import kotlinx.coroutines.CoroutineScope
 import javax.swing.JComponent
-
-typealias SelectedWorkListener = (WorkInfo?) -> Unit
 
 /**
  * View class for the WorkManger Inspector Tab.
@@ -35,22 +33,7 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
                               private val ideServices: AppInspectionIdeServices,
                               private val scope: CoroutineScope
 ) {
-  val listeners = mutableListOf<SelectedWorkListener>()
-
-  /**
-   * Selected work applied to both [WorksContentView] and [WorkInfoDetailsView].
-   */
-  var selectedWork: WorkInfo? = null
-    set(value) {
-      if (value != field) {
-        field = value
-        listeners.forEach { it(value) }
-        // Replace [WorkInfoDetailsView] when a new work is selected.
-        if (isDetailsViewVisible) {
-          splitter.secondComponent = createWorkInfoDetailsView()
-        }
-      }
-    }
+  private val workSelectionModel = WorkSelectionModel()
 
   /**
    * Returns true if the [WorkInfoDetailsView] is not null.
@@ -61,7 +44,7 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
         field = value
         if (value) {
           // Add [WorkInfoDetailsView] when a nonnull work is clicked.
-          if (selectedWork != null) {
+          if (workSelectionModel.selectedWork != null) {
             splitter.secondComponent = createWorkInfoDetailsView()
           }
         }
@@ -75,17 +58,21 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
   private val splitter = JBSplitter(false).apply {
     border = AdtUiUtils.DEFAULT_VERTICAL_BORDERS
     isOpaque = true
-    firstComponent = WorksContentView(this@WorkManagerInspectorTab, client)
+    firstComponent = WorksContentView(this@WorkManagerInspectorTab, workSelectionModel, client)
   }
 
   val component: JComponent = splitter
 
-  fun addSelectedWorkListener(listener: SelectedWorkListener) {
-    listeners.add(listener)
+  init {
+    workSelectionModel.registerWorkSelectionListener { _, _ ->
+      if (isDetailsViewVisible) {
+        splitter.secondComponent = createWorkInfoDetailsView()
+      }
+    }
   }
 
   private fun createWorkInfoDetailsView(): JComponent? {
-    val work = selectedWork ?: return null
-    return WorkInfoDetailsView(client, work, ideServices, scope, this)
+    val work = workSelectionModel.selectedWork ?: return null
+    return WorkInfoDetailsView(client, work, ideServices, scope, workSelectionModel, this)
   }
 }
