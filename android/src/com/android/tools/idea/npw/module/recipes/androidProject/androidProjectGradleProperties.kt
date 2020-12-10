@@ -20,7 +20,8 @@ import com.android.tools.idea.wizard.template.renderIf
 fun androidProjectGradleProperties(
   addAndroidXSupport: Boolean,
   generateKotlin: Boolean,
-  overridePathCheck: Boolean?
+  overridePathCheck: Boolean?,
+  forceNonTransitiveRClass: Boolean
 ): String {
   val androidXBlock = renderIf(addAndroidXSupport) { """
 # AndroidX package structure to make it clearer which packages are bundled with the
@@ -38,9 +39,17 @@ kotlin.code.style=official
 """
   }
 
-  val overridePathCheckBlock = renderIf(overridePathCheck != null) { """
+  val overridePathCheckBlock = renderIf(overridePathCheck != null) {
+    """
 # Allow non-ASCII characters in project path on Windows
 android.overridePathCheck=$overridePathCheck
+"""
+  }
+
+  val nonTransitiveRClass = renderIf(forceNonTransitiveRClass) { """
+# Don't allow usage of transitive R class (faster builds) 
+android.nonTransitiveRClass=true
+android.experimental.nonTransitiveAppRClass=true
 """
   }
 
@@ -66,6 +75,7 @@ org.gradle.jvmargs=-Xmx${maxHeapSize}m -Dfile.encoding=UTF-8
 $androidXBlock
 $kotlinStyleBlock
 $overridePathCheckBlock
+$nonTransitiveRClass
 """
 }
 

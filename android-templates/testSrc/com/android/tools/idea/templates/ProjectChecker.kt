@@ -153,7 +153,7 @@ data class ProjectChecker(
     val projectRecipe: Recipe = { data: TemplateData ->
       androidProjectRecipe(
         data as ProjectTemplateData, "Template Test project",
-        language!!, true, false
+        language!!, true, false, forceNonTransitiveRClass = true
       )
     }
 
