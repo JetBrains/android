@@ -18,17 +18,18 @@ package com.android.tools.idea.sqlite.controllers
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.sqlite.OfflineModeManager.DownloadProgress
 import com.android.tools.idea.sqlite.OfflineModeManager.DownloadState.COMPLETED
+import com.android.tools.idea.sqlite.cli.SqliteCliArg
 import com.android.tools.idea.sqlite.cli.SqliteCliArgs
 import com.android.tools.idea.sqlite.cli.SqliteCliClientImpl
 import com.android.tools.idea.sqlite.cli.SqliteCliProvider.Companion.SQLITE3_PATH_ENV
 import com.android.tools.idea.sqlite.cli.SqliteCliProvider.Companion.SQLITE3_PATH_PROPERTY
 import com.android.tools.idea.sqlite.cli.SqliteCliProviderImpl
-import com.android.tools.idea.sqlite.cli.SqliteCliResponse
 import com.android.tools.idea.sqlite.cli.SqliteQueries
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.Delimiter
 import com.android.tools.idea.sqlite.model.ExportFormat.CSV
 import com.android.tools.idea.sqlite.model.ExportFormat.DB
+import com.android.tools.idea.sqlite.model.ExportFormat.SQL
 import com.android.tools.idea.sqlite.model.ExportRequest
 import com.android.tools.idea.sqlite.model.ExportRequest.ExportDatabaseRequest
 import com.android.tools.idea.sqlite.model.ExportRequest.ExportQueryResultsRequest
@@ -122,6 +123,7 @@ class ExportToFileController(
       is ExportTableRequest -> {
         when (params.format) {
           is CSV -> exportTableToCsv(params.srcDatabase, params.srcTable, params.format as CSV, params.dstPath)
+          is SQL -> exportTableToSql(params.srcDatabase, params.srcTable, params.dstPath)
           else -> throwNotSupportedParams(params)
         }
       }
@@ -164,7 +166,7 @@ class ExportToFileController(
     findOrCreateDir(dstPath.parent)
 
     // TODO(161081452): [P1] verify behaviour when switching modes (online->offline or offline->online) while export operation in progress
-    val cloneOperationResult = when (database) {
+    when (database) {
       is FileSqliteDatabaseId -> {
         cloneDatabase(database.databaseFileData.mainFile.toNioPath(), dstPath)
       }
@@ -179,12 +181,10 @@ class ExportToFileController(
         }
       }
     }
-
-    if (cloneOperationResult.exitCode != 0) throw IllegalStateException("Issue while exporting database: ${cloneOperationResult.errOutput}")
   }
 
-  private suspend fun cloneDatabase(srcPath: Path, dstPath: Path): SqliteCliResponse = withContext(taskDispatcher) {
-    SqliteCliClientImpl(requireSqlite3(), taskDispatcher).runSqliteCliCommand(
+  private suspend fun cloneDatabase(srcPath: Path, dstPath: Path) = withContext(taskDispatcher) {
+    runSqliteCliCommand(
       SqliteCliArgs
         .builder()
         .database(srcPath)
@@ -193,11 +193,18 @@ class ExportToFileController(
     )
   }
 
-  private fun requireSqlite3(): Path = SqliteCliProviderImpl(project).getSqliteCli() ?: throw IllegalStateException(
-    "Unable to find sqlite3 tool (part of Android SDK's platform-tools). " +
-    "As a workaround consider setting an environment variable $SQLITE3_PATH_ENV or " +
-    "a system property $SQLITE3_PATH_PROPERTY pointing to the file."
-  )
+  private suspend fun runSqliteCliCommand(args: List<SqliteCliArg>) = withContext(taskDispatcher) {
+    // TODO(161081452): expose the exception message in the UI / maybe as a help link?
+    val sqlite3: Path = SqliteCliProviderImpl(project).getSqliteCli() ?: throw IllegalStateException(
+      "Unable to find sqlite3 tool (part of Android SDK's platform-tools). " +
+      "As a workaround consider setting an environment variable $SQLITE3_PATH_ENV or " +
+      "a system property $SQLITE3_PATH_PROPERTY pointing to the file."
+    )
+    val commandResponse = SqliteCliClientImpl(sqlite3, taskDispatcher).runSqliteCliCommand(args)
+    if (commandResponse.exitCode != 0) {
+      throw IllegalStateException("Issue while executing sqlite3 command: ${commandResponse.errOutput}. Arguments: $args.")
+    }
+  }
 
   private suspend fun downloadDatabase(database: LiveSqliteDatabaseId) = withContext(taskDispatcher) {
     val flow = downloadDatabase(database) { message, throwable ->
@@ -223,6 +230,35 @@ class ExportToFileController(
       val query = createSqliteStatement(SqliteQueries.selectTableContents(srcTable))
       exportQueryToCsv(database, query, format, dstPath)
     }
+
+  private suspend fun exportTableToSql(database: SqliteDatabaseId, srcTable: String, dstPath: Path) = withContext(taskDispatcher) {
+    when(database) {
+      is FileSqliteDatabaseId -> {
+        exportTableToSql(database.databaseFileData.mainFile.toNioPath(), srcTable, dstPath)
+      }
+      is LiveSqliteDatabaseId -> {
+        downloadDatabase(database).let { files ->
+          Closeable { files.forEach { deleteDatabase(it) } }.use {
+            files.let {
+              if (it.size != 1) throw IllegalStateException("Unexpected number of downloaded database files: ${it.size}")
+              exportTableToSql(it.single().mainFile.toNioPath(), srcTable, dstPath)
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private suspend fun exportTableToSql(databasePath: Path, srcTable: String, dstPath: Path) = withContext(taskDispatcher) {
+    runSqliteCliCommand(
+      SqliteCliArgs
+        .builder()
+        .database(databasePath)
+        .dumpTable(srcTable)
+        .output(dstPath)
+        .build()
+    )
+  }
 
   private suspend fun exportQueryToCsv(database: SqliteDatabaseId, query: SqliteStatement, format: CSV, dstPath: Path) =
     withContext(taskDispatcher) {
