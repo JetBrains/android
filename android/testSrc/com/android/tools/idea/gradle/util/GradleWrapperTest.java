@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Properties;
 import org.jetbrains.annotations.NotNull;
 
+@org.junit.Ignore("b/174208046")
 public class GradleWrapperTest extends PlatformTestCase {
   public void testUpdateDistributionUrl() throws IOException {
     File projectPath = getProjectBaseDir();
