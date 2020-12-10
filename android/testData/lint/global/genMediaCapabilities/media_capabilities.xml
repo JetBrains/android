@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<media-capabilities xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- TODO Uncomment the following lines to let the Android OS
+           know that the given media format is not supported by the app
+           and will need to be transcoded. -->
+    <!--<format android:name="HEVC" supported="false"/>-->
+    <!--<format android:name="HDR10" supported="false"/>-->
+    <!--<format android:name="HDR10Plus" supported="false"/>-->
+    <!--<format android:name="Dolby-Vision" supported="false"/>-->
+    <!--<format android:name="HLG" supported="false"/>-->
+    <!--<format android:name="SlowMotion" supported="false"/>-->
+</media-capabilities>
