@@ -196,8 +196,10 @@ class BuildOutputParsersIntegrationTest: PlatformTestCase() {
     assertThat(messages).isNotNull()
     assertThat(messages).hasSize(1)
 
+/* b/174208046
     checkSentMetricsData(messages.first(), BuildErrorMessage.ErrorType.XML_PARSER, BuildErrorMessage.FileType.PROJECT_FILE,
                          fileIncluded = true, lineIncluded = true)
+b/174208046 */
 
   }
 }
