@@ -119,7 +119,10 @@ public class SceneInteraction extends Interaction {
 
   @Override
   public void commit(@NotNull InteractionEvent event) {
-    assert event instanceof MouseReleasedEvent;
+    assert event instanceof MouseReleasedEvent : "The instance of event should be MouseReleasedEvent but it is " + event.getClass() +
+                                                 "; The SceneView is " + mySceneView +
+                                                 ", start (x, y) = " + myStartX + ", " + myStartY + ", start mask is " + myStartMask;
+
     MouseEvent mouseEvent = ((MouseReleasedEvent)event).getEventObject();
     end(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
   }
