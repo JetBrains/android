@@ -117,7 +117,9 @@ class EmulatorToolWindowPanelTest {
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 520")
     ui.updateToolbars()
+/* b/175042158
     assertAppearance(ui, "image1")
+b/175042158 */
 
     // Check EmulatorPowerButtonAction.
     var button = ui.getComponent<ActionButton> { it.action.templateText == "Power" }
