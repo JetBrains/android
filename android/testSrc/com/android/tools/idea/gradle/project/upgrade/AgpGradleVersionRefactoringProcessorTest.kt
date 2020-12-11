@@ -180,12 +180,28 @@ class AgpGradleVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase(
   }
 
   @Test
+  fun testKotlinPluginNewEnoughVersionInLiteral() {
+    writeToBuildFile(TestFileName("AgpGradleVersion/KotlinPluginNewEnoughVersionInLiteral"))
+    val processor = AgpGradleVersionRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("4.1.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("AgpGradleVersion/KotlinPluginNewEnoughVersionInLiteral"))
+  }
+
+  @Test
   fun testKotlinPluginVersionInInterpolatedVariable() {
     writeToBuildFile(TestFileName("AgpGradleVersion/KotlinPluginVersionInInterpolatedVariable"))
     val processor = AgpGradleVersionRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("4.1.0"))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("AgpGradleVersion/KotlinPluginVersionInInterpolatedVariableExpected"))
+  }
+
+  @Test
+  fun testKotlinPluginNewEnoughVersionInInterpolatedVariable() {
+    writeToBuildFile(TestFileName("AgpGradleVersion/KotlinPluginNewEnoughVersionInInterpolatedVariable"))
+    val processor = AgpGradleVersionRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("4.1.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("AgpGradleVersion/KotlinPluginNewEnoughVersionInInterpolatedVariable"))
   }
 
   @Test
