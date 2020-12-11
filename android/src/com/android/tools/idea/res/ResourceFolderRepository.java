@@ -429,12 +429,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   @GuardedBy("ITEM_MAP_LOCK")
   @NotNull
   private ListMultimap<String, ResourceItem> getOrCreateMap(@NotNull ResourceType type) {
-    ListMultimap<String, ResourceItem> multimap = myResourceTable.get(type);
-    if (multimap == null) {
-      multimap = LinkedListMultimap.create(); // Use LinkedListMultimap to preserve ordering for editors that show original order.
-      myResourceTable.put(type, multimap);
-    }
-    return multimap;
+    // Use LinkedListMultimap to preserve ordering for editors that show original order.
+    return myResourceTable.computeIfAbsent(type, k -> LinkedListMultimap.create());
   }
 
   @Override
@@ -2002,7 +1998,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
       populateRepository();
 
-      ApplicationManager.getApplication().runReadAction(() -> scanQueuedPsiResources());
+      ApplicationManager.getApplication().runReadAction(this::scanQueuedPsiResources);
 
       if (myCachingData != null && !myRepository.hasFreshFileCache()) {
         Executor executor = myCachingData.getCacheCreationExecutor();
@@ -2037,8 +2033,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       }
     }
 
-    @NotNull
-    protected byte[] getCacheFileHeader(@NotNull ResourceFolderRepositoryCachingData cachingData) {
+    protected byte @NotNull [] getCacheFileHeader(@NotNull ResourceFolderRepositoryCachingData cachingData) {
       return ResourceSerializationUtil.getCacheFileHeader(stream -> {
         stream.write(CACHE_FILE_HEADER);
         stream.writeString(CACHE_FILE_FORMAT_VERSION);
