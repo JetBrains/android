@@ -18,12 +18,11 @@ package com.android.tools.idea.npw.assetstudio.wizard;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.util.Collection;
 import java.util.Collections;
+import javax.swing.JComponent;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Step for generating Android icons from some image asset source.
@@ -44,7 +43,7 @@ public final class NewImageAssetStep extends ModelWizardStep<GenerateIconsModel>
 
   @NotNull
   @Override
-  protected Collection<? extends ModelWizardStep> createDependentSteps() {
+  protected Collection<? extends ModelWizardStep<?>> createDependentSteps() {
     return Collections.singletonList(new ConfirmGenerateImagesStep(getModel(), AndroidPackageUtils.getModuleTemplates(myFacet, null)));
   }
 
