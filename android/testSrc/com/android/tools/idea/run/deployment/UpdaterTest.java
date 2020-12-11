@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -23,14 +22,13 @@ import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidRunConfiguration;
+import com.android.tools.idea.run.deployment.DevicesSelectedService.PersistentStateComponent;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationBase;
-import com.intellij.ide.util.ProjectPropertiesComponentImpl;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.Presentation;
 import icons.StudioIcons;
@@ -40,7 +38,9 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -55,9 +55,6 @@ public final class UpdaterTest {
   public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
 
   private final Presentation myPresentation = new Presentation();
-  private final DevicesSelectedService myDevicesSelectedService = Mockito.mock(DevicesSelectedService.class);
-  private final PropertiesComponent myProperties = new ProjectPropertiesComponentImpl();
-  private final AsyncDevicesGetter myDevicesGetter = Mockito.mock(AsyncDevicesGetter.class);
 
   @Test
   public void updateDependingOnConfigurationConfigurationAndSettingsIsNull() {
@@ -65,7 +62,7 @@ public final class UpdaterTest {
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(Mockito.mock(DevicesSelectedService.class))
       .build();
 
     // Act
@@ -84,7 +81,7 @@ public final class UpdaterTest {
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(Mockito.mock(DevicesSelectedService.class))
       .setConfigurationAndSettings(mockConfigurationAndSettings(configuration))
       .build();
 
@@ -105,7 +102,7 @@ public final class UpdaterTest {
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(Mockito.mock(DevicesSelectedService.class))
       .setConfigurationAndSettings(mockConfigurationAndSettings(configuration))
       .build();
 
@@ -126,7 +123,7 @@ public final class UpdaterTest {
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(Mockito.mock(DevicesSelectedService.class))
       .setConfigurationAndSettings(mockConfigurationAndSettings(configuration))
       .build();
 
@@ -163,10 +160,9 @@ public final class UpdaterTest {
     updater.update();
 
     // Assert
-    assertFalse(myProperties.isValueSet(DevicesSelectedService.DEVICE_KEYS_SELECTED_WITH_DIALOG));
-    assertFalse(myProperties.isValueSet(DevicesSelectedService.MULTIPLE_DEVICES_SELECTED_IN_COMBO_BOX));
-    assertFalse(myProperties.isValueSet(DevicesSelectedService.TIME_DEVICE_KEY_WAS_SELECTED_WITH_COMBO_BOX));
-    assertFalse(myProperties.isValueSet(DevicesSelectedService.DEVICE_KEY_SELECTED_WITH_COMBO_BOX));
+    assertEquals(Collections.emptySet(), devicesSelectedService.getTargetsSelectedWithDialog());
+    assertFalse(devicesSelectedService.isMultipleDevicesSelectedInComboBox());
+    assertEquals(Optional.empty(), devicesSelectedService.getTargetSelectedWithComboBox(Collections.emptyList()));
 
     assertNull(myPresentation.getIcon());
     assertEquals("No Devices", myPresentation.getText());
@@ -175,33 +171,34 @@ public final class UpdaterTest {
   @Test
   public void updateInToolbarForMultipleDevicesSelectedKeysIsEmpty() {
     // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 3 API 29")
-      .setKey(new VirtualDeviceName("Pixel_3_API_29"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(Collections.singletonList(device)));
-
     DevicesSelectedService devicesSelectedService = buildDevicesSelectedService();
     devicesSelectedService.setMultipleDevicesSelectedInComboBox(true);
     devicesSelectedService.setTargetsSelectedWithDialog(Collections.singleton(new Target(new VirtualDeviceName("Pixel_2_API_29"))));
+
+    Key key = new VirtualDeviceName("Pixel_3_API_29");
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 3 API 29")
+      .setKey(key)
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    List<Device> devices = Collections.singletonList(device);
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
       .setDevicesSelectedService(devicesSelectedService)
-      .setDevices(Collections.singletonList(device))
+      .setDevices(devices)
       .build();
 
     // Act
     updater.update();
 
     // Assert
-    assertFalse(myProperties.isValueSet(DevicesSelectedService.DEVICE_KEYS_SELECTED_WITH_DIALOG));
-    assertFalse(myProperties.isValueSet(DevicesSelectedService.MULTIPLE_DEVICES_SELECTED_IN_COMBO_BOX));
-    assertEquals("VirtualDeviceName@Pixel_3_API_29", myProperties.getValue(DevicesSelectedService.DEVICE_KEY_SELECTED_WITH_COMBO_BOX));
-    assertEquals("2018-11-28T01:15:27Z", myProperties.getValue(DevicesSelectedService.TIME_DEVICE_KEY_WAS_SELECTED_WITH_COMBO_BOX));
+    assertEquals(Collections.emptySet(), devicesSelectedService.getTargetsSelectedWithDialog());
+    assertFalse(devicesSelectedService.isMultipleDevicesSelectedInComboBox());
+    assertEquals(Optional.of(new Target(key)), devicesSelectedService.getTargetSelectedWithComboBox(devices));
 
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
     assertEquals("Pixel 3 API 29", myPresentation.getText());
@@ -211,6 +208,12 @@ public final class UpdaterTest {
   public void updateInToolbarForMultipleDevices() {
     // Arrange
     Key key = new VirtualDeviceName("Pixel_2_API_29");
+    Target target = new Target(key);
+    Set<Target> targets = Collections.singleton(target);
+
+    DevicesSelectedService devicesSelectedService = buildDevicesSelectedService();
+    devicesSelectedService.setMultipleDevicesSelectedInComboBox(true);
+    devicesSelectedService.setTargetsSelectedWithDialog(targets);
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 2 API 29")
@@ -218,29 +221,22 @@ public final class UpdaterTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(Collections.singletonList(device)));
-
-    DevicesSelectedService devicesSelectedService = buildDevicesSelectedService();
-    devicesSelectedService.setMultipleDevicesSelectedInComboBox(true);
-    devicesSelectedService.setTargetsSelectedWithDialog(Collections.singleton(new Target(key)));
+    List<Device> devices = Collections.singletonList(device);
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
       .setDevicesSelectedService(devicesSelectedService)
-      .setDevices(Collections.singletonList(device))
+      .setDevices(devices)
       .build();
 
     // Act
     updater.update();
 
     // Assert
-    assertArrayEquals(new String[]{"VirtualDeviceName@Pixel_2_API_29"},
-                      myProperties.getValues(DevicesSelectedService.DEVICE_KEYS_SELECTED_WITH_DIALOG));
-
-    assertFalse(myProperties.isValueSet(DevicesSelectedService.TIME_DEVICE_KEY_WAS_SELECTED_WITH_COMBO_BOX));
-    assertFalse(myProperties.isValueSet(DevicesSelectedService.DEVICE_KEY_SELECTED_WITH_COMBO_BOX));
-    assertTrue(myProperties.getBoolean(DevicesSelectedService.MULTIPLE_DEVICES_SELECTED_IN_COMBO_BOX));
+    assertEquals(targets, devicesSelectedService.getTargetsSelectedWithDialog());
+    assertTrue(devicesSelectedService.isMultipleDevicesSelectedInComboBox());
+    assertEquals(Optional.of(target), devicesSelectedService.getTargetSelectedWithComboBox(devices));
 
     assertEquals(StudioIcons.DeviceExplorer.MULTIPLE_DEVICES, myPresentation.getIcon());
     assertEquals("Multiple Devices (1)", myPresentation.getText());
@@ -248,8 +244,7 @@ public final class UpdaterTest {
 
   @NotNull
   private DevicesSelectedService buildDevicesSelectedService() {
-    return new DevicesSelectedService(myRule.getProject(),
-                                      project -> myProperties,
+    return new DevicesSelectedService(new PersistentStateComponent(),
                                       Clock.fixed(Instant.parse("2018-11-28T01:15:27.000Z"), ZoneId.of("America/Los_Angeles")),
                                       () -> false);
   }
@@ -260,7 +255,7 @@ public final class UpdaterTest {
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(Mockito.mock(DevicesSelectedService.class))
       .build();
 
     // Act
@@ -280,13 +275,15 @@ public final class UpdaterTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    Mockito.when(myDevicesSelectedService.getTargetSelectedWithComboBox(Collections.singletonList(device)))
+    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
+
+    Mockito.when(service.getTargetSelectedWithComboBox(Collections.singletonList(device)))
       .thenReturn(Optional.of(new Target(new VirtualDeviceName("Pixel_3_API_29"))));
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(service)
       .setDevices(Collections.singletonList(device))
       .build();
 
@@ -307,13 +304,15 @@ public final class UpdaterTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    Mockito.when(myDevicesSelectedService.getTargetSelectedWithComboBox(Collections.singletonList(device)))
+    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
+
+    Mockito.when(service.getTargetSelectedWithComboBox(Collections.singletonList(device)))
       .thenReturn(Optional.of(new Target(new VirtualDeviceName("apiQ_64_Google"))));
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(service)
       .setDevices(Collections.singletonList(device))
       .build();
 
@@ -337,13 +336,15 @@ public final class UpdaterTest {
       .addSnapshot(new Snapshot(fileSystem.getPath("/home/juancnuno/.android/avd/Pixel_3_API_29.avd/snapshots/snap_2018-08-07_16-27-58")))
       .build();
 
-    Mockito.when(myDevicesSelectedService.getTargetSelectedWithComboBox(Collections.singletonList(device)))
+    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
+
+    Mockito.when(service.getTargetSelectedWithComboBox(Collections.singletonList(device)))
       .thenReturn(Optional.of(new Target(new NonprefixedKey("Pixel_3_API_29/snap_2018-08-07_16-27-58"))));
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(service)
       .setDevices(Collections.singletonList(device))
       .build();
 
@@ -366,13 +367,15 @@ public final class UpdaterTest {
       .addSnapshot(new Snapshot(fileSystem.getPath("/home/user/.android/avd/Pixel_3_API_29.avd/snapshots/snap_2018-08-07_16-27-58")))
       .build();
 
-    Mockito.when(myDevicesSelectedService.getTargetSelectedWithComboBox(Collections.singletonList(device)))
+    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
+
+    Mockito.when(service.getTargetSelectedWithComboBox(Collections.singletonList(device)))
       .thenReturn(Optional.of(new Target(new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_29.avd"))));
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(service)
       .setDevices(Collections.singletonList(device))
       .build();
 
@@ -398,13 +401,15 @@ public final class UpdaterTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    Mockito.when(myDevicesSelectedService.getTargetSelectedWithComboBox(Arrays.asList(device1, device2)))
+    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
+
+    Mockito.when(service.getTargetSelectedWithComboBox(Arrays.asList(device1, device2)))
       .thenReturn(Optional.of(new Target(new SerialNumber("00fff9d2279fa601"))));
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(service)
       .setDevices(Arrays.asList(device1, device2))
       .build();
 
@@ -422,7 +427,7 @@ public final class UpdaterTest {
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
       .setPlace(ActionPlaces.MAIN_MENU)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(Mockito.mock(DevicesSelectedService.class))
       .build();
 
     // Act
@@ -441,7 +446,7 @@ public final class UpdaterTest {
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
       .setPlace(ActionPlaces.ACTION_SEARCH)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(Mockito.mock(DevicesSelectedService.class))
       .build();
 
     // Act
@@ -460,7 +465,7 @@ public final class UpdaterTest {
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
       .setPlace(ActionPlaces.KEYBOARD_SHORTCUT)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(Mockito.mock(DevicesSelectedService.class))
       .build();
 
     // Act

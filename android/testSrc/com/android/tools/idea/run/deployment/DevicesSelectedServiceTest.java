@@ -20,16 +20,16 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.testing.AndroidProjectRule;
-import com.intellij.ide.util.ProjectPropertiesComponentImpl;
-import com.intellij.ide.util.PropertiesComponent;
+import com.android.tools.idea.run.deployment.DevicesSelectedService.PersistentStateComponent;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
-import org.junit.Before;
-import org.junit.Rule;
+import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -37,266 +37,229 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class DevicesSelectedServiceTest {
-  @Rule
-  public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
+  private final @NotNull DevicesSelectedService myService;
 
-  private PropertiesComponent myProperties;
-
-  @Before
-  public void initProperties() {
-    myProperties = new ProjectPropertiesComponentImpl();
+  public DevicesSelectedServiceTest() {
+    Clock clock = Clock.fixed(Instant.parse("2018-11-28T01:15:27Z"), ZoneId.of("America/Los_Angeles"));
+    myService = new DevicesSelectedService(new PersistentStateComponent(), clock, () -> false);
   }
 
   @Test
   public void getTargetSelectedWithComboBoxDevicesIsEmpty() {
     // Arrange
-    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
-                                                                project -> myProperties,
-                                                                Mockito.mock(Clock.class),
-                                                                () -> false);
+    List<Device> devices = Collections.emptyList();
 
     // Act
-    Object target = service.getTargetSelectedWithComboBox(Collections.emptyList());
+    Object target = myService.getTargetSelectedWithComboBox(devices);
 
     // Assert
     assertEquals(Optional.empty(), target);
   }
 
   @Test
-  public void getTargetSelectedWithComboBoxKeyAsStringIsNull() {
+  public void getTargetSelectedWithComboBoxTargetSelectedWithDropDownIsNull() {
     // Arrange
-    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
-                                                                project -> myProperties,
-                                                                Mockito.mock(Clock.class),
-                                                                () -> false);
+    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
 
     Device device = new VirtualDevice.Builder()
-      .setName("Pixel 3 API 29")
-      .setKey(new VirtualDeviceName("Pixel_3_API_29"))
+      .setName("Pixel 4 API 30")
+      .setKey(key)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
+    List<Device> devices = Collections.singletonList(device);
+
     // Act
-    Object selectedTarget = service.getTargetSelectedWithComboBox(Collections.singletonList(device));
+    Object target = myService.getTargetSelectedWithComboBox(devices);
 
     // Assert
-    assertEquals(Optional.of(new Target(new VirtualDeviceName("Pixel_3_API_29"))), selectedTarget);
+    assertEquals(Optional.of(new Target(key)), target);
   }
 
   @Test
   public void getTargetSelectedWithComboBoxSelectedDeviceIsntPresent() {
     // Arrange
-    myProperties.setValue(DevicesSelectedService.DEVICE_KEY_SELECTED_WITH_COMBO_BOX, "Pixel_2_API_29");
+    myService.setTargetSelectedWithComboBox(new Target(new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_30.avd")));
 
-    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
-                                                                project -> myProperties,
-                                                                Mockito.mock(Clock.class),
-                                                                () -> false);
+    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
 
     Device device = new VirtualDevice.Builder()
-      .setName("Pixel 3 API 29")
-      .setKey(new VirtualDeviceName("Pixel_3_API_29"))
+      .setName("Pixel 4 API 30")
+      .setKey(key)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
+    List<Device> devices = Collections.singletonList(device);
+
     // Act
-    Object selectedTarget = service.getTargetSelectedWithComboBox(Collections.singletonList(device));
+    Object target = myService.getTargetSelectedWithComboBox(devices);
 
     // Assert
-    assertEquals(Optional.of(new Target(new VirtualDeviceName("Pixel_3_API_29"))), selectedTarget);
+    assertEquals(Optional.of(new Target(key)), target);
   }
 
   @Test
   public void getTargetSelectedWithComboBoxConnectedDeviceIsntPresent() {
     // Arrange
-    myProperties.setValue(DevicesSelectedService.DEVICE_KEY_SELECTED_WITH_COMBO_BOX, "Pixel_3_API_29");
+    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+    Target target = new Target(key);
 
-    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
-                                                                project -> myProperties,
-                                                                Mockito.mock(Clock.class),
-                                                                () -> false);
+    myService.setTargetSelectedWithComboBox(target);
 
     Device device = new VirtualDevice.Builder()
-      .setName("Pixel 3 API 29")
-      .setKey(new VirtualDeviceName("Pixel_3_API_29"))
+      .setName("Pixel 4 API 30")
+      .setKey(key)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
+    List<Device> devices = Collections.singletonList(device);
+
     // Act
-    Object selectedTarget = service.getTargetSelectedWithComboBox(Collections.singletonList(device));
+    Object optionalTarget = myService.getTargetSelectedWithComboBox(devices);
 
     // Assert
-    assertEquals(Optional.of(new Target(new VirtualDeviceName("Pixel_3_API_29"))), selectedTarget);
+    assertEquals(Optional.of(target), optionalTarget);
   }
 
   @Test
-  public void getTargetSelectedWithComboBoxSelectionTimeIsBeforeConnectionTime() {
+  public void getTargetSelectedWithComboBoxTimeTargetWasSelectedWithDropDownIsBeforeConnectionTime() {
     // Arrange
-    myProperties.setValue(DevicesSelectedService.DEVICE_KEY_SELECTED_WITH_COMBO_BOX, "Pixel_3_API_29");
-    myProperties.setValue(DevicesSelectedService.TIME_DEVICE_KEY_WAS_SELECTED_WITH_COMBO_BOX, "2018-11-28T01:15:27.000Z");
+    Key disconnectedDeviceKey = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
 
-    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
-                                                                project -> myProperties,
-                                                                Mockito.mock(Clock.class),
-                                                                () -> false);
+    myService.setTargetSelectedWithComboBox(new Target(disconnectedDeviceKey));
 
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 3 API 29")
-      .setKey(new VirtualDeviceName("Pixel_3_API_29"))
+    Device disconnectedDevice = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(disconnectedDeviceKey)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
+
+    Key connectedDeviceKey = new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_30.avd");
 
     Device connectedDevice = new VirtualDevice.Builder()
-      .setName("Pixel 2 API 29")
-      .setKey(new VirtualDeviceName("Pixel_2_API_29"))
-      .setConnectionTime(Instant.parse("2018-11-28T01:15:28.000Z"))
+      .setName("Pixel 3 API 30")
+      .setKey(connectedDeviceKey)
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:28Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
+    List<Device> devices = Arrays.asList(disconnectedDevice, connectedDevice);
+
     // Act
-    Object selectedTarget = service.getTargetSelectedWithComboBox(Arrays.asList(device, connectedDevice));
+    Object target = myService.getTargetSelectedWithComboBox(devices);
 
     // Assert
-    assertEquals(Optional.of(new Target(new VirtualDeviceName("Pixel_2_API_29"))), selectedTarget);
+    assertEquals(Optional.of(new Target(connectedDeviceKey)), target);
   }
 
   @Test
   public void getTargetSelectedWithComboBox() {
     // Arrange
-    myProperties.setValue(DevicesSelectedService.DEVICE_KEY_SELECTED_WITH_COMBO_BOX, "Pixel_3_API_29");
-    myProperties.setValue(DevicesSelectedService.TIME_DEVICE_KEY_WAS_SELECTED_WITH_COMBO_BOX, "2018-11-28T01:15:27.000Z");
+    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+    Target target = new Target(key);
 
-    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
-                                                                project -> myProperties,
-                                                                Mockito.mock(Clock.class),
-                                                                () -> false);
+    myService.setTargetSelectedWithComboBox(target);
 
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 3 API 29")
-      .setKey(new VirtualDeviceName("Pixel_3_API_29"))
+    Device disconnectedDevice = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(key)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     Device connectedDevice = new VirtualDevice.Builder()
-      .setName("Pixel 2 API 29")
-      .setKey(new VirtualDeviceName("Pixel_2_API_29"))
-      .setConnectionTime(Instant.parse("2018-11-28T01:15:26.000Z"))
+      .setName("Pixel 3 API 30")
+      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_30.avd"))
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
+    List<Device> devices = Arrays.asList(disconnectedDevice, connectedDevice);
+
     // Act
-    Object selectedTarget = service.getTargetSelectedWithComboBox(Arrays.asList(device, connectedDevice));
+    Object optionalTarget = myService.getTargetSelectedWithComboBox(devices);
 
     // Assert
-    assertEquals(Optional.of(new Target(new VirtualDeviceName("Pixel_3_API_29"))), selectedTarget);
+    assertEquals(Optional.of(target), optionalTarget);
   }
 
   @Test
-  public void getTargetSelectedWithComboBoxSelectionTimeIsNull() {
+  public void setTargetSelectedWithComboBox() {
     // Arrange
-    myProperties.setValue(DevicesSelectedService.DEVICE_KEY_SELECTED_WITH_COMBO_BOX, "Pixel_3_API_29");
+    Key key2 = new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_30.avd");
+    Target target2 = new Target(key2);
 
-    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
-                                                                project -> myProperties,
-                                                                Mockito.mock(Clock.class),
-                                                                () -> false);
+    Key key1 = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
 
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 3 API 29")
-      .setKey(new VirtualDeviceName("Pixel_3_API_29"))
+    Device device1 = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(key1)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    Device connectedDevice = new VirtualDevice.Builder()
-      .setName("Pixel 2 API 29")
-      .setKey(new VirtualDeviceName("Pixel_2_API_29"))
-      .setConnectionTime(Instant.parse("2018-11-28T01:15:28.000Z"))
+    Device device2 = new VirtualDevice.Builder()
+      .setName("Pixel 3 API 30")
+      .setKey(key2)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
+    List<Device> devices = Arrays.asList(device1, device2);
+
     // Act
-    Object selectedTarget = service.getTargetSelectedWithComboBox(Arrays.asList(device, connectedDevice));
+    myService.setTargetSelectedWithComboBox(target2);
 
     // Assert
-    assertEquals(Optional.of(new Target(new VirtualDeviceName("Pixel_2_API_29"))), selectedTarget);
+    assertEquals(Optional.of(target2), myService.getTargetSelectedWithComboBox(devices));
+
+    // Act
+    myService.setTargetSelectedWithComboBox(null);
+
+    // Assert
+    assertEquals(Optional.of(new Target(key1)), myService.getTargetSelectedWithComboBox(devices));
   }
 
   @Test
-  public void isMultipleDevicesSelectedInComboBoxRunOnMultipleDevicesActionDisabledAndMultipleDevicesNotSelectedInComboBox() {
-    // Arrange
-    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
-                                                                project -> myProperties,
-                                                                Mockito.mock(Clock.class),
-                                                                () -> false);
-
+  public void setMultipleDevicesSelectedInComboBox() {
     // Act
-    boolean selected = service.isMultipleDevicesSelectedInComboBox();
+    myService.setMultipleDevicesSelectedInComboBox(true);
 
     // Assert
-    assertFalse(selected);
-  }
-
-  @Test
-  public void isMultipleDevicesSelectedInComboBoxRunOnMultipleDevicesActionDisabledAndMultipleDevicesSelectedInComboBox() {
-    // Arrange
-    myProperties.setValue(DevicesSelectedService.MULTIPLE_DEVICES_SELECTED_IN_COMBO_BOX, true);
-
-    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
-                                                                project -> myProperties,
-                                                                Mockito.mock(Clock.class),
-                                                                () -> false);
-
-    // Act
-    boolean selected = service.isMultipleDevicesSelectedInComboBox();
-
-    // Assert
-    assertTrue(selected);
-  }
-
-  @Test
-  public void isMultipleDevicesSelectedInComboBoxRunOnMultipleDevicesActionEnabledAndMultipleDevicesNotSelectedInComboBox() {
-    // Arrange
-    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
-                                                                project -> null,
-                                                                Mockito.mock(Clock.class),
-                                                                () -> true);
-
-    // Act
-    boolean selected = service.isMultipleDevicesSelectedInComboBox();
-
-    // Assert
-    assertFalse(selected);
-  }
-
-  @Test
-  public void isMultipleDevicesSelectedInComboBoxRunOnMultipleDevicesActionEnabledAndMultipleDevicesSelectedInComboBox() {
-    // Arrange
-    myProperties.setValue(DevicesSelectedService.MULTIPLE_DEVICES_SELECTED_IN_COMBO_BOX, true);
-
-    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
-                                                                project -> myProperties,
-                                                                Mockito.mock(Clock.class),
-                                                                () -> true);
-
-    // Act
-    boolean selected = service.isMultipleDevicesSelectedInComboBox();
-
-    // Assert
-    assertFalse(selected);
+    assertTrue(myService.isMultipleDevicesSelectedInComboBox());
   }
 
   @Test
   public void setTargetsSelectedWithDialog() {
     // Arrange
-    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
-                                                                project -> myProperties,
-                                                                Mockito.mock(Clock.class),
-                                                                () -> false);
+    Set<Target> targets = Collections.singleton(new Target(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd")));
 
     // Act
-    service.setTargetsSelectedWithDialog(Collections.emptySet());
+    myService.setTargetsSelectedWithDialog(targets);
 
     // Assert
-    assertTrue(service.isDialogSelectionEmpty());
+    assertFalse(myService.isDialogSelectionEmpty());
+    assertEquals(targets, myService.getTargetsSelectedWithDialog());
+  }
+
+  @Test
+  public void keyKeyIsInstanceOfVirtualDeviceName() {
+    // Arrange
+    Set<Target> targets = Collections.singleton(new Target(new VirtualDeviceName("Pixel_4_API_30")));
+
+    // Act
+    myService.setTargetsSelectedWithDialog(targets);
+
+    // Assert
+    assertEquals(targets, myService.getTargetsSelectedWithDialog());
+  }
+
+  @Test
+  public void keyKeyIsInstanceOfSerialNumber() {
+    // Arrange
+    Set<Target> targets = Collections.singleton(new Target(new SerialNumber("86UX00F4R")));
+
+    // Act
+    myService.setTargetsSelectedWithDialog(targets);
+
+    // Assert
+    assertEquals(targets, myService.getTargetsSelectedWithDialog());
   }
 }

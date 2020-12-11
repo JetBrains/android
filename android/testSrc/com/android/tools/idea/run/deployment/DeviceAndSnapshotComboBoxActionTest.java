@@ -20,14 +20,13 @@ import static org.junit.Assert.assertFalse;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.deployment.DevicesSelectedService.PersistentStateComponent;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.ide.util.ProjectPropertiesComponentImpl;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -72,10 +71,8 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
   @Before
   public void newDevicesSelectedService() {
-    PropertiesComponent properties = new ProjectPropertiesComponentImpl();
     Clock clock = Clock.fixed(Instant.parse("2018-11-28T01:15:27.000Z"), ZoneId.of("America/Los_Angeles"));
-
-    myDevicesSelectedService = new DevicesSelectedService(myRule.getProject(), project -> properties, clock, () -> false);
+    myDevicesSelectedService = new DevicesSelectedService(new PersistentStateComponent(), clock, () -> false);
   }
 
   @Before
