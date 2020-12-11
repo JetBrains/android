@@ -13,38 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.fileTypes.profiler;
+package com.android.tools.idea.profilers.capture;
 
 import com.intellij.openapi.fileTypes.FileType;
-import java.util.Arrays;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents a perfetto trace file that can be imported into CPU profiler.
+ * Represents a heap dump file that can be imported into memory profiler.
  */
-public class PerfettoCaptureFileType extends AndroidProfilerCaptureFileType {
+public class MemoryCaptureFileType extends AndroidProfilerCaptureFileType {
 
-  public static final List<String> EXTENSIONS = Arrays.asList("pftrace", "perfetto-trace");
+  public static final String EXTENSION = "hprof";
 
-  private static final PerfettoCaptureFileType INSTANCE = new PerfettoCaptureFileType();
+  private static final MemoryCaptureFileType INSTANCE = new MemoryCaptureFileType();
 
   @NotNull
   @Override
   public String getName() {
-    return "PerfettoCapture";
+    return "AndroidProfilerMemoryCapture";
   }
 
   @NotNull
   @Override
   public String getDescription() {
-    return "Perfetto capture file";
+    return "Android Profiler Memory capture file";
   }
 
   @NotNull
   @Override
   public String getDefaultExtension() {
-    return EXTENSIONS.get(0);
+    return EXTENSION;
   }
 
   public static FileType getInstance() {
