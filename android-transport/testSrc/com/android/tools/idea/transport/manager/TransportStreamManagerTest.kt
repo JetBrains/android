@@ -49,7 +49,7 @@ class TransportStreamManagerTest {
   private lateinit var dispatcher: CoroutineDispatcher
 
   @get:Rule
-  val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionDiscoveryTest", transportService, transportService)!!
+  val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionDiscoveryTest", transportService)
 
   @Before
   fun setUp() {

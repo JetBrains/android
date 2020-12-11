@@ -113,8 +113,7 @@ class LayoutInspectorTransportRule(
   private val timer: FakeTimer = FakeTimer(),
   private val adbRule: FakeAdbRule = FakeAdbRule(),
   val transportService: FakeTransportService = FakeTransportService(timer),
-  private val grpcServer: FakeGrpcServer =
-    FakeGrpcServer.createFakeGrpcServer("LayoutInspectorTestChannel", transportService, transportService),
+  private val grpcServer: FakeGrpcServer = FakeGrpcServer.createFakeGrpcServer("LayoutInspectorTestChannel", transportService),
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
 ) : TestRule {
 
