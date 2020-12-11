@@ -94,4 +94,9 @@ public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFac
     Content toolWindowContent = contentManager.getFactory().createContent(view.getComponent(), "", true);
     contentManager.addContent(toolWindowContent);
   }
+
+  @Override
+  public void init(@NotNull ToolWindow toolWindow) {
+    toolWindow.setShowStripeButton(false);
+  }
 }
