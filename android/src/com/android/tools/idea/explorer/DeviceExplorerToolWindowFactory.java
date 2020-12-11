@@ -30,6 +30,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
+import com.intellij.util.SystemProperties;
 import com.intellij.util.concurrency.EdtExecutorService;
 import icons.StudioIcons;
 import java.nio.file.Path;
@@ -38,11 +39,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.ide.PooledThreadExecutor;
 
 public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFactory {
+  private static final String DEVICE_EXPLORER_ENABLED = "android.device.explorer.enabled";
   public static final String TOOL_WINDOW_ID = "Device File Explorer";
 
   @Override
   public boolean isApplicable(@NotNull Project project) {
-    return DeviceExplorer.isFeatureEnabled();
+    return SystemProperties.getBooleanProperty(DEVICE_EXPLORER_ENABLED, true);
   }
 
   @Override
