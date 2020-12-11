@@ -68,7 +68,7 @@ class TransportRule(
   private val timer: FakeTimer = FakeTimer(),
   private val adbRule: FakeAdbRule = FakeAdbRule().initAbdBridgeDuringSetup(false).closeServerDuringCleanUp(false),
   private val transportService: FakeTransportService = FakeTransportService(timer),
-  private val grpcServer: FakeGrpcServer = FakeGrpcServer.createFakeGrpcServer(TEST_CHANNEL_NAME, transportService, transportService)
+  private val grpcServer: FakeGrpcServer = FakeGrpcServer.createFakeGrpcServer(TEST_CHANNEL_NAME, transportService)
 ) : TestRule {
 
   /** If you set this to false before attaching a device, the attach will fail (return [UNATTACHABLE]) */

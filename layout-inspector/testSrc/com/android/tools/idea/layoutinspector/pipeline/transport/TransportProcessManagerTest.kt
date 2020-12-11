@@ -57,12 +57,11 @@ class TransportProcessManagerTest {
   val disposableRule = DisposableRule()
 
   @get:Rule
-  val grpcServer: FakeGrpcServer? =
-    FakeGrpcServer.createFakeGrpcServer("LayoutInspectorTestChannel", transportService, transportService)
+  val grpcServer: FakeGrpcServer = FakeGrpcServer.createFakeGrpcServer("LayoutInspectorTestChannel", transportService)
 
   @Before
   fun before() {
-    client = TransportClient(grpcServer!!.name)
+    client = TransportClient(grpcServer.name)
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
     streamManager = TransportStreamManager.createManager(client!!.transportStub, executor.asCoroutineDispatcher())
     scope = CoroutineScope(executor.asCoroutineDispatcher() + SupervisorJob())

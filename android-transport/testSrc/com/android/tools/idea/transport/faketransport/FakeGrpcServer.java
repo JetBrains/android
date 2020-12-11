@@ -81,6 +81,7 @@ public class FakeGrpcServer extends FakeGrpcChannel {
   /**
    * @return a new instance of FakeGrpcServer ready for a test to use.
    */
+  @NotNull
   public static FakeGrpcServer createFakeGrpcServer(String name, BindableService transportService, BindableService profilerService) {
     EventService eventService = new EventService();
     MemoryService memoryService = new MemoryService();
@@ -97,6 +98,18 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     energyService.myServer = server;
     server.myCpuService = cpuService;
     return server;
+  }
+
+  /**
+   * A convenience method for creating a fake GRPC server when you don't care about
+   * profiler-specific services.
+   *
+   * Note: The transport service was refactored out of the profiler service, which is why many
+   * original tests use them, but they are not required.
+   */
+  @NotNull
+  public static FakeGrpcServer createFakeGrpcServer(String name, BindableService transportService) {
+    return createFakeGrpcServer(name, transportService, transportService);
   }
 
   /**
