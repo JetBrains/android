@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sdk.install.patch;
 
-import static com.android.testutils.InMemoryFileSystemUtilsKt.getPlatformSpecificPath;
+import static com.android.testutils.file.InMemoryFileSystems.getPlatformSpecificPath;
 
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.testframework.FakeProgressIndicator;
