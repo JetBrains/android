@@ -171,7 +171,18 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
     // Do not show the notification while the build is in progress but refresh is not.
     if (previewStatus.isRefreshing) {
       LOG.debug("Refreshing")
-      return null
+      return when (previewStatus.interactiveMode) {
+        ComposePreviewManager.InteractiveMode.STARTING, ComposePreviewManager.InteractiveMode.STOPPING -> {
+          EditorNotificationPanel().apply {
+            text = if (previewStatus.interactiveMode == ComposePreviewManager.InteractiveMode.STARTING)
+              message("notification.interactive.preview.starting")
+            else
+              message("notification.interactive.preview.stopping")
+            icon(AnimatedIcon.Default())
+          }
+        }
+        else -> null
+      }
     }
 
     val status = GradleBuildState.getInstance(project).summary?.status

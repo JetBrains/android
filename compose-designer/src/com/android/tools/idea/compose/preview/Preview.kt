@@ -266,6 +266,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         if (isInteractive) { // Enable interactive
           if (isFromAnimationInspection) {
             onAnimationInspectionStop()
+          } else {
+            EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile!!)
           }
           interactiveMode = ComposePreviewManager.InteractiveMode.STARTING
           val quickRefresh = shouldQuickRefresh() && !isFromAnimationInspection// We should call this before assigning newValue to instanceIdFilter
@@ -293,6 +295,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         }
         else { // Disable interactive
           onInteractivePreviewStop()
+          EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile!!)
           onStaticPreviewStart()
           forceRefresh().invokeOnCompletion {
             interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
