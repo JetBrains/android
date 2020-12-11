@@ -682,24 +682,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     return null;
   }
 
-  @Override
-  @NotNull
-  protected ImmutableCollection<SceneView> getSceneViews() {
-    ImmutableList.Builder<SceneView> builder = new ImmutableList.Builder<>();
-
-    // Add all primary SceneViews
-    builder.addAll(super.getSceneViews());
-
-    // Add secondary SceneViews
-    for (SceneManager manager : getSceneManagers()) {
-      SceneView secondarySceneView = ((LayoutlibSceneManager)manager).getSecondarySceneView();
-      if (secondarySceneView != null) {
-        builder.add(secondarySceneView);
-      }
-    }
-    return builder.build();
-  }
-
   public void setAdaptiveIconShape(@NotNull ShapeMenuAction.AdaptiveIconShape adaptiveIconShape) {
     myAdaptiveIconShape = adaptiveIconShape;
   }
