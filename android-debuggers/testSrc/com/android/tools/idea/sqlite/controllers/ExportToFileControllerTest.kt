@@ -194,10 +194,10 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
 
   private fun testExportTableToSql(databaseType: DatabaseType) {
     val database = createEmptyDatabase(databaseType)
-    val tableName = populateDatabase(database, listOf(table1), listOf(view1)).single().name
+    val tableName = populateDatabase(database, listOf(table1, table2, table3), listOf(view1, view2)).first().name
 
-    val dstPath = tempDirTestFixture.toNioPath().resolve(outputFileName)
-    val exportRequest = ExportTableRequest(database, table1, SQL, dstPath)
+    val dstPath = tempDirTestFixture.toNioPath().resolve("$outputFileName.sql")
+    val exportRequest = ExportTableRequest(database, tableName, SQL, dstPath)
 
     val expectedOutput = runSqlite3Command(
       SqliteCliArgs
@@ -208,6 +208,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     ).checkSuccess().stdOutput.split(System.lineSeparator())
       .also { lines ->
         assertThat(lines).isNotEmpty()
+        assertThat(lines.filter { it.contains("create ".toRegex(RegexOption.IGNORE_CASE)) }).hasSize(1)
         assertThat(lines.filter { it.contains("create table .*$tableName".toRegex(RegexOption.IGNORE_CASE)) }).isNotEmpty()
         assertThat(lines.filter { it.contains("insert into .*$tableName".toRegex(RegexOption.IGNORE_CASE)) }).isNotEmpty()
       }
@@ -215,7 +216,37 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     testExport(exportRequest, expectedOutput)
   }
 
-    /** Overload suitable for single file output (e.g. exporting a query or a single table). */
+  fun testExportDatabaseToSqlFileDb() = testExportDatabaseToSql(DatabaseType.File)
+
+  fun testExportDatabaseToSqlLiveDb() = testExportDatabaseToSql(DatabaseType.Live)
+
+  private fun testExportDatabaseToSql(databaseType: DatabaseType) {
+    val database = createEmptyDatabase(databaseType)
+    val tableNames = populateDatabase(database, listOf(table1, table2, table3), listOf(view1, view2)).map { it.name }
+
+    val dstPath = tempDirTestFixture.toNioPath().resolve("$outputFileName.sql")
+    val exportRequest = ExportDatabaseRequest(database, SQL, dstPath)
+
+    val expectedOutput = runSqlite3Command(
+      SqliteCliArgs
+        .builder()
+        .database(database.backingFile)
+        .dump()
+        .build()
+    ).checkSuccess().stdOutput.split(System.lineSeparator())
+      .also { lines ->
+        assertThat(lines).isNotEmpty()
+        tableNames.forEach { tableName ->
+          assertThat(lines.filter { it.contains("create table ".toRegex(RegexOption.IGNORE_CASE)) }).hasSize(tableNames.size)
+          assertThat(lines.filter { it.contains("create table .*$tableName".toRegex(RegexOption.IGNORE_CASE)) }).isNotEmpty()
+          assertThat(lines.filter { it.contains("insert into .*$tableName".toRegex(RegexOption.IGNORE_CASE)) }).isNotEmpty()
+        }
+      }
+
+    testExport(exportRequest, expectedOutput)
+  }
+
+  /** Overload suitable for single file output (e.g. exporting a query or a single table). */
   private fun testExport(exportRequest: ExportRequest, expectedValues: List<String>) =
     testExport(
       exportRequest,
@@ -310,7 +341,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     testExport(exportRequest, databaseToTextFiles, expected)
   }
 
-  private val SqliteDatabaseId.backingFile : Path
+  private val SqliteDatabaseId.backingFile: Path
     get() = when (this) {
       is FileSqliteDatabaseId -> databaseFileData.mainFile.toNioPath()
       is LiveSqliteDatabaseId -> Paths.get(path) // we use the fact that in the test setup, live db is backed by a local file

@@ -113,11 +113,11 @@ class ExportToFileController(
       is ExportDatabaseRequest -> {
         when (params.format) {
           is CSV -> exportDatabaseToCsv(params.srcDatabase, params.format as CSV, params.dstPath)
+          is SQL -> exportDatabaseToSql(params.srcDatabase, params.dstPath)
           is DB -> {
             if (params.srcDatabase.isInMemoryDatabase()) throwNotSupportedParams(params)
-            else exportDatabaseToDb(params.srcDatabase, params.dstPath)
+            else exportDatabaseToSqliteBinary(params.srcDatabase, params.dstPath)
           }
-          else -> throwNotSupportedParams(params)
         }
       }
       is ExportTableRequest -> {
@@ -157,31 +157,40 @@ class ExportToFileController(
     }
   }
 
-  @Suppress("BlockingMethodInNonBlockingContext")
   /**
    * Exports the whole database to a single sqlite3 db file (binary format). Downloads the database from the device if needed.
    * @param database file-based database (i.e. not in-memory)
    */
-  private suspend fun exportDatabaseToDb(database: SqliteDatabaseId, dstPath: Path) = withContext(taskDispatcher) {
-    findOrCreateDir(dstPath.parent)
+  private suspend fun exportDatabaseToSqliteBinary(database: SqliteDatabaseId, dstPath: Path) = withContext(taskDispatcher) {
+    executeTaskOnLocalDatabaseCopy(database) { srcPath ->
+      findOrCreateDir(dstPath.parent)
+      cloneDatabase(srcPath, dstPath)
+    }
+  }
 
-    // TODO(161081452): [P1] verify behaviour when switching modes (online->offline or offline->online) while export operation in progress
-    when (database) {
-      is FileSqliteDatabaseId -> {
-        cloneDatabase(database.databaseFileData.mainFile.toNioPath(), dstPath)
-      }
-      is LiveSqliteDatabaseId -> {
-        downloadDatabase(database).let { files ->
-          Closeable { files.forEach { deleteDatabase(it) } }.use {
-            files.let {
-              if (it.size != 1) throw IllegalStateException("Unexpected number of downloaded database files: ${it.size}")
-              cloneDatabase(it.single().mainFile.toNioPath(), dstPath)
+  /**
+   * Executes a [task] on a local (offline) copy of the database. Downloads the database from the device if needed.
+   * @param database file-based database (i.e. not in-memory)
+   */
+  private suspend fun executeTaskOnLocalDatabaseCopy(database: SqliteDatabaseId, task: suspend (srcPath: Path) -> Unit) =
+    withContext(taskDispatcher) {
+      // TODO(161081452): [P1] verify behaviour when switching modes (online->offline or offline->online) while export operation in progress
+      when (database) {
+        is FileSqliteDatabaseId -> {
+          task(database.databaseFileData.mainFile.toNioPath())
+        }
+        is LiveSqliteDatabaseId -> {
+          downloadDatabase(database).let { files ->
+            Closeable { files.forEach { deleteDatabase(it) } }.use {
+              files.let {
+                if (it.size != 1) throw IllegalStateException("Unexpected number of downloaded database files: ${it.size}")
+                task(it.single().mainFile.toNioPath())
+              }
             }
           }
         }
       }
     }
-  }
 
   private suspend fun cloneDatabase(srcPath: Path, dstPath: Path) = withContext(taskDispatcher) {
     runSqliteCliCommand(
@@ -231,21 +240,18 @@ class ExportToFileController(
       exportQueryToCsv(database, query, format, dstPath)
     }
 
+
   private suspend fun exportTableToSql(database: SqliteDatabaseId, srcTable: String, dstPath: Path) = withContext(taskDispatcher) {
-    when(database) {
-      is FileSqliteDatabaseId -> {
-        exportTableToSql(database.databaseFileData.mainFile.toNioPath(), srcTable, dstPath)
-      }
-      is LiveSqliteDatabaseId -> {
-        downloadDatabase(database).let { files ->
-          Closeable { files.forEach { deleteDatabase(it) } }.use {
-            files.let {
-              if (it.size != 1) throw IllegalStateException("Unexpected number of downloaded database files: ${it.size}")
-              exportTableToSql(it.single().mainFile.toNioPath(), srcTable, dstPath)
-            }
-          }
-        }
-      }
+    executeTaskOnLocalDatabaseCopy(database) { srcPath ->
+      findOrCreateDir(dstPath.parent)
+      exportTableToSql(srcPath, srcTable, dstPath)
+    }
+  }
+
+  private suspend fun exportDatabaseToSql(database: SqliteDatabaseId, dstPath: Path) = withContext(taskDispatcher) {
+    executeTaskOnLocalDatabaseCopy(database) { srcPath ->
+      findOrCreateDir(dstPath.parent)
+      exportDatabaseToSql(srcPath, dstPath)
     }
   }
 
@@ -255,6 +261,17 @@ class ExportToFileController(
         .builder()
         .database(databasePath)
         .dumpTable(srcTable)
+        .output(dstPath)
+        .build()
+    )
+  }
+
+  private suspend fun exportDatabaseToSql(databasePath: Path, dstPath: Path) = withContext(taskDispatcher) {
+    runSqliteCliCommand(
+      SqliteCliArgs
+        .builder()
+        .database(databasePath)
+        .dump()
         .output(dstPath)
         .build()
     )
