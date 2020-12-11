@@ -18,8 +18,8 @@ package com.android.tools.idea.welcome;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import com.android.testutils.InMemoryFileSystemUtilsKt;
 import com.android.testutils.file.DelegatingFileSystemProvider;
+import com.android.testutils.file.InMemoryFileSystems;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.AccessMode;
@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 public final class SdkLocationUtilsTest {
-  private final FileSystem fs = new DelegatingFileSystemProvider(InMemoryFileSystemUtilsKt.createFileSystem()) {
+  private final FileSystem fs = new DelegatingFileSystemProvider(InMemoryFileSystems.createFileSystem()) {
     @Override
     public void checkAccess(@NotNull Path path, AccessMode @NotNull ... modes) throws IOException {
       Path file = path.getFileName();
@@ -49,7 +49,7 @@ public final class SdkLocationUtilsTest {
 
   @Test
   public void isWritableSdkLocationIsNotDirectoryAndCanNotWrite() throws IOException {
-    Path file = fs.getPath(InMemoryFileSystemUtilsKt.getPlatformSpecificPath("/unwritable"));
+    Path file = fs.getPath(InMemoryFileSystems.getPlatformSpecificPath("/unwritable"));
     Files.createFile(file);
 
     assertFalse(SdkLocationUtils.isWritable(file));
@@ -57,7 +57,7 @@ public final class SdkLocationUtilsTest {
 
   @Test
   public void isWritableSdkLocationIsNotDirectoryAndCanWrite() throws IOException {
-    Path sdkLocation = fs.getPath(InMemoryFileSystemUtilsKt.getPlatformSpecificPath("/sdk"));
+    Path sdkLocation = fs.getPath(InMemoryFileSystems.getPlatformSpecificPath("/sdk"));
     Files.createFile(sdkLocation);
 
     assertFalse(SdkLocationUtils.isWritable(sdkLocation));
@@ -65,7 +65,7 @@ public final class SdkLocationUtilsTest {
 
   @Test
   public void isWritableSdkLocationIsDirectoryAndCanNotWrite() throws IOException {
-    Path sdkLocation = fs.getPath(InMemoryFileSystemUtilsKt.getPlatformSpecificPath("/unwritable"));
+    Path sdkLocation = fs.getPath(InMemoryFileSystems.getPlatformSpecificPath("/unwritable"));
     Files.createDirectories(sdkLocation);
 
     assertFalse(SdkLocationUtils.isWritable(sdkLocation));
@@ -73,7 +73,7 @@ public final class SdkLocationUtilsTest {
 
   @Test
   public void isWritableSdkLocationIsDirectoryAndCanWrite() throws IOException {
-    Path sdkLocation = fs.getPath(InMemoryFileSystemUtilsKt.getPlatformSpecificPath("/sdk"));
+    Path sdkLocation = fs.getPath(InMemoryFileSystems.getPlatformSpecificPath("/sdk"));
     Files.createDirectories(sdkLocation);
 
     assertTrue(SdkLocationUtils.isWritable(sdkLocation));
@@ -81,7 +81,7 @@ public final class SdkLocationUtilsTest {
 
   @Test
   public void isWritableAncestorIsNotNullAndCanNotWrite() throws IOException {
-    Path sdkLocation = fs.getPath(InMemoryFileSystemUtilsKt.getPlatformSpecificPath("/d1/d2/unwritable"));
+    Path sdkLocation = fs.getPath(InMemoryFileSystems.getPlatformSpecificPath("/d1/d2/unwritable"));
     Files.createDirectories(sdkLocation);
 
     assertFalse(SdkLocationUtils.isWritable(sdkLocation));
@@ -89,8 +89,8 @@ public final class SdkLocationUtilsTest {
 
   @Test
   public void isWritableAncestorIsNotNullAndCanWrite() throws IOException {
-    Path sdkLocation = fs.getPath(InMemoryFileSystemUtilsKt.getPlatformSpecificPath("/d1/d2/sdk"));
-    Files.createDirectories(fs.getPath(InMemoryFileSystemUtilsKt.getPlatformSpecificPath("/d1")));
+    Path sdkLocation = fs.getPath(InMemoryFileSystems.getPlatformSpecificPath("/d1/d2/sdk"));
+    Files.createDirectories(fs.getPath(InMemoryFileSystems.getPlatformSpecificPath("/d1")));
 
     assertTrue(SdkLocationUtils.isWritable(sdkLocation));
   }

@@ -18,7 +18,7 @@ package com.android.tools.idea.sdk;
 import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeSettingsController;
-import com.android.testutils.InMemoryFileSystemUtilsKt;
+import com.android.testutils.file.InMemoryFileSystems;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.intellij.openapi.progress.ProcessCanceledException;
@@ -128,7 +128,7 @@ public class StudioDownloaderTest extends LightPlatformTestCase {
 
   public void testHttpNoCacheHeaders() throws Exception {
     createServerContextThatMirrorsRequestHeaders();
-    FileSystem fs = InMemoryFileSystemUtilsKt.createFileSystem();
+    FileSystem fs = InMemoryFileSystems.createFileSystem();
 
     Path downloadResult = FileOpUtils.getNewTempDir("studio_downloader_test", fs).resolve("download.txt");
 
@@ -146,7 +146,7 @@ public class StudioDownloaderTest extends LightPlatformTestCase {
   }
 
   public void testResumableDownloads() throws Exception {
-    FileSystem fs = InMemoryFileSystemUtilsKt.createFileSystem();
+    FileSystem fs = InMemoryFileSystems.createFileSystem();
     // Create some sizeable custom content to download.
     int howMany = (1 << 20);
     String stuff = "A quick brown brown fox jumps over the lazy dog.";
