@@ -26,6 +26,8 @@ import com.android.tools.idea.sqlite.cli.SqliteCliClient
 import com.android.tools.idea.sqlite.cli.SqliteCliClientImpl
 import com.android.tools.idea.sqlite.cli.SqliteCliProviderImpl
 import com.android.tools.idea.sqlite.cli.SqliteCliResponse
+import com.android.tools.idea.sqlite.controllers.DumpCommand.DumpDatabase
+import com.android.tools.idea.sqlite.controllers.DumpCommand.DumpTable
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.mocks.CliDatabaseConnection
 import com.android.tools.idea.sqlite.mocks.FakeExportToFileDialogView
@@ -193,27 +195,14 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
   fun testExportTableToSqlLiveDb() = testExportTableToSql(DatabaseType.Live)
 
   private fun testExportTableToSql(databaseType: DatabaseType) {
-    val database = createEmptyDatabase(databaseType)
-    val tableName = populateDatabase(database, listOf(table1, table2, table3), listOf(view1, view2)).first().name
-
-    val dstPath = tempDirTestFixture.toNioPath().resolve("$outputFileName.sql")
-    val exportRequest = ExportTableRequest(database, tableName, SQL, dstPath)
-
-    val expectedOutput = runSqlite3Command(
-      SqliteCliArgs
-        .builder()
-        .database(database.backingFile)
-        .dumpTable(tableName)
-        .build()
-    ).checkSuccess().stdOutput.split(System.lineSeparator())
-      .also { lines ->
-        assertThat(lines).isNotEmpty()
-        assertThat(lines.filter { it.contains("create ".toRegex(RegexOption.IGNORE_CASE)) }).hasSize(1)
-        assertThat(lines.filter { it.contains("create table .*$tableName".toRegex(RegexOption.IGNORE_CASE)) }).isNotEmpty()
-        assertThat(lines.filter { it.contains("insert into .*$tableName".toRegex(RegexOption.IGNORE_CASE)) }).isNotEmpty()
-      }
-
-    testExport(exportRequest, expectedOutput)
+    val targetTable = table1
+    testExportToSql(
+      databaseType = databaseType,
+      databaseTables = listOf(table1, table2, table3),
+      exportRequestCreator = { database, dstPath -> ExportTableRequest(database, targetTable, SQL, dstPath) },
+      expectedTableNames = listOf(targetTable),
+      expectedOutputDumpCommand = DumpTable(targetTable)
+    )
   }
 
   fun testExportDatabaseToSqlFileDb() = testExportDatabaseToSql(DatabaseType.File)
@@ -221,23 +210,40 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
   fun testExportDatabaseToSqlLiveDb() = testExportDatabaseToSql(DatabaseType.Live)
 
   private fun testExportDatabaseToSql(databaseType: DatabaseType) {
+    val databaseTables = listOf(table1, table2, table3)
+    testExportToSql(
+      databaseType = databaseType,
+      databaseTables = databaseTables,
+      exportRequestCreator = { database, dstPath -> ExportDatabaseRequest(database, SQL, dstPath) },
+      expectedTableNames = databaseTables,
+      expectedOutputDumpCommand = DumpDatabase
+    )
+  }
+
+  private fun testExportToSql(
+    databaseType: DatabaseType,
+    databaseTables: List<String>,
+    exportRequestCreator: (SqliteDatabaseId, dstPath: Path) -> ExportRequest,
+    expectedTableNames: List<String>,
+    expectedOutputDumpCommand: DumpCommand
+  ) {
     val database = createEmptyDatabase(databaseType)
-    val tableNames = populateDatabase(database, listOf(table1, table2, table3), listOf(view1, view2)).map { it.name }
+    populateDatabase(database, databaseTables, listOf(view1, view2)).map { it.name }
 
     val dstPath = tempDirTestFixture.toNioPath().resolve("$outputFileName.sql")
-    val exportRequest = ExportDatabaseRequest(database, SQL, dstPath)
+    val exportRequest = exportRequestCreator(database, dstPath)
 
     val expectedOutput = runSqlite3Command(
       SqliteCliArgs
         .builder()
         .database(database.backingFile)
-        .dump()
+        .apply { expectedOutputDumpCommand.setOnBuilder(this) }
         .build()
     ).checkSuccess().stdOutput.split(System.lineSeparator())
       .also { lines ->
         assertThat(lines).isNotEmpty()
-        tableNames.forEach { tableName ->
-          assertThat(lines.filter { it.contains("create table ".toRegex(RegexOption.IGNORE_CASE)) }).hasSize(tableNames.size)
+        expectedTableNames.forEach { tableName ->
+          assertThat(lines.filter { it.contains("create table ".toRegex(RegexOption.IGNORE_CASE)) }).hasSize(expectedTableNames.size)
           assertThat(lines.filter { it.contains("create table .*$tableName".toRegex(RegexOption.IGNORE_CASE)) }).isNotEmpty()
           assertThat(lines.filter { it.contains("insert into .*$tableName".toRegex(RegexOption.IGNORE_CASE)) }).isNotEmpty()
         }
@@ -454,6 +460,11 @@ private fun TempDirTestFixture.toNioPath() = File(tempDirPath).toPath()
 private val ExportRequest.delimiter get(): Char = (format as CSV).delimiter.delimiter
 
 private enum class DatabaseType { Live, File }
+
+private sealed class DumpCommand(open val setOnBuilder: (SqliteCliArgs.Builder) -> Unit) {
+  object DumpDatabase : DumpCommand({ it.dump() })
+  data class DumpTable(val name: String) : DumpCommand({ it.dumpTable(name) })
+}
 
 private data class ExpectedOutputFile(val path: Path, val values: List<String>)
 
