@@ -54,7 +54,14 @@ fun buildUrl(baseUrl: String, version: String): URL? {
   }
 }
 
-fun createTempFile(): File = File.createTempFile(DIRECTORY_PREFIX, "")
+fun createTempFile(): File? {
+  return try {
+    File.createTempFile(DIRECTORY_PREFIX, "")
+  }
+  catch (e: IOException) {
+    null
+  }
+}
 
 private val ApplicationInfo.versionString: String
   get() {
