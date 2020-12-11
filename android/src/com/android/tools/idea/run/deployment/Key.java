@@ -18,26 +18,9 @@ package com.android.tools.idea.run.deployment;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A device identifier. The {@link #toString} output is what gets persisted in the
- * {@link com.intellij.ide.util.PropertiesComponent PropertiesComponent.}
+ * A device identifier
  */
 public abstract class Key implements Comparable<Key> {
-  static @NotNull Key newKey(@NotNull String string) {
-    if (string.startsWith(VirtualDevicePath.PREFIX)) {
-      return VirtualDevicePath.parse(string);
-    }
-
-    if (string.startsWith(VirtualDeviceName.PREFIX)) {
-      return VirtualDeviceName.parse(string);
-    }
-
-    if (string.startsWith(SerialNumber.PREFIX)) {
-      return SerialNumber.parse(string);
-    }
-
-    return new NonprefixedKey(string);
-  }
-
   /**
    * If this or the other key is nonprefixed, returns true if both values are equal. Otherwise returns true if both keys are equal.
    *

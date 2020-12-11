@@ -20,9 +20,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.deployment.DevicesSelectedService.PersistentStateComponent;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.intellij.ide.util.ProjectPropertiesComponentImpl;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import java.time.Clock;
@@ -117,10 +116,9 @@ public final class SelectMultipleDevicesDialogTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    PropertiesComponent properties = new ProjectPropertiesComponentImpl();
     Clock clock = Clock.fixed(Instant.parse("2018-11-28T01:15:27Z"), ZoneId.of("America/Los_Angeles"));
 
-    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(), project -> properties, clock, () -> false);
+    DevicesSelectedService service = new DevicesSelectedService(new PersistentStateComponent(), clock, () -> false);
     service.setTargetsSelectedWithDialog(Collections.singleton(new Target(key)));
 
     initDialog(() -> false, new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device)), project -> service);
