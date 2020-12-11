@@ -13,30 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.fileTypes.profiler;
+package com.android.tools.idea.profilers.capture;
 
 import com.intellij.openapi.fileTypes.FileType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents an allocation file that can be imported into memory profiler.
+ * Represents a CPU trace file that can be imported into CPU profiler.
  */
-public class MemoryAllocationFileType extends AndroidProfilerCaptureFileType {
+public class CpuCaptureFileType extends AndroidProfilerCaptureFileType {
 
-  public static final String EXTENSION = "alloc";
+  public static final String EXTENSION = "trace";
 
-  private static final MemoryAllocationFileType INSTANCE = new MemoryAllocationFileType();
+  private static final CpuCaptureFileType INSTANCE = new CpuCaptureFileType();
 
   @NotNull
   @Override
   public String getName() {
-    return "AndroidProfilerMemoryAllocation";
+    return "AndroidProfilerCpuCapture";
   }
 
   @NotNull
   @Override
   public String getDescription() {
-    return "Android Profiler Memory allocation file";
+    return "Android Profiler CPU capture file";
   }
 
   @NotNull

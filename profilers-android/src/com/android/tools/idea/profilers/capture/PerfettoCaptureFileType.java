@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,36 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.fileTypes.profiler;
+package com.android.tools.idea.profilers.capture;
 
 import com.intellij.openapi.fileTypes.FileType;
+import java.util.Arrays;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents a heap dump file that can be imported into memory profiler.
+ * Represents a perfetto trace file that can be imported into CPU profiler.
  */
-public class MemoryCaptureFileType extends AndroidProfilerCaptureFileType {
+public class PerfettoCaptureFileType extends AndroidProfilerCaptureFileType {
 
-  public static final String EXTENSION = "hprof";
+  public static final List<String> EXTENSIONS = Arrays.asList("pftrace", "perfetto-trace");
 
-  private static final MemoryCaptureFileType INSTANCE = new MemoryCaptureFileType();
+  private static final PerfettoCaptureFileType INSTANCE = new PerfettoCaptureFileType();
 
   @NotNull
   @Override
   public String getName() {
-    return "AndroidProfilerMemoryCapture";
+    return "PerfettoCapture";
   }
 
   @NotNull
   @Override
   public String getDescription() {
-    return "Android Profiler Memory capture file";
+    return "Perfetto capture file";
   }
 
   @NotNull
   @Override
   public String getDefaultExtension() {
-    return EXTENSION;
+    return EXTENSIONS.get(0);
   }
 
   public static FileType getInstance() {
