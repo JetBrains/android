@@ -54,8 +54,7 @@ private val PROCESS = MODERN_DEVICE.createProcess()
 class LayoutInspectorTreePanelTest {
   private val projectRule = AndroidProjectRule.withSdk()
   private val transportRule = TransportInspectorRule()
-  private val inspectorRule = LayoutInspectorRule(projectRule) { listOf(PROCESS.name) }
-    .withTransportClient(transportRule.grpcServer, transportRule.scheduler)
+  private val inspectorRule = LayoutInspectorRule(transportRule.createClientProvider(), projectRule) { listOf(PROCESS.name) }
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(transportRule).around(inspectorRule).around((EdtRule()))!!

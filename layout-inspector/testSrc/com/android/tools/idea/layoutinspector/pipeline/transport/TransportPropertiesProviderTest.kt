@@ -66,8 +66,7 @@ class TransportPropertiesProviderTest {
   private var generationInAgent = 1
   private val projectRule = AndroidProjectRule.withSdk()
   private val transportRule = TransportInspectorRule()
-  private val inspectorRule = LayoutInspectorRule(projectRule) { listOf(PROCESS.name) }
-    .withTransportClient(transportRule.grpcServer, transportRule.scheduler)
+  private val inspectorRule = LayoutInspectorRule(transportRule.createClientProvider(), projectRule) { listOf(PROCESS.name) }
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(transportRule).around(inspectorRule).around((EdtRule()))!!
@@ -81,7 +80,10 @@ class TransportPropertiesProviderTest {
 
   @Test
   fun testDisconnected() {
+    inspectorRule.processes.selectedProcess = PROCESS
     val provider = inspectorRule.inspectorClient.provider
+    inspectorRule.processes.selectedProcess = null
+
     val result = ProviderResult()
     provider.resultListeners.add(result::receiveProperties)
     val view = inspectorRule.inspectorModel.root

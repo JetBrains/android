@@ -16,8 +16,6 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.PropertySetterRule
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
@@ -32,6 +30,7 @@ import com.android.tools.idea.appinspection.test.TestProcessNotifier
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
+import com.android.tools.idea.layoutinspector.LegacyClientProvider
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
@@ -40,8 +39,7 @@ import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_ME
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
-import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorRule
 import com.android.tools.idea.layoutinspector.pipeline.transport.isCapturingModeOn
 import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
@@ -61,7 +59,6 @@ import com.intellij.ui.components.JBScrollPane
 import junit.framework.TestCase
 import org.jetbrains.android.util.AndroidBundle
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -79,8 +76,7 @@ import javax.swing.JViewport
 @RunsInEdt
 class DeviceViewPanelWithFullInspectorTest {
   private val transportRule = TransportInspectorRule()
-  private val inspectorRule = LayoutInspectorRule()
-    .withTransportClient(transportRule.grpcServer, transportRule.scheduler)
+  private val inspectorRule = LayoutInspectorRule(transportRule.createClientProvider())
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(transportRule).around(inspectorRule).around(EdtRule())!!
@@ -277,11 +273,6 @@ class DeviceViewPanelTest {
   @get:Rule
   val adbRule = FakeAdbRule()
 
-  @get:Rule
-  val clientFactoryRule = PropertySetterRule(
-    { _, _, _, _ -> listOf(mock<TransportInspectorClient>()) },
-    InspectorClient.Companion::clientFactory)
-
   @Before
   fun setup() {
     ApplicationManager.getApplication().registerServiceInstance(AdtUiCursorsProvider::class.java, TestAdtUiCursorsProvider())
@@ -294,7 +285,8 @@ class DeviceViewPanelTest {
     val viewSettings = DeviceViewSettings(scalePercent = 100)
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
-    val inspector = LayoutInspector(adbRule.bridge, processes, model, disposableRule.disposable, MoreExecutors.directExecutor())
+    val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable)
+    val inspector = LayoutInspector(launcher, model, MoreExecutors.directExecutor())
     val panel = DeviceViewPanel(processes, inspector, viewSettings, disposableRule.disposable)
 
     val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
@@ -331,7 +323,8 @@ class DeviceViewPanelTest {
   fun testFocusableActionButtons() {
     val model = model { view(1, 0, 0, 1200, 1600, qualifiedName = "RelativeLayout") }
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
-    val inspector = LayoutInspector(adbRule.bridge, processes, model, disposableRule.disposable, MoreExecutors.directExecutor())
+    val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable)
+    val inspector = LayoutInspector(launcher, model, MoreExecutors.directExecutor())
     val settings = DeviceViewSettings()
     val panel = DeviceViewPanel(processes, inspector, settings, disposableRule.disposable)
     val toolbar = getToolbar(panel)
@@ -368,7 +361,8 @@ class DeviceViewPanelTest {
     }
 
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
-    val inspector = LayoutInspector(adbRule.bridge, processes, model, disposableRule.disposable, MoreExecutors.directExecutor())
+    val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable)
+    val inspector = LayoutInspector(launcher, model, MoreExecutors.directExecutor())
     val settings = DeviceViewSettings(scalePercent = 100)
     val panel = DeviceViewPanel(processes, inspector, settings, disposableRule.disposable)
 
@@ -402,12 +396,12 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
   val edtRule = EdtRule()
 
   @get:Rule
-  val inspectorRule = LayoutInspectorRule().withLegacyClient()
+  val inspectorRule = LayoutInspectorRule(LegacyClientProvider())
 
   @Test
-  fun testLiveControlDisabled() {
+  fun testLiveControlDisabledWithProcessFromLegacyDevice() {
     inspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess()
-    assertThat(inspectorRule.inspectorClient.selectedProcess).isNotNull()
+    assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
 
     val settings = DeviceViewSettings()
         val toolbar = getToolbar(
@@ -417,24 +411,11 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
     assertThat(checkbox.isEnabled).isFalse()
     assertThat(checkbox.toolTipText).isEqualTo("Live updates not available for devices below API 29")
   }
-}
 
-@RunsInEdt
-class DeviceViewPanelLegacyClientOnModernDeviceTest {
-  @get:Rule
-  val edtRule = EdtRule()
-
-  @get:Rule
-  val inspectorRule = LayoutInspectorRule().withLegacyClient()
-
-  // TODO: Re-enable after refactoring inspector launching logic to allow this to happen
-  //  In production, if we have a 29+ device, the inspector client always runs, but for tests,
-  //  we should allow a bit more flexibility.
   @Test
-  @Ignore
-  fun testLiveControlDisabled() {
+  fun testLiveControlDisabledWithProcessFromModernDevice() {
     inspectorRule.processes.selectedProcess = MODERN_DEVICE.createProcess()
-    assertThat(inspectorRule.inspectorClient.selectedProcess).isNotNull()
+    assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
 
     val settings = DeviceViewSettings()
         val toolbar = getToolbar(

@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
 import com.android.tools.idea.stats.AnonymizerUtil
@@ -29,19 +32,24 @@ import org.mockito.Mockito
 
 class LegacyMetricsTest {
 
+  private val windowIds = mutableListOf<String>()
+  private val legacyClientProvider = object : InspectorClientProvider {
+    override fun create(params: InspectorClientLauncher.Params, model: InspectorModel): InspectorClient {
+      val loader = Mockito.mock(LegacyTreeLoader::class.java)
+      Mockito.`when`(loader.getAllWindowIds(ArgumentMatchers.any())).thenReturn(windowIds)
+      return LegacyClientProvider(loader).create(params, model) as LegacyClient
+    }
+  }
+
   @get:Rule
-  val inspectorRule = LayoutInspectorRule().withLegacyClient()
+  val inspectorRule = LayoutInspectorRule(legacyClientProvider)
 
   @get:Rule
   val usageTrackerRule = MetricsTrackerRule()
 
   @Test
   fun testAttachSuccessAfterProcessConnected() {
-    val client = inspectorRule.inspectorClient as LegacyClient
-    val loader = Mockito.mock(LegacyTreeLoader::class.java)
-    Mockito.`when`(loader.getAllWindowIds(ArgumentMatchers.any())).thenReturn(listOf("window1", "window2", "window3"))
-    client.treeLoader = loader
-
+    windowIds.addAll(listOf("window1", "window2", "window3"))
     inspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess()
 
     val usages = usageTrackerRule.testTracker.usages
@@ -66,6 +74,7 @@ class LegacyMetricsTest {
 
   @Test
   fun testAttachFailAfterProcessConnected() {
+    Assert.assertTrue(windowIds.isEmpty()) // No window IDs will cause attaching to fail
     inspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess()
 
     val usages = usageTrackerRule.testTracker.usages

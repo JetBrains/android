@@ -29,8 +29,8 @@ import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.workbench.PropertiesComponentMock
-import com.android.tools.idea.appinspection.api.process.ProcessesModel
-import com.android.tools.idea.appinspection.test.TestProcessNotifier
+import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
+import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -102,7 +102,7 @@ DONE.
    * internally constructed [LegacyTreeLoader]
    */
   private fun createSimpleLegacyClient(): LegacyClient {
-    return LegacyClient(adb.bridge, ProcessesModel(TestProcessNotifier()) { listOf() }, model {})
+    return LegacyClient(adb.bridge, LEGACY_DEVICE.createProcess(), model {})
   }
 
   /**

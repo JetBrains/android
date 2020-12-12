@@ -21,6 +21,7 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
@@ -108,7 +109,8 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         }
         Disposer.register(workbench, processes)
 
-        val layoutInspector = LayoutInspector(adb, processes, model, workbench)
+        val launcher = InspectorClientLauncher.createDefaultLauncher(adb, processes, model, workbench)
+        val layoutInspector = LayoutInspector(launcher, model)
         content.putUserData(LAYOUT_INSPECTOR, layoutInspector)
         DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector))
 

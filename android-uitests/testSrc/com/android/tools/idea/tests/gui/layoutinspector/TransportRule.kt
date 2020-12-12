@@ -15,15 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.layoutinspector
 
-import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.idea.appinspection.api.process.ProcessesModel
-import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
-import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorClient
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
@@ -34,7 +29,6 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.AgentData.Status.ATTACHED
 import com.android.tools.profiler.proto.Common.AgentData.Status.UNATTACHABLE
-import com.intellij.openapi.Disposable
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
@@ -99,8 +93,6 @@ class TransportRule(
     }
   }
 
-  private lateinit var originalClientFactory: ((AndroidDebugBridge, ProcessesModel, InspectorModel, Disposable) -> List<InspectorClient>)
-
   /**
    * Add a specific [LayoutInspectorProto.LayoutInspectorCommand] handler.
    */
@@ -153,12 +145,7 @@ class TransportRule(
       object: Statement() {
         override fun evaluate() {
           before()
-          try {
-            base.evaluate()
-          }
-          finally {
-            after()
-          }
+          base.evaluate()
         }
       }, description
     ), description)
@@ -167,16 +154,8 @@ class TransportRule(
   private fun before() {
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, attachHandler)
     transportService.setCommandHandler(Commands.Command.CommandType.LAYOUT_INSPECTOR, inspectorHandler)
-    originalClientFactory = InspectorClient.clientFactory
-    InspectorClient.clientFactory = {
-      adb, processes, model, parentDisposable -> listOf(TransportInspectorClient(adb, processes, model, parentDisposable, grpcServer.name))
-    }
 
     // Start ADB with fake server and its port.
     AndroidDebugBridgeUtils.enableFakeAdbServerMode(adbRule.fakeAdbServerPort)
-  }
-
-  private fun after() {
-    InspectorClient.clientFactory = originalClientFactory
   }
 }
