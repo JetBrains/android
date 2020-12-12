@@ -54,7 +54,7 @@ import javax.imageio.ImageIO
  */
 class LegacyTreeLoader(private val adb: AndroidDebugBridge, private val client: LegacyClient) : TreeLoader {
   private val LegacyClient.selectedDdmClient: Client?
-    get() = ddmClientOverride ?: selectedProcess?.let { process -> adb.findClient(process) }
+    get() = ddmClientOverride ?: adb.findClient(process)
 
   @VisibleForTesting
   var ddmClientOverride: Client? = null

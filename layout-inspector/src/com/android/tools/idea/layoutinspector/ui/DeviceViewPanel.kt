@@ -352,7 +352,7 @@ class DeviceViewPanel(
     override fun update(event: AnActionEvent) {
       val currentClient = client(event)
       val isLiveInspector = currentClient.isConnected && currentClient is TransportInspectorClient
-      val isLowerThenApi29 = currentClient.isConnected && currentClient.selectedProcess!!.device.apiLevel < 29
+      val isLowerThenApi29 = currentClient.isConnected && currentClient.process.device.apiLevel < 29
       event.presentation.isEnabled = isLiveInspector || !currentClient.isConnected
       super.update(event)
       event.presentation.description = when {

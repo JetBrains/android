@@ -17,8 +17,12 @@ package com.android.tools.idea.layoutinspector.pipeline.transport
 
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.util.ConfigurationBuilder
 import com.android.tools.idea.layoutinspector.util.TestStringTable
 import com.android.tools.idea.layoutinspector.util.TreeBuilder
@@ -31,11 +35,22 @@ import com.android.tools.profiler.proto.Commands.Command.CommandType.ATTACH_AGEN
 import com.android.tools.profiler.proto.Commands.Command.CommandType.LAYOUT_INSPECTOR
 import com.android.tools.profiler.proto.Common
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import org.junit.Rule
 import org.junit.rules.ExternalResource
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import java.util.concurrent.TimeUnit
+
+/**
+ * Class with logic for creating a [TransportInspectorClient], useful for telling
+ * [LayoutInspectorRule] to start up with a transport-pipeline client.
+ */
+class TransportClientProvider(private val transportComponents: TransportInspectorClient.TransportComponents) : InspectorClientProvider {
+  override fun create(params: InspectorClientLauncher.Params, model: InspectorModel): InspectorClient {
+    return TransportInspectorClient(params.adb, params.process, model, transportComponents)
+  }
+}
 
 /**
  * Transport-pipeline specific setup and teardown for tests.
@@ -47,6 +62,8 @@ class TransportInspectorRule : ExternalResource() {
 
   @get:Rule
   val grpcServer = FakeGrpcServer.createFakeGrpcServer("LayoutInspectorTestChannel", transportService)
+
+  val components = TransportInspectorClient.TransportComponents(grpcServer.name, scheduler)
 
   /**
    * If set to true, any attempts to connect to the fake transport-pipeline layout inspector will fail
@@ -81,6 +98,12 @@ class TransportInspectorRule : ExternalResource() {
   }
 
   /**
+   * Convenience method for creating a [TransportClientProvider] if you already have a
+   * [TransportInspectorRule] declared in your test.
+   */
+  fun createClientProvider(): TransportClientProvider = TransportClientProvider(components)
+
+  /**
    * Add a specific [LayoutInspectorProto.LayoutInspectorCommand] handler.
    *
    * This parent rule normally only supports [ATTACH_AGENT], which is needed by all tests, but
@@ -103,6 +126,7 @@ class TransportInspectorRule : ExternalResource() {
   }
 
   override fun after() {
+    Disposer.dispose(components)
     grpcServer.channel.shutdown().awaitTermination(10, TimeUnit.SECONDS)
   }
 }

@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit
 
 class MetricsTest {
   private val transportRule = TransportInspectorRule()
-  private val inspectorRule = LayoutInspectorRule().withTransportClient(transportRule.grpcServer, transportRule.scheduler)
+  private val inspectorRule = LayoutInspectorRule(transportRule.createClientProvider())
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(transportRule).around(inspectorRule)!!

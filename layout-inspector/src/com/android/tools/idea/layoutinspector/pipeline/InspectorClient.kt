@@ -15,40 +15,47 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline
 
-import com.android.ddmlib.AndroidDebugBridge
-import com.android.tools.idea.appinspection.api.process.ProcessesModel
+import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
-import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
-import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorClient
 import com.android.tools.idea.layoutinspector.properties.EmptyPropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
 import com.android.tools.profiler.proto.Common.Event.EventGroupIds
-import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
-import com.intellij.openapi.Disposable
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
 
 /**
  * Client for communicating with the agent.
+ *
+ * When created, it is expected that [connect] should be called shortly after, and that the client
+ * will be in a valid state until [disconnect] is called.
  */
 interface InspectorClient {
+  enum class State {
+    INITIALIZED,
+    CONNECTED,
+    DISCONNECTED,
+  }
+
   /**
-   * Register a handler for a specific groupId.
+   * Register a handler that is triggered when this client receives an event associated with the specified [groupId].
    */
   fun register(groupId: EventGroupIds, callback: (Any) -> Unit)
 
   /**
-   * Register a handler for when the current process starts and ends.
+   * Connect this client to the device.
+   *
+   * You are only supposed to call this once.
    */
-  fun registerProcessChanged(callback: (InspectorClient) -> Unit)
+  fun connect()
 
   /**
-   * Disconnect from the current process.
+   * Disconnect this client.
+   *
+   * You are only supposed to call this once.
    */
   fun disconnect(): Future<*>
 
@@ -56,13 +63,6 @@ interface InspectorClient {
    * Send a command to the agent.
    */
   fun execute(command: LayoutInspectorCommand)
-
-  /**
-   * Send simple command to agent without arguments.
-   */
-  fun execute(commandType: LayoutInspectorCommand.Type) {
-    execute(LayoutInspectorCommand.newBuilder().setType(commandType).build())
-  }
 
   /**
    * Refresh the content of the inspector.
@@ -74,12 +74,16 @@ interface InspectorClient {
    */
   fun logEvent(type: DynamicLayoutInspectorEventType)
 
-  val treeLoader: TreeLoader
+  val state: State
 
   /**
-   * The process to which this client is currently connected.
+   * The process this client is associated with.
+   *
+   * If a new process is connected, a new client should be created to handle it.
    */
-  val selectedProcess: ProcessDescriptor?
+  val process: ProcessDescriptor
+
+  val treeLoader: TreeLoader
 
   /**
    * True, if the current connection is currently receiving live updates.
@@ -92,42 +96,41 @@ interface InspectorClient {
   val provider: PropertiesProvider
 
   /**
-   * Return true if the current client is actively connected to the current process.
+   * Return true if the current client is actively connected (or about to connect) to the current
+   * process.
    */
-  val isConnected: Boolean get() = selectedProcess != null
-
-  companion object {
-    /**
-     * Provide a way for tests to generate a mock client.
-     */
-    @VisibleForTesting
-    var clientFactory: (adb: AndroidDebugBridge, processes: ProcessesModel, model: InspectorModel, parentDisposable: Disposable) -> List<InspectorClient> = { adb, processes, model, parentDisposable ->
-      listOf(TransportInspectorClient(adb, processes, model, parentDisposable), LegacyClient(adb, processes, model))
-    }
-
-    /**
-     * Use this method to create a new client.
-     */
-    fun createInstances(adb: AndroidDebugBridge,
-                        processes: ProcessesModel,
-                        model: InspectorModel,
-                        parentDisposable: Disposable): List<InspectorClient> = clientFactory(adb, processes, model, parentDisposable)
-  }
+  val isConnected: Boolean get() = state != State.DISCONNECTED
 }
 
 object DisconnectedClient : InspectorClient {
   override fun register(groupId: EventGroupIds, callback: (Any) -> Unit) {}
-  override fun registerProcessChanged(callback: (InspectorClient) -> Unit) {}
+  override fun connect() {}
   override fun disconnect(): Future<Nothing> = CompletableFuture.completedFuture(null)
   override fun execute(command: LayoutInspectorCommand) {}
   override fun refresh() {}
   override fun logEvent(type: DynamicLayoutInspectorEventType) {}
 
+  override val state = InspectorClient.State.DISCONNECTED
+  override val process = object : ProcessDescriptor {
+    override val device: DeviceDescriptor = object : DeviceDescriptor {
+      override val manufacturer: String = ""
+      override val model: String = ""
+      override val serial: String = ""
+      override val isEmulator: Boolean = false
+      override val apiLevel: Int = 0
+      override val version: String = ""
+      override val codename: String? = null
+    }
+    override val abiCpuArch: String = ""
+    override val name: String = ""
+    override val isRunning: Boolean = false
+    override val pid: Int = 0
+    override val streamId: Long = 0
+  }
   override val treeLoader = object : TreeLoader {
     override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup): Pair<AndroidWindow?, Int>? = null
     override fun getAllWindowIds(data: Any?): List<*> = emptyList<Any>()
   }
-  override val selectedProcess: ProcessDescriptor? = null
   override val isCapturing = false
   override val provider = EmptyPropertiesProvider
 }

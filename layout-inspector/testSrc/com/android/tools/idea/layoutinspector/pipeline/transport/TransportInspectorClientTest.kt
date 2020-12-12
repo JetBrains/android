@@ -35,12 +35,10 @@ private val PROCESS = MODERN_DEVICE.createProcess()
 
 class TransportInspectorClientTest {
   private val transportRule = TransportInspectorRule()
-  private val inspectorRule = LayoutInspectorRule { listOf(PROCESS.name) }
-    .withTransportClient(transportRule.grpcServer, transportRule.scheduler)
+  private val inspectorRule = LayoutInspectorRule(transportRule.createClientProvider()) { listOf(PROCESS.name) }
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(transportRule).around(inspectorRule).around(EdtRule())!!
-
 
   @Test
   fun testCorrectEventsRun() {
@@ -93,19 +91,17 @@ class TransportInspectorClientTest {
 
   @Test
   fun clientCanConnectDisconnectAndReconnect() {
-    val client = inspectorRule.inspectorClient
-
     inspectorRule.processNotifier.fireConnected(PROCESS)
     transportRule.scheduler.advanceBy(1, TimeUnit.SECONDS)
-    assertThat(client.isConnected).isTrue()
+    assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
 
     inspectorRule.processNotifier.fireDisconnected(PROCESS)
     transportRule.scheduler.advanceBy(1, TimeUnit.SECONDS)
-    assertThat(client.isConnected).isFalse()
+    assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
 
     inspectorRule.processNotifier.fireConnected(PROCESS)
     transportRule.scheduler.advanceBy(1, TimeUnit.SECONDS)
-    assertThat(client.isConnected).isTrue()
+    assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
   }
 
   @Test

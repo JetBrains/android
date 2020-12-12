@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector
 
-import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
@@ -28,23 +27,22 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.appinspection.test.TestProcessNotifier
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
-import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import java.net.Socket
 import java.util.ArrayDeque
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
 val MODERN_DEVICE = object : DeviceDescriptor {
@@ -77,21 +75,48 @@ fun DeviceDescriptor.createProcess(name: String = "com.example.layout.MyApp", pi
 }
 
 /**
+ * Test interface for providing an [InspectorClient] that should get created when connecting to a
+ * process.
+ *
+ * This will be used to handle initializing this rule's [InspectorClientLauncher].
+ */
+interface InspectorClientProvider {
+  fun create(params: InspectorClientLauncher.Params, model: InspectorModel): InspectorClient
+}
+
+/**
+ * Simple, convenient provider for generating a real [LegacyClient]
+ */
+class LegacyClientProvider(private val treeLoaderOverride: LegacyTreeLoader? = null) : InspectorClientProvider {
+  override fun create(params: InspectorClientLauncher.Params, model: InspectorModel): InspectorClient {
+    return LegacyClient(params.adb, params.process, model, treeLoaderOverride)
+  }
+}
+
+/**
  * Rule providing mechanisms for testing core behavior used by the layout inspector.
  *
  * This includes things like fake ADB support, process management, and [InspectorClient] setup.
  *
- * Any passed-in objects shouldn't be registered as [org.junit.Rule]s by the caller: [LayoutInspectorRule] will call them as
- * needed.
+ * Note that, when the rule first starts up, that [inspectorClient] will be set to a disconnected client. You must first
+ * call [TestProcessNotifier.fireConnected] (with a process that has a preferred process name) or
+ * [ProcessesModel.selectedProcess] directly, to trigger a new client to get created.
  *
- * @param getPreferredProcessNames Optionally provide names of processes that, when they connect, will be automatically
- *    attached to. This simulates the experience when the user presses the "Run" button for example. Otherwise, the test
- *    caller must set [ProcessesModel.selectedProcess] directly.
+ * @param projectRule A rule providing access to a test project. This shouldn't be annotated with `@Rule` by the caller,
+ *     as this class will handle it.
+ *
+ * @param getPreferredProcessNames Optionally provide names of processes that, when connected via [TestProcessNotifier],
+ *     will be automatically attached to. This simulates the experience when the user presses the "Run" button for example.
+ *     Otherwise, the test caller must set [ProcessesModel.selectedProcess] directly.
  */
 class LayoutInspectorRule(
+  private val clientProvider: InspectorClientProvider,
   val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk(),
   getPreferredProcessNames: () -> List<String> = { listOf() }
 ) : TestRule {
+
+  private lateinit var launcher: InspectorClientLauncher
+  private val launcherDisposable = Disposer.newDisposable()
 
   /**
    * Class which installs fake handling for adb commands related to querying and updating debug
@@ -185,28 +210,6 @@ class LayoutInspectorRule(
   lateinit var inspectorClient: InspectorClient
   lateinit var inspectorModel: InspectorModel
 
-  private lateinit var clientFactory: () -> InspectorClient
-
-  /**
-   * Initialize this rule so [inspectorClient] is a [TransportInspectorClient].
-   *
-   * This method should be called when this rule is constructed, not after the test starts.
-   */
-  fun withTransportClient(grpcServer: FakeGrpcServer, scheduler: ScheduledExecutorService) = apply {
-    clientFactory = {
-      TransportInspectorClient(adbRule.bridge, processes, inspectorModel, projectRule.fixture.projectDisposable, grpcServer.name, scheduler)
-    }
-  }
-
-  /**
-   * Initialize this rule so [inspectorClient] is a [LegacyClient].
-   *
-   * This method should be called when this rule is constructed, not after the test starts.
-   */
-  fun withLegacyClient() = apply {
-    clientFactory = { LegacyClient(adbRule.bridge, processes, inspectorModel) }
-  }
-
   /**
    * Notify this rule about a device that it should be aware of.
    *
@@ -220,15 +223,19 @@ class LayoutInspectorRule(
     }
   }
 
-  /** We pull this out of a static singleton in [before] so we can safely restore in [after] */
-  private lateinit var originalClientFactory: (AndroidDebugBridge, ProcessesModel, InspectorModel, Disposable) -> List<InspectorClient>
-
   private fun before() {
-    check(::clientFactory.isInitialized) { "Test must call one of the 'withClient' methods during rule construction time" }
-    originalClientFactory = InspectorClient.clientFactory
-
     projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
 
+    inspectorModel = InspectorModel(projectRule.project)
+    launcher = InspectorClientLauncher(adbRule.bridge,
+                                       processes,
+                                       listOf { params -> clientProvider.create(params, inspectorModel) },
+                                       launcherDisposable)
+    Disposer.register(projectRule.fixture.testRootDisposable, launcherDisposable)
+
+    // Client starts disconnected, and will be updated after the ProcessesModel's selected process is updated
+    inspectorClient = launcher.activeClient
+    assertThat(!inspectorClient.isConnected)
     processes.addSelectedProcessListeners {
       processes.selectedProcess?.let { process ->
         // If a process is selected, let's just make sure we have ADB aware of the device as well. Some client code expects
@@ -237,25 +244,24 @@ class LayoutInspectorRule(
       }
     }
 
-    inspectorModel = InspectorModel(projectRule.project)
     // This factory will be triggered when LayoutInspector is created
-    InspectorClient.clientFactory = { _, _, _, _ -> listOf(clientFactory()) }
-    inspector = LayoutInspector(adbRule.bridge, processes, inspectorModel, projectRule.fixture.testRootDisposable,
-                                MoreExecutors.directExecutor())
-    inspectorClient = inspector.allClients.first()
-    inspector.setCurrentTestClient(inspectorClient)
+    inspector = LayoutInspector(launcher, inspectorModel, MoreExecutors.directExecutor())
+    launcher.addClientChangedListener {
+      inspectorClient = it
+    }
 
     (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(dataProviderForLayoutInspector(inspector),
                                                                            projectRule.fixture.testRootDisposable)
   }
 
   private fun after() {
-    InspectorClient.clientFactory = originalClientFactory
-
-    if (inspectorClient.isConnected) {
+    if (launcher.activeClient.isConnected) {
       val processDone = CountDownLatch(1)
-      inspectorClient.registerProcessChanged { processDone.countDown() }
-      inspectorClient.disconnect().get(10, TimeUnit.SECONDS)
+      launcher.addDisconnectionListener { future ->
+        future.get(10, TimeUnit.SECONDS)
+        processDone.countDown()
+      }
+      Disposer.dispose(launcherDisposable) // Dispose launcher early to force active client disconnection
       assertThat(processDone.await(30, TimeUnit.SECONDS)).isTrue()
     }
   }
