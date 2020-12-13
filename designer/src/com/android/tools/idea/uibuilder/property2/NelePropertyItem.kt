@@ -461,13 +461,13 @@ open class NelePropertyItem(
     }
   }
 
-  override val browseButton = createBrowseButton()
+  override val browseButton: ActionIconButton? = createBrowseButton()
 
-  override val colorButton = createColorButton()
+  override val colorButton: ActionIconButton? = createColorButton()
 
   // region Implementation of browseButton
 
-  private fun createBrowseButton(): ActionIconButton? {
+  private fun createBrowseButton(): ActionIconButton {
     if (name == ATTR_ID || type == NelePropertyType.DESTINATION || type.resourceTypes.isEmpty()) {
       return EmptyBrowseActionIconButton
     }
@@ -482,7 +482,7 @@ open class NelePropertyItem(
       get() = if (isReferenceValue(rawValue)) StudioIcons.Common.PROPERTY_BOUND else StudioIcons.Common.PROPERTY_UNBOUND
 
 
-    override val action: AnAction?
+    override val action: AnAction
       get() = OpenResourceManagerAction
   }
 
@@ -524,7 +524,7 @@ open class NelePropertyItem(
       }
     }
 
-    override val action: AnAction?
+    override val action: AnAction
       get() {
         val value = rawValue
         return if (isColor(value)) ColorSelectionAction else OpenResourceManagerAction
