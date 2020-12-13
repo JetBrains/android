@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
 import com.android.tools.profilers.FakeFeatureTracker
+import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.systemtrace.ProcessModel
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceModelAdapter
@@ -41,8 +42,7 @@ import java.io.ObjectOutputStream
  * models inside testData will be updated.
  */
 class SerializedTraceProcessorModelForTestsVerifier {
-
-  private val fakeFeatureTracker = FakeFeatureTracker()
+  private val fakeIdeProfilerServices = FakeIdeProfilerServices()
   private lateinit var service: TraceProcessorServiceImpl
 
   @Before
@@ -58,9 +58,9 @@ class SerializedTraceProcessorModelForTestsVerifier {
 
   @Test
   fun `test perfetto trace`() {
-    val loadOk = service.loadTrace(1, CpuProfilerTestUtils.getTraceFile("perfetto.trace"), fakeFeatureTracker)
+    val loadOk = service.loadTrace(1, CpuProfilerTestUtils.getTraceFile("perfetto.trace"), fakeIdeProfilerServices)
     assertThat(loadOk).isTrue()
-    val realProcessList = service.getProcessMetadata(1, fakeFeatureTracker)
+    val realProcessList = service.getProcessMetadata(1, fakeIdeProfilerServices)
     val serializedProcesssList = loadSerializedProcessList(CpuProfilerTestUtils.getTraceFile("perfetto.trace_process_list"))
     assertThat(realProcessList).containsExactlyElementsIn(serializedProcesssList).inOrder()
 
@@ -76,7 +76,7 @@ class SerializedTraceProcessorModelForTestsVerifier {
       val pidsToQuery = mutableListOf(pid)
       sfProcessId?.let { pidsToQuery.add(it.id) }
 
-      val realModel = service.loadCpuData(1, pidsToQuery, fakeFeatureTracker)
+      val realModel = service.loadCpuData(1, pidsToQuery, fakeIdeProfilerServices)
       val serializedModel = serializedModelMap[pid] ?: error("$pid should be present perfetto.trace_tpd_model")
       assertThat(realModel.getCaptureStartTimestampUs()).isEqualTo(serializedModel.getCaptureStartTimestampUs())
       assertThat(realModel.getCaptureEndTimestampUs()).isEqualTo(serializedModel.getCaptureEndTimestampUs())
@@ -87,9 +87,9 @@ class SerializedTraceProcessorModelForTestsVerifier {
 
   @Test
   fun `test perfetto_cpu_usage trace`() {
-    val loadOk = service.loadTrace(1, CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace"), fakeFeatureTracker)
+    val loadOk = service.loadTrace(1, CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace"), fakeIdeProfilerServices)
     assertThat(loadOk).isTrue()
-    val realProcessList = service.getProcessMetadata(1, fakeFeatureTracker)
+    val realProcessList = service.getProcessMetadata(1, fakeIdeProfilerServices)
     val serializedProcesssList = loadSerializedProcessList(CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace_process_list"))
     assertThat(realProcessList).containsExactlyElementsIn(serializedProcesssList).inOrder()
 
@@ -105,7 +105,7 @@ class SerializedTraceProcessorModelForTestsVerifier {
       val pidsToQuery = mutableListOf(pid)
       sfProcessId?.let { pidsToQuery.add(it.id) }
 
-      val realModel = service.loadCpuData(1, pidsToQuery, fakeFeatureTracker)
+      val realModel = service.loadCpuData(1, pidsToQuery, fakeIdeProfilerServices)
       val serializedModel = serializedModelMap[pid] ?: error("$pid should be present perfetto_cpu_usage.trace_tpd_model")
       assertThat(realModel.getCaptureStartTimestampUs()).isEqualTo(serializedModel.getCaptureStartTimestampUs())
       assertThat(realModel.getCaptureEndTimestampUs()).isEqualTo(serializedModel.getCaptureEndTimestampUs())
@@ -140,10 +140,10 @@ class SerializedTraceProcessorModelForTestsVerifier {
   }
 
   private fun produceAndWriteModelsFor(traceFile: File) {
-    val loadOk = service.loadTrace(1, traceFile, fakeFeatureTracker)
+    val loadOk = service.loadTrace(1, traceFile, fakeIdeProfilerServices)
     assertThat(loadOk).isTrue()
 
-    val processList = service.getProcessMetadata(1, fakeFeatureTracker)
+    val processList = service.getProcessMetadata(1, fakeIdeProfilerServices)
 
     val sfProcessId = processList.find {
       it.getSafeProcessName().endsWith(SystemTraceSurfaceflingerManager.SURFACEFLINGER_PROCESS_NAME)
@@ -155,7 +155,7 @@ class SerializedTraceProcessorModelForTestsVerifier {
       val pidsToQuery = mutableListOf(pid)
       sfProcessId?.let { pidsToQuery.add(it.id) }
 
-      val model = service.loadCpuData(1, pidsToQuery, fakeFeatureTracker)
+      val model = service.loadCpuData(1, pidsToQuery, fakeIdeProfilerServices)
       modelMapBuilder.put(pid, model)
     }
 

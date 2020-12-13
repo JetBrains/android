@@ -81,7 +81,7 @@ class FakeTraceProcessorService: TraceProcessorService {
    */
   var forceFailLoadTrace = false
 
-  override fun loadTrace(traceId: Long, traceFile: File, tracker: FeatureTracker): Boolean {
+  override fun loadTrace(traceId: Long, traceFile: File, ideProfilerServices: IdeProfilerServices): Boolean {
     if (validTraces.contains(traceFile) && !forceFailLoadTrace) {
       loadedTraces[traceId] = traceFile
       return true
@@ -90,7 +90,7 @@ class FakeTraceProcessorService: TraceProcessorService {
       return false
     }
   }
-  override fun getProcessMetadata(traceId: Long, tracker: FeatureTracker): List<ProcessModel> {
+  override fun getProcessMetadata(traceId: Long, ideProfilerServices: IdeProfilerServices): List<ProcessModel> {
     if (loadedTraces.containsKey(traceId)) {
       return loadProcessModelListFor(loadedTraces[traceId]!!)
     } else {
@@ -98,7 +98,7 @@ class FakeTraceProcessorService: TraceProcessorService {
     }
   }
 
-  override fun loadCpuData(traceId: Long, processIds: List<Int>, tracker: FeatureTracker): SystemTraceModelAdapter {
+  override fun loadCpuData(traceId: Long, processIds: List<Int>, ideProfilerServices: IdeProfilerServices): SystemTraceModelAdapter {
     if (loadedTraces.containsKey(traceId)) {
       val trace = loadedTraces[traceId]!!
       val model: Map<Int, SystemTraceModelAdapter> = getModelMapFor(trace)
@@ -112,9 +112,8 @@ class FakeTraceProcessorService: TraceProcessorService {
 
   override fun loadMemoryData(traceId: Long,
                               abi: String,
-                              symbolizer: NativeFrameSymbolizer,
                               memorySet: NativeMemoryHeapSet,
-                              tracker: FeatureTracker) {
+                              ideProfilerServices: IdeProfilerServices) {
     // Will populate as needed. Currently no test rely on this.
   }
 
