@@ -57,8 +57,8 @@ class LayoutInspector(
   }
 
   private fun clientChanged(client: InspectorClient) {
-    client.register(Common.Event.EventGroupIds.LAYOUT_INSPECTOR_ERROR, ::logError)
-    client.register(Common.Event.EventGroupIds.COMPONENT_TREE, ::loadComponentTree)
+    client.registerErrorCallback(::logError)
+    client.registerTreeEventCallback(::loadComponentTree)
 
     if (client.isConnected) {
       layoutInspectorModel.updateConnection(client)
@@ -93,13 +93,7 @@ class LayoutInspector(
     }
   }
 
-  private fun logError(event: Any) {
-    val error = when (event) {
-      is LayoutInspectorProto.LayoutInspectorEvent -> event.errorMessage
-      is String -> event
-      else -> "Unknown Error"
-    }
-
+  private fun logError(error: String) {
     Logger.getInstance(LayoutInspector::class.java.canonicalName).warn(error)
 
     @Suppress("ConstantConditionIf")

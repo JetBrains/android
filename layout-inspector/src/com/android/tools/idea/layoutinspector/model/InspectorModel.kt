@@ -16,9 +16,8 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.layoutinspector.memory.InspectorMemoryProbe
-import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
-import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.statistics.SessionStatistics
@@ -114,13 +113,13 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
 
   private fun updateConnectionNotification(client: InspectorClient) {
     InspectorBannerService.getInstance(project).notification =
-      if (client is LegacyClient && client.process.device.apiLevel >= 29)
+      if (client.isConnected && !client.capabilities.contains(Capability.SUPPORTS_CONTINUOUS_MODE) && client.process.device.apiLevel >= 29)
         StatusNotificationImpl(AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY), emptyList())
       else null
   }
 
   private fun updateStats(client: InspectorClient) {
-    if (client != DisconnectedClient) {
+    if (client.isConnected) {
       stats.start(client.isCapturing)
     }
   }

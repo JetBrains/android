@@ -25,11 +25,10 @@ import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.stats.withProjectId
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto
-import com.android.tools.profiler.proto.Common
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
+import java.lang.UnsupportedOperationException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
 
@@ -43,6 +42,7 @@ class LegacyClient(
   model: InspectorModel,
   treeLoaderForTest: LegacyTreeLoader? = null
 ) : AbstractInspectorClient(process) {
+
   private val lookup: ViewNodeAndResourceLookup = model
   private val stats = model.stats
 
@@ -55,7 +55,7 @@ class LegacyClient(
 
   private val project = model.project
 
-  override fun logEvent(type: DynamicLayoutInspectorEventType) {
+  fun logEvent(type: DynamicLayoutInspectorEventType) {
     if (!isRenderEvent(type)) {
       logEvent(type, process)
     }
@@ -141,7 +141,7 @@ class LegacyClient(
     }
     val propertiesUpdater = LegacyPropertiesProvider.Updater(lookup)
     for (windowId in windowIds) {
-      fireEvent(Common.Event.EventGroupIds.COMPONENT_TREE, LegacyEvent(windowId, propertiesUpdater, windowIds))
+      fireTreeEvent(LegacyEvent(windowId, propertiesUpdater, windowIds))
     }
     propertiesUpdater.apply(provider)
     return true
@@ -153,7 +153,15 @@ class LegacyClient(
     return CompletableFuture.completedFuture(null)
   }
 
-  override fun execute(command: LayoutInspectorProto.LayoutInspectorCommand) {}
+  class LegacyFetchingUnsupportedOperationException : UnsupportedOperationException("Fetching is not supported by legacy clients")
+
+  override fun startFetching() {
+    throw LegacyFetchingUnsupportedOperationException()
+  }
+
+  override fun stopFetching() {
+    throw LegacyFetchingUnsupportedOperationException()
+  }
 }
 
 data class LegacyEvent(val windowId: String, val propertyUpdater: LegacyPropertiesProvider.Updater, val allWindows: List<String>)

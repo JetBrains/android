@@ -21,7 +21,6 @@ import com.android.tools.idea.layoutinspector.common.StringTableImpl
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.LambdaPropertyItem
@@ -65,7 +64,7 @@ private const val ANIMATION_PACKAGE = "android.view.animation"
 private const val FRAMEWORK_INTERPOLATOR_PREFIX = "@android:interpolator"
 
 class TransportPropertiesProvider(
-  private val client: InspectorClient,
+  private val client: TransportInspectorClient,
   private val model: InspectorModel
 ): PropertiesProvider {
 

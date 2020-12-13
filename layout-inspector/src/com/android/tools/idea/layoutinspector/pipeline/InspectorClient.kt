@@ -21,9 +21,7 @@ import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.properties.EmptyPropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
-import com.android.tools.profiler.proto.Common.Event.EventGroupIds
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
+import java.util.EnumSet
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
 
@@ -40,10 +38,25 @@ interface InspectorClient {
     DISCONNECTED,
   }
 
+  enum class Capability {
+    /**
+     * Indicates this client supports continuous fetching via [startFetching] and [stopFetching].
+     */
+    SUPPORTS_CONTINUOUS_MODE,
+  }
+
   /**
-   * Register a handler that is triggered when this client receives an event associated with the specified [groupId].
+   * Register a handler that is triggered when this client encounters an error message
    */
-  fun register(groupId: EventGroupIds, callback: (Any) -> Unit)
+  fun registerErrorCallback(callback: (String) -> Unit)
+
+  /**
+   * Register a handler that is triggered when this client receives an event containing layout tree
+   * data about this device.
+   *
+   * See also: [treeLoader], which helps consume this data
+   */
+  fun registerTreeEventCallback(callback: (Any) -> Unit)
 
   /**
    * Connect this client to the device.
@@ -60,19 +73,44 @@ interface InspectorClient {
   fun disconnect(): Future<*>
 
   /**
-   * Send a command to the agent.
+   * Start fetching information continuously off the device.
+   *
+   * If this is currently happening, then [isCapturing] will be set to true.
+   *
+   * See also [refresh], which is used for pulling the state of the device one piece at a time
+   * instead.
+   *
+   * Once called, you should call [stopFetching] to cancel.
+   *
+   * If this client does not have the [Capability.SUPPORTS_CONTINUOUS_MODE] capability, then this
+   * method should not be called, and doing so is undefined.
    */
-  fun execute(command: LayoutInspectorCommand)
+  fun startFetching()
+
+  /**
+   * Stop fetching information off the device.
+   *
+   * See also: [startFetching]
+   *
+   * If this client does not have the [Capability.SUPPORTS_CONTINUOUS_MODE] capability, then this
+   * method should not be called, and doing so is undefined.
+   */
+  fun stopFetching()
 
   /**
    * Refresh the content of the inspector.
+   *
+   * This shouldn't be necessary if the client is already continuously fetching off the device, i.e.
+   * [isCapturing] is true.
    */
   fun refresh()
 
   /**
-   * Log events for Studio stats
+   * Report this client's capabilities so that external systems can check what functionality is
+   * available before interacting with some of this client's methods.
    */
-  fun logEvent(type: DynamicLayoutInspectorEventType)
+  val capabilities: EnumSet<Capability>
+    get() = EnumSet.noneOf(Capability::class.java)
 
   val state: State
 
@@ -103,12 +141,14 @@ interface InspectorClient {
 }
 
 object DisconnectedClient : InspectorClient {
-  override fun register(groupId: EventGroupIds, callback: (Any) -> Unit) {}
   override fun connect() {}
   override fun disconnect(): Future<Nothing> = CompletableFuture.completedFuture(null)
-  override fun execute(command: LayoutInspectorCommand) {}
+
+  override fun registerErrorCallback(callback: (String) -> Unit) = Unit
+  override fun registerTreeEventCallback(callback: (Any) -> Unit) = Unit
+  override fun startFetching() = Unit
+  override fun stopFetching() = Unit
   override fun refresh() {}
-  override fun logEvent(type: DynamicLayoutInspectorEventType) {}
 
   override val state = InspectorClient.State.DISCONNECTED
   override val process = object : ProcessDescriptor {

@@ -23,6 +23,7 @@ import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Transport
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import junit.framework.TestCase.assertEquals
@@ -43,7 +44,7 @@ class TransportInspectorClientTest {
   @Test
   fun testCorrectEventsRun() {
     inspectorRule.processNotifier.fireConnected(PROCESS)
-    val client = inspectorRule.inspectorClient
+    val client = inspectorRule.inspectorClient as TransportInspectorClient
     var called = 0
     // Need to register as a group that's not already used.
     client.register(Common.Event.EventGroupIds.INVALID) { called++ }

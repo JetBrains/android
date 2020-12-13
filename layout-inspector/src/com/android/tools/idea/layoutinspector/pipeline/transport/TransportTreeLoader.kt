@@ -27,7 +27,6 @@ import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.RequestedNodeInfo
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
@@ -167,7 +166,7 @@ private class TransportTreeLoaderImpl(
     }
   }
 
-  private fun processPng(bytes: ByteArray, rootView: ViewNode, client: InspectorClient) {
+  private fun processPng(bytes: ByteArray, rootView: ViewNode, client: TransportInspectorClient) {
     ImageIO.read(ByteArrayInputStream(bytes))?.let {
       ViewNode.writeDrawChildren { drawChildren ->
         rootView.flatten().forEach { it.drawChildren().clear() }

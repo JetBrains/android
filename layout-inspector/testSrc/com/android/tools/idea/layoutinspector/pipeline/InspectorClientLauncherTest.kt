@@ -23,9 +23,7 @@ import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.google.common.truth.Truth.assertThat
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import org.junit.Rule
@@ -46,16 +44,18 @@ class InspectorClientLauncherTest {
     private val onDisconnected: () -> Unit = {})
     : AbstractInspectorClient(process) {
 
+    override fun startFetching() = throw NotImplementedError()
+    override fun stopFetching() = throw NotImplementedError()
+    override fun refresh() = throw NotImplementedError()
+
     override fun doConnect() {}
     override fun doDisconnect(): Future<*> {
       onDisconnected()
       return CompletableFuture.completedFuture(null)
     }
 
-    override fun execute(command: LayoutInspectorProto.LayoutInspectorCommand) = throw NotImplementedError()
-    override fun refresh() = throw NotImplementedError()
-    override fun logEvent(type: DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType) = throw NotImplementedError()
-
+    override val capabilities
+      get() = throw NotImplementedError()
     override val treeLoader: TreeLoader get() = throw NotImplementedError()
     override val isCapturing: Boolean get() = throw NotImplementedError()
     override val provider: PropertiesProvider get() = throw NotImplementedError()
