@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.project.AndroidNotification
@@ -35,6 +36,7 @@ import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.idea.transport.poller.TransportEventPoller
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Commands.Command
@@ -64,6 +66,7 @@ import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.asCoroutineDispatcher
 import java.awt.Component
 import java.awt.event.ActionEvent
+import java.util.EnumSet
 import java.util.concurrent.Future
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
@@ -82,6 +85,10 @@ class TransportInspectorClient(
   model: InspectorModel,
   private val transportComponents: TransportComponents
 ) : AbstractInspectorClient(process) {
+
+  override val capabilities = EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE)
+
+  private val eventCallbacks = mutableMapOf<EventGroupIds, MutableList<(Any) -> Unit>>()
 
   /**
    * A collection of disposable components provided by the transport framework that may get reused
@@ -118,19 +125,8 @@ class TransportInspectorClient(
   // Map of message group id to map of root view drawId to timestamp. "null" window id corresponds to messages with an empty window list.
   private val lastResponseTimePerWindow = mutableMapOf<Long, MutableMap<Long?, Long>>()
 
-  override var isCapturing: Boolean
+  override val isCapturing: Boolean
     get() = isCapturingModeOn
-    set(value) {
-      isCapturingModeOn = value
-      if (value) {
-        execute(LayoutInspectorCommand.Type.START)
-        stats.live.toggledToLive()
-      }
-      else {
-        execute(LayoutInspectorCommand.Type.STOP)
-        stats.live.toggledToRefresh()
-      }
-    }
 
   private var debugAttributesOverridden = false
 
@@ -147,6 +143,17 @@ class TransportInspectorClient(
 
   init {
     loggedInitialRender = false
+    register(EventGroupIds.COMPONENT_TREE) { event ->
+      fireTreeEvent(event)
+    }
+    register(EventGroupIds.LAYOUT_INSPECTOR_ERROR) { event ->
+      val error = when (event) {
+        is LayoutInspectorProto.LayoutInspectorEvent -> event.errorMessage
+        is String -> event
+        else -> "Unknown Error"
+      }
+      fireError(error)
+    }
   }
 
   override fun doConnect() {
@@ -156,7 +163,18 @@ class TransportInspectorClient(
   // TODO: detect when a connection is dropped
   // TODO: move all communication with the agent off the UI thread
 
-  override fun onRegistered(groupId: EventGroupIds) {
+  /**
+   * Register a callback that will be triggered whenever transport pipeline sends us an event
+   * associated with the specified [groupId].
+   */
+  fun register(groupId: EventGroupIds, callback: (Any) -> Unit) {
+    eventCallbacks.getOrPut(groupId) { mutableListOf() }.add(callback)
+    if (eventCallbacks.getValue(groupId).size == 1) {
+      onRegistered(groupId)
+    }
+  }
+
+  private fun onRegistered(groupId: EventGroupIds) {
     listeners.add(TransportEventListener(
       eventKind = Common.Event.Kind.LAYOUT_INSPECTOR,
       executor = MoreExecutors.directExecutor(),
@@ -195,26 +213,20 @@ class TransportInspectorClient(
   }
 
   fun requestScreenshotMode() {
-    val inspectorCommand = LayoutInspectorCommand.newBuilder()
-      .setType(LayoutInspectorCommand.Type.USE_SCREENSHOT_MODE)
-      .setScreenshotMode(true)
-      .build()
-    execute(inspectorCommand)
+    execute(LayoutInspectorCommand.Type.USE_SCREENSHOT_MODE.toCommand().apply {
+      screenshotMode = true
+    })
   }
 
-  private fun execute(commandType: LayoutInspectorCommand.Type) {
-    val command = LayoutInspectorCommand.newBuilder().setType(commandType)
-    when (commandType) {
-      LayoutInspectorCommand.Type.START,
-      LayoutInspectorCommand.Type.REFRESH -> command.composeMode = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT.get()
-      else -> {
-      }
-    }
-    execute(command.build())
+  private fun LayoutInspectorCommand.Type.toCommand(): LayoutInspectorCommand.Builder {
+    return LayoutInspectorCommand.newBuilder().setType(this)
   }
 
   @Slow
-  override fun execute(command: LayoutInspectorCommand) {
+  fun execute(command: LayoutInspectorCommand.Builder) = execute(command.build())
+
+  @Slow
+  fun execute(command: LayoutInspectorCommand) {
     val transportCommand = Command.newBuilder()
       .setType(Command.CommandType.LAYOUT_INSPECTOR)
       .setLayoutInspector(command)
@@ -271,11 +283,13 @@ class TransportInspectorClient(
 
   override fun refresh() {
     ApplicationManager.getApplication().executeOnPooledThread {
-      execute(LayoutInspectorCommand.Type.REFRESH)
+      execute(LayoutInspectorCommand.Type.REFRESH.toCommand().apply {
+        composeMode = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT.get()
+      })
     }
   }
 
-  override fun logEvent(type: DynamicLayoutInspectorEventType) {
+  fun logEvent(type: DynamicLayoutInspectorEventType) {
     if (!isRenderEvent(type)) {
       logEvent(type, process)
     }
@@ -309,12 +323,24 @@ class TransportInspectorClient(
 
   override fun doDisconnect(): Future<*> {
     return ApplicationManager.getApplication().executeOnPooledThread {
-      execute(LayoutInspectorCommand.Type.STOP)
+      stopFetching()
       stop()
 
       logEvent(SESSION_DATA, process)
       SkiaParser.shutdownAll()
     }
+  }
+
+  override fun startFetching() {
+    stats.live.toggledToLive()
+    execute(LayoutInspectorCommand.Type.START.toCommand().apply {
+      composeMode = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT.get()
+    })
+  }
+
+  override fun stopFetching() {
+    stats.live.toggledToRefresh()
+    execute(LayoutInspectorCommand.Type.STOP.toCommand())
   }
 
   private class OkButtonAction : AbstractAction("OK") {
@@ -333,11 +359,11 @@ class TransportInspectorClient(
     enableDebugViewAttributes(process)
 
     listeners.forEach { transportComponents.poller.registerListener(it) }
-    if (isCapturing) {
-      execute(LayoutInspectorCommand.Type.START)
+    if (isCapturingModeOn) {
+      startFetching()
     }
     else {
-      execute(LayoutInspectorCommand.Type.REFRESH)
+      refresh()
     }
   }
 
@@ -427,5 +453,12 @@ class TransportInspectorClient(
         project = project)
       dialog.show()
     }
+  }
+
+  /**
+   * Fire relevant callbacks registered with [register], if present
+   */
+  private fun fireEvent(groupId: EventGroupIds, data: Any) {
+    eventCallbacks[groupId]?.forEach { callback -> callback(data) }
   }
 }

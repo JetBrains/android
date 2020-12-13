@@ -32,7 +32,7 @@ import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_ME
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
-import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.transport.isCapturingModeOn
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
@@ -351,7 +351,7 @@ class DeviceViewPanel(
 
     override fun update(event: AnActionEvent) {
       val currentClient = client(event)
-      val isLiveInspector = currentClient.isConnected && currentClient is TransportInspectorClient
+      val isLiveInspector = currentClient.isConnected && currentClient.capabilities.contains(Capability.SUPPORTS_CONTINUOUS_MODE)
       val isLowerThenApi29 = currentClient.isConnected && currentClient.process.device.apiLevel < 29
       event.presentation.isEnabled = isLiveInspector || !currentClient.isConnected
       super.update(event)
@@ -370,12 +370,13 @@ class DeviceViewPanel(
 
     override fun setSelected(event: AnActionEvent, state: Boolean) {
       val currentClient = client(event)
-      if (!currentClient.isConnected) {
-        isCapturingModeOn = state
+      if (currentClient.capabilities.contains(Capability.SUPPORTS_CONTINUOUS_MODE)) {
+        when (state) {
+          true -> currentClient.startFetching()
+          false -> currentClient.stopFetching()
+        }
       }
-      else {
-        (currentClient as? TransportInspectorClient)?.isCapturing = state
-      }
+      isCapturingModeOn = state
     }
 
     private fun client(event: AnActionEvent): InspectorClient =

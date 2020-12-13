@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.pipeline
 
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.android.tools.profiler.proto.Common.Event.EventGroupIds
 import java.util.concurrent.Future
 
 /**
@@ -26,26 +25,29 @@ abstract class AbstractInspectorClient(final override val process: ProcessDescri
   final override var state: InspectorClient.State = InspectorClient.State.INITIALIZED
     private set
 
-  private val eventCallbacks = mutableMapOf<EventGroupIds, MutableList<(Any) -> Unit>>()
+  private val errorCallbacks = mutableListOf<(String) -> Unit>()
+  private val treeEventCallbacks = mutableListOf<(Any) -> Unit>()
 
-  final override fun register(groupId: EventGroupIds, callback: (Any) -> Unit) {
-    eventCallbacks.getOrPut(groupId) { mutableListOf() }.add(callback)
-    if (eventCallbacks.getValue(groupId).size == 1) {
-      onRegistered(groupId)
-    }
+  final override fun registerErrorCallback(callback: (String) -> Unit) {
+    errorCallbacks.add(callback)
+  }
+
+  final override fun registerTreeEventCallback(callback: (Any) -> Unit) {
+    treeEventCallbacks.add(callback)
   }
 
   /**
-   * Callback triggered the first time an event handler is registered for [groupId], in case the
-   * child client needs to do some additional setup work.
+   * Fire relevant callbacks registered with [registerErrorCallback], if present
    */
-  protected open fun onRegistered(groupId: EventGroupIds) {}
+  protected fun fireError(error: String) {
+    errorCallbacks.forEach { callback -> callback(error) }
+  }
 
   /**
-   * Fire relevant callbacks registered with [register], if present.
+   * Fire relevant callbacks registered with [registerTreeEventCallback], if present.
    */
-  protected fun fireEvent(groupId: EventGroupIds, data: Any) {
-    eventCallbacks[groupId]?.forEach { callback -> callback(data) }
+  protected fun fireTreeEvent(event: Any) {
+    treeEventCallbacks.forEach { callback -> callback(event) }
   }
 
   final override fun connect() {
@@ -61,7 +63,8 @@ abstract class AbstractInspectorClient(final override val process: ProcessDescri
     state = InspectorClient.State.DISCONNECTED
 
     return doDisconnect().also {
-      eventCallbacks.clear()
+      errorCallbacks.clear()
+      treeEventCallbacks.clear()
     }
   }
 
