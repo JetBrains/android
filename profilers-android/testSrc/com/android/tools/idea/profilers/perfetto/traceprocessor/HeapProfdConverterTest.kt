@@ -41,12 +41,14 @@ class HeapProfdConverterTest {
                    .setId(2)
                    .setName(Base64.encode("Frame 1A".toByteArray()))
                    .setModule(Base64.encode("TestModule".toByteArray()))
-                   .setRelPc(1234))
+                   .setSourceFile(Base64.encode("/path/to/file.cpp".toByteArray()))
+                   .setLineNumber(10))
       .addFrames(Memory.StackFrame.newBuilder()
                    .setId(3)
                    .setName(Base64.encode("Frame 2".toByteArray()))
                    .setModule(Base64.encode("TestModule".toByteArray()))
-                   .setRelPc(1234))
+                   .setSourceFile(Base64.encode("/path/to/file2.cpp".toByteArray()))
+                   .setLineNumber(20))
       .putPointers(1, Memory.StackPointer.newBuilder()
         .setFrameId(1)
         .build())
@@ -86,24 +88,20 @@ class HeapProfdConverterTest {
                              .setSize(16)
                              .setStackId(4))
     val nativeHeapSet = NativeMemoryHeapSet(FakeCaptureObject.Builder().build())
-    val symbolizer = FakeFrameSymbolizer()
-    symbolizer.addValidSymbol("TestModule", "ValidSymbol")
-    val heapProfdConverter = HeapProfdConverter("", symbolizer, nativeHeapSet, FakeNameDemangler())
+    val heapProfdConverter = HeapProfdConverter("", nativeHeapSet, FakeNameDemangler())
     heapProfdConverter.populateHeapSet(context.build())
     val instances = nativeHeapSet.instancesStream.toList()
     // Frame 1 -> Frame1A ( Frame1 has a valid symbol as such formats the name
-    assertThat(instances[3].name).isEqualTo("ValidSymbol (ValidSymbol:123)")
+    assertThat(instances[3].name).isEqualTo("Frame 2 (/path/to/file2.cpp:20)")
     assertThat(instances[3].callStackDepth).isEqualTo(2)
     assertThat(instances[3].allocationCallStack).isNotNull()
-    assertThat(instances[3].allocationCallStack!!.fullStack.getFrames(0).methodName).isEqualTo("[Recursive] ValidSymbol (ValidSymbol:123)")
+    assertThat(instances[3].allocationCallStack!!.fullStack.getFrames(0).methodName).isEqualTo("[Recursive] Frame 2 (/path/to/file2.cpp:20)")
   }
 
   @Test
   fun heapSetConversion() {
     val nativeHeapSet = NativeMemoryHeapSet(FakeCaptureObject.Builder().build())
-    val symbolizer = FakeFrameSymbolizer()
-    symbolizer.addValidSymbol("TestModule", "ValidSymbol")
-    val heapProfdConverter = HeapProfdConverter("", symbolizer, nativeHeapSet, FakeNameDemangler())
+    val heapProfdConverter = HeapProfdConverter("", nativeHeapSet, FakeNameDemangler())
     heapProfdConverter.populateHeapSet(context.build())
     assertThat(nativeHeapSet.deltaAllocationCount).isEqualTo(7)
     assertThat(nativeHeapSet.deltaDeallocationCount).isEqualTo(4)
@@ -113,7 +111,7 @@ class HeapProfdConverterTest {
     assertThat(nativeHeapSet.instancesCount).isEqualTo(3)
     val instances = nativeHeapSet.instancesStream.toList()
     // Frame 1 -> Frame1A ( Frame1 has a valid symbol as such formats the name
-    assertThat(instances[0].name).isEqualTo("ValidSymbol (ValidSymbol:123)")
+    assertThat(instances[0].name).isEqualTo("Frame 1A (/path/to/file.cpp:10)")
     assertThat(instances[0].callStackDepth).isEqualTo(1)
     assertThat(instances[0].allocationCallStack).isNotNull()
     assertThat(instances[0].allocationCallStack!!.fullStack.getFrames(0).methodName).isEqualTo("Frame 1")
@@ -122,27 +120,6 @@ class HeapProfdConverterTest {
     assertThat(instances[1].name).isEqualTo("Frame 1")
     // Invalid link returns unknown
     assertThat(instances[2].name).isEqualTo("unknown")
-    assertThat(symbolizer.stopCalled).isTrue()
-  }
-
-  class FakeFrameSymbolizer : NativeFrameSymbolizer {
-    private val symbols = newHashMap<String, String>()
-    var stopCalled = false
-    fun addValidSymbol(symbol: String, path: String) {
-      symbols[symbol] = path
-    }
-
-    override fun symbolize(abi: String?,
-                           unsymbolizedFrame: com.android.tools.profiler.proto.Memory.NativeCallStack.NativeFrame?):
-      com.android.tools.profiler.proto.Memory.NativeCallStack.NativeFrame {
-      // Lookup symbol else return as if the symbolizer failed.
-      val symbolName = symbols[unsymbolizedFrame!!.moduleName] ?: "0x00"
-      return unsymbolizedFrame.toBuilder().setSymbolName(symbolName).setFileName(symbolName).setLineNumber(123).build()
-    }
-
-    override fun stop() {
-      stopCalled = true
-    }
   }
 
   class FakeNameDemangler : NameDemangler {
