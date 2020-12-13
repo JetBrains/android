@@ -29,8 +29,6 @@ import com.android.ide.common.util.PathString;
 import com.android.manifmerger.Actions;
 import com.android.repository.api.RemotePackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.diagnostics.crash.GenericStudioReport;
-import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository;
 import com.android.tools.idea.lint.common.LintIdeClient;
@@ -45,6 +43,7 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.lint.client.api.PlatformLookup;
 import com.android.tools.lint.detector.api.DefaultPosition;
 import com.android.tools.lint.detector.api.Desugaring;
 import com.android.tools.lint.detector.api.Location;
@@ -163,10 +162,26 @@ public class AndroidLintIdeClient extends LintIdeClient {
   }
 
   private AndroidSdkHandler sdk = null;
+  @Nullable
+  private PlatformLookup platformLookup = null;
 
   @Nullable
   @Override
-  public AndroidSdkHandler getSdk() {
+  public PlatformLookup getPlatformLookup() {
+    if (platformLookup == null) {
+      AndroidSdkHandler handler = getSdk();
+      if (handler != null) {
+        StudioLoggerProgressIndicator logger = new StudioLoggerProgressIndicator(AndroidLintIdeClient.class);
+        platformLookup = new SdkManagerPlatformLookup(handler, logger);
+      } else {
+        platformLookup = super.getPlatformLookup();
+      }
+    }
+    return platformLookup;
+  }
+
+  @Nullable
+  protected AndroidSdkHandler getSdk() {
     if (sdk == null) {
       Module module = getModule();
       AndroidSdkHandler localSdk = getLocalSdk(module);
@@ -183,7 +198,10 @@ public class AndroidLintIdeClient extends LintIdeClient {
         }
 
         if (localSdk == null) {
-          sdk = super.getSdk();
+          File sdkHome = getSdkHome();
+          if (sdkHome != null) {
+            sdk = AndroidSdkHandler.getInstance(sdkHome.toPath());
+          }
         }
       }
     }
