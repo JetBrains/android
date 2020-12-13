@@ -27,6 +27,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceItem
+import com.android.ide.common.resources.ResourceItemWithVisibility
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceVisitor
 import com.android.ide.common.resources.configuration.FolderConfiguration
@@ -46,7 +47,6 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.parseColor
 import com.android.tools.idea.res.resolveAsIcon
 import com.android.tools.idea.res.resolveColor
-import com.android.tools.idea.resources.base.BasicResourceItem
 import com.android.tools.idea.uibuilder.property2.support.ColorSelectionAction
 import com.android.tools.idea.uibuilder.property2.support.EmptyBrowseActionIconButton
 import com.android.tools.idea.uibuilder.property2.support.HelpActions
@@ -367,11 +367,13 @@ open class NelePropertyItem(
       values.addAll(valueSet.sorted())
       valueSet.clear()
 
+      val publicResources = mutableSetOf<ResourceItem>()
       // AAR resources.
       localRepository.accept(object : ResourceVisitor {
         override fun visit(resourceItem: ResourceItem): ResourceVisitor.VisitResult {
-          if (resourceItem is BasicResourceItem && resourceItem.visibility == ResourceVisibility.PUBLIC) {
-            valueSet.add(toName(resourceItem))
+          if (resourceItem is ResourceItemWithVisibility && resourceItem.visibility == ResourceVisibility.PUBLIC &&
+              resourceItem.libraryName != null) {
+            publicResources.add(resourceItem)
           }
           return ResourceVisitor.VisitResult.CONTINUE
         }
@@ -382,7 +384,7 @@ open class NelePropertyItem(
       })
 
       // Sort and add to the result list:
-      values.addAll(valueSet.sorted())
+      values.addAll(publicResources.map(toName).sorted())
       valueSet.clear()
 
       // Framework resources.
