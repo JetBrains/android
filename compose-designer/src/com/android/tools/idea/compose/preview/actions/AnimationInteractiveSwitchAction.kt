@@ -17,12 +17,17 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.util.ActionButtonWithToolTipDescription
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import icons.StudioIcons
+import javax.swing.JComponent
 
 internal class AnimationInteractiveSwitchAction :
-  ToggleAction("", "", StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR) {
+  ToggleAction("", "", StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR),
+  CustomComponentAction {
 
   override fun isSelected(e: AnActionEvent) =
     findComposePreviewManagersForContext(e.dataContext).any { it.animationInspectionPreviewElementInstance != null }
@@ -39,7 +44,7 @@ internal class AnimationInteractiveSwitchAction :
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    with (e.presentation) {
+    with(e.presentation) {
       isEnabled = findComposePreviewManagersForContext(e.dataContext).any {
         it.animationInspectionPreviewElementInstance?.hasAnimations == true || it.interactivePreviewElementInstance?.hasAnimations == true
       }
@@ -47,10 +52,15 @@ internal class AnimationInteractiveSwitchAction :
         it.animationInspectionPreviewElementInstance != null || it.interactivePreviewElementInstance != null
       }
       val selected = isSelected(e)
-      description =
-        if (selected) message("action.stop.animation.inspector.description") else message("action.animation.inspector.description")
+      description = if (isEnabled && !selected) message("action.animation.inspector.description") else ""
       text =
-        if (selected) message("action.stop.animation.inspector.title") else message("action.animation.inspector.title")
+        if (isEnabled) {
+          if (selected) message("action.stop.animation.inspector.title") else message("action.animation.inspector.title")
+        } else message("action.animation.inspector.unavailable.title")
     }
+  }
+
+  override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
+    return ActionButtonWithToolTipDescription(this, presentation, place)
   }
 }

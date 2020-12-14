@@ -20,7 +20,7 @@ import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model
-import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.testing.AndroidProjectRule

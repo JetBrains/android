@@ -118,9 +118,9 @@
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="perfetto-proto" level="project" />
     <orderEntry type="module-library" scope="PROVIDED">
-      <library>
+      <library name="layoutlib">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/studio/layoutlib/data/layoutlib_native.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/studio/layoutlib/data/layoutlib.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

@@ -32,6 +32,7 @@ import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import java.awt.Cursor;
+import java.awt.EventQueue;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -121,7 +122,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
         String keyStorePasswordKey = makePasswordKey(KEY_STORE_PASSWORD_KEY, settings.KEY_STORE_PATH, null);
         String password = retrievePassword(KeyStorePasswordRequestor.class, keyStorePasswordKey);
         if (password != null) {
-          application.invokeLater(() -> myKeyStorePasswordField.setText(password), o -> myWizard.isDisposed());
+          EventQueue.invokeLater(() -> myKeyStorePasswordField.setText(password));
         }
       });
 
@@ -129,7 +130,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
         String keyPasswordKey = makePasswordKey(KEY_PASSWORD_KEY, settings.KEY_STORE_PATH, settings.KEY_ALIAS);
         String password = retrievePassword(KeyPasswordRequestor.class, keyPasswordKey);
         if (password != null) {
-          application.invokeLater(() -> myKeyPasswordField.setText(password), o -> myWizard.isDisposed());
+          EventQueue.invokeLater(() -> myKeyPasswordField.setText(password));
         }
       });
     }

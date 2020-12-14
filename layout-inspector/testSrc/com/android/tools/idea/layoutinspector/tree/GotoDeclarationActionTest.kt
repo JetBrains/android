@@ -85,7 +85,6 @@ class GotoDeclarationActionTest {
     checkEditor("demo.xml", 8, "<TextView")
   }
 
-  @Ignore("b/174295048")
   @RunsInEdt
   @Test
   fun testComposeViewNode() {
@@ -144,9 +143,9 @@ class GotoDeclarationActionTest {
   private fun createModel(): InspectorModel =
     model(projectRule.project, DemoExample.setUpDemo(projectRule.fixture) {
       view(0, qualifiedName = "androidx.ui.core.AndroidComposeView") {
-        compose(-2, "Column", "MyCompose.kt", 49835523, 508, 17) {
-          compose(-3, "Text", "MyCompose.kt", 49835523, 561, 18)
-          compose(-4, "Greeting", "MyCompose.kt", 49835523, 590, 19) {
+        compose(-2, "Column", "MyCompose.kt", 49835523, 532, 17) {
+          compose(-3, "Text", "MyCompose.kt", 49835523, 585, 18)
+          compose(-4, "Greeting", "MyCompose.kt", 49835523, 614, 19) {
             compose(-5, "Text", "MyCompose.kt", 1216697758, 156, 3)
           }
         }

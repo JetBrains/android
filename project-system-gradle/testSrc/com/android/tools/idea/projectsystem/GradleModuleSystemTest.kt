@@ -50,7 +50,7 @@ import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
-import java.io.File
+import java.nio.file.Paths
 import java.util.Collections
 
 /**
@@ -69,8 +69,8 @@ class GradleModuleSystemTest : AndroidTestCase() {
   private val gradleDependencyManager get() = _gradleDependencyManager!!
   private val gradleModuleSystem get() = _gradleModuleSystem!!
 
-  private val mavenRepository = object : GoogleMavenRepository(File(AndroidTestBase.getTestDataPath(),
-                                                                    "../../project-system-gradle/testData/repoIndex"),
+  private val mavenRepository = object : GoogleMavenRepository(Paths.get(AndroidTestBase.getTestDataPath()).resolve(
+                                                               "../../project-system-gradle/testData/repoIndex").normalize(),
                                                                cacheExpiryHours = Int.MAX_VALUE, useNetwork = false) {
     override fun readUrlData(url: String, timeout: Int): ByteArray? = throw AssertionFailedError("shouldn't try to read!")
 

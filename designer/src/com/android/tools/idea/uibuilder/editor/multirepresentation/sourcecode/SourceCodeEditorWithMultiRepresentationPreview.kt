@@ -28,23 +28,19 @@ import com.intellij.openapi.project.Project
 internal class SourceCodeEditorWithMultiRepresentationPreview(project: Project, textEditor: TextEditor, preview: SourceCodePreview) :
   TextEditorWithMultiRepresentationPreview<SourceCodePreview>(project, textEditor, preview, "Source Code Editor With Preview") {
   override fun getState(level: FileEditorStateLevel): SourceCodeEditorWithMultiRepresentationPreviewState =
-    SourceCodeEditorWithMultiRepresentationPreviewState(super.getState(level), textEditor.getState(level), preview.getState(level))
-
-  override fun setState(state: FileEditorState, exactState: Boolean) {
-    if (state is SourceCodeEditorWithMultiRepresentationPreviewState) {
-      super.setState(state.parentState, exactState)
-      textEditor.setState(state.editorState)
-      preview.setState(state.previewState)
-    } else {
-      super.setState(state, exactState)
-    }
-  }
+    SourceCodeEditorWithMultiRepresentationPreviewState(
+      super.getState(level),
+      textEditor.getState(level),
+      preview.getState(level),
+      if (isPureTextEditor) null else layout)
 
   override fun setState(state: FileEditorState) {
     if (state is SourceCodeEditorWithMultiRepresentationPreviewState) {
       super.setState(state.parentState)
       textEditor.setState(state.editorState)
       preview.setState(state.previewState)
+
+      layout = state.selectedLayout
     } else {
       super.setState(state)
     }

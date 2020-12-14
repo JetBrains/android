@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeRef
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INVALID_EXPRESSION
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
-import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
@@ -33,6 +32,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement
@@ -71,7 +71,6 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.KtScriptInitializer
-import org.jetbrains.kotlin.psi.KtStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.KtValueArgument
@@ -388,10 +387,27 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     when {
       expression.operationToken == KtTokens.EQ -> processAssignment(expression, parent)
       // TODO(b/165576187): this allows us to parse plugins with versions, but the association between the Dsl and Psi is not ideal
-      //  (deleting the plugin from the Dsl Model will only delete the left-hand side of the version infix operator.
-      expression.operationReference.getReferencedName() == "version" && parent is PluginsDslElement ->
-        expression.left?.let { it.accept(this, parent) }
+      //  (deleting the plugin from the Dsl Model will only delete the left-hand side of the version infix operator).
+      listOf("version", "apply").contains(expression.operationReference.getReferencedName()) ->
+        processPluginDeclaration(expression, parent)
     }
+  }
+
+  private fun processPluginDeclaration(expression: KtBinaryExpression, parent: GradlePropertiesDslElement) {
+    // This way of tracking what's going on -- are we accumulating or creating -- is a bit of a hack.  It does allow us
+    // to re-use the existing visitor; a cleaner solution might involve a specialized visitor passed to accept (rather than `this`)
+    val pluginDslElement = when(parent) {
+      is GradleDslInfixExpression -> parent // already processing one
+      else -> GradleDslInfixExpression(parent, expression).also { parent.addParsedElement(it) }
+    }
+    val left = expression.left ?: return
+    left.accept(this, pluginDslElement)
+    val right = expression.right ?: return
+    // TODO(xof): The psiElement argument here covering the entire expression is wrong.  The Kotlin Psi does not have an element covering
+    //  both the operation and the right-hand expression, which is what we would need (e.g. to delete `apply false` from a plugin
+    //  declaration) so we might have to define our own composite Psi element somehow.
+    val rightExpression = getExpressionElement(pluginDslElement, right, GradleNameElement.from(expression.operationReference, this), right)
+    pluginDslElement.addParsedElement(rightExpression)
   }
 
   private fun processAssignment(expression: KtBinaryExpression, parent: GradlePropertiesDslElement) {

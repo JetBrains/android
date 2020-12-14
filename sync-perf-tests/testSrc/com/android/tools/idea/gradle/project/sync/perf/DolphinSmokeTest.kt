@@ -19,7 +19,7 @@ import com.intellij.openapi.util.io.FileUtil
 import org.junit.Before
 import java.io.File
 
-class DolphinSmokeTest: AbstractGradleSyncPerfSmokeTestCase() {
+class DolphinSmokeTest: AbstractGradleSyncSmokeTestCase() {
   override val relativePath: String = TestProjectPaths.DOLPHIN_PROJECT_ANDROID_ROOT
   //Do not build (times out in pre submit)
   override val buildTask: String? = null

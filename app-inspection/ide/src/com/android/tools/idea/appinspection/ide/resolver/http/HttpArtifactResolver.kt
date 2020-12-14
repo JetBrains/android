@@ -17,60 +17,36 @@ package com.android.tools.idea.appinspection.ide.resolver.http
 
 import com.android.repository.api.ConsoleProgressIndicator
 import com.android.repository.api.Downloader
-import com.android.tools.idea.appinspection.ide.resolver.AppInspectorJarPaths
 import com.android.tools.idea.appinspection.inspector.api.io.FileService
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
-import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverRequest
-import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverResult
-import com.android.tools.idea.appinspection.inspector.ide.resolver.FailureResult
-import com.android.tools.idea.appinspection.inspector.ide.resolver.SuccessfulResult
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.sdk.StudioDownloader
-import com.intellij.openapi.project.Project
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import com.intellij.util.io.exists
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.net.URL
+import java.nio.file.Path
 
 class HttpArtifactResolver(
   fileService: FileService,
-  private val jarPaths: AppInspectorJarPaths,
   private val downloader: Downloader = StudioDownloader()
 ) : ArtifactResolver {
   private val tmpDir = fileService.getOrCreateTempDir("http-tmp")
-  override suspend fun <T : ArtifactResolverRequest> resolveArtifacts(
-    requests: List<T>,
-    project: Project
-  ): List<ArtifactResolverResult<T>> = coroutineScope {
-    requests
-      .filter { jarPaths.getInspectorJar(it.artifactCoordinate) == null }
-      .map { request ->
-        async(AndroidDispatchers.ioThread) {
-          try {
-            downloader.downloadFullyWithCaching(request.artifactCoordinate.toGMavenUrl(), request.artifactCoordinate.getTmpFile(), null,
-                                                ConsoleProgressIndicator())
-            request
-          }
-          catch (e: IOException) {
-            null
-          }
-        }
+  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path? {
+    return withContext(AndroidDispatchers.ioThread) {
+      try {
+        downloader.downloadFullyWithCaching(artifactCoordinate.toGMavenUrl(), artifactCoordinate.getTmpFile(), null,
+                                            ConsoleProgressIndicator())
+        artifactCoordinate.getTmpFile().takeIf { it.exists() }
       }
-      .awaitAll()
-      .filterNotNull()
-      .associate { it.artifactCoordinate to it.artifactCoordinate.getTmpFile().toPath() }
-      .let { if (it.isNotEmpty()) jarPaths.populateJars(it) }
-
-    requests.map { request ->
-      jarPaths.getInspectorJar(request.artifactCoordinate)?.let {
-        SuccessfulResult(request, it)
-      } ?: FailureResult(request)
+      catch (e: IOException) {
+        null
+      }
     }
   }
 
-  private fun ArtifactCoordinate.getTmpFile() = tmpDir.resolve(fileName).toFile()
+  private fun ArtifactCoordinate.getTmpFile() = tmpDir.resolve(fileName)
 
   private fun ArtifactCoordinate.toGMavenUrl() = URL(
     "http://maven.google.com/${groupId.replace('.', '/')}/${artifactId}/${version}/${fileName}")

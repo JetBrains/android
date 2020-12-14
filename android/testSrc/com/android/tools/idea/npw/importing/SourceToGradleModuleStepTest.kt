@@ -44,7 +44,7 @@ class SourceToGradleModuleStepTest : AndroidGradleTestCase() {
 
   fun testCheckPathEmptyPath() {
     // Don't validate default empty input: jetbrains.github.io/ui/principles/validation_errors/#23
-    assertEquals(Validator.Severity.OK, page.checkPath("").severity)
+    assertEquals(Validator.Severity.OK, page.updateStepStatus("").severity)
   }
 
   fun testCheckPathNotAProject() {

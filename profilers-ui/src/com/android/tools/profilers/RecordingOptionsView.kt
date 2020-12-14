@@ -18,11 +18,9 @@ package com.android.tools.profilers
 import com.android.tools.adtui.model.AspectObserver
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.ui.panel.PanelBuilder
-import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.UI
 import java.awt.BorderLayout
-import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -32,10 +30,8 @@ import javax.swing.BoxLayout
 import javax.swing.ButtonGroup
 import javax.swing.JButton
 import javax.swing.JComponent
-import javax.swing.JFrame
 import javax.swing.JRadioButton
 import javax.swing.MutableComboBoxModel
-import kotlin.math.max
 
 /**
  * This class implements the UI for selecting and performing recording options.
@@ -79,12 +75,11 @@ class RecordingOptionsView @JvmOverloads constructor(private val recordingModel:
 
   init {
     val btnRow =
-      if (configComponents != null)
-        JBPanel<Nothing>(BorderLayout()).apply {
-          add(configComponents.button, BorderLayout.LINE_START)
-          add(startStopButton, BorderLayout.LINE_END)
-        }
-      else startStopButton
+      JBPanel<Nothing>(FlowLayout(FlowLayout.LEADING)).apply {
+        configComponents?.let { add(it.button) }
+        add(startStopButton)
+      }
+
     val content = JBPanel<Nothing>(BorderLayout()).apply {
       add(optionRows, BorderLayout.CENTER)
       add(btnRow, BorderLayout.SOUTH)
@@ -99,6 +94,28 @@ class RecordingOptionsView @JvmOverloads constructor(private val recordingModel:
 
     onRecordingChanged()
     onSelectionChanged()
+  }
+
+  override fun setEnabled(enabled: Boolean) {
+    super.setEnabled(enabled)
+    // Set enabled status according to model
+    if (enabled) {
+      onRecordingChanged()
+      onSelectionChanged()
+      configComponents?.apply {
+        button.isEnabled = true
+      }
+    }
+    // Disable everything
+    else {
+      startStopButton.isEnabled = false
+      builtInRadios.forEach { it.isEnabled = false }
+      configComponents?.apply {
+        menu.isEnabled = false
+        radio.isEnabled = false
+        button.isEnabled = false
+      }
+    }
   }
 
   private fun makeRows(): List<Pair<JComponent, String>> {
@@ -118,11 +135,11 @@ class RecordingOptionsView @JvmOverloads constructor(private val recordingModel:
 
   private fun onSelectionChanged() = when {
     recordingModel.isSelectedOptionBuiltIn -> {
-      startStopButton.isEnabled = true
+      startStopButton.isEnabled = !recordingModel.isRecording || recordingModel.canStop()
       builtInRadios[recordingModel.builtInOptions.indexOf(recordingModel.selectedOption)].isSelected = true
     }
     recordingModel.isSelectedOptionCustom -> {
-      startStopButton.isEnabled = true
+      startStopButton.isEnabled = !recordingModel.isRecording || recordingModel.canStop()
       configComponents!!.radio.isSelected = true
       configComponents.menu.selectedItem = recordingModel.selectedOption!!
     }

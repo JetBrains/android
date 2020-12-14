@@ -74,12 +74,12 @@ internal class AppInspectionTargetManager internal constructor(
     }
   }
 
-  override fun onProcessConnected(descriptor: ProcessDescriptor) {
+  override fun onProcessConnected(process: ProcessDescriptor) {
   }
 
-  override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+  override fun onProcessDisconnected(process: ProcessDescriptor) {
     // There is no need to explicitly dispose clients here because they are handled by AppInspectorConnection.
-    targets.remove(descriptor)?.targetDeferred?.cancel()
+    targets.remove(process)?.targetDeferred?.cancel()
   }
 
   suspend fun getTarget(descriptor: ProcessDescriptor): AppInspectionTarget? {

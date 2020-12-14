@@ -92,6 +92,11 @@ interface ComposePreviewView {
   var isInteractive: Boolean
 
   /**
+   * Sets whether the panel has content to display. If it does not, it will display an overlay with a message for the user.
+   */
+  var hasContent: Boolean
+
+  /**
    * Method called to force an update on the notifications for the given [FileEditor].
    */
   fun updateNotifications(parentEditor: FileEditor)
@@ -349,7 +354,13 @@ internal class ComposePreviewViewImpl(private val project: Project,
     else {
       log.debug("Show content")
       hideLoading()
-      showContent()
+      if (hasContent) {
+        showContent()
+      }
+      else {
+        hideContent()
+        loadingStopped(message("panel.no.previews.defined"))
+      }
     }
 
     updateNotifications()
@@ -371,6 +382,8 @@ internal class ComposePreviewViewImpl(private val project: Project,
         delegateInteractionHandler.delegate = staticPreviewInteractionHandler
       }
     }
+
+  override var hasContent: Boolean = true
 
   override var bottomPanel: JComponent?
     set(value) {

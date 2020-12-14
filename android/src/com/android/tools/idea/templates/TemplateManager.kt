@@ -132,7 +132,7 @@ class TemplateManager private constructor() {
 
     for (templateName in categoryRow.keys) {
       val template = _categoryTable!![category, templateName]!!
-      val templateAction = NewAndroidComponentAction(category, templateName, template.minSdk, template.minCompileSdk, template.constraints)
+      val templateAction = NewAndroidComponentAction(category, templateName, template.minSdk, template.constraints)
       val actionId = ACTION_ID_PREFIX + category + templateName
       am.replaceAction(actionId, templateAction)
       categoryGroup.add(templateAction)
@@ -162,7 +162,7 @@ class TemplateManager private constructor() {
       return
     }
     val existingTemplate = _categoryTable!![category, name]
-    if (existingTemplate == null || template.revision > existingTemplate.revision) {
+    if (existingTemplate == null) {
       _categoryTable!!.put(category, name, template)
     }
   }

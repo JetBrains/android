@@ -192,7 +192,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_ANIMATIONS_PREVIEW = Flag.create(
     NELE, "animated.preview", "Show preview animations toolbar",
     "Show an animations bar that allows playback of vector drawable animations.",
-    false);
+    true);
   public static final Flag<Boolean> NELE_MOTION_LAYOUT_ANIMATIONS = Flag.create(
     NELE, "animated.motion.layout", "Show preview animations toolbar for MotionLayout",
     "Show an animations bar that allows playback of MotionLayout animations.",
@@ -347,6 +347,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_CLASS_BINARY_CACHE = Flag.create(
     NELE, "toggle.layout.editor.class.binary.cache", "Enable binary cache",
     "Enable binary cache of classes used in preview",
+    true);
+
+  public static final Flag<Boolean> NELE_STATE_LIST_PICKER = Flag.create(
+    NELE, "state.list.picker", "Enable State List Picker",
+    "Enable state list picker for selector drawable.",
     true);
 
   //endregion
@@ -1072,6 +1077,13 @@ public final class StudioFlags {
     APP_INSPECTION, "enable.tool.window", "Enable App Inspection Tool Window",
     "Enables the top-level App Inspection tool window, which will contain tabs to various feature inspectors",
     true
+  );
+
+  public static final Flag<Boolean> ENABLE_APP_INSPECTION_DEV_MODE = Flag.create(
+    APP_INSPECTION, "enable.dev.mode", "Enable App Inspection Dev Mode",
+    "Enables development mode for App Inspection. Dev mode turns off features of bundling, which includes version checking " +
+    "and dynamic resolving of inspector artifacts from maven. This is useful for devs who want to load locally built inspectors.",
+    false
   );
   // endregion
 

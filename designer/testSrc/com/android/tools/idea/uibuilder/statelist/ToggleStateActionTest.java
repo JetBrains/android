@@ -29,8 +29,6 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.util.Collections;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 

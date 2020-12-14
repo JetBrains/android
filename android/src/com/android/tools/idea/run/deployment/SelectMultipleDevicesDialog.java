@@ -23,12 +23,9 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import java.awt.Component;
-import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.swing.Action;
 import javax.swing.GroupLayout;
@@ -46,9 +43,7 @@ final class SelectMultipleDevicesDialog extends DialogWrapper {
   private final Project myProject;
 
   private final @NotNull BooleanSupplier myRunOnMultipleDevicesActionEnabledGet;
-
-  @NotNull
-  private final TableModel myTableModel;
+  private final @NotNull TableModel myModel;
 
   @NotNull
   private final Function<Project, DevicesSelectedService> myDevicesSelectedServiceGetInstance;
@@ -66,13 +61,13 @@ final class SelectMultipleDevicesDialog extends DialogWrapper {
   @VisibleForTesting
   SelectMultipleDevicesDialog(@NotNull Project project,
                               @NotNull BooleanSupplier runOnMultipleDevicesActionEnabledGet,
-                              @NotNull TableModel tableModel,
-                              @NotNull Function<Project, DevicesSelectedService> devicesSelectedServiceGetInstance) {
+                              @NotNull SelectMultipleDevicesDialogTableModel model,
+                              @NotNull Function<@NotNull Project, @NotNull DevicesSelectedService> devicesSelectedServiceGetInstance) {
     super(project);
 
     myProject = project;
     myRunOnMultipleDevicesActionEnabledGet = runOnMultipleDevicesActionEnabledGet;
-    myTableModel = tableModel;
+    myModel = model;
     myDevicesSelectedServiceGetInstance = devicesSelectedServiceGetInstance;
 
     initTable();
@@ -83,7 +78,7 @@ final class SelectMultipleDevicesDialog extends DialogWrapper {
 
   private void initTable() {
     if (myRunOnMultipleDevicesActionEnabledGet.getAsBoolean()) {
-      myTableModel.addTableModelListener(event -> {
+      myModel.addTableModelListener(event -> {
         if (event.getColumn() == SelectMultipleDevicesDialogTableModel.SELECTED_MODEL_COLUMN_INDEX &&
             event.getType() == TableModelEvent.UPDATE) {
           assert myTable != null;
@@ -93,13 +88,9 @@ final class SelectMultipleDevicesDialog extends DialogWrapper {
     }
 
     myTable = new SelectMultipleDevicesDialogTable();
-    myTable.setModel(myTableModel);
 
-    Collection<Key> keys = myDevicesSelectedServiceGetInstance.apply(myProject).getTargetsSelectedWithDialog().stream()
-      .map(Target::getDeviceKey)
-      .collect(Collectors.toSet());
-
-    myTable.setSelectedDevices(keys);
+    myTable.setModel(myModel);
+    myTable.setSelectedTargets(myDevicesSelectedServiceGetInstance.apply(myProject).getTargetsSelectedWithDialog());
   }
 
   private void initOkAction() {
@@ -151,14 +142,9 @@ final class SelectMultipleDevicesDialog extends DialogWrapper {
   @Override
   protected void doOKAction() {
     super.doOKAction();
+
     assert myTable != null;
-
-    Set<Target> targets = myTable.getSelectedDevices().stream()
-      .map(Device::getKey)
-      .map(Target::new)
-      .collect(Collectors.toSet());
-
-    myDevicesSelectedServiceGetInstance.apply(myProject).setTargetsSelectedWithDialog(targets);
+    myDevicesSelectedServiceGetInstance.apply(myProject).setTargetsSelectedWithDialog(myTable.getSelectedTargets());
   }
 
   @VisibleForTesting

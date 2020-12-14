@@ -56,6 +56,14 @@
       <category>Compose Android</category>
     </intentionAction>
 
+    <intentionAction>
+      <className>com.android.tools.compose.intentions.ComposeWrapModifiersAction</className>
+      <category>Compose Android</category>
+    </intentionAction>
+
+    <lang.foldingBuilder language="kotlin" implementationClass="com.android.tools.compose.ComposeFoldingBuilder"/>
+
+
     <defaultLiveTemplates file="templates/AndroidCompose.xml"/>
     <defaultLiveTemplates file="templates/AndroidComposePreview.xml"/>
 
@@ -69,19 +77,21 @@
     <postStartupActivity implementation="com.android.tools.compose.ComposeAutoDocumentation$MyStartupActivity"/>
 
     <completion.contributor language="kotlin"
-                            implementationClass="com.android.tools.compose.ComposeCompletionContributor"
+                            implementationClass="com.android.tools.compose.code.completion.ComposeCompletionContributor"
                             order="first, before KotlinCompletionContributor"/>
 
     <weigher key="completion"
-             implementationClass="com.android.tools.compose.AndroidComposeCompletionWeigher"
+             implementationClass="com.android.tools.compose.code.completion.ComposeCompletionWeigher"
              id="android.compose"
              order="first"/>
     <weigher key="completion"
-             implementationClass="com.android.tools.compose.ComposeModifiersCompletionWeigher"
+             implementationClass="com.android.tools.compose.code.completion.ComposeModifiersCompletionWeigher"
              id="android.compose.modifiers"
              order="first"/>
 
     <lang.inspectionSuppressor language="kotlin" implementationClass="com.android.tools.compose.ComposeSuppressor"/>
+
+    <postFormatProcessor implementation="com.android.tools.compose.formatting.ComposePostFormatProcessor"/>
 
   </extensions>
 

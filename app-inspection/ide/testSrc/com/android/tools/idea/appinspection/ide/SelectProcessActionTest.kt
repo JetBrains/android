@@ -1,7 +1,7 @@
 package com.android.tools.idea.appinspection.ide
 
+import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
-import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
@@ -44,6 +44,7 @@ class SelectProcessActionTest {
       .setDevice(device)
       .build()
   }
+
   private fun Common.Stream.createFakeProcess(name: String? = null, pid: Int = 0): ProcessDescriptor {
     return TransportProcessDescriptor(this, FakeTransportService.FAKE_PROCESS.toBuilder()
       .setName(name ?: FakeTransportService.FAKE_PROCESS_NAME)
@@ -56,7 +57,7 @@ class SelectProcessActionTest {
   @Test
   fun testNoProcesses() {
     val testNotifier = TestProcessNotifier()
-    val model = AppInspectionProcessModel(testNotifier) { listOf() }
+    val model = ProcessesModel(testNotifier) { listOf() }
     val selectProcessAction = SelectProcessAction(model)
     selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
     val children = selectProcessAction.getChildren(null)
@@ -67,7 +68,7 @@ class SelectProcessActionTest {
   @Test
   fun displayTextForDevicesSetAsExpected() {
     val testNotifier = TestProcessNotifier()
-    val model = AppInspectionProcessModel(testNotifier) { listOf() }
+    val model = ProcessesModel(testNotifier) { listOf() }
     val selectProcessAction = SelectProcessAction(model)
 
     val physicalStream = createFakeStream(isEmulator = false)
@@ -91,7 +92,7 @@ class SelectProcessActionTest {
   @Test
   fun addsNonPreferredAndPreferredProcess_orderEnsured() {
     val testNotifier = TestProcessNotifier()
-    val model = AppInspectionProcessModel(testNotifier) { listOf("B") }
+    val model = ProcessesModel(testNotifier) { listOf("B") }
     val selectProcessAction = SelectProcessAction(model)
 
     val fakeStream = createFakeStream()
@@ -121,7 +122,7 @@ class SelectProcessActionTest {
   @Test
   fun deadProcessesShowUpInProcessList() {
     val testNotifier = TestProcessNotifier()
-    val model = AppInspectionProcessModel(testNotifier) { listOf("A") }
+    val model = ProcessesModel(testNotifier) { listOf("A") }
     val selectProcessAction = SelectProcessAction(model)
 
     val fakeStream = createFakeStream()
@@ -149,12 +150,12 @@ class SelectProcessActionTest {
   @Test
   fun selectStopInspection_firesCallbackAndRetainsProcess() {
     val testNotifier = TestProcessNotifier()
-    val model = AppInspectionProcessModel(testNotifier) { listOf("B") }
+    val model = ProcessesModel(testNotifier) { listOf("B") }
     val fakeStream = createFakeStream()
     val processB = fakeStream.createFakeProcess("B", 101)
     val callbackFiredLatch = CountDownLatch(1)
     val selectProcessAction = SelectProcessAction(model) {
-      model.stopInspection(processB)
+      model.stop()
       callbackFiredLatch.countDown()
     }
 

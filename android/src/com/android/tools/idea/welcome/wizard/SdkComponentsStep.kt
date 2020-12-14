@@ -20,6 +20,7 @@ import com.android.repository.api.RepoManager.RepoLoadedListener
 import com.android.repository.io.FileOpUtils
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.ValidatorPanel
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.StudioDownloader
@@ -158,9 +159,12 @@ class SdkComponentsStep(
     // path that's entered, disallow direct editing of the path.
     sdkPath.isEditable = false
 
-    sdkPath.addBrowseFolderListener(
-      "Android SDK", "Select Android SDK install directory", null,
-      FileChooserDescriptorFactory.createSingleFolderDescriptor())
+    if (!IdeInfo.getInstance().isGameTools) {
+      // Game tools does not allow changing Android SDK install directory from the UI.
+      sdkPath.addBrowseFolderListener(
+        "Android SDK", "Select Android SDK install directory", null,
+        FileChooserDescriptorFactory.createSingleFolderDescriptor())
+    }
     val smallLabelFont = JBUI.Fonts.smallFont()
     neededSpace.font = smallLabelFont
     availableSpace.font = smallLabelFont

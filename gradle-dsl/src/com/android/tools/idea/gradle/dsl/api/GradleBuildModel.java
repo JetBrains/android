@@ -101,6 +101,9 @@ public interface GradleBuildModel extends GradleFileModel {
   @NotNull
   PluginModel applyPlugin(@NotNull String plugin);
 
+  @NotNull
+  PluginModel applyPlugin(@NotNull String plugin, @NotNull String version, boolean apply);
+
   void removePlugin(@NotNull String plugin);
 
   /**

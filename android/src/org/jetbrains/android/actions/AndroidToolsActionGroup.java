@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.actions;
 
+import com.android.tools.idea.sdk.IdeSdks;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -24,11 +26,20 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * An action group containing Android tools (AVD Manager, SDK Manager, etc.). With IDEA-246051 in mind, we want to show Android tools menu
+ * whenever Android SDK is configured in IDEA regardless of Android Facet presence. This behavior will enable
+ * IDE users developing cross-platform applications (e.g. with react native) using android tools, e.g. AVD Manager.
+ */
 public class AndroidToolsActionGroup extends DefaultActionGroup implements DumbAware {
   @Override
   public void update(@NotNull AnActionEvent e) {
     final Project project = e.getData(CommonDataKeys.PROJECT);
-    e.getPresentation().setVisible(project != null && !project.isDisposed()
-                                   && ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID));
+    e.getPresentation().setVisible(project != null && !project.isDisposed() && shouldBeVisible(project));
+  }
+
+  @VisibleForTesting
+  boolean shouldBeVisible(Project project) {
+    return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID) || IdeSdks.getInstance().hasConfiguredAndroidSdk();
   }
 }

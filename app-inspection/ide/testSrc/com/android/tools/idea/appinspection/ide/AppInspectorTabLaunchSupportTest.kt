@@ -23,11 +23,6 @@ import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordin
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
-import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
-import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverRequest
-import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverResult
-import com.android.tools.idea.appinspection.inspector.ide.resolver.FailureResult
-import com.android.tools.idea.appinspection.inspector.ide.resolver.SuccessfulResult
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createFakeProcessDescriptor
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
@@ -46,6 +41,8 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.nio.file.Path
+import java.nio.file.Paths
 
 
 class AppInspectorTabLaunchSupportTest {
@@ -57,8 +54,6 @@ class AppInspectorTabLaunchSupportTest {
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionServiceRule)!!.around(projectRule)!!
-
-  private val resolvedJar = AppInspectorJar("resolved")
 
   private val notApplicableInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID) {
     override fun isApplicable() = false
@@ -90,23 +85,19 @@ class AppInspectorTabLaunchSupportTest {
    */
   @Test
   fun getApplicableTabProviders() = runBlocking<Unit> {
-    val resolver = object : ArtifactResolver {
-      override suspend fun <T : ArtifactResolverRequest> resolveArtifacts(requests: List<T>,
-                                                                          project: Project): List<ArtifactResolverResult<T>> {
-        return requests.map {
-          if (it.artifactCoordinate == unresolvedLibrary) {
-            FailureResult(it)
-          } else {
-            SuccessfulResult(it, resolvedJar)
-          }
-        }
-      }
-    }
     val support = AppInspectorTabLaunchSupport(
       { listOf(notApplicableInspector, frameworkInspector, incompatibleLibraryInspector, libraryInspector, unresolvedLibraryInspector) },
       appInspectionServiceRule.apiServices,
       projectRule.project,
-      resolver
+      object : InspectorArtifactService {
+        override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path? {
+          return if (artifactCoordinate == unresolvedLibrary) {
+            null
+          } else {
+            Paths.get("resolved", "jar")
+          }
+        }
+      }
     )
 
     transportService.setCommandHandler(
@@ -132,11 +123,11 @@ class AppInspectorTabLaunchSupportTest {
     val processReadyDeferred = CompletableDeferred<Unit>()
 
     appInspectionServiceRule.addProcessListener(object : ProcessListener {
-      override fun onProcessConnected(descriptor: ProcessDescriptor) {
+      override fun onProcessConnected(process: ProcessDescriptor) {
         processReadyDeferred.complete(Unit)
       }
 
-      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+      override fun onProcessDisconnected(process: ProcessDescriptor) {
       }
     })
 
@@ -157,7 +148,7 @@ class AppInspectorTabLaunchSupportTest {
           assertThat(tab.jar).isSameAs(TEST_JAR)
         }
         else -> {
-          assertThat(tab.jar).isSameAs(resolvedJar)
+          assertThat(tab.jar).isEqualTo(AppInspectorJar("jar", "resolved", "resolved"))
         }
       }
     }

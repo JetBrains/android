@@ -26,6 +26,7 @@ import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
 import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
+import com.android.tools.idea.sqlite.StubProcessDescriptor
 import com.android.tools.idea.sqlite.FileDatabaseException
 import com.android.tools.idea.sqlite.OfflineModeManager
 import com.android.tools.idea.sqlite.SchemaProvider
@@ -205,14 +206,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       getJdbcDatabaseConnection(testRootDisposable, databaseFileData.mainFile, FutureCallbackExecutor.wrap(taskExecutor))
     )
 
-    processDescriptor = object : ProcessDescriptor {
-      override val manufacturer = "manufacturer"
-      override val model = "model"
-      override val serial = "serial"
-      override val processName = "processName"
-      override val isEmulator = false
-      override val isRunning = false
-    }
+    processDescriptor = StubProcessDescriptor()
 
     databaseInspectorController = DatabaseInspectorControllerImpl(
       project,
@@ -1672,5 +1666,18 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     verify(databaseInspectorView).showOfflineModeUnavailablePanel()
 
     DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
+  }
+
+  fun testDatabaseNotAddedIfNotFoundInRepository() {
+    val newDatabaseId = SqliteDatabaseId.fromLiveDatabase("new-db", 99)
+    runDispatching {
+      databaseInspectorController.addSqliteDatabase(newDatabaseId)
+    }
+
+    assertFalse(databaseRepository.openDatabases.contains(newDatabaseId))
+
+    // `updateDatabases` is invoked once with empty list when the controller adds the listener to the view.
+    // here we are testing that it is not invoked more then once.
+    verify(databaseInspectorView, times(1)).updateDatabases(any())
   }
 }

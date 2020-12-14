@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
@@ -693,6 +694,27 @@ public final class GroovyDslUtil {
     else {
       throw new IllegalStateException("Unexpected element type added to Mpa: " + added);
     }
+  }
+
+  static PsiElement createInfixElement(@NotNull GradleDslSettableExpression expression) {
+    GradleDslElement parent = expression.getParent();
+    if (!(parent instanceof GradleDslInfixExpression)) return null;
+    GradleDslInfixExpression infixExpression = (GradleDslInfixExpression) parent;
+    PsiElement parentPsi = parent.create();
+    if (parentPsi == null) return null;
+    PsiElement expressionPsi = expression.getUnsavedValue();
+    if (expressionPsi == null) return null;
+
+    GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(parentPsi.getProject());
+    String expressionText = parentPsi.getText() + " " + expression.getName() + " " + expressionPsi.getText();
+    GrExpression newInfixExpression = factory.createExpressionFromText(expressionText);
+    PsiElement newParentPsi = parentPsi.replace(newInfixExpression);
+    parent.setPsiElement(newParentPsi);
+
+    expression.setPsiElement(newParentPsi.getLastChild().getLastChild());
+    expression.commit();
+    expression.reset();
+    return expression.getPsiElement();
   }
 
   static void applyDslLiteralOrReference(@NotNull GradleDslSettableExpression expression, GroovyDslWriter writer) {

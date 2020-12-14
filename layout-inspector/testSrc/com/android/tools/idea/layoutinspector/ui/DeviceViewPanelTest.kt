@@ -37,9 +37,9 @@ import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_ME
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
-import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
-import com.android.tools.idea.layoutinspector.transport.InspectorClient
-import com.android.tools.idea.layoutinspector.transport.isCapturingModeOn
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.transport.isCapturingModeOn
 import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand.Type
@@ -231,7 +231,7 @@ class DeviceViewPanelTest {
 
   @get:Rule
   val clientFactoryRule = PropertySetterRule(
-    { _, _ -> listOf(mock<DefaultInspectorClient>()) },
+    { _, _ -> listOf(mock<TransportInspectorClient>()) },
     InspectorClient.Companion::clientFactory)
 
   @Before

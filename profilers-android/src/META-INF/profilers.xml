@@ -45,5 +45,7 @@
               extensions="hprof"/>
     <fileType name="HeapProfd" implementationClass="com.android.tools.idea.profilers.capture.HeapProfdMemoryCaptureFileType"
               fieldName="INSTANCE" extensions="heapprofd"/>
+    <fileType name="PerfettoCapture" implementationClass="com.android.tools.idea.fileTypes.profiler.PerfettoCaptureFileType"
+              extensions="pftrace;perfetto-trace"/>
   </extensions>
 </idea-plugin>

@@ -18,17 +18,13 @@ package com.android.tools.idea.appinspection.ide.resolver.http
 import com.android.repository.api.Downloader
 import com.android.repository.api.ProgressIndicator
 import com.android.testutils.TestUtils.resolveWorkspacePath
-import com.android.tools.idea.appinspection.ide.resolver.AppInspectorJarPaths
-import com.android.tools.idea.appinspection.ide.resolver.TestArtifactResolverRequest
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.service.TestFileService
-import com.android.tools.idea.appinspection.inspector.ide.resolver.SuccessfulResult
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 import java.io.InputStream
 import java.net.URL
 import java.nio.file.Files
@@ -44,32 +40,25 @@ class HttpArtifactResolverTest {
   private val fakeDownloader = object : Downloader {
     override fun downloadAndStream(url: URL, indicator: ProgressIndicator): InputStream? = null
     override fun downloadFully(url: URL, indicator: ProgressIndicator): Path? = null
-    override fun downloadFully(url: URL, target: File, checksum: String?, indicator: ProgressIndicator) {}
-    override fun setDownloadIntermediatesLocation(intermediatesLocation: File) {}
+    override fun downloadFully(url: URL, target: Path, checksum: String?, indicator: ProgressIndicator) {}
+    override fun setDownloadIntermediatesLocation(intermediatesLocation: Path) {}
 
-    override fun downloadFullyWithCaching(url: URL, target: File, checksum: String?, indicator: ProgressIndicator) {
+    override fun downloadFullyWithCaching(url: URL, target: Path, checksum: String?, indicator: ProgressIndicator) {
       // Fake download by resolving the URL against the local testData directory.
       val srcFile = testData.resolve(url.path.substringAfter('/'))
-      Files.copy(srcFile, target.toPath())
+      Files.copy(srcFile, target)
     }
   }
 
   @Test
   fun downloadAndCacheArtifact() = runBlocking<Unit> {
     val fileService = TestFileService()
-    val jarPaths = AppInspectorJarPaths(fileService)
 
+    val resolver = HttpArtifactResolver(fileService, fakeDownloader)
+    val request = ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01", ArtifactCoordinate.Type.AAR)
+    val jar = resolver.resolveArtifact(request)
 
-    val resolver = HttpArtifactResolver(fileService, jarPaths, fakeDownloader)
-    val request = TestArtifactResolverRequest(
-      ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01", ArtifactCoordinate.Type.AAR))
-    val results = resolver.resolveArtifacts(listOf(request), androidProjectRule.project)
-
-    assertThat(results).hasSize(1)
-
-    val result = results[0] as SuccessfulResult<TestArtifactResolverRequest>
-    assertThat(result.request).isSameAs(request)
-    assertThat(result.jar.name).isEqualTo("inspector.jar")
-    assertThat(jarPaths.getInspectorJar(request.artifactCoordinate)).isSameAs(result.jar)
+    assertThat(jar).isNotNull()
+    assertThat(jar!!.fileName.toString()).isEqualTo("work-runtime-2.5.0-beta01.aar")
   }
 }

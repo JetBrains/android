@@ -98,19 +98,10 @@ public final class NewAndroidComponentActionTest {
   }
 
   @Test
-  public void lowMinBuildSdkApiPresentationShouldBeDisabled() {
-    new NewAndroidComponentAction(Category.Other, "templateName", 0, HIGHEST_KNOWN_API + 1).update(myActionEvent);
-
-    assertThat(myActionEvent.getPresentation().isEnabled()).isFalse();
-    assertThat(myActionEvent.getPresentation().getText()).contains("Requires compileSdkVersion");
-  }
-
-
-  @Test
   public void noAndroidXSupportPresentationShouldBeDisabled() {
     Collection<TemplateConstraint> constraints = new ArrayList<>();
     constraints.add(TemplateConstraint.AndroidX);
-    new NewAndroidComponentAction(Category.Other, "templateName", 0, 0, constraints).update(myActionEvent);
+    new NewAndroidComponentAction(Category.Other, "templateName", 0, constraints).update(myActionEvent);
 
     assertThat(myActionEvent.getPresentation().isEnabled()).isFalse();
     assertThat(myActionEvent.getPresentation().getText()).contains("Requires AndroidX support");

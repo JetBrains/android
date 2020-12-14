@@ -20,7 +20,6 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
-import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import javax.swing.JPanel
@@ -31,6 +30,7 @@ open class TestPreviewRepresentation : PreviewRepresentation {
   private var restoreCount = 0
   var nCaretNotifications = 0
   var lastCaretEvent: CaretEvent? = null
+  override val preferredInitialVisibility: PreferredVisibility? = null
 
   override val component = JPanel()
   override fun updateNotifications(parentEditor: FileEditor) {}

@@ -23,13 +23,12 @@ import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.api.Uninstaller;
-import com.google.common.annotations.VisibleForTesting;
-import com.android.repository.io.FileOpUtils;
 import com.android.repository.impl.installer.AbstractInstallerFactory;
 import com.android.repository.impl.meta.Archive;
-import com.android.repository.io.FileOp;
+import com.android.repository.io.FileOpUtils;
 import com.android.repository.io.FileUtilKt;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -67,13 +66,12 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
   @Override
   protected Installer doCreateInstaller(@NotNull RemotePackage remote,
                                         @NotNull RepoManager mgr,
-                                        @NotNull Downloader downloader,
-                                        @NotNull FileOp fop) {
+                                        @NotNull Downloader downloader) {
     LocalPackage local = mgr.getPackages().getLocalPackages().get(remote.getPath());
     if (hasPatch(local, remote)) {
-      return new PatchInstaller(local, remote, downloader, mgr, fop);
+      return new PatchInstaller(local, remote, downloader, mgr);
     }
-    return new FullInstaller(local, remote, mgr, downloader, fop);
+    return new FullInstaller(local, remote, mgr, downloader);
   }
 
   private static boolean hasPatch(@Nullable LocalPackage local, @NotNull RemotePackage remote) {
@@ -84,8 +82,8 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
 
   @NotNull
   @Override
-  protected Uninstaller doCreateUninstaller(@NotNull LocalPackage local, @NotNull RepoManager mgr, @NotNull FileOp fop) {
-    return new PatchUninstaller(local, mgr, fop);
+  protected Uninstaller doCreateUninstaller(@NotNull LocalPackage local, @NotNull RepoManager mgr) {
+    return new PatchUninstaller(local, mgr);
   }
 
   /**

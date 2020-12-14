@@ -230,10 +230,10 @@ final class Updater {
       return;
     }
 
-    Key key = myDevicesSelectedService.getTargetSelectedWithComboBox(myDevices).orElseThrow(AssertionError::new).getDeviceKey();
+    Object key = myDevicesSelectedService.getTargetSelectedWithComboBox(myDevices).orElseThrow(AssertionError::new).getDeviceKey();
 
     Device device = myDevices.stream()
-      .filter(d -> d.matches(key))
+      .filter(d -> d.getKey().equals(key))
       .findFirst()
       .orElseThrow(AssertionError::new);
 

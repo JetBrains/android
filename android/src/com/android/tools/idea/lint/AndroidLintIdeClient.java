@@ -27,14 +27,12 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.util.PathString;
 import com.android.manifmerger.Actions;
-import com.android.repository.Revision;
 import com.android.repository.api.RemotePackage;
-import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.diagnostics.crash.GenericStudioReport;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.editors.manifest.ManifestUtils;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository;
 import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.lint.common.LintResult;
 import com.android.tools.idea.model.AndroidModel;
@@ -43,10 +41,10 @@ import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.res.FileResourceReader;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository;
 import com.android.tools.lint.detector.api.DefaultPosition;
 import com.android.tools.lint.detector.api.Desugaring;
 import com.android.tools.lint.detector.api.Location;
@@ -56,6 +54,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -67,6 +66,7 @@ import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -76,7 +76,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -119,6 +118,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
   @Override
   @NotNull
   public byte[] readBytes(@NotNull PathString resourcePath) throws IOException {
+    ProgressManager.checkCanceled();
     return FileResourceReader.readBytes(resourcePath);
   }
 
@@ -207,40 +207,6 @@ public class AndroidLintIdeClient extends LintIdeClient {
   }
 
   @Override
-  @Nullable
-  public Revision getBuildToolsRevision(@NonNull com.android.tools.lint.detector.api.Project project) {
-    if (project.isGradleProject()) {
-      Module module = getModule(project);
-      if (module != null) {
-        AndroidModuleModel model = AndroidModuleModel.get(module);
-        if (model != null) {
-          GradleVersion version = model.getModelVersion();
-          if (version != null && version.isAtLeast(2, 1, 0)) {
-            String buildToolsVersion = model.getAndroidProject().getBuildToolsVersion();
-            if (buildToolsVersion != null) {
-              AndroidSdkHandler sdk = getSdk();
-              if (sdk != null) {
-                try {
-                  Revision revision = Revision.parseRevision(buildToolsVersion);
-                  BuildToolInfo buildToolInfo = sdk.getBuildToolInfo(revision, getRepositoryLogger());
-                  if (buildToolInfo != null) {
-                    return buildToolInfo.getRevision();
-                  }
-                }
-                catch (NumberFormatException ignore) {
-                  // Fall through and use the latest
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    return super.getBuildToolsRevision(project);
-  }
-
-  @Override
   public boolean isGradleProject(@NotNull com.android.tools.lint.detector.api.Project project) {
     Module module = getModule(project);
     if (module != null) {
@@ -255,12 +221,14 @@ public class AndroidLintIdeClient extends LintIdeClient {
   public File getCacheDir(@Nullable String name, boolean create) {
     if (MAVEN_GOOGLE_CACHE_DIR_KEY.equals(name)) {
       // Share network cache with existing implementation
-      return IdeGoogleMavenRepository.INSTANCE.getCacheDir();
+      Path cacheDir = IdeGoogleMavenRepository.INSTANCE.getCacheDir();
+      return cacheDir == null ? null : cacheDir.toFile();
     }
 
     if (DEPRECATED_SDK_CACHE_DIR_KEY.equals(name)) {
       // Share network cache with existing implementation
-      return IdeDeprecatedSdkRegistry.INSTANCE.getCacheDir();
+      Path cacheDir = IdeDeprecatedSdkRegistry.INSTANCE.getCacheDir();
+      return cacheDir == null ? null : cacheDir.toFile();
     }
 
     return super.getCacheDir(name, create);
@@ -442,28 +410,8 @@ public class AndroidLintIdeClient extends LintIdeClient {
   @Override
   @Nullable
   public XmlPullParser createXmlPullParser(@NotNull PathString resourcePath) throws IOException {
+    ProgressManager.checkCanceled();
     return FileResourceReader.createXmlPullParser(resourcePath);
-  }
-
-  @Override
-  protected void notifyReadCanceled(StackTraceElement[] stackDumpRaw, long cancelTimeMs, long actionTimeMs) {
-    StringBuilder sb = new StringBuilder();
-    for (StackTraceElement e : stackDumpRaw) {
-      sb.append(e.toString());
-      sb.append("\n");
-    }
-    String stackDump = sb.toString();
-
-    StudioCrashReporter.getInstance().submit(
-      new GenericStudioReport.Builder("LintReadActionDelay")
-        .addDataNoPii("summary",
-                      "Android Lint either took too long to run a read action (" + actionTimeMs + "ms),\n" +
-                      "or took too long to cancel and yield to a pending write action (" + cancelTimeMs + "ms)")
-        .addDataNoPii("timeToCancelMs", String.valueOf(cancelTimeMs))
-        .addDataNoPii("readActionTimeMs", String.valueOf(actionTimeMs))
-        .addDataNoPii("stackDump", stackDump)
-        .build()
-    );
   }
 
   private static class LocationHandle implements Location.Handle, Computable<Location> {

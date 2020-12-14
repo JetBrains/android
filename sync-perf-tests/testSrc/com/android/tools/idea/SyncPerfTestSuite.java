@@ -16,7 +16,7 @@
 package com.android.tools.idea;
 
 import com.android.testutils.JarTestSuiteRunner;
-import com.android.tools.idea.gradle.project.sync.perf.AbstractGradleSyncPerfSmokeTestCase;
+import com.android.tools.idea.gradle.project.sync.perf.AbstractGradleSyncSmokeTestCase;
 import com.android.tools.idea.gradle.project.sync.perf.AbstractGradleSyncPerfTestCase;
 import com.android.tools.idea.gradle.project.sync.perf.TestProjectPaths;
 import com.android.tools.tests.GradleDaemonsRule;
@@ -28,9 +28,9 @@ import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({
-  SyncPerfTestSuite.class,              // a suite mustn't contain itself
-  AbstractGradleSyncPerfTestCase.class, // Abstract class
-  AbstractGradleSyncPerfSmokeTestCase.class, // Abstract class
+  SyncPerfTestSuite.class,               // a suite mustn't contain itself
+  AbstractGradleSyncPerfTestCase.class,  // Abstract class
+  AbstractGradleSyncSmokeTestCase.class, // Abstract class
 })
 public class SyncPerfTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static final LeakCheckerRule checker = new LeakCheckerRule();
@@ -78,6 +78,16 @@ public class SyncPerfTestSuite extends IdeaTestSuiteBase {
     }
     catch(Exception e) {
       LOG.warning("Could not prepare SantaTracker project: " + e);
+    }
+
+    try {
+      setUpSourceZip("prebuilts/studio/buildbenchmarks/extra-large.2020.09.18/src.zip",
+                     "tools/adt/idea/sync-perf-tests/testData/" + TestProjectPaths.EXTRA_LARGE,
+                     new DiffSpec("prebuilts/studio/buildbenchmarks/extra-large.2020.09.18/setupForSyncTest.diff", 2));
+      unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/extra-large.2020.09.18/repo.zip");
+    }
+    catch(Exception e) {
+      LOG.warning("Could not prepare extra-large project: " + e);
     }
 
     unzipIntoOfflineMavenRepo("tools/adt/idea/sync-perf-tests/test_deps.zip");

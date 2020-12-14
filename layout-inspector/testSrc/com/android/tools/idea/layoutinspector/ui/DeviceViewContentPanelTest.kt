@@ -27,7 +27,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
-import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.window
 import com.intellij.testFramework.ProjectRule
 import junit.framework.TestCase.assertEquals

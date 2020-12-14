@@ -22,6 +22,7 @@ import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -36,13 +37,14 @@ import java.util.concurrent.CountDownLatch
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-private class TestComposePreviewView(override val pinnedSurface: NlDesignSurface,
+internal class TestComposePreviewView(override val pinnedSurface: NlDesignSurface,
                                      override val mainSurface: NlDesignSurface): ComposePreviewView {
   override val component: JComponent
     get() = JPanel()
   override var bottomPanel: JComponent? = null
   override var hasComponentsOverlay: Boolean = false
   override var isInteractive: Boolean = false
+  override var hasContent: Boolean = true
   override fun updateNotifications(parentEditor: FileEditor) {
   }
 
@@ -112,10 +114,10 @@ class ComposePreviewRepresentationTest {
       ComposePreviewRepresentation(composeTest, object : PreviewElementProvider<PreviewElement> {
         override val previewElements: Sequence<PreviewElement>
           get() = ReadAction.compute<Sequence<PreviewElement>, Throwable> {
-            AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+            AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).asSequence()
           }
 
-      }) { _, _, _, _, _, _ -> composeView }
+      }, PreferredVisibility.VISIBLE) { _, _, _, _, _, _ -> composeView }
     }
     Disposer.register(fixture.testRootDisposable, preview)
     ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()

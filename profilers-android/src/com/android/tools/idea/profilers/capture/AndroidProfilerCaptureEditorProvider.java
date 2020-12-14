@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers.capture;
 import com.android.tools.idea.fileTypes.profiler.CpuCaptureFileType;
 import com.android.tools.idea.fileTypes.profiler.MemoryAllocationFileType;
 import com.android.tools.idea.fileTypes.profiler.MemoryCaptureFileType;
+import com.android.tools.idea.fileTypes.profiler.PerfettoCaptureFileType;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.base.Strings;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -41,7 +42,8 @@ public class AndroidProfilerCaptureEditorProvider implements FileEditorProvider,
            (extension.equals(CpuCaptureFileType.EXTENSION) ||
             extension.equals(MemoryAllocationFileType.EXTENSION) ||
             extension.equals(MemoryCaptureFileType.EXTENSION) ||
-            (StudioFlags.PROFILER_ENABLE_NATIVE_SAMPLE.get() && extension.equals(HeapProfdMemoryCaptureFileType.EXTENSION)));
+            PerfettoCaptureFileType.EXTENSIONS.contains(extension) ||
+           (StudioFlags.PROFILER_ENABLE_NATIVE_SAMPLE.get() && extension.equals(HeapProfdMemoryCaptureFileType.EXTENSION)));
   }
 
   @NotNull

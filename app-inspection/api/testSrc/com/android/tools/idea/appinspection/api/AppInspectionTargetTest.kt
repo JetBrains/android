@@ -216,8 +216,14 @@ class AppInspectionTargetTest {
         .setErrorMessage("missing")
         .build(),
       AppInspection.LibraryCompatibilityInfo.newBuilder()
+        .setStatus(AppInspection.LibraryCompatibilityInfo.Status.APP_PROGUARDED)
+        .setTargetLibrary(createArtifactCoordinate("4rd", "file", "1.0.0").toArtifactCoordinateProto())
+        .setErrorMessage("proguarded")
+        .build(),
+
+      AppInspection.LibraryCompatibilityInfo.newBuilder()
         .setStatus(AppInspection.LibraryCompatibilityInfo.Status.SERVICE_ERROR)
-        .setTargetLibrary(createArtifactCoordinate("4th", "file", "1.0.0").toArtifactCoordinateProto())
+        .setTargetLibrary(createArtifactCoordinate("5th", "file", "1.0.0").toArtifactCoordinateProto())
         .setErrorMessage("error")
         .build()
     )
@@ -255,7 +261,8 @@ class AppInspectionTargetTest {
       ArtifactCoordinate("1st", "file", "1.0.0", ArtifactCoordinate.Type.JAR),
       ArtifactCoordinate("2nd", "file", "1.0.0", ArtifactCoordinate.Type.JAR),
       ArtifactCoordinate("3rd", "file", "1.0.0", ArtifactCoordinate.Type.JAR),
-      ArtifactCoordinate("4th", "file", "1.0.0", ArtifactCoordinate.Type.JAR)
+      ArtifactCoordinate("4th", "file", "1.0.0", ArtifactCoordinate.Type.JAR),
+      ArtifactCoordinate("5th", "file", "1.0.0", ArtifactCoordinate.Type.JAR),
     )
 
     // Add the fake process to transport so we can attach to it via apiServices.attachToProcess
@@ -263,11 +270,11 @@ class AppInspectionTargetTest {
     transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
     val processReadyDeferred = CompletableDeferred<Unit>()
     appInspectionRule.apiServices.processNotifier.addProcessListener(MoreExecutors.directExecutor(), object : ProcessListener {
-      override fun onProcessConnected(descriptor: ProcessDescriptor) {
+      override fun onProcessConnected(process: ProcessDescriptor) {
         processReadyDeferred.complete(Unit)
       }
 
-      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+      override fun onProcessDisconnected(process: ProcessDescriptor) {
       }
     })
     processReadyDeferred.await()

@@ -640,12 +640,12 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   }
 
   @NotNull
-  public GradleDslElement setNewLiteral(@NotNull String property, @NotNull Object value) {
+  public GradleDslLiteral setNewLiteral(@NotNull String property, @NotNull Object value) {
     return setNewLiteralImpl(property, value);
   }
 
   @NotNull
-  private GradleDslElement setNewLiteralImpl(@NotNull String property, @NotNull Object value) {
+  private GradleDslLiteral setNewLiteralImpl(@NotNull String property, @NotNull Object value) {
     GradleDslLiteral literalElement = getPropertyElement(property, GradleDslLiteral.class);
     if (literalElement == null) {
       literalElement = new GradleDslLiteral(this, GradleNameElement.create(property));

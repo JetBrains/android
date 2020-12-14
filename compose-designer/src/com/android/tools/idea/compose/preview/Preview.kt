@@ -52,6 +52,7 @@ import com.android.tools.idea.rendering.classloading.LiveLiteralsTransform
 import com.android.tools.idea.rendering.classloading.toClassTransform
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
@@ -197,9 +198,11 @@ private const val FPS_LIMIT = 60
  *
  * @param psiFile [PsiFile] pointing to the Kotlin source containing the code to preview.
  * @param previewProvider [PreviewElementProvider] to obtain the [PreviewElement]s.
+ * @param preferredInitialVisibility preferred [PreferredVisibility] for this representation.
  */
 class ComposePreviewRepresentation(psiFile: PsiFile,
                                    previewProvider: PreviewElementProvider<PreviewElement>,
+                                   override val preferredInitialVisibility: PreferredVisibility,
                                    composePreviewViewProvider: ComposePreviewViewProvider) :
   PreviewRepresentation, ComposePreviewManagerEx, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
   private val LOG = Logger.getInstance(ComposePreviewRepresentation::class.java)
@@ -632,8 +635,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private var lastPinsModificationCount = PinnedPreviewElementManager.getInstance(project).modificationCount
 
-  private fun hasErrorsAndNeedsBuild(): Boolean = !hasRenderedAtLeastOnce.get() || surface.layoutlibSceneManagers
-    .any { it.renderResult.isComposeErrorResult() }
+  private fun hasErrorsAndNeedsBuild(): Boolean =
+    previewElements.isNotEmpty() &&
+    (!hasRenderedAtLeastOnce.get() || surface.layoutlibSceneManagers.any { it.renderResult.isComposeErrorResult() })
 
   private fun hasSyntaxErrors(): Boolean = WolfTheProblemSolver.getInstance(project).isProblemFile(psiFilePointer.virtualFile)
 
@@ -728,6 +732,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     onRestoreState = null
 
     val hasPinnedElements = if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
+      memoizedPinnedPreviewProvider.previewElements.any()
+    } else false
+
+    composeWorkBench.setPinnedSurfaceVisibility(hasPinnedElements)
+    if (hasPinnedElements) {
       lastPinsModificationCount = PinnedPreviewElementManager.getInstance(project).modificationCount
       pinnedSurface.updatePreviewsAndRefresh(
         false,
@@ -740,10 +749,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         this::getPreviewDataContextForPreviewElement,
         this::configureLayoutlibSceneManagerForPreviewElement
       ).isNotEmpty()
-    } else false
-    val hasMainPreviewElements = previewElementProvider.previewElements.any()
-
-    if (hasPinnedElements) {
       // TODO: The label will display the name of the file where pinned previews come from. If there are multiple files
       // then we temporarily display the label "Pinned"
       val singleFileName = memoizedPinnedPreviewProvider
@@ -752,11 +757,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                              .distinct()
                              .singleOrNull() ?: "Pinned"
       composeWorkBench.pinnedLabel = singleFileName
-    }
-
-    composeWorkBench.setPinnedSurfaceVisibility(hasPinnedElements)
-    if (!hasPinnedElements && !hasMainPreviewElements) {
-      composeWorkBench.showModalErrorMessage(message("panel.no.previews.defined"))
     }
 
     val showingPreviewElements = surface.updatePreviewsAndRefresh(
@@ -814,9 +814,18 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
             .sortByDisplayAndSourcePosition()
         }
 
+        val pinnedPreviewElements = if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
+          withContext(workerThread) {
+            memoizedElementsProvider.previewElements
+              .toList()
+              .sortByDisplayAndSourcePosition()
+          }
+        } else emptyList()
+
         val needsFullRefresh = filePreviewElements != previewElements ||
                                PinnedPreviewElementManager.getInstance(project).modificationCount != lastPinsModificationCount
 
+        composeWorkBench.hasContent = filePreviewElements.isNotEmpty() || pinnedPreviewElements.isNotEmpty()
         if (!needsFullRefresh) {
           LOG.debug("No updates on the PreviewElements, just refreshing the existing ones")
           // In this case, there are no new previews. We need to make sure that the surface is still correctly

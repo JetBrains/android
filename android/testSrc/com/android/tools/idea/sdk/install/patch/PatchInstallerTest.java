@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.sdk.install.patch;
 
+import static com.android.testutils.InMemoryFileSystemUtilsKt.getPlatformSpecificPath;
+
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.MockFileOp;
 import java.awt.Component;
 import java.io.File;
+import java.nio.file.Path;
 import junit.framework.TestCase;
 
 /**
@@ -36,13 +39,12 @@ public class PatchInstallerTest extends TestCase {
 
   public void testRunInstaller() {
     FakeProgressIndicator progress = new FakeProgressIndicator(true);
-    String localPackageLocation = new File("/sdk/pkg").getAbsolutePath();
-    ourFileOp.recordExistingFile(new File(localPackageLocation, "sourceFile").getAbsolutePath(),
-                           "the source to which the diff will be applied");
-    String patchFile = new File("/patchfile").getAbsolutePath();
-    ourFileOp.recordExistingFile(patchFile, "the patch contents");
+    Path sourceFile = ourFileOp.toPath(getPlatformSpecificPath("/sdk/pkg/sourceFile"));
+    ourFileOp.recordExistingFile(sourceFile, 0, "the source to which the diff will be applied".getBytes());
+    Path patchFile = ourFileOp.toPath(getPlatformSpecificPath("/patchfile"));
+    ourFileOp.recordExistingFile(patchFile, 0, "the patch contents".getBytes());
     PatchRunner runner = new PatchRunner(ourFileOp.toPath("dummy"), FakeRunner.class, FakeUIBase.class, FakeUI.class, FakeGenerator.class);
-    boolean result = runner.run(new File(localPackageLocation), new File(patchFile), progress);
+    boolean result = runner.run(sourceFile.getParent(), patchFile, progress);
     progress.assertNoErrorsOrWarnings();
     assertTrue(result);
     assertTrue(FakeRunner.ourDidRun);

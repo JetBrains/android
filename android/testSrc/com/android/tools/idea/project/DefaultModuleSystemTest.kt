@@ -18,6 +18,7 @@ package com.android.tools.idea.project
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.MergedManifestModificationListener
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.AndroidTestCase
 
@@ -27,22 +28,13 @@ class DefaultModuleSystemTest : AndroidTestCase() {
     MergedManifestModificationListener.ensureSubscribed(project)
   }
 
-  override fun tearDown() {
-    try {
-      StudioFlags.ANDROID_MANIFEST_INDEX_ENABLED.clearOverride()
-    }
-    finally {
-      super.tearDown()
-    }
-  }
-
   fun testGetPackageName_noOverrides() {
     val packageName = (myModule.getModuleSystem() as DefaultModuleSystem).getPackageName()
     assertThat(packageName).isEqualTo("p1.p2")
   }
 
   fun testGetPackageName_noOverrides_noIndex() {
-    StudioFlags.ANDROID_MANIFEST_INDEX_ENABLED.override(false)
+    StudioFlags.ANDROID_MANIFEST_INDEX_ENABLED.override(false, testRootDisposable)
     val packageName = (myModule.getModuleSystem() as DefaultModuleSystem).getPackageName()
     assertThat(packageName).isEqualTo("p1.p2")
   }

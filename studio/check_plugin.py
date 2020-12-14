@@ -14,7 +14,7 @@ def load_include(external_xmls, index, href, xpath):
 
   if rel not in index:
     print("Cannot find file to include %s" % href)
-    sys.exit(1)
+    return []
 
   with zipfile.ZipFile(index[rel]) as jar:
     res = jar.read(rel)

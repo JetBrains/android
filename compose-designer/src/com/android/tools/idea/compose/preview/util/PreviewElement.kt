@@ -552,11 +552,17 @@ interface FilePreviewElementFinder {
   fun hasPreviewMethods(project: Project, vFile: VirtualFile): Boolean
 
   /**
+   * Returns if this file contains `@Composable` methods. This is similar to [hasPreviewMethods] but allows deciding
+   * if this file might allow previews to be added.
+   */
+  fun hasComposableMethods(project: Project, vFile: VirtualFile): Boolean
+
+  /**
    * Returns all the [PreviewElement]s present in the passed Kotlin [VirtualFile].
    *
    * This method always runs on smart mode.
    */
-  fun findPreviewMethods(project: Project, vFile: VirtualFile): Sequence<PreviewElement>
+  fun findPreviewMethods(project: Project, vFile: VirtualFile): Collection<PreviewElement>
 }
 
 /**

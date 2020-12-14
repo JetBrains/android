@@ -15,21 +15,32 @@
  */
 package com.android.tools.idea.welcome;
 
-import static org.easymock.EasyMock.eq;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import com.android.io.CancellableFileIo;
-import com.android.repository.testframework.MockFileOp;
+import com.android.testutils.InMemoryFileSystemUtilsKt;
+import com.android.testutils.file.DelegatingFileSystemProvider;
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.AccessMode;
+import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 
 public final class SdkLocationUtilsTest {
-  private MockFileOp myFileOp = new MockFileOp();
+  private final FileSystem fs = new DelegatingFileSystemProvider(InMemoryFileSystemUtilsKt.createFileSystem()) {
+    @Override
+    public void checkAccess(@NotNull Path path, AccessMode @NotNull ... modes) throws IOException {
+      Path file = path.getFileName();
+      if (file != null && file.toString().endsWith("unwritable") && Arrays.asList(modes).contains(AccessMode.WRITE)) {
+        throw new AccessDeniedException("unwritable");
+      }
+      super.checkAccess(path, modes);
+    }
+  }.getFileSystem();
 
   @Test
   public void isWritableSdkLocationIsNull() {
@@ -38,17 +49,15 @@ public final class SdkLocationUtilsTest {
 
   @Test
   public void isWritableSdkLocationIsNotDirectoryAndCanNotWrite() throws IOException {
-    Path file = myFileOp.toPath("/foo");
+    Path file = fs.getPath(InMemoryFileSystemUtilsKt.getPlatformSpecificPath("/unwritable"));
     Files.createFile(file);
-    try (MockedStatic<CancellableFileIo> mockedIo = Mockito.mockStatic(CancellableFileIo.class)) {
-      mockedIo.when(() -> CancellableFileIo.isWritable(eq(file))).thenReturn(false);
-      assertFalse(SdkLocationUtils.isWritable(file));
-    }
+
+    assertFalse(SdkLocationUtils.isWritable(file));
   }
 
   @Test
   public void isWritableSdkLocationIsNotDirectoryAndCanWrite() throws IOException {
-    Path sdkLocation = myFileOp.toPath("/sdk");
+    Path sdkLocation = fs.getPath(InMemoryFileSystemUtilsKt.getPlatformSpecificPath("/sdk"));
     Files.createFile(sdkLocation);
 
     assertFalse(SdkLocationUtils.isWritable(sdkLocation));
@@ -56,16 +65,15 @@ public final class SdkLocationUtilsTest {
 
   @Test
   public void isWritableSdkLocationIsDirectoryAndCanNotWrite() throws IOException {
-    Path sdkLocation = myFileOp.toPath("/sd");
-    try (MockedStatic<CancellableFileIo> mockedIo = Mockito.mockStatic(CancellableFileIo.class)) {
-      mockedIo.when(() -> CancellableFileIo.isWritable(eq(sdkLocation))).thenReturn(false);
-      assertFalse(SdkLocationUtils.isWritable(sdkLocation));
-    }
+    Path sdkLocation = fs.getPath(InMemoryFileSystemUtilsKt.getPlatformSpecificPath("/unwritable"));
+    Files.createDirectories(sdkLocation);
+
+    assertFalse(SdkLocationUtils.isWritable(sdkLocation));
   }
 
   @Test
   public void isWritableSdkLocationIsDirectoryAndCanWrite() throws IOException {
-    Path sdkLocation = myFileOp.toPath("/sdk");
+    Path sdkLocation = fs.getPath(InMemoryFileSystemUtilsKt.getPlatformSpecificPath("/sdk"));
     Files.createDirectories(sdkLocation);
 
     assertTrue(SdkLocationUtils.isWritable(sdkLocation));
@@ -73,18 +81,16 @@ public final class SdkLocationUtilsTest {
 
   @Test
   public void isWritableAncestorIsNotNullAndCanNotWrite() throws IOException {
-    Path sdkLocation = myFileOp.toPath("/d1/d2/sdk");
-    Path parent = myFileOp.toPath("/d1");
-    try (MockedStatic<CancellableFileIo> mockedIo = Mockito.mockStatic(CancellableFileIo.class)) {
-      mockedIo.when(() -> CancellableFileIo.isWritable(eq(parent))).thenReturn(false);
-      assertFalse(SdkLocationUtils.isWritable(sdkLocation));
-    }
+    Path sdkLocation = fs.getPath(InMemoryFileSystemUtilsKt.getPlatformSpecificPath("/d1/d2/unwritable"));
+    Files.createDirectories(sdkLocation);
+
+    assertFalse(SdkLocationUtils.isWritable(sdkLocation));
   }
 
   @Test
   public void isWritableAncestorIsNotNullAndCanWrite() throws IOException {
-    Path sdkLocation = myFileOp.toPath("/d1/d2/sdk");
-    Files.createDirectories(myFileOp.toPath("/d1"));
+    Path sdkLocation = fs.getPath(InMemoryFileSystemUtilsKt.getPlatformSpecificPath("/d1/d2/sdk"));
+    Files.createDirectories(fs.getPath(InMemoryFileSystemUtilsKt.getPlatformSpecificPath("/d1")));
 
     assertTrue(SdkLocationUtils.isWritable(sdkLocation));
   }

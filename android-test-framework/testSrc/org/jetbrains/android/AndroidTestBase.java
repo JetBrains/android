@@ -71,10 +71,13 @@ import org.mockito.internal.progress.ThreadSafeMockingProgress;
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestBase extends UsefulTestCase {
   protected JavaCodeInsightTestFixture myFixture;
+  private final MockitoThreadLocalsCleaner mockitoCleaner = new MockitoThreadLocalsCleaner();
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+
+    mockitoCleaner.setup();
 
     // Compute the workspace root before any IDE code starts messing with user.dir:
     TestUtils.getWorkspaceRoot();
@@ -95,7 +98,10 @@ public abstract class AndroidTestBase extends UsefulTestCase {
       future.get();
     }
     myFixture = null;
+
     super.tearDown();
+
+    mockitoCleaner.cleanupAndTearDown();
     checkUndisposedAndroidRelatedObjects();
   }
 

@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.run.AndroidDevice;
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
+import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
-import java.util.Arrays;
-import org.junit.Before;
+import icons.StudioIcons;
+import java.nio.file.FileSystem;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -30,64 +34,54 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class SnapshotActionGroupTest {
-  private Presentation myPresentation;
-  private AnActionEvent myEvent;
+  @Test
+  public void getChildren() {
+    // Arrange
+    FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
+    Snapshot snapshot = new Snapshot(fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-07_16-36-58"));
 
-  @Before
-  public void mockEvent() {
-    myPresentation = new Presentation();
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .addSnapshot(snapshot)
+      .build();
 
-    myEvent = Mockito.mock(AnActionEvent.class);
-    Mockito.when(myEvent.getPresentation()).thenReturn(myPresentation);
+    ActionGroup group = new SnapshotActionGroup(device);
+
+    // Act
+    Object[] actualChildren = group.getChildren(null);
+
+    // Assert
+    Object[] expectedChildren = {
+      new ColdBootAction(),
+      new SelectSnapshotAction(snapshot)};
+
+    assertArrayEquals(expectedChildren, actualChildren);
   }
 
   @Test
   public void update() {
     // Arrange
-    Device device1 = new VirtualDevice.Builder()
-      .setName("Pixel 3 API 29")
-      .setKey(new NonprefixedKey("Pixel_3_API_29/snap_2019-09-27_15-48-09"))
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel_4_API_30")
+      .setValidityReason("Missing system image")
+      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    Device device2 = new VirtualDevice.Builder()
-      .setName("Pixel 3 API 29")
-      .setKey(new NonprefixedKey("Pixel_3_API_29/snap_2019-09-27_15-49-04"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
+    AnAction action = new SnapshotActionGroup(device);
 
-    AnAction action = new SnapshotActionGroup(Arrays.asList(device1, device2));
+    Presentation presentation = new Presentation();
+
+    AnActionEvent event = Mockito.mock(AnActionEvent.class);
+    Mockito.when(event.getPresentation()).thenReturn(presentation);
 
     // Act
-    action.update(myEvent);
+    action.update(event);
 
     // Assert
-    assertEquals("Pixel 3 API 29", myPresentation.getText());
-  }
-
-  @Test
-  public void updateDevicesHaveValidityReasons() {
-    // Arrange
-    Device device1 = new VirtualDevice.Builder()
-      .setName("Pixel 3 API 29")
-      .setValidityReason("Missing system image")
-      .setKey(new NonprefixedKey("Pixel_3_API_29/snap_2019-09-27_15-48-09"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    Device device2 = new VirtualDevice.Builder()
-      .setName("Pixel 3 API 29")
-      .setValidityReason("Missing system image")
-      .setKey(new NonprefixedKey("Pixel_3_API_29/snap_2019-09-27_15-49-04"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    AnAction action = new SnapshotActionGroup(Arrays.asList(device1, device2));
-
-    // Act
-    action.update(myEvent);
-
-    // Assert
-    assertEquals("Pixel 3 API 29 (Missing system image)", myPresentation.getText());
+    assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, presentation.getIcon());
+    assertEquals("Pixel_4_API_30 (Missing system image)", presentation.getText());
   }
 }

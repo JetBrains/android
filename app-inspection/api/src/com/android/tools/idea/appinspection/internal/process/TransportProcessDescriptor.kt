@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.internal.process
 
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.profiler.proto.Common
 
@@ -26,15 +27,24 @@ class TransportProcessDescriptor(
   val stream: Common.Stream,
   val process: Common.Process
 ): ProcessDescriptor {
-  override val manufacturer: String = stream.device.manufacturer
-  override val model: String = stream.device.model
-  override val serial: String = stream.device.serial
+  override val device = object : DeviceDescriptor {
+    override val manufacturer: String = stream.device.manufacturer
+    override val model: String = stream.device.model
+    override val serial: String = stream.device.serial
+    override val isEmulator: Boolean = stream.device.isEmulator
+    override val apiLevel: Int = stream.device.apiLevel
+    override val version: String = stream.device.version
+    override val codename: String? = stream.device.codename.takeUnless { it.isNullOrBlank() }
+
+    override fun toString(): String {
+      return "DeviceDescriptor(manufacturer='$manufacturer', model='$model', serial='$serial', isEmulator='$isEmulator', apiLevel='$apiLevel')"
+    }
+  }
   override val processName: String = process.name
-  override val isEmulator: Boolean = stream.device.isEmulator
   override val isRunning: Boolean = process.state != Common.Process.State.DEAD
 
   override fun toString(): String {
-    return "ProcessDescriptor(manufacturer='$manufacturer', model='$model', serial='$serial', processName='$processName', isEmulator='$isEmulator', isRunning='$isRunning')"
+    return "ProcessDescriptor(device='$device', processName='$processName', isRunning='$isRunning')"
   }
 }
 
@@ -43,13 +53,3 @@ class TransportProcessDescriptor(
  * so this convenience method provides cleaner syntax for casting.
  */
 internal fun ProcessDescriptor.toTransportImpl() = this as TransportProcessDescriptor
-
-/**
- * Return true if the process it represents is inspectable.
- *
- * Currently, a process is deemed inspectable if the device it's running on is O+ and if it's debuggable. The latter condition is
- * guaranteed to be true because transport pipeline only provides debuggable processes, so there is no need to check.
- */
-internal fun ProcessDescriptor.isInspectable(): Boolean {
-  return this.toTransportImpl().stream.device.apiLevel >= AndroidVersion.VersionCodes.O
-}

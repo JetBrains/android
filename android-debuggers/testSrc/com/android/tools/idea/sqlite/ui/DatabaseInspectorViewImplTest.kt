@@ -40,6 +40,7 @@ import java.awt.Dimension
 import javax.swing.JButton
 import javax.swing.JPanel
 import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.TreePath
 
 class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
   private lateinit var view: DatabaseInspectorViewImpl
@@ -407,6 +408,21 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
     // Assert
     assertFalse(keepConnectionsOpenButton.isEnabled)
+  }
+
+  fun testTreeRootNodeIsExpandedWhenEmptyNodeIsAdded() {
+    // Prepare
+    val fileDatabaseId1 = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file1")))
+
+    val tree = TreeWalker(view.component).descendants().first { it.name == "left-panel-tree" } as Tree
+    val diffOperations = listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(fileDatabaseId1, true), null, 0))
+
+    // Act
+    view.updateDatabases(diffOperations)
+
+    // Assert
+    val root = tree.model.root
+    assertTrue(tree.isExpanded(TreePath((root))))
   }
 
   private fun assertTreeContainsNodes(tree: Tree, databases: Map<ViewDatabase, List<SqliteTable>>) {

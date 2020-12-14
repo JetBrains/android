@@ -16,7 +16,6 @@
 package org.jetbrains.android.sdk;
 
 import com.android.SdkConstants;
-import com.android.internal.util.Preconditions;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
@@ -25,6 +24,7 @@ import com.android.sdklib.repository.targets.PlatformTarget;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
@@ -34,7 +34,6 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
-import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;

@@ -343,7 +343,7 @@ abstract class GradleSyncProjectComparisonTest : GradleSyncIntegrationTestCase()
       }
       assertAreEqualToSnapshots(
         before to ".same",
-        after to ".same"
+        after to ".same_but_iml_present"
       )
     }
 

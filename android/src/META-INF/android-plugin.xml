@@ -25,8 +25,8 @@
   <depends>org.jetbrains.kotlin</depends>
 
   <!-- One of the layoutlib plugins is required -->
-  <depends optional="true" config-file="layoutlib-native.xml">com.android.layoutlib.native</depends>
-  <depends optional="true" config-file="layoutlib-standard.xml">com.android.layoutlib.standard</depends>
+  <depends optional="true" config-file="layoutlib.xml">com.android.layoutlib</depends>
+  <depends optional="true" config-file="layoutlib-legacy.xml">com.android.layoutlib.legacy</depends>
 
   <depends optional="true" config-file="androidstudio.xml">com.intellij.modules.androidstudio</depends>
   <depends optional="true" config-file="database-support.xml">com.intellij.database</depends>
@@ -293,8 +293,6 @@
     <fileBasedIndex implementation="com.android.tools.idea.model.AndroidManifestIndex"/>
     <projectOpenProcessor implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectOpenProcessor" id="android-gradle" order="before gradle" />
     <projectViewPane implementation="com.android.tools.idea.navigator.AndroidProjectViewPane"/>
-    <projectTaskRunner implementation="com.android.tools.idea.gradle.project.build.AndroidProjectTaskRunner" id="android"
-                       order="first, before gradle"/>
     <debugger.positionManagerFactory implementation="com.android.tools.idea.debug.AndroidPositionManagerFactory"/>
     <postStartupActivity implementation="com.android.tools.idea.model.MergedManifestRefreshListener$SubscriptionStartupActivity"/>
     <projectService serviceImplementation="com.android.tools.idea.model.MergedManifestModificationListener$SubscriptionService"/>
@@ -407,6 +405,9 @@
 
     <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
 
+    <applicationService serviceInterface="com.android.tools.idea.imports.GMavenIndexRepository"
+                        serviceImplementation="com.android.tools.idea.imports.GMavenIndexRepositoryImpl"/>
+
     <fileType name="Android 9-Patch"
               implementationClass="com.android.tools.idea.fileTypes.AndroidNinePatchFileType"
               fieldName="INSTANCE"
@@ -457,7 +458,14 @@
 
     <moduleBuilder builderClass="com.android.tools.idea.npw.ideahost.AndroidModuleBuilder"/>
 
-    <defaultLiveTemplatesProvider implementation="com.android.tools.idea.templates.live.AndroidLiveTemplatesProvider"/>
+    <defaultLiveTemplates file="liveTemplates/Android"/>
+    <defaultLiveTemplates file="liveTemplates/AndroidKotlin"/>
+    <defaultLiveTemplates file="liveTemplates/AndroidComments"/>
+    <defaultLiveTemplates file="liveTemplates/AndroidCommentsKotlin"/>
+    <defaultLiveTemplates file="liveTemplates/AndroidLog"/>
+    <defaultLiveTemplates file="liveTemplates/AndroidLogKotlin"/>
+    <defaultLiveTemplates file="liveTemplates/AndroidParcelable"/>
+    <defaultLiveTemplates file="liveTemplates/AndroidXML"/>
     <liveTemplateContext implementation="com.android.tools.idea.templates.live.XmlAttributeContextType"/>
 
     <postStartupActivity implementation="com.android.tools.idea.stats.CompletionStats$MyStartupActivity"/>

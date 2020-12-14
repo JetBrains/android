@@ -17,7 +17,6 @@ package com.android.tools.idea.appinspection.ide.resolver
 
 import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.appinspection.ide.resolver.blaze.BlazeArtifactResolver
-import com.android.tools.idea.appinspection.ide.resolver.gradle.GradleArtifactResolver
 import com.android.tools.idea.appinspection.ide.resolver.http.HttpArtifactResolver
 import com.android.tools.idea.appinspection.inspector.api.service.TestFileService
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
@@ -52,7 +51,7 @@ class ArtifactResolverFactoryTest(private val variation: Variation) {
       Variation.GRADLE -> run {
         projectRule.addFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName())
         assertThat(ArtifactResolverFactory(TestFileService()).getArtifactResolver(projectRule.project))
-          .isInstanceOf(GradleArtifactResolver::class.java)
+          .isInstanceOf(HttpArtifactResolver::class.java)
       }
       Variation.APK -> run {
         projectRule.addFacet(ApkFacet.getFacetType(), ApkFacet.getFacetName())

@@ -5,7 +5,7 @@ import com.android.SdkConstants.VIEW_TAG
 import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.imports.AndroidMavenImportFix
-import com.android.tools.idea.imports.MavenClassRegistry
+import com.android.tools.idea.imports.getMavenClassRegistry
 import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.LocalQuickFix
@@ -64,7 +64,7 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
 
   private class MyVisitor(private val myInspectionManager: InspectionManager,
                           private val myOnTheFly: Boolean) : XmlRecursiveElementVisitor() {
-    internal val myResult: MutableList<ProblemDescriptor> = ArrayList()
+    val myResult: MutableList<ProblemDescriptor> = ArrayList()
 
     override fun visitXmlTag(tag: XmlTag) {
       super.visitXmlTag(tag)
@@ -76,7 +76,8 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
       if (className.indexOf('.') == -1) {
         if (className == VIEW_TAG) {
           className = tag.getAttributeValue(ATTR_CLASS) ?: return
-        } else {
+        }
+        else {
           // Not a custom view and not <view class="fqn"/>
           return
         }
@@ -85,7 +86,6 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
       // Make sure the class exists; check only the last reference; that's the class name tag (the rest are for the package segments)
       val reference = tag.references.lastOrNull() ?: return
       if (reference.resolve() == null) {
-        var fixes = LocalQuickFix.EMPTY_ARRAY
         // normal position of the tag name, but unusual spaces can mess with this...
         var range: PsiElement = tag.firstChild.nextSibling
         // ...so search properly:
@@ -99,19 +99,32 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
             curr = curr.nextSibling
           }
         }
-        val name = className.substring(className.lastIndexOf('.') + 1)
-        val imported = MavenClassRegistry.findImport(name)
-        if (imported != null && (className == imported || className == AndroidxNameUtils.getNewName(className))) {
-          // Have fix
-          var artifact = MavenClassRegistry.findArtifact(name) ?: "library"
-          if (tag.project.isAndroidx()) {
-            artifact = AndroidxNameUtils.getCoordinateMapping(artifact)
+
+        val fixes = mutableListOf<LocalQuickFix>()
+        val useAndroidX = tag.project.isAndroidx()
+        getMavenClassRegistry().findLibraryData(className, useAndroidX)
+          .asSequence()
+          .map {
+            val resolvedArtifact = if (useAndroidX) {
+              AndroidxNameUtils.getCoordinateMapping(it.artifact)
+            }
+            else {
+              it.artifact
+            }
+
+            fixes.add(AndroidMavenImportFix(className, resolvedArtifact))
           }
-          fixes = arrayOf<LocalQuickFix>(AndroidMavenImportFix(className, artifact))
-        }
-        myResult.add(myInspectionManager.createProblemDescriptor(range, AndroidBundle.message(
-          "element.cannot.resolve", className), myOnTheFly, fixes,
-                                                                 ProblemHighlightType.LIKE_UNKNOWN_SYMBOL))
+          .toList()
+
+        myResult.add(
+          myInspectionManager.createProblemDescriptor(
+            range,
+            AndroidBundle.message("element.cannot.resolve", className),
+            myOnTheFly,
+            fixes.toTypedArray(),
+            ProblemHighlightType.LIKE_UNKNOWN_SYMBOL
+          )
+        )
       }
     }
   }

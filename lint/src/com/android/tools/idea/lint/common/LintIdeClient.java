@@ -18,6 +18,7 @@ package com.android.tools.idea.lint.common;
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 import com.android.annotations.NonNull;
+import com.android.ide.common.util.PathString;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.client.api.Configuration;
 import com.android.tools.lint.client.api.ConfigurationHierarchy;
@@ -52,9 +53,11 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.util.AbstractProgressIndicatorExBase;
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils;
 import com.intellij.openapi.project.Project;
@@ -67,10 +70,8 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaDirectoryService;
 import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiPackage;
 import com.intellij.util.PathUtil;
 import com.intellij.util.lang.UrlClassLoader;
@@ -174,59 +175,15 @@ public class LintIdeClient extends LintClient implements Disposable {
       return;
     }
 
-    // We use a custom progress indicator to track action cancellation latency,
-    // and to collect a stack dump at the time of cancellation.
-    class ProgressIndicatorWithCancellationInfo extends AbstractProgressIndicatorExBase {
+    long startMs = System.currentTimeMillis();
+    boolean success = ProgressIndicatorUtils.runInReadActionWithWriteActionPriority(runnable);
 
-      final Thread readActionThread;
-
-      // These fields are marked volatile since they will be accessed by two threads (the EDT and the read action thread).
-      // Notice that they are set before the progress indicator is marked as cancelled; this establishes a happens-before
-      // relationship with myCanceled (also volatile), thereby ensuring that the new values are visible
-      // to threads which have detected cancellation.
-      volatile StackTraceElement[] cancelStackDump;
-      volatile long cancelStartTimeMs = -1;
-
-      ProgressIndicatorWithCancellationInfo(Thread readActionThread) {
-        this.readActionThread = readActionThread;
-      }
-
-      @Override
-      public void cancel() {
-        if (!isCanceled()) {
-          cancelStartTimeMs = System.currentTimeMillis();
-          cancelStackDump = readActionThread.getStackTrace();
-        }
-        super.cancel();
-      }
+    long elapsedMs = System.currentTimeMillis() - startMs;
+    if (elapsedMs >= 20000) {
+      LOG.warn("Android Lint took a long time to run a read action (" + elapsedMs + " ms)");
     }
 
-    ProgressIndicatorWithCancellationInfo progressIndicator = new ProgressIndicatorWithCancellationInfo(Thread.currentThread());
-    long actionStartTimeMs = System.currentTimeMillis();
-    boolean successful = ProgressIndicatorUtils.runInReadActionWithWriteActionPriority(runnable, progressIndicator);
-
-    if (!successful) {
-      LOG.info("Android Lint read action canceled due to pending write action");
-
-      StackTraceElement[] stackDumpRaw = progressIndicator.cancelStackDump;
-      if (stackDumpRaw != null) {
-
-        // If the read action was canceled *after* being started, then the EDT still has to wait
-        // for the read action to check for cancellation and throw a ProcessCanceledException.
-        // If this takes a while, it will freeze the UI. We want to know about that.
-        long currTimeMs = System.currentTimeMillis();
-        long cancelTimeMs = currTimeMs - progressIndicator.cancelStartTimeMs;
-
-        // Even if the read action was quick to cancel, we still want to report long-running
-        // read actions because those could lead to frequent cancellations or Lint never finishing.
-        long actionTimeMs = currTimeMs - actionStartTimeMs;
-
-        // Report both in the same crash report so that one does not get discarded by the crash report rate limiter.
-        if (cancelTimeMs > 200 || actionTimeMs > 1000) {
-          notifyReadCanceled(stackDumpRaw, cancelTimeMs, actionTimeMs);
-        }
-      }
-
+    if (!success) {
       throw new ProcessCanceledException();
     }
   }
@@ -542,6 +499,8 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Override
   @NonNull
   public String readFile(@NonNull File file) {
+    ProgressManager.checkCanceled();
+
     if (myLintResult instanceof LintEditorResult) {
       return readFile((LintEditorResult)myLintResult, file);
     }
@@ -553,13 +512,13 @@ public class LintIdeClient extends LintClient implements Disposable {
     }
 
     return runReadAction(() -> {
-      PsiFile psiFile = PsiManager.getInstance(myProject).findFile(vFile);
-      if (psiFile == null) {
-        LOG.info("Cannot find file " + file.getPath() + " in the PSI");
+      Document document = FileDocumentManager.getInstance().getDocument(vFile);
+      if (document == null) {
+        LOG.info("Cannot create document for file " + file.getPath());
         return null;
       }
       else {
-        return psiFile.getText();
+        return document.getText();
       }
     });
   }
@@ -586,6 +545,18 @@ public class LintIdeClient extends LintClient implements Disposable {
     return content;
   }
 
+  @Override
+  public byte @NotNull [] readBytes(@NotNull File file) throws IOException {
+    ProgressManager.checkCanceled();
+    return super.readBytes(file);
+  }
+
+  @Override
+  public byte @NotNull [] readBytes(@NotNull PathString resourcePath) throws IOException {
+    ProgressManager.checkCanceled();
+    return super.readBytes(resourcePath);
+  }
+
   @Nullable
   private String getFileContent(@NonNull LintEditorResult lintResult, final VirtualFile vFile) {
     if (Objects.equals(lintResult.getMainFile(), vFile)) {
@@ -593,25 +564,20 @@ public class LintIdeClient extends LintClient implements Disposable {
     }
 
     return runReadAction(() -> {
-      final Module module = lintResult.getModule();
-      final Project project = module.getProject();
-      final PsiFile psiFile = PsiManager.getInstance(project).findFile(vFile);
-
-      if (psiFile == null) {
+      final Document document = FileDocumentManager.getInstance().getDocument(vFile);
+      if (document == null) {
         return null;
       }
-      final Document document = PsiDocumentManager.getInstance(project).getDocument(psiFile);
 
-      if (document != null) {
-        final DocumentListener listener = new DocumentListener() {
-          @Override
-          public void documentChanged(@NotNull DocumentEvent event) {
-            lintResult.markDirty();
-          }
-        };
-        document.addDocumentListener(listener, this);
-      }
-      return psiFile.getText();
+      final DocumentListener listener = new DocumentListener() {
+        @Override
+        public void documentChanged(@NotNull DocumentEvent event) {
+          lintResult.markDirty();
+        }
+      };
+      document.addDocumentListener(listener, this);
+
+      return document.getText();
     });
   }
 
@@ -671,11 +637,6 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Override
   public String getRelativePath(@Nullable File baseFile, @Nullable File file) {
     return FileUtilRt.getRelativePath(baseFile, file);
-  }
-
-  protected void notifyReadCanceled(StackTraceElement[] stackDumpRaw, long cancelTimeMs, long actionTimeMs) {
-    LOG.info("Android Lint either took too long to run a read action (" + actionTimeMs + "ms),\n" +
-             "or took too long to cancel and yield to a pending write action (" + cancelTimeMs + "ms)");
   }
 
   @NonNull

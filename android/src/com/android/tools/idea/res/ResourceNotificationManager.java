@@ -56,7 +56,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.intellij.images.fileTypes.ImageFileTypeManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
@@ -341,7 +340,7 @@ public class ResourceNotificationManager {
 
     private ModuleEventObserver(@NotNull AndroidFacet facet) {
       myFacet = facet;
-      myGeneration = ResourceRepositoryManager.getAppResources(facet).getModificationCount();
+      myGeneration = getAppResourcesModificationCount();
     }
 
     @Override
@@ -393,7 +392,7 @@ public class ResourceNotificationManager {
       if (myFacet.isDisposed()) {
         return;
       }
-      long generation = ResourceRepositoryManager.getAppResources(myFacet).getModificationCount();
+      long generation = getAppResourcesModificationCount();
       if (reason.size() == 1 && reason.contains(Reason.RESOURCE_EDIT) && generation == myGeneration) {
         // Notified of an edit in some file that could potentially affect the resources, but
         // it didn't cause the modification stamp to increase: ignore. (If there are other reasons,
@@ -410,6 +409,11 @@ public class ResourceNotificationManager {
       for (ResourceChangeListener listener : listeners) {
         listener.resourcesChanged(reason);
       }
+    }
+
+    private long getAppResourcesModificationCount() {
+      LocalResourceRepository appResources = ResourceRepositoryManager.getInstance(myFacet).getCachedAppResources();
+      return appResources == null ? 0 : appResources.getModificationCount();
     }
 
     private boolean hasListeners() {
@@ -745,7 +749,7 @@ public class ResourceNotificationManager {
       events.stream()
         .filter(e -> {
           VirtualFile file = e.getFile();
-          if (file == null || !ImageFileTypeManager.getInstance().isImage(file)) {
+          if (file == null) {
             return false;
           }
 

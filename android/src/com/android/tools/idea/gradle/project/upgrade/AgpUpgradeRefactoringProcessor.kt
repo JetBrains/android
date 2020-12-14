@@ -34,6 +34,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
@@ -804,8 +805,8 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
     val buildSrcDir = File(getBaseDirPath(project), "buildSrc").toVirtualFile()
-    // Using the buildModel, look for classpath dependencies on AGP, and if we find one, record it as a usage.
     buildModel.allIncludedBuildModels.forEach model@{ model ->
+      // Using the buildModel, look for classpath dependencies on AGP, and if we find one, record it as a usage.
       model.buildscript().dependencies().artifacts(CLASSPATH).forEach dep@{ dep ->
         when (isUpdatablePluginDependency(new, dep)) {
           YES -> {
@@ -827,6 +828,7 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
           else -> Unit
         }
       }
+      // buildSrc run-time dependencies are project build-time (classpath) dependencies.
       if (model.moduleRootDirectory.toVirtualFile() == buildSrcDir) {
         model.dependencies().artifacts().forEach dep@{ dep ->
           when (isUpdatablePluginRelatedDependency(new, dep)) {
@@ -847,6 +849,23 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
               }
             }
             else -> Unit
+          }
+        }
+      }
+      // Examine plugins for plugin Dsl declarations.
+      model.plugins().forEach { plugin ->
+        if (plugin.version().valueType == STRING && plugin.name().toString().startsWith("com.android")) {
+          val version = GradleVersion.tryParse(plugin.version().toString()) ?: return@forEach
+          if (version == current && version < new)  {
+            val resultModel = plugin.version().resultModel
+            val psiElement = when (val element = resultModel.rawElement) {
+              null -> return@forEach
+              else -> element.psiElement
+            }
+            val presentableText = AndroidBundle.message("project.upgrade.agpClasspathDependencyRefactoringProcessor.target.presentableText")
+            psiElement?.let {
+              usages.add(AgpVersionUsageInfo(WrappedPsiElement(it, this, USAGE_TYPE, presentableText), current, new, resultModel))
+            }
           }
         }
       }
@@ -1090,9 +1109,18 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         VERSION_FOR_DEV -> GradleVersion.parse("2.0.0")
       }
 
+    // compatibility information from b/174686925 and https://github.com/mannodermaus/android-junit5/releases
+    fun `de-mannodermaus-android-junit5-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
+      when (compatibleGradleVersion) {
+        VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1 -> GradleVersion.parse("1.3.1.0")
+        VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1 -> GradleVersion.parse("1.4.2.1")
+        VERSION_6_5, VERSION_FOR_DEV -> GradleVersion.parse("1.6.1.0")
+      }
+
     val WELL_KNOWN_GRADLE_PLUGIN_TABLE = mapOf(
       "org.jetbrains.kotlin:kotlin-gradle-plugin" to ::`kotlin-gradle-plugin-compatibility-info`,
       "androidx.navigation:navigation-safe-args-gradle-plugin" to ::`androidx-navigation-safeargs-gradle-plugin-compatibility-info`,
+      "de.mannodermaus.gradle.plugins:android-junit5" to ::`de-mannodermaus-android-junit5-plugin-compatibility-info`
     )
   }
 }
@@ -1443,8 +1471,8 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
   override fun getCommandName(): String = AndroidBundle.message("project.upgrade.compileRuntimeConfigurationRefactoringProcessor.commandName")
 
   companion object {
-    val IMPLEMENTATION_API_INTRODUCED = GradleVersion(3, 1, 0) // introduced in Gradle 3.4; AGP 3.0.0 already required Gradle 4.4
-    val COMPILE_REMOVED = GradleVersion(5, 0, 0) // Gradle 7.0
+    val IMPLEMENTATION_API_INTRODUCED = GradleVersion.parse("3.1.0")
+    val COMPILE_REMOVED = GradleVersion.parse("7.0.0-alpha03")
 
     val RENAME_CONFIGURATION_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.compileRuntimeConfigurationRefactoringProcessor.renameConfigurationUsageType"))
     val CHANGE_DEPENDENCY_CONFIGURATION_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.compileRuntimeConfigurationRefactoringProcessor.changeDependencyConfigurationUsageType"))

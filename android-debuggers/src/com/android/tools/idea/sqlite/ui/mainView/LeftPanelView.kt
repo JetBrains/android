@@ -106,7 +106,15 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     }
 
     treeModel.insertNodeInto(schemaNode, root, index)
-    tree.expandPath(TreePath(schemaNode.path))
+
+    // if schema node has no children it cannot be expanded
+    // if we don't expand the root of the tree children are not visible, since the root itself is not visible
+    if (schema == null) {
+      tree.expandPath(TreePath(root))
+    }
+    else {
+      tree.expandPath(TreePath(schemaNode.path))
+    }
 
     refreshSchemaButton.isEnabled = true
     runSqlButton.isEnabled = true

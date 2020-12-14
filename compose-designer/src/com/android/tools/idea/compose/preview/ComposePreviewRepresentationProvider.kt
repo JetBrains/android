@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.flags.ifDisabled
 import com.android.flags.ifEnabled
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.actions.SetColorBlindModeAction
@@ -42,6 +43,7 @@ import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.actions.SwitchSurfaceLayoutManagerAction
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
@@ -72,7 +74,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
   override fun getNorthGroup(): ActionGroup = DefaultActionGroup(
     listOfNotNull(
       StopInteractivePreviewAction(),
-      StopAnimationInspectorAction(),
+      StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_SWITCH.ifDisabled { StopAnimationInspectorAction() },
       GroupSwitchAction().visibleOnlyInComposeStaticPreview(),
       ForceCompileAndRefreshAction(surface),
       SwitchSurfaceLayoutManagerAction(
@@ -141,18 +143,7 @@ class ComposePreviewRepresentationProvider(
   /**
    * Checks if the input [virtualFile] contains compose previews and therefore can be provided with the [PreviewRepresentation] of them.
    */
-  override fun accept(project: Project, virtualFile: VirtualFile): Boolean {
-    if (!StudioFlags.COMPOSE_PREVIEW.get() || !virtualFile.isKotlinFileType()) {
-      return false
-    }
-
-    val hasPreviewMethods = filePreviewElementProvider().hasPreviewMethods(project, virtualFile)
-    if (LOG.isDebugEnabled) {
-      LOG.debug("${virtualFile.path} hasPreviewMethods=${hasPreviewMethods}")
-    }
-
-    return hasPreviewMethods
-  }
+  override fun accept(project: Project, virtualFile: VirtualFile): Boolean = StudioFlags.COMPOSE_PREVIEW.get() && virtualFile.isKotlinFileType()
 
   /**
    * Creates a [ComposePreviewRepresentation] for the input [psiFile].
@@ -164,13 +155,27 @@ class ComposePreviewRepresentationProvider(
           emptySequence()
         else
           try {
-            filePreviewElementProvider().findPreviewMethods(psiFile.project, psiFile.virtualFile)
+            filePreviewElementProvider().findPreviewMethods(psiFile.project, psiFile.virtualFile).asSequence()
           }
           catch (_: IndexNotReadyException) {
-            emptySequence<PreviewElement>()
+            emptySequence()
           }
     }
-    return ComposePreviewRepresentation(psiFile, previewProvider, ::ComposePreviewViewImpl)
+    val hasPreviewMethods = filePreviewElementProvider().hasPreviewMethods(psiFile.project, psiFile.virtualFile)
+    if (LOG.isDebugEnabled) {
+      LOG.debug("${psiFile.virtualFile.path} hasPreviewMethods=${hasPreviewMethods}")
+    }
+
+    val showInSplitMode = hasPreviewMethods || filePreviewElementProvider().hasComposableMethods(psiFile.project, psiFile.virtualFile)
+
+    // We will default to split mode if there are @Preview annotations in the file or if the file
+    // contains @Composable. Otherwise, we set the mode to code.
+
+    return ComposePreviewRepresentation(
+      psiFile,
+      previewProvider,
+      if (showInSplitMode) PreferredVisibility.VISIBLE else PreferredVisibility.HIDDEN,
+      ::ComposePreviewViewImpl)
   }
 
   override val displayName = message("representation.name")

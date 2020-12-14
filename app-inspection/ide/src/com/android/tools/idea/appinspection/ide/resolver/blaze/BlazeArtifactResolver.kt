@@ -15,18 +15,14 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver.blaze
 
-import com.android.tools.idea.appinspection.ide.resolver.AppInspectorJarPaths
 import com.android.tools.idea.appinspection.ide.resolver.http.HttpArtifactResolver
 import com.android.tools.idea.appinspection.ide.resolver.moduleSystem.ModuleSystemArtifactResolver
 import com.android.tools.idea.appinspection.inspector.api.io.FileService
+import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
-import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverRequest
-import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverResult
-import com.android.tools.idea.appinspection.inspector.ide.resolver.FailureResult
-import com.android.tools.idea.appinspection.inspector.ide.resolver.SuccessfulResult
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.project.Project
-import org.jetbrains.annotations.TestOnly
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+import java.nio.file.Path
 
 /**
  * Special handling for blaze projects:
@@ -49,27 +45,16 @@ import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
  * The file name is then computed from the maven coordinate, yielding:
  *   ${WORKSPACE_ROOT}/third_party/java/androidx/work/runtime/work-runtime.aar
  */
-class BlazeArtifactResolver @TestOnly constructor(
-  private val jarPaths: AppInspectorJarPaths,
+class BlazeArtifactResolver @VisibleForTesting constructor(
   private val httpArtifactResolver: ArtifactResolver,
   private val moduleSystemArtifactResolver: ArtifactResolver
 ) : ArtifactResolver {
   constructor(
     fileService: FileService,
-    jarPaths: AppInspectorJarPaths
-  ) : this(jarPaths, HttpArtifactResolver(fileService, jarPaths), ModuleSystemArtifactResolver(jarPaths))
+    project: Project
+  ) : this(HttpArtifactResolver(fileService), ModuleSystemArtifactResolver(project))
 
-  override suspend fun <T : ArtifactResolverRequest> resolveArtifacts(requests: List<T>,
-                                                                      project: Project): List<ArtifactResolverResult<T>> {
-    val failedRequests = httpArtifactResolver.resolveArtifacts(requests, project)
-      .filterIsInstance<FailureResult<T>>()
-      .map { it.request }
-    moduleSystemArtifactResolver.resolveArtifacts(failedRequests, project)
-
-    return requests.map { request ->
-      jarPaths.getInspectorJar(request.artifactCoordinate)?.let {
-        SuccessfulResult(request, it)
-      } ?: FailureResult(request)
-    }
+  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path? {
+    return httpArtifactResolver.resolveArtifact(artifactCoordinate) ?: moduleSystemArtifactResolver.resolveArtifact(artifactCoordinate)
   }
 }

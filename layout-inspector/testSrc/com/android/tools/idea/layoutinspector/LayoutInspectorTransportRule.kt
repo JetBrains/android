@@ -28,13 +28,13 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.FpsTimer
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
-import com.android.tools.idea.layoutinspector.legacydevice.LegacyTreeLoader
+import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
-import com.android.tools.idea.layoutinspector.transport.InspectorClient
-import com.android.tools.idea.layoutinspector.transport.isCapturingModeOn
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
+import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.transport.isCapturingModeOn
 import com.android.tools.idea.layoutinspector.util.ConfigurationBuilder
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.util.TestStringTable
@@ -140,7 +140,7 @@ class LayoutInspectorTransportRule(
 
   private val scheduler = VirtualTimeScheduler()
   private var inspectorClientFactory: () -> InspectorClient = {
-    DefaultInspectorClient(inspectorModel, projectRule.fixture.projectDisposable, grpcServer.name, scheduler)
+    TransportInspectorClient(inspectorModel, projectRule.fixture.projectDisposable, grpcServer.name, scheduler)
   }
 
   private var originalClientFactory: ((InspectorModel, Disposable) -> List<InspectorClient>)? = null
@@ -249,7 +249,7 @@ class LayoutInspectorTransportRule(
   }
 
   /**
-   * Create a [LegacyClient] rather than a [DefaultInspectorClient]
+   * Create a [LegacyClient] rather than a [TransportInspectorClient]
    */
   fun withLegacyClient() = apply { inspectorClientFactory = {
     LegacyClient(inspectorModel, projectRule.fixture.projectDisposable) }
@@ -269,7 +269,7 @@ class LayoutInspectorTransportRule(
 
   fun withDefaultDevice() = apply {
     beforeActions.add {
-      if (inspectorClient is DefaultInspectorClient) {
+      if (inspectorClient is TransportInspectorClient) {
         addProcess(DEFAULT_DEVICE, DEFAULT_PROCESS)
       }
       else if (inspectorClient is LegacyClient) {

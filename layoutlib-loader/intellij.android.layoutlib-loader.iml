@@ -13,9 +13,9 @@
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
     <orderEntry type="module-library" scope="PROVIDED">
-      <library>
+      <library name="layoutlib">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/studio/layoutlib/data/layoutlib_native.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/studio/layoutlib/data/layoutlib.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

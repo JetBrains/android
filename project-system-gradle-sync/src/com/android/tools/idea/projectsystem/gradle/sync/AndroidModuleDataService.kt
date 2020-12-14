@@ -50,6 +50,7 @@ import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.service.project.IdeModelsProvider
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -62,6 +63,7 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION
 import org.jetbrains.jps.model.serialization.PathMacroUtil
+import org.jetbrains.kotlin.idea.framework.GRADLE_SYSTEM_ID
 import java.io.File
 import java.util.LinkedList
 import java.util.concurrent.TimeUnit
@@ -169,7 +171,8 @@ private fun createAndroidFacet(module: Module, modelsProvider: IdeModifiableMode
   val model = modelsProvider.getModifiableFacetModel(module)
   val facetType = AndroidFacet.getFacetType()
   val facet = facetType.createFacet(module, AndroidFacet.NAME, facetType.createDefaultConfiguration(), null)
-  model.addFacet(facet)
+  @Suppress("UnstableApiUsage")
+  model.addFacet(facet, ExternalSystemApiUtil.toExternalSource(GRADLE_SYSTEM_ID))
   return facet
 }
 

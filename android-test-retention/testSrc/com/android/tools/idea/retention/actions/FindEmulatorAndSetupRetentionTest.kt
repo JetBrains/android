@@ -76,18 +76,14 @@ class FindEmulatorAndSetupRetentionTest {
         }
         if (dataId == EMULATOR_SNAPSHOT_FILE_KEY.name) {
           assertThat(snapshotFile).exists()
-          assertThat(Files.isReadable(snapshotFile)).isTrue()
+          assertThat(snapshotFile).isReadable()
           return snapshotFile
         }
         if (dataId == PACKAGE_NAME_KEY.name) {
           return projectRule.project.name
         }
         if (dataId == RETENTION_ON_FINISH_KEY.name) {
-          return object: Runnable {
-            override fun run() {
-              retentionDoneSignal.countDown()
-            }
-          }
+          return Runnable { retentionDoneSignal.countDown() }
         }
         if (dataId == RETENTION_AUTO_CONNECT_DEBUGGER_KEY.name) {
           return false

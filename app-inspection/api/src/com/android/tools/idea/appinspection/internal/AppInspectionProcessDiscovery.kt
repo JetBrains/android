@@ -21,7 +21,6 @@ import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.api.process.ProcessNotifier
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
-import com.android.tools.idea.appinspection.internal.process.isInspectable
 import com.android.tools.idea.transport.manager.StreamConnected
 import com.android.tools.idea.transport.manager.StreamDisconnected
 import com.android.tools.idea.transport.manager.StreamEventQuery
@@ -147,9 +146,7 @@ internal class AppInspectionProcessDiscovery(
         StreamProcessIdPair(
           streamChannel.stream.streamId, process.pid)) {
         val descriptor = TransportProcessDescriptor(streamChannel.stream, process)
-        if (descriptor.isInspectable()) {
-          processData.processListeners.forEach { (listener, executor) -> executor.execute { listener.onProcessConnected(descriptor) } }
-        }
+        processData.processListeners.forEach { (listener, executor) -> executor.execute { listener.onProcessConnected(descriptor) } }
         descriptor
       }
     }

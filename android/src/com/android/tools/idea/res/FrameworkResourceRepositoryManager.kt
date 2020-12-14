@@ -90,7 +90,7 @@ class FrameworkResourceRepositoryManager {
    *     may contain data for more languages.
    * @return the repository of Android framework resources, or null if not loaded yet
    */
-  fun getExistingFrameworkResources(
+  fun getCachedFrameworkResources(
     resourceDirectoryOrFile: Path,
     useCompiled9Patches: Boolean,
     languages: Set<String>

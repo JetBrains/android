@@ -29,8 +29,8 @@ class TestProcessNotifier: ProcessNotifier {
     listeners.remove(listener)
   }
 
-  fun fireConnected(descriptor: ProcessDescriptor) = fire { listener -> listener.onProcessConnected(descriptor) }
-  fun fireDisconnected(descriptor: ProcessDescriptor) = fire { listener-> listener.onProcessDisconnected(descriptor) }
+  fun fireConnected(process: ProcessDescriptor) = fire { listener -> listener.onProcessConnected(process) }
+  fun fireDisconnected(process: ProcessDescriptor) = fire { listener-> listener.onProcessDisconnected(process) }
   private fun fire(block: (ProcessListener) -> Unit) {
     listeners.forEach { (listener, executor) ->
       executor.execute {

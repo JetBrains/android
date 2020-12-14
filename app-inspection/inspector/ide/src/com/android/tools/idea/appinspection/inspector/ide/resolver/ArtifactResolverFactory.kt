@@ -15,16 +15,12 @@
  */
 package com.android.tools.idea.appinspection.inspector.ide.resolver
 
-import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 
 /**
  * A factory for creating [ArtifactResolver].
  */
 interface ArtifactResolverFactory {
-  companion object {
-    val instance = service<ArtifactResolverFactory>()
-  }
   /**
    * Creates an [ArtifactResolver] based on the project.
    */

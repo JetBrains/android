@@ -31,6 +31,9 @@ class CpuProfilerPerfettoWithTrebuchetCaptureTest : CpuProfilerMemoryLoadTestBas
   @Test
   fun measureMemoryOfImportPerfettoWithTrebuchet() {
     myIdeServices.enableUseTraceProcessor(false)
-    loadCaptureAndReport("Perfetto-Trebuchet-10-sec", CpuProfilerTestUtils.getTraceFile("performance/perfetto_10s_tanks.trace"))
+    loadCaptureAndReport(
+      "Perfetto-Trebuchet-10-sec",
+      CpuProfilerTestUtils.getTraceFile("performance/perfetto_10s_tanks.trace"),
+      "com.google.android.tanks", 7366)
   }
 }

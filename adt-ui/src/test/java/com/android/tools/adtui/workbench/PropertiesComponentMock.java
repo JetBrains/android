@@ -56,7 +56,7 @@ public class PropertiesComponentMock extends PropertiesComponent {
       myProperties.remove(name);
     }
     else {
-      setValue(name, String.valueOf(value));
+      setValue(name, value);
     }
   }
 

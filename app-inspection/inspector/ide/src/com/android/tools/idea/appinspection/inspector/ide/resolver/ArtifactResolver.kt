@@ -15,46 +15,16 @@
  */
 package com.android.tools.idea.appinspection.inspector.ide.resolver
 
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
-import com.intellij.openapi.project.Project
+import java.nio.file.Path
 
 /**
  * A class that handles the downloading of gradle/maven artifacts.
  */
 interface ArtifactResolver {
   /**
-   * For each request, attempts to resolve the requested artifact and returns a [ArtifactResolverRequest].
+   * Attempts to resolve the requested artifact and returns the path of the resolved jar.
+   * Null if artifact can't be resolved for some reason.
    */
-  suspend fun <T : ArtifactResolverRequest> resolveArtifacts(requests: List<T>, project: Project): List<ArtifactResolverResult<T>>
+  suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path?
 }
-
-/**
- * Contains all of the information needed to make a attempt to resolve an artifact.
- */
-abstract class ArtifactResolverRequest(
-  val artifactCoordinate: ArtifactCoordinate
-)
-
-/**
- * Represents the result of resolving the artifact of a given coordinate.
- */
-sealed class ArtifactResolverResult<T : ArtifactResolverRequest>(
-  val request: T
-)
-
-/**
- * Represents the success scenario of resolving an artifact, in which the jar is returned.
- */
-class SuccessfulResult<T : ArtifactResolverRequest>(
-  request: T,
-  val jar: AppInspectorJar
-) : ArtifactResolverResult<T>(request)
-
-/**
- * Represents the failure scenario in which the error message is returned.
- */
-class FailureResult<T : ArtifactResolverRequest>(
-  request: T,
-  val errorMessage: String? = null
-) : ArtifactResolverResult<T>(request)

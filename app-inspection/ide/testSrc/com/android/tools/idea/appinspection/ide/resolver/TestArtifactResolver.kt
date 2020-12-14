@@ -17,19 +17,16 @@ package com.android.tools.idea.appinspection.ide.resolver
 
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
-import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverRequest
-import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverResult
-import com.android.tools.idea.appinspection.inspector.ide.resolver.SuccessfulResult
-import com.android.tools.idea.appinspection.test.TEST_JAR
-import com.intellij.openapi.project.Project
+import com.android.tools.idea.appinspection.test.TEST_JAR_PATH
+import java.nio.file.Path
 
-class TestArtifactResolver : ArtifactResolver {
-  override suspend fun <T : ArtifactResolverRequest> resolveArtifacts(requests: List<T>,
-                                                                      project: Project): List<ArtifactResolverResult<T>> {
-    return requests.map { SuccessfulResult(it, TEST_JAR) }
+/**
+ * A test artifact resolver.
+ *
+ * It uses the provided lambda to determine what to return. The default is [TEST_JAR_PATH].
+ */
+class TestArtifactResolver(private val function: (ArtifactCoordinate) -> Path? = { TEST_JAR_PATH }) : ArtifactResolver {
+  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path? {
+    return function(artifactCoordinate)
   }
 }
-
-class TestArtifactResolverRequest(
-  artifactCoordinate: ArtifactCoordinate
-): ArtifactResolverRequest(artifactCoordinate)

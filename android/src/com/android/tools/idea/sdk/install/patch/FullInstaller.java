@@ -24,7 +24,6 @@ import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.installer.AbstractInstaller;
 import com.android.repository.impl.meta.Archive;
-import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
 import com.android.repository.util.InstallerUtil;
 import java.io.IOException;
@@ -46,7 +45,7 @@ class FullInstaller extends AbstractInstaller implements PatchOperation {
 
   private static final String UNZIP_DIR_FN = "unzip";
 
-  private LocalPackage myExisting;
+  private final LocalPackage myExisting;
   private LocalPackage myPatcher;
   private Path myUnzippedPackage;
   private Path myGeneratedPatch;
@@ -54,9 +53,8 @@ class FullInstaller extends AbstractInstaller implements PatchOperation {
   public FullInstaller(@Nullable LocalPackage existing,
                        @NotNull RemotePackage p,
                        @NotNull RepoManager mgr,
-                       @NotNull Downloader downloader,
-                       @NotNull FileOp fop) {
-    super(p, mgr, downloader, fop);
+                       @NotNull Downloader downloader) {
+    super(p, mgr, downloader);
     myExisting = existing;
     myPatcher = PatchInstallerUtil.getDependantPatcher(getPackage(), getRepoManager());
     if (myPatcher == null) {
@@ -70,7 +68,7 @@ class FullInstaller extends AbstractInstaller implements PatchOperation {
     if (myPatcher == null) {
       return false;
     }
-    return PatchInstallerUtil.installPatch(this, myGeneratedPatch, mFop, progress);
+    return PatchInstallerUtil.installPatch(this, myGeneratedPatch, progress);
   }
 
   @Override
@@ -90,7 +88,7 @@ class FullInstaller extends AbstractInstaller implements PatchOperation {
       // fall through
     }
 
-    myGeneratedPatch = PatchInstallerUtil.generatePatch(this, mFop.toFile(installTempPath), mFop, progress.createSubProgress(1));
+    myGeneratedPatch = PatchInstallerUtil.generatePatch(this, installTempPath, progress.createSubProgress(1));
     progress.setFraction(1);
     return myGeneratedPatch != null;
   }
@@ -106,7 +104,7 @@ class FullInstaller extends AbstractInstaller implements PatchOperation {
     try {
       Path downloadLocation = installTempPath.resolve(url.getFile());
       String checksum = archive.getComplete().getChecksum();
-      downloader.downloadFullyWithCaching(url, mFop.toFile(downloadLocation), checksum, progress.createSubProgress(0.5));
+      downloader.downloadFullyWithCaching(url, downloadLocation, checksum, progress.createSubProgress(0.5));
       progress.setFraction(0.5);
       if (progress.isCanceled()) {
         progress.setFraction(1);
@@ -119,7 +117,7 @@ class FullInstaller extends AbstractInstaller implements PatchOperation {
       }
       Path unzip = installTempPath.resolve(UNZIP_DIR_FN);
       Files.createDirectories(unzip);
-      InstallerUtil.unzip(mFop.toFile(downloadLocation), mFop.toFile(unzip), mFop,
+      InstallerUtil.unzip(downloadLocation, unzip,
                           archive.getComplete().getSize(), progress.createSubProgress(1));
       progress.setFraction(1);
       if (progress.isCanceled()) {

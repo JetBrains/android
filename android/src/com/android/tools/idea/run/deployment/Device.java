@@ -80,7 +80,7 @@ public abstract class Device {
     myValid = builder.myValid;
     myValidityReason = builder.myValidityReason;
 
-    assert builder.myKey != null;
+    assert builder.myKey != null && !(builder.myKey instanceof NonprefixedKey);
     myKey = builder.myKey;
 
     myConnectionTime = builder.myConnectionTime;
@@ -110,13 +110,37 @@ public abstract class Device {
 
   abstract @NotNull Collection<@NotNull Snapshot> getSnapshots();
 
+  /**
+   * A physical device will always return a serial number. A virtual device will usually return a virtual device path. But if Studio doesn't
+   * know about the virtual device (it's outside the scope of the AVD Manager because it uses a locally built system image, for example) it
+   * can return a virtual device path (probably not but I'm not going to assume), virtual device name, or serial number depending on what
+   * the IDevice returned.
+   */
   @NotNull
   public final Key getKey() {
     return myKey;
   }
 
+  /**
+   * Returns true if the key identifies this device. For a virtual device identified by
+   * VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd") this method will return true for
+   * VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"), VirtualDeviceName("Pixel_4_API_30"), and
+   * NonprefixedKey("Pixel_4_API_30").
+   *
+   * <p>When enough users upgrade their emulator to Version 30.0.18 and don't have persisted nonprefixed keys, this can be replaced with
+   * getKey().equals(key)
+   */
   abstract boolean matches(@NotNull Key key);
 
+  /**
+   * Returns true if the collection contains a key that identifies this device. For a virtual device identified by
+   * VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd") this method will return true for a collection containing
+   * VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"), VirtualDeviceName("Pixel_4_API_30"), or
+   * NonprefixedKey("Pixel_4_API_30").
+   *
+   * <p>When enough users upgrade their emulator to Version 30.0.18 and don't have persisted nonprefixed keys, this can be replaced with
+   * keys.contains(getKey())
+   */
   abstract boolean hasKeyContainedBy(@NotNull Collection<@NotNull Key> keys);
 
   @Nullable

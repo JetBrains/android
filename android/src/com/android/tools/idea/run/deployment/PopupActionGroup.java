@@ -47,7 +47,9 @@ final class PopupActionGroup extends DefaultActionGroup {
     myDevices = devices;
     myComboBoxAction = comboBoxAction;
 
-    Collection<AnAction> actions = newSelectDeviceActions();
+    Collection<AnAction> actions =
+      comboBoxAction.areSnapshotsEnabled() ? newSelectDeviceActionsOrSnapshotActionGroups() : newSelectDeviceActions();
+
     addAll(actions);
 
     if (!actions.isEmpty()) {
@@ -70,6 +72,57 @@ final class PopupActionGroup extends DefaultActionGroup {
 
     addSeparator();
     add(action);
+  }
+
+  private @NotNull Collection<@NotNull AnAction> newSelectDeviceActionsOrSnapshotActionGroups() {
+    int size = myDevices.size();
+    Collection<Device> runningDevices = new ArrayList<>(size);
+    Collection<Device> availableDevices = new ArrayList<>(size);
+
+    for (Device device : myDevices) {
+      if (device.isConnected()) {
+        runningDevices.add(device);
+        continue;
+      }
+
+      availableDevices.add(device);
+    }
+
+    boolean runningDevicesPresent = !runningDevices.isEmpty();
+    Collection<AnAction> actions = new ArrayList<>(3 + size);
+    ActionManager manager = ActionManager.getInstance();
+
+    if (runningDevicesPresent) {
+      actions.add(manager.getAction(Heading.RUNNING_DEVICES_ID));
+    }
+
+    runningDevices.stream()
+      .map(this::newSelectDeviceAction)
+      .forEach(actions::add);
+
+    boolean availableDevicesPresent = !availableDevices.isEmpty();
+
+    if (runningDevicesPresent && availableDevicesPresent) {
+      actions.add(Separator.create());
+    }
+
+    if (availableDevicesPresent) {
+      actions.add(manager.getAction(Heading.AVAILABLE_DEVICES_ID));
+    }
+
+    availableDevices.stream()
+      .map(this::newSelectDeviceActionOrSnapshotActionGroup)
+      .forEach(actions::add);
+
+    return actions;
+  }
+
+  private @NotNull AnAction newSelectDeviceActionOrSnapshotActionGroup(@NotNull Device device) {
+    if (device.getSnapshots().stream().anyMatch(Snapshot::isGeneral)) {
+      return new SnapshotActionGroup(device);
+    }
+
+    return newSelectDeviceAction(device);
   }
 
   @NotNull
@@ -108,6 +161,6 @@ final class PopupActionGroup extends DefaultActionGroup {
 
   @NotNull
   private AnAction newSelectDeviceAction(@NotNull Device device) {
-    return SelectDeviceAction.newSelectDeviceAction(device, myComboBoxAction);
+    return new SelectDeviceAction(device, myComboBoxAction);
   }
 }

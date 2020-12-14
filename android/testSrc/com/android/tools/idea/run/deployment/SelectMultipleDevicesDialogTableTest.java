@@ -25,6 +25,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Set;
 import javax.swing.table.TableModel;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -57,7 +58,7 @@ public final class SelectMultipleDevicesDialogTableTest {
     myTable.setSelected(true, 0);
 
     // Assert
-    assertEquals(Collections.singletonList(device), myTable.getSelectedDevices());
+    assertEquals(Collections.singleton(new Target(new VirtualDeviceName("Pixel_3_API_29"))), myTable.getSelectedTargets());
   }
 
   @Test
@@ -70,9 +71,10 @@ public final class SelectMultipleDevicesDialogTableTest {
       .build();
 
     myTable.setModel(new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device)));
+    Set<Target> targets = Collections.singleton(new Target(new VirtualDeviceName("Pixel_3_API_29")));
 
     // Act
-    myTable.setSelectedDevices(Collections.singleton(new VirtualDeviceName("Pixel_3_API_29")));
+    myTable.setSelectedTargets(targets);
 
     // Assert
     assertTrue(myTable.isSelected(0));
