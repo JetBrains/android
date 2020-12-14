@@ -43,6 +43,7 @@ import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
 import static java.nio.file.StandardOpenOption.WRITE;
 
 import com.android.SdkConstants;
+import com.android.annotations.concurrency.Slow;
 import com.android.ddmlib.IDevice;
 import com.android.io.CancellableFileIo;
 import com.android.prefs.AndroidLocationsException;
@@ -65,6 +66,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode;
+import com.android.tools.idea.avdmanager.AvdUiAction.AvdInfoProvider;
 import com.android.tools.idea.avdmanager.emulatorcommand.BootWithSnapshotEmulatorCommandBuilder;
 import com.android.tools.idea.avdmanager.emulatorcommand.ColdBootEmulatorCommandBuilder;
 import com.android.tools.idea.avdmanager.emulatorcommand.ColdBootNowEmulatorCommandBuilder;
@@ -106,6 +108,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBus;
@@ -402,11 +405,21 @@ public class AvdManagerConnection {
     return myAvdManager.deleteAvd(info, SDK_LOG);
   }
 
+  @Slow
   public boolean isAvdRunning(@NotNull AvdInfo info) {
     assert myAvdManager != null;
     return myAvdManager.isAvdRunning(info, SDK_LOG);
   }
 
+  @NotNull ListenableFuture<@NotNull Boolean> isAvdRunning(@NotNull AvdInfoProvider provider) {
+    ListeningExecutorService service = MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService());
+
+    return service.submit(() -> {
+      AvdInfo device = provider.getAvdInfo();
+      assert device != null;
+      return isAvdRunning(device);
+    });
+  }
 
   public void stopAvd(@NotNull AvdInfo info) {
     assert myAvdManager != null;
