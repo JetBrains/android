@@ -25,6 +25,7 @@ import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
+import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 
 public class DaemonMemorySettingsTest extends PlatformTestCase {
@@ -188,14 +189,16 @@ public class DaemonMemorySettingsTest extends PlatformTestCase {
     if (expectedHashUserPropertiesPath) {
       String expectedUserPropertiesPath =
         gradlePropertiesContent[0] != null ? getGradleUserHomePropertiesFilePath() : getUserHomePropertiesFilePath();
-      assertEquals(expectedUserPropertiesPath, daemonMemorySettings.getUserPropertiesPath());
+      assertEquals(expectedUserPropertiesPath.replace('/', File.separatorChar), daemonMemorySettings.getUserPropertiesPath());
     }
   }
 
+  @NotNull
   private String getGradleUserHomePropertiesFilePath() {
     return join(System.getProperty("gradle.user.home"), "gradle.properties");
   }
 
+  @NotNull
   private String getUserHomePropertiesFilePath() {
     return join(System.getProperty("user.home"), ".gradle", "gradle.properties");
   }
