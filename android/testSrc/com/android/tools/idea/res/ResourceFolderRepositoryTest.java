@@ -902,7 +902,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(1, raw.size());
     long generation1 = resources.getModificationCount();
     VirtualFile file2 = myFixture.copyFileToProject(LAYOUT1, "res/raw/numbers.random");
-    //waitForCondition(300, TimeUnit.SECONDS, () -> resources.getModificationCount() > generation1);
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(resources.getModificationCount() > generation1);
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.RAW, "numbers"));
