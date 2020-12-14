@@ -33,7 +33,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
-import com.android.tools.idea.layoutinspector.pipeline.transport.isCapturingModeOn
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -365,7 +365,7 @@ class DeviceViewPanel(
 
     // When disconnected: display the default value after the inspector is connected to the device.
     override fun isSelected(event: AnActionEvent): Boolean {
-      return isCapturingModeOn
+      return InspectorClientSettings.isCapturingModeOn
     }
 
     override fun setSelected(event: AnActionEvent, state: Boolean) {
@@ -376,7 +376,7 @@ class DeviceViewPanel(
           false -> currentClient.stopFetching()
         }
       }
-      isCapturingModeOn = state
+      InspectorClientSettings.isCapturingModeOn = state
     }
 
     private fun client(event: AnActionEvent): InspectorClient =
