@@ -9,7 +9,7 @@ iml_module(
     test_class = "com.android.tools.LayoutUiTestSuite",
     test_srcs = ["src/test/java"],
     test_tags = [
-        "manual",  # b/175459453
+        "manual",  # b/175459453 # disabled in coverage suite
         "no_test_mac",  # b/127340859
         "no_test_windows",
     ],
