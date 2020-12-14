@@ -257,8 +257,8 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
     image = null
     val snapshotCheck = object: Runnable {
       override fun run() {
-        synchronized(snapshotCheckLock) {
-          scanSnapshotFileContent(snapshotFile) {
+        scanSnapshotFileContent(snapshotFile) {
+          synchronized(snapshotCheckLock) {
             lastSnapshotCheck != this
           }
         }
