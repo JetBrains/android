@@ -612,6 +612,15 @@ public final class StudioFlags {
     "If enabled, Database Inspector will download a copy of open databases when the connection to the device is lost.",
     true
   );
+  public static final Flag<Boolean> DATABASE_INSPECTOR_EXPORT_TO_FILE_ENABLED = Flag.create(
+    DATABASE_INSPECTOR,
+    "export.to.file.enabled",
+    // TODO(161081452): remove "work in progress" note below when the feature is ready for at least a Canary release.
+    "Enable Export to File feature in Database Inspector (work in progress)",
+    "If enabled, Database Inspector will expose an ability for the user to export a table, query results, or the whole database " +
+    "to a local file.",
+    false
+  );
   //endregion
 
   //region Layout Inspector

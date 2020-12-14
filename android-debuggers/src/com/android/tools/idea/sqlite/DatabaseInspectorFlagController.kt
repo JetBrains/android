@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.sqlite
 
+import com.android.flags.Flag
 import com.android.tools.idea.flags.StudioFlags.DATABASE_INSPECTOR_ENABLED
+import com.android.tools.idea.flags.StudioFlags.DATABASE_INSPECTOR_EXPORT_TO_FILE_ENABLED
 import com.android.tools.idea.flags.StudioFlags.DATABASE_INSPECTOR_OFFLINE_MODE_ENABLED
 import com.android.tools.idea.flags.StudioFlags.DATABASE_INSPECTOR_OPEN_FILES_ENABLED
 import org.jetbrains.annotations.TestOnly
@@ -27,34 +29,31 @@ object DatabaseInspectorFlagController {
   val isFeatureEnabled get() = DATABASE_INSPECTOR_ENABLED.get()
   val isOpenFileEnabled get() = DATABASE_INSPECTOR_ENABLED.get() && DATABASE_INSPECTOR_OPEN_FILES_ENABLED.get()
   val isOfflineModeEnabled get() = DATABASE_INSPECTOR_ENABLED.get() && DATABASE_INSPECTOR_OFFLINE_MODE_ENABLED.get()
+  val isExportToFileEnabled get() = DATABASE_INSPECTOR_ENABLED.get() && DATABASE_INSPECTOR_EXPORT_TO_FILE_ENABLED.get()
 
   @TestOnly
-  fun enableFeature(enabled: Boolean): Boolean {
-    val previous = isFeatureEnabled
-    DATABASE_INSPECTOR_ENABLED.clearOverride()
-    if (enabled != DATABASE_INSPECTOR_ENABLED.get()) {
-      DATABASE_INSPECTOR_ENABLED.override(enabled)
-    }
-    return previous
-  }
+  fun enableFeature(enabled: Boolean): Boolean = setFlagState(DATABASE_INSPECTOR_ENABLED, enabled)
 
   @TestOnly
-  fun enableOpenFile(enabled: Boolean): Boolean {
-    val previous = isOpenFileEnabled
-    DATABASE_INSPECTOR_OPEN_FILES_ENABLED.clearOverride()
-    if (enabled != DATABASE_INSPECTOR_OPEN_FILES_ENABLED.get()) {
-      DATABASE_INSPECTOR_OPEN_FILES_ENABLED.override(enabled)
-    }
-    return previous
-  }
+  fun enableOpenFile(enabled: Boolean): Boolean = setFlagState(DATABASE_INSPECTOR_OPEN_FILES_ENABLED, enabled)
 
   @TestOnly
-  fun enableOfflineMode(enabled: Boolean): Boolean {
-    val previous = isOfflineModeEnabled
-    DATABASE_INSPECTOR_OFFLINE_MODE_ENABLED.clearOverride()
-    if (enabled != DATABASE_INSPECTOR_OFFLINE_MODE_ENABLED.get()) {
-      DATABASE_INSPECTOR_OFFLINE_MODE_ENABLED.override(enabled)
-    }
-    return previous
+  fun enableOfflineMode(enabled: Boolean): Boolean = setFlagState(DATABASE_INSPECTOR_OFFLINE_MODE_ENABLED, enabled)
+
+  @TestOnly
+  fun enableExportToFile(enabled: Boolean): Boolean = setFlagState(DATABASE_INSPECTOR_EXPORT_TO_FILE_ENABLED, enabled)
+
+  /**
+   * Clears an existing flag overrides, and if the flag value afterwards is not equal to [desiredState],
+   * the method sets an override to the [desiredState].
+   *
+   * @return previous value of the flag (before overrides are cleared)
+   */
+  @TestOnly
+  private fun setFlagState(flag: Flag<Boolean>, desiredState: Boolean): Boolean {
+    val previous = flag.get()
+    flag.clearOverride() // clears all existing overrides
+    if (desiredState != flag.get()) flag.override(desiredState)
+    return previous;
   }
 }
