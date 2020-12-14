@@ -34,6 +34,7 @@ import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -148,7 +149,10 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
           }
 
           myImporter.exportProject(destDir, true);
-          project.getBaseDir().refresh(false, true);
+          VirtualFile projectDir = ProjectUtil.guessProjectDir(project);
+          if (projectDir != null) {
+            projectDir.refresh(false, true);
+          }
           return true;
         },
         "Migrating project...", false, null
