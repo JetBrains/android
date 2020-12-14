@@ -32,7 +32,6 @@ import com.android.tools.idea.common.surface.DragOverEvent;
 import com.android.tools.idea.common.surface.DropEvent;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.InteractionEvent;
-import com.android.tools.idea.common.surface.InteractionInformation;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.flags.StudioFlags;
@@ -61,7 +60,6 @@ import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
 import java.util.Collections;
-import java.util.EventObject;
 import java.util.List;
 import java.util.function.Predicate;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
@@ -163,7 +161,11 @@ public class DragDropInteraction extends Interaction {
 
   @Override
   public void begin(@NotNull InteractionEvent event) {
-    assert event instanceof DragEnterEvent;
+    assert event instanceof DragEnterEvent : "The instance of event should be DragEnterEvent but it is " + event.getClass() +
+                                             "; The dragged component is " + myDraggedComponents +
+                                             "; The SceneView is " + mySceneView +
+                                             ", start (x, y) = " + myStartX + ", " + myStartY + ", start mask is " + myStartMask;
+
     DropTargetDragEvent dropEvent = ((DragEnterEvent)event).getEventObject();
     //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
     begin(dropEvent.getLocation().x, dropEvent.getLocation().y, event.getInfo().getModifiersEx());
@@ -222,7 +224,11 @@ public class DragDropInteraction extends Interaction {
 
   @Override
   public void commit(@NotNull InteractionEvent event) {
-    assert event instanceof DropEvent;
+    assert event instanceof DropEvent : "The instance of event should be DropEvent but it is " + event.getClass() +
+                                        "; The dragged component is " + myDraggedComponents +
+                                        "; The SceneView is " + mySceneView +
+                                        ", start (x, y) = " + myStartX + ", " + myStartY + ", start mask is " + myStartMask;
+
     DropTargetDropEvent dropEvent = ((DropEvent)event).getEventObject();
     NlDropEvent nlDropEvent = new NlDropEvent(dropEvent);
     Point location = dropEvent.getLocation();

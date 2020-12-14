@@ -177,7 +177,11 @@ public class InteractionManager implements Disposable {
       @Override
       public void actionPerformed(ActionEvent e) {
         myScrollEndTimer.removeActionListener(this);
-        finishInteraction(new MouseWheelStopEvent(e, getInteractionInformation()), false);
+        if (myCurrentInteraction instanceof ScrollInteraction) {
+          // Because we use Timer, this event may happen when current interaction is not ScrollInteraction.
+          // And they should not finish the interaction
+          finishInteraction(new MouseWheelStopEvent(e, getInteractionInformation()), false);
+        }
       }
     };
   }

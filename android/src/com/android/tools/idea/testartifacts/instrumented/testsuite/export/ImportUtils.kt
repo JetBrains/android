@@ -53,15 +53,18 @@ import java.io.FileInputStream
 import java.io.InputStreamReader
 import java.io.OutputStream
 import java.nio.charset.StandardCharsets
+import java.time.Duration
 import javax.xml.parsers.SAXParserFactory
 
 /**
  * Imports AndroidTestMatrixResult results from given [xmlFile].
  *
+ * @param onExecutionStarted a callback func which is called after an execution of test import run profile started.
  * @return true if a given xmlFile has `androidTestMatrix` element, otherwise false.
  */
 @UiThread
-fun importAndroidTestMatrixResultXmlFile(project: Project, xmlFile: VirtualFile): Boolean {
+fun importAndroidTestMatrixResultXmlFile(project: Project, xmlFile: VirtualFile,
+                                         onExecutionStarted: (ExecutionEnvironment) -> Unit = {}): Boolean {
   val rootElement = JDOMUtil.load(VfsUtilCore.virtualToIoFile(xmlFile))
   if (rootElement.getChild("androidTestMatrix") == null) {
     return false
@@ -78,7 +81,9 @@ fun importAndroidTestMatrixResultXmlFile(project: Project, xmlFile: VirtualFile)
       ProgramRunner.getRunner(executor.id, it)
     }?.let { builder.runner(it) }
 
-    builder.buildAndExecute()
+    val env = builder.build()
+    env.runner.execute(env)
+    onExecutionStarted(env)
   } catch (e: ExecutionException) {
     Messages.showErrorDialog(
       project, e.message,
@@ -133,7 +138,9 @@ private class ImportAndroidTestMatrixRunProfileState(
                 return
               }
               myProcessingAndroidTestMatrixElement = true
-
+              attributes.getValue("executionDuration")?.toLongOrNull()?.let {
+                console.testExecutionDurationOverride = Duration.ofMillis(it)
+              }
             }
             when(qName) {
               "device" -> {

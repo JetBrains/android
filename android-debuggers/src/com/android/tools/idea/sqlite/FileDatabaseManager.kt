@@ -80,6 +80,8 @@ class FileDatabaseManagerImpl(
       ).await()
     } catch (e: IllegalArgumentException) {
       throw DeviceNotFoundException("Device '${processDescriptor.model} ${processDescriptor.serial}' not found.", e)
+    } catch (e: DeviceFileDownloaderService.FileDownloadFailedException) {
+      throw FileDatabaseException(e.message, e)
     }
 
     val mainFile = files[path] ?: throw FileDatabaseException("Can't download database '${databaseToDownload.path}'")
