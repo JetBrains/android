@@ -26,6 +26,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.project.AndroidNotification
@@ -53,7 +54,6 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.Dynamic
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SESSION_DATA
 import com.intellij.concurrency.JobScheduler
-import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -72,12 +72,6 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import javax.swing.AbstractAction
 import javax.swing.JLabel
-
-private const val IS_CAPTURING_KEY = "live.layout.inspector.capturing"
-
-var isCapturingModeOn: Boolean
-  get() = PropertiesComponent.getInstance().getBoolean(IS_CAPTURING_KEY, true)
-  set(value) = PropertiesComponent.getInstance().setValue(IS_CAPTURING_KEY, value, true)
 
 class TransportInspectorClient(
   private val adb: AndroidDebugBridge,
@@ -126,7 +120,7 @@ class TransportInspectorClient(
   private val lastResponseTimePerWindow = mutableMapOf<Long, MutableMap<Long?, Long>>()
 
   override val isCapturing: Boolean
-    get() = isCapturingModeOn
+    get() = InspectorClientSettings.isCapturingModeOn
 
   private var debugAttributesOverridden = false
 
@@ -359,7 +353,7 @@ class TransportInspectorClient(
     enableDebugViewAttributes(process)
 
     listeners.forEach { transportComponents.poller.registerListener(it) }
-    if (isCapturingModeOn) {
+    if (InspectorClientSettings.isCapturingModeOn) {
       startFetching()
     }
     else {

@@ -40,8 +40,8 @@ import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorRule
-import com.android.tools.idea.layoutinspector.pipeline.transport.isCapturingModeOn
 import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand.Type
@@ -99,7 +99,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
   @Test
   fun testLiveControlEnabledAndNotSetInSnapshotModeWhenDisconnected() {
-    isCapturingModeOn = false
+    InspectorClientSettings.isCapturingModeOn = false
 
     val settings = DeviceViewSettings()
     val toolbar = getToolbar(
@@ -129,7 +129,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
   @Test
   fun testLiveControlEnabledAndNotSetInSnapshotModeWhenConnected() {
-    isCapturingModeOn = false
+    InspectorClientSettings.isCapturingModeOn = false
     installCommandHandlers()
     connect(MODERN_DEVICE.createProcess())
 
@@ -161,14 +161,14 @@ class DeviceViewPanelWithFullInspectorTest {
     assertThat(checkbox.toolTipText).isNull()
 
     assertThat(commands).isEmpty()
-    assertThat(isCapturingModeOn).isFalse()
+    assertThat(InspectorClientSettings.isCapturingModeOn).isFalse()
     assertThat(stats.currentModeIsLive).isTrue() // unchanged
   }
 
   @Test
   fun testTurnOnLiveModeWhenDisconnected() {
     installCommandHandlers()
-    isCapturingModeOn = false
+    InspectorClientSettings.isCapturingModeOn = false
 
     val stats = inspectorRule.inspectorModel.stats.live
     stats.toggledToRefresh()
@@ -185,7 +185,7 @@ class DeviceViewPanelWithFullInspectorTest {
     assertThat(checkbox.toolTipText).isNull()
 
     assertThat(commands).isEmpty()
-    assertThat(isCapturingModeOn).isTrue()
+    assertThat(InspectorClientSettings.isCapturingModeOn).isTrue()
     assertThat(stats.currentModeIsLive).isFalse() // unchanged
   }
 
@@ -220,7 +220,7 @@ class DeviceViewPanelWithFullInspectorTest {
     latch = CountDownLatch(2)
 
     installCommandHandlers()
-    isCapturingModeOn = false
+    InspectorClientSettings.isCapturingModeOn = false
     connect(MODERN_DEVICE.createProcess())
 
     val settings = DeviceViewSettings()

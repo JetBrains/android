@@ -24,6 +24,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.properties.DimensionUnits
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
@@ -241,7 +242,7 @@ class TransportPropertiesProviderTest {
 
   @Test
   fun testNotAvailableInSnapshotMode() {
-    isCapturingModeOn = false // Disable live updates, putting us into snapshot mode
+    InspectorClientSettings.isCapturingModeOn = false // Disable live updates, putting us into snapshot mode
 
     with(inspectorRule) {
       processes.selectedProcess = PROCESS
@@ -274,7 +275,7 @@ class TransportPropertiesProviderTest {
 
   @Test
   fun testFuturePropertyEventInSnapshotMode() {
-    isCapturingModeOn = false
+    InspectorClientSettings.isCapturingModeOn = false
 
     with(inspectorRule) {
       processes.selectedProcess = PROCESS
