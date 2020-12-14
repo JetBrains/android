@@ -1870,10 +1870,10 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
    * This override is needed because this repository uses {@link VfsResourceFile} that is a subclass of
    * {@link ResourceSourceFile} used by {@link RepositoryLoader}. If the combined hash of file timestamp
    * and length doesn't match the stream, the method returns an invalid {@link VfsResourceFile} containing
-   * a null {@link VirtualFile} reference. Validity of of the {@link VfsResourceFile} is checked later
-   * inside the {@link Loader#addResourceItem} method. This process creates few objects that are discarded
-   * later, but an alternative of returning null instead of an invalid {@link VfsResourceFile} would lead
-   * to pretty unnatural nullability conditions in {@link RepositoryLoader}.
+   * a null {@link VirtualFile} reference. Validity of the {@link VfsResourceFile} is checked later inside
+   * the {@link Loader#addResourceItem} method. This process creates few objects that are discarded later,
+   * but an alternative of returning null instead of an invalid {@link VfsResourceFile} would lead to
+   * pretty unnatural nullability conditions in {@link RepositoryLoader}.
    * @see VfsResourceFile#serialize
    */
   @Override
@@ -1901,10 +1901,10 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
    * This override is needed because this repository uses {@link VfsFileResourceItem} that is a subclass of
    * {@link BasicFileResourceItem} used by {@link RepositoryLoader}. If the combined hash of file timestamp
    * and length doesn't match the stream, the method returns an invalid {@link VfsFileResourceItem} containing
-   * a null {@link VirtualFile} reference. Validity of of the {@link VfsFileResourceItem} is checked later
-   * inside the {@link Loader#addResourceItem} method. This process creates few objects that are discarded
-   * later, but an alternative of returning null instead of an invalid {@link VfsFileResourceItem} would lead
-   * to pretty unnatural nullability conditions in {@link RepositoryLoader}.
+   * a null {@link VirtualFile} reference. Validity of the {@link VfsFileResourceItem} is checked later inside
+   * the {@link Loader#addResourceItem} method. This process creates few objects that are discarded later, but
+   * an alternative of returning null instead of an invalid {@link VfsFileResourceItem} would lead to pretty
+   * unnatural nullability conditions in {@link RepositoryLoader}.
    * @see VfsFileResourceItem#serialize
    * @see BasicFileResourceItem#serialize
    */
