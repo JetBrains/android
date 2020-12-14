@@ -52,7 +52,6 @@ import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-@org.junit.Ignore("b/175036532")
 public class OverlayLayerTest {
   public static final int SCREEN_VIEW_WIDTH = 200;
   public static final int SCREEN_VIEW_HEIGHT = 200;
@@ -260,6 +259,8 @@ public class OverlayLayerTest {
         return returnDimension;
       }
     });
+
+    when(sceneView.getScaledContentSize(any(Dimension.class))).thenCallRealMethod();
 
     when(sceneView.getX()).thenReturn(0);
     when(sceneView.getY()).thenReturn(0);
