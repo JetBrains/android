@@ -157,7 +157,8 @@ class BuildOutputParsersIntegrationTest: PlatformTestCase() {
   @Test
   fun testXmlParsingError() {
     val buildListener = myBuildInvoker.createBuildTaskListener(myRequest, "")
-    val path = tempDir.newPath("AndroidManifest.xml")
+    val file = tempDir.createVirtualFile("AndroidManifest.xml")
+    val path = file.toNioPath()
     val output = """Executing tasks: [clean, :app:assembleDebug]
                     > Configure project :app
                     > Task :clean UP-TO-DATE
@@ -196,10 +197,8 @@ class BuildOutputParsersIntegrationTest: PlatformTestCase() {
     assertThat(messages).isNotNull()
     assertThat(messages).hasSize(1)
 
-/* b/174208046
     checkSentMetricsData(messages.first(), BuildErrorMessage.ErrorType.XML_PARSER, BuildErrorMessage.FileType.PROJECT_FILE,
                          fileIncluded = true, lineIncluded = true)
-b/174208046 */
 
   }
 }
