@@ -26,6 +26,7 @@ import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ResolutionStackModel
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
@@ -42,12 +43,13 @@ import com.android.tools.property.panel.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.property.panel.impl.ui.PropertyTextField
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.laf.IntelliJLaf
+import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.util.ui.UIUtil
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -73,7 +75,7 @@ class ResolutionElementEditorTest {
   private var font: Font? = null
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule()).around(IconLoaderRule())!!
 
   @Before
   fun storeLAF() {
@@ -89,18 +91,35 @@ class ResolutionElementEditorTest {
   }
 
   @Test
-  @Ignore("b/175042122")
-  fun testPaint() {
+  fun testPaintClosed() {
     setLookAndFeel(IntelliJLaf(), ImageDiffTestUtil.getDefaultFont())
     val editors = createEditors()
     checkImage(editors, "Closed")
+  }
 
+  @Test
+  fun testPaintOpen() {
+    setLookAndFeel(IntelliJLaf(), ImageDiffTestUtil.getDefaultFont())
+    val editors = createEditors()
     editors[0].editorModel.isExpandedTableItem = true
     checkImage(editors, "Open")
+  }
 
+  @Test
+  fun testPaintOpenWithDetails() {
+    setLookAndFeel(IntelliJLaf(), ImageDiffTestUtil.getDefaultFont())
+    val editors = createEditors()
+    editors[0].editorModel.isExpandedTableItem = true
     expandFirstLabel(editors[0], true)
     checkImage(editors, "OpenWithDetails")
+  }
 
+  @Test
+  fun testPaintOpenWithTwoDetails() {
+    setLookAndFeel(IntelliJLaf(), ImageDiffTestUtil.getDefaultFont())
+    val editors = createEditors()
+    editors[0].editorModel.isExpandedTableItem = true
+    expandFirstLabel(editors[0], true)
     expandFirstLabel(editors[1], true)
     checkImage(editors, "OpenWithTwoDetails")
   }
