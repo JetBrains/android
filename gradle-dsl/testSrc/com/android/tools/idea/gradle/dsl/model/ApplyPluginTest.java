@@ -498,6 +498,19 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testPluginsDslParseKotlinFunction() throws Exception {
+    isIrrelevantForGroovy("kotlin function not supported in plugins { } block in Groovy");
+    writeToBuildFile(TestFile.PLUGINS_DSL_PARSE_KOTLIN_FUNCTION);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    List<PluginModel> pluginModels = buildModel.plugins();
+    // assertSize(2, pluginModels);
+    PluginModel pluginModel0 = pluginModels.get(0);
+    assertEquals("com.android.application", pluginModel0.name().forceString());
+    //PluginModel pluginModel1 = buildModel.plugins().get(1);
+    //assertEquals("org.jetbrains.kotlin.android", pluginModel1.name().forceString());
+  }
+
+  @Test
   public void testPluginsFromApplyAndPluginsBlock() throws Exception {
     writeToBuildFile(TestFile.PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK);
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -689,6 +702,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     PLUGINS_BLOCK_WITH_VERSION_AND_APPLY("pluginsBlockWithVersionAndApply"),
     PLUGINS_BLOCK_WITH_VERSION_AND_APPLY_SET_VERSION_EXPECTED("pluginsBlockWithVersionAndApplySetVersionExpected"),
     PLUGINS_BLOCK_WITH_VERSION_AND_APPLY_SET_APPLY_EXPECTED("pluginsBlockWithVersionAndApplySetApplyExpected"),
+    PLUGINS_DSL_PARSE_KOTLIN_FUNCTION("pluginsDslParseKotlinFunction"),
     PLUGINS_UNSUPPORTED_SYNTAX("pluginsWithUnsupportedSyntax"),
     PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK("pluginsFromApplyAndPluginsBlock"),
     PLUGIN_REMOVE("pluginRemove"),

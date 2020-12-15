@@ -83,9 +83,12 @@ public class PluginModelImpl implements PluginModel {
       }
       else if (e instanceof GradleDslInfixExpression) {
         GradleDslInfixExpression infixExpression = (GradleDslInfixExpression) e;
-        // FIXME(xof): cast, nullability check, etc.
-        GradleDslSimpleExpression pluginElement = (GradleDslSimpleExpression)infixExpression.getElement(ID);
-        results.add(new PluginModelImpl(infixExpression, pluginElement));
+        // FIXME(xof): handle kotlin("foo"), either here or in the KotlinDslParser
+        GradleDslElement idElement = infixExpression.getElement(ID);
+        if (idElement instanceof GradleDslSimpleExpression) {
+          GradleDslSimpleExpression pluginElement = (GradleDslSimpleExpression)idElement;
+          results.add(new PluginModelImpl(infixExpression, pluginElement));
+        }
       }
     }
 
