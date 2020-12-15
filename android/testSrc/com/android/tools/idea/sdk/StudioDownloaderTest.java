@@ -143,7 +143,7 @@ public class StudioDownloaderTest {
   @Test
   public void testHttpNoCacheHeaders() throws Exception {
     createServerContextThatMirrorsRequestHeaders();
-    FileSystem fs = InMemoryFileSystems.createFileSystem();
+    FileSystem fs = InMemoryFileSystems.createInMemoryFileSystem();
 
     Path downloadResult = FileOpUtils.getNewTempDir("studio_downloader_test", fs).resolve("download.txt");
 
@@ -162,7 +162,7 @@ public class StudioDownloaderTest {
 
   @Test
   public void testResumableDownloads() throws Exception {
-    FileSystem fs = InMemoryFileSystems.createFileSystem();
+    FileSystem fs = InMemoryFileSystems.createInMemoryFileSystem();
     // Create some sizeable custom content to download.
     int howMany = (1 << 20);
     String stuff = "A quick brown brown fox jumps over the lazy dog.";
@@ -269,7 +269,7 @@ public class StudioDownloaderTest {
   @Test
   public void testTemporaryFiles() throws Exception {
     // jimfs doesn't support DELETE_ON_CLOSE or REPLACE_EXISTING
-    FileSystem fs = new DelegatingFileSystemProvider(InMemoryFileSystems.createFileSystem()) {
+    FileSystem fs = new DelegatingFileSystemProvider(InMemoryFileSystems.createInMemoryFileSystem()) {
       @Override
       public InputStream newInputStream(Path path, OpenOption... options) throws IOException {
         List<OpenOption> optionsList = new ArrayList<>(Arrays.asList(options));
