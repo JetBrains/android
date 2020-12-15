@@ -15,7 +15,6 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Separator
-import com.intellij.testFramework.TestActionEvent
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -61,8 +60,38 @@ class SelectProcessActionTest {
     val selectProcessAction = SelectProcessAction(model)
     selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
     val children = selectProcessAction.getChildren(null)
-    assertThat(children.size).isEqualTo(1)
-    assertThat(children[0].templateText).isEqualTo("No devices detected")
+    assertThat(children).hasLength(2)
+    assertThat(children[0].templateText).isEqualTo(AppInspectionBundle.message("action.no.devices"))
+    assertThat(children[1].templateText).isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
+  }
+
+  @Test
+  fun processLabelPresentationCanBeOverridden() {
+    val testNotifier = TestProcessNotifier()
+    val physicalStream = createFakeStream(isEmulator = false)
+    val physicalProcess = physicalStream.createFakeProcess("A", 100)
+    val model = ProcessesModel(testNotifier) { listOf(physicalProcess.name) }
+
+    val selectProcessAction = SelectProcessAction(model, createProcessLabel = { process -> "Test: " + process.name })
+    selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
+    assertThat(selectProcessAction.templateText).isEqualTo(AppInspectionBundle.message("action.select.process"))
+
+    testNotifier.fireConnected(physicalProcess)
+    val selectProcessEvent = createFakeEvent()
+    selectProcessAction.update(selectProcessEvent)
+    assertThat(selectProcessEvent.presentation.text).isEqualTo("Test: A")
+  }
+
+  @Test
+  fun stopPresentationCanBeOverridden() {
+    val testNotifier = TestProcessNotifier()
+    val model = ProcessesModel(testNotifier) { listOf() }
+    val selectProcessAction = SelectProcessAction(model, stopPresentation = SelectProcessAction.StopPresentation("Test stop label", "Test stop description"))
+    selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
+    val children = selectProcessAction.getChildren(null)
+    assertThat(children).hasLength(2)
+    assertThat(children[1].templatePresentation.text).isEqualTo("Test stop label")
+    assertThat(children[1].templatePresentation.description).isEqualTo("Test stop description")
   }
 
   @Test
@@ -81,12 +110,14 @@ class SelectProcessActionTest {
     testNotifier.fireConnected(emulatorProcess)
 
     selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
-    val devices = selectProcessAction.getChildren(null)
-    assertThat(devices.size).isEqualTo(2)
+    val children = selectProcessAction.getChildren(null)
+    assertThat(children).hasLength(3)
     // Physical devices prepend the manufacturer
-    assertThat(devices[0].templateText).isEqualTo("$FAKE_MANUFACTURER_NAME ${FakeTransportService.FAKE_DEVICE_NAME}")
+    assertThat(children[0].templateText).isEqualTo("$FAKE_MANUFACTURER_NAME ${FakeTransportService.FAKE_DEVICE_NAME}")
     // Virtual devices hide the manufacturer
-    assertThat(devices[1].templateText).isEqualTo(FakeTransportService.FAKE_DEVICE_NAME)
+    assertThat(children[1].templateText).isEqualTo(FakeTransportService.FAKE_DEVICE_NAME)
+    // Stop button
+    assertThat(children[2].templateText).isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
   }
 
   @Test
@@ -103,15 +134,15 @@ class SelectProcessActionTest {
     testNotifier.fireConnected(processB) // Preferred
 
     selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
-    val devices = selectProcessAction.getChildren(null)
-    assertThat(devices.size).isEqualTo(2)
-    val device = devices[0]
+    val children = selectProcessAction.getChildren(null)
+    assertThat(children).hasLength(2)
+    val device = children[0]
     assertThat(device.templateText).isEqualTo("FakeDevice")
-    assertThat(devices[1].templateText).isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
+    assertThat(children[1].templateText).isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
 
     val processes = (device as ActionGroup).getChildren(null)
     processes.forEach { it.update(createFakeEvent()) }
-    assertThat(processes.size).isEqualTo(3)
+    assertThat(processes).hasLength(3)
 
     // Preferred process B should be ahead of Non-preferred process A
     assertThat(processes[0].templateText).isEqualTo("B")
@@ -132,7 +163,10 @@ class SelectProcessActionTest {
     run {
       selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
       assertThat(selectProcessAction.childrenCount).isEqualTo(2)
-      val deviceAction = selectProcessAction.getChildren(null)[0]
+      val children = selectProcessAction.getChildren(null)
+      val deviceAction = children[0]
+      assertThat(children[1].templateText).isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
+
       val processAction = (deviceAction as ActionGroup).getChildren(null)[0]
       assertThat(processAction.templateText).isEqualTo("A")
     }
@@ -140,10 +174,45 @@ class SelectProcessActionTest {
     testNotifier.fireDisconnected(process)
     run {
       selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
-      assertThat(selectProcessAction.childrenCount).isEqualTo(1)
-      val deviceAction = selectProcessAction.getChildren(null)[0]
+      assertThat(selectProcessAction.childrenCount).isEqualTo(2)
+      val children = selectProcessAction.getChildren(null)
+      val deviceAction = children[0]
+      assertThat(children[1].templateText).isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
+
       val processAction = (deviceAction as ActionGroup).getChildren(null)[0]
-      assertThat(processAction.templateText).isEqualTo("A [DEAD]")
+      assertThat(processAction.templateText).isEqualTo("A [DETACHED]")
+    }
+  }
+
+  @Test
+  fun deadProcessesFilteredOutIfOfflineNotSupported() {
+    val testNotifier = TestProcessNotifier()
+    val model = ProcessesModel(testNotifier) { listOf("A") }
+    val selectProcessAction = SelectProcessAction(model, supportsOffline = false)
+
+    val fakeStream = createFakeStream()
+    val process = fakeStream.createFakeProcess("A", 100)
+
+    testNotifier.fireConnected(process)
+    run {
+      selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
+      assertThat(selectProcessAction.childrenCount).isEqualTo(2)
+      val children = selectProcessAction.getChildren(null)
+      val deviceAction = children[0]
+      assertThat(children[1].templateText).isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
+
+      val processAction = (deviceAction as ActionGroup).getChildren(null)[0]
+      assertThat(processAction.templateText).isEqualTo("A")
+    }
+
+    testNotifier.fireDisconnected(process)
+    run {
+      selectProcessAction.update(createFakeEvent())
+      selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
+      assertThat(selectProcessAction.childrenCount).isEqualTo(2)
+      val children = selectProcessAction.getChildren(null)
+      assertThat(children[0].templateText).isEqualTo(AppInspectionBundle.message("action.no.devices"))
+      assertThat(children[1].templateText).isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
     }
   }
 
@@ -162,21 +231,24 @@ class SelectProcessActionTest {
     testNotifier.fireConnected(processB) // Preferred
 
     selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
-    val devices = selectProcessAction.getChildren(null)
-    assertThat(devices.size).isEqualTo(2)
-    val device = devices[0]
+    val children = selectProcessAction.getChildren(null)
+    assertThat(children).hasLength(2)
+    val device = children[0]
     assertThat(device.templateText).isEqualTo("FakeDevice")
     assertThat((device as ActionGroup).getChildren(null).map { it.templateText }).containsExactly("B")
-    assertThat(devices[1].templateText).isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
 
-    devices[1].actionPerformed(TestActionEvent())
+    val stop = children[1]
+    assertThat(stop.templateText).isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
+
+    stop.actionPerformed(createFakeEvent())
     callbackFiredLatch.await()
 
     selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
-    val refreshedDevices = selectProcessAction.getChildren(null)
-    assertThat(refreshedDevices).hasLength(1)
-    val processes = (refreshedDevices[0] as ActionGroup).getChildren(null)
+    val refreshedChildren = selectProcessAction.getChildren(null)
+    assertThat(refreshedChildren).hasLength(2)
+    val refreshedDevice = refreshedChildren[0]
+    val processes = (refreshedDevice as ActionGroup).getChildren(null)
     assertThat(processes).hasLength(2)
-    assertThat(processes.map { it.templateText }).containsExactly("B", "B [DEAD]")
+    assertThat(processes.map { it.templateText }).containsExactly("B", "B [DETACHED]")
   }
 }
