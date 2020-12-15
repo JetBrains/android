@@ -15,6 +15,9 @@
  */
 package com.android.tools.property.testing
 
+import com.intellij.diagnostic.PerformanceWatcher
+import com.intellij.ide.plugins.PluginUtil
+import com.intellij.ide.plugins.PluginUtilImpl
 import com.intellij.ide.ui.NotRoamableUiSettings
 import com.intellij.ide.ui.UISettings
 import com.intellij.mock.MockApplication
@@ -83,6 +86,8 @@ open class ApplicationRule : ExternalResource() {
     // Which can happen if the following settings has changed in a different test:
     //  LoadingState.CONFIGURATION_STORE_INITIALIZED.isOccurred
     application!!.registerService(UISettings::class.java, UISettings(NotRoamableUiSettings()))
+    application!!.registerService(PluginUtil::class.java, PluginUtilImpl::class.java)
+    application!!.registerService(PerformanceWatcher::class.java, PerformanceWatcher::class.java)
   }
 
   override fun after() {
