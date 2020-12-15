@@ -47,10 +47,10 @@ fun readKeyValueFile(file: Path, keysToExtract: Set<String>?): Map<String, Strin
   }
   catch (e: IOException) {
     if (e.message == null) {
-      logger().error("Error reading ${file}")
+      logger().error("Error reading $file")
     }
     else {
-      logger().error("Error reading ${file} - ${e.message}")
+      logger().error("Error reading $file - ${e.message}")
     }
     return null
   }
@@ -78,10 +78,10 @@ fun updateKeyValueFile(file: Path, updates: Map<String, String?>) {
   }
   catch (e: IOException) {
     if (e.message == null) {
-      logger().error("Error writing ${file}")
+      logger().error("Error writing $file")
     }
     else {
-      logger().error("Error writing ${file} - ${e.message}")
+      logger().error("Error writing $file - ${e.message}")
     }
     try {
       Files.deleteIfExists(tempFile)
@@ -93,6 +93,4 @@ fun updateKeyValueFile(file: Path, updates: Map<String, String?>) {
 
 private val KEY_VALUE_SPLITTER = Splitter.on('=').trimResults()
 
-private fun logger() = Logger.getInstance(KeyValueFileUtils::class.java)
-
-private class KeyValueFileUtils
+private fun logger() = Logger.getInstance("#com.android.tools.idea.emulator.KeyValueFileUtils")
