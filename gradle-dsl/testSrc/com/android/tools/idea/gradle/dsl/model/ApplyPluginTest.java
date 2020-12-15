@@ -503,11 +503,10 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.PLUGINS_DSL_PARSE_KOTLIN_FUNCTION);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<PluginModel> pluginModels = buildModel.plugins();
-    // assertSize(2, pluginModels);
-    PluginModel pluginModel0 = pluginModels.get(0);
-    assertEquals("com.android.application", pluginModel0.name().forceString());
-    //PluginModel pluginModel1 = buildModel.plugins().get(1);
-    //assertEquals("org.jetbrains.kotlin.android", pluginModel1.name().forceString());
+    verifyPlugins(ImmutableList.of("com.android.application", "org.jetbrains.kotlin.android"), pluginModels);
+    verifyPlugins(ImmutableMap.of("com.android.application", ImmutableMap.of(),
+                                  "org.jetbrains.kotlin.android", ImmutableMap.of("version", "3.2")),
+                  pluginModels);
   }
 
   @Test
