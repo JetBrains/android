@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeRef
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INVALID_EXPRESSION
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
+import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
@@ -184,9 +185,13 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
           // to a dependency if declared under dependencies block, or not resolve it for other cases.
           else if (argumentList.arguments.size == 1) {
             val nameExpression = argumentList.arguments[0].getArgumentExpression() ?: return null
-            return when (context.parent?.fullName) {
-              "plugins" -> "org.jetbrains.kotlin.${unquoteString(nameExpression.text)}"
-              "dependencies" -> "org.jetbrains.kotlin:kotlin-${unquoteString(nameExpression.text)}"
+            return when (val parent = context.parent) {
+              is PluginsDslElement -> "org.jetbrains.kotlin.${unquoteString(nameExpression.text)}"
+              is DependenciesDslElement -> "org.jetbrains.kotlin:kotlin-${unquoteString(nameExpression.text)}"
+              is GradleDslInfixExpression -> when (parent.parent) {
+                is PluginsDslElement -> "org.jetbrains.kotlin.${unquoteString(nameExpression.text)}"
+                else -> KotlinDslRawText(literal.text)
+              }
               else -> KotlinDslRawText(literal.text)
             }
           }
