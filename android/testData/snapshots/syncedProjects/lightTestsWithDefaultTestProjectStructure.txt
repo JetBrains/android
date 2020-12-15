@@ -54,8 +54,6 @@ PROJECT             : LightSyncBasedTestsWithDefaultTestProjectStructureTest
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/debug/assets [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/c [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/cpp [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/java [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/debug/ml [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/renderscript [-]

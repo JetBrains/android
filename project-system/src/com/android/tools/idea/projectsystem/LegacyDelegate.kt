@@ -98,9 +98,6 @@ class LegacyDelegate constructor(private val facet: AndroidFacet) : NamedIdeaSou
   override val renderscriptDirectories: Collection<VirtualFile> get() = listOfNotNull(
     AndroidProjectRootUtil.getRenderscriptGenDir(facet))
 
-  override val jniDirectoryUrls: Collection<String> get() = emptySet()
-  override val jniDirectories: Collection<VirtualFile> get() = emptySet()
-
   override val jniLibsDirectoryUrls: Collection<String> get() = emptySet()
   override val jniLibsDirectories: Collection<VirtualFile> get() = emptySet()
 

@@ -362,8 +362,6 @@ fun AndroidProjectStubBuilder.createMainSourceProviderForDefaultTestProjectStruc
     emptyList(),
     emptyList(),
     emptyList(),
-    emptyList(),
-    emptyList(),
     listOf(File(basePath, "res")),
     emptyList(),
     emptyList(),

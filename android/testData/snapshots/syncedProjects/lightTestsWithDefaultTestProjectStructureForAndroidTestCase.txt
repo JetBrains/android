@@ -53,8 +53,6 @@ PROJECT             : testLightTestsWithDefaultTestProjectStructureForAndroidTes
             JavaSource          : file://<TEMP>/src
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/src/debug/assets [-]
-        WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/c [-]
-        WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/cpp [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/java [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/src/debug/ml [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/renderscript [-]

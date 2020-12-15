@@ -124,7 +124,6 @@ PROJECT             : testNdkProjectSync
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/java
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/jni
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/ml
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/resources
