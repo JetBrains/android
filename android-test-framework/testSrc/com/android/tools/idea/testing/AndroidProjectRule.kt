@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testing
 
+import com.android.testutils.MockitoThreadLocalsCleaner
 import com.android.testutils.TestUtils
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
@@ -51,7 +52,6 @@ import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
 import org.jetbrains.android.AndroidTestCase.initializeModuleFixtureBuilderWithSrcAndGen
 import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
-import org.jetbrains.android.MockitoThreadLocalsCleaner
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.rules.RuleChain
 import org.junit.rules.TestRule

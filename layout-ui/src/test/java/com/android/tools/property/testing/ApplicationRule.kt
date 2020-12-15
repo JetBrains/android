@@ -15,6 +15,7 @@
  */
 package com.android.tools.property.testing
 
+import com.android.testutils.MockitoThreadLocalsCleaner
 import com.intellij.diagnostic.PerformanceWatcher
 import com.intellij.ide.plugins.PluginUtil
 import com.intellij.ide.plugins.PluginUtilImpl
@@ -42,6 +43,7 @@ open class ApplicationRule : ExternalResource() {
   private lateinit var testName: String
   private var rootDisposable: Disposable? = null
   private var application: MockApplication? = null
+  private var mockitoCleaner: MockitoThreadLocalsCleaner? = null
 
   val testRootDisposable: Disposable
     get() = rootDisposable!!
@@ -67,6 +69,8 @@ open class ApplicationRule : ExternalResource() {
     rootDisposable = Disposer.newDisposable("ApplicationRule::rootDisposable")
     application = TestApplication(rootDisposable!!, testName)
     ApplicationManager.setApplication(application!!, rootDisposable!!)
+    mockitoCleaner = MockitoThreadLocalsCleaner()
+    mockitoCleaner!!.setup()
 
     // Needed to avoid this kotlin.KotlinNullPointerException:
     //  at com.intellij.ide.ui.UISettings$Companion.getInstance(UISettings.kt:423)
@@ -94,6 +98,8 @@ open class ApplicationRule : ExternalResource() {
     Disposer.dispose(rootDisposable!!) // This will recover previous instance of Application (see ApplicationManager::setApplication)
     rootDisposable = null
     application = null
+    mockitoCleaner!!.cleanupAndTearDown()
+    mockitoCleaner = null
   }
 
   private class TestApplication(disposable: Disposable, val name: String): MockApplication(disposable) {
