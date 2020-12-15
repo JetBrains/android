@@ -270,7 +270,7 @@ public class LiveAllocationCaptureObjectTest {
 
       // Adds a task that starts and blocks. This forces the subsequent selection change events to wait.
       CountDownLatch latch = new CountDownLatch(1);
-      capture.myExecutorService.submit((Callable<CaptureObject>)() -> {
+      capture.executorService.submit((Callable<CaptureObject>)() -> {
         try {
           latch.await();
         }
@@ -866,7 +866,7 @@ public class LiveAllocationCaptureObjectTest {
   // NOTE - this works because myExecutorService is a single-threaded executor.
   private static void waitForLoadComplete(@NotNull LiveAllocationCaptureObject capture) throws InterruptedException, ExecutionException {
     CountDownLatch latch = new CountDownLatch(1);
-    capture.myExecutorService.invokeAny(Collections.singleton((Callable<CaptureObject>)() -> {
+    capture.executorService.invokeAny(Collections.singleton((Callable<CaptureObject>)() -> {
       try {
         latch.countDown();
       }
