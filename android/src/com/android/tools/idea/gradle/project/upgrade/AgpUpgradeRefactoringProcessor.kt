@@ -1027,6 +1027,10 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
     buildModel.allIncludedBuildModels.forEach model@{ model ->
       model.buildscript().dependencies().artifacts(CLASSPATH).forEach dep@{ dep ->
         GradleVersion.tryParse(dep.version().toString())?.let { currentVersion ->
+          // GradleVersion.tryParse() looks like it should only parse plausibly-valid version strings.  Unfortunately, things like
+          // `Versions.kotlin` are apparently plausibly-valid, returning a GradleVersion object essentially equivalent to `0.0` but with
+          // odd text present in the major/minor VersionSegments.
+          if (GradleVersion(0, 0) >= currentVersion) return@dep
           WELL_KNOWN_GRADLE_PLUGIN_TABLE["${dep.group()}:${dep.name()}"]?.let { info ->
             val minVersion = info(compatibleGradleVersion)
             if (minVersion <= currentVersion) return@dep
