@@ -116,7 +116,7 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
     return runAsyncAction(callable).get()
   }
 
-  private class EvictedException : Exception()
+  private class EvictedException(message: String?) : Exception(message)
 
   private fun scheduleTimeoutAction(timeout: Long, unit: TimeUnit, action: () -> Unit): ScheduledFuture<*> =
     timeoutExecutor.schedule(
@@ -156,7 +156,7 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
       // We have reached the maximum, evict overflow
       if (maxQueueingTasks > 0) {
         while (pendingActionsQueue.size > maxQueueingTasks) {
-          pendingActionsQueue.remove().completeExceptionally(EvictedException())
+          pendingActionsQueue.remove().completeExceptionally(EvictedException("Max number ($maxQueueingTasks) of render actions reached"))
         }
       }
     }

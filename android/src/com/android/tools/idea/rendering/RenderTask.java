@@ -864,7 +864,9 @@ public class RenderTask {
           }
           myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), ex));
         }
-        return result.createWithInflateDuration(System.currentTimeMillis() - startInflateTimeMs);
+        return result != null ?
+               result.createWithInflateDuration(System.currentTimeMillis() - startInflateTimeMs) :
+               RenderResult.createRenderTaskErrorResult(xmlFile, ex);
       });
   }
 
