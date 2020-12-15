@@ -127,6 +127,7 @@ internal class AppInspectionProcessDiscovery(
             }
           }
           else if (activity is StreamDisconnected) {
+            removeProcesses(streamChannel.stream.streamId)
             streamIdMap.remove(streamChannel.stream.streamId)
           }
         }
@@ -160,6 +161,18 @@ internal class AppInspectionProcessDiscovery(
       processData.processesMap.remove(
         StreamProcessIdPair(streamId, processId))?.let { descriptor ->
         processData.processListeners.forEach { (listener, executor) -> executor.execute { listener.onProcessDisconnected(descriptor) } }
+      }
+    }
+  }
+
+  /**
+   * Remove all processes from the internal cache associated with the parent stream ID. This function is called when a device goes
+   * offline (e.g. emulator closed or USB plug pulled)
+   */
+  private fun removeProcesses(streamId: Long) {
+    synchronized(processData) {
+      processData.processesMap.filter { it.key.streamId == streamId }.forEach {
+        removeProcess(streamId, it.key.pid)
       }
     }
   }
