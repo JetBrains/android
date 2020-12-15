@@ -147,7 +147,6 @@ class SourceProviderUtilTest {
         override val resourcesDirectoryUrls: Sequence<String> get() = resourcesDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
         override val aidlDirectoryUrls: Sequence<String> get() = aidlDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
         override val renderscriptDirectoryUrls: Sequence<String> get() = renderScriptDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
-        override val jniDirectoryUrls: Sequence<String> get() = jniDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
         override val jniLibsDirectoryUrls: Sequence<String> get() = emptySequence()
         override val resDirectoryUrls: Sequence<String> get() = resDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
         override val assetsDirectoryUrls: Sequence<String> get() = assetsDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()

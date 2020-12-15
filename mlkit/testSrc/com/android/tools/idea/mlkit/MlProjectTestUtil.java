@@ -57,8 +57,6 @@ public class MlProjectTestUtil {
             emptyList(),
             emptyList(),
             emptyList(),
-            emptyList(),
-            emptyList(),
             ImmutableList.of(new File(it.getBasePath(), "res")),
             emptyList(),
             emptyList(),

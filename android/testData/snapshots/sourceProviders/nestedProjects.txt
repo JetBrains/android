@@ -41,10 +41,6 @@ MODULE: testNestedProjects.app
                 ./app/src/main/aidl
             AssetsDirectories:
                 ./app/src/main/assets
-            CDirectories:
-                ./app/src/main/jni
-            CppDirectories:
-                ./app/src/main/jni
             JavaDirectories:
                 ./app/src/main/java
             JniLibsDirectories:
@@ -67,10 +63,6 @@ MODULE: testNestedProjects.app
                     ./app/src/main/aidl
                 AssetsDirectories:
                     ./app/src/main/assets
-                CDirectories:
-                    ./app/src/main/jni
-                CppDirectories:
-                    ./app/src/main/jni
                 JavaDirectories:
                     ./app/src/main/java
                 JniLibsDirectories:
@@ -92,10 +84,6 @@ MODULE: testNestedProjects.app
                     ./app/src/basic/aidl
                 AssetsDirectories:
                     ./app/src/basic/assets
-                CDirectories:
-                    ./app/src/basic/jni
-                CppDirectories:
-                    ./app/src/basic/jni
                 JavaDirectories:
                     ./app/src/basic/java
                 JniLibsDirectories:
@@ -117,10 +105,6 @@ MODULE: testNestedProjects.app
                     ./app/src/bar/aidl
                 AssetsDirectories:
                     ./app/src/bar/assets
-                CDirectories:
-                    ./app/src/bar/jni
-                CppDirectories:
-                    ./app/src/bar/jni
                 JavaDirectories:
                     ./app/src/bar/java
                 JniLibsDirectories:
@@ -142,10 +126,6 @@ MODULE: testNestedProjects.app
                     ./app/src/basicBar/aidl
                 AssetsDirectories:
                     ./app/src/basicBar/assets
-                CDirectories:
-                    ./app/src/basicBar/jni
-                CppDirectories:
-                    ./app/src/basicBar/jni
                 JavaDirectories:
                     ./app/src/basicBar/java
                 JniLibsDirectories:
@@ -167,10 +147,6 @@ MODULE: testNestedProjects.app
                     ./app/src/debug/aidl
                 AssetsDirectories:
                     ./app/src/debug/assets
-                CDirectories:
-                    ./app/src/debug/jni
-                CppDirectories:
-                    ./app/src/debug/jni
                 JavaDirectories:
                     ./app/src/debug/java
                 JniLibsDirectories:
@@ -192,10 +168,6 @@ MODULE: testNestedProjects.app
                     ./app/src/basicBarDebug/aidl
                 AssetsDirectories:
                     ./app/src/basicBarDebug/assets
-                CDirectories:
-                    ./app/src/basicBarDebug/jni
-                CppDirectories:
-                    ./app/src/basicBarDebug/jni
                 JavaDirectories:
                     ./app/src/basicBarDebug/java
                 JniLibsDirectories:
@@ -218,10 +190,6 @@ MODULE: testNestedProjects.app
                     ./app/src/main/aidl
                 AssetsDirectories:
                     ./app/src/main/assets
-                CDirectories:
-                    ./app/src/main/jni
-                CppDirectories:
-                    ./app/src/main/jni
                 JavaDirectories:
                     ./app/src/main/java
                 JniLibsDirectories:
@@ -243,10 +211,6 @@ MODULE: testNestedProjects.app
                     ./app/src/bar/aidl
                 AssetsDirectories:
                     ./app/src/bar/assets
-                CDirectories:
-                    ./app/src/bar/jni
-                CppDirectories:
-                    ./app/src/bar/jni
                 JavaDirectories:
                     ./app/src/bar/java
                 JniLibsDirectories:
@@ -268,10 +232,6 @@ MODULE: testNestedProjects.app
                     ./app/src/basic/aidl
                 AssetsDirectories:
                     ./app/src/basic/assets
-                CDirectories:
-                    ./app/src/basic/jni
-                CppDirectories:
-                    ./app/src/basic/jni
                 JavaDirectories:
                     ./app/src/basic/java
                 JniLibsDirectories:
@@ -293,10 +253,6 @@ MODULE: testNestedProjects.app
                     ./app/src/basicBar/aidl
                 AssetsDirectories:
                     ./app/src/basicBar/assets
-                CDirectories:
-                    ./app/src/basicBar/jni
-                CppDirectories:
-                    ./app/src/basicBar/jni
                 JavaDirectories:
                     ./app/src/basicBar/java
                 JniLibsDirectories:
@@ -318,10 +274,6 @@ MODULE: testNestedProjects.app
                     ./app/src/basicBarDebug/aidl
                 AssetsDirectories:
                     ./app/src/basicBarDebug/assets
-                CDirectories:
-                    ./app/src/basicBarDebug/jni
-                CppDirectories:
-                    ./app/src/basicBarDebug/jni
                 JavaDirectories:
                     ./app/src/basicBarDebug/java
                 JniLibsDirectories:
@@ -343,10 +295,6 @@ MODULE: testNestedProjects.app
                     ./app/src/debug/aidl
                 AssetsDirectories:
                     ./app/src/debug/assets
-                CDirectories:
-                    ./app/src/debug/jni
-                CppDirectories:
-                    ./app/src/debug/jni
                 JavaDirectories:
                     ./app/src/debug/java
                 JniLibsDirectories:
@@ -368,10 +316,6 @@ MODULE: testNestedProjects.app
                     ./app/src/otherBar/aidl
                 AssetsDirectories:
                     ./app/src/otherBar/assets
-                CDirectories:
-                    ./app/src/otherBar/jni
-                CppDirectories:
-                    ./app/src/otherBar/jni
                 JavaDirectories:
                     ./app/src/otherBar/java
                 JniLibsDirectories:
@@ -393,10 +337,6 @@ MODULE: testNestedProjects.app
                     ./app/src/paid/aidl
                 AssetsDirectories:
                     ./app/src/paid/assets
-                CDirectories:
-                    ./app/src/paid/jni
-                CppDirectories:
-                    ./app/src/paid/jni
                 JavaDirectories:
                     ./app/src/paid/java
                 JniLibsDirectories:
@@ -418,10 +358,6 @@ MODULE: testNestedProjects.app
                     ./app/src/release/aidl
                 AssetsDirectories:
                     ./app/src/release/assets
-                CDirectories:
-                    ./app/src/release/jni
-                CppDirectories:
-                    ./app/src/release/jni
                 JavaDirectories:
                     ./app/src/release/java
                 JniLibsDirectories:
@@ -443,10 +379,6 @@ MODULE: testNestedProjects.app
                     ./app/src/specialRelease/aidl
                 AssetsDirectories:
                     ./app/src/specialRelease/assets
-                CDirectories:
-                    ./app/src/specialRelease/jni
-                CppDirectories:
-                    ./app/src/specialRelease/jni
                 JavaDirectories:
                     ./app/src/specialRelease/java
                 JniLibsDirectories:
@@ -469,10 +401,6 @@ MODULE: testNestedProjects.app
                     ./app/src/test/aidl
                 AssetsDirectories:
                     ./app/src/test/assets
-                CDirectories:
-                    ./app/src/test/jni
-                CppDirectories:
-                    ./app/src/test/jni
                 JavaDirectories:
                     ./app/src/test/java
                 JniLibsDirectories:
@@ -494,10 +422,6 @@ MODULE: testNestedProjects.app
                     ./app/src/testBasic/aidl
                 AssetsDirectories:
                     ./app/src/testBasic/assets
-                CDirectories:
-                    ./app/src/testBasic/jni
-                CppDirectories:
-                    ./app/src/testBasic/jni
                 JavaDirectories:
                     ./app/src/testBasic/java
                 JniLibsDirectories:
@@ -519,10 +443,6 @@ MODULE: testNestedProjects.app
                     ./app/src/testBar/aidl
                 AssetsDirectories:
                     ./app/src/testBar/assets
-                CDirectories:
-                    ./app/src/testBar/jni
-                CppDirectories:
-                    ./app/src/testBar/jni
                 JavaDirectories:
                     ./app/src/testBar/java
                 JniLibsDirectories:
@@ -544,10 +464,6 @@ MODULE: testNestedProjects.app
                     ./app/src/testBasicBar/aidl
                 AssetsDirectories:
                     ./app/src/testBasicBar/assets
-                CDirectories:
-                    ./app/src/testBasicBar/jni
-                CppDirectories:
-                    ./app/src/testBasicBar/jni
                 JavaDirectories:
                     ./app/src/testBasicBar/java
                 JniLibsDirectories:
@@ -569,10 +485,6 @@ MODULE: testNestedProjects.app
                     ./app/src/testDebug/aidl
                 AssetsDirectories:
                     ./app/src/testDebug/assets
-                CDirectories:
-                    ./app/src/testDebug/jni
-                CppDirectories:
-                    ./app/src/testDebug/jni
                 JavaDirectories:
                     ./app/src/testDebug/java
                 JniLibsDirectories:
@@ -594,10 +506,6 @@ MODULE: testNestedProjects.app
                     ./app/src/testBasicBarDebug/aidl
                 AssetsDirectories:
                     ./app/src/testBasicBarDebug/assets
-                CDirectories:
-                    ./app/src/testBasicBarDebug/jni
-                CppDirectories:
-                    ./app/src/testBasicBarDebug/jni
                 JavaDirectories:
                     ./app/src/testBasicBarDebug/java
                 JniLibsDirectories:
@@ -620,10 +528,6 @@ MODULE: testNestedProjects.app
                     ./app/src/androidTest/aidl
                 AssetsDirectories:
                     ./app/src/androidTest/assets
-                CDirectories:
-                    ./app/src/androidTest/jni
-                CppDirectories:
-                    ./app/src/androidTest/jni
                 JavaDirectories:
                     ./app/src/androidTest/java
                 JniLibsDirectories:
@@ -645,10 +549,6 @@ MODULE: testNestedProjects.app
                     ./app/src/androidTestBasic/aidl
                 AssetsDirectories:
                     ./app/src/androidTestBasic/assets
-                CDirectories:
-                    ./app/src/androidTestBasic/jni
-                CppDirectories:
-                    ./app/src/androidTestBasic/jni
                 JavaDirectories:
                     ./app/src/androidTestBasic/java
                 JniLibsDirectories:
@@ -670,10 +570,6 @@ MODULE: testNestedProjects.app
                     ./app/src/androidTestBar/aidl
                 AssetsDirectories:
                     ./app/src/androidTestBar/assets
-                CDirectories:
-                    ./app/src/androidTestBar/jni
-                CppDirectories:
-                    ./app/src/androidTestBar/jni
                 JavaDirectories:
                     ./app/src/androidTestBar/java
                 JniLibsDirectories:
@@ -695,10 +591,6 @@ MODULE: testNestedProjects.app
                     ./app/src/androidTestBasicBar/aidl
                 AssetsDirectories:
                     ./app/src/androidTestBasicBar/assets
-                CDirectories:
-                    ./app/src/androidTestBasicBar/jni
-                CppDirectories:
-                    ./app/src/androidTestBasicBar/jni
                 JavaDirectories:
                     ./app/src/androidTestBasicBar/java
                 JniLibsDirectories:
@@ -720,10 +612,6 @@ MODULE: testNestedProjects.app
                     ./app/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./app/src/androidTestDebug/assets
-                CDirectories:
-                    ./app/src/androidTestDebug/jni
-                CppDirectories:
-                    ./app/src/androidTestDebug/jni
                 JavaDirectories:
                     ./app/src/androidTestDebug/java
                 JniLibsDirectories:
@@ -745,10 +633,6 @@ MODULE: testNestedProjects.app
                     ./app/src/androidTestBasicBarDebug/aidl
                 AssetsDirectories:
                     ./app/src/androidTestBasicBarDebug/assets
-                CDirectories:
-                    ./app/src/androidTestBasicBarDebug/jni
-                CppDirectories:
-                    ./app/src/androidTestBasicBarDebug/jni
                 JavaDirectories:
                     ./app/src/androidTestBasicBarDebug/java
                 JniLibsDirectories:
@@ -1752,10 +1636,6 @@ MODULE: testNestedProjects.dyn_feature
                 ./dyn_feature/src/main/aidl
             AssetsDirectories:
                 ./dyn_feature/src/main/assets
-            CDirectories:
-                ./dyn_feature/src/main/jni
-            CppDirectories:
-                ./dyn_feature/src/main/jni
             JavaDirectories:
                 ./dyn_feature/src/main/java
             JniLibsDirectories:
@@ -1778,10 +1658,6 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/main/aidl
                 AssetsDirectories:
                     ./dyn_feature/src/main/assets
-                CDirectories:
-                    ./dyn_feature/src/main/jni
-                CppDirectories:
-                    ./dyn_feature/src/main/jni
                 JavaDirectories:
                     ./dyn_feature/src/main/java
                 JniLibsDirectories:
@@ -1803,10 +1679,6 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/debug/aidl
                 AssetsDirectories:
                     ./dyn_feature/src/debug/assets
-                CDirectories:
-                    ./dyn_feature/src/debug/jni
-                CppDirectories:
-                    ./dyn_feature/src/debug/jni
                 JavaDirectories:
                     ./dyn_feature/src/debug/java
                 JniLibsDirectories:
@@ -1829,10 +1701,6 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/main/aidl
                 AssetsDirectories:
                     ./dyn_feature/src/main/assets
-                CDirectories:
-                    ./dyn_feature/src/main/jni
-                CppDirectories:
-                    ./dyn_feature/src/main/jni
                 JavaDirectories:
                     ./dyn_feature/src/main/java
                 JniLibsDirectories:
@@ -1854,10 +1722,6 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/debug/aidl
                 AssetsDirectories:
                     ./dyn_feature/src/debug/assets
-                CDirectories:
-                    ./dyn_feature/src/debug/jni
-                CppDirectories:
-                    ./dyn_feature/src/debug/jni
                 JavaDirectories:
                     ./dyn_feature/src/debug/java
                 JniLibsDirectories:
@@ -1879,10 +1743,6 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/release/aidl
                 AssetsDirectories:
                     ./dyn_feature/src/release/assets
-                CDirectories:
-                    ./dyn_feature/src/release/jni
-                CppDirectories:
-                    ./dyn_feature/src/release/jni
                 JavaDirectories:
                     ./dyn_feature/src/release/java
                 JniLibsDirectories:
@@ -1905,10 +1765,6 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/test/aidl
                 AssetsDirectories:
                     ./dyn_feature/src/test/assets
-                CDirectories:
-                    ./dyn_feature/src/test/jni
-                CppDirectories:
-                    ./dyn_feature/src/test/jni
                 JavaDirectories:
                     ./dyn_feature/src/test/java
                 JniLibsDirectories:
@@ -1930,10 +1786,6 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/testDebug/aidl
                 AssetsDirectories:
                     ./dyn_feature/src/testDebug/assets
-                CDirectories:
-                    ./dyn_feature/src/testDebug/jni
-                CppDirectories:
-                    ./dyn_feature/src/testDebug/jni
                 JavaDirectories:
                     ./dyn_feature/src/testDebug/java
                 JniLibsDirectories:
@@ -1956,10 +1808,6 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/androidTest/aidl
                 AssetsDirectories:
                     ./dyn_feature/src/androidTest/assets
-                CDirectories:
-                    ./dyn_feature/src/androidTest/jni
-                CppDirectories:
-                    ./dyn_feature/src/androidTest/jni
                 JavaDirectories:
                     ./dyn_feature/src/androidTest/java
                 JniLibsDirectories:
@@ -1981,10 +1829,6 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./dyn_feature/src/androidTestDebug/assets
-                CDirectories:
-                    ./dyn_feature/src/androidTestDebug/jni
-                CppDirectories:
-                    ./dyn_feature/src/androidTestDebug/jni
                 JavaDirectories:
                     ./dyn_feature/src/androidTestDebug/java
                 JniLibsDirectories:
@@ -2385,10 +2229,6 @@ MODULE: testNestedProjects.lib
                 ./lib/src/main/aidl
             AssetsDirectories:
                 ./lib/src/main/assets
-            CDirectories:
-                ./lib/src/main/jni
-            CppDirectories:
-                ./lib/src/main/jni
             JavaDirectories:
                 ./lib/src/main/java
             JniLibsDirectories:
@@ -2411,10 +2251,6 @@ MODULE: testNestedProjects.lib
                     ./lib/src/main/aidl
                 AssetsDirectories:
                     ./lib/src/main/assets
-                CDirectories:
-                    ./lib/src/main/jni
-                CppDirectories:
-                    ./lib/src/main/jni
                 JavaDirectories:
                     ./lib/src/main/java
                 JniLibsDirectories:
@@ -2436,10 +2272,6 @@ MODULE: testNestedProjects.lib
                     ./lib/src/debug/aidl
                 AssetsDirectories:
                     ./lib/src/debug/assets
-                CDirectories:
-                    ./lib/src/debug/jni
-                CppDirectories:
-                    ./lib/src/debug/jni
                 JavaDirectories:
                     ./lib/src/debug/java
                 JniLibsDirectories:
@@ -2462,10 +2294,6 @@ MODULE: testNestedProjects.lib
                     ./lib/src/main/aidl
                 AssetsDirectories:
                     ./lib/src/main/assets
-                CDirectories:
-                    ./lib/src/main/jni
-                CppDirectories:
-                    ./lib/src/main/jni
                 JavaDirectories:
                     ./lib/src/main/java
                 JniLibsDirectories:
@@ -2487,10 +2315,6 @@ MODULE: testNestedProjects.lib
                     ./lib/src/debug/aidl
                 AssetsDirectories:
                     ./lib/src/debug/assets
-                CDirectories:
-                    ./lib/src/debug/jni
-                CppDirectories:
-                    ./lib/src/debug/jni
                 JavaDirectories:
                     ./lib/src/debug/java
                 JniLibsDirectories:
@@ -2512,10 +2336,6 @@ MODULE: testNestedProjects.lib
                     ./lib/src/release/aidl
                 AssetsDirectories:
                     ./lib/src/release/assets
-                CDirectories:
-                    ./lib/src/release/jni
-                CppDirectories:
-                    ./lib/src/release/jni
                 JavaDirectories:
                     ./lib/src/release/java
                 JniLibsDirectories:
@@ -2538,10 +2358,6 @@ MODULE: testNestedProjects.lib
                     ./lib/src/test/aidl
                 AssetsDirectories:
                     ./lib/src/test/assets
-                CDirectories:
-                    ./lib/src/test/jni
-                CppDirectories:
-                    ./lib/src/test/jni
                 JavaDirectories:
                     ./lib/src/test/java
                 JniLibsDirectories:
@@ -2563,10 +2379,6 @@ MODULE: testNestedProjects.lib
                     ./lib/src/testDebug/aidl
                 AssetsDirectories:
                     ./lib/src/testDebug/assets
-                CDirectories:
-                    ./lib/src/testDebug/jni
-                CppDirectories:
-                    ./lib/src/testDebug/jni
                 JavaDirectories:
                     ./lib/src/testDebug/java
                 JniLibsDirectories:
@@ -2589,10 +2401,6 @@ MODULE: testNestedProjects.lib
                     ./lib/src/androidTest/aidl
                 AssetsDirectories:
                     ./lib/src/androidTest/assets
-                CDirectories:
-                    ./lib/src/androidTest/jni
-                CppDirectories:
-                    ./lib/src/androidTest/jni
                 JavaDirectories:
                     ./lib/src/androidTest/java
                 JniLibsDirectories:
@@ -2614,10 +2422,6 @@ MODULE: testNestedProjects.lib
                     ./lib/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./lib/src/androidTestDebug/assets
-                CDirectories:
-                    ./lib/src/androidTestDebug/jni
-                CppDirectories:
-                    ./lib/src/androidTestDebug/jni
                 JavaDirectories:
                     ./lib/src/androidTestDebug/java
                 JniLibsDirectories:
@@ -3025,10 +2829,6 @@ MODULE: testNestedProjects.nested1
                 ./nested1/src/main/aidl
             AssetsDirectories:
                 ./nested1/src/main/assets
-            CDirectories:
-                ./nested1/src/main/jni
-            CppDirectories:
-                ./nested1/src/main/jni
             JavaDirectories:
                 ./nested1/src/main/java
             JniLibsDirectories:
@@ -3051,10 +2851,6 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/main/aidl
                 AssetsDirectories:
                     ./nested1/src/main/assets
-                CDirectories:
-                    ./nested1/src/main/jni
-                CppDirectories:
-                    ./nested1/src/main/jni
                 JavaDirectories:
                     ./nested1/src/main/java
                 JniLibsDirectories:
@@ -3076,10 +2872,6 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/debug/aidl
                 AssetsDirectories:
                     ./nested1/src/debug/assets
-                CDirectories:
-                    ./nested1/src/debug/jni
-                CppDirectories:
-                    ./nested1/src/debug/jni
                 JavaDirectories:
                     ./nested1/src/debug/java
                 JniLibsDirectories:
@@ -3102,10 +2894,6 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/main/aidl
                 AssetsDirectories:
                     ./nested1/src/main/assets
-                CDirectories:
-                    ./nested1/src/main/jni
-                CppDirectories:
-                    ./nested1/src/main/jni
                 JavaDirectories:
                     ./nested1/src/main/java
                 JniLibsDirectories:
@@ -3127,10 +2915,6 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/debug/aidl
                 AssetsDirectories:
                     ./nested1/src/debug/assets
-                CDirectories:
-                    ./nested1/src/debug/jni
-                CppDirectories:
-                    ./nested1/src/debug/jni
                 JavaDirectories:
                     ./nested1/src/debug/java
                 JniLibsDirectories:
@@ -3152,10 +2936,6 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/release/aidl
                 AssetsDirectories:
                     ./nested1/src/release/assets
-                CDirectories:
-                    ./nested1/src/release/jni
-                CppDirectories:
-                    ./nested1/src/release/jni
                 JavaDirectories:
                     ./nested1/src/release/java
                 JniLibsDirectories:
@@ -3178,10 +2958,6 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/test/aidl
                 AssetsDirectories:
                     ./nested1/src/test/assets
-                CDirectories:
-                    ./nested1/src/test/jni
-                CppDirectories:
-                    ./nested1/src/test/jni
                 JavaDirectories:
                     ./nested1/src/test/java
                 JniLibsDirectories:
@@ -3203,10 +2979,6 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/testDebug/aidl
                 AssetsDirectories:
                     ./nested1/src/testDebug/assets
-                CDirectories:
-                    ./nested1/src/testDebug/jni
-                CppDirectories:
-                    ./nested1/src/testDebug/jni
                 JavaDirectories:
                     ./nested1/src/testDebug/java
                 JniLibsDirectories:
@@ -3229,10 +3001,6 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/androidTest/aidl
                 AssetsDirectories:
                     ./nested1/src/androidTest/assets
-                CDirectories:
-                    ./nested1/src/androidTest/jni
-                CppDirectories:
-                    ./nested1/src/androidTest/jni
                 JavaDirectories:
                     ./nested1/src/androidTest/java
                 JniLibsDirectories:
@@ -3254,10 +3022,6 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./nested1/src/androidTestDebug/assets
-                CDirectories:
-                    ./nested1/src/androidTestDebug/jni
-                CppDirectories:
-                    ./nested1/src/androidTestDebug/jni
                 JavaDirectories:
                     ./nested1/src/androidTestDebug/java
                 JniLibsDirectories:
@@ -3653,10 +3417,6 @@ MODULE: testNestedProjects.nested1.deep
                 ./nested1/deep/src/main/aidl
             AssetsDirectories:
                 ./nested1/deep/src/main/assets
-            CDirectories:
-                ./nested1/deep/src/main/jni
-            CppDirectories:
-                ./nested1/deep/src/main/jni
             JavaDirectories:
                 ./nested1/deep/src/main/java
             JniLibsDirectories:
@@ -3679,10 +3439,6 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/main/aidl
                 AssetsDirectories:
                     ./nested1/deep/src/main/assets
-                CDirectories:
-                    ./nested1/deep/src/main/jni
-                CppDirectories:
-                    ./nested1/deep/src/main/jni
                 JavaDirectories:
                     ./nested1/deep/src/main/java
                 JniLibsDirectories:
@@ -3704,10 +3460,6 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/debug/aidl
                 AssetsDirectories:
                     ./nested1/deep/src/debug/assets
-                CDirectories:
-                    ./nested1/deep/src/debug/jni
-                CppDirectories:
-                    ./nested1/deep/src/debug/jni
                 JavaDirectories:
                     ./nested1/deep/src/debug/java
                 JniLibsDirectories:
@@ -3730,10 +3482,6 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/main/aidl
                 AssetsDirectories:
                     ./nested1/deep/src/main/assets
-                CDirectories:
-                    ./nested1/deep/src/main/jni
-                CppDirectories:
-                    ./nested1/deep/src/main/jni
                 JavaDirectories:
                     ./nested1/deep/src/main/java
                 JniLibsDirectories:
@@ -3755,10 +3503,6 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/debug/aidl
                 AssetsDirectories:
                     ./nested1/deep/src/debug/assets
-                CDirectories:
-                    ./nested1/deep/src/debug/jni
-                CppDirectories:
-                    ./nested1/deep/src/debug/jni
                 JavaDirectories:
                     ./nested1/deep/src/debug/java
                 JniLibsDirectories:
@@ -3780,10 +3524,6 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/release/aidl
                 AssetsDirectories:
                     ./nested1/deep/src/release/assets
-                CDirectories:
-                    ./nested1/deep/src/release/jni
-                CppDirectories:
-                    ./nested1/deep/src/release/jni
                 JavaDirectories:
                     ./nested1/deep/src/release/java
                 JniLibsDirectories:
@@ -3806,10 +3546,6 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/test/aidl
                 AssetsDirectories:
                     ./nested1/deep/src/test/assets
-                CDirectories:
-                    ./nested1/deep/src/test/jni
-                CppDirectories:
-                    ./nested1/deep/src/test/jni
                 JavaDirectories:
                     ./nested1/deep/src/test/java
                 JniLibsDirectories:
@@ -3831,10 +3567,6 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/testDebug/aidl
                 AssetsDirectories:
                     ./nested1/deep/src/testDebug/assets
-                CDirectories:
-                    ./nested1/deep/src/testDebug/jni
-                CppDirectories:
-                    ./nested1/deep/src/testDebug/jni
                 JavaDirectories:
                     ./nested1/deep/src/testDebug/java
                 JniLibsDirectories:
@@ -3857,10 +3589,6 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/androidTest/aidl
                 AssetsDirectories:
                     ./nested1/deep/src/androidTest/assets
-                CDirectories:
-                    ./nested1/deep/src/androidTest/jni
-                CppDirectories:
-                    ./nested1/deep/src/androidTest/jni
                 JavaDirectories:
                     ./nested1/deep/src/androidTest/java
                 JniLibsDirectories:
@@ -3882,10 +3610,6 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./nested1/deep/src/androidTestDebug/assets
-                CDirectories:
-                    ./nested1/deep/src/androidTestDebug/jni
-                CppDirectories:
-                    ./nested1/deep/src/androidTestDebug/jni
                 JavaDirectories:
                     ./nested1/deep/src/androidTestDebug/java
                 JniLibsDirectories:
@@ -4281,10 +4005,6 @@ MODULE: testNestedProjects.nested2
                 ./nested2/src/main/aidl
             AssetsDirectories:
                 ./nested2/src/main/assets
-            CDirectories:
-                ./nested2/src/main/jni
-            CppDirectories:
-                ./nested2/src/main/jni
             JavaDirectories:
                 ./nested2/src/main/java
             JniLibsDirectories:
@@ -4307,10 +4027,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/main/aidl
                 AssetsDirectories:
                     ./nested2/src/main/assets
-                CDirectories:
-                    ./nested2/src/main/jni
-                CppDirectories:
-                    ./nested2/src/main/jni
                 JavaDirectories:
                     ./nested2/src/main/java
                 JniLibsDirectories:
@@ -4332,10 +4048,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/basic/aidl
                 AssetsDirectories:
                     ./nested2/src/basic/assets
-                CDirectories:
-                    ./nested2/src/basic/jni
-                CppDirectories:
-                    ./nested2/src/basic/jni
                 JavaDirectories:
                     ./nested2/src/basic/java
                 JniLibsDirectories:
@@ -4357,10 +4069,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/debug/aidl
                 AssetsDirectories:
                     ./nested2/src/debug/assets
-                CDirectories:
-                    ./nested2/src/debug/jni
-                CppDirectories:
-                    ./nested2/src/debug/jni
                 JavaDirectories:
                     ./nested2/src/debug/java
                 JniLibsDirectories:
@@ -4382,10 +4090,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/basicDebug/aidl
                 AssetsDirectories:
                     ./nested2/src/basicDebug/assets
-                CDirectories:
-                    ./nested2/src/basicDebug/jni
-                CppDirectories:
-                    ./nested2/src/basicDebug/jni
                 JavaDirectories:
                     ./nested2/src/basicDebug/java
                 JniLibsDirectories:
@@ -4408,10 +4112,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/main/aidl
                 AssetsDirectories:
                     ./nested2/src/main/assets
-                CDirectories:
-                    ./nested2/src/main/jni
-                CppDirectories:
-                    ./nested2/src/main/jni
                 JavaDirectories:
                     ./nested2/src/main/java
                 JniLibsDirectories:
@@ -4433,10 +4133,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/basic/aidl
                 AssetsDirectories:
                     ./nested2/src/basic/assets
-                CDirectories:
-                    ./nested2/src/basic/jni
-                CppDirectories:
-                    ./nested2/src/basic/jni
                 JavaDirectories:
                     ./nested2/src/basic/java
                 JniLibsDirectories:
@@ -4458,10 +4154,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/basicDebug/aidl
                 AssetsDirectories:
                     ./nested2/src/basicDebug/assets
-                CDirectories:
-                    ./nested2/src/basicDebug/jni
-                CppDirectories:
-                    ./nested2/src/basicDebug/jni
                 JavaDirectories:
                     ./nested2/src/basicDebug/java
                 JniLibsDirectories:
@@ -4483,10 +4175,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/debug/aidl
                 AssetsDirectories:
                     ./nested2/src/debug/assets
-                CDirectories:
-                    ./nested2/src/debug/jni
-                CppDirectories:
-                    ./nested2/src/debug/jni
                 JavaDirectories:
                     ./nested2/src/debug/java
                 JniLibsDirectories:
@@ -4508,10 +4196,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/paid/aidl
                 AssetsDirectories:
                     ./nested2/src/paid/assets
-                CDirectories:
-                    ./nested2/src/paid/jni
-                CppDirectories:
-                    ./nested2/src/paid/jni
                 JavaDirectories:
                     ./nested2/src/paid/java
                 JniLibsDirectories:
@@ -4533,10 +4217,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/release/aidl
                 AssetsDirectories:
                     ./nested2/src/release/assets
-                CDirectories:
-                    ./nested2/src/release/jni
-                CppDirectories:
-                    ./nested2/src/release/jni
                 JavaDirectories:
                     ./nested2/src/release/java
                 JniLibsDirectories:
@@ -4559,10 +4239,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/test/aidl
                 AssetsDirectories:
                     ./nested2/src/test/assets
-                CDirectories:
-                    ./nested2/src/test/jni
-                CppDirectories:
-                    ./nested2/src/test/jni
                 JavaDirectories:
                     ./nested2/src/test/java
                 JniLibsDirectories:
@@ -4584,10 +4260,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/testBasic/aidl
                 AssetsDirectories:
                     ./nested2/src/testBasic/assets
-                CDirectories:
-                    ./nested2/src/testBasic/jni
-                CppDirectories:
-                    ./nested2/src/testBasic/jni
                 JavaDirectories:
                     ./nested2/src/testBasic/java
                 JniLibsDirectories:
@@ -4609,10 +4281,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/testDebug/aidl
                 AssetsDirectories:
                     ./nested2/src/testDebug/assets
-                CDirectories:
-                    ./nested2/src/testDebug/jni
-                CppDirectories:
-                    ./nested2/src/testDebug/jni
                 JavaDirectories:
                     ./nested2/src/testDebug/java
                 JniLibsDirectories:
@@ -4634,10 +4302,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/testBasicDebug/aidl
                 AssetsDirectories:
                     ./nested2/src/testBasicDebug/assets
-                CDirectories:
-                    ./nested2/src/testBasicDebug/jni
-                CppDirectories:
-                    ./nested2/src/testBasicDebug/jni
                 JavaDirectories:
                     ./nested2/src/testBasicDebug/java
                 JniLibsDirectories:
@@ -4660,10 +4324,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/androidTest/aidl
                 AssetsDirectories:
                     ./nested2/src/androidTest/assets
-                CDirectories:
-                    ./nested2/src/androidTest/jni
-                CppDirectories:
-                    ./nested2/src/androidTest/jni
                 JavaDirectories:
                     ./nested2/src/androidTest/java
                 JniLibsDirectories:
@@ -4685,10 +4345,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/androidTestBasic/aidl
                 AssetsDirectories:
                     ./nested2/src/androidTestBasic/assets
-                CDirectories:
-                    ./nested2/src/androidTestBasic/jni
-                CppDirectories:
-                    ./nested2/src/androidTestBasic/jni
                 JavaDirectories:
                     ./nested2/src/androidTestBasic/java
                 JniLibsDirectories:
@@ -4710,10 +4366,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./nested2/src/androidTestDebug/assets
-                CDirectories:
-                    ./nested2/src/androidTestDebug/jni
-                CppDirectories:
-                    ./nested2/src/androidTestDebug/jni
                 JavaDirectories:
                     ./nested2/src/androidTestDebug/java
                 JniLibsDirectories:
@@ -4735,10 +4387,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/androidTestBasicDebug/aidl
                 AssetsDirectories:
                     ./nested2/src/androidTestBasicDebug/assets
-                CDirectories:
-                    ./nested2/src/androidTestBasicDebug/jni
-                CppDirectories:
-                    ./nested2/src/androidTestBasicDebug/jni
                 JavaDirectories:
                     ./nested2/src/androidTestBasicDebug/java
                 JniLibsDirectories:
@@ -5416,10 +5064,6 @@ MODULE: testNestedProjects.nested2.deep
                 ./nested2/deep/src/main/aidl
             AssetsDirectories:
                 ./nested2/deep/src/main/assets
-            CDirectories:
-                ./nested2/deep/src/main/jni
-            CppDirectories:
-                ./nested2/deep/src/main/jni
             JavaDirectories:
                 ./nested2/deep/src/main/java
             JniLibsDirectories:
@@ -5442,10 +5086,6 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/main/aidl
                 AssetsDirectories:
                     ./nested2/deep/src/main/assets
-                CDirectories:
-                    ./nested2/deep/src/main/jni
-                CppDirectories:
-                    ./nested2/deep/src/main/jni
                 JavaDirectories:
                     ./nested2/deep/src/main/java
                 JniLibsDirectories:
@@ -5467,10 +5107,6 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/debug/aidl
                 AssetsDirectories:
                     ./nested2/deep/src/debug/assets
-                CDirectories:
-                    ./nested2/deep/src/debug/jni
-                CppDirectories:
-                    ./nested2/deep/src/debug/jni
                 JavaDirectories:
                     ./nested2/deep/src/debug/java
                 JniLibsDirectories:
@@ -5493,10 +5129,6 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/main/aidl
                 AssetsDirectories:
                     ./nested2/deep/src/main/assets
-                CDirectories:
-                    ./nested2/deep/src/main/jni
-                CppDirectories:
-                    ./nested2/deep/src/main/jni
                 JavaDirectories:
                     ./nested2/deep/src/main/java
                 JniLibsDirectories:
@@ -5518,10 +5150,6 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/debug/aidl
                 AssetsDirectories:
                     ./nested2/deep/src/debug/assets
-                CDirectories:
-                    ./nested2/deep/src/debug/jni
-                CppDirectories:
-                    ./nested2/deep/src/debug/jni
                 JavaDirectories:
                     ./nested2/deep/src/debug/java
                 JniLibsDirectories:
@@ -5543,10 +5171,6 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/release/aidl
                 AssetsDirectories:
                     ./nested2/deep/src/release/assets
-                CDirectories:
-                    ./nested2/deep/src/release/jni
-                CppDirectories:
-                    ./nested2/deep/src/release/jni
                 JavaDirectories:
                     ./nested2/deep/src/release/java
                 JniLibsDirectories:
@@ -5569,10 +5193,6 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/test/aidl
                 AssetsDirectories:
                     ./nested2/deep/src/test/assets
-                CDirectories:
-                    ./nested2/deep/src/test/jni
-                CppDirectories:
-                    ./nested2/deep/src/test/jni
                 JavaDirectories:
                     ./nested2/deep/src/test/java
                 JniLibsDirectories:
@@ -5594,10 +5214,6 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/testDebug/aidl
                 AssetsDirectories:
                     ./nested2/deep/src/testDebug/assets
-                CDirectories:
-                    ./nested2/deep/src/testDebug/jni
-                CppDirectories:
-                    ./nested2/deep/src/testDebug/jni
                 JavaDirectories:
                     ./nested2/deep/src/testDebug/java
                 JniLibsDirectories:
@@ -5620,10 +5236,6 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/androidTest/aidl
                 AssetsDirectories:
                     ./nested2/deep/src/androidTest/assets
-                CDirectories:
-                    ./nested2/deep/src/androidTest/jni
-                CppDirectories:
-                    ./nested2/deep/src/androidTest/jni
                 JavaDirectories:
                     ./nested2/deep/src/androidTest/java
                 JniLibsDirectories:
@@ -5645,10 +5257,6 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./nested2/deep/src/androidTestDebug/assets
-                CDirectories:
-                    ./nested2/deep/src/androidTestDebug/jni
-                CppDirectories:
-                    ./nested2/deep/src/androidTestDebug/jni
                 JavaDirectories:
                     ./nested2/deep/src/androidTestDebug/java
                 JniLibsDirectories:
@@ -6045,10 +5653,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                 ./nested2/trans/deep2/src/main/aidl
             AssetsDirectories:
                 ./nested2/trans/deep2/src/main/assets
-            CDirectories:
-                ./nested2/trans/deep2/src/main/jni
-            CppDirectories:
-                ./nested2/trans/deep2/src/main/jni
             JavaDirectories:
                 ./nested2/trans/deep2/src/main/java
             JniLibsDirectories:
@@ -6071,10 +5675,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/main/aidl
                 AssetsDirectories:
                     ./nested2/trans/deep2/src/main/assets
-                CDirectories:
-                    ./nested2/trans/deep2/src/main/jni
-                CppDirectories:
-                    ./nested2/trans/deep2/src/main/jni
                 JavaDirectories:
                     ./nested2/trans/deep2/src/main/java
                 JniLibsDirectories:
@@ -6096,10 +5696,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/debug/aidl
                 AssetsDirectories:
                     ./nested2/trans/deep2/src/debug/assets
-                CDirectories:
-                    ./nested2/trans/deep2/src/debug/jni
-                CppDirectories:
-                    ./nested2/trans/deep2/src/debug/jni
                 JavaDirectories:
                     ./nested2/trans/deep2/src/debug/java
                 JniLibsDirectories:
@@ -6122,10 +5718,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/main/aidl
                 AssetsDirectories:
                     ./nested2/trans/deep2/src/main/assets
-                CDirectories:
-                    ./nested2/trans/deep2/src/main/jni
-                CppDirectories:
-                    ./nested2/trans/deep2/src/main/jni
                 JavaDirectories:
                     ./nested2/trans/deep2/src/main/java
                 JniLibsDirectories:
@@ -6147,10 +5739,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/debug/aidl
                 AssetsDirectories:
                     ./nested2/trans/deep2/src/debug/assets
-                CDirectories:
-                    ./nested2/trans/deep2/src/debug/jni
-                CppDirectories:
-                    ./nested2/trans/deep2/src/debug/jni
                 JavaDirectories:
                     ./nested2/trans/deep2/src/debug/java
                 JniLibsDirectories:
@@ -6172,10 +5760,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/release/aidl
                 AssetsDirectories:
                     ./nested2/trans/deep2/src/release/assets
-                CDirectories:
-                    ./nested2/trans/deep2/src/release/jni
-                CppDirectories:
-                    ./nested2/trans/deep2/src/release/jni
                 JavaDirectories:
                     ./nested2/trans/deep2/src/release/java
                 JniLibsDirectories:
@@ -6198,10 +5782,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/test/aidl
                 AssetsDirectories:
                     ./nested2/trans/deep2/src/test/assets
-                CDirectories:
-                    ./nested2/trans/deep2/src/test/jni
-                CppDirectories:
-                    ./nested2/trans/deep2/src/test/jni
                 JavaDirectories:
                     ./nested2/trans/deep2/src/test/java
                 JniLibsDirectories:
@@ -6223,10 +5803,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/testDebug/aidl
                 AssetsDirectories:
                     ./nested2/trans/deep2/src/testDebug/assets
-                CDirectories:
-                    ./nested2/trans/deep2/src/testDebug/jni
-                CppDirectories:
-                    ./nested2/trans/deep2/src/testDebug/jni
                 JavaDirectories:
                     ./nested2/trans/deep2/src/testDebug/java
                 JniLibsDirectories:
@@ -6249,10 +5825,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/androidTest/aidl
                 AssetsDirectories:
                     ./nested2/trans/deep2/src/androidTest/assets
-                CDirectories:
-                    ./nested2/trans/deep2/src/androidTest/jni
-                CppDirectories:
-                    ./nested2/trans/deep2/src/androidTest/jni
                 JavaDirectories:
                     ./nested2/trans/deep2/src/androidTest/java
                 JniLibsDirectories:
@@ -6274,10 +5846,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./nested2/trans/deep2/src/androidTestDebug/assets
-                CDirectories:
-                    ./nested2/trans/deep2/src/androidTestDebug/jni
-                CppDirectories:
-                    ./nested2/trans/deep2/src/androidTestDebug/jni
                 JavaDirectories:
                     ./nested2/trans/deep2/src/androidTestDebug/java
                 JniLibsDirectories:

@@ -41,10 +41,6 @@ MODULE: MultiFlavor.app
                 ./app/src/main/aidl
             AssetsDirectories:
                 ./app/src/main/assets
-            CDirectories:
-                ./app/src/main/jni
-            CppDirectories:
-                ./app/src/main/jni
             JavaDirectories:
                 ./app/src/main/java
             JniLibsDirectories:
@@ -67,10 +63,6 @@ MODULE: MultiFlavor.app
                     ./app/src/main/aidl
                 AssetsDirectories:
                     ./app/src/main/assets
-                CDirectories:
-                    ./app/src/main/jni
-                CppDirectories:
-                    ./app/src/main/jni
                 JavaDirectories:
                     ./app/src/main/java
                 JniLibsDirectories:
@@ -92,10 +84,6 @@ MODULE: MultiFlavor.app
                     ./app/src/firstAbc/aidl
                 AssetsDirectories:
                     ./app/src/firstAbc/assets
-                CDirectories:
-                    ./app/src/firstAbc/jni
-                CppDirectories:
-                    ./app/src/firstAbc/jni
                 JavaDirectories:
                     ./app/src/firstAbc/java
                 JniLibsDirectories:
@@ -117,10 +105,6 @@ MODULE: MultiFlavor.app
                     ./app/src/secondAbc/aidl
                 AssetsDirectories:
                     ./app/src/secondAbc/assets
-                CDirectories:
-                    ./app/src/secondAbc/jni
-                CppDirectories:
-                    ./app/src/secondAbc/jni
                 JavaDirectories:
                     ./app/src/secondAbc/java
                     ./app/src/secondAbc/java2
@@ -143,10 +127,6 @@ MODULE: MultiFlavor.app
                     ./app/src/firstAbcSecondAbc/aidl
                 AssetsDirectories:
                     ./app/src/firstAbcSecondAbc/assets
-                CDirectories:
-                    ./app/src/firstAbcSecondAbc/jni
-                CppDirectories:
-                    ./app/src/firstAbcSecondAbc/jni
                 JavaDirectories:
                     ./app/src/firstAbcSecondAbc/java
                     ./app/src/firstAbcSecondAbc/java2
@@ -169,10 +149,6 @@ MODULE: MultiFlavor.app
                     ./app/src/debug/aidl
                 AssetsDirectories:
                     ./app/src/debug/assets
-                CDirectories:
-                    ./app/src/debug/jni
-                CppDirectories:
-                    ./app/src/debug/jni
                 JavaDirectories:
                     ./app/src/debug/java
                 JniLibsDirectories:
@@ -194,10 +170,6 @@ MODULE: MultiFlavor.app
                     ./app/src/firstAbcSecondAbcDebug/aidl
                 AssetsDirectories:
                     ./app/src/firstAbcSecondAbcDebug/assets
-                CDirectories:
-                    ./app/src/firstAbcSecondAbcDebug/jni
-                CppDirectories:
-                    ./app/src/firstAbcSecondAbcDebug/jni
                 JavaDirectories:
                     ./app/src/firstAbcSecondAbcDebug/java
                 JniLibsDirectories:
@@ -220,10 +192,6 @@ MODULE: MultiFlavor.app
                     ./app/src/main/aidl
                 AssetsDirectories:
                     ./app/src/main/assets
-                CDirectories:
-                    ./app/src/main/jni
-                CppDirectories:
-                    ./app/src/main/jni
                 JavaDirectories:
                     ./app/src/main/java
                 JniLibsDirectories:
@@ -245,10 +213,6 @@ MODULE: MultiFlavor.app
                     ./app/src/debug/aidl
                 AssetsDirectories:
                     ./app/src/debug/assets
-                CDirectories:
-                    ./app/src/debug/jni
-                CppDirectories:
-                    ./app/src/debug/jni
                 JavaDirectories:
                     ./app/src/debug/java
                 JniLibsDirectories:
@@ -270,10 +234,6 @@ MODULE: MultiFlavor.app
                     ./app/src/firstAbc/aidl
                 AssetsDirectories:
                     ./app/src/firstAbc/assets
-                CDirectories:
-                    ./app/src/firstAbc/jni
-                CppDirectories:
-                    ./app/src/firstAbc/jni
                 JavaDirectories:
                     ./app/src/firstAbc/java
                 JniLibsDirectories:
@@ -295,10 +255,6 @@ MODULE: MultiFlavor.app
                     ./app/src/firstAbcSecondAbc/aidl
                 AssetsDirectories:
                     ./app/src/firstAbcSecondAbc/assets
-                CDirectories:
-                    ./app/src/firstAbcSecondAbc/jni
-                CppDirectories:
-                    ./app/src/firstAbcSecondAbc/jni
                 JavaDirectories:
                     ./app/src/firstAbcSecondAbc/java
                     ./app/src/firstAbcSecondAbc/java2
@@ -321,10 +277,6 @@ MODULE: MultiFlavor.app
                     ./app/src/firstAbcSecondAbcDebug/aidl
                 AssetsDirectories:
                     ./app/src/firstAbcSecondAbcDebug/assets
-                CDirectories:
-                    ./app/src/firstAbcSecondAbcDebug/jni
-                CppDirectories:
-                    ./app/src/firstAbcSecondAbcDebug/jni
                 JavaDirectories:
                     ./app/src/firstAbcSecondAbcDebug/java
                 JniLibsDirectories:
@@ -346,10 +298,6 @@ MODULE: MultiFlavor.app
                     ./app/src/firstXyz/aidl
                 AssetsDirectories:
                     ./app/src/firstXyz/assets
-                CDirectories:
-                    ./app/src/firstXyz/jni
-                CppDirectories:
-                    ./app/src/firstXyz/jni
                 JavaDirectories:
                     ./app/src/firstXyz/java
                 JniLibsDirectories:
@@ -371,10 +319,6 @@ MODULE: MultiFlavor.app
                     ./app/src/release/aidl
                 AssetsDirectories:
                     ./app/src/release/assets
-                CDirectories:
-                    ./app/src/release/jni
-                CppDirectories:
-                    ./app/src/release/jni
                 JavaDirectories:
                     ./app/src/release/java
                 JniLibsDirectories:
@@ -396,10 +340,6 @@ MODULE: MultiFlavor.app
                     ./app/src/secondAbc/aidl
                 AssetsDirectories:
                     ./app/src/secondAbc/assets
-                CDirectories:
-                    ./app/src/secondAbc/jni
-                CppDirectories:
-                    ./app/src/secondAbc/jni
                 JavaDirectories:
                     ./app/src/secondAbc/java
                     ./app/src/secondAbc/java2
@@ -422,10 +362,6 @@ MODULE: MultiFlavor.app
                     ./app/src/secondXyz/aidl
                 AssetsDirectories:
                     ./app/src/secondXyz/assets
-                CDirectories:
-                    ./app/src/secondXyz/jni
-                CppDirectories:
-                    ./app/src/secondXyz/jni
                 JavaDirectories:
                     ./app/src/secondXyz/java
                 JniLibsDirectories:
@@ -448,10 +384,6 @@ MODULE: MultiFlavor.app
                     ./app/src/test/aidl
                 AssetsDirectories:
                     ./app/src/test/assets
-                CDirectories:
-                    ./app/src/test/jni
-                CppDirectories:
-                    ./app/src/test/jni
                 JavaDirectories:
                     ./app/src/test/java
                 JniLibsDirectories:
@@ -473,10 +405,6 @@ MODULE: MultiFlavor.app
                     ./app/src/testFirstAbc/aidl
                 AssetsDirectories:
                     ./app/src/testFirstAbc/assets
-                CDirectories:
-                    ./app/src/testFirstAbc/jni
-                CppDirectories:
-                    ./app/src/testFirstAbc/jni
                 JavaDirectories:
                     ./app/src/testFirstAbc/java
                 JniLibsDirectories:
@@ -498,10 +426,6 @@ MODULE: MultiFlavor.app
                     ./app/src/testSecondAbc/aidl
                 AssetsDirectories:
                     ./app/src/testSecondAbc/assets
-                CDirectories:
-                    ./app/src/testSecondAbc/jni
-                CppDirectories:
-                    ./app/src/testSecondAbc/jni
                 JavaDirectories:
                     ./app/src/testSecondAbc/java
                 JniLibsDirectories:
@@ -523,10 +447,6 @@ MODULE: MultiFlavor.app
                     ./app/src/testFirstAbcSecondAbc/aidl
                 AssetsDirectories:
                     ./app/src/testFirstAbcSecondAbc/assets
-                CDirectories:
-                    ./app/src/testFirstAbcSecondAbc/jni
-                CppDirectories:
-                    ./app/src/testFirstAbcSecondAbc/jni
                 JavaDirectories:
                     ./app/src/testFirstAbcSecondAbc/java
                 JniLibsDirectories:
@@ -548,10 +468,6 @@ MODULE: MultiFlavor.app
                     ./app/src/testDebug/aidl
                 AssetsDirectories:
                     ./app/src/testDebug/assets
-                CDirectories:
-                    ./app/src/testDebug/jni
-                CppDirectories:
-                    ./app/src/testDebug/jni
                 JavaDirectories:
                     ./app/src/testDebug/java
                 JniLibsDirectories:
@@ -573,10 +489,6 @@ MODULE: MultiFlavor.app
                     ./app/src/testFirstAbcSecondAbcDebug/aidl
                 AssetsDirectories:
                     ./app/src/testFirstAbcSecondAbcDebug/assets
-                CDirectories:
-                    ./app/src/testFirstAbcSecondAbcDebug/jni
-                CppDirectories:
-                    ./app/src/testFirstAbcSecondAbcDebug/jni
                 JavaDirectories:
                     ./app/src/testFirstAbcSecondAbcDebug/java
                 JniLibsDirectories:
@@ -599,10 +511,6 @@ MODULE: MultiFlavor.app
                     ./app/src/androidTest/aidl
                 AssetsDirectories:
                     ./app/src/androidTest/assets
-                CDirectories:
-                    ./app/src/androidTest/jni
-                CppDirectories:
-                    ./app/src/androidTest/jni
                 JavaDirectories:
                     ./app/src/androidTest/java
                 JniLibsDirectories:
@@ -624,10 +532,6 @@ MODULE: MultiFlavor.app
                     ./app/src/androidTestFirstAbc/aidl
                 AssetsDirectories:
                     ./app/src/androidTestFirstAbc/assets
-                CDirectories:
-                    ./app/src/androidTestFirstAbc/jni
-                CppDirectories:
-                    ./app/src/androidTestFirstAbc/jni
                 JavaDirectories:
                     ./app/src/androidTestFirstAbc/java
                 JniLibsDirectories:
@@ -649,10 +553,6 @@ MODULE: MultiFlavor.app
                     ./app/src/androidTestSecondAbc/aidl
                 AssetsDirectories:
                     ./app/src/androidTestSecondAbc/assets
-                CDirectories:
-                    ./app/src/androidTestSecondAbc/jni
-                CppDirectories:
-                    ./app/src/androidTestSecondAbc/jni
                 JavaDirectories:
                     ./app/src/androidTestSecondAbc/java
                 JniLibsDirectories:
@@ -674,10 +574,6 @@ MODULE: MultiFlavor.app
                     ./app/src/androidTestFirstAbcSecondAbc/aidl
                 AssetsDirectories:
                     ./app/src/androidTestFirstAbcSecondAbc/assets
-                CDirectories:
-                    ./app/src/androidTestFirstAbcSecondAbc/jni
-                CppDirectories:
-                    ./app/src/androidTestFirstAbcSecondAbc/jni
                 JavaDirectories:
                     ./app/src/androidTestFirstAbcSecondAbc/java
                 JniLibsDirectories:
@@ -699,10 +595,6 @@ MODULE: MultiFlavor.app
                     ./app/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./app/src/androidTestDebug/assets
-                CDirectories:
-                    ./app/src/androidTestDebug/jni
-                CppDirectories:
-                    ./app/src/androidTestDebug/jni
                 JavaDirectories:
                     ./app/src/androidTestDebug/java
                 JniLibsDirectories:
@@ -724,10 +616,6 @@ MODULE: MultiFlavor.app
                     ./app/src/androidTestFirstAbcSecondAbcDebug/aidl
                 AssetsDirectories:
                     ./app/src/androidTestFirstAbcSecondAbcDebug/assets
-                CDirectories:
-                    ./app/src/androidTestFirstAbcSecondAbcDebug/jni
-                CppDirectories:
-                    ./app/src/androidTestFirstAbcSecondAbcDebug/jni
                 JavaDirectories:
                     ./app/src/androidTestFirstAbcSecondAbcDebug/java
                 JniLibsDirectories:

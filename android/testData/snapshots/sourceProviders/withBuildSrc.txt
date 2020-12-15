@@ -41,10 +41,6 @@ MODULE: testWithBuildSrc.app
                 ./app/src/main/aidl
             AssetsDirectories:
                 ./app/src/main/assets
-            CDirectories:
-                ./app/src/main/jni
-            CppDirectories:
-                ./app/src/main/jni
             JavaDirectories:
                 ./app/src/main/java
             JniLibsDirectories:
@@ -67,10 +63,6 @@ MODULE: testWithBuildSrc.app
                     ./app/src/main/aidl
                 AssetsDirectories:
                     ./app/src/main/assets
-                CDirectories:
-                    ./app/src/main/jni
-                CppDirectories:
-                    ./app/src/main/jni
                 JavaDirectories:
                     ./app/src/main/java
                 JniLibsDirectories:
@@ -92,10 +84,6 @@ MODULE: testWithBuildSrc.app
                     ./app/src/debug/aidl
                 AssetsDirectories:
                     ./app/src/debug/assets
-                CDirectories:
-                    ./app/src/debug/jni
-                CppDirectories:
-                    ./app/src/debug/jni
                 JavaDirectories:
                     ./app/src/debug/java
                 JniLibsDirectories:
@@ -118,10 +106,6 @@ MODULE: testWithBuildSrc.app
                     ./app/src/main/aidl
                 AssetsDirectories:
                     ./app/src/main/assets
-                CDirectories:
-                    ./app/src/main/jni
-                CppDirectories:
-                    ./app/src/main/jni
                 JavaDirectories:
                     ./app/src/main/java
                 JniLibsDirectories:
@@ -143,10 +127,6 @@ MODULE: testWithBuildSrc.app
                     ./app/src/debug/aidl
                 AssetsDirectories:
                     ./app/src/debug/assets
-                CDirectories:
-                    ./app/src/debug/jni
-                CppDirectories:
-                    ./app/src/debug/jni
                 JavaDirectories:
                     ./app/src/debug/java
                 JniLibsDirectories:
@@ -168,10 +148,6 @@ MODULE: testWithBuildSrc.app
                     ./app/src/release/aidl
                 AssetsDirectories:
                     ./app/src/release/assets
-                CDirectories:
-                    ./app/src/release/jni
-                CppDirectories:
-                    ./app/src/release/jni
                 JavaDirectories:
                     ./app/src/release/java
                 JniLibsDirectories:
@@ -194,10 +170,6 @@ MODULE: testWithBuildSrc.app
                     ./app/src/test/aidl
                 AssetsDirectories:
                     ./app/src/test/assets
-                CDirectories:
-                    ./app/src/test/jni
-                CppDirectories:
-                    ./app/src/test/jni
                 JavaDirectories:
                     ./app/src/test/java
                 JniLibsDirectories:
@@ -219,10 +191,6 @@ MODULE: testWithBuildSrc.app
                     ./app/src/testDebug/aidl
                 AssetsDirectories:
                     ./app/src/testDebug/assets
-                CDirectories:
-                    ./app/src/testDebug/jni
-                CppDirectories:
-                    ./app/src/testDebug/jni
                 JavaDirectories:
                     ./app/src/testDebug/java
                 JniLibsDirectories:
@@ -245,10 +213,6 @@ MODULE: testWithBuildSrc.app
                     ./app/src/androidTest/aidl
                 AssetsDirectories:
                     ./app/src/androidTest/assets
-                CDirectories:
-                    ./app/src/androidTest/jni
-                CppDirectories:
-                    ./app/src/androidTest/jni
                 JavaDirectories:
                     ./app/src/androidTest/java
                 JniLibsDirectories:
@@ -270,10 +234,6 @@ MODULE: testWithBuildSrc.app
                     ./app/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./app/src/androidTestDebug/assets
-                CDirectories:
-                    ./app/src/androidTestDebug/jni
-                CppDirectories:
-                    ./app/src/androidTestDebug/jni
                 JavaDirectories:
                     ./app/src/androidTestDebug/java
                 JniLibsDirectories:

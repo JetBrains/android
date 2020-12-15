@@ -41,10 +41,6 @@ MODULE: AS36_noiml.app
                 ./app/src/main/aidl
             AssetsDirectories:
                 ./app/src/main/assets
-            CDirectories:
-                ./app/src/main/jni
-            CppDirectories:
-                ./app/src/main/jni
             JavaDirectories:
                 ./app/src/main/java
             JniLibsDirectories:
@@ -67,10 +63,6 @@ MODULE: AS36_noiml.app
                     ./app/src/main/aidl
                 AssetsDirectories:
                     ./app/src/main/assets
-                CDirectories:
-                    ./app/src/main/jni
-                CppDirectories:
-                    ./app/src/main/jni
                 JavaDirectories:
                     ./app/src/main/java
                 JniLibsDirectories:
@@ -92,10 +84,6 @@ MODULE: AS36_noiml.app
                     ./app/src/debug/aidl
                 AssetsDirectories:
                     ./app/src/debug/assets
-                CDirectories:
-                    ./app/src/debug/jni
-                CppDirectories:
-                    ./app/src/debug/jni
                 JavaDirectories:
                     ./app/src/debug/java
                 JniLibsDirectories:
@@ -118,10 +106,6 @@ MODULE: AS36_noiml.app
                     ./app/src/main/aidl
                 AssetsDirectories:
                     ./app/src/main/assets
-                CDirectories:
-                    ./app/src/main/jni
-                CppDirectories:
-                    ./app/src/main/jni
                 JavaDirectories:
                     ./app/src/main/java
                 JniLibsDirectories:
@@ -143,10 +127,6 @@ MODULE: AS36_noiml.app
                     ./app/src/debug/aidl
                 AssetsDirectories:
                     ./app/src/debug/assets
-                CDirectories:
-                    ./app/src/debug/jni
-                CppDirectories:
-                    ./app/src/debug/jni
                 JavaDirectories:
                     ./app/src/debug/java
                 JniLibsDirectories:
@@ -168,10 +148,6 @@ MODULE: AS36_noiml.app
                     ./app/src/release/aidl
                 AssetsDirectories:
                     ./app/src/release/assets
-                CDirectories:
-                    ./app/src/release/jni
-                CppDirectories:
-                    ./app/src/release/jni
                 JavaDirectories:
                     ./app/src/release/java
                 JniLibsDirectories:
@@ -194,10 +170,6 @@ MODULE: AS36_noiml.app
                     ./app/src/test/aidl
                 AssetsDirectories:
                     ./app/src/test/assets
-                CDirectories:
-                    ./app/src/test/jni
-                CppDirectories:
-                    ./app/src/test/jni
                 JavaDirectories:
                     ./app/src/test/java
                 JniLibsDirectories:
@@ -219,10 +191,6 @@ MODULE: AS36_noiml.app
                     ./app/src/testDebug/aidl
                 AssetsDirectories:
                     ./app/src/testDebug/assets
-                CDirectories:
-                    ./app/src/testDebug/jni
-                CppDirectories:
-                    ./app/src/testDebug/jni
                 JavaDirectories:
                     ./app/src/testDebug/java
                 JniLibsDirectories:
@@ -245,10 +213,6 @@ MODULE: AS36_noiml.app
                     ./app/src/androidTest/aidl
                 AssetsDirectories:
                     ./app/src/androidTest/assets
-                CDirectories:
-                    ./app/src/androidTest/jni
-                CppDirectories:
-                    ./app/src/androidTest/jni
                 JavaDirectories:
                     ./app/src/androidTest/java
                 JniLibsDirectories:
@@ -270,10 +234,6 @@ MODULE: AS36_noiml.app
                     ./app/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./app/src/androidTestDebug/assets
-                CDirectories:
-                    ./app/src/androidTestDebug/jni
-                CppDirectories:
-                    ./app/src/androidTestDebug/jni
                 JavaDirectories:
                     ./app/src/androidTestDebug/java
                 JniLibsDirectories:
@@ -698,10 +658,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                 ./features/dynamicfeature/src/main/aidl
             AssetsDirectories:
                 ./features/dynamicfeature/src/main/assets
-            CDirectories:
-                ./features/dynamicfeature/src/main/jni
-            CppDirectories:
-                ./features/dynamicfeature/src/main/jni
             JavaDirectories:
                 ./features/dynamicfeature/src/main/java
             JniLibsDirectories:
@@ -724,10 +680,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/main/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature/src/main/assets
-                CDirectories:
-                    ./features/dynamicfeature/src/main/jni
-                CppDirectories:
-                    ./features/dynamicfeature/src/main/jni
                 JavaDirectories:
                     ./features/dynamicfeature/src/main/java
                 JniLibsDirectories:
@@ -749,10 +701,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/debug/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature/src/debug/assets
-                CDirectories:
-                    ./features/dynamicfeature/src/debug/jni
-                CppDirectories:
-                    ./features/dynamicfeature/src/debug/jni
                 JavaDirectories:
                     ./features/dynamicfeature/src/debug/java
                 JniLibsDirectories:
@@ -775,10 +723,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/main/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature/src/main/assets
-                CDirectories:
-                    ./features/dynamicfeature/src/main/jni
-                CppDirectories:
-                    ./features/dynamicfeature/src/main/jni
                 JavaDirectories:
                     ./features/dynamicfeature/src/main/java
                 JniLibsDirectories:
@@ -800,10 +744,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/debug/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature/src/debug/assets
-                CDirectories:
-                    ./features/dynamicfeature/src/debug/jni
-                CppDirectories:
-                    ./features/dynamicfeature/src/debug/jni
                 JavaDirectories:
                     ./features/dynamicfeature/src/debug/java
                 JniLibsDirectories:
@@ -825,10 +765,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/release/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature/src/release/assets
-                CDirectories:
-                    ./features/dynamicfeature/src/release/jni
-                CppDirectories:
-                    ./features/dynamicfeature/src/release/jni
                 JavaDirectories:
                     ./features/dynamicfeature/src/release/java
                 JniLibsDirectories:
@@ -851,10 +787,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/test/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature/src/test/assets
-                CDirectories:
-                    ./features/dynamicfeature/src/test/jni
-                CppDirectories:
-                    ./features/dynamicfeature/src/test/jni
                 JavaDirectories:
                     ./features/dynamicfeature/src/test/java
                 JniLibsDirectories:
@@ -876,10 +808,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/testDebug/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature/src/testDebug/assets
-                CDirectories:
-                    ./features/dynamicfeature/src/testDebug/jni
-                CppDirectories:
-                    ./features/dynamicfeature/src/testDebug/jni
                 JavaDirectories:
                     ./features/dynamicfeature/src/testDebug/java
                 JniLibsDirectories:
@@ -902,10 +830,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/androidTest/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature/src/androidTest/assets
-                CDirectories:
-                    ./features/dynamicfeature/src/androidTest/jni
-                CppDirectories:
-                    ./features/dynamicfeature/src/androidTest/jni
                 JavaDirectories:
                     ./features/dynamicfeature/src/androidTest/java
                 JniLibsDirectories:
@@ -927,10 +851,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature/src/androidTestDebug/assets
-                CDirectories:
-                    ./features/dynamicfeature/src/androidTestDebug/jni
-                CppDirectories:
-                    ./features/dynamicfeature/src/androidTestDebug/jni
                 JavaDirectories:
                     ./features/dynamicfeature/src/androidTestDebug/java
                 JniLibsDirectories:
@@ -1326,10 +1246,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                 ./features/dynamicfeature2/src/main/aidl
             AssetsDirectories:
                 ./features/dynamicfeature2/src/main/assets
-            CDirectories:
-                ./features/dynamicfeature2/src/main/jni
-            CppDirectories:
-                ./features/dynamicfeature2/src/main/jni
             JavaDirectories:
                 ./features/dynamicfeature2/src/main/java
             JniLibsDirectories:
@@ -1352,10 +1268,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/main/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature2/src/main/assets
-                CDirectories:
-                    ./features/dynamicfeature2/src/main/jni
-                CppDirectories:
-                    ./features/dynamicfeature2/src/main/jni
                 JavaDirectories:
                     ./features/dynamicfeature2/src/main/java
                 JniLibsDirectories:
@@ -1377,10 +1289,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/debug/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature2/src/debug/assets
-                CDirectories:
-                    ./features/dynamicfeature2/src/debug/jni
-                CppDirectories:
-                    ./features/dynamicfeature2/src/debug/jni
                 JavaDirectories:
                     ./features/dynamicfeature2/src/debug/java
                 JniLibsDirectories:
@@ -1403,10 +1311,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/main/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature2/src/main/assets
-                CDirectories:
-                    ./features/dynamicfeature2/src/main/jni
-                CppDirectories:
-                    ./features/dynamicfeature2/src/main/jni
                 JavaDirectories:
                     ./features/dynamicfeature2/src/main/java
                 JniLibsDirectories:
@@ -1428,10 +1332,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/debug/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature2/src/debug/assets
-                CDirectories:
-                    ./features/dynamicfeature2/src/debug/jni
-                CppDirectories:
-                    ./features/dynamicfeature2/src/debug/jni
                 JavaDirectories:
                     ./features/dynamicfeature2/src/debug/java
                 JniLibsDirectories:
@@ -1453,10 +1353,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/release/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature2/src/release/assets
-                CDirectories:
-                    ./features/dynamicfeature2/src/release/jni
-                CppDirectories:
-                    ./features/dynamicfeature2/src/release/jni
                 JavaDirectories:
                     ./features/dynamicfeature2/src/release/java
                 JniLibsDirectories:
@@ -1479,10 +1375,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/test/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature2/src/test/assets
-                CDirectories:
-                    ./features/dynamicfeature2/src/test/jni
-                CppDirectories:
-                    ./features/dynamicfeature2/src/test/jni
                 JavaDirectories:
                     ./features/dynamicfeature2/src/test/java
                 JniLibsDirectories:
@@ -1504,10 +1396,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/testDebug/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature2/src/testDebug/assets
-                CDirectories:
-                    ./features/dynamicfeature2/src/testDebug/jni
-                CppDirectories:
-                    ./features/dynamicfeature2/src/testDebug/jni
                 JavaDirectories:
                     ./features/dynamicfeature2/src/testDebug/java
                 JniLibsDirectories:
@@ -1530,10 +1418,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/androidTest/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature2/src/androidTest/assets
-                CDirectories:
-                    ./features/dynamicfeature2/src/androidTest/jni
-                CppDirectories:
-                    ./features/dynamicfeature2/src/androidTest/jni
                 JavaDirectories:
                     ./features/dynamicfeature2/src/androidTest/java
                 JniLibsDirectories:
@@ -1555,10 +1439,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature2/src/androidTestDebug/assets
-                CDirectories:
-                    ./features/dynamicfeature2/src/androidTestDebug/jni
-                CppDirectories:
-                    ./features/dynamicfeature2/src/androidTestDebug/jni
                 JavaDirectories:
                     ./features/dynamicfeature2/src/androidTestDebug/java
                 JniLibsDirectories:
@@ -1959,10 +1839,6 @@ MODULE: AS36_noiml.libs.android_library
                 ./libs/android_library/src/main/aidl
             AssetsDirectories:
                 ./libs/android_library/src/main/assets
-            CDirectories:
-                ./libs/android_library/src/main/jni
-            CppDirectories:
-                ./libs/android_library/src/main/jni
             JavaDirectories:
                 ./libs/android_library/src/main/java
             JniLibsDirectories:
@@ -1985,10 +1861,6 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/main/aidl
                 AssetsDirectories:
                     ./libs/android_library/src/main/assets
-                CDirectories:
-                    ./libs/android_library/src/main/jni
-                CppDirectories:
-                    ./libs/android_library/src/main/jni
                 JavaDirectories:
                     ./libs/android_library/src/main/java
                 JniLibsDirectories:
@@ -2010,10 +1882,6 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/debug/aidl
                 AssetsDirectories:
                     ./libs/android_library/src/debug/assets
-                CDirectories:
-                    ./libs/android_library/src/debug/jni
-                CppDirectories:
-                    ./libs/android_library/src/debug/jni
                 JavaDirectories:
                     ./libs/android_library/src/debug/java
                 JniLibsDirectories:
@@ -2036,10 +1904,6 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/main/aidl
                 AssetsDirectories:
                     ./libs/android_library/src/main/assets
-                CDirectories:
-                    ./libs/android_library/src/main/jni
-                CppDirectories:
-                    ./libs/android_library/src/main/jni
                 JavaDirectories:
                     ./libs/android_library/src/main/java
                 JniLibsDirectories:
@@ -2061,10 +1925,6 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/debug/aidl
                 AssetsDirectories:
                     ./libs/android_library/src/debug/assets
-                CDirectories:
-                    ./libs/android_library/src/debug/jni
-                CppDirectories:
-                    ./libs/android_library/src/debug/jni
                 JavaDirectories:
                     ./libs/android_library/src/debug/java
                 JniLibsDirectories:
@@ -2086,10 +1946,6 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/release/aidl
                 AssetsDirectories:
                     ./libs/android_library/src/release/assets
-                CDirectories:
-                    ./libs/android_library/src/release/jni
-                CppDirectories:
-                    ./libs/android_library/src/release/jni
                 JavaDirectories:
                     ./libs/android_library/src/release/java
                 JniLibsDirectories:
@@ -2112,10 +1968,6 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/test/aidl
                 AssetsDirectories:
                     ./libs/android_library/src/test/assets
-                CDirectories:
-                    ./libs/android_library/src/test/jni
-                CppDirectories:
-                    ./libs/android_library/src/test/jni
                 JavaDirectories:
                     ./libs/android_library/src/test/java
                 JniLibsDirectories:
@@ -2137,10 +1989,6 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/testDebug/aidl
                 AssetsDirectories:
                     ./libs/android_library/src/testDebug/assets
-                CDirectories:
-                    ./libs/android_library/src/testDebug/jni
-                CppDirectories:
-                    ./libs/android_library/src/testDebug/jni
                 JavaDirectories:
                     ./libs/android_library/src/testDebug/java
                 JniLibsDirectories:
@@ -2163,10 +2011,6 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/androidTest/aidl
                 AssetsDirectories:
                     ./libs/android_library/src/androidTest/assets
-                CDirectories:
-                    ./libs/android_library/src/androidTest/jni
-                CppDirectories:
-                    ./libs/android_library/src/androidTest/jni
                 JavaDirectories:
                     ./libs/android_library/src/androidTest/java
                 JniLibsDirectories:
@@ -2188,10 +2032,6 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./libs/android_library/src/androidTestDebug/assets
-                CDirectories:
-                    ./libs/android_library/src/androidTestDebug/jni
-                CppDirectories:
-                    ./libs/android_library/src/androidTestDebug/jni
                 JavaDirectories:
                     ./libs/android_library/src/androidTestDebug/java
                 JniLibsDirectories:
