@@ -163,6 +163,30 @@ class AppInspectionProcessDiscoveryTest {
   }
 
   @Test
+  fun deviceDisconnectNotifiesListener() {
+    val processConnectLatch = CountDownLatch(1)
+    val processDisconnectLatch = CountDownLatch(1)
+    appInspectionRule.addProcessListener(object : ProcessListener {
+      override fun onProcessConnected(process: ProcessDescriptor) {
+        processConnectLatch.countDown()
+      }
+
+      override fun onProcessDisconnected(process: ProcessDescriptor) {
+        processDisconnectLatch.countDown()
+      }
+    })
+
+    // Wait for process to connect.
+    launchFakeDevice()
+    launchFakeProcess()
+    processConnectLatch.await()
+
+    // Device disconnecting takes the process down with it.
+    removeFakeDevice()
+    processDisconnectLatch.await()
+  }
+
+  @Test
   fun processReconnects() {
     val firstProcessLatch = CountDownLatch(1)
     val secondProcessLatch = CountDownLatch(1)
