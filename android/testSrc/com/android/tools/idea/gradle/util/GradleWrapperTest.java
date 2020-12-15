@@ -26,10 +26,12 @@ import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 
 import com.android.SdkConstants;
 import com.google.common.base.Charsets;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.project.ProjectStoreOwner;
 import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -37,7 +39,6 @@ import java.util.List;
 import java.util.Properties;
 import org.jetbrains.annotations.NotNull;
 
-@org.junit.Ignore("b/174208046")
 public class GradleWrapperTest extends PlatformTestCase {
   public void testUpdateDistributionUrl() throws IOException {
     File projectPath = getProjectBaseDir();
@@ -56,7 +57,7 @@ public class GradleWrapperTest extends PlatformTestCase {
     // Ensure that if we already have the right version, we don't replace a -all.zip with a -bin.zip
     File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    write(
+    writeAndRefresh(
       "#Wed Apr 10 15:27:10 PDT 2013\n" +
       "distributionBase=GRADLE_USER_HOME\n" +
       "distributionPath=wrapper/dists\n" +
@@ -79,7 +80,7 @@ public class GradleWrapperTest extends PlatformTestCase {
     // Ensure that if we already have the right version, we don't replace a -bin.zip with a -all.zip
     File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    write(
+    writeAndRefresh(
       "#Wed Apr 10 15:27:10 PDT 2013\n" +
       "distributionBase=GRADLE_USER_HOME\n" +
       "distributionPath=wrapper/dists\n" +
@@ -101,7 +102,7 @@ public class GradleWrapperTest extends PlatformTestCase {
     // Test that when we replace to a new version we use -all.zip
     File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    write(
+    writeAndRefresh(
       "#Wed Apr 10 15:27:10 PDT 2013\n" +
       "distributionBase=GRADLE_USER_HOME\n" +
       "distributionPath=wrapper/dists\n" +
@@ -123,7 +124,7 @@ public class GradleWrapperTest extends PlatformTestCase {
     // Test when we have a local/unofficial Gradle version, we can upgrade to a new official version.
     File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    write(
+    writeAndRefresh(
       "#Tue Feb 19 10:20:30 PDT 2019\n" +
       "distributionBase=GRADLE_USER_HOME\n" +
       "distributionPath=wrapper/dists\n" +
@@ -145,7 +146,7 @@ public class GradleWrapperTest extends PlatformTestCase {
     // Test when we have no Gradle version specified, we can upgrade to a new official version.
     File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    write(
+    writeAndRefresh(
       "#Tue Feb 19 10:20:30 PDT 2019\n" +
       "distributionBase=GRADLE_USER_HOME\n" +
       "distributionPath=wrapper/dists\n" +
@@ -174,7 +175,7 @@ public class GradleWrapperTest extends PlatformTestCase {
     // Test when we have a standard Gradle version, we can upgrade to a new official version.
     File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    write(
+    writeAndRefresh(
       "#Tue Feb 19 10:20:30 PDT 2019\n" +
       "distributionBase=GRADLE_USER_HOME\n" +
       "distributionPath=wrapper/dists\n" +
@@ -204,7 +205,7 @@ public class GradleWrapperTest extends PlatformTestCase {
     // Test when we have a local/unofficial Gradle version, we can upgrade to a new official version.
     File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    write(
+    writeAndRefresh(
       "#Tue Feb 19 10:20:30 PDT 2019\n" +
       "distributionBase=GRADLE_USER_HOME\n" +
       "distributionPath=wrapper/dists\n" +
@@ -234,7 +235,7 @@ public class GradleWrapperTest extends PlatformTestCase {
     // Test when we have a preview Gradle version, we can upgrade to a new official version.
     File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    write(
+    writeAndRefresh(
       "#Tue Feb 19 10:20:30 PDT 2019\n" +
       "distributionBase=GRADLE_USER_HOME\n" +
       "distributionPath=wrapper/dists\n" +
@@ -264,7 +265,7 @@ public class GradleWrapperTest extends PlatformTestCase {
     // Test when we have a snapshot Gradle version, we can upgrade to a new official version.
     File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    write(
+    writeAndRefresh(
       "#Tue Feb 19 10:20:30 PDT 2019\n" +
       "distributionBase=GRADLE_USER_HOME\n" +
       "distributionPath=wrapper/dists\n" +
@@ -295,7 +296,7 @@ public class GradleWrapperTest extends PlatformTestCase {
     // produce our standard form.
     File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    write(
+    writeAndRefresh(
       "#Tue Feb 19 10:20:30 PDT 2019\n" +
       "distributionBase=GRADLE_USER_HOME\n" +
       "distributionPath=wrapper/dists\n" +
@@ -325,7 +326,7 @@ public class GradleWrapperTest extends PlatformTestCase {
     // Test when we have a local/unofficial Gradle version, we can upgrade to a new local version.
     File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    write(
+    writeAndRefresh(
       "#Tue Feb 19 10:20:30 PDT 2019\n" +
       "distributionBase=GRADLE_USER_HOME\n" +
       "distributionPath=wrapper/dists\n" +
@@ -355,7 +356,7 @@ public class GradleWrapperTest extends PlatformTestCase {
     // Test when we have a local/unofficial Gradle version, we can upgrade to a new official version.
     File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    write(
+    writeAndRefresh(
       "#Tue Feb 19 10:20:30 PDT 2019\n" +
       "distributionBase=GRADLE_USER_HOME\n" +
       "distributionPath=wrapper/dists\n" +
@@ -385,7 +386,7 @@ public class GradleWrapperTest extends PlatformTestCase {
     // Test when we have a local/unofficial Gradle version, we can upgrade to a new local version.
     File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    write(
+    writeAndRefresh(
       "#Tue Feb 19 10:20:30 PDT 2019\n" +
       "distributionBase=GRADLE_USER_HOME\n" +
       "distributionPath=wrapper/dists\n" +
@@ -489,5 +490,10 @@ public class GradleWrapperTest extends PlatformTestCase {
       }
     }
     return path.toFile();
+  }
+
+  private void writeAndRefresh(CharSequence from, File to, Charset charset) throws IOException {
+    write(from, to, charset);
+    VfsUtil.markDirtyAndRefresh(false, false, false, to);
   }
 }
