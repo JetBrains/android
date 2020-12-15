@@ -214,6 +214,14 @@ class AgpGradleVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase(
   }
 
   @Test
+  fun testKotlinPluginUnknownVersion() {
+    writeToBuildFile(TestFileName("AgpGradleVersion/KotlinPluginUnknownVersion"))
+    val processor = AgpGradleVersionRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("4.1.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("AgpGradleVersion/KotlinPluginUnknownVersion"))
+  }
+
+  @Test
   fun testSafeArgsVersionInLiteral() {
     writeToBuildFile(TestFileName("AgpGradleVersion/SafeArgsVersionInLiteral"))
     val processor = AgpGradleVersionRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("4.1.0"))
