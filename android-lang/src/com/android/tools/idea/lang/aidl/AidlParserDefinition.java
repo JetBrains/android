@@ -41,11 +41,13 @@ public class AidlParserDefinition implements ParserDefinition {
     return new AidlLexer();
   }
 
+  @NotNull
   @Override
   public PsiParser createParser(Project project) {
     return new AidlParser();
   }
 
+  @NotNull
   @Override
   public IFileElementType getFileNodeType() {
     return AIDL_FILE_ELEMENT_TYPE;
@@ -75,11 +77,13 @@ public class AidlParserDefinition implements ParserDefinition {
     return AidlTokenTypes.Factory.createElement(node);
   }
 
+  @NotNull
   @Override
   public PsiFile createFile(FileViewProvider viewProvider) {
     return new AidlFile(viewProvider);
   }
 
+  @NotNull
   @Override
   public SpaceRequirements spaceExistenceTypeBetweenTokens(ASTNode left, ASTNode right) {
     return ParserDefinition.SpaceRequirements.MAY;
