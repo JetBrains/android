@@ -81,6 +81,7 @@ iml_module(
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//prebuilts/studio/layoutlib/data:layoutlib[test]",
+        "//tools/adt/idea/android-uitests:native_artifacts",
         "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector[module, test]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
         "//tools/adt/idea/android-transport:intellij.android.transport[module, test]",
@@ -97,6 +98,11 @@ iml_module(
         "//tools/adt/idea/studio[module, test]",
         "//tools/adt/idea/app-inspection/api:intellij.android.app-inspection.api[module, test]",
     ],
+)
+
+filegroup(
+    name = "native_artifacts",
+    srcs = ["//tools/adt/idea/android-uitests/native/testing:liblayout_inspector_test_support.so"],
 )
 
 java_test(
