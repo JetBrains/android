@@ -26,6 +26,7 @@ import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -35,6 +36,7 @@ class ComposePreviewRepresentationProviderTest {
                                        composableAnnotationPackage = "androidx.compose.runtime")
   private val project get() = projectRule.project
   private val fixture get() = projectRule.fixture
+  private val previewProvider = ComposePreviewRepresentationProvider { AnnotationFilePreviewElementFinder }
 
   /**
    * Simulates the initialization of an editor and returns the corresponding [PreviewRepresentation].
@@ -47,7 +49,6 @@ class ComposePreviewRepresentationProviderTest {
       }
       val textEditor = TextEditorProvider.getInstance().createEditor(project, file.virtualFile) as TextEditor
       Disposer.register(fixture.testRootDisposable, textEditor)
-      val previewProvider = ComposePreviewRepresentationProvider { AnnotationFilePreviewElementFinder }
       val multiRepresentationPreview = MultiRepresentationPreview(file, fixture.editor, listOf(previewProvider))
       Disposer.register(fixture.testRootDisposable, multiRepresentationPreview)
       multiRepresentationPreview.onInit()
@@ -97,13 +98,27 @@ class ComposePreviewRepresentationProviderTest {
       "Kotlin.kt",
       // language=kotlin
       """
-        import androidx.compose.runtime.Composableimport androidx.compose.ui.tooling.preview.Devicesimport androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.runtime.Composable
+        import androidx.compose.ui.tooling.preview.Devices
+        import androidx.compose.ui.tooling.preview.Preview
 
         fun helloMethod() {
         }
       """.trimIndent())
+    val kotlinWithNoComposable = fixture.addFileToProject(
+      "RegularKotlin.kt",
+      // language=kotlin
+      """
+        fun aKotlinMethod() {
+        }
+      """.trimIndent())
+    assertTrue(previewProvider.accept(project, previewFile))
+    assertTrue(previewProvider.accept(project, composableFile))
+    assertTrue(previewProvider.accept(project, kotlinFile))
+    assertTrue(previewProvider.accept(project, kotlinWithNoComposable))
     assertEquals(PreferredVisibility.VISIBLE, getRepresentationForFile(previewFile).preferredInitialVisibility)
     assertEquals(PreferredVisibility.VISIBLE, getRepresentationForFile(composableFile).preferredInitialVisibility)
     assertEquals(PreferredVisibility.HIDDEN, getRepresentationForFile(kotlinFile).preferredInitialVisibility)
+    assertEquals(PreferredVisibility.HIDDEN, getRepresentationForFile(kotlinWithNoComposable).preferredInitialVisibility)
   }
 }

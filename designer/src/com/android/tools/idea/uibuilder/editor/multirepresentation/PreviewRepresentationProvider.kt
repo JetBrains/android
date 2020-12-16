@@ -33,7 +33,7 @@ interface PreviewRepresentationProvider {
   /**
    * Tells a client if the corresponding [PreviewRepresentation] is applicable for the input file.
    */
-  fun accept(project: Project, virtualFile: VirtualFile): Boolean
+  fun accept(project: Project, psiFile: PsiFile): Boolean
 
   /**
    * Creates a corresponding [PreviewRepresentation] for the input file. It is only valid to call this if [accept] is true, undefined
