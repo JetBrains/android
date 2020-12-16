@@ -39,6 +39,7 @@ import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.actions.SwitchSurfaceLayoutManagerAction
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
@@ -141,9 +142,10 @@ class ComposePreviewRepresentationProvider(
   }
 
   /**
-   * Checks if the input [virtualFile] contains compose previews and therefore can be provided with the [PreviewRepresentation] of them.
+   * Checks if the input [psiFile] contains compose previews and therefore can be provided with the [PreviewRepresentation] of them.
    */
-  override fun accept(project: Project, virtualFile: VirtualFile): Boolean = StudioFlags.COMPOSE_PREVIEW.get() && virtualFile.isKotlinFileType()
+  override fun accept(project: Project, psiFile: PsiFile): Boolean =
+    StudioFlags.COMPOSE_PREVIEW.get() && psiFile.virtualFile.isKotlinFileType() && (psiFile.getModuleSystem()?.usesCompose ?: false)
 
   /**
    * Creates a [ComposePreviewRepresentation] for the input [psiFile].

@@ -206,7 +206,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
       return@invokeLaterIfNeeded
     }
 
-    val providers = providers.filter { it.accept(project, file.virtualFile) }.toList()
+    val providers = providers.filter { it.accept(project, file) }.toList()
     val providerNames = providers.map { it.displayName }.toSet()
 
     // Remove unaccepted
