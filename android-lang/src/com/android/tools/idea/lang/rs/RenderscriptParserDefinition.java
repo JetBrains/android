@@ -45,11 +45,13 @@ public class RenderscriptParserDefinition implements ParserDefinition {
     return new RenderscriptLexer();
   }
 
+  @NotNull
   @Override
   public PsiParser createParser(Project project) {
     return new RenderscriptParser();
   }
 
+  @NotNull
   @Override
   public IFileElementType getFileNodeType() {
     return FILE;
@@ -79,11 +81,13 @@ public class RenderscriptParserDefinition implements ParserDefinition {
     return new ASTWrapperPsiElement(node);
   }
 
+  @NotNull
   @Override
   public PsiFile createFile(FileViewProvider viewProvider) {
     return new RenderscriptFile(viewProvider);
   }
 
+  @NotNull
   @Override
   public SpaceRequirements spaceExistenceTypeBetweenTokens(ASTNode left, ASTNode right) {
     return SpaceRequirements.MUST;

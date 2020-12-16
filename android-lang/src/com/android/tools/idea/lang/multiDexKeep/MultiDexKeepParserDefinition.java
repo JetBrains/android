@@ -41,11 +41,13 @@ public class MultiDexKeepParserDefinition implements ParserDefinition {
     return new MultiDexKeepLexerAdapter();
   }
 
+  @NotNull
   @Override
   public PsiParser createParser(Project project) {
     return new MultiDexKeepParser();
   }
 
+  @NotNull
   @Override
   public IFileElementType getFileNodeType() {
     return FILE;
@@ -75,6 +77,7 @@ public class MultiDexKeepParserDefinition implements ParserDefinition {
     return MultiDexKeepPsiTypes.Factory.createElement(node);
   }
 
+  @NotNull
   @Override
   public PsiFile createFile(FileViewProvider viewProvider) {
     return new MultiDexKeepFile(viewProvider);
