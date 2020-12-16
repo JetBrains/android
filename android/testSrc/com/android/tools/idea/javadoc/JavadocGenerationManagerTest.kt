@@ -6,6 +6,7 @@ import com.intellij.javadoc.JavadocGenerationManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.fail
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
@@ -19,6 +20,7 @@ class JavadocGenerationManagerTest {
   @get:Rule
   val edtRule = EdtRule()
 
+  @Ignore("b/175801206")
   @Test
   @RunsInEdt
   fun invokeGenerateJavaDocAction() {
