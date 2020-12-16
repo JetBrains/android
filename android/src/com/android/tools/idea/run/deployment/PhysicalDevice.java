@@ -130,12 +130,12 @@ final class PhysicalDevice extends Device {
 
   @Override
   boolean matches(@NotNull Key key) {
-    return getKey().matches(key);
+    return getKey().equals(key);
   }
 
   @Override
   boolean hasKeyContainedBy(@NotNull Collection<@NotNull Key> keys) {
-    return keys.contains(getKey()) || keys.contains(getKey().asNonprefixedKey());
+    return keys.contains(getKey());
   }
 
   @NotNull

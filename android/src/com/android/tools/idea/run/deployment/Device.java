@@ -80,7 +80,7 @@ public abstract class Device {
     myValid = builder.myValid;
     myValidityReason = builder.myValidityReason;
 
-    assert builder.myKey != null && !(builder.myKey instanceof NonprefixedKey);
+    assert builder.myKey != null;
     myKey = builder.myKey;
 
     myConnectionTime = builder.myConnectionTime;
@@ -124,22 +124,18 @@ public abstract class Device {
   /**
    * Returns true if the key identifies this device. For a virtual device identified by
    * VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd") this method will return true for
-   * VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"), VirtualDeviceName("Pixel_4_API_30"), and
-   * NonprefixedKey("Pixel_4_API_30").
+   * VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd") and VirtualDeviceName("Pixel_4_API_30").
    *
-   * <p>When enough users upgrade their emulator to Version 30.0.18 and don't have persisted nonprefixed keys, this can be replaced with
-   * getKey().equals(key)
+   * <p>When enough users upgrade their emulator to Version 30.0.18, this can be replaced with getKey().equals(key)
    */
   abstract boolean matches(@NotNull Key key);
 
   /**
    * Returns true if the collection contains a key that identifies this device. For a virtual device identified by
    * VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd") this method will return true for a collection containing
-   * VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"), VirtualDeviceName("Pixel_4_API_30"), or
-   * NonprefixedKey("Pixel_4_API_30").
+   * VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd") or VirtualDeviceName("Pixel_4_API_30").
    *
-   * <p>When enough users upgrade their emulator to Version 30.0.18 and don't have persisted nonprefixed keys, this can be replaced with
-   * keys.contains(getKey())
+   * <p>When enough users upgrade their emulator to Version 30.0.18, this can be replaced with keys.contains(getKey())
    */
   abstract boolean hasKeyContainedBy(@NotNull Collection<@NotNull Key> keys);
 

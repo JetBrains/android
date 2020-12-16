@@ -47,25 +47,6 @@ public final class VirtualDeviceTest {
   }
 
   @Test
-  public void matchesDeviceIsInManagerAndKeyIsNonprefixedKey() {
-    // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(new VirtualDevicePath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setNameKey(new VirtualDeviceName("Pixel_4_API_30"))
-      .build();
-
-    Key key = new NonprefixedKey("Pixel_4_API_30");
-
-    // Act
-    boolean matches = device.matches(key);
-
-    // Assert
-    assertTrue(matches);
-  }
-
-  @Test
   public void matchesDeviceIsntInManagerAndKeyIsSerialNumber() {
     // Arrange
     Device device = new VirtualDevice.Builder()
@@ -75,24 +56,6 @@ public final class VirtualDeviceTest {
       .build();
 
     Key key = new SerialNumber("emulator-5554");
-
-    // Act
-    boolean matches = device.matches(key);
-
-    // Assert
-    assertTrue(matches);
-  }
-
-  @Test
-  public void matchesDeviceIsntInManagerAndKeyIsNonprefixedKey() {
-    // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("emulator-5554")
-      .setKey(new SerialNumber("emulator-5554"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    Key key = new NonprefixedKey("emulator-5554");
 
     // Act
     boolean matches = device.matches(key);
@@ -121,25 +84,6 @@ public final class VirtualDeviceTest {
   }
 
   @Test
-  public void hasKeyContainedByDeviceIsInManagerAndKeyIsNonprefixedKey() {
-    // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(new VirtualDevicePath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setNameKey(new VirtualDeviceName("Pixel_4_API_30"))
-      .build();
-
-    Collection<Key> keys = Collections.singleton(new NonprefixedKey("Pixel_4_API_30"));
-
-    // Act
-    boolean contained = device.hasKeyContainedBy(keys);
-
-    // Assert
-    assertTrue(contained);
-  }
-
-  @Test
   public void hasKeyContainedByDeviceIsntInManagerAndKeyIsSerialNumber() {
     // Arrange
     Device device = new VirtualDevice.Builder()
@@ -149,24 +93,6 @@ public final class VirtualDeviceTest {
       .build();
 
     Collection<Key> keys = Collections.singleton(new SerialNumber("emulator-5554"));
-
-    // Act
-    boolean contained = device.hasKeyContainedBy(keys);
-
-    // Assert
-    assertTrue(contained);
-  }
-
-  @Test
-  public void hasKeyContainedByDeviceIsntInManagerAndKeyIsNonprefixedKey() {
-    // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("emulator-5554")
-      .setKey(new SerialNumber("emulator-5554"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    Collection<Key> keys = Collections.singleton(new NonprefixedKey("emulator-5554"));
 
     // Act
     boolean contained = device.hasKeyContainedBy(keys);

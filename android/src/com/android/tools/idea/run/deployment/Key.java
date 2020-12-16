@@ -21,20 +21,6 @@ import org.jetbrains.annotations.NotNull;
  * A device identifier
  */
 public abstract class Key implements Comparable<Key> {
-  /**
-   * If this or the other key is nonprefixed, returns true if both values are equal. Otherwise returns true if both keys are equal.
-   *
-   * <p>We want a NonprefixedKey("Pixel_4_API_30") from DevicesSelectedService to match a VirtualDeviceName("Pixel_4_API_30") from
-   * VirtualDevicesTask even though they're not strictly equal according to the equals method
-   *
-   * <p>When no users have persisted nonprefixed keys, this should be replaced with regular equals comparisons
-   */
-  boolean matches(@NotNull Key key) {
-    return key instanceof NonprefixedKey ? asNonprefixedKey().equals(key) : equals(key);
-  }
-
-  abstract @NotNull NonprefixedKey asNonprefixedKey();
-
   @Override
   public final int compareTo(@NotNull Key key) {
     return toString().compareTo(key.toString());

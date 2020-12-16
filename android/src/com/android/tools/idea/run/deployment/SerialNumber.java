@@ -31,11 +31,6 @@ public final class SerialNumber extends Key {
   }
 
   @Override
-  @NotNull NonprefixedKey asNonprefixedKey() {
-    return new NonprefixedKey(myValue);
-  }
-
-  @Override
   public int hashCode() {
     return myValue.hashCode();
   }
