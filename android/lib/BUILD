@@ -17,7 +17,6 @@ filegroup(
     srcs = glob([
         # TODO: Figure out why we need to bundle these if they
         # are not needed to compile.
-        "commons-compress-1.8.1.jar",
         "javawriter-2.2.1.jar",
     ]),
     visibility = ["//visibility:public"],
