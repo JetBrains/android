@@ -331,15 +331,15 @@ public final class UpdaterTest {
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new NonprefixedKey("Pixel_3_API_29/snap_2018-08-07_16-27-58"))
+      // .setKey(new NonprefixedKey("Pixel_3_API_29/snap_2018-08-07_16-27-58"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .addSnapshot(new Snapshot(fileSystem.getPath("/home/juancnuno/.android/avd/Pixel_3_API_29.avd/snapshots/snap_2018-08-07_16-27-58")))
       .build();
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
 
-    Mockito.when(service.getTargetSelectedWithComboBox(Collections.singletonList(device)))
-      .thenReturn(Optional.of(new Target(new NonprefixedKey("Pixel_3_API_29/snap_2018-08-07_16-27-58"))));
+    // Mockito.when(service.getTargetSelectedWithComboBox(Collections.singletonList(device)))
+    //   .thenReturn(Optional.of(new Target(new NonprefixedKey("Pixel_3_API_29/snap_2018-08-07_16-27-58"))));
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())

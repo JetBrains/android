@@ -169,20 +169,12 @@ final class VirtualDevice extends Device {
 
   @Override
   boolean matches(@NotNull Key key) {
-    if (myNameKey == null) {
-      return getKey().matches(key);
-    }
-
-    return getKey().matches(key) || myNameKey.matches(key);
+    return getKey().equals(key) || Objects.equals(myNameKey, key);
   }
 
   @Override
   boolean hasKeyContainedBy(@NotNull Collection<@NotNull Key> keys) {
-    if (myNameKey == null) {
-      return keys.contains(getKey()) || keys.contains(getKey().asNonprefixedKey());
-    }
-
-    return keys.contains(getKey()) || keys.contains(myNameKey) || keys.contains(myNameKey.asNonprefixedKey());
+    return keys.contains(getKey()) || keys.contains(myNameKey);
   }
 
   @NotNull

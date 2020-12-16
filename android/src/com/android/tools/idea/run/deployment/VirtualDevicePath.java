@@ -30,11 +30,6 @@ final class VirtualDevicePath extends Key {
   }
 
   @Override
-  @NotNull NonprefixedKey asNonprefixedKey() {
-    return new NonprefixedKey(myValue);
-  }
-
-  @Override
   public int hashCode() {
     return myValue.hashCode();
   }

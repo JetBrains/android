@@ -36,7 +36,7 @@ final class Devices {
   @NotNull
   static String getText(@NotNull Device device, @Nullable Key key, @Nullable Snapshot snapshot) {
     String snapshotName = snapshot == null ? null : snapshot.toString();
-    return getText(device.getName(), key == null ? null : key.asNonprefixedKey().toString(), snapshotName, device.getValidityReason());
+    return getText(device.getName(), key == null ? null : key.toString(), snapshotName, device.getValidityReason());
   }
 
   @NotNull
