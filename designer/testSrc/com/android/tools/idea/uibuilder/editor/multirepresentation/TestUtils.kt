@@ -62,6 +62,6 @@ open class TestPreviewRepresentation : PreviewRepresentation {
 open class TestPreviewRepresentationProvider(override val displayName: String,
                                              var isAccept: Boolean,
                                              private val representation: PreviewRepresentation = TestPreviewRepresentation()) : PreviewRepresentationProvider {
-  override fun accept(project: Project, virtualFile: VirtualFile) = isAccept
+  override fun accept(project: Project, psiFile: PsiFile) = isAccept
   override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation = representation
 }

@@ -32,17 +32,17 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureT
 
   fun testDoNotAcceptKotlinWhenNoViews() {
     val file = myFixture.addFileToProject("src/com/example/SomeFile.kt", "")
-    assertFalse(provider.accept(project, file.virtualFile))
+    assertFalse(provider.accept(project, file))
   }
 
   fun testDoNotAcceptJavaWhenNoViews() {
     val file = myFixture.addFileToProject("src/com/example/SomeFile.java", "")
-    assertFalse(provider.accept(project, file.virtualFile))
+    assertFalse(provider.accept(project, file))
   }
 
   fun testDoNotAcceptRes() {
     val file = myFixture.addFileToProject("res/layout/some_layout.xml", "")
-    assertFalse(provider.accept(project, file.virtualFile))
+    assertFalse(provider.accept(project, file))
   }
 
   fun testQuickRejectKotlinWhenNoIncludes() {
@@ -53,7 +53,7 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureT
 
       class CustomView() : View()
     """.trimIndent())
-    assertFalse(provider.accept(project, file.virtualFile))
+    assertFalse(provider.accept(project, file))
   }
 
   fun testQuickRejectJavaWhenNoIncludes() {
@@ -68,7 +68,7 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureT
         }
       }
     """.trimIndent())
-    assertFalse(provider.accept(project, file.virtualFile))
+    assertFalse(provider.accept(project, file))
   }
 
   fun testAcceptKotlinWhenHasViewsAndIncludes() {
@@ -81,7 +81,7 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureT
 
       class CustomView() : View()
     """.trimIndent())
-    assertTrue(provider.accept(project, file.virtualFile))
+    assertTrue(provider.accept(project, file))
   }
 
   fun testAcceptJavaWhenHasViewsAndDirectIncludes() {
@@ -98,7 +98,7 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureT
         }
       }
     """.trimIndent())
-    assertTrue(provider.accept(project, file.virtualFile))
+    assertTrue(provider.accept(project, file))
   }
 
   fun testAcceptJavaWhenHasViewsAndInDirectIncludes() {
@@ -115,6 +115,6 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureT
         }
       }
     """.trimIndent())
-    assertTrue(provider.accept(project, file.virtualFile))
+    assertTrue(provider.accept(project, file))
   }
 }
