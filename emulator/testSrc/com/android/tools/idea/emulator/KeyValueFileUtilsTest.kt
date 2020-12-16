@@ -57,7 +57,7 @@ class KeyValueFileUtilsTest {
                                  "fastboot.forceChosenSnapshotBoot=no",
                                  "fastboot.forceFastBoot=yes",
                                  "hw.sensors.orientation=yes")
-    assertThat(fileSystem.getExistingFiles()).isEqualTo(arrayOf("$file")) // No extra files left behind.
+    assertThat(fileSystem.getExistingFiles()).containsExactly("$file") // No extra files left behind.
 
     // Check with I/O errors.
     exception = IOException()
@@ -68,7 +68,7 @@ class KeyValueFileUtilsTest {
     catch (e: AssertionError) {
       assertThat(e.message).isEqualTo("Error writing $file")
     }
-    assertThat(fileSystem.getExistingFiles()).isEqualTo(arrayOf("$file")) // No extra files left behind.
+    assertThat(fileSystem.getExistingFiles()).containsExactly("$file") // No extra files left behind.
 
     exception = IOException("something horrible happened")
     try {
@@ -78,7 +78,7 @@ class KeyValueFileUtilsTest {
     catch (e: AssertionError) {
       assertThat(e.message).isEqualTo("Error writing $file - something horrible happened")
     }
-    assertThat(fileSystem.getExistingFiles()).isEqualTo(arrayOf("$file")) // No extra files left behind.
+    assertThat(fileSystem.getExistingFiles()).containsExactly("$file") // No extra files left behind.
   }
 
   private inner class MockFileSystemProvider(fileSystem: FileSystem) : DelegatingFileSystemProvider(fileSystem) {

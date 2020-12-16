@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sdk;
 
-import static org.junit.Assert.assertArrayEquals;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -314,9 +314,8 @@ public class StudioDownloaderTest {
       }
     }
 
-    // verify we haven't left any temporary files or directories around.
-    assertEquals(0, InMemoryFileSystems.getExistingFiles(fs).length);
-    assertArrayEquals(new String[] {InMemoryFileSystems.getPlatformSpecificPath("/"), tmpPath.toString()},
-                      InMemoryFileSystems.getExistingFolders(fs));
+    // Verify that we haven't left any temporary files or directories around.
+    assertThat(InMemoryFileSystems.getExistingFiles(fs)).isEmpty();
+    assertThat(InMemoryFileSystems.getExistingFolders(fs)).containsExactly(tmpPath.toString());
   }
 }
