@@ -17,8 +17,8 @@ package com.android.tools.idea.databinding.dom.layout
 
 import com.android.SdkConstants
 import com.android.tools.idea.databinding.DataBindingMode
-import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.TestDataPaths
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.testing.AndroidDomRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -141,7 +141,6 @@ class AndroidDataBindingLayoutDomTest(private val myDataBindingMode: DataBinding
    *
    * Code completion in views inside a `<layout>` tag need to pick up default layout parameters.
    */
-  @org.junit.Ignore("b/175042409")
   @Test
   fun dataBindingCompletion_caretInAndroidAttribute() {
     domRule.testCompletion("databinding_completion_attribute.xml", "databinding_completion_attribute_after.xml")
