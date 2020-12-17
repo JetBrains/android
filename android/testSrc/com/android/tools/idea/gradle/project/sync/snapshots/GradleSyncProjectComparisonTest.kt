@@ -292,14 +292,10 @@ abstract class GradleSyncProjectComparisonTest : GradleSyncIntegrationTestCase()
       }
       val afterLibUpgrade = syncAndDumpProject()
       // TODO(b/124677413): Remove irrelevant changes from the snapshot when the bug is fixed.
-      // TODO(b/175594135): Uncomment when the issue is fixed. Currently the test seems to produce
-      //                    unstable snapshots and is flaky.
-      /*
       assertAreEqualToSnapshots(
         beforeLibUpgrade to ".before_lib_upgrade",
         afterLibUpgrade to ".after_lib_upgrade"
       )
-      */
     }
 
     fun testTwoJarsWithTheSameName() {
