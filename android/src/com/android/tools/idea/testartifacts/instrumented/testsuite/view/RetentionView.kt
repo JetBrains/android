@@ -352,9 +352,9 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
           .toTypedArray()
         val p = runtime.exec(args.joinToString(" "))
         p.waitFor()
-        val lines = BufferedReader(InputStreamReader(p.inputStream)).lines()
-        lines.anyMatch {
-          LOG.warn(it)
+        val lines = BufferedReader(InputStreamReader(p.inputStream)).readLines()
+        lines.any {
+          LOG.info(it)
           it.contains("Not loadable")
         }.let {
           if (it) {
@@ -362,7 +362,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
               if (isCancelled()) {
                 return@invokeOnEdt
               }
-              myRetentionDebugButton.toolTipText = "Snapshot not loadable, reason: $lines"
+              myRetentionDebugButton.toolTipText = "Snapshot not loadable, reason: ${lines.joinToString(" ")}"
             }
             return
           }
