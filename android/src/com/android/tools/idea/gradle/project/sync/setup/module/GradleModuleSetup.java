@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import java.io.File;
 import java.io.IOException;
@@ -39,6 +40,7 @@ import org.gradle.tooling.model.gradle.GradleScript;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 public class GradleModuleSetup {
   @NotNull
@@ -88,7 +90,7 @@ public class GradleModuleSetup {
       ModifiableFacetModel facetModel = ideModelsProvider.getModifiableFacetModel(module);
       GradleFacetType facetType = GradleFacet.getFacetType();
       facet = facetType.createFacet(module, GradleFacet.getFacetName(), facetType.createDefaultConfiguration(), null);
-      facetModel.addFacet(facet);
+      facetModel.addFacet(facet, ExternalSystemApiUtil.toExternalSource(GradleConstants.SYSTEM_ID));
     }
     facet.setGradleModuleModel(model);
 
