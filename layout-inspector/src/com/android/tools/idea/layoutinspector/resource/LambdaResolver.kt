@@ -35,7 +35,7 @@ import kotlin.math.max
 /**
  * Service to find the [SourceLocation] of a lambda found in Compose.
  */
-class LambdaResolver(private val project: Project) {
+class LambdaResolver(project: Project) : ComposeResolver(project) {
   /**
    * Find the lambda [SourceLocation].
    *
