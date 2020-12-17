@@ -23,10 +23,9 @@ import com.android.testutils.truth.PathSubject.assertThat
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.io.IOException
-import java.io.OutputStream
+import java.nio.file.CopyOption
 import java.nio.file.FileSystem
 import java.nio.file.Files
-import java.nio.file.OpenOption
 import java.nio.file.Path
 import kotlin.test.fail
 
@@ -60,16 +59,6 @@ class KeyValueFileUtilsTest {
     assertThat(fileSystem.getExistingFiles()).containsExactly("$file") // No extra files left behind.
 
     // Check with I/O errors.
-    exception = IOException()
-    try {
-      updateKeyValueFile(file, mapOf("PlayStore.enabled" to "false"))
-      fail("Expected an exception to be logged")
-    }
-    catch (e: AssertionError) {
-      assertThat(e.message).isEqualTo("Error writing $file")
-    }
-    assertThat(fileSystem.getExistingFiles()).containsExactly("$file") // No extra files left behind.
-
     exception = IOException("something horrible happened")
     try {
       updateKeyValueFile(file, mapOf("PlayStore.enabled" to "false"))
@@ -82,9 +71,9 @@ class KeyValueFileUtilsTest {
   }
 
   private inner class MockFileSystemProvider(fileSystem: FileSystem) : DelegatingFileSystemProvider(fileSystem) {
-    override fun newOutputStream(path: Path, vararg options: OpenOption): OutputStream {
+    override fun move(source: Path, target: Path, vararg options: CopyOption) {
       exception?.let { throw it }
-      return super.newOutputStream(path, *options)
+      super.move(source, target, *options)
     }
   }
 }
