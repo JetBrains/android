@@ -12,10 +12,11 @@ PROJECT             : AS36_noiml
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml [-]
             isCompilerPathInherited       : true
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/AS36_noiml.iml
+        ModuleFile          : <PROJECT>/.idea/modules/AS36_noiml.iml [-]
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle
+            ExternalSource      : GRADLE
             Buildable           : false
             BuildFolderPath     : <PROJECT>/build [-]
         CONENT_ENTRY        : file://<PROJECT>
@@ -35,10 +36,11 @@ PROJECT             : AS36_noiml
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/app/AS36_noiml.app.iml
+        ModuleFile          : <PROJECT>/.idea/modules/app/AS36_noiml.app.iml [-]
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
+            ExternalSource      : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName    : assembleDebug
             CompileJavaTaskName : compileDebugSources
@@ -76,6 +78,7 @@ PROJECT             : AS36_noiml
             - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET               : Android-Gradle
             TypeId              : android-gradle
+            ExternalSource      : GRADLE
             GradlePath          : :app
         CONENT_ENTRY        : file://<PROJECT>/app
             JavaSource          : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out
@@ -553,13 +556,15 @@ PROJECT             : AS36_noiml
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.features [-]
             isCompilerPathInherited       : true
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/features/AS36_noiml.features.iml
+        ModuleFile          : <PROJECT>/.idea/modules/features/AS36_noiml.features.iml [-]
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
+            ExternalSource      : GRADLE
             GradlePath          : :features
         FACET               : Java-Gradle
             TypeId              : java-gradle
+            ExternalSource      : GRADLE
             Buildable           : false
             BuildFolderPath     : <PROJECT>/features/build [-]
         CONENT_ENTRY        : file://<PROJECT>/features
@@ -579,10 +584,11 @@ PROJECT             : AS36_noiml
             compilerTestOutputPath        : file://<PROJECT>/features/dynamicfeature/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/features/dynamicfeature/AS36_noiml.features.dynamicfeature.iml
+        ModuleFile          : <PROJECT>/.idea/modules/features/dynamicfeature/AS36_noiml.features.dynamicfeature.iml [-]
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
+            ExternalSource      : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName    : assembleDebug
             CompileJavaTaskName : compileDebugSources
@@ -620,6 +626,7 @@ PROJECT             : AS36_noiml
             - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET               : Android-Gradle
             TypeId              : android-gradle
+            ExternalSource      : GRADLE
             GradlePath          : :features:dynamicfeature
         CONENT_ENTRY        : file://<PROJECT>/features/dynamicfeature
             JavaSource          : file://<PROJECT>/features/dynamicfeature/build/generated/aidl_source_output_dir/debug/out
@@ -709,10 +716,11 @@ PROJECT             : AS36_noiml
             compilerTestOutputPath        : file://<PROJECT>/features/dynamicfeature2/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/features/dynamicfeature2/AS36_noiml.features.dynamicfeature2.iml
+        ModuleFile          : <PROJECT>/.idea/modules/features/dynamicfeature2/AS36_noiml.features.dynamicfeature2.iml [-]
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
+            ExternalSource      : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName    : assembleDebug
             CompileJavaTaskName : compileDebugSources
@@ -750,6 +758,7 @@ PROJECT             : AS36_noiml
             - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET               : Android-Gradle
             TypeId              : android-gradle
+            ExternalSource      : GRADLE
             GradlePath          : :features:dynamicfeature2
         CONENT_ENTRY        : file://<PROJECT>/features/dynamicfeature2
             JavaSource          : file://<PROJECT>/features/dynamicfeature2/build/generated/aidl_source_output_dir/debug/out
@@ -839,13 +848,15 @@ PROJECT             : AS36_noiml
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.libs [-]
             isCompilerPathInherited       : true
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/libs/AS36_noiml.libs.iml
+        ModuleFile          : <PROJECT>/.idea/modules/libs/AS36_noiml.libs.iml [-]
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
+            ExternalSource      : GRADLE
             GradlePath          : :libs
         FACET               : Java-Gradle
             TypeId              : java-gradle
+            ExternalSource      : GRADLE
             Buildable           : false
             BuildFolderPath     : <PROJECT>/libs/build [-]
         CONENT_ENTRY        : file://<PROJECT>/libs
@@ -865,10 +876,11 @@ PROJECT             : AS36_noiml
             compilerTestOutputPath        : file://<PROJECT>/libs/android_library/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/libs/android_library/AS36_noiml.libs.android_library.iml
+        ModuleFile          : <PROJECT>/.idea/modules/libs/android_library/AS36_noiml.libs.android_library.iml [-]
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
+            ExternalSource      : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName    : assembleDebug
             CompileJavaTaskName : compileDebugSources
@@ -906,6 +918,7 @@ PROJECT             : AS36_noiml
             - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET               : Android-Gradle
             TypeId              : android-gradle
+            ExternalSource      : GRADLE
             GradlePath          : :libs:android_library
         CONENT_ENTRY        : file://<PROJECT>/libs/android_library
             JavaSource          : file://<PROJECT>/libs/android_library/build/generated/aidl_source_output_dir/debug/out
@@ -1383,13 +1396,15 @@ PROJECT             : AS36_noiml
             compilerTestOutputPath        : file://<PROJECT>/libs/java_lib/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/libs/java_lib/AS36_noiml.libs.java_lib.iml
+        ModuleFile          : <PROJECT>/.idea/modules/libs/java_lib/AS36_noiml.libs.java_lib.iml [-]
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
+            ExternalSource      : GRADLE
             GradlePath          : :libs:java_lib
         FACET               : Java-Gradle
             TypeId              : java-gradle
+            ExternalSource      : GRADLE
             Buildable           : true
             BuildFolderPath     : <PROJECT>/libs/java_lib/build [-]
         CONENT_ENTRY        : file://<PROJECT>/libs/java_lib
