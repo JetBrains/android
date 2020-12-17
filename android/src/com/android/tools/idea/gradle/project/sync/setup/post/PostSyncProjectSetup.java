@@ -54,14 +54,6 @@ public final class PostSyncProjectSetup {
       syncState.syncSkipped(null);
       GradleBuildState.getInstance(myProject).buildFinished(SKIPPED);
     }
-    else {
-      if (syncState.lastSyncFailed()) {
-        syncState.syncFailed("", null, null);
-      }
-      else {
-        syncState.syncSucceeded();
-      }
-    }
   }
 
   /**
