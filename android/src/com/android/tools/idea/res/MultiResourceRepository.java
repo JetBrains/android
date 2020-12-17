@@ -16,6 +16,7 @@
 package com.android.tools.idea.res;
 
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
@@ -469,6 +470,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
     }
   }
 
+  @UiThread
   @Override
   public void sync() {
     super.sync();
