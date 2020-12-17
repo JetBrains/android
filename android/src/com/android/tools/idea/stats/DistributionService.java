@@ -29,13 +29,13 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ResourceUtil;
 import com.intellij.util.download.FileDownloader;
+import com.intellij.util.io.URLUtil;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,7 +47,7 @@ public class DistributionService extends DownloadService {
   private static final String STATS_URL = "https://dl.google.com/android/studio/metadata/distributions.json";
   private static final String STATS_FILENAME = "distributions.json";
   private static final String DOWNLOAD_FILENAME = "distributions_temp.json";
-  private static final URL FALLBACK_URL = ResourceUtil.getResource(DistributionService.class, "wizardData", STATS_FILENAME);
+  private static final URL FALLBACK_URL = DistributionService.class.getClassLoader().getResource("wizardData/" + STATS_FILENAME);
   private static final File CACHE_PATH = new File(PathManager.getSystemPath(), "stats");
 
   private List<Distribution> myDistributions;
@@ -122,7 +122,7 @@ public class DistributionService extends DownloadService {
   @Override
   public void loadFromFile(@NotNull URL url) {
     try {
-      String jsonString = ResourceUtil.loadText(url);
+      String jsonString = ResourceUtil.loadText(URLUtil.openStream(url));
       List<Distribution> distributions = loadDistributionsFromJson(jsonString);
       myDistributions = distributions != null ? ImmutableList.copyOf(distributions) : null;
     }
