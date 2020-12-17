@@ -18,7 +18,6 @@ package com.android.tools.idea.avdmanager.emulatorcommand;
 import static org.junit.Assert.assertEquals;
 
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.avdmanager.AvdWizardUtils;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.intellij.execution.configurations.GeneralCommandLine;
@@ -29,18 +28,16 @@ import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
-public final class SnapshotEmulatorCommandBuilderTest {
+public final class BootWithSnapshotEmulatorCommandBuilderTest {
   @Test
   public void addSnapshotParameters() {
     // Arrange
     Path emulator = Jimfs.newFileSystem(Configuration.unix()).getPath("/home/user/Android/Sdk/emulator/emulator");
 
     AvdInfo avd = Mockito.mock(AvdInfo.class);
-
-    Mockito.when(avd.getProperty(AvdWizardUtils.CHOSEN_SNAPSHOT_FILE)).thenReturn("snap_2020-11-10_13-18-17");
     Mockito.when(avd.getName()).thenReturn("Pixel_4_API_30");
 
-    EmulatorCommandBuilder builder = new SnapshotEmulatorCommandBuilder(emulator, avd)
+    EmulatorCommandBuilder builder = new BootWithSnapshotEmulatorCommandBuilder(emulator, avd, "snap_2020-11-10_13-18-17")
       .setEmulatorSupportsSnapshots(true);
 
     // Act

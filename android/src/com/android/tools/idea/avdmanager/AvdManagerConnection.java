@@ -65,9 +65,12 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode;
+import com.android.tools.idea.avdmanager.emulatorcommand.BootWithSnapshotEmulatorCommandBuilder;
+import com.android.tools.idea.avdmanager.emulatorcommand.ColdBootEmulatorCommandBuilder;
 import com.android.tools.idea.avdmanager.emulatorcommand.ColdBootNowEmulatorCommandBuilder;
 import com.android.tools.idea.avdmanager.emulatorcommand.DefaultEmulatorCommandBuilderFactory;
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilderFactory;
+import com.android.tools.idea.avdmanager.emulatorcommand.QuickBootEmulatorCommandBuilder;
 import com.android.tools.idea.emulator.EmulatorSettings;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
@@ -408,6 +411,20 @@ public class AvdManagerConnection {
   public void stopAvd(@NotNull AvdInfo info) {
     assert myAvdManager != null;
     myAvdManager.stopAvd(info);
+  }
+
+  public @NotNull ListenableFuture<@NotNull IDevice> coldBoot(@NotNull Project project, @NotNull AvdInfo avd) {
+    return startAvd(project, avd, ColdBootEmulatorCommandBuilder::new);
+  }
+
+  public @NotNull ListenableFuture<@NotNull IDevice> quickBoot(@NotNull Project project, @NotNull AvdInfo avd) {
+    return startAvd(project, avd, QuickBootEmulatorCommandBuilder::new);
+  }
+
+  public @NotNull ListenableFuture<@NotNull IDevice> bootWithSnapshot(@NotNull Project project,
+                                                                      @NotNull AvdInfo avd,
+                                                                      @NotNull String snapshot) {
+    return startAvd(project, avd, (emulator, a) -> new BootWithSnapshotEmulatorCommandBuilder(emulator, a, snapshot));
   }
 
   @NotNull

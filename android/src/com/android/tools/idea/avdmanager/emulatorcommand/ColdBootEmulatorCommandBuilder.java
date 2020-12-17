@@ -20,8 +20,8 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
-final class ColdBootEmulatorCommandBuilder extends EmulatorCommandBuilder {
-  ColdBootEmulatorCommandBuilder(@NotNull Path emulator, @NotNull AvdInfo avd) {
+public final class ColdBootEmulatorCommandBuilder extends EmulatorCommandBuilder {
+  public ColdBootEmulatorCommandBuilder(@NotNull Path emulator, @NotNull AvdInfo avd) {
     super(emulator, avd);
   }
 
