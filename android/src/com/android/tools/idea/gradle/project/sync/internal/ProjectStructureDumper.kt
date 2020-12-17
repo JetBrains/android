@@ -103,8 +103,11 @@ private fun ProjectDumper.dump(module: Module) {
     sourceFolders.sortedBy { it.url.toPrintablePath() }.forEach {
       dump(it)
     }
+
     // TODO(b/124658218): Remove sorting if the order can be made stable.
-    moduleRootModel.orderEntries.sortedBy { it.presentableName.removeAndroidVersionsFromDependencyNames().replaceKnownPaths() }.forEach {
+    moduleRootModel.orderEntries.sortedWith(
+      compareBy({ it.presentableName.removeAndroidVersionsFromDependencyNames().replaceKnownPaths() },
+                { (it as? LibraryOrderEntry)?.scope})).forEach {
       dump(it)
     }
   }
