@@ -13,32 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.tree
+package com.android.tools.idea.layoutinspector.resource
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
-import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
-import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.testutils.TestUtils
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DataKey
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 
-class GotoDeclarationActionTest {
+class ComposeResolverTest {
 
   private val projectRule = AndroidProjectRule.withSdk()
   private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
@@ -53,21 +44,12 @@ class GotoDeclarationActionTest {
 
   @RunsInEdt
   @Test
-  fun testViewNode() {
+  fun testColumnNode() {
     val model = createModel()
-    model.selection = model["title"]
-    val event = createEvent(model)
-    GotoDeclarationAction.actionPerformed(event)
-    fileOpenCaptureRule.checkEditor("demo.xml", 8, "<TextView")
-  }
-
-  @RunsInEdt
-  @Test
-  fun testComposeViewNode() {
-    val model = createModel()
-    model.selection = model[-2]
-    val event = createEvent(model)
-    GotoDeclarationAction.actionPerformed(event)
+    val composable = model[-2] as ComposeViewNode
+    val resolver = ComposeResolver(projectRule.project)
+    val navigatable = resolver.findComposableNavigatable(composable)
+    navigatable!!.navigate(true)
     fileOpenCaptureRule.checkEditor("MyCompose.kt", 17, "Column(modifier = Modifier.padding(20.dp)) {")
   }
 
@@ -75,15 +57,16 @@ class GotoDeclarationActionTest {
   @Test
   fun testComposeViewNodeInOtherFileWithSameName() {
     val model = createModel()
-    model.selection = model[-5]
-    val event = createEvent(model)
-    GotoDeclarationAction.actionPerformed(event)
+    val composable = model[-5] as ComposeViewNode
+    val resolver = ComposeResolver(projectRule.project)
+    val navigatable = resolver.findComposableNavigatable(composable)
+    navigatable!!.navigate(true)
     fileOpenCaptureRule.checkEditor("MyCompose.kt", 8, "Text(text = \"Hello \$name!\")")
   }
 
   private fun loadComposeFiles() {
     val fixture = projectRule.fixture
-    fixture.testDataPath = resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/compose").toString()
+    fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/compose").toString()
     fixture.copyFileToProject("java/com/example/MyCompose.kt")
     fixture.copyFileToProject("java/com/example/composable/MyCompose.kt")
   }
@@ -99,21 +82,4 @@ class GotoDeclarationActionTest {
         }
       }
     })
-
-  private fun createEvent(model: InspectorModel): AnActionEvent {
-    val inspector = mock(LayoutInspector::class.java)
-    `when`(inspector.layoutInspectorModel).thenReturn(model)
-    val dataContext = object : DataContext {
-      override fun getData(dataId: String): Any? {
-        return null
-      }
-
-      override fun <T> getData(key: DataKey<T>): T? {
-        @Suppress("UNCHECKED_CAST")
-        return if (key == LAYOUT_INSPECTOR_DATA_KEY) inspector as T else null
-      }
-    }
-    val actionManager = mock(ActionManager::class.java)
-    return AnActionEvent(null, dataContext, ActionPlaces.UNKNOWN, Presentation(), actionManager, 0)
-  }
 }
