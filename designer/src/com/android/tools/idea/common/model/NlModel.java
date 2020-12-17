@@ -757,13 +757,14 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     ImmutableList<NlComponent> toAdd = ImmutableList.copyOf(componentToAdd);
 
     // Note: we don't really need to check for dependencies if all we do is moving existing components.
-    if (!canAddComponents(toAdd, receiver, before, insertType == InsertType.MOVE_WITHIN)) {
+    if (!canAddComponents(toAdd, receiver, before, insertType == InsertType.MOVE)) {
       return;
     }
 
     final Runnable callback =
       () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, surface, attributeUpdatingTask, groupId);
-    if (insertType == InsertType.MOVE_WITHIN) {
+    if (insertType == InsertType.MOVE) {
+      // The components are just moved, so there are no new dependencies.
       callback.run();
       return;
     }
@@ -865,7 +866,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       case CREATE:
         return asPreview ? InsertType.CREATE_PREVIEW : InsertType.CREATE;
       case MOVE:
-        return item != null && myId != item.getModelId() ? InsertType.COPY : InsertType.MOVE_INTO;
+        return item != null && myId != item.getModelId() ? InsertType.COPY : InsertType.MOVE;
       case COPY:
         return InsertType.COPY;
       case PASTE:

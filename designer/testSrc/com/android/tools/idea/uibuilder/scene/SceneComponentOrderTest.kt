@@ -81,7 +81,7 @@ class SceneComponentOrderTest : SceneTest() {
     val textView = myModel.find("textView")!!
     val button = myModel.find("button")!!
 
-    myModel.addComponents(listOf(textView), constraintLayout, null, InsertType.MOVE_WITHIN, myModel.surface)
+    myModel.addComponents(listOf(textView), constraintLayout, null, InsertType.MOVE, myModel.surface)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     mySceneManager.update()
@@ -96,7 +96,7 @@ class SceneComponentOrderTest : SceneTest() {
     val textView = myModel.find("textView")!!
     val button = myModel.find("button")!!
 
-    myModel.addComponents(listOf(button), constraintLayout, textView, InsertType.MOVE_WITHIN, myModel.surface)
+    myModel.addComponents(listOf(button), constraintLayout, textView, InsertType.MOVE, myModel.surface)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     mySceneManager.update()

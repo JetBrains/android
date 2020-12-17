@@ -533,7 +533,7 @@ public class DragDropInteraction extends Interaction {
 
     List<NlComponent> dragged = getDraggedComponents();
     List<NlComponent> components;
-    if (insertType.isMove()) {
+    if (insertType == InsertType.MOVE) {
       components = myDesignSurface.getSelectionModel().getSelection();
     }
     else {

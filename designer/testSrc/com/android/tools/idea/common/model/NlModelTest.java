@@ -526,7 +526,7 @@ public class NlModelTest extends LayoutTestCase {
     NlComponent recyclerView = linearLayout.getChild(1);
     assertThat(frameLayout).isNotNull();
 
-    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.MOVE_INTO, model.getSurface());
+    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.MOVE, model.getSurface());
     // addComponents indirectly makes a network request through NlDependencyManager#addDependencies. As it should not block, components are
     // effectively added by another thread via a callback passed to addDependencies. This concurrency flow might cause this test to fail
     // sporadically if we immediately check the components hierarchy. Instead, we sleep until the RecyclerView is added by the other thread.
