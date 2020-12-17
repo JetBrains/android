@@ -52,6 +52,8 @@ import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.RecordingOption;
+import com.android.tools.profilers.RecordingOptionsModel;
 import com.android.tools.profilers.StreamingStage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.analytics.FeatureTracker;
@@ -135,6 +137,9 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
 
   @NotNull
   private final CaptureModel myCaptureModel;
+
+  @NotNull
+  private final RecordingOptionsModel myRecordingOptionsModel;
 
   /**
    * Represents the current state of the capture.
@@ -220,6 +225,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
 
     myCpuTraceDataSeries = new CpuTraceDataSeries();
     myProfilerConfigModel = new CpuProfilerConfigModel(profilers, this);
+    myRecordingOptionsModel = new RecordingOptionsModel();
 
     Range viewRange = getTimeline().getViewRange();
     Range dataRange = getTimeline().getDataRange();
@@ -370,6 +376,10 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
     return myEventMonitor;
   }
 
+  public RecordingOptionsModel getRecordingModel() {
+    return myRecordingOptionsModel;
+  }
+
   @NotNull
   public CpuProfilerConfigModel getProfilerConfigModel() {
     return myProfilerConfigModel;
@@ -391,6 +401,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
     getStudioProfilers().addDependency(this).onChange(ProfilerAspect.PROCESSES, myProfilerConfigModel::updateProfilingConfigurations);
 
     myProfilerConfigModel.updateProfilingConfigurations();
+    setupRecordingOptions();
     if (myIsImportTraceMode) {
       // Legacy capture UI
       assert myImportedTrace != null;
@@ -999,6 +1010,35 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
   @Override
   public void onNavigated(@NotNull CodeLocation location) {
     setProfilerMode(ProfilerMode.NORMAL);
+  }
+
+  /**
+   * Clears and reapplies the custom configuration options on the recording options model.
+   */
+  public void refreshRecordingConfigurations() {
+    myRecordingOptionsModel.clearConfigurations();
+    // Add custom configs.
+    for (ProfilingConfiguration configuration : myProfilerConfigModel.getCustomProfilingConfigurationsDeviceFiltered()) {
+      myRecordingOptionsModel.addConfigurations(
+        new RecordingOption(configuration.getName(), "", () -> startRecordingConfig(configuration), this::stopCapturing));
+    }
+  }
+
+  private void startRecordingConfig(ProfilingConfiguration config) {
+    myProfilerConfigModel.setProfilingConfiguration(config);
+    startCapturing();
+  }
+
+  private void setupRecordingOptions() {
+    // Add default configs
+    for (ProfilingConfiguration configuration : myProfilerConfigModel.getDefaultProfilingConfigurations()) {
+      ProfilingTechnology tech = ProfilingTechnology.fromConfig(configuration);
+      myRecordingOptionsModel.addBuiltInOptions(
+        new RecordingOption(tech.getName(), tech.getDescription(), () -> startRecordingConfig(configuration), this::stopCapturing));
+    }
+    refreshRecordingConfigurations();
+    // Select the first built in config by default.
+    myRecordingOptionsModel.selectBuiltInOption(myRecordingOptionsModel.getBuiltInOptions().get(0));
   }
 
   /**

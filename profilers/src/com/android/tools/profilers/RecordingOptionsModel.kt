@@ -81,6 +81,15 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
 
   fun addConfigurations(vararg options: RecordingOption) {
     (customConfigurationModel as ConfigModel).addAll(options.toMutableList())
+    // If no option is selected, select the first option by default. This prevents the combo box from having
+    // an empty element selected by default.
+    if (customConfigurationModel.size > 0 && customConfigurationModel.selectedItem == null) {
+      customConfigurationModel.selectedItem = customConfigurationModel.getElementAt(0)
+    }
+  }
+
+  fun clearConfigurations() {
+    (customConfigurationModel as ConfigModel).removeAllElements()
   }
 
   /**
