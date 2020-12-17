@@ -24,12 +24,16 @@ import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
+import com.android.tools.idea.sqlite.model.ExportDialogParams
+import com.android.tools.idea.sqlite.model.ExportDialogParams.ExportQueryResultDialogParams
+import com.android.tools.idea.sqlite.model.ExportDialogParams.ExportTableDialogParams
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
+import com.android.tools.idea.sqlite.model.isQueryStatement
 import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.ui.tableView.OrderBy
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
@@ -51,6 +55,9 @@ import kotlin.math.min
 
 /**
  * Controller responsible for displaying data from a SQLite table.
+ *
+ * @param tableSupplier returns a [SqliteTable] instance representing the table or view associated with the controller, or `null` if the
+ * controller not associated with a specific table, e.g. in the case of custom queries.
  */
 @UiThread
 class TableController(
@@ -62,6 +69,7 @@ class TableController(
   private val databaseRepository: DatabaseRepository,
   private val sqliteStatement: SqliteStatement,
   override val closeTabInvoked: () -> Unit,
+  private val showExportDialog: (ExportDialogParams) -> Unit,
   private val edtExecutor: Executor,
   private val taskExecutor: Executor
 ) : DatabaseInspectorController.TabController {
@@ -345,6 +353,18 @@ class TableController(
       }
 
       databaseInspectorAnalyticsTracker.trackLiveUpdatedToggled(liveUpdatesEnabled)
+    }
+
+    override fun showExportToFileDialogInvoked() {
+      val tableName = tableSupplier()?.name
+      val exportScenario: ExportDialogParams =
+        when {
+          tableName != null -> ExportTableDialogParams(databaseId, tableName)
+          sqliteStatement.isQueryStatement -> ExportQueryResultDialogParams(databaseId, sqliteStatement)
+          else -> return // TODO(161081452): consider throwing an Exception or logging an error instead of silently ignoring the request
+        }
+
+      this@TableController.showExportDialog(exportScenario)
     }
 
     override fun updateCellInvoked(targetRowIndex: Int, targetColumn: ViewColumn, newValue: SqliteValue) {

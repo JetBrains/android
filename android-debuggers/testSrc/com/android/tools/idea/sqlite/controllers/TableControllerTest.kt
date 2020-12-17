@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.refEq
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
@@ -34,6 +35,9 @@ import com.android.tools.idea.sqlite.mocks.FakeSqliteResultSet
 import com.android.tools.idea.sqlite.mocks.FakeTableView
 import com.android.tools.idea.sqlite.mocks.OpenDatabaseRepository
 import com.android.tools.idea.sqlite.model.DatabaseFileData
+import com.android.tools.idea.sqlite.model.ExportDialogParams
+import com.android.tools.idea.sqlite.model.ExportDialogParams.ExportQueryResultDialogParams
+import com.android.tools.idea.sqlite.model.ExportDialogParams.ExportTableDialogParams
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.RowIdName
 import com.android.tools.idea.sqlite.model.SqliteAffinity
@@ -186,6 +190,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -217,6 +222,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -243,6 +249,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -272,6 +279,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -298,6 +306,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -326,6 +335,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -347,6 +357,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -380,6 +391,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -410,6 +422,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -435,6 +448,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM author"),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -465,6 +479,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM author"),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -504,6 +519,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -528,6 +544,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -557,6 +574,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -597,6 +615,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -624,6 +643,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -663,6 +683,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -711,6 +732,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -738,6 +760,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -786,6 +809,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -824,6 +848,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -859,6 +884,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -893,6 +919,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -926,6 +953,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -963,6 +991,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -1005,6 +1034,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -1045,6 +1075,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -1099,6 +1130,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -1137,6 +1169,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -1164,6 +1197,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -1203,6 +1237,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -1235,6 +1270,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -1262,6 +1298,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -1294,6 +1331,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -1336,6 +1374,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -1373,6 +1412,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -1405,6 +1445,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM author"),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -1427,6 +1468,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM author"),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -1463,6 +1505,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM author"),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -1493,6 +1536,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM author ORDER BY author_id DESC"),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -1542,6 +1586,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { customSqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM tableName"),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -1636,6 +1681,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(targetTable)),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -1701,6 +1747,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(targetTable)),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -1748,6 +1795,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -1772,6 +1820,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -1801,6 +1850,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -1828,6 +1878,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -1878,6 +1929,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { tableProvider.table },
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM ${targetTable.name}"),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -1930,6 +1982,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { tableProvider.table },
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM ${targetTable.name}"),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -1991,6 +2044,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(targetTable)),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -2021,6 +2075,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -2049,6 +2104,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { null },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -2082,6 +2138,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -2094,6 +2151,51 @@ class TableControllerTest : LightPlatformTestCase() {
 
     // Assert
     verify(mockTrackerService).trackTargetRefreshed(AppInspectionEvent.DatabaseInspectorEvent.TargetType.TABLE_TARGET)
+  }
+
+  fun testShowExportToFileDialogInvoked_table() {
+    val table = SqliteTable("tableName", mock(), null, false)
+    val expectedDialogParams = ExportTableDialogParams(mockDatabaseConnectionId, table.name)
+    testShowExportToFileDialogInvoked({ table }, mock(), expectedDialogParams)
+  }
+
+  fun testShowExportToFileDialogInvoked_query() {
+    val sqliteStatement = SqliteStatement(SqliteStatementType.SELECT, "select * from table1337")
+    val expectedDialogParams = ExportQueryResultDialogParams(mockDatabaseConnectionId, sqliteStatement)
+    testShowExportToFileDialogInvoked({ null }, sqliteStatement, expectedDialogParams)
+  }
+
+  private fun testShowExportToFileDialogInvoked(
+    tableSupplier: () -> SqliteTable?,
+    sqliteStatement: SqliteStatement,
+    expectedDialogParams: ExportDialogParams
+  ) {
+    // Prepare
+    val showExportDialog: (ExportDialogParams) -> Unit = mock()
+
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
+    tableController = TableController(
+      project,
+      10,
+      tableView,
+      mockDatabaseConnectionId,
+      tableSupplier,
+      databaseRepository,
+      sqliteStatement,
+      {},
+      showExportDialog,
+      edtExecutor,
+      edtExecutor
+    )
+    tableController.setUp()
+    Disposer.register(testRootDisposable, tableController)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Act
+    tableView.listeners.first().showExportToFileDialogInvoked()
+
+    // Assert
+    verify(showExportDialog).invoke(expectedDialogParams)
   }
 
   fun testEditCellAnalytics() {
@@ -2113,6 +2215,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { customSqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM tableName"),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -2146,6 +2249,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -2174,6 +2278,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -2208,6 +2313,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { null },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -2263,6 +2369,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(myView)),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -2288,6 +2395,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -2324,6 +2432,7 @@ class TableControllerTest : LightPlatformTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
+      {},
       edtExecutor,
       edtExecutor
     )
@@ -2347,6 +2456,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -2379,6 +2489,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
       {},
       edtExecutor,
       edtExecutor
@@ -2428,6 +2539,7 @@ class TableControllerTest : LightPlatformTestCase() {
       { targetTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(targetTable)),
+      {},
       {},
       edtExecutor,
       edtExecutor
