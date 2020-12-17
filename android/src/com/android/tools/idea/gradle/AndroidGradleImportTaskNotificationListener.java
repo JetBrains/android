@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle;
 
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
@@ -32,7 +34,11 @@ public class AndroidGradleImportTaskNotificationListener extends ExternalSystemT
   public void onStart(@NotNull ExternalSystemTaskId id, String workingDir) {
     if (GradleConstants.SYSTEM_ID.getId().equals(id.getProjectSystemId().getId())
         && id.getType() == ExternalSystemTaskType.RESOLVE_PROJECT) {
-      setExternalSystemTaskId(id);
+      Project project = id.findProject();
+      if (project == null) return;
+
+      setExternalSystemTaskId(project, id);
+      promoteGradleSyncStateToStartedIfNeeded(project);
     }
   }
 
@@ -53,12 +59,16 @@ public class AndroidGradleImportTaskNotificationListener extends ExternalSystemT
     }
   }
 
-  private static void setExternalSystemTaskId(@NotNull ExternalSystemTaskId taskId) {
+  private static void setExternalSystemTaskId(@NotNull Project project, @NotNull ExternalSystemTaskId taskId) {
     // set current ExternalTaskId to GradleSyncState
-    Project project = taskId.findProject();
-    if (project != null) {
-      GradleSyncState syncState = GradleSyncState.getInstance(project);
-      syncState.setExternalSystemTaskId(taskId);
+    GradleSyncState syncState = GradleSyncState.getInstance(project);
+    syncState.setExternalSystemTaskId(taskId);
+  }
+
+  private static void promoteGradleSyncStateToStartedIfNeeded(@NotNull Project project) {
+    GradleSyncState syncState = GradleSyncState.getInstance(project);
+    if (!syncState.isSyncInProgress()) {
+      syncState.syncStarted(new GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_UNKNOWN));
     }
   }
 }

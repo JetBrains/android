@@ -999,6 +999,8 @@
   <projectListeners>
     <listener class="com.android.tools.idea.databinding.DataBindingTrackerSyncListener"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
+    <listener class="com.android.tools.idea.gradle.project.sync.GradleSyncState$DataImportListener"
+              topic="com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener"/>
   </projectListeners>
 
   <!-- Resource Explorer is included at the bottom since it has dependencies on the general Android Plugin declarations -->

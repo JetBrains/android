@@ -55,6 +55,7 @@ import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
+import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -570,6 +571,18 @@ open class GradleSyncState @NonInjectable internal constructor (
   private fun getSyncType(): GradleSyncStats.GradleSyncType = when {
     isSingleVariantSync() -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT
     else -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_IDEA
+  }
+
+  class DataImportListener(val project: Project) : ProjectDataImportListener {
+    override fun onImportFinished(projectPath: String?) {
+      LOG.info("onImportFinished($projectPath)")
+      GradleSyncState.getInstance(project).syncSucceeded()
+    }
+
+    override fun onImportFailed(projectPath: String?) {
+      LOG.info("onImportFailed($projectPath)")
+      GradleSyncState.getInstance(project).syncFailed("", null, null)
+    }
   }
 }
 

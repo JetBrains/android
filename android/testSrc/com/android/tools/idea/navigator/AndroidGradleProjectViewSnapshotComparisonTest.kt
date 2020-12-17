@@ -18,6 +18,7 @@
 package com.android.tools.idea.navigator
 
 import com.android.testutils.TestUtils
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludesViewNode
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.*
@@ -157,6 +158,10 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
   }
 
   fun testMissingImlIsIgnored() {
+    if (!IdeInfo.getInstance().isAndroidStudio) {
+      // No IML files => no linked gradle projects => gradle import should not be invoked. The test should hang in IDEA (and it does)
+      return
+    }
     prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION_CORRUPTED_MISSING_IML_40, "testMissingImlIsIgnored_Test")
     val text = openPreparedProject("testMissingImlIsIgnored_Test" ) { project: Project ->
     dumpAndroidProjectView(project)
