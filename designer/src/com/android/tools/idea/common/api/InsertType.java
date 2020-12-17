@@ -35,12 +35,12 @@ public enum InsertType {
    */
   CREATE_PREVIEW,
 
-  /** The component is being inserted here because it was moved from somewhere else within
-   * the same model */
-  MOVE_WITHIN,
-
-  /** The component is being inserted here because it was moved from some other model */
-  MOVE_INTO,
+  /**
+   * The component is being inserted here because it was moved from somewhere else within the same
+   * {@link com.android.tools.idea.common.model.NlModel}. For example, drag-and-drop a component from palette/component tree, or
+   * drag-and-drop within the same preview.
+   */
+  MOVE,
 
   /**
    * The component is being inserted here as a result of a copy/paste from elsewhere
@@ -70,16 +70,6 @@ public enum InsertType {
   }
 
   /**
-   * Returns true if this insert type is from a move within the current model.
-   * Moves from other models is considered a COPY.
-   *
-   * @return true if this {@link InsertType} is a move
-   */
-  public boolean isMove() {
-    return this == MOVE_WITHIN || this == MOVE_INTO;
-  }
-
-  /**
    * Return the {@link DragType} this insert type correspond to.
    * The drag type will normally be used as the command name for a write transaction.
    */
@@ -89,8 +79,7 @@ public enum InsertType {
       case CREATE_PREVIEW:
       case PROGRAMMATIC:
         return DragType.CREATE;
-      case MOVE_INTO:
-      case MOVE_WITHIN:
+      case MOVE:
         return DragType.MOVE;
       case COPY:
         return DragType.COPY;
