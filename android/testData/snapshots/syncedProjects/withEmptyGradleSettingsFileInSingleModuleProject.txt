@@ -16,6 +16,7 @@ PROJECT             : testWithEmptyGradleSettingsFileInSingleModuleProject
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
+            ExternalSource      : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName    : assembleDebug
             CompileJavaTaskName : compileDebugSources
