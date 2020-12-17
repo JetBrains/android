@@ -36,6 +36,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.Slow;
+import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.rendering.api.DensityBasedResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.FileResourceNameValidator;
@@ -664,6 +665,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     }
   }
 
+  @UiThread
   @Override
   public void sync() {
     super.sync();
@@ -1871,9 +1873,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
    * {@link ResourceSourceFile} used by {@link RepositoryLoader}. If the combined hash of file timestamp
    * and length doesn't match the stream, the method returns an invalid {@link VfsResourceFile} containing
    * a null {@link VirtualFile} reference. Validity of the {@link VfsResourceFile} is checked later inside
-   * the {@link Loader#addResourceItem} method. This process creates few objects that are discarded later,
-   * but an alternative of returning null instead of an invalid {@link VfsResourceFile} would lead to
-   * pretty unnatural nullability conditions in {@link RepositoryLoader}.
+   * the {@link Loader#addResourceItem(BasicResourceItem, ResourceFolderRepository)} method. This process
+   * creates few objects that are discarded later, but an alternative of returning null instead of an invalid
+   * {@link VfsResourceFile} would lead to pretty unnatural nullability conditions in {@link RepositoryLoader}.
    * @see VfsResourceFile#serialize
    */
   @Override
@@ -1902,9 +1904,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
    * {@link BasicFileResourceItem} used by {@link RepositoryLoader}. If the combined hash of file timestamp
    * and length doesn't match the stream, the method returns an invalid {@link VfsFileResourceItem} containing
    * a null {@link VirtualFile} reference. Validity of the {@link VfsFileResourceItem} is checked later inside
-   * the {@link Loader#addResourceItem} method. This process creates few objects that are discarded later, but
-   * an alternative of returning null instead of an invalid {@link VfsFileResourceItem} would lead to pretty
-   * unnatural nullability conditions in {@link RepositoryLoader}.
+   * the {@link Loader#addResourceItem(BasicResourceItem, ResourceFolderRepository)} method. This process
+   * creates few objects that are discarded later, but an alternative of returning null instead of an invalid
+   * {@link VfsFileResourceItem} would lead to pretty unnatural nullability conditions in {@link RepositoryLoader}.
    * @see VfsFileResourceItem#serialize
    * @see BasicFileResourceItem#serialize
    */
