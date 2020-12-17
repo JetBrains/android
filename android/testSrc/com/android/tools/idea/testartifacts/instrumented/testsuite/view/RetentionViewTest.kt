@@ -195,6 +195,28 @@ class RetentionViewTest {
   }
 
   @Test
+  fun snapshotNotLoadable() {
+    val reason = "a good reason"
+    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream(
+      "Not loadable\n$reason".toByteArray(Charset.defaultCharset())))
+    val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
+    // RetentionView needs a real file so that it can parse the file name extension for compression format.
+    val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
+    assertThat(url).isNotNull()
+    with(FileOutputStream(snapshotFile)) {
+      IOUtils.copy(url.openStream(), this)
+    }
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.setSnapshotFile(snapshotFile)
+    }
+    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    ApplicationManager.getApplication().invokeAndWait {
+      assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+      assertThat(retentionView.myRetentionDebugButton.toolTipText).contains(reason)
+    }
+  }
+
+  @Test
   fun loadSameSnapshotWithPb() {
     `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
     val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
