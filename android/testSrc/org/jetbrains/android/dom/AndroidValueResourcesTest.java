@@ -27,6 +27,7 @@ import com.android.resources.ResourceType;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.android.tools.idea.testing.AndroidTestUtils;
+import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.daemon.impl.HighlightInfoType;
@@ -61,6 +62,7 @@ import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import javaslang.collection.Array;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
 import org.jetbrains.annotations.NotNull;
@@ -229,6 +231,70 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     myFixture.complete(CompletionType.BASIC);
     myFixture.type('\n');
     myFixture.checkResultByFile(myTestFolder + '/' + getTestName(true) + "_after.xml");
+  }
+
+  public void testPublicTagHighlighting() throws Throwable {
+    VirtualFile file = copyFileToProject("public_highlighting.xml", "additionalModules/lib/res/values/public.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.checkHighlighting();
+  }
+
+  public void testPublicTagCompletion() throws Throwable {
+    VirtualFile file = copyFileToProject("public.xml", "additionalModules/lib/res/values/public.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    myFixture.checkResultByFile(myTestFolder + '/' + "public_after.xml");
+  }
+
+  public void testPublicTagAppModuleCompletion() throws Throwable {
+    VirtualFile file = copyFileToProject("public.xml", "res/values/public.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    // In app module, the completion does not work, the file should be unchanged.
+    myFixture.checkResultByFile(myTestFolder + '/' + "public.xml");
+  }
+
+  public void testPublicTagAttributeValueCompletion() {
+    // Resources in app module:
+    myFixture.addFileToProject(
+      "res/values/strings.xml",
+      "<resources>\n" +
+      "  <string name=\"foo\">foo</string>\n" +
+      "  <color name=\"colorfoo\">#123456</color>\n" +
+      "</resources>").getVirtualFile();
+    // Resources in lib module:
+    myFixture.addFileToProject(
+      "additionalModules/lib/res/values/strings.xml",
+      "<resources>\n" +
+      "  <string name=\"bar\">bar</string>\n" +
+      "  <string name=\"otherbar\">bar</string>\n" +
+      "  <color name=\"colorbar\">#123456</color>\n" +
+      "</resources>").getVirtualFile();
+
+    //Check that all resources are present in code completion for 'name' attribute.
+    VirtualFile file = myFixture.addFileToProject(
+      "additionalModules/lib/res/values/public.xml",
+      "<resources>\n" +
+      "  <public name=\"<caret>\" type=\"\"/>\n" +
+      "</resources>").getVirtualFile();
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).containsAllIn(new String[]{"bar", "colorbar"});
+
+    // Check all resource types are present in code completion for 'type' attribute
+    AndroidTestUtils.moveCaret(myFixture, "<public name=\"\" type=\"|\"/>");
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings())
+      .containsAllIn(ResourceType.REFERENCEABLE_TYPES.stream().map(ResourceType::getName).collect(Collectors.toList()));
+
+    // Once a resource type is selected, only resources of that type show up in 'name' attribute completion.
+    myFixture.type("string");
+    AndroidTestUtils.moveCaret(myFixture, "<public name=\"|\"");
+    dispatchEvents();
+    myFixture.completeBasic();
+    List<String> lookupElementStrings = myFixture.getLookupElementStrings();
+    assertThat(lookupElementStrings).containsAllIn(ImmutableList.of("bar", "otherbar"));
+    assertThat(lookupElementStrings).doesNotContain(ImmutableList.of("foo"));
   }
 
   public void testOverlayableTagCompletion() throws Throwable {
