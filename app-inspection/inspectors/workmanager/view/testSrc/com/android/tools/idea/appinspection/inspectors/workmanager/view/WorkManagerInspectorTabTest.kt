@@ -255,7 +255,7 @@ class WorkManagerInspectorTabTest {
     sendWorkAddedEvent(workInfo1)
     sendWorkAddedEvent(workInfo2)
     sendWorkAddedEvent(workInfo3)
-    assertThat(client.getWorkInfoCount()).isEqualTo(3)
+    assertThat(client.lockedWorks { it.size }).isEqualTo(3)
     launch(uiDispatcher) {
       val inspectorTab = WorkManagerInspectorTab(client, ideServices, scope)
       val contentView = (inspectorTab.component as JBSplitter).firstComponent as WorksContentView
@@ -268,12 +268,12 @@ class WorkManagerInspectorTabTest {
       assertThat(tag2Filter.templateText).isEqualTo("tag2")
       val event: AnActionEvent = mock(AnActionEvent::class.java)
       tag1Filter.setSelected(event, true)
-      assertThat(client.getWorkInfoCount()).isEqualTo(2)
+      assertThat(client.lockedWorks { it.size }).isEqualTo(2)
       tag2Filter.setSelected(event, true)
-      assertThat(client.getWorkInfoCount()).isEqualTo(1)
+      assertThat(client.lockedWorks { it.size }).isEqualTo(1)
       val allTagsFilter = filterActionList[0]
       allTagsFilter.setSelected(event, true)
-      assertThat(client.getWorkInfoCount()).isEqualTo(3)
+      assertThat(client.lockedWorks { it.size }).isEqualTo(3)
     }.join()
   }
 

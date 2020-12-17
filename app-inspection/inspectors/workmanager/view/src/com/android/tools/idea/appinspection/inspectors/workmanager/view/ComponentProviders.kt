@@ -156,26 +156,25 @@ class IdListProvider(private val client: WorkManagerInspectorClient,
     val currId = currentWork.id
     return if (ids.isNotEmpty()) {
       JPanel(VerticalFlowLayout(0, 0)).apply {
-        ids.forEach { id ->
-          val index = client.indexOfFirstWorkInfo { it.id == id }
-          val work = client.getWorkInfoOrNull(index)
-          if (work != null) {
-            add(HyperlinkLabel().apply {
-              val suffix = if (id == currId) " (Current)" else ""
-              setHyperlinkText("", id, suffix)
-              addHyperlinkListener {
-                selectWork(work)
-              }
-              client.getWorkInfoOrNull(index)?.run {
-                setIcon(state.icon())
-                if (tagsCount > 0) {
-                  toolTipText = "<html><b>Tags</b><br>${tagsList.joinToString("<br>") { "\"$it\"" }}</html>"
+        client.lockedWorks { works ->
+          ids.forEach { id ->
+            val work = works.firstOrNull { it.id == id }
+            if (work != null) {
+              add(HyperlinkLabel().apply {
+                val suffix = if (id == currId) " (Current)" else ""
+                setHyperlinkText("", id, suffix)
+                addHyperlinkListener {
+                  selectWork(work)
                 }
-              }
-            })
-          }
-          else {
-            add(JBLabel(id))
+                setIcon(work.state.icon())
+                if (work.tagsCount > 0) {
+                  toolTipText = "<html><b>Tags</b><br>${work.tagsList.joinToString("<br>") { "\"$it\"" }}</html>"
+                }
+              })
+            }
+            else {
+              add(JBLabel(id))
+            }
           }
         }
       }

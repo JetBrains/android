@@ -105,7 +105,7 @@ class WorksTableView(tab: WorkManagerInspectorTab,
     selectionModel.addListSelectionListener {
       if (!it.valueIsAdjusting && selectedRow != -1) {
         // Do not open details view here as the selection updates may come from model changes.
-        val newSelectedWork = client.getWorkInfoOrNull(convertRowIndexToModel(selectedRow))
+        val newSelectedWork = client.lockedWorks { works -> works.getOrNull(convertRowIndexToModel(selectedRow)) }
         if (newSelectedWork != workSelectionModel.selectedWork) {
           workSelectionModel.setSelectedWork(newSelectedWork, WorkSelectionModel.Context.TABLE)
         }
@@ -125,7 +125,9 @@ class WorksTableView(tab: WorkManagerInspectorTab,
     // Add row selection after a new work is selected.
     workSelectionModel.registerWorkSelectionListener { work, context ->
       if (work != null && context != WorkSelectionModel.Context.TABLE) {
-        val tableModelRow = client.indexOfFirstWorkInfo { it.id == work.id }
+        val tableModelRow = client.lockedWorks { works ->
+          works.indexOfFirst { it.id == work.id }
+        }
         if (tableModelRow != -1) {
           val tableRow = convertRowIndexToView(tableModelRow)
           addRowSelectionInterval(tableRow, tableRow)

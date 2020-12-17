@@ -73,7 +73,7 @@ class WorksTableModel(private val client: WorkManagerInspectorClient) : Abstract
     client.addWorksChangedListener { fireTableDataChanged() }
   }
 
-  override fun getRowCount() = client.getWorkInfoCount()
+  override fun getRowCount() = client.lockedWorks { it.size }
 
   override fun getColumnCount() = Column.values().size
 
@@ -83,7 +83,7 @@ class WorksTableModel(private val client: WorkManagerInspectorClient) : Abstract
     if (columnIndex == Column.ORDER.ordinal) {
       return rowIndex + 1
     }
-    val work = client.getWorkInfoOrNull(rowIndex) ?: WorkManagerInspectorProtocol.WorkInfo.getDefaultInstance()
+    val work = client.lockedWorks { works -> works.getOrNull(rowIndex) } ?: WorkManagerInspectorProtocol.WorkInfo.getDefaultInstance()
     return Column.values()[columnIndex].getValueFrom(work)
   }
 }

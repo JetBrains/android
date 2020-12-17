@@ -168,7 +168,9 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
     client.addWorksChangedListener {
       CoroutineScope(AndroidDispatchers.uiThread).launch {
         if (workSelectionModel.selectedWork != null) {
-          val work = client.firstOrNull { it.id == workSelectionModel.selectedWork?.id }
+          val work = client.lockedWorks { works ->
+            works.firstOrNull { it.id == workSelectionModel.selectedWork?.id }
+          }
           if (work != null) {
             // Update existing work changes e.g. State changes from Running to Succeed
             workSelectionModel.setSelectedWork(work, WorkSelectionModel.Context.DEVICE)
@@ -176,7 +178,7 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
           else {
             // Select the first row from the table when the selected work is removed when Table content mode is enabled.
             if (contentMode == Mode.TABLE && tableView.rowCount > 0) {
-              workSelectionModel.setSelectedWork(client.getWorkInfoOrNull(tableView.convertRowIndexToModel(0)),
+              workSelectionModel.setSelectedWork(client.lockedWorks { works -> works.getOrNull(tableView.convertRowIndexToModel(0)) },
                                                  WorkSelectionModel.Context.DEVICE)
             }
             // Close the details view otherwise
