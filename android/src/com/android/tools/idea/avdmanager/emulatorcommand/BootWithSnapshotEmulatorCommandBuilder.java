@@ -16,20 +16,21 @@
 package com.android.tools.idea.avdmanager.emulatorcommand;
 
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.avdmanager.AvdWizardUtils;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import java.nio.file.Path;
-import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
-final class SnapshotEmulatorCommandBuilder extends EmulatorCommandBuilder {
-  SnapshotEmulatorCommandBuilder(@NotNull Path emulator, @NotNull AvdInfo avd) {
+public final class BootWithSnapshotEmulatorCommandBuilder extends EmulatorCommandBuilder {
+  private final @NotNull String mySnapshot;
+
+  public BootWithSnapshotEmulatorCommandBuilder(@NotNull Path emulator, @NotNull AvdInfo avd, @NotNull String snapshot) {
     super(emulator, avd);
+    mySnapshot = snapshot;
   }
 
   @Override
   void addSnapshotParameters(@NotNull GeneralCommandLine command) {
-    command.addParameters("-snapshot", Optional.ofNullable(myAvd.getProperty(AvdWizardUtils.CHOSEN_SNAPSHOT_FILE)).orElse(""));
+    command.addParameters("-snapshot", mySnapshot);
     command.addParameter("-no-snapshot-save");
   }
 }

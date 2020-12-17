@@ -19,6 +19,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdWizardUtils;
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
 public final class DefaultEmulatorCommandBuilderFactory implements EmulatorCommandBuilderFactory {
@@ -29,9 +30,10 @@ public final class DefaultEmulatorCommandBuilderFactory implements EmulatorComma
     }
 
     if (Objects.equals(avd.getProperty(AvdWizardUtils.USE_CHOSEN_SNAPSHOT_BOOT), "yes")) {
-      return new SnapshotEmulatorCommandBuilder(emulator, avd);
+      String snapshot = Optional.ofNullable(avd.getProperty(AvdWizardUtils.CHOSEN_SNAPSHOT_FILE)).orElse("");
+      return new BootWithSnapshotEmulatorCommandBuilder(emulator, avd, snapshot);
     }
 
-    return new DefaultEmulatorCommandBuilder(emulator, avd);
+    return new QuickBootEmulatorCommandBuilder(emulator, avd);
   }
 }

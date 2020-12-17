@@ -20,8 +20,8 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
-final class DefaultEmulatorCommandBuilder extends EmulatorCommandBuilder {
-  DefaultEmulatorCommandBuilder(@NotNull Path emulator, @NotNull AvdInfo avd) {
+public final class QuickBootEmulatorCommandBuilder extends EmulatorCommandBuilder {
+  public QuickBootEmulatorCommandBuilder(@NotNull Path emulator, @NotNull AvdInfo avd) {
     super(emulator, avd);
   }
 
