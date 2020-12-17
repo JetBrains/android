@@ -23,7 +23,7 @@ import com.intellij.openapi.util.Disposer
 /**
  * Overrides the value of this flag. The override is cleared when [disposable] is disposed.
  */
-fun <T> Flag<T>.override(overrideValue: T, disposable: Disposable) {
+fun <T: Any> Flag<T>.override(overrideValue: T, disposable: Disposable) {
   override(overrideValue)
   Disposer.register(disposable) { clearOverride() }
 }
