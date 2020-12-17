@@ -120,6 +120,25 @@ class RecordingOptionsModelTest(configs: Array<RecordingOption>) {
     assertThat(calls).isEqualTo(2)
   }
 
+  @Test
+  fun `custom configurations select first one by default`() {
+    assumeTrue(model.customConfigurationModel.size == 0)
+    model.customConfigurationModel.addElement(CustomConfigs[0])
+    model.customConfigurationModel.addElement(CustomConfigs[1])
+    assertThat(model.customConfigurationModel.selectedItem).isEqualTo(CustomConfigs[0])
+    model.selectCurrentCustomConfiguration()
+    assertThat(model.selectedOption).isEqualTo(CustomConfigs[0])
+  }
+
+  @Test
+  fun `clear configurations clears configurations`() {
+    assumeTrue(model.customConfigurationModel.size == 0)
+    model.customConfigurationModel.addElement(CustomConfigs[0])
+    assertThat(model.customConfigurationModel.size).isEqualTo(1)
+    model.clearConfigurations()
+    assertThat(model.customConfigurationModel.size).isEqualTo(0)
+  }
+
   companion object {
     val BuiltIns = arrayOf(
       RecordingOption("Built in 1", "Description 1", {}),

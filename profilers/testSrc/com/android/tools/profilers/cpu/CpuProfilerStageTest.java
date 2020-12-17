@@ -152,6 +152,18 @@ public final class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
+  public void recordingPanelHasDefaultConfigurations() {
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
+    // Start a capture using INSTRUMENTED mode
+    List<ProfilingConfiguration> defaultConfigurations = myStage.getProfilerConfigModel().getDefaultProfilingConfigurations();
+    assertThat(myStage.getRecordingModel().getBuiltInOptions()).hasSize(defaultConfigurations.size());
+    for(int i = 0; i < defaultConfigurations.size(); i++) {
+      ProfilingTechnology tech = ProfilingTechnology.fromConfig(defaultConfigurations.get(i));
+      assertThat(myStage.getRecordingModel().getBuiltInOptions().get(i).getTitle()).isEqualTo(tech.getName());
+    }
+  }
+
+  @Test
   public void testStopCapturingFailure() throws InterruptedException {
     // Start a successful capture
     CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
