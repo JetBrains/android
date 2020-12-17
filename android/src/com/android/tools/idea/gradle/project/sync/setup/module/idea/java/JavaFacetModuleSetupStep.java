@@ -24,8 +24,10 @@ import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSe
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 
@@ -63,7 +65,7 @@ public class JavaFacetModuleSetupStep extends JavaModuleSetupStep {
     FacetManager facetManager = FacetManager.getInstance(module);
     ModifiableFacetModel model = modelsProvider.getModifiableFacetModel(module);
     facet = facetManager.createFacet(JavaFacet.getFacetType(), JavaFacet.getFacetName(), null);
-    model.addFacet(facet);
+    model.addFacet(facet, ExternalSystemApiUtil.toExternalSource(GradleConstants.SYSTEM_ID));
     return facet;
   }
 }
