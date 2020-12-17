@@ -517,6 +517,7 @@ class DatabaseInspectorControllerImpl(
       databaseId = databaseId,
       databaseRepository = databaseRepository,
       sqliteStatement = createSqliteStatement(project, selectAllAndRowIdFromTable(table)),
+      showExportDialog = {}, // TODO(161081452): provide an implementation
       edtExecutor = edtExecutor,
       taskExecutor = taskExecutor
     )

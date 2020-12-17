@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.ui.tableView
 
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.stdui.CommonButton
+import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteValue
@@ -97,6 +98,8 @@ class TableViewImpl : TableView {
   private val refreshButton = CommonButton(AllIcons.Actions.Refresh)
 
   private val liveUpdatesCheckBox = JBCheckBox(DatabaseInspectorBundle.message("action.live.updates"))
+
+  private val exportButton = CommonButton(AllIcons.ToolbarDecorator.Export)
 
   private val table = JBTable()
   private val tableScrollPane = JBScrollPane(table)
@@ -194,6 +197,17 @@ class TableViewImpl : TableView {
         BrowserUtil.browse("https://d.android.com/r/studio-ui/db-inspector-help/live-updates")
       }
       .installOn(liveUpdatesCheckBox)
+
+    if (DatabaseInspectorFlagController.isExportToFileEnabled) {
+      exportButton.name = "export-button"
+      exportButton.disabledIcon = IconLoader.getDisabledIcon(exportButton.icon)
+      exportButton.isEnabled = false
+      HelpTooltip()
+        .setTitle(DatabaseInspectorBundle.message("action.export.button.tooltip.title"))
+        .installOn(exportButton)
+      tableActionsPanel.add(exportButton)
+      exportButton.addActionListener { listeners.forEach { it.showExportToFileDialogInvoked() } }
+    }
 
     table.resetDefaultFocusTraversalKeys()
     table.isStriped = true
@@ -391,6 +405,7 @@ class TableViewImpl : TableView {
   private fun setControlButtonsEnabled(enabled: Boolean) {
     liveUpdatesCheckBox.isEnabled = liveUpdatesEnabled && enabled
     refreshButton.isEnabled = refreshEnabled && enabled
+    exportButton.isEnabled = enabled
     pageSizeComboBox.isEnabled = enabled
   }
 
