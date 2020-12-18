@@ -47,7 +47,7 @@ class HostPanelTest : NavTestCase() {
     var i = 0
     while ((panel.list.model as DefaultListModel).isEmpty) {
       Thread.sleep(10)
-      if (i++ > 500) {
+      if (i++ > 2000) {
         fail("list was never populated")
       }
     }
