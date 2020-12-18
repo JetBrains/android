@@ -39,6 +39,7 @@ import org.junit.runners.Parameterized
 /**
  * Tests for data binding elements that have references outside the module.
  */
+@org.junit.Ignore("b/175998101")
 @RunsInEdt
 @RunWith(Parameterized::class)
 class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindingMode) {

@@ -181,6 +181,7 @@ private object ClassDescriber {
 /**
  * This class compiles a real project with data binding then checks whether the generated Binding classes match the virtual ones.
  */
+@org.junit.Ignore("b/175998101")
 @RunWith(Parameterized::class)
 class GeneratedCodeMatchTest(private val parameters: TestParameters) {
   companion object {

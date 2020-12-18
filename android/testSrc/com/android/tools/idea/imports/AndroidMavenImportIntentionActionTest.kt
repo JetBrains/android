@@ -37,6 +37,7 @@ import org.junit.runners.Parameterized
 /**
  * Tests for [AndroidMavenImportIntentionAction], regardless of enabling or disabling [StudioFlags.AUTO_IMPORT].
  */
+@org.junit.Ignore("b/175998101")
 @RunsInEdt
 @RunWith(Parameterized::class)
 class AndroidMavenImportIntentionActionTest(private val autoImportEnabled: Boolean) {
