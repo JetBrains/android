@@ -141,6 +141,12 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     GradleProjectInfo.getInstance(project).isNewProject = false
     GradleProjectInfo.getInstance(project).isImportedProject = false
 
+    if (imported.isEmpty() && !IdeInfo.getInstance().isAndroidStudio){
+      // in IDEA Android Plugin should not do anything, if there are no Android Modules in the project.
+      // not sure why Android Studio wants to do something (maybe it's OK to skip the remaining in Android Studio as well).
+      return;
+    }
+
     ApplicationManager.getApplication().executeOnPooledThread {
       if (shouldRecommendPluginUpgrade(project)) recommendPluginUpgrade(project)
     }

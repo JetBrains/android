@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.util.text.StringUtil.join;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.project.AndroidNotification;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
@@ -46,7 +47,9 @@ public class SupportedModuleChecker {
    */
   public void checkForSupportedModules(@NotNull Project project) {
     Module[] modules = ModuleManager.getInstance(project).getModules();
-    if (modules.length == 0 || !GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
+    if (modules.length == 0 || !GradleProjectInfo.getInstance(project).isBuildWithGradle()
+        || !IdeInfo.getInstance().isAndroidStudio()) {
+      // it is allowed to have Android module as a linked Gradle project in JPS project
       return;
     }
     List<Module> unsupportedModules = new ArrayList<>();
