@@ -235,10 +235,13 @@ object AndroidStudioUsageTracker {
 
       val now = AnalyticsSettings.dateProvider.now()
       val survey = ServerFlagService.instance.getProtoOrNull(SATISFACTION_SURVEY, DEFAULT_SATISFACTION_SURVEY)
-      val dialog = survey?.let { createDialog(it) }
-                   ?: SingleChoiceDialog(DEFAULT_SATISFACTION_SURVEY, LegacyChoiceLogger)
+      val followupSurvey = ServerFlagService.instance.getProtoOrNull(FOLLOWUP_SURVEY, DEFAULT_SATISFACTION_SURVEY)
+      val hasFollowup = followupSurvey != null
 
-      ServerFlagService.instance.getProtoOrNull(FOLLOWUP_SURVEY, DEFAULT_SATISFACTION_SURVEY)?.let {
+      val dialog = survey?.let { createDialog(it, hasFollowup = hasFollowup) }
+                   ?: SingleChoiceDialog(DEFAULT_SATISFACTION_SURVEY, LegacyChoiceLogger, hasFollowup)
+
+      followupSurvey?.let {
         scheduleFollowup(dialog, it)
       }
 
@@ -260,7 +263,7 @@ object AndroidStudioUsageTracker {
         eventQueue.removeIdleListener(runner)
 
         if (dialog.isOK) {
-          createDialog(survey).show()
+          createDialog(survey, hasFollowup = false).show()
         }
       }
 
