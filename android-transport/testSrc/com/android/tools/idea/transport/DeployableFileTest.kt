@@ -20,9 +20,13 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import org.junit.rules.Timeout
 import java.io.File
 
 class DeployableFileTest {
+  @get:Rule
+  val timeout = Timeout.seconds(10)
+
   @Rule
   @JvmField
   val temporaryFolder = TemporaryFolder()
