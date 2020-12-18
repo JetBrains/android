@@ -33,12 +33,13 @@ import javax.swing.JCheckBox
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-private const val OK_BUTTON_TEXT = "Submit"
+private const val SUBMIT_BUTTON_TEXT = "Submit"
+private const val NEXT_BUTTON_TEXT = "Next"
 
 /**
  * Dialog presenting a survey for users with a list of options and requesting multiple answers
  */
-class MultipleChoiceDialog(private val survey: Survey, private val choiceLogger: ChoiceLogger)
+class MultipleChoiceDialog(private val survey: Survey, private val choiceLogger: ChoiceLogger, hasFollowup: Boolean)
   : DialogWrapper(null), ActionListener, ItemListener {
   val checkBoxes = mutableListOf<JCheckBox>()
 
@@ -54,7 +55,14 @@ class MultipleChoiceDialog(private val survey: Survey, private val choiceLogger:
 
   init {
     isAutoAdjustable = true
-    setOKButtonText(OK_BUTTON_TEXT)
+    setOKButtonText(
+      if (hasFollowup) {
+        NEXT_BUTTON_TEXT
+      }
+      else {
+        SUBMIT_BUTTON_TEXT
+      }
+    )
     setResizable(false)
     title = survey.title
     isOKActionEnabled = false

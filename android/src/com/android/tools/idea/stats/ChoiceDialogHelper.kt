@@ -24,15 +24,18 @@ import javax.swing.Icon
 
 val Option.icon: Icon?
   get() {
-    val path = iconPath ?: return null
+    val path = iconPath
+    if (path.isNullOrBlank()) {
+      return null
+    }
     return IconLoader.getIcon(path, StudioIcons::class.java)
   }
 
-fun createDialog(survey: Survey, choiceLogger: ChoiceLogger = ChoiceLoggerImpl): DialogWrapper {
+fun createDialog(survey: Survey, choiceLogger: ChoiceLogger = ChoiceLoggerImpl, hasFollowup: Boolean): DialogWrapper {
   return if (survey.answerCount > 1) {
-    MultipleChoiceDialog(survey, choiceLogger)
+    MultipleChoiceDialog(survey, choiceLogger, hasFollowup)
   }
   else {
-    SingleChoiceDialog(survey, choiceLogger)
+    SingleChoiceDialog(survey, choiceLogger, hasFollowup)
   }
 }

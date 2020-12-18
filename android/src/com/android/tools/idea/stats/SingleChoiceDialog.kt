@@ -37,10 +37,11 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JRadioButton
 
-private const val OK_BUTTON_TEXT = "Submit"
+private const val SUBMIT_BUTTON_TEXT = "Submit"
+private const val NEXT_BUTTON_TEXT = "Next"
 private val CENTER_PANEL_BORDER = JBUI.Borders.empty(0, 0, 10, 50)
 
-class SingleChoiceDialog(private val survey: Survey, private val choiceLogger: ChoiceLogger)
+class SingleChoiceDialog(private val survey: Survey, private val choiceLogger: ChoiceLogger, hasFollowup: Boolean)
   : DialogWrapper(null), ActionListener, ItemListener {
   val buttonGroup = ButtonGroup()
   private val buttons: MutableList<JRadioButton> = mutableListOf()
@@ -55,7 +56,7 @@ class SingleChoiceDialog(private val survey: Survey, private val choiceLogger: C
       ordering.add(i)
     }
 
-    if(survey.hasRandomOrder() && survey.randomOrder) {
+    if (survey.hasRandomOrder() && survey.randomOrder) {
       ordering.shuffle()
     }
 
@@ -66,7 +67,14 @@ class SingleChoiceDialog(private val survey: Survey, private val choiceLogger: C
 
   init {
     isAutoAdjustable = true
-    setOKButtonText(OK_BUTTON_TEXT)
+    setOKButtonText(
+      if (hasFollowup) {
+        NEXT_BUTTON_TEXT
+      }
+      else {
+        SUBMIT_BUTTON_TEXT
+      }
+    )
     setResizable(false)
     title = survey.title
     isOKActionEnabled = false

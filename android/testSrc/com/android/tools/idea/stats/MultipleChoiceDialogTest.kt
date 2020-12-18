@@ -132,7 +132,7 @@ class MultipleChoiceDialogTest {
   }
 
   private fun createDialog(logger: ChoiceLogger): MultipleChoiceDialog {
-    val dialog = createDialog(TEST_SURVEY, logger) as? MultipleChoiceDialog
+    val dialog = createDialog(TEST_SURVEY, logger, false) as? MultipleChoiceDialog
     assertNotNull(dialog)
     Disposer.register(disposable, dialog.disposable)
     return dialog
