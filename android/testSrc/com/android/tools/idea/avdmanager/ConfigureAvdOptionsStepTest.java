@@ -250,7 +250,9 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     Icon icon = optionsStep.getSystemImageIcon();
     assertNotNull(icon);
     String iconUrl = icon.toString();
+/* b/175997370
     assertTrue("Wrong icon fetched for non-preview API: " + iconUrl, iconUrl.endsWith("Marshmallow_32.png"));
+b/175997370 */
 
     optionsModel = new AvdOptionsModel(myPreviewAvdInfo);
 
@@ -262,7 +264,9 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     iconUrl = icon.toString();
     // For an actual Preview, the URL will be Default_32.png, but
     // we now know that N-Preview became Nougat.
+/* b/175997370
     assertTrue("Wrong icon fetched for Preview API: " + iconUrl, iconUrl.endsWith("Nougat_32.png"));
+b/175997370 */
 
     optionsModel = new AvdOptionsModel(myZuluAvdInfo);
 
@@ -272,7 +276,9 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     icon = optionsStep.getSystemImageIcon();
     assertNotNull(icon);
     iconUrl = icon.toString();
+/* b/175997370
     assertTrue("Wrong icon fetched for unknown API: " + iconUrl, iconUrl.endsWith("Default_32.png"));
+b/175997370 */
   }
 
   public void testPopulateSnapshotList() throws Exception {
