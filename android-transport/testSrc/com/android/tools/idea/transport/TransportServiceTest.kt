@@ -23,6 +23,8 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
+import org.junit.Rule
+import org.junit.rules.Timeout
 import java.io.IOException
 import java.util.concurrent.BlockingDeque
 import java.util.concurrent.CountDownLatch
@@ -33,6 +35,9 @@ import java.util.concurrent.CountDownLatch
 class TransportServiceTest : LightPlatformTestCase() {
 
   private lateinit var myService: TransportService
+
+  @get:Rule
+  val timeout = Timeout.seconds(10)
 
   @Throws(Exception::class)
   override fun setUp() {
