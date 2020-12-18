@@ -46,6 +46,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+@org.junit.Ignore("b/175998101")
 @RunWith(Parameterized.class)
 public class DataBindingAdapterAttributesTest {
   @Rule
