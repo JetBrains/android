@@ -316,6 +316,7 @@ public class StudioDownloaderTest {
 
     // Verify that we haven't left any temporary files or directories around.
     assertThat(InMemoryFileSystems.getExistingFiles(fs)).isEmpty();
-    assertThat(InMemoryFileSystems.getExistingFolders(fs)).containsExactly(tmpPath.toString());
+    assertThat(InMemoryFileSystems.getExistingFolders(fs)).containsExactly(tmpPath.toString(),
+                                                                           InMemoryFileSystems.getDefaultWorkingDirectory());
   }
 }
