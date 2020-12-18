@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.emulator.actions
 
+import com.android.emulator.control.PaneEntry
 import com.android.emulator.control.ThemingStyle
 import com.android.tools.idea.emulator.EmptyStreamObserver
 import com.android.tools.idea.emulator.EmulatorController
@@ -43,7 +44,7 @@ internal fun showExtendedControls(emulatorController: EmulatorController) {
   val style = if (StartupUiUtil.isUnderDarcula()) ThemingStyle.Style.DARK else ThemingStyle.Style.LIGHT
   emulatorController.setUiTheme(style, object : EmptyStreamObserver<Empty>() {
     override fun onCompleted() {
-      emulatorController.showExtendedControls()
+      emulatorController.showExtendedControls(PaneEntry.PaneIndex.KEEP_CURRENT)
     }
   })
 }
