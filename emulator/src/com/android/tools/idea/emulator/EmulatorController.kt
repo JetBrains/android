@@ -25,6 +25,8 @@ import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.MouseEvent
+import com.android.emulator.control.PaneEntry
+import com.android.emulator.control.PaneEntry.PaneIndex
 import com.android.emulator.control.PhysicalModelValue
 import com.android.emulator.control.SnapshotFilter
 import com.android.emulator.control.SnapshotList
@@ -409,14 +411,15 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /**
    * Shows the extended controls of the emulator.
    *
+   * @param paneIndex indentifies the pane to open
    * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case).
    */
-  fun showExtendedControls(streamObserver: StreamObserver<ExtendedControlsStatus> = getEmptyObserver()) {
+  fun showExtendedControls(paneIndex: PaneIndex, streamObserver: StreamObserver<ExtendedControlsStatus> = getEmptyObserver()) {
+    val pane = PaneEntry.newBuilder().setIndex(paneIndex).build()
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("showExtendedControls()")
+      LOG.info("showExtendedControls(${shortDebugString(pane)})")
     }
-    uiController.showExtendedControls(EMPTY_PROTO,
-                                      DelegatingStreamObserver(streamObserver, UiControllerGrpc.getShowExtendedControlsMethod()))
+    uiController.showExtendedControls(pane, DelegatingStreamObserver(streamObserver, UiControllerGrpc.getShowExtendedControlsMethod()))
   }
 
   /**

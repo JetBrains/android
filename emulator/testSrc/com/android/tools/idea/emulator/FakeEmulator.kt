@@ -25,6 +25,7 @@ import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.ImageFormat.ImgFormat
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.MouseEvent
+import com.android.emulator.control.PaneEntry
 import com.android.emulator.control.PhysicalModelValue
 import com.android.emulator.control.Rotation
 import com.android.emulator.control.Rotation.SkinRotation
@@ -542,7 +543,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     private val executor: ExecutorService
   ) : UiControllerGrpc.UiControllerImplBase() {
 
-    override fun showExtendedControls(empty: Empty, responseObserver: StreamObserver<ExtendedControlsStatus>) {
+    override fun showExtendedControls(request: PaneEntry, responseObserver: StreamObserver<ExtendedControlsStatus>) {
       executor.execute {
         val changed = !extendedControlsVisible
         extendedControlsVisible = true
