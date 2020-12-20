@@ -1,6 +1,6 @@
 PROJECT             : testImportNoSync
     PROJECT_JDK         : <JAVA_VERSION>
-        Version             : java version "<JDK_VERSION>"
+        Version             : version <JDK_VERSION>
     MODULE              : testImportNoSync
         LinkedProjectId     : :
         LinkedProjectPath   : <PROJECT>
