@@ -1,7 +1,7 @@
 # List of files containing native libraries that need to be unpacked then
 # codesigned. The paths here indicate the paths in the built Android Studio
 # macOS app bundle.
-%prefix%Contents/lib/pty4j-0.9.11.jar
+%prefix%Contents/lib/pty4j-0.9.12.jar
 %prefix%Contents/lib/sqlite-jdbc-3.21.0.1.jar
 %prefix%Contents/plugins/Kotlin/kotlinc/lib/kotlin-compiler.jar
 %prefix%Contents/plugins/Kotlin/kotlinc/lib/kotlin-daemon-client.jar
