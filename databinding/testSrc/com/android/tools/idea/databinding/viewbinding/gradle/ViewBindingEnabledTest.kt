@@ -97,7 +97,9 @@ class ViewBindingEnabledTest {
     assertThat(facet.isViewBindingEnabled()).isTrue()
     assertThat(ViewBindingEnabledTrackingService.instance.modificationCount).isGreaterThan(lastModificationCount)
     lastModificationCount = ViewBindingEnabledTrackingService.instance.modificationCount
+/* b/176092555
     assertThat(fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context)).isNotNull()
+b/176092555 */
 
     enableViewBinding(buildFile, false)
     projectRule.requestSyncAndWait()

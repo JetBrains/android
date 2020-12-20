@@ -69,8 +69,10 @@ class DataBindingPackageFinderTest {
 
     val context = fixture.findClass("com.android.example.viewbinding.MainActivity")
     assertThat(projectRule.androidFacet(":app").isViewBindingEnabled()).isTrue()
+/* b/176092555
     assertThat(fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context)).isInstanceOf(
       LightBindingClass::class.java)
+b/176092555 */
     assertThat(fixture.findPackage("com.android.example.viewbinding.databinding")).isNotNull()
   }
 

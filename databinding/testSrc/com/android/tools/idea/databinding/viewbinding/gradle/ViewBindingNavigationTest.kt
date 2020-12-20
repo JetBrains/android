@@ -79,6 +79,7 @@ class ViewBindingNavigationTest {
     val context = fixture.findClass("com.android.example.viewbinding.MainActivity")
 
     // ActivityMainBinding is in-memory and generated on the fly from activity_main.xml
+/* b/176092555
     val binding = fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context) as LightBindingClass
     binding.navigate(true)
     assertThat(editorManager.selectedFiles[0].name).isEqualTo("activity_main.xml")
@@ -95,6 +96,7 @@ class ViewBindingNavigationTest {
       assertThat(psiClassOwner.classes[0]).isEqualTo(binding)
       assertThat(psiClassOwner.packageName).isEqualTo("com.android.example.viewbinding.databinding")
     }
+b/176092555 */
   }
 
   @Test
@@ -103,6 +105,7 @@ class ViewBindingNavigationTest {
     val context = fixture.findClass("com.android.example.viewbinding.MainActivity")
 
     // ActivityMainBinding is in-memory and generated on the fly from activity_main.xml.
+/* b/176092555
     val binding = fixture
       .findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context)!!
       .findFieldByName("testId", false)!!
@@ -111,5 +114,6 @@ class ViewBindingNavigationTest {
     assertThat(editorManager.selectedFiles[0].name).isEqualTo("activity_main.xml")
     assertThat(binding.navigationElement).isInstanceOf(XmlTag::class.java)
     assertThat(binding.navigationElement.text).contains("id=\"@+id/testId\"")
+b/176092555 */
   }
 }
