@@ -706,6 +706,7 @@ class AndroidTestResultsTableViewTest {
     assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("package1.class2.")
     assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("package1.class2.method1")
 
+/* b/176092356
     collapseAllAction.actionPerformed(mock())
 
     assertThat(tableView.rowCount).isEqualTo(3)
@@ -714,6 +715,7 @@ class AndroidTestResultsTableViewTest {
     assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package1.class2.")
 
     expandAllAction.actionPerformed(mock())
+b/176092356 */
 
     assertThat(tableView.rowCount).isEqualTo(6)
     assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")
