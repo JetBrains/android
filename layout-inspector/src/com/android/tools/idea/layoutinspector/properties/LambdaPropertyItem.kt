@@ -23,7 +23,8 @@ import com.android.tools.layoutinspector.proto.LayoutInspectorProto
  *
  * @param name the parameter name
  * @param viewId the compose node this parameter belongs to
- * @param enclosedClassName the class name of the enclosing class as found in the synthetic name of the lambda
+ * @param packageName the package name of the enclosing class as found in the synthetic name of the lambda
+ * @param fileName the name of the enclosing file
  * @param lambdaName the second part of the synthetic lambda name
  * @param startLineNumber the first line number of the lambda as reported by JVMTI (1 based)
  * @param endLineNumber the last line number of the lambda as reported by JVMTI (1 based)
@@ -31,7 +32,8 @@ import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 class LambdaPropertyItem(
   name: String,
   viewId: Long,
-  val enclosedClassName: String,
+  val packageName: String,
+  val fileName: String,
   val lambdaName: String,
   val startLineNumber: Int,
   val endLineNumber: Int,
@@ -56,7 +58,7 @@ class LambdaPropertyItem(
 
   private fun findLocation(): SourceLocation? {
     lookupDone = true
-    location = lookup.resourceLookup.findLambdaLocation(enclosedClassName, lambdaName, startLineNumber - 1, endLineNumber - 1)
+    location = lookup.resourceLookup.findLambdaLocation(packageName, fileName, lambdaName, startLineNumber - 1, endLineNumber - 1)
     return location
   }
 }

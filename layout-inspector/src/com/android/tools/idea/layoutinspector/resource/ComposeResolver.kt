@@ -41,7 +41,7 @@ open class ComposeResolver(val project: Project) {
    *
    * If there are multiple files with the same name use the package name matcher.
    */
-  private fun findKotlinFile(fileName: String, packageNameMatcher: (String) -> Boolean): KtFile? {
+  protected fun findKotlinFile(fileName: String, packageNameMatcher: (String) -> Boolean): KtFile? {
     val files = FilenameIndex.getFilesByName(project, fileName, GlobalSearchScope.allScope(project))
     if (files.size == 1) {
       return files[0] as? KtFile

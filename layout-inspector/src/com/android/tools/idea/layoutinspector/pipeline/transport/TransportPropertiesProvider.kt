@@ -340,9 +340,10 @@ class TransportPropertiesProvider(
       val name = stringTable[property.name]
       val lambda = property.lambdaValue
       val packageName = stringTable[lambda.packageName]
-      val className = stringTable[lambda.className]
       val lambdaName = stringTable[lambda.lambdaName]
-      return LambdaPropertyItem(name, viewId, "$packageName.$className", lambdaName, lambda.startLineNumber, lambda.endLineNumber, lookup)
+      val fileName = stringTable[lambda.fileName]
+      return LambdaPropertyItem(
+        name, viewId, packageName, fileName, lambdaName, lambda.startLineNumber, lambda.endLineNumber, lookup)
     }
 
     private fun fromResource(property: Property, layout: ResourceReference?): String {

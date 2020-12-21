@@ -200,7 +200,7 @@ class TransportPropertiesProviderTest {
     checkProperty(table, view, "float_null", Type.FLOAT, null, PropertySection.DEFAULT, null)
     checkProperty(table, view, "padding", Type.STRING, "Padding", PropertySection.DEFAULT, null, expandable = true,
       detail = listOf(PropertyDetail("x", Type.DIMENSION_DP, "20.0px"), PropertyDetail("y", Type.DIMENSION_DP, "40.0px")))
-    checkLambdaProperty(table, view, "lambda", Type.LAMBDA, "com.example.MyActivityKt", "var$1$2", 19, 23)
+    checkLambdaProperty(table, view, "lambda", Type.LAMBDA, "com.example", "MyActivity.kt", "var$1$2", 19, 23)
     assertThat(table.size).isEqualTo(46)
   }
 
@@ -337,7 +337,8 @@ class TransportPropertiesProviderTest {
     view: ViewNode,
     name: String,
     type: Type,
-    enclosedClassName: String,
+    packageName: String,
+    fileName: String,
     lambdaName: String,
     startLine: Int,
     endLine: Int
@@ -348,7 +349,8 @@ class TransportPropertiesProviderTest {
     assertThat(property.namespace).isEqualTo("")
     assertThat(property.type).isEqualTo(type)
     assertThat(property.value).isEqualTo("λ Lambda")
-    assertThat(property.enclosedClassName).isEqualTo(enclosedClassName)
+    assertThat(property.packageName).isEqualTo(packageName)
+    assertThat(property.fileName).isEqualTo(fileName)
     assertThat(property.lambdaName).isEqualTo(lambdaName)
     assertThat(property.startLineNumber).isEqualTo(startLine)
     assertThat(property.endLineNumber).isEqualTo(endLine)
@@ -442,7 +444,7 @@ class TransportPropertiesProviderTest {
         addString(StringEntry.newBuilder().apply { id = 68; str = "x"})
         addString(StringEntry.newBuilder().apply { id = 69; str = "y"})
         addString(StringEntry.newBuilder().apply { id = 70; str = "lambda"})
-        addString(StringEntry.newBuilder().apply { id = 71; str = "MyActivityKt"})
+        addString(StringEntry.newBuilder().apply { id = 71; str = "MyActivity.kt"})
         addString(StringEntry.newBuilder().apply { id = 72; str = "var$1$2"})
         addProperty(Property.newBuilder().apply { name = 2; namespace = 1; type = Type.BOOLEAN; int32Value = 1 })
         addProperty(Property.newBuilder().apply { name = 3; namespace = 1; type = Type.BYTE; int32Value = 7 })
@@ -490,7 +492,7 @@ class TransportPropertiesProviderTest {
         addProperty(Property.newBuilder().apply {
           name = 70
           type = Type.LAMBDA
-          lambdaValueBuilder.apply { packageName = 1; className = 71; lambdaName = 72; startLineNumber = 19; endLineNumber = 23 }
+          lambdaValueBuilder.apply { packageName = 1; fileName = 71; lambdaName = 72; startLineNumber = 19; endLineNumber = 23 }
         })
       }
     }.build())

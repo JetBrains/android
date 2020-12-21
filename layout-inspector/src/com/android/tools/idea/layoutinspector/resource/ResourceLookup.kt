@@ -113,8 +113,8 @@ class ResourceLookup(private val project: Project) {
   /**
    * Find the lambda source location.
    */
-  fun findLambdaLocation(enclosedClassName: String, lambdaName: String, startLine: Int, endLine: Int): SourceLocation? =
-     composeResolver.findLambdaLocation(enclosedClassName, lambdaName, startLine, endLine)
+  fun findLambdaLocation(packageName: String, fileName: String, lambdaName: String, startLine: Int, endLine: Int): SourceLocation? =
+     composeResolver.findLambdaLocation(packageName, fileName, lambdaName, startLine, endLine)
 
   /**
    * Find the source navigatable of a composable function.
