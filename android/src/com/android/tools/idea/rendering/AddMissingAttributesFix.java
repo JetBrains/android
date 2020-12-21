@@ -42,9 +42,6 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
@@ -59,12 +56,12 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AddMissingAttributesFix extends WriteCommandAction<Void> {
+public class AddMissingAttributesFix extends HtmlLinkManager.CommandLink {
   @NotNull private final XmlFile myFile;
   @Nullable private final ResourceResolver myResourceResolver;
 
-  public AddMissingAttributesFix(@NotNull Project project, @NotNull XmlFile file, @Nullable ResourceResolver resourceResolver) {
-    super(project, "Add Size Attributes", file);
+  public AddMissingAttributesFix(@NotNull XmlFile file, @Nullable ResourceResolver resourceResolver) {
+    super("Add Size Attributes", file);
     myFile = file;
     myResourceResolver = resourceResolver;
   }
@@ -86,9 +83,8 @@ public class AddMissingAttributesFix extends WriteCommandAction<Void> {
     return missing;
   }
 
-
   @Override
-  protected void run(@NotNull Result<Void> result) throws Throwable {
+  public void run() {
     findViewsMissingSizes(myFile, myResourceResolver).stream()
                                                      .map(SmartPsiElementPointer::getElement)
                                                      .filter(Objects::nonNull)

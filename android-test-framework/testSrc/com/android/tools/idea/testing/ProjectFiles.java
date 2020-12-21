@@ -22,7 +22,6 @@ import static org.junit.Assert.assertNotNull;
 
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.module.EmptyModuleType;
 import com.intellij.openapi.module.Module;
@@ -94,14 +93,11 @@ public final class ProjectFiles {
 
   @NotNull
   private static Module createModule(@NotNull Project project, @NotNull VirtualFile file, @NotNull ModuleType<?> type) {
-    return new WriteAction<Module>() {
-      @Override
-      protected void run(@NotNull Result<Module> result) {
-        ModuleManager moduleManager = ModuleManager.getInstance(project);
-        Module module = moduleManager.newModule(file.getPath(), type.getId());
-        module.getModuleFile();
-        result.setResult(module);
-      }
-    }.execute().getResultObject();
+    return WriteAction.compute(() -> {
+      ModuleManager moduleManager = ModuleManager.getInstance(project);
+      Module module = moduleManager.newModule(file.getPath(), type.getId());
+      module.getModuleFile();
+      return module;
+    });
   }
 }

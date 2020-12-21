@@ -40,9 +40,9 @@ class NavDesignSurfaceActionHandler(val surface: NavDesignSurface) : DesignSurfa
     val nextSelection = nextSelection()
     val selection = surface.selectionModel.selection
 
-    val action = object : WriteCommandAction<Unit>(surface.project, "Delete Component", surface.model!!.file) {
-      override fun run(result: Result<Unit>) {
-        val model = surface.model ?: return
+    WriteCommandAction.runWriteCommandAction(surface.project, "Delete Component", null, {
+      val model = surface.model
+      if (model != null) {
         for (component in selection) {
           if (component.isDestination) {
             surface.sceneManager?.performUndoablePositionAction(component)
@@ -53,10 +53,9 @@ class NavDesignSurfaceActionHandler(val surface: NavDesignSurface) : DesignSurfa
             }
           }
         }
-        superCall()
       }
-    }
-    action.execute()
+      superCall()
+    }, surface.model!!.file)
     surface.selectionModel.setSelection(listOf(nextSelection))
   }
 

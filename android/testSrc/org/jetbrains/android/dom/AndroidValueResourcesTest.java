@@ -16,6 +16,8 @@
 
 package org.jetbrains.android.dom;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.AndroidProjectTypes;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -42,7 +44,12 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
@@ -60,9 +67,6 @@ import java.util.List;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
 import org.jetbrains.annotations.NotNull;
-
-
-import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for code editor features when working with resources under res/values.
@@ -812,11 +816,6 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     }
     assertEquals(1, actions.size());
 
-    new WriteCommandAction.Simple(getProject()) {
-      @Override
-      protected void run() throws Throwable {
-        actions.get(0).invoke(getProject(), myFixture.getEditor(), myFixture.getFile());
-      }
-    }.execute();
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> actions.get(0).invoke(getProject(), myFixture.getEditor(), myFixture.getFile()));
   }
 }

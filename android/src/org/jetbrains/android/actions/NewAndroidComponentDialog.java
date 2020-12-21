@@ -16,11 +16,11 @@
 package org.jetbrains.android.actions;
 
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.CommonBundle;
 import com.intellij.ide.actions.ElementCreator;
 import com.intellij.ide.actions.TemplateKindCombo;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
@@ -44,7 +44,6 @@ import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidBundle;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -222,17 +221,14 @@ public class NewAndroidComponentDialog extends DialogWrapper {
 
     if (statements.length == 1) {
       final PsiStatement statement = statements[0];
-      new WriteCommandAction(project, body.getContainingFile()) {
-        @Override
-        protected void run(@NotNull Result result) throws Throwable {
-          final PsiStatement newStatement = PsiElementFactory.getInstance(project).createStatementFromText(
-            "return inflater.inflate(" + layoutFieldRef + ", container, false);", body);
-          statement.replace(newStatement);
+      WriteCommandAction.writeCommandAction(project, body.getContainingFile()).run(() -> {
+        final PsiStatement newStatement = PsiElementFactory.getInstance(project).createStatementFromText(
+          "return inflater.inflate(" + layoutFieldRef + ", container, false);", body);
+        statement.replace(newStatement);
 
-          JavaCodeStyleManager.getInstance(project).shortenClassReferences(body);
-          CodeStyleManager.getInstance(project).reformat(body);
-        }
-      }.execute();
+        JavaCodeStyleManager.getInstance(project).shortenClassReferences(body);
+        CodeStyleManager.getInstance(project).reformat(body);
+      });
     }
   }
 
@@ -241,17 +237,14 @@ public class NewAndroidComponentDialog extends DialogWrapper {
     final PsiElement lastBodyElement = body.getLastBodyElement();
 
     if (lastBodyElement != null) {
-      new WriteCommandAction(project, body.getContainingFile()) {
-        @Override
-        protected void run(@NotNull Result result) throws Throwable {
-          final PsiStatement newStatement = PsiElementFactory.getInstance(project).createStatementFromText(
-            "setContentView(" + layoutFieldRef + ");", body);
-          body.addAfter(newStatement, lastBodyElement);
+      WriteCommandAction.writeCommandAction(project, body.getContainingFile()).run(() -> {
+        final PsiStatement newStatement = PsiElementFactory.getInstance(project).createStatementFromText(
+          "setContentView(" + layoutFieldRef + ");", body);
+        body.addAfter(newStatement, lastBodyElement);
 
-          JavaCodeStyleManager.getInstance(project).shortenClassReferences(body);
-          CodeStyleManager.getInstance(project).reformat(body);
-        }
-      }.execute();
+        JavaCodeStyleManager.getInstance(project).shortenClassReferences(body);
+        CodeStyleManager.getInstance(project).reformat(body);
+      });
     }
   }
 

@@ -92,17 +92,14 @@ public class MoveFileQuickFix implements LocalQuickFix {
       removeFirst = false;
     }
 
-    new WriteCommandAction.Simple(project, xmlFile) {
-      @Override
-      protected void run() throws Throwable {
-        if (removeFirst) {
-          final PsiFile file = resultDirectory.findFile(xmlFile.getName());
-          if (file != null) {
-            file.delete();
-          }
+    WriteCommandAction.writeCommandAction(project, xmlFile).run(() -> {
+      if (removeFirst) {
+        final PsiFile file = resultDirectory.findFile(xmlFile.getName());
+        if (file != null) {
+          file.delete();
         }
-        MoveFilesOrDirectoriesUtil.doMoveFile(xmlFile, resultDirectory);
       }
-    }.execute();
+      MoveFilesOrDirectoriesUtil.doMoveFile(xmlFile, resultDirectory);
+    });
   }
 }

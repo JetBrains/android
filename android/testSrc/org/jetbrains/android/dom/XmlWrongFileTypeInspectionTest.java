@@ -17,12 +17,10 @@ package org.jetbrains.android.dom;
 
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.inspections.XmlWrongFileTypeInspection;
-import org.jetbrains.annotations.NotNull;
 
 public class XmlWrongFileTypeInspectionTest extends AndroidDomTestCase {
   public XmlWrongFileTypeInspectionTest() {
@@ -43,12 +41,7 @@ public class XmlWrongFileTypeInspectionTest extends AndroidDomTestCase {
     final IntentionAction action = AndroidTestUtils.getIntentionAction(myFixture, "Move file to \"drawable\"");
     assertNotNull(action);
 
-    new WriteAction() {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        action.invoke(getProject(), myFixture.getEditor(), myFixture.getFile());
-      }
-    }.execute();
+    WriteAction.run(() -> action.invoke(getProject(), myFixture.getEditor(), myFixture.getFile()));
 
     assertNull(LocalFileSystem.getInstance().refreshAndFindFileByPath("res/anim/animatedVector.xml"));
     assertTrue(virtualFile.getPath().endsWith("res/drawable/animatedVector.xml"));

@@ -68,12 +68,7 @@ public abstract class AbstractRegisterComponentAction extends AbstractIntentionA
       return;
     }
 
-    new WriteCommandAction.Simple(project, file, manifestFile) {
-      @Override
-      protected void run() throws Throwable {
-        invoke(psiClass, manifest);
-      }
-    }.execute();
+    WriteCommandAction.writeCommandAction(project, file, manifestFile).run(()-> invoke(psiClass, manifest));
   }
 
   @Override

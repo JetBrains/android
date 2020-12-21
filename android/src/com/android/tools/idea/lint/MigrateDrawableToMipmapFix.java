@@ -27,9 +27,9 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.fileTypes.StdFileTypes;
@@ -55,7 +55,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -120,11 +119,8 @@ class MigrateDrawableToMipmapFix implements LintIdeQuickFix {
       }
     }
 
-    WriteCommandAction<Void> action = new WriteCommandAction<Void>(project,
-                                                                   "Migrate Drawable to Bitmap",
-                                                                   applicableFiles.toArray(PsiFile.EMPTY_ARRAY)) {
-      @Override
-      protected void run(@NotNull Result<Void> result) throws Throwable {
+    WriteCommandAction.writeCommandAction(project, applicableFiles.toArray(PsiFile.EMPTY_ARRAY)).withName("Migrate Drawable to Bitmap").run(() -> {
+      try {
         // Move each drawable bitmap from drawable-my-qualifiers to bitmap-my-qualifiers
         for (PsiFile bitmap : bitmaps) {
           VirtualFile file = bitmap.getVirtualFile();
@@ -190,8 +186,7 @@ class MigrateDrawableToMipmapFix implements LintIdeQuickFix {
               if (outer.getReferenceNameElement() instanceof PsiIdentifier) {
                 PsiIdentifier identifier = (PsiIdentifier)outer.getReferenceNameElement();
                 if (ResourceType.DRAWABLE.getName().equals(identifier.getText())) {
-                  Project project = reference.getProject();
-                  final PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(project);
+                  final PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(reference.getProject());
                   PsiIdentifier newIdentifier = elementFactory.createIdentifier(ResourceType.MIPMAP.getName());
                   identifier.replace(newIdentifier);
                 }
@@ -200,8 +195,10 @@ class MigrateDrawableToMipmapFix implements LintIdeQuickFix {
           }
         }
       }
-    };
-    action.execute();
+      catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
   }
 
   @Override
