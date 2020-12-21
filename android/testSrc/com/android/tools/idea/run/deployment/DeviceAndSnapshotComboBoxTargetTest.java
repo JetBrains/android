@@ -18,12 +18,13 @@ package com.android.tools.idea.run.deployment;
 import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.run.editor.DeployTargetProvider;
+import com.android.tools.idea.run.DeviceFutures;
+import com.android.tools.idea.run.LaunchableAndroidDevice;
+import com.android.tools.idea.run.editor.DeployTarget;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.project.Project;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,43 +32,36 @@ import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
-public final class DeviceAndSnapshotComboBoxTargetProviderTest {
+public final class DeviceAndSnapshotComboBoxTargetTest {
   @Test
-  public void showPrompt() {
+  public void getDevices() {
     // Arrange
     Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+    AndroidDevice androidDevice = Mockito.mock(LaunchableAndroidDevice.class);
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
       .setKey(key)
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setAndroidDevice(androidDevice)
       .build();
 
     AsyncDevicesGetter getter = Mockito.mock(AsyncDevicesGetter.class);
     Mockito.when(getter.get()).thenReturn(Optional.of(Collections.singletonList(device)));
 
-    DialogWrapper dialog = Mockito.mock(DialogWrapper.class);
-    Mockito.when(dialog.showAndGet()).thenReturn(true);
+    DeployTarget target = new DeviceAndSnapshotComboBoxTarget(Collections.singleton(new Target(key)), project -> getter);
 
-    Set<Target> targets = Collections.singleton(new Target(key));
-
-    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
-    Mockito.when(service.getTargetsSelectedWithDialog()).thenReturn(targets);
-
-    DeployTargetProvider provider = new DeviceAndSnapshotComboBoxTargetProvider(project -> getter,
-                                                                                (project, devices) -> dialog,
-                                                                                project -> service);
+    Project project = Mockito.mock(Project.class);
 
     Module module = Mockito.mock(Module.class);
+    Mockito.when(module.getProject()).thenReturn(project);
 
     AndroidFacet facet = Mockito.mock(AndroidFacet.class);
     Mockito.when(facet.getModule()).thenReturn(module);
 
     // Act
-    Object deployTarget = provider.showPrompt(facet);
+    Object futures = target.getDevices(facet);
 
     // Assert
-    assert deployTarget != null;
-    assertEquals(targets, ((DeviceAndSnapshotComboBoxTarget)deployTarget).getTargets());
+    assertEquals(new DeviceFutures(Collections.singletonList(androidDevice)), futures);
   }
 }

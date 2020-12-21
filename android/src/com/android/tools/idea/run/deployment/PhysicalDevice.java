@@ -19,11 +19,9 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeploymentApplicationService;
-import com.android.tools.idea.run.DeviceFutures;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
 import java.time.Instant;
 import java.util.Collection;
@@ -145,11 +143,6 @@ final class PhysicalDevice extends Device {
     assert device != null;
 
     return DeploymentApplicationService.getInstance().getVersion(device);
-  }
-
-  @Override
-  void addTo(@NotNull DeviceFutures futures, @NotNull Project project) {
-    futures.getDevices().add(getAndroidDevice());
   }
 
   @Override

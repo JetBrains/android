@@ -18,9 +18,7 @@ package com.android.tools.idea.run.deployment;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.deployable.Deployable;
-import com.intellij.openapi.project.Project;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.concurrent.ExecutionException;
@@ -182,8 +180,6 @@ public abstract class Device {
       throw new AssertionError(exception);
     }
   }
-
-  abstract void addTo(@NotNull DeviceFutures futures, @NotNull Project project);
 
   @NotNull
   @Override

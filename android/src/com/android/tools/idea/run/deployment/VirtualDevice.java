@@ -19,12 +19,10 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeploymentApplicationService;
-import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.LaunchableAndroidDevice;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.execution.runners.ExecutionUtil;
-import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -190,17 +188,6 @@ final class VirtualDevice extends Device {
     assert ddmlibDevice != null;
 
     return DeploymentApplicationService.getInstance().getVersion(ddmlibDevice);
-  }
-
-  @Override
-  void addTo(@NotNull DeviceFutures futures, @NotNull Project project) {
-    AndroidDevice device = getAndroidDevice();
-
-    if (!isConnected()) {
-      device.launch(project);
-    }
-
-    futures.getDevices().add(device);
   }
 
   @Override

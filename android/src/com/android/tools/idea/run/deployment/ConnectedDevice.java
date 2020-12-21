@@ -17,8 +17,6 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.run.DeviceFutures;
-import com.intellij.openapi.project.Project;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -107,11 +105,6 @@ final class ConnectedDevice extends Device {
   @NotNull
   @Override
   Future<AndroidVersion> getAndroidVersion() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  void addTo(@NotNull DeviceFutures futures, @NotNull Project project) {
     throw new UnsupportedOperationException();
   }
 
