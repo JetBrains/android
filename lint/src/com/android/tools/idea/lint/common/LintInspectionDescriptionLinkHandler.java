@@ -35,12 +35,6 @@ public class LintInspectionDescriptionLinkHandler extends TooltipLinkHandler {
 
     if (issue != null) {
       String html = issue.getExplanation(TextFormat.HTML);
-
-      // IntelliJ seems to treat newlines in the HTML as needing to also be converted to <br> (whereas
-      // Lint includes these for HTML readability but they shouldn't add additional lines since it has
-      // already added <br> as well) so strip these out
-      html = html.replace("\n", "");
-
       StringBuilder sb = new StringBuilder(html);
 
       sb.append("<br><br>Issue id: ").append(issue.getId());
@@ -63,7 +57,10 @@ public class LintInspectionDescriptionLinkHandler extends TooltipLinkHandler {
         vendor.describeInto(sb, TextFormat.HTML, "");
       }
 
-      return sb.toString();
+      // IntelliJ seems to treat newlines in the HTML as needing to also be converted to <br> (whereas
+      // Lint includes these for HTML readability but they shouldn't add additional lines since it has
+      // already added <br> as well) so strip these out
+      return sb.toString().replace("\n", "");
     }
 
     return null;
