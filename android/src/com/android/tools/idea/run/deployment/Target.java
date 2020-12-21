@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.tools.idea.run.LaunchableAndroidDevice;
+import com.intellij.openapi.project.Project;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -40,6 +42,10 @@ final class Target {
 
   @NotNull Key getDeviceKey() {
     return myDeviceKey;
+  }
+
+  void boot(@NotNull VirtualDevice device, @NotNull Project project) {
+    ((LaunchableAndroidDevice)device.getAndroidDevice()).quickBoot(project);
   }
 
   @Override

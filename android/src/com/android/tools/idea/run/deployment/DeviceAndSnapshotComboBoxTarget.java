@@ -15,25 +15,43 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.editor.DeployTarget;
 import com.android.tools.idea.run.editor.DeployTargetState;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.project.Project;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 final class DeviceAndSnapshotComboBoxTarget implements DeployTarget {
-  @NotNull
-  private final Collection<Device> myDevices;
+  private final @NotNull Set<@NotNull Target> myTargets;
+  private final @NotNull Function<@NotNull Project, @NotNull AsyncDevicesGetter> myAsyncDevicesGetterGetInstance;
 
-  DeviceAndSnapshotComboBoxTarget(@NotNull Collection<Device> devices) {
-    myDevices = devices;
+  DeviceAndSnapshotComboBoxTarget(@NotNull Set<@NotNull Target> targets) {
+    this(targets, AsyncDevicesGetter::getInstance);
+  }
+
+  @VisibleForTesting
+  DeviceAndSnapshotComboBoxTarget(@NotNull Set<@NotNull Target> targets,
+                                  @NotNull Function<@NotNull Project, @NotNull AsyncDevicesGetter> asyncDevicesGetterGetInstance) {
+    myTargets = targets;
+    myAsyncDevicesGetterGetInstance = asyncDevicesGetterGetInstance;
+  }
+
+  @VisibleForTesting
+  @NotNull Set<@NotNull Target> getTargets() {
+    return myTargets;
   }
 
   @Override
@@ -52,20 +70,26 @@ final class DeviceAndSnapshotComboBoxTarget implements DeployTarget {
   @NotNull
   @Override
   public DeviceFutures getDevices(@NotNull AndroidFacet facet) {
-    DeviceFutures futures = new DeviceFutures(new ArrayList<>(myDevices.size()));
     Project project = facet.getModule().getProject();
-    myDevices.forEach(device -> device.addTo(futures, project));
 
-    return futures;
+    return myAsyncDevicesGetterGetInstance.apply(project).get()
+      .map(devices -> newDeviceFutures(devices, project))
+      .orElse(new DeviceFutures(Collections.emptyList()));
   }
 
-  @Override
-  public int hashCode() {
-    return myDevices.hashCode();
-  }
+  private @NotNull DeviceFutures newDeviceFutures(@NotNull List<@NotNull Device> devices, @NotNull Project project) {
+    devices = Target.filterDevices(myTargets, devices);
+    Map<Key, Target> map = myTargets.stream().collect(Collectors.toMap(Target::getDeviceKey, target -> target));
+    List<AndroidDevice> androidDevices = new ArrayList<>(devices.size());
 
-  @Override
-  public boolean equals(@Nullable Object object) {
-    return object instanceof DeviceAndSnapshotComboBoxTarget && myDevices.equals(((DeviceAndSnapshotComboBoxTarget)object).myDevices);
+    for (Device device : devices) {
+      if (!device.isConnected()) {
+        map.get(device.getKey()).boot((VirtualDevice)device, project);
+      }
+
+      androidDevices.add(device.getAndroidDevice());
+    }
+
+    return new DeviceFutures(androidDevices);
   }
 }
