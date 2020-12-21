@@ -43,13 +43,24 @@ class LambdaResolverTest {
         number -> number * number
       }
 
-      class c1 {
+      class C1 {
+        inner class C2 {
+          init {
+            f2({1}, {2})
+          }
+        }
+
+        fun fx() {
+            f2({1}, {2})
+        }
+
         init {
           f2({1}, {2}, { f2({3}, {4}) })
         }
       }
 
       fun f1() {
+        val x: () -> Int = { 15 }
         f2({1}, {2}, { f2({3}, {4}) })
         f2(l1, l2, l1)
       }
@@ -60,19 +71,19 @@ class LambdaResolverTest {
     """.trimIndent()
     projectRule.fixture.addFileToProject("src/com/company/app/MainActivity.kt", kotlinFile)
     val resourceLookup = ResourceLookup(projectRule.project)
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f1$1", 14, 14), "MainActivity.kt:15", "{1}")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f1$2", 14, 14), "MainActivity.kt:15", "{2}")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f1$3", 14, 14),
-                   "MainActivity.kt:15", "{ f2({3}, {4}) }")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f1$3$1", 14, 14), "MainActivity.kt:15", "{3}")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f1$3$2", 14, 14), "MainActivity.kt:15", "{4}")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f2$1", 18, 18), "MainActivity.kt:19", "{-1}")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "$1", 9, 9), "MainActivity.kt:10", "{1}")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "$2", 9, 9), "MainActivity.kt:10", "{2}")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "$3", 9, 9),
-                   "MainActivity.kt:10", "{ f2({3}, {4}) }")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "$3$1", 9, 9), "MainActivity.kt:10", "{3}")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "$3$2", 9, 9), "MainActivity.kt:10", "{4}")
+    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f1$1", 25, 25), "MainActivity.kt:26", "{1}")
+    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f1$2", 25, 25), "MainActivity.kt:26", "{2}")
+    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f1$3", 25, 25),
+                   "MainActivity.kt:26", "{ f2({3}, {4}) }")
+    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f1$3$1", 25, 25), "MainActivity.kt:26", "{3}")
+    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f1$3$2", 25, 25), "MainActivity.kt:26", "{4}")
+    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f2$1", 29, 29), "MainActivity.kt:30", "{-1}")
+    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "$1", 19, 19), "MainActivity.kt:20", "{1}")
+    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "$2", 19, 19), "MainActivity.kt:20", "{2}")
+    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "$3", 19, 19),
+                   "MainActivity.kt:20", "{ f2({3}, {4}) }")
+    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "$3$1", 19, 19), "MainActivity.kt:20", "{3}")
+    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "$3$2", 19, 19), "MainActivity.kt:20", "{4}")
     assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "l1$1", 2, 2), "MainActivity.kt:3", "{ it }")
     assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "l2$1", 4, 5), "MainActivity.kt:4",
                    """

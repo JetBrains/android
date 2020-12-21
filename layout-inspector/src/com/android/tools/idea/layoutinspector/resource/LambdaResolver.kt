@@ -166,8 +166,23 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
         nestingLevel--
         return null
       }
+
+      override fun visitClass(klass: KtClass, data: Unit?): Void? {
+        // Do not recurse into a class, since this would be a different top element
+        return null
+      }
+
+      override fun visitProperty(property: KtProperty, data: Unit?): Void? {
+        // Do not recurse into a property, since this would be a different top element
+        return null
+      }
+
+      override fun visitNamedFunction(function: KtNamedFunction, data: Unit?): Void? {
+        // Do not recurse into a property, since this would be a different top element
+        return null
+      }
     }
-    top.accept(findLambdaFromSelectorVisitor, null)
+    top.acceptChildren(findLambdaFromSelectorVisitor, null)
     return bestLambda
   }
 }
