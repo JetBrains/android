@@ -79,12 +79,7 @@ public class ManifestUtilsTest extends AndroidTestCase {
 
   private void toolsRemove(final @NotNull String input, final @NotNull Node item, @NotNull String result) {
     final XmlFile file = getDoc(input);
-    new WriteCommandAction.Simple(getProject(), file) {
-      @Override
-      protected void run() throws Throwable {
-        ManifestUtils.toolsRemove(file, item);
-      }
-    }.execute();
+    WriteCommandAction.writeCommandAction(getProject(), file).run(() -> ManifestUtils.toolsRemove(file, item));
     assertEquals(result, file.getText());
   }
 

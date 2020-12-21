@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.google.common.base.Strings;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.module.Module;
@@ -193,12 +192,9 @@ public class LinkExternalCppProjectDialog extends DialogWrapper {
     }
 
     Project project = myModule.getProject();
-    new WriteCommandAction(project, "Link C++ Project with Gradle") {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        buildModel.applyChanges();
-      }
-    }.execute();
+    WriteCommandAction.writeCommandAction(project).withName("Link C++ Project with Gradle").run(() -> {
+      buildModel.applyChanges();
+    });
 
     GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_CPP_EXTERNAL_PROJECT_LINKED);
     super.doOKAction();

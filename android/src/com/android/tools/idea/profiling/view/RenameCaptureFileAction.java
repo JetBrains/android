@@ -18,7 +18,6 @@ package com.android.tools.idea.profiling.view;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.CommonShortcuts;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
@@ -112,12 +111,9 @@ public class RenameCaptureFileAction extends DumbAwareAction {
       final String newName = myInput.getText().trim() + (extension != null && !extension.isEmpty() ? "." + extension : "");
       String commandName = String.format("Rename %1$s to %2$s", myFile.getName(), newName);
       try {
-        new WriteCommandAction(myProject, commandName) {
-          @Override
-          protected void run(@NotNull Result result) throws Throwable {
-            myFile.rename(this, newName);
-          }
-        }.execute();
+        WriteCommandAction.writeCommandAction(myProject).withName(commandName).run(() -> {
+          myFile.rename(this, newName);
+        });
       } catch (Exception e) {
         setErrorText(String.format("Could not rename to %1$s: %2$s", newName, e.getCause().getMessage()));
         return;

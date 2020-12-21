@@ -39,7 +39,6 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.history.LocalHistory;
 import com.intellij.history.LocalHistoryAction;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
@@ -103,23 +102,20 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
             replaceReferences(getName(), startElement, null, useAndroidx);
           }
           else {
-            new WriteCommandAction(module.getProject(), getName()) {
-              @Override
-              protected void run(@NotNull Result result) {
-                if (libraryCoordinate != null) {
-                  ModuleRootModificationUtil.updateModel(module, model -> {
-                    GradleBuildModel buildModel = GradleBuildModel.get(module);
-                    if (buildModel != null) {
-                      String name = GradleUtil.mapConfigurationName(COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
-                      buildModel.dependencies().addArtifact(name, libraryCoordinate);
-                      buildModel.applyChanges();
-                    }
-                  });
-                }
-
-                syncAndReplaceReferences(project, startElement, useAndroidx);
+            WriteCommandAction.writeCommandAction(module.getProject()).withName(getName()).run(() -> {
+              if (libraryCoordinate != null) {
+                ModuleRootModificationUtil.updateModel(module, model -> {
+                  GradleBuildModel buildModel2 = GradleBuildModel.get(module);
+                  if (buildModel2 != null) {
+                    String name = GradleUtil.mapConfigurationName(COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
+                    buildModel2.dependencies().addArtifact(name, libraryCoordinate);
+                    buildModel2.applyChanges();
+                  }
+                });
               }
-            }.execute();
+
+              syncAndReplaceReferences(project, startElement, useAndroidx);
+            });
           }
         }
         finally {
@@ -183,37 +179,34 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
                                           @NotNull PsiElement element,
                                           @Nullable PsiClass cls,
                                           boolean useAndroidx) {
-      new WriteCommandAction(element.getProject(), actionName) {
-        @Override
-        protected void run(@NotNull Result result) {
-          Project project = element.getProject();
-          PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
-          PsiFile file = element.getContainingFile();
-          file.accept(new JavaRecursiveElementVisitor() {
-            @Override
-            public void visitReferenceElement(PsiJavaCodeReferenceElement expression) {
-              if (ExifInterfaceDetector.EXIF_INTERFACE.equals(expression.getReferenceName())) {
-                if (expression.isQualified()) {
-                  PsiElement context = expression.getParent();
-                  if (expression instanceof PsiReferenceExpression) {
-                    if (cls != null) {
-                      PsiReferenceExpression replacement = factory.createReferenceExpression(cls);
-                      expression.replace(replacement);
-                      return;
-                    }
-                  }
-                  else {
-                    expression.replace(
-                      factory.createReferenceFromText(useAndroidx ? NEW_EXIT_INTERFACE.newName() : NEW_EXIT_INTERFACE.oldName(), context));
+      WriteCommandAction.writeCommandAction(element.getProject()).withName(actionName).run(() -> {
+        Project project = element.getProject();
+        PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
+        PsiFile file = element.getContainingFile();
+        file.accept(new JavaRecursiveElementVisitor() {
+          @Override
+          public void visitReferenceElement(PsiJavaCodeReferenceElement expression) {
+            if (ExifInterfaceDetector.EXIF_INTERFACE.equals(expression.getReferenceName())) {
+              if (expression.isQualified()) {
+                PsiElement context = expression.getParent();
+                if (expression instanceof PsiReferenceExpression) {
+                  if (cls != null) {
+                    PsiReferenceExpression replacement = factory.createReferenceExpression(cls);
+                    expression.replace(replacement);
                     return;
                   }
                 }
+                else {
+                  expression.replace(
+                    factory.createReferenceFromText(useAndroidx ? NEW_EXIT_INTERFACE.newName() : NEW_EXIT_INTERFACE.oldName(), context));
+                  return;
+                }
               }
-              super.visitReferenceElement(expression);
             }
-          });
-        }
-      }.execute();
+            super.visitReferenceElement(expression);
+          }
+        });
+      });
     }
   }
 }

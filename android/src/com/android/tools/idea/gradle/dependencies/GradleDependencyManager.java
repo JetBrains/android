@@ -36,7 +36,6 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.google.common.base.Objects;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
@@ -220,21 +219,18 @@ public class GradleDependencyManager {
     }
 
     Project project = module.getProject();
-    new WriteCommandAction(project, ADD_DEPENDENCY) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        List<GradleCoordinate> missing = findMissingDependencies(module, coordinates);
-        if (missing.isEmpty()) {
-          return;
-        }
-
-        addDependencies(buildModel, module, missing, nameMapper);
-
-        if (performSync) {
-          requestProjectSync(project, callback, TRIGGER_GRADLEDEPENDENCY_ADDED);
-        }
+    WriteCommandAction.writeCommandAction(project).withName(ADD_DEPENDENCY).run(() -> {
+      List<GradleCoordinate> missing = findMissingDependencies(module, coordinates);
+      if (missing.isEmpty()) {
+        return;
       }
-    }.execute();
+
+      addDependencies(buildModel, module, missing, nameMapper);
+
+      if (performSync) {
+        requestProjectSync(project, callback, TRIGGER_GRADLEDEPENDENCY_ADDED);
+      }
+    });
     return true;
   }
 
@@ -263,13 +259,10 @@ public class GradleDependencyManager {
     assert !coordinates.isEmpty();
 
     Project project = module.getProject();
-    new WriteCommandAction(project, ADD_DEPENDENCY) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        updateDependencies(buildModel, module, coordinates);
-        requestProjectSync(project, callback, TRIGGER_GRADLEDEPENDENCY_UPDATED);
-      }
-    }.execute();
+    WriteCommandAction.writeCommandAction(project).withName(ADD_DEPENDENCY).run(() -> {
+      updateDependencies(buildModel, module, coordinates);
+      requestProjectSync(project, callback, TRIGGER_GRADLEDEPENDENCY_UPDATED);
+    });
   }
 
   private static void requestProjectSync(@NotNull Project project, @Nullable Runnable callback, @NotNull GradleSyncStats.Trigger trigger) {

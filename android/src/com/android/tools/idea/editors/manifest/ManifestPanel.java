@@ -243,12 +243,9 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       TreePath treePath = myTree.getSelectionPath();
       final ManifestTreeNode node = (ManifestTreeNode)treePath.getLastPathComponent();
 
-      new WriteCommandAction.Simple(myFacet.getModule().getProject(), "Removing manifest tag", ManifestUtils.getMainManifest(myFacet)) {
-        @Override
-        protected void run() throws Throwable {
-          ManifestUtils.toolsRemove(ManifestUtils.getMainManifest(myFacet), node.getUserObject());
-        }
-      }.execute();
+      WriteCommandAction.writeCommandAction(myFacet.getModule().getProject(), ManifestUtils.getMainManifest(myFacet)).withName("Removing manifest tag").run(()-> {
+        ManifestUtils.toolsRemove(ManifestUtils.getMainManifest(myFacet), node.getUserObject());
+      });
     });
     myPopup.add(myRemoveItem);
 
@@ -961,12 +958,9 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
                                 final @NotNull String attributeName,
                                 final @NotNull String attributeValue) {
     final Project project = file.getProject();
-    new WriteCommandAction.Simple(project, "Apply manifest suggestion", file) {
-      @Override
-      protected void run() throws Throwable {
-        ManifestUtils.addToolsAttribute(file, element, attributeName, attributeValue);
-      }
-    }.execute();
+    writeCommandAction(project).withName("Apply manifest suggestion").run(() -> {
+      ManifestUtils.addToolsAttribute(file, element, attributeName, attributeValue);
+    });
   }
 
   @NotNull

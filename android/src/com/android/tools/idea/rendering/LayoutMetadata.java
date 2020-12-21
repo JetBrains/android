@@ -25,7 +25,6 @@ import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -293,31 +292,30 @@ public class LayoutMetadata {
     if (title == null) {
       title = String.format(value != null ? "Set %1$s" : "Clear %1$s", capitalizedName);
     }
-    WriteCommandAction<Void> action = new WriteCommandAction<Void>(project, title, file) {
-      @Override
-      protected void run(@NotNull Result<Void> result) throws Throwable {
-        if (value == null) {
-          // Clear attribute
-          XmlAttribute attribute;
-          if (namespace != null) {
-              attribute = element.getAttribute(name, namespace);
-          } else {
-              attribute = element.getAttribute(name);
-          }
-          if (attribute != null) {
-            attribute.delete();
-          }
-        } else {
-          if (namespace != null) {
-            IdeResourcesUtil.ensureNamespaceImported(file, namespace, null);
-            element.setAttribute(name, namespace, value);
-          } else {
-            element.setAttribute(name, value);
-          }
+    WriteCommandAction.writeCommandAction(project, file).withName(title).run(() -> {
+      if (value == null) {
+        // Clear attribute
+        XmlAttribute attribute;
+        if (namespace != null) {
+          attribute = element.getAttribute(name, namespace);
+        }
+        else {
+          attribute = element.getAttribute(name);
+        }
+        if (attribute != null) {
+          attribute.delete();
         }
       }
-    };
-    action.execute();
+      else {
+        if (namespace != null) {
+          IdeResourcesUtil.ensureNamespaceImported(file, namespace, null);
+          element.setAttribute(name, namespace, value);
+        }
+        else {
+          element.setAttribute(name, value);
+        }
+      }
+    });
 
     // Also set the values on the same elements in any resource variations
     // of the same layout
@@ -374,33 +372,32 @@ public class LayoutMetadata {
           affectedFiles.add(psiFile);
         }
       }
-      action = new WriteCommandAction<Void>(project, title, affectedFiles.toArray(PsiFile.EMPTY_ARRAY)) {
-        @Override
-        protected void run(@NotNull Result<Void> result) throws Throwable {
-          for (XmlTag tag : list) {
-            if (value == null) {
-              // Clear attribute
-              XmlAttribute attribute;
-              if (namespace != null) {
-                attribute = tag.getAttribute(name, namespace);
-              } else {
-                attribute = tag.getAttribute(name);
-              }
-              if (attribute != null) {
-                attribute.delete();
-              }
-            } else {
-              if (namespace != null) {
-                IdeResourcesUtil.ensureNamespaceImported(file, namespace, null);
-                tag.setAttribute(name, namespace, value);
-              } else {
-                tag.setAttribute(name, value);
-              }
+      WriteCommandAction.writeCommandAction(project, affectedFiles.toArray(PsiFile.EMPTY_ARRAY)).withName(title).run(() -> {
+        for (XmlTag tag : list) {
+          if (value == null) {
+            // Clear attribute
+            XmlAttribute attribute;
+            if (namespace != null) {
+              attribute = tag.getAttribute(name, namespace);
+            }
+            else {
+              attribute = tag.getAttribute(name);
+            }
+            if (attribute != null) {
+              attribute.delete();
+            }
+          }
+          else {
+            if (namespace != null) {
+              IdeResourcesUtil.ensureNamespaceImported(file, namespace, null);
+              tag.setAttribute(name, namespace, value);
+            }
+            else {
+              tag.setAttribute(name, value);
             }
           }
         }
-      };
-      action.execute();
+      });
     }
   }
 }

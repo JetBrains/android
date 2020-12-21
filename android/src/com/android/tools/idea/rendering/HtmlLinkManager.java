@@ -56,7 +56,6 @@ import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
@@ -130,7 +129,7 @@ public class HtmlLinkManager {
   private static final String URL_CLEAR_CACHE_AND_NOTIFY = "clearCacheAndNotify";
 
   private SparseArray<Runnable> myLinkRunnables;
-  private SparseArray<WriteCommandAction> myLinkCommands;
+  private SparseArray<CommandLink> myLinkCommands;
   private int myNextLinkId = 0;
 
   public HtmlLinkManager() {
@@ -242,9 +241,13 @@ public class HtmlLinkManager {
         .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
     }
     else if (url.startsWith(URL_COMMAND)) {
-      WriteCommandAction command = getLinkCommand(url);
-      if (command != null) {
-        command.execute();
+      if (myLinkCommands != null && url.startsWith(URL_COMMAND)) {
+        String idString = url.substring(URL_COMMAND.length());
+        int id = Integer.decode(idString);
+        CommandLink command = myLinkCommands.get(id);
+        if (command != null) {
+          command.executeCommand();
+        }
       }
     }
     else if (url.startsWith(URL_REFRESH_RENDER)) {
@@ -325,24 +328,27 @@ public class HtmlLinkManager {
     }
   }
 
-  public String createCommandLink(@NotNull WriteCommandAction command) {
+  static abstract class CommandLink implements Runnable {
+    private final String myCommandName;
+    private final PsiFile myFile;
+
+    CommandLink(@NotNull String commandName, @NotNull PsiFile file) {
+      myCommandName = commandName;
+      myFile = file;
+    }
+    void executeCommand() {
+      WriteCommandAction.writeCommandAction(myFile.getProject(), myFile).withName(myCommandName).run(() -> run());
+    }
+  }
+
+  String createCommandLink(@NotNull CommandLink command) {
     String url = URL_COMMAND + myNextLinkId;
     if (myLinkCommands == null) {
-      myLinkCommands = new SparseArray<>(5);
+      myLinkCommands = new SparseArray<CommandLink>(5);
     }
     myLinkCommands.put(myNextLinkId, command);
     myNextLinkId++;
     return url;
-  }
-
-  @Nullable
-  private WriteCommandAction getLinkCommand(String url) {
-    if (myLinkCommands != null && url.startsWith(URL_COMMAND)) {
-      String idString = url.substring(URL_COMMAND.length());
-      int id = Integer.decode(idString);
-      return myLinkCommands.get(id);
-    }
-    return null;
   }
 
   public String createRunnableLink(@NotNull Runnable runnable) {
@@ -377,8 +383,7 @@ public class HtmlLinkManager {
     if (delimiterPos != -1) {
       String wrongTag = url.substring(start, delimiterPos);
       String rightTag = url.substring(delimiterPos + 1);
-      ReplaceTagFix fix = new ReplaceTagFix(module.getProject(), (XmlFile)file, wrongTag, rightTag);
-      fix.execute();
+      new ReplaceTagFix((XmlFile)file, wrongTag, rightTag).run();
     }
   }
 
@@ -496,9 +501,7 @@ public class HtmlLinkManager {
     if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
       final PsiDirectory targetDirectory = dialog.getTargetDirectory();
       if (targetDirectory != null) {
-        PsiClass newClass = new WriteCommandAction<PsiClass>(project, "Create Class") {
-          @Override
-          protected void run(@NotNull Result<PsiClass> result) throws Throwable {
+        PsiClass newClass = WriteCommandAction.writeCommandAction(project).withName("Create Class").compute(()-> {
             PsiClass targetClass = JavaDirectoryService.getInstance().createClass(targetDirectory, className);
             PsiManager manager = PsiManager.getInstance(project);
             final JavaPsiFacade facade = JavaPsiFacade.getInstance(manager.getProject());
@@ -552,9 +555,9 @@ public class HtmlLinkManager {
               codeStyleManager.reformat(javaFile);
             }
 
-            result.setResult(targetClass);
+            return targetClass;
           }
-        }.execute().getResultObject();
+        );
 
         if (newClass != null) {
           PsiFile file = newClass.getContainingFile();
@@ -732,9 +735,7 @@ public class HtmlLinkManager {
       id = Lint.stripIdPrefix(url.substring(start));
     }
 
-    WriteCommandAction<Void> action = new WriteCommandAction<Void>(module.getProject(), "Assign Fragment", file) {
-      @Override
-      protected void run(@NotNull Result<Void> result) throws Throwable {
+    WriteCommandAction.writeCommandAction(module.getProject(), file).withName("Assign Fragment").run(()-> {
         Collection<XmlTag> tags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
         for (XmlTag tag : tags) {
           if (!isFragmentTag(tag.getName())) {
@@ -764,9 +765,7 @@ public class HtmlLinkManager {
             break;
           }
         }
-      }
-    };
-    action.execute();
+      });
   }
 
   public String createPickLayoutUrl(@NotNull String activityName) {
@@ -831,25 +830,21 @@ public class HtmlLinkManager {
     @NotNull final String activityName,
     @NotNull final String layout) {
 
-    WriteCommandAction<Void> action = new WriteCommandAction<Void>(project, "Assign Preview Layout", file) {
-      @Override
-      protected void run(@NotNull Result<Void> result) throws Throwable {
-        IdeResourcesUtil.ensureNamespaceImported(file, TOOLS_URI, null);
-        Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
-        for (XmlTag tag : xmlTags) {
-          if (isFragmentTag(tag.getName())) {
-            String name = tag.getAttributeValue(ATTR_CLASS);
-            if (name == null || name.isEmpty()) {
-              name = tag.getAttributeValue(ATTR_NAME, ANDROID_URI);
-            }
-            if (activityName.equals(name)) {
-              tag.setAttribute(ATTR_LAYOUT, TOOLS_URI, layout);
-            }
+    WriteCommandAction.writeCommandAction(project, file).withName("Assign Preview Layout").run(() -> {
+      IdeResourcesUtil.ensureNamespaceImported(file, TOOLS_URI, null);
+      Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
+      for (XmlTag tag : xmlTags) {
+        if (isFragmentTag(tag.getName())) {
+          String name = tag.getAttributeValue(ATTR_CLASS);
+          if (name == null || name.isEmpty()) {
+            name = tag.getAttributeValue(ATTR_NAME, ANDROID_URI);
+          }
+          if (activityName.equals(name)) {
+            tag.setAttribute(ATTR_LAYOUT, TOOLS_URI, layout);
           }
         }
       }
-    };
-    action.execute();
+    });
   }
 
   public String createIgnoreFragmentsUrl() {
@@ -906,35 +901,31 @@ public class HtmlLinkManager {
     final String oldValue = url.substring(valueStart + 1, newValueStart);
     final String newValue = url.substring(newValueStart + 1);
 
-    WriteCommandAction<Void> action = new WriteCommandAction<Void>(module.getProject(), "Set Attribute Value", file) {
-      @Override
-      protected void run(@NotNull Result<Void> result) throws Throwable {
-        Collection<XmlAttribute> attributes = PsiTreeUtil.findChildrenOfType(file, XmlAttribute.class);
-        int oldValueLen = oldValue.length();
-        for (XmlAttribute attribute : attributes) {
-          if (attributeName.equals(attribute.getLocalName())) {
-            String attributeValue = attribute.getValue();
-            if (attributeValue == null) {
-              continue;
-            }
-            if (oldValue.equals(attributeValue)) {
-              attribute.setValue(newValue);
-            }
-            else {
-              int index = attributeValue.indexOf(oldValue);
-              if (index != -1) {
-                if ((index == 0 || attributeValue.charAt(index - 1) == '|') &&
-                    (index + oldValueLen == attributeValue.length() || attributeValue.charAt(index + oldValueLen) == '|')) {
-                  attributeValue = attributeValue.substring(0, index) + newValue + attributeValue.substring(index + oldValueLen);
-                  attribute.setValue(attributeValue);
-                }
+    WriteCommandAction.writeCommandAction(module.getProject(), file).withName("Set Attribute Value").run(() -> {
+      Collection<XmlAttribute> attributes = PsiTreeUtil.findChildrenOfType(file, XmlAttribute.class);
+      int oldValueLen = oldValue.length();
+      for (XmlAttribute attribute : attributes) {
+        if (attributeName.equals(attribute.getLocalName())) {
+          String attributeValue = attribute.getValue();
+          if (attributeValue == null) {
+            continue;
+          }
+          if (oldValue.equals(attributeValue)) {
+            attribute.setValue(newValue);
+          }
+          else {
+            int index = attributeValue.indexOf(oldValue);
+            if (index != -1) {
+              if ((index == 0 || attributeValue.charAt(index - 1) == '|') &&
+                  (index + oldValueLen == attributeValue.length() || attributeValue.charAt(index + oldValueLen) == '|')) {
+                attributeValue = attributeValue.substring(0, index) + newValue + attributeValue.substring(index + oldValueLen);
+                attribute.setValue(attributeValue);
               }
             }
           }
         }
       }
-    };
-    action.execute();
+    });
   }
 
   public String createDisableSandboxUrl() {

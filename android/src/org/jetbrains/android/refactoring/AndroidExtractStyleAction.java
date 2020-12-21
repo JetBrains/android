@@ -3,7 +3,6 @@ package org.jetbrains.android.refactoring;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
@@ -138,9 +137,10 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
     final Ref<Style> createdStyleRef = Ref.create();
     final boolean finalSupportImplicitParent = supportImplicitParent;
 
-    new WriteCommandAction(project, "Extract Android Style '" + styleName + "'", file) {
-      @Override
-      protected void run(@NotNull final Result result) throws Throwable {
+    WriteCommandAction.writeCommandAction(project, file)
+      .withName("Extract Android Style '" + styleName + "'")
+      .withUndoConfirmationPolicy(UndoConfirmationPolicy.REQUEST_CONFIRMATION)
+      .run(() -> {
         final List<XmlAttribute> attributesToDelete = new ArrayList<XmlAttribute>();
 
         if (!IdeResourcesUtil
@@ -185,13 +185,7 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
           }
         });
         success[0] = true;
-      }
-
-      @Override
-      protected UndoConfirmationPolicy getUndoConfirmationPolicy() {
-        return UndoConfirmationPolicy.REQUEST_CONFIRMATION;
-      }
-    }.execute();
+      });
 
     if (!success[0]) {
       return null;

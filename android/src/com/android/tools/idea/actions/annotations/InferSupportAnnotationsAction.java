@@ -45,7 +45,6 @@ import com.intellij.ide.scratch.ScratchRootType;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
@@ -307,21 +306,18 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
     if (Messages.showOkCancelDialog(project, message, "Infer Nullity Annotations", Messages.getErrorIcon()) == Messages.OK) {
       LocalHistoryAction action = LocalHistory.getInstance().startAction(ADD_DEPENDENCY);
       try {
-        new WriteCommandAction(project, ADD_DEPENDENCY) {
-          @Override
-          protected void run(@NotNull Result result) throws Throwable {
-            RepositoryUrlManager manager = RepositoryUrlManager.get();
-            GoogleMavenArtifactId annotation = MigrateToAndroidxUtil.isAndroidx(project) ?
-                                               GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS :
-                                               GoogleMavenArtifactId.SUPPORT_ANNOTATIONS;
-            String annotationsLibraryCoordinate = manager.getArtifactStringCoordinate(annotation, true);
-            for (Module module : modulesWithoutAnnotations) {
-              addDependency(module, annotationsLibraryCoordinate);
-            }
-
-            syncAndRestartAnalysis(project, scope);
+        WriteCommandAction.writeCommandAction(project).withName(ADD_DEPENDENCY).run(() -> {
+          RepositoryUrlManager manager = RepositoryUrlManager.get();
+          GoogleMavenArtifactId annotation = MigrateToAndroidxUtil.isAndroidx(project) ?
+                                             GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS :
+                                             GoogleMavenArtifactId.SUPPORT_ANNOTATIONS;
+          String annotationsLibraryCoordinate = manager.getArtifactStringCoordinate(annotation, true);
+          for (Module module : modulesWithoutAnnotations) {
+            addDependency(module, annotationsLibraryCoordinate);
           }
-        }.execute();
+
+          syncAndRestartAnalysis(project, scope);
+        });
       }
       finally {
         action.finish();
@@ -355,38 +351,35 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
     return () -> {
       LocalHistoryAction action = LocalHistory.getInstance().startAction(INFER_SUPPORT_ANNOTATIONS);
       try {
-        new WriteCommandAction(project, INFER_SUPPORT_ANNOTATIONS) {
-          @Override
-          protected void run(@NotNull Result result) throws Throwable {
-            UsageInfo[] infos = computable.compute();
-            if (infos.length > 0) {
+        WriteCommandAction.writeCommandAction(project).withName(INFER_SUPPORT_ANNOTATIONS).run(() -> {
+          UsageInfo[] infos = computable.compute();
+          if (infos.length > 0) {
 
-              Set<PsiElement> elements = new LinkedHashSet<>();
-              for (UsageInfo info : infos) {
-                PsiElement element = info.getElement();
-                if (element != null) {
-                  PsiFile containingFile = element.getContainingFile();
-                  // Skip results in .class files; these are typically from extracted AAR files
-                  VirtualFile virtualFile = containingFile.getVirtualFile();
-                  if (virtualFile.getFileType().isBinary()) {
-                    continue;
-                  }
-
-                  ContainerUtil.addIfNotNull(elements, containingFile);
+            Set<PsiElement> elements = new LinkedHashSet<>();
+            for (UsageInfo info : infos) {
+              PsiElement element = info.getElement();
+              if (element != null) {
+                PsiFile containingFile = element.getContainingFile();
+                // Skip results in .class files; these are typically from extracted AAR files
+                VirtualFile virtualFile = containingFile.getVirtualFile();
+                if (virtualFile.getFileType().isBinary()) {
+                  continue;
                 }
-              }
-              if (!FileModificationService.getInstance().preparePsiElementsForWrite(elements)) return;
 
-              SequentialModalProgressTask progressTask = new SequentialModalProgressTask(project, INFER_SUPPORT_ANNOTATIONS, false);
-              progressTask.setMinIterationTime(200);
-              progressTask.setTask(new AnnotateTask(project, progressTask, infos));
-              ProgressManager.getInstance().run(progressTask);
+                ContainerUtil.addIfNotNull(elements, containingFile);
+              }
             }
-            else {
-              InferSupportAnnotations.nothingFoundMessage(project);
-            }
+            if (!FileModificationService.getInstance().preparePsiElementsForWrite(elements)) return;
+
+            SequentialModalProgressTask progressTask = new SequentialModalProgressTask(project, INFER_SUPPORT_ANNOTATIONS, false);
+            progressTask.setMinIterationTime(200);
+            progressTask.setTask(new AnnotateTask(project, progressTask, infos));
+            ProgressManager.getInstance().run(progressTask);
           }
-        }.execute();
+          else {
+            InferSupportAnnotations.nothingFoundMessage(project);
+          }
+        });
       }
       finally {
         action.finish();
