@@ -32,7 +32,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -142,12 +141,7 @@ public class ProjectFontsTest extends FontTestCase {
   public void testNonExistingXmlFile() throws Exception {
     VirtualFile file = myFixture.copyFileToProject("fonts/misc.xml", "res/font/misc.xml");
     ProjectFonts project = createProjectFonts(file);
-    new WriteCommandAction.Simple(getProject(), "Delete misc.xml") {
-      @Override
-      protected void run() throws Throwable {
-        file.delete(this);
-      }
-    }.execute();
+    WriteCommandAction.writeCommandAction(getProject()).withName("Delete misc.xml").run(() -> file.delete(this));
     assertUnresolvedFont(project.getFont("@font/misc"), "misc");
   }
 

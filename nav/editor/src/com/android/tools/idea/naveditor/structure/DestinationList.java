@@ -43,7 +43,6 @@ import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColoredListCellRenderer;
@@ -185,13 +184,9 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
       public void actionPerformed(ActionEvent event) {
         List<NlComponent> toDelete = myList.getSelectedValuesList();
         if (!toDelete.isEmpty()) {
-          new WriteCommandAction(myDesignSurface.getProject(), "Delete Destination" + (toDelete.size() > 1 ? "s" : ""),
-                                 myDesignSurface.getModel().getFile()) {
-            @Override
-            protected void run(@NotNull Result result) {
-              myDesignSurface.getModel().delete(toDelete);
-            }
-          }.execute();
+          WriteCommandAction.writeCommandAction(myDesignSurface.getProject(), myDesignSurface.getModel().getFile())
+            .withName("Delete Destination" + (toDelete.size() > 1 ? "s" : ""))
+            .run(()-> myDesignSurface.getModel().delete(toDelete));
         }
       }
     });

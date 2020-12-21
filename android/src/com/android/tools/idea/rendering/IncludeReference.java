@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.SdkConstants.ATTR_SHOW_IN;
+import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
+import static com.android.SdkConstants.TOOLS_URI;
+
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -29,12 +33,9 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-
-import static com.android.SdkConstants.*;
 
 /**
  * A reference to a particular file in the project
@@ -181,8 +182,8 @@ public class IncludeReference {
   public static void setIncludingLayout(@NotNull Project project, @NotNull XmlFile xmlFile, @Nullable String layout) {
     XmlTag tag = xmlFile.getRootTag();
     if (tag != null) {
-      SetAttributeFix fix = new SetAttributeFix(project, tag, ATTR_SHOW_IN, TOOLS_URI, layout);
-      fix.execute();
+      SetAttributeFix fix = new SetAttributeFix(tag, ATTR_SHOW_IN, TOOLS_URI, layout);
+      fix.executeCommand();
     }
   }
 

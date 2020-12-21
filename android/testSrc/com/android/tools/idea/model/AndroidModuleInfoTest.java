@@ -139,14 +139,11 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     final String defaultPlaceholder = "${defaultTheme}";
 
     // Check placeholder completion
-    new WriteCommandAction.Simple(getProject(), psiFile) {
-      @Override
-      protected void run() throws Throwable {
-        int offset = document.getText().indexOf(defaultPlaceholder);
-        document.replaceString(offset, offset + defaultPlaceholder.length(), "${<caret>");
-        manager.commitAllDocuments();
-      }
-    }.execute();
+    WriteCommandAction.writeCommandAction(getProject(), psiFile).run(()->{
+      int offset = document.getText().indexOf(defaultPlaceholder);
+      document.replaceString(offset, offset + defaultPlaceholder.length(), "${<caret>");
+      manager.commitAllDocuments();
+    });
     FileDocumentManager.getInstance().saveAllDocuments();
     myFixture.configureFromExistingVirtualFile(file);
 
@@ -179,22 +176,19 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     assertNotNull(manifestFile);
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(manifestFile);
     assertNotNull(psiFile);
-    new WriteCommandAction.Simple(getProject(), psiFile) {
-      @Override
-      protected void run() throws Throwable {
-        assertNotNull(Manifest.getMainManifest(myAndroidFacet));
-        XmlTag manifestTag = Manifest.getMainManifest(myAndroidFacet).getXmlTag();
-        Optional<XmlTag> optional = Arrays.stream(manifestTag.getSubTags()).filter(tag -> {
-          assertNotNull(tag);
-          return "application".equals(tag.getName());
-        }).findFirst();
-        assert optional.isPresent();
-        XmlTag applicationTag = optional.get();
-        XmlTag activityTag = applicationTag.createChildTag("activity", "", null, false);
-        activityTag.setAttribute("android:name", ".AddedActivity");
-        applicationTag.addSubTag(activityTag, false);
-      }
-    }.execute();
+    WriteCommandAction.writeCommandAction(getProject(), psiFile).run(()->{
+      assertNotNull(Manifest.getMainManifest(myAndroidFacet));
+      XmlTag manifestTag = Manifest.getMainManifest(myAndroidFacet).getXmlTag();
+      Optional<XmlTag> optional = Arrays.stream(manifestTag.getSubTags()).filter(tag -> {
+        assertNotNull(tag);
+        return "application".equals(tag.getName());
+      }).findFirst();
+      assert optional.isPresent();
+      XmlTag applicationTag = optional.get();
+      XmlTag activityTag = applicationTag.createChildTag("activity", "", null, false);
+      activityTag.setAttribute("android:name", ".AddedActivity");
+      applicationTag.addSubTag(activityTag, false);
+    });
     UIUtil.dispatchAllInvocationEvents();
 
     // reload data and check it is correct

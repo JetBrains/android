@@ -24,12 +24,12 @@ import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -51,7 +51,6 @@ import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -108,9 +107,8 @@ public class StringsWriteUtils {
       files.add(tag.getContainingFile());
     }
     final boolean deleteTag = attribute.equals(SdkConstants.ATTR_NAME) && (value == null || value.isEmpty());
-    new WriteCommandAction.Simple(project, "Setting attribute " + attribute, files.toArray(PsiFile.EMPTY_ARRAY)) {
-      @Override
-      public void run() {
+    WriteCommandAction.writeCommandAction(project, files.toArray(PsiFile.EMPTY_ARRAY)).withName("Setting attribute " + attribute)
+      .run(() -> {
         // Makes the command global even if only one xml file is modified
         // That way, the Undo is always available from the translation editor
         CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
@@ -125,8 +123,7 @@ public class StringsWriteUtils {
             tag.setAttribute(attribute, value);
           }
         }
-      }
-    }.execute();
+      });
     return true;
   }
 
@@ -144,28 +141,25 @@ public class StringsWriteUtils {
     }
     final XmlTag tag = IdeResourcesUtil.getItemTag(project, item);
     if (tag != null) {
-      new WriteCommandAction.Simple(project, "Setting value of " + item.getName(), tag.getContainingFile()) {
-        @Override
-        public void run() {
-          // Makes the command global even if only one xml file is modified
-          // That way, the Undo is always available from the translation editor
-          CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
+      WriteCommandAction.writeCommandAction(project).withName("Setting value of " + item.getName()).run(() -> {
+        // Makes the command global even if only one xml file is modified
+        // That way, the Undo is always available from the translation editor
+        CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
 
-          // First remove the existing value of the tag (any text and possibly other XML nested tags - like xliff:g).
-          for (XmlTagChild child : tag.getValue().getChildren()) {
-            child.delete();
-          }
-
-          XmlElementFactory factory = XmlElementFactory.getInstance(project);
-
-          // Encapsulate the value in a dummy tag (see com.intellij.psi.XmlElementFactoryImpl.createDisplayText()).
-          XmlTag text = factory.createTagFromText("<string>" + escapeResourceStringAsXml(value) + "</string>");
-
-          for (PsiElement psiElement : text.getValue().getChildren()) {
-            tag.add(psiElement);
-          }
+        // First remove the existing value of the tag (any text and possibly other XML nested tags - like xliff:g).
+        for (XmlTagChild child : tag.getValue().getChildren()) {
+          child.delete();
         }
-      }.execute();
+
+        XmlElementFactory factory = XmlElementFactory.getInstance(project);
+
+        // Encapsulate the value in a dummy tag (see com.intellij.psi.XmlElementFactoryImpl.createDisplayText()).
+        XmlTag text = factory.createTagFromText("<string>" + escapeResourceStringAsXml(value) + "</string>");
+
+        for (PsiElement psiElement : text.getValue().getChildren()) {
+          tag.add(psiElement);
+        }
+      });
       return true;
     }
     return false;
@@ -192,23 +186,20 @@ public class StringsWriteUtils {
     if (root == null) {
       return null;
     }
-    new WriteCommandAction.Simple(project, "Creating string " + name, resourceFile) {
-      @Override
-      public void run() {
-        // Makes the command global even if only one xml file is modified
-        // That way, the Undo is always available from the translation editor
-        CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
+    WriteCommandAction.writeCommandAction(project).withName("Creating string " + name).run(() -> {
+      // Makes the command global even if only one xml file is modified
+      // That way, the Undo is always available from the translation editor
+      CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
 
-        XmlTag child = root.createChildTag(ResourceType.STRING.getName(), root.getNamespace(), escapeResourceStringAsXml(value), false);
+      XmlTag child = root.createChildTag(ResourceType.STRING.getName(), root.getNamespace(), escapeResourceStringAsXml(value), false);
 
-        child.setAttribute(SdkConstants.ATTR_NAME, name);
-        // XmlTagImpl handles a null value by deleting the attribute, which is our desired behavior
-        //noinspection ConstantConditions
-        child.setAttribute(SdkConstants.ATTR_TRANSLATABLE, translatable ? null : SdkConstants.VALUE_FALSE);
+      child.setAttribute(SdkConstants.ATTR_NAME, name);
+      // XmlTagImpl handles a null value by deleting the attribute, which is our desired behavior
+      //noinspection ConstantConditions
+      child.setAttribute(SdkConstants.ATTR_TRANSLATABLE, translatable ? null : SdkConstants.VALUE_FALSE);
 
-        root.addSubTag(child, false);
-      }
-    }.execute();
+      root.addSubTag(child, false);
+    });
 
     if (ApplicationManager.getApplication().isReadAccessAllowed()) {
       return getStringResourceItem(facet, name, locale);
@@ -257,19 +248,17 @@ public class StringsWriteUtils {
     final String valuesFolderName = configuration.getFolderName(ResourceFolderType.VALUES);
     VirtualFile valuesFolder = resFolder.findChild(valuesFolderName);
     if (valuesFolder == null) {
-      valuesFolder = new WriteCommandAction<VirtualFile>(project, "Creating directory " + valuesFolderName, manager.findFile(resFolder)) {
-        @Override
-        public void run(@NotNull Result<VirtualFile> result) {
-          try {
-            result.setResult(resFolder.createChildDirectory(this, valuesFolderName));
-          }
-          catch (IOException ex) {
-            // Immediately after this, we handle the case where the result is null
-            //noinspection ConstantConditions
-            result.setResult(null);
-          }
-        }
-      }.execute().getResultObject();
+      valuesFolder =
+        WriteCommandAction.writeCommandAction(project, manager.findFile(resFolder)).withName("Creating directory " + valuesFolderName)
+          .compute(() -> {
+            try {
+              return resFolder.createChildDirectory(resFolder, valuesFolderName);
+            }
+            catch (IOException ex) {
+              // Immediately after this, we handle the case where the result is null
+              return null;
+            }
+          });
       if (valuesFolder == null) {
         return null;
       }

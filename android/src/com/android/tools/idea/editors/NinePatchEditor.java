@@ -25,22 +25,24 @@ import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileEditor.*;
+import com.intellij.openapi.fileEditor.FileDocumentManagerListener;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorLocation;
+import com.intellij.openapi.fileEditor.FileEditorState;
+import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiManager;
 import com.intellij.ui.GuiUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListener {
   private static final Logger LOG =
@@ -102,14 +104,11 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
       return;
     }
 
-    new WriteCommandAction.Simple(myProject, "Update N-patch", PsiManager.getInstance(myProject).findFile(myFile)) {
-      @Override
-      protected void run() throws Throwable {
-        ByteArrayOutputStream stream = new ByteArrayOutputStream((int)myFile.getLength());
-        ImageIO.write(myBufferedImage, "PNG", stream);
-        myFile.setBinaryContent(stream.toByteArray());
-      }
-    }.execute();
+    WriteCommandAction.writeCommandAction(myProject).withName("Update N-patch").run(() -> {
+      ByteArrayOutputStream stream = new ByteArrayOutputStream((int)myFile.getLength());
+      ImageIO.write(myBufferedImage, "PNG", stream);
+      myFile.setBinaryContent(stream.toByteArray());
+    });
 
     myDirtyFlag = false;
   }

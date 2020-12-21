@@ -23,12 +23,12 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -43,7 +43,6 @@ import com.intellij.codeInspection.inferNullity.NullityInferrer;
 import com.intellij.history.LocalHistory;
 import com.intellij.history.LocalHistoryAction;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -213,21 +212,18 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
     if (Messages.showOkCancelDialog(project, message, "Infer Nullity Annotations", Messages.getErrorIcon()) == Messages.OK) {
       LocalHistoryAction action = LocalHistory.getInstance().startAction(ADD_DEPENDENCY);
       try {
-        new WriteCommandAction(project, ADD_DEPENDENCY) {
-          @Override
-          protected void run(@NotNull Result result) throws Throwable {
-            RepositoryUrlManager manager = RepositoryUrlManager.get();
-            GoogleMavenArtifactId annotation = MigrateToAndroidxUtil.isAndroidx(project) ?
-                                               GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS :
-                                               GoogleMavenArtifactId.SUPPORT_ANNOTATIONS;
-            String annotationsLibraryCoordinate = manager.getArtifactStringCoordinate(annotation, true);
-            for (Module module : modulesWithoutAnnotations) {
-              addDependency(module, annotationsLibraryCoordinate);
-            }
-
-            syncAndRestartAnalysis(project, scope);
+        WriteCommandAction.writeCommandAction(project).withName(ADD_DEPENDENCY).run(() -> {
+          RepositoryUrlManager manager = RepositoryUrlManager.get();
+          GoogleMavenArtifactId annotation = MigrateToAndroidxUtil.isAndroidx(project) ?
+                                             GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS :
+                                             GoogleMavenArtifactId.SUPPORT_ANNOTATIONS;
+          String annotationsLibraryCoordinate = manager.getArtifactStringCoordinate(annotation, true);
+          for (Module module : modulesWithoutAnnotations) {
+            addDependency(module, annotationsLibraryCoordinate);
           }
-        }.execute();
+
+          syncAndRestartAnalysis(project, scope);
+        });
       }
       finally {
         action.finish();
@@ -262,31 +258,28 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
     return () -> {
       LocalHistoryAction action = LocalHistory.getInstance().startAction(INFER_NULLITY_ANNOTATIONS);
       try {
-        new WriteCommandAction(project, INFER_NULLITY_ANNOTATIONS) {
-          @Override
-          protected void run(@NotNull Result result) throws Throwable {
-            UsageInfo[] infos = computable.compute();
-            if (infos.length > 0) {
+        WriteCommandAction.writeCommandAction(project).withName(INFER_NULLITY_ANNOTATIONS).run(() -> {
+          UsageInfo[] infos = computable.compute();
+          if (infos.length > 0) {
 
-              Set<PsiElement> elements = new LinkedHashSet<>();
-              for (UsageInfo info : infos) {
-                PsiElement element = info.getElement();
-                if (element != null) {
-                  ContainerUtil.addIfNotNull(elements, element.getContainingFile());
-                }
+            Set<PsiElement> elements = new LinkedHashSet<>();
+            for (UsageInfo info : infos) {
+              PsiElement element = info.getElement();
+              if (element != null) {
+                ContainerUtil.addIfNotNull(elements, element.getContainingFile());
               }
-              if (!FileModificationService.getInstance().preparePsiElementsForWrite(elements)) return;
+            }
+            if (!FileModificationService.getInstance().preparePsiElementsForWrite(elements)) return;
 
-              SequentialModalProgressTask progressTask = new SequentialModalProgressTask(project, INFER_NULLITY_ANNOTATIONS, false);
-              progressTask.setMinIterationTime(200);
-              progressTask.setTask(new AnnotateTask(project, progressTask, infos));
-              ProgressManager.getInstance().run(progressTask);
-            }
-            else {
-              NullityInferrer.nothingFoundMessage(project);
-            }
+            SequentialModalProgressTask progressTask = new SequentialModalProgressTask(project, INFER_NULLITY_ANNOTATIONS, false);
+            progressTask.setMinIterationTime(200);
+            progressTask.setTask(new AnnotateTask(project, progressTask, infos));
+            ProgressManager.getInstance().run(progressTask);
           }
-        }.execute();
+          else {
+            NullityInferrer.nothingFoundMessage(project);
+          }
+        });
       }
       finally {
         action.finish();

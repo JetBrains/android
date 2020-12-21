@@ -56,9 +56,7 @@ class ReplaceTagFixTest {
     val xmlFile = projectRule.fixture.addFileToProject("src/res/layout/test.xml", layoutContents) as XmlFile
 
     ApplicationManager.getApplication().invokeAndWait {
-      WriteCommandAction.runWriteCommandAction(projectRule.project) {
-        ReplaceTagFix(projectRule.project, xmlFile, "TextViw", "TextView").run(Result())
-      }
+      ReplaceTagFix(xmlFile, "TextViw", "TextView").run()
     }
 
     val afterText = ReadAction.compute<String, Throwable> {

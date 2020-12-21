@@ -91,9 +91,8 @@ public class FontFamilyCreator {
   @NotNull
   public String createFontFamily(@NotNull FontDetail font, @NotNull String fontName, boolean downloadable) {
     Project project = myFacet.getModule().getProject();
-    TransactionGuard.submitTransaction(project, () -> new WriteCommandAction.Simple(project, "Create new font file") {
-      @Override
-      protected void run() throws Throwable {
+    TransactionGuard.submitTransaction(project, () -> WriteCommandAction.writeCommandAction(project).withName("Create new font file").run(() -> {
+      try {
         if (downloadable) {
           createDownloadableFont(font, fontName);
         }
@@ -101,7 +100,10 @@ public class FontFamilyCreator {
           createEmbeddedFont(font, fontName);
         }
       }
-    }.execute());
+      catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }));
     return "@font/" + fontName;
   }
 

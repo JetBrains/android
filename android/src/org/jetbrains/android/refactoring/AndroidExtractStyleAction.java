@@ -10,8 +10,8 @@ import static com.android.SdkConstants.ATTR_TEXT;
 
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
@@ -36,16 +36,11 @@ import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.dom.resources.StyleItem;
 import org.jetbrains.android.util.AndroidBundle;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import java.util.*;
-
-import static com.android.SdkConstants.*;
 
 public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringAction {
   @NonNls public static final String ACTION_ID = "AndroidExtractStyleAction";
@@ -152,9 +147,10 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
     final Ref<Style> createdStyleRef = Ref.create();
     final boolean finalSupportImplicitParent = supportImplicitParent;
 
-    new WriteCommandAction(project, "Extract Android Style '" + styleName + "'", file) {
-      @Override
-      protected void run(@NotNull final Result result) throws Throwable {
+    WriteCommandAction.writeCommandAction(project, file)
+      .withName("Extract Android Style '" + styleName + "'")
+      .withUndoConfirmationPolicy(UndoConfirmationPolicy.REQUEST_CONFIRMATION)
+      .run(() -> {
         final List<XmlAttribute> attributesToDelete = new ArrayList<XmlAttribute>();
 
         if (!IdeResourcesUtil
@@ -199,13 +195,7 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
           }
         });
         success[0] = true;
-      }
-
-      @Override
-      protected UndoConfirmationPolicy getUndoConfirmationPolicy() {
-        return UndoConfirmationPolicy.REQUEST_CONFIRMATION;
-      }
-    }.execute();
+      });
 
     if (!success[0]) {
       return null;

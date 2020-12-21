@@ -95,15 +95,13 @@ class PsProjectImpl(
 
   override fun applyChanges() {
     if (isModified) {
-      object : WriteCommandAction<Nothing>(ideProject, "Applying changes to the project structure.") {
-        override fun run(result: Result<Nothing>) {
-          parsedModel.applyChanges()
-          if (gradleVersionModified) {
-            GradleWrapper.find(ideProject)?.updateDistributionUrlAndDisplayFailure(newGradleVersion!!)
-          }
-          isModified = false
+      WriteCommandAction.writeCommandAction(ideProject).withName("Applying changes to the project structure.").run<RuntimeException> {
+        parsedModel.applyChanges()
+        if (gradleVersionModified) {
+          GradleWrapper.find(ideProject)?.updateDistributionUrlAndDisplayFailure(newGradleVersion!!)
         }
-      }.execute()
+        isModified = false
+      }
       parsedModel = GradleModelProvider.getInstance().getProjectModel(ideProject)
       variables.refresh()
       buildScriptVariables.refresh()
@@ -122,12 +120,10 @@ class PsProjectImpl(
 
   fun applyRunAndReparse(runnable: () -> Boolean) {
     if (isModified) {
-      object : WriteCommandAction<Nothing>(ideProject, "Applying changes to the project structure.") {
-        override fun run(result: Result<Nothing>) {
-          parsedModel.applyChanges()
-          isModified = false
-        }
-      }.execute()
+      WriteCommandAction.writeCommandAction(ideProject).withName("Applying changes to the project structure.").run<RuntimeException> {
+        parsedModel.applyChanges()
+        isModified = false
+      }
     }
     if (runnable()) {
       parsedModel = GradleModelProvider.getInstance().getProjectModel(ideProject)
