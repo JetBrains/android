@@ -177,14 +177,6 @@ public class AndroidLintMissingSuperCallInspection extends AndroidLintInspection
         @NotNull
         private String buildSuperStatement(KtNamedFunction method, PsiMethod superMethod) {
           StringBuilder methodCallText = new StringBuilder();
-
-          if (superMethod != null) {
-            PsiClass containingClass = superMethod.getContainingClass();
-            if (containingClass != null && containingClass.isInterface()) {
-              methodCallText.append(containingClass.getQualifiedName()).append('.');
-            }
-          }
-
           methodCallText.append("super.").append(method.getName()).append('(');
           List<KtParameter> parameters = method.getValueParameters();
           for (int i = 0; i < parameters.size(); i++) {

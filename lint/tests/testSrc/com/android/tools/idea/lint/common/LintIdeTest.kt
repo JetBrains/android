@@ -189,6 +189,12 @@ class LintIdeTest : UsefulTestCase() {
                   "Add super call", "src/p1/p2/FooImpl.java", "java")
   }
 
+  fun testCallSuperKotlin() {
+    addCallSuper()
+    doTestWithFix(AndroidLintMissingSuperCallInspection(),
+                  "Add super call", "src/p1/p2/FooImpl.kt", "kt")
+  }
+
   fun testStopShip() {
     CommentDetector.STOP_SHIP.setEnabledByDefault(true)
     doTestWithFix(AndroidLintStopShipInspection(), "Remove STOPSHIP", "/src/test/pkg/StopShip.java",
