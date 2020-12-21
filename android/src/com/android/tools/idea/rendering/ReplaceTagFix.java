@@ -17,9 +17,7 @@
 package com.android.tools.idea.rendering;
 
 import com.google.common.collect.Lists;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -29,33 +27,36 @@ import java.util.Collection;
 import java.util.List;
 
 /** Replaces all tags in the current file named {@code wrongTag} into {@code rightTag} */
-public class ReplaceTagFix extends WriteCommandAction<Void> {
+public class ReplaceTagFix implements Runnable {
   @NotNull private final XmlFile myFile;
   @NotNull private final String myWrongTag;
   @NotNull private final String myRightTag;
+  private final String myCommandName;
 
-  public ReplaceTagFix(@NotNull Project project, @NotNull XmlFile file, @NotNull final String wrongTag, @NotNull final String rightTag) {
-    super(project, String.format("Replace <%1$s> with <%2$s>", wrongTag, rightTag), file);
+  public ReplaceTagFix(@NotNull XmlFile file, @NotNull final String wrongTag, @NotNull final String rightTag) {
+    myCommandName = String.format("Replace <%1$s> with <%2$s>", wrongTag, rightTag);
     myFile = file;
     myWrongTag = wrongTag;
     myRightTag = rightTag;
   }
 
   @Override
-  protected void run(@NotNull Result<Void> result) throws Throwable {
-    Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(myFile, XmlTag.class);
-    if (!xmlTags.isEmpty()) {
-      List<XmlTag> matching = Lists.newArrayListWithExpectedSize(xmlTags.size());
-      for (XmlTag tag : xmlTags) {
-        if (tag.getName().equals(myWrongTag)) {
-          matching.add(tag);
+  public void run() {
+    WriteCommandAction.writeCommandAction(myFile.getProject(), myFile).withName(myCommandName).run(() -> {
+      Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(myFile, XmlTag.class);
+      if (!xmlTags.isEmpty()) {
+        List<XmlTag> matching = Lists.newArrayListWithExpectedSize(xmlTags.size());
+        for (XmlTag tag : xmlTags) {
+          if (tag.getName().equals(myWrongTag)) {
+            matching.add(tag);
+          }
+        }
+        if (!matching.isEmpty()) {
+          for (XmlTag tag : matching) {
+            tag.setName(myRightTag);
+          }
         }
       }
-      if (!matching.isEmpty()) {
-        for (XmlTag tag : matching) {
-          tag.setName(myRightTag);
-        }
-      }
-    }
+    });
   }
 }

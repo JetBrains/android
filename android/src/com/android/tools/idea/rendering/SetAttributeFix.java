@@ -16,9 +16,6 @@
 
 package com.android.tools.idea.rendering;
 
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -26,15 +23,14 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SetAttributeFix extends WriteCommandAction<Void> {
+class SetAttributeFix extends HtmlLinkManager.CommandLink {
   private final XmlTag myTag;
   private final String myNamespace;
   private final String myAttribute;
   private final String myValue;
 
-  public SetAttributeFix(@NotNull Project project, @NotNull XmlTag tag, @NotNull String attribute, @Nullable String namespace,
-                         @Nullable String value) {
-    super(project, String.format("Set %1$s Attribute", StringUtil.capitalize(attribute)), tag.getContainingFile());
+  SetAttributeFix(@NotNull XmlTag tag, @NotNull String attribute, @Nullable String namespace, @Nullable String value) {
+    super(String.format("Set %1$s Attribute", StringUtil.capitalize(attribute)), tag.getContainingFile());
     myTag = tag;
     myNamespace = namespace;
     myAttribute = attribute;
@@ -42,7 +38,7 @@ public class SetAttributeFix extends WriteCommandAction<Void> {
   }
 
   @Override
-  protected void run(@NotNull Result<Void> result) throws Throwable {
+  public void run() {
     if (myNamespace != null && myValue != null) {
       IdeResourcesUtil.ensureNamespaceImported((XmlFile)myTag.getContainingFile(), myNamespace, null);
     }

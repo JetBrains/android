@@ -63,7 +63,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.project.manage.SourceFolderManager;
@@ -512,12 +511,7 @@ public class AndroidGradleTests {
     // Android Studio overrides GradleInstallationManager.getGradleJdk() using AndroidStudioGradleInstallationManager
     // so it doesn't require the Gradle JDK setting to be defined
     if (!IdeInfo.getInstance().isAndroidStudio()) {
-      new WriteAction() {
-        @Override
-        protected void run(@NotNull Result result) {
-          ProjectRootManager.getInstance(project).setProjectSdk(currentJdk);
-        }
-      }.execute();
+      WriteAction.runAndWait(() -> ProjectRootManager.getInstance(project).setProjectSdk(currentJdk));
     }
   }
 

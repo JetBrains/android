@@ -34,7 +34,6 @@ import com.intellij.codeInsight.intention.AbstractIntentionAction;
 import com.intellij.codeInsight.navigation.NavigationUtil;
 import com.intellij.ide.actions.ElementCreator;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -240,35 +239,30 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     final String filename = file.getName();
     final List<String> dirNames = Collections.singletonList(resourceSubdir.getName());
     final AtomicReference<PsiElement> openAfter = new AtomicReference<>();
-    final WriteCommandAction<Void> action = new WriteCommandAction<Void>(project,
-                                                                   "Override Resource " + resName, file) {
-      @Override
-      protected void run(@NotNull Result<Void> result) {
-        List<ResourceElement> elements = Lists.newArrayListWithExpectedSize(1);
-        // AndroidResourcesIdeUtil.createValueResource will create a new resource value in the given resource
-        // folder (and record the corresponding tags added in the elements list passed into it).
-        // However, it only creates a new element and sets the name attribute on it; it does not
-        // transfer attributes, child content etc. Therefore, we use this utility method first to
-        // create the corresponding tag, and then *afterwards* we will replace the tag with a text copy
-        // from the resource tag we are overriding. We do this all under a single write lock such
-        // that it becomes a single atomic operation.
-        IdeResourcesUtil.createValueResource(project, resDir.getVirtualFile(), resName, type, filename, dirNames, value, elements);
-        if (elements.size() == 1) {
-          final XmlTag tag = elements.get(0).getXmlTag();
-          if (tag != null && tag.isValid()) {
-            try {
-              XmlTag tagFromText = XmlElementFactory.getInstance(tag.getProject()).createTagFromText(oldTagText);
-              PsiElement replaced = tag.replace(tagFromText);
-              openAfter.set(replaced);
-            } catch (IncorrectOperationException e) {
-              // The user tried to override an invalid XML fragment: don't attempt to do a replacement in that case
-              openAfter.set(tag);
-            }
+    WriteCommandAction.writeCommandAction(project, file).withName("Override Resource " + resName).run(() -> {
+      List<ResourceElement> elements = Lists.newArrayListWithExpectedSize(1);
+      // AndroidResourcesIdeUtil.createValueResource will create a new resource value in the given resource
+      // folder (and record the corresponding tags added in the elements list passed into it).
+      // However, it only creates a new element and sets the name attribute on it; it does not
+      // transfer attributes, child content etc. Therefore, we use this utility method first to
+      // create the corresponding tag, and then *afterwards* we will replace the tag with a text copy
+      // from the resource tag we are overriding. We do this all under a single write lock such
+      // that it becomes a single atomic operation.
+      IdeResourcesUtil.createValueResource(project, resDir.getVirtualFile(), resName, type, filename, dirNames, value, elements);
+      if (elements.size() == 1) {
+        final XmlTag tag = elements.get(0).getXmlTag();
+        if (tag != null && tag.isValid()) {
+          try {
+            XmlTag tagFromText = XmlElementFactory.getInstance(tag.getProject()).createTagFromText(oldTagText);
+            PsiElement replaced = tag.replace(tagFromText);
+            openAfter.set(replaced);
+          } catch (IncorrectOperationException e) {
+            // The user tried to override an invalid XML fragment: don't attempt to do a replacement in that case
+            openAfter.set(tag);
           }
         }
       }
-    };
-    action.execute();
+    });
     PsiElement tag = openAfter.get();
     if (open && tag != null) {
       NavigationUtil.openFileWithPsiElement(tag, true, true);
@@ -358,57 +352,46 @@ public class OverrideResourceAction extends AbstractIntentionAction {
       return;
     }
 
-    final Computable<Pair<String, VirtualFile>> computable = new Computable<Pair<String, VirtualFile>>() {
-      @Override
-      public Pair<String, VirtualFile> compute() {
-        String folderName = folderConfig.getFolderName(folderType);
-        try {
-          VirtualFile parentFolder = file.getParent();
-          assert parentFolder != null;
-          VirtualFile res = parentFolder.getParent();
-          VirtualFile newParentFolder = res.findChild(folderName);
-          if (newParentFolder == null) {
-            try {
-              newParentFolder = res.createChildDirectory(this, folderName);
-            } catch (IncorrectOperationException e){
-              String message = String.format("Could not create folder %1$s in %2$s, Reason:\n%3$s",
-                                             folderName, res.getPath(), e.getMessage());
-              return Pair.of(message, null);
-            }
+    Pair<String, VirtualFile> result = WriteCommandAction.writeCommandAction(project).withName("Add Resource").compute(() -> {
+      String folderName = folderConfig.getFolderName(folderType);
+      try {
+        VirtualFile parentFolder = file.getParent();
+        assert parentFolder != null;
+        VirtualFile res = parentFolder.getParent();
+        VirtualFile newParentFolder = res.findChild(folderName);
+        if (newParentFolder == null) {
+          try {
+            newParentFolder = res.createChildDirectory(res, folderName);
           }
-
-          final VirtualFile existing = newParentFolder.findChild(file.getName());
-          if (existing != null && existing.exists()) {
-            String message = String.format("File 'res/%1$s/%2$s' already exists!", folderName, file.getName());
+          catch (IncorrectOperationException e) {
+            String message = String.format("Could not create folder %1$s in %2$s, Reason:\n%3$s",
+                                           folderName, res.getPath(), e.getMessage());
             return Pair.of(message, null);
           }
-
-          // Attempt to get the document from the PSI file rather than the file on disk: get edited contents too
-          String text;
-          if (xmlFile != null && xmlFile.isValid()) {
-            text = xmlFile.getText();
-          }
-          else {
-            text = StreamUtil.readText(file.getInputStream(), "UTF-8");
-          }
-          VirtualFile newFile = newParentFolder.createChildData(this, file.getName());
-          VfsUtil.saveText(newFile, text);
-          return Pair.of(null, newFile);
         }
-        catch (IOException e2) {
-          String message = String.format("Failed to create File 'res/%1$s/%2$s' : %3$s", folderName, file.getName(), e2.getMessage());
+
+        final VirtualFile existing = newParentFolder.findChild(file.getName());
+        if (existing != null && existing.exists()) {
+          String message = String.format("File 'res/%1$s/%2$s' already exists!", folderName, file.getName());
           return Pair.of(message, null);
         }
+        // Attempt to get the document from the PSI file rather than the file on disk: get edited contents too
+        String text;
+        if (xmlFile != null && xmlFile.isValid()) {
+          text = xmlFile.getText();
+        }
+        else {
+          text = StreamUtil.readText(file.getInputStream(), "UTF-8");
+        }
+        VirtualFile newFile = newParentFolder.createChildData(newParentFolder, file.getName());
+        VfsUtil.saveText(newFile, text);
+        return Pair.of(null, newFile);
       }
-    };
-
-    WriteCommandAction<Pair<String, VirtualFile>> action = new WriteCommandAction<Pair<String, VirtualFile>>(project, "Add Resource") {
-      @Override
-      protected void run(@NotNull Result<Pair<String, VirtualFile>> result) throws Throwable {
-        result.setResult(computable.compute());
+      catch (IOException e2) {
+        String message = String.format("Failed to create File 'res/%1$s/%2$s' : %3$s", folderName, file.getName(), e2.getMessage());
+        return Pair.of(message, null);
       }
-    };
-    Pair<String, VirtualFile> result = action.execute().getResultObject();
+    });
 
     String error = result.getFirst();
     VirtualFile newFile = result.getSecond();

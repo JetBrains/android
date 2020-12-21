@@ -796,11 +796,6 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     }
     assertEquals(1, actions.size());
 
-    new WriteCommandAction.Simple(getProject()) {
-      @Override
-      protected void run() throws Throwable {
-        actions.get(0).invoke(getProject(), myFixture.getEditor(), myFixture.getFile());
-      }
-    }.execute();
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> actions.get(0).invoke(getProject(), myFixture.getEditor(), myFixture.getFile()));
   }
 }

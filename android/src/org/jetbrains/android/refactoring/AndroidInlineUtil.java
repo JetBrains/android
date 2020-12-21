@@ -1,8 +1,6 @@
 package org.jetbrains.android.refactoring;
 
 import com.intellij.codeInsight.PsiEquivalenceUtil;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.UndoConfirmationPolicy;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
@@ -131,17 +129,10 @@ class AndroidInlineUtil {
       if (file == null) {
         return;
       }
-      new WriteCommandAction(project, AndroidBundle.message("android.inline.style.command.name", data.myStyleName), file) {
-        @Override
-        protected void run(@NotNull final Result result) throws Throwable {
-          usageData.inline(attributeValues, parentStyleRef);
-        }
-
-        @Override
-        protected UndoConfirmationPolicy getUndoConfirmationPolicy() {
-          return UndoConfirmationPolicy.REQUEST_CONFIRMATION;
-        }
-      }.execute();
+      WriteCommandAction.writeCommandAction(project, file)
+        .withName(AndroidBundle.message("android.inline.style.command.name", data.myStyleName)).run(() -> {
+        usageData.inline(attributeValues, parentStyleRef);
+      });
     }
     else if (testConfig != null) {
       final AndroidInlineAllStyleUsagesProcessor processor = new AndroidInlineAllStyleUsagesProcessor(

@@ -22,8 +22,6 @@ import com.google.common.collect.Lists;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.ide.util.DirectoryChooserUtil;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -130,35 +128,32 @@ public class CreateMissingClassQuickFix implements LocalQuickFix {
       return;
     }
 
-    final RunResult<PsiClass> result = new WriteCommandAction<PsiClass>(project) {
-      @Override
-      protected void run(@NotNull Result<PsiClass> result) throws Throwable {
-        // Create a new class
-        final PsiClass psiClass = JavaDirectoryService.getInstance().createClass(directory, myClassName);
+    PsiClass aClass =
+    WriteCommandAction.writeCommandAction(project).compute(() -> {
+      // Create a new class
+      final PsiClass psiClass = JavaDirectoryService.getInstance().createClass(directory, myClassName);
 
-        final JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
+      final JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
 
-        // Add a base class to "extends" list
-        final PsiReferenceList list = psiClass.getExtendsList();
-        if (list != null && myBaseClassFqcn != null) {
+      // Add a base class to "extends" list
+      final PsiReferenceList list = psiClass.getExtendsList();
+      if (list != null && myBaseClassFqcn != null) {
           final PsiClass parentClass = facade.findClass(myBaseClassFqcn, GlobalSearchScope.allScope(project));
           if (parentClass != null) {
             list.add(facade.getElementFactory().createClassReferenceElement(parentClass));
           }
         }
 
-        // Add a "public" modifier, which is absent by default. Required because classes references in AndroidManifest
-        // have to point to public classes.
-        final PsiModifierList modifierList = psiClass.getModifierList();
-        if (modifierList != null) {
+      // Add a "public" modifier, which is absent by default. Required because classes references in AndroidManifest
+      // have to point to public classes.
+      final PsiModifierList modifierList = psiClass.getModifierList();
+      if (modifierList != null) {
           modifierList.setModifierProperty(PsiModifier.PUBLIC, true);
-        }
-
-        result.setResult(psiClass);
       }
-    }.execute();
 
-    PsiClass aClass = result.getResultObject();
+      return psiClass;
+    });
+
     OpenFileDescriptor fileDescriptor = new OpenFileDescriptor(project, aClass.getContainingFile().getVirtualFile());
     FileEditorManager.getInstance(project).openEditor(fileDescriptor, true);
   }

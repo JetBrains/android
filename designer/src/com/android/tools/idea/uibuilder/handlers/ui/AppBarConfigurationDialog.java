@@ -53,7 +53,6 @@ import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -250,13 +249,7 @@ public class AppBarConfigurationDialog extends JDialog {
     setVisible(true);
     if (myWasAccepted) {
       XmlFile file = model.getFile();
-      WriteCommandAction action = new WriteCommandAction(project, "Configure App Bar", file) {
-        @Override
-        protected void run(@NotNull Result result) throws Throwable {
-          applyChanges(file);
-        }
-      };
-      action.execute();
+      WriteCommandAction.writeCommandAction(project, file).withName("Configure App Bar").run(() -> applyChanges(file));
     }
     return myWasAccepted;
   }

@@ -1462,11 +1462,10 @@ class AndroidLintTest : AndroidTestCase() {
 
   private fun doTestWithAction(extension: String, action: IntentionAction) {
     assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
-    object : WriteCommandAction<Any?>(myFixture.project, "") {
-      override fun run(result: Result<Any?>) {
-        action.invoke(myFixture.project, myFixture.editor, myFixture.file)
-      }
-    }.execute()
+    WriteCommandAction.runWriteCommandAction(myFixture.project) {
+      action.invoke(myFixture.project, myFixture.editor, myFixture.file)
+    }
+
     myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after." + extension)
   }
 

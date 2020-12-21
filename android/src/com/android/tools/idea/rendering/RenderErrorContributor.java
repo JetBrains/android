@@ -337,9 +337,8 @@ public class RenderErrorContributor {
     if (module == null) {
       return;
     }
-    Project project = module.getProject();
-    String wrapUrl = myLinkManager.createCommandLink(new SetAttributeFix(project, tag, attribute, ANDROID_URI, VALUE_WRAP_CONTENT));
-    String fillUrl = myLinkManager.createCommandLink(new SetAttributeFix(project, tag, attribute, ANDROID_URI, fill));
+    String wrapUrl = myLinkManager.createCommandLink(new SetAttributeFix(tag, attribute, ANDROID_URI, VALUE_WRAP_CONTENT));
+    String fillUrl = myLinkManager.createCommandLink(new SetAttributeFix(tag, attribute, ANDROID_URI, fill));
 
     builder.add(String.format("%1$s does not set the required %2$s attribute: ", id, attribute))
       .newline()
@@ -410,7 +409,7 @@ public class RenderErrorContributor {
       builder.newline()
         .add("Or: ")
         .addLink("Automatically add all missing attributes",
-                 myLinkManager.createCommandLink(new AddMissingAttributesFix(project, psiFile, resourceResolver))).newline()
+                 myLinkManager.createCommandLink(new AddMissingAttributesFix(psiFile, resourceResolver))).newline()
         .newline().newline();
 
       addIssue()
@@ -720,7 +719,7 @@ public class RenderErrorContributor {
       HtmlBuilder builder = new HtmlBuilder();
       builder.add("(")
         .addLink("Add android:supportsRtl=\"true\" to the manifest", logger.getLinkManager().createRunnableLink(() -> {
-          new SetAttributeFix(project, applicationTag, AndroidManifest.ATTRIBUTE_SUPPORTS_RTL, ANDROID_URI, VALUE_TRUE).execute();
+          new SetAttributeFix(applicationTag, AndroidManifest.ATTRIBUTE_SUPPORTS_RTL, ANDROID_URI, VALUE_TRUE).executeCommand();
 
           if (myDesignSurface != null) {
             myDesignSurface.forceUserRequestedRefresh();

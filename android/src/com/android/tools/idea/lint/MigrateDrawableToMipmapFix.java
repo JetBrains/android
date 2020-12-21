@@ -32,7 +32,6 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.highlighter.XmlFileType;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -119,11 +118,8 @@ class MigrateDrawableToMipmapFix implements LintIdeQuickFix {
       }
     }
 
-    WriteCommandAction<Void> action = new WriteCommandAction<Void>(project,
-                                                                   "Migrate Drawable to Bitmap",
-                                                                   applicableFiles.toArray(PsiFile.EMPTY_ARRAY)) {
-      @Override
-      protected void run(@NotNull Result<Void> result) throws Throwable {
+    WriteCommandAction.writeCommandAction(project, applicableFiles.toArray(PsiFile.EMPTY_ARRAY)).withName("Migrate Drawable to Bitmap").run(() -> {
+      try {
         // Move each drawable bitmap from drawable-my-qualifiers to bitmap-my-qualifiers
         for (PsiFile bitmap : bitmaps) {
           VirtualFile file = bitmap.getVirtualFile();
@@ -189,8 +185,7 @@ class MigrateDrawableToMipmapFix implements LintIdeQuickFix {
               if (outer.getReferenceNameElement() instanceof PsiIdentifier) {
                 PsiIdentifier identifier = (PsiIdentifier)outer.getReferenceNameElement();
                 if (ResourceType.DRAWABLE.getName().equals(identifier.getText())) {
-                  Project project = reference.getProject();
-                  final PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(project);
+                  final PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(reference.getProject());
                   PsiIdentifier newIdentifier = elementFactory.createIdentifier(ResourceType.MIPMAP.getName());
                   identifier.replace(newIdentifier);
                 }
@@ -199,8 +194,10 @@ class MigrateDrawableToMipmapFix implements LintIdeQuickFix {
           }
         }
       }
-    };
-    action.execute();
+      catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
   }
 
   @Override

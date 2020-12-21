@@ -30,7 +30,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiManager;
 import com.intellij.ui.GuiUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -102,14 +101,11 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
       return;
     }
 
-    new WriteCommandAction.Simple(myProject, "Update N-patch", PsiManager.getInstance(myProject).findFile(myFile)) {
-      @Override
-      protected void run() throws Throwable {
-        ByteArrayOutputStream stream = new ByteArrayOutputStream((int)myFile.getLength());
-        ImageIO.write(myBufferedImage, "PNG", stream);
-        myFile.setBinaryContent(stream.toByteArray());
-      }
-    }.execute();
+    WriteCommandAction.writeCommandAction(myProject).withName("Update N-patch").run(() -> {
+      ByteArrayOutputStream stream = new ByteArrayOutputStream((int)myFile.getLength());
+      ImageIO.write(myBufferedImage, "PNG", stream);
+      myFile.setBinaryContent(stream.toByteArray());
+    });
 
     myDirtyFlag = false;
   }

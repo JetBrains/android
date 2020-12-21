@@ -20,7 +20,6 @@ import com.intellij.diff.comparison.ComparisonManager;
 import com.intellij.diff.comparison.ComparisonManagerImpl;
 import com.intellij.diff.comparison.ComparisonPolicy;
 import com.intellij.diff.fragments.LineFragment;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -54,12 +53,7 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
     final PsiIdentifier identifier = findClassIdentifier(file, className);
     final ParcelableQuickFix fix = new ParcelableQuickFix("Fix Parcelable", operation);
     assertTrue(fix.isApplicable(identifier, identifier, AndroidQuickfixContexts.DesignerContext.TYPE));
-    new WriteCommandAction(getProject()) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        fix.apply(identifier, identifier, AndroidQuickfixContexts.DesignerContext.getInstance());
-      }
-    }.execute();
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> fix.apply(identifier, identifier, AndroidQuickfixContexts.DesignerContext.getInstance()));
     Document document = FileDocumentManager.getInstance().getDocument(file.getVirtualFile());
     assert document != null;
     String actual = document.getText();
