@@ -42,6 +42,16 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * A supplier of an optional list of VirtualDevices or PhysicalDevices. It is safe to call the get method from the event dispatch thread.
+ *
+ * <p>One worker collects the available virtual devices and the other one collects the running devices (which can be virtual or physical).
+ * This class combines both results.
+ *
+ * <p>The "Async" part of the name comes from the workers doing their work off the event dispatch thread. The get method does not block; the
+ * workers hold onto previous results and those are used if the background threads are busy. If a worker does not have a previous result the
+ * get method returns Optional.empty.
+ */
 final class AsyncDevicesGetter implements Disposable {
   @NotNull
   private final Project myProject;
