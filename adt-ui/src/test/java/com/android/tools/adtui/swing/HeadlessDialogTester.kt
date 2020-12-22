@@ -45,7 +45,6 @@ import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.impl.IdeGlassPaneImpl
-import com.intellij.openapi.wm.impl.customFrameDecorations.header.CustomFrameDialogContent
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.ComponentUtil
@@ -340,10 +339,6 @@ private class HeadlessDialogWrapperPeer(
     val dialog = MyDialog()
     dialog.add(rootPane)
 
-    val contentPane = contentPane
-    if (contentPane is CustomFrameDialogContent) {
-      contentPane.updateLayout()
-    }
     rootPane.size = rootPane.preferredSize
     anCancelAction.registerCustomShortcutSet(CommonShortcuts.ESCAPE, rootPane)
     disposeActions.add(Runnable { anCancelAction.unregisterCustomShortcutSet(rootPane) })
