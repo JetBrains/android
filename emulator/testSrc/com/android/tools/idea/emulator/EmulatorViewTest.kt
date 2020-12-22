@@ -24,7 +24,7 @@ import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
-import com.android.tools.idea.emulator.RuntimeConfigurationOverrider.getRuntimeConfiguration
+import com.android.tools.idea.io.IdeFileUtils
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ClipboardSynchronizer
@@ -35,6 +35,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerComponentInstance
+import com.intellij.util.SystemProperties
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import org.junit.After
 import org.junit.Before
@@ -56,6 +57,7 @@ import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.KEY_PRESSED
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.regex.Pattern
@@ -332,7 +334,8 @@ class EmulatorViewTest {
     call.waitForCompletion(5, TimeUnit.SECONDS) // Use longer timeout for PNG creation.
     waitForCondition(2, TimeUnit.SECONDS) {
       dispatchAllInvocationEvents()
-      Files.list(getRuntimeConfiguration().getDesktopOrUserHomeDirectory()).use { stream ->
+      val dir = IdeFileUtils.getDesktopDirectory() ?: Paths.get(SystemProperties.getUserHome())
+      Files.list(dir).use { stream ->
         stream.filter { Pattern.matches("Screenshot_.*\\.png", it.fileName.toString()) }.toList()
       }.isNotEmpty()
     }
