@@ -90,7 +90,7 @@ fun getNativeSourceNodes(project: Project,
   val ndkModel = ndkModuleModel.ndkModel
   if (!StudioFlags.USE_CONTENT_ROOTS_FOR_NATIVE_PROJECT_VIEW.get() && ndkModel is V1NdkModel) {
     val ndkFacet = NdkFacet.getInstance(module) ?: return emptyList()
-    return getLibraryBasedNativeNodes(ndkFacet, ndkModel, project, settings)
+    return getLibraryBasedNativeNodes(ndkFacet, ndkModel, project, settings, module)
   }
   else {
     return getContentRootBasedNativeNodes(module, settings)
@@ -104,7 +104,8 @@ fun getNativeSourceNodes(project: Project,
 private fun getLibraryBasedNativeNodes(ndkFacet: NdkFacet,
                                        v1NdkModel: V1NdkModel,
                                        project: Project,
-                                       settings: ViewSettings): Collection<AbstractTreeNode<*>> {
+                                       settings: ViewSettings,
+                                       module: Module): Collection<AbstractTreeNode<*>> {
 
   val variant = v1NdkModel.getNdkVariant(ndkFacet.selectedVariantAbi) ?: return emptyList()
   val nativeLibraries = HashMultimap.create<NativeLibraryKey, IdeNativeArtifact>()
@@ -137,13 +138,20 @@ private fun getLibraryBasedNativeNodes(ndkFacet: NdkFacet,
     nativeLibraries.put(NativeLibraryKey(nativeLibraryName, nativeLibraryType), artifact)
   }
   val children = ArrayList<AbstractTreeNode<*>>()
+  val nativeWorkspaceService = NativeWorkspaceService.getInstance(module.project)
   for (key in nativeLibraries.keySet()) {
     val nativeLibraryType = key.type.displayText
     val nativeLibraryName = key.name
-    val node = NdkLibraryEnhancedHeadersNode(project, nativeLibraryName, nativeLibraryType, nativeLibraries.get(key),
-                                             NativeIncludes({ v1NdkModel.findSettings(it) },
-                                                            nativeLibraries.get(key)), settings
-    )
+    val node = NdkLibraryEnhancedHeadersNode(
+      project,
+      nativeLibraryName,
+      nativeLibraryType,
+      nativeLibraries.get(key),
+      NativeIncludes({ v1NdkModel.findSettings(it) }, nativeLibraries.get(key)),
+      settings
+    ) { item ->
+      nativeWorkspaceService.shouldShowInProjectView(module, item.virtualFile.toIoFile())
+    }
     children.add(node)
   }
   return if (children.size == 1) {
