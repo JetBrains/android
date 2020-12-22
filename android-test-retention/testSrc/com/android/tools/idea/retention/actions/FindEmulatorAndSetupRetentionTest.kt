@@ -64,7 +64,7 @@ class FindEmulatorAndSetupRetentionTest {
   @Before
   fun setUp() {
     tempFolder = emulatorRule.root
-    snapshotFile = emulatorRule.newFile()
+    snapshotFile = emulatorRule.newPath()
     Files.writeString(snapshotFile, "file content")
     emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554)
 
