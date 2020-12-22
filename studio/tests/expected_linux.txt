@@ -1027,6 +1027,7 @@ android-studio/bin/lldb/lib64/libpython3.8.so.1.0
 android-studio/bin/lldb/lib64/libxml2.so.2.9.10
 android-studio/bin/lldb/shared/jobject_printers/jstring_reader.py
 android-studio/bin/log.xml
+android-studio/bin/ltedit.sh
 android-studio/bin/printenv.py
 android-studio/bin/profiler.sh
 android-studio/bin/restart.py
@@ -1655,9 +1656,9 @@ android-studio/lib/pty4j-native/linux/x86/libpty.so
 android-studio/lib/pty4j-native/linux/x86_64/libpty.so
 android-studio/lib/purejavacomm-0.0.11.1.jar
 android-studio/lib/qdox-2.0-M10.jar
-android-studio/lib/rd-core-0.203.158.jar
-android-studio/lib/rd-framework-0.203.158.jar
-android-studio/lib/rd-swing-0.203.158.jar
+android-studio/lib/rd-core-0.203.161.jar
+android-studio/lib/rd-framework-0.203.161.jar
+android-studio/lib/rd-swing-0.203.161.jar
 android-studio/lib/resources.jar
 android-studio/lib/resources_en.jar
 android-studio/lib/rhino-1.7.12.jar
@@ -2664,6 +2665,7 @@ android-studio/plugins/completionMlRankingModels/lib/catboost-prediction-0.24.ja
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-java-0.3.2.jar
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-java-0.3.3.jar
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-kotlin-0.1.3.jar
+android-studio/plugins/completionMlRankingModels/lib/completion-ranking-php-0.2.2.jar
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-python-0.1.1.jar
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-rust-0.0.1.jar
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-scala-0.2.0.jar
@@ -2740,7 +2742,7 @@ android-studio/plugins/java-i18n/lib/resources_en.jar
 android-studio/plugins/java-ide-customization/lib/java-ide-customization.jar
 android-studio/plugins/java/lib/aether-dependency-resolver.jar
 android-studio/plugins/java/lib/completion-ranking-java-0.3.1.jar
-android-studio/plugins/java/lib/debugger-memory-agent-0.0.13.jar
+android-studio/plugins/java/lib/debugger-memory-agent-1.0.29.jar
 android-studio/plugins/java/lib/ecj-4.16.jar
 android-studio/plugins/java/lib/java-api.jar
 android-studio/plugins/java/lib/java-impl.jar
@@ -2760,7 +2762,7 @@ android-studio/plugins/java/lib/resources.jar
 android-studio/plugins/java/lib/resources_en.jar
 android-studio/plugins/java/lib/rt/debugger-agent-storage.jar
 android-studio/plugins/java/lib/rt/debugger-agent.jar
-android-studio/plugins/java/lib/sa-jdwp-1.14.jar
+android-studio/plugins/java/lib/sa-jdwp-1.15.jar
 android-studio/plugins/junit/lib/idea-junit.jar
 android-studio/plugins/junit/lib/junit-rt.jar
 android-studio/plugins/junit/lib/junit5-rt.jar
