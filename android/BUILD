@@ -408,7 +408,10 @@ filegroup(
             "//tools/base/deploy/installer/tests:artifacts",
             "//tools/base/deploy/proto:deploy_java_proto",
         ],
-    }) + ["//tools/base/deploy/deployer:java_version"],
+    }) + [
+        "//tools/base/deploy/deployer:java_version",
+        "//tools/base/deploy/sites:java_sites",
+    ],
     visibility = ["//visibility:public"],
 )
 
