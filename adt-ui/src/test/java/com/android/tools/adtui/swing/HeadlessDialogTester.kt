@@ -31,7 +31,6 @@ import com.intellij.openapi.application.impl.LaterInvocator
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.command.CommandProcessorEx
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
@@ -44,7 +43,6 @@ import com.intellij.openapi.ui.popup.StackingPopupDispatcher
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.wm.impl.IdeGlassPaneImpl
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.ComponentUtil
@@ -147,9 +145,6 @@ private val modalityChangeLock = ReentrantLock()
 private val modalityChangeCondition = modalityChangeLock.newCondition()
 @GuardedBy("modalityChangeLock")
 private val modalDialogStack = mutableListOf<DialogWrapper>()
-
-private val LOG
-  get() = Logger.getInstance(DialogWrapper::class.java)
 
 /**
  * Implementation of [DialogWrapperPeerFactory] for headless tests involving dialogs.
@@ -466,20 +461,9 @@ private class HeadlessDialogWrapperPeer(
   }
 
   private inner class DialogRootPane : JRootPane(), DataProvider {
-    private val glassPaneIsSet: Boolean
 
     override fun createLayeredPane(): JLayeredPane {
-      val p: JLayeredPane = JBLayeredPane()
-      p.name = "$name.layeredPane"
-      return p
-    }
-
-    override fun setGlassPane(glass: Component) {
-      if (glassPaneIsSet) {
-        LOG.warn("Setting of glass pane for DialogWrapper is prohibited", Exception())
-        return
-      }
-      super.setGlassPane(glass)
+      return JBLayeredPane().apply { name = "$name.layeredPane" }
     }
 
     override fun setContentPane(contentPane: Container) {
@@ -492,8 +476,6 @@ private class HeadlessDialogWrapperPeer(
     }
 
     init {
-      setGlassPane(IdeGlassPaneImpl(this))
-      glassPaneIsSet = true
       putClientProperty("DIALOG_ROOT_PANE", true)
       border = UIManager.getBorder("Window.border")
     }
