@@ -36,6 +36,7 @@ import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.project.AndroidProjectInfo
 import com.android.tools.idea.sdk.IdeSdks
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger
+import com.intellij.execution.RunConfigurationProducerService
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.notification.NotificationType
@@ -59,11 +60,13 @@ import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ModuleSourceOrderEntry
 import com.intellij.openapi.roots.OrderRootType
-import com.intellij.openapi.roots.impl.libraries.LibraryTableImplUtil
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.vfs.VirtualFileManager
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer
+import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer
+import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
 
@@ -88,6 +91,10 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
 
       return false
     }
+
+    // Make sure we remove Gradle producers from the ignoredProducers list for old projects that used to run tests through AndroidJunit.
+    // This would allow running unit tests through Gradle for existing projects where Gradle producers where disabled in favor of AndroidJunit.
+    removeGradleProducersFromIgnoredList(project)
 
     if (shouldSyncOrAttachModels()) {
       removeEmptyModules(project)
@@ -307,5 +314,12 @@ private fun additionalProjectSetup(project: Project) {
   ConflictSet.findConflicts(project).showSelectionConflicts()
   ProjectStructure.getInstance(project).analyzeProjectStructure()
   setUpModules(project)
+}
+
+private fun removeGradleProducersFromIgnoredList(project: Project) {
+  val producerService = RunConfigurationProducerService.getInstance(project)
+  producerService.state.ignoredProducers.remove(AllInPackageGradleConfigurationProducer::class.java.name)
+  producerService.state.ignoredProducers.remove(TestClassGradleConfigurationProducer::class.java.name)
+  producerService.state.ignoredProducers.remove(TestMethodGradleConfigurationProducer::class.java.name)
 }
 
