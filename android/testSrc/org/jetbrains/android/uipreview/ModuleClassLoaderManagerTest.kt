@@ -30,6 +30,7 @@ private class TestClassVisitorWithId(val id: String): ClassVisitor(Opcodes.ASM7,
   override val uniqueId: String = id
 }
 
+@org.junit.Ignore("b/176181598")
 class ModuleClassLoaderManagerTest {
   @get:Rule
   val project = AndroidProjectRule.inMemory()
