@@ -48,6 +48,12 @@ public class AndroidLintConvertToWebpInspection extends AndroidLintInspectionBas
         }
 
         @Override
+        public boolean startInWriteAction() {
+          // ConvertToWebpAction opens a modal dialog and thus cannot be called while holding the write lock.
+          return false;
+        }
+
+        @Override
         public void apply(@NotNull PsiElement startElement,
                           @NotNull PsiElement endElement,
                           @NotNull AndroidQuickfixContexts.Context context) {
