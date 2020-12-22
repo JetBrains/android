@@ -228,6 +228,11 @@ iml_module(
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.navigator.SourceProvidersSnapshotComparisonTest",
         },
+        "navigator.AndroidProjectViewNodeConsistencyTest": {
+            # TODO(b/175843951) remove after flake is resolved.
+            "tags": ["no_test_linux"],
+            "test_filter": "com.android.tools.idea.navigator.AndroidProjectViewNodeConsistencyTest",
+        },
         "imports": {
             "shard_count": 2,
             "test_filter": "com.android.tools.idea.imports",
