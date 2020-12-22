@@ -10,5 +10,5 @@
 %prefix%Contents/plugins/Kotlin/lib/kotlin-daemon-client-new.jar
 %prefix%Contents/plugins/Kotlin/lib/kotlin-daemon-client.jar
 %prefix%Contents/plugins/gradle/lib/gradle-api-6.5.1-java7-sp2.jar
-%prefix%Contents/plugins/java/lib/debugger-memory-agent-0.0.13.jar
+%prefix%Contents/plugins/java/lib/debugger-memory-agent-1.0.29.jar
 %prefix%Contents/plugins/svn4idea/lib/sqlite-jdbc-3.20.1.jar
