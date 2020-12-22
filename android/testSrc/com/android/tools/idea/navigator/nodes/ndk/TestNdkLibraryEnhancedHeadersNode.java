@@ -51,7 +51,8 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
       "native-library-type",
       nativeArtifacts,
       layout.getNativeIncludes(),
-      settings
+      settings,
+      null
     );
     NdkLibraryEnhancedHeadersNode node2 = new NdkLibraryEnhancedHeadersNode(
       getProject(),
@@ -59,7 +60,8 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
       "native-library-type",
       nativeArtifacts,
       layout.getNativeIncludes(),
-      settings
+      settings,
+      null
     );
     NdkLibraryEnhancedHeadersNode nodeAlias = node;
     assertThat(node != node2).isTrue(); // They're not reference-equals
@@ -84,7 +86,8 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
       "native-library-type",
       nativeArtifacts,
       layout.getNativeIncludes(),
-      settings
+      settings,
+      null
     );
     List<? extends AbstractTreeNode> children = new ArrayList<>(node.getChildren());
     assertThat(children).hasSize(1);
@@ -107,7 +110,8 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
       "native-library-type",
       layout.getNativeIncludes().myArtifacts,
       layout.getNativeIncludes(),
-      settings
+      settings,
+      null
     );
     List<? extends AbstractTreeNode> children = new ArrayList<>(node.getChildren());
     assertThat(children).hasSize(1);
@@ -134,7 +138,8 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
       "native-library-type",
       layout.getNativeIncludes().myArtifacts,
       layout.getNativeIncludes(),
-      settings
+      settings,
+      null
     );
     List<? extends AbstractTreeNode> children = new ArrayList<>(node.getChildren());
     assertThat(children).hasSize(1);
@@ -161,7 +166,8 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
       "native-library-type",
       layout.getNativeIncludes().myArtifacts,
       layout.getNativeIncludes(),
-      settings
+      settings,
+      null
     );
     List<? extends AbstractTreeNode> children = new ArrayList<>(node.getChildren());
     assertThat(children).hasSize(1);
@@ -198,7 +204,8 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
       "native-library-type",
       layout.getNativeIncludes().myArtifacts,
       layout.getNativeIncludes(),
-      settings
+      settings,
+      null
     );
     List<? extends AbstractTreeNode> children = new ArrayList<>(node.getChildren());
     assertThat(children).hasSize(1);
@@ -237,7 +244,8 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
       "native-library-type",
       layout.getNativeIncludes().myArtifacts,
       layout.getNativeIncludes(),
-      settings
+      settings,
+      null
     );
     List<? extends AbstractTreeNode> children = new ArrayList<>(node.getChildren());
     assertThat(children).hasSize(1);
