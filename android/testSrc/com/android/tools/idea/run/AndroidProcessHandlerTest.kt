@@ -103,7 +103,7 @@ class AndroidProcessHandlerTest {
     assertThat(handler.isProcessTerminating || handler.isProcessTerminated).isTrue()
 
     inOrder.verify(mockProcessListener).processWillTerminate(any(), /*willBeDestroyed=*/eq(true))
-    inOrder.verify(mockProcessListener, timeout(1000)).processTerminated(any())
+    inOrder.verify(mockProcessListener, timeout(5_000)).processTerminated(any())
     inOrder.verifyNoMoreInteractions()
 
     assertThat(handler.isProcessTerminated).isTrue()
@@ -129,7 +129,7 @@ class AndroidProcessHandlerTest {
     assertThat(handler.isProcessTerminating || handler.isProcessTerminated).isTrue()
 
     inOrder.verify(mockProcessListener).processWillTerminate(any(), /*willBeDestroyed=*/eq(true))
-    inOrder.verify(mockProcessListener, timeout(1000)).processTerminated(any())
+    inOrder.verify(mockProcessListener, timeout(5_000)).processTerminated(any())
     inOrder.verifyNoMoreInteractions()
 
     assertThat(handler.isProcessTerminated).isTrue()
@@ -150,7 +150,7 @@ class AndroidProcessHandlerTest {
 
     inOrder.verify(mockProcessListener).startNotified(any())
     inOrder.verify(mockProcessListener).processWillTerminate(any(), /*willBeDestroyed=*/eq(true))
-    inOrder.verify(mockProcessListener, timeout(1000)).processTerminated(any())
+    inOrder.verify(mockProcessListener, timeout(5_000)).processTerminated(any())
     inOrder.verifyNoMoreInteractions()
 
     assertThat(handler.isProcessTerminated).isTrue()
@@ -165,7 +165,7 @@ class AndroidProcessHandlerTest {
 
     inOrder.verify(mockProcessListener).startNotified(any())
     inOrder.verify(mockProcessListener).processWillTerminate(any(), /*willBeDestroyed=*/eq(false))
-    inOrder.verify(mockProcessListener, timeout(1000)).processTerminated(any())
+    inOrder.verify(mockProcessListener, timeout(5_000)).processTerminated(any())
     inOrder.verifyNoMoreInteractions()
 
     assertThat(handler.isProcessTerminated).isTrue()
