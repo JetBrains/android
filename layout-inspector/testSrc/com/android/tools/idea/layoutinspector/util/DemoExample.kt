@@ -28,6 +28,8 @@ import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 
+const val DECOR_VIEW = "com.android.internal.policy.DecorView"
+
 object DemoExample {
 
   fun setUpDemo(fixture: CodeInsightTestFixture, body: InspectorViewDescriptor.() -> Unit = {}): InspectorModelDescriptor.() -> Unit {
@@ -59,7 +61,7 @@ object DemoExample {
    * This probably should not be called if [setUpDemo] was also called.
    */
   fun extractViewRoot(fixture: CodeInsightTestFixture): ViewNode {
-    return model(fixture.project, setUpDemo(fixture)).root
+    return model(fixture.project, setUpDemo(fixture)).root.children.single()
   }
 
   private fun createDemoViewNodes(body: InspectorViewDescriptor.() -> Unit): InspectorModelDescriptor.() -> Unit = {
@@ -68,9 +70,11 @@ object DemoExample {
     val relativeLayoutId = ResourceReference(namespace, ResourceType.ID, "relativeLayout")
     val textViewId = ResourceReference(namespace, ResourceType.ID, "title")
     this.also {
-      view(1, 0, 0, 1200, 1600, qualifiedName = FQCN_RELATIVE_LAYOUT, viewId = relativeLayoutId, layout = layout) {
-        view(2, 200, 400, 400, 100, qualifiedName = FQCN_TEXT_VIEW, viewId = textViewId, textValue = "@drawable/battery", layout = layout,
-             body = body)
+      view(1, 0, 0, 1200, 1600, qualifiedName = DECOR_VIEW) {
+        view(2, 0, 0, 1200, 1600, qualifiedName = FQCN_RELATIVE_LAYOUT, viewId = relativeLayoutId, layout = layout) {
+          view(3, 200, 400, 400, 100, qualifiedName = FQCN_TEXT_VIEW, viewId = textViewId, textValue = "@drawable/battery", layout = layout,
+               body = body)
+        }
       }
     }
   }

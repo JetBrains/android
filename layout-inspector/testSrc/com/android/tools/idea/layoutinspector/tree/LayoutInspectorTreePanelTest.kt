@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
+import com.android.SdkConstants.FQCN_RELATIVE_LAYOUT
+import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
@@ -26,10 +28,12 @@ import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHI
 import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorRule
 import com.android.tools.idea.layoutinspector.pipeline.transport.addComponentTreeEvent
 import com.android.tools.idea.layoutinspector.util.CheckUtil
+import com.android.tools.idea.layoutinspector.util.DECOR_VIEW
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -70,6 +74,7 @@ class LayoutInspectorTreePanelTest {
     componentStack = ComponentStack(inspectorRule.project)
     componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager)
 
+    projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
     inspectorRule.processes.selectedProcess = PROCESS
     transportRule.addComponentTreeEvent(inspectorRule, DemoExample.extractViewRoot(projectRule.fixture))
   }
@@ -100,30 +105,67 @@ class LayoutInspectorTreePanelTest {
     Mockito.verify(fileManager).openEditor(file.capture(), ArgumentMatchers.eq(true))
     val descriptor = file.value
 
-    Truth.assertThat(descriptor.file.name).isEqualTo("demo.xml")
-    Truth.assertThat(CheckUtil.findLineAtOffset(descriptor.file, descriptor.offset)).isEqualTo("<TextView")
+    assertThat(descriptor.file.name).isEqualTo("demo.xml")
+    assertThat(CheckUtil.findLineAtOffset(descriptor.file, descriptor.offset)).isEqualTo("<TextView")
   }
 
   @Test
-  fun testMultiWindow() {
+  fun testMultiWindowWithVisibleSystemNodes() {
+    TreeSettings.hideSystemNodes = false
     val tree = LayoutInspectorTreePanel()
     val model = inspectorRule.inspectorModel
     val inspector = inspectorRule.inspector
     tree.setToolContext(inspector)
     val jtree = UIUtil.findComponentOfType(tree.component, JTree::class.java) as JTree
+    UIUtil.dispatchAllInvocationEvents()
+    assertThat(jtree.rowCount).isEqualTo(1)
+    assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[ROOT])
+    assertThat(model[ROOT]!!.qualifiedName).isEqualTo(DECOR_VIEW)
+
     model.update(window(ROOT, ROOT) { view(VIEW1) }, listOf(ROOT), 0)
     UIUtil.dispatchAllInvocationEvents()
-    Truth.assertThat(jtree.rowCount).isEqualTo(1)
-    Truth.assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[ROOT])
+    assertThat(jtree.rowCount).isEqualTo(1)
+    assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[ROOT])
 
     model.update(window(VIEW2, VIEW2) { view(VIEW3) }, listOf(ROOT, VIEW2), 0)
     UIUtil.dispatchAllInvocationEvents()
-    Truth.assertThat(jtree.rowCount).isEqualTo(2)
-    Truth.assertThat(jtree.getPathForRow(1).lastPathComponent).isEqualTo(model[VIEW2])
+    assertThat(jtree.rowCount).isEqualTo(2)
+    assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[ROOT])
+    assertThat(jtree.getPathForRow(1).lastPathComponent).isEqualTo(model[VIEW2])
 
     model.update(window(VIEW2, VIEW2, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) { view(VIEW3) }, listOf(ROOT, VIEW2), 0)
     UIUtil.dispatchAllInvocationEvents()
     // Still 2: the dimmer is drawn but isn't in the tree
-    Truth.assertThat(jtree.rowCount).isEqualTo(2)
+    assertThat(jtree.rowCount).isEqualTo(2)
+  }
+
+  @Test
+  fun testMultiWindowWithHiddenSystemNodes() {
+    TreeSettings.hideSystemNodes = true
+    val tree = LayoutInspectorTreePanel()
+    val model = inspectorRule.inspectorModel
+    val inspector = inspectorRule.inspector
+    tree.setToolContext(inspector)
+    val jtree = UIUtil.findComponentOfType(tree.component, JTree::class.java) as JTree
+    UIUtil.dispatchAllInvocationEvents()
+    assertThat(jtree.rowCount).isEqualTo(1)
+    assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[VIEW1])
+    assertThat(model[VIEW1]!!.qualifiedName).isEqualTo(FQCN_RELATIVE_LAYOUT)
+
+    model.update(window(ROOT, ROOT) { view(VIEW1) }, listOf(ROOT), 0)
+    UIUtil.dispatchAllInvocationEvents()
+    assertThat(jtree.rowCount).isEqualTo(1)
+    assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[VIEW1])
+
+    model.update(window(VIEW2, VIEW2) { view(VIEW3) }, listOf(ROOT, VIEW2), 0)
+    UIUtil.dispatchAllInvocationEvents()
+    assertThat(jtree.rowCount).isEqualTo(2)
+    assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[VIEW1])
+    assertThat(jtree.getPathForRow(1).lastPathComponent).isEqualTo(model[VIEW3])
+
+    model.update(window(VIEW2, VIEW2, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) { view(VIEW3) }, listOf(ROOT, VIEW2), 0)
+    UIUtil.dispatchAllInvocationEvents()
+    // Still 2: the dimmer is drawn but isn't in the tree
+    assertThat(jtree.rowCount).isEqualTo(2)
   }
 }

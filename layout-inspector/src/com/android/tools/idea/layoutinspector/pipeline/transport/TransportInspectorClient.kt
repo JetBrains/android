@@ -28,6 +28,7 @@ import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.stats.withProjectId
@@ -281,6 +282,7 @@ class TransportInspectorClient(
     ApplicationManager.getApplication().executeOnPooledThread {
       execute(LayoutInspectorCommand.Type.REFRESH.toCommand().apply {
         composeMode = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT.get()
+        hideSystemNodes = TreeSettings.hideSystemNodes
       })
     }
   }
@@ -334,6 +336,7 @@ class TransportInspectorClient(
     stats.live.toggledToLive()
     execute(LayoutInspectorCommand.Type.START.toCommand().apply {
       composeMode = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT.get()
+      hideSystemNodes = TreeSettings.hideSystemNodes
     })
   }
 
