@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory;
 
 import static org.junit.Assert.assertEquals;
 
+import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
@@ -76,10 +77,9 @@ public class HeapDumpSampleDataSeriesTest {
                                           .setPid(ProfilersTestData.SESSION_DATA.getPid())
                                           .build());
 
-    HeapDumpSampleDataSeries series =
-      new HeapDumpSampleDataSeries(new ProfilerClient(myGrpcChannel.getChannel()), ProfilersTestData.SESSION_DATA,
-                                   myIdeProfilerServices.getFeatureTracker(),
-                                   myStage.getStudioProfilers().getIdeServices());
+    DataSeries<CaptureDurationData<CaptureObject>> series =
+      CaptureDataSeries.ofHeapDumpSamples(new ProfilerClient(myGrpcChannel.getChannel()), ProfilersTestData.SESSION_DATA,
+                                          myIdeProfilerServices.getFeatureTracker(), myStage);
     List<SeriesData<CaptureDurationData<CaptureObject>>> dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
 
     assertEquals(2, dataList.size());
