@@ -52,7 +52,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.RuntimeInterruptedException;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.StdFileTypes;
@@ -87,7 +86,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AppBarConfigurationDialog extends JDialog {
+public final class AppBarConfigurationDialog extends JDialog {
   private static final String DIALOG_TITLE = "Configure App Bar";
   private static final String DEFAULT_BACKGROUND_IMAGE = "@android:drawable/sym_def_app_icon";
   private static final String DEFAULT_FAB_IMAGE = "@android:drawable/ic_input_add";
@@ -264,7 +263,7 @@ public class AppBarConfigurationDialog extends JDialog {
     ListenableFuture<SyncResult> syncResult = ProjectSystemUtil.getSyncManager(module.getProject())
       .syncProject(SyncReason.PROJECT_MODIFIED);
 
-    Futures.addCallback(syncResult, new FutureCallback<SyncResult>() {
+    Futures.addCallback(syncResult, new FutureCallback<>() {
       @Override
       public void onSuccess(@Nullable SyncResult result) {
         if (result != null && result.isSuccessful()) {
@@ -356,9 +355,7 @@ public class AppBarConfigurationDialog extends JDialog {
 
   private PsiFile generateXml(boolean collapsed) {
     StringBuilder text = new StringBuilder(DUMMY_REPETITION * DUMMY_TEXT.length());
-    for (int i = 0; i < DUMMY_REPETITION; i++) {
-      text.append(DUMMY_TEXT);
-    }
+    text.append(DUMMY_TEXT.repeat(DUMMY_REPETITION));
     Map<String, String> namespaces = getNameSpaces(null, collapsed);
     String content = Templates.getTextView(namespaces.get(ANDROID_URI), text.toString());
     String xml = getXml(content, collapsed, namespaces);
@@ -592,10 +589,6 @@ public class AppBarConfigurationDialog extends JDialog {
       if (image == null) {
         return null;
       }
-    }
-    catch (@SuppressWarnings("deprecation") RuntimeInterruptedException ex) {
-      // Will happen if several rendering calls are stacked.
-      return null;
     }
     catch (RuntimeException ex) {
       getLogger().error(ex);
