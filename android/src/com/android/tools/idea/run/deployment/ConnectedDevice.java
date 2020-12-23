@@ -102,6 +102,16 @@ final class ConnectedDevice extends Device {
     throw new UnsupportedOperationException();
   }
 
+  @Override
+  @NotNull Target getDefaultTarget() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull Collection<@NotNull Target> getTargets() {
+    throw new UnsupportedOperationException();
+  }
+
   @NotNull
   @Override
   Future<AndroidVersion> getAndroidVersion() {

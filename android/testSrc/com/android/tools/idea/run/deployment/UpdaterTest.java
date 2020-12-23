@@ -146,9 +146,11 @@ public final class UpdaterTest {
   @Test
   public void updateInToolbarForMultipleDevicesSelectedKeysIsEmptyDevicesIsEmpty() {
     // Arrange
+    Key key = new VirtualDeviceName("Pixel_2_API_29");
+
     DevicesSelectedService devicesSelectedService = buildDevicesSelectedService();
     devicesSelectedService.setMultipleDevicesSelectedInComboBox(true);
-    devicesSelectedService.setTargetsSelectedWithDialog(Collections.singleton(new Target(new VirtualDeviceName("Pixel_2_API_29"))));
+    devicesSelectedService.setTargetsSelectedWithDialog(Collections.singleton(new QuickBootTarget(key)));
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
@@ -171,15 +173,17 @@ public final class UpdaterTest {
   @Test
   public void updateInToolbarForMultipleDevicesSelectedKeysIsEmpty() {
     // Arrange
+    Key key1 = new VirtualDeviceName("Pixel_2_API_29");
+
     DevicesSelectedService devicesSelectedService = buildDevicesSelectedService();
     devicesSelectedService.setMultipleDevicesSelectedInComboBox(true);
-    devicesSelectedService.setTargetsSelectedWithDialog(Collections.singleton(new Target(new VirtualDeviceName("Pixel_2_API_29"))));
+    devicesSelectedService.setTargetsSelectedWithDialog(Collections.singleton(new QuickBootTarget(key1)));
 
-    Key key = new VirtualDeviceName("Pixel_3_API_29");
+    Key key2 = new VirtualDeviceName("Pixel_3_API_29");
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(key)
+      .setKey(key2)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -198,7 +202,7 @@ public final class UpdaterTest {
     // Assert
     assertEquals(Collections.emptySet(), devicesSelectedService.getTargetsSelectedWithDialog());
     assertFalse(devicesSelectedService.isMultipleDevicesSelectedInComboBox());
-    assertEquals(Optional.of(new Target(key)), devicesSelectedService.getTargetSelectedWithComboBox(devices));
+    assertEquals(Optional.of(new QuickBootTarget(key2)), devicesSelectedService.getTargetSelectedWithComboBox(devices));
 
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
     assertEquals("Pixel 3 API 29", myPresentation.getText());
@@ -208,7 +212,7 @@ public final class UpdaterTest {
   public void updateInToolbarForMultipleDevices() {
     // Arrange
     Key key = new VirtualDeviceName("Pixel_2_API_29");
-    Target target = new Target(key);
+    Target target = new QuickBootTarget(key);
     Set<Target> targets = Collections.singleton(target);
 
     DevicesSelectedService devicesSelectedService = buildDevicesSelectedService();
@@ -278,7 +282,7 @@ public final class UpdaterTest {
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
 
     Mockito.when(service.getTargetSelectedWithComboBox(Collections.singletonList(device)))
-      .thenReturn(Optional.of(new Target(new VirtualDeviceName("Pixel_3_API_29"))));
+      .thenReturn(Optional.of(new QuickBootTarget(new VirtualDeviceName("Pixel_3_API_29"))));
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
@@ -307,7 +311,7 @@ public final class UpdaterTest {
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
 
     Mockito.when(service.getTargetSelectedWithComboBox(Collections.singletonList(device)))
-      .thenReturn(Optional.of(new Target(new VirtualDeviceName("apiQ_64_Google"))));
+      .thenReturn(Optional.of(new QuickBootTarget(new VirtualDeviceName("apiQ_64_Google"))));
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
@@ -370,7 +374,7 @@ public final class UpdaterTest {
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
 
     Mockito.when(service.getTargetSelectedWithComboBox(Collections.singletonList(device)))
-      .thenReturn(Optional.of(new Target(new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_29.avd"))));
+      .thenReturn(Optional.of(new QuickBootTarget(new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_29.avd"))));
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
@@ -404,7 +408,7 @@ public final class UpdaterTest {
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
 
     Mockito.when(service.getTargetSelectedWithComboBox(Arrays.asList(device1, device2)))
-      .thenReturn(Optional.of(new Target(new SerialNumber("00fff9d2279fa601"))));
+      .thenReturn(Optional.of(new PhysicalDeviceTarget(new SerialNumber("00fff9d2279fa601"))));
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())

@@ -21,6 +21,10 @@ import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.deployment.DevicesSelectedService.PersistentStateComponent;
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
+import java.nio.file.FileSystem;
+import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -73,13 +77,13 @@ public final class DevicesSelectedServiceTest {
     Object target = myService.getTargetSelectedWithComboBox(devices);
 
     // Assert
-    assertEquals(Optional.of(new Target(key)), target);
+    assertEquals(Optional.of(new QuickBootTarget(key)), target);
   }
 
   @Test
   public void getTargetSelectedWithComboBoxSelectedDeviceIsntPresent() {
     // Arrange
-    myService.setTargetSelectedWithComboBox(new Target(new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_30.avd")));
+    myService.setTargetSelectedWithComboBox(new QuickBootTarget(new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_30.avd")));
 
     Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
 
@@ -95,14 +99,14 @@ public final class DevicesSelectedServiceTest {
     Object target = myService.getTargetSelectedWithComboBox(devices);
 
     // Assert
-    assertEquals(Optional.of(new Target(key)), target);
+    assertEquals(Optional.of(new QuickBootTarget(key)), target);
   }
 
   @Test
   public void getTargetSelectedWithComboBoxConnectedDeviceIsntPresent() {
     // Arrange
     Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
-    Target target = new Target(key);
+    Target target = new QuickBootTarget(key);
 
     myService.setTargetSelectedWithComboBox(target);
 
@@ -126,7 +130,7 @@ public final class DevicesSelectedServiceTest {
     // Arrange
     Key disconnectedDeviceKey = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
 
-    myService.setTargetSelectedWithComboBox(new Target(disconnectedDeviceKey));
+    myService.setTargetSelectedWithComboBox(new QuickBootTarget(disconnectedDeviceKey));
 
     Device disconnectedDevice = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
@@ -149,14 +153,14 @@ public final class DevicesSelectedServiceTest {
     Object target = myService.getTargetSelectedWithComboBox(devices);
 
     // Assert
-    assertEquals(Optional.of(new Target(connectedDeviceKey)), target);
+    assertEquals(Optional.of(new QuickBootTarget(connectedDeviceKey)), target);
   }
 
   @Test
   public void getTargetSelectedWithComboBox() {
     // Arrange
     Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
-    Target target = new Target(key);
+    Target target = new QuickBootTarget(key);
 
     myService.setTargetSelectedWithComboBox(target);
 
@@ -186,7 +190,7 @@ public final class DevicesSelectedServiceTest {
   public void setTargetSelectedWithComboBox() {
     // Arrange
     Key key2 = new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_30.avd");
-    Target target2 = new Target(key2);
+    Target target2 = new QuickBootTarget(key2);
 
     Key key1 = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
 
@@ -214,7 +218,7 @@ public final class DevicesSelectedServiceTest {
     myService.setTargetSelectedWithComboBox(null);
 
     // Assert
-    assertEquals(Optional.of(new Target(key1)), myService.getTargetSelectedWithComboBox(devices));
+    assertEquals(Optional.of(new QuickBootTarget(key1)), myService.getTargetSelectedWithComboBox(devices));
   }
 
   @Test
@@ -229,7 +233,7 @@ public final class DevicesSelectedServiceTest {
   @Test
   public void setTargetsSelectedWithDialog() {
     // Arrange
-    Set<Target> targets = Collections.singleton(new Target(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd")));
+    Set<Target> targets = Collections.singleton(new QuickBootTarget(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd")));
 
     // Act
     myService.setTargetsSelectedWithDialog(targets);
@@ -240,9 +244,9 @@ public final class DevicesSelectedServiceTest {
   }
 
   @Test
-  public void keyKeyIsInstanceOfVirtualDeviceName() {
+  public void targetStateTargetIsInstanceOfColdBootTarget() {
     // Arrange
-    Set<Target> targets = Collections.singleton(new Target(new VirtualDeviceName("Pixel_4_API_30")));
+    Set<Target> targets = Collections.singleton(new ColdBootTarget(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd")));
 
     // Act
     myService.setTargetsSelectedWithDialog(targets);
@@ -252,9 +256,38 @@ public final class DevicesSelectedServiceTest {
   }
 
   @Test
-  public void keyKeyIsInstanceOfSerialNumber() {
+  public void targetStateTargetIsInstanceOfBootWithSnapshotTarget() {
     // Arrange
-    Set<Target> targets = Collections.singleton(new Target(new SerialNumber("86UX00F4R")));
+    FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
+
+    Key deviceKey = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+    Path snapshotKey = fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-17_12-26-30");
+
+    Set<Target> targets = Collections.singleton(new BootWithSnapshotTarget(deviceKey, snapshotKey));
+
+    // Act
+    myService.setTargetsSelectedWithDialog(targets);
+
+    // Assert
+    assertEquals(targets, myService.getTargetsSelectedWithDialog());
+  }
+
+  @Test
+  public void keyStateKeyIsInstanceOfVirtualDeviceName() {
+    // Arrange
+    Set<Target> targets = Collections.singleton(new QuickBootTarget(new VirtualDeviceName("Pixel_4_API_30")));
+
+    // Act
+    myService.setTargetsSelectedWithDialog(targets);
+
+    // Assert
+    assertEquals(targets, myService.getTargetsSelectedWithDialog());
+  }
+
+  @Test
+  public void keyStateKeyIsInstanceOfSerialNumber() {
+    // Arrange
+    Set<Target> targets = Collections.singleton(new PhysicalDeviceTarget(new SerialNumber("86UX00F4R")));
 
     // Act
     myService.setTargetsSelectedWithDialog(targets);

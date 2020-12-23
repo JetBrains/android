@@ -136,6 +136,16 @@ final class PhysicalDevice extends Device {
     return keys.contains(getKey());
   }
 
+  @Override
+  @NotNull Target getDefaultTarget() {
+    return new PhysicalDeviceTarget((SerialNumber)getKey());
+  }
+
+  @Override
+  @NotNull Collection<@NotNull Target> getTargets() {
+    return Collections.singletonList(new PhysicalDeviceTarget((SerialNumber)getKey()));
+  }
+
   @NotNull
   @Override
   Future<AndroidVersion> getAndroidVersion() {

@@ -16,31 +16,26 @@
 package com.android.tools.idea.run.deployment;
 
 import com.intellij.openapi.project.Project;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-abstract class Target {
-  private final @NotNull Key myDeviceKey;
-
-  Target(@NotNull Key deviceKey) {
-    myDeviceKey = deviceKey;
+final class ColdBootTarget extends Target {
+  ColdBootTarget(@NotNull Key deviceKey) {
+    super(deviceKey);
   }
 
-  static @NotNull List<@NotNull Device> filterDevices(@NotNull Set<@NotNull Target> targets, @NotNull List<@NotNull Device> devices) {
-    Set<Key> keys = targets.stream()
-      .map(Target::getDeviceKey)
-      .collect(Collectors.toSet());
-
-    return devices.stream()
-      .filter(device -> device.hasKeyContainedBy(keys))
-      .collect(Collectors.toList());
+  @Override
+  void boot(@NotNull VirtualDevice device, @NotNull Project project) {
+    device.coldBoot(project);
   }
 
-  final @NotNull Key getDeviceKey() {
-    return myDeviceKey;
+  @Override
+  public int hashCode() {
+    return getDeviceKey().hashCode();
   }
 
-  abstract void boot(@NotNull VirtualDevice device, @NotNull Project project);
+  @Override
+  public boolean equals(@Nullable Object object) {
+    return object instanceof ColdBootTarget && getDeviceKey().equals(((Target)object).getDeviceKey());
+  }
 }

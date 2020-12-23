@@ -49,7 +49,7 @@ public final class DeviceAndSnapshotComboBoxTargetProviderTest {
     DialogWrapper dialog = Mockito.mock(DialogWrapper.class);
     Mockito.when(dialog.showAndGet()).thenReturn(true);
 
-    Set<Target> targets = Collections.singleton(new Target(key));
+    Set<Target> targets = Collections.singleton(new QuickBootTarget(key));
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
     Mockito.when(service.getTargetsSelectedWithDialog()).thenReturn(targets);

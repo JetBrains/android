@@ -142,6 +142,10 @@ public abstract class Device {
     return myConnectionTime;
   }
 
+  abstract @NotNull Target getDefaultTarget();
+
+  abstract @NotNull Collection<@NotNull Target> getTargets();
+
   @NotNull
   final AndroidDevice getAndroidDevice() {
     return myAndroidDevice;

@@ -144,6 +144,6 @@ public final class SelectDeviceActionTest {
     action.actionPerformed(myEvent);
 
     // Assert
-    Mockito.verify(myComboBoxAction).setTargetSelectedWithComboBox(myProject, new Target(key));
+    Mockito.verify(myComboBoxAction).setTargetSelectedWithComboBox(myProject, new QuickBootTarget(key));
   }
 }

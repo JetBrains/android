@@ -110,7 +110,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .build();
 
     Project project = myRule.getProject();
-    Target target = new Target(key);
+    Target target = new QuickBootTarget(key);
 
     // Act
     action.setTargetSelectedWithComboBox(project, target);
@@ -137,7 +137,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
     Mockito.when(service.isMultipleDevicesSelectedInComboBox()).thenReturn(true);
-    Mockito.when(service.getTargetsSelectedWithDialog()).thenReturn(Collections.singleton(new Target(key)));
+    Mockito.when(service.getTargetsSelectedWithDialog()).thenReturn(Collections.singleton(new QuickBootTarget(key)));
 
     DialogWrapper dialog = Mockito.mock(DialogWrapper.class);
     Mockito.when(dialog.showAndGet()).thenReturn(true);
@@ -264,7 +264,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .build();
 
     // Act
-    myDevicesSelectedService.setTargetSelectedWithComboBox(new Target(new VirtualDeviceName("Pixel_3_XL_API_Q")));
+    myDevicesSelectedService.setTargetSelectedWithComboBox(new QuickBootTarget(new VirtualDeviceName("Pixel_3_XL_API_Q")));
     action.update(myEvent);
 
     Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(Arrays.asList(pixel2XlApiQ, pixel3XlApiQ)));

@@ -59,7 +59,7 @@ public final class SelectDeviceAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-    myComboBoxAction.setTargetSelectedWithComboBox(Objects.requireNonNull(event.getProject()), new Target(myDevice.getKey()));
+    myComboBoxAction.setTargetSelectedWithComboBox(Objects.requireNonNull(event.getProject()), myDevice.getDefaultTarget());
   }
 
   @Override
