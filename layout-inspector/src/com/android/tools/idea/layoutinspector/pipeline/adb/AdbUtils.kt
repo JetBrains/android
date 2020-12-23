@@ -44,22 +44,21 @@ fun AndroidDebugBridge.findClient(process: ProcessDescriptor): Client? {
   return findDevice(process.device)?.findClient(process)
 }
 
+/**
+ * Attempts to execute the target [command], returning the output of the command or throwing
+ * an exception otherwise
+ */
 @Slow
 fun AndroidDebugBridge.executeShellCommand(device: DeviceDescriptor,
                                            command: String,
                                            timeoutSecs: Long = ADB_TIMEOUT_SECONDS): String {
-  return try {
-    findDevice(device)?.let { adbDevice ->
-      val latch = CountDownLatch(1)
-      val receiver = CollectingOutputReceiver(latch)
-      adbDevice.executeShellCommand(command, receiver, ADB_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-      latch.await(timeoutSecs, TimeUnit.SECONDS)
-      receiver.output.trim()
-    } ?: ""
-  }
-  catch (ignored: Throwable) {
-    ""
-  }
+  return findDevice(device)?.let { adbDevice ->
+    val latch = CountDownLatch(1)
+    val receiver = CollectingOutputReceiver(latch)
+    adbDevice.executeShellCommand(command, receiver, ADB_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+    latch.await(timeoutSecs, TimeUnit.SECONDS)
+    receiver.output.trim()
+  } ?: throw IllegalArgumentException("Could not execute ADB command [$command]. Device (${device.model}) is disconnected.")
 }
 
 

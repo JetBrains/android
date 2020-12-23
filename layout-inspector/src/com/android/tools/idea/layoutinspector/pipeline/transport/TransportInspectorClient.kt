@@ -406,7 +406,7 @@ class TransportInspectorClient(
       val text = encoder.escape("Unable to set the global setting:") + "<br/>" +
                  encoder.escape("\"debug_view_attributes_application_package\"") + "<br/>" +
                  encoder.escape("to: \"${process.name}\"") + "<br/><br/>" +
-                 encoder.escape("Error: ${errorMessage}")
+                 encoder.escape("Error: $errorMessage")
       AndroidNotification.getInstance(project).showBalloon("Could not enable resolution traces",
                                                            text, NotificationType.WARNING)
     }
@@ -419,13 +419,13 @@ class TransportInspectorClient(
    */
   @Slow
   private fun disableDebugViewAttributes(process: ProcessDescriptor): Boolean {
-    try {
+    return try {
       adb.executeShellCommand(process.device, "settings delete global debug_view_attributes_application_package")
-      return true
+      true
     }
     catch (ex: Exception) {
       Logger.getInstance(TransportInspectorClient::class.java).error(ex)
-      return false
+      false
     }
   }
 
@@ -433,7 +433,7 @@ class TransportInspectorClient(
     ApplicationManager.getApplication().invokeLater {
       val message = """Could not reset the state on your device.
 
-                       To fix this run the layout inspector again or manually run this command:
+                       To fix this, manually run this command:
                        $ adb shell settings delete global debug_view_attributes_application_package
                        """.trimIndent()
 
