@@ -110,6 +110,7 @@ class StartUpTest(unittest.TestCase):
                   "Configuration Script",
                   "Copyright",
                   "EditorConfig",
+                  "Emoji Picker",
                   "Firebase App Indexing",
                   "Firebase Services",
                   "Firebase Testing",
