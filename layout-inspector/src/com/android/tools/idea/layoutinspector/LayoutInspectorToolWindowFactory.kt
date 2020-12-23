@@ -41,8 +41,8 @@ import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
@@ -53,15 +53,7 @@ import javax.swing.JPanel
 
 const val LAYOUT_INSPECTOR_TOOL_WINDOW_ID = "Layout Inspector"
 
-private val LAYOUT_INSPECTOR = Key.create<LayoutInspector>("LayoutInspector")
-
 val LAYOUT_INSPECTOR_DATA_KEY = DataKey.create<LayoutInspector>(LayoutInspector::class.java.name)
-
-/**
- * Get the [LayoutInspector] for the specified layout inspector [toolWindow].
- */
-fun lookupLayoutInspector(toolWindow: ToolWindow): LayoutInspector? =
-  toolWindow.contentManager.getContent(0)?.getUserData(LAYOUT_INSPECTOR)
 
 /**
  * Create a [DataProvider] for the specified [layoutInspector].
@@ -111,14 +103,14 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
         val launcher = InspectorClientLauncher.createDefaultLauncher(adb, processes, model, workbench)
         val layoutInspector = LayoutInspector(launcher, model)
-        content.putUserData(LAYOUT_INSPECTOR, layoutInspector)
         DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector))
 
         val deviceViewPanel = DeviceViewPanel(processes, layoutInspector, viewSettings, workbench)
         workbench.init(deviceViewPanel, layoutInspector, listOf(
           LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)
 
-        project.messageBus.connect(workbench).subscribe(ToolWindowManagerListener.TOPIC, LayoutInspectorToolWindowManagerListener(project))
+        project.messageBus.connect(workbench).subscribe(ToolWindowManagerListener.TOPIC,
+                                                        LayoutInspectorToolWindowManagerListener(project, layoutInspector))
       }
     }
   }
@@ -127,20 +119,34 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 /**
  * Listen to state changes for the create layout inspector tool window.
  */
-private class LayoutInspectorToolWindowManagerListener(private val project: Project) : ToolWindowManagerListener {
+@VisibleForTesting
+class LayoutInspectorToolWindowManagerListener(private val project: Project,
+                                               private val inspector: LayoutInspector)
+  : ToolWindowManagerListener {
   private var wasWindowVisible = false
+  private var wasMinimizedMessageShown = false
 
-  override fun stateChanged() {
-    val window = ToolWindowManager.getInstance(project).getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID) ?: return
+  override fun stateChanged(toolWindowManager: ToolWindowManager) {
+    val window = toolWindowManager.getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID) ?: return
     val isWindowVisible = window.isVisible // Layout Inspector tool window is expanded.
     val windowVisibilityChanged = isWindowVisible != wasWindowVisible
     wasWindowVisible = isWindowVisible
-    if (windowVisibilityChanged && isWindowVisible) {
-      UsageTracker.log(AndroidStudioEvent.newBuilder()
-                         .setKind(AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT)
-                         .setDynamicLayoutInspectorEvent(DynamicLayoutInspectorEvent.newBuilder()
-                                                           .setType(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.OPEN))
-                         .withProjectId(project))
+    if (windowVisibilityChanged) {
+      if (isWindowVisible) {
+        UsageTracker.log(AndroidStudioEvent.newBuilder()
+                           .setKind(AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT)
+                           .setDynamicLayoutInspectorEvent(DynamicLayoutInspectorEvent.newBuilder()
+                                                             .setType(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.OPEN))
+                           .withProjectId(project))
+      }
+      else if (inspector.currentClient.isConnected && !wasMinimizedMessageShown) {
+        wasMinimizedMessageShown = true
+        toolWindowManager.notifyByBalloon(LAYOUT_INSPECTOR_TOOL_WINDOW_ID, MessageType.INFO,
+                                          "<b>Layout Inspection</b> is running in the background.<br>" +
+                                          "To stop it, open the <b>Layout Inspector</b> window and select <b>Stop Inspector</b> from " +
+                                          "the process dropdown menu."
+        )
+      }
     }
   }
 }
