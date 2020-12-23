@@ -39,7 +39,6 @@ import org.junit.runners.Parameterized
  *   android { main { sourceSets { res.srcDirs += ['...'] } } }
  * ```
  */
-@org.junit.Ignore("b/175998101")
 @RunsInEdt
 @RunWith(Parameterized::class)
 class DataBindingCustomResDirTest(private val projectPath: String) {

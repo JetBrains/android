@@ -41,7 +41,6 @@ import org.junit.runners.Parameterized
 /**
  * Tests for DataBinding Reference and Completion across different modules.
  */
-@org.junit.Ignore("b/175998101")
 @RunsInEdt
 @RunWith(Parameterized::class)
 class DataBindingCrossModuleTest(private val mode: DataBindingMode) {
