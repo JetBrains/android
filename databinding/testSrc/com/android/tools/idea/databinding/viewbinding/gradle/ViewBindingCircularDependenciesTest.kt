@@ -83,9 +83,7 @@ class ViewBindingCircularDependenciesTest {
 
     // module1 can only see itself (since databinding classes are not part of a module2's test sources)
     assertThat(javaPsiFacade.findClass(appBindingClassName, module1Scope)).isNull()
-/* b/176092555
     assertThat(javaPsiFacade.findClass(module1BindingClassName, module1Scope)).isNotNull()
-b/176092555 */
     assertThat(javaPsiFacade.findClass(module2BindingClassName, module1Scope)).isNull()
 
     // module2 can see module1
