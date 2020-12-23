@@ -17,16 +17,20 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeploymentApplicationService;
 import com.android.tools.idea.run.LaunchableAndroidDevice;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.execution.runners.ExecutionUtil;
+import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.Future;
 import javax.swing.Icon;
@@ -48,6 +52,7 @@ final class VirtualDevice extends Device {
   private final @Nullable Key myNameKey;
 
   private final @NotNull Collection<@NotNull Snapshot> mySnapshots;
+  private final boolean mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
 
   @NotNull
   static VirtualDevice newConnectedDevice(@NotNull ConnectedDevice connectedDevice,
@@ -82,6 +87,7 @@ final class VirtualDevice extends Device {
   static final class Builder extends Device.Builder {
     private @Nullable Key myNameKey;
     private final @NotNull Collection<@NotNull Snapshot> mySnapshots = new ArrayList<>();
+    private boolean mySelectDeviceSnapshotComboBoxSnapshotsEnabled = StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED.get();
 
     @NotNull
     Builder setName(@NotNull String name) {
@@ -135,6 +141,11 @@ final class VirtualDevice extends Device {
       return this;
     }
 
+    @NotNull Builder setSelectDeviceSnapshotComboBoxSnapshotsEnabled(boolean selectDeviceSnapshotComboBoxSnapshotsEnabled) {
+      mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
+      return this;
+    }
+
     @NotNull
     @Override
     VirtualDevice build() {
@@ -147,6 +158,19 @@ final class VirtualDevice extends Device {
 
     myNameKey = builder.myNameKey;
     mySnapshots = new ArrayList<>(builder.mySnapshots);
+    mySelectDeviceSnapshotComboBoxSnapshotsEnabled = builder.mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
+  }
+
+  void coldBoot(@NotNull Project project) {
+    ((LaunchableAndroidDevice)getAndroidDevice()).coldBoot(project);
+  }
+
+  void quickBoot(@NotNull Project project) {
+    ((LaunchableAndroidDevice)getAndroidDevice()).quickBoot(project);
+  }
+
+  void bootWithSnapshot(@NotNull Project project, @NotNull Path snapshot) {
+    ((LaunchableAndroidDevice)getAndroidDevice()).bootWithSnapshot(project, snapshot.toString());
   }
 
   @NotNull
@@ -173,6 +197,32 @@ final class VirtualDevice extends Device {
   @Override
   boolean hasKeyContainedBy(@NotNull Collection<@NotNull Key> keys) {
     return keys.contains(getKey()) || keys.contains(myNameKey);
+  }
+
+  @Override
+  @NotNull Target getDefaultTarget() {
+    return new QuickBootTarget(getKey());
+  }
+
+  @Override
+  @NotNull Collection<@NotNull Target> getTargets() {
+    if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled) {
+      return Collections.singletonList(new QuickBootTarget(getKey()));
+    }
+
+    Collection<Target> targets = new ArrayList<>(2 + mySnapshots.size() - 1);
+    Key deviceKey = getKey();
+
+    targets.add(new ColdBootTarget(deviceKey));
+    targets.add(new QuickBootTarget(deviceKey));
+
+    mySnapshots.stream()
+      .filter(Snapshot::isGeneral)
+      .map(Snapshot::getDirectory)
+      .map(snapshotKey -> new BootWithSnapshotTarget(deviceKey, snapshotKey))
+      .forEach(targets::add);
+
+    return targets;
   }
 
   @NotNull
@@ -205,7 +255,8 @@ final class VirtualDevice extends Device {
            Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
            getAndroidDevice().equals(device.getAndroidDevice()) &&
            Objects.equals(myNameKey, device.myNameKey) &&
-           mySnapshots.equals(device.mySnapshots);
+           mySnapshots.equals(device.mySnapshots) &&
+           mySelectDeviceSnapshotComboBoxSnapshotsEnabled == device.mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
   }
 
   @Override
@@ -218,6 +269,7 @@ final class VirtualDevice extends Device {
       getConnectionTime(),
       getAndroidDevice(),
       myNameKey,
-      mySnapshots);
+      mySnapshots,
+      mySelectDeviceSnapshotComboBoxSnapshotsEnabled);
   }
 }

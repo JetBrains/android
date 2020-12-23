@@ -26,6 +26,9 @@ import com.intellij.util.xmlb.annotations.OptionTag;
 import com.intellij.util.xmlb.annotations.Tag;
 import com.intellij.util.xmlb.annotations.XCollection;
 import com.intellij.util.xmlb.annotations.XCollection.Style;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Collection;
@@ -80,7 +83,7 @@ final class DevicesSelectedService {
     State state = myPersistentStateComponent.getState();
 
     if (state.targetSelectedWithDropDown == null) {
-      return Optional.of(new Target(devices.get(0).getKey()));
+      return Optional.of(devices.get(0).getDefaultTarget());
     }
 
     assert state.targetSelectedWithDropDown.deviceKey != null;
@@ -91,7 +94,7 @@ final class DevicesSelectedService {
       .findFirst();
 
     if (!optionalSelectedDevice.isPresent()) {
-      return Optional.of(new Target(devices.get(0).getKey()));
+      return Optional.of(devices.get(0).getDefaultTarget());
     }
 
     Device selectedDevice = optionalSelectedDevice.get();
@@ -101,7 +104,7 @@ final class DevicesSelectedService {
       .findFirst();
 
     if (!optionalConnectedDevice.isPresent()) {
-      return Optional.of(new Target(selectedDevice.getKey()));
+      return Optional.of(selectedDevice.getDefaultTarget());
     }
 
     Device connectedDevice = optionalConnectedDevice.get();
@@ -112,10 +115,10 @@ final class DevicesSelectedService {
     assert connectionTime != null;
 
     if (state.timeTargetWasSelectedWithDropDown.isBefore(connectionTime)) {
-      return Optional.of(new Target(connectedDevice.getKey()));
+      return Optional.of(connectedDevice.getDefaultTarget());
     }
 
-    return Optional.of(new Target(selectedDevice.getKey()));
+    return Optional.of(selectedDevice.getDefaultTarget());
   }
 
   void setTargetSelectedWithComboBox(@Nullable Target targetSelectedWithComboBox) {
@@ -220,32 +223,84 @@ final class DevicesSelectedService {
 
   @Tag("Target")
   private static final class TargetState {
+    @OptionTag(tag = "type", nameAttribute = "")
+    public @Nullable TargetType type;
+
     @OptionTag(tag = "deviceKey", nameAttribute = "")
     public @Nullable KeyState deviceKey;
+
+    @OptionTag(tag = "snapshotKey", nameAttribute = "", converter = PathConverter.class)
+    public @Nullable Path snapshotKey;
 
     @SuppressWarnings("unused")
     private TargetState() {
     }
 
     private TargetState(@NotNull Target target) {
+      if (target instanceof ColdBootTarget) {
+        type = TargetType.COLD_BOOT_TARGET;
+      }
+      else if (target instanceof QuickBootTarget) {
+        type = TargetType.QUICK_BOOT_TARGET;
+      }
+      else if (target instanceof BootWithSnapshotTarget) {
+        type = TargetType.BOOT_WITH_SNAPSHOT_TARGET;
+        snapshotKey = ((BootWithSnapshotTarget)target).getSnapshotKey();
+      }
+      else if (target instanceof PhysicalDeviceTarget) {
+        type = TargetType.PHYSICAL_DEVICE_TARGET;
+      }
+      else {
+        assert false : target;
+      }
+
       deviceKey = new KeyState(target.getDeviceKey());
     }
 
     private @NotNull Target asTarget() {
+      assert type != null;
       assert deviceKey != null;
-      return new Target(deviceKey.asKey());
+
+      switch (type) {
+        case COLD_BOOT_TARGET:
+          return new ColdBootTarget(deviceKey.asKey());
+        case QUICK_BOOT_TARGET:
+          return new QuickBootTarget(deviceKey.asKey());
+        case BOOT_WITH_SNAPSHOT_TARGET:
+          assert snapshotKey != null;
+          return new BootWithSnapshotTarget(deviceKey.asKey(), snapshotKey);
+        case PHYSICAL_DEVICE_TARGET:
+          return new PhysicalDeviceTarget((SerialNumber)deviceKey.asKey());
+        default:
+          throw new AssertionError(type);
+      }
     }
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(deviceKey);
+      int hashCode = Objects.hashCode(type);
+
+      hashCode = 31 * hashCode + Objects.hashCode(deviceKey);
+      hashCode = 31 * hashCode + Objects.hashCode(snapshotKey);
+
+      return hashCode;
     }
 
     @Override
     public boolean equals(@Nullable Object object) {
-      return object instanceof TargetState && Objects.equals(deviceKey, ((TargetState)object).deviceKey);
+      if (!(object instanceof TargetState)) {
+        return false;
+      }
+
+      TargetState target = (TargetState)object;
+
+      return Objects.equals(type, target.type) &&
+             Objects.equals(deviceKey, target.deviceKey) &&
+             Objects.equals(snapshotKey, target.snapshotKey);
     }
   }
+
+  private enum TargetType {COLD_BOOT_TARGET, QUICK_BOOT_TARGET, BOOT_WITH_SNAPSHOT_TARGET, PHYSICAL_DEVICE_TARGET}
 
   @Tag("Key")
   private static final class KeyState {
@@ -309,6 +364,20 @@ final class DevicesSelectedService {
   }
 
   private enum KeyType {VIRTUAL_DEVICE_PATH, VIRTUAL_DEVICE_NAME, SERIAL_NUMBER}
+
+  private static final class PathConverter extends Converter<Path> {
+    private final @NotNull FileSystem myFileSystem = FileSystems.getDefault();
+
+    @Override
+    public @NotNull Path fromString(@NotNull String string) {
+      return myFileSystem.getPath(string);
+    }
+
+    @Override
+    public @NotNull String toString(@NotNull Path path) {
+      return path.toString();
+    }
+  }
 
   private static final class InstantConverter extends Converter<Instant> {
     @Override

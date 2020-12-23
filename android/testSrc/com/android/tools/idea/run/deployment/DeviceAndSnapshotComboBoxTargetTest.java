@@ -48,7 +48,7 @@ public final class DeviceAndSnapshotComboBoxTargetTest {
     AsyncDevicesGetter getter = Mockito.mock(AsyncDevicesGetter.class);
     Mockito.when(getter.get()).thenReturn(Optional.of(Collections.singletonList(device)));
 
-    DeployTarget target = new DeviceAndSnapshotComboBoxTarget(Collections.singleton(new Target(key)), project -> getter);
+    DeployTarget target = new DeviceAndSnapshotComboBoxTarget(Collections.singleton(new QuickBootTarget(key)), project -> getter);
 
     Project project = Mockito.mock(Project.class);
 

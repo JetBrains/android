@@ -58,7 +58,7 @@ public final class SelectMultipleDevicesDialogTableTest {
     myTable.setSelected(true, 0);
 
     // Assert
-    assertEquals(Collections.singleton(new Target(new VirtualDeviceName("Pixel_3_API_29"))), myTable.getSelectedTargets());
+    assertEquals(Collections.singleton(new QuickBootTarget(new VirtualDeviceName("Pixel_3_API_29"))), myTable.getSelectedTargets());
   }
 
   @Test
@@ -71,7 +71,7 @@ public final class SelectMultipleDevicesDialogTableTest {
       .build();
 
     myTable.setModel(new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device)));
-    Set<Target> targets = Collections.singleton(new Target(new VirtualDeviceName("Pixel_3_API_29")));
+    Set<Target> targets = Collections.singleton(new QuickBootTarget(new VirtualDeviceName("Pixel_3_API_29")));
 
     // Act
     myTable.setSelectedTargets(targets);

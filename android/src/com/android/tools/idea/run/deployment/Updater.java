@@ -24,6 +24,7 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolder;
 import icons.StudioIcons;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -200,8 +201,8 @@ final class Updater {
     Set<Target> selectedTargets = myDevicesSelectedService.getTargetsSelectedWithDialog();
 
     Set<Target> targets = myDevices.stream()
-      .map(Device::getKey)
-      .map(Target::new)
+      .map(Device::getTargets)
+      .flatMap(Collection::stream)
       .collect(Collectors.toSet());
 
     if (selectedTargets.retainAll(targets)) {

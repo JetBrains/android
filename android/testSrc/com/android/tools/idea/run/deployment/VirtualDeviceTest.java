@@ -15,9 +15,15 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.run.AndroidDevice;
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
+import java.nio.file.FileSystem;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import org.junit.Test;
@@ -99,5 +105,51 @@ public final class VirtualDeviceTest {
 
     // Assert
     assertTrue(contained);
+  }
+
+  @Test
+  public void getTargetsSelectDeviceSnapshotComboBoxSnapshotsEnabled() {
+    // Arrange
+    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(key)
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    // Act
+    Object targets = device.getTargets();
+
+    // Assert
+    assertEquals(Collections.singletonList(new QuickBootTarget(key)), targets);
+  }
+
+  @Test
+  public void getTargets() {
+    // Arrange
+    FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
+
+    Key deviceKey = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+    Path snapshotKey = fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-17_12-26-30");
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(deviceKey)
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .addSnapshot(new Snapshot(fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/default_boot")))
+      .addSnapshot(new Snapshot(snapshotKey))
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(true)
+      .build();
+
+    // Act
+    Object actualTargets = device.getTargets();
+
+    // Assert
+    Object expectedTargets = Arrays.asList(new ColdBootTarget(deviceKey),
+                                           new QuickBootTarget(deviceKey),
+                                           new BootWithSnapshotTarget(deviceKey, snapshotKey));
+
+    assertEquals(expectedTargets, actualTargets);
   }
 }
