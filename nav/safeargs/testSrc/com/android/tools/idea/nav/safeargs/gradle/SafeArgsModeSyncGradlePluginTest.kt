@@ -36,7 +36,6 @@ import org.junit.runners.Parameterized
 /**
  * Verify that we can sync a Gradle project that applies the safe args plugin.
  */
-@org.junit.Ignore("b/175998101")
 @RunsInEdt
 @RunWith(Parameterized::class)
 class SafeArgsModeSyncGradlePluginTest(val params: TestParams) {
