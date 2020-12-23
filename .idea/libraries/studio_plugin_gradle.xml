@@ -7,7 +7,6 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/gradle/lib/gradle-launcher-6.5.1-java7-sp2.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/gradle/lib/gradle-tooling-extension-api.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/gradle/lib/gradle-tooling-extension-impl.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/gradle/lib/gradle-toolingLoaderRt.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/gradle/lib/gradle-wrapper-6.5.1-java7-sp2.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/gradle/lib/gradle.jar!/" />
     </CLASSES>

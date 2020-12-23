@@ -102,13 +102,13 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/jaxb-api-2.3.1.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/jaxb-runtime-2.3.1.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/jaxen-1.2.0.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/jb-jdi-2.2.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/jb-jdi-2.3.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/jcef-81.2.24-gc0b313d-chromium-81.0.4044.113-api-1.1.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/jcip-annotations-1.0.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/jcodings-1.0.48.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/jdkAnnotations.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/jdom.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/jediterm-pty-2.31.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/jediterm-pty-2.32.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/jetCheck-0.2.2.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/jing-20030619.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/jna-platform.jar!/" />
@@ -190,7 +190,7 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/plexus-utils-3.2.0.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/protobuf-java-3.5.1.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/proxy-vole-1.0.5-jb.2.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/pty4j-0.9.12.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/pty4j-0.10.0.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/purejavacomm-0.0.11.1.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/qdox-2.0-M10.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/rd-core-0.203.161.jar!/" />
@@ -234,7 +234,7 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/xstream-1.4.11.1.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/xz-1.8.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/java/lib/aether-dependency-resolver.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/java/lib/completion-ranking-java-0.3.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/java/lib/completion-ranking-java-0.3.4.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/java/lib/debugger-memory-agent-1.0.29.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/java/lib/ecj-4.16.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/java/lib/java-api.jar!/" />
