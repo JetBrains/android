@@ -635,6 +635,7 @@ public class StudioIcons {
       public static final Icon HEAP_DUMP = load("/studio/icons/profiler/toolbar/heap-dump.svg"); // 16x16
       public static final Icon PAUSE_LIVE = load("/studio/icons/profiler/toolbar/pause-live.svg"); // 16x16
       public static final Icon RECORD = load("/studio/icons/profiler/toolbar/record.svg"); // 16x16
+      public static final Icon SELECT_ENTIRE_RANGE = load("/studio/icons/profiler/toolbar/select-entire-range.svg"); // 16x16
       public static final Icon STOP_RECORDING = load("/studio/icons/profiler/toolbar/stop-recording.svg"); // 16x16
       public static final Icon STOP_SESSION = load("/studio/icons/profiler/toolbar/stop-session.svg"); // 16x16
     }
