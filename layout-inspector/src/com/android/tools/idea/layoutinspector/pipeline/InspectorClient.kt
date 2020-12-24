@@ -137,7 +137,7 @@ interface InspectorClient {
    * Return true if the current client is actively connected (or about to connect) to the current
    * process.
    */
-  val isConnected: Boolean get() = state != State.DISCONNECTED
+  val isConnected: Boolean get() = (state == State.CONNECTED)
 }
 
 object DisconnectedClient : InspectorClient {

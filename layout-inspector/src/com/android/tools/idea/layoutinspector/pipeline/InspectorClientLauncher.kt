@@ -77,19 +77,31 @@ class InspectorClientLauncher(adb: AndroidDebugBridge,
   init {
     processes.addSelectedProcessListeners {
       val process = processes.selectedProcess
-      activeClient = if (process != null && process.isRunning) {
+
+      var validClientConnected = false
+      if (process != null && process.isRunning) {
         val params = object : Params {
           override val adb: AndroidDebugBridge = adb
           override val process: ProcessDescriptor = process
           override val disposable: Disposable = parentDisposable
         }
 
-        clientCreators.asSequence()
-          .mapNotNull { createClient -> createClient(params) }
-          .firstOrNull() ?: DisconnectedClient
+        for (createClient in clientCreators) {
+          val client = createClient(params)
+          if (client != null) {
+            try {
+              activeClient = client // Might fail if client.connect() fails
+              validClientConnected = true
+              break
+            }
+            catch (ignored: Exception) {
+            }
+          }
+        }
       }
-      else {
-        DisconnectedClient
+
+      if (!validClientConnected) {
+        activeClient = DisconnectedClient
       }
     }
 
@@ -103,23 +115,42 @@ class InspectorClientLauncher(adb: AndroidDebugBridge,
       if (field != value) {
         if (field.isConnected) {
           val future = field.disconnect()
-          disconnectCallbacks.forEach { it(future) }
-          disconnectCallbacks.clear()
+          clientDisconnectedCallbacks.forEach { it(future) }
+          clientDisconnectedCallbacks.clear()
         }
         field = value
-        clientCallbacks.forEach { callback -> callback(activeClient) }
+        clientChangedCallbacks.forEach { callback -> callback(value) }
         value.connect()
+        clientConnectedCallbacks.forEach { callback -> callback(value) }
       }
     }
 
-  private val clientCallbacks = mutableListOf<(InspectorClient) -> Unit>()
-  private val disconnectCallbacks = mutableListOf<(Future<*>) -> Unit>()
+  private val clientChangedCallbacks = mutableListOf<(InspectorClient) -> Unit>()
+  private val clientConnectedCallbacks = mutableListOf<(InspectorClient) -> Unit>()
+  private val clientDisconnectedCallbacks = mutableListOf<(Future<*>) -> Unit>()
 
   /**
    * Register a callback that is triggered whenever the active client changes.
+   *
+   * Such listeners are useful for handling setup that should happen just before client connection
+   * happens.
    */
   fun addClientChangedListener(callback: (InspectorClient) -> Unit) {
-    clientCallbacks.add(callback)
+    clientChangedCallbacks.add(callback)
+  }
+
+  /**
+   * Register a callback that is triggered whenever the active client has had
+   * [InspectorClient.connect] successfully called on it.
+   *
+   * This should happen shortly after the client changed listeners are fired, but these may not
+   * fire if the connection request fails.
+   *
+   * Note that even the [DisconnectedClient] can trigger this callback (as its connect is a
+   * no-op).
+   */
+  fun addClientConnectedListener(callback: (InspectorClient) -> Unit) {
+    clientConnectedCallbacks.add(callback)
   }
 
   /**
@@ -130,6 +161,6 @@ class InspectorClientLauncher(adb: AndroidDebugBridge,
    */
   @TestOnly
   fun addDisconnectionListener(callback: (Future<*>) -> Unit) {
-    disconnectCallbacks.add(callback)
+    clientDisconnectedCallbacks.add(callback)
   }
 }

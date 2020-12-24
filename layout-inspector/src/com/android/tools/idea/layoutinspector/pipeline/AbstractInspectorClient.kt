@@ -52,8 +52,9 @@ abstract class AbstractInspectorClient(final override val process: ProcessDescri
 
   final override fun connect() {
     assert(state == InspectorClient.State.INITIALIZED)
-    state = InspectorClient.State.CONNECTED
     doConnect()
+    // Update state afterwards, in case connection throws an exception
+    state = InspectorClient.State.CONNECTED
   }
 
   protected abstract fun doConnect()
