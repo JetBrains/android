@@ -194,7 +194,7 @@ class EmulatorView(
           return
         }
 
-        if (event.modifiers != 0) {
+        if (event.modifiersEx != 0) {
           return
         }
         val keyName =
@@ -695,7 +695,9 @@ class EmulatorView(
 
     override fun onNext(response: ImageMessage) {
       if (EMBEDDED_EMULATOR_TRACE_SCREENSHOTS.get()) {
-        LOG.info("Screenshot ${response.seq} ${response.format.width}x${response.format.height} ${response.format.rotation.rotation}")
+        val latency = System.currentTimeMillis() - response.timestampUs / 1000
+        LOG.info("Screenshot ${response.seq} ${response.format.width}x${response.format.height} ${response.format.rotation.rotation} " +
+                 "$latency ms latency")
       }
       if (screenshotReceiver != this) {
         return // This screenshot feed has already been cancelled.
