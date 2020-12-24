@@ -26,6 +26,7 @@ import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
+import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.CompletableFuture
@@ -41,6 +42,7 @@ class InspectorClientLauncherTest {
   private class FakeInspectorClient(
     val name: String,
     process: ProcessDescriptor,
+    private val onConnected: () -> Unit = {},
     private val onDisconnected: () -> Unit = {})
     : AbstractInspectorClient(process) {
 
@@ -48,7 +50,7 @@ class InspectorClientLauncherTest {
     override fun stopFetching() = throw NotImplementedError()
     override fun refresh() = throw NotImplementedError()
 
-    override fun doConnect() {}
+    override fun doConnect() = onConnected()
     override fun doDisconnect(): Future<*> {
       onDisconnected()
       return CompletableFuture.completedFuture(null)
@@ -84,7 +86,7 @@ class InspectorClientLauncherTest {
   }
 
   @Test
-  fun inspectorWithNoMatchReturnsDisconnectedClient() {
+  fun inspectorLauncherWithNoMatchReturnsDisconnectedClient() {
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
     val launcher = InspectorClientLauncher(
       adbRule.bridge,
@@ -176,5 +178,80 @@ class InspectorClientLauncherTest {
     assertThat(creatorCount1).isEqualTo(2)
     assertThat(creatorCount2).isEqualTo(1)
     assertThat(creatorCount3).isEqualTo(0)
+  }
+
+  @Test
+  fun inspectorLauncherSkipsOverClientsThatFailToConnect() {
+    val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
+
+    val launcher = InspectorClientLauncher(
+      adbRule.bridge,
+      processes,
+      listOf(
+        { params ->
+          FakeInspectorClient("Exploding client #1",
+                              params.process,
+                              onConnected = { throw IllegalStateException() },
+                              onDisconnected = { fail() }) // Verify disconnect not called if connect fails
+        },
+        { params ->
+          FakeInspectorClient("Exploding client #1",
+                              params.process,
+                              onConnected = { throw IllegalStateException() },
+                              onDisconnected = { fail() }) // Verify disconnect not called if connect fails
+        },
+        { params ->
+          FakeInspectorClient("Fallback client", params.process)
+        }
+      ),
+      disposableRule.disposable)
+
+
+    processes.selectedProcess = MODERN_DEVICE.createProcess()
+    (launcher.activeClient as FakeInspectorClient).let { activeClient ->
+      assertThat(activeClient.name).isEqualTo("Fallback client")
+    }
+  }
+
+  @Test
+  fun inspectorLauncherWithNoSuccessfulConnectionsReturnsDisconnectedClient() {
+    val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
+
+    val launcher = InspectorClientLauncher(
+      adbRule.bridge,
+      processes,
+      listOf(
+        { params ->
+          FakeInspectorClient("Exploding client #1",
+                              params.process,
+                              onConnected = { throw IllegalStateException() },
+                              onDisconnected = { fail() }) // Verify disconnect not called if connect fails
+        },
+        { params ->
+          FakeInspectorClient("Exploding client #1",
+                              params.process,
+                              onConnected = { throw IllegalStateException() },
+                              onDisconnected = { fail() }) // Verify disconnect not called if connect fails
+        },
+        { params ->
+          if (params.process.device.apiLevel >= MODERN_DEVICE.apiLevel) {
+            FakeInspectorClient("Modern client", params.process)
+          }
+          else {
+            null
+          }
+        }
+      ),
+      disposableRule.disposable)
+
+    // Set to a valid client first, so we know we actually changed correctly to a disconnected
+    // client later.
+    processes.selectedProcess = MODERN_DEVICE.createProcess()
+    (launcher.activeClient as FakeInspectorClient).let { activeClient ->
+      assertThat(activeClient.name).isEqualTo("Modern client")
+    }
+
+    processes.selectedProcess = LEGACY_DEVICE.createProcess()
+    assertThat(launcher.activeClient).isInstanceOf(DisconnectedClient::class.java)
   }
 }

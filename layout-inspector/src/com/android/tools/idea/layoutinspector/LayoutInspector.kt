@@ -20,8 +20,6 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto
-import com.android.tools.profiler.proto.Common
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.application.ApplicationManager
@@ -54,21 +52,19 @@ class LayoutInspector(
 
   init {
     launcher.addClientChangedListener(::clientChanged)
+    launcher.addClientConnectedListener(::clientConnected)
   }
 
   private fun clientChanged(client: InspectorClient) {
     client.registerErrorCallback(::logError)
     client.registerTreeEventCallback(::loadComponentTree)
+  }
 
-    if (client.isConnected) {
-      layoutInspectorModel.updateConnection(client)
-    }
-    else {
-      layoutInspectorModel.updateConnection(DisconnectedClient)
-      ApplicationManager.getApplication().invokeLater {
-        if (currentClient === DisconnectedClient) {
-          layoutInspectorModel.update(null, listOf<Any>(), 0)
-        }
+  private fun clientConnected(client: InspectorClient) {
+    layoutInspectorModel.updateConnection(client)
+    ApplicationManager.getApplication().invokeLater {
+      if (currentClient === DisconnectedClient) {
+        layoutInspectorModel.update(null, listOf<Any>(), 0)
       }
     }
   }
