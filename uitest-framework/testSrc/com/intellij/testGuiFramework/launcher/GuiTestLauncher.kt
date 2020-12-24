@@ -85,6 +85,10 @@ object GuiTestLauncher {
     vmOptionsFile?.let {
       processBuilder.environment()["STUDIO_VM_OPTIONS"] = it.canonicalPath
     }
+    /* Force headful execution in Mac OS b/175816469 */
+    if (SystemInfo.isMac) {
+      processBuilder.environment()["AWT_FORCE_HEADFUL"] = "true"
+    }
     setAspectsAgentEnv(processBuilder)
     process = processBuilder.start()
   }
