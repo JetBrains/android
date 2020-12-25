@@ -31,7 +31,6 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
-import com.intellij.testFramework.LightPlatformTestCase.assertThrows
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -187,7 +186,7 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
     val resultSet = createLazyLiveSqliteResultSet(SqliteStatement(SqliteStatementType.EXPLAIN, "fake stmt"), mockMessenger)
 
     // Act / Assert
-    assertThrows<IllegalArgumentException>(IllegalArgumentException::class.java) {
+    assertThrows(IllegalArgumentException::class.java) {
       resultSet.getRowBatch(-1, Integer.MAX_VALUE)
     }
   }
@@ -207,7 +206,7 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
     val resultSet = createLazyLiveSqliteResultSet(SqliteStatement(SqliteStatementType.EXPLAIN, "fake stmt"), mockMessenger)
 
     // Act / Assert
-    assertThrows<IllegalArgumentException>(IllegalArgumentException::class.java) {
+    assertThrows(IllegalArgumentException::class.java) {
       resultSet.getRowBatch(0, 0)
     }
   }

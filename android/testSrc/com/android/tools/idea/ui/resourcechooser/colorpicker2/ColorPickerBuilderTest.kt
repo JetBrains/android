@@ -28,7 +28,7 @@ import javax.swing.KeyStroke
 class ColorPickerBuilderTest : PlatformTestCase() {
 
   fun testCreateEmptyPickerShouldThrowTheException() {
-    assertThrows<IllegalStateException>(IllegalStateException::class.java) { ColorPickerBuilder().build() }
+    assertThrows(IllegalStateException::class.java) { ColorPickerBuilder().build() }
   }
 
   fun testCreatePickerWithSaturationBrightnessComponent() {
@@ -65,7 +65,7 @@ class ColorPickerBuilderTest : PlatformTestCase() {
   }
 
   fun testCreatePickerWithNoOperationWillThrowException() {
-    assertThrows<IllegalStateException>(IllegalStateException::class.java) {
+    assertThrows(IllegalStateException::class.java) {
       ColorPickerBuilder().addOperationPanel(null, null).build()
     }
   }
