@@ -22,6 +22,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import java.util.List;
@@ -41,6 +42,11 @@ public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
 
     AndroidTestRunConfiguration androidTestRunConfiguration =
       createAndroidTestConfigurationFromClass(getProject(), TEST_APP_CLASS_NAME);
+
+    ProjectDumper dumper = new ProjectDumper();
+    dumper.dump(getProject());
+    System.out.println(dumper);
+
     assertInstanceOf(androidTestRunConfiguration, AndroidTestRunConfiguration.class);
 
     AndroidModuleModel androidModel = AndroidModuleModel.get(myAndroidFacet);
