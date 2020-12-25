@@ -39,13 +39,9 @@ public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
    */
   public void testCheckConfigurationNoErrors() throws Exception {
     loadProject(DYNAMIC_APP);
-
+try {
     AndroidTestRunConfiguration androidTestRunConfiguration =
       createAndroidTestConfigurationFromClass(getProject(), TEST_APP_CLASS_NAME);
-
-    ProjectDumper dumper = new ProjectDumper();
-    dumper.dump(getProject());
-    System.out.println(dumper);
 
     assertInstanceOf(androidTestRunConfiguration, AndroidTestRunConfiguration.class);
 
@@ -55,6 +51,11 @@ public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
 
     List<ValidationError> errors = androidTestRunConfiguration.checkConfiguration(myAndroidFacet);
     assertThat(errors).isEmpty();
+} finally {
+    ProjectDumper dumper = new ProjectDumper();
+    dumper.dump(getProject());
+    System.out.println(dumper);
+}
   }
 
   /**
