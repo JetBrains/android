@@ -27,7 +27,6 @@ import com.android.tools.idea.uibuilder.fixtures.ScreenFixture
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler.getSelectedIds
 import com.android.tools.idea.uibuilder.model.viewGroupHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
-import com.intellij.testFramework.exceptionCases.AbstractExceptionCase
 
 import org.mockito.Mockito
 
@@ -43,13 +42,9 @@ class ConstraintLayoutHandlerTest: SceneTest() {
       .build()
 
     val handler = nlModel.find("root")!!.viewGroupHandler!!
-    assertNoException(object : AbstractExceptionCase<IllegalArgumentException>() {
-      override fun getExpectedExceptionClass() = IllegalArgumentException::class.java
-
-      override fun tryClosure() {
+    assertNoException<IllegalArgumentException>(IllegalArgumentException::class.java) {
         handler.clearAttributes(listOf())
       }
-    })
   }
 
   fun testClearConstraintAttributes() {

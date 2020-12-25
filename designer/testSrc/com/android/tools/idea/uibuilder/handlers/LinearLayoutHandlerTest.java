@@ -25,7 +25,6 @@ import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.google.common.collect.ImmutableList;
-import com.intellij.testFramework.exceptionCases.EmptyStackExceptionCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -153,14 +152,12 @@ public class LinearLayoutHandlerTest extends LayoutTestCase {
     DelegatingViewGroupHandler delegatingViewGroupHandler = new DelegatingViewGroupHandler(handler);
     NlComponent component = model.find("root");
     assertNotNull(component);
-    assertNoException(new EmptyStackExceptionCase() {
-      @Override
-      public void tryClosure() throws EmptyStackException {
+    assertNoException(EmptyStackException.class, () -> {
         actions.stream()
           .filter(action -> action instanceof DirectViewAction)
           .map(action -> (DirectViewAction)action)
           .forEach(action -> action.perform(editor, delegatingViewGroupHandler, component, ImmutableList.of(), 0));
       }
-    });
+    );
   }
 }
