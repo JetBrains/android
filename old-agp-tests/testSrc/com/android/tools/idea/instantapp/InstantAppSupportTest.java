@@ -113,16 +113,6 @@ public class InstantAppSupportTest extends AndroidGradleTestCase {
   }
 
   private void assertExceptionInCheckingConfig(@NotNull AndroidRunConfiguration runConfig, @NotNull String url) throws Throwable {
-    assertException(new AbstractExceptionCase() {
-      @Override
-      public Class getExpectedExceptionClass() {
-        return RuntimeConfigurationWarning.class;
-      }
-
-      @Override
-      public void tryClosure() throws Throwable {
-        runConfig.checkConfiguration();
-      }
-    }, "URL \"" + url + "\" not defined in the manifest.");
+    assertThrows(RuntimeConfigurationWarning.class, "URL \"" + url + "\" not defined in the manifest.", runConfig::checkConfiguration);
   }
 }

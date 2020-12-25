@@ -177,7 +177,7 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
     val resultSet = createPagedLiveSqliteResultSet(statement, mockMessenger)
 
     // Act / Assert
-    assertThrows<IllegalArgumentException>(IllegalArgumentException::class.java) {
+    assertThrows(IllegalArgumentException::class.java) {
       resultSet.getRowBatch(-1, Integer.MAX_VALUE)
     }
   }
@@ -195,7 +195,7 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
     val resultSet = createPagedLiveSqliteResultSet(statement, mockMessenger)
 
     // Act / Assert
-    assertThrows<IllegalArgumentException>(IllegalArgumentException::class.java) {
+    assertThrows(IllegalArgumentException::class.java) {
       resultSet.getRowBatch(0, 0)
     }
   }

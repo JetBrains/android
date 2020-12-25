@@ -24,7 +24,7 @@ import java.awt.Color
 class OperationPanelTest : TestCase() {
 
   fun testNoOperationWillThrowException() {
-    assertThrows<IllegalStateException>(IllegalStateException::class.java) {
+    assertThrows(IllegalStateException::class.java) {
       OperationPanel(ColorPickerModel(), null, null)
     }
   }

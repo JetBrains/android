@@ -28,7 +28,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.testFramework.exceptionCases.AbstractExceptionCase;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -119,17 +118,7 @@ public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
   }
 
   public void testCopyIsWhenNothingIsSelected() {
-    assertNoException(new AbstractExceptionCase<NullPointerException>() {
-      @Override
-      public Class<NullPointerException> getExpectedExceptionClass() {
-        return null;
-      }
-
-      @Override
-      public void tryClosure() throws NullPointerException {
-        new NlDesignSurfaceActionHandler(mySurface).performCopy(context);
-      }
-    });
+    assertNoException(NullPointerException.class, () -> new NlDesignSurfaceActionHandler(mySurface).performCopy(context));
   }
 
   public void testCopyMultiple() {
@@ -149,7 +138,8 @@ public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
     verify(myCopyPasteManager).setContents(notNull());
   }
 
-  public void testPasteWillChangeSelectionToPastedComponent() {
+  // Disabled because it is flaky: b/157650498
+  public void ignore_testPasteWillChangeSelectionToPastedComponent() {
     // Need to use the real copyPasteManager for checking the result of selection model.
     mySurfaceActionHandler = new NlDesignSurfaceActionHandler(mySurface);
 

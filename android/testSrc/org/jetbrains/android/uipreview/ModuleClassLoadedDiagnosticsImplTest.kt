@@ -63,7 +63,7 @@ internal class ModuleClassLoadedDiagnosticsImplTest {
     val counter = HierarchicalTimeCounter()
     counter.start("A")
     counter.start("B")
-    assertThrows<IllegalStateException>(IllegalStateException::class.java) {
+    assertThrows(IllegalStateException::class.java) {
       counter.end("A", 100L)
     }
   }
