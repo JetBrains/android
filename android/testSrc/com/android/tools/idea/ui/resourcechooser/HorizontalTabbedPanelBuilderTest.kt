@@ -16,7 +16,6 @@
 package com.android.tools.idea.ui.resourcechooser
 
 import com.intellij.testFramework.PlatformTestCase
-import com.intellij.testFramework.exceptionCases.AbstractExceptionCase
 import java.awt.Dimension
 import java.lang.IllegalArgumentException
 import javax.swing.JPanel
@@ -57,15 +56,11 @@ class HorizontalTabbedPanelBuilderTest : PlatformTestCase() {
   }
 
   fun testExceptionWhenComponentAddedTwice() {
-    assertException(object : AbstractExceptionCase<IllegalArgumentException>() {
-      override fun getExpectedExceptionClass(): Class<IllegalArgumentException> = IllegalArgumentException::class.java
-
-      override fun tryClosure() {
-        val builder = HorizontalTabbedPanelBuilder()
-        val aPanel = JPanel()
-        builder.addTab("A", aPanel)
-        builder.addTab("B", aPanel)
-      }
-    })
+    assertThrows(IllegalArgumentException::class.java) {
+      val builder = HorizontalTabbedPanelBuilder()
+      val aPanel = JPanel()
+      builder.addTab("A", aPanel)
+      builder.addTab("B", aPanel)
+    }
   }
 }
