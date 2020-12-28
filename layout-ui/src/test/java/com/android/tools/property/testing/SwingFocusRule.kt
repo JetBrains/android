@@ -21,7 +21,6 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.ExpirableRunnable
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.openapi.wm.IdeFrame
 import org.junit.rules.ExternalResource
@@ -31,7 +30,6 @@ import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import org.mockito.stubbing.Answer
 import sun.awt.AWTAccessor
-import java.awt.event.FocusEvent
 import java.awt.Component
 import java.awt.Container
 import java.awt.DefaultKeyboardFocusManager
@@ -39,6 +37,7 @@ import java.awt.Frame
 import java.awt.GraphicsEnvironment
 import java.awt.KeyboardFocusManager
 import java.awt.Window
+import java.awt.event.FocusEvent
 import java.awt.peer.ComponentPeer
 import javax.swing.JComponent
 
@@ -119,18 +118,13 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
     if (accessor.getPeer<ComponentPeer>(component) == null) {
       val peer = Mockito.mock(ComponentPeer::class.java)
 
-      if (SystemInfoRt.IS_AT_LEAST_JAVA9) {
-        val causeClass = Class.forName("java.awt.event.FocusEvent\$Cause")
-        val methodCall = ComponentPeer::class.java.getMethod("requestFocus", Component::class.java,
-                                            Boolean::class.javaPrimitiveType, Boolean::class.javaPrimitiveType,
-                                            Long::class.javaPrimitiveType, causeClass)
+      val causeClass = Class.forName("java.awt.event.FocusEvent\$Cause")
+      val methodCall = ComponentPeer::class.java.getMethod("requestFocus", Component::class.java,
+                                          Boolean::class.javaPrimitiveType, Boolean::class.javaPrimitiveType,
+                                          Long::class.javaPrimitiveType, causeClass)
 
-        Mockito.`when`(methodCall.invoke(peer, ArgumentMatchers.any(), ArgumentMatchers.anyBoolean(), ArgumentMatchers.anyBoolean(),
-                                         ArgumentMatchers.anyLong(), ArgumentMatchers.any())).then(answer)
-      } else {
-        Mockito.`when`(peer.requestFocus(ArgumentMatchers.any(), ArgumentMatchers.anyBoolean(), ArgumentMatchers.anyBoolean(),
-                                         ArgumentMatchers.anyLong(), ArgumentMatchers.any())).then(answer)
-      }
+      Mockito.`when`(methodCall.invoke(peer, ArgumentMatchers.any(), ArgumentMatchers.anyBoolean(), ArgumentMatchers.anyBoolean(),
+                                       ArgumentMatchers.anyLong(), ArgumentMatchers.any())).then(answer)
       accessor.setPeer(component, peer)
     }
   }

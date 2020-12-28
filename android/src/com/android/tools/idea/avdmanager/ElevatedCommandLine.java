@@ -16,7 +16,6 @@
 package com.android.tools.idea.avdmanager;
 
 import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.Shell32;
@@ -24,10 +23,16 @@ import com.sun.jna.platform.win32.ShellAPI;
 import com.sun.jna.platform.win32.WinNT.HANDLE;
 import com.sun.jna.platform.win32.WinUser;
 import com.sun.jna.ptr.IntByReference;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Special version of {@link GeneralCommandLine} that will execute the command with
@@ -35,13 +40,14 @@ import java.util.List;
  * This is useful for installation commands which require administrator privileges
  * on Windows version 7 and above.
  */
-public class ElevatedCommandLine extends GeneralCommandLine {
+public final class ElevatedCommandLine extends GeneralCommandLine {
   private static final int SEE_MASK_NO_CLOSE_PROCESS = 0x00000040;
   private static final int INFINITE = -1;
   private String myTempFilePrefix;
 
-  public ElevatedCommandLine(@NotNull String... command) {
+  public ElevatedCommandLine(@NotNull String @NotNull ... command) {
     super(command);
+
     myTempFilePrefix = "temp";
   }
 
@@ -53,12 +59,7 @@ public class ElevatedCommandLine extends GeneralCommandLine {
   @Override
   @NotNull
   protected Process startProcess(@NotNull List<String> commands) throws IOException {
-    if (SystemInfo.isWin7OrNewer) {
-      return executeAsShellCommand();
-    }
-    else {
-      return super.startProcess(commands);
-    }
+    return executeAsShellCommand();
   }
 
   /**
@@ -71,14 +72,16 @@ public class ElevatedCommandLine extends GeneralCommandLine {
     // directory.
     // Note: This was needed for the Haxm silent_install.bat.
     String exeName = new File(getExePath()).getName();
-    File wrapper = FileUtil.createTempFile(FileUtil.getNameWithoutExtension(exeName) + "_wrapper", ".bat", true);
+    Path wrapper = FileUtil.createTempFile(FileUtil.getNameWithoutExtension(exeName) + "_wrapper", ".bat", true).toPath();
     String exePath = new File(getExePath()).getParent();
-    FileUtil.writeToFile(wrapper, String.format(
+    Files.createDirectories(wrapper.getParent());
+    //noinspection SpellCheckingInspection
+    Files.writeString(wrapper, String.format(
       "@echo off\n" +
       "setlocal enableextensions\n\n" +
       "cd /d \"%1$s\"\n\n" +
       "%2$s %%*", exePath, exeName));
-    setExePath(wrapper.getPath());
+    setExePath(wrapper.toString());
 
     // Setup capturing of stdout and stderr in files.
     // ShellExecuteEx does not allow for the capture from code.
@@ -106,7 +109,7 @@ public class ElevatedCommandLine extends GeneralCommandLine {
    * A fake Process which will wait for the created process to finish
    * and wrap stdout and stderr into their respective {@link InputStream}.
    */
-  private static class ProcessWrapper extends Process {
+  private static final class ProcessWrapper extends Process {
     private HANDLE myProcess;
     private final IntByReference myExitCode;
     private final File myOutFile;
