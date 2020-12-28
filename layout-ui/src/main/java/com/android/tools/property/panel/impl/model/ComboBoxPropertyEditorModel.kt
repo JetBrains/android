@@ -23,6 +23,7 @@ import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.api.PropertyItem
 import com.google.common.util.concurrent.Futures
+import com.intellij.util.text.nullize
 import java.util.concurrent.Future
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
@@ -81,7 +82,7 @@ class ComboBoxPropertyEditorModel(
 
   init {
     if (!editable) {
-      setInitialDropDownValue(value)
+      setInitialDropDownValue(value.nullize() ?: property.defaultValue.orEmpty())
     }
   }
 
