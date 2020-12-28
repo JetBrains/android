@@ -81,7 +81,6 @@ import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
 import com.intellij.ui.AppIcon;
 import com.intellij.ui.content.ContentManagerListener;
 import com.intellij.util.Function;
-import com.intellij.util.SystemProperties;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -227,7 +226,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
       myBuildStopper.register(id, cancellationTokenSource);
 
       taskListener.onStart(id, myRequest.getBuildFilePath().getPath());
-      taskListener.onTaskOutput(id, executingTasksText + SystemProperties.getLineSeparator() + SystemProperties.getLineSeparator(), true);
+      taskListener.onTaskOutput(id, executingTasksText + System.lineSeparator() + System.lineSeparator(), true);
 
       BuildMode buildMode = BuildSettings.getInstance(myProject).getBuildMode();
       GradleBuildState buildState = GradleBuildState.getInstance(myProject);

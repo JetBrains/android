@@ -37,7 +37,6 @@ import com.google.common.io.Files;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -60,7 +59,7 @@ import org.junit.Test;
  */
 @SuppressWarnings({"ResultOfMethodCallIgnored", "StringBufferReplaceableByString"})
 public class BuildOutputParserTest {
-  private static final String NEWLINE = SystemProperties.getLineSeparator();
+  private static final String NEWLINE = System.lineSeparator();
   private static final String CWD_PATH = new File("").getAbsolutePath();
 
   private File sourceFile;
