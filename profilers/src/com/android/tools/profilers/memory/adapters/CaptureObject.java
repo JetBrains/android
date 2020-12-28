@@ -212,21 +212,21 @@ public interface CaptureObject extends MemoryObject {
 
   default ListenableFuture<Void> addInstanceFilter(@NotNull CaptureObjectInstanceFilter filter,
                                                    @NotNull Executor analyzeJoiner) {
-    return CaptureObjectUtils.makeEmptyTask();
+    return Utils.makeEmptyTask();
   }
 
   default ListenableFuture<Void> removeInstanceFilter(@NotNull CaptureObjectInstanceFilter filter,
                                                       @NotNull Executor analyzeJoiner) {
-    return CaptureObjectUtils.makeEmptyTask();
+    return Utils.makeEmptyTask();
   }
 
   default ListenableFuture<Void> setSingleFilter(@NotNull CaptureObjectInstanceFilter filter,
                                                  @NotNull Executor analyzeJoiner) {
-    return CaptureObjectUtils.makeEmptyTask();
+    return Utils.makeEmptyTask();
   }
 
   default ListenableFuture<Void> removeAllFilters(@NotNull Executor analyzeJoiner) {
-    return CaptureObjectUtils.makeEmptyTask();
+    return Utils.makeEmptyTask();
   }
 
   default boolean isGroupingSupported(ClassGrouping grouping) {
@@ -245,10 +245,10 @@ public interface CaptureObject extends MemoryObject {
   default boolean canSafelyLoad() {
     return true;
   }
-}
 
-class CaptureObjectUtils {
-  static ListenableFutureTask<Void> makeEmptyTask() {
-    return ListenableFutureTask.create(() -> null);
+  class Utils {
+    static ListenableFutureTask<Void> makeEmptyTask() {
+      return ListenableFutureTask.create(() -> null);
+    }
   }
 }

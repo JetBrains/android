@@ -179,7 +179,7 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
 
   override fun removeInstanceFilter(filterToRemove: CaptureObjectInstanceFilter, analyzeJoiner: Executor): ListenableFuture<Void> = when {
     // Filter is not set in the first place so nothing needs to be done.
-    !currentInstanceFilters.contains(filterToRemove) -> CaptureObjectUtils.makeEmptyTask()
+    !currentInstanceFilters.contains(filterToRemove) -> CaptureObject.Utils.makeEmptyTask()
     else -> {
       currentInstanceFilters.remove(filterToRemove)
       executorService.submit<Void> {
