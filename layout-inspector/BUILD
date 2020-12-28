@@ -1,5 +1,17 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
+config_setting(
+    name = "windows",
+    values = {"host_cpu": "x64_windows"},
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "mac",
+    values = {"host_cpu": "darwin"},
+    visibility = ["//visibility:public"],
+)
+
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.layout-inspector",
@@ -52,7 +64,12 @@ iml_module(
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/layout-inspector/testData",
-    ],
+    ] + select({
+        "windows": [":skiaparser-test.dll"],
+        "mac": [":libskiaparser-test.dylib"],
+        "//conditions:default": [":libskiaparser-test.so"],
+    }),
+    test_jvm_flags = ["-Djava.library.path=tools/adt/idea/layout-inspector"],
     test_resources = ["testResources"],
     test_srcs = ["testSrc"],
     test_timeout = "long",
@@ -95,5 +112,57 @@ iml_module(
         "//tools/adt/idea/app-inspection/ide:intellij.android.app-inspection.ide[module, test]",
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module, test]",
         "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto[test]",
+        "//tools/adt/idea/layout-inspector:skiaparser_test_support",
+    ],
+)
+
+cc_library(
+    name = "skiaparser_test_support",
+    srcs = ["testSrc/native/skia_parser_test_java_jni.cc"],
+    copts = [
+        "-DSK_USER_CONFIG_HEADER=\\\"StudioConfig.h\\\"",
+    ],
+    linkstatic = 1,
+    deps = [
+        "//prebuilts/studio/jdk:jni_headers",
+        "//tools/base/dynamic-layout-inspector/skia:skia-lib",
+        "//tools/base/dynamic-layout-inspector/skia/proto:layout_inspector_skia_cc_proto",
+    ],
+    alwayslink = 1,
+)
+
+cc_binary(
+    name = "libskiaparser-test.dylib",
+    linkshared = 1,
+    tags = [
+        "no_linux",
+        "no_windows",
+    ],
+    deps = [
+        ":skiaparser_test_support",
+    ],
+)
+
+cc_binary(
+    name = "libskiaparser-test.so",
+    linkshared = 1,
+    tags = [
+        "no_mac",
+        "no_windows",
+    ],
+    deps = [
+        ":skiaparser_test_support",
+    ],
+)
+
+cc_binary(
+    name = "skiaparser-test.dll",
+    linkshared = 1,
+    tags = [
+        "no_linux",
+        "no_mac",
+    ],
+    deps = [
+        ":skiaparser_test_support",
     ],
 )

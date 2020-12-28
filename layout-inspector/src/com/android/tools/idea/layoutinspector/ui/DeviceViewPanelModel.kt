@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.PNG_AS_REQUESTED
-import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.PNG_SKP_TOO_LARGE
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.SKP
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.UNKNOWN
 import com.android.tools.idea.layoutinspector.model.DrawViewChild
@@ -112,14 +111,6 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
         model.windows.values.any { it.imageType == PNG_AS_REQUESTED } -> {
           // If we find that we've requested and received a png, that's what we'll use first
           PNG_AS_REQUESTED
-        }
-        model.windows.values.any { it.imageType == PNG_SKP_TOO_LARGE } -> {
-          // We got a PNG because the SKP we would have gotten was too big.
-          PNG_SKP_TOO_LARGE
-        }
-        model.windows.values.all { it.imageType == PNG_SKP_TOO_LARGE } -> {
-          // If everything is an SKP (or a dimmer we added) then the type is SKP
-          SKP
         }
         else -> {
           UNKNOWN

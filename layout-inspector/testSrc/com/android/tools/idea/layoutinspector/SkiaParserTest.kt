@@ -17,12 +17,16 @@ package com.android.tools.idea.layoutinspector
 
 import com.android.repository.testframework.MockFileOp
 import com.android.testutils.ImageDiffUtil
+import com.android.testutils.MockitoKt
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.FakeSdkRule
+import com.android.tools.idea.layoutinspector.proto.SkiaParser.RequestedNodeInfo
+import com.android.tools.idea.layoutinspector.proto.SkiaParser.InspectorView
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.layoutinspector.LayoutInspectorUtils
 import com.google.common.truth.Truth.assertThat
+import io.grpc.netty.NettyChannelBuilder
 import junit.framework.TestCase.assertEquals
 import org.junit.Assert.fail
 import org.junit.Rule
@@ -81,7 +85,7 @@ class SkiaParserTest {
       1L to LayoutInspectorUtils.makeRequestedNodeInfo(1, 0, 0, 10, 20)!!,
       4L to LayoutInspectorUtils.makeRequestedNodeInfo(4, 3, 12, 4, 5)!!
     )
-    val root = LayoutInspectorUtils.buildTree(tree, { false }, requestedNodes)!!
+    val root = LayoutInspectorUtils.buildTree(tree, mapOf(), { false }, requestedNodes)!!
 
     assertThat(root.id).isEqualTo(1)
     assertThat(root.image).isNull()
@@ -138,3 +142,58 @@ class SkiaParserTest2 {
     assertThat(SkiaParser.findServerInfoForSkpVersion(25)!!.serverVersion).isEqualTo(4)
   }
 }
+
+class SkiaParserIntegrationTest {
+  @Test
+  fun testRunServer() {
+    val serverInfo = ServerInfo(null, 0, 0)
+    val port = serverInfo.createGrpcClient()
+    val serverThread = Thread { runServer(port) }
+    serverThread.start()
+    val node1 = RequestedNodeInfo.newBuilder().apply {
+      id = 1
+      width = 1000
+      height = 2000
+      x = 0
+      y = 0
+    }.build()
+    val node2 = RequestedNodeInfo.newBuilder().apply {
+      id = 2
+      width = 500
+      height = 1000
+      x = 100
+      y = 100
+    }.build()
+    val node4 = RequestedNodeInfo.newBuilder().apply {
+      id = 4
+      width = 400
+      height = 500
+      x = 300
+      y = 1200
+    }.build()
+    val (root, imageMap) = serverInfo.getViewTree(generateBoxes(), listOf(node1, node2, node4), 1.0) ?: error("no result from server")
+    assertThat(imageMap.values.map { it.size() }).containsExactly(8000000, 2000000, 800000)
+    val expected = Node(1, Node(1), Node(2, Node(2)), Node(4, Node(4)))
+    assertIdsEqual(expected, root)
+
+    serverInfo.shutdown()
+    serverThread.join()
+  }
+
+  private fun assertIdsEqual(expected: Node, root: InspectorView) {
+    assertThat(root.id).isEqualTo(expected.id)
+    assertThat(root.childrenCount).isEqualTo(expected.children.size)
+    root.childrenList.zip(expected.children).forEach { (actual, expected) -> assertIdsEqual(expected, actual) }
+  }
+
+  private class Node(val id: Int, vararg val children: Node)
+
+  companion object {
+    init {
+      System.loadLibrary("skiaparser-test")
+    }
+    @JvmStatic private external fun generateBoxes(): ByteArray
+    @JvmStatic private external fun runServer(port: Int)
+  }
+}
+
