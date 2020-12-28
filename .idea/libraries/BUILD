@@ -88,7 +88,12 @@ java_import(
 # managed by go/iml_to_build
 java_import(
     name = "asm-tools",
-    jars = ["//tools/adt/idea/android/lib:asm-tools_files"],
+    # do not sort: must match IML order
+    jars = [
+        "//prebuilts/tools/common/m2/repository/org/ow2/asm/asm/7.0:asm-tools_files",
+        "//prebuilts/tools/common/m2/repository/org/ow2/asm/asm-tree/7.0:asm-tools_files",
+        "//prebuilts/tools/common/m2/repository/org/ow2/asm/asm-analysis/7.0:asm-tools_files",
+    ],
     visibility = ["//visibility:public"],
 )
 

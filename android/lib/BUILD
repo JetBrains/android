@@ -39,18 +39,6 @@ studio_data(
 )
 
 # managed by go/iml_to_build
-filegroup(
-    name = "asm-tools_files",
-    # do not sort: must match IML order
-    srcs = [
-        "asm-5.0.3.jar",
-        "asm-analysis-5.0.3.jar",
-        "asm-tree-5.0.3.jar",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
 java_import(
     name = "android-sdk-tools-jps",
     jars = ["jarutils.jar"],
