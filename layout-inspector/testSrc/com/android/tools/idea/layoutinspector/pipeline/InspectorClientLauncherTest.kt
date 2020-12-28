@@ -24,13 +24,13 @@ import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Future
 
 class InspectorClientLauncherTest {
   @get:Rule
@@ -39,21 +39,18 @@ class InspectorClientLauncherTest {
   @get:Rule
   val disposableRule = DisposableRule()
 
-  private class FakeInspectorClient(
+  private open class FakeInspectorClient(
     val name: String,
-    process: ProcessDescriptor,
-    private val onConnected: () -> Unit = {},
-    private val onDisconnected: () -> Unit = {})
+    process: ProcessDescriptor)
     : AbstractInspectorClient(process) {
 
     override fun startFetching() = throw NotImplementedError()
     override fun stopFetching() = throw NotImplementedError()
     override fun refresh() = throw NotImplementedError()
 
-    override fun doConnect() = onConnected()
-    override fun doDisconnect(): Future<*> {
-      onDisconnected()
-      return CompletableFuture.completedFuture(null)
+    override fun doConnect() = Unit
+    override fun doDisconnect(): ListenableFuture<Nothing> {
+      return Futures.immediateFuture(null)
     }
 
     override val capabilities
@@ -112,19 +109,23 @@ class InspectorClientLauncherTest {
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
 
     val launcherDispoable = Disposer.newDisposable()
-    var clientWasDisposed = false
+    var clientWasDisconnected = false
     val launcher = InspectorClientLauncher(
       adbRule.bridge,
       processes,
-      listOf { params -> FakeInspectorClient("Client", params.process) { clientWasDisposed = true } },
+      listOf { params ->
+        val client = FakeInspectorClient("Client", params.process)
+        client.registerStateCallback { state -> if (state == InspectorClient.State.DISCONNECTED) clientWasDisconnected = true }
+        client
+      },
       launcherDispoable)
 
     processes.selectedProcess = MODERN_DEVICE.createProcess()
     assertThat(launcher.activeClient.isConnected).isTrue()
 
-    assertThat(clientWasDisposed).isFalse()
+    assertThat(clientWasDisconnected).isFalse()
     Disposer.dispose(launcherDispoable)
-    assertThat(clientWasDisposed).isTrue()
+    assertThat(clientWasDisconnected).isTrue()
     assertThat(launcher.activeClient.isConnected).isFalse()
   }
 
@@ -189,16 +190,20 @@ class InspectorClientLauncherTest {
       processes,
       listOf(
         { params ->
-          FakeInspectorClient("Exploding client #1",
-                              params.process,
-                              onConnected = { throw IllegalStateException() },
-                              onDisconnected = { fail() }) // Verify disconnect not called if connect fails
+          val client = object : FakeInspectorClient("Exploding client #1", params.process) {
+            override fun doConnect() = throw IllegalStateException()
+          }
+          // Verify disconnect not called if connect fails
+          client.registerStateCallback { state -> if (state == InspectorClient.State.DISCONNECTED) fail() }
+          client
         },
         { params ->
-          FakeInspectorClient("Exploding client #1",
-                              params.process,
-                              onConnected = { throw IllegalStateException() },
-                              onDisconnected = { fail() }) // Verify disconnect not called if connect fails
+          val client = object : FakeInspectorClient("Exploding client #2", params.process) {
+            override fun doConnect() = throw IllegalStateException()
+          }
+          // Verify disconnect not called if connect fails
+          client.registerStateCallback { state -> if (state == InspectorClient.State.DISCONNECTED) fail() }
+          client
         },
         { params ->
           FakeInspectorClient("Fallback client", params.process)
@@ -222,16 +227,20 @@ class InspectorClientLauncherTest {
       processes,
       listOf(
         { params ->
-          FakeInspectorClient("Exploding client #1",
-                              params.process,
-                              onConnected = { throw IllegalStateException() },
-                              onDisconnected = { fail() }) // Verify disconnect not called if connect fails
+          val client = object : FakeInspectorClient("Exploding client #1", params.process) {
+            override fun doConnect() = throw IllegalStateException()
+          }
+          // Verify disconnect not called if connect fails
+          client.registerStateCallback { state -> if (state == InspectorClient.State.DISCONNECTED) fail() }
+          client
         },
         { params ->
-          FakeInspectorClient("Exploding client #1",
-                              params.process,
-                              onConnected = { throw IllegalStateException() },
-                              onDisconnected = { fail() }) // Verify disconnect not called if connect fails
+          val client = object : FakeInspectorClient("Exploding client #2", params.process) {
+            override fun doConnect() = throw IllegalStateException()
+          }
+          // Verify disconnect not called if connect fails
+          client.registerStateCallback { state -> if (state == InspectorClient.State.DISCONNECTED) fail() }
+          client
         },
         { params ->
           if (params.process.device.apiLevel >= MODERN_DEVICE.apiLevel) {

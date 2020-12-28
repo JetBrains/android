@@ -52,19 +52,21 @@ class LayoutInspector(
 
   init {
     launcher.addClientChangedListener(::clientChanged)
-    launcher.addClientConnectedListener(::clientConnected)
   }
 
   private fun clientChanged(client: InspectorClient) {
-    client.registerErrorCallback(::logError)
-    client.registerTreeEventCallback(::loadComponentTree)
-  }
-
-  private fun clientConnected(client: InspectorClient) {
-    layoutInspectorModel.updateConnection(client)
-    ApplicationManager.getApplication().invokeLater {
-      if (currentClient === DisconnectedClient) {
-        layoutInspectorModel.update(null, listOf<Any>(), 0)
+    if (client !== DisconnectedClient) {
+      client.registerErrorCallback(::logError)
+      client.registerTreeEventCallback(::loadComponentTree)
+      client.registerStateCallback { state -> if (state == InspectorClient.State.CONNECTED) layoutInspectorModel.updateConnection(client) }
+    }
+    else {
+      // If disconnected, e.g. stopped, force models to clear their state and, by association, the UI
+      layoutInspectorModel.updateConnection(DisconnectedClient)
+      ApplicationManager.getApplication().invokeLater {
+        if (currentClient === DisconnectedClient) {
+          layoutInspectorModel.update(null, listOf<Any>(), 0)
+        }
       }
     }
   }

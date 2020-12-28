@@ -34,7 +34,9 @@ import java.util.concurrent.Future
 interface InspectorClient {
   enum class State {
     INITIALIZED,
+    CONNECTING,
     CONNECTED,
+    DISCONNECTING,
     DISCONNECTED,
   }
 
@@ -44,6 +46,11 @@ interface InspectorClient {
      */
     SUPPORTS_CONTINUOUS_MODE,
   }
+
+  /**
+   * Register a handler that is triggered whenever this client's [state] has changed.
+   */
+  fun registerStateCallback(callback: (State) -> Unit)
 
   /**
    * Register a handler that is triggered when this client encounters an error message
@@ -61,6 +68,9 @@ interface InspectorClient {
   /**
    * Connect this client to the device.
    *
+   * Use [registerStateCallback] and check for [State.CONNECTED] if you need to know when this has
+   * finished.
+   *
    * You are only supposed to call this once.
    */
   fun connect()
@@ -68,9 +78,12 @@ interface InspectorClient {
   /**
    * Disconnect this client.
    *
+   * Use [registerStateCallback] and check for [State.DISCONNECTED] if you need to know when this has
+   * finished.
+   *
    * You are only supposed to call this once.
    */
-  fun disconnect(): Future<*>
+  fun disconnect()
 
   /**
    * Start fetching information continuously off the device.
@@ -142,8 +155,9 @@ interface InspectorClient {
 
 object DisconnectedClient : InspectorClient {
   override fun connect() {}
-  override fun disconnect(): Future<Nothing> = CompletableFuture.completedFuture(null)
+  override fun disconnect() {}
 
+  override fun registerStateCallback(callback: (InspectorClient.State) -> Unit) = Unit
   override fun registerErrorCallback(callback: (String) -> Unit) = Unit
   override fun registerTreeEventCallback(callback: (Any) -> Unit) = Unit
   override fun startFetching() = Unit
