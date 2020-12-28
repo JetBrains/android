@@ -26,7 +26,6 @@ import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 fun LayoutInspectorProto.ComponentTreeEvent.PayloadType.toImageType(): AndroidWindow.ImageType {
   return when (this) {
     LayoutInspectorProto.ComponentTreeEvent.PayloadType.SKP -> AndroidWindow.ImageType.SKP
-    LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_SKP_TOO_LARGE -> AndroidWindow.ImageType.PNG_SKP_TOO_LARGE
     LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED -> AndroidWindow.ImageType.PNG_AS_REQUESTED
     else -> AndroidWindow.ImageType.UNKNOWN
   }

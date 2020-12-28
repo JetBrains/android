@@ -66,7 +66,7 @@ class ViewAndroidWindow(
     if (bytes.isNotEmpty()) {
       try {
         when (imageType) {
-          ImageType.PNG_AS_REQUESTED, ImageType.PNG_SKP_TOO_LARGE -> processPng(bytes, root)
+          ImageType.PNG_AS_REQUESTED -> processPng(bytes, root)
           ImageType.SKP -> processSkp(bytes, skiaParser, project, root, scale)
           else -> logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE) // Shouldn't happen
         }

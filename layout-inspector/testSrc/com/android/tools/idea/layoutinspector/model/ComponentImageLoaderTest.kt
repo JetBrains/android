@@ -27,7 +27,7 @@ class ComponentImageLoaderTest {
   // Test that the draw tree (that is, the tree via drawChildren) is correct when the initial view tree has intermediate or leaf nodes that
   // are not present in the skia tree.
   @Test
-  fun testTeeWithExtraViewNodes() {
+  fun testTreeWithExtraViewNodes() {
     val image1: BufferedImage = MockitoKt.mock()
     val image2: BufferedImage = MockitoKt.mock()
     val image4: BufferedImage = MockitoKt.mock()
