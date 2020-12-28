@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
 import com.google.common.base.Joiner;
-import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,7 +37,7 @@ public class SyncIssueDetailsDialog extends JDialog {
     getRootPane().setDefaultButton(buttonOK);
     setTitle("Sync Issue Details");
 
-    String separator = SystemProperties.getLineSeparator();
+    String separator = System.lineSeparator();
     String text = message + separator + separator + Joiner.on(separator).join(details);
     myExtraInfoDetails.setText(text);
     myExtraInfoDetails.setBackground(getTextFieldBackground());

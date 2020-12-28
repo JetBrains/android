@@ -24,7 +24,6 @@ import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.blame.parser.util.OutputLineReader;
 import com.android.utils.ILogger;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.SystemProperties;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -122,7 +121,7 @@ public class JavacOutputParser implements PatternAwareOutputParser {
 
           if (column >= 0) {
             messageList = convertMessages(messageList);
-            String msgText = StringUtil.join(messageList, SystemProperties.getLineSeparator());
+            String msgText = StringUtil.join(messageList, System.lineSeparator());
             Message msg = new Message(kind, msgText, new SourceFilePosition(file, new SourcePosition(lineNumber - 1, column, -1)));
             addMessage(msg, messages);
             return true;
