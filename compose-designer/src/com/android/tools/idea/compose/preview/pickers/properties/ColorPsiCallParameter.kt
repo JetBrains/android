@@ -26,14 +26,16 @@ import javax.swing.Icon
  * Adds the Color picker to the property item and displays color values (Long values) in the proper color format '0xAARRGGBB'.
  */
 internal class ColorPsiCallParameter(project: Project,
-                            model: PsiCallPropertyModel,
-                            resolvedCall: ResolvedCall<*>,
-                            descriptor: ValueParameterDescriptor,
-                            argumentExpression: KtExpression?) : PsiCallParameterPropertyItem(project,
-                                                                                              model,
-                                                                                              resolvedCall,
-                                                                                              descriptor,
-                                                                                              argumentExpression) {
+                                     model: PsiCallPropertyModel,
+                                     resolvedCall: ResolvedCall<*>,
+                                     descriptor: ValueParameterDescriptor,
+                                     argumentExpression: KtExpression?,
+                                     initialValue: String?) : PsiCallParameterPropertyItem(project,
+                                                                                           model,
+                                                                                           resolvedCall,
+                                                                                           descriptor,
+                                                                                           argumentExpression,
+                                                                                           initialValue) {
 
   override val colorButton: ActionIconButton? = object : ActionIconButton {
     override val actionButtonFocusable: Boolean = true

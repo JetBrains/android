@@ -97,7 +97,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
         val parsed = PsiCallPropertyModel.fromPreviewElement(project, namedPreview)
         assertEquals("named", parsed.properties["", "name"].value)
         // Check default value
-        assertEquals("-1", parsed.properties["", "apiLevel"].value)
+        assertEquals("-1", parsed.properties["", "apiLevel"].defaultValue)
       }
       previews[3].also { namedPreviewFromConst ->
         val parsed = PsiCallPropertyModel.fromPreviewElement(project, namedPreviewFromConst)
@@ -131,8 +131,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     // Add other properties
     model.properties["", "group"].value = "Group2"
     model.properties["", "widthDp"].value = "32"
-    assertEquals("@Preview(name = \"Hello\", group = \"Group2\", widthDp = 32)",
-      noParametersPreview.annotationText())
+    assertEquals("@Preview(name = \"Hello\", group = \"Group2\", widthDp = 32)", noParametersPreview.annotationText())
 
     // Set back to the default value
     model.properties["", "group"].value = null
@@ -143,7 +142,8 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     try {
       model.properties["", "notexists"].value = "3"
       fail("Nonexistent property should throw NoSuchElementException")
-    } catch (expected: NoSuchElementException) {
+    }
+    catch (expected: NoSuchElementException) {
     }
     assertEquals("@Preview", noParametersPreview.annotationText())
   }
@@ -173,5 +173,27 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
 
     assertEquals("0.50f", runReadAction { model.properties["", "fontScale"].value })
     assertEquals("0x0000FF00", runReadAction { model.properties["", "backgroundColor"].value })
+  }
+
+  @Test
+  fun `preview default values`() {
+    @Language("kotlin")
+    val fileContent = """
+      import $COMPOSABLE_ANNOTATION_FQN
+      import $PREVIEW_TOOLING_PACKAGE.Preview
+
+      @Composable
+      @Preview(name = "Test")
+      fun PreviewNoParameters() {
+      }
+    """.trimIndent()
+
+    val file = fixture.configureByText("Test.kt", fileContent)
+    val preview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
+    val model = ReadAction.compute<PsiPropertyModel, Throwable> { PsiCallPropertyModel.fromPreviewElement(project, preview) }
+    assertEquals("1.0f", runReadAction { model.properties["", "fontScale"].defaultValue })
+    assertEquals("false", runReadAction { model.properties["", "showBackground"].defaultValue })
+    assertEquals("false", runReadAction { model.properties["", "showDecoration"].defaultValue })
+    assertEquals("0x0", runReadAction { model.properties["", "backgroundColor"].defaultValue })
   }
 }

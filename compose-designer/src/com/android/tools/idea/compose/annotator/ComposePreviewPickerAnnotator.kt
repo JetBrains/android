@@ -31,7 +31,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import icons.StudioIcons
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
