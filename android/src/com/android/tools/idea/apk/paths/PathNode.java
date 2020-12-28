@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.apk.paths;
 
-import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -52,7 +51,7 @@ public class PathNode extends PathNodeParent {
     for (int i = 0; i < spaceCount; i++) {
       buffer.append(' ');
     }
-    buffer.append(getPathSegment()).append(SystemProperties.getLineSeparator());
+    buffer.append(getPathSegment()).append(System.lineSeparator());
     for (PathNode child : getChildren()) {
       child.print(buffer, level + 1);
     }

@@ -19,7 +19,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -227,7 +226,7 @@ public final class LocalProperties {
       "# For customization when using a Version Control System, please read the",
       "# header note."
     };
-    return Joiner.on(SystemProperties.getLineSeparator()).join(lines);
+    return Joiner.on(System.lineSeparator()).join(lines);
   }
 
   @NotNull
