@@ -23,7 +23,6 @@ import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Transport
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import junit.framework.TestCase.assertEquals
@@ -113,7 +112,7 @@ class TransportInspectorClientTest {
 
     // Disconnect directly - otherwise, we don't have an easy way to wait for the disconnect to
     // happen on a background thread
-    inspectorRule.inspectorClient.disconnect().get()
+    inspectorRule.launcher.disconnectActiveClient()
     assertThat(inspectorRule.adbProperties.debugViewAttributesApplicationPackage).isNull()
     // No other attributes were modified
     assertThat(inspectorRule.adbProperties.debugViewAttributesChangesCount).isEqualTo(2)
@@ -131,7 +130,7 @@ class TransportInspectorClientTest {
     transportRule.scheduler.advanceBy(1, TimeUnit.SECONDS)
     assertThat(inspectorRule.adbProperties.debugViewAttributesApplicationPackage).isEqualTo(PROCESS.name)
 
-    inspectorRule.inspectorClient.disconnect().get()
+    inspectorRule.launcher.disconnectActiveClient()
     assertThat(inspectorRule.adbProperties.debugViewAttributesApplicationPackage).isNull()
   }
 
@@ -149,7 +148,7 @@ class TransportInspectorClientTest {
     assertThat(inspectorRule.adbProperties.debugViewAttributesApplicationPackage).isEqualTo(PROCESS.name)
     assertThat(inspectorRule.adbProperties.debugViewAttributesChangesCount).isEqualTo(1)
 
-    inspectorRule.inspectorClient.disconnect().get()
+    inspectorRule.launcher.disconnectActiveClient()
     assertThat(inspectorRule.adbProperties.debugViewAttributesApplicationPackage).isEqualTo(PROCESS.name)
     assertThat(inspectorRule.adbProperties.debugViewAttributesChangesCount).isEqualTo(1)
   }
@@ -164,7 +163,7 @@ class TransportInspectorClientTest {
     assertThat(inspectorRule.adbProperties.debugViewAttributesApplicationPackage).isNull()
     assertThat(inspectorRule.adbProperties.debugViewAttributesChangesCount).isEqualTo(1)
 
-    inspectorRule.inspectorClient.disconnect().get()
+    inspectorRule.launcher.disconnectActiveClient()
     assertThat(inspectorRule.adbProperties.debugViewAttributes).isEqualTo("1")
     assertThat(inspectorRule.adbProperties.debugViewAttributesApplicationPackage).isNull()
     assertThat(inspectorRule.adbProperties.debugViewAttributesChangesCount).isEqualTo(1)

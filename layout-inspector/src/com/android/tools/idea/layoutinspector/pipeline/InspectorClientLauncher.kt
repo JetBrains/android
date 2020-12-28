@@ -25,7 +25,8 @@ import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspec
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.annotations.TestOnly
-import java.util.concurrent.Future
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 /**
  * Class responsible for listening to active process connections and launching the correct
@@ -114,20 +115,15 @@ class InspectorClientLauncher(adb: AndroidDebugBridge,
     private set(value) {
       if (field != value) {
         if (field.isConnected) {
-          val future = field.disconnect()
-          clientDisconnectedCallbacks.forEach { it(future) }
-          clientDisconnectedCallbacks.clear()
+          field.disconnect()
         }
         field = value
         clientChangedCallbacks.forEach { callback -> callback(value) }
         value.connect()
-        clientConnectedCallbacks.forEach { callback -> callback(value) }
       }
     }
 
   private val clientChangedCallbacks = mutableListOf<(InspectorClient) -> Unit>()
-  private val clientConnectedCallbacks = mutableListOf<(InspectorClient) -> Unit>()
-  private val clientDisconnectedCallbacks = mutableListOf<(Future<*>) -> Unit>()
 
   /**
    * Register a callback that is triggered whenever the active client changes.
@@ -139,28 +135,13 @@ class InspectorClientLauncher(adb: AndroidDebugBridge,
     clientChangedCallbacks.add(callback)
   }
 
-  /**
-   * Register a callback that is triggered whenever the active client has had
-   * [InspectorClient.connect] successfully called on it.
-   *
-   * This should happen shortly after the client changed listeners are fired, but these may not
-   * fire if the connection request fails.
-   *
-   * Note that even the [DisconnectedClient] can trigger this callback (as its connect is a
-   * no-op).
-   */
-  fun addClientConnectedListener(callback: (InspectorClient) -> Unit) {
-    clientConnectedCallbacks.add(callback)
-  }
-
-  /**
-   * Register callbacks that get triggered whenever an [InspectorClient] was disconnected by this
-   * launcher. They are only meant for single-use; they will be triggered once and then cleared.
-   *
-   * The callback takes a future which will be completed when the disconnect is finished.
-   */
   @TestOnly
-  fun addDisconnectionListener(callback: (Future<*>) -> Unit) {
-    clientDisconnectedCallbacks.add(callback)
+  fun disconnectActiveClient(timeout: Long = Long.MAX_VALUE, unit: TimeUnit = TimeUnit.SECONDS) {
+    if (activeClient.isConnected) {
+      val latch = CountDownLatch(1)
+      activeClient.registerStateCallback { state -> if (state == InspectorClient.State.DISCONNECTED) latch.countDown() }
+      activeClient.disconnect()
+      latch.await(timeout, unit)
+    }
   }
 }

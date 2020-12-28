@@ -42,7 +42,6 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import java.net.Socket
 import java.util.ArrayDeque
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 val MODERN_DEVICE = object : DeviceDescriptor {
@@ -115,9 +114,6 @@ class LayoutInspectorRule(
   getPreferredProcessNames: () -> List<String> = { listOf() }
 ) : TestRule {
 
-  private lateinit var launcher: InspectorClientLauncher
-  private val launcherDisposable = Disposer.newDisposable()
-
   /**
    * Class which installs fake handling for adb commands related to querying and updating debug
    * view properties.
@@ -186,6 +182,10 @@ class LayoutInspectorRule(
     }
   }
 
+  lateinit var launcher: InspectorClientLauncher
+    private set
+  private val launcherDisposable = Disposer.newDisposable()
+
   /**
    * Convenience accessor, as this property is used a lot
    */
@@ -207,8 +207,11 @@ class LayoutInspectorRule(
   val adbProperties = AdbDebugViewProperties(adbRule)
 
   lateinit var inspector: LayoutInspector
+    private set
   lateinit var inspectorClient: InspectorClient
+    private set
   lateinit var inspectorModel: InspectorModel
+    private set
 
   /**
    * Notify this rule about a device that it should be aware of.
@@ -255,15 +258,9 @@ class LayoutInspectorRule(
   }
 
   private fun after() {
-    if (launcher.activeClient.isConnected) {
-      val processDone = CountDownLatch(1)
-      launcher.addDisconnectionListener { future ->
-        future.get(10, TimeUnit.SECONDS)
-        processDone.countDown()
-      }
-      Disposer.dispose(launcherDisposable) // Dispose launcher early to force active client disconnection
-      assertThat(processDone.await(30, TimeUnit.SECONDS)).isTrue()
-    }
+    // Disconnect the active client explicitly and block until it's done, since otherwise this
+    // might happen on a background thread after the test framework is done tearing down.
+    launcher.disconnectActiveClient(10, TimeUnit.SECONDS)
   }
 
   override fun apply(base: Statement, description: Description): Statement {

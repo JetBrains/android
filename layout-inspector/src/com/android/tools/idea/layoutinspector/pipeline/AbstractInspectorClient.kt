@@ -16,17 +16,27 @@
 package com.android.tools.idea.layoutinspector.pipeline
 
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import java.util.concurrent.Future
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 
 /**
  * Base class for [InspectorClient] implementations with some boilerplate logic provided.
  */
-abstract class AbstractInspectorClient(final override val process: ProcessDescriptor): InspectorClient {
+abstract class AbstractInspectorClient(final override val process: ProcessDescriptor) : InspectorClient {
   final override var state: InspectorClient.State = InspectorClient.State.INITIALIZED
-    private set
+    private set(value) {
+      assert(field != value)
+      field = value
+      fireState(value)
+    }
 
+  private val stateCallbacks = mutableListOf<(InspectorClient.State) -> Unit>()
   private val errorCallbacks = mutableListOf<(String) -> Unit>()
   private val treeEventCallbacks = mutableListOf<(Any) -> Unit>()
+
+  override fun registerStateCallback(callback: (InspectorClient.State) -> Unit) {
+    stateCallbacks.add(callback)
+  }
 
   final override fun registerErrorCallback(callback: (String) -> Unit) {
     errorCallbacks.add(callback)
@@ -34,6 +44,13 @@ abstract class AbstractInspectorClient(final override val process: ProcessDescri
 
   final override fun registerTreeEventCallback(callback: (Any) -> Unit) {
     treeEventCallbacks.add(callback)
+  }
+
+  /**
+   * Fire relevant callbacks registered with [registerStateCallback], if present.
+   */
+  private fun fireState(state: InspectorClient.State) {
+    stateCallbacks.forEach { callback -> callback(state) }
   }
 
   /**
@@ -52,22 +69,27 @@ abstract class AbstractInspectorClient(final override val process: ProcessDescri
 
   final override fun connect() {
     assert(state == InspectorClient.State.INITIALIZED)
+    state = InspectorClient.State.CONNECTING
     doConnect()
-    // Update state afterwards, in case connection throws an exception
     state = InspectorClient.State.CONNECTED
   }
 
   protected abstract fun doConnect()
 
-  final override fun disconnect(): Future<*> {
+  final override fun disconnect() {
     assert(state == InspectorClient.State.CONNECTED)
-    state = InspectorClient.State.DISCONNECTED
+    state = InspectorClient.State.DISCONNECTING
 
-    return doDisconnect().also {
-      errorCallbacks.clear()
-      treeEventCallbacks.clear()
-    }
+    val future = doDisconnect()
+    errorCallbacks.clear()
+    treeEventCallbacks.clear()
+
+    future.addListener(
+      {
+        state = InspectorClient.State.DISCONNECTED
+        stateCallbacks.clear()
+      }, MoreExecutors.directExecutor())
   }
 
-  protected abstract fun doDisconnect(): Future<*>
+  protected abstract fun doDisconnect(): ListenableFuture<Nothing>
 }

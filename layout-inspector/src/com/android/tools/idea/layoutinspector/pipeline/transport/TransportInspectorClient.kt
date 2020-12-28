@@ -45,7 +45,9 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Event.EventGroupIds
 import com.android.tools.profiler.proto.Transport
 import com.google.common.html.HtmlEscapers
+import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
@@ -315,14 +317,17 @@ class TransportInspectorClient(
     UsageTracker.log(builder)
   }
 
-  override fun doDisconnect(): Future<*> {
-    return ApplicationManager.getApplication().executeOnPooledThread {
+  override fun doDisconnect(): ListenableFuture<Nothing> {
+    val future = SettableFuture.create<Nothing>()
+    ApplicationManager.getApplication().executeOnPooledThread {
       stopFetching()
       stop()
 
       logEvent(SESSION_DATA, process)
       SkiaParser.shutdownAll()
+      future.set(null)
     }
+    return future
   }
 
   override fun startFetching() {

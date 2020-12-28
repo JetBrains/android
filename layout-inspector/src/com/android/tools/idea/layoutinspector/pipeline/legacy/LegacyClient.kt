@@ -25,12 +25,11 @@ import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.stats.withProjectId
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
-import java.lang.UnsupportedOperationException
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Future
 
 /**
  * [InspectorClient] that supports pre-api 29 devices.
@@ -147,10 +146,10 @@ class LegacyClient(
     return true
   }
 
-  override fun doDisconnect(): Future<Nothing> {
+  override fun doDisconnect(): ListenableFuture<Nothing> {
     logEvent(DynamicLayoutInspectorEventType.SESSION_DATA)
     latestScreenshots.clear()
-    return CompletableFuture.completedFuture(null)
+    return Futures.immediateFuture(null)
   }
 
   class LegacyFetchingUnsupportedOperationException : UnsupportedOperationException("Fetching is not supported by legacy clients")
