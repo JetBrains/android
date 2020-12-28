@@ -119,7 +119,7 @@ java_test(
     runtime_deps = [
         ":intellij.android.guiTests_testlib",
         "//tools/adt/idea/android-uitests/native/testing:liblayout_inspector_test_support.so",
-        "//tools/base/dynamic-layout-inspector:skia-grpc-server",
+        "//tools/base/dynamic-layout-inspector/skia:skia-grpc-server",
     ],
 )
 
