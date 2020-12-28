@@ -53,7 +53,7 @@ public class ElevatedCommandLine extends GeneralCommandLine {
   @Override
   @NotNull
   protected Process startProcess(@NotNull List<String> commands) throws IOException {
-    if (SystemInfo.isWin7OrNewer) {
+    if (SystemInfo.isWindows) {
       return executeAsShellCommand();
     }
     else {
