@@ -17,17 +17,13 @@ package org.jetbrains.android.dom.motion;
 
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.NameStrategy;
-import org.jetbrains.android.dom.Styleable;
-
 import java.util.List;
+import org.jetbrains.android.dom.Styleable;
 
 @DefinesXml
 @NameStrategy(PascalNameStrategy.class)
-@Styleable(value = "MotionScene", packageName = "android.support.constraint")
-public interface MotionScene extends MotionElement {
-  List<ViewTransition> getViewTransitions();
-  List<Transition> getTransitions();
-  StateSet getStateSet();
-  List<include> getincludes();
-  List<ConstraintSet> getConstraintSets();
+@Styleable(value = "ViewTransition", packageName = "android.support.constraint")
+public interface ViewTransition extends MotionElement {
+  ConstraintOverride getConstraintOverride();
+  List<KeyFrameSet> getKeyFrameSets();
 }

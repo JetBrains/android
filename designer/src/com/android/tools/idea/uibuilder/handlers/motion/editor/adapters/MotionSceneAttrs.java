@@ -137,8 +137,11 @@ public class MotionSceneAttrs {
   ///////////////////////////////// PLATFORM INDEPENDENT ACCESS ////////////////////////////
   public static class Tags {
     public static final String TRANSITION = SdkConstants.MotionSceneTags.TRANSITION;
+    public static final String VIEW_TRANSITION = SdkConstants.MotionSceneTags.VIEW_TRANSITION;
     public static final String CONSTRAINTSET = SdkConstants.MotionSceneTags.CONSTRAINT_SET;
+    public static final String INCLUDE = SdkConstants.MotionSceneTags.INCLUDE;
     public static final String CONSTRAINT = SdkConstants.MotionSceneTags.CONSTRAINT;
+    public static final String CONSTRAINT_OVERRIDE = SdkConstants.MotionSceneTags.CONSTRAINT_OVERRIDE;
     public static final String KEY_FRAME_SET = SdkConstants.MotionSceneTags.KEY_FRAME_SET;
     public static final String KEY_ATTRIBUTE = SdkConstants.MotionSceneTags.KEY_ATTRIBUTE;
     public static final String KEY_CYCLE = SdkConstants.MotionSceneTags.KEY_CYCLE;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,8 @@ import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.NameStrategy;
 import org.jetbrains.android.dom.Styleable;
 
-import java.util.List;
-
 @DefinesXml
 @NameStrategy(PascalNameStrategy.class)
-@Styleable(value = "MotionScene", packageName = "android.support.constraint")
-public interface MotionScene extends MotionElement {
-  List<ViewTransition> getViewTransitions();
-  List<Transition> getTransitions();
-  StateSet getStateSet();
-  List<include> getincludes();
-  List<ConstraintSet> getConstraintSets();
+@Styleable(value = "include", packageName = "android.support.constraint")
+public interface include extends MotionElement {
 }
