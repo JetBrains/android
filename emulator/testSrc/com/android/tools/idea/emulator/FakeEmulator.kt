@@ -38,6 +38,7 @@ import com.android.emulator.control.ThemingStyle
 import com.android.emulator.control.UiControllerGrpc
 import com.android.emulator.control.VmRunState
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
+import com.android.io.writeImage
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.ImageUtils.createDipImage
 import com.android.tools.adtui.ImageUtils.rotateByQuadrants
@@ -299,9 +300,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
     val image = drawDisplayImage(config.displayWidth, config.displayHeight)
     val screenshotFile = snapshotFolder.resolve("screenshot.png")
-    Files.newOutputStream(screenshotFile, CREATE).use { stream ->
-      ImageIO.write(image, "PNG", stream)
-    }
+    image.writeImage("PNG", screenshotFile)
 
     val snapshotMessage = Snapshot.newBuilder()
       .addImages(SnapshotImage.getDefaultInstance()) // Need an image for the snapshot to be considered valid.
