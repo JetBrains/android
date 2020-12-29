@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lint;
+package com.android.tools.idea.lint
 
-import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
-import com.android.tools.lint.checks.ObjectAnimatorDetector;
-import org.jetbrains.android.util.AndroidBundle;
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase
+import com.android.tools.lint.checks.SdkIntDetector
+import org.jetbrains.android.util.AndroidBundle.message
 
-public class AndroidLintAnimatorKeepInspection extends AndroidLintInspectionBase {
-  public AndroidLintAnimatorKeepInspection() {
-    super(AndroidBundle.message("android.lint.inspections.animator.keep"), ObjectAnimatorDetector.MISSING_KEEP);
-  }
-}
+class AndroidLintAnnotateVersionCheckInspection : AndroidLintInspectionBase(
+  message("android.lint.inspections.annotate.version.check"), SdkIntDetector.ISSUE
+)

@@ -19,9 +19,10 @@ import com.android.SdkConstants.ATTR_TARGET_API
 import com.android.SdkConstants.FQCN_TARGET_API
 import com.android.SdkConstants.TOOLS_URI
 import com.android.sdklib.SdkVersionInfo
-import com.android.tools.idea.kotlin.hasBackingField
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
 import com.android.tools.idea.lint.common.LintIdeQuickFix
+import com.android.tools.idea.lint.common.isAnnotationTarget
+import com.android.tools.idea.lint.common.isNewLineNeededForAnnotation
 import com.android.tools.idea.util.mapAndroidxName
 import com.android.tools.lint.checks.ApiDetector.Companion.REQUIRES_API_ANNOTATION
 import com.intellij.codeInsight.AnnotationUtil
@@ -45,14 +46,10 @@ import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.util.addAnnotation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtClassOrObject
-import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
 import org.jetbrains.kotlin.psi.KtModifierListOwner
-import org.jetbrains.kotlin.psi.KtParameter
-import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPropertyAccessor
-import org.jetbrains.kotlin.psi.KtTypeParameter
 import java.util.Locale
 
 /** Fix which adds a `@TargetApi` annotation at the nearest surrounding method or class  */
@@ -156,8 +153,6 @@ class AddTargetApiQuickFix(private val api: Int,
     }
   }
 
-  private fun KtElement.isNewLineNeededForAnnotation() = !(this is KtParameter || this is KtTypeParameter || this is KtPropertyAccessor)
-
   private fun getAnnotationContainer(element: PsiElement): PsiElement? {
     return when (element.language) {
       JavaLanguage.INSTANCE -> {
@@ -180,20 +175,13 @@ class AddTargetApiQuickFix(private val api: Int,
       KotlinLanguage.INSTANCE -> {
         PsiTreeUtil.findFirstParent(element) {
           if (requiresApi)
-            it.isRequiresApiAnnotationValidTarget()
+            it.isAnnotationTarget()
           else
             it.isTargetApiAnnotationValidTarget()
         }
       }
       else -> null
     }
-  }
-
-  private fun PsiElement.isRequiresApiAnnotationValidTarget(): Boolean {
-    return this is KtClassOrObject ||
-           (this is KtFunction && this !is KtFunctionLiteral) ||
-           (this is KtProperty && !isLocal && hasBackingField()) ||
-           this is KtPropertyAccessor
   }
 
   private fun PsiElement.isTargetApiAnnotationValidTarget(): Boolean {
