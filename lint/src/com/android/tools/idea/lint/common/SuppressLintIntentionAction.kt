@@ -75,4 +75,6 @@ class SuppressLintIntentionAction(private val id: String, element: PsiElement) :
   override fun startInWriteAction(): Boolean {
     return true
   }
+
+  override fun toString(): String = text
 }

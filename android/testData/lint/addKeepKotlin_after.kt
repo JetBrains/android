@@ -3,8 +3,8 @@
 package p1.p2
 
 import android.animation.ObjectAnimator
-import android.support.annotation.Keep
 import android.widget.Button
+import androidx.annotation.Keep
 
 class AnimatorTest {
     fun testObjectAnimator(button: Button?) {
