@@ -22,7 +22,8 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.ToggleAction;
+import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.project.DumbAwareToggleAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
@@ -153,7 +154,7 @@ class DetachedToolWindow<T> implements ToolWindowCallback, Disposable {
     myCorrespondingToolWindow.setSplit(myToolWindow.isSplitMode());
   }
 
-  private class AttachToSideAction extends AnAction {
+  private class AttachToSideAction extends DumbAwareAction {
     private final Side mySide;
 
     private AttachToSideAction(@NotNull Side side) {
@@ -178,7 +179,7 @@ class DetachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  private static class DetachedAction extends ToggleAction {
+  private static class DetachedAction extends DumbAwareToggleAction {
 
     private DetachedAction() {
       super("None");
