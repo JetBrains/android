@@ -652,6 +652,10 @@ public final class StudioFlags {
     EMBEDDED_EMULATOR, "extended.controls", "Enable Emulator Extended Controls",
     "Enables the extended controls in the Embedded Emulator",
     true);
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_VIRTUAL_SCENE_CAMERA = Flag.create(
+    EMBEDDED_EMULATOR, "virtual.scene.camera", "Enable Emulator Virtual Scene Camera",
+    "Enables the virtual scene camera in the Embedded Emulator",
+    false);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_GRPC_CALLS = Flag.create(
     EMBEDDED_EMULATOR, "trace.grpc.calls", "Enable Emulator gRPC Tracing",
     "Enables tracing of most Emulator gRPC calls",
@@ -663,6 +667,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_SCREENSHOTS = Flag.create(
     EMBEDDED_EMULATOR, "trace.screenshots", "Enable Emulator Screenshot Tracing",
     "Enables tracing of received Emulator screenshots",
+    false);
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_NOTIFICATIONS = Flag.create(
+    EMBEDDED_EMULATOR, "trace.notifications", "Enable Emulator Notification Tracing",
+    "Enables tracing of received Emulator notifications",
     false);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_DISCOVERY = Flag.create(
     EMBEDDED_EMULATOR, "trace.discovery", "Enable Tracing of Emulator Discovery",

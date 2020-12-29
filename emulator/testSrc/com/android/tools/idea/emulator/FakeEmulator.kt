@@ -25,6 +25,8 @@ import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.ImageFormat.ImgFormat
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.MouseEvent
+import com.android.emulator.control.Notification
+import com.android.emulator.control.Notification.EventType
 import com.android.emulator.control.PaneEntry
 import com.android.emulator.control.PhysicalModelValue
 import com.android.emulator.control.Rotation
@@ -46,6 +48,7 @@ import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.protobuf.CodedOutputStream
 import com.android.tools.idea.protobuf.Empty
 import com.android.tools.idea.protobuf.MessageOrBuilder
+import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -89,6 +92,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 import javax.imageio.ImageIO
@@ -112,6 +116,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   private val config = EmulatorConfiguration.readAvdDefinition(avdId, avdFolder)!!
 
   @Volatile var displayRotation: SkinRotation = SkinRotation.PORTRAIT
+  @Volatile private var clipboardStreamObserver: StreamObserver<ClipData>? = null
+  @Volatile private var notificationStreamObserver: StreamObserver<Notification>? = null
+
   private var clipboardInternal = AtomicReference("")
   var clipboard: String
     get() = clipboardInternal.get()
@@ -123,7 +130,20 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
         }
       }
     }
-  @Volatile private var clipboardStreamObserver: StreamObserver<ClipData>? = null
+  private var virtualSceneCameraActiveInternal = AtomicBoolean()
+  var virtualSceneCameraActive: Boolean
+    get() = virtualSceneCameraActiveInternal.get()
+    set(value) {
+      val oldValue = virtualSceneCameraActiveInternal.getAndSet(value)
+      if (value != oldValue) {
+        executor.execute {
+          notificationStreamObserver?.let {
+            sendStreamingResponse(it, createVirtualSceneCameraNotification(value))
+          }
+        }
+      }
+    }
+
   @Volatile var extendedControlsVisible = false
 
   /** Ids of snapshots that were created by calling the [createIncompatibleSnapshot] method. */
@@ -339,6 +359,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
   }
 
+  private fun createVirtualSceneCameraNotification(cameraActive: Boolean): Notification {
+    val event = if (cameraActive) EventType.VIRTUAL_SCENE_CAMERA_ACTIVE else EventType.VIRTUAL_SCENE_CAMERA_INACTIVE
+    return Notification.newBuilder().setEvent(event).build()
+  }
+
   private inner class EmulatorControllerService(
     private val executor: ExecutorService
   ) : EmulatorControllerGrpc.EmulatorControllerImplBase() {
@@ -374,6 +399,14 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       executor.execute {
         clipboardStreamObserver = responseObserver
         val response = ClipData.newBuilder().setText(clipboardInternal.get()).build()
+        sendStreamingResponse(responseObserver, response)
+      }
+    }
+
+    override fun streamNotification(request: Empty, responseObserver: StreamObserver<Notification>) {
+      executor.execute {
+        notificationStreamObserver = responseObserver
+        val response = createVirtualSceneCameraNotification(virtualSceneCameraActive)
         sendStreamingResponse(responseObserver, response)
       }
     }
@@ -617,6 +650,10 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
     fun waitForCompletion(timeout: Long, unit: TimeUnit) {
       completion.get(timeout, unit)
+    }
+
+    override fun toString(): String {
+      return "$methodName(${shortDebugString(request)})"
     }
   }
 

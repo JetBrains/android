@@ -22,6 +22,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.replaceKeyboardFocusManager
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.io.IdeFileUtils
@@ -37,7 +38,6 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerComponentInstance
 import com.intellij.util.SystemProperties
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -73,7 +73,6 @@ class EmulatorViewTest {
   @get:Rule
   val ruleChain: RuleChain = RuleChain.outerRule(emulatorViewRule).around(EdtRule())
   private val filesOpened = mutableListOf<VirtualFile>()
-  private var oldFocusManager: KeyboardFocusManager? = null
 
   private val testRootDisposable
     get() = emulatorViewRule.testRootDisposable
@@ -89,12 +88,6 @@ class EmulatorViewTest {
     `when`(fileEditorManager.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
     `when`(fileEditorManager.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     emulatorViewRule.project.registerComponentInstance(FileEditorManager::class.java, fileEditorManager, testRootDisposable)
-    oldFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager()
-  }
-
-  @After
-  fun tearDown() {
-    KeyboardFocusManager.setCurrentKeyboardFocusManager(oldFocusManager)
   }
 
   @Test
@@ -242,7 +235,7 @@ class EmulatorViewTest {
 
     val mockFocusManager: KeyboardFocusManager = mock()
     `when`(mockFocusManager.redispatchEvent(any(Component::class.java), any(KeyEvent::class.java))).thenCallRealMethod()
-    KeyboardFocusManager.setCurrentKeyboardFocusManager(mockFocusManager)
+    replaceKeyboardFocusManager(mockFocusManager, testRootDisposable)
     // Shift+Tab should trigger a forward local focus traversal.
     with(ui.keyboard) {
       setFocus(view)
