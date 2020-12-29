@@ -171,16 +171,6 @@
     <orderEntry type="module" module-name="intellij.terminal" />
     <orderEntry type="module" module-name="intellij.android.lint" />
     <orderEntry type="module" module-name="intellij.android.dagger" />
-    <orderEntry type="module-library">
-      <library name="androidx-test-core-proto" type="repository">
-        <properties maven-id="com.google.test.platform:core-proto:0.0.2-dev" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/google/test/platform/core-proto/0.0.2-dev/core-proto-0.0.2-dev.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="library" name="jaxb-api" level="project" />
     <orderEntry type="library" name="fastutil-min" level="project" />
     <orderEntry type="module" module-name="intellij.webp" />
