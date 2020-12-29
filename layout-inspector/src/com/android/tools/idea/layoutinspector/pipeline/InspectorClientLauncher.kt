@@ -19,7 +19,9 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorClient
 import com.intellij.openapi.Disposable
@@ -57,7 +59,12 @@ class InspectorClientLauncher(adb: AndroidDebugBridge,
         listOf(
           { params ->
             if (params.process.device.apiLevel >= AndroidVersion.VersionCodes.Q) {
-              TransportInspectorClient(params.adb, params.process, model, transportComponents)
+              if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_USE_INSPECTION.get()) {
+                AppInspectionInspectorClient(params.process, model)
+              }
+              else {
+                TransportInspectorClient(params.adb, params.process, model, transportComponents)
+              }
             }
             else {
               null
