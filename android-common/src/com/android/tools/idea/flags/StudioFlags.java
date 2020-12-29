@@ -641,6 +641,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.compose.support", "Show inspectables from Compose",
     "If enabled the component tree will include Composable nodes if they are wrapped in an Inspectable.", false);
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_USE_INSPECTION = Flag.create(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.use.inspection", "Use app inspection client",
+    "If enabled, use a client built on the app inspection pipeline instead of the transport pipeline.", false);
   //endregion
 
   //region Embedded Emulator
