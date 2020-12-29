@@ -25,19 +25,24 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.HeadlessRootPaneContainer
 import com.android.tools.adtui.swing.IconLoaderRule
+import com.android.tools.adtui.swing.replaceKeyboardFocusManager
 import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.intellij.ide.dnd.DnDEvent
 import com.intellij.ide.dnd.DnDManager
 import com.intellij.ide.dnd.DnDTarget
 import com.intellij.ide.dnd.TransferableWrapper
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
@@ -46,19 +51,29 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.testFramework.replaceService
+import com.intellij.ui.EditorNotificationPanel
 import org.jetbrains.android.sdk.AndroidSdkUtils.ADB_PATH_PROPERTY
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.MockedStatic
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.anyLong
+import org.mockito.Mockito.mockStatic
 import org.mockito.Mockito.verify
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.KeyboardFocusManager
+import java.awt.MouseInfo
 import java.awt.Point
+import java.awt.PointerInfo
 import java.awt.datatransfer.DataFlavor
+import java.awt.event.FocusEvent
+import java.awt.event.KeyEvent.VK_SHIFT
+import java.awt.event.MouseEvent
+import java.awt.event.MouseEvent.MOUSE_MOVED
 import java.io.File
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
@@ -204,13 +219,101 @@ class EmulatorToolWindowPanelTest {
   }
 
   @Test
+  fun testVirtualSceneCamera() {
+    StudioFlags.EMBEDDED_EMULATOR_VIRTUAL_SCENE_CAMERA.override(true, testRootDisposable)
+    val panel = createWindowPanel()
+    val ui = FakeUi(panel)
+
+    assertThat(panel.emulatorView).isNull()
+
+    panel.createContent(true)
+    val emulatorView = panel.emulatorView ?: throw AssertionError()
+    panel.size = Dimension(400, 600)
+    ui.layoutAndDispatchEvents()
+
+    val container = HeadlessRootPaneContainer(panel)
+    val glassPane = container.glassPane
+
+    val initialMousePosition = Point(glassPane.x + glassPane.width / 2, glassPane.y + glassPane.height / 2)
+    val pointerInfo = mock<PointerInfo>()
+    `when`(pointerInfo.location).thenReturn(initialMousePosition)
+    val mouseInfoMock = mockStatic<MouseInfo>(testRootDisposable)
+    mouseInfoMock.`when`<Any?> { MouseInfo.getPointerInfo() }.thenReturn(pointerInfo)
+
+    ui.keyboard.setFocus(emulatorView)
+    val mockFocusManager = mock<KeyboardFocusManager>()
+    `when`(mockFocusManager.focusOwner).thenReturn(emulatorView)
+    `when`(mockFocusManager.redispatchEvent(any(), any())).thenCallRealMethod()
+    replaceKeyboardFocusManager(mockFocusManager, testRootDisposable)
+
+    assertThat(ui.findComponent<EditorNotificationPanel>()).isNull()
+
+    // Activate the camera and check that a notification is displayed.
+    emulator.virtualSceneCameraActive = true
+    waitForCondition(2, TimeUnit.SECONDS) { ui.findComponent<EditorNotificationPanel>() != null }
+    assertThat(ui.findComponent<EditorNotificationPanel>()?.text).isEqualTo("Hold Shift to control camera")
+
+    // Check that the notification is removed when the emulator view loses focus.
+    val focusLostEvent = FocusEvent(emulatorView, FocusEvent.FOCUS_LOST, false, null)
+    for (listener in emulatorView.focusListeners) {
+      listener.focusLost(focusLostEvent)
+    }
+    assertThat(ui.findComponent<EditorNotificationPanel>()).isNull()
+
+    // Check that the notification is displayed again when the emulator view gains focus.
+    val focusGainedEvent = FocusEvent(emulatorView, FocusEvent.FOCUS_GAINED, false, null)
+    for (listener in emulatorView.focusListeners) {
+      listener.focusGained(focusGainedEvent)
+    }
+    assertThat(ui.findComponent<EditorNotificationPanel>()?.text).isEqualTo("Hold Shift to control camera")
+
+    // Check that the notification changes when Shift is pressed.
+    ui.keyboard.press(VK_SHIFT)
+    assertThat(ui.findComponent<EditorNotificationPanel>()?.text).isEqualTo("Move camera with WASDQE keys, rotate with mouse")
+
+    // Drain the gRPC call log.
+    for (i in 1..5) {
+      if (emulator.getNextGrpcCall(2, TimeUnit.SECONDS).methodName.endsWith("streamClipboard")) {
+        break
+      }
+    }
+
+    // Check camera movement.
+    for (c in "WASQDE") {
+      ui.keyboard.pressAndRelease(c.toInt())
+      val call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+      assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Key$c"""")
+    }
+
+    // Check camera rotation.
+    val x = initialMousePosition.x + 5
+    val y = initialMousePosition.y + 10
+    val event = MouseEvent(glassPane, MOUSE_MOVED, System.currentTimeMillis(), ui.keyboard.toModifiersCode(), x, y, x, y, 0, false, 0)
+    glassPane.dispatch(event)
+    val call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 2 y: 5")
+
+    // Check that the notification changes when Shift is released.
+    ui.keyboard.release(VK_SHIFT)
+    assertThat(ui.findComponent<EditorNotificationPanel>()?.text).isEqualTo("Hold Shift to control camera")
+
+    // Deactivate the camera and check that the notification is removed.
+    emulator.virtualSceneCameraActive = false
+    waitForCondition(2, TimeUnit.SECONDS) { ui.findComponent<EditorNotificationPanel>() == null }
+
+    panel.destroyContent()
+  }
+
+  @Test
   fun testDnD() {
-    val adb = getWorkspaceRoot().toFile().resolve("$TEST_DATA_PATH/fake-adb")
+    val adb = getWorkspaceRoot().resolve("$TEST_DATA_PATH/fake-adb")
     val savedAdbPath = System.getProperty(ADB_PATH_PROPERTY)
     if (savedAdbPath != null) {
       Disposer.register(testRootDisposable) { System.setProperty(ADB_PATH_PROPERTY, savedAdbPath) }
     }
-    System.setProperty(ADB_PATH_PROPERTY, adb.absolutePath)
+    System.setProperty(ADB_PATH_PROPERTY, adb.toString())
 
     var nullableTarget: DnDTarget? = null
     val mockDnDManager = mock<DnDManager>()
@@ -309,3 +412,7 @@ class EmulatorToolWindowPanelTest {
 }
 
 private const val TEST_DATA_PATH = "tools/adt/idea/emulator/testData/EmulatorToolWindowPanelTest"
+
+private inline fun <reified T> mockStatic(disposable: Disposable): MockedStatic<T> {
+  return mockStatic(T::class.java).also { mock -> Disposer.register(disposable) { mock.close() } }
+}

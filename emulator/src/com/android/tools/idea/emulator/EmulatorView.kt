@@ -20,15 +20,20 @@ import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.ClipData
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
+import com.android.emulator.control.Notification.EventType.VIRTUAL_SCENE_CAMERA_ACTIVE
+import com.android.emulator.control.Notification.EventType.VIRTUAL_SCENE_CAMERA_INACTIVE
 import com.android.emulator.control.Rotation.SkinRotation
 import com.android.emulator.control.ThemingStyle
 import com.android.ide.common.util.Cancelable
 import com.android.tools.adtui.Zoomable
 import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.adtui.common.AdtUiCursorType
+import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListener
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_NOTIFICATIONS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.protobuf.Empty
@@ -48,7 +53,11 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.wm.IdeGlassPane
+import com.intellij.openapi.wm.IdeGlassPaneUtil
+import com.intellij.openapi.wm.impl.IdeGlassPaneImpl
 import com.intellij.util.ui.StartupUiUtil
+import com.intellij.util.ui.UIUtil
 import com.intellij.xml.util.XmlStringUtil
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -59,6 +68,7 @@ import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Image
 import java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager
+import java.awt.MouseInfo
 import java.awt.Rectangle
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
@@ -70,9 +80,12 @@ import java.awt.event.InputEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.CHAR_UNDEFINED
+import java.awt.event.KeyEvent.VK_A
 import java.awt.event.KeyEvent.VK_BACK_SPACE
+import java.awt.event.KeyEvent.VK_D
 import java.awt.event.KeyEvent.VK_DELETE
 import java.awt.event.KeyEvent.VK_DOWN
+import java.awt.event.KeyEvent.VK_E
 import java.awt.event.KeyEvent.VK_END
 import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.KeyEvent.VK_ESCAPE
@@ -84,19 +97,24 @@ import java.awt.event.KeyEvent.VK_KP_UP
 import java.awt.event.KeyEvent.VK_LEFT
 import java.awt.event.KeyEvent.VK_PAGE_DOWN
 import java.awt.event.KeyEvent.VK_PAGE_UP
+import java.awt.event.KeyEvent.VK_Q
 import java.awt.event.KeyEvent.VK_RIGHT
+import java.awt.event.KeyEvent.VK_S
+import java.awt.event.KeyEvent.VK_SHIFT
 import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.KeyEvent.VK_UP
+import java.awt.event.KeyEvent.VK_W
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.awt.event.MouseMotionAdapter
 import java.awt.geom.AffineTransform
 import java.awt.image.ColorModel
 import java.awt.image.MemoryImageSource
 import java.util.concurrent.atomic.AtomicReference
+import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
+import javax.swing.SwingUtilities
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
@@ -104,6 +122,7 @@ import kotlin.math.round
 import kotlin.math.roundToInt
 import com.android.emulator.control.Image as ImageMessage
 import com.android.emulator.control.MouseEvent as MouseEventMessage
+import com.android.emulator.control.Notification as EmulatorNotification
 
 /**
  * A view of the Emulator display optionally encased in the device frame.
@@ -119,19 +138,11 @@ class EmulatorView(
 ) : JPanel(BorderLayout()), ComponentListener, ConnectionStateListener, Zoomable, Disposable {
 
   private var disconnectedStateLabel: JLabel
-  @Volatile
-  private var clipboardFeed: Cancelable? = null
-  @Volatile
-  private var clipboardReceiver: ClipboardReceiver? = null
   private var screenshotImage: Image? = null
   private var screenshotShape = DisplayShape(0, 0, SkinRotation.PORTRAIT)
   private var displayRectangle: Rectangle? = null
   private var skinLayout: SkinLayout? = null
   private val displayTransform = AffineTransform()
-  @Volatile
-  private var screenshotFeed: Cancelable? = null
-  @Volatile
-  private var screenshotReceiver: ScreenshotReceiver? = null
   /** Count of received display frames. */
   @VisibleForTesting
   var frameNumber = 0
@@ -141,109 +152,17 @@ class EmulatorView(
   var frameTimestampMillis = 0L
     private set
 
-  init {
-    Disposer.register(parentDisposable, this)
+  private var screenshotFeed: Cancelable? = null
+  @Volatile
+  private var screenshotReceiver: ScreenshotReceiver? = null
 
-    disconnectedStateLabel = JLabel()
-    disconnectedStateLabel.horizontalAlignment = SwingConstants.CENTER
-    disconnectedStateLabel.font = disconnectedStateLabel.font.deriveFont(disconnectedStateLabel.font.size * 1.2F)
+  private var clipboardFeed: Cancelable? = null
+  @Volatile
+  private var clipboardReceiver: ClipboardReceiver? = null
 
-    isFocusable = true // Must be focusable to receive keyboard events.
-    focusTraversalKeysEnabled = false // Receive focus traversal keys to send them to the emulator.
-
-    emulator.addConnectionStateListener(this)
-    addComponentListener(this)
-
-    // Forward mouse & keyboard events.
-    addMouseMotionListener(object : MouseMotionAdapter() {
-      override fun mouseDragged(event: MouseEvent) {
-        sendMouseEvent(event.x, event.y, 1)
-      }
-    })
-
-    addMouseListener(object : MouseAdapter() {
-      override fun mousePressed(event: MouseEvent) {
-        sendMouseEvent(event.x, event.y, 1)
-      }
-
-      override fun mouseReleased(event: MouseEvent) {
-        sendMouseEvent(event.x, event.y, 0)
-      }
-
-      override fun mouseClicked(event: MouseEvent) {
-        requestFocusInWindow()
-      }
-    })
-
-    addKeyListener(object : KeyAdapter() {
-      override fun keyTyped(event: KeyEvent) {
-        val c = event.keyChar
-        if (c == CHAR_UNDEFINED || Character.isISOControl(c)) {
-          return
-        }
-
-        val keyboardEvent = KeyboardEvent.newBuilder().setText(c.toString()).build()
-        emulator.sendKey(keyboardEvent)
-      }
-
-      override fun keyPressed(event: KeyEvent) {
-        // The Tab character is passed to the emulator, but Shift+Tab is converted to Tab and processed locally.
-        if (event.keyCode == VK_TAB && event.modifiersEx == SHIFT_DOWN_MASK) {
-          val tabEvent = KeyEvent(event.source as Component, event.id, event.getWhen(), 0, event.keyCode, event.keyChar, event.keyLocation)
-          traverseFocusLocally(tabEvent)
-          return
-        }
-
-        if (event.modifiersEx != 0) {
-          return
-        }
-        val keyName =
-          when (event.keyCode) {
-            VK_BACK_SPACE -> "Backspace"
-            VK_DELETE -> if (SystemInfo.isMac) "Backspace" else "Delete"
-            VK_ENTER -> "Enter"
-            VK_ESCAPE -> "Escape"
-            VK_TAB -> "Tab"
-            VK_LEFT, VK_KP_LEFT -> "ArrowLeft"
-            VK_RIGHT, VK_KP_RIGHT -> "ArrowRight"
-            VK_UP, VK_KP_UP -> "ArrowUp"
-            VK_DOWN, VK_KP_DOWN -> "ArrowDown"
-            VK_HOME -> "Home"
-            VK_END -> "End"
-            VK_PAGE_UP -> "PageUp"
-            VK_PAGE_DOWN -> "PageDown"
-            else -> return
-          }
-        emulator.sendKey(createHardwareKeyEvent(keyName))
-      }
-    })
-
-    addFocusListener(object : FocusAdapter() {
-      override fun focusGained(event: FocusEvent) {
-        if (connected) {
-          setDeviceClipboardAndListenToChanges()
-        }
-      }
-
-      override fun focusLost(event: FocusEvent) {
-        clipboardFeed?.cancel()
-        clipboardFeed = null
-        clipboardReceiver = null
-      }
-    })
-
-    if (StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.get()) {
-      val connection = ApplicationManager.getApplication().messageBus.connect(this)
-      connection.subscribe(LafManagerListener.TOPIC, LafManagerListener {
-        if (connected) {
-          val style = if (StartupUiUtil.isUnderDarcula()) ThemingStyle.Style.DARK else ThemingStyle.Style.LIGHT
-          emulator.setUiTheme(style)
-        }
-      })
-    }
-
-    updateConnectionState(emulator.connectionState)
-  }
+  private var notificationFeed: Cancelable? = null
+  @Volatile
+  private var notificationReceiver: NotificationReceiver? = null
 
   var displayRotation: SkinRotation
     get() = screenshotShape.rotation
@@ -292,6 +211,181 @@ class EmulatorView(
 
   override val scale: Double
     get() = computeScaleToFit(realSize, screenshotShape.rotation)
+
+  private var virtualSceneCameraActive = false
+    set(value) {
+      if (value != field) {
+        field = value
+        if (value) {
+          if (isFocusOwner) {
+            showVirtualSceneCameraPrompt()
+          }
+        }
+        else {
+          virtualSceneCameraOperating = false
+          hideVirtualSceneCameraPrompt()
+        }
+      }
+    }
+
+  private var virtualSceneCameraOperating = false
+    set(value) {
+      if (value != field) {
+        field = value
+        if (value) {
+          startOperatingVirtualSceneCamera()
+        }
+        else {
+          stopOperatingVirtualSceneCamera()
+        }
+      }
+    }
+
+  private var virtualSceneCameraOperatingDisposable: Disposable? = null
+
+  init {
+    Disposer.register(parentDisposable, this)
+
+    disconnectedStateLabel = JLabel()
+    disconnectedStateLabel.horizontalAlignment = SwingConstants.CENTER
+    disconnectedStateLabel.font = disconnectedStateLabel.font.deriveFont(disconnectedStateLabel.font.size * 1.2F)
+
+    isFocusable = true // Must be focusable to receive keyboard events.
+    focusTraversalKeysEnabled = false // Receive focus traversal keys to send them to the emulator.
+
+    emulator.addConnectionStateListener(this)
+    addComponentListener(this)
+
+    // Forward mouse & keyboard events.
+    val mouseListener = object : MouseAdapter() {
+      override fun mousePressed(event: MouseEvent) {
+        sendMouseEvent(event.x, event.y, 1)
+      }
+
+      override fun mouseReleased(event: MouseEvent) {
+        sendMouseEvent(event.x, event.y, 0)
+      }
+
+      override fun mouseClicked(event: MouseEvent) {
+        requestFocusInWindow()
+      }
+
+      override fun mouseDragged(event: MouseEvent) {
+        sendMouseEvent(event.x, event.y, 1)
+      }
+    }
+    addMouseListener(mouseListener)
+    addMouseMotionListener(mouseListener)
+
+    addKeyListener(object : KeyAdapter() {
+      override fun keyTyped(event: KeyEvent) {
+        if (virtualSceneCameraOperating) {
+          return
+        }
+
+        val c = event.keyChar
+        if (c == CHAR_UNDEFINED || Character.isISOControl(c)) {
+          return
+        }
+
+        val keyboardEvent = KeyboardEvent.newBuilder().setText(c.toString()).build()
+        emulator.sendKey(keyboardEvent)
+      }
+
+      override fun keyPressed(event: KeyEvent) {
+        if (event.keyCode == VK_SHIFT && event.modifiersEx == SHIFT_DOWN_MASK && virtualSceneCameraActive) {
+          virtualSceneCameraOperating = true
+          return
+        }
+
+        if (virtualSceneCameraOperating) {
+          val keyName =
+            when (event.keyCode) {
+              VK_Q -> "KeyQ"
+              VK_W -> "KeyW"
+              VK_E -> "KeyE"
+              VK_A -> "KeyA"
+              VK_S -> "KeyS"
+              VK_D -> "KeyD"
+            else -> return
+          }
+          emulator.sendKey(createHardwareKeyEvent(keyName))
+          return
+        }
+
+        // The Tab character is passed to the emulator, but Shift+Tab is converted to Tab and processed locally.
+        if (event.keyCode == VK_TAB && event.modifiersEx == SHIFT_DOWN_MASK) {
+          val tabEvent = KeyEvent(event.source as Component, event.id, event.getWhen(), 0, event.keyCode, event.keyChar, event.keyLocation)
+          traverseFocusLocally(tabEvent)
+          return
+        }
+
+        if (event.modifiersEx != 0) {
+          return
+        }
+        val keyName =
+          when (event.keyCode) {
+            VK_BACK_SPACE -> "Backspace"
+            VK_DELETE -> if (SystemInfo.isMac) "Backspace" else "Delete"
+            VK_ENTER -> "Enter"
+            VK_ESCAPE -> "Escape"
+            VK_TAB -> "Tab"
+            VK_LEFT, VK_KP_LEFT -> "ArrowLeft"
+            VK_RIGHT, VK_KP_RIGHT -> "ArrowRight"
+            VK_UP, VK_KP_UP -> "ArrowUp"
+            VK_DOWN, VK_KP_DOWN -> "ArrowDown"
+            VK_HOME -> "Home"
+            VK_END -> "End"
+            VK_PAGE_UP -> "PageUp"
+            VK_PAGE_DOWN -> "PageDown"
+            else -> return
+          }
+        emulator.sendKey(createHardwareKeyEvent(keyName))
+      }
+
+      override fun keyReleased(event: KeyEvent) {
+        if (event.keyCode == VK_SHIFT) {
+          virtualSceneCameraOperating = false
+        }
+      }
+    })
+
+    addFocusListener(object : FocusAdapter() {
+      override fun focusGained(event: FocusEvent) {
+        if (connected) {
+          setDeviceClipboardAndListenToChanges()
+        }
+        if (virtualSceneCameraActive) {
+          showVirtualSceneCameraPrompt()
+        }
+      }
+
+      override fun focusLost(event: FocusEvent) {
+        cancelClipboardFeed()
+        hideVirtualSceneCameraPrompt()
+      }
+    })
+
+    if (StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.get()) {
+      val connection = ApplicationManager.getApplication().messageBus.connect(this)
+      connection.subscribe(LafManagerListener.TOPIC, LafManagerListener {
+        if (connected) {
+          val style = if (StartupUiUtil.isUnderDarcula()) ThemingStyle.Style.DARK else ThemingStyle.Style.LIGHT
+          emulator.setUiTheme(style)
+        }
+      })
+    }
+
+    updateConnectionState(emulator.connectionState)
+  }
+
+  override fun dispose() {
+    cancelNotificationFeed()
+    cancelClipboardFeed()
+    cancelScreenshotFeed()
+    removeComponentListener(this)
+    emulator.removeConnectionStateListener(this)
+  }
 
   override fun zoom(type: ZoomType): Boolean {
     val scaledSize = computeZoomedSize(type)
@@ -463,6 +557,9 @@ class EmulatorView(
         if (isFocusOwner) {
           setDeviceClipboardAndListenToChanges()
         }
+        if (notificationFeed == null) {
+          requestNotificationFeed()
+        }
       }
     }
     else if (connectionState == ConnectionState.DISCONNECTED) {
@@ -527,24 +624,6 @@ class EmulatorView(
     emulatorOutOfDateNotificationShown = true
   }
 
-  private fun findLoadingPanel(): EmulatorLoadingPanel? {
-    var component = parent
-    while (component != null) {
-      if (component is EmulatorLoadingPanel) {
-        return component
-      }
-      component = component.parent
-    }
-    return null
-  }
-
-  override fun dispose() {
-    clipboardFeed?.cancel()
-    screenshotFeed?.cancel()
-    removeComponentListener(this)
-    emulator.removeConnectionStateListener(this)
-  }
-
   override fun paintComponent(g: Graphics) {
     super.paintComponent(g)
 
@@ -594,24 +673,12 @@ class EmulatorView(
     return round(value * 128) / 128
   }
 
-  private fun requestClipboardFeed() {
-    clipboardFeed?.cancel()
-    clipboardFeed = null
-    clipboardReceiver = null
-    if (connected) {
-      val receiver = ClipboardReceiver()
-      clipboardReceiver = receiver
-      clipboardFeed = emulator.streamClipboard(receiver)
-    }
-  }
-
   private fun requestScreenshotFeed() {
     requestScreenshotFeed(screenshotShape.rotation)
   }
 
   private fun requestScreenshotFeed(rotation: SkinRotation) {
-    screenshotFeed?.cancel()
-    screenshotReceiver = null
+    cancelScreenshotFeed()
     if (width != 0 && height != 0 && connected) {
       if (screenshotImage == null) {
         screenshotShape = DisplayShape(0, 0, emulator.emulatorConfig.initialOrientation)
@@ -636,16 +703,56 @@ class EmulatorView(
     }
   }
 
+  private fun cancelScreenshotFeed() {
+    screenshotReceiver = null
+    screenshotFeed?.cancel()
+    screenshotFeed = null
+  }
+
+  private fun requestClipboardFeed() {
+    cancelClipboardFeed()
+    if (connected) {
+      val receiver = ClipboardReceiver()
+      clipboardReceiver = receiver
+      clipboardFeed = emulator.streamClipboard(receiver)
+    }
+  }
+
+  private fun cancelClipboardFeed() {
+    clipboardReceiver = null
+    clipboardFeed?.cancel()
+    clipboardFeed = null
+  }
+
+  private fun requestNotificationFeed() {
+    if (!StudioFlags.EMBEDDED_EMULATOR_VIRTUAL_SCENE_CAMERA.get()) {
+      return
+    }
+    cancelNotificationFeed()
+    if (connected) {
+      val receiver = NotificationReceiver()
+      notificationReceiver = receiver
+      notificationFeed = emulator.streamNotification(receiver)
+    }
+  }
+
+  private fun cancelNotificationFeed() {
+    notificationReceiver = null
+    notificationFeed?.cancel()
+    notificationFeed = null
+  }
+
   override fun componentResized(event: ComponentEvent) {
     requestScreenshotFeed()
   }
 
   override fun componentShown(event: ComponentEvent) {
     requestScreenshotFeed()
+    requestNotificationFeed()
   }
 
   override fun componentHidden(event: ComponentEvent) {
-    screenshotFeed?.cancel()
+    cancelClipboardFeed()
   }
 
   override fun componentMoved(event: ComponentEvent) {
@@ -666,6 +773,70 @@ class EmulatorView(
     findLoadingPanel()?.stopLoadingInstantly()
   }
 
+  private fun showVirtualSceneCameraPrompt() {
+    findNotificationHolderPanel()?.showNotification("Hold Shift to control camera")
+  }
+
+  private fun hideVirtualSceneCameraPrompt() {
+    findNotificationHolderPanel()?.hideNotification()
+  }
+
+  private fun startOperatingVirtualSceneCamera() {
+    findNotificationHolderPanel()?.showNotification("Move camera with WASDQE keys, rotate with mouse")
+    val disposable = Disposer.newDisposable("Virtual scene camera operation")
+    virtualSceneCameraOperatingDisposable = disposable
+    val glass = IdeGlassPaneUtil.find(this)
+    val cursor = AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.MOVE)
+    val rootPane = glass.rootPane
+    UIUtil.setCursor(rootPane, cursor)
+    glass.setCursor(cursor, this)
+    val referencePoint = MouseInfo.getPointerInfo().location
+    SwingUtilities.convertPointFromScreen(referencePoint, rootPane)
+    val scale = 180.0 / min(rootPane.width, rootPane.height) //TODO: Check with the emulator team regarding the scale.
+    val mouseListener = object: MouseAdapter() {
+      override fun mouseMoved(event: MouseEvent) {
+        val mouseEvent = MouseEventMessage.newBuilder()
+          .setX((event.x - referencePoint.x).scaled(scale))
+          .setY((event.y - referencePoint.y).scaled(scale))
+          .build()
+        emulator.sendMouse(mouseEvent)
+        event.consume()
+      }
+
+      override fun mouseEntered(event: MouseEvent) {
+        glass.setCursor(cursor, this)
+      }
+    }
+    glass.addMousePreprocessor(mouseListener, disposable)
+    glass.addMouseMotionPreprocessor(mouseListener, disposable)
+  }
+
+  private fun stopOperatingVirtualSceneCamera() {
+    findNotificationHolderPanel()?.showNotification("Hold Shift to control camera")
+    virtualSceneCameraOperatingDisposable?.let { Disposer.dispose(it) }
+    val glass = IdeGlassPaneUtil.find(this)
+    glass.setCursor(null, this)
+    UIUtil.setCursor(glass.rootPane, null)
+  }
+
+  private val IdeGlassPane.rootPane
+    get() = (this as IdeGlassPaneImpl).rootPane
+
+  private fun findLoadingPanel(): EmulatorLoadingPanel? = findContainingComponent()
+
+  private fun findNotificationHolderPanel(): NotificationHolderPanel? = findContainingComponent()
+
+  private inline fun <reified T : JComponent> findContainingComponent(): T? {
+    var component = parent
+    while (component != null) {
+      if (component is T) {
+        return component
+      }
+      component = component.parent
+    }
+    return null
+  }
+
   private inner class ClipboardReceiver : EmptyStreamObserver<ClipData>() {
     var responseCount = 0
 
@@ -674,7 +845,7 @@ class EmulatorView(
         return // This clipboard feed has already been cancelled.
       }
 
-      // Skip the first response that reflect the current clipboard state.
+      // Skip the first response that reflects the current clipboard state.
       if (responseCount != 0 && response.text.isNotEmpty()) {
         invokeLaterInAnyModalityState {
           val content = StringSelection(response.text)
@@ -682,6 +853,27 @@ class EmulatorView(
         }
       }
       responseCount++
+    }
+  }
+
+  private inner class NotificationReceiver : EmptyStreamObserver<EmulatorNotification>() {
+
+    override fun onNext(response: EmulatorNotification) {
+      if (EMBEDDED_EMULATOR_TRACE_NOTIFICATIONS.get()) {
+        LOG.info("Notification ${response.event}")
+      }
+
+      if (notificationReceiver != this) {
+        return // This notification feed has already been cancelled.
+      }
+
+      invokeLaterInAnyModalityState {
+        when (response.event) {
+          VIRTUAL_SCENE_CAMERA_ACTIVE -> virtualSceneCameraActive = true
+          VIRTUAL_SCENE_CAMERA_INACTIVE -> virtualSceneCameraActive = false
+          else -> {}
+        }
+      }
     }
   }
 
