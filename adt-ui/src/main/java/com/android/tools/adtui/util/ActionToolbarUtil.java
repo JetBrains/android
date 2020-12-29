@@ -16,6 +16,7 @@
 package com.android.tools.adtui.util;
 
 import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.util.ui.accessibility.ScreenReader;
 import java.awt.Component;
@@ -24,6 +25,7 @@ import java.awt.event.ContainerListener;
 import java.util.Arrays;
 import javax.swing.JCheckBox;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ActionToolbarUtil {
 
@@ -58,5 +60,13 @@ public class ActionToolbarUtil {
     if (child instanceof ActionButton || child instanceof JCheckBox) {
       child.setFocusable(true);
     }
+  }
+
+  @Nullable
+  public static ActionButton findActionButton(@NotNull ActionToolbar toolbar, @NotNull AnAction action) {
+    return (ActionButton)Arrays.stream(toolbar.getComponent().getComponents())
+      .filter(child -> child instanceof ActionButton && ((ActionButton)child).getAction().equals(action))
+      .findFirst()
+      .orElse(null);
   }
 }

@@ -42,6 +42,7 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.border.Border;
 import org.intellij.lang.annotations.JdkConstants;
+import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -156,9 +157,11 @@ public final class AdtUiUtils {
   }
 
   /**
-   * returns the action mask for the current platform. On mac it's {@link META_DOWN_MASK} everything else is {@link CTRL_DOWN_MASK}.
+   * Returns the action mask for the current platform.<br/>
+   * On mac it's {@link InputEvent#META_DOWN_MASK} everything else is {@link InputEvent#CTRL_DOWN_MASK}.
    */
   @JdkConstants.InputEventMask
+  @MagicConstant(valuesFromClass = InputEvent.class)
   public static int getActionMask() {
     return SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK;
   }
