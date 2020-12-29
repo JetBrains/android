@@ -26,4 +26,5 @@ import java.util.List;
 @Styleable(value = "ConstraintSet", packageName = "android.support.constraint")
 public interface ConstraintSet extends MotionElement {
   List<Constraint> getConstraints();
+  List<ConstraintOverride> getConstraintOverrides();
 }
