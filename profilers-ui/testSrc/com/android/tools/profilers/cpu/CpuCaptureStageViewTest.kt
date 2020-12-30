@@ -300,16 +300,16 @@ class CpuCaptureStageViewTest {
     var rangeLength = selectionRange.length
 
     // Ctrl/Cmd + wheel up to zoom in.
-    ui.keyboard.press(FakeKeyboard.MENU_KEY)
+    ui.keyboard.press(FakeKeyboard.MENU_KEY_CODE)
     ui.mouse.wheel(0, 0, -1)
-    ui.keyboard.release(FakeKeyboard.MENU_KEY)
+    ui.keyboard.release(FakeKeyboard.MENU_KEY_CODE)
     assertThat(selectionRange.length).isLessThan(rangeLength)
 
     // Ctrl/Cmd + wheel down to zoom out.
     rangeLength = selectionRange.length
-    ui.keyboard.press(FakeKeyboard.MENU_KEY)
+    ui.keyboard.press(FakeKeyboard.MENU_KEY_CODE)
     ui.mouse.wheel(0, 0, 1)
-    ui.keyboard.release(FakeKeyboard.MENU_KEY)
+    ui.keyboard.release(FakeKeyboard.MENU_KEY_CODE)
     assertThat(selectionRange.length).isGreaterThan(rangeLength)
 
     // Space + mouse drag to pan.
