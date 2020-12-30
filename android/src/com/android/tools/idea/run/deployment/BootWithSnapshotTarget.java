@@ -33,6 +33,17 @@ final class BootWithSnapshotTarget extends Target {
   }
 
   @Override
+  boolean matches(@NotNull Device device) {
+    if (!device.matches(getDeviceKey())) {
+      return false;
+    }
+
+    return device.getSnapshots().stream()
+      .map(Snapshot::getDirectory)
+      .anyMatch(snapshotKey -> snapshotKey.equals(mySnapshotKey));
+  }
+
+  @Override
   void boot(@NotNull VirtualDevice device, @NotNull Project project) {
     device.bootWithSnapshot(project, mySnapshotKey.getFileName());
   }

@@ -42,5 +42,9 @@ abstract class Target {
     return myDeviceKey;
   }
 
+  boolean matches(@NotNull Device device) {
+    return device.matches(myDeviceKey);
+  }
+
   abstract void boot(@NotNull VirtualDevice device, @NotNull Project project);
 }

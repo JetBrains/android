@@ -106,7 +106,7 @@ public final class DevicesSelectedServiceTest {
   public void getTargetSelectedWithComboBoxConnectedDeviceIsntPresent() {
     // Arrange
     Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
-    Target target = new QuickBootTarget(key);
+    Target target = new ColdBootTarget(key);
 
     myService.setTargetSelectedWithComboBox(target);
 
@@ -160,7 +160,7 @@ public final class DevicesSelectedServiceTest {
   public void getTargetSelectedWithComboBox() {
     // Arrange
     Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
-    Target target = new QuickBootTarget(key);
+    Target target = new ColdBootTarget(key);
 
     myService.setTargetSelectedWithComboBox(target);
 
