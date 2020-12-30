@@ -20,7 +20,8 @@ import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.TestNavEditor
 import com.android.tools.idea.naveditor.model.startDestination
-import com.intellij.ide.impl.DataManagerImpl
+import com.intellij.ide.DataManager
+import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.PsiDocumentManager
@@ -29,6 +30,11 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
 class NavDesignSurfaceActionHandlerTest : NavTestCase() {
+
+  override fun setUp() {
+    super.setUp()
+    HeadlessDataManager.fallbackToProductionDataManager(testRootDisposable)
+  }
 
   fun testDelete() {
     val model = model("nav.xml") {
@@ -48,7 +54,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val surface = NavDesignSurface(project, project)
     surface.model = model
     val handler = NavDesignSurfaceActionHandler(surface)
-    val context = DataManagerImpl.MyDataContext(model.surface)
+    val context = DataManager.getInstance().getDataContext(model.surface)
     assertFalse(handler.canDeleteElement(context))
 
     surface.selectionModel.setSelection(listOf(model.find("fragment2")!!))
@@ -78,7 +84,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val surface = NavDesignSurface(project, project)
     surface.model = model
     val handler = NavDesignSurfaceActionHandler(surface)
-    val context = DataManagerImpl.MyDataContext(model.surface)
+    val context = DataManager.getInstance().getDataContext(model.surface)
     var nlComponent = model.find("fragment")!!
     val scene = surface.scene!!
     var sceneComponent = scene.getSceneComponent(nlComponent)!!
