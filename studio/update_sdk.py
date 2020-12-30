@@ -76,11 +76,14 @@ def list_plugin_jars(sdk):
   plugin_jars[WIN] = {}
   plugin_jars[LINUX] = {}
   for p in plugins:
-    common = all[LINUX][p] & all[MAC][p] & all[WIN][p]
+    if p in all[LINUX] and p in all[MAC] and p in all[WIN]:
+      common = all[LINUX][p] & all[MAC][p] & all[WIN][p]
+    else:
+      common = set()
     plugin_jars[ALL][p] = sorted(common)
-    plugin_jars[MAC][p] = sorted(all[MAC][p] - common)
-    plugin_jars[WIN][p] = sorted(all[WIN][p] - common)
-    plugin_jars[LINUX][p] = sorted(all[LINUX][p] - common)
+    plugin_jars[MAC][p] = sorted(all[MAC][p] - common) if p in all[MAC] else []
+    plugin_jars[WIN][p] = sorted(all[WIN][p] - common) if p in all[WIN] else []
+    plugin_jars[LINUX][p] = sorted(all[LINUX][p] - common) if p in all[LINUX] else []
 
   return plugin_jars
 
