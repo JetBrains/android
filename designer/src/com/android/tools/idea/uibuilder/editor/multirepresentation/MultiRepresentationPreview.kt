@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.editor.multirepresentation
 
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.AdtPrimaryPanel
-import com.android.tools.editor.ActionToolbarUtil
+import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.common.editor.DesignFileEditor
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager

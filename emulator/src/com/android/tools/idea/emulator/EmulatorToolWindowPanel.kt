@@ -20,10 +20,10 @@ import com.android.ddmlib.IDevice
 import com.android.emulator.control.ExtendedControlsStatus
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.common.primaryPanelBackground
+import com.android.tools.adtui.util.ActionToolbarUtil.makeToolbarNavigable
 import com.android.tools.deployer.AdbClient
 import com.android.tools.deployer.ApkInstaller
 import com.android.tools.deployer.InstallStatus
-import com.android.tools.editor.ActionToolbarUtil.makeToolbarNavigable
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.transform

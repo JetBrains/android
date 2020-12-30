@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.adtui.actions.DropDownAction;
-import com.android.tools.editor.ActionToolbarUtil;
+import com.android.tools.adtui.util.ActionToolbarUtil;
 import com.android.tools.idea.actions.MockupDeleteAction;
 import com.android.tools.idea.actions.MockupEditAction;
 import com.android.tools.idea.common.actions.GotoComponentAction;

@@ -16,7 +16,7 @@
 package com.android.tools.idea.common.error;
 
 import com.android.tools.adtui.common.AdtSecondaryPanel;
-import com.android.tools.editor.ActionToolbarUtil;
+import com.android.tools.adtui.util.ActionToolbarUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.google.common.annotations.VisibleForTesting;
