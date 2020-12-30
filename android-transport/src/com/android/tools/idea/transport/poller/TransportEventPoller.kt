@@ -18,6 +18,7 @@ package com.android.tools.idea.transport.poller
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profiler.proto.TransportServiceGrpc
+import com.intellij.openapi.diagnostic.Logger
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
@@ -86,7 +87,7 @@ class TransportEventPoller(
           .filter { event -> event.timestamp >= startTimestamp && eventListener.filter(event) }
         filtered.forEach { event ->
           eventListener.executor.execute {
-            if(eventListener.callback(event)) {
+            if (eventListener.callback(event)) {
               // Previous code collected the flag and unregistered once in the main thread,
               // but there was a concurrency bug if the main thread finishes before the listeners.
               // We unregister from here instead. Unregistering the same listener multiple times is harmless.
@@ -118,8 +119,16 @@ class TransportEventPoller(
                      executorServiceForTest: ScheduledExecutorService? = null
     ): TransportEventPoller {
       val poller = TransportEventPoller(transportClient, sortOrder)
-      val scheduledFuture = (executorServiceForTest ?: myExecutorService).scheduleWithFixedDelay({ poller.poll() },
-                                                                                                 0, pollPeriodNs, TimeUnit.NANOSECONDS)
+      val scheduledFuture = (executorServiceForTest ?: myExecutorService).scheduleWithFixedDelay(
+        {
+          try {
+            poller.poll()
+          }
+          catch (t: Throwable) {
+            Logger.getInstance(TransportEventPoller::class.java).warn(t.toString())
+          }
+        },
+        0, pollPeriodNs, TimeUnit.NANOSECONDS)
       myScheduledFutures[poller] = scheduledFuture
       return poller
     }
