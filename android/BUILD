@@ -447,7 +447,7 @@ filegroup(
         "//tools/base/bazel:studio-proto",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
         "//tools/base/ddmlib:am-instrumentation-data-proto",
-        "//tools/base/dynamic-layout-inspector/proto:layout_inspector_skia_java_proto",
+        "//tools/base/dynamic-layout-inspector/skia/proto:layout_inspector_skia_java_proto",
         "//tools/base/emulator/proto:emulator_java_proto",
         "//tools/base/game-tools/protos:game-tools-protos",
         "//tools/base/sdk-common/aia-manifest-jar-generator:proto",
