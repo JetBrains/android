@@ -32,7 +32,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class FakeKeyboard {
   public static final int MENU_KEY_CODE = SystemInfo.isMac ? KeyEvent.VK_META : KeyEvent.VK_CONTROL;
-  public static final Key MENU_KEY = SystemInfo.isMac ? Key.META : Key.CTRL;
 
   private final IntArrayList myPressedKeys = new IntArrayList();
   @Nullable private Component myFocus;

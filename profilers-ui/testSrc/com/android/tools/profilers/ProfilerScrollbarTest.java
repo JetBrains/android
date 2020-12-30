@@ -99,7 +99,7 @@ public class ProfilerScrollbarTest {
   public void testZoom() {
     // Zoom in
     double delta = myScrollbar.getZoomWheelDelta();
-    myUi.keyboard.press(FakeKeyboard.MENU_KEY); // Menu+wheel == zoom
+    myUi.keyboard.press(FakeKeyboard.MENU_KEY_CODE); // Menu+wheel == zoom
 
     myUi.mouse.wheel(50, 50, -1);
     myTimer.tick(TimeUnit.SECONDS.toNanos(5));
@@ -127,7 +127,7 @@ public class ProfilerScrollbarTest {
     myTimeline.getViewRange().set(0, initialMax);
     // Zoom in
     double delta = myScrollbar.getZoomWheelDelta();
-    myUi.keyboard.press(FakeKeyboard.MENU_KEY); // Menu+wheel == zoom
+    myUi.keyboard.press(FakeKeyboard.MENU_KEY_CODE); // Menu+wheel == zoom
 
     assertTrue(myScrollbar.isScrollable());
     myUi.mouse.wheel(50, 50, -1);
@@ -229,7 +229,7 @@ public class ProfilerScrollbarTest {
     myTimeline.getViewRange().set(0, 10000);
 
     double delta = myScrollbar.getZoomWheelDelta();
-    myUi.keyboard.press(FakeKeyboard.MENU_KEY); // Menu+wheel == zoom
+    myUi.keyboard.press(FakeKeyboard.MENU_KEY_CODE); // Menu+wheel == zoom
 
     // Zoom out should work but does nothing.
     myUi.mouse.wheel(50, 50, 1);
