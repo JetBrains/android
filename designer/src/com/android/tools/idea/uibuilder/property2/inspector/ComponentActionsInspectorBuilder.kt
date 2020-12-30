@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.property2.inspector
 
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.secondaryPanelBackground
-import com.android.tools.editor.ActionToolbarUtil
+import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.api.actions.DirectViewAction

@@ -17,7 +17,7 @@ package com.android.tools.idea.common.editor;
 
 import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.common.StudioColorsKt;
-import com.android.tools.editor.ActionToolbarUtil;
+import com.android.tools.adtui.util.ActionToolbarUtil;
 import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
