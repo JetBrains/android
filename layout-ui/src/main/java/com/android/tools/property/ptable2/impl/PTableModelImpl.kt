@@ -22,6 +22,7 @@ import com.android.tools.property.ptable2.PTableItem
 import com.android.tools.property.ptable2.PTableModel
 import com.android.tools.property.ptable2.PTableModelUpdateListener
 import com.intellij.util.ThreeState
+import java.util.Collections
 import java.util.IdentityHashMap
 import javax.swing.table.AbstractTableModel
 
@@ -34,7 +35,7 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
   private var hasEditableCells = ThreeState.UNSURE
 
   @VisibleForTesting
-  val expandedItems = mutableSetOf<PTableGroupItem>()
+  val expandedItems: MutableSet<PTableGroupItem> = Collections.newSetFromMap(IdentityHashMap())
 
   init {
     items.addAll(tableModel.items)
