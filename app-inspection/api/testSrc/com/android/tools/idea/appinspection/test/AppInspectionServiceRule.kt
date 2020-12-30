@@ -21,7 +21,6 @@ import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.api.process.ProcessNotifier
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
-import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.AppInspectionProcessDiscovery
 import com.android.tools.idea.appinspection.internal.AppInspectionTarget
@@ -50,6 +49,13 @@ import org.junit.runner.Description
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
+val DEFAULT_TEST_INSPECTION_STREAM = Common.Stream.newBuilder().apply {
+  type = Common.Stream.Type.DEVICE
+  streamId = FakeTransportService.FAKE_DEVICE_ID
+  device = FakeTransportService.FAKE_DEVICE
+}.build()!!
+val DEFAULT_TEST_INSPECTION_PROCESS = TransportProcessDescriptor(DEFAULT_TEST_INSPECTION_STREAM, FakeTransportService.FAKE_PROCESS)
+
 /**
  * Rule providing all of the underlying components of App Inspection including [executorService], [streamChannel], [transport] and [client].
  *
@@ -58,7 +64,9 @@ import java.util.concurrent.Executors
 class AppInspectionServiceRule(
   private val timer: FakeTimer,
   private val transportService: FakeTransportService,
-  private val grpcServer: FakeGrpcServer
+  private val grpcServer: FakeGrpcServer,
+  private val stream: Common.Stream = DEFAULT_TEST_INSPECTION_STREAM,
+  private val process: ProcessDescriptor = DEFAULT_TEST_INSPECTION_PROCESS
 ) : NamedExternalResource() {
   lateinit var client: TransportClient
   lateinit var executorService: ExecutorService
@@ -70,13 +78,6 @@ class AppInspectionServiceRule(
   internal lateinit var targetManager: AppInspectionTargetManager
   lateinit var processNotifier: ProcessNotifier
   lateinit var apiServices: AppInspectionApiServices
-
-  private val stream = Common.Stream.newBuilder()
-    .setType(Common.Stream.Type.DEVICE)
-    .setStreamId(FakeTransportService.FAKE_DEVICE_ID)
-    .setDevice(FakeTransportService.FAKE_DEVICE)
-    .build()
-  private val process = TransportProcessDescriptor(stream, FakeTransportService.FAKE_PROCESS)
 
   private val defaultAttachHandler = object : CommandHandler(timer) {
     override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {

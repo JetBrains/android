@@ -169,6 +169,7 @@ studio_plugin(
             "//prebuilts/studio/layoutlib:layoutlib",
         ],
         "resources": [
+            "//tools/base/dynamic-layout-inspector/agent/appinspection:bundle",
             "//tools/base/profiler/transform:profilers-transform",
             "//tools/base/profiler/app:perfa",
             "//tools/base/profiler/app:perfa_okhttp",
