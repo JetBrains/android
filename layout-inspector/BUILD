@@ -36,6 +36,7 @@ iml_module(
         "//tools/adt/idea/app-inspection/api:intellij.android.app-inspection.api[module]",
         "//tools/adt/idea/app-inspection/ide:intellij.android.app-inspection.ide[module]",
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
+        "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto",
     ],
 )
 
@@ -92,5 +93,6 @@ iml_module(
         "//tools/adt/idea/app-inspection/api:intellij.android.app-inspection.api[module, test]",
         "//tools/adt/idea/app-inspection/ide:intellij.android.app-inspection.ide[module, test]",
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module, test]",
+        "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto[test]",
     ],
 )
