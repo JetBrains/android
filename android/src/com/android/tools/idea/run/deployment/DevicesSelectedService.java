@@ -86,25 +86,22 @@ final class DevicesSelectedService {
       return Optional.of(devices.get(0).getDefaultTarget());
     }
 
-    assert state.targetSelectedWithDropDown.deviceKey != null;
-    Key key = state.targetSelectedWithDropDown.deviceKey.asKey();
+    Target target = state.targetSelectedWithDropDown.asTarget();
 
     Optional<Device> optionalSelectedDevice = devices.stream()
-      .filter(device -> device.matches(key))
+      .filter(target::matches)
       .findFirst();
 
     if (!optionalSelectedDevice.isPresent()) {
       return Optional.of(devices.get(0).getDefaultTarget());
     }
 
-    Device selectedDevice = optionalSelectedDevice.get();
-
     Optional<Device> optionalConnectedDevice = devices.stream()
       .filter(Device::isConnected)
       .findFirst();
 
     if (!optionalConnectedDevice.isPresent()) {
-      return Optional.of(selectedDevice.getDefaultTarget());
+      return Optional.of(target);
     }
 
     Device connectedDevice = optionalConnectedDevice.get();
@@ -118,7 +115,7 @@ final class DevicesSelectedService {
       return Optional.of(connectedDevice.getDefaultTarget());
     }
 
-    return Optional.of(selectedDevice.getDefaultTarget());
+    return Optional.of(target);
   }
 
   void setTargetSelectedWithComboBox(@Nullable Target targetSelectedWithComboBox) {
