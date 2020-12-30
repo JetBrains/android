@@ -50,6 +50,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   init {
     val builder = ComponentTreeBuilder()
       .withHiddenRoot()
+      .withAutoScroll()
       .withNodeType(nodeType)
       .withContextMenu(::showPopup)
       .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
