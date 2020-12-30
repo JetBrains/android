@@ -54,6 +54,7 @@ class ComponentTreeBuilder {
   private var isRootVisible = true
   private var showRootHandles = false
   private var horizontalScrollbar = false
+  private var autoScroll = false
   private var componentName =  "componentTree"
 
   /**
@@ -117,6 +118,11 @@ class ComponentTreeBuilder {
   fun withComponentName(name: String) = apply { componentName = name }
 
   /**
+   * Auto scroll to make a newly selected item scroll into view.
+   */
+  fun withAutoScroll() = apply { autoScroll = true }
+
+  /**
    * Build the tree component and return it with the tree model.
    */
   fun build(): Triple<JComponent, ComponentTreeModel, ComponentTreeSelectionModel> {
@@ -129,6 +135,11 @@ class ComponentTreeBuilder {
       TreeSpeedSearch(tree) { model.toSearchString(it.lastPathComponent) }
     }
     selectionModel.selectionMode = selectionMode
+    if (autoScroll) {
+      selectionModel.addAutoScrollListener {
+        tree.selectionRows?.singleOrNull()?.let { tree.scrollRowToVisible(it) }
+      }
+    }
     tree.selectionModel = selectionModel
     keyStrokes.forEach {
       tree.registerActionKey(it.value.second, it.key, it.value.first, { true }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)

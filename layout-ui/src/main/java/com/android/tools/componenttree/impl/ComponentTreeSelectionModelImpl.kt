@@ -26,6 +26,7 @@ import javax.swing.tree.TreePath
  */
 class ComponentTreeSelectionModelImpl(private val model: ComponentTreeModelImpl): ComponentTreeSelectionModel, DefaultTreeSelectionModel() {
   private val selectionListeners: MutableList<(List<Any>) -> Unit> = ContainerUtil.createConcurrentList()
+  private val autoScrollListeners: MutableList<() -> Unit> = ContainerUtil.createConcurrentList()
   private var isUpdating = false
 
   override var currentSelection: List<Any>
@@ -36,6 +37,7 @@ class ComponentTreeSelectionModelImpl(private val model: ComponentTreeModelImpl)
         isUpdating = true
         try {
           selectionPaths = value.map { createTreePath(it) }.toTypedArray()
+          fireAutoScroll()
         }
         finally {
           isUpdating = false
@@ -49,6 +51,14 @@ class ComponentTreeSelectionModelImpl(private val model: ComponentTreeModelImpl)
 
   override fun removeSelectionListener(listener: (List<Any>) -> Unit) {
     selectionListeners.remove(listener)
+  }
+
+  fun addAutoScrollListener(listener: () -> Unit) {
+    autoScrollListeners.add(listener)
+  }
+
+  fun removeAutoScrollListener(listener: () -> Unit) {
+    autoScrollListeners.remove(listener)
   }
 
   fun keepSelectionDuring(operation: () -> Unit) {
@@ -69,6 +79,10 @@ class ComponentTreeSelectionModelImpl(private val model: ComponentTreeModelImpl)
       val newSelection = event.paths.filter { event.isAddedPath(it) }.map { it.lastPathComponent }
       selectionListeners.forEach { it.invoke(newSelection) }
     }
+  }
+
+  private fun fireAutoScroll() {
+    autoScrollListeners.forEach { it.invoke() }
   }
 
   private fun createTreePath(node: Any): TreePath {
