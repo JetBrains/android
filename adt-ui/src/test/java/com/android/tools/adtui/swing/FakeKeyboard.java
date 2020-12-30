@@ -132,12 +132,10 @@ public final class FakeKeyboard {
       throw new IllegalStateException(String.format("Can't press key %s as it's already pressed.", KeyEvent.getKeyText(keyCode)));
     }
 
-    // Dispatch BEFORE adding the key to our list of pressed keys. If it is a modifier key, we
-    // don't want it to included in "toModifiersCode" logic called by "dispatchKeyEvent".
-    dispatchKeyEvent(event, keyCode);
     if (event == KeyEvent.KEY_PRESSED) {
       myPressedKeys.add(keyCode);
     }
+    dispatchKeyEvent(event, keyCode);
   }
 
   public int toModifiersCode() {
@@ -148,7 +146,7 @@ public final class FakeKeyboard {
     if (myPressedKeys.contains(KeyEvent.VK_CONTROL)) {
       modifiers |= InputEvent.CTRL_DOWN_MASK;
     }
-    if (myPressedKeys.contains(KeyEvent.VK_ESCAPE) || myPressedKeys.contains(KeyEvent.VK_SHIFT)) {
+    if (myPressedKeys.contains(KeyEvent.VK_SHIFT)) {
       modifiers |= InputEvent.SHIFT_DOWN_MASK;
     }
     if (myPressedKeys.contains(KeyEvent.VK_META)) {
