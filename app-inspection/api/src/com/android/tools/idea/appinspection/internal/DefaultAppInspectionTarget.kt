@@ -60,7 +60,7 @@ internal suspend fun attachAppInspectionTarget(
 ): AppInspectionTarget {
   // The device daemon takes care of the case if and when the agent is previously attached already.
   val attachCommand = Command.newBuilder()
-    .setStreamId(transport.stream.streamId)
+    .setStreamId(transport.process.streamId)
     .setPid(transport.process.pid)
     .setType(ATTACH_AGENT)
     .setAttachAgent(

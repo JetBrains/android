@@ -49,9 +49,3 @@ class TransportProcessDescriptor(
     return "ProcessDescriptor(device='$device', name='$name', isRunning='$isRunning')"
   }
 }
-
-/**
- * In this module, [ProcessDescriptor]s are always implemented by [TransportProcessDescriptor],
- * so this convenience method provides cleaner syntax for casting.
- */
-internal fun ProcessDescriptor.toTransportImpl() = this as TransportProcessDescriptor
