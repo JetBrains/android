@@ -21,12 +21,15 @@ import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ROOT
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
 import com.android.tools.idea.layoutinspector.window
+import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
+import com.intellij.ui.components.JBScrollPane
 import junit.framework.TestCase.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -36,6 +39,7 @@ import java.awt.Dimension
 import java.awt.Font
 import java.awt.GradientPaint
 import java.awt.Graphics2D
+import java.awt.Point
 import java.awt.Polygon
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
@@ -121,13 +125,13 @@ class DeviceViewContentPanelTest {
 
     panel.model.layerSpacing = INITIAL_LAYER_SPACING
     val windowRoot = model[ROOT]!!
-    model.selection = windowRoot
+    model.setSelection(windowRoot, SelectionOrigin.INTERNAL)
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaint_selected.png"), generatedImage, DIFF_THRESHOLD)
 
     settings.drawLabel = true
-    model.selection = model[VIEW1]!!
+    model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
     graphics = generatedImage.createGraphics()
     // Set the font so it will be the same across platforms
     graphics.font = Font("Droid Sans", Font.PLAIN, 12)
@@ -148,7 +152,6 @@ class DeviceViewContentPanelTest {
     ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaint_hovered.png"), generatedImage, DIFF_THRESHOLD)
   }
 
-
   @Test
   fun testRotationDoesntThrow() {
     val model = model {
@@ -164,7 +167,7 @@ class DeviceViewContentPanelTest {
     val generatedImage = BufferedImage(10, 15, TYPE_INT_ARGB)
     val graphics = generatedImage.createGraphics()
 
-    model.selection = model[VIEW1]!!
+    model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
     val panel = DeviceViewContentPanel(model, DeviceViewSettings())
     panel.setSize(10, 15)
     panel.model.rotate(-1.0, -1.0)
@@ -265,7 +268,7 @@ class DeviceViewContentPanelTest {
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintMultiWindow.png"), generatedImage, DIFF_THRESHOLD)
 
-    model.selection = model[VIEW3]
+    model.setSelection(model[VIEW3], SelectionOrigin.INTERNAL)
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintMultiWindow_selected.png"), generatedImage,
@@ -345,19 +348,19 @@ class DeviceViewContentPanelTest {
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintWithImages.png"), generatedImage, DIFF_THRESHOLD)
 
-    model.selection = model[ROOT]
+    model.setSelection(model[ROOT], SelectionOrigin.INTERNAL)
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
       getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintWithImages_root.png"), generatedImage, DIFF_THRESHOLD)
 
-    model.selection = model[VIEW1]
+    model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
       getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintWithImages_view1.png"), generatedImage, DIFF_THRESHOLD)
 
-    model.selection = model[VIEW2]
+    model.setSelection(model[VIEW2], SelectionOrigin.INTERNAL)
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
@@ -430,7 +433,7 @@ class DeviceViewContentPanelTest {
     ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintWithImagesBetweenChildren_rotated.png"),
                                      generatedImage, DIFF_THRESHOLD)
 
-    model.selection = model[ROOT]
+    model.setSelection(model[ROOT], SelectionOrigin.INTERNAL)
     graphics = generatedImage.createGraphics()
     graphics.font = Font("Droid Sans", Font.PLAIN, 12)
     panel.paint(graphics)
@@ -463,13 +466,13 @@ class DeviceViewContentPanelTest {
     ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintWithRootImageOnly.png"), generatedImage,
                                      DIFF_THRESHOLD)
 
-    model.selection = model[ROOT]
+    model.setSelection(model[ROOT], SelectionOrigin.INTERNAL)
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
       getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintWithRootImageOnly_root.png"), generatedImage, DIFF_THRESHOLD)
 
-    model.selection = model[VIEW1]
+    model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
@@ -506,7 +509,7 @@ class DeviceViewContentPanelTest {
     ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintTransformed.png"), generatedImage,
                                      DIFF_THRESHOLD)
 
-    model.selection = model[VIEW1]
+    model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
     graphics = generatedImage.createGraphics()
     graphics.font = ImageDiffTestUtil.getDefaultFont()
     panel.paint(graphics)
@@ -565,11 +568,38 @@ class DeviceViewContentPanelTest {
     ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintTransformedOutsideRoot.png"), generatedImage,
                                      DIFF_THRESHOLD)
 
-    model.selection = model[VIEW1]
+    model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
     graphics = generatedImage.createGraphics()
     graphics.font = ImageDiffTestUtil.getDefaultFont()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
       getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintTransformedOutsideRoot_view1.png"), generatedImage, DIFF_THRESHOLD)
+  }
+
+  @Test
+  fun testAutoScroll() {
+    val model = model {
+      view(ROOT, 0, 0, 100, 200) {
+        view(VIEW1, 0, 0, 50, 50) {
+          view(VIEW3, 30, 30, 10, 10)
+        }
+        view(VIEW2, 60, 160, 10, 20)
+      }
+    }
+    val view1 = model[VIEW1]
+    val settings = DeviceViewSettings(scalePercent = 200)
+    val panel = DeviceViewContentPanel(model, settings)
+    val scrollPane = JBScrollPane(panel)
+    panel.setBounds(0, 0, 1000, 1000)
+    scrollPane.setBounds(0, 0, 400, 400)
+    scrollPane.viewport.viewPosition = Point(600, 600)
+
+    // No auto scrolling when selection is changed from the image:
+    model.setSelection(view1, SelectionOrigin.INTERNAL)
+    assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(600, 600))
+
+    // Auto scrolling will be in effect when selecting from the component tree:
+    model.setSelection(view1, SelectionOrigin.COMPONENT_TREE)
+    assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(394, 194))
   }
 }

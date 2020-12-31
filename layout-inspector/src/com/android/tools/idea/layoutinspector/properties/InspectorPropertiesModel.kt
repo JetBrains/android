@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.properties
 
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.property.panel.api.PropertiesModel
@@ -70,7 +71,7 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
   }
 
   @Suppress("UNUSED_PARAMETER")
-  private fun handleNewSelection(oldView: ViewNode?, newView: ViewNode?) {
+  private fun handleNewSelection(oldView: ViewNode?, newView: ViewNode?, origin: SelectionOrigin) {
     val currentProvider = provider
     if (newView != null && currentProvider != null) {
       currentProvider.requestProperties(newView)
@@ -86,7 +87,7 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
     if (structuralChange) {
       structuralUpdates++
     }
-    handleNewSelection(null, layoutInspector?.layoutInspectorModel?.selection)
+    handleNewSelection(null, layoutInspector?.layoutInspectorModel?.selection, SelectionOrigin.INTERNAL)
   }
 
   private fun handleConnectionChange(client: InspectorClient?) {

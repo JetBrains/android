@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.common
 
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -126,7 +127,7 @@ private class SelectViewAction(
              AndroidDomElementDescriptorProvider.getIconForViewTag(view.unqualifiedName) ?: StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW) {
 
   override fun actionPerformed(unused: AnActionEvent) {
-    inspectorModel.selection = view
+    inspectorModel.setSelection(view, SelectionOrigin.INTERNAL)
 
     // This action is only performed from mouse clicks on the image
     inspectorModel.stats.selectionMadeFromImage()

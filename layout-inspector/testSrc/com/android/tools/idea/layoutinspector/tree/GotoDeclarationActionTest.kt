@@ -20,6 +20,7 @@ import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -55,7 +56,7 @@ class GotoDeclarationActionTest {
   @Test
   fun testViewNode() {
     val model = createModel()
-    model.selection = model["title"]
+    model.setSelection(model["title"], SelectionOrigin.INTERNAL)
     val event = createEvent(model)
     GotoDeclarationAction.actionPerformed(event)
     fileOpenCaptureRule.checkEditor("demo.xml", 8, "<TextView")
@@ -65,7 +66,7 @@ class GotoDeclarationActionTest {
   @Test
   fun testComposeViewNode() {
     val model = createModel()
-    model.selection = model[-2]
+    model.setSelection(model[-2], SelectionOrigin.INTERNAL)
     val event = createEvent(model)
     GotoDeclarationAction.actionPerformed(event)
     fileOpenCaptureRule.checkEditor("MyCompose.kt", 17, "Column(modifier = Modifier.padding(20.dp)) {")
@@ -75,7 +76,7 @@ class GotoDeclarationActionTest {
   @Test
   fun testComposeViewNodeInOtherFileWithSameName() {
     val model = createModel()
-    model.selection = model[-5]
+    model.setSelection(model[-5], SelectionOrigin.INTERNAL)
     val event = createEvent(model)
     GotoDeclarationAction.actionPerformed(event)
     fileOpenCaptureRule.checkEditor("MyCompose.kt", 8, "Text(text = \"Hello \$name!\")")

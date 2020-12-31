@@ -24,6 +24,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.ActionManager
@@ -67,7 +68,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
     componentTreeSelectionModel = selectionModel
     selectionModel.addSelectionListener {
       layoutInspector?.layoutInspectorModel?.apply {
-        selection = it.firstOrNull() as? ViewNode
+        setSelection(it.firstOrNull() as? ViewNode, SelectionOrigin.COMPONENT_TREE)
         stats.selectionMadeFromComponentTree()
       }
     }
@@ -111,7 +112,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   }
 
   @Suppress("UNUSED_PARAMETER")
-  private fun selectionChanged(oldView: ViewNode?, newView: ViewNode?) {
+  private fun selectionChanged(oldView: ViewNode?, newView: ViewNode?, origin: SelectionOrigin) {
     if (newView == null) {
       componentTreeSelectionModel.currentSelection = emptyList()
     }
