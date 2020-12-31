@@ -16,14 +16,17 @@
 package com.android.tools.idea.layoutinspector.tree
 
 import com.android.SdkConstants.FQCN_RELATIVE_LAYOUT
+import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.ROOT
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
 import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorRule
 import com.android.tools.idea.layoutinspector.pipeline.transport.addComponentTreeEvent
@@ -41,6 +44,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.tree.TreeUtil
 import org.jetbrains.android.ComponentStack
 import org.junit.After
 import org.junit.Before
@@ -92,7 +96,7 @@ class LayoutInspectorTreePanelTest {
     val inspector = inspectorRule.inspector
     tree.setToolContext(inspector)
 
-    model.selection = model["title"]
+    model.setSelection(model["title"], SelectionOrigin.INTERNAL)
     val treeComponent = UIUtil.findComponentOfType(tree.component, JTree::class.java)
 
     val fileManager = FileEditorManager.getInstance(inspectorRule.project)
@@ -167,5 +171,31 @@ class LayoutInspectorTreePanelTest {
     UIUtil.dispatchAllInvocationEvents()
     // Still 2: the dimmer is drawn but isn't in the tree
     assertThat(jtree.rowCount).isEqualTo(2)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testSelectFromComponentTree() {
+    TreeSettings.hideSystemNodes = false
+    val tree = LayoutInspectorTreePanel()
+    val model = inspectorRule.inspectorModel
+    val inspector = inspectorRule.inspector
+    tree.setToolContext(inspector)
+    val jtree = UIUtil.findComponentOfType(tree.component, JTree::class.java) as JTree
+    UIUtil.dispatchAllInvocationEvents()
+    TreeUtil.expandAll(jtree)
+    UIUtil.dispatchAllInvocationEvents()
+
+    var selectedView: ViewNode? = null
+    var selectionOrigin = SelectionOrigin.INTERNAL
+    model.selectionListeners.add { _, newSelection, origin ->
+      selectedView = newSelection
+      selectionOrigin = origin
+    }
+
+    jtree.setSelectionRow(2)
+    assertThat(selectionOrigin).isEqualTo(SelectionOrigin.COMPONENT_TREE)
+    assertThat(selectedView?.drawId).isEqualTo(VIEW2)
+    assertThat(selectedView?.qualifiedName).isEqualTo(FQCN_TEXT_VIEW)
   }
 }

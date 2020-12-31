@@ -17,16 +17,22 @@ package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
-import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.DRAW_NODE_LABEL_HEIGHT
+import com.android.tools.idea.layoutinspector.model.EMPHASIZED_BORDER_OUTLINE_THICKNESS
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.LABEL_FONT_SIZE
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.intellij.ui.PopupHandler
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import java.awt.AlphaComposite
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Point
+import java.awt.Rectangle
 import java.awt.RenderingHints
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -34,7 +40,6 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 
 private const val MARGIN = 50
-
 
 class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSettings: DeviceViewSettings) : AdtPrimaryPanel() {
 
@@ -55,7 +60,7 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
   )
 
   init {
-    inspectorModel.selectionListeners.add { _, _ -> repaint() }
+    inspectorModel.selectionListeners.add { _, _, origin -> autoScrollAndRepaint(origin) }
     inspectorModel.hoverListeners.add { _, _ -> repaint() }
     addComponentListener(object : ComponentAdapter() {
       override fun componentResized(e: ComponentEvent?) {
@@ -94,7 +99,7 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
 
       override fun mouseClicked(e: MouseEvent) {
         if (e.isConsumed) return
-        inspectorModel.selection = nodeAtPoint(e)
+        inspectorModel.setSelection(nodeAtPoint(e), SelectionOrigin.INTERNAL)
         inspectorModel.stats.selectionMadeFromImage()
       }
 
@@ -149,6 +154,33 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
     // when the number of layers changes and the canvas size adjusts to smaller than the viewport size.
     else Dimension((model.maxWidth * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt() * 2,
                    (model.maxHeight * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt() * 2)
+
+  private fun autoScrollAndRepaint(origin: SelectionOrigin) {
+    val selection = inspectorModel.selection
+    if (origin != SelectionOrigin.INTERNAL && selection != null) {
+      val hits = model.hitRects.filter { it.node.owner == selection }
+      val bounds = Rectangle()
+      hits.forEach { if (bounds.isEmpty) bounds.bounds = it.bounds.bounds else bounds.add(it.bounds.bounds) }
+      if (!bounds.isEmpty) {
+        val font = UIUtil.getLabelFont().deriveFont(JBUIScale.scale(LABEL_FONT_SIZE))
+        val fontMetrics = getFontMetrics(font)
+        val textWidth = fontMetrics.stringWidth(selection.unqualifiedName)
+        val labelHeight = JBUIScale.scale(DRAW_NODE_LABEL_HEIGHT).toInt()
+        val borderSize = EMPHASIZED_BORDER_OUTLINE_THICKNESS.toInt() / 2
+        bounds.width = kotlin.math.max(bounds.width, textWidth)
+        bounds.x -= borderSize
+        bounds.y -= borderSize + labelHeight
+        bounds.width += borderSize * 2
+        bounds.height += borderSize * 2 + labelHeight
+        bounds.x = (bounds.x * viewSettings.scaleFraction).toInt() + (size.width / 2)
+        bounds.y = (bounds.y * viewSettings.scaleFraction).toInt() + (size.height / 2)
+        bounds.width = (bounds.width * viewSettings.scaleFraction).toInt()
+        bounds.height = (bounds.height * viewSettings.scaleFraction).toInt()
+        scrollRectToVisible(bounds)
+      }
+    }
+    repaint()
+  }
 
   private fun drawBorders(g: Graphics2D, drawInfo: ViewDrawInfo) {
     val hoveredNode = inspectorModel.hoveredNode

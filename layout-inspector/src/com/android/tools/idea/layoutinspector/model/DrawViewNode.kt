@@ -37,8 +37,8 @@ import kotlin.math.min
 
 private const val NORMAL_BORDER_THICKNESS = 1f
 private const val EMPHASIZED_BORDER_THICKNESS = 5f
-private const val EMPHASIZED_BORDER_OUTLINE_THICKNESS = 7f
-private const val LABEL_FONT_SIZE = 30f
+const val EMPHASIZED_BORDER_OUTLINE_THICKNESS = 7f
+const val LABEL_FONT_SIZE = 30f
 private val DASH = floatArrayOf(20f, 20f)
 
 private val EMPHASIZED_LINE_COLOR = Color(106, 161, 211)
@@ -53,6 +53,8 @@ private val NORMAL_LINE_COLOR = JBColor(Gray.get(128, 128), Gray.get(212, 128))
 private val NORMAL_LINE_STROKE = BasicStroke(NORMAL_BORDER_THICKNESS)
 private val NORMAL_IMAGE_LINE_STROKE = BasicStroke(NORMAL_BORDER_THICKNESS, CAP_BUTT, JOIN_MITER, 10.0f, DASH, 0f)
 private val EMPHASIZED_LINE_OUTLINE_COLOR = Color.white
+
+const val DRAW_NODE_LABEL_HEIGHT = LABEL_FONT_SIZE * 1.6f + 2 * NORMAL_BORDER_THICKNESS
 
 /**
  * A node in the hierarchy used to paint the device view. This is separate from the basic hierarchy ([ViewNode.children]) since views
