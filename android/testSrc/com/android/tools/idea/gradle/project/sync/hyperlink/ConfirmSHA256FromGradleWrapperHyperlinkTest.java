@@ -56,7 +56,7 @@ public class ConfirmSHA256FromGradleWrapperHyperlinkTest extends AndroidGradleTe
     assertThat(hyperlink.toHtml()).isEqualTo(EXPECTED_HTML);
   }
 
-  @Bombed(user = "Andrei.Kuznetsov", description = "https://youtrack.jetbrains.com/issue/IDEA-233200", month = Calendar.DECEMBER, day=30, year = 2020)
+  @Bombed(user = "Andrei.Kuznetsov", description = "https://youtrack.jetbrains.com/issue/IDEA-233200", month = Calendar.JANUARY, day=30, year = 2021)
   public void testExecute() throws Exception {
     loadSimpleApplication();
     Project project = getProject();
