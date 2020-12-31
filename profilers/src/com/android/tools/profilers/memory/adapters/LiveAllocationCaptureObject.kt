@@ -118,15 +118,8 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
     override fun getTimestamp(event: JNIGlobalReferenceEvent) = event.timestamp
     override fun getEventList(batch: Memory.BatchJNIGlobalRefEvent) = batch.eventsList
     override fun getBatchEvents(startTimeNs: Long, endTimeNs: Long) =
-      (if (stage.studioProfilers.ideServices.featureConfig.isUnifiedPipelineEnabled)
-        getEvents(startTimeNs, endTimeNs, Common.Event.Kind.MEMORY_JNI_REF_EVENTS) {it.memoryJniRefEvents.events}
-      else
-        getClient().getJNIGlobalRefsEvents(JNIGlobalRefsEventsRequest.newBuilder()
-                                             .setSession(session)
-                                             .setStartTime(startTimeNs - QUERY_BUFFER_NS)
-                                             .setEndTime(endTimeNs + QUERY_BUFFER_NS)
-                                             .build()).eventsList
-      ).apply { updateSeenTimestamp(Memory.BatchJNIGlobalRefEvent::getTimestamp) }
+      getEvents(startTimeNs, endTimeNs, Common.Event.Kind.MEMORY_JNI_REF_EVENTS) {it.memoryJniRefEvents.events}
+        .apply { updateSeenTimestamp(Memory.BatchJNIGlobalRefEvent::getTimestamp) }
   }
 
   override fun getSession() = session
