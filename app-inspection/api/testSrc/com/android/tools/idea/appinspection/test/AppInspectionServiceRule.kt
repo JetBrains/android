@@ -21,6 +21,7 @@ import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.api.process.ProcessNotifier
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.AppInspectionProcessDiscovery
 import com.android.tools.idea.appinspection.internal.AppInspectionTarget
@@ -28,6 +29,7 @@ import com.android.tools.idea.appinspection.internal.AppInspectionTargetManager
 import com.android.tools.idea.appinspection.internal.AppInspectionTransport
 import com.android.tools.idea.appinspection.internal.DefaultAppInspectionApiServices
 import com.android.tools.idea.appinspection.internal.launchInspectorForTest
+import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.testing.NamedExternalResource
 import com.android.tools.idea.transport.TransportClient
@@ -74,7 +76,7 @@ class AppInspectionServiceRule(
     .setStreamId(FakeTransportService.FAKE_DEVICE_ID)
     .setDevice(FakeTransportService.FAKE_DEVICE)
     .build()
-  private val process = FakeTransportService.FAKE_PROCESS!!
+  private val process = TransportProcessDescriptor(stream, FakeTransportService.FAKE_PROCESS)
 
   private val defaultAttachHandler = object : CommandHandler(timer) {
     override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
@@ -95,7 +97,7 @@ class AppInspectionServiceRule(
     streamManager = TransportStreamManager.createManager(client.transportStub, executorService.asCoroutineDispatcher())
     streamChannel = TransportStreamChannel(stream, client.transportStub, executorService.asCoroutineDispatcher())
     scope = CoroutineScope(executorService.asCoroutineDispatcher() + SupervisorJob())
-    transport = AppInspectionTransport(client, stream, process, streamChannel)
+    transport = AppInspectionTransport(client, process, streamChannel)
     jarCopier = AppInspectionTestUtils.TestTransportJarCopier
     targetManager = AppInspectionTargetManager(client, scope)
     processNotifier = AppInspectionProcessDiscovery(streamManager, scope)

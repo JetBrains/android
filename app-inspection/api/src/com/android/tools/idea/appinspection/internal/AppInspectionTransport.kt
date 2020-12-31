@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.internal
 
 import com.android.tools.app.inspection.AppInspection
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.manager.StreamEvent
 import com.android.tools.idea.transport.manager.StreamEventQuery
@@ -36,8 +37,7 @@ fun Commands.Command.toExecuteRequest(): Transport.ExecuteRequest = Transport.Ex
  */
 class AppInspectionTransport(
   val client: TransportClient,
-  val stream: Common.Stream,
-  val process: Common.Process,
+  val process: ProcessDescriptor,
   private val streamChannel: TransportStreamChannel
 ) {
 
@@ -86,7 +86,7 @@ class AppInspectionTransport(
 
   private fun AppInspection.AppInspectionCommand.toCommand() = Commands.Command.newBuilder()
     .setType(Commands.Command.CommandType.APP_INSPECTION)
-    .setStreamId(stream.streamId)
+    .setStreamId(process.streamId)
     .setPid(process.pid)
     .setAppInspectionCommand(this).build()
 
@@ -113,7 +113,7 @@ class AppInspectionTransport(
   fun executeCommand(appInspectionCommand: AppInspection.AppInspectionCommand) {
     val command = Commands.Command.newBuilder()
       .setType(Commands.Command.CommandType.APP_INSPECTION)
-      .setStreamId(stream.streamId)
+      .setStreamId(process.streamId)
       .setPid(process.pid)
       .setAppInspectionCommand(appInspectionCommand).build()
     executeCommand(command.toExecuteRequest())

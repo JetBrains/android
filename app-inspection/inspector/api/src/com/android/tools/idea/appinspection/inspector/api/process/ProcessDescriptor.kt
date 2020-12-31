@@ -35,6 +35,5 @@ interface ProcessDescriptor {
   val pid: Int
 
   /** An ID used by the underlying transport system associated with this process */
-  // TODO(b/175082110): We're only exposing this temporarily. Remove after layout inspector migration is complete.
   val streamId: Long
 }

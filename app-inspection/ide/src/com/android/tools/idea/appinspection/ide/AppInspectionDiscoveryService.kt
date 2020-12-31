@@ -21,6 +21,7 @@ import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
+import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.AndroidExecutors
@@ -30,7 +31,6 @@ import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.transport.TransportServiceProxy
 import com.android.tools.idea.transport.manager.TransportStreamManager
-import com.android.tools.profiler.proto.Common
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -106,7 +106,7 @@ class AppInspectionDiscoveryService : Disposable {
    * This uses the current [AndroidDebugBridge] to locate a device described by [device]. Return value is null if bridge is not available,
    * bridge does not detect any devices, or if the provided [device] does not match any of the devices the bridge is aware of.
    */
-  private fun findDevice(device: Common.Device): IDevice? {
+  private fun findDevice(device: DeviceDescriptor): IDevice? {
     return AndroidDebugBridge.getBridge()?.devices?.find {
       device.manufacturer == TransportServiceProxy.getDeviceManufacturer(it)
       && device.model == TransportServiceProxy.getDeviceModel(it)
