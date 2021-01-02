@@ -1645,7 +1645,7 @@ Android Studio Preview.app/Contents/lib/plexus-component-annotations-1.7.1.jar
 Android Studio Preview.app/Contents/lib/plexus-interpolation-1.25.jar
 Android Studio Preview.app/Contents/lib/plexus-utils-3.2.0.jar
 Android Studio Preview.app/Contents/lib/proto.jar
-Android Studio Preview.app/Contents/lib/protobuf-java-3.5.1.jar
+Android Studio Preview.app/Contents/lib/protobuf-java-3.13.0.jar
 Android Studio Preview.app/Contents/lib/proxy-vole-1.0.5-jb.2.jar
 Android Studio Preview.app/Contents/lib/pty4j-0.10.0.jar
 Android Studio Preview.app/Contents/lib/pty4j-native/macosx/x86/libpty.dylib
@@ -2655,7 +2655,7 @@ Android Studio Preview.app/Contents/plugins/completionMlRanking/lib/completionMl
 Android Studio Preview.app/Contents/plugins/completionMlRanking/lib/ngram-slp-0.0.2.jar
 Android Studio Preview.app/Contents/plugins/completionMlRanking/lib/resources_en.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-dart-0.0.1.jar
-Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-go-0.0.5.jar
+Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-go-0.1.1.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-java-0.3.1.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-js-0.1.1.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-kotlin-0.2.1.jar
@@ -2757,6 +2757,8 @@ Android Studio Preview.app/Contents/plugins/java/lib/resources.jar
 Android Studio Preview.app/Contents/plugins/java/lib/resources_en.jar
 Android Studio Preview.app/Contents/plugins/java/lib/rt/debugger-agent-storage.jar
 Android Studio Preview.app/Contents/plugins/java/lib/rt/debugger-agent.jar
+Android Studio Preview.app/Contents/plugins/java/lib/rt/jps-javac-rt-rpc.jar
+Android Studio Preview.app/Contents/plugins/java/lib/rt/protobuf-java-3.5.1.jar
 Android Studio Preview.app/Contents/plugins/java/lib/sa-jdwp-1.15.jar
 Android Studio Preview.app/Contents/plugins/junit/lib/idea-junit.jar
 Android Studio Preview.app/Contents/plugins/junit/lib/junit-rt.jar

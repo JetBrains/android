@@ -188,7 +188,7 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/plexus-component-annotations-1.7.1.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/plexus-interpolation-1.25.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/plexus-utils-3.2.0.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/protobuf-java-3.5.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/protobuf-java-3.13.0.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/proxy-vole-1.0.5-jb.2.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/pty4j-0.10.0.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/purejavacomm-0.0.11.1.jar!/" />
