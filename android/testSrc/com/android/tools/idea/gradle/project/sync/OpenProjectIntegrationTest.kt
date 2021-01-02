@@ -94,7 +94,6 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
   fun testOpen36Project() {
     addJdk8ToTable()
     prepareGradleProject(TestProjectPaths.RUN_APP_36, "project")
-    return  // b/176589990
     openPreparedProject("project") { project ->
       val androidTestRunConfiguration =
         RunManagerEx.getInstanceEx(project).allConfigurationsList.filterIsInstance<AndroidTestRunConfiguration>().singleOrNull()
