@@ -2,7 +2,7 @@
   <library name="studio-plugin-completionMlRankingModels">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/completionMlRankingModels/lib/completion-ranking-dart-0.0.1.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/completionMlRankingModels/lib/completion-ranking-go-0.0.5.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/completionMlRankingModels/lib/completion-ranking-go-0.1.1.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/completionMlRankingModels/lib/completion-ranking-java-0.3.1.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/completionMlRankingModels/lib/completion-ranking-js-0.1.1.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/completionMlRankingModels/lib/completion-ranking-kotlin-0.2.1.jar!/" />

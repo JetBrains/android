@@ -1647,7 +1647,7 @@ android-studio/lib/plexus-component-annotations-1.7.1.jar
 android-studio/lib/plexus-interpolation-1.25.jar
 android-studio/lib/plexus-utils-3.2.0.jar
 android-studio/lib/proto.jar
-android-studio/lib/protobuf-java-3.5.1.jar
+android-studio/lib/protobuf-java-3.13.0.jar
 android-studio/lib/proxy-vole-1.0.5-jb.2.jar
 android-studio/lib/pty4j-0.10.0.jar
 android-studio/lib/pty4j-native/linux/aarch64/libpty.so
@@ -2661,7 +2661,7 @@ android-studio/plugins/completionMlRanking/lib/completionMlRanking.jar
 android-studio/plugins/completionMlRanking/lib/ngram-slp-0.0.2.jar
 android-studio/plugins/completionMlRanking/lib/resources_en.jar
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-dart-0.0.1.jar
-android-studio/plugins/completionMlRankingModels/lib/completion-ranking-go-0.0.5.jar
+android-studio/plugins/completionMlRankingModels/lib/completion-ranking-go-0.1.1.jar
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-java-0.3.1.jar
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-js-0.1.1.jar
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-kotlin-0.2.1.jar
@@ -2765,6 +2765,8 @@ android-studio/plugins/java/lib/resources.jar
 android-studio/plugins/java/lib/resources_en.jar
 android-studio/plugins/java/lib/rt/debugger-agent-storage.jar
 android-studio/plugins/java/lib/rt/debugger-agent.jar
+android-studio/plugins/java/lib/rt/jps-javac-rt-rpc.jar
+android-studio/plugins/java/lib/rt/protobuf-java-3.5.1.jar
 android-studio/plugins/java/lib/sa-jdwp-1.15.jar
 android-studio/plugins/junit/lib/idea-junit.jar
 android-studio/plugins/junit/lib/junit-rt.jar
