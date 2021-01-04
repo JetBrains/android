@@ -26,7 +26,7 @@ import com.android.tools.idea.project.AndroidNotification;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.util.system.CpuArch;
 import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
@@ -63,7 +63,7 @@ public class DaemonMemorySettings {
   }
 
   int getDefaultGradleDaemonXmx() {
-    return SystemInfo.is32Bit ? LOW_GRADLE_DAEMON_XMX_IN_MB : HIGH_GRADLE_DAEMON_XMX_IN_MB;
+    return CpuArch.is32Bit() ? LOW_GRADLE_DAEMON_XMX_IN_MB : HIGH_GRADLE_DAEMON_XMX_IN_MB;
   }
 
   boolean hasUserPropertiesPath() {

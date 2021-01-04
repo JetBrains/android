@@ -20,9 +20,7 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
@@ -35,13 +33,8 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.serviceContainer.NonInjectable;
-import com.intellij.pom.java.LanguageLevel;
-import com.intellij.serviceContainer.NonInjectable;
-import com.intellij.util.SystemProperties;
+import com.intellij.util.system.CpuArch;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -126,7 +119,7 @@ public final class Jdks {
       return false;
     }
 
-    if (!SystemInfo.isWindows || !SystemInfo.is32Bit) {
+    if (!(SystemInfo.isWindows && CpuArch.is32Bit())) {
       // We only care about bitness compatibility on Windows. Elsewhere we just assume things are fine, because
       // nowadays virtually all Mac and Linux installations are 64 bits. No need to spend cycles on running 'java -version'
       return true;

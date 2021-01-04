@@ -28,11 +28,11 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
+import com.intellij.util.system.CpuArch;
 import com.sun.management.OperatingSystemMXBean;
+import java.awt.*;
 import java.util.Locale;
-import java.awt.Window;
 import org.jetbrains.annotations.Nullable;
 
 public class MemorySettingsUtil {
@@ -50,7 +50,7 @@ public class MemorySettingsUtil {
   }
 
   public static boolean memorySettingsEnabled() {
-    return SystemInfo.is64Bit && getMachineMem() >= MIN_RAM_IN_GB_FOR_CONFIG << 10;
+    return !CpuArch.is32Bit() && getMachineMem() >= MIN_RAM_IN_GB_FOR_CONFIG << 10;
   }
 
   public static int getCurrentXmx() {
