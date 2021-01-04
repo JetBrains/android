@@ -25,6 +25,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import java.util.ArrayList;
 import java.util.List;
+import com.intellij.util.system.CpuArch;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -124,22 +125,24 @@ public final class SimpleperfSampleReporter implements TracePreProcessor {
   }
 
   private static String getSimpleperfBinarySubdirectory() {
-    String os;
-    if (SystemInfo.isLinux) {
-      os = "linux-x86";
+    if (SystemInfo.isLinux && CpuArch.isIntel32()) {
+      return "linux-x86";
     }
-    else if (SystemInfo.isMac) {
-      os = "darwin-x86";
+    else if (SystemInfo.isLinux && CpuArch.isIntel64()) {
+      return "linux-x86_64";
     }
-    else if (SystemInfo.isWindows) {
-      os = "windows";
+    else if (SystemInfo.isMac && CpuArch.isIntel64()) {
+      return "darwin-x86_64";
+    }
+    else if (SystemInfo.isWindows && CpuArch.isIntel32()) {
+      return "windows";
+    }
+    else if (SystemInfo.isWindows && CpuArch.isIntel64()) {
+      return "windows-x86_64";
     }
     else {
-      throw new IllegalStateException("Unknown operating system");
+      throw new IllegalStateException("Unknown operating system/CPU architecture");
     }
-
-    String suffix64bit = SystemInfo.is64Bit ? (SystemInfo.isWindows ? "-x86_64" : "_64") : "";
-    return String.format("%s%s", os, suffix64bit);
   }
 
   private static String getSimpleperfBinaryName() {

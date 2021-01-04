@@ -26,6 +26,7 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.util.system.CpuArch
 
 import java.io.File
 
@@ -68,8 +69,8 @@ private const val ERROR_NO_EMULATOR_DIR = "SDK emulator directory is missing"
 
 private val unableToRunMessage: Collection<String>
   get() = sequence {
-    val isLinux64 = SystemInfo.isLinux && SystemInfo.is64Bit
-    val missingLibrariesDescription = "32 bit compatibility".takeIf { isLinux64 } ?: "required"
+    val isLinux64 = SystemInfo.isLinux && !CpuArch.is32Bit()
+    val missingLibrariesDescription = if (isLinux64) "32-bit compatibility" else "required"
 
     yield("Unable to run <strong>$TOOL_NAME</strong> SDK tool.")
     yield( "One common reason for this failure is missing $missingLibrariesDescription libraries.")
