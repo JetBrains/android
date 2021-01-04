@@ -34,6 +34,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.serviceContainer.NonInjectable;
+import com.intellij.util.system.CpuArch;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -110,7 +111,7 @@ public class Jdks {
       return false;
     }
 
-    if (!SystemInfo.isWindows || !SystemInfo.is32Bit) {
+    if (!(SystemInfo.isWindows && CpuArch.is32Bit())) {
       // We only care about bitness compatibility on Windows. Elsewhere we just assume things are fine, because
       // nowadays virtually all Mac and Linux installations are 64 bits. No need to spend cycles on running 'java -version'
       return true;
