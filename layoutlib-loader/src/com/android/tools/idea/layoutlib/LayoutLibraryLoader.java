@@ -30,6 +30,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
+import com.intellij.util.system.CpuArch;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -93,7 +94,7 @@ public class LayoutLibraryLoader {
 
   @NotNull
   private static String getNativeLibraryPath(@NotNull String dataPath) {
-    return dataPath + getPlatformName() + (SystemInfo.is64Bit ? "/lib64/" : "/lib/");
+    return dataPath + getPlatformName() + (CpuArch.is32Bit() ? "/lib/" : "/lib64/");
   }
 
   @NotNull

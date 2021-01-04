@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.memorysettings.MemorySettingsRecommendation;
 import com.android.tools.idea.memorysettings.MemorySettingsUtil;
 import com.google.wireless.android.sdk.stats.MemorySettingsEvent.EventKind;
@@ -34,7 +33,7 @@ import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.util.system.CpuArch;
 import java.util.Locale;
 import org.jetbrains.android.util.AndroidBundle;
 
@@ -63,7 +62,7 @@ public class MemorySettingsPostSyncChecker {
     Project project,
     TimeBasedReminder reminder) {
     LOG.info(String.format(Locale.US, "64bits? : %b, current: %d, available RAM: %d",
-                           SystemInfo.is64Bit,
+                           !CpuArch.is32Bit(),
                            MemorySettingsUtil.getCurrentXmx(),
                            MemorySettingsUtil.getMachineMem()));
     if (!MemorySettingsUtil.memorySettingsEnabled()
