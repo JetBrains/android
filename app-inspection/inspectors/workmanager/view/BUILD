@@ -31,7 +31,6 @@ iml_module(
     name = "intellij.android.app-inspection.inspectors.workmanager.view.tests",
     iml_files = ["intellij.android.app-inspection.inspectors.workmanager.view.tests.iml"],
     test_class = "com.android.tools.idea.appinspection.inspectors.workmanager.view.WorkManagerInspectorViewTestSuite",
-    test_flaky = True,  # TODO(b/169760203) fix test failures on Windows
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
