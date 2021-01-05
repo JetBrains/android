@@ -141,7 +141,7 @@ final class VirtualDevice extends Device {
       return this;
     }
 
-    @NotNull Builder setSelectDeviceSnapshotComboBoxSnapshotsEnabled(boolean selectDeviceSnapshotComboBoxSnapshotsEnabled) {
+    @NotNull Builder setSelectDeviceSnapshotComboBoxSnapshotsEnabled(@SuppressWarnings("SameParameterValue") boolean selectDeviceSnapshotComboBoxSnapshotsEnabled) {
       mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
       return this;
     }
@@ -210,14 +210,13 @@ final class VirtualDevice extends Device {
       return Collections.singletonList(new QuickBootTarget(getKey()));
     }
 
-    Collection<Target> targets = new ArrayList<>(2 + mySnapshots.size() - 1);
+    Collection<Target> targets = new ArrayList<>(2 + mySnapshots.size());
     Key deviceKey = getKey();
 
     targets.add(new ColdBootTarget(deviceKey));
     targets.add(new QuickBootTarget(deviceKey));
 
     mySnapshots.stream()
-      .filter(Snapshot::isGeneral)
       .map(Snapshot::getDirectory)
       .map(snapshotKey -> new BootWithSnapshotTarget(deviceKey, snapshotKey))
       .forEach(targets::add);
