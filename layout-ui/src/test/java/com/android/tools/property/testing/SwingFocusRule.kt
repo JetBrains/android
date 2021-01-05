@@ -24,10 +24,10 @@ import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ExpirableRunnable
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.openapi.wm.IdeFrame
 import com.intellij.testFramework.replaceService
+import com.intellij.util.lang.JavaVersion
 import org.junit.rules.ExternalResource
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
@@ -98,7 +98,7 @@ class SwingFocusRule : ExternalResource() {
   private var disposable: Disposable? = null
 
   private fun findEventConstructor(): Constructor<*> {
-    val eventName = if (SystemInfoRt.IS_AT_LEAST_JAVA9) "java.awt.event.FocusEvent" else "sun.awt.CausedFocusEvent"
+    val eventName = if (JavaVersion.current().feature >= 9) "java.awt.event.FocusEvent" else "sun.awt.CausedFocusEvent"
     val causeName = "$eventName\$Cause"
     val eventClass = Class.forName(eventName)
     val causeClass = Class.forName(causeName)
