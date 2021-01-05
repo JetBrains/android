@@ -71,10 +71,7 @@ class TreeImpl(
     TreeUtil.installActions(this)
     addMouseListener(object : PopupHandler() {
       override fun invokePopup(comp: Component, x: Int, y: Int) {
-        val viewPort = this@TreeImpl.parent
-        val scrollPane = viewPort.parent
-        val point = SwingUtilities.convertPoint(comp, x, y, scrollPane)
-        invokePopup(point.x, point.y)
+        invokePopup(x, y)
       }
     })
     addMouseListener(object: MouseAdapter() {
