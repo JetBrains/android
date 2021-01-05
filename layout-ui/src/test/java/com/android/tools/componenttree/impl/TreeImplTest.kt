@@ -129,6 +129,22 @@ class TreeImplTest {
 
   @RunsInEdt
   @Test
+  fun testBadgePopupWhenScrolled() {
+    val tree = createTree()
+    val scrollPane = setScrollPaneSize(tree, 20, 20)
+    val ui = FakeUi(tree)
+    val bounds = tree.getRowBounds(tree.rowCount - 1)
+    val right = bounds.maxX.toInt()
+    val bottom = bounds.maxY.toInt()
+    tree.setSize(right, bottom)
+    scrollPane.viewport.viewPosition = Point(right - 20, bottom - 20)
+    ui.mouse.rightClick(right - 10, bottom - 10)
+    assertThat(contextPopup.popupInvokeCount).isEqualTo(0)
+    assertThat(badgeItem.lastPopupItem).isEqualTo(item3)
+  }
+
+  @RunsInEdt
+  @Test
   fun testClickOnBadge() {
     val tree = createTree()
     setScrollPaneSize(tree, 400, 700)
@@ -137,6 +153,23 @@ class TreeImplTest {
     tree.expandRow(1)
     ui.mouse.click(390, 30)
     assertThat(badgeItem.lastActionItem).isEqualTo(item2)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testClickOnBadgeWhenScrolled() {
+    val tree = createTree()
+    val scrollPane = setScrollPaneSize(tree, 20, 20)
+    val ui = FakeUi(tree)
+    tree.expandRow(0)
+    tree.expandRow(1)
+    val bounds = tree.getRowBounds(tree.rowCount - 1)
+    val right = bounds.maxX.toInt()
+    val bottom = bounds.maxY.toInt()
+    tree.setSize(right, bottom)
+    scrollPane.viewport.viewPosition = Point(right - 20, bottom - 20)
+    ui.mouse.click(right - 10, bottom - 10)
+    assertThat(badgeItem.lastActionItem).isEqualTo(item3)
   }
 
   @RunsInEdt
@@ -179,12 +212,13 @@ class TreeImplTest {
     assertThat(tree.expandableTreeItemsHandler.expandedItems).isEmpty()
   }
 
-  private fun setScrollPaneSize(tree: TreeImpl, width: Int, height: Int) {
-    val scrollPane = tree.parent.parent
+  private fun setScrollPaneSize(tree: TreeImpl, width: Int, height: Int): JScrollPane {
+    val scrollPane = tree.parent.parent as JScrollPane
     scrollPane.setBounds(0, 0, width, height)
     scrollPane.doLayout()
     tree.parent.doLayout()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    return scrollPane
   }
 
   private fun createTree(): TreeImpl {
