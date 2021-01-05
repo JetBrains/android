@@ -16,20 +16,21 @@
 package com.android.tools.compose
 
 import com.android.SdkConstants
-import com.android.tools.compose.ComposeFqNames
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.ui.resourcemanager.rendering.MultipleColorIcon
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.daemon.impl.AnnotationHolderImpl
 import com.intellij.lang.annotation.AnnotationSession
-import com.intellij.openapi.application.runInEdt
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidAnnotatorUtil
@@ -40,6 +41,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import java.awt.Color
 
 /**
@@ -251,8 +253,10 @@ class ComposeColorAnnotatorTest {
  * Tests for [AndroidKotlinResourceExternalAnnotator]
  */
 class ComposeColorReferenceAnnotatorTest {
+  private val projectRule = AndroidProjectRule.onDisk()
+
   @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
   private val myFixture: JavaCodeInsightTestFixture by lazy { projectRule.fixture as JavaCodeInsightTestFixture }
 
@@ -263,7 +267,13 @@ class ComposeColorReferenceAnnotatorTest {
     myFixture.testDataPath = getComposePluginTestDataPath()
     myFixture.copyFileToProject("annotator/colors.xml", "res/values/colors.xml")
     myFixture.copyFileToProject("annotator/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML)
-    myFixture.addFileToProject(
+  }
+
+  // Regression test for https://issuetracker.google.com/144560843
+  @RunsInEdt
+  @Test
+  fun testColorReferenceNoLayout() {
+    myFixture.loadNewFile(
       "src/com/example/MyViews.kt",
       // language=kotlin
       """
@@ -278,16 +288,10 @@ class ComposeColorReferenceAnnotatorTest {
       }
       """.trimIndent()
     )
-  }
 
-  // Regression test for https://issuetracker.google.com/144560843
-  @Test
-  fun testColorReferenceNoLayout() {
-    myFixture.configureFromTempProjectFile("src/com/example/MyViews.kt")
-    runInEdt {
-      val icons = myFixture.findAllGutters()
-      val colorGutterIconRenderer = icons.firstIsInstance<AndroidAnnotatorUtil.ColorRenderer>()
-      assertThat((colorGutterIconRenderer.icon as MultipleColorIcon).colors).containsExactlyElementsIn(arrayOf(Color(63, 81, 181)))
-    }
+    val icons = myFixture.findAllGutters()
+    val colorGutterIconRenderer = icons.firstIsInstance<AndroidAnnotatorUtil.ColorRenderer>()
+    assertThat((colorGutterIconRenderer.icon as MultipleColorIcon).colors).containsExactlyElementsIn(arrayOf(Color(63, 81, 181)))
+
   }
 }
