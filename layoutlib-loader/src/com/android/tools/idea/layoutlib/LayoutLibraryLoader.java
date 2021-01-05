@@ -19,7 +19,6 @@ package com.android.tools.idea.layoutlib;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.tools.idea.io.BufferingFileWrapper;
 import com.android.utils.ILogger;
@@ -29,11 +28,10 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
-import java.io.File;
 import com.intellij.util.system.CpuArch;
-import org.jetbrains.annotations.NotNull;
-
+import java.io.File;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Loads a {@link LayoutLibrary}
@@ -68,12 +66,6 @@ public class LayoutLibraryLoader {
     if (!buildProp.isFile()) {
       throw new RenderingException(
         LayoutlibBundle.message("android.file.not.exist.error", FileUtil.toSystemDependentName(buildProp.getPath())));
-    }
-
-    if (!SystemInfo.isJavaVersionAtLeast(8, 0, 0) && target.getVersion().getFeatureLevel() >= 24) {
-      // From N, we require to be running in Java 8
-      throw new UnsupportedJavaRuntimeException(LayoutlibBundle.message("android.layout.preview.unsupported.jdk",
-                                                                        SdkVersionInfo.getCodeName(target.getVersion().getFeatureLevel())));
     }
 
     LayoutLibrary library;

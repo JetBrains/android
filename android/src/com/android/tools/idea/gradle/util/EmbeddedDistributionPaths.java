@@ -22,7 +22,6 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
@@ -239,10 +238,7 @@ public class EmbeddedDistributionPaths {
     // Development build.
     String jdkDevPath = System.getProperty("studio.dev.jdk", ideHomePath + "/../../prebuilts/studio/jdk");
     String relativePath = toSystemDependentName(jdkDevPath);
-    jdkRootPath = Paths.get(toCanonicalPath(relativePath));
-    if (SystemInfo.isJavaVersionAtLeast(11, 0, 0)) {
-      jdkRootPath = jdkRootPath.resolve("jdk11");
-    }
+    jdkRootPath = Paths.get(toCanonicalPath(relativePath), "jdk11");
     if (SystemInfo.isWindows) {
       jdkRootPath = jdkRootPath.resolve("win64");
     }
