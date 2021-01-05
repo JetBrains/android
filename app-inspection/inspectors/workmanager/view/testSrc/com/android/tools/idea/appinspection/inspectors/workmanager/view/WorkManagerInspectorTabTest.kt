@@ -509,6 +509,28 @@ class WorkManagerInspectorTabTest {
   }
 
   @Test
+  fun openDependencyGraphViewFromDetailsView() = runBlocking {
+    sendWorkAddedEvent(fakeWorkInfo)
+    launch(uiDispatcher) {
+      val inspectorTab = WorkManagerInspectorTab(client, ideServices, scope)
+      inspectorTab.isDetailsViewVisible = true
+      val table = inspectorTab.getTable()
+      table.selectionModel.setSelectionInterval(0, 0)
+      val detailsPanel = inspectorTab.getDetailsView()!!
+      val workContinuationPanel = detailsPanel.getCategoryPanel("WorkContinuation") as JPanel
+      val showInGraphLabel = TreeWalker(workContinuationPanel)
+        .descendantStream()
+        .filter { (it as? HyperlinkLabel)?.text == "Show in graph" }
+        .findFirst()
+        .get() as HyperlinkLabel
+      val contentView = (inspectorTab.component as JBSplitter).firstComponent as WorksContentView
+      assertThat(contentView.contentMode).isEqualTo(WorksContentView.Mode.TABLE)
+      showInGraphLabel.doClick()
+      assertThat(contentView.contentMode).isEqualTo(WorksContentView.Mode.GRAPH)
+    }.join()
+  }
+
+  @Test
   fun openTableViewAfterGraphView() = runBlocking {
     sendWorkAddedEvent(fakeWorkInfo)
     launch(uiDispatcher) {
@@ -532,6 +554,36 @@ class WorkManagerInspectorTabTest {
       val newTable = contentView.getFirstChildIsInstance<JTable>()
       assertThat(newTable).isEqualTo(table)
       assertThat(newTable.selectedRow).isEqualTo(0)
+    }.join()
+  }
+
+  @Test
+  fun openTableViewFromDetailsView() = runBlocking {
+    sendWorkAddedEvent(fakeWorkInfo)
+    launch(uiDispatcher) {
+      val inspectorTab = WorkManagerInspectorTab(client, ideServices, scope)
+      inspectorTab.isDetailsViewVisible = true
+      val table = inspectorTab.getTable()
+      table.selectionModel.setSelectionInterval(0, 0)
+      val toolbar = TreeWalker(inspectorTab.component)
+        .descendantStream()
+        .filter { it is ActionToolbar }
+        .toList()[1] as ActionToolbarImpl
+      val graphViewAction = toolbar.actions[1] as AnAction
+      val event: AnActionEvent = mock(AnActionEvent::class.java)
+      graphViewAction.actionPerformed(event)
+      val contentView = (inspectorTab.component as JBSplitter).firstComponent as WorksContentView
+      assertThat(contentView.contentMode).isEqualTo(WorksContentView.Mode.GRAPH)
+
+      val detailsPanel = inspectorTab.getDetailsView()!!
+      val workContinuationPanel = detailsPanel.getCategoryPanel("WorkContinuation") as JPanel
+      val showInGraphLabel = TreeWalker(workContinuationPanel)
+        .descendantStream()
+        .filter { (it as? HyperlinkLabel)?.text == "Show in table" }
+        .findFirst()
+        .get() as HyperlinkLabel
+      showInGraphLabel.doClick()
+      assertThat(contentView.contentMode).isEqualTo(WorksContentView.Mode.TABLE)
     }.join()
   }
 

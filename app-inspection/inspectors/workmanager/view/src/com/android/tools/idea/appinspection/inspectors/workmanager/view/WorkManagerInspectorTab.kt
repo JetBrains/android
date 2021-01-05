@@ -36,43 +36,29 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
   private val workSelectionModel = WorkSelectionModel()
 
   /**
-   * Returns true if the [WorkInfoDetailsView] is not null.
+   * Returns true if the [WorkInfoDetailsView] is visible.
    */
   var isDetailsViewVisible: Boolean = false
     set(value) {
       if (value != field) {
         field = value
+        splitter.secondComponent = if (value) detailsView else null
         if (value) {
-          // Add [WorkInfoDetailsView] when a nonnull work is clicked.
-          if (workSelectionModel.selectedWork != null) {
-            splitter.secondComponent = createWorkInfoDetailsView()
-          }
-        }
-        else {
-          // Remove [WorkInfoDetailsView] when its close button is clicked.
-          splitter.secondComponent = null
+          workSelectionModel.setSelectedWork(workSelectionModel.selectedWork, WorkSelectionModel.Context.TABLE)
+          splitter.revalidate()
+          splitter.repaint()
         }
       }
     }
+
+  private val contentView = WorksContentView(this, workSelectionModel, client)
+  private val detailsView = WorkInfoDetailsView(this, client, ideServices, scope, workSelectionModel, contentView)
 
   private val splitter = JBSplitter(false).apply {
     border = AdtUiUtils.DEFAULT_VERTICAL_BORDERS
     isOpaque = true
-    firstComponent = WorksContentView(this@WorkManagerInspectorTab, workSelectionModel, client)
+    firstComponent = contentView
   }
 
   val component: JComponent = splitter
-
-  init {
-    workSelectionModel.registerWorkSelectionListener { _, _ ->
-      if (isDetailsViewVisible) {
-        splitter.secondComponent = createWorkInfoDetailsView()
-      }
-    }
-  }
-
-  private fun createWorkInfoDetailsView(): JComponent? {
-    val work = workSelectionModel.selectedWork ?: return null
-    return WorkInfoDetailsView(client, work, ideServices, scope, workSelectionModel, this)
-  }
 }
