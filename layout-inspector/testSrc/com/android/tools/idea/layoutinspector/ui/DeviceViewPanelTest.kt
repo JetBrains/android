@@ -37,8 +37,10 @@ import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.model.ROOT
+import com.android.tools.idea.layoutinspector.model.ROOT2
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorRule
@@ -320,6 +322,94 @@ class DeviceViewPanelTest {
 
     // Should still have the manually set zoom
     assertThat(viewSettings.scalePercent).isEqualTo(200)
+  }
+
+  @Test
+  fun testDrawNewWindow() {
+    val viewSettings = DeviceViewSettings()
+    val model = InspectorModel(projectRule.project)
+    val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
+    val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable)
+    val inspector = LayoutInspector(launcher, model, MoreExecutors.directExecutor())
+    val panel = DeviceViewPanel(processes, inspector, viewSettings, disposableRule.disposable)
+
+    val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
+    scrollPane.setSize(200, 300)
+
+    val window1 = window(ROOT, ROOT, 0, 0, 100, 200) {
+      view(VIEW1, 25, 30, 50, 50) {
+        image()
+      }
+    }
+
+    model.update(window1, listOf(ROOT), 0)
+
+    // Add another window
+    val window2 = window(100, 100, 0, 0, 100, 200) {
+      view(VIEW2, 50, 20, 30, 40) {
+        image()
+      }
+    }
+    //clear drawChildren for window2 so we can ensure they're regenerated
+    ViewNode.writeDrawChildren { drawChildren -> window2.root.flatten().forEach { it.drawChildren().clear() } }
+
+    model.update(window2, listOf(ROOT, 100), 1)
+
+    // drawChildren for the new window should be populated
+    assertThat(ViewNode.readDrawChildren { drawChildren -> window2.root.drawChildren() }).isNotEmpty()
+  }
+
+  @Test
+  fun testNewWindowDoesntResetZoom() {
+    val viewSettings = DeviceViewSettings()
+    val model = InspectorModel(projectRule.project)
+    val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
+    val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable)
+    val inspector = LayoutInspector(launcher, model, MoreExecutors.directExecutor())
+    val panel = DeviceViewPanel(processes, inspector, viewSettings, disposableRule.disposable)
+
+    val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
+    val contentPanelModel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first().model
+    scrollPane.setSize(200, 300)
+
+    val window1 = window(ROOT, ROOT, 0, 0, 100, 200) {
+      view(VIEW1, 25, 30, 50, 50) {
+        image()
+      }
+    }
+
+    model.update(window1, listOf(ROOT), 0)
+    // Wait for the content panel model to be updated
+    for (i in 1..10) {
+      if (contentPanelModel.hitRects.size == 2) {
+        break
+      }
+      Thread.sleep(20)
+    }
+    assertThat(contentPanelModel.hitRects.size).isEqualTo(2)
+
+    viewSettings.scalePercent = 33
+
+    // Add another window
+    val window2 = window(ROOT2, ROOT2, 0, 0, 100, 200) {
+      view(VIEW2, 50, 20, 30, 40) {
+        image()
+      }
+    }
+
+    model.update(window2, listOf(ROOT, ROOT2), 1)
+
+    // Wait for the content panel model to be updated again
+    for (i in 1..10) {
+      if (contentPanelModel.hitRects.size == 4) {
+        break
+      }
+      Thread.sleep(20)
+    }
+    assertThat(contentPanelModel.hitRects.size).isEqualTo(4)
+
+    // we should still have the manually set zoom
+    assertThat(viewSettings.scalePercent).isEqualTo(33)
   }
 
   @Test

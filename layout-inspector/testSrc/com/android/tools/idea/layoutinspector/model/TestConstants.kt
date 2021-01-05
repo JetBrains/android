@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.model
 
 const val ROOT = 1L
+const val ROOT2 = 100L
 const val VIEW1 = 2L
 const val VIEW2 = 3L
 const val VIEW3 = 4L
