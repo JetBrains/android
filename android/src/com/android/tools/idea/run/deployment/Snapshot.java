@@ -23,12 +23,6 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A <a href="https://developer.android.com/studio/run/emulator#snapshots">snapshot</a> is a persisted image of the entire state of a
  * virtual device. Loading a snapshot into the emulator is quicker than a cold boot.
- *
- * <p>A default Quick Boot snapshot is created when a developer creates a virtual device in Studio. If a virtual device has no non Quick
- * Boot snapshots, it doesn't get a sublist in the drop down.
- *
- * <p>The Quick Boot snapshot is still a snapshot and loading it is faster than a cold boot. If a virtual device has no snapshots it is cold
- * booted at launch every time.
  */
 final class Snapshot implements Comparable<Snapshot> {
   @NotNull
@@ -38,12 +32,7 @@ final class Snapshot implements Comparable<Snapshot> {
   private final String myName;
 
   Snapshot(@NotNull Path directory) {
-    this(directory, getName(directory));
-  }
-
-  private static @NotNull String getName(@NotNull Path directory) {
-    Object name = directory.getFileName();
-    return name.equals(directory.getFileSystem().getPath("default_boot")) ? "Quick Boot" : name.toString();
+    this(directory, directory.getFileName().toString());
   }
 
   Snapshot(@NotNull Path directory, @NotNull String name) {
@@ -54,13 +43,6 @@ final class Snapshot implements Comparable<Snapshot> {
   @NotNull
   Path getDirectory() {
     return myDirectory;
-  }
-
-  /**
-   * @return true if this snapshot is not the Quick Boot snapshot
-   */
-  boolean isGeneral() {
-    return !myDirectory.getFileName().equals(myDirectory.getFileSystem().getPath("default_boot"));
   }
 
   @Override

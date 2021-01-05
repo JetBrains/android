@@ -118,7 +118,7 @@ final class PopupActionGroup extends DefaultActionGroup {
   }
 
   private @NotNull AnAction newSelectDeviceActionOrSnapshotActionGroup(@NotNull Device device) {
-    if (device.getSnapshots().stream().anyMatch(Snapshot::isGeneral)) {
+    if (!device.getSnapshots().isEmpty()) {
       return new SnapshotActionGroup(device);
     }
 

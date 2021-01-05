@@ -137,7 +137,6 @@ public final class VirtualDeviceTest {
       .setName("Pixel 4 API 30")
       .setKey(deviceKey)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .addSnapshot(new Snapshot(fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/default_boot")))
       .addSnapshot(new Snapshot(snapshotKey))
       .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(true)
       .build();
