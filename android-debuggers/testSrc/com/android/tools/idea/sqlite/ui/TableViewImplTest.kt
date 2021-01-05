@@ -719,6 +719,43 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     verify(mockActionManager).createActionPopupMenu(any(String::class.java), any(ActionGroup::class.java))
   }
 
+  fun testRightClickOutsideOfTableRows() {
+    // Prepare
+    val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
+
+    val col1 = ResultSetSqliteColumn("col1", SqliteAffinity.INTEGER, false, false)
+    val col2 = ResultSetSqliteColumn("col2", SqliteAffinity.INTEGER, false, false)
+    val cols = listOf(col1, col2)
+    val rows = listOf(
+      SqliteRow(listOf(
+        SqliteColumnValue("col1", SqliteValue.StringValue("val1")),
+        SqliteColumnValue("col2", SqliteValue.StringValue("val2"))
+      )),
+      SqliteRow(listOf(
+        SqliteColumnValue("col1", SqliteValue.StringValue("val3")),
+        SqliteColumnValue("col2", SqliteValue.StringValue("val4"))
+      ))
+    )
+
+    view.startTableLoading()
+    view.showTableColumns(cols.toViewColumns())
+    view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
+    view.stopTableLoading()
+
+    table.size = Dimension(600, 200)
+    table.preferredSize = table.size
+    fakeUi = FakeUi(table)
+
+    val rect = table.getCellRect(1, 1, false)
+
+    // Act
+    // click outside of last row
+    fakeUi.mouse.rightClick(rect.x + rect.width / 2, (rect.y + rect.height / 2) * 2)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // we should reach this point without exceptions being thrown after clicking
+  }
+
   fun testTableModelIsNotRecreatedIfColumnsAreNotDifferent() {
     // Prepare
     val column = ResultSetSqliteColumn("name", SqliteAffinity.NUMERIC, false, false)
