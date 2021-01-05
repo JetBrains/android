@@ -9,6 +9,7 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent.WorkManagerInspe
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.roots.ui.componentsList.components.ScrollablePanel
 import com.intellij.openapi.ui.popup.IconButton
+import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.InplaceButton
 import com.intellij.ui.TitledSeparator
 import com.intellij.ui.components.JBLabel
@@ -31,13 +32,14 @@ private val BUTTON_DIMENS = Dimension(JBUI.scale(BUTTON_SIZE), JBUI.scale(BUTTON
 /**
  * View to display information details of a selected work grouped by categories.
  */
-class WorkInfoDetailsView(client: WorkManagerInspectorClient,
-                          work: WorkInfo,
-                          ideServices: AppInspectionIdeServices,
-                          scope: CoroutineScope,
-                          workSelectionModel: WorkSelectionModel,
-                          tab: WorkManagerInspectorTab) : JPanel() {
+class WorkInfoDetailsView(private val tab: WorkManagerInspectorTab,
+                          private val client: WorkManagerInspectorClient,
+                          private val ideServices: AppInspectionIdeServices,
+                          private val scope: CoroutineScope,
+                          private val workSelectionModel: WorkSelectionModel,
+                          private val contentView: WorksContentView) : JPanel() {
 
+  private val scrollPane = JBScrollPane()
 
   init {
     layout = TabularLayout("*", "Fit,Fit,*")
@@ -47,11 +49,19 @@ class WorkInfoDetailsView(client: WorkManagerInspectorClient,
     headingPanel.add(instanceViewLabel, BorderLayout.WEST)
     val closeButton = CloseButton { tab.isDetailsViewVisible = false }
     headingPanel.add(closeButton, BorderLayout.EAST)
-
-
     add(headingPanel, TabularLayout.Constraint(0, 0))
     add(JSeparator(), TabularLayout.Constraint(1, 0))
+    scrollPane.border = BorderFactory.createEmptyBorder()
+    add(scrollPane, TabularLayout.Constraint(2, 0))
 
+    workSelectionModel.registerWorkSelectionListener { work, _ ->
+      if (work != null && tab.isDetailsViewVisible) {
+        updateSelectedWork(work)
+      }
+    }
+  }
+
+  private fun updateSelectedWork(work: WorkInfo) {
     val detailsPanel = ScrollablePanel(VerticalLayout(18))
     detailsPanel.border = BorderFactory.createEmptyBorder(6, 12, 20, 12)
 
@@ -59,9 +69,7 @@ class WorkInfoDetailsView(client: WorkManagerInspectorClient,
       client.tracker.trackWorkSelected(WorkManagerInspectorEvent.Context.DETAILS_CONTEXT)
       workSelectionModel.setSelectedWork(it, WorkSelectionModel.Context.DETAILS)
     }
-    detailsPanel.preferredScrollableViewportSize
-    val scrollPane = JBScrollPane(detailsPanel)
-    scrollPane.border = BorderFactory.createEmptyBorder()
+
     detailsPanel.add(buildCategoryPanel("Description", listOf(
       buildKeyValuePair("Class", work.workerClassName, ClassNameProvider(ideServices, client.tracker, scope)),
       buildKeyValuePair("Tags", work.tagsList, StringListProvider),
@@ -75,7 +83,25 @@ class WorkInfoDetailsView(client: WorkManagerInspectorClient,
       buildKeyValuePair("State", work.state, StateProvider)
     )))
 
+    val switchContentModeLabel = if (contentView.contentMode == WorksContentView.Mode.TABLE) {
+      HyperlinkLabel("Show in graph").apply {
+        addHyperlinkListener {
+          contentView.contentMode = WorksContentView.Mode.GRAPH
+          workSelectionModel.setSelectedWork(work, WorkSelectionModel.Context.DETAILS)
+        }
+      }
+    }
+    else {
+      HyperlinkLabel("Show in table").apply {
+        addHyperlinkListener {
+          contentView.contentMode = WorksContentView.Mode.TABLE
+          workSelectionModel.setSelectedWork(work, WorkSelectionModel.Context.DETAILS)
+        }
+      }
+    }
+
     detailsPanel.add(buildCategoryPanel("WorkContinuation", listOf(
+      switchContentModeLabel,
       buildKeyValuePair("Previous", work.prerequisitesList.toList(), idListProvider),
       buildKeyValuePair("Next", work.dependentsList.toList(), idListProvider),
       buildKeyValuePair(" ", ""), // Visually separate work chain or else UUIDs run together
@@ -88,9 +114,10 @@ class WorkInfoDetailsView(client: WorkManagerInspectorClient,
       buildKeyValuePair("Output Data", work, OutputDataProvider)
     )))
 
-    add(scrollPane, TabularLayout.Constraint(2, 0))
+    scrollPane.setViewportView(detailsPanel)
+    revalidate()
+    repaint()
   }
-
 
   private fun buildCategoryPanel(name: String, subPanels: List<Component>): JPanel {
     val panel = JPanel(VerticalLayout(0))
@@ -110,7 +137,11 @@ class WorkInfoDetailsView(client: WorkManagerInspectorClient,
   private fun <T> buildKeyValuePair(key: String,
                                     value: T,
                                     componentProvider: ComponentProvider<T> = ToStringProvider()): JPanel {
-    val panel = JPanel(TabularLayout("180px,*"))
+    val panel = JPanel(TabularLayout("180px,*")).apply {
+      // Add a 2px text offset to align this panel with a [HyperlinkLabel] properly.
+      // See HyperlinkLabel.getTextOffset() for more details.
+      border = BorderFactory.createEmptyBorder(0, 2, 0, 0)
+    }
     val keyPanel = JPanel(BorderLayout())
     keyPanel.add(JBLabel(key), BorderLayout.NORTH) // If value is multi-line, key should stick to the top of its cell
     panel.add(keyPanel, TabularLayout.Constraint(0, 0))

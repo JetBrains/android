@@ -39,7 +39,7 @@ const val WORK_MANAGER_TOOLBAR_PLACE = "WorkManagerInspector"
 class WorksContentView(private val tab: WorkManagerInspectorTab,
                        private val workSelectionModel: WorkSelectionModel,
                        private val client: WorkManagerInspectorClient) : JPanel() {
-  private enum class Mode {
+  enum class Mode {
     TABLE,
     GRAPH
   }
@@ -106,9 +106,7 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
     override fun actionPerformed(e: AnActionEvent) {
       if (contentMode == Mode.GRAPH) {
         contentMode = Mode.TABLE
-        client.tracker.trackTableModeSelected()
-        contentScrollPane.setViewportView(buildContentViewportView())
-        contentScrollPane.revalidate()
+        workSelectionModel.setSelectedWork(workSelectionModel.selectedWork, WorkSelectionModel.Context.TOOLBAR)
       }
     }
 
@@ -125,11 +123,7 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
       val selectedWork = workSelectionModel.selectedWork
       if (contentMode == Mode.TABLE && selectedWork != null) {
         contentMode = Mode.GRAPH
-        client.tracker.trackGraphModeSelected(AppInspectionEvent.WorkManagerInspectorEvent.Context.TOOL_BUTTON_CONTEXT,
-                                              client.getOrderedWorkChain(selectedWork.id).toChainInfo())
-        client.filterTag = null
-        contentScrollPane.setViewportView(buildContentViewportView())
-        contentScrollPane.revalidate()
+        workSelectionModel.setSelectedWork(workSelectionModel.selectedWork, WorkSelectionModel.Context.TOOLBAR)
       }
     }
 
@@ -139,11 +133,24 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
     }
   }
 
-  private var contentMode = Mode.TABLE
+  var contentMode = Mode.TABLE
     set(value) {
       if (field != value) {
         field = value
         ActivityTracker.getInstance().inc()
+        when (value) {
+          Mode.TABLE -> {
+            contentScrollPane.setViewportView(buildContentViewportView())
+            client.tracker.trackTableModeSelected()
+          }
+          Mode.GRAPH -> {
+            client.filterTag = null
+            contentScrollPane.setViewportView(buildContentViewportView())
+            client.tracker.trackGraphModeSelected(AppInspectionEvent.WorkManagerInspectorEvent.Context.TOOL_BUTTON_CONTEXT,
+                                                  client.getOrderedWorkChain(workSelectionModel.selectedWork!!.id).toChainInfo())
+          }
+        }
+        contentScrollPane.revalidate()
       }
     }
 

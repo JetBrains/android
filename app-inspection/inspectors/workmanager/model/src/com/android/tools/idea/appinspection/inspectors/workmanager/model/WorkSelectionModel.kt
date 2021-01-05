@@ -28,7 +28,8 @@ class WorkSelectionModel {
     DEVICE, // a work is selected with updates from the device e.g. state updates for the selected work and other works in the chain.
     TABLE,
     GRAPH,
-    DETAILS
+    DETAILS,
+    TOOLBAR
   }
 
   var selectedWork: WorkInfo? = null
