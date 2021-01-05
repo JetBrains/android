@@ -222,9 +222,13 @@ class DeviceViewPanel(
 
     // Zoom to fit on initial connect
     layoutInspector.layoutInspectorModel.modificationListeners.add { old, new, _ ->
-      if (old == null) {
+      if (contentPanel.model.maxWidth == 0) {
         contentPanel.model.refresh()
-        zoom(ZoomType.FIT)
+        if (!zoom(ZoomType.FIT)) {
+          // If we didn't change the zoom, we need to refresh explicitly. Otherwise the zoom listener will do it.
+          new?.refreshImages(viewSettings.scaleFraction)
+          contentPanel.model.refresh()
+        }
       }
       else {
         // refreshImages is done here instead of by the model itself so that we can be sure to zoom to fit first before trying to render
@@ -257,25 +261,31 @@ class DeviceViewPanel(
   }
 
   override fun zoom(type: ZoomType): Boolean {
+    var newZoom = viewSettings.scalePercent
     if (layoutInspector.layoutInspectorModel.isEmpty) {
-      viewSettings.scalePercent = 100
+      newZoom = 100
       scrollPane.viewport.revalidate()
-      return false
     }
-    val root = layoutInspector.layoutInspectorModel.root
-    viewportLayoutManager.currentZoomOperation = type
-    when (type) {
-      ZoomType.FIT, ZoomType.FIT_INTO, ZoomType.SCREEN -> {
-        viewSettings.scalePercent = getFitZoom(root)
+    else {
+      val root = layoutInspector.layoutInspectorModel.root
+      viewportLayoutManager.currentZoomOperation = type
+      when (type) {
+        ZoomType.FIT, ZoomType.FIT_INTO, ZoomType.SCREEN -> {
+          newZoom = getFitZoom(root)
+        }
+        ZoomType.ACTUAL -> newZoom = 100
+        ZoomType.IN -> newZoom += 10
+        ZoomType.OUT -> newZoom -= 10
       }
-      ZoomType.ACTUAL -> viewSettings.scalePercent = 100
-      ZoomType.IN -> viewSettings.scalePercent += 10
-      ZoomType.OUT -> viewSettings.scalePercent -= 10
+      newZoom = newZoom.coerceIn(MIN_ZOOM, MAX_ZOOM)
     }
-    viewSettings.scalePercent = viewSettings.scalePercent.coerceIn(MIN_ZOOM, MAX_ZOOM)
-    contentPanel.revalidate()
+    if (newZoom != viewSettings.scalePercent) {
+      viewSettings.scalePercent = newZoom
+      contentPanel.revalidate()
+      return true
+    }
 
-    return true
+    return false
   }
 
   private fun getFitZoom(root: ViewNode): Int {
