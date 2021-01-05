@@ -17,8 +17,10 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.xmlb.Converter;
@@ -86,7 +88,15 @@ final class DevicesSelectedService {
       return Optional.of(devices.get(0).getDefaultTarget());
     }
 
-    Target target = state.targetSelectedWithDropDown.asTarget();
+    Target target;
+
+    try {
+      target = state.targetSelectedWithDropDown.asTarget();
+    }
+    catch (DevicesSelectedServiceException exception) {
+      Logger.getInstance(DevicesSelectedService.class).warn(exception);
+      return Optional.of(devices.get(0).getDefaultTarget());
+    }
 
     Optional<Device> optionalSelectedDevice = devices.stream()
       .filter(target::matches)
@@ -151,9 +161,20 @@ final class DevicesSelectedService {
   }
 
   @NotNull Set<@NotNull Target> getTargetsSelectedWithDialog() {
-    return myPersistentStateComponent.getState().targetsSelectedWithDialog.stream()
-      .map(TargetState::asTarget)
-      .collect(Collectors.toSet());
+    try {
+      Collection<TargetState> targetStates = myPersistentStateComponent.getState().targetsSelectedWithDialog;
+      Set<Target> targets = Sets.newHashSetWithExpectedSize(targetStates.size());
+
+      for (TargetState targetState : targetStates) {
+        targets.add(targetState.asTarget());
+      }
+
+      return targets;
+    }
+    catch (DevicesSelectedServiceException exception) {
+      Logger.getInstance(DevicesSelectedService.class).warn(exception);
+      return Collections.emptySet();
+    }
   }
 
   void setTargetsSelectedWithDialog(@NotNull Set<@NotNull Target> targetsSelectedWithDialog) {
@@ -254,9 +275,14 @@ final class DevicesSelectedService {
       deviceKey = new KeyState(target.getDeviceKey());
     }
 
-    private @NotNull Target asTarget() {
-      assert type != null;
-      assert deviceKey != null;
+    private @NotNull Target asTarget() throws DevicesSelectedServiceException {
+      if (type == null) {
+        throw new DevicesSelectedServiceException();
+      }
+
+      if (deviceKey == null) {
+        throw new DevicesSelectedServiceException();
+      }
 
       switch (type) {
         case COLD_BOOT_TARGET:
@@ -269,7 +295,7 @@ final class DevicesSelectedService {
         case PHYSICAL_DEVICE_TARGET:
           return new PhysicalDeviceTarget((SerialNumber)deviceKey.asKey());
         default:
-          throw new AssertionError(type);
+          throw new DevicesSelectedServiceException(type.toString());
       }
     }
 
@@ -328,9 +354,14 @@ final class DevicesSelectedService {
       value = key.toString();
     }
 
-    private @NotNull Key asKey() {
-      assert type != null;
-      assert value != null;
+    private @NotNull Key asKey() throws DevicesSelectedServiceException {
+      if (type == null) {
+        throw new DevicesSelectedServiceException();
+      }
+
+      if (value == null) {
+        throw new DevicesSelectedServiceException();
+      }
 
       switch (type) {
         case VIRTUAL_DEVICE_PATH:
@@ -340,7 +371,7 @@ final class DevicesSelectedService {
         case SERIAL_NUMBER:
           return new SerialNumber(value);
         default:
-          throw new AssertionError(type);
+          throw new DevicesSelectedServiceException(type.toString());
       }
     }
 
