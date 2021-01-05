@@ -220,6 +220,11 @@ class TableViewImpl : TableView {
         val mousePoint = Point(x, y)
         val viewRowIndex = table.rowAtPoint(mousePoint)
         val viewColumnIndex = table.columnAtPoint(mousePoint)
+
+        if (viewRowIndex < 0 || viewColumnIndex < 0) {
+          return
+        }
+
         table.clearSelection()
         table.addRowSelectionInterval(viewRowIndex, viewRowIndex)
         table.addColumnSelectionInterval(viewColumnIndex, viewColumnIndex)
