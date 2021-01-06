@@ -744,7 +744,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     onRestoreState?.invoke()
     onRestoreState = null
 
-    val hasPinnedElements = if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
+    val arePinsEnabled = StudioFlags.COMPOSE_PIN_PREVIEW.get() && !interactiveMode.isStartingOrReady()
+    val hasPinnedElements = if (arePinsEnabled) {
       memoizedPinnedPreviewProvider.previewElements.any()
     } else false
 
@@ -773,7 +774,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       composeWorkBench.pinnedLabel = singleFileName
     }
 
-    composeWorkBench.mainSurfaceLabel = if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
+    composeWorkBench.mainSurfaceLabel = if (arePinsEnabled) {
       psiFile.name
     } else ""
 
