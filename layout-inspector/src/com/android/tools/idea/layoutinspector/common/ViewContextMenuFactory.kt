@@ -19,6 +19,7 @@ import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
@@ -84,6 +85,7 @@ fun showViewContextMenu(views: List<ViewNode>, inspectorModel: InspectorModel, s
           })
         }
         result.add(showAllAction)
+        result.add(GotoDeclarationAction)
       }
       return result.toArray(arrayOf())
     }

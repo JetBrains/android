@@ -27,9 +27,9 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.IdeActions
-import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.application.ApplicationManager
 import icons.StudioIcons
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
@@ -37,9 +37,7 @@ import java.util.Collections
 import javax.swing.Icon
 import javax.swing.JComponent
 
-const val GOTO_DEFINITION_ACTION_KEY = "gotoDefinition"
-
-class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
+class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<LayoutInspector> {
   private var layoutInspector: LayoutInspector? = null
   private val componentTree: JComponent
   private val componentTreeModel: ComponentTreeModel
@@ -58,14 +56,12 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
       .withHorizontalScrollBar()
       .withComponentName("inspectorComponentTree")
 
-    ActionManager.getInstance()?.getAction(IdeActions.ACTION_GOTO_DECLARATION)?.shortcutSet?.shortcuts
-        ?.filterIsInstance<KeyboardShortcut>()
-        ?.filter { it.secondKeyStroke == null }
-        ?.forEach { builder.withKeyActionKey(GOTO_DEFINITION_ACTION_KEY, it.firstKeyStroke) { gotoDefinition() } }
     val (tree, model, selectionModel) = builder.build()
     componentTree = tree
     componentTreeModel = model
     componentTreeSelectionModel = selectionModel
+    ActionManager.getInstance()?.getAction(IdeActions.ACTION_GOTO_DECLARATION)?.shortcutSet
+      ?.let { GotoDeclarationAction.registerCustomShortcutSet(it, componentTree, parentDisposable) }
     selectionModel.addSelectionListener {
       layoutInspector?.layoutInspectorModel?.apply {
         setSelection(it.firstOrNull() as? ViewNode, SelectionOrigin.COMPONENT_TREE)
@@ -96,11 +92,6 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   override fun getComponent() = componentTree
 
   override fun dispose() {
-  }
-
-  private fun gotoDefinition() {
-    val model = layoutInspector?.layoutInspectorModel ?: return
-    GotoDeclarationAction.findNavigatable(model)?.navigate(true)
   }
 
   @Suppress("UNUSED_PARAMETER")
