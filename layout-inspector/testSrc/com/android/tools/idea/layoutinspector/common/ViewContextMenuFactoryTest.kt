@@ -100,7 +100,9 @@ class ViewContextMenuFactoryTest {
     val model = inspectorModel!!
     model.root.flatten().filter { it.drawId == VIEW1 || it.drawId == VIEW3 }.forEach { it.visible = false }
     showViewContextMenu(listOf(), model, source!!, 123, 456)
-    val createdAction = createdGroup?.getChildren(null)?.single()
+    val actions = createdGroup?.getChildren(null)
+    assertThat(actions?.size).isEqualTo(2)
+    val createdAction = actions?.get(0)
     assertThat(createdAction?.templateText).isEqualTo("Show All")
     createdAction?.actionPerformed(mock())
     assertThat(model.root.flatten().all { it.visible }).isTrue()
@@ -113,7 +115,7 @@ class ViewContextMenuFactoryTest {
     val model = inspectorModel!!
     showViewContextMenu(listOf(model.root.flatten().first { it.drawId == VIEW2 }), model, source!!, 0, 0)
     assertThat(createdGroup?.getChildren(null)?.map { it.templateText })
-      .containsExactly("Hide Subtree", "Show Only Subtree", "Show Only Parents", "Show All").inOrder()
+      .containsExactly("Hide Subtree", "Show Only Subtree", "Show Only Parents", "Show All", "Go To Declaration").inOrder()
 
     val hideSubtree = createdGroup?.getChildren(null)?.get(0)!!
     hideSubtree.actionPerformed(mock())
@@ -139,7 +141,7 @@ class ViewContextMenuFactoryTest {
     showViewContextMenu(model.root.flatten().filter { it.drawId in listOf(ROOT, VIEW2, VIEW3) }.toList(),
                         model, source!!, 0, 0)
     assertThat(createdGroup?.getChildren(null)?.map { it.templateText })
-      .containsExactly("Select View", "Hide Subtree", "Show Only Subtree", "Show Only Parents", "Show All").inOrder()
+      .containsExactly("Select View", "Hide Subtree", "Show Only Subtree", "Show Only Parents", "Show All", "Go To Declaration").inOrder()
 
     val selectView = createdGroup?.getChildren(null)?.get(0)!!
     val views = (selectView as DropDownAction).getChildren(null)

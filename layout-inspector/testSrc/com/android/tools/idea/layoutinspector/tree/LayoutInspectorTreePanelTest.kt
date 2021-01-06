@@ -40,6 +40,8 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
+import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -54,6 +56,8 @@ import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
+import java.awt.KeyboardFocusManager
+import java.awt.event.KeyEvent
 import javax.swing.JTree
 
 private val PROCESS = MODERN_DEVICE.createProcess()
@@ -87,25 +91,31 @@ class LayoutInspectorTreePanelTest {
   fun tearDown() {
     componentStack!!.restore()
     componentStack = null
+    KeyboardFocusManager.setCurrentKeyboardFocusManager(null)
   }
 
   @Test
   fun testGotoDeclaration() {
-    val tree = LayoutInspectorTreePanel()
+    val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val model = inspectorRule.inspectorModel
     val inspector = inspectorRule.inspector
     tree.setToolContext(inspector)
 
     model.setSelection(model["title"], SelectionOrigin.INTERNAL)
-    val treeComponent = UIUtil.findComponentOfType(tree.component, JTree::class.java)
 
     val fileManager = FileEditorManager.getInstance(inspectorRule.project)
     val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
     Mockito.`when`(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
       .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
 
-    val action = treeComponent!!.actionMap[GOTO_DEFINITION_ACTION_KEY]
-    action.actionPerformed(null)
+    val focusManager = Mockito.mock(KeyboardFocusManager::class.java)
+    Mockito.`when`(focusManager.focusOwner).thenReturn(tree.component)
+    KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
+
+    val dispatcher = IdeKeyEventDispatcher(null)
+    val modifier = if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
+    dispatcher.dispatchKeyEvent(KeyEvent(tree.component, KeyEvent.KEY_PRESSED, 0, modifier, KeyEvent.VK_B, 'B'))
+
     Mockito.verify(fileManager).openEditor(file.capture(), ArgumentMatchers.eq(true))
     val descriptor = file.value
 
@@ -116,7 +126,7 @@ class LayoutInspectorTreePanelTest {
   @Test
   fun testMultiWindowWithVisibleSystemNodes() {
     TreeSettings.hideSystemNodes = false
-    val tree = LayoutInspectorTreePanel()
+    val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val model = inspectorRule.inspectorModel
     val inspector = inspectorRule.inspector
     tree.setToolContext(inspector)
@@ -146,7 +156,7 @@ class LayoutInspectorTreePanelTest {
   @Test
   fun testMultiWindowWithHiddenSystemNodes() {
     TreeSettings.hideSystemNodes = true
-    val tree = LayoutInspectorTreePanel()
+    val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val model = inspectorRule.inspectorModel
     val inspector = inspectorRule.inspector
     tree.setToolContext(inspector)
@@ -177,7 +187,7 @@ class LayoutInspectorTreePanelTest {
   @Test
   fun testSelectFromComponentTree() {
     TreeSettings.hideSystemNodes = false
-    val tree = LayoutInspectorTreePanel()
+    val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val model = inspectorRule.inspectorModel
     val inspector = inspectorRule.inspector
     tree.setToolContext(inspector)

@@ -25,9 +25,13 @@ import com.intellij.pom.Navigatable
 /**
  * Action for navigating to the currently selected node in the layout inspector.
  */
-object GotoDeclarationAction : AnAction("Go to Declaration") {
+object GotoDeclarationAction : AnAction("Go To Declaration") {
   override fun actionPerformed(event: AnActionEvent) {
     findNavigatable(event)?.navigate(true)
+  }
+
+  override fun update(event: AnActionEvent) {
+    event.presentation.isEnabled = findNavigatable(event) != null
   }
 
   private fun findNavigatable(event: AnActionEvent): Navigatable? {
