@@ -64,6 +64,8 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
     HTreeChart<CaptureNode> traceEventChart = createHChart(trackModel.getDataModel().getCallChartModel(),
                                                            trackModel.getDataModel().getCapture().getRange(),
                                                            trackModel.isCollapsed());
+    traceEventChart.setDrawDebugInfo(
+      myProfilersView.getStudioProfilers().getIdeServices().getFeatureConfig().isPerformanceMonitoringEnabled());
     MultiSelectionModel<CpuAnalyzable> multiSelectionModel = trackModel.getDataModel().getMultiSelectionModel();
     multiSelectionModel.addDependency(myObserver).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION, () -> {
       List<CpuAnalyzable> selection = multiSelectionModel.getSelection();
