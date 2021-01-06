@@ -27,6 +27,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import icons.StudioIcons;
 import java.nio.file.FileSystem;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -34,6 +35,8 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class SnapshotActionGroupTest {
+  private final @NotNull DeviceAndSnapshotComboBoxAction myComboBoxAction = Mockito.mock(DeviceAndSnapshotComboBoxAction.class);
+
   @Test
   public void getChildren() {
     // Arrange
@@ -47,15 +50,16 @@ public final class SnapshotActionGroupTest {
       .addSnapshot(snapshot)
       .build();
 
-    ActionGroup group = new SnapshotActionGroup(device);
+    ActionGroup group = new SnapshotActionGroup(device, myComboBoxAction);
 
     // Act
     Object[] actualChildren = group.getChildren(null);
 
     // Assert
     Object[] expectedChildren = {
-      new ColdBootAction(),
-      new SelectSnapshotAction(snapshot)};
+      SelectTargetAction.newColdBootAction(device, myComboBoxAction),
+      SelectTargetAction.newQuickBootAction(device, myComboBoxAction),
+      SelectTargetAction.newBootWithSnapshotAction(device, myComboBoxAction, snapshot)};
 
     assertArrayEquals(expectedChildren, actualChildren);
   }
@@ -70,7 +74,7 @@ public final class SnapshotActionGroupTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    AnAction action = new SnapshotActionGroup(device);
+    AnAction action = new SnapshotActionGroup(device, myComboBoxAction);
 
     Presentation presentation = new Presentation();
 

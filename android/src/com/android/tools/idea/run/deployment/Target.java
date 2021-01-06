@@ -17,10 +17,15 @@ package com.android.tools.idea.run.deployment;
 
 import com.intellij.openapi.project.Project;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * A deployment target for an app. A user actually selects these (and not devices) with the drop down or Select Multiple Devices dialog. The
+ * subclasses for virtual devices boot them differently.
+ */
 abstract class Target {
   private final @NotNull Key myDeviceKey;
 
@@ -45,6 +50,12 @@ abstract class Target {
   boolean matches(@NotNull Device device) {
     return device.matches(myDeviceKey);
   }
+
+  /**
+   * @return the text for this target. It's used for the items in a virtual device's submenu and in the drop down button when a user selects
+   * a target.
+   */
+  abstract @NotNull Optional<@NotNull String> getText(@NotNull Device device);
 
   abstract void boot(@NotNull VirtualDevice device, @NotNull Project project);
 }

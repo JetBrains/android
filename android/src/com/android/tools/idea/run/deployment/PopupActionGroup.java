@@ -119,7 +119,7 @@ final class PopupActionGroup extends DefaultActionGroup {
 
   private @NotNull AnAction newSelectDeviceActionOrSnapshotActionGroup(@NotNull Device device) {
     if (!device.getSnapshots().isEmpty()) {
-      return new SnapshotActionGroup(device);
+      return new SnapshotActionGroup(device, myComboBoxAction);
     }
 
     return newSelectDeviceAction(device);

@@ -26,21 +26,25 @@ import org.jetbrains.annotations.Nullable;
 
 final class SnapshotActionGroup extends ActionGroup {
   private final @NotNull Device myDevice;
+  private final @NotNull DeviceAndSnapshotComboBoxAction myComboBoxAction;
 
-  SnapshotActionGroup(@NotNull Device device) {
+  SnapshotActionGroup(@NotNull Device device, @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
     setPopup(true);
+
     myDevice = device;
+    myComboBoxAction = comboBoxAction;
   }
 
   @Override
   public @NotNull AnAction @NotNull [] getChildren(@Nullable AnActionEvent event) {
     Collection<Snapshot> snapshots = myDevice.getSnapshots();
 
-    Collection<AnAction> children = new ArrayList<>(1 + snapshots.size());
-    children.add(new ColdBootAction());
+    Collection<AnAction> children = new ArrayList<>(2 + snapshots.size());
+    children.add(SelectTargetAction.newColdBootAction(myDevice, myComboBoxAction));
+    children.add(SelectTargetAction.newQuickBootAction(myDevice, myComboBoxAction));
 
     snapshots.stream()
-      .map(SelectSnapshotAction::new)
+      .map(snapshot -> SelectTargetAction.newBootWithSnapshotAction(myDevice, myComboBoxAction, snapshot))
       .forEach(children::add);
 
     return children.toArray(new AnAction[0]);
@@ -56,11 +60,16 @@ final class SnapshotActionGroup extends ActionGroup {
 
   @Override
   public int hashCode() {
-    return myDevice.hashCode();
+    return 31 * myDevice.hashCode() + myComboBoxAction.hashCode();
   }
 
   @Override
   public boolean equals(@Nullable Object object) {
-    return object instanceof SnapshotActionGroup && myDevice.equals(((SnapshotActionGroup)object).myDevice);
+    if (!(object instanceof SnapshotActionGroup)) {
+      return false;
+    }
+
+    SnapshotActionGroup group = (SnapshotActionGroup)object;
+    return myDevice.equals(group.myDevice) && myComboBoxAction.equals(group.myComboBoxAction);
   }
 }

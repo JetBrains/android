@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment;
 
 import static org.junit.Assert.assertEquals;
 
+import com.android.tools.idea.run.AndroidDevice;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -29,13 +30,21 @@ import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
-public final class SelectSnapshotActionTest {
+public final class SelectTargetActionTest {
   @Test
   public void update() {
     // Arrange
     FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
     Snapshot snapshot = new Snapshot(fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-07_16-36-58"));
-    AnAction action = new SelectSnapshotAction(snapshot);
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .addSnapshot(snapshot)
+      .build();
+
+    AnAction action = SelectTargetAction.newBootWithSnapshotAction(device, Mockito.mock(DeviceAndSnapshotComboBoxAction.class), snapshot);
 
     Presentation presentation = new Presentation();
 
