@@ -16,12 +16,22 @@
 package com.android.tools.idea.run.deployment;
 
 import com.intellij.openapi.project.Project;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class PhysicalDeviceTarget extends Target {
   PhysicalDeviceTarget(@NotNull SerialNumber deviceKey) {
     super(deviceKey);
+  }
+
+  /**
+   * @return Optional.empty. Physical devices never get submenus and as there's only one type of target for them, there's no need for
+   * distinguishing text.
+   */
+  @Override
+  @NotNull Optional<@NotNull String> getText(@NotNull Device device) {
+    return Optional.empty();
   }
 
   @Override

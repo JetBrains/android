@@ -177,7 +177,7 @@ public final class PopupActionGroupTest {
     // Assert
     Object[] children = {
       myActionManager.getAction(Heading.AVAILABLE_DEVICES_ID),
-      new SnapshotActionGroup(device),
+      new SnapshotActionGroup(device, myComboBoxAction),
       Separator.getInstance(),
       myActionManager.getAction(SelectMultipleDevicesAction.ID),
       myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
