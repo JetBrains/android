@@ -45,6 +45,7 @@ import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import com.google.common.truth.Truth
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.testFramework.PlatformTestUtil
 import org.mockito.Mockito
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -62,6 +63,8 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, pa
   val inspector = FakeInspectorPanel()
 
   init {
+    // Make sure the initial property load by model is done before replacing the properties in the model:
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     model.setPropertiesInTest(properties)
   }
 
