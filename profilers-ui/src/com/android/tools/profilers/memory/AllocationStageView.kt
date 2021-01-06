@@ -51,9 +51,8 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
 
   private val titleLabel = JBLabel().apply { border = JBUI.Borders.empty(0, 5, 0, 0) }
 
-  // TODO(b/171916315) replace with new icon once ready
   @VisibleForTesting
-  val selectAllButton = CommonButton("Select all").apply {
+  val selectAllButton = CommonButton(StudioIcons.Profiler.Toolbar.SELECT_ENTIRE_RANGE).apply {
     toolTipText = "Track allocations over the entire range"
     addActionListener { stage.selectAll() }
   }
