@@ -55,7 +55,7 @@ final class SnapshotActionGroup extends ActionGroup {
     Presentation presentation = event.getPresentation();
 
     presentation.setIcon(myDevice.getIcon());
-    presentation.setText(Devices.getText(myDevice.getName(), myDevice.getValidityReason()), false);
+    presentation.setText(Devices.getText(myDevice), false);
   }
 
   @Override

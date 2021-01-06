@@ -33,19 +33,23 @@ final class Devices {
       .anyMatch(name::equals);
   }
 
-  @NotNull
-  static String getText(@NotNull Device device, @Nullable Key key, @Nullable Snapshot snapshot) {
-    String snapshotName = snapshot == null ? null : snapshot.toString();
-    return getText(device.getName(), key == null ? null : key.toString(), snapshotName, device.getValidityReason());
+  static @NotNull String getText(@NotNull Device device) {
+    return getText(device, null);
   }
 
-  @NotNull
-  static String getText(@NotNull String device, @Nullable String reason) {
-    return getText(device, null, null, reason);
+  static @NotNull String getText(@NotNull Device device, @Nullable Key key) {
+    return getText(device, key, null);
   }
 
-  @NotNull
-  private static String getText(@NotNull String device, @Nullable String key, @Nullable String snapshot, @Nullable String reason) {
+  static @NotNull String getText(@NotNull Device device, @Nullable Key key, @Nullable Target target) {
+    String bootOption = target == null ? null : target.getText(device).orElse(null);
+    return getText(device.getName(), key == null ? null : key.toString(), bootOption, device.getValidityReason());
+  }
+
+  private static @NotNull String getText(@NotNull String device,
+                                         @Nullable String key,
+                                         @Nullable String bootOption,
+                                         @Nullable String reason) {
     StringBuilder builder = new StringBuilder(device);
 
     if (key != null) {
@@ -55,10 +59,10 @@ final class Devices {
         .append(']');
     }
 
-    if (snapshot != null) {
+    if (bootOption != null) {
       builder
         .append(" - ")
-        .append(snapshot);
+        .append(bootOption);
     }
 
     if (reason != null) {
