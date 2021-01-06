@@ -1058,6 +1058,78 @@ public class IdeSdks {
       initialize(System.getenv(JDK_LOCATION_ENV_VARIABLE_NAME));
     }
 
+    private void initialize(@Nullable String value) {
+      // Read env variable only once and initialize the settings accordingly. myInitialized == false means that this function has not been
+      // called yet.
+      File envVariableJdkFile;
+      synchronized (myInitializationLock) {
+        if (myInitialized) {
+          return;
+        }
+        if (value == null) {
+          setInitializationAsNotDefined();
+          return;
+        }
+        envVariableJdkFile = validateJdkPath(new File(toSystemDependentName(value)));
+        if (envVariableJdkFile == null) {
+          setInitializationAsDefinedButInvalid(value);
+          LOG.warn("The provided JDK path is invalid: " + value);
+          return;
+        }
+      }
+      // Environment variable is defined and valid, make sure it is safe to use EDT to prevent a deadlock (b/174675513)
+      File finalEnvVariableJdkFile = envVariableJdkFile;
+      Runnable createJdkTask = () -> {
+        synchronized (myInitializationLock) {
+          // Check initialization again (another thread could have called this already when waiting for EDT)
+          if (!myInitialized) {
+            try {
+              @Nullable Sdk jdk = createJdk(finalEnvVariableJdkFile);
+              if (jdk != null) {
+                setInitialization(value, finalEnvVariableJdkFile, jdk);
+                LOG.info("Using Gradle JDK from " + JDK_LOCATION_ENV_VARIABLE_NAME + "=" + value);
+              }
+              else {
+                setInitializationAsDefinedButInvalid(value);
+                LOG.warn("Could not use provided jdk from " + value);
+              }
+            }
+            catch (Throwable exc) {
+              setInitializationAsDefinedButInvalid(value);
+              LOG.warn("Could not use provided jdk from " + value, exc);
+            }
+          }
+        }
+      };
+      Application application = ApplicationManager.getApplication();
+      boolean onReadAction = application.isReadAccessAllowed();
+      boolean hasWriteIntendLock = application.isWriteThread();
+      if (onReadAction && !hasWriteIntendLock) {
+        // Cannot initialize if write access is not allowed since this would cause a deadlock while waiting for EDT.
+        application.invokeLater(createJdkTask);
+        throw new AssertionError("Cannot create JDK from a read action without write intend");
+      }
+      else {
+        application.invokeAndWait(createJdkTask);
+      }
+    }
+
+    private void setInitializationAsNotDefined() {
+      setInitialization(/* envVariableValue */ null, /* file */ null, /* sdk */null);
+    }
+
+    private void setInitializationAsDefinedButInvalid(@NotNull String envVariableValue) {
+      setInitialization(envVariableValue, /* file */ null, /* sdk */null);
+    }
+
+    private void setInitialization(@Nullable String variableValue, @Nullable File jdkFile, @Nullable Sdk sdk) {
+      myVariableValue = variableValue;
+      myJdkFile = jdkFile;
+      mySdk = sdk;
+      myUseJdkEnvVariable = (variableValue != null) && (jdkFile != null) && (sdk != null);
+      myInitialized = true;
+    }
+
     public boolean isUseJdkEnvVariable() {
       initialize();
       return myUseJdkEnvVariable;
@@ -1096,82 +1168,6 @@ public class IdeSdks {
       }
       myUseJdkEnvVariable = use;
       return true;
-    }
-
-    private void setInitialization(@Nullable String variableValue, @Nullable File jdkFile, @Nullable Sdk sdk) {
-      myVariableValue = variableValue;
-      myJdkFile = jdkFile;
-      mySdk = sdk;
-      myUseJdkEnvVariable = (variableValue != null) && (jdkFile != null) && (sdk != null);
-      myInitialized = true;
-    }
-
-    private void setNotDefined() {
-      setInitialization(/* envVariableValue */ null, /* file */ null, /* sdk */null);
-    }
-
-    private void setDefinedButInvalid(@NotNull String envVariableValue) {
-      setInitialization(envVariableValue, /* file */ null, /* sdk */null);
-    }
-
-    private void setValid(@NotNull String envVariableValue, @NotNull File envVariableJdkFile, @NotNull Sdk envVariableJdkSdk) {
-      setInitialization(envVariableValue, envVariableJdkFile, envVariableJdkSdk);
-    }
-
-    private void initialize(@Nullable String value) {
-      // Read env variable only once and initialize the settings accordingly. myEnvVariableSettings null means that this function has not been
-      // called yet.
-      File envVariableJdkFile;
-      synchronized (myInitializationLock) {
-        if (myInitialized) {
-          return;
-        }
-        if (value == null) {
-          setNotDefined();
-          return;
-        }
-        envVariableJdkFile = validateJdkPath(new File(toSystemDependentName(value)));
-        if (envVariableJdkFile == null) {
-          setDefinedButInvalid(value);
-          LOG.warn("The provided JDK path is invalid: " + value);
-          return;
-        }
-      }
-      // Environment variable is defined and valid, make sure it is safe to use EDT to prevent a deadlock (b/174675513)
-      File finalEnvVariableJdkFile = envVariableJdkFile;
-      Runnable createJdkTask = () -> {
-        synchronized (myInitializationLock) {
-          // Check initialization again (another thread could have called this already when waiting for EDT)
-          if (!myInitialized) {
-            try {
-              @Nullable Sdk jdk = createJdk(finalEnvVariableJdkFile);
-              if (jdk != null) {
-                setValid(value, finalEnvVariableJdkFile, jdk);
-                LOG.info("Using Gradle JDK from " + JDK_LOCATION_ENV_VARIABLE_NAME + "=" + value);
-              }
-              else {
-                setDefinedButInvalid(value);
-                LOG.warn("Could not use provided jdk from " + value);
-              }
-            }
-            catch (Throwable exc) {
-              setDefinedButInvalid(value);
-              LOG.warn("Could not use provided jdk from " + value, exc);
-            }
-          }
-        }
-      };
-      Application application = ApplicationManager.getApplication();
-      boolean onReadAction = application.isReadAccessAllowed();
-      boolean hasWriteIntendLock = application.isWriteThread();
-      if (onReadAction && !hasWriteIntendLock) {
-        // Cannot initialize if write access is not allowed since this would cause a deadlock while waiting for EDT.
-        application.invokeLater(createJdkTask);
-        throw new AssertionError("Cannot create JDK from a read action without write intend");
-      }
-      else {
-        application.invokeAndWait(createJdkTask);
-      }
     }
 
     public void overrideValue(@Nullable String value) {
