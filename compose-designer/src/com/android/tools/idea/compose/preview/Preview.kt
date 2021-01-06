@@ -764,19 +764,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         this::getPreviewDataContextForPreviewElement,
         this::configureLayoutlibSceneManagerForPreviewElement
       ).isNotEmpty()
-      // TODO: The label will display the name of the file where pinned previews come from. If there are multiple files
-      // then we temporarily display the label "Pinned"
-      val singleFileName = memoizedPinnedPreviewProvider
-                             .previewElements
-                             .mapNotNull { it.previewBodyPsi?.virtualFile?.name }
-                             .distinct()
-                             .singleOrNull() ?: "Pinned"
-      composeWorkBench.pinnedLabel = singleFileName
     }
-
-    composeWorkBench.mainSurfaceLabel = if (arePinsEnabled) {
-      psiFile.name
-    } else ""
 
     val showingPreviewElements = surface.updatePreviewsAndRefresh(
       quickRefresh,

@@ -38,6 +38,17 @@ internal object UnpinAllPreviewElementsAction
       PinnedPreviewElementManager.getInstance(project).unpinAll()
     }
   }
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+
+    val project = e.project ?: return
+    val pinnedElementProvider = PinnedPreviewElementManager.getPreviewElementProvider(project)
+    val singleFileName = pinnedElementProvider.previewElements.mapNotNull { it.previewBodyPsi?.virtualFile?.name }
+                           .distinct()
+                           .singleOrNull() ?: "Pinned"
+    e.presentation.text = "  -  $singleFileName"
+  }
 }
 
 internal class PinAllPreviewElementsAction(
@@ -57,6 +68,12 @@ internal class PinAllPreviewElementsAction(
     else {
       pinManager.unpin(previewElementProvider.previewElements.toList())
     }
+  }
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+
+    e.presentation.text = "" // Next for the pin all action
   }
 }
 
