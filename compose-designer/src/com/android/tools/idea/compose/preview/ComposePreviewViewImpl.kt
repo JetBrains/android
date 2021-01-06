@@ -60,7 +60,8 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.OverlayLayout
 
-private const val SPLITTER_DIVIDER_WIDTH_PX = 3
+private const val SURFACE_SPLITTER_DIVIDER_WIDTH_PX = 5
+private const val ISSUE_SPLITTER_DIVIDER_WIDTH_PX = 3
 private const val COMPOSE_PREVIEW_DOC_URL = "https://d.android.com/jetpack/compose/preview"
 
 /**
@@ -265,7 +266,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
    * Vertical splitter where the top part is a surface containing the pinned elements and the bottom the main design surface.
    */
   private val surfaceSplitter = JBSplitter(true, 0.25f, 0f, 0.5f).apply {
-    dividerWidth = SPLITTER_DIVIDER_WIDTH_PX
+    dividerWidth = SURFACE_SPLITTER_DIVIDER_WIDTH_PX
   }
 
   /**
@@ -273,7 +274,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
    * panel associated with the preview. For example, it can be an animation inspector that lists all the animations the preview has.
    */
   private val mainPanelSplitter = JBSplitter(true, 0.7f).apply {
-    dividerWidth = SPLITTER_DIVIDER_WIDTH_PX
+    dividerWidth = ISSUE_SPLITTER_DIVIDER_WIDTH_PX
   }
 
   private val notificationPanel = NotificationPanel(
