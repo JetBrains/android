@@ -33,6 +33,7 @@ import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.Presentation;
 import icons.StudioIcons;
 import java.nio.file.FileSystem;
+import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -42,7 +43,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -327,29 +327,34 @@ public final class UpdaterTest {
     assertEquals("apiQ_64_Google", myPresentation.getText());
   }
 
-  @Ignore
   @Test
   public void getTextDeviceHasSnapshot() {
     // Arrange
+    Key deviceKey = new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_29.avd");
+
     FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
+    Path snapshotKey = fileSystem.getPath("/home/user/.android/avd/Pixel_3_API_29.avd/snapshots/snap_2018-08-07_16-27-58");
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      // .setKey(new NonprefixedKey("Pixel_3_API_29/snap_2018-08-07_16-27-58"))
+      .setKey(deviceKey)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .addSnapshot(new Snapshot(fileSystem.getPath("/home/juancnuno/.android/avd/Pixel_3_API_29.avd/snapshots/snap_2018-08-07_16-27-58")))
+      .addSnapshot(new Snapshot(snapshotKey))
       .build();
+
+    List<Device> devices = Collections.singletonList(device);
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
 
-    // Mockito.when(service.getTargetSelectedWithComboBox(Collections.singletonList(device)))
-    //   .thenReturn(Optional.of(new Target(new NonprefixedKey("Pixel_3_API_29/snap_2018-08-07_16-27-58"))));
+    Target target = new BootWithSnapshotTarget(deviceKey, snapshotKey);
+    Mockito.when(service.getTargetSelectedWithComboBox(devices)).thenReturn(Optional.of(target));
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
       .setDevicesSelectedService(service)
-      .setDevices(Collections.singletonList(device))
+      .setDevices(devices)
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(() -> true)
       .build();
 
     // Act

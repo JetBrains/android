@@ -54,7 +54,7 @@ public final class SelectDeviceAction extends AnAction {
     Collection<Device> devices = myComboBoxAction.getDevices(Objects.requireNonNull(event.getProject())).orElseThrow(AssertionError::new);
     Key key = Devices.containsAnotherDeviceWithSameName(devices, myDevice) ? myDevice.getKey() : null;
 
-    presentation.setText(Devices.getText(myDevice, key, null), false);
+    presentation.setText(Devices.getText(myDevice, key), false);
   }
 
   @Override
