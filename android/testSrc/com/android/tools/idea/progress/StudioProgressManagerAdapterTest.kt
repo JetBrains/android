@@ -22,7 +22,6 @@ import com.android.testutils.file.someRoot
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ex.ApplicationEx
-import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils
 import com.intellij.testFramework.ApplicationRule
 import org.junit.Assert.fail
