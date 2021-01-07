@@ -68,7 +68,7 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.concurrent.Callable
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.locks.ReentrantLock
 import java.util.regex.Pattern
 import javax.imageio.ImageIO
@@ -216,6 +216,10 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
   val rootPanel: JPanel
     get() = myRetentionPanel
 
+  private data class SnapshotLoadability(val loadable: Boolean, val reason: String?)
+  // Please only access it in AppUIUtil.invokeOnEdt
+  private val cachedSnapshotChecks = HashMap<String, SnapshotLoadability>()
+
   fun setPackageName(packageName: String) {
     this.packageName = packageName
   }
@@ -289,12 +293,30 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
         }
         return
       }
+      var shouldReturn = false
+      var waitForCheck = CountDownLatch(1)
       AppUIUtil.invokeOnEdt {
         if (isCancelled()) {
+          shouldReturn = true
+          waitForCheck.countDown()
+          return@invokeOnEdt
+        }
+        if (cachedSnapshotChecks.containsKey(snapshotFile.absolutePath)) {
+          cachedSnapshotChecks[snapshotFile.absolutePath].also {
+            myRetentionDebugButton.isEnabled = it!!.loadable
+            myRetentionDebugButton.toolTipText = it!!.reason
+          }
+          shouldReturn = true
+          waitForCheck.countDown()
           return@invokeOnEdt
         }
         myRetentionDebugButton.isEnabled = false
         myRetentionDebugButton.toolTipText = "Validating snapshot file, please wait..."
+        waitForCheck.countDown()
+      }
+      waitForCheck.await()
+      if (shouldReturn) {
+        return
       }
       var inputStream: InputStream = FileInputStream(
         snapshotFile)
@@ -322,10 +344,12 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
       myRetentionPanel.snapshotProto = snapshotProto
       if (snapshotProto == null) {
         AppUIUtil.invokeOnEdt {
+          val tooltip = "Snapshot protobuf not found, expected path: ${snapshotFile.name}:snapshot.pb"
+          cachedSnapshotChecks[snapshotFile.absolutePath] = SnapshotLoadability(false, tooltip)
           if (isCancelled()) {
             return@invokeOnEdt
           }
-          myRetentionDebugButton.toolTipText = "Snapshot protobuf broken, expected path: ${snapshotFile.name}:snapshot.pb"
+          myRetentionDebugButton.toolTipText = tooltip
         }
         return
       }
@@ -333,10 +357,12 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
       val emulatorBinary = emulatorPackage?.location?.resolve(SdkConstants.FN_EMULATOR)?.let { androidSdkHandler.fileOp.toFile(it) }
       if (emulatorBinary == null || !androidSdkHandler.fileOp.exists(emulatorBinary)) {
         AppUIUtil.invokeOnEdt {
+          val tooltip = "Missing emulator executables. Please download the emulator from SDK manager."
+          cachedSnapshotChecks[snapshotFile.absolutePath] = SnapshotLoadability(false, tooltip)
           if (isCancelled()) {
             return@invokeOnEdt
           }
-          myRetentionDebugButton.toolTipText = "Missing emulator executables. Please download the emulator from SDK manager."
+          myRetentionDebugButton.toolTipText = tooltip
         }
         return
       }
@@ -359,16 +385,19 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
         }.let {
           if (it) {
             AppUIUtil.invokeOnEdt {
+              val tooltip = "Snapshot not loadable, reason: ${lines.joinToString(" ")}"
+              cachedSnapshotChecks[snapshotFile.absolutePath] = SnapshotLoadability(false, tooltip)
               if (isCancelled()) {
                 return@invokeOnEdt
               }
-              myRetentionDebugButton.toolTipText = "Snapshot not loadable, reason: ${lines.joinToString(" ")}"
+              myRetentionDebugButton.toolTipText = tooltip
             }
             return
           }
         }
       }
       AppUIUtil.invokeOnEdt {
+        cachedSnapshotChecks[snapshotFile.absolutePath] = SnapshotLoadability(true, null)
         if (isCancelled()) {
           return@invokeOnEdt
         }
@@ -379,10 +408,14 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
       LOG.warn(
         "Failed to parse retention snapshot", e)
       AppUIUtil.invokeOnEdt {
+        val tooltip = "Failed to parse retention snapshot"
+        if (snapshotFile != null) {
+          cachedSnapshotChecks[snapshotFile.absolutePath] = SnapshotLoadability(false, tooltip)
+        }
         if (isCancelled()) {
           return@invokeOnEdt
         }
-        myRetentionDebugButton.toolTipText = "Failed to parse retention snapshot"
+        myRetentionDebugButton.toolTipText = tooltip
       }
     }
   }
