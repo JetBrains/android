@@ -23,6 +23,7 @@ import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.google.common.util.concurrent.ListenableFuture
@@ -56,10 +57,15 @@ class AppInspectionInspectorClient(
 
   override fun doConnect() {
     runBlocking {
-      viewInspector = ViewLayoutInspectorClient.launch(apiServices, model.project, process, scope)
+      viewInspector = ViewLayoutInspectorClient.launch(apiServices, model.project, process, scope, ::fireError)
     }
 
-    startFetching()
+    if (isCapturing) {
+      startFetching()
+    }
+    else {
+      refresh()
+    }
   }
 
   override fun doDisconnect(): ListenableFuture<Nothing> {
@@ -73,23 +79,25 @@ class AppInspectionInspectorClient(
 
   override fun startFetching() {
     scope.launch(exceptionHandler) {
-      viewInspector.startFetching()
-      isCapturing = true
+      viewInspector.startFetching(continuous = true)
     }
   }
 
   override fun stopFetching() {
     scope.launch(exceptionHandler) {
       viewInspector.stopFetching()
-      isCapturing = false
     }
   }
 
-  override fun refresh() {}
+  override fun refresh() {
+    scope.launch(exceptionHandler) {
+      viewInspector.startFetching(continuous = false)
+    }
+  }
 
   override val capabilities = EnumSet.of(InspectorClient.Capability.SUPPORTS_CONTINUOUS_MODE)!!
   override val treeLoader: TreeLoader = AppInspectionTreeLoader(model.project, this)
   override val provider: PropertiesProvider = AppInspectionPropertiesProvider()
-  override var isCapturing: Boolean = false  // TODO: Get initial value from settings
-    private set
+  override val isCapturing: Boolean
+    get() = InspectorClientSettings.isCapturingModeOn
 }
