@@ -32,7 +32,7 @@ import com.intellij.psi.PsiNameIdentifierOwner;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.IncorrectOperationException;
 import icons.AndroidIcons;
-import javax.swing.Icon;
+import javax.swing.*;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -118,12 +118,6 @@ public abstract class AbstractAidlDeclarationImpl extends AidlPsiCompositeElemen
       @Override
       public String getPresentableText() {
         return getName();
-      }
-
-      @Nullable
-      @Override
-      public String getLocationString() {
-        return null;
       }
 
       @NotNull
