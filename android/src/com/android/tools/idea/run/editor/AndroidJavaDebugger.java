@@ -22,6 +22,7 @@ import com.android.ddmlib.Client;
 import com.android.ide.common.gradle.model.IdeTestOptions;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.OrchestratorUtilsKt;
@@ -90,14 +91,12 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
   @Override
   public DebugConnectorTask getConnectDebuggerTask(@NotNull ExecutionEnvironment env,
                                                    @Nullable AndroidVersion version,
-                                                   @NotNull Set<String> applicationIds,
+                                                   @NotNull ApplicationIdProvider applicationIdProvider,
                                                    @NotNull AndroidFacet facet,
                                                    @NotNull AndroidDebuggerState state,
-                                                   @NotNull String runConfigTypeId,
-                                                   @Nullable String packageNameOverride) {
-    // TODO(b/153668177): Note/Review: packageNameOverride is used in native debugger only.
+                                                   @NotNull String runConfigTypeId) {
     ConnectJavaDebuggerTask baseConnector = new ConnectJavaDebuggerTask(
-      applicationIds, this, env.getProject(),
+      applicationIdProvider, this, env.getProject(),
       facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP);
     IdeTestOptions.Execution executionType = Optional.ofNullable(AndroidModuleModel.get(facet))
       .map(AndroidModuleModel::getTestExecutionStrategy)
