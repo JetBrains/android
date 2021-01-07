@@ -1,32 +1,27 @@
-/*
- * Copyright 2000-2010 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2021 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 package org.jetbrains.android.dom.wrappers;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
-import com.intellij.navigation.PsiElementNavigationItem;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.navigation.NavigationItem;
+import com.intellij.navigation.PsiElementNavigationItem;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementVisitor;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiInvalidElementAccessException;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiNamedElement;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.ResolveState;
 import com.intellij.psi.meta.PsiMetaOwner;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -39,15 +34,13 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
+import java.io.File;
+import javax.swing.*;
 import org.jetbrains.android.dom.resources.Attr;
 import org.jetbrains.android.dom.resources.ResourceElement;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.io.File;
 
 public class ValueResourceElementWrapper implements XmlAttributeValue, ResourceElementWrapper, PsiNamedElement, PsiElementNavigationItem {
   @NotNull private final XmlAttributeValue myWrappedElement;
@@ -437,11 +430,6 @@ public class ValueResourceElementWrapper implements XmlAttributeValue, ResourceE
         }
         return name + " (..." + File.separatorChar + myDirName +
                File.separatorChar + myFileName + ')';
-      }
-
-      @Override
-      public String getLocationString() {
-        return null;
       }
 
       @Override

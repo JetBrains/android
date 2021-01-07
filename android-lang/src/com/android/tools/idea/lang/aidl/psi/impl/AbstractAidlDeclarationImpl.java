@@ -120,12 +120,6 @@ public abstract class AbstractAidlDeclarationImpl extends AidlPsiCompositeElemen
         return getName();
       }
 
-      @Nullable
-      @Override
-      public String getLocationString() {
-        return null;
-      }
-
       @NotNull
       @Override
       public Icon getIcon(boolean unused) {

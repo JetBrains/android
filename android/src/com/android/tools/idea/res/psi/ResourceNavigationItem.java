@@ -25,7 +25,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiElement;
 import java.io.File;
-import javax.swing.Icon;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -121,12 +121,6 @@ public final class ResourceNavigationItem implements NavigationItem {
       }
 
       return myResource.getName() + " (..." + File.separatorChar + parentDir.getName() + File.separatorChar + myFile.getName() + ')';
-    }
-
-    @Override
-    @Nullable
-    public String getLocationString() {
-      return null;
     }
 
     @Override
