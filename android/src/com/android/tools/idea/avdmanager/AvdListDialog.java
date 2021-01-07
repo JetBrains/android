@@ -20,6 +20,7 @@ import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.WizardStepHeaderPanel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.FrameWrapper;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import java.awt.BorderLayout;
@@ -43,7 +44,6 @@ public final class AvdListDialog extends FrameWrapper implements AvdUiAction.Avd
     myAvdDisplayList = new AvdDisplayList(this, project);
     myAvdDisplayList.setBorder(new EmptyBorder(UIUtil.PANEL_REGULAR_INSETS));
     closeOnEsc();
-    getFrame().setSize(1000, 600);
   }
 
   @Override
@@ -61,7 +61,8 @@ public final class AvdListDialog extends FrameWrapper implements AvdUiAction.Avd
               null, "Your Virtual Devices", "Android Studio");
     root.add(northPanel, BorderLayout.NORTH);
     root.add(myAvdDisplayList, BorderLayout.CENTER);
-    getFrame().setSize(1000, 600);
+    getFrame().setSize(JBUI.size(1000, 600));
+    getFrame().setMinimumSize(JBUI.size(600, 350));
   }
 
   @Override
