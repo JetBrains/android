@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Event
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.ErrorEvent
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.LayoutEvent
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StartFetchCommand
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StopFetchCommand
@@ -44,7 +45,10 @@ private val JAR = AppInspectorJar("layoutinspector-view-inspection.jar",
  *
  * @param messenger The messenger that lets us communicate with the view inspector.
  */
-class ViewLayoutInspectorClient(eventScope: CoroutineScope, private val messenger: AppInspectorMessenger) {
+class ViewLayoutInspectorClient(
+  eventScope: CoroutineScope,
+  private val messenger: AppInspectorMessenger,
+  private val fireError: (String) -> Unit = {}) {
 
   companion object {
     /**
@@ -57,10 +61,11 @@ class ViewLayoutInspectorClient(eventScope: CoroutineScope, private val messenge
     suspend fun launch(apiServices: AppInspectionApiServices,
                        project: Project,
                        process: ProcessDescriptor,
-                       eventScope: CoroutineScope): ViewLayoutInspectorClient {
+                       eventScope: CoroutineScope,
+                       fireError: (String) -> Unit): ViewLayoutInspectorClient {
       val params = LaunchParameters(process, VIEW_LAYOUT_INSPECTOR_ID, JAR, project.name)
       val messenger = apiServices.launchInspector(params)
-      return ViewLayoutInspectorClient(eventScope, messenger)
+      return ViewLayoutInspectorClient(eventScope, messenger, fireError)
     }
   }
 
@@ -69,6 +74,7 @@ class ViewLayoutInspectorClient(eventScope: CoroutineScope, private val messenge
       messenger.eventFlow.collect { eventBytes ->
         val event = Event.parseFrom(eventBytes)
         when (event.specializedCase) {
+          Event.SpecializedCase.ERROR_EVENT -> handleErrorEvent(event.errorEvent)
           Event.SpecializedCase.LAYOUT_EVENT -> handleLayoutEvent(event.layoutEvent)
           else -> error { "Unhandled event case: ${event.specializedCase}" }
         }
@@ -76,9 +82,11 @@ class ViewLayoutInspectorClient(eventScope: CoroutineScope, private val messenge
     }
   }
 
-  suspend fun startFetching() {
+  suspend fun startFetching(continuous: Boolean) {
     messenger.sendCommand {
-      startFetchCommand = StartFetchCommand.getDefaultInstance()
+      startFetchCommand = StartFetchCommand.newBuilder()
+        .setContinuous(continuous)
+        .build()
     }
   }
 
@@ -86,6 +94,10 @@ class ViewLayoutInspectorClient(eventScope: CoroutineScope, private val messenge
     messenger.sendCommand {
       stopFetchCommand = StopFetchCommand.getDefaultInstance()
     }
+  }
+
+  private fun handleErrorEvent(errorEvent: ErrorEvent) {
+    fireError(errorEvent.message)
   }
 
   private fun handleLayoutEvent(layoutEvent: LayoutEvent) {
