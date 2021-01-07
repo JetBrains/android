@@ -668,17 +668,17 @@ public class LiveAllocationCaptureObjectTest {
 
       Queue<ClassifierSetTestData> expected_0_to_4 = new LinkedList<>();
       expected_0_to_4.add(new ClassifierSetTestData(0, DEFAULT_HEAP_NAME, 4, 2, 2, 4, 4, true));
-      expected_0_to_4.add(new ClassifierSetTestData(1, "BarMethodA() (That.Is.Bar)", 1, 1, 0, 1, 1, true));
-      expected_0_to_4.add(new ClassifierSetTestData(2, "FooMethodA() (This.Is.Foo)", 1, 1, 0, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(1, "BarMethodA() (LThat/Is/Bar;)", 1, 1, 0, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(2, "FooMethodA() (LThis/Is/Foo;)", 1, 1, 0, 1, 1, true));
       expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 1, 0, 1, 0, true));
-      expected_0_to_4.add(new ClassifierSetTestData(1, "FooMethodB() (This.Also.Foo)", 1, 1, 0, 1, 1, true));
-      expected_0_to_4.add(new ClassifierSetTestData(2, "BarMethodA() (That.Is.Bar)", 1, 1, 0, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(1, "FooMethodB() (LThis/Also/Foo;)", 1, 1, 0, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(2, "BarMethodA() (LThat/Is/Bar;)", 1, 1, 0, 1, 1, true));
       expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 1, 0, 1, 0, true));
-      expected_0_to_4.add(new ClassifierSetTestData(1, "BarMethodB() (That.Also.Bar)", 1, 0, 1, 1, 1, true));
-      expected_0_to_4.add(new ClassifierSetTestData(2, "FooMethodB() (This.Also.Foo)", 1, 0, 1, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(1, "BarMethodB() (LThat/Also/Bar;)", 1, 0, 1, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(2, "FooMethodB() (LThis/Also/Foo;)", 1, 0, 1, 1, 1, true));
       expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 0, 1, 1, 0, true));
-      expected_0_to_4.add(new ClassifierSetTestData(1, "FooMethodA() (This.Is.Foo)", 1, 0, 1, 1, 1, true));
-      expected_0_to_4.add(new ClassifierSetTestData(2, "BarMethodB() (That.Also.Bar)", 1, 0, 1, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(1, "FooMethodA() (LThis/Is/Foo;)", 1, 0, 1, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(2, "BarMethodB() (LThat/Also/Bar;)", 1, 0, 1, 1, 1, true));
       expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 0, 1, 1, 0, true));
 
       Range loadRange = new Range(CAPTURE_START_TIME, CAPTURE_START_TIME + TimeUnit.SECONDS.toMicros(4));
@@ -712,14 +712,14 @@ public class LiveAllocationCaptureObjectTest {
       heapSet.selectFilter(new Filter("MethodA"));
       Queue<ClassifierSetTestData> expected_0_to_4 = new LinkedList<>();
       expected_0_to_4.add(new ClassifierSetTestData(0, DEFAULT_HEAP_NAME, 3, 2, 1, 4, 3, true));
-      expected_0_to_4.add(new ClassifierSetTestData(1, "BarMethodA() (That.Is.Bar)", 1, 1, 0, 1, 1, true));
-      expected_0_to_4.add(new ClassifierSetTestData(2, "FooMethodA() (This.Is.Foo)", 1, 1, 0, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(1, "BarMethodA() (LThat/Is/Bar;)", 1, 1, 0, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(2, "FooMethodA() (LThis/Is/Foo;)", 1, 1, 0, 1, 1, true));
       expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 1, 0, 1, 0, true));
-      expected_0_to_4.add(new ClassifierSetTestData(1, "FooMethodB() (This.Also.Foo)", 1, 1, 0, 1, 1, true));
-      expected_0_to_4.add(new ClassifierSetTestData(2, "BarMethodA() (That.Is.Bar)", 1, 1, 0, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(1, "FooMethodB() (LThis/Also/Foo;)", 1, 1, 0, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(2, "BarMethodA() (LThat/Is/Bar;)", 1, 1, 0, 1, 1, true));
       expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 1, 0, 1, 0, true));
-      expected_0_to_4.add(new ClassifierSetTestData(1, "FooMethodA() (This.Is.Foo)", 1, 0, 1, 1, 1, true));
-      expected_0_to_4.add(new ClassifierSetTestData(2, "BarMethodB() (That.Also.Bar)", 1, 0, 1, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(1, "FooMethodA() (LThis/Is/Foo;)", 1, 0, 1, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(2, "BarMethodB() (LThat/Also/Bar;)", 1, 0, 1, 1, 1, true));
       expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 0, 1, 1, 0, true));
       verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
     }

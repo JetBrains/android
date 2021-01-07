@@ -76,10 +76,10 @@ public final class ProfilersTestData {
   public static final int ALLOC_SIZE = 1;
   // For live allocation tracking tests - class names that gets cycled/reused every |ALLOC_CONTEXT_NUM| us.
   public static final List<String> CONTEXT_CLASS_NAMES = Arrays.asList(
-    "This.Is.Foo",
-    "That.Is.Bar",
-    "This.Also.Foo",
-    "That.Also.Bar"
+    "LThis/Is/Foo;",
+    "LThat/Is/Bar;",
+    "LThis/Also/Foo;",
+    "LThat/Also/Bar;"
   );
   // For live allocation tracking tests - method names that gets cycled/reused every |ALLOC_CONTEXT_NUM| us.
   public static final List<String> CONTEXT_METHOD_NAMES = Arrays.asList(
