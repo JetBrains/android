@@ -85,6 +85,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
    * Also adds a dark layer between windows if DIM_BEHIND is set.
    */
   private fun updateRoot(allIds: List<*>) {
+    root.children.forEach { it.parent = null }
     root.children.clear()
     ViewNode.writeDrawChildren { drawChildren ->
       root.drawChildren().clear()
@@ -156,6 +157,12 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
     }
 
     updateRoot(allIds)
+    if (selection?.parentSequence?.last() !== root) {
+      selection = null
+    }
+    if (hoveredNode?.parentSequence?.last() !== root) {
+      hoveredNode = null
+    }
     lastGeneration = generation
     idLookup.clear()
     updating = false
@@ -168,10 +175,12 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
 
 
   private class Updater(private val oldRoot: ViewNode, private val newRoot: ViewNode) {
-    private val oldNodes = oldRoot.flatten().asSequence().filter{ it.drawId != 0L }.associateBy { it.drawId }
+    private val oldNodes = oldRoot.flatten().asSequence().filter{ it.drawId != 0L }.associateByTo(mutableMapOf()) { it.drawId }
 
     fun update(): Boolean {
-      return update(oldRoot, oldRoot.parent, newRoot)
+      val modified = update(oldRoot, oldRoot.parent, newRoot)
+      oldNodes.values.forEach { it.parent = null }
+      return modified
     }
 
     private fun update(oldNode: ViewNode, parent: ViewNode?, newNode: ViewNode): Boolean {
@@ -201,6 +210,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
         if (oldChild != null && oldChild.javaClass == newChild.javaClass) {
           modified = update(oldChild, oldNode, newChild) || modified
           oldNode.children.add(oldChild)
+          oldNodes.remove(newChild.drawId)
         } else {
           modified = true
           oldNode.children.add(newChild)
