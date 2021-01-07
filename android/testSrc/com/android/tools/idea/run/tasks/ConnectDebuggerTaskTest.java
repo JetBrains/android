@@ -23,6 +23,8 @@ import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.run.AndroidProcessHandler;
+import com.android.tools.idea.run.ApkProvisionException;
+import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.LaunchInfo;
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter;
@@ -65,6 +67,17 @@ public class ConnectDebuggerTaskTest extends AndroidTestCase {
   private ConsolePrinter myConsolePrinter;
   private FakeAdbServer myServer;
   private DeviceState myDeviceState;
+  private final ApplicationIdProvider myApplicationIdProvider = new ApplicationIdProvider() {
+    @Override
+    public @NotNull String getPackageName() {
+      return TEST_APP_ID;
+    }
+
+    @Override
+    public @Nullable String getTestPackageName() throws ApkProvisionException {
+      throw new ApkProvisionException("no test package");
+    }
+  };
 
   @Override
   public void setUp() throws Exception {
@@ -231,7 +244,7 @@ public class ConnectDebuggerTaskTest extends AndroidTestCase {
 
   @NotNull
   private TestConnectDebuggerTask getConnectDebuggerTask(boolean attachToRunningProcess, @NotNull Tickable onTick) {
-    return new TestConnectDebuggerTask(ImmutableSet.of(TEST_APP_ID),
+    return new TestConnectDebuggerTask(myApplicationIdProvider,
                                        new AndroidJavaDebugger(),
                                        getProject(),
                                        false,
@@ -245,13 +258,13 @@ public class ConnectDebuggerTaskTest extends AndroidTestCase {
     private int myTickCount = 0;
     @NotNull private final Tickable myOnTick;
 
-    public TestConnectDebuggerTask(@NotNull Set<String> applicationIds,
+    public TestConnectDebuggerTask(@NotNull ApplicationIdProvider applicationIdProvider,
                                    @NotNull AndroidDebugger debugger,
                                    @NotNull Project project,
                                    boolean monitorRemoteProcess,
                                    boolean attachToRunningProcess,
                                    @NotNull Tickable onTick) {
-      super(applicationIds, debugger, project, monitorRemoteProcess, attachToRunningProcess);
+      super(applicationIdProvider, debugger, project, monitorRemoteProcess, attachToRunningProcess);
       myOnTick = onTick;
     }
 
