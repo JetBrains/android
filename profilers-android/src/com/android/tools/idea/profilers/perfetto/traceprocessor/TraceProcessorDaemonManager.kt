@@ -114,12 +114,11 @@ class TraceProcessorDaemonManager(
       val newProcess = ProcessBuilder(getExecutablePath(), "--llvm_symbolizer_path", getLlvmSymbolizerPath())
         .redirectErrorStream(true)
         .start()
-
       val stdoutListener = TPDStdoutListener(BufferedReader(InputStreamReader(newProcess.inputStream)))
       executorService.execute(stdoutListener)
 
       // wait until we receive the message that the daemon is listening and get the port
-      stdoutListener.waitForRunningOrFailed(TPD_SPAWN_TIMEOUT)
+      stdoutListener.waitForStatusChangeOrTerminated(TPD_SPAWN_TIMEOUT)
 
       spawnStopwatch.stop()
       val timeToSpawnMs = spawnStopwatch.elapsed(TimeUnit.MILLISECONDS)
@@ -178,7 +177,6 @@ class TraceProcessorDaemonManager(
         if (serverOkMatcher.matches()) {
           selectedPort = serverOkMatcher.group("port").toInt()
           status = DaemonStatus.RUNNING
-          break
         } else if (line.startsWith(SERVER_PORT_BIND_FAILED)) {
           status = DaemonStatus.FAILED
           break
@@ -186,13 +184,21 @@ class TraceProcessorDaemonManager(
       }
     }
 
-    fun waitForRunningOrFailed(timeout: Long) {
-      synchronized(statusLock) {
-        // We do a check to avoid the timeout wait unnecessarily if the status isn't STARTING already.
-        if (status == DaemonStatus.STARTING) statusLock.wait(timeout)
+    @VisibleForTesting
+    fun waitUntilTerminated(timeout: Long) {
+      while(!terminated()) {
+        waitForStatusChangeOrTerminated(timeout)
       }
     }
 
+    fun waitForStatusChangeOrTerminated(timeout:Long) {
+      synchronized(statusLock) {
+        // We do a check to avoid the timeout wait unnecessarily if the status isn't expected status already.
+        if ( !terminated() ) statusLock.wait(timeout)
+      }
+    }
+
+    private fun terminated() = status == DaemonStatus.END_OF_STREAM || status == DaemonStatus.FAILED
   }
 
   @Synchronized

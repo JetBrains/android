@@ -20,9 +20,14 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.sessions.SessionArtifact;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.ContainerUtil;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,6 +53,14 @@ public class HeapProfdSessionArtifact extends MemorySessionArtifact<Memory.Memor
   public void export(@NotNull OutputStream outputStream) {
     assert canExport();
     MemoryProfiler.saveHeapProfdSampleToFile(getProfilers().getClient(), getSession(), getArtifactProto(), outputStream);
+    File symbols = new File(String.format(Locale.US, "%s%s%d.symbols", FileUtil.getTempDirectory(), File.separator, getStartTime()));
+    if (symbols.exists()) {
+      try {
+        FileUtil.copy(new FileInputStream(symbols), outputStream);
+      } catch (IOException _) {
+        //  Failed to append symbols to end of export file.
+      }
+    }
   }
 
   public static List<SessionArtifact<?>> getSessionArtifacts(@NotNull StudioProfilers profilers,
