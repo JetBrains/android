@@ -137,9 +137,7 @@ public final class CpuProfilerTest {
     sessionsManager.importSessionFromFile(trace);
 
     // Verify that CpuProfilerStage is open in Import trace mode
-    assertThat(myProfilers.getStage()).isInstanceOf(CpuProfilerStage.class);
-    CpuProfilerStage cpuProfilerStage = (CpuProfilerStage)myProfilers.getStage();
-    assertThat(cpuProfilerStage.isImportTraceMode()).isTrue();
+    assertThat(myProfilers.getStage()).isInstanceOf(CpuCaptureStage.class);
   }
 
   @Test

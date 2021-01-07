@@ -85,54 +85,6 @@ class CpuProfilerContextMenuInstallerTest {
   }
 
   @Test
-  fun contextMenuShouldBeDisabledInImportTraceMode() {
-    // Clear any context menu items added to the service to make sure we'll have only the items created in CpuProfilerStageView
-    ideComponents.clearContextMenuItems()
-    CpuProfilerContextMenuInstaller.install(stage, ideComponents, JPanel(), JPanel())
-    assertThat(stage.isImportTraceMode).isFalse()
-
-    var items = ideComponents.allContextMenuItems
-    assertThat(items).hasSize(7)
-
-    // Check we add CPU specific actions first.
-    assertThat(items[0].text).isEqualTo("Record CPU trace")
-    assertThat(items[0].isEnabled).isTrue()
-
-    assertThat(items[2].text).isEqualTo("Export trace...")
-    assertThat(items[2].isEnabled).isTrue()
-
-    stage.traceIdsIterator.addTrace(123)  // add a fake trace
-    assertThat(items[4].text).isEqualTo("Next capture")
-    assertThat(items[4].isEnabled).isTrue()
-    assertThat(items[5].text).isEqualTo("Previous capture")
-    assertThat(items[5].isEnabled).isTrue()
-
-    stage = CpuProfilerStage(stage.studioProfilers, File("FakePathToTraceFile.trace"))
-    stage.enter()
-    // Clear any context menu items added to the service to make sure we'll have only the items created in CpuProfilerStageView
-    ideComponents.clearContextMenuItems()
-    // Create a CpuProfilerStageView. We don't need its value, so we don't store it in a variable.
-    CpuProfilerContextMenuInstaller.install(stage, ideComponents, JPanel(), JPanel())
-    assertThat(stage.isImportTraceMode).isTrue()
-
-    items = ideComponents.allContextMenuItems
-    assertThat(items).hasSize(7)
-
-    // Check we add CPU specific actions first.
-    assertThat(items[0].text).isEqualTo("Record CPU trace")
-    assertThat(items[0].isEnabled).isFalse()
-
-    assertThat(items[2].text).isEqualTo("Export trace...")
-    assertThat(items[2].isEnabled).isFalse()
-
-    stage.traceIdsIterator.addTrace(123)  // add a fake trace
-    assertThat(items[4].text).isEqualTo("Next capture")
-    assertThat(items[4].isEnabled).isFalse()
-    assertThat(items[5].text).isEqualTo("Previous capture")
-    assertThat(items[5].isEnabled).isFalse()
-  }
-
-  @Test
   fun recordTraceMenuItemOnlyEnabledInLiveSessions() {
     // Clear any context menu items added to the service to make sure we'll have only the items created in CpuProfilerStageView
     ideComponents.clearContextMenuItems()

@@ -75,15 +75,14 @@ class CpuProfilerContextMenuInstaller {
       new ProfilerAction.Builder("Next capture")
         .setContainerComponent(myContainerComponent)
         .setActionRunnable(() -> myStage.navigateNext())
-        .setEnableBooleanSupplier(() -> !myStage.isImportTraceMode() && myStage.getTraceIdsIterator().hasNext())
+        .setEnableBooleanSupplier(() -> myStage.getTraceIdsIterator().hasNext())
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, shortcutModifier)).build();
 
     ProfilerAction navigatePrevious =
       new ProfilerAction.Builder("Previous capture")
         .setContainerComponent(myContainerComponent)
         .setActionRunnable(() -> myStage.navigatePrevious())
-        .setEnableBooleanSupplier(() -> !myStage.isImportTraceMode()
-                                        && myStage.getTraceIdsIterator().hasPrevious())
+        .setEnableBooleanSupplier(() -> myStage.getTraceIdsIterator().hasPrevious())
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, shortcutModifier)).build();
 
     myInstaller.installGenericContextMenu(myComponent, navigateNext);
@@ -98,7 +97,6 @@ class CpuProfilerContextMenuInstaller {
     // Call setEnableBooleanSupplier() on ProfilerAction.Builder to make it easier to test.
     ProfilerAction exportTrace = new ProfilerAction.Builder("Export trace...").setIcon(AllIcons.ToolbarDecorator.Export)
       .setContainerComponent(myContainerComponent)
-      .setEnableBooleanSupplier(() -> !myStage.isImportTraceMode())
       .build();
     myInstaller.installGenericContextMenu(
       myComponent, exportTrace,
@@ -121,7 +119,7 @@ class CpuProfilerContextMenuInstaller {
     ProfilerAction record = new ProfilerAction.Builder(() -> myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING
                                                              ? "Stop recording" : "Record CPU trace")
       .setContainerComponent(myContainerComponent)
-      .setEnableBooleanSupplier(() -> shouldEnableCaptureButton() && !myStage.isImportTraceMode()
+      .setEnableBooleanSupplier(() -> shouldEnableCaptureButton()
                                       && (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING
                                           || myStage.getCaptureState() == CpuProfilerStage.CaptureState.IDLE))
       .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_R, AdtUiUtils.getActionMask()))

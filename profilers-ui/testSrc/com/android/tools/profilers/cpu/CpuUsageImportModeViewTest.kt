@@ -60,7 +60,7 @@ class CpuUsageImportModeViewTest {
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
-    stage = CpuProfilerStage(profilers, File("FakePathToTraceFile.trace"))
+    stage = CpuProfilerStage(profilers)
     stage.studioProfilers.stage = stage
     stage.enter()
   }

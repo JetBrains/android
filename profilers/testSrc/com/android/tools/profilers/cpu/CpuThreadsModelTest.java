@@ -76,7 +76,7 @@ public class CpuThreadsModelTest {
 
   @Test
   public void updateRange() {
-    myThreadsModel = new CpuThreadsModel(myRange, myProfilers, ProfilersTestData.SESSION_DATA, false);
+    myThreadsModel = new CpuThreadsModel(myRange, myProfilers, ProfilersTestData.SESSION_DATA);
     // Make sure there are no threads before calling update
     assertThat(myThreadsModel.getSize()).isEqualTo(0);
 
@@ -141,7 +141,7 @@ public class CpuThreadsModelTest {
     myRange.set(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(10));
 
     // Create new model so we sort on our first queried range.
-    myThreadsModel = new CpuThreadsModel(myRange, myProfilers, ProfilersTestData.SESSION_DATA, false);
+    myThreadsModel = new CpuThreadsModel(myRange, myProfilers, ProfilersTestData.SESSION_DATA);
 
     assertThat(myThreadsModel.getSize()).isEqualTo(8);
     // Main thread gets sorted first per thread id passed into reset function.
@@ -158,37 +158,9 @@ public class CpuThreadsModelTest {
   }
 
   @Test
-  public void importedThreadsModelComesFromTheCapture() {
-    // CPU recording is not supported in new pipeline yet.
-    Assume.assumeFalse(myIsUnifiedPipeline);
-
-    // Create a threads model from an imported session
-    CpuProfilerStage stage = new CpuProfilerStage(myProfilers, CpuProfilerTestUtils.getTraceFile("valid_trace.trace"));
-    stage.enter();
-    myThreadsModel = stage.getThreadStates();
-
-    // The threads from the model should be obtained from the capture itself.
-    CpuCapture capture = stage.getCapture();
-    assertThat(myThreadsModel.getSize()).isEqualTo(capture.getThreads().size());
-
-    // First thread should be the main one
-    validateThread(0, capture.getMainThreadId(), "main");
-
-    // The other threads should be ordered alphabetically.
-    List<CpuThreadInfo> others = capture.getThreads().stream()
-      .filter(thread -> thread.getId() != capture.getMainThreadId())
-      .sorted(Comparator.comparing(CpuThreadInfo::getName))
-      .collect(Collectors.toList());
-    assertThat(others).hasSize(2);
-
-    validateThread(1, others.get(0).getId(), others.get(0).getName());
-    validateThread(2, others.get(1).getId(), others.get(1).getName());
-  }
-
-  @Test
   public void notEmptyWhenInitialized() {
     myRange.set(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(5));
-    myThreadsModel = new CpuThreadsModel(myRange, myProfilers, ProfilersTestData.SESSION_DATA, false);
+    myThreadsModel = new CpuThreadsModel(myRange, myProfilers, ProfilersTestData.SESSION_DATA);
     assertThat(myThreadsModel.getSize()).isEqualTo(1);
   }
 

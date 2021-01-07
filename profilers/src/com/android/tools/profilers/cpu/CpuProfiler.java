@@ -83,14 +83,9 @@ public class CpuProfiler extends StudioProfiler {
     timeline.setIsPaused(true);
 
     assert mySessionTraceFiles.containsKey(session.getSessionId());
-    if (myProfilers.getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
-      ProfilingConfiguration importConfig = new ImportedConfiguration();
-      myProfilers.setStage(
-        CpuCaptureStage.create(myProfilers, importConfig, mySessionTraceFiles.get(session.getSessionId()), session.getSessionId()));
-    }
-    else {
-      myProfilers.setStage(new CpuProfilerStage(myProfilers, mySessionTraceFiles.get(session.getSessionId())));
-    }
+    ProfilingConfiguration importConfig = new ImportedConfiguration();
+    myProfilers.setStage(
+      CpuCaptureStage.create(myProfilers, importConfig, mySessionTraceFiles.get(session.getSessionId()), session.getSessionId()));
   }
 
   private static Logger getLogger() {

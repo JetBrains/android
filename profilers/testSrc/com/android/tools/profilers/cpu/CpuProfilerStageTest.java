@@ -1366,82 +1366,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void importTraceModeOnlyEnabledWhenImportedTraceProvided() {
-    StudioProfilers profilers = myStage.getStudioProfilers();
-
-    File traceFile = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
-    CpuProfilerStage stage = new CpuProfilerStage(profilers, traceFile);
-    // Passing a non-null file to the constructor will set the stage to inspect trace mode.
-    assertThat(stage.isImportTraceMode()).isTrue();
-
-    stage = new CpuProfilerStage(profilers, null);
-    // Similarly, passing null to the constructor will set the stage to normal mode.
-    assertThat(stage.isImportTraceMode()).isFalse();
-
-    stage = new CpuProfilerStage(profilers);
-    // Not specifying whether the stage is initiated in inspect trace mode is the same as initializing it in normal mode.
-    assertThat(stage.isImportTraceMode()).isFalse();
-  }
-
-  @Test
-  public void importTraceShouldSetCorrectTraceInfo() {
-    StudioProfilers profilers = myStage.getStudioProfilers();
-
-    File traceFile = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
-    CpuProfilerStage stage = new CpuProfilerStage(profilers, traceFile);
-    assertThat(stage.getTraceDurations().getSeries().getSeries()).isEmpty();
-
-    // Trace will be parsed upon stage enter, which sets the correct trace info.
-    stage.enter();
-
-    CpuCapture capture = stage.getCapture();
-    assertThat(capture).isNotNull();
-
-    List<SeriesData<CpuTraceInfo>> traceInfos = stage.getTraceDurations().getSeries().getSeries();
-    assertThat(traceInfos).hasSize(1);
-    assertThat(traceInfos.get(0).value.getTraceType()).isEqualTo(Cpu.CpuTraceType.ART);
-    assertThat(traceInfos.get(0).value.getRange().getMin()).isEqualTo(capture.getRange().getMin());
-    assertThat(traceInfos.get(0).value.getRange().getMax()).isEqualTo(capture.getRange().getMax());
-  }
-
-  @Test
-  public void corruptedTraceInImportTraceModeShowsABalloon() {
-    StudioProfilers profilers = myStage.getStudioProfilers();
-
-    FakeFeatureTracker tracker = (FakeFeatureTracker)myServices.getFeatureTracker();
-    // Sanity check to verify the last import trace status was not set yet
-    assertThat(tracker.getLastImportTraceStatus()).isNull();
-
-    File traceFile = CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace");
-    CpuProfilerStage stage = new CpuProfilerStage(profilers, traceFile);
-    stage.enter();
-    // Import trace mode is enabled successfully
-    assertThat(stage.isImportTraceMode()).isTrue();
-
-    // We should show a balloon saying the import has failed
-    assertThat(myServices.getNotification()).isEqualTo(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
-
-    // We should track failed imports
-    assertThat(tracker.getLastCpuTraceType()).isEqualTo(Cpu.CpuTraceType.UNSPECIFIED_TYPE);
-    assertThat(tracker.getLastImportTraceStatus()).isFalse();
-  }
-
-  @Test
-  public void abortParsingImportTraceFileShowsABalloon() {
-    StudioProfilers profilers = myStage.getStudioProfilers();
-    File traceFile = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
-
-    FakeParserCancelParsing parser = new FakeParserCancelParsing(myServices);
-    CpuProfilerStage stage = new CpuProfilerStage(profilers, traceFile, parser);
-    stage.enter();
-    // Import trace mode is enabled successfully
-    assertThat(stage.isImportTraceMode()).isTrue();
-
-    // We should show a balloon saying the parsing was aborted, because FakeParserCancelParsing emulates a cancelled parsing task
-    assertThat(myServices.getNotification()).isEqualTo(CpuProfilerNotifications.IMPORT_TRACE_PARSING_ABORTED);
-  }
-
-  @Test
   public void abortParsingRecordedTraceFileShowsABalloon() throws InterruptedException {
     myServices.setShouldProceedYesNoDialog(false);
     ByteString largeTraceFile = ByteString.copyFrom(new byte[CpuCaptureParser.MAX_SUPPORTED_TRACE_SIZE + 1]);
@@ -1457,80 +1381,11 @@ public final class CpuProfilerStageTest extends AspectObserver {
     StudioProfilers profilers = myStage.getStudioProfilers();
 
     FakeParserCancelParsing parser = new FakeParserCancelParsing(myServices);
-    CpuProfilerStage stage = new CpuProfilerStage(profilers, null, parser);
+    CpuProfilerStage stage = new CpuProfilerStage(profilers, parser);
     stage.enter();
     assertThat(parser.isAbortParsingCalled()).isFalse();
     stage.exit();
     assertThat(parser.isAbortParsingCalled()).isTrue();
-  }
-
-  @Test
-  public void captureIsSetWhenOpeningStageInImportTraceMode() {
-    StudioProfilers profilers = myStage.getStudioProfilers();
-    CpuCaptureParser.clearPreviouslyLoadedCaptures();
-    FakeFeatureTracker tracker = (FakeFeatureTracker)myServices.getFeatureTracker();
-    // Sanity check to verify the last import trace status was not set yet
-    assertThat(tracker.getLastImportTraceStatus()).isNull();
-
-    File traceFile = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
-    CpuProfilerStage stage = new CpuProfilerStage(profilers, traceFile);
-    stage.enter();
-
-    // Import trace mode is enabled successfully
-    assertThat(stage.isImportTraceMode()).isTrue();
-    StreamingTimeline timeline = stage.getTimeline();
-    Range captureRange = stage.getCapture().getRange();
-    double expansionAmount = ((long)(captureRange.getLength() * CpuProfilerStage.IMPORTED_TRACE_VIEW_EXPAND_PERCENTAGE));
-    assertThat(timeline.isPaused()).isTrue();
-    assertThat((long)timeline.getDataRange().getMin()).isEqualTo((long)captureRange.getMin());
-    assertThat((long)(timeline.getDataRange().getMax() - expansionAmount)).isEqualTo((long)(captureRange.getMax()));
-    // Need 1 because of floating point precision rounding error on large numbers.
-    assertThat(timeline.getViewRange().getMin() + expansionAmount).isWithin(1).of(timeline.getDataRange().getMin());
-    assertThat(stage.getCapture()).isNotNull();
-
-    // We should track successful imports
-    assertThat(tracker.getLastCpuTraceType()).isEqualTo(Cpu.CpuTraceType.ART);
-    assertThat(tracker.getLastImportTraceStatus()).isTrue();
-  }
-
-  @Test
-  public void threadsDataComesFromCaptureInImportTraceMode() {
-    StudioProfilers profilers = myStage.getStudioProfilers();
-    File traceFile = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
-    CpuProfilerStage stage = new CpuProfilerStage(profilers, traceFile);
-    stage.enter();
-    // Import trace mode is enabled successfully
-    assertThat(stage.isImportTraceMode()).isTrue();
-
-    CpuCapture capture = stage.getCapture();
-    int captureThreadsCount = capture.getThreads().size();
-    // Check that stage's Threads model has the same size of capture threads list (which is not empty)
-    assertThat(stage.getThreadStates().getSize()).isEqualTo(captureThreadsCount);
-    assertThat(captureThreadsCount).isGreaterThan(0);
-
-    // Now check that capture contains all the threads from the stage's model.
-    for (int i = 0; i < captureThreadsCount; i++) {
-      int tid = stage.getThreadStates().get(i).getThreadId();
-      assertThat(capture.containsThread(tid)).isTrue();
-    }
-  }
-
-  @Test
-  public void captureAlwaysSelectedInImportTraceMode() {
-    StudioProfilers profilers = myStage.getStudioProfilers();
-    File traceFile = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
-    CpuProfilerStage stage = new CpuProfilerStage(profilers, traceFile);
-    stage.enter();
-    // Import trace mode is enabled successfully
-    assertThat(stage.isImportTraceMode()).isTrue();
-
-    CpuCapture capture = stage.getCapture();
-    assertThat(myStage.getTimeline().getSelectionRange().getMin()).isEqualTo(capture.getRange().getMin());
-    assertThat(myStage.getTimeline().getSelectionRange().getMax()).isEqualTo(capture.getRange().getMax());
-    // Pretend to clear the selection from UI.
-    myStage.getRangeSelectionModel().clear();
-    assertThat(myStage.getTimeline().getSelectionRange().getMin()).isEqualTo(capture.getRange().getMin());
-    assertThat(myStage.getTimeline().getSelectionRange().getMax()).isEqualTo(capture.getRange().getMax());
   }
 
   @Test
