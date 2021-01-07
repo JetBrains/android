@@ -24,7 +24,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.project.Project
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.junit.After
@@ -37,11 +36,9 @@ import org.junit.Test
  */
 class ComposeModifierCompletionContributorTest {
   @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  val projectRule = AndroidProjectRule.inMemory()
 
   private val myFixture: CodeInsightTestFixture by lazy { projectRule.fixture }
-
-  private val project: Project by lazy { myFixture.project }
 
   @Before
   fun setUp() {
