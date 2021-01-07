@@ -178,25 +178,6 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
   private final TraceIdsIterator myTraceIdsIterator;
 
   /**
-   * Whether the stage was initiated in Import Trace mode. In this mode, some data might be missing (e.g. thread states and CPU usage in
-   * ART and simpleperf captures), the {@link StreamingTimeline} is static and just big enough to display a {@link CpuCapture} entirely.
-   * Import Trace mode is triggered when importing a CPU trace.
-   */
-  private final boolean myIsImportTraceMode;
-
-  /**
-   * The imported trace file, it is only used when the stage was initiated in Import Trace mode, otherwise null.
-   */
-  @Nullable
-  private final File myImportedTrace;
-
-  /**
-   * The trace info associated with the imported trace info. This is only generated and used in import mode.
-   */
-  @Nullable
-  private Cpu.CpuTraceInfo myImportedTraceInfo;
-
-  /**
    * Keep track of the {@link Common.Session} that contains this stage, otherwise tasks that happen in background (e.g. parsing a trace) can
    * refer to a different session later if the user changes the session selection in the UI.
    */
@@ -208,20 +189,14 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
    */
   private final Map<Long, CpuTraceInfo> myCompletedTraceIdToInfoMap = new HashMap<>();
 
-  public CpuProfilerStage(@NotNull StudioProfilers profilers) {
-    this(profilers, null);
-  }
-
-  public CpuProfilerStage(@NotNull StudioProfilers profilers, @Nullable File importedTrace) {
-    this(profilers, importedTrace, new CpuCaptureParser(profilers.getIdeServices()));
+  public CpuProfilerStage(@NotNull StudioProfilers profilers){
+    this(profilers,  new CpuCaptureParser(profilers.getIdeServices()));
   }
 
   @VisibleForTesting
-  CpuProfilerStage(@NotNull StudioProfilers profilers, @Nullable File importedTrace, @NotNull CpuCaptureParser captureParser) {
+  CpuProfilerStage(@NotNull StudioProfilers profilers, @NotNull CpuCaptureParser captureParser) {
     super(profilers);
-    myImportedTrace = importedTrace;
     mySession = profilers.getSession();
-    myIsImportTraceMode = importedTrace != null;
 
     myCpuTraceDataSeries = new CpuTraceDataSeries();
     myProfilerConfigModel = new CpuProfilerConfigModel(profilers, this);
@@ -243,7 +218,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
     // Create an event representing the traces within the view range.
     myTraceDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, getCpuTraceDataSeries()));
 
-    myThreadsStates = new CpuThreadsModel(viewRange, profilers, mySession, myIsImportTraceMode);
+    myThreadsStates = new CpuThreadsModel(viewRange, profilers, mySession);
     myCpuKernelModel = new CpuKernelModel(viewRange, this);
     myFramesModel = new CpuFramesModel(viewRange, this);
 
@@ -279,55 +254,24 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
   private RangeSelectionModel buildRangeSelectionModel(@NotNull Range selectionRange, @NotNull Range viewRange) {
     RangeSelectionModel rangeSelectionModel = new RangeSelectionModel(selectionRange, viewRange);
     rangeSelectionModel.addConstraint(myTraceDurations);
-    if (myIsImportTraceMode) {
-      rangeSelectionModel.addListener(new RangeSelectionListener() {
-        @Override
-        public void selectionCreated() {
-          getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectRange();
-        }
+    rangeSelectionModel.addListener(new RangeSelectionListener() {
+      @Override
+      public void selectionCreated() {
+        getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectRange();
+        selectionChanged();
+      }
 
-        @Override
-        public void selectionCleared() {
-          if (myCaptureModel.getCapture() != null) {
-            // when we switch from a session into another session of import trace mode, we first create a new stage, and then the selection
-            // on timeline is cleared which would trigger this method in the new stage, but at that point myCaptureModel.getCapture()
-            // isn't set yet. That's why we need a null check.
-            setAndSelectCapture(myCaptureModel.getCapture());
-          }
-        }
+      @Override
+      public void selectionCleared() {
+        selectionChanged();
+      }
 
-        @Override
-        public void selectionCreationFailure() {
-          if (myCaptureModel.getCapture() != null) {
-            setAndSelectCapture(myCaptureModel.getCapture());
-          }
-        }
-      });
-    }
-    else {
-      rangeSelectionModel.addListener(new RangeSelectionListener() {
-        @Override
-        public void selectionCreated() {
-          getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectRange();
-          selectionChanged();
-        }
-
-        @Override
-        public void selectionCleared() {
-          selectionChanged();
-        }
-
-        @Override
-        public void selectionCreationFailure() {
-          selectionChanged();
-        }
-      });
-    }
+      @Override
+      public void selectionCreationFailure() {
+        selectionChanged();
+      }
+    });
     return rangeSelectionModel;
-  }
-
-  public boolean isImportTraceMode() {
-    return myIsImportTraceMode;
   }
 
   public boolean hasUserUsedCpuCapture() {
@@ -402,16 +346,6 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
 
     myProfilerConfigModel.updateProfilingConfigurations();
     setupRecordingOptions();
-    if (myIsImportTraceMode) {
-      // Legacy capture UI
-      assert myImportedTrace != null;
-      // When in import trace mode, immediately import the trace from the given file and set the resulting capture.
-      // Use session ID as the trace ID.
-      parseAndSelectImportedTrace(myImportedTrace, mySession.getSessionId());
-      // Set the profiler mode to EXPANDED to make sure that L3 panel is shown.
-      setProfilerMode(ProfilerMode.EXPANDED);
-    }
-
     if (getStudioProfilers().getIdeServices().getFeatureConfig().isCpuNewRecordingWorkflowEnabled()) {
       // In the new recording workflow it is always expanded mode.
       setProfilerMode(ProfilerMode.EXPANDED);
@@ -633,89 +567,6 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
     return myCaptureParser;
   }
 
-  /**
-   * Parses a trace {@link File} and set the resulting {@link CpuCapture} as the current capture. If parsing fails, warn the user through an
-   * error balloon.
-   */
-  private void parseAndSelectImportedTrace(@NotNull File traceFile, long traceId) {
-    assert myIsImportTraceMode;
-
-    // We pass no hints for the import mode.
-    CompletableFuture<CpuCapture> capture = myCaptureParser.parse(traceFile, traceId, CpuTraceType.UNSPECIFIED_TYPE, 0, "");
-
-    // TODO (b/79244375): extract callback to its own method
-    Consumer<CpuCapture> parsingCallback = (parsedCapture) -> {
-      if (parsedCapture != null) {
-        StreamingTimeline timeline = getTimeline();
-        Range captureRangeNs = new Range(TimeUnit.MICROSECONDS.toNanos((long)parsedCapture.getRange().getMin()),
-                                         TimeUnit.MICROSECONDS.toNanos((long)parsedCapture.getRange().getMax()));
-        // Give some room to the end of the timeline, so we can properly use the handle to select the capture.
-        double expandAmountNs = IMPORTED_TRACE_VIEW_EXPAND_PERCENTAGE * captureRangeNs.getLength();
-        // Reset expects time in Ns and will convert to Us internally
-        timeline.reset((long)(captureRangeNs.getMin()), (long)(captureRangeNs.getMax() + expandAmountNs));
-        timeline.setIsPaused(true);
-
-        myImportedTraceInfo = Cpu.CpuTraceInfo.newBuilder()
-          .setTraceId(traceId)
-          .setFromTimestamp((long)captureRangeNs.getMin())
-          .setToTimestamp((long)captureRangeNs.getMax())
-          .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
-                              .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
-                                                .setTraceType(parsedCapture.getType())))
-          .build();
-
-        setCaptureState(CaptureState.IDLE);
-        setAndSelectCapture(parsedCapture);
-        // We need to expand the end of the data range. Giving us the padding on the right side to show the view. If we don't do this
-        // and only expand the view we end up with the trace aligned to the right.
-        // [] = view range
-        // - = data range
-        // [    ---------]
-        // This is not the intended result as we want equal spacing on both sides of the
-        // capture. However in the current model we need to expand the data range.
-        double expandAmountUs = TimeUnit.NANOSECONDS.toMicros((long)expandAmountNs);
-        timeline.getViewRange().set(parsedCapture.getRange().getMin() - expandAmountUs,
-                                    parsedCapture.getRange().getMax() + expandAmountUs);
-        setCaptureDetails(DEFAULT_CAPTURE_DETAILS);
-
-
-        if (getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-          EventStreamServer streamServer = getStudioProfilers().getSessionsManager().getEventStreamServer(mySession.getStreamId());
-          if (streamServer != null) {
-            // Insert the CPU_Trace event into the database. This is used by the Sessions' panel to display the correct trace type
-            // associated with the imported file.
-            streamServer.getEventDeque().offer(Common.Event.newBuilder()
-                                                 .setGroupId(myImportedTraceInfo.getTraceId())
-                                                 .setTimestamp((long)captureRangeNs.getMax())
-                                                 .setIsEnded(true)
-                                                 .setKind(Common.Event.Kind.CPU_TRACE)
-                                                 .setCpuTrace(Cpu.CpuTraceData.newBuilder()
-                                                                .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder()
-                                                                                 .setTraceInfo(myImportedTraceInfo)))
-                                                 .build());
-          }
-        }
-      }
-      else if (capture.isCancelled()) {
-        getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_ABORTED);
-      }
-      else {
-        getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
-        // After notifying the listeners that the parser has failed, we set the status to IDLE.
-        setCaptureState(CaptureState.IDLE);
-        // Track import trace failure
-        // TODO (b/78557952): try to get the profiler type from the trace, which should be possible as long as it has a valid header.
-        getStudioProfilers().getIdeServices().getFeatureTracker().trackImportTrace(CpuTraceType.UNSPECIFIED_TYPE, false);
-      }
-    };
-
-    // Parsing is in progress. Handle it asynchronously and set the capture afterwards using the main executor.
-    capture.handleAsync((parsedCapture, exception) -> {
-      parsingCallback.accept(parsedCapture);
-      return parsedCapture;
-    }, getStudioProfilers().getIdeServices().getMainExecutor());
-  }
-
   @NotNull
   private CpuServiceGrpc.CpuServiceBlockingStub getCpuClient() {
     return getStudioProfilers().getClient().getCpuClient();
@@ -775,10 +626,8 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
         || (getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING)) {
       // Capture has finished parsing.
       ensureCaptureInViewRange();
-      if (capture.getSystemTraceData() != null) {
-        if (!isImportTraceMode() && capture.getSystemTraceData().isMissingData()) {
-          getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.ATRACE_BUFFER_OVERFLOW);
-        }
+      if (capture.getSystemTraceData() != null && capture.getSystemTraceData().isMissingData()) {
+        getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.ATRACE_BUFFER_OVERFLOW);
       }
     }
   }
@@ -1165,15 +1014,8 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
   class CpuTraceDataSeries implements DataSeries<CpuTraceInfo> {
     @Override
     public List<SeriesData<CpuTraceInfo>> getDataForRange(Range range) {
-      List<Cpu.CpuTraceInfo> traceInfos;
-      if (myIsImportTraceMode) {
-        // The imported trace info may not be immediately available.
-        traceInfos = myImportedTraceInfo == null ? Collections.emptyList() : Collections.singletonList(myImportedTraceInfo);
-      }
-      else {
-        traceInfos = CpuProfiler.getTraceInfoFromRange(getStudioProfilers().getClient(), mySession, range,
+      List<Cpu.CpuTraceInfo> traceInfos = CpuProfiler.getTraceInfoFromRange(getStudioProfilers().getClient(), mySession, range,
                                                        getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled());
-      }
       List<SeriesData<CpuTraceInfo>> seriesData = new ArrayList<>();
       for (Cpu.CpuTraceInfo protoTraceInfo : traceInfos) {
         CpuTraceInfo info = new CpuTraceInfo(protoTraceInfo);

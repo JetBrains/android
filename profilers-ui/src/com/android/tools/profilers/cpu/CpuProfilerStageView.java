@@ -168,12 +168,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     // Order matters as such our tooltip component should be first so it draws on top of all elements.
     details.add(myTooltipComponent, new TabularLayout.Constraint(0, 0, 3, 1));
 
-    if (!myStage.isImportTraceMode()) {
-      // We shouldn't display the events monitor while in import trace mode.
-      final EventMonitorView eventsView = new EventMonitorView(profilersView, stage.getEventMonitor());
-      eventsView.registerTooltip(myTooltipComponent, getStage());
-      details.add(eventsView.getComponent(), new TabularLayout.Constraint(0, 0));
-    }
+    // We shouldn't display the events monitor while in import trace mode.
+    final EventMonitorView eventsView = new EventMonitorView(profilersView, stage.getEventMonitor());
+    eventsView.registerTooltip(myTooltipComponent, getStage());
+    details.add(eventsView.getComponent(), new TabularLayout.Constraint(0, 0));
 
     TabularLayout mainLayout = new TabularLayout("*");
     mainLayout.setRowSizing(PanelSizing.MONITOR.getRow(), PanelSizing.MONITOR.getRowRule());
@@ -206,7 +204,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     sessions.addDependency(this).onChange(SessionAspect.SELECTED_SESSION, this::sessionChanged);
     sessions.addDependency(this).onChange(SessionAspect.PROFILING_SESSION, this::sessionChanged);
 
-    if (!getStage().hasUserUsedCpuCapture() && !getStage().isImportTraceMode()) {
+    if (!getStage().hasUserUsedCpuCapture()) {
       installProfilingInstructions(myUsageView);
     }
     sessionChanged();
@@ -291,22 +289,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     parent.add(panel, new TabularLayout.Constraint(0, 0), 0);
   }
 
-  @Override
-  public boolean supportsStreaming() {
-    if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
-      // Imported traces will be displayed in the new capture stage. No need to override here.
-      return super.supportsStreaming();
+  private void updateCaptureViewVisibility() {
+    if (myStage.getProfilerMode() == ProfilerMode.EXPANDED) {
+      mySplitter.setFirstComponent(myRecordingOptionsView);
     }
-    return !myStage.isImportTraceMode();
-  }
-
-  @Override
-  public boolean supportsStageNavigation() {
-    if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
-      // Imported traces will be displayed in the new capture stage. No need to override here.
-      return super.supportsStageNavigation();
-    }
-    return !myStage.isImportTraceMode();
   }
 
   /**

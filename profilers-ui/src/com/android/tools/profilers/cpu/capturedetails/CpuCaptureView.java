@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.cpu.capturedetails;
 
+import static com.android.tools.profilers.cpu.capturedetails.RecordingInitiatorPane.STOP_TEXT;
+
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.cpu.*;
@@ -114,7 +116,7 @@ public class CpuCaptureView {
       super(stageView);
       myPanel =
         new StatusPanel(new CpuCaptureViewStatusModel(stageView.getStage(), stageView.getStage().getCaptureStartTimeNs()), "Recording",
-                        CpuProfilerToolbar.STOP_TEXT);
+                        STOP_TEXT);
       myPanel.setAbortButtonEnabled(!stageView.getStage().isApiInitiatedTracingInProgress());
       // Disable the stop recording button on state transition.
       stageView.getStage().getAspect().addDependency(myObserver)

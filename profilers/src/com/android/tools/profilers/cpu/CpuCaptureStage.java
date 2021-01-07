@@ -34,6 +34,7 @@ import com.android.tools.idea.transport.EventStreamServer;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Transport;
+import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
@@ -273,8 +274,17 @@ public class CpuCaptureStage extends Stage<Timeline> {
     myCpuCaptureHandler.parse(capture -> {
       try {
         if (capture == null) {
-          getStudioProfilers().getIdeServices().getMainExecutor()
-            .execute(() -> getStudioProfilers().setStage(new CpuProfilerStage(getStudioProfilers())));
+          // Generic catch all for capture failing to load, this happens for both import and live captures.
+          if (getStudioProfilers().getSessionsManager().isSessionAlive()) {
+            // User will get a notification then sent back to the CpuProfilerStage
+            getStudioProfilers().getIdeServices().getMainExecutor()
+              .execute(() -> getStudioProfilers().setStage(getParentStage()));
+          } else {
+            // If the user was importing a trace the user will be sent to the null stage with an error + notification.
+            getStudioProfilers().getIdeServices().getMainExecutor()
+              .execute(() -> getStudioProfilers().setStage(new NullMonitorStage(getStudioProfilers(), "The profiler was " +
+                              "unable to parse the trace file. Please make sure the file selected is a valid trace.")));
+          }
         }
         else {
           myCapture = capture;
