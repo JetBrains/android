@@ -122,13 +122,9 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
     processedLibraries[sdkLibraryDependency.target.externalName] = sdkLibraryDependency
   }
 
-  // Setup the dependencies for the main artifact, the main dependencies are done first since there scope is more permissive.
-  // This allows us to just skip the dependency if it is already present.
-  setupAndroidDependenciesForArtifact(
-    selectedVariant.mainArtifact,
+  val dependenciesSetupContext = AndroidDependenciesSetupContext(
     this,
     androidModel.features.shouldExportDependencies(),
-    DependencyScope.COMPILE,
     projectDataNode,
     compositeData,
     idToModuleData,
@@ -137,22 +133,14 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
     processedModuleDependencies
   )
 
+  // Setup the dependencies for the main artifact, the main dependencies are done first since there scope is more permissive.
+  // This allows us to just skip the dependency if it is already present.
+  dependenciesSetupContext.setupForArtifact(selectedVariant.mainArtifact, DependencyScope.COMPILE)
   val endCompileIndex = processedLibraries.size
 
   // Setup the dependencies of the test artifact.
   listOfNotNull(selectedVariant.unitTestArtifact, selectedVariant.androidTestArtifact).forEach { testArtifact ->
-    setupAndroidDependenciesForArtifact(
-      testArtifact,
-      this,
-      androidModel.features.shouldExportDependencies(),
-      DependencyScope.TEST,
-      projectDataNode,
-      compositeData,
-      idToModuleData,
-      additionalArtifactsMapper,
-      processedLibraries,
-      processedModuleDependencies
-    )
+      dependenciesSetupContext.setupForArtifact(testArtifact, DependencyScope.TEST)
   }
 
   // Determine an order for the dependencies, for now we put the modules first and the libraries after.
@@ -280,115 +268,116 @@ private fun computeModuleIdForLibraryTarget(
   return if (library.projectPath == ":") projectName else projectName + library.projectPath
 }
 
-private fun setupAndroidDependenciesForArtifact(
-  artifact: IdeBaseArtifact,
-  moduleDataNode: DataNode<out ModuleData>,
-  shouldExportDependencies: Boolean,
-  scope: DependencyScope,
-  projectDataNode: DataNode<ProjectData>,
-  compositeData: CompositeBuildData?,
-  idToModuleData: (String) -> ModuleData?,
-  additionalArtifactsMapper: (ArtifactId, ArtifactPath) -> AdditionalArtifactsPaths?,
-  processedLibraries: MutableMap<String, LibraryDependencyData>,
-  processedModuleDependencies: MutableMap<String, ModuleDependencyData>
+private class AndroidDependenciesSetupContext(
+  private val moduleDataNode: DataNode<out ModuleData>,
+  private val shouldExportDependencies: Boolean,
+  private val projectDataNode: DataNode<ProjectData>,
+  private val compositeData: CompositeBuildData?,
+  private val idToModuleData: (String) -> ModuleData?,
+  private val additionalArtifactsMapper: (ArtifactId, ArtifactPath) -> AdditionalArtifactsPaths?,
+  private val processedLibraries: MutableMap<String, LibraryDependencyData>,
+  private val processedModuleDependencies: MutableMap<String, ModuleDependencyData>
 ) {
-  val dependencies = artifact.level2Dependencies
-  val projectData = projectDataNode.data
 
-  // TODO(rework-12): Sort out the order of dependencies.
-  (dependencies.javaLibraries + dependencies.androidLibraries).forEach { library ->
-    // TODO: Add all pom files from the Sources and javadoc model to the project in a separate DataNode on the project
-    //       this information should be used in a data service to set up the project service.
+  fun setupForArtifact(artifact: IdeBaseArtifact, scope: DependencyScope) {
+    val dependencies = artifact.level2Dependencies
+    val projectData = projectDataNode.data
 
-    val libraryName = convertToLibraryName(library, projectData.linkedExternalProjectPath)
+    // TODO(rework-12): Sort out the order of dependencies.
+    (dependencies.javaLibraries + dependencies.androidLibraries).forEach { library ->
+      // TODO: Add all pom files from the Sources and javadoc model to the project in a separate DataNode on the project
+      //       this information should be used in a data service to set up the project service.
 
-    // Skip if already present
-    if (processedLibraries.containsKey(libraryName)) return@forEach
+      val libraryName = convertToLibraryName(library, projectData.linkedExternalProjectPath)
 
-    // Add all the required binary paths from the library.
-    val libraryData = LibraryData(GradleConstants.SYSTEM_ID, libraryName, false)
-    when (library.type) {
-      IdeLibrary.LibraryType.LIBRARY_JAVA -> {
-        libraryData.addPath(BINARY, library.artifact.absolutePath)
-      }
-      IdeLibrary.LibraryType.LIBRARY_ANDROID -> {
-        libraryData.addPath(BINARY, library.compileJarFile)
-        libraryData.addPath(BINARY, library.resFolder)
-        // TODO: Should this be binary? Do we need the platform to allow custom types here?
-        libraryData.addPath(BINARY, library.manifest)
-        library.localJars.forEach { localJar ->
-          libraryData.addPath(BINARY, localJar)
+      // Skip if already present
+      if (processedLibraries.containsKey(libraryName)) return@forEach
+
+      // Add all the required binary paths from the library.
+      val libraryData = LibraryData(GradleConstants.SYSTEM_ID, libraryName, false)
+      when (library.type) {
+        IdeLibrary.LibraryType.LIBRARY_JAVA -> {
+          libraryData.addPath(BINARY, library.artifact.absolutePath)
         }
-      }
-    }
-
-    // Add the JavaDoc and sources location if we have them.
-    additionalArtifactsMapper(stripExtensionAndClassifier(libraryName), library.artifact)?.also { (sources, javadocs, sampleSources) ->
-      sources?.also { libraryData.addPath(SOURCE, it.absolutePath) }
-      javadocs?.also { libraryData.addPath(DOC, it.absolutePath) }
-      sampleSources?.also { libraryData.addPath(SOURCE, it.absolutePath) }
-    }
-
-    // Add external annotations.
-    // TODO: Why do we only do this for Android modules?
-    // TODO: Add this to the model instead!
-    if (library.type == IdeLibrary.LibraryType.LIBRARY_ANDROID) {
-      (library.localJars + library.compileJarFile + library.resFolder).mapNotNull {
-        FilePaths.toSystemDependentPath(it)?.path
-      }.forEach { binaryPath ->
-        if (binaryPath.endsWith(separatorChar + FD_RES)) {
-          val annotationsFile = File(binaryPath.removeSuffix(FD_RES) + FN_ANNOTATIONS_ZIP)
-          if (annotationsFile.isFile) {
-            libraryData.addPath(LibraryPathType.ANNOTATION, annotationsFile.absolutePath)
-          }
-        }
-        else if ((libraryName.startsWith(ANDROIDX_ANNOTATIONS_ARTIFACT) ||
-                  libraryName.startsWith(ANNOTATIONS_LIB_ARTIFACT)) &&
-                 binaryPath.endsWith(DOT_JAR)) {
-          val annotationsFile = File(binaryPath.removeSuffix(DOT_JAR) + "-" + FN_ANNOTATIONS_ZIP)
-          if (annotationsFile.isFile) {
-            libraryData.addPath(LibraryPathType.ANNOTATION, annotationsFile.absolutePath)
+        IdeLibrary.LibraryType.LIBRARY_ANDROID -> {
+          libraryData.addPath(BINARY, library.compileJarFile)
+          libraryData.addPath(BINARY, library.resFolder)
+          // TODO: Should this be binary? Do we need the platform to allow custom types here?
+          libraryData.addPath(BINARY, library.manifest)
+          library.localJars.forEach { localJar ->
+            libraryData.addPath(BINARY, localJar)
           }
         }
       }
+
+      // Add the JavaDoc and sources location if we have them.
+      additionalArtifactsMapper(stripExtensionAndClassifier(libraryName), library.artifact)?.also { (sources, javadocs, sampleSources) ->
+        sources?.also { libraryData.addPath(SOURCE, it.absolutePath) }
+        javadocs?.also { libraryData.addPath(DOC, it.absolutePath) }
+        sampleSources?.also { libraryData.addPath(SOURCE, it.absolutePath) }
+      }
+
+      // Add external annotations.
+      // TODO: Why do we only do this for Android modules?
+      // TODO: Add this to the model instead!
+      if (library.type == IdeLibrary.LibraryType.LIBRARY_ANDROID) {
+        (library.localJars + library.compileJarFile + library.resFolder).mapNotNull {
+          FilePaths.toSystemDependentPath(it)?.path
+        }.forEach { binaryPath ->
+          if (binaryPath.endsWith(separatorChar + FD_RES)) {
+            val annotationsFile = File(binaryPath.removeSuffix(FD_RES) + FN_ANNOTATIONS_ZIP)
+            if (annotationsFile.isFile) {
+              libraryData.addPath(LibraryPathType.ANNOTATION, annotationsFile.absolutePath)
+            }
+          }
+          else if ((libraryName.startsWith(ANDROIDX_ANNOTATIONS_ARTIFACT) ||
+                    libraryName.startsWith(ANNOTATIONS_LIB_ARTIFACT)) &&
+                   binaryPath.endsWith(DOT_JAR)) {
+            val annotationsFile = File(binaryPath.removeSuffix(DOT_JAR) + "-" + FN_ANNOTATIONS_ZIP)
+            if (annotationsFile.isFile) {
+              libraryData.addPath(LibraryPathType.ANNOTATION, annotationsFile.absolutePath)
+            }
+          }
+        }
+      }
+
+      // Work out the level of the library, if the library path is inside the module directory we treat
+      // this as a Module level library. Otherwise we treat it as a Project level one.
+      var libraryLevel =
+        if (library.isModuleLevel(moduleDataNode.data.moduleFileDirectoryPath)) LibraryLevel.MODULE
+        else LibraryLevel.PROJECT
+
+      if (libraryLevel == LibraryLevel.PROJECT && !linkProjectLibrary(null, projectDataNode, libraryData)) {
+        libraryLevel = LibraryLevel.MODULE
+      }
+
+      // Finally create the LibraryDependencyData
+      val libraryDependencyData = LibraryDependencyData(moduleDataNode.data, libraryData, libraryLevel)
+      libraryDependencyData.scope = scope
+      libraryDependencyData.isExported = shouldExportDependencies
+      processedLibraries[libraryName] = libraryDependencyData
     }
 
-    // Work out the level of the library, if the library path is inside the module directory we treat
-    // this as a Module level library. Otherwise we treat it as a Project level one.
-    var libraryLevel =
-      if (library.isModuleLevel(moduleDataNode.data.moduleFileDirectoryPath)) LibraryLevel.MODULE
-      else LibraryLevel.PROJECT
+    dependencies.moduleDependencies.filter { library ->
+      !library.projectPath.isNullOrEmpty()
+    }.forEach { library ->
+      val targetModuleId =
+        computeModuleIdForLibraryTarget(library, projectData, compositeData) ?: return@forEach
+      // Skip is already present
+      if (processedModuleDependencies.containsKey(targetModuleId)) return@forEach
 
-    if (libraryLevel == LibraryLevel.PROJECT && !linkProjectLibrary(null, projectDataNode, libraryData)) {
-      libraryLevel = LibraryLevel.MODULE
+      val targetData = idToModuleData(targetModuleId) ?: return@forEach
+      // Skip if the dependency is a dependency on itself, this can be produced by Gradle when the a module
+      // dependency on the module in a different scope ie test code depending on the production code.
+      // In IDEA this dependency is implicit.
+      // TODO(rework-14): Do we need this special case, is it handled by IDEAs data service.
+      // See https://issuetracker.google.com/issues/68016998.
+      if (targetData == moduleDataNode.data) return@forEach
+      val moduleDependencyData = ModuleDependencyData(moduleDataNode.data, targetData)
+      moduleDependencyData.scope = scope
+      moduleDependencyData.isExported = shouldExportDependencies
+      processedModuleDependencies[targetModuleId] = moduleDependencyData
     }
-
-    // Finally create the LibraryDependencyData
-    val libraryDependencyData = LibraryDependencyData(moduleDataNode.data, libraryData, libraryLevel)
-    libraryDependencyData.scope = scope
-    libraryDependencyData.isExported = shouldExportDependencies
-    processedLibraries[libraryName] = libraryDependencyData
-  }
-
-  dependencies.moduleDependencies.filter { library ->
-    !library.projectPath.isNullOrEmpty()
-  }.forEach { library ->
-    val targetModuleId =
-      computeModuleIdForLibraryTarget(library, projectData, compositeData) ?: return@forEach
-    // Skip is already present
-    if (processedModuleDependencies.containsKey(targetModuleId)) return@forEach
-
-    val targetData = idToModuleData(targetModuleId) ?: return@forEach
-    // Skip if the dependency is a dependency on itself, this can be produced by Gradle when the a module
-    // dependency on the module in a different scope ie test code depending on the production code.
-    // In IDEA this dependency is implicit.
-    // TODO(rework-14): Do we need this special case, is it handled by IDEAs data service.
-    // See https://issuetracker.google.com/issues/68016998.
-    if (targetData == moduleDataNode.data) return@forEach
-    val moduleDependencyData = ModuleDependencyData(moduleDataNode.data, targetData)
-    moduleDependencyData.scope = scope
-    moduleDependencyData.isExported = shouldExportDependencies
-    processedModuleDependencies[targetModuleId] = moduleDependencyData
   }
 }
 
@@ -470,11 +459,9 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
 
     // Setup the dependencies for the main artifact, the main dependencies are done first since there scope is more permissive.
     // This allows us to just skip the dependency if it is already present.
-    setupAndroidDependenciesForArtifact(
-      ideBaseArtifact,
+    AndroidDependenciesSetupContext(
       gradleSourceSetData,
       androidModel.features.shouldExportDependencies(),
-      dependencyScope,
       projectDataNode,
       compositeData,
       idToModuleData,
@@ -482,6 +469,7 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
       processedLibraries,
       processedModuleDependencies
     )
+      .setupForArtifact(ideBaseArtifact, dependencyScope)
 
     var orderIndex = 0
     processedModuleDependencies.forEach { (_, moduleDependencyData) ->
