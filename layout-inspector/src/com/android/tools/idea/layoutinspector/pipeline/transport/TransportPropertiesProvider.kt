@@ -17,7 +17,6 @@ package com.android.tools.idea.layoutinspector.pipeline.transport
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.tools.idea.layoutinspector.common.StringTableImpl
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode

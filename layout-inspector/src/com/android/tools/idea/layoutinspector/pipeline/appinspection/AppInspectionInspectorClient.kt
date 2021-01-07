@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
@@ -57,7 +58,7 @@ class AppInspectionInspectorClient(
 
   override fun doConnect() {
     runBlocking {
-      viewInspector = ViewLayoutInspectorClient.launch(apiServices, model.project, process, scope, ::fireError)
+      viewInspector = ViewLayoutInspectorClient.launch(apiServices, model.project, process, scope, ::fireError, ::fireTreeEvent)
     }
 
     if (isCapturing) {
@@ -96,7 +97,7 @@ class AppInspectionInspectorClient(
   }
 
   override val capabilities = EnumSet.of(InspectorClient.Capability.SUPPORTS_CONTINUOUS_MODE)!!
-  override val treeLoader: TreeLoader = AppInspectionTreeLoader(model.project, this)
+  override val treeLoader: TreeLoader = AppInspectionTreeLoader(model.project)
   override val provider: PropertiesProvider = AppInspectionPropertiesProvider()
   override val isCapturing: Boolean
     get() = InspectorClientSettings.isCapturingModeOn
