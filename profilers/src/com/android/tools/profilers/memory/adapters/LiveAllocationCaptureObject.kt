@@ -27,7 +27,6 @@ import com.android.tools.profiler.proto.Memory.NativeCallStack
 import com.android.tools.profiler.proto.Memory.NativeCallStack.NativeFrame
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsRequest
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSnapshotRequest
-import com.android.tools.profiler.proto.MemoryProfiler.JNIGlobalRefsEventsRequest
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest
 import com.android.tools.profilers.ProfilerClient
@@ -36,7 +35,6 @@ import com.android.tools.profilers.memory.CaptureSelectionAspect
 import com.android.tools.profilers.memory.MemoryProfiler.Companion.hasOnlyFullAllocationTrackingWithinRegion
 import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute.*
-import com.android.tools.profilers.memory.adapters.classifiers.ClassSet
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
 import com.android.tools.profilers.stacktrace.ThreadId
 import com.google.common.annotations.VisibleForTesting
@@ -44,6 +42,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.diagnostic.Logger
 import gnu.trove.TIntObjectHashMap
 import gnu.trove.TLongObjectHashMap
+import org.objectweb.asm.Type
 import java.io.OutputStream
 import java.util.Comparator
 import java.util.LinkedHashMap
@@ -184,7 +183,7 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
       fun<T> TLongObjectHashMap<T>.putIfAbsent(k: Long, v: T) { if (!containsKey(k)) { put(k, v) } }
       for (contexts in getAllocationContexts(contextEndTimeNs, endTimeNs)) {
         // We don't have super class information at the moment so just assign invalid id as the super class id.
-        contexts.classesList.forEach { classDb.registerClass(it.classId.toLong(), it.className) }
+        contexts.classesList.forEach { classDb.registerClass(it.classId.toLong(), Type.getType(it.className).className) }
         contexts.methodsList.forEach { methodIdMap.putIfAbsent(it.methodId, it) }
         contexts.encodedStacksList.forEach { callstackMap.putIfAbsent(it.stackId, it) }
         contexts.threadInfosList.forEach { threadIdMap.putIfAbsent(it.threadId, ThreadId(it.threadName)) }
