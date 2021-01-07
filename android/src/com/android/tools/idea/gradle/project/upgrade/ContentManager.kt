@@ -46,17 +46,19 @@ class ContentManager(val project: Project) {
     toolWindow.contentManager.removeAllContents(true)
     val processor = AgpUpgradeRefactoringProcessor(project, current, new)
     val model = ToolWindowModel(processor)
-    val component = JBPanel<JBPanel<*>>().apply {
-      layout = BorderLayout()
-      val tree = makeCenterComponent(model) as JTree
-      val textField = makeTopComponent(model, tree)
-      add(textField, BorderLayout.NORTH)
-      add(tree, BorderLayout.CENTER)
-    }
+    val component = createContentComponent(model)
     val content = ContentFactory.SERVICE.getInstance().createContent(component, "Hello, Upgrade!", true)
     content.isPinned = true
     toolWindow.contentManager.addContent(content)
     toolWindow.show()
+  }
+
+  internal fun createContentComponent(model: ToolWindowModel) = JBPanel<JBPanel<*>>().apply {
+    layout = BorderLayout()
+    val tree = makeCenterComponent(model) as JTree
+    val textField = makeTopComponent(model, tree)
+    add(textField, BorderLayout.NORTH)
+    add(tree, BorderLayout.CENTER)
   }
 
   internal fun makeTopComponent(model: ToolWindowModel, tree: JTree): JComponent {
