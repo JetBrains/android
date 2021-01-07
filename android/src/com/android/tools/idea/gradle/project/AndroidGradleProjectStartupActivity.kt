@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.project
 
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
@@ -28,6 +30,7 @@ import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProje
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL
 import com.android.tools.idea.gradle.project.sync.setup.post.setUpModules
+import com.android.tools.idea.gradle.project.upgrade.shouldForcePluginUpgrade
 import com.android.tools.idea.gradle.util.AndroidStudioPreferences
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet
@@ -267,12 +270,18 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
 
   val attachModelActions = moduleToModelPairs.flatMap { (module, moduleDataNode) ->
 
+    fun AndroidModuleModel.validate() =
+      // the use of `project' here might look dubious (since we're in startup) but the operation of shouldForcePluginUpgrade does not
+      // depend on the state of the project information.
+      !shouldForcePluginUpgrade(project, modelVersion, GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()))
+
     /** Returns `null` if validation fails. */
     fun <T, V : Facet<*>> prepare(
       dataKey: Key<T>,
       getFacet: Module.() -> V?,
       attach: V.(T) -> Unit,
-      configure: T.(Module) -> Unit = { _ -> }
+      configure: T.(Module) -> Unit = { _ -> },
+      validate: T.() -> Boolean = { true }
     ): (() -> Unit)? {
       val model =
         ExternalSystemApiUtil
@@ -280,6 +289,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
           .singleOrNull() // None or one node is expected here.
           ?.data
         ?: return { /* Nothing to do if no model present. */ }
+      if (!model.validate()) requestSync("invalid model found for $dataKey in ${module.name}")
       val facet = module.getFacet() ?: run {
         requestSync("no facet found for $dataKey in ${module.name} module")
         return null  // Missing facet detected, triggering sync.
@@ -290,7 +300,8 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     }
 
     listOf(
-      prepare(ANDROID_MODEL, AndroidFacet::getInstance, AndroidModel::set, AndroidModuleModel::setModule) ?: return,
+      prepare(ANDROID_MODEL, AndroidFacet::getInstance, AndroidModel::set, AndroidModuleModel::setModule,
+              validate = AndroidModuleModel::validate) ?: return,
       prepare(JAVA_MODULE_MODEL, JavaFacet::getInstance, JavaFacet::setJavaModuleModel) ?: return,
       prepare(GRADLE_MODULE_MODEL, GradleFacet::getInstance, GradleFacet::setGradleModuleModel) ?: return,
       prepare(NDK_MODEL, { NdkFacet.getInstance(this) }, NdkFacet::setNdkModuleModel) ?: return
