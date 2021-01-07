@@ -363,15 +363,6 @@ public class LayoutlibSceneManager extends SceneManager {
    *
    * @param model the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
    * @param designSurface the {@link DesignSurface} user to present the result of the renders.
-   */
-  public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface) {
-    this(model, designSurface, LayoutScannerConfiguration.getDISABLED());
-  }
-
-  /**
-   * Creates a new LayoutlibSceneManager with the default settings for running render requests.
-   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface)}
-   *
    * @param config configuration for layout validation when rendering.
    */
   public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface, LayoutScannerConfiguration config) {
