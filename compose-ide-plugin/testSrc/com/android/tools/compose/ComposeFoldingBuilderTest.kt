@@ -24,8 +24,8 @@ import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
 import org.jetbrains.android.compose.stubComposableAnnotation
-import org.junit.Before
 import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -34,7 +34,7 @@ import org.junit.Test
  */
 class ComposeFoldingBuilderTest {
   @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  val projectRule = AndroidProjectRule.inMemory()
 
   private val myFixture: CodeInsightTestFixtureImpl by lazy { projectRule.fixture as CodeInsightTestFixtureImpl }
 
