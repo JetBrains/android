@@ -24,11 +24,14 @@ import com.android.utils.Pair
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats
+import com.intellij.openapi.util.io.FileUtil
 import io.grpc.stub.StreamObserver
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import java.io.File
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
@@ -59,11 +62,12 @@ class TraceProcessorServiceImplTest {
     val traceLoaded = ideService.loadTrace(10, traceFile, fakeIdeProfilerServices)
 
     assertThat(traceLoaded).isTrue()
-
+    val symbolsFile = File("${FileUtil.getTempDirectory()}${File.separator}10.symbols")
     val expectedRequest = TraceProcessor.LoadTraceRequest.newBuilder()
       .setTraceId(10)
       .setTracePath(traceFile.absolutePath)
       .addSymbolPath("/fake/sym/dir/")
+      .setSymbolizedOutputPath(symbolsFile.absolutePath)
       .build()
     assertThat(fakeGrpcService.lastLoadTraceRequest).isEqualTo(expectedRequest)
 

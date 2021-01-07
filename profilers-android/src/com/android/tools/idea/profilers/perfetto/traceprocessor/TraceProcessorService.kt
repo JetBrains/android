@@ -39,8 +39,10 @@ import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.wm.ex.WindowManagerEx
 import java.io.File
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 /**
@@ -100,10 +102,13 @@ class TraceProcessorServiceImpl(
     val stopwatch = Stopwatch.createStarted(ticker)
     val symbolPaths = ideProfilerServices.nativeSymbolsDirectories
     LOGGER.info("TPD Service: Loading trace $traceId: ${traceFile.absolutePath}")
+    val symbolsFile = File("${FileUtil.getTempDirectory()}${File.separator}$traceId.symbols")
+    symbolsFile.deleteOnExit()
     val requestProto = LoadTraceRequest.newBuilder()
       .setTraceId(traceId)
       .setTracePath(traceFile.absolutePath)
       .addAllSymbolPath(symbolPaths)
+      .setSymbolizedOutputPath(symbolsFile.absolutePath)
       .build()
 
     val queryResult = client.loadTrace(requestProto, ideProfilerServices.featureTracker)
