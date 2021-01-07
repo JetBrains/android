@@ -7,6 +7,7 @@ import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessit
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT
+import com.intellij.ide.plugins.newui.HorizontalLayout
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.RegisterToolWindowTask
@@ -63,7 +64,7 @@ class ContentManager(val project: Project) {
 
   internal fun makeTopComponent(model: ToolWindowModel, tree: JTree): JComponent {
     val panel = JBPanel<JBPanel<*>>()
-    panel.alignmentX = LEFT_ALIGNMENT // obviously this doesn't work to left-align the panel itself, *sigh*
+    panel.layout = HorizontalLayout(5)
     panel.add(JBLabel("Upgrading from ${model.processor.current} to"))
     val textField = JBTextField("${model.processor.new}")
     textField.addActionListener { _ ->
