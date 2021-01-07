@@ -20,7 +20,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.layoutinspector.common.StringTable
-import com.android.tools.idea.layoutinspector.common.StringTableImpl
+import com.android.tools.idea.layoutinspector.pipeline.transport.StringTableImpl
 import com.android.tools.idea.layoutinspector.resource.data.Configuration
 import com.android.tools.idea.layoutinspector.resource.data.AppContext
 import com.android.tools.idea.layoutinspector.resource.data.Resource

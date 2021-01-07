@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.pipeline.appinspection
+package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
 
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
@@ -25,11 +25,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Event
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.ErrorEvent
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Event
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.LayoutEvent
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StartFetchCommand
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StopFetchCommand
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.WindowRootsEvent
 
 const val VIEW_LAYOUT_INSPECTOR_ID = "layoutinspector.view.inspection"
 private val JAR = AppInspectorJar("layoutinspector-view-inspection.jar",
@@ -48,7 +49,18 @@ private val JAR = AppInspectorJar("layoutinspector-view-inspection.jar",
 class ViewLayoutInspectorClient(
   eventScope: CoroutineScope,
   private val messenger: AppInspectorMessenger,
-  private val fireError: (String) -> Unit = {}) {
+  private val fireError: (String) -> Unit = {},
+  private val fireTreeEvent: (Data) -> Unit = {},
+) {
+
+  /**
+   * Data packaged up and sent via [fireTreeEvent], needed for constructing the tree view in the
+   * layout inspector.
+   */
+  class Data(
+    val rootIds: List<Long>,
+    val layoutEvent: LayoutEvent
+  )
 
   companion object {
     /**
@@ -62,12 +74,15 @@ class ViewLayoutInspectorClient(
                        project: Project,
                        process: ProcessDescriptor,
                        eventScope: CoroutineScope,
-                       fireError: (String) -> Unit): ViewLayoutInspectorClient {
+                       fireError: (String) -> Unit,
+                       fireTreeEvent: (Data) -> Unit): ViewLayoutInspectorClient {
       val params = LaunchParameters(process, VIEW_LAYOUT_INSPECTOR_ID, JAR, project.name)
       val messenger = apiServices.launchInspector(params)
-      return ViewLayoutInspectorClient(eventScope, messenger, fireError)
+      return ViewLayoutInspectorClient(eventScope, messenger, fireError, fireTreeEvent)
     }
   }
+
+  private val currRoots = mutableListOf<Long>()
 
   init {
     eventScope.launch {
@@ -75,6 +90,7 @@ class ViewLayoutInspectorClient(
         val event = Event.parseFrom(eventBytes)
         when (event.specializedCase) {
           Event.SpecializedCase.ERROR_EVENT -> handleErrorEvent(event.errorEvent)
+          Event.SpecializedCase.ROOTS_EVENT -> handleRootsEvent(event.rootsEvent)
           Event.SpecializedCase.LAYOUT_EVENT -> handleLayoutEvent(event.layoutEvent)
           else -> error { "Unhandled event case: ${event.specializedCase}" }
         }
@@ -100,8 +116,13 @@ class ViewLayoutInspectorClient(
     fireError(errorEvent.message)
   }
 
+  private fun handleRootsEvent(rootsEvent: WindowRootsEvent) {
+    currRoots.clear()
+    currRoots.addAll(rootsEvent.idsList)
+  }
+
   private fun handleLayoutEvent(layoutEvent: LayoutEvent) {
-    // TODO: Update model with fetched data
+    fireTreeEvent(Data(currRoots, layoutEvent))
   }
 }
 
