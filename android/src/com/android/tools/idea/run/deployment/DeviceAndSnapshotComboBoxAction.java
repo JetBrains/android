@@ -41,7 +41,6 @@ import java.util.function.BiFunction;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
-import java.util.stream.Collectors;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JComponent;
@@ -333,11 +332,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   }
 
   private void setActiveExecutionTarget(@NotNull Project project, @NotNull Set<@NotNull Target> targets) {
-    Set<Key> keys = targets.stream()
-      .map(Target::getDeviceKey)
-      .collect(Collectors.toSet());
-
     AsyncDevicesGetter getter = myDevicesGetterGetter.apply(project);
-    myExecutionTargetServiceGetInstance.apply(project).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(keys, getter));
+    myExecutionTargetServiceGetInstance.apply(project).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(targets, getter));
   }
 }
