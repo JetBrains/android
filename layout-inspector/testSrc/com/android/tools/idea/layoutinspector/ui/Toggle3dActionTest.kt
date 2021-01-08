@@ -17,7 +17,7 @@ package com.android.tools.idea.layoutinspector.ui
 
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutinspector.model
-import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.PNG_AS_REQUESTED
+import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.BITMAP_AS_REQUESTED
 import com.android.tools.idea.layoutinspector.model.FakeAndroidWindow
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.window
@@ -89,7 +89,7 @@ class Toggle3dActionTest {
 
   @Test
   fun testNoRendererFallback() {
-    val window = window(3, 1, imageType = PNG_AS_REQUESTED) {
+    val window = window(3, 1, imageType = BITMAP_AS_REQUESTED) {
       image()
       view(2)
     }

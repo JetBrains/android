@@ -23,7 +23,7 @@ import com.android.tools.adtui.actions.ZoomResetAction
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.editor.EditorActionsFloatingToolbarProvider
 import com.android.tools.editor.EditorActionsToolbarActionGroups
-import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.PNG_AS_REQUESTED
+import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.BITMAP_AS_REQUESTED
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
@@ -69,7 +69,7 @@ object Toggle3dAction : AnAction(MODE_3D) {
       event.presentation.text =
         when {
           model?.overlay != null -> "Rotation not available when overlay is active"
-          model?.pictureType == PNG_AS_REQUESTED -> "No compatible renderer found for device image, rotation not available"
+          model?.pictureType == BITMAP_AS_REQUESTED -> "No compatible renderer found for device image, rotation not available"
           else -> "Rotation not available for devices below API 29"
         }
     }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.transport
 
+import com.android.io.readImage
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.argThat
@@ -29,12 +30,14 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.protobuf.TextFormat
+import com.android.tools.layoutinspector.LayoutInspectorUtils
 import com.android.tools.layoutinspector.SkiaViewNode
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.testFramework.ProjectRule
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
@@ -43,7 +46,9 @@ import org.mockito.internal.verification.Times
 import java.awt.Image
 import java.awt.Polygon
 import java.awt.image.BufferedImage
-import java.nio.file.Files
+import java.io.ByteArrayOutputStream
+import java.nio.ByteBuffer
+import java.util.zip.Deflater
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
@@ -158,6 +163,35 @@ class TransportTreeLoaderTest {
   @get:Rule
   val projectRule = ProjectRule()
 
+  private lateinit var sampleImage: BufferedImage
+  private lateinit var sampleDeflatedBytes: ByteArray
+
+  @Before
+  fun setUp() {
+    val origImage = getWorkspaceRoot().resolve("$TEST_DATA_PATH/image1.png").readImage()
+    sampleImage = LayoutInspectorUtils.createImage565(ByteBuffer.allocate(origImage.width * origImage.height * 2), origImage.width,
+                                                      origImage.height)
+    val graphics = sampleImage.graphics
+    graphics.drawImage(origImage, 0, 0, null)
+    val deflater = Deflater(Deflater.BEST_SPEED)
+    val dataElements = sampleImage.raster.getDataElements(0, 0, sampleImage.width, sampleImage.height,
+                                                          ShortArray(sampleImage.width * sampleImage.height)) as ShortArray
+    val imageBytes = ArrayList<Byte>(sampleImage.width * sampleImage.height * 2)
+    dataElements.flatMapTo(imageBytes) { listOf((it.toInt() and 0xFF).toByte(), (it.toInt() ushr 8).toByte()) }
+    deflater.setInput(imageBytes.toByteArray())
+    deflater.finish()
+    val buffer = ByteArray(1024 * 100)
+    val baos = ByteArrayOutputStream()
+    while (!deflater.finished()) {
+      val count = deflater.deflate(buffer)
+      if (count <= 0) {
+        break
+      }
+      baos.write(buffer, 0, count)
+    }
+    baos.flush()
+    sampleDeflatedBytes = baos.toByteArray()
+  }
   /**
    * Creates a mock [TransportInspectorClient] with tree loader initialized.
    *
@@ -255,24 +289,26 @@ class TransportTreeLoaderTest {
 
   @Test
   fun testFallback() {
-    val imageFile = getWorkspaceRoot().resolve("$TEST_DATA_PATH/image1.png")
-    val imageBytes = Files.readAllBytes(imageFile)
     val event = LayoutInspectorProto.LayoutInspectorEvent.newBuilder(event).apply {
       tree = LayoutInspectorProto.ComponentTreeEvent.newBuilder(tree).apply {
-        payloadType = PayloadType.PNG_AS_REQUESTED
+        payloadType = PayloadType.BITMAP_AS_REQUESTED
+        root = LayoutInspectorProto.View.newBuilder(root).apply {
+          width = sampleImage.width
+          height = sampleImage.height
+        }.build()
       }.build()
     }.build()
 
     val client = createMockTransportClient()
-    `when`(client.getPayload(111)).thenReturn(imageBytes)
+    `when`(client.getPayload(111)).thenReturn(sampleDeflatedBytes)
 
     val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project))!!
     window!!.refreshImages(1.0)
     val tree = window.root
 
-    assertThat(window.imageType).isEqualTo(ImageType.PNG_AS_REQUESTED)
+    assertThat(window.imageType).isEqualTo(ImageType.BITMAP_AS_REQUESTED)
     ViewNode.readDrawChildren { drawChildren ->
-      ImageDiffUtil.assertImageSimilar(imageFile, (tree.drawChildren()[0] as DrawViewImage).image as BufferedImage, 0.0)
+      ImageDiffUtil.assertImageSimilar("image1.png", sampleImage, (tree.drawChildren()[0] as DrawViewImage).image as BufferedImage, 0.0)
       assertThat(tree.flatten().flatMap { it.drawChildren().asSequence() }.count { it is DrawViewImage }).isEqualTo(1)
     }
     verify(client).logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
@@ -334,7 +370,7 @@ class TransportTreeLoaderTest {
 
   @Test
   fun testEmptyTree() {
-    val eventTreeEvent = LayoutInspectorProto.LayoutInspectorEvent.newBuilder().apply {
+    val emptyTreeEvent = LayoutInspectorProto.LayoutInspectorEvent.newBuilder().apply {
       tree = LayoutInspectorProto.ComponentTreeEvent.newBuilder(tree).apply {
         payloadType = PayloadType.NONE
         generation = 17
@@ -343,8 +379,29 @@ class TransportTreeLoaderTest {
 
     val client = createMockTransportClient()
     val skiaParser: SkiaParserService = mock()
-    val (window, generation) = client.treeLoader.loadComponentTree(eventTreeEvent, ResourceLookup(projectRule.project), skiaParser)!!
+    val (window, generation) = client.treeLoader.loadComponentTree(emptyTreeEvent, ResourceLookup(projectRule.project), skiaParser)!!
     assertThat(window).isNull()
     assertThat(generation).isEqualTo(17)
+  }
+
+  @Test
+  fun testBitmap() {
+    val client = createMockTransportClient()
+    `when`(client.getPayload(1111)).thenReturn(sampleDeflatedBytes)
+    val event = LayoutInspectorProto.LayoutInspectorEvent.newBuilder().apply {
+      tree = LayoutInspectorProto.ComponentTreeEvent.newBuilder().apply {
+        root = LayoutInspectorProto.View.newBuilder().apply {
+          drawId = 1
+          width = sampleImage.width
+          height = sampleImage.height
+        }.build()
+        payloadId = 1111
+        payloadType = PayloadType.BITMAP_AS_REQUESTED
+      }.build()
+    }.build()
+    val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project))!!
+    window!!.refreshImages(1.0)
+    val resultImage = ViewNode.readDrawChildren { drawChildren -> (window.root.drawChildren()[0] as DrawViewImage).image }
+    ImageDiffUtil.assertImageSimilar("image1.png", sampleImage, resultImage, 0.01)
   }
 }
