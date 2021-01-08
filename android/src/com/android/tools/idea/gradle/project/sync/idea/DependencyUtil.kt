@@ -310,35 +310,10 @@ private class AndroidDependenciesSetupContext(
         }
       }
 
-      // Add the JavaDoc and sources location if we have them.
-      additionalArtifactsMapper(stripExtensionAndClassifier(libraryName), library.artifact)?.also { (sources, javadocs, sampleSources) ->
-        sources?.also { libraryData.addPath(SOURCE, it.absolutePath) }
-        javadocs?.also { libraryData.addPath(DOC, it.absolutePath) }
-        sampleSources?.also { libraryData.addPath(SOURCE, it.absolutePath) }
-      }
+      setupSourcesAndJavaDocsFrom(libraryData, libraryName, library)
 
-      // Add external annotations.
-      // TODO: Why do we only do this for Android modules?
-      // TODO: Add this to the model instead!
       if (library.type == IdeLibrary.LibraryType.LIBRARY_ANDROID) {
-        (library.localJars + library.compileJarFile + library.resFolder).mapNotNull {
-          FilePaths.toSystemDependentPath(it)?.path
-        }.forEach { binaryPath ->
-          if (binaryPath.endsWith(separatorChar + FD_RES)) {
-            val annotationsFile = File(binaryPath.removeSuffix(FD_RES) + FN_ANNOTATIONS_ZIP)
-            if (annotationsFile.isFile) {
-              libraryData.addPath(LibraryPathType.ANNOTATION, annotationsFile.absolutePath)
-            }
-          }
-          else if ((libraryName.startsWith(ANDROIDX_ANNOTATIONS_ARTIFACT) ||
-                    libraryName.startsWith(ANNOTATIONS_LIB_ARTIFACT)) &&
-                   binaryPath.endsWith(DOT_JAR)) {
-            val annotationsFile = File(binaryPath.removeSuffix(DOT_JAR) + "-" + FN_ANNOTATIONS_ZIP)
-            if (annotationsFile.isFile) {
-              libraryData.addPath(LibraryPathType.ANNOTATION, annotationsFile.absolutePath)
-            }
-          }
-        }
+        setupAnnotationsFrom(libraryData, libraryName, library)
       }
 
       // Work out the level of the library, if the library path is inside the module directory we treat
@@ -377,6 +352,47 @@ private class AndroidDependenciesSetupContext(
       moduleDependencyData.scope = scope
       moduleDependencyData.isExported = shouldExportDependencies
       processedModuleDependencies[targetModuleId] = moduleDependencyData
+    }
+  }
+
+  private fun setupSourcesAndJavaDocsFrom(
+    libraryData: LibraryData,
+    libraryName: String,
+    library: IdeLibrary
+  ) {
+    val (sources, javadocs, sampleSources) =
+      additionalArtifactsMapper(stripExtensionAndClassifier(libraryName), library.artifact) ?: return
+
+    sources?.also { libraryData.addPath(SOURCE, it.absolutePath) }
+    javadocs?.also { libraryData.addPath(DOC, it.absolutePath) }
+    sampleSources?.also { libraryData.addPath(SOURCE, it.absolutePath) }
+  }
+
+  private fun setupAnnotationsFrom(
+    libraryData: LibraryData,
+    libraryName: String,
+    library: IdeLibrary
+  ) {
+    // Add external annotations.
+    // TODO: Why do we only do this for Android modules?
+    // TODO: Add this to the model instead!
+    (library.localJars + library.compileJarFile + library.resFolder).mapNotNull {
+      FilePaths.toSystemDependentPath(it)?.path
+    }.forEach { binaryPath ->
+      if (binaryPath.endsWith(separatorChar + FD_RES)) {
+        val annotationsFile = File(binaryPath.removeSuffix(FD_RES) + FN_ANNOTATIONS_ZIP)
+        if (annotationsFile.isFile) {
+          libraryData.addPath(LibraryPathType.ANNOTATION, annotationsFile.absolutePath)
+        }
+      }
+      else if ((libraryName.startsWith(ANDROIDX_ANNOTATIONS_ARTIFACT) ||
+                libraryName.startsWith(ANNOTATIONS_LIB_ARTIFACT)) &&
+               binaryPath.endsWith(DOT_JAR)) {
+        val annotationsFile = File(binaryPath.removeSuffix(DOT_JAR) + "-" + FN_ANNOTATIONS_ZIP)
+        if (annotationsFile.isFile) {
+          libraryData.addPath(LibraryPathType.ANNOTATION, annotationsFile.absolutePath)
+        }
+      }
     }
   }
 }
