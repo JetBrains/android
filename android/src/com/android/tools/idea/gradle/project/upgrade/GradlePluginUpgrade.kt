@@ -74,6 +74,7 @@ class RecommendedUpgradeReminder(
     get() =  PropertiesComponent.getInstance(project).getValue("$settingsPropertyRoot.do.not.ask.for.version")
     set(value) = PropertiesComponent.getInstance(project).setValue("$settingsPropertyRoot.do.not.ask.for.version", value)
 
+  @Slow
   override fun shouldAsk(currentTime: Long): Boolean {
     val pluginInfo = project.findPluginInfo() ?: return false
     val gradleVersion = pluginInfo.pluginVersion ?: return false
@@ -389,6 +390,7 @@ fun displayForceUpdatesDisabledMessage(project: Project) {
   notification.notify(project)
 }
 
+@Slow
 internal fun Project.findPluginInfo() : AndroidPluginInfo? {
   val pluginInfo = AndroidPluginInfo.find(this)
   if (pluginInfo == null) {
