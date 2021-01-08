@@ -55,15 +55,21 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
 
   fun start() {
     require(canStart()) { "Cannot record while another session is on-going" }
-    isRecording = true
     selectedOption!!.startAction.run()
-    changed(Aspect.RECORDING_CHANGED)
+    setRecording()
   }
 
   fun stop() {
     if (canStop()) {
       selectedOption?.stopAction?.run()
       setFinished()
+    }
+  }
+
+  fun setRecording() {
+    if (!isRecording) {
+      isRecording = true
+      changed(Aspect.RECORDING_CHANGED)
     }
   }
 
