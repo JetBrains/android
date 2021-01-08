@@ -897,6 +897,9 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
       if (captureState == CaptureState.CAPTURING) {
         // When going to CAPTURING state, we should make sure the profiler mode is set to EXPANDED, so we show the Recording panel in L3.
         setProfilerMode(ProfilerMode.EXPANDED);
+        // When going to CAPTURING state need to keep the recording options model in sync.
+        // This is needed when a startup recording or API recording has started.
+        myRecordingOptionsModel.setRecording();
       }
     }
   }

@@ -1562,6 +1562,14 @@ public final class CpuProfilerStageTest extends AspectObserver {
     assertThat(filterMetadata.getFilterTextLength()).isEqualTo(4);
     assertThat(filterMetadata.getFeaturesUsed()).isEqualTo(FilterMetadata.MATCH_CASE | FilterMetadata.IS_REGEX);
   }
+  @Test
+  public void changingCaptureStateUpdatesOptionsModel() throws IOException, InterruptedException {
+    assertThat(myStage.getCapture()).isNull();
+    assertThat(myStage.getRecordingModel().isRecording()).isFalse();
+    myStage.setCaptureState(CaptureState.CAPTURING);
+    assertThat(myStage.getRecordingModel().isRecording()).isTrue();
+
+  }
 
   @Test
   public void testMemoryLiveAllocationIsDisabledIfApplicable() throws InterruptedException {
