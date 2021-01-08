@@ -56,7 +56,6 @@ import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
-@org.junit.Ignore("b/176181612")
 public class MlLightClassTest extends AndroidTestCase {
 
   @Override
