@@ -36,15 +36,6 @@ import java.awt.Rectangle
 import java.io.ByteArrayInputStream
 import javax.imageio.ImageIO
 
-private fun LayoutInspectorProto.ComponentTreeEvent.PayloadType.toImageType(): AndroidWindow.ImageType {
-  return when (this) {
-    LayoutInspectorProto.ComponentTreeEvent.PayloadType.SKP -> AndroidWindow.ImageType.SKP
-    LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_SKP_TOO_LARGE -> AndroidWindow.ImageType.PNG_SKP_TOO_LARGE
-    LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED -> AndroidWindow.ImageType.PNG_AS_REQUESTED
-    else -> AndroidWindow.ImageType.UNKNOWN
-  }
-}
-
 /**
  * An [AndroidWindow] used by transport clients.
  *

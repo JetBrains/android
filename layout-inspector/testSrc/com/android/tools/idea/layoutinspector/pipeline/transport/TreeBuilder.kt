@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.util
+package com.android.tools.idea.layoutinspector.pipeline.transport
 
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.resource.data.Resource
+import com.android.tools.idea.layoutinspector.util.TestStringTable
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 
 class TreeBuilder(private val strings: TestStringTable) {
@@ -23,8 +25,8 @@ class TreeBuilder(private val strings: TestStringTable) {
   fun makeViewTree(view: ViewNode): LayoutInspectorProto.View {
     val builder = LayoutInspectorProto.View.newBuilder().apply {
       drawId = view.drawId
-      viewId = strings.add(view.viewId) ?: LayoutInspectorProto.Resource.getDefaultInstance()
-      layout = strings.add(view.layout) ?: LayoutInspectorProto.Resource.getDefaultInstance()
+      viewId = (strings.add(view.viewId) ?: Resource()).convert()
+      layout = (strings.add(view.layout) ?: Resource()).convert()
       x = view.x
       y = view.y
       width = view.width

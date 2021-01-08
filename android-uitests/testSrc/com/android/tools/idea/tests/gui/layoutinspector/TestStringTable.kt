@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.layoutinspector
 
-import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.resources.ResourceType
 import com.android.tools.idea.layoutinspector.common.StringTable
+import com.android.tools.idea.layoutinspector.pipeline.transport.convert
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.google.common.collect.BiMap
 import com.google.common.collect.HashBiMap
@@ -34,6 +33,7 @@ import com.intellij.util.text.nullize
  */
 class TestStringTable : StringTable {
   private val strings: BiMap<String, Int> = HashBiMap.create()
+  override val keys: Set<Int> = strings.values
 
   fun add(value: String?): Int =
     value.nullize()?.let {
@@ -55,18 +55,9 @@ class TestStringTable : StringTable {
     strings.entries
       .map { LayoutInspectorProto.StringEntry.newBuilder().apply { id = it.value; str = it.key }.build() }
 
-  override operator fun get(id: Int): String =
-    strings.inverse()[id] ?: ""
+  override operator fun get(id: Int): String = strings.inverse()[id].orEmpty()
 
-  override fun get(resource: LayoutInspectorProto.Resource?): ResourceReference? {
-    if (resource == null) {
-      return null
-    }
-    val type = get(resource.type)
-    val namespace = get(resource.namespace)
-    val name = get(resource.name)
-    val resNamespace = ResourceNamespace.fromPackageName(namespace)
-    val resType = ResourceType.fromFolderName(type) ?: return null
-    return ResourceReference(resNamespace, resType, name)
+  fun get(resource: LayoutInspectorProto.Resource?): ResourceReference? {
+    return resource?.convert()?.createReference(this)
   }
 }

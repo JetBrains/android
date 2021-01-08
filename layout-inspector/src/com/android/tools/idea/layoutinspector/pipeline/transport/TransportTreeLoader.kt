@@ -94,7 +94,7 @@ private class TransportTreeLoaderImpl(
   }
 
   private fun loadRootView(): ViewNode? {
-    resourceLookup?.updateConfiguration(tree.resources, stringTable)
+    resourceLookup?.updateConfiguration(tree.resources.toAppContext(), stringTable)
     if (tree.hasRoot()) {
       return try {
         loadView(tree.root)

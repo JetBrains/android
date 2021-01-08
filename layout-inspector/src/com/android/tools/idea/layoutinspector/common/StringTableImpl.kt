@@ -15,25 +15,17 @@
  */
 package com.android.tools.idea.layoutinspector.common
 
-import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.resources.ResourceType
+import com.android.tools.idea.layoutinspector.pipeline.transport.convert
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 
 class StringTableImpl(strings: List<LayoutInspectorProto.StringEntry>) : StringTable {
   private val table = strings.associateBy({ it.id }, { it.str })
 
+  override val keys: Set<Int> = table.keys
   override operator fun get(id: Int): String = table[id].orEmpty()
 
-  override operator fun get(resource: LayoutInspectorProto.Resource?): ResourceReference? {
-    if (resource == null) {
-      return null
-    }
-    val type = table[resource.type] ?: return null
-    val namespace = table[resource.namespace] ?: return null
-    val name = table[resource.name] ?: return null
-    val resNamespace = ResourceNamespace.fromPackageName(namespace)
-    val resType = ResourceType.fromFolderName(type) ?: return null
-    return ResourceReference(resNamespace, resType, name)
+  operator fun get(resource: LayoutInspectorProto.Resource?): ResourceReference? {
+    return resource?.convert()?.createReference(this)
   }
 }
