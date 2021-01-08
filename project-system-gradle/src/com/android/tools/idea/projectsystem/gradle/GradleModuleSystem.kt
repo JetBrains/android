@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.SdkConstants.ANNOTATIONS_LIB_ARTIFACT_ID
 import com.android.ide.common.gradle.model.GradleModelConverter
 import com.android.ide.common.gradle.model.IdeAndroidGradlePluginProjectFlags
+import com.android.ide.common.gradle.model.IdeAndroidLibrary
 import com.android.ide.common.gradle.model.IdeBuildType
 import com.android.ide.common.gradle.model.IdeLibrary
 import com.android.ide.common.repository.GradleCoordinate
@@ -165,8 +166,8 @@ class GradleModuleSystem(
     val gradleModel = AndroidModuleModel.get(module) ?: return emptySet()
 
     val converter = GradleModelConverter(gradleModel.androidProject)
-    val javaLibraries = gradleModel.selectedMainCompileLevel2Dependencies.javaLibraries.mapNotNull(converter::convert)
-    val androidLibraries = gradleModel.selectedMainCompileLevel2Dependencies.androidLibraries.mapNotNull(converter::convert)
+    val javaLibraries = gradleModel.selectedMainCompileLevel2Dependencies.javaLibraries.map(converter::convert)
+    val androidLibraries = gradleModel.selectedMainCompileLevel2Dependencies.androidLibraries.map(converter::convert)
 
     return javaLibraries + androidLibraries
   }
@@ -651,7 +652,7 @@ class GradleModuleSystem(
 private fun AndroidFacet.getLibraryManifests(dependencies: List<AndroidFacet>): List<VirtualFile> {
   if (isDisposed) return emptyList()
   val localLibManifests = dependencies.mapNotNull { it.sourceProviders.mainManifestFile }
-  fun IdeLibrary.manifestFile(): File? = this.folder?.resolve(this.manifest)
+  fun IdeAndroidLibrary.manifestFile(): File? = this.folder?.resolve(this.manifest)
 
   val aarManifests =
     AndroidModuleModel.get(this)

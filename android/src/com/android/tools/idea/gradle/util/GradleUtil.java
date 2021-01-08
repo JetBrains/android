@@ -64,6 +64,7 @@ import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
+import com.android.ide.common.gradle.model.IdeAndroidLibrary;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
@@ -719,7 +720,7 @@ public final class GradleUtil {
   public static IdeLibrary findLibrary(@NotNull File bundleDir, @NotNull IdeVariant variant) {
     IdeAndroidArtifact artifact = variant.getMainArtifact();
     IdeDependencies dependencies = artifact.getLevel2Dependencies();
-    for (IdeLibrary library : dependencies.getAndroidLibraries()) {
+    for (IdeAndroidLibrary library : dependencies.getAndroidLibraries()) {
       if (filesEqual(bundleDir, library.getFolder())) {
         return library;
       }

@@ -269,7 +269,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     when(myModuleSetupContextFactory.create(libraryModule, myModifiableModelsProvider)).thenReturn(libraryModuleSetupContext);
 
     // Register "library" into gradle so that "app:release" depends on "library:release".
-    when(moduleLibrary.getType()).thenReturn(IdeLibrary.LibraryType.LIBRARY_MODULE);
     when(moduleLibrary.getVariant()).thenReturn("release");
     when(moduleLibrary.getProjectPath()).thenReturn(":library");
     myModuleDependencies.add(moduleLibrary);
@@ -342,7 +341,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     when(myModuleSetupContextFactory.create(libraryModule, myModifiableModelsProvider)).thenReturn(libraryModuleSetupContext);
 
     // Register "library" into gradle so that "app:release" depends on "library:release".
-    when(moduleLibrary.getType()).thenReturn(IdeLibrary.LibraryType.LIBRARY_MODULE);
     when(moduleLibrary.getVariant()).thenReturn("release");
     when(moduleLibrary.getProjectPath()).thenReturn(":library");
     myModuleDependencies.add(moduleLibrary);
@@ -420,7 +418,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     when(libraryNdkDebugVariant.getName()).thenReturn(libraryVariantAbi.getVariant());
 
     // Register "library" into gradle so that "app:release" depends on "library:release".
-    when(moduleLibrary.getType()).thenReturn(IdeLibrary.LibraryType.LIBRARY_MODULE);
     when(moduleLibrary.getVariant()).thenReturn("release");
     when(moduleLibrary.getProjectPath()).thenReturn(":library");
     myModuleDependencies.add(moduleLibrary);
@@ -507,7 +504,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     when(libraryNdkDebugVariant.getName()).thenReturn(variantAbi.getVariant());
 
     // Register "library" into gradle so that "app:release" depends on "library:release".
-    when(moduleLibrary.getType()).thenReturn(IdeLibrary.LibraryType.LIBRARY_MODULE);
     when(moduleLibrary.getVariant()).thenReturn("release");
     when(moduleLibrary.getProjectPath()).thenReturn(":library");
     myModuleDependencies.add(moduleLibrary);
@@ -592,7 +588,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     when(myModuleSetupContextFactory.create(libraryModule, myModifiableModelsProvider)).thenReturn(libraryModuleSetupContext);
 
     // Register "library" into gradle so that "app:debug" depends on "library:debug".
-    when(moduleLibrary.getType()).thenReturn(IdeLibrary.LibraryType.LIBRARY_MODULE);
     when(moduleLibrary.getVariant()).thenReturn("debug");
     when(moduleLibrary.getProjectPath()).thenReturn(":library");
     myModuleDependencies.add(moduleLibrary);
