@@ -17,9 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.Slow;
-import com.android.ide.common.gradle.model.IdeAndroidLibrary;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.ide.common.gradle.model.IdeLibrary;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
@@ -57,7 +55,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -71,7 +68,6 @@ import java.util.function.Function;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -269,29 +265,6 @@ public final class ResourceRepositoryManager implements Disposable {
     }
     project.putUserData(AppResourceRepository.TEMPORARY_RESOURCE_CACHE, null);
     return true;
-  }
-
-  @NotNull
-  public static Collection<IdeAndroidLibrary> findAarLibraries(@NotNull AndroidFacet facet) {
-    List<IdeAndroidLibrary> libraries = new ArrayList<>();
-    if (AndroidModel.isRequired(facet)) {
-      AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
-      if (androidModel != null) {
-        List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
-        addGradleLibraries(libraries, androidModel);
-        for (AndroidFacet dependentFacet : dependentFacets) {
-          AndroidModuleModel dependentGradleModel = AndroidModuleModel.get(dependentFacet);
-          if (dependentGradleModel != null) {
-            addGradleLibraries(libraries, dependentGradleModel);
-          }
-        }
-      }
-    }
-    return libraries;
-  }
-
-  private static void addGradleLibraries(@NotNull List<IdeAndroidLibrary> list, @NotNull AndroidModuleModel androidModuleModel) {
-    list.addAll(androidModuleModel.getSelectedMainCompileLevel2Dependencies().getAndroidLibraries());
   }
 
   /**
