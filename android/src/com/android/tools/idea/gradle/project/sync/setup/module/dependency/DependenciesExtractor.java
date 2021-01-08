@@ -18,8 +18,11 @@ package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.trimLeading;
 
+import com.android.ide.common.gradle.model.IdeAndroidLibrary;
 import com.android.ide.common.gradle.model.IdeDependencies;
+import com.android.ide.common.gradle.model.IdeJavaLibrary;
 import com.android.ide.common.gradle.model.IdeLibrary;
+import com.android.ide.common.gradle.model.IdeModuleLibrary;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
@@ -55,17 +58,17 @@ public class DependenciesExtractor {
                                @NotNull IdeDependencies artifactDependencies,
                                @NotNull ModuleFinder moduleFinder) {
 
-    for (IdeLibrary library : artifactDependencies.getJavaLibraries()) {
+    for (IdeJavaLibrary library : artifactDependencies.getJavaLibraries()) {
       LibraryDependency libraryDependency =
         LibraryDependency.create(library.getArtifact(), ImmutableList.of(library.getArtifact()));
       dependencies.add(libraryDependency);
     }
 
-    for (IdeLibrary library : artifactDependencies.getAndroidLibraries()) {
+    for (IdeAndroidLibrary library : artifactDependencies.getAndroidLibraries()) {
       dependencies.add(createLibraryDependencyFromAndroidLibrary(library));
     }
 
-    for (IdeLibrary library : artifactDependencies.getModuleDependencies()) {
+    for (IdeModuleLibrary library : artifactDependencies.getModuleDependencies()) {
       String gradlePath = library.getProjectPath();
       if (isNotEmpty(gradlePath)) {
         Module module = moduleFinder.findModuleFromLibrary(library);
@@ -78,7 +81,7 @@ public class DependenciesExtractor {
   }
 
   @NotNull
-  private static LibraryDependency createLibraryDependencyFromAndroidLibrary(@NotNull IdeLibrary library) {
+  private static LibraryDependency createLibraryDependencyFromAndroidLibrary(@NotNull IdeAndroidLibrary library) {
     ImmutableList.Builder<File> binaryPaths = new ImmutableList.Builder<>();
     binaryPaths.add(FilePaths.toSystemDependentPath(library.getCompileJarFile()));
     binaryPaths.add(FilePaths.toSystemDependentPath(library.getResFolder()));
