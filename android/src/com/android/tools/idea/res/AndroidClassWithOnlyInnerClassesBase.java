@@ -33,7 +33,6 @@ import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import java.util.Collection;
 import org.jetbrains.android.augment.AndroidLightClassBase;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -105,17 +104,6 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
   @Override
   public PsiClass[] getInnerClasses() {
     return myClassCache.getValue();
-  }
-
-  @Nullable
-  @Override
-  public final PsiClass findInnerClassByName(@NonNls String name, boolean checkBases) {
-    for (PsiClass aClass : getInnerClasses()) {
-      if (name.equals(aClass.getName())) {
-        return aClass;
-      }
-    }
-    return null;
   }
 
   @Override

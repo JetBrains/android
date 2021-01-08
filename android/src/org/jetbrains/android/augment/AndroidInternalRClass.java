@@ -21,7 +21,6 @@ import com.intellij.psi.PsiModifier;
 import org.jetbrains.android.augment.AndroidLightField.FieldModifier;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidTargetData;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -80,17 +79,6 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
   @NotNull
   public PsiClass[] getInnerClasses() {
     return myInnerClasses;
-  }
-
-  @Override
-  @Nullable
-  public PsiClass findInnerClassByName(@NonNls String name, boolean checkBases) {
-    for (PsiClass aClass : getInnerClasses()) {
-      if (name.equals(aClass.getName())) {
-        return aClass;
-      }
-    }
-    return null;
   }
 
   private class MyInnerClass extends InnerRClassBase {

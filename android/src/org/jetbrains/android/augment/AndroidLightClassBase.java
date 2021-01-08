@@ -298,6 +298,11 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
 
   @Override
   public PsiClass findInnerClassByName(@NonNls String name, boolean checkBases) {
+    for (PsiClass aClass : getInnerClasses()) {
+      if (name.equals(aClass.getName())) {
+        return aClass;
+      }
+    }
     return null;
   }
 
