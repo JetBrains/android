@@ -132,9 +132,9 @@
     <orderEntry type="module" module-name="intellij.android.dagger" />
     <orderEntry type="module-library">
       <library name="androidx-test-core-proto" type="repository">
-        <properties maven-id="com.google.testing.platform:core-proto:0.0.7-dev" />
+        <properties maven-id="com.google.testing.platform:core-proto:0.0.8-alpha01" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/google/testing/platform/core-proto/0.0.7-dev/core-proto-0.0.7-dev.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/com/google/testing/platform/core-proto/0.0.8-alpha01/core-proto-0.0.8-alpha01.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
