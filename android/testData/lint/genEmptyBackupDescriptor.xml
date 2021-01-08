@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="test.pkg" >
   <uses-sdk android:targetSdkVersion="23"/>
-  <<warning descr="On SDK version 23 and up, your app data will be automatically backed up and restored on app install. Consider adding the attribute `android:fullBackupContent` to specify an `@xml` resource which configures which files to backup, or just set `android:fullBackupOnly=true`. More info: https://developer.android.com/guide/topics/data/autobackup">appl<caret>ication</warning>
+  <application
       android:icon="@drawable/ic_launcher"
-      android:allowBackup="true">
+      <warning descr="On SDK version 23 and up, your app data will be automatically backed up and restored on app install. Consider adding the attribute `android:fullBackupContent` to specify an `@xml` resource which configures which files to backup, or just set `android:fullBackupOnly=true`. More info: https://developer.android.com/guide/topics/data/autobackup">android:allow<caret>Backup</warning>="true">
   </application>
 </manifest>
