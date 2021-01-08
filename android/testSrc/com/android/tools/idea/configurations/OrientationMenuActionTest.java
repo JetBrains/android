@@ -16,6 +16,7 @@
 package com.android.tools.idea.configurations;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents;
 import static org.mockito.Mockito.mock;
 
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
@@ -71,6 +72,7 @@ public class OrientationMenuActionTest extends AndroidTestCase {
 
   public void testActionWithExistingLandscapeVariation() {
     myFixture.copyFileToProject("configurations/layout1.xml", "res/layout-land/layout1.xml");
+    dispatchAllInvocationEvents();
     OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, mySurface);
     Presentation presentation = action.getTemplatePresentation().clone();
     action.updateActions(DataContext.EMPTY_CONTEXT);
@@ -93,6 +95,7 @@ public class OrientationMenuActionTest extends AndroidTestCase {
   public void testActionWithExistingLandscapeAndTabletVariation() {
     myFixture.copyFileToProject("configurations/layout1.xml", "res/layout-land/layout1.xml");
     myFixture.copyFileToProject("configurations/layout1.xml", "res/layout-sw600dp/layout1.xml");
+    dispatchAllInvocationEvents();
     OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, mySurface);
     action.updateActions(DataContext.EMPTY_CONTEXT);
     AnAction[] actions = action.getChildren(null);

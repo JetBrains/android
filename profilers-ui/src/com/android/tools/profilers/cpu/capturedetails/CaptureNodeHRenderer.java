@@ -19,12 +19,12 @@ import com.android.tools.adtui.chart.hchart.HRenderer;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.DataVisualizationColors;
 import com.android.tools.profilers.cpu.CaptureNode;
-import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
 import com.android.tools.profilers.cpu.nodemodel.NativeNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
+import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeModel;
 import com.google.common.annotations.VisibleForTesting;
 import java.awt.Color;
 import java.awt.Font;
@@ -170,11 +170,15 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
 
     float availableWidth = (float)drawingArea.getWidth() - 2 * MARGIN_PX; // Left and right margin
     float availableHeight = (float)drawingArea.getHeight();
-    String text = generateFittingText(
-      node.getData(), s -> myTextFitsPredicate.test(s, fontMetrics, availableWidth, availableHeight));
-    float textPositionX = MARGIN_PX + (float)drawingArea.getX();
-    float textPositionY = (float)(drawingArea.getY() + fontMetrics.getAscent());
-    g.drawString(text, textPositionX, textPositionY);
+    // Testing text fit can be slow from calling FontMetrics#stringWidth, so skip the calculation here if [availableWidth] is sufficiently
+    // small.
+    if (availableWidth > 1.0f) {
+      String text = generateFittingText(
+        node.getData(), s -> myTextFitsPredicate.test(s, fontMetrics, availableWidth, availableHeight));
+      float textPositionX = MARGIN_PX + (float)drawingArea.getX();
+      float textPositionY = (float)(drawingArea.getY() + fontMetrics.getAscent());
+      g.drawString(text, textPositionX, textPositionY);
+    }
 
     g.setFont(restoreFont);
   }

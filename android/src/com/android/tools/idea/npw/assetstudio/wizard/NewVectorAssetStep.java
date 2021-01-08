@@ -36,6 +36,7 @@ import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.Receiver;
 import com.android.tools.idea.observable.adapters.StringToDoubleAdapterProperty;
 import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.DoubleProperty;
 import com.android.tools.idea.observable.core.DoubleValueProperty;
 import com.android.tools.idea.observable.core.IntProperty;
@@ -121,6 +122,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   private final IntProperty myOpacityPercent;
   private final BoolProperty myAutoMirrored;
 
+  private final BoolValueProperty myAssetIsValid = new BoolValueProperty();
   private final ObjectValueProperty<Validator.Result> myAssetValidityState = new ObjectValueProperty<>(Validator.Result.OK);
   private final IdeResourceNameValidator myNameValidator = IdeResourceNameValidator.forFilename(ResourceFolderType.DRAWABLE);
 
@@ -218,6 +220,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     TextProperty heightText = new TextProperty(myHeightTextField);
 
     Receiver<VectorAsset.VectorDrawableInfo> drawableListener = drawableInfo -> {
+      myAssetIsValid.set(drawableInfo.isValid());
       myAssetValidityState.set(drawableInfo.getValidityState());
 
       myGeneralBindings.release(myWidth);
@@ -344,7 +347,8 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   @Override
   @NotNull
   protected ObservableBool canGoForward() {
-    return myValidatorPanel.hasErrors().not();
+    // Missing asset is treated as a warning by the validator panel, so it has to be checked separately.
+    return myAssetIsValid.and(myValidatorPanel.hasErrors().not());
   }
 
   @Override
