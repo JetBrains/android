@@ -31,7 +31,7 @@ class LegacyAndroidWindow(
   private val client: LegacyClient,
   root: ViewNode,
   private val windowName: String)
-  : AndroidWindow(root, windowName, ImageType.PNG_AS_REQUESTED) {
+  : AndroidWindow(root, windowName, ImageType.BITMAP_AS_REQUESTED) {
 
   override fun doRefreshImages(scale: Double) {
     val image = client.latestScreenshots[windowName]?.let { pngBytes ->

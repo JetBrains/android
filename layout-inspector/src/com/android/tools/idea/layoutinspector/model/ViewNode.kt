@@ -82,10 +82,6 @@ open class ViewNode(
   // Views and images that will be drawn.
   // TODO: Figure out whether order of child nodes here and in [children] will always be the same.
   private val drawChildren = mutableListOf<DrawViewNode>()
-    get(): MutableList<DrawViewNode> {
-
-      return field
-    }
 
   var tag: XmlTag?
     get() = tagPointer?.element

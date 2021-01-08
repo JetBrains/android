@@ -48,7 +48,7 @@ abstract class AndroidWindow(
     /**
      * The image associated with this window is a PNG (which we requested)
      */
-    PNG_AS_REQUESTED,
+    BITMAP_AS_REQUESTED,
   }
 
   val isDimBehind: Boolean
