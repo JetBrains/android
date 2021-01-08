@@ -269,7 +269,7 @@ class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
     return if (serverVersion == null) {
       // devbuild
       if (StudioPathManager.isRunningFromSources()) {
-        File(StudioPathManager.getBinariesRoot(), "tools/base/dynamic-layout-inspector/${serverName}")
+        File(StudioPathManager.getBinariesRoot(), "tools/base/dynamic-layout-inspector/skia/${serverName}")
       }
       else null
     }
