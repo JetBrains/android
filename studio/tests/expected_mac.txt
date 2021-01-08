@@ -1694,7 +1694,7 @@ Android Studio Preview.app/Contents/lib/testFramework.core.jar
 Android Studio Preview.app/Contents/lib/testFramework.jar
 Android Studio Preview.app/Contents/lib/tests_bootstrap.jar
 Android Studio Preview.app/Contents/lib/tightvnc.jar
-Android Studio Preview.app/Contents/lib/tips-intellij-idea-community-202.13.jar
+Android Studio Preview.app/Contents/lib/tips-intellij-idea-community-203.16.jar
 Android Studio Preview.app/Contents/lib/trang-core.jar
 Android Studio Preview.app/Contents/lib/transport_java_proto.jar
 Android Studio Preview.app/Contents/lib/trove4j.jar
@@ -2675,7 +2675,7 @@ Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/comple
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-js-0.1.1.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-kotlin-0.2.1.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-php-0.2.3.jar
-Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-python-0.2.1.jar
+Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-python-0.1.4.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-ruby-0.1.2.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-rust-0.0.3.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-scala-0.3.1.jar
@@ -2779,6 +2779,9 @@ Android Studio Preview.app/Contents/plugins/junit/lib/idea-junit.jar
 Android Studio Preview.app/Contents/plugins/junit/lib/junit-rt.jar
 Android Studio Preview.app/Contents/plugins/junit/lib/junit5-rt.jar
 Android Studio Preview.app/Contents/plugins/junit/lib/resources_en.jar
+Android Studio Preview.app/Contents/plugins/lombok/lib/lombok-generated.jar
+Android Studio Preview.app/Contents/plugins/lombok/lib/lombok.jar
+Android Studio Preview.app/Contents/plugins/lombok/lib/resources_en.jar
 Android Studio Preview.app/Contents/plugins/maven-model/lib/maven-model.jar
 Android Studio Preview.app/Contents/plugins/platform-images/lib/platform-images.jar
 Android Studio Preview.app/Contents/plugins/platform-images/lib/resources_en.jar
