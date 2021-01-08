@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.common
+package com.android.tools.idea.layoutinspector.resource.data
 
-interface StringTable {
-  val keys: Set<Int>
-
-  /**
-   * Return a string value associated with the integer key, or the empty string if not found.
-   *
-   * Check [keys] if it's important to know if the value actually exists or not.
-   */
-  operator fun get(id: Int): String
-}
+/**
+ * Misc. context about the current running app.
+ */
+class AppContext(
+  val apiLevel: Int = 0, // Key for a StringTable
+  val apiCodeName: Int = 0, // Key for a StringTable
+  val appPackageName: Int = 0, // Key for a StringTable
+  val theme: Resource = Resource(),
+  val configuration: Configuration = Configuration()
+)

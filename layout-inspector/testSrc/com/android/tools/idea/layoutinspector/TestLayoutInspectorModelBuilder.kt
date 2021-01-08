@@ -25,7 +25,7 @@ import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.FakeAndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.util.ConfigurationBuilder
+import com.android.tools.idea.layoutinspector.util.ConfigurationParamsBuilder
 import com.android.tools.idea.layoutinspector.util.TestStringTable
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -230,8 +230,8 @@ class InspectorModelDescriptor(val project: Project) {
     model.update(newWindow, listOf(windowRoot.drawId), 0)
     if (ModuleManager.getInstance(project) != null) {
       val strings = TestStringTable()
-      val config = ConfigurationBuilder(strings)
-      model.resourceLookup.updateConfiguration(config.makeSampleConfiguration(project), strings)
+      val config = ConfigurationParamsBuilder(strings)
+      model.resourceLookup.updateConfiguration(config.makeSampleContext(project), strings)
     }
     // This is usually added by DeviceViewPanel
     model.modificationListeners.add { _, new, _ ->

@@ -24,9 +24,9 @@ import com.android.tools.idea.layoutinspector.common.StringTable
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
+import com.android.tools.idea.layoutinspector.resource.data.AppContext
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.res.parseColor
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.Project
@@ -65,11 +65,11 @@ class ResourceLookup(private val project: Project) {
   /**
    * Update the configuration after a possible configuration change detected on the device.
    */
-  fun updateConfiguration(resources: LayoutInspectorProto.ResourceConfiguration, stringTable: StringTable) {
-    val config = resources.configuration
+  fun updateConfiguration(appContext: AppContext, stringTable: StringTable) {
+    val config = appContext.configuration
     dpi = if (config.density != 0) config.density else DEFAULT_DENSITY
     fontScale = config.fontScale
-    val loader = ConfigurationLoader(resources, stringTable)
+    val loader = ConfigurationLoader(appContext, stringTable)
     val facet = ReadAction.compute<AndroidFacet?, RuntimeException> { findFacetFromPackage(project, loader.packageName) }
     if (facet == null) {
       resolver = null
