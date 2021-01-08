@@ -21,58 +21,34 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.util.DemoExample
+import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.google.common.truth.Truth
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.fileEditor.FileEditor
-import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.OpenFileDescriptor
-import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
-import com.intellij.openapi.util.text.LineColumn
-import com.intellij.openapi.util.text.StringUtil
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.jetbrains.android.ComponentStack
-import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers
-import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
 class GotoDeclarationActionTest {
 
   private val projectRule = AndroidProjectRule.withSdk()
+  private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
-
-  private var componentStack: ComponentStack? = null
-  private var fileManager: FileEditorManager? = null
+  val ruleChain = RuleChain.outerRule(projectRule).around(fileOpenCaptureRule).around(EdtRule())!!
 
   @Before
   fun setup() {
     loadComposeFiles()
-    componentStack = ComponentStack(projectRule.project)
-    enableFileOpenCaptures()
-  }
-
-  @After
-  fun after() {
-    componentStack!!.restore()
-    componentStack = null
-    fileManager = null
   }
 
   @RunsInEdt
@@ -82,7 +58,7 @@ class GotoDeclarationActionTest {
     model.selection = model["title"]
     val event = createEvent(model)
     GotoDeclarationAction.actionPerformed(event)
-    checkEditor("demo.xml", 8, "<TextView")
+    fileOpenCaptureRule.checkEditor("demo.xml", 8, "<TextView")
   }
 
   @RunsInEdt
@@ -92,7 +68,7 @@ class GotoDeclarationActionTest {
     model.selection = model[-2]
     val event = createEvent(model)
     GotoDeclarationAction.actionPerformed(event)
-    checkEditor("MyCompose.kt", 17, "Column(modifier = Modifier.padding(20.dp)) {")
+    fileOpenCaptureRule.checkEditor("MyCompose.kt", 17, "Column(modifier = Modifier.padding(20.dp)) {")
   }
 
   @RunsInEdt
@@ -102,7 +78,7 @@ class GotoDeclarationActionTest {
     model.selection = model[-5]
     val event = createEvent(model)
     GotoDeclarationAction.actionPerformed(event)
-    checkEditor("MyCompose.kt", 8, "Text(text = \"Hello \$name!\")")
+    fileOpenCaptureRule.checkEditor("MyCompose.kt", 8, "Text(text = \"Hello \$name!\")")
   }
 
   private fun loadComposeFiles() {
@@ -110,34 +86,6 @@ class GotoDeclarationActionTest {
     fixture.testDataPath = resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/compose").toString()
     fixture.copyFileToProject("java/com/example/MyCompose.kt")
     fixture.copyFileToProject("java/com/example/composable/MyCompose.kt")
-  }
-
-  private fun enableFileOpenCaptures() {
-    fileManager = mock(FileEditorManagerEx::class.java)
-    `when`(fileManager!!.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
-      .thenReturn(listOf(mock(FileEditor::class.java)))
-    `when`(fileManager!!.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
-    `when`(fileManager!!.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
-    `when`(fileManager!!.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
-    componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager!!)
-  }
-
-  @Suppress("SameParameterValue")
-  private fun checkEditor(fileName: String, lineNumber: Int, text: String) {
-    val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
-    Mockito.verify(fileManager!!).openEditor(file.capture(), ArgumentMatchers.eq(true))
-    val descriptor = file.value
-    val line = findLineAtOffset(descriptor.file, descriptor.offset)
-    Truth.assertThat(descriptor.file.name).isEqualTo(fileName)
-    Truth.assertThat(line.second).isEqualTo(text)
-    Truth.assertThat(line.first.line + 1).isEqualTo(lineNumber)
-  }
-
-  private fun findLineAtOffset(file: VirtualFile, offset: Int): Pair<LineColumn, String> {
-    val text = String(file.contentsToByteArray(), Charsets.UTF_8)
-    val line = StringUtil.offsetToLineColumn(text, offset)
-    val lineText = text.substring(offset - line.column, text.indexOf('\n', offset))
-    return Pair(line, lineText.trim())
   }
 
   private fun createModel(): InspectorModel =

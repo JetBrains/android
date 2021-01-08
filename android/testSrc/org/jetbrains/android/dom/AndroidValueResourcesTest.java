@@ -17,6 +17,7 @@
 package org.jetbrains.android.dom;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents;
 
 import com.android.AndroidProjectTypes;
 import com.android.SdkConstants;
@@ -25,6 +26,7 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
+import com.android.tools.idea.testing.AndroidTestUtils;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.daemon.impl.HighlightInfoType;
@@ -342,6 +344,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
 
     // Add a mipmap to resources and expect for it to be listed
     myFixture.copyFileToProject(myTestFolder + "/icon.png", "res/mipmap/icon.png");
+    dispatchAllInvocationEvents();
     myFixture.complete(CompletionType.BASIC);
     assertContainsElements(myFixture.getLookupElementStrings(), "@android:", "@color/color1", "@drawable/picture1", "@mipmap/icon");
   }
@@ -670,18 +673,21 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     PsiFile file = myFixture.addFileToProject("res/values/strings.xml",
                                               //language=XML
                                               "<resources>" +
-                                              "  <string name='f<caret>oo'>foo</string>" +
-                                              "  <string name='bar'>@string/foo</string>" +
+                                              "  <string name=\"foo\">foo</string>" +
+                                              "  <string name=\"bar\">@string/foo</string>" +
                                               "</resources>");
     myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
     myFixture.setReadEditorMarkupModel(true);
 
-    IdentifierHighlighterPassFactory.doWithHighlightingEnabled(() -> {
-      List<HighlightInfo> highlightInfos = myFixture.doHighlighting();
+    IdentifierHighlighterPassFactory.doWithHighlightingEnabled(getProject(), myFixture.getProjectDisposable(), () -> {
+      AndroidTestUtils.moveCaret(myFixture, "<string name=\"f|oo\">foo</string>");
+      // Identifier highlighting has been moved out of the highlighting passes, so we need to wait for BackgroundHighlighter to be computed.
+      IdentifierHighlighterPassFactory.waitForIdentifierHighlighting();
       // With new resources pipeline, all highlight usages of resources are found.
+      List<HighlightInfo> highlightInfos = myFixture.doHighlighting();
       assertThat(highlightInfos).hasSize(2);
       highlightInfos.forEach(it -> assertThat(it.getSeverity()).isEqualTo(HighlightInfoType.ELEMENT_UNDER_CARET_SEVERITY));
-      List<String> getTextList = ContainerUtil.map(highlightInfos, it -> it.getText());
+      List<String> getTextList = ContainerUtil.map(highlightInfos, HighlightInfo::getText);
       assertThat(getTextList).containsExactlyElementsIn(Array.of("foo", "@string/foo"));
 
       // b/139262116: manually commit the Document and clear some caches in an attempt to reduce flakiness of this test.
@@ -703,12 +709,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
   }
 
   public void dispatchEvents() {
-    try {
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-    }
-    catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
   }
 
   private void doCreateValueResourceFromUsage(VirtualFile virtualFile) {

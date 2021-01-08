@@ -26,6 +26,7 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.common.truth.Truth
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TestDialog
+import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.testFramework.LightPlatformTestCase
 import java.util.Collections
 
@@ -50,12 +51,12 @@ class DependencyManagementTest : LightPlatformTestCase() {
       dialogMessages.add(message.trim()) // Remove line break in the end of the message.
       dialogAnswer
     }
-    Messages.setTestDialog(testDialog)
+    TestDialogManager.setTestDialog(testDialog)
   }
 
   override fun tearDown() {
     super.tearDown()
-    Messages.setTestDialog(TestDialog.DEFAULT)
+    TestDialogManager.setTestDialog(TestDialog.DEFAULT)
   }
 
   fun testDependsOnAndroidX() {

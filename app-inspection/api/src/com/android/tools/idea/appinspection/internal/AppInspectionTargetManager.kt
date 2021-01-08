@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.android.tools.idea.appinspection.internal.process.toTransportImpl
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.concurrency.getCompletedOrNull
 import com.android.tools.idea.transport.TransportClient
@@ -57,9 +56,8 @@ internal class AppInspectionTargetManager internal constructor(
     projectName: String
   ): AppInspectionTarget {
     val targetInfo = targets.computeIfAbsent(processDescriptor) {
-      val processDescriptor = processDescriptor.toTransportImpl()
       val targetDeferred = scope.async {
-        val transport = AppInspectionTransport(transportClient, processDescriptor.stream, processDescriptor.process, streamChannel)
+        val transport = AppInspectionTransport(transportClient, processDescriptor, streamChannel)
         attachAppInspectionTarget(transport, jarCopier, scope)
       }
       TargetInfo(targetDeferred, projectName)

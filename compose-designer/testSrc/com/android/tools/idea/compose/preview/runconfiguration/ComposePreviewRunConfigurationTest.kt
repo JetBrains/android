@@ -18,12 +18,13 @@ package com.android.tools.idea.compose.preview.runconfiguration
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.ApkProvider
-import com.android.tools.idea.run.tasks.AppLaunchTask
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.editor.NoApksProvider
 import com.android.tools.idea.run.tasks.ActivityLaunchTask
+import com.android.tools.idea.run.tasks.AppLaunchTask
 import com.android.tools.idea.run.util.LaunchStatus
+import com.google.wireless.android.sdk.stats.ComposeDeployEvent
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.JDOMUtil
@@ -71,6 +72,14 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
 
   fun testConfigurationIsNotProfilable() {
     assertFalse(runConfiguration.isProfilable)
+  }
+
+  fun testTriggerSourceType() {
+    assertEquals(ComposeDeployEvent.ComposeDeployEventType.UNKNOWN_EVENT_TYPE, runConfiguration.triggerSource.eventType)
+    runConfiguration.triggerSource = ComposePreviewRunConfiguration.TriggerSource.GUTTER
+    assertEquals(ComposeDeployEvent.ComposeDeployEventType.DEPLOY_FROM_GUTTER, runConfiguration.triggerSource.eventType)
+    runConfiguration.triggerSource = ComposePreviewRunConfiguration.TriggerSource.TOOLBAR
+    assertEquals(ComposeDeployEvent.ComposeDeployEventType.DEPLOY_FROM_TOOLBAR, runConfiguration.triggerSource.eventType)
   }
 
   fun testReadExternal() {

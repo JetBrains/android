@@ -125,6 +125,30 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
     return myAvdInfo.getDisplayName();
   }
 
+  public void coldBoot(@NotNull Project project) {
+    synchronized (myLock) {
+      if (myLaunchedEmulator == null) {
+        myLaunchedEmulator = AvdManagerConnection.getDefaultAvdManagerConnection().coldBoot(project, myAvdInfo);
+      }
+    }
+  }
+
+  public void quickBoot(@NotNull Project project) {
+    synchronized (myLock) {
+      if (myLaunchedEmulator == null) {
+        myLaunchedEmulator = AvdManagerConnection.getDefaultAvdManagerConnection().quickBoot(project, myAvdInfo);
+      }
+    }
+  }
+
+  public void bootWithSnapshot(@NotNull Project project, @NotNull String snapshot) {
+    synchronized (myLock) {
+      if (myLaunchedEmulator == null) {
+        myLaunchedEmulator = AvdManagerConnection.getDefaultAvdManagerConnection().bootWithSnapshot(project, myAvdInfo, snapshot);
+      }
+    }
+  }
+
   @Override
   @NotNull
   public ListenableFuture<IDevice> launch(@NotNull Project project) {

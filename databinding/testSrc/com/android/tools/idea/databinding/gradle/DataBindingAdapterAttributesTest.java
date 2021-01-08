@@ -34,6 +34,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.RunsInEdt;
 import java.util.Arrays;
 import java.util.List;
@@ -80,7 +81,7 @@ public class DataBindingAdapterAttributesTest {
   public void assertCompletionAndInspections() {
     myProjectRule.getFixture().enableInspections(AndroidUnknownAttributeInspection.class);
 
-    VirtualFile file = myProjectRule.getProject().getBaseDir().findFileByRelativePath("app/src/main/res/layout/activity_main.xml");
+    VirtualFile file = PlatformTestUtil.getOrCreateProjectBaseDir(myProjectRule.getProject()).findFileByRelativePath("app/src/main/res/layout/activity_main.xml");
     myProjectRule.getFixture().openFileInEditor(file);
     Editor editor = myProjectRule.getFixture().getEditor();
     Document document = editor.getDocument();

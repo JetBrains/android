@@ -48,7 +48,7 @@ import java.nio.file.Paths
 class AppInspectorTabLaunchSupportTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
-  private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionViewTest", transportService, transportService)!!
+  private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionViewTest", transportService)
   private val appInspectionServiceRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
   private val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
 

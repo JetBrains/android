@@ -3,7 +3,7 @@ package com.android.tools.idea.stats
 import com.android.tools.idea.Option
 import com.android.tools.idea.Survey
 
-val DEFAULT_SATISFACTION_SURVEY : Survey = Survey.newBuilder().apply {
+val DEFAULT_SATISFACTION_SURVEY: Survey = Survey.newBuilder().apply {
   title = "Android Studio Feedback"
   question = "Overall, how satisfied are you with this product?"
   intervalDays = 365
@@ -28,4 +28,5 @@ val DEFAULT_SATISFACTION_SURVEY : Survey = Survey.newBuilder().apply {
     iconPath = "/studio/icons/shell/telemetry/sentiment-very-dissatisfied.svg"
     label = "Very dissatisfied"
   })
+  name = "Default Satisfaction Survey"
 }.build()

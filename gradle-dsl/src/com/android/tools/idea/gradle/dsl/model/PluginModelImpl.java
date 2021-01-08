@@ -43,6 +43,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
 public class PluginModelImpl implements PluginModel {
   @NonNls private static final String APPLY = "apply";
   @NonNls private static final String ID = "id";
+  @NonNls private static final String KOTLIN = "kotlin";
   @NonNls private static final String PLUGIN = "plugin";
   @NonNls private static final String VERSION = "version";
 
@@ -83,9 +84,16 @@ public class PluginModelImpl implements PluginModel {
       }
       else if (e instanceof GradleDslInfixExpression) {
         GradleDslInfixExpression infixExpression = (GradleDslInfixExpression) e;
-        // FIXME(xof): cast, nullability check, etc.
-        GradleDslSimpleExpression pluginElement = (GradleDslSimpleExpression)infixExpression.getElement(ID);
-        results.add(new PluginModelImpl(infixExpression, pluginElement));
+        GradleDslElement idElement = infixExpression.getElement(ID);
+        GradleDslElement kotlinElement = infixExpression.getElement(KOTLIN);
+        if (idElement instanceof GradleDslSimpleExpression) {
+          GradleDslSimpleExpression pluginElement = (GradleDslSimpleExpression)idElement;
+          results.add(new PluginModelImpl(infixExpression, pluginElement));
+        }
+        else if (kotlinElement instanceof GradleDslSimpleExpression) {
+          GradleDslSimpleExpression pluginElement = (GradleDslSimpleExpression)kotlinElement;
+          results.add(new PluginModelImpl(infixExpression, pluginElement));
+        }
       }
     }
 

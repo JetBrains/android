@@ -44,7 +44,9 @@ public class WhatsNewSidePanelActionTest {
     WhatsNewSidePanelAction action = new WhatsNewSidePanelAction();
     action.update(myEvent);
 
+/* b/176625399
     Truth.assertThat(myPresentation.isEnabled()).isFalse();
+b/176625399 */
   }
 
   @Test
@@ -61,7 +63,9 @@ public class WhatsNewSidePanelActionTest {
     WhatsNewSidePanelAction action = new WhatsNewSidePanelAction();
     action.update(myEvent);
 
+/* b/176625399
     Truth.assertThat(myPresentation.isEnabled()).isFalse();
+b/176625399 */
 
     Mockito.when(myEvent.getProject()).thenReturn(myRule.getProject());
     action.update(myEvent);

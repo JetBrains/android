@@ -117,7 +117,7 @@ class UsageTypeProvidersTest : AndroidTestCase() {
     val elementAtCaret = file.findElementAt(myFixture.caretOffset)
     val usageType = getUsageType(elementAtCaret!!)
     assertThat(usageType).isNotNull()
-    assertThat(usageType.toString()).isEqualTo("{0} in Gradle build script")
+    assertThat(usageType.toString()).isEqualTo("In Gradle build script")
   }
 
   fun testKotlinScriptElement() {
@@ -126,7 +126,7 @@ class UsageTypeProvidersTest : AndroidTestCase() {
     val elementAtCaret = file.findElementAt(myFixture.caretOffset)
     val usageType = getUsageType(elementAtCaret!!)
     assertThat(usageType).isNotNull()
-    assertThat(usageType.toString()).isEqualTo("{0} in Gradle build script")
+    assertThat(usageType.toString()).isEqualTo("In Gradle build script")
   }
 
   // whatever is returned on a normal Kotlin file, it should not be related to Gradle (a null result is OK)
@@ -178,7 +178,7 @@ class UsageTypeProvidersTest : AndroidTestCase() {
 
   fun testManifestDomElement() {
     val manifestFile = myFixture.findFileInTempDir(SdkConstants.FN_ANDROID_MANIFEST_XML)
-    checkUsageTypeText(manifestFile, "{0} in Android manifest")
+    checkUsageTypeText(manifestFile, "In Android manifest")
   }
 
   /**

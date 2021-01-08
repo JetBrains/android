@@ -70,6 +70,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
+import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.XmlElementFactory;
@@ -106,13 +107,13 @@ public class NlModelTest extends LayoutTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    Messages.setTestDialog(message -> Messages.OK);
+    TestDialogManager.setTestDialog(message -> Messages.OK);
   }
 
   @Override
   protected void tearDown() throws Exception {
     super.tearDown();
-    Messages.setTestDialog(TestDialog.DEFAULT);
+    TestDialogManager.setTestDialog(TestDialog.DEFAULT);
   }
 
   @SuppressWarnings("ConstantConditions")

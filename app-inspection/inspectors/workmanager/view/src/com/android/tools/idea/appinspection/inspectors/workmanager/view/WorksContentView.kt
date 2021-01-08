@@ -5,6 +5,8 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.appinspection.inspectors.workmanager.analytics.toChainInfo
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
+import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkSelectionModel
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags.ENABLE_WORK_MANAGER_GRAPH_VIEW
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.icons.AllIcons
@@ -18,8 +20,12 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.components.JBViewport
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
+import java.awt.Point
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JScrollPane
@@ -31,6 +37,7 @@ const val WORK_MANAGER_TOOLBAR_PLACE = "WorkManagerInspector"
  * Parent panel which contains toggleable different views into workers, e.g. a table view and a graph view.
  */
 class WorksContentView(private val tab: WorkManagerInspectorTab,
+                       private val workSelectionModel: WorkSelectionModel,
                        private val client: WorkManagerInspectorClient) : JPanel() {
   private enum class Mode {
     TABLE,
@@ -41,7 +48,7 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
     AnAction(WorkManagerInspectorBundle.message("action.cancel.work"), "", AllIcons.Actions.Suspend) {
 
     override fun actionPerformed(e: AnActionEvent) {
-      val id = tab.selectedWork?.id ?: return
+      val id = workSelectionModel.selectedWork?.id ?: return
       client.cancelWorkById(id)
       client.tracker.trackWorkCancelled()
     }
@@ -115,7 +122,7 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
     AnAction(WorkManagerInspectorBundle.message("action.show.graph"), "", AllIcons.Graph.Layout) {
 
     override fun actionPerformed(e: AnActionEvent) {
-      val selectedWork = tab.selectedWork
+      val selectedWork = workSelectionModel.selectedWork
       if (contentMode == Mode.TABLE && selectedWork != null) {
         contentMode = Mode.GRAPH
         client.tracker.trackGraphModeSelected(AppInspectionEvent.WorkManagerInspectorEvent.Context.TOOL_BUTTON_CONTEXT,
@@ -128,7 +135,7 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
 
     override fun update(e: AnActionEvent) {
       super.update(e)
-      e.presentation.isEnabled = contentMode == Mode.TABLE && tab.selectedWork != null
+      e.presentation.isEnabled = contentMode == Mode.TABLE && workSelectionModel.selectedWork != null
     }
   }
 
@@ -149,13 +156,40 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
     add(buildActionBar(), TabularLayout.Constraint(0, 0))
 
     contentScrollPane = JBScrollPane()
-    tableView = WorksTableView(tab, client)
-    graphView = WorkDependencyGraphView(client, tab) {
+    tableView = WorksTableView(tab, client, workSelectionModel)
+    graphView = WorkDependencyGraphView(tab, client, workSelectionModel) {
       contentMode = Mode.TABLE
       contentScrollPane.setViewportView(tableView)
     }
     contentScrollPane.setViewportView(tableView)
     add(contentScrollPane, TabularLayout.Constraint(1, 0))
+
+    // Handle data changes from client.
+    client.addWorksChangedListener {
+      CoroutineScope(AndroidDispatchers.uiThread).launch {
+        if (workSelectionModel.selectedWork != null) {
+          val work = client.lockedWorks { works ->
+            works.firstOrNull { it.id == workSelectionModel.selectedWork?.id }
+          }
+          if (work != null) {
+            // Update existing work changes e.g. State changes from Running to Succeed
+            workSelectionModel.setSelectedWork(work, WorkSelectionModel.Context.DEVICE)
+          }
+          else {
+            // Select the first row from the table when the selected work is removed when Table content mode is enabled.
+            if (contentMode == Mode.TABLE && tableView.rowCount > 0) {
+              workSelectionModel.setSelectedWork(client.lockedWorks { works -> works.getOrNull(tableView.convertRowIndexToModel(0)) },
+                                                 WorkSelectionModel.Context.DEVICE)
+            }
+            // Close the details view otherwise
+            else {
+              tab.isDetailsViewVisible = false
+              workSelectionModel.setSelectedWork(null, WorkSelectionModel.Context.DEVICE)
+            }
+          }
+        }
+      }
+    }
   }
 
   private fun buildActionBar(): JComponent {
@@ -196,4 +230,32 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
     selectFilterAction.updateActions(DataContext.EMPTY_CONTEXT)
     return selectFilterAction.getChildren(null).map { it as ToggleAction }
   }
+}
+
+fun JComponent.scrollToCenter() {
+  var component: JComponent = this
+  val point = Point(bounds.width / 2, bounds.height / 2)
+  while (component.parent !is JBViewport) {
+    point.x += component.bounds.x
+    point.y += component.bounds.y
+    component = component.parent as? JComponent ?: return
+  }
+  val viewport = component.parent as JBViewport
+  point.x -= viewport.size.width / 2
+  point.y -= viewport.size.height / 2
+  val viewSize = viewport.viewSize
+
+  if (viewSize.width >= viewport.size.width) {
+    point.x = point.x.coerceAtLeast(0).coerceAtMost(viewSize.width - viewport.size.width)
+  }
+  else {
+    point.x = 0
+  }
+  if (viewSize.height >= viewport.size.height) {
+    point.y = point.y.coerceAtLeast(0).coerceAtMost(viewSize.height - viewport.size.height)
+  }
+  else {
+    point.y = 0
+  }
+  viewport.viewPosition = point
 }

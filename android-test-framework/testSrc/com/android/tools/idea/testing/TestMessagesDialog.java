@@ -27,7 +27,7 @@ import org.intellij.lang.annotations.MagicConstant;
  * <pre>
  *   // Replace the default dialog used by com.intellij.openapi.ui.Messages with a mock one.
  *   TestMessagesDialog testDialog = new TestMessagesDialog(Messages.OK);
- *   Messages.setTestDialog(testDialog);
+ *   TestDialogManager.setTestDialog(testDialog);
  * </pre>
  * </p>
  */

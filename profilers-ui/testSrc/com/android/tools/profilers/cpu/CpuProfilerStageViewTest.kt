@@ -61,23 +61,11 @@ import javax.swing.SwingUtilities
 private const val TOOLTIP_TRACE_DATA_FILE = "tools/adt/idea/profilers-ui/testData/cputraces/atrace.ctrace"
 
 @RunsInEdt
-@RunWith(Parameterized::class)
-class CpuProfilerStageViewTest(newPipeline: Boolean) {
-
-  companion object {
-    @JvmStatic
-    @Parameterized.Parameters
-    fun data(): Collection<Boolean> {
-      return listOf(false, true)
-    }
-  }
-
+class CpuProfilerStageViewTest() {
   private val myTimer = FakeTimer()
-
   private val myComponents = FakeIdeProfilerComponents()
-
   private val myIdeServices = FakeIdeProfilerServices().apply {
-    enableEventsPipeline(newPipeline)
+    enableEventsPipeline(true)
   }
 
   private val myCpuService = FakeCpuService()
@@ -362,21 +350,21 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
 
     assertThat(myStage.profilerMode).isEqualTo(ProfilerMode.NORMAL)
     val splitter = TreeWalker(stageView.component).descendants().filterIsInstance<JBSplitter>().first()
-    assertThat(splitter.secondComponent).isNull()
+    assertThat(splitter.firstComponent).isNull()
 
     // As we don't have an access to change the mode directly, we're changing it indirectly by setting a capture.
     myStage.capture = CpuProfilerUITestUtils.validCapture()
     assertThat(myStage.profilerMode).isEqualTo(ProfilerMode.EXPANDED)
     // CpuCaptureView should not be null now and should also be visible.
-    assertThat(splitter.secondComponent).isNotNull()
-    assertThat(splitter.secondComponent.isVisible).isTrue()
+    assertThat(splitter.firstComponent).isNotNull()
+    assertThat(splitter.firstComponent.isVisible).isTrue()
 
     // As we don't have an access to change the mode directly, we're changing it indirectly by simulating a code navigation.
     myStage.onNavigated(CodeLocation.stub())
     assertThat(myStage.profilerMode).isEqualTo(ProfilerMode.NORMAL)
     // Even though we went back to NORMAL (non maximized) mode so the user can view the code editor, we keep displaying the CpuCaptureView.
-    assertThat(splitter.secondComponent).isNotNull()
-    assertThat(splitter.secondComponent.isVisible).isTrue()
+    assertThat(splitter.firstComponent).isNotNull()
+    assertThat(splitter.firstComponent.isVisible).isTrue()
   }
 
   @Test

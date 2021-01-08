@@ -240,6 +240,7 @@ class LightBindingClassTest {
         <LinearLayout />
       </layout>
     """.trimIndent())
+    UIUtil.dispatchAllInvocationEvents()
 
     // This second file should be findable, meaning the cache was updated
     fixture.findClass("test.db.databinding.ActivitySecondBinding", context) as LightBindingClass
@@ -253,6 +254,7 @@ class LightBindingClassTest {
         <LinearLayout />
       </layout>
     """.trimIndent())
+    UIUtil.dispatchAllInvocationEvents()
 
     assertThat(fixture.findClass("test.db.databinding.ActivitySecondBindingLandImpl", context)).isNotNull()
 
@@ -856,6 +858,7 @@ class LightBindingClassTest {
     assertThat(noResourcesGroups).isSameAs(bindingCache.bindingLayoutGroups)
 
     fixture.addFileToProject("res/layout/activity_first.xml", sampleXml)
+    UIUtil.dispatchAllInvocationEvents()
 
     val oneResourceGroups = bindingCache.bindingLayoutGroups
     assertThat(oneResourceGroups.size).isEqualTo(1)
@@ -863,6 +866,7 @@ class LightBindingClassTest {
     assertThat(oneResourceGroups).isSameAs(bindingCache.bindingLayoutGroups)
 
     fixture.addFileToProject("res/layout/activity_second.xml", sampleXml)
+    UIUtil.dispatchAllInvocationEvents()
     val twoResourcesGroups = bindingCache.bindingLayoutGroups
     assertThat(twoResourcesGroups.size).isEqualTo(2)
     assertThat(twoResourcesGroups).isNotSameAs(noResourcesGroups)
@@ -897,6 +901,7 @@ class LightBindingClassTest {
 
     // XML updates are ignored in dumb mode
     fixture.addFileToProject("res/layout/activity_second.xml", sampleXml)
+    UIUtil.dispatchAllInvocationEvents()
     assertThat(LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
       .containsExactly("ActivityFirstBinding")
 

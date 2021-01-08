@@ -58,8 +58,8 @@ import com.intellij.openapi.fileChooser.impl.FileChooserFactoryImpl;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.InputValidator;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
+import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.openapi.ui.TestInputDialog;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
@@ -195,11 +195,11 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
       myMockRepaintManager = null;
 
       if (myInitialTestDialog != null) {
-        Messages.setTestDialog(myInitialTestDialog);
+        TestDialogManager.setTestDialog(myInitialTestDialog);
       }
 
       if (myInitialTestInputDialog != null) {
-        Messages.setTestInputDialog(myInitialTestInputDialog);
+        TestDialogManager.setTestInputDialog(myInitialTestInputDialog);
       }
 
       if (myMockFileManager != null) {
@@ -709,7 +709,17 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
         @NotNull
         @Override
         public FileSaverDialog createSaveFileDialog(@NotNull FileSaverDescriptor descriptor, @Nullable Project project) {
-          return (baseDir, filename) -> new VirtualFileWrapper(tempFile);
+          return new FileSaverDialog() {
+            @Override
+            public @Nullable VirtualFileWrapper save(@Nullable VirtualFile baseDir, @Nullable String filename) {
+              return new VirtualFileWrapper(tempFile);
+            }
+
+            @Override
+            public @Nullable VirtualFileWrapper save(@Nullable Path baseDir, @Nullable String filename) {
+              return new VirtualFileWrapper(tempFile);
+            }
+          };
         }
       };
       ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), FileChooserFactory.class, factory, getTestRootDisposable());
@@ -1489,7 +1499,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
   @SuppressWarnings("SameParameterValue")
   private void replaceTestDialog(@NotNull Function<String, Integer> showFunction) {
-    TestDialog previousDialog = Messages.setTestDialog(showFunction::apply);
+    TestDialog previousDialog = TestDialogManager.setTestDialog(showFunction::apply);
     if (myInitialTestDialog == null) {
       myInitialTestDialog = previousDialog;
     }
@@ -1497,7 +1507,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
   @SuppressWarnings("SameParameterValue")
   private void replaceTestInputDialog(@Nullable String returnValue) {
-    TestInputDialog previousDialog = Messages.setTestInputDialog(new TestInputDialog() {
+    TestInputDialog previousDialog = TestDialogManager.setTestInputDialog(new TestInputDialog() {
       @Override
       public String show(String message) {
         return show(message, null);

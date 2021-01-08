@@ -82,7 +82,7 @@ class ExportUtilsTest {
   private fun exportAndGetContent(format: ExportTestResultsConfiguration.ExportFormat): String {
     lateinit var outputVirtualFile: VirtualFile
     runWriteAction {
-      val inputDir = temporaryDirectoryRule.newVirtualDirectory("outputDir")
+      val inputDir = temporaryDirectoryRule.createVirtualDir("outputDir")
       outputVirtualFile = inputDir.createChildData(this, "output.${format.defaultExtension}")
     }
 

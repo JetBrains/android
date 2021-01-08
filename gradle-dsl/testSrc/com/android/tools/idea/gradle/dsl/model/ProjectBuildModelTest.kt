@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYP
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTEGER
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTERPOLATED
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase.runWriteAction
@@ -45,7 +46,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
 
     run {
       val parentProperty = parentBuildModel.ext().findProperty("property")
-      verifyPropertyModel(parentProperty.resolve(), STRING_TYPE, "hello", STRING, REGULAR, 1, "property")
+      verifyPropertyModel(parentProperty.resolve(), STRING_TYPE, "hello", INTERPOLATED, REGULAR, 1, "property")
       val childProperty = childBuildModel.ext().findProperty("childProperty")
       verifyPropertyModel(childProperty.resolve(), STRING_TYPE, "hello", STRING, REGULAR, 1, "childProperty")
       val appliedProperty = childProperty.dependencies[0]
@@ -56,7 +57,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       childProperty.rename("dodgy")
 
       verifyPropertyModel(appliedProperty.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 0, "greeting")
-      verifyPropertyModel(parentProperty.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1, "property")
+      verifyPropertyModel(parentProperty.resolve(), STRING_TYPE, "goodbye", INTERPOLATED, REGULAR, 1, "property")
       verifyPropertyModel(childProperty.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1, "dodgy")
     }
 
@@ -76,7 +77,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       val childProperty = childBuildModel.ext().findProperty("dodgy")
       val appliedProperty = childProperty.dependencies[0]
       verifyPropertyModel(appliedProperty.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 0, "greeting")
-      verifyPropertyModel(parentProperty.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1, "property")
+      verifyPropertyModel(parentProperty.resolve(), STRING_TYPE, "goodbye", INTERPOLATED, REGULAR, 1, "property")
       verifyPropertyModel(childProperty.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1, "dodgy")
     }
   }
@@ -118,7 +119,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     // Edit the properties in one of the models.
     run {
       val parentPropertyModel = parentModelTwo.ext().findProperty("prop")
-      verifyPropertyModel(parentPropertyModel.resolve(), STRING_TYPE, "Hello i am true!", STRING, REGULAR, 1)
+      verifyPropertyModel(parentPropertyModel.resolve(), STRING_TYPE, "Hello i am true!", INTERPOLATED, REGULAR, 1)
       val childPropertyModel = childModelOne.ext().findProperty("prop1")
       verifyPropertyModel(childPropertyModel.resolve(), STRING_TYPE, "boo", STRING, REGULAR, 0)
 
@@ -127,12 +128,12 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       childPropertyModel.setValue("ood")
 
       // Check that the properties have been updated in the original models
-      verifyPropertyModel(parentPropertyModel.resolve(), STRING_TYPE, "Hello i am false!", STRING, REGULAR, 1)
+      verifyPropertyModel(parentPropertyModel.resolve(), STRING_TYPE, "Hello i am false!", INTERPOLATED, REGULAR, 1)
       verifyPropertyModel(childPropertyModel.resolve(), STRING_TYPE, "ood", STRING, REGULAR, 0)
       // Check that the properties have been updated in the other models
       val otherParentPropertyModel = parentModelOne.ext().findProperty("prop")
       val otherChildPropertyModel = childModelTwo.ext().findProperty("prop1")
-      verifyPropertyModel(otherParentPropertyModel.resolve(), STRING_TYPE, "Hello i am false!", STRING, REGULAR, 1)
+      verifyPropertyModel(otherParentPropertyModel.resolve(), STRING_TYPE, "Hello i am false!", INTERPOLATED, REGULAR, 1)
       verifyPropertyModel(otherChildPropertyModel.resolve(), STRING_TYPE, "ood", STRING, REGULAR, 0)
     }
 
@@ -144,12 +145,12 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       val parentPropertyModel = parentModelTwo.ext().findProperty("prop")
       val childPropertyModel = childModelOne.ext().findProperty("prop1")
       // Check that the properties have been updated in the original models
-      verifyPropertyModel(parentPropertyModel.resolve(), STRING_TYPE, "Hello i am false!", STRING, REGULAR, 1)
+      verifyPropertyModel(parentPropertyModel.resolve(), STRING_TYPE, "Hello i am false!", INTERPOLATED, REGULAR, 1)
       verifyPropertyModel(childPropertyModel.resolve(), STRING_TYPE, "ood", STRING, REGULAR, 0)
       // Check that the properties have been updated in the other models
       val otherParentPropertyModel = parentModelOne.ext().findProperty("prop")
       val otherChildPropertyModel = childModelTwo.ext().findProperty("prop1")
-      verifyPropertyModel(otherParentPropertyModel.resolve(), STRING_TYPE, "Hello i am false!", STRING, REGULAR, 1)
+      verifyPropertyModel(otherParentPropertyModel.resolve(), STRING_TYPE, "Hello i am false!", INTERPOLATED, REGULAR, 1)
       verifyPropertyModel(otherChildPropertyModel.resolve(), STRING_TYPE, "ood", STRING, REGULAR, 0)
     }
   }

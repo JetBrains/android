@@ -144,11 +144,7 @@ public class IconPickerDialogTest extends PlatformTestCase {
       @Override
       protected boolean condition() {
         // Dispatch pending EDT tasks, do not block the thread while waiting.
-        try {
-          PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-        }
-        catch (InterruptedException ignored) {
-        }
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
         JTable table = UIUtil.findComponentOfType(pickerPanel, JTable.class);
         JComboBox box = UIUtil.findComponentOfType(pickerPanel, JComboBox.class);
         boolean populatedTable = table != null && table.getValueAt(0, 0) != null;

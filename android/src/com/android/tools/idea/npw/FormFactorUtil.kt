@@ -23,7 +23,6 @@ fun FormFactor.toTemplateFormFactor(): com.android.tools.idea.wizard.template.Fo
   FormFactor.WEAR -> com.android.tools.idea.wizard.template.FormFactor.Wear
   FormFactor.TV -> com.android.tools.idea.wizard.template.FormFactor.Tv
   FormFactor.AUTOMOTIVE -> com.android.tools.idea.wizard.template.FormFactor.Automotive
-  FormFactor.THINGS -> com.android.tools.idea.wizard.template.FormFactor.Things
 }
 
 fun com.android.tools.idea.wizard.template.FormFactor.toWizardFormFactor() = when(this) {
@@ -31,7 +30,6 @@ fun com.android.tools.idea.wizard.template.FormFactor.toWizardFormFactor() = whe
   com.android.tools.idea.wizard.template.FormFactor.Wear -> FormFactor.WEAR
   com.android.tools.idea.wizard.template.FormFactor.Tv -> FormFactor.TV
   com.android.tools.idea.wizard.template.FormFactor.Automotive -> FormFactor.AUTOMOTIVE
-  com.android.tools.idea.wizard.template.FormFactor.Things -> FormFactor.THINGS
   com.android.tools.idea.wizard.template.FormFactor.Generic -> FormFactor.MOBILE
 }
 

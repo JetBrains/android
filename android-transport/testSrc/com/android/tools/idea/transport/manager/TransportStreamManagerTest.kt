@@ -34,6 +34,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.Timeout
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -49,7 +50,10 @@ class TransportStreamManagerTest {
   private lateinit var dispatcher: CoroutineDispatcher
 
   @get:Rule
-  val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionDiscoveryTest", transportService, transportService)!!
+  val timeout = Timeout.seconds(10)
+
+  @get:Rule
+  val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionDiscoveryTest", transportService)
 
   @Before
   fun setUp() {

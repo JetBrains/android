@@ -1,6 +1,6 @@
 PROJECT             : MultiFlavor
     PROJECT_JDK         : <JAVA_VERSION>
-        Version             : java version "<JDK_VERSION>"
+        Version             : version <JDK_VERSION>
     MODULE              : MultiFlavor
         ExternalModuleGroup :
         ExternalModuleVersion         : unspecified
@@ -128,7 +128,6 @@ PROJECT             : MultiFlavor
             Generated           : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/resources [-]
@@ -137,7 +136,6 @@ PROJECT             : MultiFlavor
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/resources [-]
@@ -146,7 +144,6 @@ PROJECT             : MultiFlavor
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestFirstAbc/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestFirstAbc/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestFirstAbc/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestFirstAbc/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestFirstAbc/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestFirstAbc/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestFirstAbc/resources [-]
@@ -155,7 +152,6 @@ PROJECT             : MultiFlavor
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc/resources [-]
@@ -164,7 +160,6 @@ PROJECT             : MultiFlavor
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug/resources [-]
@@ -173,7 +168,6 @@ PROJECT             : MultiFlavor
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestSecondAbc/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestSecondAbc/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestSecondAbc/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestSecondAbc/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestSecondAbc/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestSecondAbc/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestSecondAbc/resources [-]
@@ -182,7 +176,6 @@ PROJECT             : MultiFlavor
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/resources [-]
@@ -191,7 +184,6 @@ PROJECT             : MultiFlavor
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/firstAbc/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/firstAbc/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/firstAbc/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/firstAbc/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/firstAbc/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/firstAbc/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/firstAbc/resources [-]
@@ -199,7 +191,6 @@ PROJECT             : MultiFlavor
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/firstAbc/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/firstAbcSecondAbc/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/firstAbcSecondAbc/assets [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/firstAbcSecondAbc/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/firstAbcSecondAbc/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/firstAbcSecondAbc/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/firstAbcSecondAbc/resources [-]
@@ -208,7 +199,6 @@ PROJECT             : MultiFlavor
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/firstAbcSecondAbcDebug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/firstAbcSecondAbcDebug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/firstAbcSecondAbcDebug/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/firstAbcSecondAbcDebug/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/firstAbcSecondAbcDebug/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/firstAbcSecondAbcDebug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/firstAbcSecondAbcDebug/resources [-]
@@ -216,7 +206,6 @@ PROJECT             : MultiFlavor
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/firstAbcSecondAbcDebug/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/assets [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/rs [-]
@@ -224,7 +213,6 @@ PROJECT             : MultiFlavor
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/secondAbc/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/secondAbc/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/secondAbc/java2 [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/secondAbc/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/secondAbc/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/secondAbc/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/secondAbc/resources [-]
@@ -232,7 +220,6 @@ PROJECT             : MultiFlavor
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/secondAbc/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
@@ -241,7 +228,6 @@ PROJECT             : MultiFlavor
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/resources [-]
@@ -250,7 +236,6 @@ PROJECT             : MultiFlavor
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testFirstAbc/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testFirstAbc/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testFirstAbc/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testFirstAbc/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testFirstAbc/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testFirstAbc/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testFirstAbc/resources [-]
@@ -258,7 +243,6 @@ PROJECT             : MultiFlavor
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testFirstAbc/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testFirstAbcSecondAbc/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testFirstAbcSecondAbc/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testFirstAbcSecondAbc/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testFirstAbcSecondAbc/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testFirstAbcSecondAbc/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testFirstAbcSecondAbc/resources [-]
@@ -266,7 +250,6 @@ PROJECT             : MultiFlavor
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testFirstAbcSecondAbc/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/resources [-]
@@ -274,7 +257,6 @@ PROJECT             : MultiFlavor
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testSecondAbc/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testSecondAbc/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testSecondAbc/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testSecondAbc/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testSecondAbc/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testSecondAbc/resources [-]
@@ -284,7 +266,7 @@ PROJECT             : MultiFlavor
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
         LIBRARY             : Gradle: androidx.activity:activity:1.0.0@aar
             LibraryLevel        : project

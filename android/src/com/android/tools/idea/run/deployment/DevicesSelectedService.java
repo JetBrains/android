@@ -17,45 +17,38 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ide.util.PropertiesComponent;
+import com.google.common.collect.Sets;
+import com.intellij.openapi.components.Service;
+import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.serviceContainer.NonInjectable;
+import com.intellij.util.xmlb.Converter;
+import com.intellij.util.xmlb.annotations.OptionTag;
+import com.intellij.util.xmlb.annotations.Tag;
+import com.intellij.util.xmlb.annotations.XCollection;
+import com.intellij.util.xmlb.annotations.XCollection.Style;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A project scoped service that wraps the PropertiesComponent that persists the device keys selected with the combo box or the Modify
- * Device Set dialog. The actual point of this is for stubbing and verification in tests.
+ * A project scoped service that persists the targets selected with the drop down or the Select Multiple Devices dialog
  */
 final class DevicesSelectedService {
-  @VisibleForTesting
-  static final String DEVICE_KEY_SELECTED_WITH_COMBO_BOX = "DeviceAndSnapshotComboBoxAction.selectedDevice";
-
-  @VisibleForTesting
-  static final String TIME_DEVICE_KEY_WAS_SELECTED_WITH_COMBO_BOX = "DeviceAndSnapshotComboBoxAction.selectionTime";
-
-  @VisibleForTesting
-  static final String MULTIPLE_DEVICES_SELECTED_IN_COMBO_BOX = "DeviceAndSnapshotComboBoxAction.multipleDevicesSelected";
-
-  @VisibleForTesting
-  static final String DEVICE_KEYS_SELECTED_WITH_DIALOG = "SelectDeploymentTargetsDialog.selectedDevices";
-
-  @NotNull
-  private final Project myProject;
-
-  @NotNull
-  private final Function<Project, PropertiesComponent> myPropertiesComponentGetInstance;
+  private final @NotNull PersistentStateComponent myPersistentStateComponent;
 
   @NotNull
   private final Clock myClock;
@@ -64,17 +57,17 @@ final class DevicesSelectedService {
 
   @SuppressWarnings("unused")
   private DevicesSelectedService(@NotNull Project project) {
-    this(project, PropertiesComponent::getInstance, Clock.systemDefaultZone(), StudioFlags.RUN_ON_MULTIPLE_DEVICES_ACTION_ENABLED::get);
+    this(project.getService(PersistentStateComponent.class),
+         Clock.systemDefaultZone(),
+         StudioFlags.RUN_ON_MULTIPLE_DEVICES_ACTION_ENABLED::get);
   }
 
   @VisibleForTesting
   @NonInjectable
-  DevicesSelectedService(@NotNull Project project,
-                         @NotNull Function<Project, PropertiesComponent> propertiesComponentGetInstance,
+  DevicesSelectedService(@NotNull PersistentStateComponent persistentStateComponent,
                          @NotNull Clock clock,
                          @NotNull BooleanSupplier runOnMultipleDevicesActionEnabledGet) {
-    myProject = project;
-    myPropertiesComponentGetInstance = propertiesComponentGetInstance;
+    myPersistentStateComponent = persistentStateComponent;
     myClock = clock;
     myRunOnMultipleDevicesActionEnabledGet = runOnMultipleDevicesActionEnabledGet;
   }
@@ -89,133 +82,340 @@ final class DevicesSelectedService {
       return Optional.empty();
     }
 
-    String keyAsString = myPropertiesComponentGetInstance.apply(myProject).getValue(DEVICE_KEY_SELECTED_WITH_COMBO_BOX);
+    State state = myPersistentStateComponent.getState();
 
-    if (keyAsString == null) {
-      return Optional.of(new Target(devices.get(0).getKey()));
+    if (state.targetSelectedWithDropDown == null) {
+      return Optional.of(devices.get(0).getDefaultTarget());
     }
 
-    Key key = Key.newKey(keyAsString);
+    Target target;
+
+    try {
+      target = state.targetSelectedWithDropDown.asTarget();
+    }
+    catch (DevicesSelectedServiceException exception) {
+      Logger.getInstance(DevicesSelectedService.class).warn(exception);
+      return Optional.of(devices.get(0).getDefaultTarget());
+    }
 
     Optional<Device> optionalSelectedDevice = devices.stream()
-      .filter(device -> device.matches(key))
+      .filter(target::matches)
       .findFirst();
 
     if (!optionalSelectedDevice.isPresent()) {
-      return Optional.of(new Target(devices.get(0).getKey()));
+      return Optional.of(devices.get(0).getDefaultTarget());
     }
-
-    Device selectedDevice = optionalSelectedDevice.get();
 
     Optional<Device> optionalConnectedDevice = devices.stream()
       .filter(Device::isConnected)
       .findFirst();
 
     if (!optionalConnectedDevice.isPresent()) {
-      return Optional.of(new Target(selectedDevice.getKey()));
+      return Optional.of(target);
     }
 
     Device connectedDevice = optionalConnectedDevice.get();
 
+    assert state.timeTargetWasSelectedWithDropDown != null;
+
     Instant connectionTime = connectedDevice.getConnectionTime();
-    assert connectionTime != null : "connected device \"" + connectedDevice + "\" has a null connection time";
+    assert connectionTime != null;
 
-    if (getTimeDeviceWasSelectedWithComboBox(selectedDevice).isBefore(connectionTime)) {
-      return Optional.of(new Target(connectedDevice.getKey()));
+    if (state.timeTargetWasSelectedWithDropDown.isBefore(connectionTime)) {
+      return Optional.of(connectedDevice.getDefaultTarget());
     }
 
-    return Optional.of(new Target(selectedDevice.getKey()));
-  }
-
-  @NotNull
-  private Instant getTimeDeviceWasSelectedWithComboBox(@NotNull Device device) {
-    CharSequence time = myPropertiesComponentGetInstance.apply(myProject).getValue(TIME_DEVICE_KEY_WAS_SELECTED_WITH_COMBO_BOX);
-
-    if (time == null) {
-      // I don't know why this happens
-      Logger.getInstance(DevicesSelectedService.class).warn("selected device \"" + device + "\" has a null selection time string");
-
-      return Instant.MIN;
-    }
-
-    return Instant.parse(time);
+    return Optional.of(target);
   }
 
   void setTargetSelectedWithComboBox(@Nullable Target targetSelectedWithComboBox) {
-    PropertiesComponent properties = myPropertiesComponentGetInstance.apply(myProject);
-    properties.unsetValue(MULTIPLE_DEVICES_SELECTED_IN_COMBO_BOX);
+    State state = myPersistentStateComponent.getState();
+    state.multipleDevicesSelectedInDropDown = false;
 
     if (targetSelectedWithComboBox == null) {
-      properties.unsetValue(TIME_DEVICE_KEY_WAS_SELECTED_WITH_COMBO_BOX);
-      properties.unsetValue(DEVICE_KEY_SELECTED_WITH_COMBO_BOX);
+      state.timeTargetWasSelectedWithDropDown = null;
+      state.targetSelectedWithDropDown = null;
     }
     else {
-      Object key = targetSelectedWithComboBox.getDeviceKey();
-      assert !(key instanceof NonprefixedKey);
-
-      properties.setValue(DEVICE_KEY_SELECTED_WITH_COMBO_BOX, key.toString());
-      properties.setValue(TIME_DEVICE_KEY_WAS_SELECTED_WITH_COMBO_BOX, myClock.instant().toString());
+      state.targetSelectedWithDropDown = new TargetState(targetSelectedWithComboBox);
+      state.timeTargetWasSelectedWithDropDown = myClock.instant();
     }
   }
 
   boolean isMultipleDevicesSelectedInComboBox() {
     return !myRunOnMultipleDevicesActionEnabledGet.getAsBoolean() &&
-           myPropertiesComponentGetInstance.apply(myProject).getBoolean(MULTIPLE_DEVICES_SELECTED_IN_COMBO_BOX);
+           myPersistentStateComponent.getState().multipleDevicesSelectedInDropDown;
   }
 
   void setMultipleDevicesSelectedInComboBox(boolean multipleDevicesSelectedInComboBox) {
-    PropertiesComponent properties = myPropertiesComponentGetInstance.apply(myProject);
+    State state = myPersistentStateComponent.getState();
 
-    properties.unsetValue(TIME_DEVICE_KEY_WAS_SELECTED_WITH_COMBO_BOX);
-    properties.unsetValue(DEVICE_KEY_SELECTED_WITH_COMBO_BOX);
+    state.timeTargetWasSelectedWithDropDown = null;
+    state.targetSelectedWithDropDown = null;
 
-    if (!multipleDevicesSelectedInComboBox) {
-      properties.unsetValue(MULTIPLE_DEVICES_SELECTED_IN_COMBO_BOX);
-    }
-    else {
-      properties.setValue(MULTIPLE_DEVICES_SELECTED_IN_COMBO_BOX, true);
-    }
+    state.multipleDevicesSelectedInDropDown = multipleDevicesSelectedInComboBox;
   }
 
   boolean isDialogSelectionEmpty() {
-    return !myPropertiesComponentGetInstance.apply(myProject).isValueSet(DEVICE_KEYS_SELECTED_WITH_DIALOG);
+    return myPersistentStateComponent.getState().targetsSelectedWithDialog.isEmpty();
   }
 
   @NotNull Set<@NotNull Target> getTargetsSelectedWithDialog() {
-    String[] keys = myPropertiesComponentGetInstance.apply(myProject).getValues(DEVICE_KEYS_SELECTED_WITH_DIALOG);
+    try {
+      Collection<TargetState> targetStates = myPersistentStateComponent.getState().targetsSelectedWithDialog;
+      Set<Target> targets = Sets.newHashSetWithExpectedSize(targetStates.size());
 
-    if (keys == null) {
+      for (TargetState targetState : targetStates) {
+        targets.add(targetState.asTarget());
+      }
+
+      return targets;
+    }
+    catch (DevicesSelectedServiceException exception) {
+      Logger.getInstance(DevicesSelectedService.class).warn(exception);
       return Collections.emptySet();
     }
-
-    assert !Arrays.asList(keys).contains("") : Arrays.toString(keys);
-
-    return Arrays.stream(keys)
-      .map(Key::newKey)
-      .map(Target::new)
-      .collect(Collectors.toSet());
   }
 
   void setTargetsSelectedWithDialog(@NotNull Set<@NotNull Target> targetsSelectedWithDialog) {
-    String[] array = targetsSelectedWithDialog.stream()
-      .map(DevicesSelectedService::getDeviceKey)
-      .map(Object::toString)
-      .toArray(String[]::new);
+    myPersistentStateComponent.getState().targetsSelectedWithDialog = targetsSelectedWithDialog.stream()
+      .map(TargetState::new)
+      .collect(Collectors.toList());
+  }
 
-    PropertiesComponent properties = myPropertiesComponentGetInstance.apply(myProject);
+  @com.intellij.openapi.components.State(name = "deploymentTargetDropDown", storages = @Storage("deploymentTargetDropDown.xml"))
+  @Service
+  @VisibleForTesting
+  static final class PersistentStateComponent implements com.intellij.openapi.components.PersistentStateComponent<State> {
+    private @NotNull State myState = new State();
 
-    if (array.length == 0) {
-      properties.unsetValue(DEVICE_KEYS_SELECTED_WITH_DIALOG);
+    @Override
+    public @NotNull State getState() {
+      return myState;
     }
-    else {
-      properties.setValues(DEVICE_KEYS_SELECTED_WITH_DIALOG, array);
+
+    @Override
+    public void loadState(@NotNull State state) {
+      myState = state;
     }
   }
 
-  private static @NotNull Object getDeviceKey(@NotNull Target target) {
-    Object key = target.getDeviceKey();
-    assert !(key instanceof NonprefixedKey);
+  private static final class State {
+    @OptionTag(tag = "targetSelectedWithDropDown", nameAttribute = "")
+    public @Nullable TargetState targetSelectedWithDropDown;
 
-    return key;
+    @OptionTag(tag = "timeTargetWasSelectedWithDropDown", nameAttribute = "", converter = InstantConverter.class)
+    public @Nullable Instant timeTargetWasSelectedWithDropDown;
+
+    @OptionTag(tag = "multipleDevicesSelectedInDropDown", nameAttribute = "")
+    public boolean multipleDevicesSelectedInDropDown;
+
+    @XCollection(style = Style.v2)
+    public @NotNull Collection<@NotNull TargetState> targetsSelectedWithDialog = Collections.emptyList();
+
+    @Override
+    public int hashCode() {
+      int hashCode = Objects.hashCode(targetSelectedWithDropDown);
+
+      hashCode = 31 * hashCode + Objects.hashCode(timeTargetWasSelectedWithDropDown);
+      hashCode = 31 * hashCode + Boolean.hashCode(multipleDevicesSelectedInDropDown);
+      hashCode = 31 * hashCode + targetsSelectedWithDialog.hashCode();
+
+      return hashCode;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object object) {
+      if (!(object instanceof State)) {
+        return false;
+      }
+
+      State state = (State)object;
+
+      return Objects.equals(targetSelectedWithDropDown, state.targetSelectedWithDropDown) &&
+             Objects.equals(timeTargetWasSelectedWithDropDown, state.timeTargetWasSelectedWithDropDown) &&
+             multipleDevicesSelectedInDropDown == state.multipleDevicesSelectedInDropDown &&
+             targetsSelectedWithDialog.equals(state.targetsSelectedWithDialog);
+    }
+  }
+
+  @Tag("Target")
+  private static final class TargetState {
+    @OptionTag(tag = "type", nameAttribute = "")
+    public @Nullable TargetType type;
+
+    @OptionTag(tag = "deviceKey", nameAttribute = "")
+    public @Nullable KeyState deviceKey;
+
+    @OptionTag(tag = "snapshotKey", nameAttribute = "", converter = PathConverter.class)
+    public @Nullable Path snapshotKey;
+
+    @SuppressWarnings("unused")
+    private TargetState() {
+    }
+
+    private TargetState(@NotNull Target target) {
+      if (target instanceof ColdBootTarget) {
+        type = TargetType.COLD_BOOT_TARGET;
+      }
+      else if (target instanceof QuickBootTarget) {
+        type = TargetType.QUICK_BOOT_TARGET;
+      }
+      else if (target instanceof BootWithSnapshotTarget) {
+        type = TargetType.BOOT_WITH_SNAPSHOT_TARGET;
+        snapshotKey = ((BootWithSnapshotTarget)target).getSnapshotKey();
+      }
+      else if (target instanceof PhysicalDeviceTarget) {
+        type = TargetType.PHYSICAL_DEVICE_TARGET;
+      }
+      else {
+        assert false : target;
+      }
+
+      deviceKey = new KeyState(target.getDeviceKey());
+    }
+
+    private @NotNull Target asTarget() throws DevicesSelectedServiceException {
+      if (type == null) {
+        throw new DevicesSelectedServiceException();
+      }
+
+      if (deviceKey == null) {
+        throw new DevicesSelectedServiceException();
+      }
+
+      switch (type) {
+        case COLD_BOOT_TARGET:
+          return new ColdBootTarget(deviceKey.asKey());
+        case QUICK_BOOT_TARGET:
+          return new QuickBootTarget(deviceKey.asKey());
+        case BOOT_WITH_SNAPSHOT_TARGET:
+          assert snapshotKey != null;
+          return new BootWithSnapshotTarget(deviceKey.asKey(), snapshotKey);
+        case PHYSICAL_DEVICE_TARGET:
+          return new PhysicalDeviceTarget((SerialNumber)deviceKey.asKey());
+        default:
+          throw new DevicesSelectedServiceException(type.toString());
+      }
+    }
+
+    @Override
+    public int hashCode() {
+      int hashCode = Objects.hashCode(type);
+
+      hashCode = 31 * hashCode + Objects.hashCode(deviceKey);
+      hashCode = 31 * hashCode + Objects.hashCode(snapshotKey);
+
+      return hashCode;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object object) {
+      if (!(object instanceof TargetState)) {
+        return false;
+      }
+
+      TargetState target = (TargetState)object;
+
+      return Objects.equals(type, target.type) &&
+             Objects.equals(deviceKey, target.deviceKey) &&
+             Objects.equals(snapshotKey, target.snapshotKey);
+    }
+  }
+
+  private enum TargetType {COLD_BOOT_TARGET, QUICK_BOOT_TARGET, BOOT_WITH_SNAPSHOT_TARGET, PHYSICAL_DEVICE_TARGET}
+
+  @Tag("Key")
+  private static final class KeyState {
+    @OptionTag(tag = "type", nameAttribute = "")
+    public @Nullable KeyType type;
+
+    @OptionTag(tag = "value", nameAttribute = "")
+    public @Nullable String value;
+
+    @SuppressWarnings("unused")
+    private KeyState() {
+    }
+
+    private KeyState(@NotNull Key key) {
+      if (key instanceof VirtualDevicePath) {
+        type = KeyType.VIRTUAL_DEVICE_PATH;
+      }
+      else if (key instanceof VirtualDeviceName) {
+        type = KeyType.VIRTUAL_DEVICE_NAME;
+      }
+      else if (key instanceof SerialNumber) {
+        type = KeyType.SERIAL_NUMBER;
+      }
+      else {
+        assert false : key;
+      }
+
+      value = key.toString();
+    }
+
+    private @NotNull Key asKey() throws DevicesSelectedServiceException {
+      if (type == null) {
+        throw new DevicesSelectedServiceException();
+      }
+
+      if (value == null) {
+        throw new DevicesSelectedServiceException();
+      }
+
+      switch (type) {
+        case VIRTUAL_DEVICE_PATH:
+          return new VirtualDevicePath(value);
+        case VIRTUAL_DEVICE_NAME:
+          return new VirtualDeviceName(value);
+        case SERIAL_NUMBER:
+          return new SerialNumber(value);
+        default:
+          throw new DevicesSelectedServiceException(type.toString());
+      }
+    }
+
+    @Override
+    public int hashCode() {
+      return 31 * Objects.hashCode(type) + Objects.hashCode(value);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object object) {
+      if (!(object instanceof KeyState)) {
+        return false;
+      }
+
+      KeyState key = (KeyState)object;
+      return Objects.equals(type, key.type) && Objects.equals(value, key.value);
+    }
+  }
+
+  private enum KeyType {VIRTUAL_DEVICE_PATH, VIRTUAL_DEVICE_NAME, SERIAL_NUMBER}
+
+  private static final class PathConverter extends Converter<Path> {
+    private final @NotNull FileSystem myFileSystem = FileSystems.getDefault();
+
+    @Override
+    public @NotNull Path fromString(@NotNull String string) {
+      return myFileSystem.getPath(string);
+    }
+
+    @Override
+    public @NotNull String toString(@NotNull Path path) {
+      return path.toString();
+    }
+  }
+
+  private static final class InstantConverter extends Converter<Instant> {
+    @Override
+    public @NotNull Instant fromString(@NotNull String string) {
+      return Instant.parse(string);
+    }
+
+    @Override
+    public @NotNull String toString(@NotNull Instant instant) {
+      return instant.toString();
+    }
   }
 }

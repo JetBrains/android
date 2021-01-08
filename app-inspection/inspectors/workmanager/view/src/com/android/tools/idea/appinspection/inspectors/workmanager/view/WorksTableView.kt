@@ -3,11 +3,12 @@ package com.android.tools.idea.appinspection.inspectors.workmanager.view
 import androidx.work.inspection.WorkManagerInspectorProtocol.Data
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
+import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkSelectionModel
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorksTableModel
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.table.JBTable
 import java.awt.Component
+import java.awt.Rectangle
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
@@ -17,7 +18,8 @@ import javax.swing.ListSelectionModel
 import javax.swing.table.DefaultTableCellRenderer
 
 class WorksTableView(tab: WorkManagerInspectorTab,
-                     client: WorkManagerInspectorClient) : JBTable(WorksTableModel(client)) {
+                     client: WorkManagerInspectorClient,
+                     workSelectionModel: WorkSelectionModel) : JBTable(WorksTableModel(client)) {
   private class WorksTableStateCellRenderer : DefaultTableCellRenderer() {
     override fun getTableCellRendererComponent(table: JTable?,
                                                value: Any?,
@@ -98,41 +100,21 @@ class WorksTableView(tab: WorkManagerInspectorTab,
       }
     })
 
-    model.addTableModelListener {
-      ApplicationManager.getApplication().invokeLater {
-        if (tab.selectedWork != null) {
-          val tableModelRow = client.indexOfFirstWorkInfo { it.id == tab.selectedWork?.id }
-          if (tableModelRow != -1) {
-            val tableRow = convertRowIndexToView(tableModelRow)
-            addRowSelectionInterval(tableRow, tableRow)
-          }
-          else {
-            // Select the first row from the table when the selected work is removed.
-            if (rowCount > 0) {
-              addRowSelectionInterval(0, 0)
-            }
-            // Close the details view when the table is empty.
-            else {
-              tab.isDetailsViewVisible = false
-              tab.selectedWork = null
-            }
-          }
-        }
-      }
-    }
-
+    // Update selected work when a new row is selected.
     selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
     selectionModel.addListSelectionListener {
       if (!it.valueIsAdjusting && selectedRow != -1) {
         // Do not open details view here as the selection updates may come from model changes.
-        tab.selectedWork = client.getWorkInfoOrNull(convertRowIndexToModel(selectedRow))
+        val newSelectedWork = client.lockedWorks { works -> works.getOrNull(convertRowIndexToModel(selectedRow)) }
+        if (newSelectedWork != workSelectionModel.selectedWork) {
+          workSelectionModel.setSelectedWork(newSelectedWork, WorkSelectionModel.Context.TABLE)
+        }
       }
     }
 
+    // Open details view when the table is clicked.
     addMouseListener(object : MouseAdapter() {
       override fun mouseClicked(e: MouseEvent) {
-        // Open details view when the table is clicked.
-        // Updates for [tab.selectedWork] are handled by [selectionModel].
         if (rowAtPoint(e.point) in 0 until rowCount) {
           tab.isDetailsViewVisible = true
           client.tracker.trackWorkSelected(AppInspectionEvent.WorkManagerInspectorEvent.Context.TABLE_CONTEXT)
@@ -140,12 +122,18 @@ class WorksTableView(tab: WorkManagerInspectorTab,
       }
     })
 
-    tab.addSelectedWorkListener { work ->
-      if (work != null) {
-        val tableModelRow = client.indexOfFirstWorkInfo { it.id == work.id }
+    // Add row selection after a new work is selected.
+    workSelectionModel.registerWorkSelectionListener { work, context ->
+      if (work != null && context != WorkSelectionModel.Context.TABLE) {
+        val tableModelRow = client.lockedWorks { works ->
+          works.indexOfFirst { it.id == work.id }
+        }
         if (tableModelRow != -1) {
           val tableRow = convertRowIndexToView(tableModelRow)
           addRowSelectionInterval(tableRow, tableRow)
+          if (context == WorkSelectionModel.Context.DETAILS) {
+            scrollRectToVisible(Rectangle(getCellRect(tableRow, 0, true)))
+          }
         }
       }
     }

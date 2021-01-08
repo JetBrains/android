@@ -120,7 +120,9 @@ internal class EmulatorToolWindowManager private constructor(private val project
     }
 
   init {
-    Disposer.register(project.earlyDisposable) { destroyContent(getToolWindow()) }
+    Disposer.register(project.earlyDisposable) {
+      ToolWindowManager.getInstance(project).getToolWindow(EMULATOR_TOOL_WINDOW_ID)?.let { destroyContent(it) }
+    }
 
     // Lazily initialize content since we can only have one frame.
     val messageBusConnection = project.messageBus.connect(project.earlyDisposable)

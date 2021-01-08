@@ -18,7 +18,6 @@ package com.android.tools.idea.serverflags
 import com.google.common.io.ByteStreams
 import java.io.File
 import java.io.IOException
-import java.net.MalformedURLException
 import java.net.URL
 import java.nio.file.Path
 
@@ -34,7 +33,7 @@ class ServerFlagDownloader {
     @JvmStatic
     fun downloadServerFlagList() {
       val baseUrl = System.getProperty(BASE_URL_OVERRIDE_KEY, DEFAULT_BASE_URL)
-      downloadServerFlagList(baseUrl, localCacheDirectory, flagsVersion)
+      downloadServerFlagList(baseUrl, localCacheDirectory, flagsVersion) { createTempFile() }
     }
 
     /**
@@ -42,31 +41,38 @@ class ServerFlagDownloader {
      * @param baseUrl: The base url where the download files are located.
      * @param localCacheDirectory: The local directory to store the most recent download.
      * @param version: The current version of Android Studio. This is used to construct the full paths from the first two parameters.
-     * a given flag is enabled.
+     * @param tempFileCreator: Callback to create a temporary file for downloading. The resulting file will be deleted before this
+     * function returns.
      */
-    fun downloadServerFlagList(baseUrl: String, localCacheDirectory: Path, version: String) {
+    fun downloadServerFlagList(baseUrl: String, localCacheDirectory: Path, version: String, tempFileCreator: () -> File?) {
       val url = buildUrl(baseUrl, version) ?: return
-      val tempFile = downloadFile(url) ?: return
+      val tempFile = tempFileCreator() ?: return
 
-      // check whether file is valid before saving
-      unmarshalFlagList(tempFile) ?: return
-
-      val localFilePath = buildLocalFilePath(localCacheDirectory, version)
-      saveFile(tempFile, localFilePath.toFile())
+      try {
+        if (!downloadFile(tempFile, url)) {
+          return
+        }
+        // check whether file is valid before saving
+        unmarshalFlagList(tempFile) ?: return
+        val localFilePath = buildLocalFilePath(localCacheDirectory, version)
+        saveFile(tempFile, localFilePath.toFile())
+      }
+      finally {
+        tempFile.delete()
+      }
     }
 
-    private fun downloadFile(url: URL): File? {
+    private fun downloadFile(tempFile: File, url: URL): Boolean {
       return try {
-        val tempFile = createTempFile()
         url.openStream().use { inputStream ->
           tempFile.outputStream().use { outputStream ->
             ByteStreams.copy(inputStream, outputStream)
           }
         }
-        tempFile
+        true
       }
       catch (e: IOException) {
-        null
+        false
       }
     }
 
@@ -75,13 +81,6 @@ class ServerFlagDownloader {
         tempFile.copyTo(localFilePath, true)
       }
       catch (e: IOException) {
-      }
-      finally {
-        try {
-          tempFile.delete()
-        }
-        catch (e: IOException) {
-        }
       }
     }
   }

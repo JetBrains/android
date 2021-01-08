@@ -306,16 +306,6 @@ open class TemplateTest : AndroidGradleTestCase() {
   }
 
   @TemplateCheck
-  fun testNewThingsActivity() {
-    checkCreateTemplate("Android Things Empty Activity")
-  }
-
-  @TemplateCheck
-  fun testNewThingsActivityWithKotlin() {
-    checkCreateTemplate("Android Things Empty Activity", withKotlin)
-  }
-
-  @TemplateCheck
   fun testNewNativeCppActivity() {
     checkCreateTemplate("Native C++")
   }
@@ -516,19 +506,12 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testWatchFace() {
-    val withJetifier: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
-      projectData.addJetifierSupport = true
-    }
-    checkCreateTemplate("Watch Face", withJetifier)
+    checkCreateTemplate("Watch Face")
   }
 
   @TemplateCheck
   fun testWatchFaceWithKotlin() {
-    val withJetifierAndKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
-      projectData.addJetifierSupport = true
-      withKotlin(moduleData, projectData)
-    }
-    checkCreateTemplate("Watch Face", withJetifierAndKotlin)
+    checkCreateTemplate("Watch Face", withKotlin)
   }
 
   @TemplateCheck

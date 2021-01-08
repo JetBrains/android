@@ -142,8 +142,11 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
     }
 
     try (Stream<Path> stream = Files.list(snapshots)) {
+      Object defaultBoot = myFileSystem.getPath("default_boot");
+
       return stream
         .filter(Files::isDirectory)
+        .filter(directory -> !directory.getFileName().equals(defaultBoot))
         .map(this::getSnapshot)
         .filter(Objects::nonNull)
         .sorted()

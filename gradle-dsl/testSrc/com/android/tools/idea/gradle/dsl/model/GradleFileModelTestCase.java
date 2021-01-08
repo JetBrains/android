@@ -76,9 +76,13 @@ import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.project.ProjectKt;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.util.io.PathKt;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -89,7 +93,6 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -104,7 +107,6 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   @NotNull private static final String GROOVY_LANGUAGE = "Groovy";
   @NotNull private static final String KOTLIN_LANGUAGE = "Kotlin";
 
-  @Rule public TestName myNameRule = new TestName();
   @Rule public RunInEDTRule myEDTRule = new RunInEDTRule();
 
   protected String myTestDataPath;
@@ -123,7 +125,6 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   protected VirtualFile mySubModulePropertiesFile;
   protected VirtualFile myBuildSrcBuildFile;
 
-  protected VirtualFile myModuleDirPath;
   protected VirtualFile myProjectBasePath;
 
   @NotNull
@@ -135,16 +136,6 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
       ,
       {".gradle.kts", KOTLIN_LANGUAGE}
     });
-  }
-
-  /**
-   * This method override is required for a PlatformTestCase subclass to be run with the Parameterized test runner.
-   * PlatformTestCase expects the JUnit3 method TestCase#getName to return the correct value. While use Parameterized test runner
-   * this is null. We make sure that getName gives us the correct value here by using the JUnit4 method to obtain the name.
-   */
-  @Override
-  public String getName() {
-    return myNameRule.getMethodName();
   }
 
   protected boolean isGroovy() {
@@ -205,27 +196,29 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   @Before
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  public void before() throws Exception {
     IdeSdks.removeJdksOn(getTestRootDisposable());
 
+    Path basePath = ProjectKt.getStateStore(myProject).getProjectBasePath();
+    Files.createDirectories(basePath);
+    LocalFileSystem fs = LocalFileSystem.getInstance();
+    myProjectBasePath = fs.refreshAndFindFileByNioFile(basePath);
+
     runWriteAction((ThrowableComputable<Void, Exception>)() -> {
-      String basePath = myProject.getBasePath();
-      assertNotNull(basePath);
-      myProjectBasePath = VfsUtil.findFile(new File(basePath).toPath(), true);
-      assertTrue(myProjectBasePath.isDirectory());
       mySettingsFile = myProjectBasePath.createChildData(this, getSettingsFileName());
       assertTrue(mySettingsFile.isWritable());
 
-      myModuleDirPath = myModule.getModuleFile().getParent();
-      assertTrue(myModuleDirPath.isDirectory());
-      myBuildFile = myModuleDirPath.createChildData(this, getBuildFileName());
+      Path moduleDirPath = myModule.getModuleNioFile().getParent();
+      Files.createDirectories(moduleDirPath);
+      VirtualFile moduleVirtualDir = fs.refreshAndFindFileByNioFile(moduleDirPath);
+      myBuildFile = moduleVirtualDir.createChildData(this, getBuildFileName());
       assertTrue(myBuildFile.isWritable());
-      myPropertiesFile = myModuleDirPath.createChildData(this, FN_GRADLE_PROPERTIES);
+      myPropertiesFile = moduleVirtualDir.createChildData(this, FN_GRADLE_PROPERTIES);
       assertTrue(myPropertiesFile.isWritable());
 
-      VirtualFile subModuleDirPath = VfsUtil.findFile(new File(mySubModule.getModuleFilePath()).getParentFile().toPath(), true);
+      Path subModuleNioDir = mySubModule.getModuleNioFile().getParent();
+      Files.createDirectories(subModuleNioDir);
+      VirtualFile subModuleDirPath = fs.refreshAndFindFileByNioFile(subModuleNioDir);
       assertTrue(subModuleDirPath.isDirectory());
       mySubModuleBuildFile = subModuleDirPath.createChildData(this, getBuildFileName());
       assertTrue(mySubModuleBuildFile.isWritable());
@@ -262,12 +255,6 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     return (isGroovy()) ? FN_BUILD_GRADLE : FN_BUILD_GRADLE_KTS;
   }
 
-  @After
-  @Override
-  public void tearDown() throws Exception {
-    super.tearDown();
-  }
-
   @Override
   @NotNull
   protected Module createMainModule() {
@@ -278,17 +265,9 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   @NotNull
   private Module createSubModule(String name) {
-    final VirtualFile baseDir = ProjectUtil.guessProjectDir(myProject);
-    assertNotNull(baseDir);
-    final File moduleFile = new File(toSystemDependentName(baseDir.getPath()), name + File.separatorChar + name + ModuleFileType.DOT_DEFAULT_EXTENSION);
-    createIfDoesntExist(moduleFile);
-    myFilesToDelete.add(moduleFile.toPath());
+    Path moduleFile = ProjectKt.getStateStore(myProject).getProjectBasePath().resolve(name).resolve(name + ModuleFileType.DOT_DEFAULT_EXTENSION);
     return WriteAction.compute(() -> {
-      VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
-      assertNotNull(virtualFile);
-      Module module = ModuleManager.getInstance(myProject).newModule(virtualFile.getPath(), getModuleType().getId());
-      module.getModuleFile();
-      return module;
+      return ModuleManager.getInstance(myProject).newModule(moduleFile, getModuleType().getId());
     });
   }
 
@@ -344,20 +323,10 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     throws IOException {
     Module newModule = createSubModule(name);
 
-    runWriteAction((ThrowableComputable<Void, IOException>)() -> {
-      VirtualFile newModuleFile = newModule.getModuleFile();
-      VirtualFile newModuleDir = newModuleFile.getParent();
-      assertTrue(newModuleDir.isDirectory());
-      VirtualFile moduleBuildFile = newModuleDir.createChildData(this, getBuildFileName());
-      assertTrue(moduleBuildFile.isWritable());
-      VirtualFile modulePropertiesFile = newModuleDir.createChildData(this, FN_GRADLE_PROPERTIES);
-      assertTrue(modulePropertiesFile.isWritable());
-
-      saveFileUnderWrite(moduleBuildFile, buildFileText);
-      saveFileUnderWrite(modulePropertiesFile, propertiesFileText);
-      return null;
-    });
-
+    Path newModuleDirPath = newModule.getModuleNioFile().getParent();
+    LocalFileSystem fs = LocalFileSystem.getInstance();
+    fs.refreshAndFindFileByNioFile(PathKt.write(newModuleDirPath.resolve(getBuildFileName()), buildFileText));
+    fs.refreshAndFindFileByNioFile(PathKt.write(newModuleDirPath.resolve(FN_GRADLE_PROPERTIES), propertiesFileText));
     return newModule;
   }
 
@@ -615,7 +584,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
       case BOOLEAN:
         assertEquals(message, expected, model.getValue(BOOLEAN_TYPE));
         break;
-      case REFERENCE:
+      case REFERENCE: case INTERPOLATED:
         if (resolve) {
           GradlePropertyModel resultModel = model.resolve().getResultModel();
           if (resultModel != model) {

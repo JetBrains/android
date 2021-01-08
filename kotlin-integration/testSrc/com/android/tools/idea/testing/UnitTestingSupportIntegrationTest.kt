@@ -41,6 +41,7 @@ import com.intellij.execution.testframework.sm.runner.SMTestProxy
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.testFramework.TestRunnerUtil
 import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.util.ThrowableRunnable
 import org.junit.Ignore
 import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.CountDownLatch
@@ -71,7 +72,7 @@ private fun log(message: String) {
 // TODO(karimai): Re-enable in a separate dedicated change.
 class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
   override fun runInDispatchThread(): Boolean = false
-  override fun invokeTestRunnable(runnable: Runnable) = runnable.run()
+  override fun runTestRunnable(testRunnable: ThrowableRunnable<Throwable>) = testRunnable.run()
 
   override fun setUp() {
     TestRunnerUtil.replaceIdeEventQueueSafely() // See UsefulTestCase#runBare which should be the stack frame above this one.

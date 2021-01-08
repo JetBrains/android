@@ -106,65 +106,11 @@ class NlInteractionHandler(private val surface: DesignSurface): InteractionHandl
   override fun createInteractionOnDrag(@SwingCoordinate mouseX: Int,
                                        @SwingCoordinate mouseY: Int,
                                        @JdkConstants.InputEventMask modifiersEx: Int): Interaction? {
-    val sceneView = surface.getSceneView(mouseX, mouseY) ?: return null
-    val scene = sceneView.scene
-    val selectionModel = sceneView.selectionModel
-
-    val xDp = Coordinates.getAndroidXDip(sceneView, mouseX)
-    val yDp = Coordinates.getAndroidYDip(sceneView, mouseY)
-
-    val model = sceneView.model
-    var component: SceneComponent? = null
-
-    // Make sure we start from root if we don't have anything selected
-    if (selectionModel.isEmpty && !model.components.isEmpty()) {
-      selectionModel.setSelection(listOf(model.components[0].root!!))
+    if (surface.getHoverSceneView(mouseX, mouseY) == null) {
+      val focusedSceneView = surface.focusedSceneView ?: return null
+      return MarqueeInteraction(focusedSceneView)
     }
-
-    // See if you're dragging inside a selected parent; if so, drag the selection instead of any
-    // leaf nodes inside it
-    val primarySelectedComponent = selectionModel.primary
-    val primary = scene.getSceneComponent(primarySelectedComponent)
-    if (primary != null && primary.parent != null && primary.containsX(xDp) && primary.containsY(yDp)) {
-      component = primary
-    }
-    if (component == null) {
-      component = scene.findComponent(sceneView.context, xDp, yDp)
-    }
-
-    if (component?.parent == null) {
-      // Dragging on the background/root view: start a marquee selection
-      return MarqueeInteraction(sceneView)
-    }
-
-    val primaryDraggedComponent = primary ?: component
-    val dragged: List<NlComponent>
-    // Dragging over a non-root component: move the set of components (if the component dragged over is
-    // part of the selection, drag them all, otherwise drag just this component)
-    if (surface.selectionModel.isSelected(component.nlComponent)) {
-      val selectedDraggedComponents = mutableListOf<NlComponent>()
-
-      val primaryNlComponent: NlComponent?
-      // Make sure the primaryDraggedComponent is the first element
-      if (primaryDraggedComponent.parent == null) {
-        primaryNlComponent = null
-      }
-      else {
-        primaryNlComponent = primaryDraggedComponent.nlComponent
-        selectedDraggedComponents.add(primaryNlComponent)
-      }
-
-      for (selected in surface.selectionModel.selection) {
-        if (!selected.isRoot && selected !== primaryNlComponent) {
-          selectedDraggedComponents.add(selected)
-        }
-      }
-      dragged = selectedDraggedComponents
-    }
-    else {
-      dragged = listOf(primaryDraggedComponent.nlComponent)
-    }
-    return DragDropInteraction(surface, dragged)
+    return null
   }
 
   override fun singleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) {

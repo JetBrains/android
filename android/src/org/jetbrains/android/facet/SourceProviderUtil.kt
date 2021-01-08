@@ -35,11 +35,6 @@ fun createIdeaSourceProviderFromModelSourceProvider(it: IdeSourceProvider, scope
       override val resourcesDirectoryUrls: Sequence<String> get() = it.resourcesDirectories.asSequence().toUrls()
       override val aidlDirectoryUrls: Sequence<String> get() = it.aidlDirectories.asSequence().toUrls()
       override val renderscriptDirectoryUrls: Sequence<String> get() = it.renderscriptDirectories.asSequence().toUrls()
-
-      // Even though the model has separate methods to get the C and Cpp directories,
-      // they both return the same set of folders. So we combine them here.
-      override val jniDirectoryUrls: Sequence<String>
-        get() = (it.cDirectories.asSequence() + it.cppDirectories.asSequence()).distinct().toUrls()
       override val jniLibsDirectoryUrls: Sequence<String> get() = it.jniLibsDirectories.asSequence().toUrls()
       override val resDirectoryUrls: Sequence<String> get() = it.resDirectories.asSequence().toUrls()
       override val assetsDirectoryUrls: Sequence<String> get() = it.assetsDirectories.asSequence().toUrls()

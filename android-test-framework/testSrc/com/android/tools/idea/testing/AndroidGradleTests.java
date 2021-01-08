@@ -519,7 +519,7 @@ public class AndroidGradleTests {
   public static void importProject(
     @NotNull Project project,
     @NotNull GradleSyncInvoker.Request syncRequest,
-    @Nullable SyncIssueFilter issueFilter) {
+    @Nullable SyncIssueFilter issueFilter) throws Exception {
     TestGradleSyncListener syncListener = EdtTestUtil.runInEdtAndGet(() -> {
       GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
       GradleProjectImporter.configureNewProject(project);

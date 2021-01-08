@@ -23,20 +23,10 @@ import org.jetbrains.annotations.Nullable;
  * should be used over virtual device names and serial numbers if possible.
  */
 final class VirtualDevicePath extends Key {
-  static final String PREFIX = "VirtualDevicePath@";
   private final @NotNull String myValue;
 
   VirtualDevicePath(@NotNull String value) {
     myValue = value;
-  }
-
-  static @NotNull VirtualDevicePath parse(@NotNull String string) {
-    return new VirtualDevicePath(string.substring(PREFIX.length()));
-  }
-
-  @Override
-  @NotNull NonprefixedKey asNonprefixedKey() {
-    return new NonprefixedKey(myValue);
   }
 
   @Override
@@ -51,6 +41,6 @@ final class VirtualDevicePath extends Key {
 
   @Override
   public @NotNull String toString() {
-    return PREFIX + myValue;
+    return myValue;
   }
 }

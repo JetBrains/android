@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.intellij.psi.PsiElement;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,6 +89,22 @@ public interface GradleDslNameConverter {
   default ExternalNameInfo externalNameForParent(@NotNull String modelName, @NotNull GradleDslElement context) {
     return new ExternalNameInfo("", null);
   }
+
+  /**
+   * Returns the regex pattern for the syntax allowed in injections without the need of {} when injected.
+   */
+  // TODO(b/173698662): improve the regexp patterns for complex injections.
+  default @Nullable Pattern getPatternForUnwrappedVariables() {
+    return null;
+  };
+
+  /**
+   * Returns the regex pattern for the syntax needing to be wrapped by {}  when injected.
+   */
+  // TODO(b/173698662): improve the regexp patterns for complex injections.
+  default @Nullable Pattern getPatternForWrappedVariables() {
+    return null;
+  };
 
   /**
    * Converts a single external name part to a description of the Model property it is associated with.

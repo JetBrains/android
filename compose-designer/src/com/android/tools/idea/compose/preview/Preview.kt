@@ -22,6 +22,8 @@ import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.common.util.ControllableTicker
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
+import com.android.tools.idea.compose.preview.actions.PinAllPreviewElementsAction
+import com.android.tools.idea.compose.preview.actions.UnpinAllPreviewElementsAction
 import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
 import com.android.tools.idea.compose.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
@@ -50,9 +52,9 @@ import com.android.tools.idea.rendering.classloading.CooperativeInterruptTransfo
 import com.android.tools.idea.rendering.classloading.HasLiveLiteralsTransform
 import com.android.tools.idea.rendering.classloading.LiveLiteralsTransform
 import com.android.tools.idea.rendering.classloading.toClassTransform
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
-import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
@@ -264,6 +266,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         if (isInteractive) { // Enable interactive
           if (isFromAnimationInspection) {
             onAnimationInspectionStop()
+          } else {
+            EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile!!)
           }
           interactiveMode = ComposePreviewManager.InteractiveMode.STARTING
           val quickRefresh = shouldQuickRefresh() && !isFromAnimationInspection// We should call this before assigning newValue to instanceIdFilter
@@ -291,6 +295,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         }
         else { // Disable interactive
           onInteractivePreviewStop()
+          EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile!!)
+          onStaticPreviewStart()
           forceRefresh().invokeOnCompletion {
             interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
           }
@@ -299,12 +305,15 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     }
     get() = if (interactiveMode == ComposePreviewManager.InteractiveMode.READY) previewElementProvider.instanceFilter else null
 
+  private fun onStaticPreviewStart() {
+    composeWorkBench.hasComponentsOverlay = true
+    surface.background = defaultSurfaceBackground
+  }
+
   private fun onInteractivePreviewStop() {
     interactiveMode = ComposePreviewManager.InteractiveMode.STOPPING
-    surface.background = defaultSurfaceBackground
     surface.disableMouseClickDisplay()
     composeWorkBench.isInteractive = false
-    composeWorkBench.hasComponentsOverlay = true
     ticker.stop()
     previewElementProvider.clearInstanceIdFilter()
     logInteractiveSessionMetrics()
@@ -335,6 +344,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         }
         else {
           onAnimationInspectionStop()
+          onStaticPreviewStart()
         }
         forceRefresh().invokeOnCompletion {
           interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
@@ -346,11 +356,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private fun onAnimationInspectionStop() {
     animationInspection.set(false)
     // Close the animation inspection panel
-    surface.background = defaultSurfaceBackground
     ComposePreviewAnimationManager.closeCurrentInspector()
     // Swap the components back
     composeWorkBench.bottomPanel = null
-    composeWorkBench.hasComponentsOverlay = true
     previewElementProvider.instanceFilter = null
   }
 
@@ -394,7 +402,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         CommonDataKeys.PROJECT.name -> project
         else -> null
       }
-    }, this)
+    }, this,
+    PinAllPreviewElementsAction(
+      {
+        PinnedPreviewElementManager.getInstance(project).isPinned(psiFile)
+      }, previewElementProvider),
+    UnpinAllPreviewElementsAction)
 
   private val pinnedSurface: NlDesignSurface
     get() = composeWorkBench.pinnedSurface
@@ -731,13 +744,15 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     onRestoreState?.invoke()
     onRestoreState = null
 
-    val hasPinnedElements = if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
+    val arePinsEnabled = StudioFlags.COMPOSE_PIN_PREVIEW.get() && !interactiveMode.isStartingOrReady()
+    val hasPinnedElements = if (arePinsEnabled) {
       memoizedPinnedPreviewProvider.previewElements.any()
     } else false
 
     composeWorkBench.setPinnedSurfaceVisibility(hasPinnedElements)
+    val pinnedManager = PinnedPreviewElementManager.getInstance(project)
     if (hasPinnedElements) {
-      lastPinsModificationCount = PinnedPreviewElementManager.getInstance(project).modificationCount
+      lastPinsModificationCount = pinnedManager.modificationCount
       pinnedSurface.updatePreviewsAndRefresh(
         false,
         memoizedPinnedPreviewProvider,
@@ -758,6 +773,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                              .singleOrNull() ?: "Pinned"
       composeWorkBench.pinnedLabel = singleFileName
     }
+
+    composeWorkBench.mainSurfaceLabel = if (arePinsEnabled) {
+      psiFile.name
+    } else ""
 
     val showingPreviewElements = surface.updatePreviewsAndRefresh(
       quickRefresh,
@@ -816,7 +835,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
         val pinnedPreviewElements = if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
           withContext(workerThread) {
-            memoizedElementsProvider.previewElements
+            memoizedPinnedPreviewProvider.previewElements
               .toList()
               .sortByDisplayAndSourcePosition()
           }

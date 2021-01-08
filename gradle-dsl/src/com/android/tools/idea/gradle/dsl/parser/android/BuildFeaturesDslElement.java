@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.android;
 
 import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl.COMPOSE;
+import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl.DATA_BINDING;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl.ML_MODEL_BINDING;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl.VIEW_BINDING;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
@@ -41,6 +42,7 @@ public final class BuildFeaturesDslElement extends GradleDslBlockElement {
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
     {"compose", property, COMPOSE, VAR},
+    {"dataBinding", property, DATA_BINDING, VAR},
     {"mlModelBinding", property, ML_MODEL_BINDING, VAR},
     {"viewBinding", property, VIEW_BINDING, VAR},
   }).collect(toModelMap());
@@ -49,6 +51,8 @@ public final class BuildFeaturesDslElement extends GradleDslBlockElement {
   public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> groovyToModelNameMap = Stream.of(new Object[][]{
     {"compose", property, COMPOSE, VAR},
     {"compose", exactly(1), COMPOSE, SET},
+    {"dataBinding", property, DATA_BINDING, VAR},
+    {"dataBinding", exactly(1), DATA_BINDING, SET},
     {"mlModelBinding", property, ML_MODEL_BINDING, VAR},
     {"mlModelBinding", exactly(1), ML_MODEL_BINDING, SET},
     {"viewBinding", property, VIEW_BINDING, VAR},

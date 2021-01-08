@@ -45,6 +45,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.util.NullableLazyValue;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -275,6 +276,10 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     }
     catch (NoSuchFileException e) {
       return false; // Cache file does not exist.
+    }
+    catch (ProcessCanceledException e) {
+      cleanupAfterFailedLoadingFromCache();
+      throw e;
     }
     catch (Throwable e) {
       cleanupAfterFailedLoadingFromCache();

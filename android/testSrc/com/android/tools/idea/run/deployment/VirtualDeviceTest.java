@@ -15,9 +15,15 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.run.AndroidDevice;
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
+import java.nio.file.FileSystem;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import org.junit.Test;
@@ -47,25 +53,6 @@ public final class VirtualDeviceTest {
   }
 
   @Test
-  public void matchesDeviceIsInManagerAndKeyIsNonprefixedKey() {
-    // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(new VirtualDevicePath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setNameKey(new VirtualDeviceName("Pixel_4_API_30"))
-      .build();
-
-    Key key = new NonprefixedKey("Pixel_4_API_30");
-
-    // Act
-    boolean matches = device.matches(key);
-
-    // Assert
-    assertTrue(matches);
-  }
-
-  @Test
   public void matchesDeviceIsntInManagerAndKeyIsSerialNumber() {
     // Arrange
     Device device = new VirtualDevice.Builder()
@@ -75,24 +62,6 @@ public final class VirtualDeviceTest {
       .build();
 
     Key key = new SerialNumber("emulator-5554");
-
-    // Act
-    boolean matches = device.matches(key);
-
-    // Assert
-    assertTrue(matches);
-  }
-
-  @Test
-  public void matchesDeviceIsntInManagerAndKeyIsNonprefixedKey() {
-    // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("emulator-5554")
-      .setKey(new SerialNumber("emulator-5554"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    Key key = new NonprefixedKey("emulator-5554");
 
     // Act
     boolean matches = device.matches(key);
@@ -121,25 +90,6 @@ public final class VirtualDeviceTest {
   }
 
   @Test
-  public void hasKeyContainedByDeviceIsInManagerAndKeyIsNonprefixedKey() {
-    // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(new VirtualDevicePath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setNameKey(new VirtualDeviceName("Pixel_4_API_30"))
-      .build();
-
-    Collection<Key> keys = Collections.singleton(new NonprefixedKey("Pixel_4_API_30"));
-
-    // Act
-    boolean contained = device.hasKeyContainedBy(keys);
-
-    // Assert
-    assertTrue(contained);
-  }
-
-  @Test
   public void hasKeyContainedByDeviceIsntInManagerAndKeyIsSerialNumber() {
     // Arrange
     Device device = new VirtualDevice.Builder()
@@ -158,20 +108,47 @@ public final class VirtualDeviceTest {
   }
 
   @Test
-  public void hasKeyContainedByDeviceIsntInManagerAndKeyIsNonprefixedKey() {
+  public void getTargetsSelectDeviceSnapshotComboBoxSnapshotsEnabled() {
     // Arrange
+    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+
     Device device = new VirtualDevice.Builder()
-      .setName("emulator-5554")
-      .setKey(new SerialNumber("emulator-5554"))
+      .setName("Pixel 4 API 30")
+      .setKey(key)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    Collection<Key> keys = Collections.singleton(new NonprefixedKey("emulator-5554"));
-
     // Act
-    boolean contained = device.hasKeyContainedBy(keys);
+    Object targets = device.getTargets();
 
     // Assert
-    assertTrue(contained);
+    assertEquals(Collections.singletonList(new QuickBootTarget(key)), targets);
+  }
+
+  @Test
+  public void getTargets() {
+    // Arrange
+    FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
+
+    Key deviceKey = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+    Path snapshotKey = fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-17_12-26-30");
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(deviceKey)
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .addSnapshot(new Snapshot(snapshotKey))
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(true)
+      .build();
+
+    // Act
+    Object actualTargets = device.getTargets();
+
+    // Assert
+    Object expectedTargets = Arrays.asList(new ColdBootTarget(deviceKey),
+                                           new QuickBootTarget(deviceKey),
+                                           new BootWithSnapshotTarget(deviceKey, snapshotKey));
+
+    assertEquals(expectedTargets, actualTargets);
   }
 }

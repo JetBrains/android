@@ -18,11 +18,11 @@ package com.android.tools.idea.appinspection.inspectors.workmanager.view
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
+import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkSelectionModel
 import com.android.tools.idea.appinspection.inspectors.workmanager.view.WorkManagerInspectorColors.GRAPH_LABEL_BACKGROUND_COLOR
 import com.android.tools.idea.appinspection.inspectors.workmanager.view.WorkManagerInspectorColors.SELECTED_WORK_BORDER_COLOR
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.WorkManagerInspectorEvent
 import com.intellij.ide.plugins.newui.VerticalLayout
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import java.awt.Color
@@ -44,47 +44,43 @@ const val MIN_GAP_BETWEEN_LABELS = 50
  *
  * @param onSelectedWorkCleared function called when the selected work is cleared.
  */
-class WorkDependencyGraphView(private val client: WorkManagerInspectorClient,
-                              private val tab: WorkManagerInspectorTab,
+class WorkDependencyGraphView(private val tab: WorkManagerInspectorTab,
+                              private val client: WorkManagerInspectorClient,
+                              private val workSelectionModel: WorkSelectionModel,
                               private val onSelectedWorkCleared: () -> Unit) : JPanel() {
 
   private var works = listOf<WorkInfo>()
-  private val labelMap = mutableMapOf<String, JLabel>()
+  private var labelMap = mapOf<String, JLabel>()
 
   init {
     border = EmptyBorder(JBUI.scale(50), JBUI.scale(100), JBUI.scale(50), 0)
-    tab.addSelectedWorkListener {
-      refreshView()
-    }
-    client.addWorksChangedListener {
-      ApplicationManager.getApplication().invokeLater {
-        refreshView()
-      }
+    workSelectionModel.registerWorkSelectionListener { work, context ->
+      refreshView(work, context)
     }
   }
 
-  private fun refreshView() {
-    val selectedId = tab.selectedWork?.id
-    if (selectedId == null) {
+  private fun refreshView(work: WorkInfo?, context: WorkSelectionModel.Context) {
+    if (work == null) {
       onSelectedWorkCleared()
     }
     else {
-      updateWorks(client.getOrderedWorkChain(selectedId))
+      updateWorks(work, context)
     }
   }
 
-  private fun updateWorks(newWorks: List<WorkInfo>) {
-    labelMap.clear()
+  private fun updateWorks(selectedWork: WorkInfo, context: WorkSelectionModel.Context) {
     removeAll()
-    works = newWorks
+    works = client.getOrderedWorkChain(selectedWork.id)
 
     if (works.isEmpty()) {
       onSelectedWorkCleared()
       return
     }
+
+    labelMap = works.map { it.id to createLabel(it) }.toMap()
+    val selectedLabel = labelMap[selectedWork.id]
     val depthMap = mutableMapOf<String, Int>()
     for (work in works) {
-      labelMap[work.id] = createLabel(work)
       depthMap[work.id] = (work.prerequisitesList.mapNotNull { depthMap[it] }.max() ?: -1) + 1
     }
     val maxDepth = depthMap.values.max() ?: -1
@@ -109,7 +105,10 @@ class WorkDependencyGraphView(private val client: WorkManagerInspectorClient,
       }
       add(panelWithDepth)
     }
-    revalidate()
+    validate()
+    if (context == WorkSelectionModel.Context.DETAILS) {
+      selectedLabel?.scrollToCenter()
+    }
     repaint()
   }
 
@@ -124,7 +123,7 @@ class WorkDependencyGraphView(private val client: WorkManagerInspectorClient,
     label.isOpaque = true
 
     val defaultBorder = EmptyBorder(JBUI.scale(10), JBUI.scale(10), JBUI.scale(10), JBUI.scale(10))
-    label.border = if (work == tab.selectedWork) {
+    label.border = if (work == workSelectionModel.selectedWork) {
       BorderFactory.createCompoundBorder(
         BorderFactory.createMatteBorder(JBUI.scale(2), JBUI.scale(2), JBUI.scale(2), JBUI.scale(2), SELECTED_WORK_BORDER_COLOR),
         defaultBorder
@@ -137,7 +136,7 @@ class WorkDependencyGraphView(private val client: WorkManagerInspectorClient,
     label.addMouseListener(object : MouseAdapter() {
       override fun mousePressed(e: MouseEvent?) {
         client.tracker.trackWorkSelected(WorkManagerInspectorEvent.Context.GRAPH_CONTEXT)
-        tab.selectedWork = work
+        workSelectionModel.setSelectedWork(work, WorkSelectionModel.Context.GRAPH)
         tab.isDetailsViewVisible = true
       }
     })

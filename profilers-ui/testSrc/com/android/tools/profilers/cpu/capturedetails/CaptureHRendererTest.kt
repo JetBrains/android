@@ -167,31 +167,32 @@ class CaptureNodeHRendererTest {
   fun testFilterRenderStyles() {
     val renderer = CaptureNodeHRenderer(CaptureDetails.Type.CALL_CHART)
     val fakeGraphics = TestGraphics2D()
+    val drawingRectangle = Rectangle2D.Float(0.0f, 0.0f, 100.0f, 1.0f)
 
     val simpleNode = CaptureNode(SyscallModel("write"))
 
     fakeGraphics.paint = Color.RED
     simpleNode.filterType = CaptureNode.FilterType.MATCH
-    renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), Rectangle2D.Float(), false, false)
+    renderer.render(fakeGraphics, simpleNode, drawingRectangle, drawingRectangle, false, false)
     assertThat(fakeGraphics.lastTextInfo!!.paint).isEqualTo(Color.BLACK)
     assertThat(fakeGraphics.lastTextInfo!!.isBold).isFalse()
 
     fakeGraphics.paint = Color.RED
     simpleNode.filterType = CaptureNode.FilterType.UNMATCH
-    renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), Rectangle2D.Float(), false, false)
+    renderer.render(fakeGraphics, simpleNode, drawingRectangle, drawingRectangle, false, false)
     assertThat(fakeGraphics.lastTextInfo!!.paint).isEqualTo(CaptureNodeHRenderer.toUnmatchColor(Color.BLACK))
     assertThat(fakeGraphics.lastTextInfo!!.isBold).isFalse()
 
     fakeGraphics.paint = Color.RED
     simpleNode.filterType = CaptureNode.FilterType.EXACT_MATCH
-    renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), Rectangle2D.Float(), false, false)
+    renderer.render(fakeGraphics, simpleNode, drawingRectangle, drawingRectangle, false, false)
     assertThat(fakeGraphics.lastTextInfo!!.paint).isEqualTo(Color.BLACK)
     assertThat(fakeGraphics.lastTextInfo!!.isBold).isTrue()
 
     // Make sure that, when we render a non-exact match after an EXACT_MATCH, that the bold state is cleared
     fakeGraphics.paint = Color.RED
     simpleNode.filterType = CaptureNode.FilterType.MATCH
-    renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), Rectangle2D.Float(), false, false)
+    renderer.render(fakeGraphics, simpleNode, drawingRectangle, drawingRectangle, false, false)
     assertThat(fakeGraphics.lastTextInfo!!.paint).isEqualTo(Color.BLACK)
     assertThat(fakeGraphics.lastTextInfo!!.isBold).isFalse()
   }
@@ -343,16 +344,28 @@ class CaptureNodeHRendererTest {
     ))
   }
 
+  @Test
+  fun testFittingTextDrawingAreaTooSmall() {
+    val node = CaptureNode(JavaMethodModel("myMethod", "MyClass"))
+    val renderer = CaptureNodeHRenderer(CaptureDetails.Type.CALL_CHART, TestTextFitPredicate())
+    val graphics = TestGraphics2D()
+    val drawingRectangle = Rectangle2D.Float(0.0f, 0.0f, 0.5f, 1.0f)
+
+    renderer.render(graphics, node, drawingRectangle, drawingRectangle, false, false)
+    assertThat(graphics.lastTextInfo).isNull()
+  }
+
   private fun checkFittingText(nodeModel: CaptureNodeModel, expectedTexts: List<String>) {
     val node = CaptureNode(nodeModel)
     val textFitPredicate = TestTextFitPredicate()
     val renderer = CaptureNodeHRenderer(CaptureDetails.Type.CALL_CHART, textFitPredicate)
     val graphics = TestGraphics2D()
+    val drawingRectangle: Rectangle2D.Float = Rectangle2D.Float(0.0f, 0.0f, 100.0f, 1.0f)
 
     var prevTextLength = expectedTexts[0].length + 1
     for (text in expectedTexts) {
       textFitPredicate.fittingLength = prevTextLength - 1
-      renderer.render(graphics, node, Rectangle2D.Float(), Rectangle2D.Float(), false, false)
+      renderer.render(graphics, node, drawingRectangle, drawingRectangle, false, false)
       assertThat(graphics.lastTextInfo!!.text).isEqualTo(text)
       prevTextLength = text.length
     }

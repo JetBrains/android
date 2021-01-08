@@ -102,8 +102,8 @@ class BuildAnalyzerFiltersTest {
       "Show issues for Android/Java/Kotlin plugins" to true,
       "Show issues for other plugins" to true,
       "Show issues for project customization" to true,
+      "Include issues for tasks non determining this build duration" to false,
       "Show annotation processors issues" to true,
-      "Include issues for tasks non determining this build duration" to false
     )
 
     Truth.assertThat(initialFilterActionsState).isEqualTo(expected)

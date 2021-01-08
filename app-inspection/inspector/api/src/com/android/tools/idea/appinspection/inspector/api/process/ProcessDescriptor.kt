@@ -22,9 +22,18 @@ interface ProcessDescriptor {
   /** Information about the device this process is running on. */
   val device: DeviceDescriptor
 
+  /** The CPU architecture for this process, e.g. x86_64 */
+  val abiCpuArch: String
+
   /** The fully qualified name of the process. */
-  val processName: String
+  val name: String
 
   /** Whether this process is actively running or not. If not running, that implies it has been terminated. */
   val isRunning: Boolean
+
+  /** The ID of this process assigned by the OS. */
+  val pid: Int
+
+  /** An ID used by the underlying transport system associated with this process */
+  val streamId: Long
 }

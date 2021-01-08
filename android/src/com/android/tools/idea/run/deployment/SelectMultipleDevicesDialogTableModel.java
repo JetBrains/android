@@ -52,8 +52,7 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
     return myRows.stream()
       .filter(SelectMultipleDevicesDialogTableModelRow::isSelected)
       .map(SelectMultipleDevicesDialogTableModelRow::getDevice)
-      .map(Device::getKey)
-      .map(Target::new)
+      .map(Device::getDefaultTarget)
       .collect(Collectors.toSet());
   }
 
@@ -154,7 +153,7 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
     }
 
     if (myDeviceNameMultiset.count(device.getName()) != 1) {
-      return device.getKey().asNonprefixedKey().toString();
+      return device.getKey().toString();
     }
 
     return "";

@@ -254,8 +254,6 @@ class ExcludedRoots {
       provider.getAidlDirectories(),
       provider.getRenderscriptDirectories(),
       provider.getAssetsDirectories(),
-      provider.getCDirectories(),
-      provider.getCppDirectories(),
       provider.getJniLibsDirectories()
     ).flatMap(it -> it.stream()).collect(Collectors.toList());
   }

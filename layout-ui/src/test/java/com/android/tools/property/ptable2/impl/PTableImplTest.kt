@@ -15,6 +15,8 @@
  */
 package com.android.tools.property.ptable2.impl
 
+import com.android.tools.adtui.stdui.KeyStrokes
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.property.ptable2.DefaultPTableCellRendererProvider
 import com.android.tools.property.ptable2.PTable
 import com.android.tools.property.ptable2.PTableCellEditor
@@ -26,8 +28,6 @@ import com.android.tools.property.ptable2.item.Group
 import com.android.tools.property.ptable2.item.Item
 import com.android.tools.property.ptable2.item.PTableTestModel
 import com.android.tools.property.ptable2.item.createModel
-import com.android.tools.adtui.stdui.KeyStrokes
-import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.property.testing.ApplicationRule
 import com.android.tools.property.testing.RunWithTestFocusManager
 import com.android.tools.property.testing.SwingFocusRule
@@ -62,10 +62,10 @@ class PTableImplTest {
   private var table: PTableImpl? = null
   private var editorProvider: SimplePTableCellEditorProvider? = null
   private val appRule = ApplicationRule()
-  private val focusRule = SwingFocusRule(appRule)
+  private val focusRule = SwingFocusRule()
 
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(appRule).around(focusRule)
+  val ruleChain: RuleChain = RuleChain.outerRule(focusRule).around(appRule)
 
   @Before
   fun setUp() {

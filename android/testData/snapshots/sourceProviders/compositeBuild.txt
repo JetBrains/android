@@ -41,10 +41,6 @@ MODULE: TestCompositeLib1.app
                 ./TestCompositeLib1/app/src/main/aidl
             AssetsDirectories:
                 ./TestCompositeLib1/app/src/main/assets
-            CDirectories:
-                ./TestCompositeLib1/app/src/main/jni
-            CppDirectories:
-                ./TestCompositeLib1/app/src/main/jni
             JavaDirectories:
                 ./TestCompositeLib1/app/src/main/java
             JniLibsDirectories:
@@ -67,10 +63,6 @@ MODULE: TestCompositeLib1.app
                     ./TestCompositeLib1/app/src/main/aidl
                 AssetsDirectories:
                     ./TestCompositeLib1/app/src/main/assets
-                CDirectories:
-                    ./TestCompositeLib1/app/src/main/jni
-                CppDirectories:
-                    ./TestCompositeLib1/app/src/main/jni
                 JavaDirectories:
                     ./TestCompositeLib1/app/src/main/java
                 JniLibsDirectories:
@@ -92,10 +84,6 @@ MODULE: TestCompositeLib1.app
                     ./TestCompositeLib1/app/src/debug/aidl
                 AssetsDirectories:
                     ./TestCompositeLib1/app/src/debug/assets
-                CDirectories:
-                    ./TestCompositeLib1/app/src/debug/jni
-                CppDirectories:
-                    ./TestCompositeLib1/app/src/debug/jni
                 JavaDirectories:
                     ./TestCompositeLib1/app/src/debug/java
                 JniLibsDirectories:
@@ -118,10 +106,6 @@ MODULE: TestCompositeLib1.app
                     ./TestCompositeLib1/app/src/main/aidl
                 AssetsDirectories:
                     ./TestCompositeLib1/app/src/main/assets
-                CDirectories:
-                    ./TestCompositeLib1/app/src/main/jni
-                CppDirectories:
-                    ./TestCompositeLib1/app/src/main/jni
                 JavaDirectories:
                     ./TestCompositeLib1/app/src/main/java
                 JniLibsDirectories:
@@ -143,10 +127,6 @@ MODULE: TestCompositeLib1.app
                     ./TestCompositeLib1/app/src/debug/aidl
                 AssetsDirectories:
                     ./TestCompositeLib1/app/src/debug/assets
-                CDirectories:
-                    ./TestCompositeLib1/app/src/debug/jni
-                CppDirectories:
-                    ./TestCompositeLib1/app/src/debug/jni
                 JavaDirectories:
                     ./TestCompositeLib1/app/src/debug/java
                 JniLibsDirectories:
@@ -168,10 +148,6 @@ MODULE: TestCompositeLib1.app
                     ./TestCompositeLib1/app/src/release/aidl
                 AssetsDirectories:
                     ./TestCompositeLib1/app/src/release/assets
-                CDirectories:
-                    ./TestCompositeLib1/app/src/release/jni
-                CppDirectories:
-                    ./TestCompositeLib1/app/src/release/jni
                 JavaDirectories:
                     ./TestCompositeLib1/app/src/release/java
                 JniLibsDirectories:
@@ -194,10 +170,6 @@ MODULE: TestCompositeLib1.app
                     ./TestCompositeLib1/app/src/test/aidl
                 AssetsDirectories:
                     ./TestCompositeLib1/app/src/test/assets
-                CDirectories:
-                    ./TestCompositeLib1/app/src/test/jni
-                CppDirectories:
-                    ./TestCompositeLib1/app/src/test/jni
                 JavaDirectories:
                     ./TestCompositeLib1/app/src/test/java
                 JniLibsDirectories:
@@ -219,10 +191,6 @@ MODULE: TestCompositeLib1.app
                     ./TestCompositeLib1/app/src/testDebug/aidl
                 AssetsDirectories:
                     ./TestCompositeLib1/app/src/testDebug/assets
-                CDirectories:
-                    ./TestCompositeLib1/app/src/testDebug/jni
-                CppDirectories:
-                    ./TestCompositeLib1/app/src/testDebug/jni
                 JavaDirectories:
                     ./TestCompositeLib1/app/src/testDebug/java
                 JniLibsDirectories:
@@ -245,10 +213,6 @@ MODULE: TestCompositeLib1.app
                     ./TestCompositeLib1/app/src/androidTest/aidl
                 AssetsDirectories:
                     ./TestCompositeLib1/app/src/androidTest/assets
-                CDirectories:
-                    ./TestCompositeLib1/app/src/androidTest/jni
-                CppDirectories:
-                    ./TestCompositeLib1/app/src/androidTest/jni
                 JavaDirectories:
                     ./TestCompositeLib1/app/src/androidTest/java
                 JniLibsDirectories:
@@ -270,10 +234,6 @@ MODULE: TestCompositeLib1.app
                     ./TestCompositeLib1/app/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./TestCompositeLib1/app/src/androidTestDebug/assets
-                CDirectories:
-                    ./TestCompositeLib1/app/src/androidTestDebug/jni
-                CppDirectories:
-                    ./TestCompositeLib1/app/src/androidTestDebug/jni
                 JavaDirectories:
                     ./TestCompositeLib1/app/src/androidTestDebug/java
                 JniLibsDirectories:
@@ -701,10 +661,6 @@ MODULE: TestCompositeLib1.lib
                 ./TestCompositeLib1/lib/src/main/aidl
             AssetsDirectories:
                 ./TestCompositeLib1/lib/src/main/assets
-            CDirectories:
-                ./TestCompositeLib1/lib/src/main/jni
-            CppDirectories:
-                ./TestCompositeLib1/lib/src/main/jni
             JavaDirectories:
                 ./TestCompositeLib1/lib/src/main/java
             JniLibsDirectories:
@@ -727,10 +683,6 @@ MODULE: TestCompositeLib1.lib
                     ./TestCompositeLib1/lib/src/main/aidl
                 AssetsDirectories:
                     ./TestCompositeLib1/lib/src/main/assets
-                CDirectories:
-                    ./TestCompositeLib1/lib/src/main/jni
-                CppDirectories:
-                    ./TestCompositeLib1/lib/src/main/jni
                 JavaDirectories:
                     ./TestCompositeLib1/lib/src/main/java
                 JniLibsDirectories:
@@ -752,10 +704,6 @@ MODULE: TestCompositeLib1.lib
                     ./TestCompositeLib1/lib/src/debug/aidl
                 AssetsDirectories:
                     ./TestCompositeLib1/lib/src/debug/assets
-                CDirectories:
-                    ./TestCompositeLib1/lib/src/debug/jni
-                CppDirectories:
-                    ./TestCompositeLib1/lib/src/debug/jni
                 JavaDirectories:
                     ./TestCompositeLib1/lib/src/debug/java
                 JniLibsDirectories:
@@ -778,10 +726,6 @@ MODULE: TestCompositeLib1.lib
                     ./TestCompositeLib1/lib/src/main/aidl
                 AssetsDirectories:
                     ./TestCompositeLib1/lib/src/main/assets
-                CDirectories:
-                    ./TestCompositeLib1/lib/src/main/jni
-                CppDirectories:
-                    ./TestCompositeLib1/lib/src/main/jni
                 JavaDirectories:
                     ./TestCompositeLib1/lib/src/main/java
                 JniLibsDirectories:
@@ -803,10 +747,6 @@ MODULE: TestCompositeLib1.lib
                     ./TestCompositeLib1/lib/src/debug/aidl
                 AssetsDirectories:
                     ./TestCompositeLib1/lib/src/debug/assets
-                CDirectories:
-                    ./TestCompositeLib1/lib/src/debug/jni
-                CppDirectories:
-                    ./TestCompositeLib1/lib/src/debug/jni
                 JavaDirectories:
                     ./TestCompositeLib1/lib/src/debug/java
                 JniLibsDirectories:
@@ -828,10 +768,6 @@ MODULE: TestCompositeLib1.lib
                     ./TestCompositeLib1/lib/src/release/aidl
                 AssetsDirectories:
                     ./TestCompositeLib1/lib/src/release/assets
-                CDirectories:
-                    ./TestCompositeLib1/lib/src/release/jni
-                CppDirectories:
-                    ./TestCompositeLib1/lib/src/release/jni
                 JavaDirectories:
                     ./TestCompositeLib1/lib/src/release/java
                 JniLibsDirectories:
@@ -854,10 +790,6 @@ MODULE: TestCompositeLib1.lib
                     ./TestCompositeLib1/lib/src/test/aidl
                 AssetsDirectories:
                     ./TestCompositeLib1/lib/src/test/assets
-                CDirectories:
-                    ./TestCompositeLib1/lib/src/test/jni
-                CppDirectories:
-                    ./TestCompositeLib1/lib/src/test/jni
                 JavaDirectories:
                     ./TestCompositeLib1/lib/src/test/java
                 JniLibsDirectories:
@@ -879,10 +811,6 @@ MODULE: TestCompositeLib1.lib
                     ./TestCompositeLib1/lib/src/testDebug/aidl
                 AssetsDirectories:
                     ./TestCompositeLib1/lib/src/testDebug/assets
-                CDirectories:
-                    ./TestCompositeLib1/lib/src/testDebug/jni
-                CppDirectories:
-                    ./TestCompositeLib1/lib/src/testDebug/jni
                 JavaDirectories:
                     ./TestCompositeLib1/lib/src/testDebug/java
                 JniLibsDirectories:
@@ -905,10 +833,6 @@ MODULE: TestCompositeLib1.lib
                     ./TestCompositeLib1/lib/src/androidTest/aidl
                 AssetsDirectories:
                     ./TestCompositeLib1/lib/src/androidTest/assets
-                CDirectories:
-                    ./TestCompositeLib1/lib/src/androidTest/jni
-                CppDirectories:
-                    ./TestCompositeLib1/lib/src/androidTest/jni
                 JavaDirectories:
                     ./TestCompositeLib1/lib/src/androidTest/java
                 JniLibsDirectories:
@@ -930,10 +854,6 @@ MODULE: TestCompositeLib1.lib
                     ./TestCompositeLib1/lib/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./TestCompositeLib1/lib/src/androidTestDebug/assets
-                CDirectories:
-                    ./TestCompositeLib1/lib/src/androidTestDebug/jni
-                CppDirectories:
-                    ./TestCompositeLib1/lib/src/androidTestDebug/jni
                 JavaDirectories:
                     ./TestCompositeLib1/lib/src/androidTestDebug/java
                 JniLibsDirectories:
@@ -1362,10 +1282,6 @@ MODULE: TestCompositeLib3.app
                 ./TestCompositeLib3/app/src/main/aidl
             AssetsDirectories:
                 ./TestCompositeLib3/app/src/main/assets
-            CDirectories:
-                ./TestCompositeLib3/app/src/main/jni
-            CppDirectories:
-                ./TestCompositeLib3/app/src/main/jni
             JavaDirectories:
                 ./TestCompositeLib3/app/src/main/java
             JniLibsDirectories:
@@ -1388,10 +1304,6 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/main/aidl
                 AssetsDirectories:
                     ./TestCompositeLib3/app/src/main/assets
-                CDirectories:
-                    ./TestCompositeLib3/app/src/main/jni
-                CppDirectories:
-                    ./TestCompositeLib3/app/src/main/jni
                 JavaDirectories:
                     ./TestCompositeLib3/app/src/main/java
                 JniLibsDirectories:
@@ -1413,10 +1325,6 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/debug/aidl
                 AssetsDirectories:
                     ./TestCompositeLib3/app/src/debug/assets
-                CDirectories:
-                    ./TestCompositeLib3/app/src/debug/jni
-                CppDirectories:
-                    ./TestCompositeLib3/app/src/debug/jni
                 JavaDirectories:
                     ./TestCompositeLib3/app/src/debug/java
                 JniLibsDirectories:
@@ -1439,10 +1347,6 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/main/aidl
                 AssetsDirectories:
                     ./TestCompositeLib3/app/src/main/assets
-                CDirectories:
-                    ./TestCompositeLib3/app/src/main/jni
-                CppDirectories:
-                    ./TestCompositeLib3/app/src/main/jni
                 JavaDirectories:
                     ./TestCompositeLib3/app/src/main/java
                 JniLibsDirectories:
@@ -1464,10 +1368,6 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/debug/aidl
                 AssetsDirectories:
                     ./TestCompositeLib3/app/src/debug/assets
-                CDirectories:
-                    ./TestCompositeLib3/app/src/debug/jni
-                CppDirectories:
-                    ./TestCompositeLib3/app/src/debug/jni
                 JavaDirectories:
                     ./TestCompositeLib3/app/src/debug/java
                 JniLibsDirectories:
@@ -1489,10 +1389,6 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/release/aidl
                 AssetsDirectories:
                     ./TestCompositeLib3/app/src/release/assets
-                CDirectories:
-                    ./TestCompositeLib3/app/src/release/jni
-                CppDirectories:
-                    ./TestCompositeLib3/app/src/release/jni
                 JavaDirectories:
                     ./TestCompositeLib3/app/src/release/java
                 JniLibsDirectories:
@@ -1515,10 +1411,6 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/test/aidl
                 AssetsDirectories:
                     ./TestCompositeLib3/app/src/test/assets
-                CDirectories:
-                    ./TestCompositeLib3/app/src/test/jni
-                CppDirectories:
-                    ./TestCompositeLib3/app/src/test/jni
                 JavaDirectories:
                     ./TestCompositeLib3/app/src/test/java
                 JniLibsDirectories:
@@ -1540,10 +1432,6 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/testDebug/aidl
                 AssetsDirectories:
                     ./TestCompositeLib3/app/src/testDebug/assets
-                CDirectories:
-                    ./TestCompositeLib3/app/src/testDebug/jni
-                CppDirectories:
-                    ./TestCompositeLib3/app/src/testDebug/jni
                 JavaDirectories:
                     ./TestCompositeLib3/app/src/testDebug/java
                 JniLibsDirectories:
@@ -1566,10 +1454,6 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/androidTest/aidl
                 AssetsDirectories:
                     ./TestCompositeLib3/app/src/androidTest/assets
-                CDirectories:
-                    ./TestCompositeLib3/app/src/androidTest/jni
-                CppDirectories:
-                    ./TestCompositeLib3/app/src/androidTest/jni
                 JavaDirectories:
                     ./TestCompositeLib3/app/src/androidTest/java
                 JniLibsDirectories:
@@ -1591,10 +1475,6 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./TestCompositeLib3/app/src/androidTestDebug/assets
-                CDirectories:
-                    ./TestCompositeLib3/app/src/androidTestDebug/jni
-                CppDirectories:
-                    ./TestCompositeLib3/app/src/androidTestDebug/jni
                 JavaDirectories:
                     ./TestCompositeLib3/app/src/androidTestDebug/java
                 JniLibsDirectories:
@@ -2022,10 +1902,6 @@ MODULE: TestCompositeLib3.lib
                 ./TestCompositeLib3/lib/src/main/aidl
             AssetsDirectories:
                 ./TestCompositeLib3/lib/src/main/assets
-            CDirectories:
-                ./TestCompositeLib3/lib/src/main/jni
-            CppDirectories:
-                ./TestCompositeLib3/lib/src/main/jni
             JavaDirectories:
                 ./TestCompositeLib3/lib/src/main/java
             JniLibsDirectories:
@@ -2048,10 +1924,6 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/main/aidl
                 AssetsDirectories:
                     ./TestCompositeLib3/lib/src/main/assets
-                CDirectories:
-                    ./TestCompositeLib3/lib/src/main/jni
-                CppDirectories:
-                    ./TestCompositeLib3/lib/src/main/jni
                 JavaDirectories:
                     ./TestCompositeLib3/lib/src/main/java
                 JniLibsDirectories:
@@ -2073,10 +1945,6 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/debug/aidl
                 AssetsDirectories:
                     ./TestCompositeLib3/lib/src/debug/assets
-                CDirectories:
-                    ./TestCompositeLib3/lib/src/debug/jni
-                CppDirectories:
-                    ./TestCompositeLib3/lib/src/debug/jni
                 JavaDirectories:
                     ./TestCompositeLib3/lib/src/debug/java
                 JniLibsDirectories:
@@ -2099,10 +1967,6 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/main/aidl
                 AssetsDirectories:
                     ./TestCompositeLib3/lib/src/main/assets
-                CDirectories:
-                    ./TestCompositeLib3/lib/src/main/jni
-                CppDirectories:
-                    ./TestCompositeLib3/lib/src/main/jni
                 JavaDirectories:
                     ./TestCompositeLib3/lib/src/main/java
                 JniLibsDirectories:
@@ -2124,10 +1988,6 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/debug/aidl
                 AssetsDirectories:
                     ./TestCompositeLib3/lib/src/debug/assets
-                CDirectories:
-                    ./TestCompositeLib3/lib/src/debug/jni
-                CppDirectories:
-                    ./TestCompositeLib3/lib/src/debug/jni
                 JavaDirectories:
                     ./TestCompositeLib3/lib/src/debug/java
                 JniLibsDirectories:
@@ -2149,10 +2009,6 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/release/aidl
                 AssetsDirectories:
                     ./TestCompositeLib3/lib/src/release/assets
-                CDirectories:
-                    ./TestCompositeLib3/lib/src/release/jni
-                CppDirectories:
-                    ./TestCompositeLib3/lib/src/release/jni
                 JavaDirectories:
                     ./TestCompositeLib3/lib/src/release/java
                 JniLibsDirectories:
@@ -2175,10 +2031,6 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/test/aidl
                 AssetsDirectories:
                     ./TestCompositeLib3/lib/src/test/assets
-                CDirectories:
-                    ./TestCompositeLib3/lib/src/test/jni
-                CppDirectories:
-                    ./TestCompositeLib3/lib/src/test/jni
                 JavaDirectories:
                     ./TestCompositeLib3/lib/src/test/java
                 JniLibsDirectories:
@@ -2200,10 +2052,6 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/testDebug/aidl
                 AssetsDirectories:
                     ./TestCompositeLib3/lib/src/testDebug/assets
-                CDirectories:
-                    ./TestCompositeLib3/lib/src/testDebug/jni
-                CppDirectories:
-                    ./TestCompositeLib3/lib/src/testDebug/jni
                 JavaDirectories:
                     ./TestCompositeLib3/lib/src/testDebug/java
                 JniLibsDirectories:
@@ -2226,10 +2074,6 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/androidTest/aidl
                 AssetsDirectories:
                     ./TestCompositeLib3/lib/src/androidTest/assets
-                CDirectories:
-                    ./TestCompositeLib3/lib/src/androidTest/jni
-                CppDirectories:
-                    ./TestCompositeLib3/lib/src/androidTest/jni
                 JavaDirectories:
                     ./TestCompositeLib3/lib/src/androidTest/java
                 JniLibsDirectories:
@@ -2251,10 +2095,6 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./TestCompositeLib3/lib/src/androidTestDebug/assets
-                CDirectories:
-                    ./TestCompositeLib3/lib/src/androidTestDebug/jni
-                CppDirectories:
-                    ./TestCompositeLib3/lib/src/androidTestDebug/jni
                 JavaDirectories:
                     ./TestCompositeLib3/lib/src/androidTestDebug/java
                 JniLibsDirectories:
@@ -2685,10 +2525,6 @@ MODULE: testCompositeBuild.app
                 ./app/src/main/aidl
             AssetsDirectories:
                 ./app/src/main/assets
-            CDirectories:
-                ./app/src/main/jni
-            CppDirectories:
-                ./app/src/main/jni
             JavaDirectories:
                 ./app/src/main/java
             JniLibsDirectories:
@@ -2711,10 +2547,6 @@ MODULE: testCompositeBuild.app
                     ./app/src/main/aidl
                 AssetsDirectories:
                     ./app/src/main/assets
-                CDirectories:
-                    ./app/src/main/jni
-                CppDirectories:
-                    ./app/src/main/jni
                 JavaDirectories:
                     ./app/src/main/java
                 JniLibsDirectories:
@@ -2736,10 +2568,6 @@ MODULE: testCompositeBuild.app
                     ./app/src/debug/aidl
                 AssetsDirectories:
                     ./app/src/debug/assets
-                CDirectories:
-                    ./app/src/debug/jni
-                CppDirectories:
-                    ./app/src/debug/jni
                 JavaDirectories:
                     ./app/src/debug/java
                 JniLibsDirectories:
@@ -2762,10 +2590,6 @@ MODULE: testCompositeBuild.app
                     ./app/src/main/aidl
                 AssetsDirectories:
                     ./app/src/main/assets
-                CDirectories:
-                    ./app/src/main/jni
-                CppDirectories:
-                    ./app/src/main/jni
                 JavaDirectories:
                     ./app/src/main/java
                 JniLibsDirectories:
@@ -2787,10 +2611,6 @@ MODULE: testCompositeBuild.app
                     ./app/src/debug/aidl
                 AssetsDirectories:
                     ./app/src/debug/assets
-                CDirectories:
-                    ./app/src/debug/jni
-                CppDirectories:
-                    ./app/src/debug/jni
                 JavaDirectories:
                     ./app/src/debug/java
                 JniLibsDirectories:
@@ -2812,10 +2632,6 @@ MODULE: testCompositeBuild.app
                     ./app/src/release/aidl
                 AssetsDirectories:
                     ./app/src/release/assets
-                CDirectories:
-                    ./app/src/release/jni
-                CppDirectories:
-                    ./app/src/release/jni
                 JavaDirectories:
                     ./app/src/release/java
                 JniLibsDirectories:
@@ -2838,10 +2654,6 @@ MODULE: testCompositeBuild.app
                     ./app/src/test/aidl
                 AssetsDirectories:
                     ./app/src/test/assets
-                CDirectories:
-                    ./app/src/test/jni
-                CppDirectories:
-                    ./app/src/test/jni
                 JavaDirectories:
                     ./app/src/test/java
                 JniLibsDirectories:
@@ -2863,10 +2675,6 @@ MODULE: testCompositeBuild.app
                     ./app/src/testDebug/aidl
                 AssetsDirectories:
                     ./app/src/testDebug/assets
-                CDirectories:
-                    ./app/src/testDebug/jni
-                CppDirectories:
-                    ./app/src/testDebug/jni
                 JavaDirectories:
                     ./app/src/testDebug/java
                 JniLibsDirectories:
@@ -2889,10 +2697,6 @@ MODULE: testCompositeBuild.app
                     ./app/src/androidTest/aidl
                 AssetsDirectories:
                     ./app/src/androidTest/assets
-                CDirectories:
-                    ./app/src/androidTest/jni
-                CppDirectories:
-                    ./app/src/androidTest/jni
                 JavaDirectories:
                     ./app/src/androidTest/java
                 JniLibsDirectories:
@@ -2914,10 +2718,6 @@ MODULE: testCompositeBuild.app
                     ./app/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./app/src/androidTestDebug/assets
-                CDirectories:
-                    ./app/src/androidTestDebug/jni
-                CppDirectories:
-                    ./app/src/androidTestDebug/jni
                 JavaDirectories:
                     ./app/src/androidTestDebug/java
                 JniLibsDirectories:
@@ -3345,10 +3145,6 @@ MODULE: testCompositeBuild.lib
                 ./lib/src/main/aidl
             AssetsDirectories:
                 ./lib/src/main/assets
-            CDirectories:
-                ./lib/src/main/jni
-            CppDirectories:
-                ./lib/src/main/jni
             JavaDirectories:
                 ./lib/src/main/java
             JniLibsDirectories:
@@ -3371,10 +3167,6 @@ MODULE: testCompositeBuild.lib
                     ./lib/src/main/aidl
                 AssetsDirectories:
                     ./lib/src/main/assets
-                CDirectories:
-                    ./lib/src/main/jni
-                CppDirectories:
-                    ./lib/src/main/jni
                 JavaDirectories:
                     ./lib/src/main/java
                 JniLibsDirectories:
@@ -3396,10 +3188,6 @@ MODULE: testCompositeBuild.lib
                     ./lib/src/debug/aidl
                 AssetsDirectories:
                     ./lib/src/debug/assets
-                CDirectories:
-                    ./lib/src/debug/jni
-                CppDirectories:
-                    ./lib/src/debug/jni
                 JavaDirectories:
                     ./lib/src/debug/java
                 JniLibsDirectories:
@@ -3422,10 +3210,6 @@ MODULE: testCompositeBuild.lib
                     ./lib/src/main/aidl
                 AssetsDirectories:
                     ./lib/src/main/assets
-                CDirectories:
-                    ./lib/src/main/jni
-                CppDirectories:
-                    ./lib/src/main/jni
                 JavaDirectories:
                     ./lib/src/main/java
                 JniLibsDirectories:
@@ -3447,10 +3231,6 @@ MODULE: testCompositeBuild.lib
                     ./lib/src/debug/aidl
                 AssetsDirectories:
                     ./lib/src/debug/assets
-                CDirectories:
-                    ./lib/src/debug/jni
-                CppDirectories:
-                    ./lib/src/debug/jni
                 JavaDirectories:
                     ./lib/src/debug/java
                 JniLibsDirectories:
@@ -3472,10 +3252,6 @@ MODULE: testCompositeBuild.lib
                     ./lib/src/release/aidl
                 AssetsDirectories:
                     ./lib/src/release/assets
-                CDirectories:
-                    ./lib/src/release/jni
-                CppDirectories:
-                    ./lib/src/release/jni
                 JavaDirectories:
                     ./lib/src/release/java
                 JniLibsDirectories:
@@ -3498,10 +3274,6 @@ MODULE: testCompositeBuild.lib
                     ./lib/src/test/aidl
                 AssetsDirectories:
                     ./lib/src/test/assets
-                CDirectories:
-                    ./lib/src/test/jni
-                CppDirectories:
-                    ./lib/src/test/jni
                 JavaDirectories:
                     ./lib/src/test/java
                 JniLibsDirectories:
@@ -3523,10 +3295,6 @@ MODULE: testCompositeBuild.lib
                     ./lib/src/testDebug/aidl
                 AssetsDirectories:
                     ./lib/src/testDebug/assets
-                CDirectories:
-                    ./lib/src/testDebug/jni
-                CppDirectories:
-                    ./lib/src/testDebug/jni
                 JavaDirectories:
                     ./lib/src/testDebug/java
                 JniLibsDirectories:
@@ -3549,10 +3317,6 @@ MODULE: testCompositeBuild.lib
                     ./lib/src/androidTest/aidl
                 AssetsDirectories:
                     ./lib/src/androidTest/assets
-                CDirectories:
-                    ./lib/src/androidTest/jni
-                CppDirectories:
-                    ./lib/src/androidTest/jni
                 JavaDirectories:
                     ./lib/src/androidTest/java
                 JniLibsDirectories:
@@ -3574,10 +3338,6 @@ MODULE: testCompositeBuild.lib
                     ./lib/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./lib/src/androidTestDebug/assets
-                CDirectories:
-                    ./lib/src/androidTestDebug/jni
-                CppDirectories:
-                    ./lib/src/androidTestDebug/jni
                 JavaDirectories:
                     ./lib/src/androidTestDebug/java
                 JniLibsDirectories:

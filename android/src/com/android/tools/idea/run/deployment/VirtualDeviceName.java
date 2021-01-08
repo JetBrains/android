@@ -24,20 +24,10 @@ import org.jetbrains.annotations.Nullable;
  * 30.0.18.
  */
 final class VirtualDeviceName extends Key {
-  static final String PREFIX = "VirtualDeviceName@";
   private final @NotNull String myValue;
 
   VirtualDeviceName(@NotNull String value) {
     myValue = value;
-  }
-
-  static @NotNull VirtualDeviceName parse(@NotNull String string) {
-    return new VirtualDeviceName(string.substring(PREFIX.length()));
-  }
-
-  @Override
-  @NotNull NonprefixedKey asNonprefixedKey() {
-    return new NonprefixedKey(myValue);
   }
 
   @Override
@@ -52,6 +42,6 @@ final class VirtualDeviceName extends Key {
 
   @Override
   public @NotNull String toString() {
-    return PREFIX + myValue;
+    return myValue;
   }
 }

@@ -228,6 +228,11 @@ iml_module(
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.navigator.SourceProvidersSnapshotComparisonTest",
         },
+        "navigator.AndroidProjectViewNodeConsistencyTest": {
+            # TODO(b/175843951) remove after flake is resolved.
+            "tags": ["no_test_linux"],
+            "test_filter": "com.android.tools.idea.navigator.AndroidProjectViewNodeConsistencyTest",
+        },
         "imports": {
             "shard_count": 2,
             "test_filter": "com.android.tools.idea.imports",
@@ -408,7 +413,10 @@ filegroup(
             "//tools/base/deploy/installer/tests:artifacts",
             "//tools/base/deploy/proto:deploy_java_proto",
         ],
-    }) + ["//tools/base/deploy/deployer:java_version"],
+    }) + [
+        "//tools/base/deploy/deployer:java_version",
+        "//tools/base/deploy/sites:java_sites",
+    ],
     visibility = ["//visibility:public"],
 )
 
@@ -439,7 +447,7 @@ filegroup(
         "//tools/base/bazel:studio-proto",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
         "//tools/base/ddmlib:am-instrumentation-data-proto",
-        "//tools/base/dynamic-layout-inspector/proto:layout_inspector_skia_java_proto",
+        "//tools/base/dynamic-layout-inspector/skia/proto:layout_inspector_skia_java_proto",
         "//tools/base/emulator/proto:emulator_java_proto",
         "//tools/base/game-tools/protos:game-tools-protos",
         "//tools/base/sdk-common/aia-manifest-jar-generator:proto",

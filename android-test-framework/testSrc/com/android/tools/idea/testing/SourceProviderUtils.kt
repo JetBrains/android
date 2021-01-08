@@ -76,8 +76,6 @@ fun Project.dumpSourceProviders(): String {
         dumpPaths("Manifest") { listOf(manifestFile) }
         dumpPaths("AidlDirectories") { it.aidlDirectories }
         dumpPaths("AssetsDirectories") { it.assetsDirectories }
-        dumpPaths("CDirectories") { it.cDirectories }
-        dumpPaths("CppDirectories") { it.cppDirectories }
         dumpPaths("JavaDirectories") { it.javaDirectories }
         dumpPaths("JniLibsDirectories") { it.jniLibsDirectories }
         dumpPaths("RenderscriptDirectories") { it.renderscriptDirectories }

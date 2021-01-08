@@ -16,9 +16,11 @@
 package com.android.tools.idea.stats
 
 interface ChoiceLogger {
-  fun log(result: Int)
-  fun log(result: List<Int>)
-  fun cancel() {
-    log(-1)
+  fun log(name: String, result: Int) {
+    log(name, listOf(result))
+  }
+  fun log(name: String, result: List<Int>)
+  fun cancel(name: String) {
+    log(name, emptyList())
   }
 }

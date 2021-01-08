@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.pipeline
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.intellij.openapi.project.Project
 
 /**
  * A mechanism for using an [InspectorClient] and some data (dependant on the type of client) to create a [ViewNode] tree.
@@ -30,7 +29,7 @@ interface TreeLoader {
    *  - The loaded [AndroidWindow], or null if all windows are gone.
    *  - a generation id, that can be used to ensure other responses (e.g. properties) are up to date
    */
-  fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, client: InspectorClient, project: Project): Pair<AndroidWindow?, Int>?
+  fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup): Pair<AndroidWindow?, Int>?
 
-  fun getAllWindowIds(data: Any?, client: InspectorClient): List<*>?
+  fun getAllWindowIds(data: Any?): List<*>?
 }

@@ -305,6 +305,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     VirtualFile file3 = myFixture.copyFileToProject(LAYOUT1, "res/layout-xlarge-land/layout3.xml");
     PsiFile psiFile3 = PsiManager.getInstance(getProject()).findFile(file3);
     assertNotNull(psiFile3);
+    UIUtil.dispatchAllInvocationEvents();
     assertTrue(resources.getModificationCount() > generation);
 
     layouts = resources.getResources(RES_AUTO, ResourceType.LAYOUT).keySet();
@@ -341,6 +342,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     VirtualFile file1 = myFixture.copyFileToProject(LAYOUT1, "res/drawable-mdpi/foo.png");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
+    UIUtil.dispatchAllInvocationEvents();
     assertTrue(resources.getModificationCount() > generation);
 
     // Delete a file and make sure the item is removed from the repository (and modification count bumped).
@@ -368,6 +370,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     FileUtil.copy(fromFile, targetFile);
     VirtualFile file2 = VfsUtil.findFileByIoFile(targetFile, true);
     assertNotNull(file2);
+    UIUtil.dispatchAllInvocationEvents();
 
     PsiFile psiFile2 = PsiManager.getInstance(getProject()).findFile(file2);
     assertNotNull(psiFile2);
@@ -456,6 +459,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         }
       }
     });
+    UIUtil.dispatchAllInvocationEvents();
 
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout2b"));
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout2"));
@@ -516,6 +520,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         }
       }
     });
+    UIUtil.dispatchAllInvocationEvents();
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.DRAWABLE, "foo3"));
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.DRAWABLE, "foo2"));
     assertTrue(resources.getModificationCount() > generation);
@@ -545,6 +550,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
           fail(e.toString());
         }
     });
+    UIUtil.dispatchAllInvocationEvents();
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.DRAWABLE, "foo3"));
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.DRAWABLE, "foo2"));
     assertTrue(resources.getModificationCount() > generation);
@@ -564,6 +570,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
           fail(e.toString());
       }
     });
+    UIUtil.dispatchAllInvocationEvents();
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.DRAWABLE, "foo3"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.DRAWABLE, "foo4"));
     assertTrue(resources.getModificationCount() > generation2);
@@ -604,6 +611,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         }
       }
     });
+    UIUtil.dispatchAllInvocationEvents();
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "title_template_step"));
     items = resources.getResources(RES_AUTO, ResourceType.STRING, "title_template_step");
     assertNotNull(items);
@@ -678,6 +686,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         }
       }
     });
+    UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout1"));
     item = getOnlyItem(resources, ResourceType.LAYOUT, "layout1");
@@ -714,6 +723,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         }
       }
     });
+    UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
     item = getOnlyItem(resources, ResourceType.STRING, "app_name");
     assertEquals("no", item.getConfiguration().getQualifierString());
@@ -754,6 +764,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         }
       }
     });
+    UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.DRAWABLE, "picture"));
     item = getOnlyItem(resources, ResourceType.DRAWABLE, "picture");
@@ -787,6 +798,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         }
       }
     });
+    UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.MENU, "layout1"));
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout1"));
@@ -842,6 +854,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         }
       }
     });
+    UIUtil.dispatchAllInvocationEvents();
 
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "title_template_step"));
@@ -880,21 +893,22 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(generation, resources.getModificationCount());
   }
 
-  public void testRawFolder() {
+  public void testRawFolder() throws Exception {
     // In this folder, any file extension is allowed
     myFixture.copyFileToProject(LAYOUT1, "res/raw/raw1.xml");
     ResourceFolderRepository resources = createRegisteredRepository();
     assertNotNull(resources);
     Collection<String> raw = resources.getResources(RES_AUTO, ResourceType.RAW).keySet();
     assertEquals(1, raw.size());
-    long generation = resources.getModificationCount();
+    long generation1 = resources.getModificationCount();
     VirtualFile file2 = myFixture.copyFileToProject(LAYOUT1, "res/raw/numbers.random");
-    assertTrue(generation < resources.getModificationCount());
+    UIUtil.dispatchAllInvocationEvents();
+    assertTrue(resources.getModificationCount() > generation1);
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.RAW, "numbers"));
     raw = resources.getResources(RES_AUTO, ResourceType.RAW).keySet();
     assertEquals(2, raw.size());
 
-    generation = resources.getModificationCount();
+    long generation2 = resources.getModificationCount();
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
@@ -906,7 +920,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         }
       }
     });
-    assertTrue(resources.getModificationCount() > generation);
+    UIUtil.dispatchAllInvocationEvents();
+    assertTrue(resources.getModificationCount() > generation2);
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.RAW, "numbers2"));
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.RAW, "numbers"));
   }
@@ -3624,7 +3639,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         // fail because it would already have correct results *before* the
         // sync. Therefore, we simply trigger a pending scan (which stops
         // subequent incremental events from being processed).
-        resources.scheduleScan(psiFile1, ResourceFolderType.VALUES);
+        resources.scheduleScan(file1);
 
         document.deleteString(offset, offset + string.length());
         documentManager.commitDocument(document);
@@ -4185,7 +4200,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
    * <p>
    * When a file is created in a directory that is not cached in this map, {@link com.intellij.psi.impl.file.impl.PsiVFSListener#fileCreated}
    * will trigger a {@link com.intellij.psi.PsiTreeChangeEvent#PROP_UNLOADED_PSI}
-   * event which is not handled by the {@link com.android.tools.idea.res.ResourceFolderRepository.PsiListener}
+   * event which is not handled by the {@link com.android.tools.idea.res.ResourceFolderRepository.IncrementalUpdatePsiListener}
    * so the new file is never added to the repository.
    * <p>
    * Instead of relying on the Psi system for file change event, we now rely on the VFS system which does not suffer from this
@@ -4211,6 +4226,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         }
       }
     );
+    UIUtil.dispatchAllInvocationEvents();
     assertEquals(2, repository.getResources(RES_AUTO, ResourceType.DRAWABLE).size());
   }
 
@@ -4320,7 +4336,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository repository = createRegisteredRepository();
     assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a");
 
-    repository.scheduleScan(layout, ResourceFolderType.LAYOUT);
+    repository.scheduleScan(layout.getVirtualFile());
     runListeners();
     assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a");
 
@@ -4588,11 +4604,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
   private void runListeners() {
     PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
-    try {
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-    }
-    catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
   }
 }

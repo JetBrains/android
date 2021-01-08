@@ -21,7 +21,6 @@ import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -395,32 +394,50 @@ public abstract class ClassifierSet implements MemoryObject {
    * {@code targetSet}'s immediate children.
    */
   public boolean isSupersetOf(Set<InstanceObject> targetSet) {
-    return getNonMembers(targetSet).isEmpty();
+    Set<InstanceObject> clone = Collections.newSetFromMap(new IdentityHashMap<>());
+    clone.addAll(targetSet);
+    filterOutInstances(clone);
+    return clone.isEmpty();
   }
 
   /**
-   * @return the remaining instances not contained by this node and its children
+   * Remove this node's and its children's instances from the given set
    */
-  private Set<InstanceObject> getNonMembers(Set<InstanceObject> instances) {
-    // Find instances not part of immediate node
-    Set<InstanceObject> remainders = Collections.newSetFromMap(new IdentityHashMap<>());
-    for (InstanceObject inst : instances) {
-      if (!(myDeltaInstances.contains(inst) || mySnapshotInstances.contains(inst))) {
-        remainders.add(inst);
-      }
-    }
+  private void filterOutInstances(Set<InstanceObject> remainders) {
+    // Filter out from current node
+    remainders.removeAll(myDeltaInstances);
+    remainders.removeAll(mySnapshotInstances);
 
-    // Intersect with children's remainders
+    // Filter out from children
     if (myClassifier != null && !remainders.isEmpty()) {
       for (ClassifierSet child : myClassifier.getAllClassifierSets()) {
-        remainders.retainAll(child.getNonMembers(remainders));
+        child.filterOutInstances(remainders);
         if (remainders.isEmpty()) {
-          return remainders;
+          return;
         }
       }
     }
+  }
 
-    return remainders;
+  /**
+   * @return Whether the node's immediate instances overlap with `targetSet`
+   */
+  public boolean immediateInstancesOverlapWith(Set<InstanceObject> targetSet) {
+    return overlaps(myDeltaInstances, targetSet) || overlaps(mySnapshotInstances, targetSet);
+  }
+
+  /**
+   * @return Whether the node and its descendants' instances overlap with `targetSet`
+   */
+  public boolean overlapsWith(Set<InstanceObject> targetSet) {
+    return immediateInstancesOverlapWith(targetSet) ||
+           (myClassifier != null && myClassifier.getAllClassifierSets().stream().anyMatch(c -> c.overlapsWith(targetSet)));
+  }
+
+  private static boolean overlaps(Set<InstanceObject> set1, Set<InstanceObject> set2) {
+    Set<InstanceObject> iter = set1.size() < set2.size() ? set1 : set2;
+    Set<InstanceObject> test = iter == set1 ? set2 : set1;
+    return iter.stream().anyMatch(test::contains);
   }
 
   /**

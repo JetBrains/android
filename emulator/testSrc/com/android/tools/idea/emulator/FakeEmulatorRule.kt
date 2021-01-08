@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.emulator
 
-import com.intellij.testFramework.rules.TempDirectory
+import com.intellij.testFramework.TemporaryDirectory
 import io.grpc.ManagedChannelBuilder
 import io.grpc.inprocess.InProcessChannelBuilder
 import org.junit.rules.ExternalResource
@@ -31,12 +31,18 @@ import java.nio.file.Path
 class FakeEmulatorRule : TestRule {
   private val emulators = mutableListOf<FakeEmulator>()
   private var registrationDirectory: Path? = null
-  private val tempDirectory = TempDirectory()
+  private val savedUserHome = System.getProperty("user.home")
+  private val tempDirectory = TemporaryDirectory()
   private val emulatorResource = object : ExternalResource() {
     override fun before() {
       RuntimeConfigurationOverrider.overrideConfiguration(FakeEmulatorTestConfiguration())
       val emulatorCatalog = RunningEmulatorCatalog.getInstance()
-      registrationDirectory = tempDirectory.newDirectory("avd/running").toPath()
+      val root = Files.createDirectories(tempDirectory.newPath())
+      nullableRoot = root
+      val userHome = Files.createDirectories(root.resolve("home"))
+      Files.createDirectories(userHome.resolve("Desktop"))
+      System.setProperty("user.home", userHome.toString())
+      registrationDirectory = Files.createDirectories(root.resolve("avd/running"))
       emulatorCatalog.overrideRegistrationDirectory(registrationDirectory)
     }
 
@@ -44,6 +50,7 @@ class FakeEmulatorRule : TestRule {
       for (emulator in emulators) {
         emulator.stop()
       }
+      System.setProperty("user.home", savedUserHome)
       registrationDirectory = null
       val emulatorCatalog = RunningEmulatorCatalog.getInstance()
       emulatorCatalog.overrideRegistrationDirectory(null)
@@ -51,14 +58,16 @@ class FakeEmulatorRule : TestRule {
     }
   }
 
+  private var nullableRoot: Path? = null
+
+  val root: Path
+    get() = nullableRoot ?: throw IllegalStateException()
+
   override fun apply(base: Statement, description: Description): Statement {
     return tempDirectory.apply(emulatorResource.apply(base, description), description)
   }
 
-  val root: Path
-    get() = tempDirectory.root.toPath()
-
-  fun newFile(): Path = Files.createTempFile(root, "junit", null)
+  fun newPath(): Path = tempDirectory.newPath()
 
   fun newEmulator(avdFolder: Path, grpcPort: Int, standalone: Boolean = false): FakeEmulator {
     val dir = registrationDirectory ?: throw IllegalStateException()
@@ -68,10 +77,6 @@ class FakeEmulatorRule : TestRule {
   }
 
   private inner class FakeEmulatorTestConfiguration : RuntimeConfiguration() {
-
-    override fun getDesktopOrUserHomeDirectory(): Path {
-      return root
-    }
 
     override fun newGrpcChannelBuilder(host: String, port: Int): ManagedChannelBuilder<*> {
       return InProcessChannelBuilder.forName(FakeEmulator.grpcServerName(port))

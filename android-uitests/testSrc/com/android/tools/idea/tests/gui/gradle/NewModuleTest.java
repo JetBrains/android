@@ -185,6 +185,7 @@ public class NewModuleTest {
 
     String manifestContents = guiTest.getProjectFileText(moduleName + "/src/main/AndroidManifest.xml");
     assertThat(manifestContents).contains("android:name=\"android.hardware.type.automotive\"");
+    assertThat(manifestContents).contains("android:appCategory=\"audio\"");
   }
 
   @Test

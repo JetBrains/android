@@ -20,10 +20,12 @@ import com.android.utils.FileUtils
 import com.google.common.base.Charsets
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.util.io.createFile
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpHandler
 import com.sun.net.httpserver.HttpServer
 import junit.framework.TestCase
+import java.io.File
 import java.net.InetSocketAddress
 import java.net.MalformedURLException
 import java.net.URL
@@ -31,17 +33,20 @@ import java.nio.file.Path
 import java.util.concurrent.Executors
 
 private const val VERSION = "4.2.0.0"
+private const val TEMP_FILE = "ServerFlagTempFile"
 
 class ServerFlagDownloaderTest : TestCase() {
   lateinit var testDirectoryPath: Path
   lateinit var downloadPath: Path
   lateinit var localPath: Path
+  lateinit var tempFilePath: Path
 
   override fun setUp() {
     super.setUp()
     testDirectoryPath = FileUtil.createTempDirectory("ServerFlagDownloaderTest", null).toPath()
     downloadPath = testDirectoryPath.resolve("download")
     localPath = testDirectoryPath.resolve("local")
+    tempFilePath = testDirectoryPath.resolve(TEMP_FILE)
   }
 
   override fun tearDown() {
@@ -72,10 +77,11 @@ class ServerFlagDownloaderTest : TestCase() {
     saveServerFlagList(expected, localPath, VERSION)
 
     val baseUrl = "foo"
-    ServerFlagDownloader.downloadServerFlagList(baseUrl, localPath, VERSION)
+    ServerFlagDownloader.downloadServerFlagList(baseUrl, localPath, VERSION) { createTempFile() }
 
     val actual = loadServerFlagList(localPath, VERSION)
     assertThat(actual).isEqualTo(expected)
+    assertTempFileDeleted()
   }
 
   fun testInternalServerError() {
@@ -90,24 +96,37 @@ class ServerFlagDownloaderTest : TestCase() {
     testServerError(HttpError.HTTP_BAD_REQUEST)
   }
 
+  private fun createTempFile(): File {
+    tempFilePath.createFile()
+    return tempFilePath.toFile()
+  }
+
   private fun testServerError(error: HttpError) {
     val stub = ServerStub(error)
     val baseUrl = stub.url
     val expected = serverFlagTestData
     saveServerFlagList(expected, localPath, VERSION)
 
-    ServerFlagDownloader.downloadServerFlagList(baseUrl.toString(), localPath, VERSION)
+    ServerFlagDownloader.downloadServerFlagList(baseUrl.toString(), localPath, VERSION) { createTempFile() }
 
     val actual = loadServerFlagList(localPath, VERSION)
     assertThat(actual).isEqualTo(expected)
+    assertTempFileDeleted()
   }
 
   private fun testServerFlagDownloader(expected: ServerFlagList) {
     val baseUrl = downloadPath.toUri().toURL().toString()
-    ServerFlagDownloader.downloadServerFlagList(baseUrl, localPath, VERSION)
+    ServerFlagDownloader.downloadServerFlagList(baseUrl, localPath, VERSION) { createTempFile() }
 
     val actual = loadServerFlagList(localPath, VERSION)
     assertThat(actual).isEqualTo(expected)
+
+    assertTempFileDeleted()
+  }
+
+  private fun assertTempFileDeleted() {
+    val tempFile = tempFilePath.toFile()
+    assertThat(tempFile.exists()).isFalse()
   }
 
   private enum class HttpError(val value: Int) {

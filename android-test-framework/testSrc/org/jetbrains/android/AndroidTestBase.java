@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android;
 
+import com.android.testutils.MockitoThreadLocalsCleaner;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -70,6 +71,9 @@ import org.mockito.internal.progress.ThreadSafeMockingProgress;
  */
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestBase extends UsefulTestCase {
+  // Keep track of each leaked disposable so that we can fail just the *first* test that leaks it.
+  private static final Set<Disposable> allLeakedDisposables = ContainerUtil.createWeakSet();
+
   protected JavaCodeInsightTestFixture myFixture;
   private final MockitoThreadLocalsCleaner mockitoCleaner = new MockitoThreadLocalsCleaner();
 
@@ -104,9 +108,6 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     mockitoCleaner.cleanupAndTearDown();
     checkUndisposedAndroidRelatedObjects();
   }
-
-  // Keep track of each leaked disposable so that we can fail just the *first* test that leaks it.
-  private static final Set<Disposable> allLeakedDisposables = ContainerUtil.createWeakSet();
 
   /**
    * Checks that there are no undisposed Android-related objects.

@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.api
 import com.android.tools.idea.appinspection.api.process.ProcessNotifier
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
+import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.AppInspectionProcessDiscovery
 import com.android.tools.idea.appinspection.internal.AppInspectionTarget
@@ -30,7 +31,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asExecutor
 
-typealias JarCopierCreator = (Common.Device) -> AppInspectionJarCopier?
+typealias JarCopierCreator = (DeviceDescriptor) -> AppInspectionJarCopier?
 
 /**
  * The API surface that is exposed to the AppInspection IDE/UI module. It provides a set of tools that allows the frontend to discover

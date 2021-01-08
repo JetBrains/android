@@ -16,21 +16,21 @@
 package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.annotations.concurrency.Slow
+import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
 import com.android.ddmlib.DebugViewDumpHandler
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
-import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
+import com.android.tools.idea.layoutinspector.pipeline.adb.findClient
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Charsets
 import com.google.common.collect.Lists
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
-import com.intellij.openapi.project.Project
 import org.apache.log4j.Logger
 import java.awt.Image
 import java.io.BufferedReader
@@ -52,41 +52,42 @@ import javax.imageio.ImageIO
 /**
  * A [TreeLoader] that can handle pre-api 29 devices. Loads the view hierarchy and screenshot using DDM, and parses it into [ViewNode]s
  */
-object LegacyTreeLoader : TreeLoader {
+class LegacyTreeLoader(private val adb: AndroidDebugBridge, private val client: LegacyClient) : TreeLoader {
+  private val LegacyClient.selectedDdmClient: Client?
+    get() = ddmClientOverride ?: adb.findClient(process)
 
-  override fun loadComponentTree(
-    data: Any?, resourceLookup: ResourceLookup, client: InspectorClient, project: Project
-  ): Pair<AndroidWindow, Int>? {
+  @VisibleForTesting
+  var ddmClientOverride: Client? = null
+
+  override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup): Pair<AndroidWindow, Int>? {
     val (windowName, updater, _) = data as? LegacyEvent ?: return null
-    return capture(client, windowName, updater)?.let { Pair(it, 0) }
+    return capture(windowName, updater)?.let { Pair(it, 0) }
   }
 
-  override fun getAllWindowIds(data: Any?, client: InspectorClient): List<String>? {
-    val legacyClient = client as? LegacyClient ?: return null
+  override fun getAllWindowIds(data: Any?): List<String>? {
+    val ddmClient = client.selectedDdmClient ?: return null
     val result = if (data is LegacyEvent) {
       data.allWindows
     }
     else {
-      val ddmClient = legacyClient.selectedClient ?: return null
       ListViewRootsHandler().getWindows(ddmClient, 5, TimeUnit.SECONDS)
     }
-    legacyClient.latestScreenshots.keys.retainAll(result)
+    client.latestScreenshots.keys.retainAll(result)
     return result
   }
 
   @Slow
-  private fun capture(client: InspectorClient, windowName: String, propertiesUpdater: LegacyPropertiesProvider.Updater): AndroidWindow? {
-    val legacyClient = client as? LegacyClient ?: return null
-    val ddmClient = legacyClient.selectedClient ?: return null
+  private fun capture(windowName: String, propertiesUpdater: LegacyPropertiesProvider.Updater): AndroidWindow? {
+    val ddmClient = client.selectedDdmClient ?: return null
     val hierarchyHandler = CaptureByteArrayHandler(DebugViewDumpHandler.CHUNK_VURT)
     ddmClient.dumpViewHierarchy(windowName, false, true, false, hierarchyHandler)
     propertiesUpdater.lookup.resourceLookup.dpi = ddmClient.device.density
     val hierarchyData = hierarchyHandler.getData() ?: return null
     val (rootNode, _) = parseLiveViewNode(hierarchyData, propertiesUpdater) ?: return null
-    getScreenshotPngBytes(ddmClient)?.let { legacyClient.latestScreenshots[windowName] = it }
+    getScreenshotPngBytes(ddmClient)?.let { client.latestScreenshots[windowName] = it }
 
     return AndroidWindow(rootNode, windowName, LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED) { scale, window ->
-      val image = legacyClient.latestScreenshots[windowName]?.let { pngBytes ->
+      val image = client.latestScreenshots[windowName]?.let { pngBytes ->
         ImageIO.read(ByteArrayInputStream(pngBytes))?.let {
           it.getScaledInstance((it.width * scale).toInt(), (it.height * scale).toInt(), Image.SCALE_DEFAULT)
         }

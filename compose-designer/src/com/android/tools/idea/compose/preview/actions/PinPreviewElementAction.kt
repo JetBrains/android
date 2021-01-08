@@ -18,7 +18,10 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
 import com.android.tools.idea.compose.preview.PIN_EMOJI
 import com.android.tools.idea.compose.preview.PinnedPreviewElementManager
+import com.android.tools.idea.compose.preview.PreviewElementProvider
+import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -26,6 +29,36 @@ import org.jetbrains.kotlin.idea.refactoring.project
 
 fun DataContext.getPreviewElementInstance(): PreviewElementInstance? = getData(COMPOSE_PREVIEW_ELEMENT) as? PreviewElementInstance
 
+internal object UnpinAllPreviewElementsAction
+  : ToggleAction(message("action.unpin.all.title"), message("action.unpin.all.description"), AllIcons.General.Pin_tab) {
+  override fun isSelected(e: AnActionEvent): Boolean = true
+  override fun setSelected(e: AnActionEvent, state: Boolean) {
+    if (!state) {
+      val project = e.project ?: return
+      PinnedPreviewElementManager.getInstance(project).unpinAll()
+    }
+  }
+}
+
+internal class PinAllPreviewElementsAction(
+  private val isPinned: () -> Boolean,
+  private val previewElementProvider: PreviewElementProvider<PreviewElementInstance>)
+  : ToggleAction(message("action.pin.file.title"), message("action.pin.file.description"), AllIcons.General.Pin_tab) {
+  override fun isSelected(e: AnActionEvent): Boolean = isPinned()
+
+  override fun setSelected(e: AnActionEvent, state: Boolean) {
+    val pinManager = PinnedPreviewElementManager.getInstance(e.project ?: return)
+
+    if (state) {
+      // Unpin any previous pins
+      pinManager.unpinAll()
+      pinManager.pin(previewElementProvider.previewElements.toList())
+    }
+    else {
+      pinManager.unpin(previewElementProvider.previewElements.toList())
+    }
+  }
+}
 
 internal class PinPreviewElementAction(private val dataContextProvider: () -> DataContext)
   : ToggleAction(PIN_EMOJI, null, null) {

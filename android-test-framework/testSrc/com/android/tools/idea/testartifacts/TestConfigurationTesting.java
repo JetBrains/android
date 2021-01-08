@@ -33,6 +33,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.MapDataContext;
+import com.intellij.testFramework.PlatformTestUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,7 +90,7 @@ public class TestConfigurationTesting {
   @NotNull
   @VisibleForTesting
   public static PsiElement getPsiElement(@NotNull Project project, @NotNull String file, boolean isDirectory) {
-    VirtualFile virtualFile = findRelativeFile(file, project.getBaseDir());
+    VirtualFile virtualFile = findRelativeFile(file, PlatformTestUtil.getOrCreateProjectBaseDir(project));
     assertNotNull(virtualFile);
     PsiElement element = isDirectory ? PsiManager.getInstance(project).findDirectory(virtualFile)
                                      : PsiManager.getInstance(project).findFile(virtualFile);

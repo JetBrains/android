@@ -20,9 +20,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.deployment.DevicesSelectedService.PersistentStateComponent;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.intellij.ide.util.ProjectPropertiesComponentImpl;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import java.time.Clock;
@@ -117,11 +116,10 @@ public final class SelectMultipleDevicesDialogTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    PropertiesComponent properties = new ProjectPropertiesComponentImpl();
     Clock clock = Clock.fixed(Instant.parse("2018-11-28T01:15:27Z"), ZoneId.of("America/Los_Angeles"));
 
-    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(), project -> properties, clock, () -> false);
-    service.setTargetsSelectedWithDialog(Collections.singleton(new Target(key)));
+    DevicesSelectedService service = new DevicesSelectedService(new PersistentStateComponent(), clock, () -> false);
+    service.setTargetsSelectedWithDialog(Collections.singleton(new QuickBootTarget(key)));
 
     initDialog(() -> false, new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device)), project -> service);
 
@@ -162,7 +160,7 @@ public final class SelectMultipleDevicesDialogTest {
     SelectMultipleDevicesDialogTableModel model = new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device));
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
-    Mockito.when(service.getTargetsSelectedWithDialog()).thenReturn(Collections.singleton(new Target(key)));
+    Mockito.when(service.getTargetsSelectedWithDialog()).thenReturn(Collections.singleton(new QuickBootTarget(key)));
 
     // Act
     initDialog(() -> true, model, project -> service);
@@ -190,6 +188,6 @@ public final class SelectMultipleDevicesDialogTest {
     ApplicationManager.getApplication().invokeAndWait(() -> myDialog.getOKAction().actionPerformed(null));
 
     // Assert
-    Mockito.verify(service).setTargetsSelectedWithDialog(Collections.singleton(new Target(key)));
+    Mockito.verify(service).setTargetsSelectedWithDialog(Collections.singleton(new QuickBootTarget(key)));
   }
 }

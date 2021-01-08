@@ -22,8 +22,9 @@ import com.android.tools.pipeline.example.proto.Echo
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess
 import com.intellij.testFramework.LightPlatformTestCase
+import org.junit.Rule
+import org.junit.rules.Timeout
 import java.io.IOException
 import java.util.concurrent.BlockingDeque
 import java.util.concurrent.CountDownLatch
@@ -35,11 +36,11 @@ class TransportServiceTest : LightPlatformTestCase() {
 
   private lateinit var myService: TransportService
 
+  @get:Rule
+  val timeout = Timeout.seconds(10)
+
   @Throws(Exception::class)
   override fun setUp() {
-    // Bazel tests are sandboxed so we disable VfsRoot checks.
-    VfsRootAccess.allowRootAccess(testRootDisposable, "/", "C:\\")
-
     super.setUp()
     myService = TransportService()
     Disposer.register(testRootDisposable, myService)

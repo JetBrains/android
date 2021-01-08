@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.intellij.openapi.project.Project;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-final class Target {
+abstract class Target {
   private final @NotNull Key myDeviceKey;
 
   Target(@NotNull Key deviceKey) {
@@ -38,17 +38,13 @@ final class Target {
       .collect(Collectors.toList());
   }
 
-  @NotNull Key getDeviceKey() {
+  final @NotNull Key getDeviceKey() {
     return myDeviceKey;
   }
 
-  @Override
-  public int hashCode() {
-    return myDeviceKey.hashCode();
+  boolean matches(@NotNull Device device) {
+    return device.matches(myDeviceKey);
   }
 
-  @Override
-  public boolean equals(@Nullable Object object) {
-    return object instanceof Target && myDeviceKey.equals(((Target)object).myDeviceKey);
-  }
+  abstract void boot(@NotNull VirtualDevice device, @NotNull Project project);
 }

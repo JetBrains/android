@@ -32,9 +32,10 @@ import javax.swing.JCheckBox
 import javax.swing.JComponent
 import javax.swing.SwingUtilities
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-private val TEST_SURVEY : Survey = Survey.newBuilder().apply {
+private val TEST_SURVEY: Survey = Survey.newBuilder().apply {
   title = "Test Title"
   question = "Test Question"
   intervalDays = 365
@@ -48,7 +49,10 @@ private val TEST_SURVEY : Survey = Survey.newBuilder().apply {
   addOptions(Option.newBuilder().apply {
     label = "Option 2"
   })
+  name = TEST_SURVEY_NAME
 }.build()
+
+private const val TEST_SURVEY_NAME = "Test Survey"
 
 class MultipleChoiceDialogTest {
 
@@ -91,7 +95,7 @@ class MultipleChoiceDialogTest {
     assertTrue(dialog.isOKActionEnabled)
 
     SwingUtilities.invokeAndWait { dialog.performOKAction() }
-    verify(logger).log(listOf(0, 1))
+    verify(logger).log(TEST_SURVEY_NAME, listOf(0, 1))
   }
 
   @Test
@@ -116,7 +120,7 @@ class MultipleChoiceDialogTest {
     assertFalse(dialog.isOKActionEnabled)
 
     SwingUtilities.invokeAndWait { dialog.doCancelAction(null) }
-    verify(logger).cancel()
+    verify(logger).cancel(TEST_SURVEY_NAME)
   }
 
   private fun getContent(dialog: MultipleChoiceDialog): JComponent {
@@ -128,7 +132,8 @@ class MultipleChoiceDialogTest {
   }
 
   private fun createDialog(logger: ChoiceLogger): MultipleChoiceDialog {
-    val dialog = MultipleChoiceDialog(TEST_SURVEY, logger)
+    val dialog = createDialog(TEST_SURVEY, logger, false) as? MultipleChoiceDialog
+    assertNotNull(dialog)
     Disposer.register(disposable, dialog.disposable)
     return dialog
   }

@@ -60,6 +60,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTE
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTEGER;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTERPOLATED;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.REFERENCE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
@@ -417,7 +418,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = buildModel.ext();
 
-    verifyPropertyModel(extModel.findProperty("first").resolve(), STRING_TYPE, "Hello WORLD", STRING, REGULAR, 1);
+    verifyPropertyModel(extModel.findProperty("first").resolve(), STRING_TYPE, "Hello WORLD", INTERPOLATED, REGULAR, 1);
   }
 
   @Test
@@ -427,7 +428,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = buildModel.ext();
 
-    verifyPropertyModel(extModel.findProperty("second").resolve(), STRING_TYPE, "Welcome to bar world!", STRING, REGULAR, 2);
+    verifyPropertyModel(extModel.findProperty("second").resolve(), STRING_TYPE, "Welcome to bar world!", INTERPOLATED, REGULAR, 2);
   }
 
   @Test
@@ -438,8 +439,8 @@ public class ExtModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = buildModel.ext();
 
-    verifyPropertyModel(extModel.findProperty("prop").resolve(), STRING_TYPE, "hello world", STRING, REGULAR, 1);
-    verifyPropertyModel(extModel.findProperty("prop2").resolve(), STRING_TYPE, "hello world", STRING, REGULAR, 1);
+    verifyPropertyModel(extModel.findProperty("prop").resolve(), STRING_TYPE, "hello world", INTERPOLATED, REGULAR, 1);
+    verifyPropertyModel(extModel.findProperty("prop2").resolve(), STRING_TYPE, "hello world", INTERPOLATED, REGULAR, 1);
   }
 
   @Test
@@ -449,7 +450,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = buildModel.ext();
 
-    verifyPropertyModel(extModel.findProperty("greeting").resolve(), STRING_TYPE, "Hello, penguins are cool!", STRING, REGULAR, 1);
+    verifyPropertyModel(extModel.findProperty("greeting").resolve(), STRING_TYPE, "Hello, penguins are cool!", INTERPOLATED, REGULAR, 1);
   }
 
   @Test

@@ -39,10 +39,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -168,8 +170,15 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @NotNull private final ProfilerPreferences myTemporaryPreferences;
 
   /**
+   * When {@link #openListBoxChooserDialog} is called this will be used to try to match one of the options and return the first match.
+   * If no option is matched, it will use the {@code myListBoxOptionsIndex}.
+   */
+  @Nullable private Predicate<String> myListBoxOptionMatcher;
+
+  /**
    * When {@link #openListBoxChooserDialog} is called this index is used to return a specific element in the set of options.
-   * If this index is out of bounds, null is returned.
+   * If this index is out of bounds (e.g. -1 or more than the available options), null is returned just as like the user has cancelled
+   * the selection.
    */
   private int myListBoxOptionsIndex;
   /**
@@ -343,6 +352,13 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
                                         @Nullable String message,
                                         @NotNull List<T> options,
                                         @NotNull Function<T, String> listBoxPresentationAdapter) {
+    if (myListBoxOptionMatcher != null) {
+      Optional<T> optionMatch = options.stream().filter(o -> myListBoxOptionMatcher.test(listBoxPresentationAdapter.apply(o))).findFirst();
+      if (optionMatch.isPresent()) {
+        return optionMatch.get();
+      }
+    }
+
     if (myListBoxOptionsIndex >= 0 && myListBoxOptionsIndex < options.size()) {
       return options.get(myListBoxOptionsIndex);
     }
@@ -352,6 +368,14 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @NotNull
   public TracePreProcessor getTracePreProcessor() {
     return myFakeTracePreProcessor;
+  }
+
+  /**
+   * Sets the listbox options matcher to search for one of options.
+   * If set to null (default) or match is not successful, then fallback to {@code setListBoxOptionsIndex(int)}.
+   */
+  public void setListBoxOptionsMatcher(@Nullable Predicate<String> optionMatcher) {
+    myListBoxOptionMatcher = optionMatcher;
   }
 
   /**

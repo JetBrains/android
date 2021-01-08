@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory;
 
 import static org.junit.Assert.assertEquals;
 
+import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
@@ -77,9 +78,9 @@ public final class AllocationInfosDataSeriesTest {
                                                                                            ProfilersTestData.SESSION_DATA.getPid(),
                                                                                            info2).build());
 
-    AllocationInfosDataSeries series =
-      new AllocationInfosDataSeries(new ProfilerClient(myGrpcChannel.getChannel()), ProfilersTestData.SESSION_DATA,
-                                    myIdeProfilerServices.getFeatureTracker(), myStage);
+    DataSeries<CaptureDurationData<CaptureObject>> series =
+      CaptureDataSeries.ofAllocationInfos(new ProfilerClient(myGrpcChannel.getChannel()), ProfilersTestData.SESSION_DATA,
+                                          myIdeProfilerServices.getFeatureTracker(), myStage);
     List<SeriesData<CaptureDurationData<CaptureObject>>> dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
 
     assertEquals(2, dataList.size());

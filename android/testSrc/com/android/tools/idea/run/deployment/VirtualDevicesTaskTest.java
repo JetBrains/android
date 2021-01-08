@@ -100,7 +100,6 @@ public final class VirtualDevicesTaskTest {
       .setKey(new VirtualDevicePath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd"))
       .setAndroidDevice(myAndroidDevice)
       .setNameKey(new VirtualDeviceName("Pixel_4_API_30"))
-      .addSnapshot(new Snapshot(myFileSystem.getPath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd/snapshots/default_boot")))
       .build();
 
     assertEquals(Collections.singletonList(device), future.get());

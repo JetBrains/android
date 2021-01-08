@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testing
 
+import com.android.testutils.MockitoThreadLocalsCleaner
 import com.android.testutils.TestUtils
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
@@ -51,7 +52,6 @@ import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
 import org.jetbrains.android.AndroidTestCase.initializeModuleFixtureBuilderWithSrcAndGen
 import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
-import org.jetbrains.android.MockitoThreadLocalsCleaner
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
@@ -71,38 +71,38 @@ import java.io.File
  * the [AndroidProjectRule.Factory.inMemory()] method.
  */
 class AndroidProjectRule private constructor(
-    /**
-     * true iff the default module should be a valid Android module
-     * (if it should have an Android manifest and the Android facet attached).
-     */
-    private var initAndroid: Boolean = true,
+  /**
+   * true iff the default module should be a valid Android module
+   * (if it should have an Android manifest and the Android facet attached).
+   */
+  private var initAndroid: Boolean = true,
 
-    /**
-     * True if this rule should use a [LightTempDirTestFixtureImpl] and create
-     * file in memory.
-     */
-    private var lightFixture: Boolean = true,
+  /**
+   * True if this rule should use a [LightTempDirTestFixtureImpl] and create
+   * file in memory.
+   */
+  private var lightFixture: Boolean = true,
 
-    /**
-     * True if this rule should include an Android SDK.
-     */
-    private var withAndroidSdk: Boolean = false,
+  /**
+   * True if this rule should include an Android SDK.
+   */
+  private var withAndroidSdk: Boolean = false,
 
-    /**
-     * Not null if the project should be initialized from an instance of [AndroidModel].
-     *
-     * See also: [withAndroidModels].
-     */
+  /**
+   * Not null if the project should be initialized from an instance of [AndroidModel].
+   *
+   * See also: [withAndroidModels].
+   */
   private val projectModuleBuilders: List<ModuleModelBuilder>? = null,
 
-    /**
-     * Name of the fixture used to create the project directory when not
-     * using a light fixture.
-     *
-     * Default is the test class' short name.
-     */
-    private var fixtureName: String? = null)
-  : NamedExternalResource() {
+  /**
+   * Name of the fixture used to create the project directory when not
+   * using a light fixture.
+   *
+   * Default is the test class' short name.
+   */
+  private var fixtureName: String? = null
+) : NamedExternalResource() {
 
   private var userHome: String? = null
   lateinit var fixture: CodeInsightTestFixture
@@ -121,7 +121,7 @@ class AndroidProjectRule private constructor(
   companion object {
     /**
      * Returns an [AndroidProjectRule] that uses a fixture which create the
-     * project in an in memeroy TempFileSystem
+     * project in an in memory TempFileSystem
      *
      * @see IdeaTestFixtureFactory.createLightFixtureBuilder()
      */

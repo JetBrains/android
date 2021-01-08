@@ -19,10 +19,8 @@ import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.WarningsDataPageModel
 import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreeNode
-import com.android.build.attribution.ui.model.warningsFilterActions
+import com.android.build.attribution.ui.model.warningsFilterComponent
 import com.android.build.attribution.ui.view.details.WarningsViewDetailPagesFactory
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.ui.CardLayoutPanel
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.OnePixelSplitter
@@ -80,12 +78,8 @@ class WarningsPageView(
     name = "warnings-view-additional-controls"
     layout = HorizontalLayout(10)
 
-    val warningsFilterActions = warningsFilterActions(model, actionHandlers)
-    val defaultActionGroup = DefaultActionGroup().apply { add(warningsFilterActions) }
-    val filtersDropdown = ActionManager.getInstance().createActionToolbar("BuildAnalyzerView", defaultActionGroup, true)
-
     add(groupingCheckBox)
-    add(filtersDropdown.component)
+    add(warningsFilterComponent(model, actionHandlers))
   }
 
   val tree = Tree(DefaultTreeModel(model.treeRoot)).apply {
@@ -155,7 +149,7 @@ class WarningsPageView(
 
   init {
     updateViewFromModel(true)
-    model.setModelUpdatedListener(this::updateViewFromModel)
+    model.addModelUpdatedListener(this::updateViewFromModel)
   }
 
   private fun updateViewFromModel(treeStructureChanged: Boolean) {

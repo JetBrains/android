@@ -23,6 +23,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import org.junit.rules.Timeout
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.eq
@@ -33,6 +34,9 @@ import org.mockito.Mockito.verify
 import java.io.File
 
 class TransportFileManagerTest {
+  @get:Rule
+  val timeout = Timeout.seconds(10)
+
   @JvmField
   @Rule
   val temporaryFolder = TemporaryFolder()

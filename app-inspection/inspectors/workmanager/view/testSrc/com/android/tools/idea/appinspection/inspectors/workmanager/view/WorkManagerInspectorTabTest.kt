@@ -255,7 +255,7 @@ class WorkManagerInspectorTabTest {
     sendWorkAddedEvent(workInfo1)
     sendWorkAddedEvent(workInfo2)
     sendWorkAddedEvent(workInfo3)
-    assertThat(client.getWorkInfoCount()).isEqualTo(3)
+    assertThat(client.lockedWorks { it.size }).isEqualTo(3)
     launch(uiDispatcher) {
       val inspectorTab = WorkManagerInspectorTab(client, ideServices, scope)
       val contentView = (inspectorTab.component as JBSplitter).firstComponent as WorksContentView
@@ -268,12 +268,12 @@ class WorkManagerInspectorTabTest {
       assertThat(tag2Filter.templateText).isEqualTo("tag2")
       val event: AnActionEvent = mock(AnActionEvent::class.java)
       tag1Filter.setSelected(event, true)
-      assertThat(client.getWorkInfoCount()).isEqualTo(2)
+      assertThat(client.lockedWorks { it.size }).isEqualTo(2)
       tag2Filter.setSelected(event, true)
-      assertThat(client.getWorkInfoCount()).isEqualTo(1)
+      assertThat(client.lockedWorks { it.size }).isEqualTo(1)
       val allTagsFilter = filterActionList[0]
       allTagsFilter.setSelected(event, true)
-      assertThat(client.getWorkInfoCount()).isEqualTo(3)
+      assertThat(client.lockedWorks { it.size }).isEqualTo(3)
     }.join()
   }
 
@@ -366,6 +366,41 @@ class WorkManagerInspectorTabTest {
       val executionPanel = detailedPanel.getCategoryPanel("Execution") as JPanel
       val stateComponent = executionPanel.getValueComponent("State") as JLabel
       assertThat(stateComponent.text).isEqualTo("Failed")
+    }.join()
+  }
+
+  @Test
+  fun updateUnSelectedWorkInfo_detailsViewUpdateAccordingly() = runBlocking {
+    sendWorkAddedEvent(fakeWorkInfo)
+    val dependentWork = fakeWorkInfo.toBuilder().setId(fakeWorkInfo.getDependents(0)).build()
+    sendWorkAddedEvent(dependentWork)
+    lateinit var inspectorTab: WorkManagerInspectorTab
+    lateinit var oldDependentWorkLabel: HyperlinkLabel
+    launch(uiDispatcher) {
+      inspectorTab = WorkManagerInspectorTab(client, ideServices, scope)
+      inspectorTab.isDetailsViewVisible = true
+      val table = inspectorTab.getTable()
+      table.selectionModel.setSelectionInterval(0, 0)
+      val detailsPanel = inspectorTab.getDetailsView()!!
+      val workContinuationPanel = detailsPanel.getCategoryPanel("WorkContinuation") as JPanel
+      val chainComponent = workContinuationPanel.getValueComponent("Unique work chain") as JPanel
+      assertThat(chainComponent.componentCount).isEqualTo(2)
+      oldDependentWorkLabel = chainComponent.getComponent(1) as HyperlinkLabel
+      assertThat(oldDependentWorkLabel.text).isEqualTo("dependentsId")
+    }.join()
+
+    sendWorkStateUpdatedEvent(dependentWork.id, WorkInfo.State.FAILED)
+    launch(uiDispatcher) {
+      val detailsPanel = inspectorTab.getDetailsView()!!
+      assertThat(detailsPanel).isNotEqualTo(oldDependentWorkLabel)
+      val workContinuationPanel = detailsPanel.getCategoryPanel("WorkContinuation") as JPanel
+      val chainComponent = workContinuationPanel.getValueComponent("Unique work chain") as JPanel
+      assertThat(chainComponent.componentCount).isEqualTo(2)
+      val newDependentWorkLabel = chainComponent.getComponent(1) as HyperlinkLabel
+      assertThat(newDependentWorkLabel.text).isEqualTo("dependentsId")
+      // Ideally, we want to check if the two labels are with different icons.
+      // Unfortunately, [HyperlinkLabel] does not have icon access so we compare labels directly.
+      assertThat(oldDependentWorkLabel).isNotEqualTo(newDependentWorkLabel)
     }.join()
   }
 

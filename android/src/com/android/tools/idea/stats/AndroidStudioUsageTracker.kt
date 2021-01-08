@@ -23,8 +23,11 @@ import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.HostData
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.Survey
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.serverflags.FOLLOWUP_SURVEY
+import com.android.tools.idea.serverflags.SATISFACTION_SURVEY
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.google.common.base.Strings
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -53,8 +56,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.impl.ProjectLifecycleListener
 import com.intellij.openapi.startup.StartupManager
+import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
@@ -229,14 +234,41 @@ object AndroidStudioUsageTracker {
       eventQueue.removeIdleListener(runner)
 
       val now = AnalyticsSettings.dateProvider.now()
-      val dialog = SingleChoiceDialog(DEFAULT_SATISFACTION_SURVEY, LegacyChoiceLogger)
+      val survey = ServerFlagService.instance.getProtoOrNull(SATISFACTION_SURVEY, DEFAULT_SATISFACTION_SURVEY)
+      val followupSurvey = ServerFlagService.instance.getProtoOrNull(FOLLOWUP_SURVEY, DEFAULT_SATISFACTION_SURVEY)
+      val hasFollowup = followupSurvey != null
+
+      val dialog = survey?.let { createDialog(it, hasFollowup = hasFollowup) }
+                   ?: SingleChoiceDialog(DEFAULT_SATISFACTION_SURVEY, LegacyChoiceLogger, hasFollowup)
+
+      followupSurvey?.let {
+        scheduleFollowup(dialog, it)
+      }
+
       dialog.show()
+
       AnalyticsSettings.lastSentimentQuestionDate = now
       AnalyticsSettings.lastSentimentAnswerDate = now
       AnalyticsSettings.saveSettings()
     }
 
     eventQueue.addIdleListener(runner, IDLE_TIME_BEFORE_SHOWING_DIALOG)
+  }
+
+  private fun scheduleFollowup(dialog: DialogWrapper, survey: Survey) {
+    Disposer.register(dialog.disposable, {
+      val eventQueue = IdeEventQueue.getInstance()
+      lateinit var runner: Runnable
+      runner = Runnable {
+        eventQueue.removeIdleListener(runner)
+
+        if (dialog.isOK) {
+          createDialog(survey, hasFollowup = false).show()
+        }
+      }
+
+      eventQueue.addIdleListener(runner, 500)
+    })
   }
 
   private fun runHourlyReports() {

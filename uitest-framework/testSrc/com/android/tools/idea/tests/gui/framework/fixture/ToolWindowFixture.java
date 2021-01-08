@@ -70,8 +70,10 @@ public abstract class ToolWindowFixture {
 
   @Nullable
   protected Content getContent(@NotNull final String displayName) {
-    activate();
-    waitUntilIsVisible();
+    if (!isVisible()) {  // No need to activate to get the content. The activation may fail if focus is removed for some reason...
+      activate();
+      waitUntilIsVisible();
+    }
     final Ref<Content> contentRef = new Ref<>();
     Wait.seconds(120).expecting("content '" + displayName + "' to be found")
       .until(() -> {

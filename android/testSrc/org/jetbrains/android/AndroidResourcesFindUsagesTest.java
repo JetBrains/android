@@ -948,7 +948,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
                       " Targets\n" +
                       "  foo()\n" +
                       " Found usages (1 usage)\n" +
-                      "  Unclassified usage (1 usage)\n" +
+                      "  Unclassified (1 usage)\n" +
                       "   app (1 usage)\n" +
                       "    p1.p2 (1 usage)\n" +
                       "     Example (1 usage)\n" +

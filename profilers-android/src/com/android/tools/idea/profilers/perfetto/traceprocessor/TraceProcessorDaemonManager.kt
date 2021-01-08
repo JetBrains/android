@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
 import com.android.tools.idea.transport.DeployableFile
+import com.android.tools.nativeSymbolizer.getLlvmSymbolizerPath
 import com.android.tools.profilers.analytics.FeatureTracker
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Stopwatch
@@ -110,7 +111,7 @@ class TraceProcessorDaemonManager(
     if (!processIsRunning() && !disposed) {
       val spawnStopwatch = Stopwatch.createStarted(ticker)
       LOGGER.info("TPD Manager: Starting new instance of TPD")
-      val newProcess = ProcessBuilder(getExecutablePath())
+      val newProcess = ProcessBuilder(getExecutablePath(), "--llvm_symbolizer_path", getLlvmSymbolizerPath())
         .redirectErrorStream(true)
         .start()
 

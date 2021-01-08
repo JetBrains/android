@@ -16,6 +16,8 @@
 package com.android.tools.idea.stats
 
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.Option
+import com.android.tools.idea.Survey
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Ref
@@ -29,8 +31,48 @@ import java.awt.Dimension
 import javax.swing.JComponent
 import javax.swing.JRadioButton
 import javax.swing.SwingUtilities
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+
+private val TEST_SURVEY: Survey = Survey.newBuilder().apply {
+  title = "Test Title"
+  question = "Test Question"
+  intervalDays = 365
+  answerCount = 1
+  addOptions(Option.newBuilder().apply {
+    label = "Option 0"
+  })
+  addOptions(Option.newBuilder().apply {
+    label = "Option 1"
+  })
+  addOptions(Option.newBuilder().apply {
+    label = "Option 2"
+  })
+  name = TEST_SURVEY_NAME
+}.build()
+
+private val TEST_SURVEY_RANDOM: Survey = Survey.newBuilder().apply {
+  title = "Test Title"
+  question = "Test Question"
+  intervalDays = 365
+  answerCount = 1
+  addOptions(Option.newBuilder().apply {
+    label = "Option 0"
+  })
+  addOptions(Option.newBuilder().apply {
+    label = "Option 1"
+  })
+  addOptions(Option.newBuilder().apply {
+    label = "Option 2"
+  })
+  name = TEST_SURVEY_NAME
+  randomOrder = true
+}.build()
+
+private const val TEST_SURVEY_NAME = "Test Survey"
+
 
 class SingleChoiceDialogTest {
 
@@ -52,7 +94,7 @@ class SingleChoiceDialogTest {
     val result = Ref.create<SingleChoiceDialog>()
     val logger = Mockito.mock(ChoiceLogger::class.java)
     SwingUtilities.invokeAndWait {
-      val dialog = createDialog(logger)
+      val dialog = createSingleChoiceDialog(TEST_SURVEY, logger)
       result.set(dialog)
     }
     val dialog = result.get()
@@ -69,7 +111,7 @@ class SingleChoiceDialogTest {
     assertTrue(dialog.isOKActionEnabled)
 
     SwingUtilities.invokeAndWait { dialog.performOKAction() }
-    verify(logger).log(0)
+    verify(logger).log(TEST_SURVEY_NAME, 0)
   }
 
   @Test
@@ -77,7 +119,7 @@ class SingleChoiceDialogTest {
     val result = Ref.create<SingleChoiceDialog>()
     val logger = Mockito.mock(ChoiceLogger::class.java)
     SwingUtilities.invokeAndWait {
-      val dialog = createDialog(logger)
+      val dialog = createSingleChoiceDialog(TEST_SURVEY, logger)
       result.set(dialog)
     }
     val dialog = result.get()
@@ -94,7 +136,33 @@ class SingleChoiceDialogTest {
     assertTrue(dialog.isOKActionEnabled)
 
     SwingUtilities.invokeAndWait { dialog.doCancelAction(null) }
-    verify(logger).cancel()
+    verify(logger).cancel(TEST_SURVEY_NAME)
+  }
+
+  @Suppress("UnstableApiUsage")
+  @Test
+  fun testRandomOrdering() {
+    val result = Ref.create<SingleChoiceDialog>()
+    val logger = Mockito.mock(ChoiceLogger::class.java)
+    SwingUtilities.invokeAndWait {
+      val dialog = createSingleChoiceDialog(TEST_SURVEY_RANDOM, logger)
+      result.set(dialog)
+    }
+    val dialog = result.get()
+    val content = getContent(dialog)
+    val radioButtons = UIUtil.findComponentsOfType(content, JRadioButton::class.java)
+    assertFalse(dialog.isOKActionEnabled)
+    for (button in radioButtons) {
+      assertFalse(button.isSelected)
+    }
+
+    val fakeUi = FakeUi(content)
+    clickButton(fakeUi, radioButtons[0])
+    assertTrue(radioButtons[0].isSelected)
+    assertTrue(dialog.isOKActionEnabled)
+
+    SwingUtilities.invokeAndWait { dialog.performOKAction() }
+    verify(logger).log(TEST_SURVEY_NAME, dialog.ordering[0])
   }
 
   private fun getContent(singleChoiceDialog: SingleChoiceDialog): JComponent {
@@ -105,8 +173,9 @@ class SingleChoiceDialogTest {
     return content
   }
 
-  private fun createDialog(logger: ChoiceLogger): SingleChoiceDialog {
-    val dialog = SingleChoiceDialog(DEFAULT_SATISFACTION_SURVEY, logger)
+  private fun createSingleChoiceDialog(survey: Survey, logger: ChoiceLogger): SingleChoiceDialog {
+    val dialog = createDialog(survey, logger, false) as? SingleChoiceDialog
+    assertNotNull(dialog)
     Disposer.register(disposable, dialog.disposable)
     return dialog
   }

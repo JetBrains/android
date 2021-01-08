@@ -21,10 +21,8 @@ import com.android.tools.profiler.proto.Memory
 import com.android.tools.profilers.memory.adapters.ClassDb
 import com.android.tools.profilers.memory.adapters.NativeAllocationInstanceObject
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
-import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
 import com.intellij.util.Base64
 import gnu.trove.TLongHashSet
-import java.io.File
 import java.util.HashMap
 
 /**
@@ -32,7 +30,6 @@ import java.util.HashMap
  * The {@link NativeMemoryHeapSet} passed into the constructor is populated by calling {@link populateHeapSet}.
  */
 class HeapProfdConverter(private val abi: String,
-                         private val symbolizer: NativeFrameSymbolizer,
                          private val memorySet: NativeMemoryHeapSet,
                          private val demangler: NameDemangler) {
 
@@ -41,31 +38,23 @@ class HeapProfdConverter(private val abi: String,
   }
 
   /**
-   * Given a {@link Memory.StackFrame} from the trace processor we attempt to gather symbolized data. If we cannot get symbolized data
-   * we return a frame with the original name if one was provided. If no name was found then we return {@link UNKNOWN_FRAME}
+   * Given a {@link Memory.StackFrame} this method converts it to a StackFrameInfo using the provided name.
    * When we have a symbolized frame we return a frame with a method name in the form of
    * Symbol (File:Line) eg.. operator new (new.cpp:256)
    * The file name and line number are also populated if available.
    */
-  private fun toBestAvailableStackFrame(rawFrame: StackFrame): StackFrameInfo {
+  private fun toStackFrameInfo(rawFrame: StackFrame): StackFrameInfo {
     val module = String(Base64.decode(rawFrame.module))
-    val symbolizedFrame = symbolizer.symbolize(abi, Memory.NativeCallStack.NativeFrame.newBuilder()
-      .setModuleName(module)
-      // +1 because the common symbolizer does -1 accounting for an offset heapprofd does not have.
-      // see IntellijNativeFrameSymbolizer:getOffsetOfPreviousInstruction
-      .setModuleOffset(rawFrame.relPc + 1)
-      .build())
-    val symbolName = symbolizedFrame.symbolName
-    if (symbolName.startsWith("0x")) {
-      val methodName = if (rawFrame.name.isNullOrBlank()) UNKNOWN_FRAME.methodName else String(Base64.decode(rawFrame.name))
-      return StackFrameInfo(name = methodName, moduleName = module)
+    var formattedName = String(Base64.decode(rawFrame.name))
+    var file = ""
+    if (rawFrame.lineNumber > 0) {
+      file = String(Base64.decode(rawFrame.sourceFile))
+      formattedName += " (${file}:${rawFrame.lineNumber})"
     }
-    val file = File(symbolizedFrame.fileName).name
-    val formattedName = "${symbolName} (${file}:${symbolizedFrame.lineNumber})"
     return StackFrameInfo(name = formattedName,
-                          fileName = symbolizedFrame.fileName,
-                          lineNumber = symbolizedFrame.lineNumber,
-                          moduleName = symbolizedFrame.moduleName)
+                          fileName = file,
+                          lineNumber = rawFrame.lineNumber,
+                          moduleName = module)
   }
 
   /**
@@ -73,28 +62,31 @@ class HeapProfdConverter(private val abi: String,
    * a count > 0 it will be added as an allocation. If the count is <= 0 it will be added as a free.
    */
   fun populateHeapSet(context: NativeAllocationContext) {
-    val frameIdToFrame: MutableMap<Long, StackFrameInfo> = HashMap()
-    val frames: MutableMap<Long, Memory.AllocationStack.StackFrame> = HashMap()
+    val frameIdToFrame: MutableMap<Long, MutableList<StackFrameInfo>> = HashMap()
+    val frames: MutableMap<Long, List<Memory.AllocationStack.StackFrame>> = HashMap()
     val classDb = ClassDb()
 
     context.framesList.forEach {
-      frameIdToFrame[it.id] = toBestAvailableStackFrame(it)
+      frameIdToFrame.getOrPut(it.id) { ArrayList() }.add(toStackFrameInfo(it))
     }
     // Demangle in place is significantly faster than passing in names 1 by 1
-    demangler.demangleInplace(frameIdToFrame.values)
+    demangler.demangleInplace(frameIdToFrame.values.flatten())
     // On windows the llvm-symbolizer holds a file lock on the last file loaded. This can be a pain if you want to rebuild / redeploy the
     // app after a single line change. Stopping the symbolizer kills the llvm-symbolizer process.
-    symbolizer.stop();
     // Reduce duplication of UI StackFrame elements, by doing a one time conversion between StackFrameInfo objects and StackFrame protos
     val it = frameIdToFrame.iterator()
     while(it.hasNext()) {
       val next = it.next()
-      frames[next.key] = Memory.AllocationStack.StackFrame.newBuilder()
-        .setModuleName(next.value.moduleName)
-        .setMethodName(next.value.name)
-        .setFileName(next.value.fileName)
-        .setLineNumber(next.value.lineNumber)
-        .build()
+      // Inlined functions can map to the same key, for more info see
+      // https://perfetto.dev/docs/analysis/sql-tables#stack_profile_symbol
+      frames[next.key] = next.value.map {
+        Memory.AllocationStack.StackFrame.newBuilder()
+          .setModuleName(it.moduleName)
+          .setMethodName(it.name)
+          .setFileName(it.fileName)
+          .setLineNumber(it.lineNumber)
+          .build()
+      }
       it.remove() //Remove to reduce temp space required.
     }
     val pointerMap = context.pointersMap
@@ -106,13 +98,13 @@ class HeapProfdConverter(private val abi: String,
       var callSiteId = pointerMap[allocation.stackId]?.parentId ?: -1
       while (callSiteId > 0L && !visitedCallSiteIds.contains(callSiteId)) {
         visitedCallSiteIds.add(callSiteId)
-        val frame = pointerMap[callSiteId]?.let { frames[it.frameId] } ?: UNKNOWN_FRAME
-        fullStack.addFrames(frame)
+        val frame = pointerMap[callSiteId]?.let { frames[it.frameId] } ?: emptyList()
+        fullStack.addAllFrames(frame)
         callSiteId = pointerMap[callSiteId]?.parentId ?: -1
       }
       // Found a recursive callstack
       if (callSiteId > 0L) {
-        val frameName = pointerMap[callSiteId]?.let { frames[it.frameId]?.methodName } ?: UNKNOWN_FRAME.methodName
+        val frameName = pointerMap[callSiteId]?.let { frames[it.frameId]?.last()?.methodName } ?: UNKNOWN_FRAME.methodName
         fullStack.addFrames(0, Memory.AllocationStack.StackFrame.newBuilder()
           .setMethodName("[Recursive] " + frameName))
       }
@@ -127,7 +119,7 @@ class HeapProfdConverter(private val abi: String,
         .build()
 
       // Build allocation instance object
-      val allocationMethod = pointerMap[allocation.stackId]?.let { frames[it.frameId] } ?: UNKNOWN_FRAME
+      val allocationMethod = pointerMap[allocation.stackId]?.let { frames[it.frameId]?.last() } ?: UNKNOWN_FRAME
       val instanceObject = NativeAllocationInstanceObject(
         event, classDb.registerClass(0, 0, allocationMethod.methodName), stack, allocation.count)
 

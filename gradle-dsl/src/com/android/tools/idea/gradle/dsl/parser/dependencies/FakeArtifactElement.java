@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.dependencies;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.dsl.api.ext.InterpolatedText;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
@@ -90,12 +91,27 @@ public class FakeArtifactElement extends FakeElement {
     if (spec == null) {
       throw new IllegalArgumentException("Could not create ArtifactDependencySpec from: " + value);
     }
-    assert value instanceof String || value instanceof ReferenceTo || value == null;
+    assert value instanceof String || value instanceof InterpolatedText || value instanceof ReferenceTo || value == null;
     boolean shouldQuote = false;
     String strValue = null;
     if (value instanceof ReferenceTo) {
       strValue = resolved.getDslFile().getParser().convertReferenceToExternalText(resolved, ((ReferenceTo)value).getReferredElement(), true);
       shouldQuote = true;
+    }
+    else if (value instanceof InterpolatedText) {
+      InterpolatedText interpolatedValue = (InterpolatedText)value;
+      StringBuilder builder = new StringBuilder();
+      for (InterpolatedText.InterpolatedTextItem elem : interpolatedValue.getInterpolationElements()) {
+        if (elem.getTextItem() != null) {
+          builder.append(elem.getTextItem());
+        }
+        if (elem.getReferenceItem() != null) {
+          String externalText =
+            resolved.getDslFile().getParser().convertReferenceToExternalText(resolved, elem.getReferenceItem().getReferredElement(), true);
+          builder.append(externalText != "" ? externalText : elem.getReferenceItem().getReferredElement().getFullName());
+        }
+      }
+      strValue = builder.toString();
     }
     else if (value != null) {
       strValue = (String)value;

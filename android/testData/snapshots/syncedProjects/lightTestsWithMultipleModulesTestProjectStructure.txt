@@ -1,6 +1,6 @@
 PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest
     PROJECT_JDK         : <JAVA_VERSION>
-        Version             : java version "<JDK_VERSION>"
+        Version             : version <JDK_VERSION>
     MODULE              : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest
         LinkedProjectId     : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest
         LinkedProjectPath   : <PROJECT>
@@ -67,8 +67,6 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
         CONENT_ENTRY        : file://<PROJECT>/app
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/c [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/cpp [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/java [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/ml [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/renderscript [-]
@@ -77,8 +75,6 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/c [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/cpp [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/java [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/ml [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/renderscript [-]
@@ -87,8 +83,6 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/assets [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/c [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/cpp [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/java [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/ml [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/renderscript [-]
@@ -97,8 +91,6 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/c [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/cpp [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/java [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/ml [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/renderscript [-]
@@ -109,7 +101,7 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
         ORDER_ENTRY         : lib
     MODULE              : lib
@@ -164,8 +156,6 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
         CONENT_ENTRY        : file://<PROJECT>/lib
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/c [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/cpp [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/java [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/ml [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/renderscript [-]
@@ -174,8 +164,6 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/assets [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/c [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/cpp [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/java [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/ml [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/renderscript [-]
@@ -184,8 +172,6 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/assets [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/c [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/cpp [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/java [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/ml [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/renderscript [-]
@@ -194,8 +180,6 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/c [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/cpp [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/java [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/ml [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/renderscript [-]
@@ -206,7 +190,7 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
     RUN_CONFIGURATION   : app
         *class*             : AndroidRunConfiguration

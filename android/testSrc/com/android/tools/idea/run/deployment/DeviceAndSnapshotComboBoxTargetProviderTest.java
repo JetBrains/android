@@ -23,6 +23,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.DialogWrapper;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,8 +49,10 @@ public final class DeviceAndSnapshotComboBoxTargetProviderTest {
     DialogWrapper dialog = Mockito.mock(DialogWrapper.class);
     Mockito.when(dialog.showAndGet()).thenReturn(true);
 
+    Set<Target> targets = Collections.singleton(new QuickBootTarget(key));
+
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
-    Mockito.when(service.getTargetsSelectedWithDialog()).thenReturn(Collections.singleton(new Target(key)));
+    Mockito.when(service.getTargetsSelectedWithDialog()).thenReturn(targets);
 
     DeployTargetProvider provider = new DeviceAndSnapshotComboBoxTargetProvider(project -> getter,
                                                                                 (project, devices) -> dialog,
@@ -61,9 +64,10 @@ public final class DeviceAndSnapshotComboBoxTargetProviderTest {
     Mockito.when(facet.getModule()).thenReturn(module);
 
     // Act
-    Object target = provider.showPrompt(facet);
+    Object deployTarget = provider.showPrompt(facet);
 
     // Assert
-    assertEquals(new DeviceAndSnapshotComboBoxTarget(Collections.singletonList(device)), target);
+    assert deployTarget != null;
+    assertEquals(targets, ((DeviceAndSnapshotComboBoxTarget)deployTarget).getTargets());
   }
 }

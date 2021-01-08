@@ -271,7 +271,6 @@ fun createMergedSourceProvider(scopeType: ScopeType, providers: List<NamedIdeaSo
       override val resourcesDirectoryUrls get() = providers.asSequence().map { it.resourcesDirectoryUrls.asSequence() }.flatten()
       override val aidlDirectoryUrls get() = providers.asSequence().map { it.aidlDirectoryUrls.asSequence() }.flatten()
       override val renderscriptDirectoryUrls get() = providers.asSequence().map { it.renderscriptDirectoryUrls.asSequence() }.flatten()
-      override val jniDirectoryUrls get() = providers.asSequence().map { it.jniDirectoryUrls.asSequence() }.flatten()
       override val jniLibsDirectoryUrls get() = providers.asSequence().map { it.jniLibsDirectoryUrls.asSequence() }.flatten()
       override val resDirectoryUrls get() = providers.asSequence().map { it.resDirectoryUrls.asSequence() }.flatten()
       override val assetsDirectoryUrls get() = providers.asSequence().map { it.assetsDirectoryUrls.asSequence() }.flatten()
@@ -326,7 +325,6 @@ private val IdeaSourceProvider.allSourceFolderUrls: Sequence<String>
       aidlDirectoryUrls,
       renderscriptDirectoryUrls,
       assetsDirectoryUrls,
-      jniDirectoryUrls,
       jniLibsDirectoryUrls
     )
       .asSequence()
@@ -378,7 +376,6 @@ val IdeaSourceProvider.allSourceFolders: Sequence<VirtualFile>
       aidlDirectories,
       renderscriptDirectories,
       assetsDirectories,
-      jniDirectories,
       jniLibsDirectories
     )
       .asSequence()

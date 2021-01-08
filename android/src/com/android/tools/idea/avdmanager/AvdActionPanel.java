@@ -17,6 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.adtui.common.ColoredIconGenerator;
+import com.android.tools.idea.deviceManager.actions.ExploreAvdAction;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -31,19 +32,22 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.FlowLayout;
+import java.awt.Graphics;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.border.Border;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An action panel that behaves similarly to an Android overflow menu. Actions which
@@ -121,13 +125,8 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     myOverflowMenuButton.setBorder(myMargins);
     add(myOverflowMenuButton);
     myVisibleComponents.add(myOverflowMenuButton);
-    myOverflowMenuButton.addHyperlinkListener(new HyperlinkListener() {
-      @Override
-      public void hyperlinkUpdate(HyperlinkEvent e) {
-        myOverflowMenu
-          .show(myOverflowMenuButton, myOverflowMenuButton.getX() - myOverflowMenu.getPreferredSize().width, myOverflowMenuButton.getY());
-      }
-    });
+    myOverflowMenuButton.addHyperlinkListener(event -> myOverflowMenu
+      .show(myOverflowMenuButton, myOverflowMenuButton.getX() - myOverflowMenu.getPreferredSize().width, myOverflowMenuButton.getY()));
     addKeyListener(new KeyAdapter() {
       @Override
       public void keyTyped(KeyEvent e) {
@@ -140,9 +139,10 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
 
   @NotNull
   private List<AvdUiAction> getActions() {
-    List<AvdUiAction> actionList = new ArrayList<AvdUiAction>();
+    List<AvdUiAction> actionList = new ArrayList<>();
 
     actionList.add(new RunAvdAction(this));
+    actionList.add(new ExploreAvdAction(this));
     actionList.add(new EditAvdAction(this));
     actionList.add(new DuplicateAvdAction(this));
     //actionList.add(new ExportAvdAction(this)); // TODO: implement export/import

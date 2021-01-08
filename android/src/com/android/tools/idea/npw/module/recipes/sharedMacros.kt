@@ -36,11 +36,13 @@ fun generateManifest(
   hasApplicationBlock: Boolean = false,
   theme: String = "@style/Theme.App",
   usesFeatureBlock: String = "",
-  hasRoundIcon: Boolean = true
+  hasRoundIcon: Boolean = true,
+  appCategory: String = ""
 ): String {
   val applicationBlock = if (hasApplicationBlock) """
     <application
     android:allowBackup="true"
+    ${renderIf(appCategory.isNotBlank()) { """android:appCategory="$appCategory"""" }}
     android:label="@string/app_name"
     android:icon="@mipmap/ic_launcher"
     ${renderIf(hasRoundIcon) { """android:roundIcon="@mipmap/ic_launcher_round"""" }}

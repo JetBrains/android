@@ -27,7 +27,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -97,13 +96,12 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
       return null;
     }
 
-    Set<Target> targets = myDevicesSelectedServiceGetInstance.apply(project).getTargetsSelectedWithDialog();
-    return new DeviceAndSnapshotComboBoxTarget(Target.filterDevices(targets, devices));
+    return new DeviceAndSnapshotComboBoxTarget(myDevicesSelectedServiceGetInstance.apply(project).getTargetsSelectedWithDialog());
   }
 
   @NotNull
   @Override
   public DeployTarget getDeployTarget(@NotNull Project project) {
-    return new DeviceAndSnapshotComboBoxTarget(DeviceAndSnapshotComboBoxAction.getInstance().getSelectedDevices(project));
+    return new DeviceAndSnapshotComboBoxTarget(DeviceAndSnapshotComboBoxAction.getInstance().getSelectedTargets(project));
   }
 }

@@ -27,6 +27,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceItem
+import com.android.ide.common.resources.ResourceItemWithVisibility
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceVisitor
 import com.android.ide.common.resources.configuration.FolderConfiguration
@@ -46,7 +47,6 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.parseColor
 import com.android.tools.idea.res.resolveAsIcon
 import com.android.tools.idea.res.resolveColor
-import com.android.tools.idea.resources.base.BasicResourceItem
 import com.android.tools.idea.uibuilder.property2.support.ColorSelectionAction
 import com.android.tools.idea.uibuilder.property2.support.EmptyBrowseActionIconButton
 import com.android.tools.idea.uibuilder.property2.support.HelpActions
@@ -224,7 +224,7 @@ open class NelePropertyItem(
 
   fun resolveValueAsReference(value: String?): ResourceReference? {
     if (value == null) return null
-    return ResourceUrl.parse(value)?.resolve(defaultNamespace, namespaceResolver)
+    return ResourceUrl.parse(value)?.resolve(computeDefaultNamespace(), namespaceResolver)
   }
 
   fun resolveValueAsColor(value: String?): Color? {
@@ -274,7 +274,7 @@ open class NelePropertyItem(
     // The value of the remaining resource types are file names or ids.
     // We don't want to show the file names and the ids don't have a value.
     // Instead show the url of this resolved resource.
-    return resValue.asReference().getRelativeResourceUrl(defaultNamespace, namespaceResolver).toString()
+    return resValue.asReference().getRelativeResourceUrl(computeDefaultNamespace(), namespaceResolver).toString()
   }
 
   val resolver: ResourceResolver?
@@ -303,8 +303,8 @@ open class NelePropertyItem(
   private val nlModel: NlModel?
     get() = firstComponent?.model
 
-  private val defaultNamespace: ResourceNamespace
-    get() = ReadAction.compute<ResourceNamespace, RuntimeException> { ResourceRepositoryManager.getInstance(model.facet).namespace }
+  private fun computeDefaultNamespace(): ResourceNamespace =
+    ReadAction.compute<ResourceNamespace, RuntimeException> { ResourceRepositoryManager.getInstance(model.facet).namespace }
 
   private fun isReferenceValue(value: String?): Boolean {
     return value != null && (value.startsWith("?") || value.startsWith("@") && !isId(value))
@@ -352,6 +352,7 @@ open class NelePropertyItem(
     val localRepository = repositoryManager.appResources
     val frameworkRepository = repositoryManager.getFrameworkResources(emptySet())
     val types = type.resourceTypes
+    val defaultNamespace = computeDefaultNamespace()
     val toName = { item: ResourceItem -> item.referenceToSelf.getRelativeResourceUrl(defaultNamespace, namespaceResolver).toString() }
     if (types.isNotEmpty()) {
       // Resources may contain multiple entries for the same name
@@ -367,11 +368,13 @@ open class NelePropertyItem(
       values.addAll(valueSet.sorted())
       valueSet.clear()
 
+      val publicResources = mutableSetOf<ResourceItem>()
       // AAR resources.
       localRepository.accept(object : ResourceVisitor {
         override fun visit(resourceItem: ResourceItem): ResourceVisitor.VisitResult {
-          if (resourceItem is BasicResourceItem && resourceItem.visibility == ResourceVisibility.PUBLIC) {
-            valueSet.add(toName(resourceItem))
+          if (resourceItem is ResourceItemWithVisibility && resourceItem.visibility == ResourceVisibility.PUBLIC &&
+              resourceItem.libraryName != null) {
+            publicResources.add(resourceItem)
           }
           return ResourceVisitor.VisitResult.CONTINUE
         }
@@ -382,7 +385,7 @@ open class NelePropertyItem(
       })
 
       // Sort and add to the result list:
-      values.addAll(valueSet.sorted())
+      values.addAll(publicResources.map(toName).sorted())
       valueSet.clear()
 
       // Framework resources.
@@ -459,13 +462,13 @@ open class NelePropertyItem(
     }
   }
 
-  override val browseButton = createBrowseButton()
+  override val browseButton: ActionIconButton? = createBrowseButton()
 
-  override val colorButton = createColorButton()
+  override val colorButton: ActionIconButton? = createColorButton()
 
   // region Implementation of browseButton
 
-  private fun createBrowseButton(): ActionIconButton? {
+  private fun createBrowseButton(): ActionIconButton {
     if (name == ATTR_ID || type == NelePropertyType.DESTINATION || type.resourceTypes.isEmpty()) {
       return EmptyBrowseActionIconButton
     }
@@ -480,7 +483,7 @@ open class NelePropertyItem(
       get() = if (isReferenceValue(rawValue)) StudioIcons.Common.PROPERTY_BOUND else StudioIcons.Common.PROPERTY_UNBOUND
 
 
-    override val action: AnAction?
+    override val action: AnAction
       get() = OpenResourceManagerAction
   }
 
@@ -522,7 +525,7 @@ open class NelePropertyItem(
       }
     }
 
-    override val action: AnAction?
+    override val action: AnAction
       get() {
         val value = rawValue
         return if (isColor(value)) ColorSelectionAction else OpenResourceManagerAction

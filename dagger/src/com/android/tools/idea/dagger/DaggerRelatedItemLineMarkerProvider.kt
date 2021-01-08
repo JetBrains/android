@@ -112,7 +112,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
       gotoTargets
     )
     val calculationTime = System.currentTimeMillis() - startTimeMs
-    element.project.service<DaggerAnalyticsTracker>().trackGutterWasDisplayed(getTypeForMetrics(parent), calculationTime)
+    element.project.service<DaggerAnalyticsTracker>().trackGutterWasDisplayed(typeForMetrics, calculationTime)
     result.add(info)
   }
 

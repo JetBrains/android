@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.PluginModel
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
@@ -77,6 +78,7 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
     val configurationModel = mock(ConfigurationModel::class.java)
     val pluginModel = mock(PluginModel::class.java)
     val buildTypeModel = mock(BuildTypeModel::class.java)
+    val androidModel = mock(AndroidModel::class.java)
 
     val usageInfos = listOf(
       AgpVersionUsageInfo(wrappedPsiElement, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.1.0"), gradlePropertyModel),
@@ -103,6 +105,8 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
       AddFirebaseCrashlyticsNdkUsageInfo(wrappedPsiElement, dependenciesModel),
       RemoveCrashlyticsEnableNdkUsageInfo(wrappedPsiElement, gradleBuildModel),
       AddBuildTypeFirebaseCrashlyticsUsageInfo(wrappedPsiElement, buildTypeModel),
+      ViewBindingEnabledUsageInfo(wrappedPsiElement, androidModel),
+      DataBindingEnabledUsageInfo(wrappedPsiElement, androidModel),
     )
     usageInfos.forEach { one ->
       usageInfos.filter { it !== one }.forEach { two ->

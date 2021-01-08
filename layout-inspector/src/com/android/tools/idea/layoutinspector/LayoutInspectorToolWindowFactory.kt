@@ -17,12 +17,18 @@ package com.android.tools.idea.layoutinspector
 
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.appinspection.api.process.ProcessesModel
+import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
+import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
+import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.ui.enableLiveLayoutInspector
@@ -33,26 +39,21 @@ import com.intellij.ide.DataManager
 import com.intellij.ide.startup.ServiceNotReadyException
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Key
+import com.intellij.openapi.ui.MessageType
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import com.intellij.util.concurrency.EdtExecutorService
 import java.awt.BorderLayout
 import javax.swing.JPanel
 
 const val LAYOUT_INSPECTOR_TOOL_WINDOW_ID = "Layout Inspector"
 
-private val LAYOUT_INSPECTOR = Key.create<LayoutInspector>("LayoutInspector")
-
 val LAYOUT_INSPECTOR_DATA_KEY = DataKey.create<LayoutInspector>(LayoutInspector::class.java.name)
-
-/**
- * Get the [LayoutInspector] for the specified layout inspector [toolWindow].
- */
-fun lookupLayoutInspector(toolWindow: ToolWindow): LayoutInspector? =
-  toolWindow.contentManager.getContent(0)?.getUserData(LAYOUT_INSPECTOR)
 
 /**
  * Create a [DataProvider] for the specified [layoutInspector].
@@ -73,54 +74,79 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     if (TransportService.getInstance() == null) {
       throw ServiceNotReadyException()
     }
-    val contentManager = toolWindow.contentManager
-
     val model = InspectorModel(project)
     val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, project)
     val viewSettings = DeviceViewSettings()
-    val layoutInspector = LayoutInspector(model, workbench)
-    val deviceViewPanel = DeviceViewPanel(layoutInspector, viewSettings, workbench)
-    workbench.init(deviceViewPanel, layoutInspector, listOf(
-      LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)
+
+    val edtExecutor = EdtExecutorService.getInstance()
 
     val contentPanel = JPanel(BorderLayout())
     contentPanel.add(InspectorBanner(project), BorderLayout.NORTH)
     contentPanel.add(workbench, BorderLayout.CENTER)
+
+    val contentManager = toolWindow.contentManager
     val content = contentManager.factory.createContent(contentPanel, "", true)
-    content.putUserData(LAYOUT_INSPECTOR, layoutInspector)
-    DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector))
     contentManager.addContent(content)
-    project.messageBus.connect(workbench).subscribe(ToolWindowManagerListener.TOPIC, LayoutInspectorToolWindowManagerListener(project))
+
+    workbench.showLoading("Initializing ADB")
+    AndroidExecutors.getInstance().workerThreadExecutor.execute {
+      val adb = AdbUtils.getAdbFuture(project).get()
+      edtExecutor.execute {
+        workbench.hideLoading()
+
+        val processes = ProcessesModel(edtExecutor, AppInspectionDiscoveryService.instance.apiServices.processNotifier) {
+          ModuleManager.getInstance(project).modules
+            .mapNotNull { AndroidModuleInfo.getInstance(it)?.`package` }
+            .toList()
+        }
+        Disposer.register(workbench, processes)
+
+        val launcher = InspectorClientLauncher.createDefaultLauncher(adb, processes, model, workbench)
+        val layoutInspector = LayoutInspector(launcher, model)
+        DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector))
+
+        val deviceViewPanel = DeviceViewPanel(processes, layoutInspector, viewSettings, workbench)
+        workbench.init(deviceViewPanel, layoutInspector, listOf(
+          LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)
+
+        project.messageBus.connect(workbench).subscribe(ToolWindowManagerListener.TOPIC,
+                                                        LayoutInspectorToolWindowManagerListener(project, layoutInspector))
+      }
+    }
   }
 }
 
 /**
  * Listen to state changes for the create layout inspector tool window.
- *
- * When the layout inspector is made visible (from a non visible state) attempt to auto connect.
  */
-private class LayoutInspectorToolWindowManagerListener(private val project: Project) : ToolWindowManagerListener {
+@VisibleForTesting
+class LayoutInspectorToolWindowManagerListener(private val project: Project,
+                                               private val inspector: LayoutInspector)
+  : ToolWindowManagerListener {
   private var wasWindowVisible = false
+  private var wasMinimizedMessageShown = false
 
-  override fun stateChanged() {
-    val window = ToolWindowManager.getInstance(project).getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID) ?: return
+  override fun stateChanged(toolWindowManager: ToolWindowManager) {
+    val window = toolWindowManager.getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID) ?: return
     val isWindowVisible = window.isVisible // Layout Inspector tool window is expanded.
     val windowVisibilityChanged = isWindowVisible != wasWindowVisible
     wasWindowVisible = isWindowVisible
-    if (windowVisibilityChanged && isWindowVisible) {
-      UsageTracker.log(AndroidStudioEvent.newBuilder()
-                         .setKind(AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT)
-                         .setDynamicLayoutInspectorEvent(DynamicLayoutInspectorEvent.newBuilder()
-                                                           .setType(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.OPEN))
-                         .withProjectId(project))
-    }
-    val preferredProcess = getPreferredInspectorProcess(project) ?: return
-    if (!windowVisibilityChanged || !isWindowVisible) {
-      return
-    }
-    val inspector = lookupLayoutInspector(window) ?: return
-    if (!inspector.currentClient.isConnected) {
-      inspector.allClients.find { it.attachIfSupported(preferredProcess) != null }
+    if (windowVisibilityChanged) {
+      if (isWindowVisible) {
+        UsageTracker.log(AndroidStudioEvent.newBuilder()
+                           .setKind(AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT)
+                           .setDynamicLayoutInspectorEvent(DynamicLayoutInspectorEvent.newBuilder()
+                                                             .setType(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.OPEN))
+                           .withProjectId(project))
+      }
+      else if (inspector.currentClient.isConnected && !wasMinimizedMessageShown) {
+        wasMinimizedMessageShown = true
+        toolWindowManager.notifyByBalloon(LAYOUT_INSPECTOR_TOOL_WINDOW_ID, MessageType.INFO,
+                                          "<b>Layout Inspection</b> is running in the background.<br>" +
+                                          "To stop it, open the <b>Layout Inspector</b> window and select <b>Stop Inspector</b> from " +
+                                          "the process dropdown menu."
+        )
+      }
     }
   }
 }

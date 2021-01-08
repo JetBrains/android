@@ -39,7 +39,7 @@ import org.junit.runners.model.Statement;
 public class StudioProgressRunnerTest extends BareTestFixtureTestCase {
   @Rule public TestRule runInEdt = (base, description) -> new Statement() {
     @Override
-    public void evaluate() {
+    public void evaluate() throws Throwable {
       runInEdtAndWait(() -> base.evaluate());
     }
   };

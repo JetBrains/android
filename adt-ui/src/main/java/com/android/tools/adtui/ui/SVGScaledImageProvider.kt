@@ -37,7 +37,7 @@ class SVGScaledImageProvider(private val url: URL, private val image: Image?) : 
     val size = width.coerceAtMost(height) // min(width, height)
 
     // Load SVG file, with HiDPI support from [ctx]
-    return SVGLoader.loadHiDPI(url, url.openStream(), ctx, size, size)
+    return SVGLoader.load(url, url.openStream(), ctx, size, size)
   }
 
   companion object {

@@ -49,8 +49,8 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
+import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -188,7 +188,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   @Override
   protected void tearDown() throws Exception {
     try {
-      Messages.setTestDialog(TestDialog.DEFAULT);
+      TestDialogManager.setTestDialog(TestDialog.DEFAULT);
       tearDownFixture();
 
       ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
@@ -392,11 +392,11 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     AndroidGradleTests.createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION);
   }
 
-  protected void importProject() {
+  protected void importProject() throws Exception {
     importProject(null);
   }
 
-  protected void importProject(@Nullable AndroidGradleTests.SyncIssueFilter issueFilter) {
+  protected void importProject(@Nullable AndroidGradleTests.SyncIssueFilter issueFilter) throws Exception {
     Project project = getProject();
     AndroidGradleTests.importProject(project, GradleSyncInvoker.Request.testRequest(), issueFilter);
   }

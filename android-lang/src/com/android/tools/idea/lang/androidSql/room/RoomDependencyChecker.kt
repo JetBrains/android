@@ -48,6 +48,6 @@ class RoomDependencyChecker(val project: Project) {
 }
 
 fun isRoomPresentInScope(scope: GlobalSearchScope): Boolean {
-  val psiFacade = JavaPsiFacade.getInstance(scope.project)
+  val psiFacade = JavaPsiFacade.getInstance(scope.project!!)
   return sequenceOf(RoomAnnotations.ENTITY.newName(), RoomAnnotations.ENTITY.oldName()).any { psiFacade.findClass(it, scope) != null }
 }

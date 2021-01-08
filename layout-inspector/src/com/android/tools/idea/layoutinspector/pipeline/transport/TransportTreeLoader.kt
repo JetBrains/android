@@ -26,9 +26,8 @@ import com.android.tools.idea.layoutinspector.model.ComponentImageLoader
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
-import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.RequestedNodeInfo
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
@@ -55,24 +54,17 @@ private val LOAD_TIMEOUT = TimeUnit.SECONDS.toMillis(20)
 /**
  * A [TreeLoader] that uses a [TransportInspectorClient] to fetch a view tree from an API 29+ device, and parses it into [ViewNode]s
  */
-object TransportTreeLoader : TreeLoader {
+class TransportTreeLoader(private val project: Project, private val client: TransportInspectorClient) : TreeLoader {
 
   override fun loadComponentTree(
     data: Any?,
-    resourceLookup: ResourceLookup,
-    client: InspectorClient,
-    project: Project
+    resourceLookup: ResourceLookup
   ): Pair<AndroidWindow?, Int>? {
-    return loadComponentTree(data, resourceLookup, client, SkiaParser, project)
+    return loadComponentTree(data, resourceLookup, SkiaParser)
   }
 
   @VisibleForTesting
-  fun loadComponentTree(
-    maybeEvent: Any?, resourceLookup: ResourceLookup,
-    client: InspectorClient,
-    skiaParser: SkiaParserService,
-    project: Project
-  ): Pair<AndroidWindow?, Int>? {
+  fun loadComponentTree(maybeEvent: Any?, resourceLookup: ResourceLookup, skiaParser: SkiaParserService): Pair<AndroidWindow?, Int>? {
     val event = maybeEvent as? LayoutInspectorProto.LayoutInspectorEvent ?: return null
     val window: AndroidWindow? =
       if (event.tree.hasRoot()) {
@@ -84,7 +76,7 @@ object TransportTreeLoader : TreeLoader {
     return Pair(window, event.tree.generation)
   }
 
-  override fun getAllWindowIds(data: Any?, client: InspectorClient): List<Long>? {
+  override fun getAllWindowIds(data: Any?): List<Long>? {
     val event = data as? LayoutInspectorProto.LayoutInspectorEvent ?: return null
     return event.tree.allWindowIdsList
   }
@@ -105,9 +97,7 @@ private class TransportTreeLoaderImpl(
       isInterrupted = true
     }, LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC)
 
-  fun loadComponentTree(client: InspectorClient, skiaParser: SkiaParserService, project: Project): AndroidWindow? {
-    val transportClient = client as? TransportInspectorClient ?: throw UnsupportedOperationException(
-      "TransportTreeLoaderImpl requires a TransportInspectorClient")
+  fun loadComponentTree(client: TransportInspectorClient, skiaParser: SkiaParserService, project: Project): AndroidWindow? {
     val time = System.currentTimeMillis()
     if (time - loadStartTime.get() < LOAD_TIMEOUT) {
       return null
@@ -115,7 +105,7 @@ private class TransportTreeLoaderImpl(
     return try {
       val rootView = loadRootView() ?: return null
       val window = AndroidWindow(rootView, rootView.drawId, tree.payloadType, tree.payloadId) @Slow { scale, window ->
-        val bytes = transportClient.getPayload(window.payloadId)
+        val bytes = client.getPayload(window.payloadId)
         if (bytes.isNotEmpty()) {
           val root = window.root
           try {
@@ -176,7 +166,7 @@ private class TransportTreeLoaderImpl(
     }
   }
 
-  private fun processPng(bytes: ByteArray, rootView: ViewNode, client: InspectorClient) {
+  private fun processPng(bytes: ByteArray, rootView: ViewNode, client: TransportInspectorClient) {
     ImageIO.read(ByteArrayInputStream(bytes))?.let {
       ViewNode.writeDrawChildren { drawChildren ->
         rootView.flatten().forEach { it.drawChildren().clear() }

@@ -26,10 +26,10 @@ import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
 import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
-import com.android.tools.idea.sqlite.StubProcessDescriptor
 import com.android.tools.idea.sqlite.FileDatabaseException
 import com.android.tools.idea.sqlite.OfflineModeManager
 import com.android.tools.idea.sqlite.SchemaProvider
+import com.android.tools.idea.sqlite.StubProcessDescriptor
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
@@ -101,7 +101,6 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.Mockito.verifyZeroInteractions
 import java.util.concurrent.Executor
 import javax.swing.Icon
@@ -260,10 +259,12 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     // Assert
     assertThat(result.exceptionOrNull()).isInstanceOf(IllegalStateException::class.java)
     assertThat(result.exceptionOrNull()).hasMessageThat().isEqualTo("expected")
+
     runDispatching { orderVerifier.verify(databaseRepository).fetchSchema(databaseId1) }
     orderVerifier.verify(databaseInspectorView).reportError(eq("Error reading Sqlite database"), any(IllegalStateException::class.java))
-    assertEquals("expected", databaseInspectorView.errorInvocations.first().second?.message)
     orderVerifier.verifyNoMoreInteractions()
+
+    assertEquals("expected", databaseInspectorView.errorInvocations.first().second?.message)
   }
 
   fun testDisplayResultSetIsCalledForTable() {
@@ -1537,7 +1538,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       inOrderVerifier.verify(fileDatabaseManager).loadDatabaseFileData("processName", processDescriptor, databaseId4)
       inOrderVerifier.verify(projectService, times(3)).openSqliteDatabase(any())
     }
-    verifyNoMoreInteractions(fileDatabaseManager)
+    inOrderVerifier.verifyNoMoreInteractions()
 
     verify(databaseInspectorView).showEnterOfflineModePanel(0, 3)
     verify(databaseInspectorView).showEnterOfflineModePanel(1, 3)

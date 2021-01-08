@@ -18,14 +18,17 @@ package com.android.tools.idea.compose.preview.animation
 import androidx.compose.animation.tooling.ComposeAnimatedProperty
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
+import com.android.flags.ifEnabled
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.util.ControllableTicker
+import com.android.tools.idea.compose.preview.actions.CloseAnimationInspectorAction
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_SWITCH
 import com.android.utils.HtmlBuilder
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
@@ -56,7 +59,6 @@ import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Rectangle
-import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import java.awt.event.MouseEvent
 import java.time.Duration
@@ -152,7 +154,28 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     border = MatteBorder(0, 0, 1, 0, JBColor.border())
 
     noAnimationsPanel.startLoading()
+
+    COMPOSE_INTERACTIVE_ANIMATION_SWITCH.ifEnabled {
+      add(createToolBar(), TabularLayout.Constraint(0, 0, 2))
+    }
     add(noAnimationsPanel, TabularLayout.Constraint(1, 0, 2))
+  }
+
+  private fun createToolBar() = JPanel(BorderLayout()).apply {
+    border = MatteBorder(0, 0, 1, 0, JBColor.border())
+    isOpaque = false
+    val animationsTitle = JBLabel(message("animation.inspector.title")).apply {
+      border = JBUI.Borders.empty(5)
+    }
+    add(animationsTitle, BorderLayout.LINE_START)
+
+    val rightSideActions = ActionManager.getInstance().createActionToolbar(
+      "Animation Toolbar Actions",
+      DefaultActionGroup(listOf(
+        CloseAnimationInspectorAction { surface.sceneManagers.single().model.dataContext }
+      )),
+      true).component
+    add(rightSideActions, BorderLayout.LINE_END)
   }
 
   /**

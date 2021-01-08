@@ -1,6 +1,6 @@
 PROJECT             : testPsdDependency
     PROJECT_JDK         : <JAVA_VERSION>
-        Version             : java version "<JDK_VERSION>"
+        Version             : version <JDK_VERSION>
     MODULE              : testPsdDependency
         ExternalModuleGroup :
         ExternalModuleVersion         : unspecified
@@ -115,7 +115,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/resources [-]
@@ -124,7 +123,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/resources [-]
@@ -133,7 +131,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestFree/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestFree/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestFree/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestFree/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestFree/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestFree/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestFree/resources [-]
@@ -142,7 +139,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestFreeDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestFreeDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestFreeDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestFreeDebug/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestFreeDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestFreeDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestFreeDebug/resources [-]
@@ -151,7 +147,6 @@ PROJECT             : testPsdDependency
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/resources [-]
@@ -160,7 +155,6 @@ PROJECT             : testPsdDependency
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/free/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/free/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/free/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/free/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/free/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/free/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/free/resources [-]
@@ -169,7 +163,6 @@ PROJECT             : testPsdDependency
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/freeDebug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/freeDebug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/freeDebug/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/freeDebug/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/freeDebug/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/freeDebug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/freeDebug/resources [-]
@@ -178,7 +171,6 @@ PROJECT             : testPsdDependency
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/resources [-]
@@ -187,7 +179,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
@@ -196,7 +187,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/resources [-]
@@ -205,7 +195,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testFree/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testFree/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testFree/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testFree/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testFree/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testFree/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testFree/resources [-]
@@ -214,7 +203,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testFreeDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testFreeDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testFreeDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testFreeDebug/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testFreeDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testFreeDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testFreeDebug/resources [-]
@@ -224,7 +212,7 @@ PROJECT             : testPsdDependency
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
         LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
@@ -537,14 +525,14 @@ PROJECT             : testPsdDependency
         LIBRARY             : Gradle: com.example.jlib:lib3:1.0
             LibraryLevel        : project
             IsModuleLevel       : false
-            Scope               : Runtime
+            Scope               : Test
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib3:1.0 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
         LIBRARY             : Gradle: com.example.jlib:lib3:1.0
             LibraryLevel        : project
             IsModuleLevel       : false
-            Scope               : Test
+            Scope               : Runtime
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib3:1.0 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
@@ -558,14 +546,14 @@ PROJECT             : testPsdDependency
         LIBRARY             : Gradle: com.example.jlib:lib4:1.0
             LibraryLevel        : project
             IsModuleLevel       : false
-            Scope               : Runtime
+            Scope               : Test
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib4:1.0 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
         LIBRARY             : Gradle: com.example.jlib:lib4:1.0
             LibraryLevel        : project
             IsModuleLevel       : false
-            Scope               : Test
+            Scope               : Runtime
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib4:1.0 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
@@ -701,14 +689,14 @@ PROJECT             : testPsdDependency
         LIBRARY             : Gradle: com.example.jlib:lib3:1.0
             LibraryLevel        : project
             IsModuleLevel       : false
-            Scope               : Runtime
+            Scope               : Test
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib3:1.0 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
         LIBRARY             : Gradle: com.example.jlib:lib3:1.0
             LibraryLevel        : project
             IsModuleLevel       : false
-            Scope               : Test
+            Scope               : Runtime
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib3:1.0 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
@@ -722,28 +710,28 @@ PROJECT             : testPsdDependency
         LIBRARY             : Gradle: com.example.jlib:lib4:1.0
             LibraryLevel        : project
             IsModuleLevel       : false
-            Scope               : Runtime
+            Scope               : Test
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib4:1.0 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
         LIBRARY             : Gradle: com.example.jlib:lib4:1.0
             LibraryLevel        : project
             IsModuleLevel       : false
-            Scope               : Test
+            Scope               : Runtime
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib4:1.0 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
         LIBRARY             : Gradle: jarlib-1.1
             LibraryLevel        : project
             IsModuleLevel       : false
-            Scope               : Runtime
+            Scope               : Test
             IsExported          : false
             Name                : Gradle: jarlib-1.1 [=]
             *CLASSES            : jar://<PROJECT>/jModuleK/libs/jarlib-1.1.jar!/
         LIBRARY             : Gradle: jarlib-1.1
             LibraryLevel        : project
             IsModuleLevel       : false
-            Scope               : Test
+            Scope               : Runtime
             IsExported          : false
             Name                : Gradle: jarlib-1.1 [=]
             *CLASSES            : jar://<PROJECT>/jModuleK/libs/jarlib-1.1.jar!/
@@ -893,7 +881,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/mainModule/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/mainModule/src/androidTest/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/mainModule/src/androidTest/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/androidTest/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/androidTest/resources [-]
@@ -902,7 +889,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/mainModule/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/androidTestDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/mainModule/src/androidTestDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/mainModule/src/androidTestDebug/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/androidTestDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/androidTestDebug/resources [-]
@@ -911,7 +897,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/mainModule/src/androidTestFree/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/androidTestFree/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/mainModule/src/androidTestFree/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/mainModule/src/androidTestFree/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/androidTestFree/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/androidTestFree/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/androidTestFree/resources [-]
@@ -920,7 +905,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/mainModule/src/androidTestFreeDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/androidTestFreeDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/mainModule/src/androidTestFreeDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/mainModule/src/androidTestFreeDebug/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/androidTestFreeDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/androidTestFreeDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/androidTestFreeDebug/resources [-]
@@ -929,7 +913,6 @@ PROJECT             : testPsdDependency
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/mainModule/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/mainModule/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/mainModule/src/debug/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/mainModule/src/debug/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/mainModule/src/debug/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/mainModule/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/mainModule/src/debug/resources [-]
@@ -938,7 +921,6 @@ PROJECT             : testPsdDependency
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/mainModule/src/free/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/mainModule/src/free/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/mainModule/src/free/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/mainModule/src/free/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/mainModule/src/free/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/mainModule/src/free/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/mainModule/src/free/resources [-]
@@ -947,7 +929,6 @@ PROJECT             : testPsdDependency
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/mainModule/src/freeDebug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/mainModule/src/freeDebug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/mainModule/src/freeDebug/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/mainModule/src/freeDebug/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/mainModule/src/freeDebug/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/mainModule/src/freeDebug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/mainModule/src/freeDebug/resources [-]
@@ -956,7 +937,6 @@ PROJECT             : testPsdDependency
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/mainModule/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/mainModule/src/main/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/mainModule/src/main/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/mainModule/src/main/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/mainModule/src/main/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/mainModule/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/mainModule/src/main/resources [-]
@@ -965,7 +945,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/mainModule/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/mainModule/src/test/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/mainModule/src/test/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/test/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/test/resources [-]
@@ -974,7 +953,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/mainModule/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/testDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/mainModule/src/testDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/mainModule/src/testDebug/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/testDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/testDebug/resources [-]
@@ -983,7 +961,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/mainModule/src/testFree/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/testFree/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/mainModule/src/testFree/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/mainModule/src/testFree/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/testFree/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/testFree/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/testFree/resources [-]
@@ -992,7 +969,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/mainModule/src/testFreeDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/testFreeDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/mainModule/src/testFreeDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/mainModule/src/testFreeDebug/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/testFreeDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/testFreeDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/mainModule/src/testFreeDebug/resources [-]
@@ -1002,7 +978,7 @@ PROJECT             : testPsdDependency
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
         LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
@@ -1392,7 +1368,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleA/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleA/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleA/src/androidTest/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleA/src/androidTest/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleA/src/androidTest/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleA/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleA/src/androidTest/resources [-]
@@ -1401,7 +1376,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleA/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleA/src/androidTestDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleA/src/androidTestDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleA/src/androidTestDebug/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleA/src/androidTestDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleA/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleA/src/androidTestDebug/resources [-]
@@ -1410,7 +1384,6 @@ PROJECT             : testPsdDependency
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleA/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleA/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleA/src/debug/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleA/src/debug/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleA/src/debug/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleA/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleA/src/debug/resources [-]
@@ -1419,7 +1392,6 @@ PROJECT             : testPsdDependency
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleA/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleA/src/main/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleA/src/main/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleA/src/main/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleA/src/main/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleA/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleA/src/main/resources [-]
@@ -1428,7 +1400,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleA/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleA/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleA/src/test/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleA/src/test/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleA/src/test/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleA/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleA/src/test/resources [-]
@@ -1437,7 +1408,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleA/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleA/src/testDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleA/src/testDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleA/src/testDebug/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleA/src/testDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleA/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleA/src/testDebug/resources [-]
@@ -1447,7 +1417,7 @@ PROJECT             : testPsdDependency
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
         LIBRARY             : Gradle: ./lib/libsam1-1.1.jar
             LibraryLevel        : project
@@ -1819,7 +1789,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleB/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleB/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleB/src/androidTest/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleB/src/androidTest/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleB/src/androidTest/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleB/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleB/src/androidTest/resources [-]
@@ -1828,7 +1797,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleB/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleB/src/androidTestDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleB/src/androidTestDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleB/src/androidTestDebug/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleB/src/androidTestDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleB/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleB/src/androidTestDebug/resources [-]
@@ -1837,7 +1805,6 @@ PROJECT             : testPsdDependency
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleB/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleB/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleB/src/debug/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleB/src/debug/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleB/src/debug/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleB/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleB/src/debug/resources [-]
@@ -1846,7 +1813,6 @@ PROJECT             : testPsdDependency
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleB/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleB/src/main/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleB/src/main/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleB/src/main/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleB/src/main/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleB/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleB/src/main/resources [-]
@@ -1855,7 +1821,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleB/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleB/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleB/src/test/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleB/src/test/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleB/src/test/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleB/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleB/src/test/resources [-]
@@ -1864,7 +1829,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleB/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleB/src/testDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleB/src/testDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleB/src/testDebug/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleB/src/testDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleB/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleB/src/testDebug/resources [-]
@@ -1874,7 +1838,7 @@ PROJECT             : testPsdDependency
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
         LIBRARY             : Gradle: ./lib/libsam1-1.1.jar
             LibraryLevel        : project
@@ -2240,7 +2204,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleC/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleC/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleC/src/androidTest/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleC/src/androidTest/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleC/src/androidTest/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleC/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleC/src/androidTest/resources [-]
@@ -2249,7 +2212,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleC/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleC/src/androidTestDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleC/src/androidTestDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleC/src/androidTestDebug/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleC/src/androidTestDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleC/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleC/src/androidTestDebug/resources [-]
@@ -2258,7 +2220,6 @@ PROJECT             : testPsdDependency
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleC/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleC/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleC/src/debug/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleC/src/debug/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleC/src/debug/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleC/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleC/src/debug/resources [-]
@@ -2267,7 +2228,6 @@ PROJECT             : testPsdDependency
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleC/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleC/src/main/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleC/src/main/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleC/src/main/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleC/src/main/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleC/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleC/src/main/resources [-]
@@ -2276,7 +2236,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleC/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleC/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleC/src/test/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleC/src/test/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleC/src/test/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleC/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleC/src/test/resources [-]
@@ -2285,7 +2244,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleC/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleC/src/testDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleC/src/testDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleC/src/testDebug/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleC/src/testDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleC/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleC/src/testDebug/resources [-]
@@ -2295,7 +2253,7 @@ PROJECT             : testPsdDependency
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
         LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
@@ -2657,7 +2615,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleFlavor/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleFlavor/src/androidTest/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleFlavor/src/androidTest/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/androidTest/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/androidTest/resources [-]
@@ -2666,7 +2623,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleFlavor/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/androidTestDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleFlavor/src/androidTestDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleFlavor/src/androidTestDebug/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/androidTestDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/androidTestDebug/resources [-]
@@ -2675,7 +2631,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleFlavor/src/androidTestFree/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/androidTestFree/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleFlavor/src/androidTestFree/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleFlavor/src/androidTestFree/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/androidTestFree/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/androidTestFree/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/androidTestFree/resources [-]
@@ -2684,7 +2639,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/resources [-]
@@ -2693,7 +2647,6 @@ PROJECT             : testPsdDependency
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleFlavor/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleFlavor/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleFlavor/src/debug/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleFlavor/src/debug/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleFlavor/src/debug/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleFlavor/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleFlavor/src/debug/resources [-]
@@ -2702,7 +2655,6 @@ PROJECT             : testPsdDependency
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleFlavor/src/free/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleFlavor/src/free/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleFlavor/src/free/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleFlavor/src/free/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleFlavor/src/free/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleFlavor/src/free/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleFlavor/src/free/resources [-]
@@ -2711,7 +2663,6 @@ PROJECT             : testPsdDependency
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleFlavor/src/freeDebug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleFlavor/src/freeDebug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleFlavor/src/freeDebug/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleFlavor/src/freeDebug/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleFlavor/src/freeDebug/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleFlavor/src/freeDebug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleFlavor/src/freeDebug/resources [-]
@@ -2720,7 +2671,6 @@ PROJECT             : testPsdDependency
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleFlavor/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleFlavor/src/main/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleFlavor/src/main/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/moduleFlavor/src/main/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleFlavor/src/main/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleFlavor/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/moduleFlavor/src/main/resources [-]
@@ -2729,7 +2679,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleFlavor/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleFlavor/src/test/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleFlavor/src/test/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/test/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/test/resources [-]
@@ -2738,7 +2687,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleFlavor/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/testDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleFlavor/src/testDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleFlavor/src/testDebug/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/testDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/testDebug/resources [-]
@@ -2747,7 +2695,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleFlavor/src/testFree/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/testFree/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleFlavor/src/testFree/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleFlavor/src/testFree/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/testFree/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/testFree/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/testFree/resources [-]
@@ -2756,7 +2703,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleFlavor/src/testFreeDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/testFreeDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleFlavor/src/testFreeDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/moduleFlavor/src/testFreeDebug/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/testFreeDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/testFreeDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/moduleFlavor/src/testFreeDebug/resources [-]
@@ -2766,7 +2712,7 @@ PROJECT             : testPsdDependency
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
     MODULE              : testPsdDependency.modulePlus
         ExternalModuleGroup : testPsdDependency
@@ -2855,7 +2801,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/modulePlus/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/modulePlus/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/modulePlus/src/androidTest/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/modulePlus/src/androidTest/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/modulePlus/src/androidTest/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/modulePlus/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/modulePlus/src/androidTest/resources [-]
@@ -2864,7 +2809,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/modulePlus/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/modulePlus/src/androidTestDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/modulePlus/src/androidTestDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/modulePlus/src/androidTestDebug/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/modulePlus/src/androidTestDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/modulePlus/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/modulePlus/src/androidTestDebug/resources [-]
@@ -2873,7 +2817,6 @@ PROJECT             : testPsdDependency
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/modulePlus/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/modulePlus/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/modulePlus/src/debug/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/modulePlus/src/debug/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/modulePlus/src/debug/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/modulePlus/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/modulePlus/src/debug/resources [-]
@@ -2882,7 +2825,6 @@ PROJECT             : testPsdDependency
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/modulePlus/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/modulePlus/src/main/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/modulePlus/src/main/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/modulePlus/src/main/jni [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/modulePlus/src/main/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/modulePlus/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/modulePlus/src/main/resources [-]
@@ -2891,7 +2833,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/modulePlus/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/modulePlus/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/modulePlus/src/test/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/modulePlus/src/test/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/modulePlus/src/test/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/modulePlus/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/modulePlus/src/test/resources [-]
@@ -2900,7 +2841,6 @@ PROJECT             : testPsdDependency
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/modulePlus/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/modulePlus/src/testDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/modulePlus/src/testDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/modulePlus/src/testDebug/jni [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/modulePlus/src/testDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/modulePlus/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/modulePlus/src/testDebug/resources [-]
@@ -2910,7 +2850,7 @@ PROJECT             : testPsdDependency
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
         LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project

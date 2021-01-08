@@ -26,6 +26,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
@@ -34,6 +35,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.REFERENCE_TO_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel
@@ -75,6 +77,7 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.Upgra
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GMAVEN_REPOSITORY
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GRADLE_VERSION
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.JAVA8_DEFAULT
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TO_BUILD_FEATURES
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.EXECUTE
@@ -128,8 +131,8 @@ import com.intellij.usages.rules.PsiElementUsage
 import com.intellij.util.Processor
 import com.intellij.util.ThreeState.NO
 import com.intellij.util.ThreeState.YES
-import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.containers.toArray
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import org.jetbrains.kotlin.utils.ifEmpty
@@ -273,7 +276,8 @@ class AgpUpgradeRefactoringProcessor(
     AgpGradleVersionRefactoringProcessor(this),
     Java8DefaultRefactoringProcessor(this),
     CompileRuntimeConfigurationRefactoringProcessor(this),
-    FabricCrashlyticsRefactoringProcessor(this)
+    FabricCrashlyticsRefactoringProcessor(this),
+    MigrateToBuildFeaturesRefactoringProcessor(this)
   )
 
   val targets = mutableListOf<PsiElement>()
@@ -332,7 +336,7 @@ class AgpUpgradeRefactoringProcessor(
       return CommonRefactoringUtil.checkReadOnlyStatus(project, *psiElements)
     }
 
-    val elements: MutableSet<PsiElement> = ContainerUtil.newIdentityTroveSet() // protect against poorly implemented equality
+    val elements: MutableSet<PsiElement> = ReferenceOpenHashSet()  // protect against poorly implemented equality
 
     for (usage in usages) {
       assert(usage != null) { "Found null element in usages array" }
@@ -1023,6 +1027,10 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
     buildModel.allIncludedBuildModels.forEach model@{ model ->
       model.buildscript().dependencies().artifacts(CLASSPATH).forEach dep@{ dep ->
         GradleVersion.tryParse(dep.version().toString())?.let { currentVersion ->
+          // GradleVersion.tryParse() looks like it should only parse plausibly-valid version strings.  Unfortunately, things like
+          // `Versions.kotlin` are apparently plausibly-valid, returning a GradleVersion object essentially equivalent to `0.0` but with
+          // odd text present in the major/minor VersionSegments.
+          if (GradleVersion(0, 0) >= currentVersion) return@dep
           WELL_KNOWN_GRADLE_PLUGIN_TABLE["${dep.group()}:${dep.name()}"]?.let { info ->
             val minVersion = info(compatibleGradleVersion)
             if (minVersion <= currentVersion) return@dep
@@ -1389,6 +1397,8 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
         name.endsWith("Compile") -> name.removeSuffix("Compile").appendCapitalized(compileReplacement)
         name == "runtime" -> "runtimeOnly"
         name.endsWith("Runtime") -> "${name}Only"
+        name.endsWith("Api") && (name.startsWith("test") || name.startsWith("androidTest")) ->
+          name.removeSuffix("Api").appendCapitalized("implementation")
         name == "provided" -> "compileOnly"
         name.endsWith("Provided") -> "${name.removeSuffix("Provided")}CompileOnly"
         name == "apk" -> "runtimeOnly"
@@ -1898,6 +1908,90 @@ class AddBuildTypeFirebaseCrashlyticsUsageInfo(
   }
 
   override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.addBuildTypeFirebaseCrashlyticsUsageInfo.tooltipText")
+}
+
+class MigrateToBuildFeaturesRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
+  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+
+  override fun necessity() = standardRegionNecessity(current, new, GradleVersion.parse("4.0.0-alpha05"), GradleVersion.parse("7.0.0"))
+
+  override fun getCommandName(): String = AndroidBundle.message("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.commandName")
+
+  override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
+    builder.setKind(MIGRATE_TO_BUILD_FEATURES)
+
+  override fun findComponentUsages(): Array<out UsageInfo> {
+    val usages = ArrayList<UsageInfo>()
+    buildModel.allIncludedBuildModels.forEach model@{ model ->
+      val androidModel = model.android()
+      if (androidModel.dataBinding().enabled().getValue(BOOLEAN_TYPE) != null) {
+        run dataBinding@{
+          val psiElement = androidModel.dataBinding().enabled().psiElement ?: return@dataBinding
+          val wrappedPsiElement = WrappedPsiElement(psiElement, this, DATA_BINDING_ENABLED_USAGE_TYPE)
+          val usageInfo = DataBindingEnabledUsageInfo(wrappedPsiElement, androidModel)
+          usages.add(usageInfo)
+        }
+      }
+
+      if (androidModel.viewBinding().enabled().getValue(BOOLEAN_TYPE) != null) {
+        run viewBinding@{
+          val psiElement = androidModel.viewBinding().enabled().psiElement ?: return@viewBinding
+          val wrappedPsiElement = WrappedPsiElement(psiElement, this, VIEW_BINDING_ENABLED_USAGE_TYPE)
+          val usageInfo = ViewBindingEnabledUsageInfo(wrappedPsiElement, androidModel)
+          usages.add(usageInfo)
+        }
+      }
+    }
+    return usages.toArray(UsageInfo.EMPTY_ARRAY)
+  }
+
+  override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
+    return object : UsageViewDescriptorAdapter() {
+      override fun getElements(): Array<PsiElement> {
+        return PsiElement.EMPTY_ARRAY
+      }
+
+      override fun getProcessedElementsHeader(): String = AndroidBundle.message("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.usageView.header")
+    }
+  }
+
+  companion object {
+    val DATA_BINDING_ENABLED_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.dataBindingEnabledUsageType"))
+    val VIEW_BINDING_ENABLED_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.viewBindingEnabledUsageType"))
+  }
+}
+
+class ViewBindingEnabledUsageInfo(element: WrappedPsiElement, val androidModel: AndroidModel): GradleBuildModelUsageInfo(element) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    val valueModel = androidModel.viewBinding().enabled().unresolvedModel
+
+    val value: Any = when(valueModel.valueType) {
+      GradlePropertyModel.ValueType.BOOLEAN -> valueModel.getValue(BOOLEAN_TYPE) ?: return
+      GradlePropertyModel.ValueType.REFERENCE -> valueModel.getValue(REFERENCE_TO_TYPE) ?: return
+      else -> return
+    }
+    androidModel.buildFeatures().viewBinding().setValue(value)
+    androidModel.viewBinding().enabled().delete()
+  }
+
+  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.viewBindingEnabledUsageInfo.tooltipText")
+}
+
+class DataBindingEnabledUsageInfo(element: WrappedPsiElement, val androidModel: AndroidModel): GradleBuildModelUsageInfo(element) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    val valueModel = androidModel.dataBinding().enabled().unresolvedModel
+
+    val value: Any = when(valueModel.valueType) {
+      GradlePropertyModel.ValueType.BOOLEAN -> valueModel.getValue(BOOLEAN_TYPE) ?: return
+      GradlePropertyModel.ValueType.REFERENCE -> valueModel.getValue(REFERENCE_TO_TYPE) ?: return
+      else -> return
+    }
+    androidModel.buildFeatures().dataBinding().setValue(value)
+    androidModel.dataBinding().enabled().delete()
+  }
+
+  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.dataBindingEnabledUsageInfo.tooltipText")
 }
 
 /**

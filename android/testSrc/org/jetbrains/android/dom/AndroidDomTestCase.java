@@ -15,8 +15,9 @@
  */
 package org.jetbrains.android.dom;
 
+import static com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents;
+
 import com.android.SdkConstants;
-import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.testing.AndroidDomRule;
 import com.google.common.base.CaseFormat;
 import com.intellij.codeInsight.completion.CompletionType;
@@ -47,8 +48,8 @@ import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.inspections.AndroidDomInspection;
 import org.jetbrains.android.dom.inspections.AndroidElementNotAllowedInspection;
-import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
 import org.jetbrains.android.dom.inspections.AndroidUnknownAttributeInspection;
+import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -164,6 +165,7 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
 
   private List<String> getCompletionElements(String fileName) throws IOException {
     VirtualFile file = copyFileToProject(fileName);
+    dispatchAllInvocationEvents();
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
     return myFixture.getLookupElementStrings();

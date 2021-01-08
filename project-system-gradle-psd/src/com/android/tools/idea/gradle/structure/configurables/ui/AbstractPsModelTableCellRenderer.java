@@ -30,7 +30,7 @@ public abstract class AbstractPsModelTableCellRenderer<T extends PsModel> extend
   }
 
   @Override
-  protected void customizeCellRenderer(JTable table, @Nullable Object value, boolean selected, boolean hasFocus, int row, int column) {
+  protected void customizeCellRenderer(@NotNull JTable table, @Nullable Object value, boolean selected, boolean hasFocus, int row, int column) {
     setIcon(myModel.getIcon());
     setIconOpaque(true);
     setFocusBorderAroundIcon(true);

@@ -38,7 +38,7 @@ public enum AndroidSourceType {
   GENERATED_JAVA(JAVA.getName(), null, AllIcons.Modules.GeneratedSourceRoot, true),
 
   /** C++ sources */
-  CPP("cpp", it -> ImmutableList.copyOf(it.getJniDirectories()), AllIcons.Modules.SourceRoot),
+  CPP("cpp", it -> ImmutableList.of(), AllIcons.Modules.SourceRoot),
 
   AIDL("aidl", it -> ImmutableList.copyOf(it.getAidlDirectories()), AllIcons.Modules.SourceRoot),
   RENDERSCRIPT("renderscript", it -> ImmutableList.copyOf(it.getRenderscriptDirectories()), AllIcons.Modules.SourceRoot),

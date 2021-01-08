@@ -34,7 +34,6 @@ import com.android.tools.idea.common.error.IssuePanel;
 import com.android.tools.idea.common.error.LintIssueProvider;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.AndroidCoordinate;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DefaultSelectionModel;
 import com.android.tools.idea.common.model.ItemTransferable;
@@ -343,7 +342,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
     };
 
-    mySceneViewPanel = new SceneViewPanel(() -> getInteractionManager().getLayers(), positionableLayoutManagerProvider.apply(this));
+    mySceneViewPanel = new SceneViewPanel(
+      this::getSceneViews,
+      () -> getInteractionManager().getLayers(),
+      positionableLayoutManagerProvider.apply(this));
     mySceneViewPanel.setBackground(getBackground());
 
     myScrollPane = new MyScrollPane();
@@ -518,27 +520,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
-   * Removes the {@link SceneView} from the surface. It will not be rendered anymore.
-   */
-  public final void removeSceneView(@NotNull SceneView sceneView) {
-    // Remove the associated panels if any
-    //noinspection ConstantConditions, prevent this method from failing when using mocks (http://b/149700391)
-    if (mySceneViewPanel != null) {
-      UIUtil.invokeLaterIfNeeded(() -> mySceneViewPanel.removeSceneView(sceneView));
-    }
-  }
-
-  /**
-   * Adds the given {@link SceneView} to the surface.
-   */
-  public final void addSceneView(@NotNull SceneView sceneView) {
-    //noinspection ConstantConditions, prevent this method from failing when using mocks (http://b/149700391)
-    if (mySceneViewPanel != null) {
-      UIUtil.invokeLaterIfNeeded(() -> mySceneViewPanel.addSceneView(sceneView));
-    }
-  }
-
-  /**
    * Add an {@link NlModel} to DesignSurface and return the created {@link SceneManager}.
    * If it is added before then it just returns the associated {@link SceneManager} which created before. The {@link NlModel} will be moved
    * to the last position which might affect rendering.
@@ -561,16 +542,12 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       finally {
         myModelToSceneManagersLock.writeLock().unlock();
       }
-      // Doing the same with SceneViews so that their order respects the order of SceneManagers here
-      manager.getSceneViews().forEach(sceneView -> removeSceneView(sceneView));
-      manager.getSceneViews().forEach(sceneView -> addSceneView(sceneView));
       return manager;
     }
 
     model.addListener(myModelListener);
     model.getConfiguration().addListener(myConfigurationListener);
     manager = createSceneManager(model);
-    manager.getSceneViews().forEach(sceneView -> addSceneView(sceneView));
     myModelToSceneManagersLock.writeLock().lock();
     try {
       myModelToSceneManagers.put(model, manager);
@@ -578,6 +555,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     finally {
       myModelToSceneManagersLock.writeLock().unlock();
     }
+
+    // Mark the scene view panel as invalid to force the scene views to be updated
+    mySceneViewPanel.invalidate();
 
     if (myIsActive) {
       manager.activate(this);
@@ -663,11 +643,12 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       myModelToSceneManagersLock.writeLock().unlock();
     }
 
+    // Mark the scene view panel as invalid to force the scene views to be updated
+    mySceneViewPanel.invalidate();
+
     if (manager == null) {
       return false;
     }
-
-    manager.getSceneViews().forEach(sceneView -> removeSceneView(sceneView));
 
     model.deactivate(this);
 
@@ -1168,33 +1149,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       return false;
     }
 
-    Point oldViewPosition = getScrollPosition();
-
-    if (x < 0 || y < 0) {
-      x = oldViewPosition.x + myScrollPane.getWidth() / 2;
-      y = oldViewPosition.y + myScrollPane.getHeight() / 2;
-    }
-
-    SceneView view = getFocusedSceneView();
-
-    @AndroidDpCoordinate int androidX = 0;
-    @AndroidDpCoordinate int androidY = 0;
-    if (view != null) {
-      androidX = Coordinates.getAndroidXDip(view, x);
-      androidY = Coordinates.getAndroidYDip(view, y);
-    }
-
     double previousScale = myScale;
     myScale = newScale;
     NlModel model = Iterables.getFirst(getModels(), null);
     if (model != null) {
       storeCurrentScale(model);
-    }
-
-    if (view != null) {
-      @SwingCoordinate int shiftedX = Coordinates.getSwingXDip(view, androidX);
-      @SwingCoordinate int shiftedY = Coordinates.getSwingYDip(view, androidY);
-      myScrollPane.getViewport().setViewPosition(new Point(oldViewPosition.x + shiftedX - x, oldViewPosition.y + shiftedY - y));
     }
 
     revalidateScrollArea();

@@ -19,6 +19,7 @@ package com.android.tools.idea.gradle.adtimport;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
@@ -775,6 +776,7 @@ public class GradleImport {
     return null;
   }
 
+  @Slow
   public void exportProject(@NonNull File destDir, boolean allowNonEmpty) throws IOException {
     mySummary.setDestDir(destDir);
     if (!isImportIntoExisting()) {

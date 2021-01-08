@@ -22,7 +22,6 @@ import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.DefaultAppInspectionTarget
-import com.android.tools.idea.appinspection.internal.process.toTransportImpl
 import com.android.tools.idea.appinspection.internal.toLibraryCompatibilityInfo
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createArtifactCoordinate
@@ -49,7 +48,7 @@ class AppInspectionTargetTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
-  private val gRpcServerRule = FakeGrpcServer.createFakeGrpcServer("InspectorTargetTest", transportService, transportService)!!
+  private val gRpcServerRule = FakeGrpcServer.createFakeGrpcServer("InspectorTargetTest", transportService)
   private val appInspectionRule = AppInspectionServiceRule(timer, transportService, gRpcServerRule)
 
   @get:Rule
@@ -197,7 +196,7 @@ class AppInspectionTargetTest {
   // Verifies the marshalling and unmarshalling of GetLibraryVersion's params.
   @Test
   fun getLibraryVersions() = runBlocking<Unit> {
-    val process = createFakeProcessDescriptor().toTransportImpl()
+    val process = createFakeProcessDescriptor()
 
     // The fake response to be manually sent.
     val fakeLibraryVersionsResponse = listOf(
@@ -237,7 +236,7 @@ class AppInspectionTargetTest {
             events.add(
               Common.Event.newBuilder()
                 .setKind(Common.Event.Kind.APP_INSPECTION_RESPONSE)
-                .setPid(process.process.pid)
+                .setPid(process.pid)
                 .setTimestamp(timer.currentTimeNs)
                 .setCommandId(command.commandId)
                 .setIsEnded(true)

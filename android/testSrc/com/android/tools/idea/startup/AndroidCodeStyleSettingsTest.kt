@@ -29,6 +29,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
+@org.junit.Ignore("b/175998141")
 @RunWith(JUnit4::class)
 class AndroidCodeStyleSettingsTest {
   @Rule

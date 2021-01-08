@@ -19,91 +19,72 @@ import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
-import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.search.GlobalSearchScope
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtTreeVisitor
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
-import org.jetbrains.kotlin.psi.psiUtil.startOffset
-import org.jetbrains.uast.UClass
-import org.jetbrains.uast.UElement
-import org.jetbrains.uast.ULambdaExpression
-import org.jetbrains.uast.UMethod
-import org.jetbrains.uast.UVariable
-import org.jetbrains.uast.toUElement
-import org.jetbrains.uast.visitor.AbstractUastVisitor
-import kotlin.math.max
 
 /**
  * Service to find the [SourceLocation] of a lambda found in Compose.
  */
-class LambdaResolver(private val project: Project) {
+class LambdaResolver(project: Project) : ComposeResolver(project) {
   /**
    * Find the lambda [SourceLocation].
    *
    * The compiler will generate a synthetic class for each lambda invocation.
-   * @param enclosedClassName the class name of the enclosing class of the lambda. This is the first part of the synthetic class name.
+   * @param packageName the class name of the enclosing class of the lambda. This is the first part of the synthetic class name.
+   * @param fileName the name of the enclosing file (without the path).
    * @param lambdaName the second part of the synthetic class name i.e. without the enclosed class name
    * @param startLine the starting line of the lambda invoke method as seen by JVMTI (zero based)
    * @param startLine the last line of the lambda invoke method as seen by JVMTI (zero based)
    */
-  fun findLambdaLocation(enclosedClassName: String, lambdaName: String, startLine: Int, endLine: Int): SourceLocation? {
+  fun findLambdaLocation(packageName: String, fileName: String, lambdaName: String, startLine: Int, endLine: Int): SourceLocation? {
     if (startLine < 0 || endLine < 0) {
       return null
     }
-    val javaPsiFacade = JavaPsiFacade.getInstance(project)
-    val enclosedClass = javaPsiFacade.findClass(enclosedClassName, GlobalSearchScope.allScope(project))?.toUElement() ?: return null
-    val file = enclosedClass.javaPsi?.containingFile ?: return null
-    val doc = file.virtualFile?.let { FileDocumentManager.getInstance().getDocument(it) } ?: return null
+    val ktFile = findKotlinFile(fileName) { it == packageName } ?: return null
+    val doc = ktFile.virtualFile?.let { FileDocumentManager.getInstance().getDocument(it) } ?: return null
 
-    val possible = findPossibleLambdas(enclosedClass, doc, startLine, endLine)
+    val possible = findPossibleLambdas(ktFile, doc, startLine, endLine)
     val lambda = selectLambdaBasedOnSynthesizedLambdaClassName(possible, lambdaName)
 
-    val navigatable = lambda?.sourcePsi?.navigationElement as? Navigatable ?: return null
+    val navigatable = lambda?.navigationElement as? Navigatable ?: return null
     val startLineOffset = doc.getLineStartOffset(startLine)
-    val line = startLine + if (lambda.sourcePsi!!.startOffset < startLineOffset) 0 else 1
-    return SourceLocation("${file.name}:$line", navigatable)
+    val line = startLine + if (lambda.startOffset < startLineOffset) 0 else 1
+    return SourceLocation("${fileName}:$line", navigatable)
   }
 
   /**
-   * Return all the lambda expressions from [enclosedClass] that are contained entirely within the line range.
+   * Return all the lambda expressions from [ktFile] that are contained entirely within the line range.
    */
-  private fun findPossibleLambdas(enclosedClass: UElement, doc: Document, startLine: Int, endLine: Int): List<ULambdaExpression> {
-    val startLineOffset = doc.getLineStartOffset(startLine)
-    val braceOffset = openBraceAtEol(doc, startLine - 1, startLineOffset) // include open bracket from end of previous line
-    val offsetRange = (startLineOffset - braceOffset)..(doc.getLineEndOffset(endLine))
+  private fun findPossibleLambdas(ktFile: KtFile, doc: Document, startLine: Int, endLine: Int): List<KtLambdaExpression> {
+    val offsetRange = doc.getLineStartOffset(startLine)..(doc.getLineEndOffset(endLine))
     if (offsetRange.isEmpty()) {
       return emptyList()
     }
-    val possible = mutableListOf<ULambdaExpression>()
-    val findLambdaWithinRangeVisitor = object : AbstractUastVisitor() {
-      override fun visitLambdaExpression(node: ULambdaExpression): Boolean {
-        if (node.sourcePsi?.startOffset in offsetRange && node.sourcePsi?.endOffset in offsetRange) {
-          possible.add(node)
+    val possible = mutableListOf<KtLambdaExpression>()
+    val findLambdaWithinRangeVisitor = object : KtTreeVisitor<Unit>() {
+      override fun visitLambdaExpression(expression: KtLambdaExpression, data: Unit?): Void? {
+        super.visitLambdaExpression(expression, data)
+        val body = expression.bodyExpression
+        if (body?.startOffset in offsetRange && body?.endOffset in offsetRange) {
+          possible.add(expression)
         }
-        return false
+        return null
       }
     }
-    enclosedClass.accept(findLambdaWithinRangeVisitor)
+    ktFile.acceptChildren(findLambdaWithinRangeVisitor, null)
     return possible
-  }
-
-  /**
-   * Compute the offset from an open brace from the end of the [line] to [startOfNextLine].
-   * We need this offset to adjust the offset search range because the start line we get from the agent will be
-   * the line after the open brace in this case.
-   */
-  private fun openBraceAtEol(doc: Document, line: Int, startOfNextLine: Int): Int {
-    if (line < 0) {
-      return 0
-    }
-    val start = doc.getLineStartOffset(line)
-    val text = doc.text.subSequence(start, startOfNextLine).trimEnd()
-    return if (text.endsWith('{')) max(0, startOfNextLine - text.length - start + 1) else 0
   }
 
   /**
    * Select the most likely lambda from the [lambdas] found from line numbers, by using the synthetic name [lambdaName].
    */
-  private fun selectLambdaBasedOnSynthesizedLambdaClassName(lambdas: List<ULambdaExpression>, lambdaName: String): ULambdaExpression? {
+  private fun selectLambdaBasedOnSynthesizedLambdaClassName(lambdas: List<KtLambdaExpression>, lambdaName: String): KtLambdaExpression? {
     when (lambdas.size) {
       0 -> return null
       1 -> return lambdas.single() // no need investigate the lambdaName
@@ -141,15 +122,15 @@ class LambdaResolver(private val project: Project) {
    * The synthetic name will include class names, method names, and variable names.
    * Find the closest parent to [lambda] which is one of those 3 elements.
    */
-  private fun findTopElement(lambda: ULambdaExpression): UElement? {
-    var next = lambda.uastParent
+  private fun findTopElement(lambda: KtLambdaExpression): KtElement? {
+    var next = lambda.parent as? KtElement
     while (next != null) {
       when (next) {
-        is UClass,
-        is UMethod,
-        is UVariable -> return next
+        is KtClass,
+        is KtNamedFunction,
+        is KtProperty -> return next
 
-        else -> next = next.uastParent
+        else -> next = next.parent as? KtElement
       }
     }
     return null
@@ -162,35 +143,46 @@ class LambdaResolver(private val project: Project) {
    * @param selector the indices for each nesting level as indicated by the synthetic class name of the lambda.
    * @param lambdas the lambdas found in the line interval.
    */
-  private fun findLambdaFromSelector(top: UElement, selector: List<Int>, lambdas: List<ULambdaExpression>): ULambdaExpression? {
+  private fun findLambdaFromSelector(top: KtElement, selector: List<Int>, lambdas: List<KtLambdaExpression>): KtLambdaExpression? {
     var nestingLevel = 0
     val indices = IntArray(selector.size)
     var stop = false
-    var bestLambda: ULambdaExpression? = null
+    var bestLambda: KtLambdaExpression? = null
 
-    val findLambdaFromSelectorVisitor = object : AbstractUastVisitor() {
-      override fun visitLambdaExpression(node: ULambdaExpression): Boolean {
+    val findLambdaFromSelectorVisitor = object : KtTreeVisitor<Unit>() {
+      override fun visitLambdaExpression(expression: KtLambdaExpression, data: Unit?): Void? {
         if (stop || (nestingLevel < selector.size && selector[nestingLevel] < ++indices[nestingLevel])) {
           stop = true
-          return true
+          return null
         }
         if (nestingLevel >= selector.size || selector[nestingLevel] > indices[nestingLevel]) {
-          return true
+          return null
         }
-        if (node in lambdas) {
-          bestLambda = node
+        if (expression in lambdas) {
+          bestLambda = expression
         }
         nestingLevel++
-        return false
-      }
-
-      override fun afterVisitLambdaExpression(node: ULambdaExpression) {
+        super.visitLambdaExpression(expression, data)
         nestingLevel--
+        return null
       }
 
-      override fun visitElement(node: UElement): Boolean = stop
+      override fun visitClass(klass: KtClass, data: Unit?): Void? {
+        // Do not recurse into a class, since this would be a different top element
+        return null
+      }
+
+      override fun visitProperty(property: KtProperty, data: Unit?): Void? {
+        // Do not recurse into a property, since this would be a different top element
+        return null
+      }
+
+      override fun visitNamedFunction(function: KtNamedFunction, data: Unit?): Void? {
+        // Do not recurse into a property, since this would be a different top element
+        return null
+      }
     }
-    top.accept(findLambdaFromSelectorVisitor)
+    top.acceptChildren(findLambdaFromSelectorVisitor, null)
     return bestLambda
   }
 }

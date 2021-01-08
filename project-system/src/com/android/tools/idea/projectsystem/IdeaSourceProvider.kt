@@ -54,9 +54,6 @@ interface IdeaSourceProvider {
   val renderscriptDirectoryUrls: Iterable<String>
   val renderscriptDirectories: Iterable<VirtualFile>
 
-  val jniDirectoryUrls: Iterable<String>
-  val jniDirectories: Iterable<VirtualFile>
-
   val jniLibsDirectoryUrls: Iterable<String>
   val jniLibsDirectories: Iterable<VirtualFile>
 

@@ -95,6 +95,7 @@ iml_module(
         "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module, test]",
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
         "//tools/adt/idea/studio[module, test]",
+        "//tools/adt/idea/app-inspection/api:intellij.android.app-inspection.api[module, test]",
     ],
 )
 
@@ -106,6 +107,20 @@ java_test(
     tags = COMMON_TAGS + ["manual"],  # b/110178024
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "BasicLayoutInspectorUITest",
+    size = "large",
+    data = COMMON_DATA + ["//prebuilts/studio/layoutlib/data:framework_res.jar"] + glob(["testData/LayoutTest/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.layoutinspector.BasicLayoutInspectorUITest"],
+    tags = COMMON_TAGS + ["manual"],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [
+        ":intellij.android.guiTests_testlib",
+        "//tools/adt/idea/android-uitests/native/testing:liblayout_inspector_test_support.so",
+        "//tools/base/dynamic-layout-inspector/skia:skia-grpc-server",
+    ],
 )
 
 java_test(
@@ -387,6 +402,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.ModifyMinSdkAndSyncTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",  # fails 1 out of 3000 runs
+        "no_crostini",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -545,6 +561,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.OpenCloseVisualizationToolTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
+        "no_crostini",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -777,6 +794,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.X86AbiSplitApksTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
+        "no_crostini",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1049,6 +1067,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.compose.NewComposeProjectTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
+        "no_crostini",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1077,6 +1096,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.OpenExistingProjectTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
+        "no_crostini",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1500,6 +1520,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.ShowFilesUnknownToCMakeActionTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
+        "no_crostini",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],

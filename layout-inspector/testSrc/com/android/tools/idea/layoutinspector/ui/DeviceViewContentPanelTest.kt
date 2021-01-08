@@ -16,8 +16,6 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.PropertySetterRule
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.swing.FakeUi
@@ -27,7 +25,6 @@ import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.window
 import com.intellij.testFramework.ProjectRule
 import junit.framework.TestCase.assertEquals
@@ -51,11 +48,6 @@ class DeviceViewContentPanelTest {
 
   @get:Rule
   val chain = RuleChain.outerRule(ProjectRule()).around(DeviceViewSettingsRule())!!
-
-  @get:Rule
-  val clientFactoryRule = PropertySetterRule(
-    { _, _ -> listOf(mock()) },
-    InspectorClient.Companion::clientFactory)
 
   @Test
   fun testSize() {

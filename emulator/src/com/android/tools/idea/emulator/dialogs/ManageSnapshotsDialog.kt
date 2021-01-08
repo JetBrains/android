@@ -620,6 +620,7 @@ internal class ManageSnapshotsDialog(
     invokeLaterWhileDialogIsShowing {
       logger.debug { "updating snapshot table with: $snapshots"}
       snapshotTableModel.update(snapshots, bootSnapshot)
+      logger.debug { "incompatibleSnapshotsCount: $incompatibleSnapshotsCount"}
       if (incompatibleSnapshotsCount != 0 && snapshotAutoDeletionPolicy == SnapshotAutoDeletionPolicy.ASK_BEFORE_DELETING &&
           confirmIncompatibleSnapshotsDeletion(incompatibleSnapshotsCount, incompatibleSnapshotsSize)) {
         deleteIncompatibleSnapshots(snapshots)
@@ -637,6 +638,7 @@ internal class ManageSnapshotsDialog(
   }
 
   private fun confirmIncompatibleSnapshotsDeletion(incompatibleSnapshotsCount: Int, incompatibleSnapshotsSize: Long): Boolean {
+    logger.debug { "confirmIncompatibleSnapshotsDeletion: incompatibleSnapshotsCount: $incompatibleSnapshotsCount"}
     val dialog = IncompatibleSnapshotsDeletionConfirmationDialog(incompatibleSnapshotsCount, incompatibleSnapshotsSize)
     val dialogWrapper = dialog.createWrapper(parent = snapshotTable).apply { show() }
     when (dialogWrapper.exitCode) {
@@ -644,6 +646,7 @@ internal class ManageSnapshotsDialog(
         if (dialog.doNotAskAgain) {
           EmulatorSettings.getInstance().snapshotAutoDeletionPolicy = SnapshotAutoDeletionPolicy.DELETE_AUTOMATICALLY
         }
+        logger.debug { "confirmIncompatibleSnapshotsDeletion: deletion confirmed"}
         return true
       }
 
@@ -653,6 +656,7 @@ internal class ManageSnapshotsDialog(
         }
       }
     }
+    logger.debug { "confirmIncompatibleSnapshotsDeletion: deletion rejected"}
     return false
   }
 

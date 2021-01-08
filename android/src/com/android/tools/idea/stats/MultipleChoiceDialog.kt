@@ -18,10 +18,8 @@ package com.android.tools.idea.stats
 import com.android.tools.idea.Option
 import com.android.tools.idea.Survey
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
-import icons.StudioIcons
 import java.awt.AWTEvent
 import java.awt.FlowLayout
 import java.awt.event.ActionEvent
@@ -31,17 +29,17 @@ import java.awt.event.ItemListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.Box
-import javax.swing.Icon
 import javax.swing.JCheckBox
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-private const val OK_BUTTON_TEXT = "Submit"
+private const val SUBMIT_BUTTON_TEXT = "Submit"
+private const val NEXT_BUTTON_TEXT = "Next"
 
 /**
  * Dialog presenting a survey for users with a list of options and requesting multiple answers
  */
-class MultipleChoiceDialog(private val survey: Survey, private val choiceLogger: ChoiceLogger)
+class MultipleChoiceDialog(private val survey: Survey, private val choiceLogger: ChoiceLogger, hasFollowup: Boolean)
   : DialogWrapper(null), ActionListener, ItemListener {
   val checkBoxes = mutableListOf<JCheckBox>()
 
@@ -57,7 +55,14 @@ class MultipleChoiceDialog(private val survey: Survey, private val choiceLogger:
 
   init {
     isAutoAdjustable = true
-    setOKButtonText(OK_BUTTON_TEXT)
+    setOKButtonText(
+      if (hasFollowup) {
+        NEXT_BUTTON_TEXT
+      }
+      else {
+        SUBMIT_BUTTON_TEXT
+      }
+    )
     setResizable(false)
     title = survey.title
     isOKActionEnabled = false
@@ -68,12 +73,12 @@ class MultipleChoiceDialog(private val survey: Survey, private val choiceLogger:
   override fun createCenterPanel(): JComponent = content
 
   override fun doOKAction() {
-    choiceLogger.log(IntRange(0, checkBoxes.count() - 1).filter { checkBoxes[it].isSelected })
+    choiceLogger.log(survey.name, IntRange(0, checkBoxes.count() - 1).filter { checkBoxes[it].isSelected })
     super.doOKAction()
   }
 
   override fun doCancelAction(source: AWTEvent?) {
-    choiceLogger.cancel()
+    choiceLogger.cancel(survey.name)
     super.doCancelAction(source)
   }
 
@@ -127,9 +132,4 @@ class MultipleChoiceDialog(private val survey: Survey, private val choiceLogger:
   }
 }
 
-private val Option.icon: Icon?
-  get() {
-    val path = iconPath ?: return null
-    return IconLoader.getIcon(path, StudioIcons::class.java)
-  }
 

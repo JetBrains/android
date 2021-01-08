@@ -15,6 +15,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -127,6 +128,8 @@ class PinnedPreviewElementManagerImpl internal constructor(val project: Project)
 
   override fun isPinned(element: PreviewElement) = pinnedElements.contains(element.asPinnedElement())
 
+  override fun isPinned(file: PsiFile) = pinnedElements.any { it.containingFilePath == file.virtualFile.path }
+
   override fun addListener(listener: PinnedPreviewElementManager.Listener) {
     listenerCollection.add(listener)
   }
@@ -143,6 +146,7 @@ private object NopPinnedPreviewElementManager : PinnedPreviewElementManager, Mod
   override fun unpin(elements: Collection<PreviewElementInstance>): Boolean = false
   override fun unpinAll(): Boolean = false
   override fun isPinned(element: PreviewElement): Boolean = false
+  override fun isPinned(file: PsiFile): Boolean = false
   override fun addListener(listener: PinnedPreviewElementManager.Listener) {}
 
   override fun removeListener(listener: PinnedPreviewElementManager.Listener) {}
@@ -183,6 +187,11 @@ interface PinnedPreviewElementManager: ModificationTracker {
    * Returns true if the given [PreviewElement] is pinned. Only [PreviewElementInstance]s can be pinned.
    */
   fun isPinned(element: PreviewElement): Boolean
+
+  /**
+   * Returns true if the given [PsiFile] has any elements pinned.
+   */
+  fun isPinned(file: PsiFile): Boolean
 
   fun addListener(listener: Listener)
 

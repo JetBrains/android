@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
-import com.android.tools.idea.layoutinspector.LayoutInspectorTransportRule
+import com.android.tools.idea.layoutinspector.LayoutInspectorRule
+import com.android.tools.idea.layoutinspector.MODERN_DEVICE
+import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
+import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorRule
+import com.android.tools.idea.layoutinspector.pipeline.transport.addComponentTreeEvent
 import com.android.tools.idea.layoutinspector.util.CheckUtil
+import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
@@ -43,15 +48,16 @@ import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import javax.swing.JTree
 
+private val PROCESS = MODERN_DEVICE.createProcess()
+
 @RunsInEdt
 class LayoutInspectorTreePanelTest {
-  private val inspectorRule = LayoutInspectorTransportRule(projectRule = AndroidProjectRule.withSdk())
-    .withDefaultDevice()
-    .withDemoLayout()
-    .attach()
+  private val projectRule = AndroidProjectRule.withSdk()
+  private val transportRule = TransportInspectorRule()
+  private val inspectorRule = LayoutInspectorRule(transportRule.createClientProvider(), projectRule) { listOf(PROCESS.name) }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(inspectorRule).around(EdtRule())!!
+  val ruleChain = RuleChain.outerRule(transportRule).around(inspectorRule).around((EdtRule()))!!
 
   private var componentStack: ComponentStack? = null
 
@@ -63,6 +69,9 @@ class LayoutInspectorTreePanelTest {
     Mockito.`when`(fileManager.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     componentStack = ComponentStack(inspectorRule.project)
     componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager)
+
+    inspectorRule.processes.selectedProcess = PROCESS
+    transportRule.addComponentTreeEvent(inspectorRule, DemoExample.extractViewRoot(projectRule.fixture))
   }
 
   @After
@@ -77,6 +86,7 @@ class LayoutInspectorTreePanelTest {
     val model = inspectorRule.inspectorModel
     val inspector = inspectorRule.inspector
     tree.setToolContext(inspector)
+
     model.selection = model["title"]
     val treeComponent = UIUtil.findComponentOfType(tree.component, JTree::class.java)
 

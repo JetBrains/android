@@ -23,6 +23,7 @@ import com.android.tools.idea.projectsystem.TestRepositories;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
+import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.testFramework.PlatformTestCase;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -71,7 +72,7 @@ public class HtmlLinkManagerTest extends PlatformTestCase {
       dialogMessage[0] = message.trim(); // Remove line break in the end of the message.
       return Messages.OK;
     };
-    Messages.setTestDialog(testDialog);
+    TestDialogManager.setTestDialog(testDialog);
 
     // try multiple invalid links
     HtmlLinkManager.handleAddDependency("addDependency:", myModule);

@@ -19,6 +19,7 @@ import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.project.DumbServiceImpl
+import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.timeout
@@ -41,11 +42,12 @@ class HostPanelTest : NavTestCase() {
                                                        "\n" +
                                                        "</LinearLayout>")
     val model = model("nav.xml") { navigation() }
+    dispatchAllInvocationEvents()
     val panel = HostPanel(model.surface as NavDesignSurface)
     var i = 0
     while ((panel.list.model as DefaultListModel).isEmpty) {
       Thread.sleep(10)
-      if (i++ > 500) {
+      if (i++ > 2000) {
         fail("list was never populated")
       }
     }
@@ -111,6 +113,7 @@ class HostPanelTest : NavTestCase() {
       """.trimMargin("."))
 
     val model = model("nav.xml") { navigation() }
+    dispatchAllInvocationEvents()
 
     val references = findReferences(model.file, model.module)
     assertEquals(1, references.size)
@@ -143,6 +146,7 @@ class HostPanelTest : NavTestCase() {
       """.trimMargin("."))
 
     val model = model("nav.xml") { navigation() }
+    dispatchAllInvocationEvents()
 
     val references = findReferences(model.file, model.module)
     assertEquals(1, references.size)

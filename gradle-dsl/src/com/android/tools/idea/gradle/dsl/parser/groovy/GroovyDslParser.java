@@ -86,6 +86,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrNewExp
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrString;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrStringInjection;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrIndexProperty;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.types.GrCodeReferenceElement;
@@ -671,11 +672,17 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
                                                    @NotNull GradleNameElement propertyName,
                                                    @NotNull GrExpression propertyExpression) {
     if (propertyExpression instanceof GrLiteral) { // ex: compileSdkVersion 23 or compileSdkVersion = "android-23"
-      return new GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, false);
+      PsiElement injection = getChildOfType(propertyExpression, GrStringInjection.class); // ex: compileSdkVersion = " ${abc} -23"
+      return new GradleDslLiteral(
+        parentElement,
+        psiElement,
+        propertyName,
+        propertyExpression,
+        injection != null ? GradleDslLiteral.LiteralType.INTERPOLATION : GradleDslLiteral.LiteralType.LITERAL);
     }
 
     if (propertyExpression instanceof GrReferenceExpression) { // ex: compileSdkVersion SDK_VERSION or sourceCompatibility = VERSION_1_5
-      return new GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, true);
+      return new GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, GradleDslLiteral.LiteralType.REFERENCE);
     }
 
     if (propertyExpression instanceof GrMethodCallExpression) { // ex: compile project("someProject")
@@ -691,7 +698,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     }
 
     if (propertyExpression instanceof GrIndexProperty) {
-      return new GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, true);
+      return new GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, GradleDslLiteral.LiteralType.REFERENCE);
     }
 
     if (propertyExpression instanceof GrNewExpression) {

@@ -21,6 +21,7 @@ import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTIO
 import com.android.resources.Density.DEFAULT_DENSITY
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.layoutinspector.common.StringTable
+import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
@@ -45,7 +46,7 @@ import javax.swing.Icon
  * the property definition or property assignment.
  */
 class ResourceLookup(private val project: Project) {
-  private val lambdaResolver = LambdaResolver(project)
+  private val composeResolver = LambdaResolver(project)
 
   @VisibleForTesting
   var resolver: ResourceLookupResolver? = null
@@ -112,9 +113,14 @@ class ResourceLookup(private val project: Project) {
   /**
    * Find the lambda source location.
    */
-  fun findLambdaLocation(enclosedClassName: String, lambdaName: String, startLine: Int, endLine: Int): SourceLocation? {
-    return lambdaResolver.findLambdaLocation(enclosedClassName, lambdaName, startLine, endLine)
-  }
+  fun findLambdaLocation(packageName: String, fileName: String, lambdaName: String, startLine: Int, endLine: Int): SourceLocation? =
+     composeResolver.findLambdaLocation(packageName, fileName, lambdaName, startLine, endLine)
+
+  /**
+   * Find the source navigatable of a composable function.
+   */
+  fun findComposableNavigatable(composable: ComposeViewNode): Navigatable? =
+    composeResolver.findComposableNavigatable(composable)
 
   /**
    * Find the icon from this drawable property.

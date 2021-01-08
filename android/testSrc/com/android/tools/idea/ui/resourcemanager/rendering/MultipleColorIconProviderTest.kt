@@ -26,7 +26,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.BaseAsset
-import com.intellij.application.runInAllowSaveMode
+import com.intellij.configurationStore.runInAllowSaveMode
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.ImageUtil
 import org.intellij.lang.annotations.Language

@@ -1,6 +1,6 @@
 PROJECT             : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
     PROJECT_JDK         : <JAVA_VERSION>
-        Version             : java version "<JDK_VERSION>"
+        Version             : version <JDK_VERSION>
     MODULE              : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
         LinkedProjectId     : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
         LinkedProjectPath   : <TEMP>
@@ -53,8 +53,6 @@ PROJECT             : testLightTestsWithDefaultTestProjectStructureForAndroidTes
             JavaSource          : file://<TEMP>/src
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/src/debug/assets [-]
-        WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/c [-]
-        WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/cpp [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/java [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/src/debug/ml [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/renderscript [-]
@@ -65,7 +63,7 @@ PROJECT             : testLightTestsWithDefaultTestProjectStructureForAndroidTes
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : java version "<JDK_VERSION>"
+            VersionString       : version <JDK_VERSION>
         ORDER_ENTRY         : <Module source>
     RUN_CONFIGURATION   : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
         *class*             : AndroidRunConfiguration

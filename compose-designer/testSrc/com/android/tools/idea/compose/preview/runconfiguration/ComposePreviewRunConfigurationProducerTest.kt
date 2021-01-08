@@ -185,10 +185,12 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
     runConfiguration.name = "Preview1"
     assertFalse(producer.isConfigurationFromContext(runConfiguration, context))
     runConfiguration.composableMethodFqn = "TestKt.Preview1"
-    // Both configuration name and composable FQN need to match for the configuration be considered the same as the context's
+    // Configuration name does not need to match for the configuration be considered the same as the context's, as long as the composable
+    // FQN does. That allows finding and reusing an existing configuration that runs a Compose Preview even if we don't know the actual
+    // configuration name.
     assertTrue(producer.isConfigurationFromContext(runConfiguration, context))
     runConfiguration.name = "Preview2"
-    assertFalse(producer.isConfigurationFromContext(runConfiguration, context))
+    assertTrue(producer.isConfigurationFromContext(runConfiguration, context))
   }
 
   private fun createConfigurationFromElement(element: PsiElement): ComposePreviewRunConfiguration {

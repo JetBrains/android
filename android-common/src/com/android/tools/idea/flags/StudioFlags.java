@@ -573,6 +573,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> AGP_UPGRADE_ASSISTANT = Flag.create(
     GRADLE_IDE, "agp.upgrade.assistant", "Enable AGP Upgrade Assistant",
     "Enable the Upgrade Assistant for helping with AGP upgrades", true);
+  public static final Flag<Boolean> AGP_UPGRADE_ASSISTANT_TOOL_WINDOW = Flag.create(
+    GRADLE_IDE, "agp.upgrade.assistant.tool.window", "Enable the AGP Upgrade Assistant Tool Window",
+    "Enable Tool Window-oriented interaction with the AGP Upgrade Assistant", false);
   public static final Flag<Boolean> DISABLE_FORCED_UPGRADES = Flag.create(
     GRADLE_IDE, "forced.agp.update", "Disable forced Android Gradle plugin upgrades",
     "This option is only respected when running Android Studio internally.", false);
@@ -638,6 +641,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.compose.support", "Show inspectables from Compose",
     "If enabled the component tree will include Composable nodes if they are wrapped in an Inspectable.", false);
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_USE_INSPECTION = Flag.create(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.use.inspection", "Use app inspection client",
+    "If enabled, use a client built on the app inspection pipeline instead of the transport pipeline.", false);
   //endregion
 
   //region Embedded Emulator
@@ -710,7 +716,7 @@ public final class StudioFlags {
     NDK, "use.content.roots.for.native.project.view", "Use content roots for native project view",
     "If enabled, the C/C++ content roots are displayed in Android View and Project View. Otherwise, each individual native target " +
     "is displayed.",
-    false);
+    true);
 
   public static final Flag<Boolean> ENABLE_SHOW_FILES_UNKNOWN_TO_CMAKE = Flag.create(
     NDK, "ndk.projectview.showfilessunknowntocmake", "Enable option to show files unknown to CMake",
@@ -1051,6 +1057,13 @@ public final class StudioFlags {
     COMPOSE, "preview.pin.enable",
     "Enable pinning compose previews",
     "If enabled, a user can pin a preview",
+    false
+  );
+
+  public static final Flag<Boolean> COMPOSE_INDIVIDUAL_PIN_PREVIEW = Flag.create(
+    COMPOSE, "preview.individual.pin.enable",
+    "Enable pinning of individual compose previews",
+    "If enabled, a user can pin a single preview within a file",
     false
   );
 

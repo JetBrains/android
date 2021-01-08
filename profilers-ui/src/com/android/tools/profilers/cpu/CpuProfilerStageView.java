@@ -15,22 +15,25 @@
  */
 package com.android.tools.profilers.cpu;
 
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
 import static com.android.tools.profilers.ProfilerLayout.PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER;
 
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.ProfilerScrollbar;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
+import com.android.tools.profilers.RecordingOption;
+import com.android.tools.profilers.RecordingOptionsView;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilersView;
-import com.android.tools.profilers.cpu.capturedetails.CpuCaptureView;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.systemtrace.CpuFrameTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip;
 import com.android.tools.profilers.event.EventMonitorView;
@@ -50,8 +53,11 @@ import java.awt.FontMetrics;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseListener;
+import java.util.function.Consumer;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.MutableComboBoxModel;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
@@ -103,7 +109,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
    * Default ratio of splitter. The splitter ratio adjust the first elements size relative to the bottom elements size.
    * A ratio of 1 means only the first element is shown, while a ratio of 0 means only the bottom element is shown.
    */
-  private static final float SPLITTER_DEFAULT_RATIO = 0.5f;
+  private static final float SPLITTER_DEFAULT_RATIO = 0.2f;
 
   /**
    * When we are showing the kernel data we want to increase the size of the kernel and threads view. This in turn reduces
@@ -124,7 +130,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
    */
   @NotNull private final JBSplitter mySplitter;
 
-  @NotNull private final CpuCaptureView myCaptureView;
+  @NotNull private final RecordingOptionsView myRecordingOptionsView;
 
   @NotNull private final RangeTooltipComponent myTooltipComponent;
 
@@ -197,12 +203,13 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     details.add(buildTimeAxis(myStage.getStudioProfilers()), new TabularLayout.Constraint(3, 0));
     details.add(new ProfilerScrollbar(myStage.getTimeline(), details), new TabularLayout.Constraint(4, 0));
 
-    // The first component in the splitter is the L2 components, the 2nd component is the L3 components.
-    myCaptureView = new CpuCaptureView(this);
-    mySplitter = new JBSplitter(true);
-    mySplitter.setFirstComponent(details);
-    mySplitter.setSecondComponent(null);
-    mySplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
+    // The first component in the splitter is the recording options, the 2nd component is the L2 components.
+    myRecordingOptionsView = new RecordingOptionsView(getStage().getRecordingModel(), this::editConfigurations);
+    mySplitter = new JBSplitter(false);
+    mySplitter.setFirstComponent(null);
+    mySplitter.setSecondComponent(details);
+    mySplitter.getDivider().setBorder(DEFAULT_VERTICAL_BORDERS);
+    mySplitter.setProportion(SPLITTER_DEFAULT_RATIO);
     getComponent().add(mySplitter, BorderLayout.CENTER);
 
     stage.getStudioProfilers().addDependency(this)
@@ -220,6 +227,19 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     SessionsManager sessions = getStage().getStudioProfilers().getSessionsManager();
     sessions.addDependency(this).onChange(SessionAspect.SELECTED_SESSION, myToolbar::update);
+  }
+
+  private Unit editConfigurations(MutableComboBoxModel<RecordingOption> model) {
+    Consumer<ProfilingConfiguration> dialogCallback = (configuration) -> {
+      // Update the config list to pick up any potential changes.
+      myStage.getProfilerConfigModel().updateProfilingConfigurations();
+      myStage.refreshRecordingConfigurations();
+    };
+    Common.Device selectedDevice = myStage.getStudioProfilers().getDevice();
+    int deviceFeatureLevel = selectedDevice != null ? selectedDevice.getFeatureLevel() : 0;
+    getIdeComponents().openCpuProfilingConfigurationsDialog(myStage.getProfilerConfigModel(), deviceFeatureLevel, dialogCallback);
+    myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackOpenProfilingConfigDialog();
+    return Unit.INSTANCE;
   }
 
   @NotNull
@@ -303,7 +323,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   private void updateCaptureViewVisibility() {
     if (myStage.getProfilerMode() == ProfilerMode.EXPANDED) {
-      mySplitter.setSecondComponent(myCaptureView.getComponent());
+      mySplitter.setFirstComponent(myRecordingOptionsView);
     }
   }
 

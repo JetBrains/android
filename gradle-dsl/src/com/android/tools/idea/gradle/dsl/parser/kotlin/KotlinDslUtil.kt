@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.kotlin
 
+import com.android.tools.idea.gradle.dsl.api.ext.InterpolatedText
 import com.android.tools.idea.gradle.dsl.api.ext.RawText
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
@@ -415,8 +416,21 @@ internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : Gr
         convertToExternalTextValue(value.referredElement!!, context, applyContext, false) ?: value.referredElement!!.fullName
       return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(externalTextValue)
     }
-    is RawText -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.ktsText)
-    else -> error("Expression '${value}' not supported.")
+    is InterpolatedText -> {
+      val builder = StringBuilder()
+      for (interpolation in value.interpolationElements) {
+        if (interpolation.textItem != null) {
+          builder.append(interpolation.textItem)
+        }
+        if (interpolation.referenceItem != null) {
+          val externalText = convertToExternalTextValue(interpolation.referenceItem!!.referredElement!!, context, applyContext, true)
+          builder.append(externalText ?: interpolation.referenceItem!!.referredElement!!.fullName)
+        }
+    }
+      return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(builder.toString().addQuotes(true))
+   }
+   is RawText -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.ktsText)
+   else -> error("Expression '${value}' not supported.")
   }
 }
 

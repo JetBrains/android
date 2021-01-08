@@ -24,20 +24,10 @@ import org.jetbrains.annotations.Nullable;
  * virtual devices.
  */
 public final class SerialNumber extends Key {
-  static final String PREFIX = "SerialNumber@";
   private final @NotNull String myValue;
 
   public SerialNumber(@NotNull String value) {
     myValue = value;
-  }
-
-  static @NotNull SerialNumber parse(@NotNull String string) {
-    return new SerialNumber(string.substring(PREFIX.length()));
-  }
-
-  @Override
-  @NotNull NonprefixedKey asNonprefixedKey() {
-    return new NonprefixedKey(myValue);
   }
 
   @Override
@@ -52,6 +42,6 @@ public final class SerialNumber extends Key {
 
   @Override
   public @NotNull String toString() {
-    return PREFIX + myValue;
+    return myValue;
   }
 }

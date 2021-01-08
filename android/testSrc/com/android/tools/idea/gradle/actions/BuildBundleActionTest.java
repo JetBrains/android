@@ -40,8 +40,8 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
+import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import org.mockito.Mock;
@@ -68,7 +68,7 @@ public class BuildBundleActionTest extends PlatformTestCase {
   @Override
   protected void tearDown() throws Exception {
     if (myDefaultTestDialog != null) {
-      Messages.setTestDialog(myDefaultTestDialog);
+      TestDialogManager.setTestDialog(myDefaultTestDialog);
     }
     super.tearDown();
   }
@@ -120,7 +120,7 @@ public class BuildBundleActionTest extends PlatformTestCase {
 
     @SuppressWarnings("MagicConstant") // Using custom button IDs
       TestMessagesDialog testDialog = new TestMessagesDialog(1 /* Update*/);
-    myDefaultTestDialog = Messages.setTestDialog(testDialog);
+    myDefaultTestDialog = TestDialogManager.setTestDialog(testDialog);
 
     AnActionEvent event = mock(AnActionEvent.class);
     when(event.getProject()).thenReturn(getProject());
@@ -155,7 +155,7 @@ public class BuildBundleActionTest extends PlatformTestCase {
 
     @SuppressWarnings("MagicConstant") // Using custom button IDs
       TestMessagesDialog testDialog = new TestMessagesDialog(0 /* Cancel*/);
-    myDefaultTestDialog = Messages.setTestDialog(testDialog);
+    myDefaultTestDialog = TestDialogManager.setTestDialog(testDialog);
 
     AnActionEvent event = mock(AnActionEvent.class);
     when(event.getProject()).thenReturn(getProject());

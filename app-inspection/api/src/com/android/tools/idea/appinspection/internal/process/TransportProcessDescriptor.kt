@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.appinspection.internal.process
 
-import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.profiler.proto.Common
@@ -40,16 +39,13 @@ class TransportProcessDescriptor(
       return "DeviceDescriptor(manufacturer='$manufacturer', model='$model', serial='$serial', isEmulator='$isEmulator', apiLevel='$apiLevel')"
     }
   }
-  override val processName: String = process.name
+  override val abiCpuArch: String = process.abiCpuArch
+  override val name: String = process.name
   override val isRunning: Boolean = process.state != Common.Process.State.DEAD
+  override val pid: Int = process.pid
+  override val streamId: Long = stream.streamId
 
   override fun toString(): String {
-    return "ProcessDescriptor(device='$device', processName='$processName', isRunning='$isRunning')"
+    return "ProcessDescriptor(device='$device', name='$name', isRunning='$isRunning')"
   }
 }
-
-/**
- * In this module, [ProcessDescriptor]s are always implemented by [TransportProcessDescriptor],
- * so this convenience method provides cleaner syntax for casting.
- */
-internal fun ProcessDescriptor.toTransportImpl() = this as TransportProcessDescriptor

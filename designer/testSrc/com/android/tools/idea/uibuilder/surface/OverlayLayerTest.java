@@ -260,6 +260,8 @@ public class OverlayLayerTest {
       }
     });
 
+    when(sceneView.getScaledContentSize(any(Dimension.class))).thenCallRealMethod();
+
     when(sceneView.getX()).thenReturn(0);
     when(sceneView.getY()).thenReturn(0);
     when(sceneView.getScale()).thenReturn(1.0);

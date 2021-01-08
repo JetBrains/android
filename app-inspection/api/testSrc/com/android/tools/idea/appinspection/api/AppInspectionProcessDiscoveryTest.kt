@@ -19,7 +19,6 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.android.tools.idea.appinspection.internal.process.toTransportImpl
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
@@ -50,7 +49,7 @@ class AppInspectionProcessDiscoveryTest {
     }
   }
 
-  private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionDiscoveryTest", transportService, transportService)!!
+  private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionDiscoveryTest", transportService)
   private val appInspectionRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
 
   @get:Rule
@@ -135,7 +134,7 @@ class AppInspectionProcessDiscoveryTest {
     assertThat(processesList).hasSize(1)
     assertThat(processesList[0].device.manufacturer).isEqualTo(FakeTransportService.FAKE_DEVICE.manufacturer)
     assertThat(processesList[0].device.model).isEqualTo(FakeTransportService.FAKE_DEVICE.model)
-    assertThat(processesList[0].processName).isEqualTo(FakeTransportService.FAKE_PROCESS.name)
+    assertThat(processesList[0].name).isEqualTo(FakeTransportService.FAKE_PROCESS.name)
   }
 
   @Test
@@ -159,6 +158,30 @@ class AppInspectionProcessDiscoveryTest {
 
     // Wait for process to disconnect.
     removeFakeProcess()
+    processDisconnectLatch.await()
+  }
+
+  @Test
+  fun deviceDisconnectNotifiesListener() {
+    val processConnectLatch = CountDownLatch(1)
+    val processDisconnectLatch = CountDownLatch(1)
+    appInspectionRule.addProcessListener(object : ProcessListener {
+      override fun onProcessConnected(process: ProcessDescriptor) {
+        processConnectLatch.countDown()
+      }
+
+      override fun onProcessDisconnected(process: ProcessDescriptor) {
+        processDisconnectLatch.countDown()
+      }
+    })
+
+    // Wait for process to connect.
+    launchFakeDevice()
+    launchFakeProcess()
+    processConnectLatch.await()
+
+    // Device disconnecting takes the process down with it.
+    removeFakeDevice()
     processDisconnectLatch.await()
   }
 
@@ -298,7 +321,7 @@ class AppInspectionProcessDiscoveryTest {
 
     // Verify discovery host has only notified about the process that ran on >= O device.
     latch.await()
-    assertThat(processDescriptor.toTransportImpl().stream.device.apiLevel >= AndroidVersion.VersionCodes.O)
+    assertThat(processDescriptor.device.apiLevel >= AndroidVersion.VersionCodes.O)
   }
 
   // Test the scenario where discovery encounters a device it has discovered before.

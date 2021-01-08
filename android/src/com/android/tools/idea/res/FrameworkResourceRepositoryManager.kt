@@ -65,7 +65,7 @@ class FrameworkResourceRepositoryManager {
     val cacheKey = CacheKey(path, useCompiled9Patches)
     val cachingData = createCachingData(path)
     val cached = cache.computeIfAbsent(cacheKey) {
-       FrameworkResourceRepository.create(path, languages, cachingData, useCompiled9Patches)
+      FrameworkResourceRepository.create(path, languages, cachingData, useCompiled9Patches)
     }
     if (languages.isEmpty()) {
       return cached

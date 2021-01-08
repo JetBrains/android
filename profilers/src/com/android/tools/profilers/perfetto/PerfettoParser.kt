@@ -56,12 +56,12 @@ class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
     synchronized(TPD_LOCK) {
       val traceProcessor = ideProfilerServices.traceProcessorService
 
-      val traceLoaded = traceProcessor.loadTrace(traceId, file, ideProfilerServices.featureTracker)
+      val traceLoaded = traceProcessor.loadTrace(traceId, file, ideProfilerServices)
       if (!traceLoaded) {
         error("Unable to load trace with TPD.")
       }
 
-      val processList = traceProcessor.getProcessMetadata(traceId, ideProfilerServices.featureTracker)
+      val processList = traceProcessor.getProcessMetadata(traceId, ideProfilerServices)
       check(processList.isNotEmpty()) { "Invalid trace without any process information." }
 
       val processListSorter = ProcessListSorter(mainProcessSelector.nameHint)
@@ -73,7 +73,7 @@ class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
         it.getSafeProcessName().endsWith(SystemTraceSurfaceflingerManager.SURFACEFLINGER_PROCESS_NAME)
       }?.let { pidsToQuery.add(it.id) }
 
-      val model = traceProcessor.loadCpuData(traceId, pidsToQuery, ideProfilerServices.featureTracker)
+      val model = traceProcessor.loadCpuData(traceId, pidsToQuery, ideProfilerServices)
 
       val builder = SystemTraceCpuCaptureBuilder(model)
       return builder.build(traceId, selectedProcess)

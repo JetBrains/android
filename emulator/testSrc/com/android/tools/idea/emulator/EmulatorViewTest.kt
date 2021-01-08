@@ -24,7 +24,7 @@ import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
-import com.android.tools.idea.emulator.RuntimeConfigurationOverrider.getRuntimeConfiguration
+import com.android.tools.idea.io.IdeFileUtils
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ClipboardSynchronizer
@@ -35,7 +35,9 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerComponentInstance
+import com.intellij.util.SystemProperties
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -45,6 +47,7 @@ import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.atLeast
 import org.mockito.Mockito.verify
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.KeyboardFocusManager
 import java.awt.datatransfer.DataFlavor
@@ -54,6 +57,7 @@ import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.KEY_PRESSED
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.regex.Pattern
@@ -69,7 +73,7 @@ class EmulatorViewTest {
   @get:Rule
   val ruleChain: RuleChain = RuleChain.outerRule(emulatorViewRule).around(EdtRule())
   private val filesOpened = mutableListOf<VirtualFile>()
-
+  private var oldFocusManager: KeyboardFocusManager? = null
 
   private val testRootDisposable
     get() = emulatorViewRule.testRootDisposable
@@ -85,6 +89,12 @@ class EmulatorViewTest {
     `when`(fileEditorManager.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
     `when`(fileEditorManager.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     emulatorViewRule.project.registerComponentInstance(FileEditorManager::class.java, fileEditorManager, testRootDisposable)
+    oldFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager()
+  }
+
+  @After
+  fun tearDown() {
+    KeyboardFocusManager.setCurrentKeyboardFocusManager(oldFocusManager)
   }
 
   @Test
@@ -231,6 +241,7 @@ class EmulatorViewTest {
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "PageDown"""")
 
     val mockFocusManager: KeyboardFocusManager = mock()
+    `when`(mockFocusManager.redispatchEvent(any(Component::class.java), any(KeyEvent::class.java))).thenCallRealMethod()
     KeyboardFocusManager.setCurrentKeyboardFocusManager(mockFocusManager)
     // Shift+Tab should trigger a forward local focus traversal.
     with(ui.keyboard) {
@@ -323,8 +334,9 @@ class EmulatorViewTest {
     call.waitForCompletion(5, TimeUnit.SECONDS) // Use longer timeout for PNG creation.
     waitForCondition(2, TimeUnit.SECONDS) {
       dispatchAllInvocationEvents()
-      Files.list(getRuntimeConfiguration().getDesktopOrUserHomeDirectory()).use {
-        it.filter { Pattern.matches("Screenshot_.*\\.png", it.fileName.toString()) }.toList()
+      val dir = IdeFileUtils.getDesktopDirectory() ?: Paths.get(SystemProperties.getUserHome())
+      Files.list(dir).use { stream ->
+        stream.filter { Pattern.matches("Screenshot_.*\\.png", it.fileName.toString()) }.toList()
       }.isNotEmpty()
     }
     waitForCondition(2, TimeUnit.SECONDS) { filesOpened.isNotEmpty() }

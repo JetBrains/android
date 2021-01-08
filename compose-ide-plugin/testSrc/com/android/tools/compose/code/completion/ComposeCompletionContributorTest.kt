@@ -16,7 +16,6 @@
 package com.android.tools.compose.code.completion
 
 import com.android.tools.compose.ComposeFqNames
-import com.android.tools.compose.ComposeLibraryNamespace
 import com.android.tools.compose.ComposeSettings
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
@@ -38,7 +37,7 @@ import org.junit.Test
 class ComposeCompletionContributorTest {
 
   @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  val projectRule = AndroidProjectRule.inMemory()
 
   private val myFixture: CodeInsightTestFixture by lazy { projectRule.fixture }
 
@@ -594,82 +593,6 @@ class ComposeCompletionContributorTest {
     )
 
     ComposeSettings.getInstance().state.isComposeInsertHandlerEnabled = true
-  }
-
-  @Test
-  fun testComposeModifiersCompletionWeigher() {
-    myFixture.addFileToProject(
-      "src/${ComposeLibraryNamespace.ANDROIDX_COMPOSE.packageName.replace(".", "/")}/Modifier.kt",
-      // language=kotlin
-      """
-    package ${ComposeLibraryNamespace.ANDROIDX_COMPOSE.packageName}
-
-    interface Modifier {
-      fun function():Unit
-      companion object : Modifier {
-        fun function() {}
-      }
-    }
-
-    fun Modifier.extentionFunction():Modifier { return this}
-    """.trimIndent()
-    )
-
-    myFixture.loadNewFile(
-      "src/com/example/Test.kt",
-      """
-      package com.example
-
-      import androidx.compose.ui.Modifier
-
-      @Composable
-      fun HomeScreen() {
-        val m = Modifier.${caret}
-      }
-      """.trimIndent())
-
-    myFixture.completeBasic()
-
-    var lookupStrings = myFixture.lookupElementStrings!!
-    assertThat(lookupStrings.indexOf("extentionFunction")).isLessThan(lookupStrings.indexOf("function"))
-
-    myFixture.loadNewFile(
-      "src/com/example/Test2.kt",
-      """
-      package com.example
-
-      import androidx.compose.ui.Modifier
-      import androidx.compose.ui.extentionFunction
-
-      @Composable
-      fun HomeScreen2() {
-        val m = Modifier.extentionFunction().${caret}
-      }
-      """.trimIndent())
-
-    myFixture.completeBasic()
-
-    lookupStrings = myFixture.lookupElementStrings!!
-    assertThat(lookupStrings.indexOf("extentionFunction")).isLessThan(lookupStrings.indexOf("function"))
-
-    myFixture.loadNewFile(
-      "src/com/example/Test3.kt",
-      """
-      package com.example
-
-      import androidx.compose.ui.Modifier
-      import androidx.compose.ui.extentionFunction
-
-      @Composable
-      fun HomeScreen3(modifier: Modifier = Modifier) {
-        modifier.${caret}
-      }
-      """.trimIndent())
-
-    myFixture.completeBasic()
-
-    lookupStrings = myFixture.lookupElementStrings!!
-    assertThat(lookupStrings.indexOf("extentionFunction")).isLessThan(lookupStrings.indexOf("function"))
   }
 
   private val CodeInsightTestFixture.renderedLookupElements: Collection<String>

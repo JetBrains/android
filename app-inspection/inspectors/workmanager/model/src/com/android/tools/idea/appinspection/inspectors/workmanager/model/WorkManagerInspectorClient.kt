@@ -74,24 +74,12 @@ class WorkManagerInspectorClient(private val messenger: AppInspectorMessenger,
     }
   }
 
-  fun getWorkInfoCount() = synchronized(lock) {
-    filteredWorks.size
-  }
-
   /**
-   * Returns a [WorkInfo] at the given [index] or `null` if the [index] is out of bounds of this list.
+   * Returns a list of filtered works locked within [block].
    */
-  fun getWorkInfoOrNull(index: Int) = synchronized(lock) {
-    filteredWorks.getOrNull(index)
+  fun <T> lockedWorks(block: (List<WorkInfo>) -> T): T {
+    return synchronized(lock) { block(filteredWorks) }
   }
-
-  /**
-   * Returns index of the first [WorkInfo] matching the given [predicate], or -1 if the list does not contain such element.
-   */
-  fun indexOfFirstWorkInfo(predicate: (WorkInfo) -> Boolean) = synchronized(lock) {
-    filteredWorks.indexOfFirst(predicate)
-  }
-
 
   /**
    * Returns a chain of works with topological ordering containing the selected work.
@@ -192,6 +180,7 @@ class WorkManagerInspectorClient(private val messenger: AppInspectorMessenger,
             }
           }
           works[index] = newWork.build()
+          updateFilteredWork()
         }
       }
       Event.OneOfCase.ONEOF_NOT_SET -> {

@@ -30,25 +30,72 @@ import com.intellij.ui.JBColor
 import icons.StudioIcons
 
 val NO_PROCESS_ACTION = object : AnAction(AppInspectionBundle.message("action.no.debuggable.process")) {
+  override fun update(e: AnActionEvent) { e.presentation.isEnabled = false }
   override fun actionPerformed(event: AnActionEvent) {}
-}.apply { templatePresentation.isEnabled = false }
+}
+
+val NO_DEVICE_ACTION = object : AnAction(AppInspectionBundle.message("action.no.devices")) {
+  override fun update(e: AnActionEvent) { e.presentation.isEnabled = false }
+  override fun actionPerformed(event: AnActionEvent) {}
+}
 
 private val ICON_COLOR = JBColor(0x6E6E6E, 0xAFB1B3)
 private val ICON_PHONE = ColoredIconGenerator.generateColoredIcon(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE, ICON_COLOR)
 private val ICON_EMULATOR = ColoredIconGenerator.generateColoredIcon(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, ICON_COLOR)
 
-class SelectProcessAction(private val model: ProcessesModel, private val onStopAction: ((ProcessDescriptor) -> Unit)? = null) :
+/**
+ * An action that presents a list of devices and processes, allowing the user to select a process,
+ * along with a stop button (for stopping any active process)
+ *
+ * Once selected, the process automatically informs the passed in [ProcessesModel], which in turn
+ * notifies other components that a new process is now active.
+ *
+ * @param supportsOffline If true, this means when a process is stopped, it remains in the list,
+ *     since the idea is that any downstream components will still work (perhaps in a read-only
+ *     mode). Otherwise, stopped processes will be removed.
+ *
+ * @param createProcessLabel A callback that allows customizing the display label of the top-level
+ *     process text, particularly useful for supporting compact modes as necessary. The default
+ *     option doesn't worry about consuming horizontal space.
+ *
+ * @param stopPresentation Optional overrides for the "stop" action that shows up in the list, in case
+ *     a particular component needs to show a uniquely customized message.
+ *
+ * @param onStopAction A callback triggered when the user presses the stop button.
+ *
+ */
+class SelectProcessAction(private val model: ProcessesModel,
+                          private val supportsOffline: Boolean = true,
+                          private val createProcessLabel: (ProcessDescriptor) -> String = Companion::createDefaultProcessLabel,
+                          private val stopPresentation: StopPresentation = StopPresentation(),
+                          private val onStopAction: ((ProcessDescriptor) -> Unit)? = null) :
   DropDownAction(AppInspectionBundle.message("action.select.process"), AppInspectionBundle.message("action.select.process.desc"),
                  ICON_PHONE) {
 
+  companion object {
+    fun createDefaultProcessLabel(process: ProcessDescriptor): String {
+      return "${process.device.buildDeviceName()} > ${process.buildProcessName()}"
+    }
+
+    fun createCompactProcessLabel(process: ProcessDescriptor): String {
+      return process.name.substringAfterLast('.')
+    }
+  }
+
   private var lastProcess: ProcessDescriptor? = null
   private var lastProcessCount = 0
+
   override fun update(event: AnActionEvent) {
     if (model.selectedProcess == lastProcess && model.processes.size == lastProcessCount) return
 
     val currentProcess = model.selectedProcess
     val content = currentProcess?.let {
-      "${it.device.buildDeviceName()} > ${it.buildProcessName()}"
+      if (it.isRunning || supportsOffline) {
+        createProcessLabel(it)
+      }
+      else {
+        AppInspectionBundle.message("action.select.process")
+      }
     } ?: if (model.processes.isEmpty()) {
       AppInspectionBundle.message("no.process.available")
     } else {
@@ -65,38 +112,33 @@ class SelectProcessAction(private val model: ProcessesModel, private val onStopA
   public override fun updateActions(context: DataContext): Boolean {
     removeAll()
 
-    val serials = mutableSetOf<String>()
-
     // Rebuild the action tree.
-    for (processDescriptor in model.processes) {
-      val serial = processDescriptor.device.serial
-      if (!serials.add(serial)) {
-        continue
-      }
-      add(DeviceAction(processDescriptor, model))
-    }
+    model.processes
+      .filter { process -> process.isRunning || supportsOffline }
+      .distinctBy { process -> process.device.serial }
+      .forEach { process -> add(DeviceAction(process, model, supportsOffline)) }
+
     if (childrenCount == 0) {
-      val noDeviceAction = object : AnAction(AppInspectionBundle.message("action.no.devices")) {
-        override fun actionPerformed(event: AnActionEvent) {}
-      }
-      noDeviceAction.templatePresentation.isEnabled = false
-      add(noDeviceAction)
+      add(NO_DEVICE_ACTION)
     }
-    else if (model.selectedProcess?.isRunning == true) {
-      // If selected process exists and is running (not detached), then add a Stop action.
-      val stopInspectionAction = object : AnAction(AppInspectionBundle.message("action.stop.inspectors"),
-                                                   AppInspectionBundle.message("action.stop.inspectors.description"),
-                                                   StudioIcons.Shell.Toolbar.STOP) {
-        override fun actionPerformed(e: AnActionEvent) {
-          onStopAction?.invoke(model.selectedProcess!!)
-        }
-      }
-      add(stopInspectionAction)
+
+    // For consistency, always add a stop action, but only enable it if there's a current process
+    // that can actually be stopped.
+    val stopInspectionAction = object : AnAction(stopPresentation.text,
+                                                 stopPresentation.desc,
+                                                 StudioIcons.Shell.Toolbar.STOP) {
+      override fun update(e: AnActionEvent) { e.presentation.isEnabled = (model.selectedProcess?.isRunning == true) }
+      override fun actionPerformed(e: AnActionEvent) { onStopAction?.invoke(model.selectedProcess!!) }
     }
+    add(stopInspectionAction)
+
     return true
   }
 
   override fun displayTextInToolbar() = true
+
+  class StopPresentation(val text: String = AppInspectionBundle.message("action.stop.inspectors"),
+                         val desc: String = AppInspectionBundle.message("action.stop.inspectors.description"))
 
   class ConnectAction(private val processDescriptor: ProcessDescriptor, private val model: ProcessesModel) :
     ToggleAction(processDescriptor.buildProcessName()) {
@@ -112,23 +154,23 @@ class SelectProcessAction(private val model: ProcessesModel, private val onStopA
     }
   }
 
-  private class DeviceAction(processDescriptor: ProcessDescriptor, private val model: ProcessesModel)
-    : DropDownAction(processDescriptor.device.buildDeviceName(), null, processDescriptor.device.toIcon()) {
+  private class DeviceAction(process: ProcessDescriptor, private val model: ProcessesModel, private val supportsOffline: Boolean)
+    : DropDownAction(process.device.buildDeviceName(), null, process.device.toIcon()) {
     override fun displayTextInToolbar() = true
 
     init {
       val (preferredProcesses, otherProcesses) = model.processes
-        .filter { it.device.serial == processDescriptor.device.serial }
-        .partition { model.isProcessPreferred(it, includeDead = true) }
+        .filter { (it.isRunning || supportsOffline) && (it.device.serial == process.device.serial) }
+        .partition { model.isProcessPreferred(it, includeDead = supportsOffline) }
 
-      for (process in preferredProcesses) {
-        add(ConnectAction(process, model))
+      for (preferredProcess in preferredProcesses) {
+        add(ConnectAction(preferredProcess, model))
       }
       if (preferredProcesses.isNotEmpty() && otherProcesses.isNotEmpty()) {
         add(Separator.getInstance())
       }
-      for (process in otherProcesses) {
-        add(ConnectAction(process, model))
+      for (otherProcess in otherProcesses) {
+        add(ConnectAction(otherProcess, model))
       }
       if (childrenCount == 0) {
         add(NO_PROCESS_ACTION)
@@ -156,6 +198,6 @@ private fun DeviceDescriptor.buildDeviceName(): String {
   return deviceNameBuilder.toString()
 }
 
-private fun ProcessDescriptor.buildProcessName() = "$processName${if (isRunning) "" else " [DEAD]"}"
+private fun ProcessDescriptor.buildProcessName() = "$name${if (isRunning) "" else " [DETACHED]"}"
 
 private fun DeviceDescriptor?.toIcon() = if (this?.isEmulator == true) ICON_EMULATOR else ICON_PHONE

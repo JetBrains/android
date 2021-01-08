@@ -33,7 +33,7 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
   val hasEndedTracking get() = maxTrackingTimeUs < POSITIVE_INFINITY
   private val isStatic get() = hasStartedTracking && hasEndedTracking
 
-  private val allocationDurationData = makeModel(::AllocationInfosDataSeries)
+  private val allocationDurationData = makeModel(CaptureDataSeries::ofAllocationInfos)
   override val captureSeries get() = listOf(allocationDurationData)
 
   override fun getParentStage() = MainMemoryProfilerStage(studioProfilers, loader)

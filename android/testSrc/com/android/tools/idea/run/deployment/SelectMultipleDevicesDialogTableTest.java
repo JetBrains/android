@@ -58,7 +58,7 @@ public final class SelectMultipleDevicesDialogTableTest {
     myTable.setSelected(true, 0);
 
     // Assert
-    assertEquals(Collections.singleton(new Target(new VirtualDeviceName("Pixel_3_API_29"))), myTable.getSelectedTargets());
+    assertEquals(Collections.singleton(new QuickBootTarget(new VirtualDeviceName("Pixel_3_API_29"))), myTable.getSelectedTargets());
   }
 
   @Test
@@ -71,7 +71,7 @@ public final class SelectMultipleDevicesDialogTableTest {
       .build();
 
     myTable.setModel(new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device)));
-    Set<Target> targets = Collections.singleton(new Target(new VirtualDeviceName("Pixel_3_API_29")));
+    Set<Target> targets = Collections.singleton(new QuickBootTarget(new VirtualDeviceName("Pixel_3_API_29")));
 
     // Act
     myTable.setSelectedTargets(targets);
@@ -177,7 +177,7 @@ public final class SelectMultipleDevicesDialogTableTest {
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new NonprefixedKey("Pixel_3_API_29/default_boot"))
+      // .setKey(new NonprefixedKey("Pixel_3_API_29/default_boot"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .addSnapshot(new Snapshot(fileSystem.getPath("/home/juancnuno/.android/avd/Pixel_3_API_29.avd/snapshots/default_boot")))
       .build();
@@ -203,7 +203,7 @@ public final class SelectMultipleDevicesDialogTableTest {
     // Arrange
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new NonprefixedKey("Pixel_3_API_29/snap_2019-09-27_15-48-09"))
+      // .setKey(new NonprefixedKey("Pixel_3_API_29/snap_2019-09-27_15-48-09"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .addSnapshot(new Snapshot(Paths.get("snap_2019-09-27_15-48-09"), "Snapshot"))
       .build();

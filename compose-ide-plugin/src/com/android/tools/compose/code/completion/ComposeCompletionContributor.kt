@@ -16,7 +16,6 @@
 package com.android.tools.compose.code.completion
 
 import com.android.tools.compose.COMPOSABLE_FQ_NAMES
-import com.android.tools.compose.ComposeLibraryNamespace
 import com.android.tools.compose.ComposeSettings
 import com.android.tools.compose.isComposableFunction
 import com.android.tools.idea.flags.StudioFlags
@@ -49,31 +48,20 @@ import org.jetbrains.kotlin.builtins.isFunctionType
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.completion.BasicLookupElementFactory
 import org.jetbrains.kotlin.idea.completion.LambdaSignatureTemplates
 import org.jetbrains.kotlin.idea.completion.LookupElementFactory
 import org.jetbrains.kotlin.idea.completion.handlers.KotlinCallableInsertHandler
 import org.jetbrains.kotlin.idea.core.completion.DeclarationLookupObject
-import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
 import org.jetbrains.kotlin.idea.util.CallType
-import org.jetbrains.kotlin.js.translate.callTranslator.getReturnType
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.nj2k.postProcessing.resolve
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.getNextSiblingIgnoringWhitespace
-import org.jetbrains.kotlin.psi.psiUtil.getReceiverExpression
-import org.jetbrains.kotlin.psi.psiUtil.isExtensionDeclaration
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.typeUtil.isUnit
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 private val COMPOSABLE_FUNCTION_ICON = StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION
 
@@ -252,29 +240,6 @@ class ComposeCompletionWeigher : CompletionWeigher() {
   }
 
   private fun LookupElement.isForNamedArgument() = lookupString.endsWith(" =")
-}
-
-/**
- * Moves extension functions for Modifier [ComposeLibraryNamespace.ANDROIDX_COMPOSE.composeModifierClassName] up the completion list.
- */
-class ComposeModifiersCompletionWeigher : CompletionWeigher() {
-  override fun weigh(element: LookupElement, location: CompletionLocation) = when {
-    !StudioFlags.COMPOSE_EDITOR_SUPPORT.get() -> 0
-    location.completionParameters.position.language != KotlinLanguage.INSTANCE -> 0
-    location.completionParameters.position.getModuleSystem()?.usesCompose != true -> 0
-    // If it's modifier's extension method assign bigger weight
-    location.completionParameters.position.isMethodCalledOnModifier() -> if (element.psiElement?.isExtensionDeclaration() == true) 2 else 0
-    else -> 0
-  }
-
-  private fun PsiElement.isMethodCalledOnModifier(): Boolean {
-    val elementOnWhichMethodCalled: KtExpression = parent.safeAs<KtNameReferenceExpression>()?.getReceiverExpression() ?: return false
-    // Case Modifier.align().<caret>, modifier.<caret>
-    val fqName = elementOnWhichMethodCalled.resolveToCall(BodyResolveMode.PARTIAL)?.getReturnType()?.fqName ?:
-                 // Case Modifier.<caret>
-                 elementOnWhichMethodCalled.safeAs<KtNameReferenceExpression>()?.resolve().safeAs<KtClass>()?.fqName
-    return fqName?.asString() == ComposeLibraryNamespace.ANDROIDX_COMPOSE.composeModifierClassName
-  }
 }
 
 private fun InsertionContext.getNextElementIgnoringWhitespace(): PsiElement? {

@@ -27,16 +27,23 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 
+
+@RunsInEdt
 class ViewBindingTrackerTest {
-  @get:Rule
-  val projectRule =
+  private val projectRule =
     AndroidProjectRule.withAndroidModel(AndroidProjectBuilder(viewBindingOptions = { ViewBindingOptionsStub(true) }))
+
+  @get:Rule
+  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
   /**
    * Expose the underlying project rule fixture directly.

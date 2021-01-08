@@ -220,6 +220,11 @@ class TableViewImpl : TableView {
         val mousePoint = Point(x, y)
         val viewRowIndex = table.rowAtPoint(mousePoint)
         val viewColumnIndex = table.columnAtPoint(mousePoint)
+
+        if (viewRowIndex < 0 || viewColumnIndex < 0) {
+          return
+        }
+
         table.clearSelection()
         table.addRowSelectionInterval(viewRowIndex, viewRowIndex)
         table.addColumnSelectionInterval(viewColumnIndex, viewColumnIndex)
@@ -510,7 +515,7 @@ class TableViewImpl : TableView {
 
   private class MyColoredTableCellRenderer : ColoredTableCellRenderer() {
     override fun customizeCellRenderer(
-      table: JTable?,
+      table: JTable,
       value: Any?,
       selected: Boolean,
       focused: Boolean,
