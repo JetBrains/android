@@ -40,9 +40,9 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
     UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
       kind = AndroidStudioEvent.EventKind.SURVEY_RESPONSE
       fileUsage = FileUsage.newBuilder().apply {
-        this.filePath = data["file_path"] as? String
-        this.fileType = data["file_type"] as? String
-        this.pluginType = data["plugin_type"] as? String
+        (data["file_path"] as? String)?.let { filePath = it }
+        (data["file_type"] as? String)?.let { fileType = it }
+        (data["plugin_type"] as? String)?.let { pluginType = it }
       }.build()
     })
   }
