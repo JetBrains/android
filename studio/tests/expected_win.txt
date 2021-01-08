@@ -1204,7 +1204,7 @@ android-studio/lib/testFramework.core.jar
 android-studio/lib/testFramework.jar
 android-studio/lib/tests_bootstrap.jar
 android-studio/lib/tightvnc.jar
-android-studio/lib/tips-intellij-idea-community-202.13.jar
+android-studio/lib/tips-intellij-idea-community-203.16.jar
 android-studio/lib/trang-core.jar
 android-studio/lib/transport_java_proto.jar
 android-studio/lib/trove4j.jar
@@ -2191,7 +2191,7 @@ android-studio/plugins/completionMlRankingModels/lib/completion-ranking-java-0.3
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-js-0.1.1.jar
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-kotlin-0.2.1.jar
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-php-0.2.3.jar
-android-studio/plugins/completionMlRankingModels/lib/completion-ranking-python-0.2.1.jar
+android-studio/plugins/completionMlRankingModels/lib/completion-ranking-python-0.1.4.jar
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-ruby-0.1.2.jar
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-rust-0.0.3.jar
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-scala-0.3.1.jar
@@ -2295,6 +2295,9 @@ android-studio/plugins/junit/lib/idea-junit.jar
 android-studio/plugins/junit/lib/junit-rt.jar
 android-studio/plugins/junit/lib/junit5-rt.jar
 android-studio/plugins/junit/lib/resources_en.jar
+android-studio/plugins/lombok/lib/lombok-generated.jar
+android-studio/plugins/lombok/lib/lombok.jar
+android-studio/plugins/lombok/lib/resources_en.jar
 android-studio/plugins/maven-model/lib/maven-model.jar
 android-studio/plugins/platform-images/lib/platform-images.jar
 android-studio/plugins/platform-images/lib/resources_en.jar
