@@ -15,39 +15,21 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.transport
 
-import com.android.annotations.concurrency.Slow
-import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.SkiaParserService
-import com.android.tools.idea.layoutinspector.UnsupportedPictureVersionException
 import com.android.tools.idea.layoutinspector.common.StringTableImpl
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
-import com.android.tools.idea.layoutinspector.model.ComponentImageLoader
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
-import com.android.tools.idea.layoutinspector.model.DrawViewChild
-import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
-import com.android.tools.idea.layoutinspector.proto.SkiaParser.RequestedNodeInfo
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
-import com.android.tools.layoutinspector.LayoutInspectorUtils.makeRequestedNodeInfo
-import com.android.tools.layoutinspector.SkiaViewNode
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_SKP_TOO_LARGE
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.SKP
 import com.google.common.annotations.VisibleForTesting
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.LowMemoryWatcher
 import java.awt.Polygon
-import java.awt.Rectangle
-import java.io.ByteArrayInputStream
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
-import javax.imageio.ImageIO
 
 private val LOAD_TIMEOUT = TimeUnit.SECONDS.toMillis(20)
 
@@ -102,107 +84,13 @@ private class TransportTreeLoaderImpl(
     if (time - loadStartTime.get() < LOAD_TIMEOUT) {
       return null
     }
-    return try {
+    try {
       val rootView = loadRootView() ?: return null
-      val window = AndroidWindow(rootView, rootView.drawId, tree.payloadType, tree.payloadId) @Slow { scale, window ->
-        val bytes = client.getPayload(window.payloadId)
-        if (bytes.isNotEmpty()) {
-          val root = window.root
-          try {
-            when (window.imageType) {
-              PNG_AS_REQUESTED, PNG_SKP_TOO_LARGE -> processPng(bytes, root, client)
-              SKP -> processSkp(bytes, skiaParser, project, client, root, scale)
-              else -> client.logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE) // Shouldn't happen
-            }
-          }
-          catch (ex: Exception) {
-            // TODO: it seems like grpc can run out of memory landing us here. We should check for that.
-            Logger.getInstance(LayoutInspector::class.java).warn(ex)
-          }
-        }
-      }
-      window
+      return TransportAndroidWindow(project, skiaParser, client, rootView, tree, { isInterrupted })
     }
     finally {
       loadStartTime.set(0)
     }
-  }
-
-  private fun processSkp(
-    bytes: ByteArray,
-    skiaParser: SkiaParserService,
-    project: Project,
-    client: TransportInspectorClient,
-    rootView: ViewNode,
-    scale: Double
-  ) {
-    val allNodes = rootView.flatten().asSequence().filter { it.drawId != 0L }
-    val surfaceOriginX = rootView.x - tree.rootSurfaceOffsetX
-    val surfaceOriginY = rootView.y - tree.rootSurfaceOffsetY
-    val requestedNodeInfo = allNodes.mapNotNull {
-      val bounds = it.transformedBounds.bounds.intersection(Rectangle(0, 0, Int.MAX_VALUE, Int.MAX_VALUE))
-      if (bounds.isEmpty) null
-      else makeRequestedNodeInfo(it.drawId, bounds.x - surfaceOriginX, bounds.y - surfaceOriginY, bounds.width, bounds.height)
-    }.toList()
-    if (requestedNodeInfo.isEmpty()) {
-      return
-    }
-    val (rootViewFromSkiaImage, errorMessage) = getViewTree(bytes, requestedNodeInfo, skiaParser, scale)
-
-    if (errorMessage != null) {
-      InspectorBannerService.getInstance(project).setNotification(errorMessage)
-    }
-    if (rootViewFromSkiaImage == null || rootViewFromSkiaImage.id == 0L) {
-      // We were unable to parse the skia image. Turn on screenshot mode on the device.
-      client.requestScreenshotMode()
-      // metrics will be logged when we come back with a bitmap
-    }
-    else {
-      client.logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER)
-      ViewNode.writeDrawChildren { drawChildren ->
-        rootView.flatten().forEach { it.drawChildren().clear() }
-        ComponentImageLoader(allNodes.associateBy { it.drawId }, rootViewFromSkiaImage).loadImages(drawChildren)
-      }
-    }
-  }
-
-  private fun processPng(bytes: ByteArray, rootView: ViewNode, client: TransportInspectorClient) {
-    ImageIO.read(ByteArrayInputStream(bytes))?.let {
-      ViewNode.writeDrawChildren { drawChildren ->
-        rootView.flatten().forEach { it.drawChildren().clear() }
-        rootView.drawChildren().add(DrawViewImage(it, rootView))
-        rootView.flatten().forEach { it.children.mapTo(it.drawChildren()) { child -> DrawViewChild(child) } }
-      }
-    }
-    client.logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
-  }
-
-  private fun getViewTree(
-    bytes: ByteArray,
-    requestedNodes: Iterable<RequestedNodeInfo>,
-    skiaParser: SkiaParserService,
-    scale: Double
-  ): Pair<SkiaViewNode?, String?> {
-    var errorMessage: String? = null
-    val inspectorView = try {
-      val root = skiaParser.getViewTree(bytes, requestedNodes, scale) { isInterrupted }
-
-      if (root == null) {
-        // We were unable to parse the skia image. Allow the user to interact with the component tree.
-        errorMessage = "Invalid picture data received from device. Rotation disabled."
-      }
-      root
-    }
-    catch (ex: UnsupportedPictureVersionException) {
-      errorMessage = "No renderer supporting SKP version ${ex.version} found. Rotation disabled."
-      null
-    }
-    catch (ex: Exception) {
-      errorMessage = "Problem launching renderer. Rotation disabled."
-      Logger.getInstance(TransportTreeLoaderImpl::class.java).warn(ex)
-      null
-    }
-    return Pair(inspectorView, errorMessage)
   }
 
   private fun loadRootView(): ViewNode? {
