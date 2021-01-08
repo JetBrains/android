@@ -331,7 +331,8 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   /**
-   * Creates a new LayoutlibSceneManager with the default settings for running render requests.
+   * Creates a new LayoutlibSceneManager with the default settings for running render requests, but with accessibility testing
+   * framework scanner disabled.
    * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, SceneComponentHierarchyProvider, SceneUpdateListener, Supplier)}
    *
    * @param model                  the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
