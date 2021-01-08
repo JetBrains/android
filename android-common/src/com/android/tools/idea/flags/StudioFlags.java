@@ -563,13 +563,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> BUILD_ATTRIBUTION_ENABLED = Flag.create(
     GRADLE_IDE, "build.attribution", "Enable build attribution",
     "Enable build attribution.", true);
-  public static final Flag<Boolean> NEW_BUILD_ANALYZER_UI_NAVIGATION_ENABLED = Flag.create(
-    GRADLE_IDE, "build.analyzer.new.ui.navigation", "Enable new UI navigation model for \"Build Analyzer\"",
-    "Enable new UI navigation model for \"Build Analyzer\".", true);
-  public static final Flag<Boolean> NEW_BUILD_ANALYZER_UI_VISUALIZATION_ENABLED = Flag.create(
-    GRADLE_IDE, "build.analyzer.new.ui.visualization", "Enable new visualization for \"Build Analyzer\"",
-    "Enable new visualization of tasks impact for \"Build Analyzer\" as well as filtering feature that depends on it",
-    true);
   public static final Flag<Boolean> AGP_UPGRADE_ASSISTANT = Flag.create(
     GRADLE_IDE, "agp.upgrade.assistant", "Enable AGP Upgrade Assistant",
     "Enable the Upgrade Assistant for helping with AGP upgrades", true);
