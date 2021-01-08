@@ -139,7 +139,8 @@ public class ClassConverterTest extends TestCase {
     assertEquals(0, getMinorVersion(data));
     assertEquals(0xCAFEBABE, getMagic(data));
 
-    ClassLoader classLoader = new TestClassLoader(ImmutableMap.of("Test", data));
+    ImmutableMap<String,byte[]> classMap = ImmutableMap.of("Test", data);
+    ClassLoader classLoader = new TestClassLoader(classMap);
     Class<?> clz = classLoader.loadClass("Test");
     assertNotNull(clz);
     Object result = clz.getMethod("test").invoke(null);
@@ -147,7 +148,7 @@ public class ClassConverterTest extends TestCase {
     Class<?> oldClz = clz;
 
     data = rewriteClass(data, toClassTransform(visitor -> new VersionClassTransform(visitor, 48, Integer.MIN_VALUE)),
-                        classLoader);
+                        new TestClassLocator(classMap));
     assertEquals(48, getMajorVersion(data));
     classLoader = new TestClassLoader(ImmutableMap.of("Test", data));
     clz = classLoader.loadClass("Test");
@@ -156,7 +157,8 @@ public class ClassConverterTest extends TestCase {
     result = clz.getMethod("test").invoke(null);
     assertEquals(42, result);
 
-    data = rewriteClass(data, toClassTransform(visitor -> new VersionClassTransform(visitor, Integer.MAX_VALUE, 52)), classLoader); // latest known
+    data = rewriteClass(data, toClassTransform(visitor -> new VersionClassTransform(visitor, Integer.MAX_VALUE, 52)),
+                        new TestClassLocator(classMap)); // latest known
     assertEquals(52, getMajorVersion(data));
     classLoader = new TestClassLoader(ImmutableMap.of("Test", data));
     clz = classLoader.loadClass("Test");
@@ -253,7 +255,7 @@ public class ClassConverterTest extends TestCase {
     byte[] data = ClassConverterTest.dumpTestViewClass();
 
     assertTrue(isValidClassFile(data));
-    byte[] modified = rewriteClass(data, toClassTransform(ViewMethodWrapperTransform::new), ClassConverter.class.getClassLoader());
+    byte[] modified = rewriteClass(data, toClassTransform(ViewMethodWrapperTransform::new), NopClassLocator.INSTANCE);
     assertTrue(isValidClassFile(data));
 
     // Parse both classes and compare
@@ -282,18 +284,21 @@ public class ClassConverterTest extends TestCase {
     assertTrue(isValidClassFile(firstData));
     assertTrue(isValidClassFile(secondData));
 
+    ImmutableMap<String, byte[]> classes = ImmutableMap.of(
+      "FirstClass", firstData,
+      "SecondClass", secondData
+    );
     ClassLoader loader = new ClassLoader() {
       @Override
       protected Class<?> findClass(String name) throws ClassNotFoundException {
-        if (name.equals("FirstClass")) {
-          return defineClass(name, firstData, 0, firstData.length);
-        }
-        if (name.equals("SecondClass")) {
-          return defineClass(name, secondData, 0, secondData.length);
+        if (classes.containsKey(name)) {
+          byte[] data = classes.get(name);
+          return defineClass(name, data, 0, data.length);
         }
         return super.findClass(name);
       }
     };
+    PseudoClassLocator locator = new TestClassLocator(classes);
     Class<?> clazz = loader.loadClass("FirstClass");
     Object o = clazz.getDeclaredConstructor().newInstance();
     int outValue = (Integer)clazz.getMethod("test").invoke(o);
@@ -305,8 +310,8 @@ public class ClassConverterTest extends TestCase {
 
 
     // Modify the classes and repeat.
-    final byte[] modifiedFirstData = rewriteClass(firstData, toClassTransform(visitor -> new VersionClassTransform(visitor, 50, 0)), loader);
-    final byte[] modifiedSecondData = rewriteClass(secondData, toClassTransform(visitor -> new VersionClassTransform(visitor, 50, 0)), loader);
+    final byte[] modifiedFirstData = rewriteClass(firstData, toClassTransform(visitor -> new VersionClassTransform(visitor, 50, 0)), locator);
+    final byte[] modifiedSecondData = rewriteClass(secondData, toClassTransform(visitor -> new VersionClassTransform(visitor, 50, 0)), locator);
     loader = new ClassLoader() {
       @Override
       protected Class<?> findClass(String name) throws ClassNotFoundException {
@@ -340,7 +345,7 @@ public class ClassConverterTest extends TestCase {
       rewriteClass(data, toClassTransform(
         visitor -> new TestVisitor(visitor, name -> called.add("Visitor1")),
         visitor -> new TestVisitor(visitor, name -> called.add("Visitor2"))
-      ), ClassConverterTest.class.getClassLoader());
+      ), NopClassLocator.INSTANCE);
       assertThat(called).containsExactly("Visitor1", "Visitor2");
     }
 
@@ -348,13 +353,13 @@ public class ClassConverterTest extends TestCase {
       Set<String> called = new HashSet<>();
       rewriteClass(data,
                    toClassTransform(visitor -> new TestVisitor(visitor, name -> called.add("Visitor1"))),
-                   ClassConverterTest.class.getClassLoader());
+                   NopClassLocator.INSTANCE);
       assertThat(called).containsExactly("Visitor1");
     }
 
     {
       // Check that this does not cause any problems
-      rewriteClass(data, toClassTransform(), ClassConverterTest.class.getClassLoader());
+      rewriteClass(data, toClassTransform(), NopClassLocator.INSTANCE);
     }
   }
 

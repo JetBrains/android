@@ -22,6 +22,7 @@ import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.classloading.ConstantRemapperManager;
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform;
+import com.android.tools.idea.rendering.classloading.PseudoClass;
 import com.android.tools.idea.rendering.classloading.RenderClassLoader;
 import com.android.tools.idea.rendering.classloading.RepackageTransform;
 import com.android.tools.idea.rendering.classloading.ThreadLocalRenameTransform;
@@ -314,6 +315,31 @@ public final class ModuleClassLoader extends RenderClassLoader {
       return aClass;
     }
     return loadClassFromNonProjectDependency(name);
+  }
+
+  @NotNull
+  @Override
+  public PseudoClass locatePseudoClass(@NotNull String classFqn) {
+    PseudoClass pseudoClass = super.locatePseudoClass(classFqn);
+
+    if (!pseudoClass.getName().equals(classFqn)) {
+      Module module = myModuleReference.get();
+      if (module == null || module.isDisposed()) {
+        return PseudoClass.Companion.objectPseudoClass();
+      }
+
+      VirtualFile classFile = ProjectSystemUtil.getModuleSystem(module).findClassFile(classFqn);
+      if (classFile != null) {
+        try {
+          return PseudoClass.Companion.fromByteArray(classFile.contentsToByteArray(), this);
+        }
+        catch (IOException e) {
+          LOG.debug(e);
+        }
+      }
+    }
+
+    return pseudoClass;
   }
 
   /**

@@ -47,7 +47,7 @@ import org.jetbrains.org.objectweb.asm.ClassWriter;
  * Class loader which can load classes for rendering and if necessary
  * convert the class file format down from unknown versions to a known version.
  */
-public abstract class RenderClassLoader extends ClassLoader {
+public abstract class RenderClassLoader extends ClassLoader implements PseudoClassLocator {
   protected static final Logger LOG = Logger.getInstance(RenderClassLoader.class);
 
   private final ClassTransform myProjectClassesTransformationProvider;
@@ -150,6 +150,22 @@ public abstract class RenderClassLoader extends ClassLoader {
   @NotNull
   protected Class<?> load(String name) throws ClassNotFoundException {
     return loadClassFromNonProjectDependency(name);
+  }
+
+  @NotNull
+  @Override
+  public PseudoClass locatePseudoClass(@NotNull String classFqn) {
+    try (InputStream is = getResourceAsStream(classFqn.replace(".", "/") + ".class")) {
+      if (is != null) {
+        byte[] data = ByteStreams.toByteArray(is);
+        return PseudoClass.Companion.fromByteArray(data, this);
+      }
+    }
+    catch (IOException e) {
+      LOG.debug(e);
+    }
+
+    return PseudoClass.Companion.objectPseudoClass();
   }
 
   @NotNull
