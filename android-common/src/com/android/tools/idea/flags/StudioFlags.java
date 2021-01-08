@@ -354,6 +354,11 @@ public final class StudioFlags {
     "Enable state list picker for selector drawable.",
     true);
 
+  public static final Flag<Boolean> NELE_ASSET_REPOSITORY_INCLUDE_AARS_THROUGH_PROJECT_SYSTEM = Flag.create(
+    NELE, "asset.repository.include.aars.through.project.system", "Include AARs through project system",
+    "Include resource directories from AARs found through project system.",
+    false);
+
   //endregion
 
   //region Navigation Editor
