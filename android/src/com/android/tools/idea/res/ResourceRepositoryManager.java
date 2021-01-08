@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.Slow;
+import com.android.ide.common.gradle.model.IdeAndroidLibrary;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeLibrary;
 import com.android.ide.common.gradle.model.IdeVariant;
@@ -271,8 +272,8 @@ public final class ResourceRepositoryManager implements Disposable {
   }
 
   @NotNull
-  public static Collection<IdeLibrary> findAarLibraries(@NotNull AndroidFacet facet) {
-    List<IdeLibrary> libraries = new ArrayList<>();
+  public static Collection<IdeAndroidLibrary> findAarLibraries(@NotNull AndroidFacet facet) {
+    List<IdeAndroidLibrary> libraries = new ArrayList<>();
     if (AndroidModel.isRequired(facet)) {
       AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
       if (androidModel != null) {
@@ -289,7 +290,7 @@ public final class ResourceRepositoryManager implements Disposable {
     return libraries;
   }
 
-  private static void addGradleLibraries(@NotNull List<IdeLibrary> list, @NotNull AndroidModuleModel androidModuleModel) {
+  private static void addGradleLibraries(@NotNull List<IdeAndroidLibrary> list, @NotNull AndroidModuleModel androidModuleModel) {
     list.addAll(androidModuleModel.getSelectedMainCompileLevel2Dependencies().getAndroidLibraries());
   }
 
