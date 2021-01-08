@@ -68,7 +68,7 @@ class ComposeSampleResolutionServiceTest : AndroidGradleTestCase() {
   }
 
   // TODO(b/176790499): it's a flaky test. Enable after fixing.
-  fun ignore_testResolveSampleReference() {
+  fun testResolveSampleReference() {
     loadProject(TestProjectPaths.APP_WITH_LIB_WITH_SAMPLES) {
       // ignore missing manifest errors
       it.type == SyncIssue.TYPE_MISSING_ANDROID_MANIFEST
