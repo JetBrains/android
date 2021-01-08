@@ -333,25 +333,33 @@ private class AndroidDependenciesSetupContext(
       processedLibraries[libraryName] = libraryDependencyData
     }
 
-    dependencies.moduleDependencies.filter { library ->
-      !library.projectPath.isNullOrEmpty()
-    }.forEach { library ->
-      val targetModuleId =
-        computeModuleIdForLibraryTarget(library, projectData, compositeData) ?: return@forEach
-      // Skip is already present
-      if (processedModuleDependencies.containsKey(targetModuleId)) return@forEach
+    setupAndroidModuleDependenciesForArtifact(artifact, scope)
+  }
 
-      val targetData = idToModuleData(targetModuleId) ?: return@forEach
-      // Skip if the dependency is a dependency on itself, this can be produced by Gradle when the a module
-      // dependency on the module in a different scope ie test code depending on the production code.
-      // In IDEA this dependency is implicit.
-      // TODO(rework-14): Do we need this special case, is it handled by IDEAs data service.
-      // See https://issuetracker.google.com/issues/68016998.
-      if (targetData == moduleDataNode.data) return@forEach
-      val moduleDependencyData = ModuleDependencyData(moduleDataNode.data, targetData)
-      moduleDependencyData.scope = scope
-      moduleDependencyData.isExported = shouldExportDependencies
-      processedModuleDependencies[targetModuleId] = moduleDependencyData
+  private fun setupAndroidModuleDependenciesForArtifact(
+    artifact: IdeBaseArtifact,
+    scope: DependencyScope
+  ) {
+    val dependencies = artifact.level2Dependencies
+    val projectData = projectDataNode.data
+    dependencies.moduleDependencies
+      .filter { library -> !library.projectPath.isNullOrEmpty() }
+      .forEach { library ->
+        val targetModuleId = computeModuleIdForLibraryTarget(library, projectData, compositeData) ?: return@forEach
+        // Skip is already present
+        if (processedModuleDependencies.containsKey(targetModuleId)) return@forEach
+
+        val targetData = idToModuleData(targetModuleId) ?: return@forEach
+        // Skip if the dependency is a dependency on itself, this can be produced by Gradle when the a module
+        // dependency on the module in a different scope ie test code depending on the production code.
+        // In IDEA this dependency is implicit.
+        // TODO(rework-14): Do we need this special case, is it handled by IDEAs data service.
+        // See https://issuetracker.google.com/issues/68016998.
+        if (targetData == moduleDataNode.data) return@forEach
+        val moduleDependencyData = ModuleDependencyData(moduleDataNode.data, targetData)
+        moduleDependencyData.scope = scope
+        moduleDependencyData.isExported = shouldExportDependencies
+        processedModuleDependencies[targetModuleId] = moduleDependencyData
     }
   }
 
