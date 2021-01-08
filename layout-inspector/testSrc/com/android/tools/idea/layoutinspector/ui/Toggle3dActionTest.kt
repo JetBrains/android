@@ -17,11 +17,11 @@ package com.android.tools.idea.layoutinspector.ui
 
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutinspector.model
-import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.PNG_AS_REQUESTED
+import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.PNG_SKP_TOO_LARGE
+import com.android.tools.idea.layoutinspector.model.FakeAndroidWindow
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.window
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_SKP_TOO_LARGE
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import icons.StudioIcons
@@ -82,7 +82,7 @@ class Toggle3dActionTest {
       image()
       view(2)
     }
-    inspectorModel.update(AndroidWindow(root, 3), listOf(3), 0)
+    inspectorModel.update(FakeAndroidWindow(root, 3), listOf(3), 0)
     Toggle3dAction.update(event)
     verify(presentation).isEnabled = false
     verify(presentation).text = "Rotation not available for devices below API 29"

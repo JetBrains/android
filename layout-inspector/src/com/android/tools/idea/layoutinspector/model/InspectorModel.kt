@@ -149,8 +149,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
         structuralChange = true
       }
       else {
-        oldWindow.imageType = newWindow.imageType
-        oldWindow.payloadId = newWindow.payloadId
+        oldWindow.copyFrom(newWindow)
         val updater = Updater(oldWindow.root, newWindow.root)
         structuralChange = updater.update() || structuralChange
       }

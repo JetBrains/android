@@ -23,6 +23,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.layoutinspector.SkiaParserService
 import com.android.tools.idea.layoutinspector.UnsupportedPictureVersionException
+import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
@@ -31,7 +32,6 @@ import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.layoutinspector.SkiaViewNode
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.testFramework.ProjectRule
@@ -217,7 +217,7 @@ class TransportTreeLoaderTest {
     val imageBytes = Files.readAllBytes(imageFile)
     val event = LayoutInspectorProto.LayoutInspectorEvent.newBuilder(event).apply {
       tree = LayoutInspectorProto.ComponentTreeEvent.newBuilder(tree).apply {
-        payloadType = PNG_AS_REQUESTED
+        payloadType = PayloadType.PNG_AS_REQUESTED
       }.build()
     }.build()
 
@@ -228,7 +228,7 @@ class TransportTreeLoaderTest {
     window!!.refreshImages(1.0)
     val tree = window.root
 
-    assertThat(window.imageType).isEqualTo(PNG_AS_REQUESTED)
+    assertThat(window.imageType).isEqualTo(ImageType.PNG_AS_REQUESTED)
     ViewNode.readDrawChildren { drawChildren ->
       ImageDiffUtil.assertImageSimilar(imageFile, (tree.drawChildren()[0] as DrawViewImage).image as BufferedImage, 0.0)
       assertThat(tree.flatten().flatMap { it.drawChildren().asSequence() }.count { it is DrawViewImage }).isEqualTo(1)

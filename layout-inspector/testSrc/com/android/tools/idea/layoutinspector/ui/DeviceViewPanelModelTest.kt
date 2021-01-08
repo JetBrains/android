@@ -16,7 +16,7 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.idea.layoutinspector.model
-import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.FakeAndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
@@ -184,7 +184,7 @@ class DeviceViewPanelModelTest {
         }
       }
 
-    model.update(AndroidWindow(model2, VIEW3), listOf(VIEW3), 0)
+    model.update(FakeAndroidWindow(model2, VIEW3), listOf(VIEW3), 0)
     panelModel.refresh()
 
     assertThat(panelModel.isRotated).isTrue()
@@ -196,7 +196,7 @@ class DeviceViewPanelModelTest {
         view(VIEW1)
       }
 
-    model.update(AndroidWindow(legacyModel, VIEW2), listOf(VIEW2), 0)
+    model.update(FakeAndroidWindow(legacyModel, VIEW2), listOf(VIEW2), 0)
     panelModel.refresh()
 
     assertThat(panelModel.isRotated).isFalse()
