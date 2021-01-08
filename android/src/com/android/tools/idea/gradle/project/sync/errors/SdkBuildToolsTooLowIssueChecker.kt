@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.annotations.concurrency.Slow
 import com.android.repository.Revision
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
@@ -54,6 +55,7 @@ class SdkBuildToolsTooLowIssueChecker: GradleIssueChecker {
   private val SDK_BUILD_TOOLS_TOO_LOW_PATTERN = Pattern.compile(
     "The SDK Build Tools revision \\((.*)\\) is too low for project '(.*)'. Minimum required is (.*)")
 
+  @Slow
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
     if (message.isEmpty()) return null
@@ -67,6 +69,7 @@ class SdkBuildToolsTooLowIssueChecker: GradleIssueChecker {
 
   }
 
+  @Slow
   private fun getBuildIssueDescriptionAndQuickFixes(message: String, projectPath: String): BuildIssueComposer? {
     val matcher = SDK_BUILD_TOOLS_TOO_LOW_PATTERN.matcher(message)
     if (!matcher.matches()) return null
@@ -116,6 +119,7 @@ class SdkBuildToolsTooLowIssueChecker: GradleIssueChecker {
   }
 }
 
+@Slow
 fun doesAndroidGradlePluginPackageBuildTools(modules: List<Module>): Boolean {
   // All modules should be using the same version of the AGP
   for (module in modules) {
