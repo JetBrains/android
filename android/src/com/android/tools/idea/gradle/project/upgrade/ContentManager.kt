@@ -7,6 +7,10 @@ import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessit
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT
+import com.android.tools.idea.observable.BindingsManager
+import com.android.tools.idea.observable.ListenerManager
+import com.android.tools.idea.observable.core.StringValueProperty
+import com.android.tools.idea.observable.ui.TextProperty
 import com.intellij.ide.plugins.newui.HorizontalLayout
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -20,14 +24,13 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.content.ContentFactory
-import com.intellij.util.EventDispatcher
+import com.intellij.util.ui.tree.TreeModelAdapter
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.BorderLayout
-import java.awt.event.FocusEvent
-import java.awt.event.FocusListener
 import java.util.EventListener
 import javax.swing.JButton
 import javax.swing.JTree
+import javax.swing.event.TreeModelEvent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 
@@ -36,7 +39,7 @@ internal class ToolWindowModel(
   var processor: AgpUpgradeRefactoringProcessor
 ) {
 
-  val eventDispatcher = EventDispatcher.create(ChangeListener::class.java)
+  val version = StringValueProperty(processor.new.toString())
 
   val treeModel = DefaultTreeModel(CheckedTreeNode(null))
 
@@ -78,8 +81,12 @@ internal class ToolWindowModel(
     }
   }
 
-  fun selectNewVersion(version: String) {
-    processor = AgpUpgradeRefactoringProcessor(processor.project, processor.current, GradleVersion.parse(version))
+  init {
+    //Listen for value changes
+    version.addListener {
+      processor = AgpUpgradeRefactoringProcessor(processor.project, processor.current, GradleVersion.parse(version.get()))
+      refreshTree()
+    }
     refreshTree()
   }
 
@@ -98,8 +105,6 @@ internal class ToolWindowModel(
     populateNecessity(OPTIONAL_CODEPENDENT) { o -> CheckedTreeNode(o).also { it.isChecked = false } }
     populateNecessity(OPTIONAL_INDEPENDENT) { o -> CheckedTreeNode(o).also { it.isChecked = false } }
     treeModel.nodeStructureChanged(root)
-
-    eventDispatcher.multicaster.modelChanged()
   }
 
   fun runUpgrade() {
@@ -137,22 +142,24 @@ class ContentManager(val project: Project) {
     val content = ContentFactory.SERVICE.getInstance().createContent(view.content, "Hello, Upgrade!", true)
     content.isPinned = true
     toolWindow.contentManager.addContent(content)
-    model.refreshTree()
     toolWindow.show()
   }
 
   private class View(val model: ToolWindowModel) {
+    /*
+    Experiment of usage of observable property bindings I have found in our code base.
+    Taking inspiration from com/android/tools/idea/avdmanager/ConfigureDeviceOptionsStep.java:85 at the moment (Jan 2021).
+     */
+    private val myBindings = BindingsManager()
+    private val myListeners = ListenerManager()
+
     val tree = CheckboxTree(UpgradeAssistantTreeCellRenderer(), null).apply {
       model = this@View.model.treeModel
       isRootVisible = false
       addCheckboxTreeListener(this@View.model.checkboxTreeStateUpdater)
     }
-    val textField = JBTextField().apply {
-      addActionListener { model.selectNewVersion(text) }
-      addFocusListener(object : FocusListener {
-        override fun focusGained(e: FocusEvent?) = Unit
-        override fun focusLost(e: FocusEvent?) = model.selectNewVersion(text)
-      })
+    val textField = JBTextField().also {
+      myBindings.bindTwoWay(TextProperty(it), model.version)
     }
     val refreshButton = JButton("Refresh").apply {
       addActionListener { this@View.model.refreshTree() }
@@ -167,13 +174,12 @@ class ContentManager(val project: Project) {
     }
 
     init {
-      model.eventDispatcher.addListener(object : ToolWindowModel.ChangeListener {
-        override fun modelChanged() {
-          textField.text = model.processor.new.toString()
-          //Tree model is bound to the tree separately and updates it's automatically
+      model.treeModel.addTreeModelListener(object : TreeModelAdapter() {
+        override fun treeStructureChanged(event: TreeModelEvent?) {
           TreeUtil.expandAll(tree)
         }
       })
+      TreeUtil.expandAll(tree)
     }
 
     private fun makeTopComponent(model: ToolWindowModel) = JBPanel<JBPanel<*>>().apply {
