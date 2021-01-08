@@ -19,7 +19,6 @@ import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.ide.common.repository.GoogleMavenRepository.MAVEN_GOOGLE_CACHE_DIR_KEY;
 import static com.android.tools.lint.checks.DeprecatedSdkRegistryKt.DEPRECATED_SDK_CACHE_DIR_KEY;
 
-import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
@@ -42,7 +41,6 @@ import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
-import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.idea.res.FrameworkResourceRepositoryManager;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -50,10 +48,10 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.lint.client.api.PlatformLookup;
-import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.client.api.ResourceRepositoryScope;
 import com.android.tools.lint.detector.api.DefaultPosition;
 import com.android.tools.lint.detector.api.Desugaring;
+import com.android.tools.lint.detector.api.Lint;
 import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Position;
 import com.android.utils.Pair;
@@ -88,6 +86,7 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xmlpull.v1.XmlPullParser;
@@ -320,6 +319,29 @@ public class AndroidLintIdeClient extends LintIdeClient {
           File file = record.getActionLocation().getFile().getSourceFile();
           source = Pair.of(file, sourceNode);
           break;
+        }
+      }
+    }
+
+    // Fallback if there's no manifest merger record for this; for example,
+    // it's common for the manifest merger to not have records for the <application> tag
+    if (source == NOT_FOUND && mergedNode.getNodeType() == Node.ELEMENT_NODE) {
+      for (Actions.Record record : records) {
+        File file = record.getActionLocation().getFile().getSourceFile();
+        if (file != null) {
+          try {
+            Document document = getXmlParser().parseXml(file);
+            if (document != null) {
+              Node sourceNode = Lint.matchXmlElement((Element)mergedNode, document);
+              if (sourceNode != null) {
+                source = Pair.of(file, sourceNode);
+                break;
+              }
+            }
+          }
+          catch (Throwable e) {
+            log(e, "Can't parse %1$s", file);
+          }
         }
       }
     }

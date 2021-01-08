@@ -53,7 +53,6 @@ public class AndroidLintIdeClientTest extends TestCase {
     packages.setLocalPkgInfos(
       ImmutableList.of(platformPackage, previewPlatform, addOnPlatform));
     RepoManager mgr = new FakeRepoManager(null, packages);
-    // STOPSHIP (and add plugin and shortcut
     AndroidSdkHandler sdkHandler = new AndroidSdkHandler(null, null, fop, mgr);
     com.intellij.openapi.project.Project ideaProject = mock(com.intellij.openapi.project.Project.class);
     LintResult result = new LintIgnoredResult();

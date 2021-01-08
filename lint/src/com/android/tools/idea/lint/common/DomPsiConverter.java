@@ -25,6 +25,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlComment;
@@ -33,6 +34,7 @@ import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlText;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -88,7 +90,7 @@ public class DomPsiConverter {
         return null;
       }
 
-      return convert(xmlDocument);
+      return convert(xmlDocument, xmlFile);
     }
     catch (ProcessCanceledException e) {
       // Ignore: common occurrence, e.g. we're running lint as part of an editor background
@@ -110,12 +112,14 @@ public class DomPsiConverter {
   /**
    * Convert the given {@link XmlDocument} to a DOM tree
    *
+   *
    * @param document the document to be converted
+   * @param xmlFile the underlying PSI file
    * @return a corresponding W3C DOM tree
    */
   @NotNull
-  private static Document convert(@NotNull XmlDocument document) {
-    return new DomDocument(document);
+  private static Document convert(@NotNull XmlDocument document, @NotNull XmlFile xmlFile) {
+    return new DomDocument(document, xmlFile);
   }
 
   @Nullable
@@ -244,10 +248,14 @@ public class DomPsiConverter {
     return textRange;
   }
 
-  @NotNull
+  @Nullable
   public static XmlElement getPsiElement(@NotNull Node node) {
-    DomNode domNode = (DomNode)node;
-    return domNode.myElement;
+    if (node instanceof DomNode) {
+      DomNode domNode = (DomNode)node;
+      return domNode.myElement;
+    } else {
+      return null;
+    }
   }
 
   private static final DomNodeList EMPTY = new DomNodeList() {
@@ -713,11 +721,13 @@ public class DomPsiConverter {
 
   private static class DomDocument extends DomNode implements Document {
     @NotNull private final XmlDocument myPsiDocument;
+    private final XmlFile myFile;
     @Nullable private DomElement myRoot;
 
-    private DomDocument(@NotNull XmlDocument document) {
+    private DomDocument(@NotNull XmlDocument document, @NotNull XmlFile file) {
       super(null, null, document);
       myPsiDocument = document;
+      myFile = file;
     }
 
     // From org.w3c.dom.Node:
@@ -757,6 +767,9 @@ public class DomPsiConverter {
     @Nullable
     @Override
     public Object getUserData(String s) {
+      if (s.equals(PsiFile.class.getName())) {
+        return myFile;
+      }
       return null;
     }
 

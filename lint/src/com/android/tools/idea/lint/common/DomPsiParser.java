@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.lint.common;
 
+import static com.android.utils.PositionXmlParser.CONTENT_KEY;
+
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.lint.client.api.LintClient;
@@ -28,11 +30,14 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlFile;
 import java.io.File;
+import kotlin.io.FilesKt;
+import kotlin.text.Charsets;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -228,11 +233,33 @@ class DomPsiParser extends XmlParser {
     @Override
     protected void initializeLineColumn() {
       XmlElement element = DomPsiConverter.getPsiElement(myNode);
-      ApplicationManager.getApplication().assertReadAccessAllowed();
-      PsiFile file = element.getContainingFile();
-      if (file != null && file.isValid()) {
-        String contents = file.getText();
-        initializeFromText(contents);
+      if (element != null) {
+        ApplicationManager.getApplication().assertReadAccessAllowed();
+        PsiFile file = element.getContainingFile();
+        if (file != null && file.isValid()) {
+          String contents = file.getText();
+          initializeFromText(contents);
+        }
+      } else {
+        // Not an IDE XML document; probably read from merged manifest
+        Document document = myNode.getOwnerDocument();
+        String text = (String)document.getUserData(CONTENT_KEY);
+        if (text != null) {
+          initializeFromText(text);
+        } else {
+          File file = (File)document.getUserData(File.class.getName());
+          if (file != null) {
+            String contents = FilesKt.readText(file, Charsets.UTF_8);
+            initializeFromText(contents);
+          }
+          else {
+            PsiFile psiFile = (PsiFile)document.getUserData(PsiFile.class.getName());
+            if (psiFile != null) {
+              String contents = psiFile.getText();
+              initializeFromText(contents);
+            }
+          }
+        }
       }
     }
   }
