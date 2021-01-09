@@ -23,13 +23,13 @@ import com.android.SdkConstants.FQCN_BUTTON
 import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.testutils.MockitoKt.mock
-import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
+import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.google.common.truth.Truth.assertThat
 import icons.StudioIcons
 import org.junit.Test
+import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
 
 class SelectedViewModelTest {
 

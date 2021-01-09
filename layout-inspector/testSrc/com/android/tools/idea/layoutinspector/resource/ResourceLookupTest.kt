@@ -18,18 +18,18 @@ package com.android.tools.idea.layoutinspector.resource
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_TEXT_COLOR
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
+import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import com.google.common.truth.Truth
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.JBUI
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Color
+import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
 
 class ResourceLookupTest {
 

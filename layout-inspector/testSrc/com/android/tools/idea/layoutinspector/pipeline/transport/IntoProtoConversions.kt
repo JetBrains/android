@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.transport
 
+import com.android.tools.idea.layoutinspector.properties.PropertyType
 import com.android.tools.idea.layoutinspector.resource.data.Configuration
 import com.android.tools.idea.layoutinspector.resource.data.AppContext
 import com.android.tools.idea.layoutinspector.resource.data.Locale
@@ -28,6 +29,10 @@ fun Resource.convert(): LayoutInspectorProto.Resource {
     namespace = self.namespace
     name = self.name
   }.build()
+}
+
+fun PropertyType.convert(): LayoutInspectorProto.Property.Type {
+  return LayoutInspectorProto.Property.Type.forNumber(this.ordinal)
 }
 
 fun Locale.convert(): LayoutInspectorProto.Locale {

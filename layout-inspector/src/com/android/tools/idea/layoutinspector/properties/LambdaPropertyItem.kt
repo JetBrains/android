@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.properties
 
 import com.android.tools.idea.layoutinspector.resource.SourceLocation
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 
 /**
  * A [PropertyItem] for a lambda parameter from Compose.
@@ -41,7 +40,7 @@ class LambdaPropertyItem(
 ): InspectorGroupPropertyItem(
   namespace = "",
   name = name,
-  type = LayoutInspectorProto.Property.Type.LAMBDA,
+  type = PropertyType.LAMBDA,
   value = "λ Lambda",
   classLocation = null,
   group = PropertySection.DEFAULT,

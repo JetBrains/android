@@ -287,7 +287,7 @@ class TransportPropertiesProvider(
         Type.LAMBDA -> return fromLambda(property)
         else -> ""
       }
-      val type = property.type
+      val type = property.type.convert()
       if (property.elementList.isEmpty()) {
         // TODO: Handle attribute namespaces i.e. the hardcoded ANDROID_URI below
         return InspectorPropertyItem(ANDROID_URI, name, type, value, group, source, viewId, lookup)
