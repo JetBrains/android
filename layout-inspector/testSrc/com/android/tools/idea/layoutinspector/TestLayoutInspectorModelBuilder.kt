@@ -153,7 +153,7 @@ class InspectorViewDescriptor(private val drawId: Long,
   fun build(): ViewNode {
     val result =
       if (composePackageHash == 0) ViewNode(drawId, qualifiedName, layout, x, y, width, height, bounds, viewId, textValue, layoutFlags)
-      else ComposeViewNode(drawId, qualifiedName, null, x, y, width, height, null, textValue, 0,
+      else ComposeViewNode(drawId, qualifiedName, null, x, y, width, height, null, null, textValue, 0,
                            composeFilename, composePackageHash, composeOffset, composeLineNumber)
     ViewNode.writeDrawChildren { drawChildren ->
       children.forEach {

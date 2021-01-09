@@ -128,8 +128,8 @@ private class TransportTreeLoaderImpl(
     }
     else {
       val composeFileName = stringTable[view.composeFilename]
-      ComposeViewNode(view.drawId, qualifiedName, layout, view.x, view.y, view.width, view.height, viewId, textValue, view.layoutFlags,
-                      composeFileName, view.composePackageHash, view.composeOffset, view.composeLineNumber)
+      ComposeViewNode(view.drawId, qualifiedName, layout, view.x, view.y, view.width, view.height, transformedBounds, viewId, textValue,
+                      view.layoutFlags, composeFileName, view.composePackageHash, view.composeOffset, view.composeLineNumber)
     }
     view.subViewList.map { loadView(it) }.forEach {
       node.children.add(it)
