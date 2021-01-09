@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.layoutinspector.properties
 
-import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_HEIGHT
+import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_WIDTH
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.PropertySection.DIMENSION
 import com.android.tools.idea.layoutinspector.properties.PropertySection.VIEW
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.util.concurrent.Futures
 import java.util.concurrent.Future
+import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
 
 // Constants for fabricated internal properties
 const val NAMESPACE_INTERNAL = "internal"

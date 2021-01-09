@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.legacy
 
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
+import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
 
 private val IDENTITY: (String) -> String = { it }
 

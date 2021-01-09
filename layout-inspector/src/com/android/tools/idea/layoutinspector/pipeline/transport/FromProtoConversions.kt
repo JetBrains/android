@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline.transport
 
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.properties.PropertyType
 import com.android.tools.idea.layoutinspector.resource.data.Configuration
 import com.android.tools.idea.layoutinspector.resource.data.AppContext
 import com.android.tools.idea.layoutinspector.resource.data.Locale
@@ -29,6 +30,10 @@ fun LayoutInspectorProto.ComponentTreeEvent.PayloadType.toImageType(): AndroidWi
     LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED -> AndroidWindow.ImageType.PNG_AS_REQUESTED
     else -> AndroidWindow.ImageType.UNKNOWN
   }
+}
+
+fun LayoutInspectorProto.Property.Type.convert(): PropertyType {
+  return PropertyType.values()[this.number]
 }
 
 fun LayoutInspectorProto.Resource.convert(): Resource {

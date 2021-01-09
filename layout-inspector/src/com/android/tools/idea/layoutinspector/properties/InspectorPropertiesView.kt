@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.properties
 
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EnumSupport
@@ -24,6 +23,7 @@ import com.android.tools.property.panel.api.PropertiesView
 import com.android.tools.property.panel.api.Watermark
 import com.android.tools.property.ptable2.PTableItem
 import org.jetbrains.android.formatter.AttributeComparator
+import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
 
 private const val VIEW_NAME = "LayoutInspectorPropertyEditor"
 private const val WATERMARK_MESSAGE = "No view selected."

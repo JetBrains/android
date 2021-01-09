@@ -84,8 +84,8 @@ import com.android.SdkConstants.ATTR_VISIBILITY
 import com.android.SdkConstants.ATTR_WIDTH
 import com.android.SdkConstants.VALUE_HORIZONTAL
 import com.android.SdkConstants.VALUE_VERTICAL
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import java.util.Locale
+import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
 
 /**
  * Conversion of legacy layout inspector properties to recognizable attribute names and values.
