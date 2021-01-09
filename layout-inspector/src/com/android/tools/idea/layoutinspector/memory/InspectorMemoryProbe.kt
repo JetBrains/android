@@ -27,6 +27,7 @@ import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 
 private const val DOT = "."
 
@@ -43,6 +44,7 @@ class InspectorMemoryProbe(private val model: InspectorModel) {
     ViewNode::class.java.`package`.name + DOT,
     ResourceType::class.java.`package`.name + DOT,
     LayoutInspectorProto::class.java.`package`.name + DOT,
+    LayoutInspectorViewProtocol::class.java.`package`.name + DOT,
     ResourceReference::class.java.`package`.name + DOT,
     ImmutableList::class.java.`package`.name + DOT,
     java.awt.Image::class.java.`package`.name + DOT,
