@@ -22,6 +22,7 @@ import com.android.tools.idea.resources.aar.CachingData
 import com.android.tools.idea.resources.aar.FrameworkResourceRepository
 import com.android.tools.idea.resources.aar.RESOURCE_CACHE_DIRECTORY
 import com.google.common.hash.Hashing
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.ServiceManager
 import org.jetbrains.annotations.TestOnly
@@ -30,6 +31,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executor
 
 /**
  * Application service for caching and reusing instances of [FrameworkResourceRepository].
@@ -116,7 +118,10 @@ class FrameworkResourceRepositoryManager {
     val prefix = resFolderOrJar.parent?.parent?.fileName?.toString() ?: "framework"
     val filename = String.format("%s_%s.dat", prefix, pathHash)
     val cacheFile = Paths.get(PathManager.getSystemPath(), RESOURCE_CACHE_DIRECTORY, filename)
-    return CachingData(cacheFile, contentVersion, codeVersion, AndroidIoManager.getInstance().getBackgroundDiskIoExecutor())
+    // Don't create a persistent cache in tests to avoid unnecessary overhead.
+    val executor = if (ApplicationManager.getApplication().isUnitTestMode) Executor {}
+                   else AndroidIoManager.getInstance().getBackgroundDiskIoExecutor()
+    return CachingData(cacheFile, contentVersion, codeVersion, executor)
   }
 
   @TestOnly

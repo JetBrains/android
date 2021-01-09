@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
@@ -107,8 +108,11 @@ public class ResourceFolderRegistry implements Disposable {
   private static ResourceFolderRepository createRepository(@NotNull AndroidFacet facet,
                                                            @NotNull VirtualFile dir,
                                                            @NotNull ResourceNamespace namespace) {
-    ResourceFolderRepositoryCachingData cachingData = ResourceFolderRepositoryFileCacheService.get()
-        .getCachingData(facet.getModule().getProject(), dir, AndroidIoManager.getInstance().getBackgroundDiskIoExecutor());
+    // Don't create a persistent cache in tests to avoid unnecessary overhead.
+    Executor executor = ApplicationManager.getApplication().isUnitTestMode() ?
+                        runnable -> {} : AndroidIoManager.getInstance().getBackgroundDiskIoExecutor();
+    ResourceFolderRepositoryCachingData cachingData =
+        ResourceFolderRepositoryFileCacheService.get().getCachingData(facet.getModule().getProject(), dir, executor);
     return ResourceFolderRepository.create(facet, dir, namespace, cachingData);
   }
 
