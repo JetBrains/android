@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.ide.common.rendering.api.ResourceReference
+import java.awt.Shape
 
 /**
  * A view node represents a composable in the view hierarchy as seen on the device.
@@ -28,6 +29,7 @@ class ComposeViewNode(
   y: Int,
   width: Int,
   height: Int,
+  transformedBounds: Shape?,
   viewId: ResourceReference?,
   textValue: String,
   layoutFlags: Int,
@@ -35,4 +37,4 @@ class ComposeViewNode(
   var composePackageHash: Int,
   var composeOffset: Int,
   var composeLineNumber: Int
-): ViewNode(drawId, qualifiedName, layout, x, y, width, height, null, viewId, textValue, layoutFlags)
+): ViewNode(drawId, qualifiedName, layout, x, y, width, height, transformedBounds, viewId, textValue, layoutFlags)
