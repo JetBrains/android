@@ -52,6 +52,7 @@ class AppInspectionInspectorClient(
 ) : AbstractInspectorClient(process) {
 
   private lateinit var viewInspector: ViewLayoutInspectorClient
+  private lateinit var propertiesProvider: AppInspectionPropertiesProvider
   private val exceptionHandler = CoroutineExceptionHandler { _, t ->
     fireError(t.message!!)
   }
@@ -59,6 +60,7 @@ class AppInspectionInspectorClient(
   override fun doConnect() {
     runBlocking {
       viewInspector = ViewLayoutInspectorClient.launch(apiServices, model.project, process, scope, ::fireError, ::fireTreeEvent)
+      propertiesProvider = AppInspectionPropertiesProvider(viewInspector, model)
     }
 
     if (isCapturing) {
@@ -98,7 +100,8 @@ class AppInspectionInspectorClient(
 
   override val capabilities = EnumSet.of(InspectorClient.Capability.SUPPORTS_CONTINUOUS_MODE)!!
   override val treeLoader: TreeLoader = AppInspectionTreeLoader(model.project)
-  override val provider: PropertiesProvider = AppInspectionPropertiesProvider()
+  override val provider: PropertiesProvider
+    get() = propertiesProvider
   override val isCapturing: Boolean
     get() = InspectorClientSettings.isCapturingModeOn
 }

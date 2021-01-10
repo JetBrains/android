@@ -24,10 +24,14 @@ import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.ErrorEvent
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Event
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.GetPropertiesCommand
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.LayoutEvent
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StartFetchCommand
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StopFetchCommand
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.WindowRootsEvent
@@ -82,6 +86,15 @@ class ViewLayoutInspectorClient(
     }
   }
 
+  /**
+   * Whether this client is continuously receiving layout events or not.
+   *
+   * This will be true between calls to `startFetching(continuous = true)` and
+   * `stopFetching`.
+   */
+  var isFetchingContinuously: Boolean = false
+    private set
+
   private val currRoots = mutableListOf<Long>()
 
   init {
@@ -104,12 +117,23 @@ class ViewLayoutInspectorClient(
         .setContinuous(continuous)
         .build()
     }
+    isFetchingContinuously = continuous
   }
 
   suspend fun stopFetching() {
     messenger.sendCommand {
       stopFetchCommand = StopFetchCommand.getDefaultInstance()
     }
+    isFetchingContinuously = false
+  }
+
+  suspend fun fetchProperties(viewId: Long): LayoutInspectorViewProtocol.GetPropertiesResponse {
+    val response = messenger.sendCommand {
+      getPropertiesCommand = GetPropertiesCommand.newBuilder()
+        .setViewId(viewId)
+        .build()
+    }
+    return response.getPropertiesResponse
   }
 
   private fun handleErrorEvent(errorEvent: ErrorEvent) {
@@ -130,8 +154,8 @@ class ViewLayoutInspectorClient(
  * Convenience method for wrapping a specific view-inspector command inside a parent
  * app inspection command.
  */
-private suspend fun AppInspectorMessenger.sendCommand(initCommand: Command.Builder.() -> Unit) {
+private suspend fun AppInspectorMessenger.sendCommand(initCommand: Command.Builder.() -> Unit): Response {
   val command = Command.newBuilder()
   command.initCommand()
-  sendRawCommand(command.build().toByteArray())
+  return Response.parseFrom(sendRawCommand(command.build().toByteArray()))
 }
