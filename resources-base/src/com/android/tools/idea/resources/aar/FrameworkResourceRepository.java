@@ -460,6 +460,9 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
         repository.populatePublicResourcesMap();
         repository.freezeResources();
       }
+      catch (ProcessCanceledException e) {
+        throw e;
+      }
       catch (Exception e) {
         LOG.error("Failed to load resources from " + myResourceDirectoryOrFile.toString(), e);
       }
