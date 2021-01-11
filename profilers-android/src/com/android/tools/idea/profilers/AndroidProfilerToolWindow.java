@@ -259,7 +259,9 @@ public class AndroidProfilerToolWindow implements Disposable {
     return getDeviceDisplayName(manufacturer, model, serial);
   }
 
-  /** Gets the display name of a device with the given manufacturer, model, and serial string. */
+  /**
+   * Gets the display name of a device with the given manufacturer, model, and serial string.
+   */
   @NotNull
   public static String getDeviceDisplayName(@NotNull String manufacturer, @NotNull String model, @NotNull String serial) {
     StringBuilder deviceNameBuilder = new StringBuilder();
@@ -293,7 +295,10 @@ public class AndroidProfilerToolWindow implements Disposable {
       IntellijCodeNavigator navigator = (IntellijCodeNavigator)ideProfilerServices.getCodeNavigator();
       // CPU ABI architecture, when needed by the code navigator, should be retrieved from StudioProfiler selected session.
       Common.SessionMetaData selectedSessionMetadata = myProfilers.getSessionsManager().getSelectedSessionMetaData();
-      navigator.setCpuAbiArchSupplier(() -> selectedSessionMetadata == null ? null : myProfilers.getProcess().getAbiCpuArch());
+      navigator.setCpuAbiArchSupplier(
+        () -> selectedSessionMetadata == Common.SessionMetaData.getDefaultInstance() || myProfilers.getProcess() == null
+              ? null
+              : myProfilers.getProcess().getAbiCpuArch());
 
       myProfilers.addDependency(this)
         .onChange(ProfilerAspect.MODE, this::modeChanged)
