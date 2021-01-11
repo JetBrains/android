@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet
@@ -30,9 +31,8 @@ import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProje
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL
 import com.android.tools.idea.gradle.project.sync.setup.post.setUpModules
-import com.android.tools.idea.gradle.project.upgrade.recommendPluginUpgrade
+import com.android.tools.idea.gradle.project.upgrade.maybeRecommendPluginUpgrade
 import com.android.tools.idea.gradle.project.upgrade.shouldForcePluginUpgrade
-import com.android.tools.idea.gradle.project.upgrade.shouldRecommendPluginUpgrade
 import com.android.tools.idea.gradle.util.AndroidStudioPreferences
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet
@@ -45,7 +45,6 @@ import com.intellij.execution.RunConfigurationProducerService
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.notification.NotificationType
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
@@ -325,10 +324,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
 }
 
 private fun additionalProjectSetup(project: Project) {
-  ApplicationManager.getApplication().executeOnPooledThread {
-    if (shouldRecommendPluginUpgrade(project)) recommendPluginUpgrade(project)
-  }
-
+  AndroidPluginInfo.findFromModel(project)?.maybeRecommendPluginUpgrade(project)
   ConflictSet.findConflicts(project).showSelectionConflicts()
   ProjectStructure.getInstance(project).analyzeProjectStructure()
   setUpModules(project)

@@ -390,6 +390,13 @@ fun displayForceUpdatesDisabledMessage(project: Project) {
   notification.notify(project)
 }
 
+fun AndroidPluginInfo.maybeRecommendPluginUpgrade(project: Project) {
+  this.pluginVersion?.let { currentAgpVersion ->
+    val recommendedAgpVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+    if (shouldRecommendPluginUpgrade(project, currentAgpVersion, recommendedAgpVersion)) recommendPluginUpgrade(project)
+  }
+}
+
 @Slow
 internal fun Project.findPluginInfo() : AndroidPluginInfo? {
   val pluginInfo = AndroidPluginInfo.find(this)
