@@ -62,13 +62,14 @@ public final class AsyncDevicesGetterTest {
 
     VirtualDevice pixel2ApiQVirtualDevice = new VirtualDevice.Builder()
       .setName("Pixel 2 API Q")
-      .setKey(new VirtualDeviceName("Pixel_2_API_Q"))
+      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_2_API_Q.avd"))
       .setAndroidDevice(pixel2ApiQAndroidDevice)
+      .setNameKey(new VirtualDeviceName("Pixel_2_API_Q"))
       .build();
 
     VirtualDevice pixel3ApiQVirtualDevice = new VirtualDevice.Builder()
       .setName("Pixel 3 API Q")
-      .setKey(new VirtualDeviceName("Pixel_3_API_Q"))
+      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_Q.avd"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setNameKey(new VirtualDeviceName("Pixel_3_API_Q"))
       .build();
@@ -100,7 +101,7 @@ public final class AsyncDevicesGetterTest {
     // Assert
     Object expectedPixel3ApiQDevice = new VirtualDevice.Builder()
       .setName("Pixel 3 API Q")
-      .setKey(new VirtualDeviceName("Pixel_3_API_Q"))
+      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_Q.avd"))
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27.000Z"))
       .setAndroidDevice(pixel3ApiQAndroidDevice)
       .setNameKey(new VirtualDeviceName("Pixel_3_API_Q"))
@@ -115,8 +116,9 @@ public final class AsyncDevicesGetterTest {
 
     Object expectedPixel2ApiQDevice = new VirtualDevice.Builder()
       .setName("Pixel 2 API Q")
-      .setKey(new VirtualDeviceName("Pixel_2_API_Q"))
+      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_2_API_Q.avd"))
       .setAndroidDevice(pixel2ApiQAndroidDevice)
+      .setNameKey(new VirtualDeviceName("Pixel_2_API_Q"))
       .build();
 
     assertEquals(Arrays.asList(expectedPixel3ApiQDevice, expectedGooglePixel3Device, expectedPixel2ApiQDevice), actualDevices);

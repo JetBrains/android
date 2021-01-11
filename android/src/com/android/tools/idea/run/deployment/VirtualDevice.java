@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Future;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
@@ -46,10 +47,10 @@ final class VirtualDevice extends Device {
   static final Icon ourConnectedIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE);
 
   /**
-   * Either a VirtualDeviceNameAndSnapshotPath or a VirtualDeviceName. The virtual device names match with ConnectedDevices that don't
-   * support the avd path emulator console subcommand added to the emulator in Version 30.0.18.
+   * The virtual device names match with ConnectedDevices that don't support the avd path emulator console subcommand added to the emulator
+   * in Version 30.0.18
    */
-  private final @Nullable Key myNameKey;
+  private final @Nullable VirtualDeviceName myNameKey;
 
   private final @NotNull Collection<@NotNull Snapshot> mySnapshots;
   private final boolean mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
@@ -59,7 +60,7 @@ final class VirtualDevice extends Device {
                                           @NotNull KeyToConnectionTimeMap map,
                                           @Nullable VirtualDevice virtualDevice) {
     Device device;
-    Key nameKey;
+    VirtualDeviceName nameKey;
 
     if (virtualDevice == null) {
       device = connectedDevice;
@@ -85,7 +86,7 @@ final class VirtualDevice extends Device {
   }
 
   static final class Builder extends Device.Builder {
-    private @Nullable Key myNameKey;
+    private @Nullable VirtualDeviceName myNameKey;
     private final @NotNull Collection<@NotNull Snapshot> mySnapshots = new ArrayList<>();
     private boolean mySelectDeviceSnapshotComboBoxSnapshotsEnabled = StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED.get();
 
@@ -126,7 +127,7 @@ final class VirtualDevice extends Device {
       return this;
     }
 
-    @NotNull Builder setNameKey(@Nullable Key nameKey) {
+    @NotNull Builder setNameKey(@Nullable VirtualDeviceName nameKey) {
       myNameKey = nameKey;
       return this;
     }
@@ -161,6 +162,10 @@ final class VirtualDevice extends Device {
     mySelectDeviceSnapshotComboBoxSnapshotsEnabled = builder.mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
   }
 
+  @NotNull Optional<@NotNull VirtualDeviceName> getNameKey() {
+    return Optional.ofNullable(myNameKey);
+  }
+
   void coldBoot(@NotNull Project project) {
     ((LaunchableAndroidDevice)getAndroidDevice()).coldBoot(project);
   }
@@ -192,11 +197,6 @@ final class VirtualDevice extends Device {
   @Override
   boolean matches(@NotNull Key key) {
     return getKey().equals(key) || Objects.equals(myNameKey, key);
-  }
-
-  @Override
-  boolean hasKeyContainedBy(@NotNull Collection<@NotNull Key> keys) {
-    return keys.contains(getKey()) || keys.contains(myNameKey);
   }
 
   @Override

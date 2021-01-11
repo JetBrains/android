@@ -98,11 +98,6 @@ final class ConnectedDevice extends Device {
   }
 
   @Override
-  boolean hasKeyContainedBy(@NotNull Collection<@NotNull Key> keys) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   @NotNull Target getDefaultTarget() {
     throw new UnsupportedOperationException();
   }

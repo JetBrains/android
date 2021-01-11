@@ -190,7 +190,11 @@ final class AsyncDevicesGetter implements Disposable {
       .map(ConnectedDevice::getKey)
       .collect(Collectors.toSet());
 
-    return virtualDevices.stream().filter(device -> !device.hasKeyContainedBy(connectedVirtualDeviceKeys));
+    return virtualDevices.stream().filter(device -> !containsPathOrName(connectedVirtualDeviceKeys, device));
+  }
+
+  private static boolean containsPathOrName(@NotNull Collection<@NotNull Key> keys, @NotNull VirtualDevice device) {
+    return keys.contains(device.getKey()) || keys.contains(device.getNameKey().orElseThrow(AssertionError::new));
   }
 
   @VisibleForTesting
