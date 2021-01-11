@@ -28,8 +28,11 @@ import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
 import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.util.ui.UIUtil
 import junit.framework.TestCase.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -51,7 +54,7 @@ private const val DIFF_THRESHOLD = 0.02
 class DeviceViewContentPanelTest {
 
   @get:Rule
-  val chain = RuleChain.outerRule(ProjectRule()).around(DeviceViewSettingsRule())!!
+  val chain = RuleChain.outerRule(ProjectRule()).around(DeviceViewSettingsRule()).around(EdtRule())!!
 
   @Test
   fun testSize() {
@@ -576,6 +579,7 @@ class DeviceViewContentPanelTest {
       getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintTransformedOutsideRoot_view1.png"), generatedImage, DIFF_THRESHOLD)
   }
 
+  @RunsInEdt
   @Test
   fun testAutoScroll() {
     val model = model {
@@ -593,6 +597,7 @@ class DeviceViewContentPanelTest {
     panel.setBounds(0, 0, 1000, 1000)
     scrollPane.setBounds(0, 0, 400, 400)
     scrollPane.viewport.viewPosition = Point(600, 600)
+    UIUtil.dispatchAllInvocationEvents()
 
     // No auto scrolling when selection is changed from the image:
     model.setSelection(view1, SelectionOrigin.INTERNAL)
