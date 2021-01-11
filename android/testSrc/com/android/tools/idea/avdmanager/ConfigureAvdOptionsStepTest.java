@@ -106,17 +106,17 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     pkgMarshmallow.setTypeDetails((TypeDetails) detailsMarshmallow);
     fileOp.recordExistingFile(pkgMarshmallow.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
-    // Nougat Preview image (still API 23)
-    String NPreviewPath = "system-images;android-N;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgNPreview = new FakePackage.FakeLocalPackage(NPreviewPath, fileOp);
-    DetailsTypes.SysImgDetailsType detailsNPreview =
+    // Preview image
+    String previewPath = "system-images;android-ZZZ;google_apis;x86";
+    FakePackage.FakeLocalPackage pkgPreview = new FakePackage.FakeLocalPackage(previewPath, fileOp);
+    DetailsTypes.SysImgDetailsType detailsPreview =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsNPreview.setTag(IdDisplay.create("google_apis", "Google APIs"));
-    detailsNPreview.setAbi("x86");
-    detailsNPreview.setApiLevel(23);
-    detailsNPreview.setCodename("N"); // Setting a code name is the key!
-    pkgNPreview.setTypeDetails((TypeDetails) detailsNPreview);
-    fileOp.recordExistingFile(pkgNPreview.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+    detailsPreview.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    detailsPreview.setAbi("x86");
+    detailsPreview.setApiLevel(99);
+    detailsPreview.setCodename("Z"); // Setting a code name is the key!
+    pkgPreview.setTypeDetails((TypeDetails) detailsPreview);
+    fileOp.recordExistingFile(pkgPreview.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Image with an unknown API level
     // (This is not supposed to happen. But it does sometimes.)
@@ -130,7 +130,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     pkgZulu.setTypeDetails((TypeDetails) detailsZulu);
     fileOp.recordExistingFile(pkgZulu.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
-    packages.setLocalPkgInfos(ImmutableList.of(pkgQ, pkgMarshmallow, pkgNPreview, pkgZulu));
+    packages.setLocalPkgInfos(ImmutableList.of(pkgQ, pkgMarshmallow, pkgPreview, pkgZulu));
 
     RepoManager mgr = new FakeRepoManager(fileOp.toPath(SDK_LOCATION), packages);
 
@@ -145,7 +145,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     ISystemImage marshmallowImage = systemImageManager.getImageAt(
       sdkHandler.getLocalPackage(marshmallowPath, progress).getLocation());
     ISystemImage NPreviewImage = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(NPreviewPath, progress).getLocation());
+      sdkHandler.getLocalPackage(previewPath, progress).getLocation());
     ISystemImage ZuluImage = systemImageManager.getImageAt(
       sdkHandler.getLocalPackage(zuluPath, progress).getLocation());
 
@@ -250,9 +250,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     Icon icon = optionsStep.getSystemImageIcon();
     assertNotNull(icon);
     String iconUrl = icon.toString();
-/* b/175997370
-    assertTrue("Wrong icon fetched for non-preview API: " + iconUrl, iconUrl.endsWith("Marshmallow_32.png"));
-b/175997370 */
+    assertTrue("Wrong icon fetched for non-preview API: " + iconUrl, iconUrl.contains("Marshmallow_32.png"));
 
     optionsModel = new AvdOptionsModel(myPreviewAvdInfo);
 
@@ -262,11 +260,7 @@ b/175997370 */
     icon = optionsStep.getSystemImageIcon();
     assertNotNull(icon);
     iconUrl = icon.toString();
-    // For an actual Preview, the URL will be Default_32.png, but
-    // we now know that N-Preview became Nougat.
-/* b/175997370
-    assertTrue("Wrong icon fetched for Preview API: " + iconUrl, iconUrl.endsWith("Nougat_32.png"));
-b/175997370 */
+    assertTrue("Wrong icon fetched for Preview API: " + iconUrl, iconUrl.contains("Default_32.png"));
 
     optionsModel = new AvdOptionsModel(myZuluAvdInfo);
 
@@ -276,9 +270,7 @@ b/175997370 */
     icon = optionsStep.getSystemImageIcon();
     assertNotNull(icon);
     iconUrl = icon.toString();
-/* b/175997370
-    assertTrue("Wrong icon fetched for unknown API: " + iconUrl, iconUrl.endsWith("Default_32.png"));
-b/175997370 */
+    assertTrue("Wrong icon fetched for unknown API: " + iconUrl, iconUrl.contains("Default_32.png"));
   }
 
   public void testPopulateSnapshotList() throws Exception {
