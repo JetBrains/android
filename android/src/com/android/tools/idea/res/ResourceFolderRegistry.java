@@ -55,7 +55,7 @@ import org.jetbrains.annotations.Nullable;
  * needed.
  */
 public class ResourceFolderRegistry implements Disposable {
-  @NotNull private Project myProject;
+  @NotNull private final Project myProject;
   @NotNull private final Cache<VirtualFile, ResourceFolderRepository> myNamespacedCache = buildCache();
   @NotNull private final Cache<VirtualFile, ResourceFolderRepository> myNonNamespacedCache = buildCache();
   @NotNull private final ImmutableList<Cache<VirtualFile, ResourceFolderRepository>> myCaches =
@@ -130,8 +130,8 @@ public class ResourceFolderRegistry implements Disposable {
 
   private void removeStaleEntries() {
     // TODO(namespaces): listen to changes in modules' namespacing modes and dispose repositories which are no longer needed.
-    myNamespacedCache.asMap().keySet().removeIf(dir -> isStale(dir));
-    myNonNamespacedCache.asMap().keySet().removeIf(dir -> isStale(dir));
+    myNamespacedCache.asMap().keySet().removeIf(this::isStale);
+    myNonNamespacedCache.asMap().keySet().removeIf(this::isStale);
   }
 
   private boolean isStale(@NotNull VirtualFile dir) {
@@ -149,8 +149,7 @@ public class ResourceFolderRegistry implements Disposable {
     reset();
   }
 
-  void dispatchToRepositories(@NotNull VirtualFile file,
-                                      @NotNull BiConsumer<ResourceFolderRepository, VirtualFile> handler) {
+  void dispatchToRepositories(@NotNull VirtualFile file, @NotNull BiConsumer<ResourceFolderRepository, VirtualFile> handler) {
     for (VirtualFile dir = file.isDirectory() ? file : file.getParent(); dir != null; dir = dir.getParent()) {
       for (Cache<VirtualFile, ResourceFolderRepository> cache : myCaches) {
         ResourceFolderRepository repository = cache.getIfPresent(dir);
