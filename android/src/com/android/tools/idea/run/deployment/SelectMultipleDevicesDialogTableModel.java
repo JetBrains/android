@@ -62,7 +62,7 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
       .collect(Collectors.toSet());
 
     IntStream.range(0, myRows.size())
-      .filter(modelRowIndex -> myRows.get(modelRowIndex).getDevice().hasKeyContainedBy(keys))
+      .filter(modelRowIndex -> keys.contains(myRows.get(modelRowIndex).getDevice().getKey()))
       .forEach(modelRowIndex -> setValueAt(true, modelRowIndex, SELECTED_MODEL_COLUMN_INDEX));
   }
 

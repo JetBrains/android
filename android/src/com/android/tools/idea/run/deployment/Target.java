@@ -39,7 +39,7 @@ abstract class Target {
       .collect(Collectors.toSet());
 
     return devices.stream()
-      .filter(device -> device.hasKeyContainedBy(keys))
+      .filter(device -> keys.contains(device.getKey()))
       .collect(Collectors.toList());
   }
 
