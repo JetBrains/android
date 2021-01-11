@@ -16,6 +16,7 @@
 package com.android.tools.idea.projectsystem.gradle.sync
 
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.SupportedModuleChecker
@@ -29,9 +30,8 @@ import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetup
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTracker
 import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
 import com.android.tools.idea.gradle.project.sync.setup.post.setUpModules
-import com.android.tools.idea.gradle.project.upgrade.recommendPluginUpgrade
-import com.android.tools.idea.gradle.project.upgrade.shouldRecommendPluginUpgrade
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator
+import com.android.tools.idea.gradle.project.upgrade.maybeRecommendPluginUpgrade
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts
 import com.android.tools.idea.model.AndroidModel
@@ -44,7 +44,6 @@ import com.intellij.execution.BeforeRunTask
 import com.intellij.execution.BeforeRunTaskProvider
 import com.intellij.execution.RunManagerEx
 import com.intellij.execution.configurations.RunConfiguration
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.project.ProjectData
@@ -137,9 +136,8 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     GradleProjectInfo.getInstance(project).isNewProject = false
     GradleProjectInfo.getInstance(project).isImportedProject = false
 
-    ApplicationManager.getApplication().executeOnPooledThread {
-      if (shouldRecommendPluginUpgrade(project)) recommendPluginUpgrade(project)
-    }
+    // TODO(b/124229467): Consider whether this should be here, as it will trigger on any project data import.
+    AndroidPluginInfo.findFromModel(project)?.maybeRecommendPluginUpgrade(project)
 
     if (IdeInfo.getInstance().isAndroidStudio) {
       MemorySettingsPostSyncChecker
