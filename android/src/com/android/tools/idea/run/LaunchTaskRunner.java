@@ -242,41 +242,40 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         return false;
       }
 
-      if (!task.shouldRun(launchContext)) {
-        continue;
-      }
+      if (task.shouldRun(launchContext)) {
+        LaunchTaskDetail.Builder details = myStats.beginLaunchTask(task);
+        indicator.setText(task.getDescription());
+        LaunchResult result = task.run(launchContext);
+        myOnFinished.addAll(result.onFinishedCallbacks());
+        boolean success = result.getSuccess();
+        myStats.endLaunchTask(task, details, success);
+        if (!success) {
+          myErrorNotificationListener = result.getNotificationListener();
+          myError = result.getError();
+          launchStatus.terminateLaunch(result.getConsoleError(), !isSwap());
 
-      LaunchTaskDetail.Builder details = myStats.beginLaunchTask(task);
-      indicator.setText(task.getDescription());
-      LaunchResult result = task.run(launchContext);
-      myOnFinished.addAll(result.onFinishedCallbacks());
-      boolean success = result.getSuccess();
-      myStats.endLaunchTask(task, details, success);
-      if (!success) {
-        myErrorNotificationListener = result.getNotificationListener();
-        myError = result.getError();
-        launchStatus.terminateLaunch(result.getConsoleError(), !isSwap());
+          // Append a footer hyperlink, if one was provided.
+          if (result.getConsoleHyperlinkInfo() != null) {
+            myConsoleConsumer.accept(result.getConsoleHyperlinkText() + "\n",
+                                     result.getConsoleHyperlinkInfo());
+          }
 
-        // Append a footer hyperlink, if one was provided.
-        if (result.getConsoleHyperlinkInfo() != null) {
-          myConsoleConsumer.accept(result.getConsoleHyperlinkText() + "\n",
-                                   result.getConsoleHyperlinkInfo());
+          notificationGroup.createNotification("Error", result.getError(), NotificationType.ERROR, myErrorNotificationListener)
+            .setImportant(true).notify(myProject);
+
+          // Show the tool window when we have an error.
+          RunContentManager.getInstance(myProject).toFrontRunContent(myLaunchInfo.executor, myProcessHandler);
+
+          myStats.setErrorId(result.getErrorId());
+          return false;
         }
 
-        notificationGroup.createNotification("Error", result.getError(), NotificationType.ERROR, myErrorNotificationListener)
-          .setImportant(true).notify(myProject);
-
-        // Show the tool window when we have an error.
-        RunContentManager.getInstance(myProject).toFrontRunContent(myLaunchInfo.executor, myProcessHandler);
-
-        myStats.setErrorId(result.getErrorId());
-        return false;
+        // Notify listeners of the deployment.
+        myProject.getMessageBus().syncPublisher(AppDeploymentListener.TOPIC).appDeployedToDevice(device, myProject);
       }
 
-      // Notify listeners of the deployment.
-      myProject.getMessageBus().syncPublisher(AppDeploymentListener.TOPIC).appDeployedToDevice(device, myProject);
-
       // Update the indicator progress.
+      completedStepsCount.set(completedStepsCount.get() + task.getDuration());
       indicator.setFraction(completedStepsCount.get().floatValue() / totalScheduledStepsCount);
     }
 
