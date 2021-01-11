@@ -29,7 +29,6 @@ import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.SystemImageManager;
 import com.google.common.collect.ImmutableList;
-import java.io.File;
 
 import org.jetbrains.android.AndroidTestCase;
 
@@ -44,7 +43,7 @@ public class SystemImagePreviewTest extends AndroidTestCase {
   private static final String AVD_LOCATION = "/avd";
 
   private SystemImageDescription mMarshmallowImageDescr;
-  private SystemImageDescription mNPreviewImageDescr;
+  private SystemImageDescription mPreviewImageDescr;
 
   @Override
   public void setUp() throws Exception {
@@ -64,20 +63,20 @@ public class SystemImagePreviewTest extends AndroidTestCase {
     pkgMarshmallow.setTypeDetails((TypeDetails)detailsMarshmallow);
     fileOp.recordExistingFile(pkgMarshmallow.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
-    // Nougat Preview image (still API 23)
-    String NPreviewPath = "system-images;android-N;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgNPreview = new FakePackage.FakeLocalPackage(NPreviewPath, fileOp);
-    DetailsTypes.SysImgDetailsType detailsNPreview =
+    // Fake preview image
+    String previewPath = "system-images;android-ZZZ;google_apis;x86";
+    FakePackage.FakeLocalPackage pkgPreview = new FakePackage.FakeLocalPackage(previewPath, fileOp);
+    DetailsTypes.SysImgDetailsType detailsPreview =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsNPreview.setTag(IdDisplay.create("google_apis", "Google APIs"));
-    detailsNPreview.setAbi("x86");
-    detailsNPreview.setVendor(IdDisplay.create("google", "Google"));
-    detailsNPreview.setApiLevel(23);
-    detailsNPreview.setCodename("N"); // Setting a code name is the key!
-    pkgNPreview.setTypeDetails((TypeDetails)detailsNPreview);
-    fileOp.recordExistingFile(pkgNPreview.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+    detailsPreview.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    detailsPreview.setAbi("x86");
+    detailsPreview.setVendor(IdDisplay.create("google", "Google"));
+    detailsPreview.setApiLevel(99);
+    detailsPreview.setCodename("Z"); // Setting a code name is the key!
+    pkgPreview.setTypeDetails((TypeDetails)detailsPreview);
+    fileOp.recordExistingFile(pkgPreview.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
-    packages.setLocalPkgInfos(ImmutableList.of(pkgMarshmallow, pkgNPreview));
+    packages.setLocalPkgInfos(ImmutableList.of(pkgMarshmallow, pkgPreview));
 
     RepoManager mgr = new FakeRepoManager(fileOp.toPath(SDK_LOCATION), packages);
 
@@ -89,11 +88,11 @@ public class SystemImagePreviewTest extends AndroidTestCase {
 
     ISystemImage marshmallowImage = systemImageManager.getImageAt(
       sdkHandler.getLocalPackage(marshmallowPath, progress).getLocation());
-    ISystemImage NPreviewImage = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(NPreviewPath, progress).getLocation());
+    ISystemImage previewImage = systemImageManager.getImageAt(
+      sdkHandler.getLocalPackage(previewPath, progress).getLocation());
 
     mMarshmallowImageDescr = new SystemImageDescription(marshmallowImage);
-    mNPreviewImageDescr = new SystemImageDescription(NPreviewImage);
+    mPreviewImageDescr = new SystemImageDescription(previewImage);
   }
 
   public void testSetImage() {
@@ -103,18 +102,12 @@ public class SystemImagePreviewTest extends AndroidTestCase {
     JLabel iconLabel = imagePreview.getReleaseIcon();
     assertTrue("No icon fetched for non-preview API", iconLabel != null && iconLabel.getIcon() != null);
     String iconUrl = iconLabel.getIcon().toString();
-/* b/175997370
-    assertTrue("Wrong icon fetched for non-preview API", iconUrl.endsWith("Marshmallow.png"));
-b/175997370 */
+    assertTrue("Wrong icon fetched for non-preview API", iconUrl.contains("Marshmallow.png"));
 
-    imagePreview.setImage(mNPreviewImageDescr);
+    imagePreview.setImage(mPreviewImageDescr);
     iconLabel = imagePreview.getReleaseIcon();
     assertTrue("No icon fetched for Preview API", iconLabel != null && iconLabel.getIcon() != null);
     iconUrl = iconLabel.getIcon().toString();
-    // For an actual Preview, the URL will be Default.png, but
-    // we now know that N-Preview became Nougat.
-/* b/175997370
-    assertTrue("Wrong icon fetched for Preview API", iconUrl.endsWith("Nougat.png"));
-b/175997370 */
+    assertTrue("Wrong icon fetched for Preview API", iconUrl.contains("Default.png"));
   }
 }
