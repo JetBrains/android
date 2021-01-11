@@ -82,6 +82,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -2040,6 +2041,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       catch (NoSuchFileException ignored) {
         // Cache file does not exist.
       }
+      catch (ProcessCanceledException e) {
+        throw e;
+      }
       catch (Throwable e) {
         // Remove incomplete data.
         mySources.clear();
@@ -2114,6 +2118,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
             }
           }
         }
+      }
+      catch (ProcessCanceledException e) {
+        throw e;
       }
       catch (Exception e) {
         LOG.error("Failed to load resources from " + myResourceDirectoryOrFile.toString(), e);
