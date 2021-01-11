@@ -19,6 +19,7 @@ import com.android.tools.idea.layoutinspector.SkiaParserService
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionTreeLoader
+import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.LowMemoryWatcher
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
@@ -33,7 +34,8 @@ private val LOAD_TIMEOUT = TimeUnit.SECONDS.toMillis(20)
 class ViewInspectorTreeLoader(
   private val project: Project,
   private val skiaParser: SkiaParserService,
-  private val event: LayoutInspectorViewProtocol.LayoutEvent
+  private val event: LayoutInspectorViewProtocol.LayoutEvent,
+  private val resourceLookup: ResourceLookup,
 ) {
   private val loadStartTime = AtomicLong(-1)
   private val strings = StringTableImpl(event.stringsList)
@@ -53,6 +55,7 @@ class ViewInspectorTreeLoader(
       return null
     }
     try {
+      resourceLookup.updateConfiguration(event.appContext.convert(), strings)
       val rootView = loadRootView() ?: return null
       return ViewAndroidWindow(project, skiaParser, rootView, event, { isInterrupted })
     }

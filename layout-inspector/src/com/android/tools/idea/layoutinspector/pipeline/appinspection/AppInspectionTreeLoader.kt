@@ -33,7 +33,8 @@ class AppInspectionTreeLoader(
   private val skiaParser: SkiaParserService = SkiaParser) : TreeLoader {
   override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup): Pair<AndroidWindow?, Int>? {
     if (data is ViewLayoutInspectorClient.Data) {
-      return ViewInspectorTreeLoader(project, skiaParser, data.layoutEvent).loadComponentTree() to data.layoutEvent.generation
+      val window = ViewInspectorTreeLoader(project, skiaParser, data.layoutEvent, resourceLookup).loadComponentTree()
+      return window to data.layoutEvent.generation
     }
     return null
   }
