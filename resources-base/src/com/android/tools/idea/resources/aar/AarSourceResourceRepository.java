@@ -345,6 +345,9 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
             myRTxtIds = computeIds(symbolTable);
             return true;
           }
+          catch (ProcessCanceledException e) {
+            throw e;
+          }
           catch (Exception e) {
             LOG.warn("Failed to load id resources from " + rDotTxt.toString(), e);
           }
@@ -357,6 +360,9 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
             SymbolTable symbolTable = SymbolIo.readFromAaptNoValues(reader, FN_RESOURCE_TEXT + " in " + myResourceDirectoryOrFile, null);
             myRTxtIds = computeIds(symbolTable);
             return true;
+          }
+          catch (ProcessCanceledException e) {
+            throw e;
           }
           catch (Exception e) {
             LOG.warn("Failed to load id resources from " + FN_RESOURCE_TEXT + " in " + myResourceDirectoryOrFile, e);
