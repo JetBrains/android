@@ -18,8 +18,15 @@ package com.android.tools.idea.common.editor
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
-import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CustomShortcutSet
+import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.IdeActions
+import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
@@ -72,7 +79,7 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
   override fun getShowPreviewAction() = previewViewAction
 
   override fun getData(dataId: String): Any? {
-    if (dataId == LangDataKeys.IDE_VIEW.name) {
+    if (LangDataKeys.IDE_VIEW.`is`(dataId)) {
       val component = myEditor.editor.contentComponent
       val context = DataManager.getInstance().getDataContext(component)
       return context.getData(dataId)

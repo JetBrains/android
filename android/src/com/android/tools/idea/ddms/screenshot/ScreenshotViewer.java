@@ -16,7 +16,6 @@
 package com.android.tools.idea.ddms.screenshot;
 
 import com.android.SdkConstants;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.resources.ScreenOrientation;
 import com.android.tools.adtui.ImageUtils;
@@ -24,6 +23,7 @@ import com.android.tools.idea.device.DeviceArtDescriptor;
 import com.android.tools.idea.device.DeviceArtPainter;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.pixelprobe.color.Colors;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.Notification;
@@ -51,20 +51,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.util.containers.ContainerUtil;
-import org.intellij.images.editor.ImageEditor;
-import org.intellij.images.editor.ImageFileEditor;
-import org.intellij.images.editor.ImageZoomModel;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Node;
-
-import javax.imageio.*;
-import javax.imageio.metadata.IIOMetadata;
-import javax.imageio.metadata.IIOMetadataNode;
-import javax.imageio.stream.ImageOutputStream;
-import javax.swing.*;
 import java.awt.*;
 import java.awt.color.ICC_ColorSpace;
 import java.awt.datatransfer.DataFlavor;
@@ -83,6 +69,23 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.Deflater;
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageTypeSpecifier;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.metadata.IIOMetadataNode;
+import javax.imageio.stream.ImageOutputStream;
+import javax.swing.*;
+import org.intellij.images.editor.ImageEditor;
+import org.intellij.images.editor.ImageFileEditor;
+import org.intellij.images.editor.ImageZoomModel;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Node;
 
 public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   @NonNls private static final String SCREENSHOT_VIEWER_DIMENSIONS_KEY = "ScreenshotViewer.Dimensions";
@@ -451,7 +454,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   public Object getData(@NotNull @NonNls String dataId) {
     // This is required since the Image Editor's actions are dependent on the context
     // being a ImageFileEditor.
-    return PlatformDataKeys.FILE_EDITOR.getName().equals(dataId) ? myImageFileEditor : null;
+    return PlatformDataKeys.FILE_EDITOR.is(dataId) ? myImageFileEditor : null;
   }
 
   @Nullable
