@@ -88,7 +88,7 @@ sealed class BaseActionEnumValue(override val action: AnAction) : ActionEnumValu
 
   override fun select(property: PropertyItem): Boolean {
     ApplicationManager.getApplication().invokeLater {
-      val propertyContext = DataContext { property }
+      val propertyContext = DataContext { if (EnumValue.Companion.PROPERTY_ITEM_KEY.`is`(it)) property else null }
       val event = AnActionEvent(null, propertyContext, "", action.templatePresentation.clone(), ActionManager.getInstance(), 0)
       action.actionPerformed(event)
     }
