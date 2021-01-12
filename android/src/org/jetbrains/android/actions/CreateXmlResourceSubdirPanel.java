@@ -115,7 +115,7 @@ public class CreateXmlResourceSubdirPanel {
 
     final VirtualFileDeleteProvider provider = new VirtualFileDeleteProvider();
     provider.deleteElement(dataId -> {
-      if (CommonDataKeys.VIRTUAL_FILE_ARRAY.getName().equals(dataId)) {
+      if (CommonDataKeys.VIRTUAL_FILE_ARRAY.is(dataId)) {
         return new VirtualFile[]{selectedDir};
       }
       else {

@@ -451,7 +451,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   public Object getData(@NotNull @NonNls String dataId) {
     // This is required since the Image Editor's actions are dependent on the context
     // being a ImageFileEditor.
-    return PlatformDataKeys.FILE_EDITOR.getName().equals(dataId) ? myImageFileEditor : null;
+    return PlatformDataKeys.FILE_EDITOR.is(dataId) ? myImageFileEditor : null;
   }
 
   @Nullable
