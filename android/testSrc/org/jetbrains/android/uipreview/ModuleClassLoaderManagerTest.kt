@@ -30,7 +30,6 @@ private class TestClassVisitorWithId(val id: String): ClassVisitor(Opcodes.ASM7,
   override val uniqueId: String = id
 }
 
-@org.junit.Ignore("b/176181598")
 class ModuleClassLoaderManagerTest {
   @get:Rule
   val project = AndroidProjectRule.inMemory()
@@ -65,6 +64,7 @@ class ModuleClassLoaderManagerTest {
       val newClassLoader = ModuleClassLoaderManager.get()
         .getShared(null, project.module, this, projectTransformations, nonProjectTransformations)
       assertEquals("No changes into the transformations. Same class loader was expected", newClassLoader, moduleClassLoader)
+      ModuleClassLoaderManager.get().release(newClassLoader, this)
     }
 
     run {
@@ -80,6 +80,7 @@ class ModuleClassLoaderManagerTest {
         .getShared(null, project.module, this, projectTransformations, nonProjectTransformations)
       assertNotNull(newClassLoader)
       assertNotEquals(newClassLoader, moduleClassLoader)
+      ModuleClassLoaderManager.get().release(moduleClassLoader!!, this)
       moduleClassLoader = newClassLoader
     }
 
@@ -95,7 +96,9 @@ class ModuleClassLoaderManagerTest {
         .getShared(null, project.module, this, projectTransformations, nonProjectTransformations)
       assertNotNull(newClassLoader)
       assertNotEquals(newClassLoader, moduleClassLoader)
+      ModuleClassLoaderManager.get().release(moduleClassLoader!!, this)
       moduleClassLoader = newClassLoader
+      ModuleClassLoaderManager.get().release(moduleClassLoader!!, this)
     }
   }
 }
