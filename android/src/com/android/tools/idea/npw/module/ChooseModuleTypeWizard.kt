@@ -228,6 +228,7 @@ fun sortModuleEntries(moduleTypeProviders: List<ModuleGalleryEntry>): List<Modul
   val orderedNames = arrayOf(
     message("android.wizard.module.new.mobile"),
     message("android.wizard.module.new.library"),
+    message("android.wizard.module.new.native.library"),
     message("android.wizard.module.new.dynamic.module"),
     message("android.wizard.module.new.dynamic.module.instant"),
     message("android.wizard.module.new.automotive"),
@@ -236,7 +237,6 @@ fun sortModuleEntries(moduleTypeProviders: List<ModuleGalleryEntry>): List<Modul
     message("android.wizard.module.new.things"),
     message("android.wizard.module.import.gradle.title"),
     message("android.wizard.module.import.eclipse.title"),
-    message("android.wizard.module.new.native.library"),
     message("android.wizard.module.new.java.or.kotlin.library"),
     message("android.wizard.module.new.google.cloud"),
     message("android.wizard.module.new.benchmark.module.app"))
