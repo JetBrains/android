@@ -17,11 +17,11 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.SdkConstants
 import com.android.SdkConstants.ANNOTATIONS_LIB_ARTIFACT_ID
-import com.android.ide.common.gradle.model.GradleModelConverter
 import com.android.ide.common.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.ide.common.gradle.model.IdeAndroidLibrary
 import com.android.ide.common.gradle.model.IdeBuildType
 import com.android.ide.common.gradle.model.IdeLibrary
+import com.android.ide.common.gradle.model.convertLibraryToExternalLibrary
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.GradleVersionRange
@@ -165,9 +165,10 @@ class GradleModuleSystem(
   private fun getResolvedLibraryDependencies(module: Module): Collection<ExternalLibrary> {
     val gradleModel = AndroidModuleModel.get(module) ?: return emptySet()
 
-    val converter = GradleModelConverter(gradleModel.androidProject)
-    val javaLibraries = gradleModel.selectedMainCompileLevel2Dependencies.javaLibraries.map(converter::convert)
-    val androidLibraries = gradleModel.selectedMainCompileLevel2Dependencies.androidLibraries.map(converter::convert)
+    val javaLibraries =
+      gradleModel.selectedMainCompileLevel2Dependencies.javaLibraries.map(::convertLibraryToExternalLibrary)
+    val androidLibraries =
+      gradleModel.selectedMainCompileLevel2Dependencies.androidLibraries.map(::convertLibraryToExternalLibrary)
 
     return javaLibraries + androidLibraries
   }

@@ -19,6 +19,7 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_UNIT_TEST;
 import static com.android.tools.idea.gradle.project.model.AndroidModelSourceProviderUtils.convertVersion;
+import static com.android.tools.idea.gradle.project.model.AndroidModuleModelUtilKt.classFieldsToDynamicResourceValues;
 import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getGenericBuiltArtifact;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.lint.client.api.LintClient.getGradleDesugaring;
@@ -626,7 +627,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Override
   @NotNull
   public Map<String, DynamicResourceValue> getResValues() {
-    return GradleModelConverterUtil.classFieldsToDynamicResourceValues(getSelectedVariant().getMainArtifact().getResValues());
+    return classFieldsToDynamicResourceValues(getSelectedVariant().getMainArtifact().getResValues());
   }
 
   @NotNull
