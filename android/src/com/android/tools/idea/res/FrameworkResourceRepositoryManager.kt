@@ -26,7 +26,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.ServiceManager
 import org.jetbrains.annotations.TestOnly
-import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -59,11 +58,11 @@ class FrameworkResourceRepositoryManager {
    */
   @Slow
   fun getFrameworkResources(
-    resourceDirectoryOrFile: File,
+    resourceDirectoryOrFile: Path,
     useCompiled9Patches: Boolean,
     languages: Set<String>
   ): FrameworkResourceRepository {
-    val path = resourceDirectoryOrFile.toPath()
+    val path = resourceDirectoryOrFile
     val cacheKey = CacheKey(path, useCompiled9Patches)
     val cachingData = createCachingData(path)
     val cached = cache.computeIfAbsent(cacheKey) {
