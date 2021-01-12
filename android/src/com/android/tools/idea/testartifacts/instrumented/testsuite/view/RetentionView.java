@@ -27,8 +27,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import javax.swing.JButton;
-import javax.swing.JPanel;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
  * Shows the Android Test Retention artifacts
  */
 public class RetentionView {
-  private class RetentionPanel extends JPanel implements DataProvider {
+  private static class RetentionPanel extends JPanel implements DataProvider {
     private static final String SNAPSHOT_ID = "test_failure_snapshot";
     private File snapshotFile = null;
 
@@ -49,9 +48,9 @@ public class RetentionView {
     @Nullable
     @Override
     public Object getData(@NotNull String dataId) {
-      if (dataId == RetentionConstantsKt.EMULATOR_SNAPSHOT_ID_KEY.getName()) {
+      if (RetentionConstantsKt.EMULATOR_SNAPSHOT_ID_KEY.is(dataId)) {
         return SNAPSHOT_ID;
-      } else if (dataId == RetentionConstantsKt.EMULATOR_SNAPSHOT_FILE_KEY.getName()) {
+      } else if (RetentionConstantsKt.EMULATOR_SNAPSHOT_FILE_KEY.is(dataId)) {
         return snapshotFile;
       }
       return null;

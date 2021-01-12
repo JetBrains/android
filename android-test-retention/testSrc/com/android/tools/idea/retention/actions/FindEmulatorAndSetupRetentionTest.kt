@@ -65,10 +65,10 @@ class FindEmulatorAndSetupRetentionTest {
     parentDataContext = DataContext { projectRule.project }
     dataContext = object : DataContext {
       override fun getData(dataId: String): Any? {
-        if (dataId == EMULATOR_SNAPSHOT_ID_KEY.name) {
+        if (EMULATOR_SNAPSHOT_ID_KEY.`is`(dataId)) {
           return snapshotId
         }
-        if (dataId == EMULATOR_SNAPSHOT_FILE_KEY.name) {
+        if (EMULATOR_SNAPSHOT_FILE_KEY.`is`(dataId)) {
           assertThat(snapshotFile.exists()).isTrue()
           assertThat(snapshotFile.canRead()).isTrue()
           return snapshotFile
@@ -115,7 +115,7 @@ class FindEmulatorAndSetupRetentionTest {
   fun actionDisabled() {
     val noSnapshotDataContext = object : DataContext {
       override fun getData(dataId: String): Any? {
-        if (dataId == EMULATOR_SNAPSHOT_ID_KEY.name || dataId == EMULATOR_SNAPSHOT_FILE_KEY.name) {
+        if (EMULATOR_SNAPSHOT_FILE_KEY.`is`(dataId)) {
           return null
         }
         return parentDataContext.getData(dataId)

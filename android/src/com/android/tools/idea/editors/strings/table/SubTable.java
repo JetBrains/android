@@ -28,8 +28,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
+import javax.swing.*;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
@@ -166,7 +165,7 @@ final class SubTable<M extends TableModel> extends JBTable implements DataProvid
   @Nullable
   @Override
   public Object getData(@NotNull String dataId) {
-    return dataId.equals(PlatformDataKeys.PASTE_PROVIDER.getName()) ? this : null;
+    return PlatformDataKeys.PASTE_PROVIDER.is(dataId) ? this : null;
   }
 
   @Override
