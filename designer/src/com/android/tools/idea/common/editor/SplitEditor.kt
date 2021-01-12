@@ -30,6 +30,7 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
+import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.DumbAware
 import javax.swing.Icon
@@ -80,9 +81,8 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
 
   override fun getData(dataId: String): Any? {
     if (LangDataKeys.IDE_VIEW.`is`(dataId)) {
-      val component = myEditor.editor.contentComponent
-      val context = DataManager.getInstance().getDataContext(component)
-      return context.getData(dataId)
+      val project = editor.project ?: return null
+      return FileEditorManagerEx.getInstanceEx(project).getData(dataId, editor, editor.caretModel.currentCaret)
     }
     return null
   }
