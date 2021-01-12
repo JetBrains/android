@@ -123,7 +123,13 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
       nav.goToInstanceField("gnu.trove.THashMap", "_values")
     }
     else {
-      nav.goToInstanceField("it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap", "values")
+      nav.goToInstanceField("it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap", "value")
+    }
+    if (nav.isNull()) {
+      throw ObjectNavigator.NavigationException("Collection of children is null")
+    }
+    if (!nav.getClass().isArray()) {
+      throw ObjectNavigator.NavigationException("Invalid type of map values collection: ${nav.getClass().name}")
     }
   }
 
