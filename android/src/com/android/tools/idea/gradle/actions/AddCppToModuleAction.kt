@@ -21,7 +21,9 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.util.toIoFile
+import com.android.tools.idea.wizard.template.DEFAULT_CMAKE_VERSION
 import com.android.tools.idea.wizard.template.cMakeListsTxt
+import com.android.utils.FileUtils
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -178,10 +180,19 @@ class AddCppToModuleAction : AndroidStudioGradleAction(TITLE, DESCRIPTION, null)
         else {
           externalNativeBuildFile
         }
-        buildModel.android().externalNativeBuild().apply {
+        buildModel.android().apply {
           when (relativizedPath.name.toLowerCase(Locale.US)) {
-            "cmakelists.txt" -> cmake().path().setValue(relativizedPath.path)
-            else -> ndkBuild().path().setValue(relativizedPath.path)
+            "cmakelists.txt" -> {
+              externalNativeBuild().cmake().apply {
+                path().setValue(FileUtils.toSystemIndependentPath(relativizedPath.path))
+                version().setValue(DEFAULT_CMAKE_VERSION)
+              }
+              defaultConfig().externalNativeBuild().cmake().cppFlags().setValue("")
+            }
+            else -> {
+              externalNativeBuild().ndkBuild().path().setValue(FileUtils.toSystemIndependentPath(relativizedPath.path))
+              defaultConfig().externalNativeBuild().ndkBuild().cppFlags().setValue("")
+            }
           }
         }
         buildModel.applyChanges()
