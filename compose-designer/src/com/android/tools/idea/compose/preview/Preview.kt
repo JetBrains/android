@@ -377,9 +377,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override var isLiveLiteralsEnabled: Boolean
     get() = liveLiteralsManager.isEnabled
     set(value) {
-      // When always-on is enabled, we do not allow changing the value
-      if (StudioFlags.COMPOSE_ALWAYS_ON_LIVE_LITERALS.get()) return
-
       liveLiteralsManager.isEnabled = value
       forceRefresh()
     }
@@ -480,7 +477,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   init {
     Disposer.register(this, ticker)
 
-    isLiveLiteralsEnabled = StudioFlags.COMPOSE_ALWAYS_ON_LIVE_LITERALS.get()
+    isLiveLiteralsEnabled = StudioFlags.COMPOSE_LIVE_LITERALS.get()
   }
 
   override val component: JComponent = composeWorkBench.component
