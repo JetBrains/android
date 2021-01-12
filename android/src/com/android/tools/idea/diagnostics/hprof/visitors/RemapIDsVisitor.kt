@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.diagnostics.hprof.visitors
 
+import com.android.tools.idea.diagnostics.hprof.classstore.HProfMetadata
 import com.android.tools.idea.diagnostics.hprof.parser.ConstantPoolEntry
 import com.android.tools.idea.diagnostics.hprof.parser.HProfVisitor
 import com.android.tools.idea.diagnostics.hprof.parser.HeapDumpRecordType
@@ -93,7 +94,13 @@ abstract class RemapIDsVisitor : HProfVisitor() {
 
         override fun getRemappingFunction(): LongUnaryOperator {
           return LongUnaryOperator { operand ->
-            if (operand == 0L) 0L else remapIDsMap[operand]!!.int.toLong()
+            if (operand == 0L) 0L else
+            {
+              if (remapIDsMap.containsKey(operand))
+                remapIDsMap[operand]!!.int.toLong()
+              else
+                throw HProfMetadata.RemapException()
+            }
           }
         }
       }

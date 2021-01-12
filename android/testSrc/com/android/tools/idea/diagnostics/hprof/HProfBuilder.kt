@@ -57,6 +57,9 @@ class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> S
     addObject(WeakReference::class.java)
   }
 
+  public val internalWriter: HprofWriter
+    get() = writer
+
   fun addRootGlobalJNI(o: Any) {
     val id = addObject(o)
     writer.writeRootGlobalJNI(id, 0)
