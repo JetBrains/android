@@ -127,11 +127,6 @@ final class PhysicalDevice extends Device {
   }
 
   @Override
-  boolean matches(@NotNull Key key) {
-    return getKey().equals(key);
-  }
-
-  @Override
   @NotNull Target getDefaultTarget() {
     return new PhysicalDeviceTarget((SerialNumber)getKey());
   }

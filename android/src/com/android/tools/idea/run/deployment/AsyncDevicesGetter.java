@@ -171,7 +171,7 @@ final class AsyncDevicesGetter implements Disposable {
   private static @NotNull Optional<@NotNull VirtualDevice> findFirst(@NotNull Collection<@NotNull VirtualDevice> devices,
                                                                      @NotNull Key key) {
     return devices.stream()
-      .filter(device -> device.matches(key))
+      .filter(device -> device.getKey().equals(key) || device.getNameKey().orElseThrow(AssertionError::new).equals(key))
       .findFirst();
   }
 

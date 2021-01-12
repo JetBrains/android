@@ -195,11 +195,6 @@ final class VirtualDevice extends Device {
   }
 
   @Override
-  boolean matches(@NotNull Key key) {
-    return getKey().equals(key) || Objects.equals(myNameKey, key);
-  }
-
-  @Override
   @NotNull Target getDefaultTarget() {
     return new QuickBootTarget(getKey());
   }

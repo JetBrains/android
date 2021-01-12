@@ -48,7 +48,7 @@ abstract class Target {
   }
 
   boolean matches(@NotNull Device device) {
-    return device.matches(myDeviceKey);
+    return device.getKey().equals(myDeviceKey);
   }
 
   /**
