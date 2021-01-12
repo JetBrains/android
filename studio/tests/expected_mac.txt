@@ -1598,6 +1598,7 @@ Android Studio Preview.app/Contents/lib/kotlinx-coroutines-jdk8-1.3.9.jar
 Android Studio Preview.app/Contents/lib/kryo-2.24.0.jar
 Android Studio Preview.app/Contents/lib/kxml2-2.3.0.jar
 Android Studio Preview.app/Contents/lib/layout_inspector_skia_java_proto.jar
+Android Studio Preview.app/Contents/lib/layout_inspector_view_java_proto.jar
 Android Studio Preview.app/Contents/lib/libam-instrumentation-data-proto.jar
 Android Studio Preview.app/Contents/lib/libstudio.proto.jar
 Android Studio Preview.app/Contents/lib/log4j.jar
