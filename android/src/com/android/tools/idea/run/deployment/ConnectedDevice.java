@@ -93,11 +93,6 @@ final class ConnectedDevice extends Device {
   }
 
   @Override
-  boolean matches(@NotNull Key key) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   @NotNull Target getDefaultTarget() {
     throw new UnsupportedOperationException();
   }

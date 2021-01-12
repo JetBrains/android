@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.deployment;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.run.AndroidDevice;
 import com.google.common.jimfs.Configuration;
@@ -32,43 +31,6 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class VirtualDeviceTest {
-  @Test
-  public void matchesDeviceIsInManagerAndKeyIsVirtualDevicePath() {
-    // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(new VirtualDevicePath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setNameKey(new VirtualDeviceName("Pixel_4_API_30"))
-      .build();
-
-    Key key = new VirtualDevicePath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd");
-
-    // Act
-    boolean matches = device.matches(key);
-
-    // Assert
-    assertTrue(matches);
-  }
-
-  @Test
-  public void matchesDeviceIsntInManagerAndKeyIsSerialNumber() {
-    // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("emulator-5554")
-      .setKey(new SerialNumber("emulator-5554"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    Key key = new SerialNumber("emulator-5554");
-
-    // Act
-    boolean matches = device.matches(key);
-
-    // Assert
-    assertTrue(matches);
-  }
-
   @Test
   public void getTargetsSelectDeviceSnapshotComboBoxSnapshotsEnabled() {
     // Arrange

@@ -35,7 +35,7 @@ final class BootWithSnapshotTarget extends Target {
 
   @Override
   boolean matches(@NotNull Device device) {
-    if (!device.matches(getDeviceKey())) {
+    if (!device.getKey().equals(getDeviceKey())) {
       return false;
     }
 
