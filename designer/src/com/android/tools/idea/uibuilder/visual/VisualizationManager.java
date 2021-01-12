@@ -19,10 +19,9 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
@@ -30,6 +29,7 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.Computable;
@@ -164,13 +164,17 @@ public final class VisualizationManager implements Disposable {
     final JComponent contentPanel = myToolWindowForm.getComponent();
     final ContentManager contentManager = myToolWindow.getContentManager();
     contentManager.addDataProvider(dataId -> {
-      if (LangDataKeys.MODULE.is(dataId) || LangDataKeys.IDE_VIEW.is(dataId) || CommonDataKeys.VIRTUAL_FILE.is(dataId)) {
-        FileEditor fileEditor = myToolWindowForm.getEditor();
-        if (fileEditor != null) {
-          JComponent component = fileEditor.getComponent();
-          DataContext context = DataManager.getInstance().getDataContext(component);
-          return context.getData(dataId);
-        }
+      FileEditor fileEditor = myToolWindowForm.getEditor();
+      if (fileEditor == null) return null;
+      if (CommonDataKeys.VIRTUAL_FILE.is(dataId)) {
+        return fileEditor.getFile();
+      }
+      else if (LangDataKeys.IDE_VIEW.is(dataId)) {
+        return ((DataProvider)fileEditor).getData(dataId);
+      }
+      else if (LangDataKeys.MODULE.is(dataId)) {
+        VirtualFile file = fileEditor.getFile();
+        return file == null ? null : ModuleUtilCore.findModuleForFile(file, myProject);
       }
       return null;
     });
