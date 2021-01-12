@@ -50,14 +50,14 @@ object CaptureDataSeries {
     of({ getHeapDumpsForSession(client, session, it, stage.studioProfilers.ideServices) },
        { it.startTime }, { it.endTime },
        { HeapDumpCaptureObject(client, session, it, null, tracker, stage.studioProfilers.ideServices) },
-       { durUs, _, entry -> CaptureDurationData(durUs, false, false, entry)})
+       { durUs, _, entry -> CaptureDurationData(durUs, false, false, entry, true)})
 
   @JvmStatic
   fun ofNativeAllocationSamples(client: ProfilerClient, session: Common.Session, tracker: FeatureTracker, stage: BaseMemoryProfilerStage) =
     of({ getNativeHeapSamplesForSession(client, session, it) },
        { it.startTime }, { it.endTime },
        { NativeAllocationSampleCaptureObject(client, session, it, stage) },
-       { durUs, _, entry -> CaptureDurationData(durUs, false, false, entry)})
+       { durUs, _, entry -> CaptureDurationData(durUs, false, false, entry, true)})
 
   private fun<T> of(getSamples: (Range) -> List<T>,
                     startTimeNs: (T) -> Long, endTimeNs: (T) -> Long,
