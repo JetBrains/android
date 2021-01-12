@@ -14,13 +14,21 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.editor.EditorMouseHoverPopupManager
 import com.intellij.openapi.editor.event.EditorFactoryEvent
 import com.intellij.openapi.editor.event.EditorFactoryListener
+import com.intellij.openapi.editor.event.EditorMouseEvent
+import com.intellij.openapi.editor.event.EditorMouseListener
+import com.intellij.openapi.editor.impl.EditorMouseHoverPopupControl
 import com.intellij.openapi.editor.markup.EffectType
+import com.intellij.openapi.editor.markup.MarkupEditorFilter
+import com.intellij.openapi.editor.markup.MarkupEditorFilterFactory
 import com.intellij.openapi.editor.markup.RangeHighlighter
 import com.intellij.openapi.editor.markup.TextAttributes
+import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.ui.hover.HoverListener
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
@@ -137,34 +145,48 @@ class LiveLiteralsService(private val project: Project) : Disposable {
    */
   private fun addDocumentTracking(parentDisposable: Disposable, editor: Editor, document: Document) {
     val file = AndroidPsiUtils.getPsiFileSafely(project, document) ?: return
-
-    // Take a snapshot
     val fileSnapshot = literalsManager.findLiterals(file)
-    if (log.isDebugEnabled) {
-      fileSnapshot.all.forEach {
-        val elementPathString = it.usages.joinToString("\n") { element -> element.toString() }
-        log.debug("[${it.uniqueId}] Found constant ${it.text} \n$elementPathString\n\n")
-      }
-    }
 
     if (fileSnapshot.all.isNotEmpty()) {
       documentSnapshots[document] = fileSnapshot
 
-      // When using "always-on" live literals, we don't show highlights.
-      if (!StudioFlags.COMPOSE_ALWAYS_ON_LIVE_LITERALS.get()) {
-        UIUtil.invokeAndWaitIfNeeded(Runnable {
-          val highlightManager = HighlightManager.getInstance(project)
-          val outHighlighters = mutableSetOf<RangeHighlighter>()
-          fileSnapshot.highlightSnapshotInEditor(project, editor, LITERAL_TEXT_ATTRIBUTE, outHighlighters)
-          if (outHighlighters.isNotEmpty()) {
-            // Remove the highlights if the manager is deactivated
-            Disposer.register(parentDisposable, {
-              outHighlighters.forEach { highlightManager.removeSegmentHighlighter(editor, it) }
-            })
-          }
-        })
+      Disposer.register(parentDisposable) {
+        documentSnapshots.remove(document)
       }
     }
+
+    editor.addEditorMouseListener(object: EditorMouseListener {
+      val outHighlighters = mutableSetOf<RangeHighlighter>()
+
+      private fun clearAll() {
+        val highlightManager = HighlightManager.getInstance(project)
+        outHighlighters.forEach { highlightManager.removeSegmentHighlighter(editor, it) }
+        outHighlighters.clear()
+      }
+
+      override fun mouseEntered(event: EditorMouseEvent) {
+        // Take a snapshot
+        if (log.isDebugEnabled) {
+          fileSnapshot.all.forEach {
+            val elementPathString = it.usages.joinToString("\n") { element -> element.toString() }
+            log.debug("[${it.uniqueId}] Found constant ${it.text} \n$elementPathString\n\n")
+          }
+        }
+
+        if (fileSnapshot.all.isNotEmpty()) {
+          fileSnapshot.highlightSnapshotInEditor(project, editor, LITERAL_TEXT_ATTRIBUTE, outHighlighters)
+
+          if (outHighlighters.isNotEmpty()) {
+            // Remove the highlights if the manager is deactivated
+            Disposer.register(parentDisposable, this::clearAll)
+          }
+        }
+      }
+
+      override fun mouseExited(event: EditorMouseEvent) {
+        clearAll()
+      }
+    }, parentDisposable)
   }
 
   @Synchronized
