@@ -23,8 +23,10 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assume.assumeTrue;
 
 import com.android.ddmlib.allocations.AllocationsParserTest;
+import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
@@ -32,10 +34,12 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.AllocationsInfo;
+import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.Memory.TrackStatus.Status;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profilers.FakeFeatureTracker;
 import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
@@ -759,5 +763,26 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     // Second tick sends the STOP_NATIVE_HEAP_SAMPLE command and updates state
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myStage.isTrackingAllocations()).isFalse();
+  }
+
+  @Test
+  public void selectingHeapDumpGoesToSeparateStage() {
+    myIdeProfilerServices.enableSeparateHeapDumpUi(true);
+    myIdeProfilerServices.enableEventsPipeline(true);
+
+    HeapDumpInfo info = HeapDumpInfo.newBuilder().build();
+
+    myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(),
+                                        ProfilersTestData.generateMemoryHeapDumpData(info.getStartTime(), info.getStartTime(), info)
+                                          .setPid(ProfilersTestData.SESSION_DATA.getPid())
+                                          .build());
+
+    DataSeries<CaptureDurationData<CaptureObject>> series =
+      CaptureDataSeries.ofHeapDumpSamples(new ProfilerClient(myGrpcChannel.getChannel()), ProfilersTestData.SESSION_DATA,
+                                          myIdeProfilerServices.getFeatureTracker(), myStage);
+    List<SeriesData<CaptureDurationData<CaptureObject>>> dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
+
+    myStage.selectCaptureDuration(dataList.get(0).value, null);
+    assertThat(myProfilers.getStage()).isInstanceOf(HeapDumpStage.class);
   }
 }

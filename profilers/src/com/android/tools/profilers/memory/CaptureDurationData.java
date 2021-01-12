@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class CaptureDurationData<T extends CaptureObject> extends DefaultConfigurableDurationData {
   @NotNull private final CaptureEntry<T> myCaptureEntry;
-  private final boolean myIsHeapDumpData;
+  private final boolean myIsSeparateStageData;
 
   public CaptureDurationData(long duration,
                              boolean selectableWhenUnspecifiedDuration,
@@ -34,10 +34,10 @@ public class CaptureDurationData<T extends CaptureObject> extends DefaultConfigu
                              boolean selectableWhenUnspecifiedDuration,
                              boolean selectPartialRange,
                              @NotNull CaptureEntry<T> captureEntry,
-                             boolean isHeapDumpData) {
+                             boolean isSeparateStageData) {
     super(duration, selectableWhenUnspecifiedDuration, selectPartialRange);
     myCaptureEntry = captureEntry;
-    myIsHeapDumpData = isHeapDumpData;
+    myIsSeparateStageData = isSeparateStageData;
   }
 
   @NotNull
@@ -46,10 +46,9 @@ public class CaptureDurationData<T extends CaptureObject> extends DefaultConfigu
   }
 
   /**
-   * TODO: better property name
    * @return whether the data should be displayed in a separate UI
    */
-  public final boolean isHeapDumpData() {
-    return myIsHeapDumpData;
+  public final boolean isSeparateStageData() {
+    return myIsSeparateStageData;
   }
 }

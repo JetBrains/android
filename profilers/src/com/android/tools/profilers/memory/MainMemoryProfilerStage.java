@@ -360,7 +360,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
                                     @Nullable Executor joiner) {
     StudioProfilers profilers = getStudioProfilers();
     if (durationData != null &&
-        durationData.isHeapDumpData() &&
+        durationData.isSeparateStageData() &&
         getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
       profilers.setStage(new HeapDumpStage(profilers, getLoader(), durationData, joiner));
     }
