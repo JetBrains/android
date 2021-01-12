@@ -40,6 +40,7 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
+import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
@@ -75,7 +76,7 @@ class LayoutInspectorTreePanelTest {
 
   @Before
   fun setUp() {
-    val fileManager = Mockito.mock(FileEditorManager::class.java)
+    val fileManager = Mockito.mock(FileEditorManagerEx::class.java)
     Mockito.`when`(fileManager.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     Mockito.`when`(fileManager.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
     Mockito.`when`(fileManager.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
