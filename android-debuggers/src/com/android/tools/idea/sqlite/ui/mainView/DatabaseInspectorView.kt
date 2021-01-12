@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite.ui.mainView
 
+import com.android.tools.idea.sqlite.model.ExportDialogParams
 import com.android.tools.idea.sqlite.controllers.TabId
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
@@ -83,6 +84,8 @@ interface DatabaseInspectorView {
     fun toggleKeepConnectionOpenActionInvoked()
     /** Called when the user wants to stop entering offline mode */
     fun cancelOfflineModeInvoked()
+    /** Called when user wants to export data */
+    fun showExportToFileDialogInvoked(exportDialogParams: ExportDialogParams)
   }
 }
 

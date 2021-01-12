@@ -35,6 +35,7 @@ import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFr
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
 import com.android.tools.idea.sqlite.model.DatabaseIdNotFoundException
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
+import com.android.tools.idea.sqlite.model.ExportDialogParams
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
@@ -577,6 +578,10 @@ class DatabaseInspectorControllerImpl(
     override fun cancelOfflineModeInvoked() {
       databaseInspectorAnalyticsTracker.trackEnterOfflineModeUserCanceled()
       projectScope.launch { downloadAndOpenOfflineDatabasesJob?.cancelAndJoin() }
+    }
+
+    override fun showExportToFileDialogInvoked(exportDialogParams: ExportDialogParams) {
+      // TODO(161081452): implement
     }
   }
 
