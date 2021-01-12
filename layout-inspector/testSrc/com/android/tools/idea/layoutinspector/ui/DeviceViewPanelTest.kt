@@ -114,7 +114,9 @@ class DeviceViewPanelWithFullInspectorTest {
   @Test
   fun testLiveControlEnabledAndSetByDefaultWhenConnected() {
     installCommandHandlers()
+    latch = CountDownLatch(1)
     connect(MODERN_DEVICE.createProcess())
+    assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
 
     val settings = DeviceViewSettings()
     val toolbar = getToolbar(
@@ -131,8 +133,9 @@ class DeviceViewPanelWithFullInspectorTest {
   fun testLiveControlEnabledAndNotSetInSnapshotModeWhenConnected() {
     InspectorClientSettings.isCapturingModeOn = false
     installCommandHandlers()
+    latch = CountDownLatch(1)
     connect(MODERN_DEVICE.createProcess())
-
+    assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
     val settings = DeviceViewSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
