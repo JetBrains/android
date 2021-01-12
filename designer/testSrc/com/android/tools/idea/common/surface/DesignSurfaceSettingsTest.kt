@@ -41,15 +41,15 @@ class DesignSurfaceSettingsTest: AndroidTestCase() {
   }
 
   fun testShareGlobalState() {
-    val state1 = DesignSurfaceSettings.getInstance().surfaceState
-    val state2 = DesignSurfaceSettings.getInstance().surfaceState
+    val state1 = DesignSurfaceSettings.getInstance(project).surfaceState
+    val state2 = DesignSurfaceSettings.getInstance(project).surfaceState
 
     // The references should be same.
     assertEquals(state1, state2)
   }
 
   fun testSaveLoadSettings() {
-    val surfaceState = DesignSurfaceSettings.getInstance().surfaceState
+    val surfaceState = DesignSurfaceSettings.getInstance(project).surfaceState
 
     val filePathToZoomLevelMap = mutableMapOf<String, Double>()
     filePathToZoomLevelMap["path1"] = 0.1
@@ -58,7 +58,7 @@ class DesignSurfaceSettingsTest: AndroidTestCase() {
     surfaceState.filePathToZoomLevelMap = filePathToZoomLevelMap
 
     // Check the values are same after getting another instance.
-    val anotherSurfaceState = DesignSurfaceSettings.getInstance().surfaceState
+    val anotherSurfaceState = DesignSurfaceSettings.getInstance(project).surfaceState
     assertEquals(filePathToZoomLevelMap, anotherSurfaceState.filePathToZoomLevelMap)
   }
 }

@@ -1172,7 +1172,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     if (!isKeepingScaleWhenReopen()) {
       return;
     }
-    SurfaceState state = DesignSurfaceSettings.getInstance().getSurfaceState();
+    SurfaceState state = DesignSurfaceSettings.getInstance(model.getProject()).getSurfaceState();
     state.saveFileScale(model.getFile(), myScale);
   }
 
@@ -1184,7 +1184,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     if (!isKeepingScaleWhenReopen()) {
       return false;
     }
-    SurfaceState state = DesignSurfaceSettings.getInstance().getSurfaceState();
+    SurfaceState state = DesignSurfaceSettings.getInstance(model.getProject()).getSurfaceState();
     Double previousScale = state.loadFileScale(model.getFile());
     if (previousScale != null) {
       setScale(previousScale);
