@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.DEFAULT_CMAKE_VERSION
 import com.android.tools.idea.wizard.template.cMakeListsTxt
@@ -42,6 +43,7 @@ import com.intellij.ui.layout.buttonGroup
 import com.intellij.ui.layout.panel
 import com.intellij.util.io.isFile
 import org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath
+import org.jetbrains.kotlin.utils.addIfNotNull
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
@@ -153,8 +155,7 @@ class AddCppToModuleAction : AndroidStudioGradleAction(TITLE, DESCRIPTION, null)
       val buildModel = ProjectBuildModel.get(module.project).getModuleBuildModel(module) ?: throw IllegalStateException(
         "Cannot find gradle model for module ${module.name}")
 
-      var fileToOpen: File? = null
-
+      val filesToOpen = mutableListOf<File>()
       WriteCommandAction.writeCommandAction(module.project).withName("Adding C++ to module ${module.name}").run<Throwable> {
         val externalNativeBuildFile: File = when (dialogModel.addMode.get()) {
           AddMode.CREATE_NEW -> {
@@ -163,7 +164,7 @@ class AddCppToModuleAction : AndroidStudioGradleAction(TITLE, DESCRIPTION, null)
             val libraryName = buildModel.android().defaultConfig().applicationId().valueAsString()?.split('.')?.last()
                               ?: module.name.substringAfterLast('.').replace(' ', '_')
             val sourceName = "$libraryName.cpp"
-            fileToOpen = cppFolder.resolve("native-lib.cpp").apply {
+            filesToOpen += cppFolder.resolve("native-lib.cpp").apply {
               writeText("""
               // Write C++ code here.
               //
@@ -186,9 +187,10 @@ class AddCppToModuleAction : AndroidStudioGradleAction(TITLE, DESCRIPTION, null)
             }
             cppFolder.resolve("CMakeLists.txt").apply {
               writeText(cMakeListsTxt(sourceName, libraryName), StandardCharsets.UTF_8)
+              filesToOpen += this
             }
           }
-          AddMode.USE_EXISTING -> File(dialogModel.existingBuildFile.get()).also { fileToOpen = it }
+          AddMode.USE_EXISTING -> File(dialogModel.existingBuildFile.get()).also { filesToOpen += it }
         }.absoluteFile
         val relativizedPath = if (moduleRoot != null) {
           try {
@@ -218,9 +220,12 @@ class AddCppToModuleAction : AndroidStudioGradleAction(TITLE, DESCRIPTION, null)
           }
         }
         buildModel.applyChanges()
+        filesToOpen.addIfNotNull(GradleUtil.getGradleBuildFile(module)?.toIoFile())
       }
 
-      fileToOpen?.let { VfsUtil.findFileByIoFile(it, true) }?.let { OpenFileDescriptor(module.project, it).navigate(true) }
+      filesToOpen.mapNotNull { VfsUtil.findFileByIoFile(it, true) }
+        .reversed()
+        .forEach { file -> OpenFileDescriptor(module.project, file).navigate(true) }
 
       GradleSyncInvoker.getInstance().requestProjectSync(module.project, GradleSyncStats.Trigger.TRIGGER_CPP_EXTERNAL_PROJECT_LINKED)
       return emptyList()
