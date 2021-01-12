@@ -72,10 +72,14 @@ class NewAndroidNativeModuleModel(
           enableCpp = true,
           cppStandard = cppStandard.value
         )
-        val nativeSourceName = "native-lib.cpp"
-        generateCMakeFile(data, nativeSourceName)
-        generateBasicJniBindings(data, language.get().orElse(Language.Java), "NativeLib", nativeSourceName)
+        val nativeLibraryName = lastSegmentOfPackageName(data.packageName)
+        val nativeSourceName = "$nativeLibraryName.cpp"
+        generateCMakeFile(data, nativeSourceName, nativeLibraryName)
+        generateBasicJniBindings(data, language.get().orElse(Language.Java), "NativeLib", nativeSourceName, nativeLibraryName)
       }
   }
   override val loggingEvent: AndroidStudioEvent.TemplateRenderer = AndroidStudioEvent.TemplateRenderer.ANDROID_NATIVE_MODULE
+
+  private fun lastSegmentOfPackageName(packageName: String): String =
+    packageName.split('.').last()
 }

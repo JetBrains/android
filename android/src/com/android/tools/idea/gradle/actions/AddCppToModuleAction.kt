@@ -160,10 +160,12 @@ class AddCppToModuleAction : AndroidStudioGradleAction(TITLE, DESCRIPTION, null)
           AddMode.CREATE_NEW -> {
             val cppFolder = File(dialogModel.newCppFolder.get())
             cppFolder.mkdirs()
-            fileToOpen = cppFolder.resolve("native-lib.cpp").apply { writeText("// Write C++ code here.") }
+            val libraryName = buildModel.android().defaultConfig().applicationId().valueAsString()?.split('.')?.last()
+                              ?: module.name.substringAfterLast('.').replace(' ', '_')
+            val sourceName = "$libraryName.cpp"
+            fileToOpen = cppFolder.resolve(sourceName).apply { writeText("// Write C++ code here.") }
             cppFolder.resolve("CMakeLists.txt").apply {
-              val libraryName = buildModel.android().defaultConfig().applicationId().valueAsString()?.split('.')?.last() ?: "nativelib"
-              writeText(cMakeListsTxt("native-lib.cpp", libraryName), StandardCharsets.UTF_8)
+              writeText(cMakeListsTxt(sourceName, libraryName), StandardCharsets.UTF_8)
             }
           }
           AddMode.USE_EXISTING -> File(dialogModel.existingBuildFile.get()).also { fileToOpen = it }
