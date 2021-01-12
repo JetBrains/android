@@ -24,7 +24,8 @@ fun RecipeExecutor.generateBasicJniBindings(
   data: ModuleTemplateData,
   language: Language,
   className: String,
-  nativeSourceName: String
+  nativeSourceName: String,
+  nativeLibraryName: String
 ) {
 
   val pn = data.packageName.replace("_", "_1").replace('.', '_')
@@ -32,10 +33,10 @@ fun RecipeExecutor.generateBasicJniBindings(
   val escapcedPackageName = escapeKotlinIdentifier(data.packageName)
   when (language) {
     Language.Java -> {
-      save(jniBindingJava(escapcedPackageName, className), data.srcDir.resolve("$className.java"))
+      save(jniBindingJava(escapcedPackageName, className, nativeLibraryName), data.srcDir.resolve("$className.java"))
     }
     Language.Kotlin -> {
-      save(jniBindingKotlin(escapcedPackageName, className), data.srcDir.resolve("$className.kt"))
+      save(jniBindingKotlin(escapcedPackageName, className, nativeLibraryName), data.srcDir.resolve("$className.kt"))
     }
   }
 
@@ -45,41 +46,41 @@ fun RecipeExecutor.generateBasicJniBindings(
   }
 }
 
-private fun jniBindingJava(escapedPackageName: String, className: String): String = //language=JAVA
+private fun jniBindingJava(escapedPackageName: String, className: String, nativeLibraryName: String): String = //language=JAVA
   """
 package $escapedPackageName;
 
 public class $className {
 
     /**
-     * A native method that is implemented by the 'native-lib' native library,
+     * A native method that is implemented by the '$nativeLibraryName' native library,
      * which is packaged with this application.
      */
     public native String stringFromJNI();
 
-    // Used to load the 'native-lib' library on application startup.
+    // Used to load the '$nativeLibraryName' library on application startup.
     static {
-        System.loadLibrary("native-lib");
+        System.loadLibrary("$nativeLibraryName");
     }
 }
 """
 
-private fun jniBindingKotlin(escapedPackageName: String, className: String): String = //language=kotlin
+private fun jniBindingKotlin(escapedPackageName: String, className: String, nativeLibraryName: String): String = //language=kotlin
   """
 package $escapedPackageName
 
 class $className {
 
     /**
-      * A native method that is implemented by the 'native-lib' native library,
+      * A native method that is implemented by the '$nativeLibraryName' native library,
       * which is packaged with this application.
       */
     external fun stringFromJNI(): String
     
     companion object {
-        // Used to load the 'native-lib' library on application startup.
+        // Used to load the '$nativeLibraryName' library on application startup.
         init {
-            System.loadLibrary("native-lib")
+            System.loadLibrary("$nativeLibraryName")
         }
     }
 }
