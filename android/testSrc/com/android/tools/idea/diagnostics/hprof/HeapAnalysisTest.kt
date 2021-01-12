@@ -45,6 +45,7 @@ import java.nio.file.StandardOpenOption
 class HeapAnalysisTest {
 
   private val tmpFolder: TemporaryFolder = TemporaryFolder()
+  private var remapInMemory: Boolean = true
 
   @Before
   fun setUp() {
@@ -115,7 +116,11 @@ class HeapAnalysisTest {
       val histogram = Histogram.create(parser, hprofMetadata.classStore)
       val nominatedClasses = ClassNomination(histogram, 5).nominateClasses()
 
-      val remapIDsVisitor = RemapIDsVisitor.createMemoryBased()
+      val remapIDsVisitor = if (remapInMemory)
+        RemapIDsVisitor.createMemoryBased()
+      else
+        RemapIDsVisitor.createFileBased(openTempEmptyFileChannel(), histogram.instanceCount)
+
       parser.accept(remapIDsVisitor, "id mapping")
       parser.setIdRemappingFunction(remapIDsVisitor.getRemappingFunction())
       hprofMetadata.remapIds(remapIDsVisitor.getRemappingFunction())
@@ -262,6 +267,19 @@ class HeapAnalysisTest {
     }
     runHProfScenario(scenario, "testJavaFrameGCRootPriority.txt",
                      listOf("C1", "C2"))
+  }
+
+  @Test
+  fun testIgnoreRootWithNoMatchingObject() {
+    class C1
+
+    val scenario: HProfBuilder.() -> Unit = {
+      addRootUnknown(C1())
+      internalWriter.writeRootUnknown(999_999_999) // id without matching object
+    }
+    remapInMemory = false
+    runHProfScenario(scenario, "testIgnoreRootWithNoMatchingObject.txt",
+                     listOf("C1"))
   }
 }
 
