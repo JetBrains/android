@@ -70,8 +70,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
     val findLambdaWithinRangeVisitor = object : KtTreeVisitor<Unit>() {
       override fun visitLambdaExpression(expression: KtLambdaExpression, data: Unit?): Void? {
         super.visitLambdaExpression(expression, data)
-        val body = expression.bodyExpression
-        if (body?.startOffset in offsetRange && body?.endOffset in offsetRange) {
+        if (expression.startOffset <= offsetRange.last && expression.endOffset >= offsetRange.first) {
           possible.add(expression)
         }
         return null
