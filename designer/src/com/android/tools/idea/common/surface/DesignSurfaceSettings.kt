@@ -19,12 +19,13 @@ import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.psi.PsiFile
 import com.intellij.util.xmlb.annotations.Transient
 import java.io.File
 
-@State(name = "DesignSurface", storages = [Storage("designSurface.xml")])
+@State(name = "DesignSurface")
 class DesignSurfaceSettings : PersistentStateComponent<SurfaceState> {
 
   var surfaceState: SurfaceState = SurfaceState()
@@ -38,7 +39,7 @@ class DesignSurfaceSettings : PersistentStateComponent<SurfaceState> {
 
   companion object {
     @JvmStatic
-    fun getInstance(): DesignSurfaceSettings = ServiceManager.getService(DesignSurfaceSettings::class.java)
+    fun getInstance(project: Project): DesignSurfaceSettings = project.getService(DesignSurfaceSettings::class.java)
   }
 }
 
