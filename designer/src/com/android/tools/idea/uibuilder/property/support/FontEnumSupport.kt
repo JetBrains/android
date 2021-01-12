@@ -66,7 +66,7 @@ class FontEnumSupport(private val facet: AndroidFacet, private val resolver: Res
   private class SelectFontAction(private val facet: AndroidFacet) : AnAction("More Fonts...") {
 
     override fun actionPerformed(event: AnActionEvent) {
-      val property = event.dataContext.getData("property") as NlPropertyItem
+      val property = event.getData(EnumValue.Companion.PROPERTY_ITEM_KEY) as NlPropertyItem
       // TODO: May need namespace resolver when fonts from libraries are supported
       val dialog = MoreFontsDialog(facet, property.resolvedValue, true)
       dialog.show()

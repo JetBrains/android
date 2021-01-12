@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.stdui.CommonElementSelectability
 import com.android.tools.property.panel.impl.support.*
 import com.android.tools.property.panel.impl.ui.EnumValueListCellRenderer
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.DataKey
 import javax.swing.ListCellRenderer
 
 /**
@@ -94,6 +95,7 @@ interface EnumValue {
     val EMPTY: EnumValue = ItemEnumValue(null)
     val SEPARATOR: EnumValue = object : EnumValue, CommonElementSelectability {}
     val LOADING: EnumValue = object : EnumValue, CommonElementSelectability { override val display = "Loading..." }
+    val PROPERTY_ITEM_KEY: DataKey<PropertyItem> = DataKey.create("PROPERTY_ITEM_KEY")
   }
 }
 
