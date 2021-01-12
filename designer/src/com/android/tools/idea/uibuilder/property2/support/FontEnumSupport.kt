@@ -22,6 +22,7 @@ import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.idea.fonts.MoreFontsDialog
 import com.android.tools.idea.fonts.ProjectFonts
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.property.panel.api.EnumValue.Companion.PROPERTY_ITEM_KEY
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import org.jetbrains.android.dom.AndroidDomUtil
@@ -66,7 +67,7 @@ class FontEnumSupport(private val facet: AndroidFacet, private val resolver: Res
   private class SelectFontAction(private val facet: AndroidFacet) : AnAction("More Fonts...") {
 
     override fun actionPerformed(event: AnActionEvent) {
-      val property = event.dataContext.getData("property") as NelePropertyItem
+      val property = event.getData(PROPERTY_ITEM_KEY) as NelePropertyItem
       // TODO: May need namespace resolver when fonts from libraries are supported
       val dialog = MoreFontsDialog(facet, property.resolvedValue, true)
       dialog.show()
