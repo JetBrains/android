@@ -40,6 +40,7 @@ class LambdaResolverTest {
 
       val l1: (Int) -> Int = { it }
       val l2: (Int) -> Int = {
+        // The line numbers from JVMTI of this lambda, starts AFTER this comment...  
         number -> number * number
       }
 
@@ -71,23 +72,24 @@ class LambdaResolverTest {
     """.trimIndent()
     projectRule.fixture.addFileToProject("src/com/company/app/MainActivity.kt", kotlinFile)
     val resourceLookup = ResourceLookup(projectRule.project)
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f1$1", 25, 25), "MainActivity.kt:26", "{1}")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f1$2", 25, 25), "MainActivity.kt:26", "{2}")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f1$3", 25, 25),
-                   "MainActivity.kt:26", "{ f2({3}, {4}) }")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f1$3$1", 25, 25), "MainActivity.kt:26", "{3}")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f1$3$2", 25, 25), "MainActivity.kt:26", "{4}")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f2$1", 29, 29), "MainActivity.kt:30", "{-1}")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "$1", 19, 19), "MainActivity.kt:20", "{1}")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "$2", 19, 19), "MainActivity.kt:20", "{2}")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "$3", 19, 19),
-                   "MainActivity.kt:20", "{ f2({3}, {4}) }")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "$3$1", 19, 19), "MainActivity.kt:20", "{3}")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "$3$2", 19, 19), "MainActivity.kt:20", "{4}")
+    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f1$1", 26, 26), "MainActivity.kt:27", "{1}")
+    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f1$2", 26, 26), "MainActivity.kt:27", "{2}")
+    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f1$3", 26, 26),
+                   "MainActivity.kt:27", "{ f2({3}, {4}) }")
+    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f1$3$1", 26, 26), "MainActivity.kt:27", "{3}")
+    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f1$3$2", 26, 26), "MainActivity.kt:27", "{4}")
+    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f2$1", 30, 30), "MainActivity.kt:31", "{-1}")
+    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "$1", 20, 20), "MainActivity.kt:21", "{1}")
+    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "$2", 20, 20), "MainActivity.kt:21", "{2}")
+    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "$3", 20, 20),
+                   "MainActivity.kt:21", "{ f2({3}, {4}) }")
+    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "$3$1", 20, 20), "MainActivity.kt:21", "{3}")
+    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "$3$2", 20, 20), "MainActivity.kt:21", "{4}")
     assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "l1$1", 2, 2), "MainActivity.kt:3", "{ it }")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "l2$1", 4, 5), "MainActivity.kt:4",
+    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "l2$1", 5, 6), "MainActivity.kt:5",
                    """
                    {
+                     // The line numbers from JVMTI of this lambda, starts AFTER this comment...  
                      number -> number * number
                    }
                    """.trimIndent())
