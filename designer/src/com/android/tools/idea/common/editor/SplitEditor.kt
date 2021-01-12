@@ -89,7 +89,7 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
   override fun getShowPreviewAction() = previewViewAction
 
   override fun getData(dataId: String): Any? {
-    if (dataId == LangDataKeys.IDE_VIEW.name) {
+    if (LangDataKeys.IDE_VIEW.`is`(dataId)) {
       val project = editor.project ?: return null
       return FileEditorManagerEx.getInstanceEx(project).getData(dataId, editor, editor.caretModel.currentCaret)
     }

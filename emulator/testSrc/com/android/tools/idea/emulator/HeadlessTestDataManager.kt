@@ -51,6 +51,6 @@ private class TestDataContext(private val component: Component, private val proj
       }
       c = c.parent
     }
-    return if (dataId == CommonDataKeys.PROJECT.name) project else null
+    return if (CommonDataKeys.PROJECT.`is`(dataId)) project else null
   }
 }
