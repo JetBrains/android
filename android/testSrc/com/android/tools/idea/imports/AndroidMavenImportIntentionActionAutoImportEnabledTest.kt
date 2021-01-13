@@ -21,10 +21,8 @@ import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.replaceService
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -43,8 +41,6 @@ class AndroidMavenImportIntentionActionAutoImportEnabledTest {
   @Before
   fun setUp() {
     StudioFlags.ENABLE_AUTO_IMPORT.override(true)
-    ApplicationManager.getApplication()
-      .replaceService(GMavenIndexRepository::class.java, fakeGMavenIndexRepository, projectRule.fixture.testRootDisposable)
   }
 
   @After

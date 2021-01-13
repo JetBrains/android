@@ -27,7 +27,7 @@ import java.io.InputStreamReader
  *
  * Here, it covers all the latest stable versions of androidX artifacts.
  */
-class MavenClassRegistryRemote(val indexRepository: GMavenIndexRepository) : MavenClassRegistry {
+class MavenClassRegistryRemote(private val indexRepository: GMavenIndexRepository) : MavenClassRegistry {
   val lookup: Map<String, List<MavenClassRegistry.Library>> by lazy {
     generateLookup()
   }
@@ -187,7 +187,7 @@ data class GMavenArtifactIndex(
  * A single object of [MavenClassRegistryRemote] which is initialized in lazy way.
  */
 val mavenClassRegistryRemote: MavenClassRegistryRemote by lazy {
-  MavenClassRegistryRemote(GMavenIndexRepository.getInstance())
+  MavenClassRegistryRemote(GMavenIndexRepositoryImpl())
 }
 
 /**

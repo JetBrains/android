@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.imports
 
-import com.intellij.openapi.components.ServiceManager
 import java.io.InputStream
 
 /**
@@ -26,9 +25,4 @@ interface GMavenIndexRepository {
    * Reads the data by given relative URL to the base URL.
    */
   fun fetchIndex(relative: String): InputStream?
-
-  companion object {
-    @JvmStatic
-    fun getInstance(): GMavenIndexRepository = ServiceManager.getService(GMavenIndexRepository::class.java)
-  }
 }

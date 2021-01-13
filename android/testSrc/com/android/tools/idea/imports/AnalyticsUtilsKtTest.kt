@@ -28,11 +28,9 @@ import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.replaceService
 import org.jetbrains.android.dom.inspections.AndroidUnresolvableTagInspection
 import org.jetbrains.android.refactoring.setAndroidxProperties
 import org.junit.After
@@ -55,8 +53,6 @@ class AnalyticsUtilsKtTest {
   @Before
   fun setUp() {
     StudioFlags.ENABLE_AUTO_IMPORT.override(true, projectRule.fixture.testRootDisposable)
-    ApplicationManager.getApplication()
-      .replaceService(GMavenIndexRepository::class.java, fakeGMavenIndexRepository, projectRule.fixture.testRootDisposable)
     tracker = TestUsageTracker(VirtualTimeScheduler())
     UsageTracker.setWriterForTest(tracker)
     WriteCommandAction.runWriteCommandAction(projectRule.project) { projectRule.project.setAndroidxProperties("true") }
