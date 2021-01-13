@@ -42,6 +42,7 @@ import io.grpc.StatusRuntimeException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
@@ -289,19 +290,21 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
         .setPid(getSessionData().getPid())
         .setType(Commands.Command.CommandType.HEAP_DUMP)
         .build();
-      Transport.ExecuteResponse response = getStudioProfilers().getClient().getTransportClient().execute(
-        Transport.ExecuteRequest.newBuilder().setCommand(dumpCommand).build());
-      TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.MEMORY_HEAP_DUMP_STATUS,
-                                                                         getStudioProfilers().getIdeServices().getMainExecutor(),
-                                                                         event -> event.getCommandId() == response.getCommandId(),
-                                                                         () -> getSessionData().getStreamId(),
-                                                                         () -> getSessionData().getPid(),
-                                                                         event -> {
-                                                                           handleHeapDumpStart(event.getMemoryHeapdumpStatus().getStatus());
-                                                                           // unregisters the listener.
-                                                                           return true;
-                                                                         });
-      getStudioProfilers().getTransportPoller().registerListener(statusListener);
+      CompletableFuture.runAsync(() -> {
+        Transport.ExecuteResponse response = getStudioProfilers().getClient().getTransportClient().execute(
+          Transport.ExecuteRequest.newBuilder().setCommand(dumpCommand).build());
+        TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.MEMORY_HEAP_DUMP_STATUS,
+                                                                           getStudioProfilers().getIdeServices().getMainExecutor(),
+                                                                           event -> event.getCommandId() == response.getCommandId(),
+                                                                           () -> getSessionData().getStreamId(),
+                                                                           () -> getSessionData().getPid(),
+                                                                           event -> {
+                                                                             handleHeapDumpStart(event.getMemoryHeapdumpStatus().getStatus());
+                                                                             // unregisters the listener.
+                                                                             return true;
+                                                                           });
+        getStudioProfilers().getTransportPoller().registerListener(statusListener);
+      }, getStudioProfilers().getIdeServices().getPoolExecutor());
     }
     else {
       TriggerHeapDumpResponse response = getClient().triggerHeapDump(TriggerHeapDumpRequest.newBuilder().setSession(getSessionData()).build());
