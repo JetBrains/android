@@ -788,13 +788,6 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> CONTENT_ACCESS_SUPPORT_ENABLED = Flag.create(
-    EDITOR, "contentaccess.support.enabled",
-    "Enable editor support for ContentAccess",
-    "If enabled adds ContentAccesss specific inspections and code completion",
-    true
-  );
-
   //endregion
 
   //region Unified App Bundle
