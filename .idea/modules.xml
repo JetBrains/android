@@ -197,7 +197,7 @@
       <module fileurl="file://$PROJECT_DIR$/lint/intellij.lint.iml" filepath="$PROJECT_DIR$/lint/intellij.lint.iml" />
       <module fileurl="file://$PROJECT_DIR$/lint/tests/intellij.lint.tests.iml" filepath="$PROJECT_DIR$/lint/tests/intellij.lint.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/kotlin-integration/kotlin-integration-tests.iml" filepath="$PROJECT_DIR$/kotlin-integration/kotlin-integration-tests.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../base/dynamic-layout-inspector/common/layout-inspector-common.iml" filepath="$PROJECT_DIR$/../../base/dynamic-layout-inspector/common/layout-inspector-common.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../base/dynamic-layout-inspector/common/dynamic-layout-inspector.common.iml" filepath="$PROJECT_DIR$/../../base/dynamic-layout-inspector/common/dynamic-layout-inspector.common.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/lldb-integration-tests/lldb-integration-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/lldb-integration-tests/lldb-integration-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/native-symbolizer/native-symbolizer.iml" filepath="$PROJECT_DIR$/native-symbolizer/native-symbolizer.iml" />
       <module fileurl="file://$PROJECT_DIR$/observable-demo/observable-demo.iml" filepath="$PROJECT_DIR$/observable-demo/observable-demo.iml" />

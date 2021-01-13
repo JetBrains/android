@@ -82,7 +82,7 @@ studio_plugin(
             "//tools/adt/idea/wizard:intellij.android.wizard",
             "//tools/adt/idea/native-symbolizer:native-symbolizer",
             "//tools/adt/idea/whats-new-assistant:whats-new-assistant",
-            "//tools/base/dynamic-layout-inspector/common:studio.layout-inspector-common",
+            "//tools/base/dynamic-layout-inspector/common:studio.dynamic-layout-inspector.common",
         ],
         "artwork.jar": [
             "//tools/adt/idea/artwork:intellij.android.artwork",
