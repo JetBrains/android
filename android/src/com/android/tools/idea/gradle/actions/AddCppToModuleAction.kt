@@ -15,12 +15,24 @@
  */
 package com.android.tools.idea.gradle.actions
 
+import com.android.tools.adtui.validation.Validator
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.ui.validation.validators.ILLEGAL_CHARACTER
+import com.android.tools.idea.ui.validation.validators.ILLEGAL_WINDOWS_FILENAME
+import com.android.tools.idea.ui.validation.validators.INVALID_SLASHES
+import com.android.tools.idea.ui.validation.validators.IS_EMPTY
+import com.android.tools.idea.ui.validation.validators.LOCATION_IS_NOT_A_FILE
+import com.android.tools.idea.ui.validation.validators.NON_ASCII_CHARS
+import com.android.tools.idea.ui.validation.validators.PARENT_DIRECTORY_NOT_WRITABLE
+import com.android.tools.idea.ui.validation.validators.PathValidator
+import com.android.tools.idea.ui.validation.validators.WHITESPACE
+import com.android.tools.idea.ui.validation.validators.WINDOWS_PATH_TOO_LONG
+import com.android.tools.idea.ui.validation.validators.filenameRule
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.DEFAULT_CMAKE_VERSION
 import com.android.tools.idea.wizard.template.cMakeListsTxt
@@ -37,20 +49,45 @@ import com.intellij.openapi.observable.properties.GraphPropertyImpl.Companion.gr
 import com.intellij.openapi.observable.properties.PropertyGraph
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ValidationInfo
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.ui.components.dialog
 import com.intellij.ui.layout.buttonGroup
 import com.intellij.ui.layout.panel
-import com.intellij.util.io.isFile
 import org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath
 import org.jetbrains.kotlin.utils.addIfNotNull
 import java.io.File
 import java.nio.charset.StandardCharsets
-import java.nio.file.Paths
 import java.util.Locale
+import javax.swing.JLabel
 
 private const val TITLE = "Add C++ to Module"
 private const val DESCRIPTION = "Add C/C++ code built with CMake or ndk-build to this module"
+
+private val creationPathValidator = PathValidator.createDefault("directory")
+private val linkPathValidator = PathValidator.Builder().apply {
+  withError(IS_EMPTY)
+  if (SystemInfo.isWindows) {
+    withError(WINDOWS_PATH_TOO_LONG)
+  }
+  withError(INVALID_SLASHES)
+  withError(ILLEGAL_CHARACTER)
+  withWarning(WHITESPACE)
+  if (SystemInfo.isWindows) {
+    withError(ILLEGAL_WINDOWS_FILENAME)
+    withError(NON_ASCII_CHARS)
+  }
+  else {
+    withWarning(ILLEGAL_WINDOWS_FILENAME)
+    withWarning(NON_ASCII_CHARS)
+  }
+  withError(PARENT_DIRECTORY_NOT_WRITABLE)
+  withError(LOCATION_IS_NOT_A_FILE)
+  withError(filenameRule("must be a CMakeLists.txt or *.mk file") {
+    it.toLowerCase(Locale.US) == "cmakelists.txt" || it.endsWith(".mk")
+  })
+}
+  .build("build file")
 
 /**
  * Action to add C++ to an existing pure Java/Kotlin Android module. The action pops up a dialog to let user to pick the location of an
@@ -94,6 +131,7 @@ class AddCppToModuleAction : AndroidStudioGradleAction(TITLE, DESCRIPTION, null)
       val moduleRoot = findModuleRootFolderPath(module)
       val defaultCppFolder: File? = moduleRoot?.resolve("src/main/cpp")
       val dialogModel = AddCppToModuleDialogModel(defaultCppFolder)
+      lateinit var whitespaceWarningMessage: JLabel
       dialog(
         title = TITLE,
         panel = panel {
@@ -113,6 +151,7 @@ class AddCppToModuleAction : AndroidStudioGradleAction(TITLE, DESCRIPTION, null)
                   dialogModel.newCppFolder,
                   project = module.project,
                   fileChooserDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor().apply {
+                    withFileFilter { creationPathValidator.validate(it.toIoFile()).severity < Validator.Severity.ERROR }
                     title = "Choose a folder for C++ sources"
                   }
                 ).component.apply {
@@ -132,7 +171,7 @@ class AddCppToModuleAction : AndroidStudioGradleAction(TITLE, DESCRIPTION, null)
                   dialogModel.existingBuildFile,
                   project = module.project,
                   fileChooserDescriptor = FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor().apply {
-                    withFileFilter { it.toIoFile().isCMakeListsOrAndroidMkFile() }
+                    withFileFilter { linkPathValidator.validate(it.toIoFile()).severity < Validator.Severity.ERROR }
                     title = "Choose a CMakeLists.txt or Android.mk file"
                   }
                 ).component.apply {
@@ -140,13 +179,26 @@ class AddCppToModuleAction : AndroidStudioGradleAction(TITLE, DESCRIPTION, null)
                 }
               }
             }
+            row {
+              whitespaceWarningMessage = label("").component.apply {
+                val validationResult = dialogModel.isValid.get()
+                icon = validationResult.severity.icon
+                text = validationResult.message
+                isVisible = validationResult.severity > Validator.Severity.OK
+              }
+            }
           }
         },
         resizable = true,
-        okActionEnabled = defaultCppFolder != null,
+        okActionEnabled = dialogModel.isValid.get().severity < Validator.Severity.ERROR,
         ok = { onOkClicked(module, dialogModel, moduleRoot) }
       ).apply {
-        dialogModel.isValid.afterChange { isValid -> isOKActionEnabled = isValid }
+        dialogModel.isValid.afterChange { result ->
+          isOKActionEnabled = result.severity < Validator.Severity.ERROR
+          whitespaceWarningMessage.icon = result.severity.icon
+          whitespaceWarningMessage.text = result.message
+          whitespaceWarningMessage.isVisible = result.severity > Validator.Severity.OK
+        }
         show()
       }
     }
@@ -238,7 +290,7 @@ private class AddCppToModuleDialogModel(defaultCppFolder: File?) {
   val addMode = propertyGraph.graphProperty { AddMode.CREATE_NEW }
   val existingBuildFile = propertyGraph.graphProperty { "" }
   val newCppFolder = propertyGraph.graphProperty { defaultCppFolder?.path ?: "" }
-  val isValid = propertyGraph.graphProperty { defaultCppFolder != null }
+  val isValid = propertyGraph.graphProperty { creationPathValidator.validate(defaultCppFolder ?: File("")) }
 
   init {
     isValid.dependsOn(addMode, ::checkIsValid)
@@ -246,23 +298,11 @@ private class AddCppToModuleDialogModel(defaultCppFolder: File?) {
     isValid.dependsOn(newCppFolder, ::checkIsValid)
   }
 
-  private fun checkIsValid(): Boolean = when (addMode.get()) {
-    AddMode.CREATE_NEW -> isValidDirectoryPath(newCppFolder.get())
-    AddMode.USE_EXISTING -> File(existingBuildFile.get()).isCMakeListsOrAndroidMkFile()
+  private fun checkIsValid(): Validator.Result = when (addMode.get()) {
+    AddMode.CREATE_NEW -> creationPathValidator.validate(File(newCppFolder.get()))
+    AddMode.USE_EXISTING -> linkPathValidator.validate(File(existingBuildFile.get()))
   }
-
-  fun isValidDirectoryPath(path: String): Boolean {
-    return try {
-      Paths.get(path).run { isAbsolute && !isFile() }
-    }
-    catch (ex: Exception) {
-      false
-    }
-  }
-
 }
-
-private fun File.isCMakeListsOrAndroidMkFile() = (name.toLowerCase(Locale.US) == "cmakelists.txt" || extension == "mk") && isFile
 
 private enum class AddMode {
   USE_EXISTING, CREATE_NEW
