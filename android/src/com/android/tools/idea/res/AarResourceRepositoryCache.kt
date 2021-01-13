@@ -62,7 +62,7 @@ class AarResourceRepositoryCache private constructor() {
       throw IllegalArgumentException("Cannot find resource directory ${resFolder.root} for $libraryName")
     }
     return getRepository(resFolder, libraryName, mySourceRepositories) {
-        AarSourceResourceRepository.create(resFolder, libraryName, createCachingData(library))
+        AarSourceResourceRepository.create(resFolder.root, resFolder.resources, libraryName, createCachingData(library))
     }
   }
 

@@ -22,7 +22,6 @@ import com.android.SdkConstants.DOT_AAR
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.util.toPathString
-import com.android.projectmodel.SelectiveResourceFolder
 import com.android.resources.ResourceType
 import com.android.tools.idea.projectsystem.FilenameConstants.EXPLODED_AAR
 import com.android.tools.idea.resources.aar.AarSourceResourceRepository
@@ -119,7 +118,8 @@ private fun createZipEntry(name: String, content: ByteArray, zip: ZipOutputStrea
 fun getTestAarRepositoryWithResourceFolders(libraryDirName: String, vararg resources: String): AarSourceResourceRepository {
   val root = Paths.get(AndroidTestBase.getTestDataPath(), "rendering", EXPLODED_AAR, libraryDirName, "res").toPathString()
   return AarSourceResourceRepository.create(
-    SelectiveResourceFolder(root, resources.map { resource -> root.resolve(resource) }),
+    root,
+    resources.map { resource -> root.resolve(resource) },
     AAR_LIBRARY_NAME,
     null
   )
