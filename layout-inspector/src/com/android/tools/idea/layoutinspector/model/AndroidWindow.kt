@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
  * @param imageType The type of image backing this window's screenshot. Note that this value is mutable and may change after receiving new
  *     layout events.
  */
+// TODO(b/177374701): Investigate separating the response parsing logic from the window model data
 abstract class AndroidWindow(
   val root: ViewNode,
   val id: Any,
