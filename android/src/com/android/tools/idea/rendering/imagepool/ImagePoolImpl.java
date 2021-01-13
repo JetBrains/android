@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering.imagepool;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.FinalizablePhantomReference;
 import com.google.common.base.FinalizableReferenceQueue;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.EvictingQueue;
 import com.google.common.collect.ForwardingQueue;
 import com.google.common.collect.Sets;
@@ -57,7 +58,7 @@ import org.jetbrains.annotations.Nullable;
 class ImagePoolImpl implements ImagePool {
   private static final Logger LOG = Logger.getInstance(ImagePoolImpl.class);
 
-  private static final Bucket NULL_BUCKET = new Bucket(0, 0, 0);
+  private static final Bucket NULL_BUCKET = new Bucket();
   private final int[] myBucketSizes;
   private final HashMap<String, Bucket> myPool = new HashMap<>();
   private final IdentityHashMap<Bucket, BucketStatsImpl> myBucketStats = new IdentityHashMap<>();
@@ -338,21 +339,21 @@ class ImagePoolImpl implements ImagePool {
       return myBucketHadSpace.get();
     }
 
-    public void bucketHit() {
+    void bucketHit() {
       myLastAccessMs.set(System.currentTimeMillis());
       myBucketHit.incrementAndGet();
     }
 
-    public void bucketMiss() {
+    void bucketMiss() {
       myLastAccessMs.set(System.currentTimeMillis());
       myBucketMiss.incrementAndGet();
     }
 
-    public void returnedImageAccepted() {
+    void returnedImageAccepted() {
       myBucketHadSpace.incrementAndGet();
     }
 
-    public void returnedImageRejected() {
+    void returnedImageRejected() {
       myBucketFull.incrementAndGet();
     }
   }
@@ -363,17 +364,19 @@ class ImagePoolImpl implements ImagePool {
     private final int myMinHeight;
     private final int myMaxSize;
 
-    public Bucket(int minWidth, int minHeight, int maxSize) {
-      if (maxSize == 0) {
-        LOG.warn("0 maxSize for Bucket. This Bucket will not be used.");
-      }
-
+    Bucket(int minWidth, int minHeight, int maxSize) {
+      Preconditions.checkArgument(maxSize > 0);
       myMinWidth = minWidth;
       myMinHeight = minHeight;
       myMaxSize = maxSize;
-      myDelegate = maxSize == 0 ?
-                   EvictingQueue.create(0)
-                                : new ArrayBlockingQueue<SoftReference<BufferedImage>>(maxSize);
+      myDelegate = new ArrayBlockingQueue<>(maxSize);
+    }
+
+    Bucket() {
+      myMinWidth = 0;
+      myMinHeight = 0;
+      myMaxSize = 0;
+      myDelegate = EvictingQueue.create(0);
     }
 
     @Override
@@ -381,7 +384,7 @@ class ImagePoolImpl implements ImagePool {
       return myDelegate;
     }
 
-    public int getMaxSize() {
+    int getMaxSize() {
       return myMaxSize;
     }
   }
