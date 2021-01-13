@@ -364,7 +364,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private val liveLiteralsManager = LiveLiteralsService.getInstance(project).apply {
     addOnLiteralsChangedListener(this) {
-      forceRefresh()
+      surface.layoutlibSceneManagers.forEach {
+        it.forceReinflate()
+        it.requestRender()
+      }
     }
   }
 
