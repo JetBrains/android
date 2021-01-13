@@ -114,7 +114,8 @@ public class DeployTask extends AbstractDeployTask {
     // Since the app has already been stopped from Studio, requesting "--dont-kill" prevent the package manager from
     // issuing a "force-stop", but still yield the expecting behavior that app is restarted after install. Note that
     // this functionality is only valid for Android Nougat or above.
-    if (device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.N)) {
+    boolean isDontKillSupported = device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.N);
+    if (isDontKillSupported) {
       options.setDontKill();
     }
 
@@ -133,6 +134,11 @@ public class DeployTask extends AbstractDeployTask {
     }
 
     Deployer.Result result = deployer.install(applicationId, getPathsToInstall(files), options.build(), installMode);
+
+    // Manually force-stop the application if we set --dont-kill above.
+    if (!result.skippedInstall && isDontKillSupported) {
+      device.forceStop(applicationId);
+    }
 
     // If install fails, an Exception would have been thrown to prevent live updates from starting.
     if (device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.R) && startLiveUpdate != null) {
