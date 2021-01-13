@@ -405,9 +405,6 @@
 
     <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
 
-    <applicationService serviceInterface="com.android.tools.idea.imports.GMavenIndexRepository"
-                        serviceImplementation="com.android.tools.idea.imports.GMavenIndexRepositoryImpl"/>
-
     <fileType name="Android 9-Patch"
               implementationClass="com.android.tools.idea.fileTypes.AndroidNinePatchFileType"
               fieldName="INSTANCE"
