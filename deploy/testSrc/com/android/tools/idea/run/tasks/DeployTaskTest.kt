@@ -34,6 +34,8 @@ import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.Mockito.atLeast
+import org.mockito.Mockito.never
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 
@@ -50,6 +52,7 @@ class DeployTaskTest {
     ApplicationManager.setApplication(application, rootDisposable)
     application.registerService(IdeUICustomization::class.java)
     MockitoAnnotations.initMocks(this)
+    Mockito.`when`(deployer.install(any(), any(), any(), any())).thenReturn(Deployer.Result())
   }
 
   @After
@@ -139,5 +142,25 @@ class DeployTaskTest {
     val deployTask = DeployTask(project, mapOf(), null, false, false)
     deployTask.perform(device, deployer, "", listOf())
     verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions), any())
+  }
+
+  @Test
+  fun testDeployPostInstallForceStopPreN() {
+    Mockito.`when`(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
+    Mockito.`when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
+
+    val deployTask = DeployTask(project, mapOf(), null, true, false)
+    deployTask.perform(device, deployer, "", listOf())
+    verify(device, never()).forceStop(any())
+  }
+
+  @Test
+  fun testDeployPostInstallForceStopPostN() {
+    Mockito.`when`(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
+    Mockito.`when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.N))
+
+    val deployTask = DeployTask(project, mapOf(), null, true, false)
+    deployTask.perform(device, deployer, "", listOf())
+    verify(device, times(1)).forceStop(any())
   }
 }
