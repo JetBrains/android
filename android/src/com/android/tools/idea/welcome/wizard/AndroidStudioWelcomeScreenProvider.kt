@@ -33,12 +33,10 @@ import com.intellij.util.proxy.CommonProxy
 import java.io.IOException
 import javax.swing.JRootPane
 
-val log = logger<AndroidStudioWelcomeScreenProvider>()
-
 /**
  * Shows a wizard first time Android Studio is launched.
  */
-class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
+internal class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
   override fun createWelcomeScreen(rootPane: JRootPane): WelcomeScreen {
     checkInternetConnection()
     val wizardMode = wizardMode!!
@@ -120,7 +118,7 @@ class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
           if (e.toString().contains("crypto")) {
             message += "; check your JDK/JRE installation / consider running on a newer version."
           }
-          log.warn(message, e)
+          logger<AndroidStudioWelcomeScreenProvider>().warn(message, e)
         }
 
       }
