@@ -22,9 +22,6 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
 
-private const val NAME = "classes"
-private const val VERSION = 0.1
-
 /**
  * Lookup from class names to maven.google.com artifacts by reading indices from [GMavenIndexRepository].
  *

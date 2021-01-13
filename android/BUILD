@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 load("//tools/base/bazel:maven.bzl", "maven_repo")
 load("//tools/base/bazel:maven.bzl", "maven_java_library")
 load("@exec_properties//:constants.bzl", "LARGE_MACHINE")
@@ -1090,6 +1091,26 @@ studio_data(
         "tools/adt/idea/android/resources/": "",
     },
     visibility = ["//visibility:public"],
+)
+
+# built for updating "resources/gmavenIndex/classes-offline.json".
+kotlin_library(
+    name = "update_offline_gmaven_index",
+    srcs = [
+        "src/com/android/tools/idea/imports/GMavenIndexConstants.kt",
+        "src/com/android/tools/idea/imports/UpdateOfflineGMavenIndex.kt",
+    ],
+    deps = [
+        "//tools/base/third_party:com.google.guava_guava",
+    ],
+)
+
+java_binary(
+    name = "update_offline_gmaven_index_main",
+    main_class = "com.android.tools.idea.imports.UpdateOfflineGMavenIndex",
+    runtime_deps = [
+        ":update_offline_gmaven_index",
+    ],
 )
 
 # managed by go/iml_to_build
