@@ -55,6 +55,7 @@ import com.android.tools.idea.rendering.classloading.toClassTransform
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
@@ -92,8 +93,7 @@ import kotlin.properties.Delegates
 /**
  * Background color for the surface while "Interactive" is enabled.
  */
-private val INTERACTIVE_BACKGROUND_COLOR = JBColor(Color(203, 210, 217),
-                                                   Color(70, 69, 77))
+private val INTERACTIVE_BACKGROUND_COLOR = JBColor(Color(203, 210, 217), MEUI.ourInteractiveBackgroundColor)
 
 /**
  * [NlModel] associated preview data
