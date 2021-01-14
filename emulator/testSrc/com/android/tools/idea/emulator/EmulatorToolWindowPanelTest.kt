@@ -71,7 +71,11 @@ import java.awt.Point
 import java.awt.PointerInfo
 import java.awt.datatransfer.DataFlavor
 import java.awt.event.FocusEvent
+import java.awt.event.KeyEvent.VK_DOWN
+import java.awt.event.KeyEvent.VK_LEFT
+import java.awt.event.KeyEvent.VK_RIGHT
 import java.awt.event.KeyEvent.VK_SHIFT
+import java.awt.event.KeyEvent.VK_UP
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.MOUSE_MOVED
 import java.io.File
@@ -269,7 +273,8 @@ class EmulatorToolWindowPanelTest {
 
     // Check that the notification changes when Shift is pressed.
     ui.keyboard.press(VK_SHIFT)
-    assertThat(ui.findComponent<EditorNotificationPanel>()?.text).isEqualTo("Move camera with WASDQE keys, rotate with mouse")
+    assertThat(ui.findComponent<EditorNotificationPanel>()?.text)
+        .isEqualTo("Move camera with WASDQE keys, rotate with mouse or arrow keys")
 
     // Drain the gRPC call log.
     for (i in 1..5) {
@@ -291,9 +296,29 @@ class EmulatorToolWindowPanelTest {
     val y = initialMousePosition.y + 10
     val event = MouseEvent(glassPane, MOUSE_MOVED, System.currentTimeMillis(), ui.keyboard.toModifiersCode(), x, y, x, y, 0, false, 0)
     glassPane.dispatch(event)
-    val call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 2 y: 5")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 23 y: 45")
+
+    ui.keyboard.pressAndRelease(VK_LEFT)
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: -2 y: 45")
+
+    ui.keyboard.pressAndRelease(VK_RIGHT)
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 23 y: 45")
+
+    ui.keyboard.pressAndRelease(VK_UP)
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 23 y: 20")
+
+    ui.keyboard.pressAndRelease(VK_DOWN)
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 23 y: 45")
 
     // Check that the notification changes when Shift is released.
     ui.keyboard.release(VK_SHIFT)
