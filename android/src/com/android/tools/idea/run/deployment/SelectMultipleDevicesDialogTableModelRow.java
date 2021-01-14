@@ -16,14 +16,21 @@
 package com.android.tools.idea.run.deployment;
 
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
 import org.jetbrains.annotations.NotNull;
 
 final class SelectMultipleDevicesDialogTableModelRow {
   private boolean mySelected;
   private final @NotNull Device myDevice;
+  private final @NotNull BooleanSupplier mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet;
+  private final @NotNull Target myTarget;
 
-  SelectMultipleDevicesDialogTableModelRow(@NotNull Device device) {
+  SelectMultipleDevicesDialogTableModelRow(@NotNull Device device,
+                                           @NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabledGet,
+                                           @NotNull Target target) {
     myDevice = device;
+    mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet = selectDeviceSnapshotComboBoxSnapshotsEnabledGet;
+    myTarget = target;
   }
 
   boolean isSelected() {
@@ -42,5 +49,13 @@ final class SelectMultipleDevicesDialogTableModelRow {
     return Optional.ofNullable(myDevice.getValidityReason())
       .map(reason -> "<html>" + myDevice + "<br>" + reason)
       .orElse(myDevice.getName());
+  }
+
+  @NotNull String getBootOption() {
+    return mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet.getAsBoolean() ? myTarget.getText(myDevice).orElse("") : "";
+  }
+
+  @NotNull Target getTarget() {
+    return myTarget;
   }
 }

@@ -17,12 +17,15 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Sets;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import java.awt.Component;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
@@ -54,7 +57,7 @@ final class SelectMultipleDevicesDialog extends DialogWrapper {
   SelectMultipleDevicesDialog(@NotNull Project project, @NotNull List<Device> devices) {
     this(project,
          StudioFlags.RUN_ON_MULTIPLE_DEVICES_ACTION_ENABLED::get,
-         new SelectMultipleDevicesDialogTableModel(devices),
+         new SelectMultipleDevicesDialogTableModel(devices, StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED::get),
          DevicesSelectedService::getInstance);
   }
 
@@ -155,6 +158,11 @@ final class SelectMultipleDevicesDialog extends DialogWrapper {
   }
 
   @Override
+  protected boolean postponeValidation() {
+    return false;
+  }
+
+  @Override
   protected @NotNull String getDimensionServiceKey() {
     return "com.android.tools.idea.run.deployment.SelectMultipleDevicesDialog";
   }
@@ -163,6 +171,25 @@ final class SelectMultipleDevicesDialog extends DialogWrapper {
   @Override
   public JComponent getPreferredFocusedComponent() {
     return getTable();
+  }
+
+  @Override
+  protected @Nullable ValidationInfo doValidate() {
+    assert myTable != null;
+    Collection<Target> targets = myTable.getSelectedTargets();
+
+    Collection<Key> keys = Sets.newHashSetWithExpectedSize(targets.size());
+
+    boolean duplicateKeys = targets.stream()
+      .map(Target::getDeviceKey)
+      .anyMatch(key -> !keys.add(key));
+
+    if (duplicateKeys) {
+      String message = "Some of the selected targets are for the same device. Each target should be for a different device.";
+      return new ValidationInfo(message, null);
+    }
+
+    return null;
   }
 
   @VisibleForTesting
