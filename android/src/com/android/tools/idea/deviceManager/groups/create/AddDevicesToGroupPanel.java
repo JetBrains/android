@@ -17,17 +17,14 @@ package com.android.tools.idea.deviceManager.groups.create;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.deviceManager.displayList.columns.AvdDeviceColumnInfo;
+import com.android.tools.idea.deviceManager.groups.GroupableDevice;
 import com.intellij.ui.table.JBTable;
-import com.intellij.util.ui.ColumnInfo;
-import com.intellij.util.ui.ListTableModel;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.swing.JButton;
 import javax.swing.JPanel;
-import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("NotNullFieldNotInitialized")
 public class AddDevicesToGroupPanel {
@@ -37,10 +34,8 @@ public class AddDevicesToGroupPanel {
   private @NotNull JButton myAddButton;
   private @NotNull JButton myRemoveButton;
 
-  // TODO(b/174518066): create custom table model instead of using ListTableModel
-  private @NotNull ListTableModel<@NotNull AvdInfo> myAvailableTableModel; // TODO: need to support physical devices too
-  private @NotNull ListTableModel<@NotNull AvdInfo> myGroupTableModel; // TODO: need to support physical devices too
-  private @NotNull TableCellRenderer myTableCellRenderer;
+  private @NotNull GroupableDeviceTableModel myAvailableTableModel; // TODO: need to support physical devices too
+  private @NotNull GroupableDeviceTableModel myGroupTableModel; // TODO: need to support physical devices too
 
   AddDevicesToGroupPanel() {
     myAddButton.addActionListener(event -> onAddButtonClicked());
@@ -52,35 +47,26 @@ public class AddDevicesToGroupPanel {
   }
 
   private void createUIComponents() {
-    myTableCellRenderer = AvdDeviceColumnInfo.Companion.getStaticRenderer();
-
     createAvailableTable();
     createGroupTable();
   }
 
   private void createAvailableTable() {
-    myAvailableTableModel = new ListTableModel<>();
     // TODO(b/174518417): call this on a background thread
-    myAvailableTableModel.addRows(AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true));
+    List<AvdInfo> avds = AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true);
+    myAvailableTableModel = new GroupableDeviceTableModel(avds.stream().map(GroupableDevice::new).collect(Collectors.toList()));
     myAvailableTable = new JBTable(myAvailableTableModel);
-    myAvailableTableModel.setColumnInfos(createColumns().toArray(new ColumnInfo[0]));
-    myAvailableTable.setDefaultRenderer(AvdInfo.class, myTableCellRenderer);
+    myAvailableTable.setDefaultRenderer(GroupableDevice.class, new GroupableDeviceTableCellRenderer());
+    myAvailableTable.getColumnModel().getColumn(0).setPreferredWidth(220);
+    myAvailableTable.getColumnModel().getColumn(1).setPreferredWidth(80);
   }
 
   private void createGroupTable() {
-    myGroupTableModel = new ListTableModel<>();
+    myGroupTableModel = new GroupableDeviceTableModel(Collections.emptyList());
     myGroupTable = new JBTable(myGroupTableModel);
-    myGroupTableModel.setColumnInfos(createColumns().toArray(new ColumnInfo[0]));
-    myGroupTable.setDefaultRenderer(AvdInfo.class, myTableCellRenderer);
-  }
-
-  private @NotNull List<@NotNull ColumnInfo<@Nullable AvdInfo, @Nullable AvdInfo>> createColumns() {
-    List<ColumnInfo<AvdInfo, AvdInfo>> devices = new ArrayList<>();
-
-    devices.add(new AvdDeviceColumnInfo("Device", 70));
-    // TODO: add "Type" column
-
-    return devices;
+    myGroupTable.setDefaultRenderer(GroupableDevice.class, new GroupableDeviceTableCellRenderer());
+    myGroupTable.getColumnModel().getColumn(0).setPreferredWidth(220);
+    myGroupTable.getColumnModel().getColumn(1).setPreferredWidth(80);
   }
 
   /**
@@ -92,9 +78,9 @@ public class AddDevicesToGroupPanel {
       return;
     }
     int modelRowIndex = myAvailableTable.convertRowIndexToModel(viewRowIndex);
-    AvdInfo avdInfo = myAvailableTableModel.getRowValue(modelRowIndex);
+    GroupableDevice device = myAvailableTableModel.getDeviceAt(modelRowIndex);
     myAvailableTableModel.removeRow(modelRowIndex);
-    myGroupTableModel.addRow(avdInfo);
+    myGroupTableModel.addDevice(device);
   }
 
   /**
@@ -106,8 +92,8 @@ public class AddDevicesToGroupPanel {
       return;
     }
     int modelRowIndex = myGroupTable.convertRowIndexToModel(viewRowIndex);
-    AvdInfo avdInfo = myGroupTableModel.getRowValue(modelRowIndex);
+    GroupableDevice device = myGroupTableModel.getDeviceAt(modelRowIndex);
     myGroupTableModel.removeRow(modelRowIndex);
-    myAvailableTableModel.addRow(avdInfo);
+    myAvailableTableModel.addDevice(device);
   }
 }
