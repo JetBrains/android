@@ -30,7 +30,8 @@ private fun forEachNonDisposedBuildListener(project: Project, method: (BuildList
       // Clear disposed
       subscriptions.keys.removeIf { Disposer.isDisposed(it) }
 
-      subscriptions.values.forEach(method)
+      val listeners = ArrayList<BuildListener>(subscriptions.values)
+      listeners.forEach(method)
     }
   }
 }
@@ -66,14 +67,7 @@ fun setupBuildListener(
   // If we are not yet subscribed to this project, we should subscribe
   if (projectSubscriptionsLock.withLock {
       val notSubscribed = projectSubscriptions[project] == null
-      projectSubscriptions.computeIfAbsent(project) {
-        Disposer.register(parentDisposable, {
-          projectSubscriptionsLock.withLock {
-            projectSubscriptions.remove(project)
-          }
-        })
-        WeakHashMap()
-      }
+      projectSubscriptions.computeIfAbsent(project) { WeakHashMap() }
       notSubscribed
     }) {
     GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
@@ -106,7 +100,10 @@ fun setupBuildListener(
         it[parentDisposable] = buildable
         Disposer.register(parentDisposable, {
           projectSubscriptionsLock.withLock {
-            projectSubscriptions[project]?.remove(parentDisposable)
+            val subscriptions = projectSubscriptions[project] ?: return@withLock
+            subscriptions.remove(parentDisposable)
+            // If there are no pending subscriptions, remove the project from the list
+            if (subscriptions.isEmpty()) projectSubscriptions.remove(project)
           }
         })
       }
