@@ -19,7 +19,6 @@ import com.android.SdkConstants.GRADLE_DISTRIBUTION_URL_PROPERTY
 import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.SdkConstants.GRADLE_MINIMUM_VERSION
 import com.android.ide.common.repository.GradleVersion
-import com.android.ide.common.repository.GradleVersion.max
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.flags.StudioFlags
@@ -56,7 +55,6 @@ import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProc
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
 import com.android.tools.idea.gradle.util.BuildFileProcessor
-import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.util.toIoFile
@@ -1019,7 +1017,7 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         val currentGradleVersion = gradleWrapper.gradleVersion ?: return@forEach
         val parsedCurrentGradleVersion = GradleVersion.tryParse(currentGradleVersion) ?: return@forEach
         if (compatibleGradleVersion.version > parsedCurrentGradleVersion) {
-          val updatedUrl = gradleWrapper.getUpdatedDistributionUrl(compatibleGradleVersion.version.toString(), true);
+          val updatedUrl = gradleWrapper.getUpdatedDistributionUrl(compatibleGradleVersion.version.toString(), true)
           val virtualFile = VfsUtil.findFileByIoFile(ioFile, true) ?: return@forEach
           val propertiesFile = PsiManager.getInstance(project).findFile(virtualFile) as? PropertiesFile ?: return@forEach
           val property = propertiesFile.findPropertyByKey(GRADLE_DISTRIBUTION_URL_PROPERTY) ?: return@forEach
