@@ -452,6 +452,7 @@ filegroup(
         "//tools/base/sdk-common/aia-manifest-jar-generator:proto",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
         "//tools/base/tracer:trace_agent",
+        "//tools/base/utp/android-test-plugin-host-device-info-proto:studio.android-test-plugin-host-device-info-proto",
     ] + select({
         "//tools/base/bazel:windows": [],
         "//conditions:default": [
