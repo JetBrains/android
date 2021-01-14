@@ -6,17 +6,10 @@ import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.PlatformTestCase
 import com.intellij.util.ui.UIUtil
-import junit.framework.Assert.assertEquals
-import org.junit.After
-import org.junit.Before
+import junit.framework.TestCase.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mock
-import org.mockito.Mockito
-import org.mockito.MockitoAnnotations
-import java.lang.StringBuilder
 
 private class TestBuildListener: BuildListener {
   private val log = StringBuilder()
@@ -41,24 +34,15 @@ class BuildListenerTest {
   val projectRule = AndroidProjectRule.inMemory()
   private val project: Project
     get() = projectRule.project
-  private lateinit var buildContext: BuildContext
-  private lateinit var buildState: GradleBuildState
 
-  private val buildListener: TestBuildListener = TestBuildListener()
-
-  @Before
-  fun setUp() {
-    setupBuildListener(project, buildListener, projectRule.fixture.testRootDisposable)
-    buildState = GradleBuildState.getInstance(project)
-  }
-
-  @After
-  fun tearDown() {
-    buildState.clear()
-  }
-
-  private fun createContext(buildMode: BuildMode): BuildContext {
-    return BuildContext(project, listOf("task1", "task2"), buildMode)
+  private fun setupBuildListener(buildMode: BuildMode): Triple<GradleBuildState, BuildContext, TestBuildListener> {
+    // Make sure there are no pending call before setting up the listener
+    processEvents()
+    val listener = TestBuildListener()
+    setupBuildListener(project, listener, projectRule.fixture.testRootDisposable)
+    return Triple(GradleBuildState.getInstance(project),
+                  BuildContext(project, listOf("task1", "task2"), buildMode),
+                  listener)
   }
 
   private fun processEvents() = UIUtil.invokeAndWaitIfNeeded(Runnable {
@@ -67,7 +51,7 @@ class BuildListenerTest {
 
   @Test
   fun testBuildSuccessful() {
-    buildContext = createContext(BuildMode.ASSEMBLE)
+    val (buildState, buildContext, buildListener) = setupBuildListener(BuildMode.ASSEMBLE)
 
     buildState.buildStarted(buildContext)
     processEvents()
@@ -83,7 +67,7 @@ class BuildListenerTest {
 
   @Test
   fun testBuildFailed() {
-    buildContext = createContext(BuildMode.ASSEMBLE)
+    val (buildState, buildContext, buildListener) = setupBuildListener(BuildMode.ASSEMBLE)
 
     buildState.buildStarted(buildContext)
     buildState.buildFinished(BuildStatus.FAILED)
@@ -96,7 +80,7 @@ class BuildListenerTest {
 
   @Test
   fun testBuildCancelled() {
-    buildContext = createContext(BuildMode.ASSEMBLE)
+    val (buildState, buildContext, buildListener) = setupBuildListener(BuildMode.ASSEMBLE)
 
     buildState.buildStarted(buildContext)
     buildState.buildFinished(BuildStatus.FAILED)
@@ -109,7 +93,7 @@ class BuildListenerTest {
 
   @Test
   fun testCleanBuild() {
-    buildContext = createContext(BuildMode.CLEAN)
+    val (buildState, buildContext, buildListener) = setupBuildListener(BuildMode.CLEAN)
     buildState.buildStarted(buildContext)
     processEvents()
     assertEquals("", buildListener.getLog())
@@ -117,5 +101,28 @@ class BuildListenerTest {
     buildState.buildFinished(BuildStatus.SUCCESS)
     processEvents()
     assertEquals("Build Failed", buildListener.getLog())
+  }
+
+  /**
+   * Regression test for b/177355531. Disposing the first build listener would remove all listeners.
+   */
+  @Test
+  fun testRemoveSecondListener() {
+    val secondListener = object : BuildListener {
+      override fun buildSucceeded() {}
+    }
+    val secondDisposable = Disposer.newDisposable()
+    setupBuildListener(project, secondListener, secondDisposable)
+
+    Disposer.dispose(secondDisposable)
+
+    val (buildState, buildContext, buildListener) = setupBuildListener(BuildMode.ASSEMBLE)
+    buildState.buildStarted(buildContext)
+    buildState.buildFinished(BuildStatus.SUCCESS)
+    processEvents()
+    assertEquals("""
+      Build Started
+      Build Succeeded
+    """.trimIndent(), buildListener.getLog())
   }
 }
