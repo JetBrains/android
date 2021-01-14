@@ -65,7 +65,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
       ResourceFolderType.getFolderType(file.parent?.name.orEmpty()) == ResourceFolderType.LAYOUT
 
     private fun getDataForFile(file: VirtualFile, project: Project): BindingXmlData? {
-      return FileBasedIndex.getInstance().getFileData(NAME, file, project).values.firstOrNull()
+      return FileBasedIndex.getInstance().getSingleEntryIndexData(NAME, file, project)
     }
 
     fun getDataForFile(project: Project, file: VirtualFile) = getDataForFile(file, project)
