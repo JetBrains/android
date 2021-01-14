@@ -26,7 +26,6 @@ import com.android.tools.idea.flags.StudioFlags.AGP_UPGRADE_ASSISTANT_TOOL_WINDO
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
@@ -1935,7 +1934,7 @@ class MigrateToBuildFeaturesRefactoringProcessor : AgpUpgradeComponentRefactorin
         run dataBinding@{
           val psiElement = androidModel.dataBinding().enabled().psiElement ?: return@dataBinding
           val wrappedPsiElement = WrappedPsiElement(psiElement, this, DATA_BINDING_ENABLED_USAGE_TYPE)
-          val usageInfo = DataBindingEnabledUsageInfo(wrappedPsiElement, androidModel)
+          val usageInfo = DataBindingEnabledUsageInfo(wrappedPsiElement, model)
           usages.add(usageInfo)
         }
       }
@@ -1944,7 +1943,7 @@ class MigrateToBuildFeaturesRefactoringProcessor : AgpUpgradeComponentRefactorin
         run viewBinding@{
           val psiElement = androidModel.viewBinding().enabled().psiElement ?: return@viewBinding
           val wrappedPsiElement = WrappedPsiElement(psiElement, this, VIEW_BINDING_ENABLED_USAGE_TYPE)
-          val usageInfo = ViewBindingEnabledUsageInfo(wrappedPsiElement, androidModel)
+          val usageInfo = ViewBindingEnabledUsageInfo(wrappedPsiElement, model)
           usages.add(usageInfo)
         }
       }
@@ -1968,33 +1967,33 @@ class MigrateToBuildFeaturesRefactoringProcessor : AgpUpgradeComponentRefactorin
   }
 }
 
-class ViewBindingEnabledUsageInfo(element: WrappedPsiElement, val androidModel: AndroidModel): GradleBuildModelUsageInfo(element) {
+class ViewBindingEnabledUsageInfo(element: WrappedPsiElement, val buildModel: GradleBuildModel): GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    val valueModel = androidModel.viewBinding().enabled().unresolvedModel
+    val valueModel = buildModel.android().viewBinding().enabled().unresolvedModel
 
     val value: Any = when(valueModel.valueType) {
       GradlePropertyModel.ValueType.BOOLEAN -> valueModel.getValue(BOOLEAN_TYPE) ?: return
       GradlePropertyModel.ValueType.REFERENCE -> valueModel.getValue(REFERENCE_TO_TYPE) ?: return
       else -> return
     }
-    androidModel.buildFeatures().viewBinding().setValue(value)
-    androidModel.viewBinding().enabled().delete()
+    buildModel.android().buildFeatures().viewBinding().setValue(value)
+    buildModel.android().viewBinding().enabled().delete()
   }
 
   override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.viewBindingEnabledUsageInfo.tooltipText")
 }
 
-class DataBindingEnabledUsageInfo(element: WrappedPsiElement, val androidModel: AndroidModel): GradleBuildModelUsageInfo(element) {
+class DataBindingEnabledUsageInfo(element: WrappedPsiElement, val buildModel: GradleBuildModel): GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    val valueModel = androidModel.dataBinding().enabled().unresolvedModel
+    val valueModel = buildModel.android().dataBinding().enabled().unresolvedModel
 
     val value: Any = when(valueModel.valueType) {
       GradlePropertyModel.ValueType.BOOLEAN -> valueModel.getValue(BOOLEAN_TYPE) ?: return
       GradlePropertyModel.ValueType.REFERENCE -> valueModel.getValue(REFERENCE_TO_TYPE) ?: return
       else -> return
     }
-    androidModel.buildFeatures().dataBinding().setValue(value)
-    androidModel.dataBinding().enabled().delete()
+    buildModel.android().buildFeatures().dataBinding().setValue(value)
+    buildModel.android().dataBinding().enabled().delete()
   }
 
   override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.dataBindingEnabledUsageInfo.tooltipText")
