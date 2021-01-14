@@ -62,13 +62,6 @@ java_import(
 
 # managed by go/iml_to_build
 java_import(
-    name = "auto-value-annotations",
-    jars = ["//prebuilts/tools/common/m2/repository/com/google/auto/value/auto-value-annotations/1.6.2:auto-value-annotations_files"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
     name = "compile-testing",
     jars = ["//prebuilts/tools/common/m2/repository/com/google/testing/compile/compile-testing/0.16:compile-testing_files"],
     visibility = ["//visibility:public"],
