@@ -103,6 +103,7 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="android-test-plugin-host-device-info-proto" level="project" />
     <orderEntry type="module-library">
       <library name="libandroid-core-proto">
         <CLASSES>

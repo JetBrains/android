@@ -1,5 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
-load("//tools/adt/idea/studio:studio.bzl", "studio_plugin", "android_studio")
+load("//tools/adt/idea/studio:studio.bzl", "android_studio", "studio_plugin")
 
 studio_plugin(
     name = "org.jetbrains.android",
@@ -441,6 +441,7 @@ android_studio(
             "//tools/adt/idea/.idea/libraries:asm-tools",
             "//tools/adt/idea/.idea/libraries:kxml2",
             "//tools/adt/idea/.idea/libraries:libam-instrumentation-data-proto",
+            "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
             "//tools/adt/idea/.idea/libraries:sqlite",
             "//tools/adt/idea/.idea/libraries:aapt-proto",
             "//tools/adt/idea/.idea/libraries:studio-analytics-proto",

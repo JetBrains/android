@@ -266,3 +266,10 @@ java_import(
     jars = ["//tools/base/dynamic-layout-inspector/agent/appinspection/proto:layout_inspector_view_java_proto.jar"],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build
+java_import(
+    name = "android-test-plugin-host-device-info-proto",
+    jars = ["//tools/base/utp/android-test-plugin-host-device-info-proto:libstudio.android-test-plugin-host-device-info-proto.jar"],
+    visibility = ["//visibility:public"],
+)
