@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment;
 
 import com.intellij.openapi.project.Project;
 import java.nio.file.Path;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,13 +35,21 @@ final class BootWithSnapshotTarget extends Target {
 
   @Override
   boolean matches(@NotNull Device device) {
-    if (!device.matches(getDeviceKey())) {
+    if (!device.getKey().equals(getDeviceKey())) {
       return false;
     }
 
     return device.getSnapshots().stream()
       .map(Snapshot::getDirectory)
       .anyMatch(snapshotKey -> snapshotKey.equals(mySnapshotKey));
+  }
+
+  @Override
+  @NotNull Optional<@NotNull String> getText(@NotNull Device device) {
+    return device.getSnapshots().stream()
+      .filter(snapshot -> snapshot.getDirectory().equals(mySnapshotKey))
+      .map(Snapshot::toString)
+      .findFirst();
   }
 
   @Override

@@ -768,7 +768,7 @@ public class NlComponent implements NlAttributesHolder {
     else {
       setTag(receiverTag.addSubTag(tag, false));
     }
-    if (type.isMove()) {
+    if (type == InsertType.MOVE) {
       tag.delete();
     }
   }

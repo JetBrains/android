@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
@@ -54,7 +55,7 @@ import org.jetbrains.annotations.Nullable;
  * needed.
  */
 public class ResourceFolderRegistry implements Disposable {
-  @NotNull private Project myProject;
+  @NotNull private final Project myProject;
   @NotNull private final Cache<VirtualFile, ResourceFolderRepository> myNamespacedCache = buildCache();
   @NotNull private final Cache<VirtualFile, ResourceFolderRepository> myNonNamespacedCache = buildCache();
   @NotNull private final ImmutableList<Cache<VirtualFile, ResourceFolderRepository>> myCaches =
@@ -107,8 +108,11 @@ public class ResourceFolderRegistry implements Disposable {
   private static ResourceFolderRepository createRepository(@NotNull AndroidFacet facet,
                                                            @NotNull VirtualFile dir,
                                                            @NotNull ResourceNamespace namespace) {
-    ResourceFolderRepositoryCachingData cachingData = ResourceFolderRepositoryFileCacheService.get()
-        .getCachingData(facet.getModule().getProject(), dir, AndroidIoManager.getInstance().getBackgroundDiskIoExecutor());
+    // Don't create a persistent cache in tests to avoid unnecessary overhead.
+    Executor executor = ApplicationManager.getApplication().isUnitTestMode() ?
+                        runnable -> {} : AndroidIoManager.getInstance().getBackgroundDiskIoExecutor();
+    ResourceFolderRepositoryCachingData cachingData =
+        ResourceFolderRepositoryFileCacheService.get().getCachingData(facet.getModule().getProject(), dir, executor);
     return ResourceFolderRepository.create(facet, dir, namespace, cachingData);
   }
 
@@ -126,8 +130,8 @@ public class ResourceFolderRegistry implements Disposable {
 
   private void removeStaleEntries() {
     // TODO(namespaces): listen to changes in modules' namespacing modes and dispose repositories which are no longer needed.
-    myNamespacedCache.asMap().keySet().removeIf(dir -> isStale(dir));
-    myNonNamespacedCache.asMap().keySet().removeIf(dir -> isStale(dir));
+    myNamespacedCache.asMap().keySet().removeIf(this::isStale);
+    myNonNamespacedCache.asMap().keySet().removeIf(this::isStale);
   }
 
   private boolean isStale(@NotNull VirtualFile dir) {
@@ -145,8 +149,7 @@ public class ResourceFolderRegistry implements Disposable {
     reset();
   }
 
-  void dispatchToRepositories(@NotNull VirtualFile file,
-                                      @NotNull BiConsumer<ResourceFolderRepository, VirtualFile> handler) {
+  void dispatchToRepositories(@NotNull VirtualFile file, @NotNull BiConsumer<ResourceFolderRepository, VirtualFile> handler) {
     for (VirtualFile dir = file.isDirectory() ? file : file.getParent(); dir != null; dir = dir.getParent()) {
       for (Cache<VirtualFile, ResourceFolderRepository> cache : myCaches) {
         ResourceFolderRepository repository = cache.getIfPresent(dir);

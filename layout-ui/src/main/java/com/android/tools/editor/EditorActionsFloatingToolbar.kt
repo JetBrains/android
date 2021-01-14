@@ -16,6 +16,7 @@
 package com.android.tools.editor
 
 import com.android.tools.adtui.ui.DesignSurfaceToolbarUI
+import com.android.tools.adtui.util.ActionToolbarUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager

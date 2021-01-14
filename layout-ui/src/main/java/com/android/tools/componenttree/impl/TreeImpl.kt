@@ -71,10 +71,7 @@ class TreeImpl(
     TreeUtil.installActions(this)
     addMouseListener(object : PopupHandler() {
       override fun invokePopup(comp: Component, x: Int, y: Int) {
-        val viewPort = this@TreeImpl.parent
-        val scrollPane = viewPort.parent
-        val point = SwingUtilities.convertPoint(comp, x, y, scrollPane)
-        invokePopup(point.x, point.y)
+        invokePopup(x, y)
       }
     })
     addMouseListener(object: MouseAdapter() {
@@ -197,7 +194,7 @@ class TreeImpl(
    */
   // Hack: copied with the exception of myTipComponent from the private method: AbstractExpandableItemsHandler.noIntersections
   private fun withinApplicationFocus(): Boolean {
-    val owner = SwingUtilities.getWindowAncestor(this)
+    val owner = SwingUtilities.getWindowAncestor(this) ?: return false // NPE safeguard: b/174129669
     var focus: Window? = WindowManagerEx.getInstanceEx().mostRecentFocusedWindow
     if (focus === owner.owner) {
       focus = null // do not check intersection with parent

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.builder.model.SyncIssue
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.project.sync.GradleSyncIntegrationTestCase
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
@@ -428,6 +429,16 @@ abstract class GradleSyncProjectComparisonTest : GradleSyncIntegrationTestCase()
         }
       )
       assertIsEqualToSnapshot(text)
+    }
+  }
+
+  fun testModulePerSourceSet() {
+    StudioFlags.USE_MODULE_PER_SOURCE_SET.override(true)
+    try {
+      val text = importSyncAndDumpProject(PSD_SAMPLE_GROOVY)
+      assertIsEqualToSnapshot(text)
+    } finally {
+      StudioFlags.USE_MODULE_PER_SOURCE_SET.clearOverride()
     }
   }
 

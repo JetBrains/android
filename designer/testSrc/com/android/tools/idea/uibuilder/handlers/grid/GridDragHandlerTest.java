@@ -80,7 +80,7 @@ public final class GridDragHandlerTest extends LayoutTestCase {
   public void testCommitCellHasChild() {
     handler.start(315, 105, 0);
 
-    WriteCommandAction.runWriteCommandAction(getProject(), () -> handler.commit(630, 210, 0, InsertType.MOVE_INTO));
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> handler.commit(630, 210, 0, InsertType.MOVE));
 
     NlComponent[][] children = handler.getInfo().getChildren();
     NlComponent child = children[handler.getStartRow()][handler.getStartColumn()];
@@ -94,7 +94,7 @@ public final class GridDragHandlerTest extends LayoutTestCase {
     handler.update(235, 105, 0, SceneContext.get());
 
     WriteCommandAction.runWriteCommandAction(getProject(), () -> {
-      handler.commit(470, 210, 0, InsertType.MOVE_INTO);
+      handler.commit(470, 210, 0, InsertType.MOVE);
     });
 
     NlComponent[][] children = handler.getInfo().getChildren();

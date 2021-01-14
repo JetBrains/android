@@ -50,7 +50,7 @@ internal fun setupTestClassLoaderWithTransformation(
     val testClassBytes = loadClassBytes(clazz)
 
     val classReader = ClassReader(testClassBytes)
-    val classOutputWriter = ClassWriter(ClassWriter.COMPUTE_MAXS or ClassWriter.COMPUTE_FRAMES)
+    val classOutputWriter = ClassWriter(ClassWriter.COMPUTE_FRAMES)
     // Move the class
     val remapper = ClassRemapper(classTransformation(TraceClassVisitor(classOutputWriter, PrintWriter(afterTransformTrace))),
                                  classNameRemapper)

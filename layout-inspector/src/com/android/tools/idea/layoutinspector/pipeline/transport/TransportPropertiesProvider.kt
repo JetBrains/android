@@ -17,7 +17,6 @@ package com.android.tools.idea.layoutinspector.pipeline.transport
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.tools.idea.layoutinspector.common.StringTableImpl
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -287,7 +286,7 @@ class TransportPropertiesProvider(
         Type.LAMBDA -> return fromLambda(property)
         else -> ""
       }
-      val type = property.type
+      val type = property.type.convert()
       if (property.elementList.isEmpty()) {
         // TODO: Handle attribute namespaces i.e. the hardcoded ANDROID_URI below
         return InspectorPropertyItem(ANDROID_URI, name, type, value, group, source, viewId, lookup)

@@ -99,7 +99,7 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
 
   private var currentSnappedPlaceholder: Placeholder? = null
 
-  var insertType: InsertType = InsertType.MOVE_WITHIN
+  var insertType: InsertType = InsertType.MOVE
 
   /**
    * To handle Live Rendering case.

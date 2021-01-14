@@ -19,12 +19,10 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.cMakeListsTxt
 
-fun RecipeExecutor.generateCMakeFile(data: ModuleTemplateData, nativeSourceName: String) {
+fun RecipeExecutor.generateCMakeFile(data: ModuleTemplateData, nativeSourceName: String, nativeLibraryName: String) {
   with(data.rootDir.resolve("src/main/cpp")) {
     createDirectory(this)
-    save(cMakeListsTxt(nativeSourceName, lastSegmentOfPackageName(data.packageName)), resolve("CMakeLists.txt"))
+    save(cMakeListsTxt(nativeSourceName, nativeLibraryName), resolve("CMakeLists.txt"))
   }
 }
 
-private fun lastSegmentOfPackageName(packageName: String): String =
-  packageName.split('.').last()

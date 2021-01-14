@@ -22,6 +22,7 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.NullMonitorStage
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
@@ -71,12 +72,12 @@ class CpuCaptureStageTest {
   }
 
   @Test
-  fun parsingFailureReturnsToProfilerStage() {
+  fun parsingFailureGoesToNullStage() {
     val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                        CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace"), SESSION_ID)
     profilers.stage = stage
     assertThat(services.notification).isNotNull()
-    assertThat(profilers.stage).isInstanceOf(CpuProfilerStage::class.java)
+    assertThat(profilers.stage).isInstanceOf(NullMonitorStage::class.java)
   }
 
   @Test

@@ -1,5 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
-load("//tools/adt/idea/studio:studio.bzl", "studio_plugin", "android_studio")
+load("//tools/adt/idea/studio:studio.bzl", "android_studio", "studio_plugin")
 
 studio_plugin(
     name = "org.jetbrains.android",
@@ -169,6 +169,7 @@ studio_plugin(
             "//prebuilts/studio/layoutlib:layoutlib",
         ],
         "resources": [
+            "//tools/base/dynamic-layout-inspector/agent/appinspection:bundle",
             "//tools/base/profiler/transform:profilers-transform",
             "//tools/base/profiler/app:perfa",
             "//tools/base/profiler/app:perfa_okhttp",
@@ -440,6 +441,7 @@ android_studio(
             "//tools/adt/idea/.idea/libraries:asm-tools",
             "//tools/adt/idea/.idea/libraries:kxml2",
             "//tools/adt/idea/.idea/libraries:libam-instrumentation-data-proto",
+            "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
             "//tools/adt/idea/.idea/libraries:sqlite",
             "//tools/adt/idea/.idea/libraries:aapt-proto",
             "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
@@ -452,6 +454,7 @@ android_studio(
             "//tools/adt/idea/.idea/libraries:sqlite-inspector-proto",
             "//tools/adt/idea/.idea/libraries:kotlinx-coroutines-guava",
             "//tools/adt/idea/.idea/libraries:layoutinspector-skia-proto",
+            "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto",
             "//tools/adt/idea/.idea/libraries:tightvnc",
         ],
         "license": [
@@ -469,9 +472,9 @@ android_studio(
     },
     searchable_options = "searchable-options",
     version_eap = True,
-    version_full = "Arctic Fox | {0}.{1}.{2} Canary {3}",
-    version_micro = 1,
-    version_patch = 5,
+    version_full = "dev build",
+    version_micro = 0,
+    version_patch = 0,
 )
 
 py_test(

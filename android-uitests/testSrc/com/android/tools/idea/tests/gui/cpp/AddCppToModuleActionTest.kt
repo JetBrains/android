@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.fixture.AddCppToModuleDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.util.toIoFile
+import com.android.tools.idea.wizard.template.DEFAULT_CMAKE_VERSION
 import com.google.common.truth.Truth
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
@@ -64,7 +65,7 @@ class AddCppToModuleActionTest {
       Assert.fail("Sync failed after adding new C++ files to current Android project. See logs.")
     }
 
-    Truth.assertThat(ideFrame.editor.currentFile!!.name).isEqualTo("native-lib.cpp")
+    Truth.assertThat(ideFrame.editor.currentFile!!.name).isEqualTo("tools.cpp")
   }
 
   @Test
@@ -99,6 +100,7 @@ class AddCppToModuleActionTest {
     }
 
     Truth.assertThat(projectRoot.resolve("app/build.gradle").readText()).contains("../cpp/CMakeLists.txt")
+    Truth.assertThat(projectRoot.resolve("app/build.gradle").readText()).contains("version '$DEFAULT_CMAKE_VERSION'")
   }
 
   @Test

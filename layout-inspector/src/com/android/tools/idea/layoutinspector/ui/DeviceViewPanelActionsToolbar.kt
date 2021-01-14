@@ -23,9 +23,8 @@ import com.android.tools.adtui.actions.ZoomResetAction
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.editor.EditorActionsFloatingToolbar
 import com.android.tools.editor.EditorActionsToolbarActionGroups
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_SKP_TOO_LARGE
+import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.PNG_AS_REQUESTED
+import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.PNG_SKP_TOO_LARGE
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction

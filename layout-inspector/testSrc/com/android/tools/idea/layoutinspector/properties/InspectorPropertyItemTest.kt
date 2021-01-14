@@ -28,7 +28,6 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.util.CheckUtil
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.fileEditor.FileEditor
@@ -46,6 +45,7 @@ import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
+import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
 
 abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidProjectRule) {
   private var componentStack: ComponentStack? = null
@@ -109,7 +109,7 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
   }
 
   private val fakeComposeNode: ComposeViewNode =
-    ComposeViewNode(-2L, "Text", null, 20, 20, 600, 200, null, "",
+    ComposeViewNode(-2L, "Text", null, 20, 20, 600, 200, null, null, "",
                     0, "Text.kt", composePackageHash = 1777, composeOffset = 420, composeLineNumber = 17)
 
   protected fun browseProperty(attrName: String,

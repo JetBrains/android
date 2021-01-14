@@ -42,7 +42,7 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
         if (project.isDisposed()) {
           return;
         }
-        Map<String, T> modelsByModuleName = indexByModuleName(toImport, modelsProvider);
+        Map<String, DataNode<T>> modelsByModuleName = indexByModuleName(toImport, modelsProvider);
         importData(toImport, project, modelsProvider, modelsByModuleName);
     });
   }
@@ -50,15 +50,15 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
   protected abstract void importData(@NotNull Collection<DataNode<T>> toImport,
                                      @NotNull Project project,
                                      @NotNull IdeModifiableModelsProvider modelsProvider,
-                                     @NotNull Map<String, T> modelsByModuleName);
+                                     @NotNull Map<String, DataNode<T>> modelsByModuleName);
 
   @NotNull
-  private Map<String, T> indexByModuleName(@NotNull Collection<DataNode<T>> dataNodes,
+  private Map<String, DataNode<T>> indexByModuleName(@NotNull Collection<DataNode<T>> dataNodes,
                                            @NotNull IdeModifiableModelsProvider modelsProvider) {
     if (dataNodes.isEmpty()) {
       return Collections.emptyMap();
     }
-    Map<String, T> index = new HashMap<>();
+    Map<String, DataNode<T>> index = new HashMap<>();
     for (DataNode<T> dataNode : dataNodes) {
       T model = dataNode.getData();
       String moduleName = model.getModuleName();
@@ -72,7 +72,7 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
           moduleName = module.getName();
         }
       }
-      index.put(moduleName, model);
+      index.put(moduleName, dataNode);
     }
     return index;
   }

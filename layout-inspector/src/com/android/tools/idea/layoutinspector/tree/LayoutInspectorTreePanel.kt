@@ -23,11 +23,13 @@ import com.android.tools.componenttree.api.ViewNodeType
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.IdeActions
-import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.application.ApplicationManager
 import icons.StudioIcons
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
@@ -35,12 +37,11 @@ import java.util.Collections
 import javax.swing.Icon
 import javax.swing.JComponent
 
-const val GOTO_DEFINITION_ACTION_KEY = "gotoDefinition"
-
-class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
+class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<LayoutInspector> {
   private var layoutInspector: LayoutInspector? = null
   private val componentTree: JComponent
   private val componentTreeModel: ComponentTreeModel
+  private val nodeType = InspectorViewNodeType()
 
   @VisibleForTesting
   val componentTreeSelectionModel: ComponentTreeSelectionModel
@@ -48,23 +49,22 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   init {
     val builder = ComponentTreeBuilder()
       .withHiddenRoot()
-      .withNodeType(InspectorViewNodeType())
+      .withAutoScroll()
+      .withNodeType(nodeType)
       .withContextMenu(::showPopup)
       .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
       .withHorizontalScrollBar()
       .withComponentName("inspectorComponentTree")
 
-    ActionManager.getInstance()?.getAction(IdeActions.ACTION_GOTO_DECLARATION)?.shortcutSet?.shortcuts
-        ?.filterIsInstance<KeyboardShortcut>()
-        ?.filter { it.secondKeyStroke == null }
-        ?.forEach { builder.withKeyActionKey(GOTO_DEFINITION_ACTION_KEY, it.firstKeyStroke) { gotoDefinition() } }
     val (tree, model, selectionModel) = builder.build()
     componentTree = tree
     componentTreeModel = model
     componentTreeSelectionModel = selectionModel
+    ActionManager.getInstance()?.getAction(IdeActions.ACTION_GOTO_DECLARATION)?.shortcutSet
+      ?.let { GotoDeclarationAction.registerCustomShortcutSet(it, componentTree, parentDisposable) }
     selectionModel.addSelectionListener {
       layoutInspector?.layoutInspectorModel?.apply {
-        selection = it.firstOrNull() as? ViewNode
+        setSelection(it.firstOrNull() as? ViewNode, SelectionOrigin.COMPONENT_TREE)
         stats.selectionMadeFromComponentTree()
       }
     }
@@ -87,25 +87,23 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
     toolContext?.layoutInspectorModel?.selectionListeners?.add(this::selectionChanged)
   }
 
+  override fun getAdditionalActions() = listOf(FilterNodeAction)
+
   override fun getComponent() = componentTree
 
   override fun dispose() {
   }
 
-  private fun gotoDefinition() {
-    val model = layoutInspector?.layoutInspectorModel ?: return
-    GotoDeclarationAction.findNavigatable(model)?.navigate(true)
-  }
-
   @Suppress("UNUSED_PARAMETER")
   private fun modelModified(old: AndroidWindow?, new: AndroidWindow?, structuralChange: Boolean) {
     if (structuralChange) {
+      nodeType.update()
       componentTreeModel.hierarchyChanged(new?.root)
     }
   }
 
   @Suppress("UNUSED_PARAMETER")
-  private fun selectionChanged(oldView: ViewNode?, newView: ViewNode?) {
+  private fun selectionChanged(oldView: ViewNode?, newView: ViewNode?, origin: SelectionOrigin) {
     if (newView == null) {
       componentTreeSelectionModel.currentSelection = emptyList()
     }
@@ -115,6 +113,12 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   }
 
   private class InspectorViewNodeType : ViewNodeType<ViewNode>() {
+    private var hideTopSystemNodes = TreeSettings.hideSystemNodes
+
+    fun update() {
+      hideTopSystemNodes = TreeSettings.hideSystemNodes
+    }
+
     override val clazz = ViewNode::class.java
 
     override fun tagNameOf(node: ViewNode) = node.qualifiedName
@@ -126,10 +130,28 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
     override fun iconOf(node: ViewNode): Icon =
       AndroidDomElementDescriptorProvider.getIconForViewTag(node.unqualifiedName) ?: StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW
 
-    override fun parentOf(node: ViewNode) = node.parent
+    override fun parentOf(node: ViewNode): ViewNode? =
+      if (hideTopSystemNodes && isTopSystemNode(node.parent)) node.parent?.parent else node.parent
 
-    override fun childrenOf(node: ViewNode) = node.children
+    override fun childrenOf(node: ViewNode): List<ViewNode> = when {
+      !hideTopSystemNodes || node.parent != null -> node.children
+      node.children.size == 1 -> if (isTopSystemNode(node.children.single())) node.children.single().children else node.children
+      else -> node.children.flatMap { if (isTopSystemNode(it)) it.children else listOf(it)  }
+    }
 
     override fun isEnabled(node: ViewNode) = node.visible
+
+    /**
+     * Return true if this is a system node that is a child of the generated root node in [InspectorModel].
+     *
+     * When the agent is filtering out system nodes, the top system node (typically a DecorView)
+     * will still be included. This method returns true if the [node] is such a system node and the
+     * grandParent is null indicating that [node] is a child of the generated root node in [InspectorModel].
+     */
+    private fun isTopSystemNode(node: ViewNode?): Boolean {
+      val parent = node?.parent
+      val grandParent = parent?.parent
+      return parent != null && grandParent == null && node.layout == null
+    }
   }
 }

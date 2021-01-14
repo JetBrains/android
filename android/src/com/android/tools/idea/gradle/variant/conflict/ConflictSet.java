@@ -23,6 +23,7 @@ import static com.intellij.openapi.module.ModuleUtilCore.getAllDependentModules;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
+import com.android.ide.common.gradle.model.IdeModuleLibrary;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.IdeLibrary;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -120,14 +121,14 @@ public class ConflictSet {
   @Nullable
   private static String getExpectedVariant(@NotNull AndroidModuleModel dependentAndroidModel, @NotNull String dependencyGradlePath) {
     IdeVariant variant = dependentAndroidModel.getSelectedVariant();
-    for (IdeLibrary dependency : variant.getMainArtifact().getLevel2Dependencies().getModuleDependencies()) {
+    for (IdeModuleLibrary dependency : variant.getMainArtifact().getLevel2Dependencies().getModuleDependencies()) {
       if (dependencyGradlePath.equals(dependency.getProjectPath())) {
         return dependency.getVariant();
       }
     }
 
     if (variant.getAndroidTestArtifact() != null) {
-      for (IdeLibrary dependency : variant.getAndroidTestArtifact().getLevel2Dependencies().getModuleDependencies()) {
+      for (IdeModuleLibrary dependency : variant.getAndroidTestArtifact().getLevel2Dependencies().getModuleDependencies()) {
         if (dependencyGradlePath.equals(dependency.getProjectPath())) {
           return dependency.getVariant();
         }
@@ -135,7 +136,7 @@ public class ConflictSet {
     }
 
     if (variant.getUnitTestArtifact() != null) {
-      for (IdeLibrary dependency : variant.getUnitTestArtifact().getLevel2Dependencies().getModuleDependencies()) {
+      for (IdeModuleLibrary dependency : variant.getUnitTestArtifact().getLevel2Dependencies().getModuleDependencies()) {
         if (dependencyGradlePath.equals(dependency.getProjectPath())) {
           return dependency.getVariant();
         }

@@ -119,24 +119,6 @@ public abstract class Device {
     return myKey;
   }
 
-  /**
-   * Returns true if the key identifies this device. For a virtual device identified by
-   * VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd") this method will return true for
-   * VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd") and VirtualDeviceName("Pixel_4_API_30").
-   *
-   * <p>When enough users upgrade their emulator to Version 30.0.18, this can be replaced with getKey().equals(key)
-   */
-  abstract boolean matches(@NotNull Key key);
-
-  /**
-   * Returns true if the collection contains a key that identifies this device. For a virtual device identified by
-   * VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd") this method will return true for a collection containing
-   * VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd") or VirtualDeviceName("Pixel_4_API_30").
-   *
-   * <p>When enough users upgrade their emulator to Version 30.0.18, this can be replaced with keys.contains(getKey())
-   */
-  abstract boolean hasKeyContainedBy(@NotNull Collection<@NotNull Key> keys);
-
   @Nullable
   final Instant getConnectionTime() {
     return myConnectionTime;

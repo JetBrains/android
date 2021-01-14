@@ -20,10 +20,10 @@ import com.android.ddmlib.IDevice
 import com.android.emulator.control.ExtendedControlsStatus
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.common.primaryPanelBackground
+import com.android.tools.adtui.util.ActionToolbarUtil.makeToolbarNavigable
 import com.android.tools.deployer.AdbClient
 import com.android.tools.deployer.ApkInstaller
 import com.android.tools.deployer.InstallStatus
-import com.android.tools.editor.ActionToolbarUtil.makeToolbarNavigable
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.transform
@@ -105,6 +105,7 @@ class EmulatorToolWindowPanel(
   private val layeredPane: JLayeredPane
   private val zoomControlsLayerPane: JPanel
   private var loadingPanel: JBLoadingPanel? = null
+  private var centerPanel: BorderLayoutPanel
   private var contentDisposable: Disposable? = null
   private var floatingToolbar: JComponent? = null
   private var savedEmulatorViewPreferredSize: Dimension? = null
@@ -168,6 +169,8 @@ class EmulatorToolWindowPanel(
       add(scrollPane, BorderLayout.CENTER)
     }
 
+    centerPanel = NotificationHolderPanel()
+
     installDnD()
   }
 
@@ -178,12 +181,12 @@ class EmulatorToolWindowPanel(
   private fun addToolbar() {
     if (isToolbarHorizontal) {
       mainToolbar.setOrientation(SwingConstants.HORIZONTAL)
-      layeredPane.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.TOP)
+      centerPanel.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.TOP)
       addToTop(mainToolbar.component)
     }
     else {
       mainToolbar.setOrientation(SwingConstants.VERTICAL)
-      layeredPane.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.LEFT)
+      centerPanel.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.LEFT)
       addToLeft(mainToolbar.component)
     }
   }
@@ -222,12 +225,14 @@ class EmulatorToolWindowPanel(
       scrollPane.setViewportView(emulatorView)
       mainToolbar.setTargetComponent(emulatorView)
 
+      addToCenter(centerPanel)
+
       addToolbar()
 
       val loadingPanel = EmulatorLoadingPanel(disposable)
       this.loadingPanel = loadingPanel
       loadingPanel.add(layeredPane, BorderLayout.CENTER)
-      addToCenter(loadingPanel)
+      centerPanel.addToCenter(loadingPanel)
 
       loadingPanel.setLoadingText("Connecting to the Emulator")
       loadingPanel.startLoading() // The stopLoading method is called by EmulatorView after the gRPC connection is established.

@@ -74,6 +74,7 @@ class RecommendedUpgradeReminder(
     get() =  PropertiesComponent.getInstance(project).getValue("$settingsPropertyRoot.do.not.ask.for.version")
     set(value) = PropertiesComponent.getInstance(project).setValue("$settingsPropertyRoot.do.not.ask.for.version", value)
 
+  @Slow
   override fun shouldAsk(currentTime: Long): Boolean {
     val pluginInfo = project.findPluginInfo() ?: return false
     val gradleVersion = pluginInfo.pluginVersion ?: return false
@@ -91,18 +92,18 @@ class RecommendedUpgradeReminder(
  * [current] defaults to the value that is obtained from the [project], if it can't be found, false is returned.
  */
 @Slow
-@JvmOverloads
-fun shouldRecommendPluginUpgrade(
-  project: Project,
-  current: GradleVersion? = project.findPluginInfo()?.pluginVersion,
-  recommended: GradleVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
-) : Boolean {
+fun shouldRecommendPluginUpgrade(project: Project): Boolean {
+  // If we don't know the current plugin version then we don't upgrade.
+  val current = project.findPluginInfo()?.pluginVersion ?: return false
+  val recommended = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+  return shouldRecommendPluginUpgrade(project, current, recommended)
+}
+
+fun shouldRecommendPluginUpgrade(project: Project, current: GradleVersion, recommended: GradleVersion) : Boolean {
   // Needed internally for development of Android support lib.
   if (SystemProperties.getBooleanProperty("studio.skip.agp.upgrade", false)) return false
 
   if (!RecommendedUpgradeReminder(project).shouldAsk()) return false
-  // If we don't know the current plugin version then we don't upgrade.
-  if (current == null) return false
   return shouldRecommendUpgrade(current, recommended)
 }
 
@@ -389,6 +390,14 @@ fun displayForceUpdatesDisabledMessage(project: Project) {
   notification.notify(project)
 }
 
+fun AndroidPluginInfo.maybeRecommendPluginUpgrade(project: Project) {
+  this.pluginVersion?.let { currentAgpVersion ->
+    val recommendedAgpVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+    if (shouldRecommendPluginUpgrade(project, currentAgpVersion, recommendedAgpVersion)) recommendPluginUpgrade(project)
+  }
+}
+
+@Slow
 internal fun Project.findPluginInfo() : AndroidPluginInfo? {
   val pluginInfo = AndroidPluginInfo.find(this)
   if (pluginInfo == null) {

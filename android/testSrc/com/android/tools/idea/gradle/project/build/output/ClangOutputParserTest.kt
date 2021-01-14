@@ -83,6 +83,19 @@ class ClangOutputParserTest {
   }
 
   @Test
+  fun `ndk - simple case - AGP 7_0 or later`() = assertParser("""
+    > Task :some:gradle:task UP-TO-DATE
+    > Task :foo:bar:app:buildNdkBuildDebug
+  * C/C++: Build app_armeabi-v7a
+  * C/C++: [armeabi-v7a] Compile++ arm  : app <= app.cpp
+  * C/C++: /usr/local/home/jeff/hello-world/src/app.cpp:1:1: warning: something is suboptimal
+    > Task :some:other:gradle:task UP-TO-DATE
+    """) {
+    assertDiagnosticMessages(
+      "[:foo:bar:app Debug armeabi-v7a]" to "/usr/local/home/jeff/hello-world/src/app.cpp:1:1: warning: something is suboptimal")
+  }
+
+  @Test
   fun `ndk - no module name`() = assertParser("""
     > Task :some:gradle:task UP-TO-DATE
     > Task :externalNativeBuildDebug
@@ -214,6 +227,19 @@ class ClangOutputParserTest {
   }
 
   @Test
+  fun `cmake - simple case with AGP 7_0 or later`() = assertParser("""
+    > Task :app:buildCMakeDebug
+  * C/C++: ninja: Entering directory `/usr/local/google/home/jeff/hello-world/app/.cxx/cmake/debug/arm64-v8a'
+  * C/C++: In file included from ../../../../../native/source.cpp:8:
+  * C/C++: ../../../../../native/source.h:12:10: fatal error: 'unresolved.h' file not found
+    > Task :some:other:gradle:task UP-TO-DATE
+    """) {
+    assertDiagnosticMessages(
+      "[:app Debug arm64-v8a]" to "/usr/local/google/home/jeff/hello-world/native/source.h:12:10: fatal error: 'unresolved.h' file not found"
+    )
+  }
+
+  @Test
   fun `cmake - different ABIs`() = assertParser("""
     > Task :app:externalNativeBuildDebug
   * ninja: Entering directory `/usr/local/google/home/jeff/hello-world/app/.cxx/cmake/debug/arm64-v8a'
@@ -314,6 +340,24 @@ class ClangOutputParserTest {
     * /usr/local/google/home/jeff/HelloWorld/src/HelloWorld.cpp:33: error: undefined reference to 'foo()'
     * clang++: error: linker command failed with exit code 1 (use -v to see invocation)
     * ninja: build stopped: subcommand failed.
+    * :app:externalNativeBuildDebug FAILED
+      FAILURE: Build failed with an exception.
+      """) {
+      assertDiagnosticMessages(
+        "[:app Debug arm64-v8a]" to "/usr/local/google/home/jeff/HelloWorld/src/HelloWorld.cpp:33: error: undefined reference to 'foo()'"
+      )
+    }
+  }
+
+  @Test
+  fun `linker - unresolved reference with AGP 7_0 or later`() {
+    Assume.assumeTrue(SdkConstants.currentPlatform() == SdkConstants.PLATFORM_LINUX)
+    assertParser("""
+      > Task :app:buildCMakeDebug
+    * C/C++: ninja: Entering directory `/usr/local/google/home/jeff/hello-world/app/.cxx/cmake/debug/arm64-v8a'
+    * C/C++: FAILED: /usr/local/google/home/jeff/HelloWorld/app/build/intermediates/cmake/debug/obj/x86_64/libmain.so
+    * C/C++: /usr/local/google/home/jeff/HelloWorld/src/HelloWorld.cpp:33: error: undefined reference to 'foo()'
+    * C/C++: clang++: error: linker command failed with exit code 1 (use -v to see invocation)
     * :app:externalNativeBuildDebug FAILED
       FAILURE: Build failed with an exception.
       """) {

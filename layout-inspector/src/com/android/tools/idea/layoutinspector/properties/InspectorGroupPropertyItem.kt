@@ -17,7 +17,6 @@ package com.android.tools.idea.layoutinspector.properties
 
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.resource.SourceLocation
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.property.ptable2.PTableGroupItem
 
 /**
@@ -26,7 +25,7 @@ import com.android.tools.property.ptable2.PTableGroupItem
 open class InspectorGroupPropertyItem(
   namespace: String,
   name: String,
-  type: LayoutInspectorProto.Property.Type,
+  type: PropertyType,
   value: String?,
   open val classLocation: SourceLocation?,
   group: PropertySection,
@@ -47,7 +46,7 @@ open class InspectorGroupPropertyItem(
    */
   constructor(namespace: String,
               name: String,
-              type: LayoutInspectorProto.Property.Type,
+              type: PropertyType,
               value: String?,
               classLocation: SourceLocation?,
               group: PropertySection,

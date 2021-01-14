@@ -91,6 +91,8 @@ class InspectorModelTest {
       }
     }
     var isModified = false
+    model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
+    model.hoveredNode = model[VIEW1]
     model.modificationListeners.add { _, _, structuralChange -> isModified = structuralChange }
 
     val newWindow =
@@ -105,6 +107,9 @@ class InspectorModelTest {
 
     model.update(newWindow, listOf(ROOT), 0)
     assertTrue(isModified)
+    val view1 = model[VIEW1]!!
+    assertSame(view1, model.selection)
+    assertSame(view1, model.hoveredNode)
 
     val newNodes = model.root.flatten().associateBy { it.drawId }
     assertSameElements(newNodes.keys, origNodes.keys.plus(VIEW3))
@@ -122,6 +127,8 @@ class InspectorModelTest {
       }
     }
     var isModified = false
+    model.setSelection(model[VIEW3], SelectionOrigin.INTERNAL)
+    model.hoveredNode = model[VIEW3]
     model.modificationListeners.add { _, _, structuralChange -> isModified = structuralChange }
 
     val newWindow =
@@ -133,6 +140,8 @@ class InspectorModelTest {
 
     model.update(newWindow, listOf(ROOT), 0)
     assertTrue(isModified)
+    assertNull(model.selection)
+    assertNull(model.hoveredNode)
 
     val newNodes = model.root.flatten().associateBy { it.drawId }
     assertSameElements(newNodes.keys.plus(VIEW3), origNodes.keys)
@@ -151,6 +160,8 @@ class InspectorModelTest {
       }
     }
     var isModified = false
+    model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
+    model.hoveredNode = model[VIEW1]
     model.modificationListeners.add { _, _, structuralChange -> isModified = structuralChange }
 
     val newWindow =
@@ -165,6 +176,8 @@ class InspectorModelTest {
 
     model.update(newWindow, listOf(ROOT), 0)
     assertTrue(isModified)
+    assertNull(model.selection)
+    assertNull(model.hoveredNode)
 
     assertSame(origNodes[ROOT], model[ROOT])
     assertSame(origNodes[VIEW2], model[VIEW2])
@@ -187,6 +200,8 @@ class InspectorModelTest {
       view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type")
     }
     model.update(newWindow, listOf(ROOT), 0)
+    model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
+    model.hoveredNode = model[VIEW1]
     assertFalse(model.isEmpty)
     assertNotNull(model[VIEW1])
     assertEquals(listOf(ROOT), model.root.children.map { it.drawId })
@@ -199,6 +214,8 @@ class InspectorModelTest {
     assertFalse(model.isEmpty)
     assertNotNull(model[VIEW1])
     assertNotNull(model[VIEW3])
+    assertSame(model[VIEW1], model.selection)
+    assertSame(model[VIEW1], model.hoveredNode)
     assertEquals(listOf(ROOT, VIEW2), model.root.children.map { it.drawId })
 
     // reverse order of windows
@@ -214,6 +231,8 @@ class InspectorModelTest {
     assertEquals(listOf(VIEW2), model.root.children.map { it.drawId })
     assertNull(model[VIEW1])
     assertNotNull(model[VIEW3])
+    assertNull(model.selection)
+    assertNull(model.hoveredNode)
 
     // clear
     model.update(null, listOf<Any>(), 0)

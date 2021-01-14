@@ -330,7 +330,7 @@ class TransportPropertiesProviderTest {
     assertThat(property.name).isEqualTo(name)
     assertThat(property.attrName).isEqualTo(name)
     assertThat(property.namespace).isEqualTo("")
-    assertThat(property.type).isEqualTo(type)
+    assertThat(property.type).isEqualTo(type.convert())
     assertThat(property.value).isEqualTo("λ Lambda")
     assertThat(property.packageName).isEqualTo(packageName)
     assertThat(property.fileName).isEqualTo(fileName)
@@ -543,7 +543,7 @@ class TransportPropertiesProviderTest {
     assertThat(property.name).isEqualTo(name)
     assertThat(property.attrName).isEqualTo(name)
     assertThat(property.namespace).isEqualTo(namespace)
-    assertThat(property.type).isEqualTo(type)
+    assertThat(property.type).isEqualTo(type.convert())
     assertThat(property.value).isEqualTo(value)
     assertThat(property.group).isEqualTo(group)
     assertThat(property.source).isEqualTo(source)
@@ -581,7 +581,7 @@ class TransportPropertiesProviderTest {
   }
 
   private fun detailFromItem(item: InspectorPropertyItem) =
-    PropertyDetail(item.name, item.type, item.value, item.source)
+    PropertyDetail(item.name, item.type.convert(), item.value, item.source)
 
   private data class PropertyDetail(val name: String, val type: Type, val value: String?, val source: ResourceReference? = null)
 }

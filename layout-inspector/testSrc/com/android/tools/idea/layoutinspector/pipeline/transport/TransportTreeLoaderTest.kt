@@ -23,6 +23,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.layoutinspector.SkiaParserService
 import com.android.tools.idea.layoutinspector.UnsupportedPictureVersionException
+import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
@@ -31,7 +32,6 @@ import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.layoutinspector.SkiaViewNode
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.testFramework.ProjectRule
@@ -96,6 +96,28 @@ class TransportTreeLoaderTest {
               bottom_right_y: 253
             }
           }
+          sub_view {
+            draw_id: -2
+            x: 30
+            y: 170
+            width: 70
+            height: 30
+            class_name: 5
+            compose_filename: 6
+            compose_package_hash: 12345678
+            compose_offset: 300,
+            compose_line_number: 12,
+            transformed_bounds {
+              top_left_x: 32
+              top_left_y: 171
+              top_right_x: 95
+              top_right_y: 170
+              bottom_left_x: 38
+              bottom_left_y: 180
+              bottom_right_x: 80
+              bottom_right_y: 195
+            }
+          }
         }
         string {
           id: 1
@@ -112,6 +134,14 @@ class TransportTreeLoaderTest {
         string {
           id: 4
           str: "MyViewClass2"
+        }
+        string {
+          id: 5
+          str: "Text"
+        }
+        string {
+          id: 6
+          str: "MySource.kt"
         }
         resources {
           api_level: 29
@@ -163,7 +193,7 @@ class TransportTreeLoaderTest {
     val payload = "samplepicture".toByteArray()
     `when`(client.getPayload(111)).thenReturn(payload)
     val skiaParser: SkiaParserService = mock()
-    `when`(skiaParser.getViewTree(eq(payload), argThat { req -> req.map { it.id }.sorted() == listOf(1L, 2L, 3L, 4L) }, any(), any()))
+    `when`(skiaParser.getViewTree(eq(payload), argThat { req -> req.map { it.id }.sorted() == listOf(-2L, 1L, 2L, 3L, 4L) }, any(), any()))
       .thenReturn(skiaResponse)
 
     val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), skiaParser)!!
@@ -176,7 +206,7 @@ class TransportTreeLoaderTest {
     assertThat(tree.height).isEqualTo(200)
     assertThat(tree.qualifiedName).isEqualTo("com.example.MyViewClass1")
     ViewNode.readDrawChildren { drawChildren -> assertThat ((tree.drawChildren()[0] as DrawViewImage).image).isEqualTo(image1) }
-    assertThat(tree.children.map { it.drawId }).containsExactly(2L, 4L).inOrder()
+    assertThat(tree.children.map { it.drawId }).containsExactly(2L, 4L, -2L).inOrder()
 
     val node2 = tree.children[0]
     assertThat(node2.drawId).isEqualTo(2)
@@ -209,6 +239,18 @@ class TransportTreeLoaderTest {
     assertThat(node4.children).isEmpty()
     assertThat((node4.transformedBounds as Polygon).xpoints).isEqualTo(intArrayOf(25, 75, 78, 23))
     assertThat((node4.transformedBounds as Polygon).ypoints).isEqualTo(intArrayOf(125, 127, 253, 250))
+
+    val node5 = tree.children[2]
+    assertThat(node5.drawId).isEqualTo(-2)
+    assertThat(node5.x).isEqualTo(30)
+    assertThat(node5.y).isEqualTo(170)
+    assertThat(node5.width).isEqualTo(70)
+    assertThat(node5.height).isEqualTo(30)
+    assertThat(node5.qualifiedName).isEqualTo("Text")
+    ViewNode.readDrawChildren { drawChildren -> assertThat(node5.drawChildren()).isEmpty() }
+    assertThat(node5.children).isEmpty()
+    assertThat((node5.transformedBounds as Polygon).xpoints).isEqualTo(intArrayOf(32, 95, 80, 38))
+    assertThat((node5.transformedBounds as Polygon).ypoints).isEqualTo(intArrayOf(171, 170, 195, 180))
   }
 
   @Test
@@ -217,7 +259,7 @@ class TransportTreeLoaderTest {
     val imageBytes = Files.readAllBytes(imageFile)
     val event = LayoutInspectorProto.LayoutInspectorEvent.newBuilder(event).apply {
       tree = LayoutInspectorProto.ComponentTreeEvent.newBuilder(tree).apply {
-        payloadType = PNG_AS_REQUESTED
+        payloadType = PayloadType.PNG_AS_REQUESTED
       }.build()
     }.build()
 
@@ -228,7 +270,7 @@ class TransportTreeLoaderTest {
     window!!.refreshImages(1.0)
     val tree = window.root
 
-    assertThat(window.imageType).isEqualTo(PNG_AS_REQUESTED)
+    assertThat(window.imageType).isEqualTo(ImageType.PNG_AS_REQUESTED)
     ViewNode.readDrawChildren { drawChildren ->
       ImageDiffUtil.assertImageSimilar(imageFile, (tree.drawChildren()[0] as DrawViewImage).image as BufferedImage, 0.0)
       assertThat(tree.flatten().flatMap { it.drawChildren().asSequence() }.count { it is DrawViewImage }).isEqualTo(1)

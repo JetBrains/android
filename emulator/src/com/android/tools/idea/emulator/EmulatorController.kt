@@ -18,6 +18,7 @@ package com.android.tools.idea.emulator
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.Slow
 import com.android.emulator.control.ClipData
+import com.android.emulator.control.DisplayConfigurations
 import com.android.emulator.control.EmulatorControllerGrpc
 import com.android.emulator.control.EmulatorStatus
 import com.android.emulator.control.ExtendedControlsStatus
@@ -25,6 +26,7 @@ import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.MouseEvent
+import com.android.emulator.control.Notification
 import com.android.emulator.control.PaneEntry
 import com.android.emulator.control.PaneEntry.PaneIndex
 import com.android.emulator.control.PhysicalModelValue
@@ -280,6 +282,23 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   /**
+   * Streams emulator notifications.
+   */
+  fun streamNotification(streamObserver: StreamObserver<Notification>): Cancelable {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("streamNotification()")
+    }
+    val method = EmulatorControllerGrpc.getStreamNotificationMethod()
+    val call = emulatorController.channel.newCall(method, emulatorController.callOptions)
+    ClientCalls.asyncServerStreamingCall(call, EMPTY_PROTO, DelegatingStreamObserver(streamObserver, method))
+    return object : Cancelable {
+      override fun cancel() {
+        call.cancel("Canceled by consumer", null)
+      }
+    }
+  }
+
+  /**
    * Retrieves a physical model value.
    */
   fun getPhysicalModel(physicalType: PhysicalModelValue.PhysicalType, streamObserver: StreamObserver<PhysicalModelValue>) {
@@ -347,6 +366,29 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       LOG.info("setVmState(${shortDebugString(vmState)})")
     }
     emulatorController.setVmState(vmState, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetVmStateMethod()))
+  }
+
+  /**
+   * Retrieves configurations of all displays.
+   */
+  fun getDisplayConfigurations(streamObserver: StreamObserver<DisplayConfigurations>) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("getDisplayConfigurations()")
+    }
+    emulatorController.getDisplayConfigurations(
+        EMPTY_PROTO, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getGetDisplayConfigurationsMethod()))
+  }
+
+  /**
+   * Creates, modifies, or deletes configurable secondary displays.
+   */
+  fun setDisplayConfigurations(displayConfigurations: DisplayConfigurations,
+                               streamObserver: StreamObserver<DisplayConfigurations> = getEmptyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("setDisplayConfigurations(${shortDebugString(displayConfigurations)})")
+    }
+    emulatorController.setDisplayConfigurations(
+        displayConfigurations, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetDisplayConfigurationsMethod()))
   }
 
   /**

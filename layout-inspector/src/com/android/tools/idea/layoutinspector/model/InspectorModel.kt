@@ -28,9 +28,11 @@ import kotlin.properties.Delegates
 
 const val REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY = "android.ddms.notification.layoutinspector.reboot.live.inspector"
 
+enum class SelectionOrigin { INTERNAL, COMPONENT_TREE }
+
 class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   override val resourceLookup = ResourceLookup(project)
-  val selectionListeners = mutableListOf<(ViewNode?, ViewNode?) -> Unit>()
+  val selectionListeners = mutableListOf<(ViewNode?, ViewNode?, SelectionOrigin) -> Unit>()
   /** Callback taking (oldWindow, newWindow, isStructuralChange */
   val modificationListeners = mutableListOf<(AndroidWindow?, AndroidWindow?, Boolean) -> Unit>()
   val connectionListeners = mutableListOf<(InspectorClient?) -> Unit>()
@@ -42,11 +44,8 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   private val memoryProbe = InspectorMemoryProbe(this)
   private val idLookup = mutableMapOf<Long, ViewNode>()
 
-  var selection: ViewNode? by Delegates.observable(null as ViewNode?) { _, old, new ->
-    if (new != old) {
-      selectionListeners.forEach { it(old, new) }
-    }
-  }
+  var selection: ViewNode? = null
+    private set
 
   val hoverListeners = mutableListOf<(ViewNode?, ViewNode?) -> Unit>()
   var hoveredNode: ViewNode? by Delegates.observable(null as ViewNode?) { _, old, new ->
@@ -86,6 +85,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
    * Also adds a dark layer between windows if DIM_BEHIND is set.
    */
   private fun updateRoot(allIds: List<*>) {
+    root.children.forEach { it.parent = null }
     root.children.clear()
     ViewNode.writeDrawChildren { drawChildren ->
       root.drawChildren().clear()
@@ -103,6 +103,12 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
         window.root.parent = root
       }
     }
+  }
+
+  fun setSelection(new: ViewNode?, origin: SelectionOrigin) {
+    val old = selection
+    selection = new
+    selectionListeners.forEach { it(old, new, origin) }
   }
 
   fun updateConnection(client: InspectorClient) {
@@ -144,14 +150,19 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
         structuralChange = true
       }
       else {
-        oldWindow.imageType = newWindow.imageType
-        oldWindow.payloadId = newWindow.payloadId
+        oldWindow.copyFrom(newWindow)
         val updater = Updater(oldWindow.root, newWindow.root)
         structuralChange = updater.update() || structuralChange
       }
     }
 
     updateRoot(allIds)
+    if (selection?.parentSequence?.last() !== root) {
+      selection = null
+    }
+    if (hoveredNode?.parentSequence?.last() !== root) {
+      hoveredNode = null
+    }
     lastGeneration = generation
     idLookup.clear()
     updating = false
@@ -164,10 +175,12 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
 
 
   private class Updater(private val oldRoot: ViewNode, private val newRoot: ViewNode) {
-    private val oldNodes = oldRoot.flatten().asSequence().filter{ it.drawId != 0L }.associateBy { it.drawId }
+    private val oldNodes = oldRoot.flatten().asSequence().filter{ it.drawId != 0L }.associateByTo(mutableMapOf()) { it.drawId }
 
     fun update(): Boolean {
-      return update(oldRoot, oldRoot.parent, newRoot)
+      val modified = update(oldRoot, oldRoot.parent, newRoot)
+      oldNodes.values.forEach { it.parent = null }
+      return modified
     }
 
     private fun update(oldNode: ViewNode, parent: ViewNode?, newNode: ViewNode): Boolean {
@@ -197,6 +210,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
         if (oldChild != null && oldChild.javaClass == newChild.javaClass) {
           modified = update(oldChild, oldNode, newChild) || modified
           oldNode.children.add(oldChild)
+          oldNodes.remove(newChild.drawId)
         } else {
           modified = true
           oldNode.children.add(newChild)

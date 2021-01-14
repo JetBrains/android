@@ -50,8 +50,7 @@ import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.TemplateData
 import com.android.tools.idea.wizard.template.Thumb
 import com.android.tools.idea.wizard.template.WizardParameterData
-import com.google.common.base.Charsets.UTF_8
-import com.google.common.io.Files
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
@@ -118,18 +117,29 @@ data class ProjectChecker(
   private fun Project.updateGradleAndSyncIfNeeded(projectRoot: File) {
     AndroidGradleTests.createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION)
     val gradleFile = File(projectRoot, SdkConstants.FN_BUILD_GRADLE)
-    val origContent = Files.asCharSource(gradleFile, UTF_8).read()
+    val origContent = gradleFile.readText()
     val newContent = updateLocalRepositories(origContent, getLocalRepositoriesForGroovy())
-    if (newContent != origContent) {
-      Files.asCharSink(gradleFile, UTF_8).write(newContent)
-    }
-    // Bug 146077926
-    val gradleDocument = FileDocumentManager.getInstance().getDocument(gradleFile.toVirtualFile()!!)!!
-    FileDocumentManager.getInstance().reloadFromDisk(gradleDocument)
+    gradleFile.writeText(origContent, newContent)
+
     refreshProjectFiles()
     if (syncProject) {
       assertEquals(projectRoot, getBaseDirPath(this))
       AndroidGradleTests.importProject(this, Request.testRequest(), null)
+    }
+  }
+
+  private fun File.readText(): String {
+    val fileDocument = FileDocumentManager.getInstance().getDocument(this.toVirtualFile()!!)!!
+    return fileDocument.text
+  }
+
+  private fun File.writeText(origContent: String, newContent: String) {
+    if (newContent != origContent) {
+      WriteAction.runAndWait<RuntimeException> {
+        val fileDocument = FileDocumentManager.getInstance().getDocument(this.toVirtualFile()!!)!!
+        fileDocument.setText(newContent)
+        FileDocumentManager.getInstance().saveDocument(fileDocument)
+      }
     }
   }
 

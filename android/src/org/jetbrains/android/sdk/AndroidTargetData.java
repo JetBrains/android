@@ -37,6 +37,7 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -179,7 +180,7 @@ public class AndroidTargetData {
         LOG.warn("Rendering will not use the StudioEmbeddedRenderTarget");
       }
       myLayoutLibrary = LayoutLibraryLoader.load(myTarget, getFrameworkEnumValues());
-      Disposer.register(project, myLayoutLibrary);
+      Disposer.register(((ProjectEx)project).getEarlyDisposable(), myLayoutLibrary);
     }
 
     return myLayoutLibrary;
@@ -274,7 +275,7 @@ public class AndroidTargetData {
     }
 
     return FrameworkResourceRepositoryManager.getInstance().getFrameworkResources(
-      mySdkData.getSdkHandler().getFileOp().toFile(resFolderOrJar),
+      resFolderOrJar,
       myTarget instanceof CompatibilityRenderTarget,
       languages);
   }
@@ -337,12 +338,7 @@ public class AndroidTargetData {
     @Override
     public void elementAttributesProcessed(String name, String nsPrefix, String nsURI) {
       if ("public".equals(name) && myName != null && myType != null) {
-        Set<String> set = myResult.get(myType);
-
-        if (set == null) {
-          set = new HashSet<>();
-          myResult.put(myType, set);
-        }
+        Set<String> set = myResult.computeIfAbsent(myType, k -> new HashSet<>());
         set.add(myName);
 
         if (myId != 0) {

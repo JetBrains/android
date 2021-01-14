@@ -39,6 +39,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
@@ -116,10 +117,10 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     action.setTargetSelectedWithComboBox(project, target);
 
     // Assert
-    assertEquals(Collections.singleton(target), action.getSelectedTargets(project));
+    Collection<Target> targets = Collections.singleton(target);
 
-    Set<Key> keys = Collections.singleton(key);
-    Mockito.verify(myExecutionTargetService).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(keys, myDevicesGetter));
+    assertEquals(targets, action.getSelectedTargets(project));
+    Mockito.verify(myExecutionTargetService).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(targets, myDevicesGetter));
   }
 
   @Test
@@ -135,9 +136,11 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(Collections.singletonList(device)));
 
+    Set<Target> targets = Collections.singleton(new QuickBootTarget(key));
+
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
     Mockito.when(service.isMultipleDevicesSelectedInComboBox()).thenReturn(true);
-    Mockito.when(service.getTargetsSelectedWithDialog()).thenReturn(Collections.singleton(new QuickBootTarget(key)));
+    Mockito.when(service.getTargetsSelectedWithDialog()).thenReturn(targets);
 
     DialogWrapper dialog = Mockito.mock(DialogWrapper.class);
     Mockito.when(dialog.showAndGet()).thenReturn(true);
@@ -156,9 +159,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     // Assert
     Mockito.verify(service).setMultipleDevicesSelectedInComboBox(true);
-
-    Mockito.verify(myExecutionTargetService).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(Collections.singleton(key),
-                                                                                                          myDevicesGetter));
+    Mockito.verify(myExecutionTargetService).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(targets, myDevicesGetter));
   }
 
   @Test
@@ -192,8 +193,8 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     // Assert
     assertFalse(myDevicesSelectedService.isMultipleDevicesSelectedInComboBox());
 
-    Mockito.verify(myExecutionTargetService).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(Collections.singleton(key),
-                                                                                                          myDevicesGetter));
+    Collection<Target> targets = Collections.singleton(new QuickBootTarget(key));
+    Mockito.verify(myExecutionTargetService).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(targets, myDevicesGetter));
   }
 
   @Test

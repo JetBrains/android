@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.profilers.capture;
 
-import com.android.tools.idea.fileTypes.profiler.CpuCaptureFileType;
-import com.android.tools.idea.fileTypes.profiler.MemoryAllocationFileType;
-import com.android.tools.idea.fileTypes.profiler.MemoryCaptureFileType;
-import com.android.tools.idea.fileTypes.profiler.PerfettoCaptureFileType;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.base.Strings;
 import com.intellij.openapi.fileEditor.FileEditor;

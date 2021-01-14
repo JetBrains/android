@@ -73,7 +73,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
           for (NlComponent toDrag : dragged) {
             InsertType insert = insertType;
             NlComponent component = toDrag;
-            if (insertType.isMove() && toDrag.getParent() != receiver) {
+            if (insertType == InsertType.MOVE && toDrag.getParent() != receiver) {
               insert = InsertType.CREATE;
               XmlTag tag = receiver.getTagDeprecated().createChildTag(TAG, null, null, false);
               tag.setAttribute(PREFIX_ANDROID + ATTR_ID, toDrag.getAttribute(ANDROID_URI, ATTR_ID));

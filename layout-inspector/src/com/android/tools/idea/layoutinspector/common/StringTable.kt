@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.layoutinspector.common
 
-import com.android.ide.common.rendering.api.ResourceReference
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Resource
-
 interface StringTable {
+  val keys: Set<Int>
+
+  /**
+   * Return a string value associated with the integer key, or the empty string if not found.
+   *
+   * Check [keys] if it's important to know if the value actually exists or not.
+   */
   operator fun get(id: Int): String
-  operator fun get(resource: Resource?): ResourceReference?
 }

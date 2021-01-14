@@ -92,6 +92,7 @@ private fun sortModuleEntries(moduleTypesProviders: List<ModuleGalleryEntry>): L
   val orderedNames = arrayOf(
     message("android.wizard.module.new.mobile"),
     message("android.wizard.module.new.library"),
+    message("android.wizard.module.new.native.library"),
     message("android.wizard.module.new.dynamic.module"),
     message("android.wizard.module.new.dynamic.module.instant"),
     message("android.wizard.module.new.automotive"),
@@ -103,7 +104,6 @@ private fun sortModuleEntries(moduleTypesProviders: List<ModuleGalleryEntry>): L
     message("android.wizard.module.new.java.or.kotlin.library"),
     message("android.wizard.module.new.google.cloud"),
     message("android.wizard.module.new.benchmark.module.app"),
-    message("android.wizard.module.new.native.library")
   )
 
   return moduleTypesProviders.partition { it.name in orderedNames }.run {

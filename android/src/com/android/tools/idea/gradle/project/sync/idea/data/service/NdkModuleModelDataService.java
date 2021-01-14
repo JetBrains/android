@@ -59,12 +59,12 @@ public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleM
   protected void importData(@NotNull Collection<DataNode<NdkModuleModel>> toImport,
                             @NotNull Project project,
                             @NotNull IdeModifiableModelsProvider modelsProvider,
-                            @NotNull Map<String, NdkModuleModel> modelsByModuleName) {
+                            @NotNull Map<String, DataNode<NdkModuleModel>> modelsByModuleName) {
     for (Module module : modelsProvider.getModules()) {
-      NdkModuleModel ndkModuleModel = modelsByModuleName.get(module.getName());
-      if (ndkModuleModel != null) {
+      DataNode<NdkModuleModel> ndkModuleModelNode = modelsByModuleName.get(module.getName());
+      if (ndkModuleModelNode != null) {
         ModuleSetupContext context = myModuleSetupContextFactory.create(module, modelsProvider);
-        myModuleSetup.setUpModule(context, ndkModuleModel);
+        myModuleSetup.setUpModule(context, ndkModuleModelNode.getData());
       }
       else {
         ModifiableFacetModel facetModel = modelsProvider.getModifiableFacetModel(module);

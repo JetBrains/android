@@ -38,10 +38,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JComponent;
@@ -58,8 +57,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   public static final com.intellij.openapi.util.Key<Boolean> DEPLOYS_TO_LOCAL_DEVICE =
     com.intellij.openapi.util.Key.create("DeviceAndSnapshotComboBoxAction.deploysToLocalDevice");
 
-  @NotNull
-  private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
+  private final @NotNull BooleanSupplier mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet;
 
   @NotNull
   private final Function<Project, AsyncDevicesGetter> myDevicesGetterGetter;
@@ -77,8 +75,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @VisibleForTesting
   static final class Builder {
-    @Nullable
-    private Supplier<Boolean> mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
+    private @Nullable BooleanSupplier mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet;
 
     @Nullable
     private Function<Project, AsyncDevicesGetter> myDevicesGetterGetter;
@@ -95,7 +92,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     private Function<Project, RunManager> myGetRunManager;
 
     Builder() {
-      mySelectDeviceSnapshotComboBoxSnapshotsEnabled = () -> false;
+      mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet = () -> false;
       myDevicesGetterGetter = project -> null;
       myDevicesSelectedServiceGetInstance = project -> null;
       myExecutionTargetServiceGetInstance = project -> null;
@@ -103,9 +100,8 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       myGetRunManager = project -> null;
     }
 
-    @NotNull
-    Builder setSelectDeviceSnapshotComboBoxSnapshotsEnabled(@NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxSnapshotsEnabled) {
-      mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
+    @NotNull Builder setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(@NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabledGet) {
+      mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet = selectDeviceSnapshotComboBoxSnapshotsEnabledGet;
       return this;
     }
 
@@ -148,7 +144,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @SuppressWarnings("unused")
   private DeviceAndSnapshotComboBoxAction() {
     this(new Builder()
-           .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED::get)
+           .setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED::get)
            .setDevicesGetterGetter(AsyncDevicesGetter::getInstance)
            .setDevicesSelectedServiceGetInstance(DevicesSelectedService::getInstance)
            .setExecutionTargetServiceGetInstance(ExecutionTargetService::getInstance)
@@ -158,8 +154,8 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @NonInjectable
   private DeviceAndSnapshotComboBoxAction(@NotNull Builder builder) {
-    assert builder.mySelectDeviceSnapshotComboBoxSnapshotsEnabled != null;
-    mySelectDeviceSnapshotComboBoxSnapshotsEnabled = builder.mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
+    assert builder.mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet != null;
+    mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet = builder.mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet;
 
     assert builder.myDevicesGetterGetter != null;
     myDevicesGetterGetter = builder.myDevicesGetterGetter;
@@ -184,7 +180,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   }
 
   boolean areSnapshotsEnabled() {
-    return mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get();
+    return mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet.getAsBoolean();
   }
 
   @NotNull
@@ -328,6 +324,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       .setDevicesSelectedService(myDevicesSelectedServiceGetInstance.apply(project))
       .setDevices(devices)
       .setConfigurationAndSettings(myGetRunManager.apply(project).getSelectedConfiguration())
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet)
       .build();
 
     updater.update();
@@ -335,11 +332,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   }
 
   private void setActiveExecutionTarget(@NotNull Project project, @NotNull Set<@NotNull Target> targets) {
-    Set<Key> keys = targets.stream()
-      .map(Target::getDeviceKey)
-      .collect(Collectors.toSet());
-
     AsyncDevicesGetter getter = myDevicesGetterGetter.apply(project);
-    myExecutionTargetServiceGetInstance.apply(project).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(keys, getter));
+    myExecutionTargetServiceGetInstance.apply(project).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(targets, getter));
   }
 }

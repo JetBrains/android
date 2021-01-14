@@ -23,9 +23,8 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
-import com.android.tools.idea.layoutinspector.util.ConfigurationBuilder
+import com.android.tools.idea.layoutinspector.util.ConfigurationParamsBuilder
 import com.android.tools.idea.layoutinspector.util.TestStringTable
-import com.android.tools.idea.layoutinspector.util.TreeBuilder
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
@@ -138,7 +137,7 @@ class TransportInspectorRule : ExternalResource() {
 fun ViewNode?.intoComponentTreeEvent(project: Project, pid: Int, timestamp: Long, generation: Int): Common.Event {
   val strings = TestStringTable()
   val tree = TreeBuilder(strings)
-  val config = ConfigurationBuilder(strings)
+  val config = ConfigurationParamsBuilder(strings)
   val rootView = this
   return Common.Event.newBuilder().apply {
     kind = Common.Event.Kind.LAYOUT_INSPECTOR
@@ -150,7 +149,7 @@ fun ViewNode?.intoComponentTreeEvent(project: Project, pid: Int, timestamp: Long
         root = tree.makeViewTree(rootView)
         addAllWindowIds(rootView.drawId)
       }
-      resources = config.makeSampleConfiguration(project)
+      resources = config.makeSampleContext(project).toResourceConfiguration()
       this.generation = generation
       addAllString(strings.asEntryList())
     }

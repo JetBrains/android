@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="android-test-plugin-host-device-info-proto">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../bazel-bin/tools/base/utp/android-test-plugin-host-device-info-proto/libstudio.android-test-plugin-host-device-info-proto.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

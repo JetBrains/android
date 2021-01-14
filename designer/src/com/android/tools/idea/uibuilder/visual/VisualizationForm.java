@@ -24,8 +24,8 @@ import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.adtui.util.ActionToolbarUtil;
 import com.android.tools.adtui.workbench.WorkBench;
-import com.android.tools.editor.ActionToolbarUtil;
 import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -33,6 +33,7 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.surface.LayoutScannerConfiguration;
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -136,7 +137,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
       .setIsPreview(false)
       .setEditable(true)
       .setSceneManagerProvider((surface, model) -> {
-        LayoutlibSceneManager sceneManager = new LayoutlibSceneManager(model, surface);
+        LayoutlibSceneManager sceneManager = new LayoutlibSceneManager(model, surface, LayoutScannerConfiguration.getDISABLED());
         sceneManager.setShowDecorations(VisualizationToolSettings.getInstance().getGlobalState().getShowDecoration());
         sceneManager.setUseImagePool(false);
         // 0.0f makes it spend 50% memory. See document in RenderTask#MIN_DOWNSCALING_FACTOR.

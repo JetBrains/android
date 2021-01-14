@@ -48,12 +48,6 @@
           <text value="&lt;html&gt;To prioritize which devices to test your application on, visit the &lt;a href=&quot;https://developer.android.com/about/dashboards/index.html&quot;&gt;Android Dashboards&lt;/a&gt;, where you can get up-to-date information on which devices are active in the Android and Google Play ecosystem.&lt;/html&gt;"/>
         </properties>
       </component>
-      <component id="c5b6c" class="com.intellij.ui.components.JBLabel" binding="myIcons">
-        <constraints>
-          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties/>
-      </component>
     </children>
   </grid>
 </form>

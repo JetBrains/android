@@ -26,10 +26,10 @@ import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuProfilerStageView
-import com.android.tools.profilers.cpu.CpuProfilerToolbar
 import com.android.tools.profilers.cpu.FakeCpuProfiler
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.cpu.ProfilingTechnology
+import com.android.tools.profilers.cpu.capturedetails.RecordingInitiatorPane.RECORD_TEXT
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration
 import com.android.tools.profilers.cpu.config.AtraceConfiguration
@@ -106,7 +106,7 @@ class RecordingInitiatorPaneTest(newPipeline: Boolean) {
     assertThat(TreeWalker(pane).descendants().filterIsInstance<CapturePane.Toolbar>()).isEmpty()
     assertThat(TreeWalker(pane).descendants().filterIsInstance<CommonTabbedPane>()).isEmpty()
     // Verify we can find a record button.
-    assertThat(TreeWalker(pane).descendants().filterIsInstance<JButton>().any { it.text == CpuProfilerToolbar.RECORD_TEXT }).isTrue()
+    assertThat(TreeWalker(pane).descendants().filterIsInstance<JButton>().any { it.text == RECORD_TEXT }).isTrue()
   }
 
   @Test
@@ -126,7 +126,7 @@ class RecordingInitiatorPaneTest(newPipeline: Boolean) {
   fun recordButtonIsPresentWhenNewRecordingWorkflowFlagIsEnabled() {
     cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
     val pane = RecordingInitiatorPane(stageView)
-    val isPresent = TreeWalker(pane).descendants().filterIsInstance<JButton>().any { it.text == CpuProfilerToolbar.RECORD_TEXT }
+    val isPresent = TreeWalker(pane).descendants().filterIsInstance<JButton>().any { it.text == RECORD_TEXT }
     assertThat(isPresent).isTrue()
   }
 

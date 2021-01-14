@@ -29,7 +29,6 @@ import com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestApplic
 import com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestApplicationLaunchTask.Companion.methodTest
 import com.android.tools.idea.testartifacts.instrumented.GradleConnectedAndroidTestInvoker
 import com.google.common.collect.Lists
-import com.google.common.collect.Sets
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -128,26 +127,6 @@ class GradleAndroidLaunchTasksProvider(private val myRunConfig: AndroidRunConfig
       return null
     }
     val logger = Logger.getInstance(AndroidLaunchTasksProvider::class.java)
-    val packageIds: MutableSet<String> = Sets.newHashSet()
-    var packageName: String? = null
-    try {
-      packageName = myApplicationIdProvider.packageName
-      packageIds.add(packageName)
-    }
-    catch (e: ApkProvisionException) {
-      logger.error(e)
-    }
-    try {
-      val testPackageName = myApplicationIdProvider.testPackageName
-      if (testPackageName != null) {
-        packageIds.add(testPackageName)
-      }
-    }
-    catch (e: ApkProvisionException) {
-      // not as severe as failing to obtain package id for main application
-      logger
-        .warn("Unable to obtain test package name, will not connect debugger if tests don't instantiate main application")
-    }
     val androidDebuggerContext = myRunConfig.androidDebuggerContext
     val debugger = androidDebuggerContext.androidDebugger
     if (debugger == null) {
@@ -159,11 +138,10 @@ class GradleAndroidLaunchTasksProvider(private val myRunConfig: AndroidRunConfig
     return if (androidDebuggerState != null) {
       debugger.getConnectDebuggerTask(myEnv,
                                       version,
-                                      packageIds,
+                                      myApplicationIdProvider,
                                       myFacet,
                                       androidDebuggerState,
-                                      myRunConfig.type.id,
-                                      packageName)
+                                      myRunConfig.type.id)
     }
     else null
   }

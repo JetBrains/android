@@ -5,6 +5,8 @@ org.jetbrains.kotlin::Package 'kotlinx.io' is not found
 
 // Referenced by, e.g., kotlin-android-extensions-runtime (which is injected into apps).
 org.jetbrains.kotlin::Package 'android' is not found
+org.jetbrains.kotlin::Package 'android.os' is not found
+org.jetbrains.kotlin::Package 'android.view' is not found
 
 // Referenced by fir (which is currently unused).
 org.jetbrains.kotlin::Package 'org.jetbrains.kotlin.ir.interpreter' is not found

@@ -27,6 +27,7 @@ import com.android.utils.concurrency.getAndUnwrap
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import com.google.common.hash.Hashing
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
@@ -35,6 +36,7 @@ import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.concurrent.Executor
 
 /**
  * Cache of AAR resource repositories.
@@ -60,7 +62,7 @@ class AarResourceRepositoryCache private constructor() {
       throw IllegalArgumentException("Cannot find resource directory ${resFolder.root} for $libraryName")
     }
     return getRepository(resFolder, libraryName, mySourceRepositories) {
-        AarSourceResourceRepository.create(resFolder, libraryName, createCachingData(library))
+        AarSourceResourceRepository.create(resFolder.root, resFolder.resources, libraryName, createCachingData(library))
     }
   }
 
@@ -120,8 +122,10 @@ class AarResourceRepositoryCache private constructor() {
     val pathHash = Hashing.farmHashFingerprint64().hashUnencodedChars(path.portablePath).toString()
     val filename = String.format("%s_%s.dat", library.location?.fileName ?: "", pathHash)
     val cacheFile = Paths.get(PathManager.getSystemPath(), RESOURCE_CACHE_DIRECTORY, filename)
-
-    return CachingData(cacheFile, contentVersion, codeVersion, AndroidIoManager.getInstance().getBackgroundDiskIoExecutor())
+    // Don't create a persistent cache in tests to avoid unnecessary overhead.
+    val executor = if (ApplicationManager.getApplication().isUnitTestMode) Executor {}
+                   else AndroidIoManager.getInstance().getBackgroundDiskIoExecutor()
+    return CachingData(cacheFile, contentVersion, codeVersion, executor)
   }
 
   companion object {

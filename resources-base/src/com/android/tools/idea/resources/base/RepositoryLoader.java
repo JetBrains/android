@@ -201,6 +201,9 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
         }
       });
     }
+    catch (ProcessCanceledException e) {
+      throw e;
+    }
     catch (Exception e) {
       LOG.error("Failed to load resources from " + myResourceDirectoryOrFile.toString(), e);
     }
@@ -376,9 +379,14 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
           break;
         }
       }
-    } catch (NoSuchFileException e) {
+    }
+    catch (ProcessCanceledException e) {
+        throw e;
+    }
+    catch (NoSuchFileException e) {
       // There is no public.xml. This not considered an error.
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       LOG.error("Can't read and parse " + publicXmlFile.toString(), e);
     }
   }
@@ -502,6 +510,9 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
         }
       } while (event != XmlPullParser.END_DOCUMENT);
     }
+    catch (ProcessCanceledException e) {
+      throw e;
+    }
     // KXmlParser throws RuntimeException for an undefined prefix and an illegal attribute name.
     catch (IOException | XmlPullParserException | XmlSyntaxException | RuntimeException e) {
       handleParsingError(file, e);
@@ -561,6 +572,9 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
           }
         }
       } while (event != XmlPullParser.END_DOCUMENT);
+    }
+    catch (ProcessCanceledException e) {
+      throw e;
     }
     // KXmlParser throws RuntimeException for an undefined prefix and an illegal attribute name.
     catch (IOException | XmlPullParserException | RuntimeException e) {

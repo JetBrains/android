@@ -19,13 +19,13 @@ import com.android.SdkConstants
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.properties.DimensionUnits
 import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
 
 class PropertyMapperTest {
   @get:Rule

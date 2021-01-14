@@ -22,6 +22,7 @@ import com.intellij.lang.annotation.Annotator
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.analyzer.AnalysisResult
@@ -37,7 +38,10 @@ class ComposableAnnotator : Annotator {
         val COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY: TextAttributesKey
         val COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME = "ComposableCallTextAttributes"
         private val ANALYSIS_RESULT_KEY = Key<AnalysisResult>(
-            "IdeComposableAnnotator.DidAnnotateKey"
+            "ComposableAnnotator.DidAnnotateKey"
+        )
+        private val CAN_CONTAIN_COMPOSABLE_KEY = Key<Boolean>(
+            "ComposableAnnotator.CanContainComposable"
         )
 
         init {
@@ -50,7 +54,17 @@ class ComposableAnnotator : Annotator {
     override fun annotate(element: PsiElement, holder: AnnotationHolder) {
         if (element !is KtCallExpression) return
 
-        if (!isComposeEnabled(element)) return
+        // AnnotationHolder.currentAnnotationSession applies to a single file.
+        var canContainComposable = holder.currentAnnotationSession.getUserData(CAN_CONTAIN_COMPOSABLE_KEY)
+        if (canContainComposable == null) {
+          // isComposeEnabled doesn't work for library sources, we check all kt library sources files. File check only once on opening.
+            canContainComposable = isComposeEnabled(element) ||
+                                 (element.containingFile.virtualFile != null &&
+                                  ProjectFileIndex.getInstance(element.project).isInLibrarySource(element.containingFile.virtualFile))
+            holder.currentAnnotationSession.putUserData(CAN_CONTAIN_COMPOSABLE_KEY, canContainComposable)
+        }
+
+        if (!canContainComposable) return
 
         // AnnotationHolder.currentAnnotationSession applies to a single file.
         var analysisResult = holder.currentAnnotationSession.getUserData(

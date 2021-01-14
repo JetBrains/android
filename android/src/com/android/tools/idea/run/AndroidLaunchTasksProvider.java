@@ -47,7 +47,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -55,7 +54,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -249,28 +247,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     }
     Logger logger = Logger.getInstance(AndroidLaunchTasksProvider.class);
 
-    Set<String> packageIds = Sets.newHashSet();
-    String packageName = null;
-    try {
-      packageName = myApplicationIdProvider.getPackageName();
-      packageIds.add(packageName);
-    }
-    catch (ApkProvisionException e) {
-      logger.error(e);
-    }
-
-    try {
-      String testPackageName = myApplicationIdProvider.getTestPackageName();
-      if (testPackageName != null) {
-        packageIds.add(testPackageName);
-      }
-    }
-    catch (ApkProvisionException e) {
-      // not as severe as failing to obtain package id for main application
-      logger
-        .warn("Unable to obtain test package name, will not connect debugger if tests don't instantiate main application");
-    }
-
     AndroidDebuggerContext androidDebuggerContext = myRunConfig.getAndroidDebuggerContext();
     AndroidDebugger debugger = androidDebuggerContext.getAndroidDebugger();
     if (debugger == null) {
@@ -284,11 +260,10 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       //noinspection unchecked
       return debugger.getConnectDebuggerTask(myEnv,
                                              version,
-                                             packageIds,
+                                             myApplicationIdProvider,
                                              myFacet,
                                              androidDebuggerState,
-                                             myRunConfig.getType().getId(),
-                                             packageName);
+                                             myRunConfig.getType().getId());
     }
 
     return null;

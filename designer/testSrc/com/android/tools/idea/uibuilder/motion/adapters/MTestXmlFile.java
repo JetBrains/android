@@ -51,8 +51,10 @@ import org.jetbrains.annotations.Nullable;
 public class MTestXmlFile implements XmlFile {
   MTag myLayout;
   MXmlTag myRoot;
-  public MTestXmlFile( ) {
-    InputStream layout_stream = motion_scene_16_xml.asStream();
+  public MTestXmlFile(boolean include) {
+    InputStream layout_stream = (include)?
+                                motion_scene_16_xml.asIncludeStream()
+                                :motion_scene_16_xml.asStream();
     String layoutStr = BaseMotionEditorTest.convert(layout_stream);
     myLayout = MTagImp.parse(layoutStr);
     myRoot = new  MXmlTag(myLayout,null);
@@ -64,6 +66,11 @@ public class MTestXmlFile implements XmlFile {
     return myRoot;
   }
 
+   // include file access for testing
+  @Override
+  public PsiFile getContainingFile() throws PsiInvalidElementAccessException {
+    return new MTestXmlFile(true);
+  }
   //////////////////////////Not used/////////////////////////////////
   @Nullable
   @Override
@@ -164,11 +171,6 @@ public class MTestXmlFile implements XmlFile {
 
   @Override
   public PsiElement getPrevSibling() {
-    return null;
-  }
-
-  @Override
-  public PsiFile getContainingFile() throws PsiInvalidElementAccessException {
     return null;
   }
 

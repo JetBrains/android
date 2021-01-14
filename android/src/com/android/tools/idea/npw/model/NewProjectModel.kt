@@ -141,7 +141,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   }
 
   override fun handleFinished() {
-    val projectLocation = projectLocation.get()
+    val projectLocation = projectLocation.get().trimEnd(File.separatorChar)
 
     val couldEnsureLocationExists = WriteCommandAction.runWriteCommandAction<Boolean>(null) {
       // We generally assume that the path has passed a fair amount of pre-validation checks

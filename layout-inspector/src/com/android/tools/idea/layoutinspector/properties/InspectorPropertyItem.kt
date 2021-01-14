@@ -21,7 +21,6 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.res.parseColor
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import com.android.tools.property.panel.api.ActionIconButton
 import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.property.panel.api.PropertyItem
@@ -31,6 +30,7 @@ import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.ColorIcon
 import java.text.DecimalFormat
 import javax.swing.Icon
+import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
 
 /**
  * A [PropertyItem] in the inspector with a snapshot of the value.

@@ -20,19 +20,14 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
 import com.android.ddmlib.DebugViewDumpHandler
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
-import com.android.tools.idea.layoutinspector.model.DrawViewChild
-import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.adb.findClient
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Charsets
 import com.google.common.collect.Lists
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import org.apache.log4j.Logger
-import java.awt.Image
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -86,27 +81,7 @@ class LegacyTreeLoader(private val adb: AndroidDebugBridge, private val client: 
     val (rootNode, _) = parseLiveViewNode(hierarchyData, propertiesUpdater) ?: return null
     getScreenshotPngBytes(ddmClient)?.let { client.latestScreenshots[windowName] = it }
 
-    return AndroidWindow(rootNode, windowName, LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED) { scale, window ->
-      val image = client.latestScreenshots[windowName]?.let { pngBytes ->
-        ImageIO.read(ByteArrayInputStream(pngBytes))?.let {
-          it.getScaledInstance((it.width * scale).toInt(), (it.height * scale).toInt(), Image.SCALE_DEFAULT)
-        }
-      }
-      ViewNode.writeDrawChildren { drawChildren ->
-        val root = window.root
-        root.flatten().forEach { it.drawChildren().clear() }
-        if (image != null) {
-          root.drawChildren().add(DrawViewImage(image, root))
-        }
-        root.flatten().forEach { it.children.mapTo(it.drawChildren()) { child -> DrawViewChild(child) } }
-        if (root.drawChildren().size != root.children.size) {
-          client.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER)
-        }
-        else {
-          client.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER_NO_PICTURE)
-        }
-      }
-    }
+    return LegacyAndroidWindow(client, rootNode, windowName)
   }
 
   private fun getScreenshotPngBytes(ddmClient: Client): ByteArray? {

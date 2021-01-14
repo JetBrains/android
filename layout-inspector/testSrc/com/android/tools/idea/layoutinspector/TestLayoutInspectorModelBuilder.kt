@@ -18,15 +18,15 @@ package com.android.tools.idea.layoutinspector
 import com.android.SdkConstants.CLASS_VIEW
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.testutils.MockitoKt.mock
-import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
+import com.android.tools.idea.layoutinspector.model.FakeAndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.util.ConfigurationBuilder
+import com.android.tools.idea.layoutinspector.util.ConfigurationParamsBuilder
 import com.android.tools.idea.layoutinspector.util.TestStringTable
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import java.awt.Rectangle
@@ -44,12 +44,12 @@ fun window(windowId: Any,
            width: Int = 0,
            height: Int = 0,
            rootViewQualifiedName: String = CLASS_VIEW,
-           imageType: PayloadType = PayloadType.SKP,
+           imageType: ImageType = ImageType.SKP,
            layoutFlags: Int = 0,
            body: InspectorViewDescriptor.() -> Unit = {}) =
-  AndroidWindow(
+  FakeAndroidWindow(
     InspectorViewDescriptor(rootViewDrawId, rootViewQualifiedName, x, y, width, height, null, null, "", layoutFlags, null)
-      .also(body).build(), windowId, imageType, 0) { _, window ->
+      .also(body).build(), windowId, imageType) { _, window ->
     ViewNode.writeDrawChildren { drawChildren ->
       window.root.flatten().forEach {
         it.drawChildren().clear()
@@ -153,7 +153,7 @@ class InspectorViewDescriptor(private val drawId: Long,
   fun build(): ViewNode {
     val result =
       if (composePackageHash == 0) ViewNode(drawId, qualifiedName, layout, x, y, width, height, bounds, viewId, textValue, layoutFlags)
-      else ComposeViewNode(drawId, qualifiedName, null, x, y, width, height, null, textValue, 0,
+      else ComposeViewNode(drawId, qualifiedName, null, x, y, width, height, null, null, textValue, 0,
                            composeFilename, composePackageHash, composeOffset, composeLineNumber)
     ViewNode.writeDrawChildren { drawChildren ->
       children.forEach {
@@ -204,7 +204,7 @@ class InspectorModelDescriptor(val project: Project) {
   fun build(): InspectorModel {
     val model = InspectorModel(project)
     val windowRoot = root?.build() ?: return model
-    val newWindow = AndroidWindow(windowRoot, windowRoot.drawId) { _, window ->
+    val newWindow = FakeAndroidWindow(windowRoot, windowRoot.drawId) { _, window ->
       ViewNode.writeDrawChildren { getDrawChildren ->
         window.root.flatten().forEach {
           val drawChildren = it.getDrawChildren()
@@ -230,8 +230,8 @@ class InspectorModelDescriptor(val project: Project) {
     model.update(newWindow, listOf(windowRoot.drawId), 0)
     if (ModuleManager.getInstance(project) != null) {
       val strings = TestStringTable()
-      val config = ConfigurationBuilder(strings)
-      model.resourceLookup.updateConfiguration(config.makeSampleConfiguration(project), strings)
+      val config = ConfigurationParamsBuilder(strings)
+      model.resourceLookup.updateConfiguration(config.makeSampleContext(project), strings)
     }
     // This is usually added by DeviceViewPanel
     model.modificationListeners.add { _, new, _ ->

@@ -171,7 +171,7 @@ final class AsyncDevicesGetter implements Disposable {
   private static @NotNull Optional<@NotNull VirtualDevice> findFirst(@NotNull Collection<@NotNull VirtualDevice> devices,
                                                                      @NotNull Key key) {
     return devices.stream()
-      .filter(device -> device.matches(key))
+      .filter(device -> device.getKey().equals(key) || device.getNameKey().orElseThrow(AssertionError::new).equals(key))
       .findFirst();
   }
 
@@ -190,7 +190,11 @@ final class AsyncDevicesGetter implements Disposable {
       .map(ConnectedDevice::getKey)
       .collect(Collectors.toSet());
 
-    return virtualDevices.stream().filter(device -> !device.hasKeyContainedBy(connectedVirtualDeviceKeys));
+    return virtualDevices.stream().filter(device -> !containsPathOrName(connectedVirtualDeviceKeys, device));
+  }
+
+  private static boolean containsPathOrName(@NotNull Collection<@NotNull Key> keys, @NotNull VirtualDevice device) {
+    return keys.contains(device.getKey()) || keys.contains(device.getNameKey().orElseThrow(AssertionError::new));
   }
 
   @VisibleForTesting
