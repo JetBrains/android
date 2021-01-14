@@ -21,6 +21,7 @@ import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfiguration
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType
 import com.android.tools.idea.compose.preview.runconfiguration.isNonLibraryAndroidModule
+import com.android.tools.idea.compose.preview.util.ActionButtonWithToolTipDescription
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.previewProviderClassAndIndex
 import com.intellij.execution.ProgramRunnerUtil
@@ -30,6 +31,8 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import icons.StudioIcons.Compose.Toolbar.RUN_ON_DEVICE
@@ -41,7 +44,7 @@ import org.jetbrains.kotlin.idea.util.module
  * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated information.
  */
 internal class DeployToDeviceAction(private val dataContextProvider: () -> DataContext)
-  : AnAction(message("action.deploy.title"), null, RUN_ON_DEVICE) {
+  : AnAction(message("action.deploy.title"), message("action.deploy.description"), RUN_ON_DEVICE), CustomComponentAction {
 
   override fun actionPerformed(e: AnActionEvent) {
     previewElement()?.let {
@@ -58,6 +61,9 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
     e.presentation.isEnabled = !isRefreshing()
                                && previewElement()?.previewBodyPsi?.element?.module?.isNonLibraryAndroidModule() == true
   }
+
+  override fun createCustomComponent(presentation: Presentation, place: String) =
+    ActionButtonWithToolTipDescription(this, presentation, place)
 
   private fun runPreviewConfiguration(project: Project, module: Module, previewElement: PreviewElement) {
     val factory = runConfigurationType<ComposePreviewRunConfigurationType>().configurationFactories[0]
