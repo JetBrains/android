@@ -30,6 +30,11 @@
                       doNotActivateOnStart="true"
                       icon="StudioIcons.Shell.ToolWindows.EMULATOR"
                       factoryClass="com.android.tools.idea.emulator.EmulatorToolWindowFactory"/>
+    <notificationGroup id="Android Emulator Messages"
+                       displayType="BALLOON"
+                       toolWindowId="Android Emulator"
+                       bundle="messages.AndroidBundle"
+                       key="android.emulator.notification.title"/>
   </extensions>
 
   <actions>
