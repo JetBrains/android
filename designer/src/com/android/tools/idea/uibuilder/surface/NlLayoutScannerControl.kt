@@ -16,14 +16,12 @@
 package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.idea.common.error.IssuePanel
-import com.android.tools.idea.ui.alwaysEnableLayoutScanner
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorResult
 import com.android.tools.lint.detector.api.Category
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AtfAuditResult
 import com.intellij.openapi.Disposable
-import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.CompletableFuture
 
 /** Impl of [LayoutScannerControl] configured with [LayoutScannerAction] */
@@ -47,10 +45,8 @@ class NlLayoutScannerControl(
 
     if (it) {
       // Minimized
-      if (!alwaysEnableLayoutScanner) {
-        scanner.disable()
-        check.isLayoutScannerEnabled = false
-      }
+      scanner.disable()
+      check.isLayoutScannerEnabled = false
       metricTracker.trackIssuePanelClosed()
     }
     else if (!check.isLayoutScannerEnabled) {

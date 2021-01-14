@@ -1336,11 +1336,6 @@
     <option name="profile" hit="Trace Gradle import with profile:" />
     <option name="trace" hit="Trace Gradle import with profile:" />
     <option name="with" hit="Trace Gradle import with profile:" />
-    <option name="accessibility" hit="Use new Accessibility Testing Framework" />
-    <option name="framework" hit="Use new Accessibility Testing Framework" />
-    <option name="new" hit="Use new Accessibility Testing Framework" />
-    <option name="testing" hit="Use new Accessibility Testing Framework" />
-    <option name="use" hit="Use new Accessibility Testing Framework" />
     <option name="engine" hit="Use new Layout Rendering Engine" />
     <option name="layout" hit="Use new Layout Rendering Engine" />
     <option name="new" hit="Use new Layout Rendering Engine" />
