@@ -228,7 +228,7 @@ java_import(
 # managed by go/iml_to_build
 java_import(
     name = "kotlinx-coroutines-guava",
-    jars = ["//prebuilts/tools/common/m2/repository/org/jetbrains/kotlinx/kotlinx-coroutines-guava/1.2.1:kotlinx-coroutines-guava_files"],
+    jars = ["//prebuilts/tools/common/m2/repository/org/jetbrains/kotlinx/kotlinx-coroutines-guava/1.3.9:kotlinx-coroutines-guava_files"],
     visibility = ["//visibility:public"],
 )
 

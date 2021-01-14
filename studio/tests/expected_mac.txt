@@ -1593,7 +1593,7 @@ Android Studio Preview.app/Contents/lib/kotlin-stdlib-jdk8-1.4.21.jar
 Android Studio Preview.app/Contents/lib/kotlin-test-1.4.21.jar
 Android Studio Preview.app/Contents/lib/kotlin-test-common-1.4.21.jar
 Android Studio Preview.app/Contents/lib/kotlinx-coroutines-core-1.3.9.jar
-Android Studio Preview.app/Contents/lib/kotlinx-coroutines-guava-1.2.1.jar
+Android Studio Preview.app/Contents/lib/kotlinx-coroutines-guava-1.3.9.jar
 Android Studio Preview.app/Contents/lib/kotlinx-coroutines-jdk8-1.3.9.jar
 Android Studio Preview.app/Contents/lib/kryo-2.24.0.jar
 Android Studio Preview.app/Contents/lib/kxml2-2.3.0.jar
