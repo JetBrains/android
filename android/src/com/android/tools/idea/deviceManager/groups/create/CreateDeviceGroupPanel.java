@@ -26,8 +26,11 @@ public class CreateDeviceGroupPanel {
   @NotNull private JBTextArea myDescriptionTextArea;
   @NotNull private AddDevicesToGroupPanel myAddDevicesToGroupPanel;
 
-  @NotNull
-  public JPanel getComponent() {
+  @NotNull JPanel getComponent() {
     return myRootComponent;
+  }
+
+  private void createUIComponents() {
+    myAddDevicesToGroupPanel = new AddDevicesToGroupPanel();
   }
 }
