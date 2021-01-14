@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.common.editor
 
-import com.android.tools.idea.ui.LayoutScanningEditor
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter
 import com.intellij.codeHighlighting.HighlightingPass
 import com.intellij.ide.util.PropertiesComponent
@@ -36,7 +34,7 @@ private const val EDITOR_NAME = "Design"
  * [SplitEditor] whose preview is a [DesignerEditor] and [getTextEditor] contains the corresponding XML file displayed in the preview.
  */
 open class DesignToolsSplitEditor(textEditor: TextEditor, val designerEditor: DesignerEditor, private val project: Project)
-  : SplitEditor<DesignerEditor>(textEditor, designerEditor, EDITOR_NAME, defaultLayout(designerEditor)), LayoutScanningEditor {
+  : SplitEditor<DesignerEditor>(textEditor, designerEditor, EDITOR_NAME, defaultLayout(designerEditor)) {
 
   private val propertiesComponent = PropertiesComponent.getInstance()
 
@@ -175,14 +173,6 @@ open class DesignToolsSplitEditor(textEditor: TextEditor, val designerEditor: De
       // BackgroundEditorHighlighter#createPassesForVisibleArea is deprecated and not used, so we can safely return an empty array here.
       return HighlightingPass.EMPTY_ARRAY
     }
-  }
-
-  override fun forceRefreshDesignSurface() {
-    val sceneManager = designerEditor.component.surface.sceneManager ?: return
-    if (sceneManager is LayoutlibSceneManager) {
-      sceneManager.forceReinflate()
-    }
-    designerEditor.component.surface.requestRender()
   }
 }
 

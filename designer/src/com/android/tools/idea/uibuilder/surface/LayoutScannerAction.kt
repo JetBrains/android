@@ -19,7 +19,6 @@ import com.android.tools.idea.actions.DesignerActions
 import com.android.tools.idea.actions.LAYOUT_SCANNER_KEY
 import com.android.tools.idea.actions.NOTIFICATION_KEY
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.ui.alwaysEnableLayoutScanner
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -129,11 +128,5 @@ interface LayoutScannerConfiguration {
 /** Configuration for when layout scanner is available. */
 class LayoutScannerEnabled : LayoutScannerConfiguration {
 
-  private var isEnabled = false
-
-  override var isLayoutScannerEnabled: Boolean
-    get() = alwaysEnableLayoutScanner || isEnabled
-    set(value) {
-      isEnabled = value
-    }
+  override var isLayoutScannerEnabled: Boolean = false
 }
