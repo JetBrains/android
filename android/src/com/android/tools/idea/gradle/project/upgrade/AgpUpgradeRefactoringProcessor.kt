@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.REFERENCE_TO_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
@@ -1967,37 +1968,44 @@ class MigrateToBuildFeaturesRefactoringProcessor : AgpUpgradeComponentRefactorin
   }
 }
 
-class ViewBindingEnabledUsageInfo(element: WrappedPsiElement, val buildModel: GradleBuildModel): GradleBuildModelUsageInfo(element) {
+abstract class BooleanPropertyMoveUsageInfo(
+  element: WrappedPsiElement,
+  val buildModel: GradleBuildModel,
+  val sourceModel: GradleBuildModel.() -> ResolvedPropertyModel,
+  val destinationModel: GradleBuildModel.() -> ResolvedPropertyModel,
+  val tooltipMessage: String
+): GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    val valueModel = buildModel.android().viewBinding().enabled().unresolvedModel
+    val valueModel = buildModel.sourceModel().unresolvedModel
 
     val value: Any = when(valueModel.valueType) {
       GradlePropertyModel.ValueType.BOOLEAN -> valueModel.getValue(BOOLEAN_TYPE) ?: return
       GradlePropertyModel.ValueType.REFERENCE -> valueModel.getValue(REFERENCE_TO_TYPE) ?: return
       else -> return
     }
-    buildModel.android().buildFeatures().viewBinding().setValue(value)
-    buildModel.android().viewBinding().enabled().delete()
+
+    buildModel.destinationModel().setValue(value)
+    buildModel.sourceModel().delete()
   }
 
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.viewBindingEnabledUsageInfo.tooltipText")
+  override fun getTooltipText() = tooltipMessage
 }
 
-class DataBindingEnabledUsageInfo(element: WrappedPsiElement, val buildModel: GradleBuildModel): GradleBuildModelUsageInfo(element) {
-  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    val valueModel = buildModel.android().dataBinding().enabled().unresolvedModel
+class ViewBindingEnabledUsageInfo(element: WrappedPsiElement, buildModel: GradleBuildModel): BooleanPropertyMoveUsageInfo(
+  element,
+  buildModel,
+  { android().viewBinding().enabled() },
+  { android().buildFeatures().viewBinding() },
+  AndroidBundle.message("project.upgrade.viewBindingEnabledUsageInfo.tooltipText")
+)
 
-    val value: Any = when(valueModel.valueType) {
-      GradlePropertyModel.ValueType.BOOLEAN -> valueModel.getValue(BOOLEAN_TYPE) ?: return
-      GradlePropertyModel.ValueType.REFERENCE -> valueModel.getValue(REFERENCE_TO_TYPE) ?: return
-      else -> return
-    }
-    buildModel.android().buildFeatures().dataBinding().setValue(value)
-    buildModel.android().dataBinding().enabled().delete()
-  }
-
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.dataBindingEnabledUsageInfo.tooltipText")
-}
+class DataBindingEnabledUsageInfo(element: WrappedPsiElement, buildModel: GradleBuildModel): BooleanPropertyMoveUsageInfo(
+  element,
+  buildModel,
+  { android().dataBinding().enabled() },
+  { android().buildFeatures().dataBinding() },
+  AndroidBundle.message("project.upgrade.dataBindingEnabledUsageInfo.tooltipText")
+)
 
 /**
  * Usage Types for usages coming from [AgpUpgradeComponentRefactoringProcessor]s.
