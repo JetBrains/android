@@ -105,8 +105,8 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
       AddFirebaseCrashlyticsNdkUsageInfo(wrappedPsiElement, dependenciesModel),
       RemoveCrashlyticsEnableNdkUsageInfo(wrappedPsiElement, gradleBuildModel),
       AddBuildTypeFirebaseCrashlyticsUsageInfo(wrappedPsiElement, buildTypeModel),
-      ViewBindingEnabledUsageInfo(wrappedPsiElement, androidModel),
-      DataBindingEnabledUsageInfo(wrappedPsiElement, androidModel),
+      ViewBindingEnabledUsageInfo(wrappedPsiElement, gradleBuildModel),
+      DataBindingEnabledUsageInfo(wrappedPsiElement, gradleBuildModel),
     )
     usageInfos.forEach { one ->
       usageInfos.filter { it !== one }.forEach { two ->
