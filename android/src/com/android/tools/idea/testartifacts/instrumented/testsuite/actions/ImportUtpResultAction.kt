@@ -166,6 +166,21 @@ data class ImportUtpResultActionFromFile(val timestamp: Long, val action: Import
  */
 fun createImportUtpResultActionFromAndroidGradlePluginOutput(project: Project?): ImportUtpResultActionFromFile? {
   val file = getDefaultAndroidGradlePluginTestOutputFile(project) ?: return null
+  return createImportUtpResultsFromProto(file)
+}
+
+fun createImportGradleManagedDeviceUtpResults(project: Project?): List<ImportUtpResultActionFromFile> {
+  val importActions = mutableListOf<ImportUtpResultActionFromFile>()
+  val deviceFolder = getDefaultAndroidGradlePluginDevicesTestDirectory(project) ?: return importActions
+
+  for (child in deviceFolder.children) {
+    val resultProtoFile = child.findChild("test-result.pb") ?: continue
+    importActions.add(createImportUtpResultsFromProto(resultProtoFile) ?: continue)
+  }
+  return importActions
+}
+
+private fun createImportUtpResultsFromProto(file: VirtualFile): ImportUtpResultActionFromFile? {
   val resultProto = try {
     TestSuiteResultProto.TestSuiteResult.parseFrom(file.inputStream)
   } catch (e: IOException) {
@@ -188,6 +203,18 @@ private fun getDefaultAndroidGradlePluginTestOutputFile(project: Project?): Virt
     return null
   }
   val relativePath = Paths.get("build", "outputs", "androidTest-results", "connected", "test-result.pb")
+  return ModuleManager.getInstance(project).modules.asSequence().map { module ->
+    ModuleRootManager.getInstance(module).contentRoots.asSequence().map {
+      it.findFileByRelativePath(relativePath.toString())
+    }.filterNotNull().firstOrNull()
+  }.filterNotNull().firstOrNull()
+}
+
+private fun getDefaultAndroidGradlePluginDevicesTestDirectory(project: Project?): VirtualFile? {
+  if (project == null) {
+    return null
+  }
+  val relativePath = Paths.get("build", "outputs", "androidTest-results", "managedDevice")
   return ModuleManager.getInstance(project).modules.asSequence().map { module ->
     ModuleRootManager.getInstance(module).contentRoots.asSequence().map {
       it.findFileByRelativePath(relativePath.toString())
