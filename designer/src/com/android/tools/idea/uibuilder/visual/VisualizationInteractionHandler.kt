@@ -55,7 +55,7 @@ class VisualizationInteractionHandler(private val surface: DesignSurface,
   override fun singleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) = Unit
 
   override fun doubleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) {
-    val view = surface.getHoverSceneView(x, y) ?: return
+    val view = surface.getSceneViewAt(x, y) ?: return
     val sourceFile = surface.sceneManager?.model?.virtualFile ?: return
     val targetFile = view.sceneManager.model.virtualFile
     LayoutNavigationManager.getInstance(surface.project).pushFile(sourceFile, targetFile)
@@ -64,7 +64,7 @@ class VisualizationInteractionHandler(private val surface: DesignSurface,
   override fun hoverWhenNoInteraction(@SwingCoordinate mouseX: Int,
                                       @SwingCoordinate mouseY: Int,
                                       @JdkConstants.InputEventMask modifiersEx: Int) {
-    val sceneView = surface.getHoverSceneView(mouseX, mouseY)
+    val sceneView = surface.getSceneViewAt(mouseX, mouseY)
     if (sceneView != null) {
       val name = sceneView.sceneManager.model.configuration.toTooltips()
       surface.setDesignToolTip(name)
@@ -80,7 +80,7 @@ class VisualizationInteractionHandler(private val surface: DesignSurface,
 
     val mouseX = mouseEvent.x
     val mouseY = mouseEvent.y
-    val sceneView = surface.getHoverSceneView(mouseX, mouseY) ?: return
+    val sceneView = surface.getSceneViewAt(mouseX, mouseY) ?: return
 
     val hoveredManager = sceneView.sceneManager
     val primarySceneManager = surface.sceneManager

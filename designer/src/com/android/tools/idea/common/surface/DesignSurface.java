@@ -1344,9 +1344,17 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myFileEditorDelegate = new WeakReference<>(fileEditor);
   }
 
+  /**
+   * Return the ScreenView under the given (x, y) position if any or the focused one otherwise. The coordinates are in the viewport view
+   * coordinate space so they will not change with scrolling.
+   * See also {@link #getFocusedSceneView()}
+   *
+   * @deprecated Use {@link #getSceneViewAt(int, int)}
+   */
+  @Deprecated
   @Nullable
-  public SceneView getSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
-    SceneView view = getHoverSceneView(x, y);
+  public SceneView getSceneViewAtOrPrimary(@SwingCoordinate int x, @SwingCoordinate int y) {
+    SceneView view = getSceneViewAt(x, y);
     if (view == null) {
       // TODO: For keeping the behaviour as before in multi-model case, we return primary SceneView when there is no hovered SceneView.
       SceneManager manager = getSceneManager();
@@ -1360,11 +1368,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /**
    * Return the ScreenView under the given (x, y) position. The coordinates are in the viewport view coordinate
    * space so they will not change with scrolling.
-   *
-   * @return the ScreenView, or null if we are not above one.
    */
   @Nullable
-  public SceneView getHoverSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
+  public SceneView getSceneViewAt(@SwingCoordinate int x, @SwingCoordinate int y) {
     Collection<SceneView> sceneViews = getSceneViews();
     Dimension scaledSize = new Dimension();
     for (SceneView view : sceneViews) {
@@ -1392,7 +1398,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
 
     Point position = SwingUtilities.convertPoint(this, mousePositionInSurface, myScrollPane.getViewport().getView());
-    return getHoverSceneView(position.x, position.y);
+    return getSceneViewAt(position.x, position.y);
   }
 
   /**
