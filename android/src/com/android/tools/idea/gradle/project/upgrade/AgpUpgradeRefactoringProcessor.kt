@@ -1968,15 +1968,19 @@ class MigrateToBuildFeaturesRefactoringProcessor : AgpUpgradeComponentRefactorin
   }
 }
 
+data class BooleanPropertyMoveInfo(
+  val sourceModel: GradleBuildModel.() -> ResolvedPropertyModel,
+  val destinationModel: GradleBuildModel.() -> ResolvedPropertyModel,
+  val tooltipText: Supplier<String>
+)
+
 abstract class BooleanPropertyMoveUsageInfo(
   element: WrappedPsiElement,
   val buildModel: GradleBuildModel,
-  val sourceModel: GradleBuildModel.() -> ResolvedPropertyModel,
-  val destinationModel: GradleBuildModel.() -> ResolvedPropertyModel,
-  val tooltipMessage: String
+  val info: BooleanPropertyMoveInfo
 ): GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    val valueModel = buildModel.sourceModel().unresolvedModel
+    val valueModel = buildModel.(info.sourceModel)().unresolvedModel
 
     val value: Any = when(valueModel.valueType) {
       GradlePropertyModel.ValueType.BOOLEAN -> valueModel.getValue(BOOLEAN_TYPE) ?: return
@@ -1984,28 +1988,30 @@ abstract class BooleanPropertyMoveUsageInfo(
       else -> return
     }
 
-    buildModel.destinationModel().setValue(value)
-    buildModel.sourceModel().delete()
+    buildModel.(info.destinationModel)().setValue(value)
+    buildModel.(info.sourceModel)().delete()
   }
 
-  override fun getTooltipText() = tooltipMessage
+  override fun getTooltipText() = info.tooltipText.get()
 }
 
-class ViewBindingEnabledUsageInfo(element: WrappedPsiElement, buildModel: GradleBuildModel): BooleanPropertyMoveUsageInfo(
-  element,
-  buildModel,
+val VIEW_BINDING_ENABLED_INFO = BooleanPropertyMoveInfo(
   { android().viewBinding().enabled() },
   { android().buildFeatures().viewBinding() },
-  AndroidBundle.message("project.upgrade.viewBindingEnabledUsageInfo.tooltipText")
+  AndroidBundle.lazyMessage("project.upgrade.viewBindingEnabledUsageInfo.tooltipText")
 )
 
-class DataBindingEnabledUsageInfo(element: WrappedPsiElement, buildModel: GradleBuildModel): BooleanPropertyMoveUsageInfo(
-  element,
-  buildModel,
+class ViewBindingEnabledUsageInfo(element: WrappedPsiElement, buildModel: GradleBuildModel):
+  BooleanPropertyMoveUsageInfo(element, buildModel, VIEW_BINDING_ENABLED_INFO)
+
+val DATA_BINDING_ENABLED_INFO = BooleanPropertyMoveInfo(
   { android().dataBinding().enabled() },
   { android().buildFeatures().dataBinding() },
-  AndroidBundle.message("project.upgrade.dataBindingEnabledUsageInfo.tooltipText")
+  AndroidBundle.lazyMessage("project.upgrade.dataBindingEnabledUsageInfo.tooltipText")
 )
+
+class DataBindingEnabledUsageInfo(element: WrappedPsiElement, buildModel: GradleBuildModel):
+  BooleanPropertyMoveUsageInfo(element, buildModel, DATA_BINDING_ENABLED_INFO)
 
 /**
  * Usage Types for usages coming from [AgpUpgradeComponentRefactoringProcessor]s.
