@@ -17,12 +17,17 @@ package com.android.tools.adtui.model;
 
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
+import com.intellij.util.concurrency.AppExecutorUtil;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public class LineChartModel extends AspectModel<LineChartModel.Aspect> implements Updatable {
 
@@ -38,8 +43,35 @@ public class LineChartModel extends AspectModel<LineChartModel.Aspect> implement
    */
   private boolean myFirstUpdate = true;
 
+  private long myAccumulatedElapsedNs = 0;
+  private final AtomicBoolean myIsUpdating = new AtomicBoolean(false);
+  @NotNull private final Executor myExecutor;
+
+  public LineChartModel() {
+    this(AppExecutorUtil.getAppExecutorService());
+  }
+
+  @VisibleForTesting
+  public LineChartModel(@NotNull Executor executor) {
+    myExecutor = executor;
+  }
+
   @Override
   public void update(long elapsedNs) {
+    if (myIsUpdating.get()) {
+      myAccumulatedElapsedNs += elapsedNs;
+    } else {
+      long totalNs = elapsedNs + myAccumulatedElapsedNs;
+      myAccumulatedElapsedNs = 0;
+      myIsUpdating.set(true);
+      CompletableFuture.runAsync(() -> {
+        doUpdate(totalNs);
+        myIsUpdating.set(false);
+      }, myExecutor);
+    }
+  }
+
+  private void doUpdate(long elapsedNs) {
     Map<Range, Double> maxPerRangeObject = new HashMap<>();
 
     // TODO Handle stacked configs

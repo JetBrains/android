@@ -17,6 +17,7 @@
 package com.android.tools.adtui.visualtests;
 
 import static com.android.tools.adtui.common.AdtUiUtils.GBC_FULL;
+import static com.google.common.util.concurrent.MoreExecutors.newDirectExecutorService;
 
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.AnimatedTimeRange;
@@ -94,7 +95,7 @@ public class LineChartVisualTest extends VisualTest {
 
     long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
     Range timeGlobalRangeUs = new Range(nowUs, nowUs + TimeUnit.SECONDS.toMicros(60));
-    LineChartModel model = new LineChartModel();
+    LineChartModel model = new LineChartModel(newDirectExecutorService());
     mLineChart = new LineChart(model);
     mLineChart.setBackground(JBColor.background());
     mAnimatedTimeRange = new AnimatedTimeRange(timeGlobalRangeUs, 0);
