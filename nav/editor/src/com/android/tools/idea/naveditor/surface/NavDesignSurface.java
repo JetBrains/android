@@ -486,8 +486,8 @@ public class NavDesignSurface extends DesignSurface {
 
     Point oldViewPosition = getScrollPosition();
     if (x < 0 || y < 0) {
-      x = oldViewPosition.x + myScrollPane.getWidth() / 2;
-      y = oldViewPosition.y + myScrollPane.getHeight() / 2;
+      x = oldViewPosition.x + getViewport().getViewportComponent().getWidth() / 2;
+      y = oldViewPosition.y + getViewport().getViewportComponent().getHeight() / 2;
     }
 
     @AndroidDpCoordinate int androidX = Coordinates.getAndroidXDip(view, x);
@@ -497,7 +497,7 @@ public class NavDesignSurface extends DesignSurface {
 
     @SwingCoordinate int shiftedX = Coordinates.getSwingXDip(view, androidX);
     @SwingCoordinate int shiftedY = Coordinates.getSwingYDip(view, androidY);
-    myScrollPane.getViewport().setViewPosition(new Point(oldViewPosition.x + shiftedX - x, oldViewPosition.y + shiftedY - y));
+    getViewport().setViewPosition(new Point(oldViewPosition.x + shiftedX - x, oldViewPosition.y + shiftedY - y));
 
     return ret;
   }

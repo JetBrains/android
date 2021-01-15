@@ -46,6 +46,7 @@ import com.android.tools.idea.common.surface.InteractionHandler;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.SurfaceScale;
 import com.android.tools.idea.common.surface.SurfaceScreenScalingFactor;
+import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
@@ -438,7 +439,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     myMinScale = minScale;
     myMaxScale = maxScale;
 
-    myScrollPane.getViewport().addChangeListener(e -> {
+    getViewport().addChangeListener(e -> {
       // Calculate the viewport position of scroll view when its size is changed.
       // When the view size is changed, the new center position should have same weight in both x and y axis as before.
       // Consider the size of the view is 1000 * 2000 and the zoom center is at (800, 1500). So the weight is 0.8 on x-axis and 0.75 on
@@ -447,7 +448,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       // We calculate the new viewport position to achieve above behavior.
       // FIXME: This doesn't work when scaling makes re-layout when using GridLayout.
       //        Consider to use hovered SceneView to determine the new viewport position in that case.
-      JViewport port = (JViewport)e.getSource();
+      DesignSurfaceViewport port = getViewport();
       Dimension newViewportSize = port.getViewSize();
       if (newViewportSize == null ||
           newViewportSize.width == 0 ||
@@ -478,8 +479,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       int newViewPositionY = (int)(newZoomCenterInViewportY - zoomCenterY);
 
       // Make sure the view port position doesn't go out of bound. (It may happen when zooming-out)
-      newViewPositionX = Math.max(0, Math.min(newViewPositionX, newViewWidth - port.getWidth()));
-      newViewPositionY = Math.max(0, Math.min(newViewPositionY, newViewHeight - port.getHeight()));
+      newViewPositionX = Math.max(0, Math.min(newViewPositionX, newViewWidth - port.getViewportComponent().getWidth()));
+      newViewPositionY = Math.max(0, Math.min(newViewPositionY, newViewHeight - port.getViewportComponent().getHeight()));
 
       myCurrentViewportSize = newViewportSize;
 
@@ -569,7 +570,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   public void setResizeMode(boolean isResizing) {
     myIsCanvasResizing = isResizing;
     // When in resize mode, allow the scrollable surface autoscroll so it follow the mouse.
-    myScrollPane.setAutoscrolls(isResizing);
+    setSurfaceAutoscrolls(isResizing);
   }
 
   /**
@@ -888,8 +889,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     if (x < 0 || y < 0) {
       // This happens when zooming is triggered by shortcut or zoom buttons.
       // We use the center point of scroll pane as scaling center.
-      myZoomCenter.x = myScrollPane.getViewport().getWidth() / 2;
-      myZoomCenter.y = myScrollPane.getViewport().getHeight() / 2;
+      myZoomCenter.x = getViewport().getViewportComponent().getWidth() / 2;
+      myZoomCenter.y = getViewport().getViewportComponent().getHeight() / 2;
 
       // Convert the center point in scroll pane to view port coordinate system.
       Point scrollPosition = getScrollPosition();
@@ -902,7 +903,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       myZoomCenterInViewport.y = y;
 
       // The given zoom center is in Viewport coordinate, we need to calculate the point in scroll pane.
-      Point center = SwingUtilities.convertPoint(myScrollPane.getViewport().getView(), x, y, myScrollPane.getViewport());
+      Point center = SwingUtilities.convertPoint(getViewport().getViewComponent(), x, y, getViewport().getViewportComponent());
       myZoomCenter.x = center.x;
       myZoomCenter.y = center.y;
     }
