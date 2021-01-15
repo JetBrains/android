@@ -437,6 +437,7 @@ filegroup(
         ":deploy-artifacts",
         ":profiler-artifacts",
         ":transport-artifacts",
+        "//prebuilts/tools/common/app-inspection/androidx/compose/ui:layout_inspector_compose_java_proto",
         "//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite_inspector_proto",
         "//prebuilts/tools/common/app-inspection/androidx/work:workmanager_inspector_proto",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
