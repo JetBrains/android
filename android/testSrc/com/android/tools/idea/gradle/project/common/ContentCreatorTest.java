@@ -57,7 +57,18 @@ public class ContentCreatorTest extends PlatformTestCase {
                       "      maven { url 'path2'}\n" +
                       "      maven { url 'path3'}\n" +
                       "  }\n" +
-                      "}\n";
+                      "}\n" +
+                      "try {\n" +
+                      "  beforeSettings {\n" +
+                      "    it.dependencyResolutionManagement {\n" +
+                      "      repositories {\n" +
+                      "      maven { url 'path1'}\n" +
+                      "      maven { url 'path2'}\n" +
+                      "      maven { url 'path3'}\n" +
+                      "      }\n" +
+                      "    }\n" +
+                      "  }\n" +
+                      "} catch (Throwable ignored) { /* In case this Gradle version does not support this. */}\n";;
 
     String content = myContentCreator.createLocalMavenRepoInitScriptContent(repoPaths);
     assertEquals(expected, content);
