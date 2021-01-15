@@ -16,6 +16,7 @@
 package com.android.tools.adtui.chart.linechart;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.util.concurrent.MoreExecutors.newDirectExecutorService;
 import static java.awt.BasicStroke.CAP_SQUARE;
 import static java.awt.BasicStroke.JOIN_MITER;
 import static org.mockito.Matchers.any;
@@ -52,7 +53,7 @@ public class LineChartTest {
   public void testNoRenderWithEmptyRange() {
     // Ensures that if the LineChartModel hasn't had a chance to update and the yRange remains zero - then the LineChart would not render
     // any data.
-    LineChartModel model = new LineChartModel();
+    LineChartModel model = newLineChartModel();
     Range xRange = new Range(0, 10);
     Range yRange = new Range(0, 0);
     DefaultDataSeries<Long> testSeries = new DefaultDataSeries<>();
@@ -72,7 +73,7 @@ public class LineChartTest {
 
   @Test
   public void testRenderConfigNoWithData() {
-    LineChartModel model = new LineChartModel();
+    LineChartModel model = newLineChartModel();
     DefaultDataSeries<Long> emptySeries = new DefaultDataSeries<>();
     DefaultDataSeries<Long> seriesWithData = new DefaultDataSeries<>();
     for (int i = 0; i < 11; i++) {
@@ -99,7 +100,7 @@ public class LineChartTest {
 
   @Test
   public void testAdjustDashPhase() {
-    LineChartModel model = new LineChartModel();
+    LineChartModel model = newLineChartModel();
     Range xRange = new Range(0, 15);
     Range yRange = new Range(0, 15);
 
@@ -163,7 +164,7 @@ public class LineChartTest {
 
   @Test
   public void testAdjustDashPhaseForSteppedConfig() {
-    LineChartModel model = new LineChartModel();
+    LineChartModel model = newLineChartModel();
     Range xRange = new Range(0, 15);
     Range yRange = new Range(0, 15);
 
@@ -227,7 +228,7 @@ public class LineChartTest {
 
   @Test
   public void testConfigLerpsMinMaxValues() {
-    LineChartModel model = new LineChartModel();
+    LineChartModel model = newLineChartModel();
     Range xRange = new Range(8, 12);
     Range yRange = new Range(0, 10);
     int windowHeight = 20;
@@ -290,7 +291,7 @@ public class LineChartTest {
     Range xRange = new Range(4, 8);
     Range dataRange = new Range(0, 8);
     Range yRange = new Range(0, 10);
-    LineChartModel model = new LineChartModel();
+    LineChartModel model = newLineChartModel();
 
     // We add two data points outside of the View Range
     DefaultDataSeries<Long> testSeries = new ReturnAllDataSeries();
@@ -343,7 +344,7 @@ public class LineChartTest {
   @Test
   public void testStackedConfigsDoNotModifyUnderlyingDataSeries() {
     final int dataCount = 10;
-    LineChartModel model = new LineChartModel();
+    LineChartModel model = newLineChartModel();
     DefaultDataSeries<Long> series1 = new DefaultDataSeries<>();
     DefaultDataSeries<Long> series2 = new DefaultDataSeries<>();
     for (int i = 0; i <= dataCount; i++) {
@@ -378,7 +379,7 @@ public class LineChartTest {
     Range xRange = new Range(4, 8);
     Range dataRange = new Range(0, 8);
     Range yRange = new Range(0, 10);
-    LineChartModel model = new LineChartModel();
+    LineChartModel model = newLineChartModel();
 
     // We add two data points outside of the View Range. When fillEndGap is set to true,
     // a line should be drawn across the entire range using the last data point.
@@ -443,7 +444,7 @@ public class LineChartTest {
     Range xRange = new Range(4, 8);
     Range dataRange = new Range(0, 8);
     Range yRange = new Range(0, 10);
-    LineChartModel model = new LineChartModel();
+    LineChartModel model = newLineChartModel();
 
     // We add two data points outside of the View Range. When fillEnd is set to 0.75,
     // a line should be drawn across the entire range using the last data point.
@@ -531,5 +532,9 @@ public class LineChartTest {
     public List<SeriesData<Long>> getDataForRange(Range range) {
       return getAllData();
     }
+  }
+
+  private LineChartModel newLineChartModel() {
+    return new LineChartModel(newDirectExecutorService());
   }
 }

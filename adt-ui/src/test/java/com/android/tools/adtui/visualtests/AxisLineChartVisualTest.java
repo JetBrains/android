@@ -16,6 +16,8 @@
 
 package com.android.tools.adtui.visualtests;
 
+import static com.google.common.util.concurrent.MoreExecutors.newDirectExecutorService;
+
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.AxisComponent;
@@ -106,7 +108,7 @@ public class AxisLineChartVisualTest extends VisualTest {
   protected List<Updatable> createModelList() {
     mRangedData = new ArrayList<>();
     mData = new ArrayList<>();
-    mLineChartModel = new LineChartModel();
+    mLineChartModel = new LineChartModel(newDirectExecutorService());
     mLineChart = new LineChart(mLineChartModel);
 
     mStartTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());

@@ -15,6 +15,8 @@
  */
 package com.android.tools.adtui.imagediff;
 
+import static com.google.common.util.concurrent.MoreExecutors.newDirectExecutorService;
+
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
@@ -235,7 +237,7 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
     protected void setUp() {
       TabularLayout layout = new TabularLayout("*", "*");
       myContentPane.setLayout(layout);
-      myLineChartModel = new LineChartModel();
+      myLineChartModel = new LineChartModel(newDirectExecutorService());
       myLineChart = new LineChart(myLineChartModel);
       myLineChart.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
       myOverlayComponent = new OverlayComponent(myLineChart);
