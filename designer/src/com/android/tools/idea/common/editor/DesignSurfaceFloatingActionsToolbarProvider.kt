@@ -28,7 +28,7 @@ import javax.swing.JComponent
 /** Creates the floating actions toolbar used on the [DesignSurface] */
 class DesignSurfaceFloatingActionsToolbarProvider(
   private val designSurface: DesignSurface,
-  private val component: JComponent,
+  component: JComponent,
   parentDisposable: Disposable
 ) : EditorActionsFloatingToolbarProvider(component, parentDisposable), DesignSurfaceListener {
 

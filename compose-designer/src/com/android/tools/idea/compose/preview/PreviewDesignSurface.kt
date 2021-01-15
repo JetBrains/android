@@ -110,7 +110,7 @@ internal fun createPreviewDesignSurface(
     .setEditable(true)
     .setDelegateDataProvider(dataProvider)
     .setSelectionModel(NopSelectionModel)
-    .setZoomControlsPolicy(zoomControlsPolicy)
+    .setZoomControlsPolicy(DesignSurface.ZoomControlsPolicy.HIDDEN)
     .build()
     .apply {
       setScreenViewProvider(NlScreenViewProvider.COMPOSE, false)

@@ -1052,7 +1052,7 @@ public final class StudioFlags {
     COMPOSE, "preview.pin.enable",
     "Enable pinning compose previews",
     "If enabled, a user can pin a preview",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_INDIVIDUAL_PIN_PREVIEW = Flag.create(

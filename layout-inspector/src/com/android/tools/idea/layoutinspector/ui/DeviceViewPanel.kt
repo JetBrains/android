@@ -321,6 +321,9 @@ class DeviceViewPanel(
 
   override val isPannable: Boolean
     get() = contentPanel.width > scrollPane.viewport.width || contentPanel.height > scrollPane.viewport.height
+  override var scrollPosition: Point
+    get() = scrollPane.viewport.viewPosition
+    set(_) { }
 
   private fun createToolbar(): ActionToolbar {
     val leftGroup = DefaultActionGroup()
