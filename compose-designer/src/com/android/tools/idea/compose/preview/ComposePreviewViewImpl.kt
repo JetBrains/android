@@ -52,6 +52,8 @@ import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBSplitter
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
+import java.awt.Component
+import java.awt.Dimension
 import java.awt.event.AdjustmentEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -147,7 +149,7 @@ private fun createOverlayPanel(vararg components: JComponent): JPanel =
     }
   }
 
-private class PinnedLabelPanel(pinAction: AnAction? = null) : JPanel(BorderLayout()) {
+private class PinnedLabelPanel(pinAction: AnAction? = null) : JPanel() {
   private val button = ActionButtonWithText(pinAction,
                                             PresentationFactory().getPresentation(pinAction ?: EmptyAction()),
                                             "PinnedToolbar",
@@ -157,16 +159,16 @@ private class PinnedLabelPanel(pinAction: AnAction? = null) : JPanel(BorderLayou
   }
 
   init {
-    isOpaque = false
-    add(JPanel().apply {
-      isOpaque = false
-      add(button)
-    }, BorderLayout.LINE_START)
+    add(button)
+    alignmentX = Component.LEFT_ALIGNMENT
+    alignmentY = Component.TOP_ALIGNMENT
   }
 
   fun update() {
     button.update()
   }
+
+  override fun getMaximumSize(): Dimension = preferredSize
 }
 
 /**
@@ -212,8 +214,15 @@ internal class ComposePreviewViewImpl(private val project: Project,
 
   override val component: JComponent = this
 
-  private val pinnedPanelLabel = PinnedLabelPanel(onUnPinAction)
+  private val pinnedPanelLabel = PinnedLabelPanel(onUnPinAction).apply {
+    // Top left corner of the OverlayLayout
+    alignmentX = Component.LEFT_ALIGNMENT
+    alignmentY = Component.TOP_ALIGNMENT
+  }
   private val mainSurfacePinLabel = PinnedLabelPanel(onPinFileAction).apply {
+    // Top left corner of the OverlayLayout
+    alignmentX = Component.LEFT_ALIGNMENT
+    alignmentY = Component.TOP_ALIGNMENT
     // By default, hide until the label has been set.
     isVisible = false
   }
