@@ -15,89 +15,86 @@
  */
 package com.android.tools.idea.layoutinspector.resource
 
+import com.android.testutils.TestUtils
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.intellij.lang.annotations.Language
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
+@RunsInEdt
 class LambdaResolverTest {
   private val projectRule = AndroidProjectRule.inMemory()
 
   @get:Rule
   val rules: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
-  @RunsInEdt
-  @Test
-  fun testFindLambdaLocation() {
-    @Language("kotlin")
-    val kotlinFile = """
-      package com.company.app
-
-      val l1: (Int) -> Int = { it }
-      val l2: (Int) -> Int = {
-        // The line numbers from JVMTI of this lambda, starts AFTER this comment...  
-        number -> number * number
-      }
-
-      class C1 {
-        inner class C2 {
-          init {
-            f2({1}, {2})
-          }
-        }
-
-        fun fx() {
-            f2({1}, {2})
-        }
-
-        init {
-          f2({1}, {2}, { f2({3}, {4}) })
-        }
-      }
-
-      fun f1() {
-        val x: () -> Int = { 15 }
-        f2({1}, {2}, { f2({3}, {4}) })
-        f2(l1, l2, l1)
-      }
-
-      fun f2(a1: (Int) -> Int, a2: (Int) -> Int, a3: (Int) -> Int = {-1}): Int {
-        return if (a2(1) + a1(2) > 8) a1(1) else a3(2)
-      }
-    """.trimIndent()
-    projectRule.fixture.addFileToProject("src/com/company/app/MainActivity.kt", kotlinFile)
-    val resourceLookup = ResourceLookup(projectRule.project)
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f1$1", 26, 26), "MainActivity.kt:27", "{1}")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f1$2", 26, 26), "MainActivity.kt:27", "{2}")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f1$3", 26, 26),
-                   "MainActivity.kt:27", "{ f2({3}, {4}) }")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f1$3$1", 26, 26), "MainActivity.kt:27", "{3}")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f1$3$2", 26, 26), "MainActivity.kt:27", "{4}")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "f2$1", 30, 30), "MainActivity.kt:31", "{-1}")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "$1", 20, 20), "MainActivity.kt:21", "{1}")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "$2", 20, 20), "MainActivity.kt:21", "{2}")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "$3", 20, 20),
-                   "MainActivity.kt:21", "{ f2({3}, {4}) }")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "$3$1", 20, 20), "MainActivity.kt:21", "{3}")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "$3$2", 20, 20), "MainActivity.kt:21", "{4}")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "l1$1", 2, 2), "MainActivity.kt:3", "{ it }")
-    assertLocation(resourceLookup.findLambdaLocation("com.company.app", "MainActivity.kt", "l2$1", 5, 6), "MainActivity.kt:5",
-                   """
-                   {
-                     // The line numbers from JVMTI of this lambda, starts AFTER this comment...  
-                     number -> number * number
-                   }
-                   """.trimIndent())
+  @Before
+  fun before() {
+    val fixture = projectRule.fixture
+    fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/compose").toString()
+    fixture.copyFileToProject("java/com/example/MyLambdas.kt")
   }
 
-  private fun assertLocation(location: SourceLocation?, source: String, text: String) {
-    Truth.assertThat(location).isNotNull()
-    Truth.assertThat(location?.source).isEqualTo(source)
-    Truth.assertThat((location?.navigatable as? PsiElement)?.text).isEqualTo(text)
+  @Test
+  fun testFindLambdaLocation() {
+    checkLambda("f1$1", 32, 32, "MyLambdas.kt:32", "{ 1 }")
+    checkLambda("f1$2", 32, 32, "MyLambdas.kt:32", "{ 2 }")
+    checkLambda("f1$3", 32, 32, "MyLambdas.kt:32", "{ f2({ 3 }, { 4 }) }")
+    checkLambda("f1$3$1", 32, 32, "MyLambdas.kt:32", "{ 3 }")
+    checkLambda("f1$3$2", 32, 32, "MyLambdas.kt:32", "{ 4 }")
+    checkLambda("f2$1", 36, 36, "MyLambdas.kt:36", "{ -1 }")
+    checkLambda("$1", 24, 24, "MyLambdas.kt:24", "{ 1 }")
+    checkLambda("$2", 24, 24, "MyLambdas.kt:24", "{ 2 }")
+    checkLambda("$3", 24, 24, "MyLambdas.kt:24", "{ f2({ 3 }, { 4 }) }")
+    checkLambda("$3$1", 24, 24, "MyLambdas.kt:24", "{ 3 }")
+    checkLambda("$3$2", 24, 24, "MyLambdas.kt:24", "{ 4 }")
+    checkLambda("$9$2", 26, 26, "MyLambdas.kt:26", "{ 2 }")
+    checkLambda("l1$1", 3, 3, "MyLambdas.kt:3", "{ it }")
+    checkLambda("l2$1", 6, 7, "MyLambdas.kt:6", """
+       { number ->
+         // The line numbers from JVMTI of this lambda, starts AFTER this comment...
+         number * number
+       }
+       """.trimIndent())
+    checkLambda("l3$1", 8, 8, null, null) // A function reference should not be found as a lambda expr
+  }
+
+  @Test
+  fun testFindFunctionReferenceLocation() {
+    check("l3$1", "f3", 8, 8, "MyLambdas.kt:8", "::f3")
+    check("l4$1", "fx", 21, 21, "MyLambdas.kt:21", "::fx")
+    check("$4", "f3", 25, 25, "MyLambdas.kt:25", "::f3")
+    check("$5", "f4", 25, 25, "MyLambdas.kt:25", "::f4")
+    check("$6$1", "f5", 25, 25, "MyLambdas.kt:25", "::f5")
+    check("$6$2", "f6", 25, 25, "MyLambdas.kt:25", "::f6")
+    check("$8", "f6", 26, 26, "MyLambdas.kt:26", "::f6")
+    check("l1$1", "f1", 3, 3, null, null) // A lambda expression should not be found as a fct ref
+  }
+
+  private fun checkLambda(lambdaName: String, startLine: Int, endLine: Int, expectedLocation: String?, expectedText: String?) =
+    check(lambdaName, functionName = "", startLine, endLine, expectedLocation, expectedText)
+
+  private fun check(
+    lambdaName: String,
+    functionName: String,
+    startLine: Int,
+    endLine: Int,
+    expectedLocation: String?,
+    expectedText: String?
+  ) {
+    val resourceLookup = ResourceLookup(projectRule.project)
+    val result = resourceLookup.findLambdaLocation("com.example", "MyLambdas.kt", lambdaName, functionName, startLine, endLine)
+    if (expectedLocation == null) {
+      assertThat(result).isNull()
+    }
+    else {
+      assertThat(result?.source).isEqualTo(expectedLocation)
+      assertThat((result?.navigatable as? PsiElement)?.text).isEqualTo(expectedText)
+    }
   }
 }

@@ -34,6 +34,7 @@ class LambdaPropertyItem(
   val packageName: String,
   val fileName: String,
   val lambdaName: String,
+  val functionName: String,
   val startLineNumber: Int,
   val endLineNumber: Int,
   lookup: ViewNodeAndResourceLookup
@@ -57,7 +58,7 @@ class LambdaPropertyItem(
 
   private fun findLocation(): SourceLocation? {
     lookupDone = true
-    location = lookup.resourceLookup.findLambdaLocation(packageName, fileName, lambdaName, startLineNumber - 1, endLineNumber - 1)
+    location = lookup.resourceLookup.findLambdaLocation(packageName, fileName, lambdaName, functionName, startLineNumber, endLineNumber)
     return location
   }
 }
