@@ -647,7 +647,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override var isBuildOnSaveEnabled: Boolean = false
     get() = COMPOSE_PREVIEW_BUILD_ON_SAVE.get() && field
 
-  private var lastPinsModificationCount = PinnedPreviewElementManager.getInstance(project).modificationCount
+  private var lastPinsModificationCount = -1L
 
   private fun hasErrorsAndNeedsBuild(): Boolean =
     previewElements.isNotEmpty() &&
