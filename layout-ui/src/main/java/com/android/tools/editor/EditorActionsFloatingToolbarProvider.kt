@@ -41,12 +41,16 @@ import javax.swing.Timer
 
 private val VERTICAL_PANEL_MARGINS get() = JBUI.insets(0, 4, 4, 0)
 
-abstract class EditorActionsFloatingToolbar(
+/**
+ * Provides the floating action toolbar for editor. For now it is used for panning and zooming only.
+ * [component] is used for data-context retrieval. See [ActionToolbar.setTargetComponent].
+ */
+abstract class EditorActionsFloatingToolbarProvider(
   private val component: JComponent,
   parentDisposable: Disposable
 ) : PanZoomListener, Disposable {
 
-  val designSurfaceToolbar: JComponent = JPanel(GridBagLayout()).apply { isOpaque = false }
+  val floatingToolbar: JComponent = JPanel(GridBagLayout()).apply { isOpaque = false }
 
   private val zoomToolbars: MutableList<ActionToolbar> = mutableListOf()
   private val otherToolbars: MutableList<ActionToolbar> = mutableListOf()
@@ -100,7 +104,7 @@ abstract class EditorActionsFloatingToolbar(
   protected fun updateToolbar() {
     val actionGroups = getActionGroups()
     val actionManager = ActionManager.getInstance()
-    val zoomControlsToolbar = actionGroups.zoomControlsGroup?.let { createToolbar(actionManager, it, component) }
+    val zoomActionGroup = actionGroups.zoomControlsGroup?.let { createToolbar(actionManager, it, component) }
 
     val zoomLabelToolbar = actionGroups.zoomLabelGroup?.let {
       createToolbar(actionManager, it, component).apply {
@@ -109,8 +113,8 @@ abstract class EditorActionsFloatingToolbar(
     }
     zoomToolbars.apply {
       clear()
-      if (zoomControlsToolbar != null) {
-        add(zoomControlsToolbar)
+      if (zoomActionGroup != null) {
+        add(zoomActionGroup)
       }
       if (zoomLabelToolbar != null) {
         add(zoomLabelToolbar)
@@ -119,10 +123,10 @@ abstract class EditorActionsFloatingToolbar(
     otherToolbars.clear()
     actionGroups.otherGroups.mapTo(otherToolbars) { createToolbar(actionManager, it, component) }
 
-    designSurfaceToolbar.removeAll()
-    if (zoomControlsToolbar != null || otherToolbars.isNotEmpty() || zoomLabelToolbar != null) {
+    floatingToolbar.removeAll()
+    if (zoomActionGroup != null || otherToolbars.isNotEmpty() || zoomLabelToolbar != null) {
       // Empty space with weight to push components down.
-      designSurfaceToolbar.add(Box.createRigidArea(JBUI.size(10)), emptyBoxConstraints)
+      floatingToolbar.add(Box.createRigidArea(JBUI.size(10)), emptyBoxConstraints)
     }
     for ((index, toolbar) in otherToolbars.withIndex()) {
       val controlsPanel = toolbar.component.wrapInDesignSurfaceUI()
@@ -133,24 +137,24 @@ abstract class EditorActionsFloatingToolbar(
         anchor = GridBagConstraints.FIRST_LINE_END
         insets = VERTICAL_PANEL_MARGINS
       }
-      designSurfaceToolbar.add(controlsPanel, otherControlsConstraints)
+      floatingToolbar.add(controlsPanel, otherControlsConstraints)
     }
     if (zoomLabelToolbar != null) {
       val zoomLabelPanel = zoomLabelToolbar.component.wrapInDesignSurfaceUI()
-      designSurfaceToolbar.add(zoomLabelPanel, zoomLabelConstraints)
+      floatingToolbar.add(zoomLabelPanel, zoomLabelConstraints)
       hiddenZoomLabelTimer?.start()
       hiddenZoomLabelComponent = zoomLabelPanel
     }
-    if (zoomControlsToolbar != null) {
-      val zoomControlsPanel = zoomControlsToolbar.component.wrapInDesignSurfaceUI()
-      designSurfaceToolbar.add(zoomControlsPanel, zoomControlsConstraints)
+    if (zoomActionGroup != null) {
+      val zoomControlsPanel = zoomActionGroup.component.wrapInDesignSurfaceUI()
+      floatingToolbar.add(zoomControlsPanel, zoomControlsConstraints)
     }
 
-    pauseZoomLabelTimerWhileInteractingOn(listOfNotNull(zoomLabelToolbar as? JPanel, zoomControlsToolbar as? JPanel))
+    pauseZoomLabelTimerWhileInteractingOn(listOfNotNull(zoomLabelToolbar as? JPanel, zoomActionGroup as? JPanel))
   }
 
   override fun dispose() {
-    designSurfaceToolbar.removeAll()
+    floatingToolbar.removeAll()
     // Stop timer so that it can be garbage collected.
     hiddenZoomLabelTimer?.stop()
     // Set to null to guarantee Timer.start() will not be called again on it.

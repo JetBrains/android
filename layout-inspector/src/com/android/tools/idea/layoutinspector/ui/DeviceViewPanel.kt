@@ -156,7 +156,7 @@ class DeviceViewPanel(
 
   private val scrollPane = JBScrollPane(contentPanel)
   private val layeredPane = JLayeredPane()
-  private val deviceViewPanelActionsToolbar: DeviceViewPanelActionsToolbar
+  private val deviceViewPanelActionsToolbar: DeviceViewPanelActionsToolbarProvider
   private val viewportLayoutManager = MyViewportLayoutManager(scrollPane.viewport, { contentPanel.model.layerSpacing },
                                                               { contentPanel.rootLocation })
 
@@ -202,9 +202,9 @@ class DeviceViewPanel(
       }
     }
 
-    deviceViewPanelActionsToolbar = DeviceViewPanelActionsToolbar(this, disposableParent)
+    deviceViewPanelActionsToolbar = DeviceViewPanelActionsToolbarProvider(this, disposableParent)
 
-    val floatingToolbar = deviceViewPanelActionsToolbar.designSurfaceToolbar
+    val floatingToolbar = deviceViewPanelActionsToolbar.floatingToolbar
 
     layeredPane.setLayer(scrollPane, JLayeredPane.DEFAULT_LAYER)
     layeredPane.setLayer(floatingToolbar, JLayeredPane.PALETTE_LAYER)
@@ -254,7 +254,7 @@ class DeviceViewPanel(
 
   private fun updateLayeredPaneSize() {
     scrollPane.size = layeredPane.size
-    val floatingToolbar = deviceViewPanelActionsToolbar.designSurfaceToolbar
+    val floatingToolbar = deviceViewPanelActionsToolbar.floatingToolbar
     floatingToolbar.size = floatingToolbar.preferredSize
     floatingToolbar.location = Point(layeredPane.width - floatingToolbar.width - TOOLBAR_INSET,
                                      layeredPane.height - floatingToolbar.height - TOOLBAR_INSET)

@@ -21,7 +21,7 @@ import com.android.tools.adtui.actions.ZoomLabelAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomResetAction
 import com.android.tools.adtui.actions.ZoomToFitAction
-import com.android.tools.editor.EditorActionsFloatingToolbar
+import com.android.tools.editor.EditorActionsFloatingToolbarProvider
 import com.android.tools.editor.EditorActionsToolbarActionGroups
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.PNG_AS_REQUESTED
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.PNG_SKP_TOO_LARGE
@@ -34,10 +34,10 @@ import icons.StudioIcons.LayoutInspector.MODE_3D
 import icons.StudioIcons.LayoutInspector.RESET_VIEW
 
 /** Creates the actions toolbar used on the [DeviceViewPanel] */
-class DeviceViewPanelActionsToolbar(
+class DeviceViewPanelActionsToolbarProvider(
   deviceViewPanel: DeviceViewPanel,
   parentDisposable: Disposable
-) : EditorActionsFloatingToolbar(deviceViewPanel, parentDisposable) {
+) : EditorActionsFloatingToolbarProvider(deviceViewPanel, parentDisposable) {
 
   init {
     updateToolbar()
