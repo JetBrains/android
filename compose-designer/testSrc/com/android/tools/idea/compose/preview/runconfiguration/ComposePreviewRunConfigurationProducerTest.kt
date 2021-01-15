@@ -18,15 +18,10 @@ package com.android.tools.idea.compose.preview.runconfiguration
 import com.android.AndroidProjectTypes
 import com.android.tools.idea.compose.preview.addFileToProjectAndInvalidate
 import com.android.tools.idea.flags.StudioFlags
-import com.intellij.execution.Location
-import com.intellij.execution.PsiLocation
 import com.intellij.execution.actions.ConfigurationContext
-import com.intellij.openapi.actionSystem.LangDataKeys
-import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
@@ -207,13 +202,6 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
     ComposePreviewRunConfigurationType().configurationFactories[0].createTemplateConfiguration(project) as ComposePreviewRunConfiguration
 
   private fun configurationContext(element: PsiElement): ConfigurationContext {
-    return object : ConfigurationContext(element) {
-      override fun getDataContext() = MapDataContext().apply {
-        put(LangDataKeys.PROJECT, project)
-        put(LangDataKeys.MODULE, ModuleUtilCore.findModuleForPsiElement(element))
-        put(Location.DATA_KEY, PsiLocation.fromPsiElement(element))
-        put(LangDataKeys.PSI_ELEMENT_ARRAY, arrayOf(element))
-      }
-    }
+    return ConfigurationContext(element)
   }
 }
