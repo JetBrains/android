@@ -428,6 +428,17 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "layout-inspector-artifacts",
+    srcs = [
+        "//prebuilts/tools/common/app-inspection/androidx/compose/ui:layout_inspector_compose_java_proto",
+        "//tools/base/dynamic-layout-inspector/agent/appinspection:agent",
+        "//tools/base/dynamic-layout-inspector/agent/appinspection/proto:layout_inspector_view_java_proto",
+        "//tools/base/dynamic-layout-inspector/skia/proto:layout_inspector_skia_java_proto",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 # Various artifacts that the ANT and within-idea studio build depend on.
 filegroup(
     name = "artifacts",
@@ -435,9 +446,9 @@ filegroup(
         ":android-core-proto",
         ":android-core-proto-test",
         ":deploy-artifacts",
+        ":layout-inspector-artifacts",
         ":profiler-artifacts",
         ":transport-artifacts",
-        "//prebuilts/tools/common/app-inspection/androidx/compose/ui:layout_inspector_compose_java_proto",
         "//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite_inspector_proto",
         "//prebuilts/tools/common/app-inspection/androidx/work:workmanager_inspector_proto",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
@@ -446,9 +457,6 @@ filegroup(
         "//tools/base/bazel:studio-proto",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
         "//tools/base/ddmlib:am-instrumentation-data-proto",
-        "//tools/base/dynamic-layout-inspector/agent/appinspection:agent",
-        "//tools/base/dynamic-layout-inspector/agent/appinspection/proto:layout_inspector_view_java_proto",
-        "//tools/base/dynamic-layout-inspector/skia/proto:layout_inspector_skia_java_proto",
         "//tools/base/emulator/proto:emulator_java_proto",
         "//tools/base/game-tools/protos:game-tools-protos",
         "//tools/base/sdk-common/aia-manifest-jar-generator:proto",
