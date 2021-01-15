@@ -365,7 +365,8 @@ internal class ComposePreviewViewImpl(private val project: Project,
     }
 
     if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
-      mainSurfacePinLabel.isVisible = !isPinnedSurfaceVisible
+      // The "pin this file" action is only visible if the pin surface is not visible and if we are not in interactive.
+      mainSurfacePinLabel.isVisible = !isInteractive && !isPinnedSurfaceVisible
       mainSurfacePinLabel.update()
       pinnedPanelLabel.update()
     }
@@ -388,6 +389,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
       else {
         delegateInteractionHandler.delegate = staticPreviewInteractionHandler
       }
+      updateVisibilityAndNotifications()
     }
 
   override var hasContent: Boolean = true
