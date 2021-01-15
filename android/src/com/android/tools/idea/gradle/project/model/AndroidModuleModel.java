@@ -84,6 +84,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   private static final AndroidVersion NOT_SPECIFIED = new AndroidVersion(0, null);
   private final static String ourAndroidSyncVersion = "2020-09-17/1";
 
+  @Nullable public transient Object lintModuleModelCache;
   @Nullable private transient Module myModule;
 
   @NotNull private ProjectSystemId myProjectSystemId;
