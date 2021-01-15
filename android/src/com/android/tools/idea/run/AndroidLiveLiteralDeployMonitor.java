@@ -37,7 +37,9 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -53,6 +55,11 @@ class AndroidLiveLiteralDeployMonitor {
   // when things go wrong. This will be changed in the final product.
   private static LogWrapper LOGGER = new LogWrapper(Logger.getInstance(AndroidLiveLiteralDeployMonitor.class));
 
+  // Keys contains all projects currently with a listener registered in the editor.
+  // We don't want to register multiple times because we would end up with multiple events per single update.
+  // The value mapped to each object contains a listing of an unique string identifier to each LL and the
+  // timestamp which that literal was seen updated.
+  private static final Map<Project, Map<String, Long>> ACTIVE_PROJECTS = new HashMap<>();
 
   /**
    * Returns a callback that, upon successful deployment of an Android application, can be invoked to
@@ -67,60 +74,84 @@ class AndroidLiveLiteralDeployMonitor {
     }
 
     LOGGER.info("Creating monitor for project %s targeting app %s", project.getName(), packageName);
+
     return () -> {
-      LiveLiteralsService.Companion.getInstance(project).addOnLiteralsChangedListener(
-        (Disposable) () -> {},
-        (changes) -> {
-          AndroidLiveLiteralDeployMonitor.pushLiteralsToDevice(project, packageName, (List<LiteralReference>)changes);
-          return null;
+      synchronized (ACTIVE_PROJECTS) {
+        if (!ACTIVE_PROJECTS.containsKey(project)) {
+          LiveLiteralsService.Companion.getInstance(project).addOnLiteralsChangedListener(
+            (Disposable)() -> {
+              ACTIVE_PROJECTS.remove(project);
+            },
+            (changes) -> {
+              long timestamp = System.nanoTime();
+              AndroidLiveLiteralDeployMonitor.pushLiteralsToDevice(project, packageName, (List<LiteralReference>)changes, timestamp);
+              return null;
+            }
+          );
+          ACTIVE_PROJECTS.put(project, new HashMap<>());
+        } else {
+          ACTIVE_PROJECTS.get(project).clear();
         }
-      );
+      }
+
+      // Event a listener has been installed, we always need to re-enable as certain action can disable the service (such as a rebuild).
       LiveLiteralsService.Companion.getInstance(project).setEnabled(true);
     };
   }
 
-  private static void pushLiteralsToDevice(Project project, String packageName, List<LiteralReference> changes) {
+  private static void pushLiteralsToDevice(Project project, String packageName, List<LiteralReference> changes, long timestamp) {
     LOGGER.info("Change detected for project %s targeting app %s", project.getName(), packageName);
 
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      List<AndroidSessionInfo> sessions = AndroidSessionInfo.findActiveSession(project);
-      if (sessions == null) {
-        LOGGER.info("No running session found for %s", packageName);
-        return;
-      }
-      for (AndroidSessionInfo session : sessions) {
-        @NotNull ExecutionTarget target = session.getExecutionTarget();
-        if (!(target instanceof AndroidExecutionTarget)) {
-          continue;
+      synchronized (ACTIVE_PROJECTS) {
+        List<AndroidSessionInfo> sessions = AndroidSessionInfo.findActiveSession(project);
+        if (sessions == null) {
+          LOGGER.info("No running session found for %s", packageName);
+          return;
         }
-        for (IDevice iDevice : ((AndroidExecutionTarget)target).getRunningDevices()) {
-          AdbClient adb = new AdbClient(iDevice, LOGGER);
-          MetricsRecorder metrics = new MetricsRecorder();
 
-          // TODO: Use client data from DDMLib.
-          // String pkname = session.getClient(device).getClientData().getPackageName();
+        // List of all literals and the timestamps which they were last updated.
+        Map<String, Long> lastUpdate = ACTIVE_PROJECTS.get(project);
 
-          // TODO: Disable this if we are not on DAEMON mode? Or we should take whatever mode Studio Flag tells us to take.
-          Installer installer = new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON);
-          LiveLiteralDeployer deployer = new LiveLiteralDeployer();
-          List<LiveLiteralDeployer.UpdateLiveLiteralParam> params = new ArrayList<>();
-          for (LiteralReference change : changes) {
-            for (LiteralUsageReference use : change.getUsages()) {
-              // TODO: The key should be computed by Studio.
-              // Once we reach production, we should NOT need to compute offset and use qualifyNameToHelperClassName.
-              String key = "";
-              int offset = use.getRange().getStartOffset();
-              String helper = qualifyNameToHelperClassName(use.getFqName().toString());
-              String type = constTypeToJvmType(change.getConstantValue());
-              LiveLiteralDeployer.UpdateLiveLiteralParam param = new LiveLiteralDeployer.UpdateLiveLiteralParam(
-                key, offset, helper, type, change.getConstantValue().toString());
-              params.add(param);
-              LOGGER.info("Live Literal Value of type %s updated to %s", type, change.getConstantValue().toString());
-            }
+        for (AndroidSessionInfo session : sessions) {
+          @NotNull ExecutionTarget target = session.getExecutionTarget();
+          if (!(target instanceof AndroidExecutionTarget)) {
+            continue;
           }
-          LOGGER.info("Invoking Deployer.updateLiveLiteral for %s", packageName);
-          deployer.updateLiveLiteral(installer, adb, packageName, params);
+          for (IDevice iDevice : ((AndroidExecutionTarget)target).getRunningDevices()) {
+            AdbClient adb = new AdbClient(iDevice, LOGGER);
+            MetricsRecorder metrics = new MetricsRecorder();
 
+            // TODO: Disable this if we are not on DAEMON mode? Or we should take whatever mode Studio Flag tells us to take.
+            Installer installer = new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON);
+            LiveLiteralDeployer deployer = new LiveLiteralDeployer();
+            List<LiveLiteralDeployer.UpdateLiveLiteralParam> params = new ArrayList<>();
+            for (LiteralReference change : changes) {
+              for (LiteralUsageReference use : change.getUsages()) {
+                // TODO: The key should be computed by Studio.
+                // Once we reach production, we should NOT need to compute offset and use qualifyNameToHelperClassName.
+                String key = "";
+                int offset = use.getRange().getStartOffset();
+                String helper = qualifyNameToHelperClassName(use.getFqName().toString());
+                String type = constTypeToJvmType(change.getConstantValue());
+                LiveLiteralDeployer.UpdateLiveLiteralParam param = new LiveLiteralDeployer.UpdateLiveLiteralParam(
+                  key, offset, helper, type, change.getConstantValue().toString());
+
+                String lookup = helper + "[offset = " + offset + "]";
+                if (lastUpdate.getOrDefault(lookup,0L) < timestamp) {
+                  params.add(param);
+                  lastUpdate.put(lookup, timestamp);
+                  LOGGER.info("Live Literal Value of type %s updated to %s",
+                              type, change.getConstantValue().toString());
+                } else {
+                  LOGGER.warning("Live Literal Value of type %s not updated to %s since it outdated",
+                                 type, change.getConstantValue().toString());
+                }
+              }
+            }
+            LOGGER.info("Invoking Deployer.updateLiveLiteral for %s", packageName);
+            deployer.updateLiveLiteral(installer, adb, packageName, params);
+          }
         }
       }
     });
