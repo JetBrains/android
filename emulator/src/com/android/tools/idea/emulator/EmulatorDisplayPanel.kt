@@ -124,7 +124,7 @@ class EmulatorDisplayPanel(
       val disposable = Disposer.newDisposable()
       contentDisposable = disposable
 
-      val toolbar = EmulatorZoomToolbar.createToolbar(this, disposable)
+      val toolbar = EmulatorZoomToolbarProvider.createToolbar(this, disposable)
       toolbar.isVisible = zoomToolbarVisible
       floatingToolbar = toolbar
       zoomControlsLayerPane.add(toolbar, BorderLayout.EAST)
