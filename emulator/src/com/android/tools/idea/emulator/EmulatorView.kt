@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.ClipData
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
+import com.android.emulator.control.KeyboardEvent.KeyEventType
 import com.android.emulator.control.Notification.EventType.VIRTUAL_SCENE_CAMERA_ACTIVE
 import com.android.emulator.control.Notification.EventType.VIRTUAL_SCENE_CAMERA_INACTIVE
 import com.android.emulator.control.Rotation.SkinRotation
@@ -336,7 +337,7 @@ class EmulatorView(
                 VK_D -> "KeyD"
                 else -> return
               }
-            emulator.sendKey(createHardwareKeyEvent(keyName))
+            emulator.sendKey(createHardwareKeyEvent(keyName, eventType = KeyEventType.keydown))
           }
           return
         }
@@ -374,6 +375,19 @@ class EmulatorView(
       override fun keyReleased(event: KeyEvent) {
         if (event.keyCode == VK_SHIFT) {
           virtualSceneCameraOperating = false
+        }
+        else if (virtualSceneCameraOperating) {
+          val keyName =
+            when (event.keyCode) {
+              VK_Q -> "KeyQ"
+              VK_W -> "KeyW"
+              VK_E -> "KeyE"
+              VK_A -> "KeyA"
+              VK_S -> "KeyS"
+              VK_D -> "KeyD"
+              else -> return
+            }
+          emulator.sendKey(createHardwareKeyEvent(keyName, eventType = KeyEventType.keyup))
         }
       }
     })
