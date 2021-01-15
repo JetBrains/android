@@ -283,6 +283,7 @@ class TransportPropertiesProvider(
         Type.ANIM,
         Type.ANIMATOR,
         Type.INTERPOLATOR -> fromKnownObjectType(property)
+        Type.FUNCTION_REFERENCE,
         Type.LAMBDA -> return fromLambda(property)
         else -> ""
       }
@@ -339,9 +340,10 @@ class TransportPropertiesProvider(
       val lambda = property.lambdaValue
       val packageName = stringTable[lambda.packageName]
       val lambdaName = stringTable[lambda.lambdaName]
+      val functionName = stringTable[lambda.functionName]
       val fileName = stringTable[lambda.fileName]
       return LambdaPropertyItem(
-        name, viewId, packageName, fileName, lambdaName, lambda.startLineNumber, lambda.endLineNumber, lookup)
+        name, viewId, packageName, fileName, lambdaName, functionName, lambda.startLineNumber, lambda.endLineNumber, lookup)
     }
 
     private fun fromResource(property: Property, layout: ResourceReference?): String {

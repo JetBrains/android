@@ -19,19 +19,24 @@ import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
+import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtTreeVisitor
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
+import org.jetbrains.kotlin.psi.psiUtil.startOffset
 
 /**
  * Service to find the [SourceLocation] of a lambda found in Compose.
  */
 class LambdaResolver(project: Project) : ComposeResolver(project) {
+  private val visitor = LambdaVisitor()
+
   /**
    * Find the lambda [SourceLocation].
    *
@@ -39,18 +44,26 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
    * @param packageName the class name of the enclosing class of the lambda. This is the first part of the synthetic class name.
    * @param fileName the name of the enclosing file (without the path).
    * @param lambdaName the second part of the synthetic class name i.e. without the enclosed class name
-   * @param startLine the starting line of the lambda invoke method as seen by JVMTI (zero based)
-   * @param startLine the last line of the lambda invoke method as seen by JVMTI (zero based)
+   * @param functionName the function called if this is a function reference, empty if this is a lambda expression
+   * @param startLine the starting line of the lambda invoke method as seen by JVMTI (1 based)
+   * @param startLine the last line of the lambda invoke method as seen by JVMTI (1 based)
    */
-  fun findLambdaLocation(packageName: String, fileName: String, lambdaName: String, startLine: Int, endLine: Int): SourceLocation? {
-    if (startLine < 0 || endLine < 0) {
+  fun findLambdaLocation(
+    packageName: String,
+    fileName: String,
+    lambdaName: String,
+    functionName: String,
+    startLine: Int,
+    endLine: Int
+  ): SourceLocation? {
+    if (startLine < 1 || endLine < 1) {
       return null
     }
     val ktFile = findKotlinFile(fileName) { it == packageName } ?: return null
     val doc = ktFile.virtualFile?.let { FileDocumentManager.getInstance().getDocument(it) } ?: return null
 
-    val possible = findPossibleLambdas(ktFile, doc, startLine, endLine)
-    val lambda = selectLambdaBasedOnSynthesizedLambdaClassName(possible, lambdaName)
+    val possible = findPossibleLambdas(ktFile, doc, functionName, startLine, endLine)
+    val lambda = selectLambdaFromSynthesizedName(possible, lambdaName)
 
     val navigatable = lambda?.navigationElement as? Navigatable ?: return null
     val startLineOffset = doc.getLineStartOffset(startLine)
@@ -59,31 +72,32 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
   }
 
   /**
-   * Return all the lambda expressions from [ktFile] that are contained entirely within the line range.
+   * Return all the lambda/callable reference expressions from [ktFile] that are contained entirely within the line range.
    */
-  private fun findPossibleLambdas(ktFile: KtFile, doc: Document, startLine: Int, endLine: Int): List<KtLambdaExpression> {
-    val offsetRange = doc.getLineStartOffset(startLine)..(doc.getLineEndOffset(endLine))
+  private fun findPossibleLambdas(ktFile: KtFile, doc: Document, functionName: String, startLine: Int, endLine: Int): List<KtExpression> {
+    val offsetRange = doc.getLineStartOffset(startLine - 1)..(doc.getLineEndOffset(endLine - 1))
     if (offsetRange.isEmpty()) {
       return emptyList()
     }
-    val possible = mutableListOf<KtLambdaExpression>()
-    val findLambdaWithinRangeVisitor = object : KtTreeVisitor<Unit>() {
-      override fun visitLambdaExpression(expression: KtLambdaExpression, data: Unit?): Void? {
-        super.visitLambdaExpression(expression, data)
-        if (expression.startOffset <= offsetRange.last && expression.endOffset >= offsetRange.first) {
-          possible.add(expression)
-        }
-        return null
+    val possible = mutableListOf<KtExpression>()
+    visitor.forEachLambda(ktFile) { expr, recurse ->
+      if (typeMatch(expr, functionName) && expr.startOffset <= offsetRange.last && expr.endOffset >= offsetRange.first) {
+        possible.add(expr)
       }
+      recurse()
     }
-    ktFile.acceptChildren(findLambdaWithinRangeVisitor, null)
     return possible
   }
+
+  private fun typeMatch(expression: KtExpression, functionName: String): Boolean =
+    if (functionName.isNotEmpty()) expression is KtCallableReferenceExpression &&
+                                   expression.callableReference.getReferencedName() == functionName
+    else expression is KtLambdaExpression
 
   /**
    * Select the most likely lambda from the [lambdas] found from line numbers, by using the synthetic name [lambdaName].
    */
-  private fun selectLambdaBasedOnSynthesizedLambdaClassName(lambdas: List<KtLambdaExpression>, lambdaName: String): KtLambdaExpression? {
+  private fun selectLambdaFromSynthesizedName(lambdas: List<KtExpression>, lambdaName: String): KtExpression? {
     when (lambdas.size) {
       0 -> return null
       1 -> return lambdas.single() // no need investigate the lambdaName
@@ -121,7 +135,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
    * The synthetic name will include class names, method names, and variable names.
    * Find the closest parent to [lambda] which is one of those 3 elements.
    */
-  private fun findTopElement(lambda: KtLambdaExpression): KtElement? {
+  private fun findTopElement(lambda: KtExpression): KtElement? {
     var next = lambda.parent as? KtElement
     while (next != null) {
       when (next) {
@@ -136,52 +150,93 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
   }
 
   /**
-   * Find the most likely lambda from the [top] element.
+   * Find the most likely lambda from the [top] element based on [selector].
    *
    * @param top the top element which is either a class, method, or variable.
    * @param selector the indices for each nesting level as indicated by the synthetic class name of the lambda.
    * @param lambdas the lambdas found in the line interval.
    */
-  private fun findLambdaFromSelector(top: KtElement, selector: List<Int>, lambdas: List<KtLambdaExpression>): KtLambdaExpression? {
+  private fun findLambdaFromSelector(
+    top: KtElement,
+    selector: List<Int>,
+    lambdas: List<KtExpression>,
+  ): KtExpression? {
     var nestingLevel = 0
     val indices = IntArray(selector.size)
     var stop = false
-    var bestLambda: KtLambdaExpression? = null
+    var bestLambda: KtExpression? = null
 
-    val findLambdaFromSelectorVisitor = object : KtTreeVisitor<Unit>() {
-      override fun visitLambdaExpression(expression: KtLambdaExpression, data: Unit?): Void? {
-        if (stop || (nestingLevel < selector.size && selector[nestingLevel] < ++indices[nestingLevel])) {
-          stop = true
-          return null
-        }
-        if (nestingLevel >= selector.size || selector[nestingLevel] > indices[nestingLevel]) {
-          return null
-        }
-        if (expression in lambdas) {
-          bestLambda = expression
-        }
-        nestingLevel++
-        super.visitLambdaExpression(expression, data)
-        nestingLevel--
-        return null
+    visitor.forEachLambda(top, excludeTopElements = true) forEach@{ expression, recurse ->
+      if (stop || (nestingLevel < selector.size && selector[nestingLevel] < ++indices[nestingLevel])) {
+        stop = true
+        return@forEach
       }
-
-      override fun visitClass(klass: KtClass, data: Unit?): Void? {
-        // Do not recurse into a class, since this would be a different top element
-        return null
+      if (nestingLevel >= selector.size || selector[nestingLevel] > indices[nestingLevel]) {
+        return@forEach
       }
-
-      override fun visitProperty(property: KtProperty, data: Unit?): Void? {
-        // Do not recurse into a property, since this would be a different top element
-        return null
+      if (expression in lambdas) {
+        bestLambda = expression
       }
-
-      override fun visitNamedFunction(function: KtNamedFunction, data: Unit?): Void? {
-        // Do not recurse into a property, since this would be a different top element
-        return null
-      }
+      nestingLevel++
+      recurse()
+      nestingLevel--
     }
-    top.acceptChildren(findLambdaFromSelectorVisitor, null)
     return bestLambda
   }
+
+  /**
+   * Visitor for finding lambda expressions and function references
+   */
+  private class LambdaVisitor : KtTreeVisitor<VisitorData>() {
+
+    /**
+     * For each lambda or function reference found in [startElement] call
+     * [callable] with the arguments: the lambda and a function to recurse into the lambda
+     * If [excludeTopElements] is true the visitor will NOT recurse into the top elements:
+     * class, method, or variable.
+     */
+    fun forEachLambda(
+      startElement: KtElement,
+      excludeTopElements: Boolean = false,
+      callable: (KtExpression, () -> Unit) -> Unit
+    ) {
+      startElement.acceptChildren(this, VisitorData(excludeTopElements, callable))
+    }
+
+    override fun visitLambdaExpression(expression: KtLambdaExpression, data: VisitorData): Void? {
+      data.callable(expression) { super.visitLambdaExpression(expression, data) }
+      return null
+    }
+
+    override fun visitCallableReferenceExpression(expression: KtCallableReferenceExpression, data: VisitorData): Void? {
+      data.callable(expression) { super.visitCallableReferenceExpression(expression, data) }
+      return null
+    }
+
+    override fun visitClass(klass: KtClass, data: VisitorData): Void? {
+      if (!data.excludeTopElements) {
+        super.visitClass(klass, data)
+      }
+      return null
+    }
+
+    override fun visitProperty(property: KtProperty, data: VisitorData): Void? {
+      if (!data.excludeTopElements) {
+        super.visitProperty(property, data)
+      }
+      return null
+    }
+
+    override fun visitNamedFunction(function: KtNamedFunction, data: VisitorData): Void? {
+      if (!data.excludeTopElements) {
+        super.visitNamedFunction(function, data)
+      }
+      return null
+    }
+  }
+
+  private data class VisitorData(
+    val excludeTopElements: Boolean,
+    val callable: (KtExpression, () -> Unit) -> Unit
+  )
 }
