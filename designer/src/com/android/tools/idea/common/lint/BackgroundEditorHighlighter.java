@@ -31,10 +31,4 @@ public class BackgroundEditorHighlighter implements com.intellij.codeHighlightin
   public HighlightingPass[] createPassesForEditor() {
     return myHighlightingPasses;
   }
-
-  @NotNull
-  @Override
-  public HighlightingPass[] createPassesForVisibleArea() {
-    return HighlightingPass.EMPTY_ARRAY;
-  }
 }
