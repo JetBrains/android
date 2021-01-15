@@ -117,7 +117,7 @@ public class CommandLineArgs {
       application.putUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, toStringArray(args));
     }
 
-    if (StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() || isTestingMode) {
+    if (StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() && !isTestingMode) {
       myInitScripts.addLocalMavenRepoInitScriptCommandLineArg(args);
     }
     return args;
