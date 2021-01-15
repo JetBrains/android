@@ -40,7 +40,7 @@ import org.jetbrains.android.util.AndroidUtils
 /**
  * [PsiElementFinder] that provides light Manifest classes.
  *
- * This class is a project service, but it's not declared as [PsiElementFinder.EP_NAME] extension. The reason for that is that it's up to
+ * This class is a project service, but it's not declared as [PsiElementFinder.EP] extension. The reason for that is that it's up to
  * the project system to decide whether to use this logic (see [ProjectSystemPsiElementFinder]).
  */
 class AndroidManifestClassPsiElementFinder(private val project: Project) : PsiElementFinder() {
