@@ -15,18 +15,37 @@
  */
 package com.android.tools.idea.common.actions
 
+import com.android.tools.idea.gradle.util.BuildListener
+import com.android.tools.idea.gradle.util.setupBuildListener
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.intellij.ide.ActivityTracker
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.project.Project
 import com.intellij.ui.AnimatedIcon
 
 /**
- * [AnAction] that can be added to toolbars to show a progress icon while the [LayoutlibSceneManager] is rendering.
+ * [AnAction] that can be added to toolbars to show a progress icon while the [LayoutlibSceneManager] is rendering or
+ * the project building.
  */
 @Suppress("ComponentNotRegistered") // This action is just an icon and does not need to be registered
-class LayoutlibSceneManagerRefreshIconAction(sceneManager: LayoutlibSceneManager): AnAction() {
+class LayoutlibSceneManagerRefreshIconAction private constructor(
+  project: Project,
+  addRenderListener: (RenderListener) -> Unit,
+  parentDisposable: Disposable): AnAction() {
+
+  constructor(sceneManager: LayoutlibSceneManager):
+    this(sceneManager.model.project, sceneManager::addRenderListener, sceneManager)
+
+  companion object {
+    fun forTesting(project: Project,
+                   addRenderListener: (RenderListener) -> Unit,
+                   parentDisposable: Disposable): LayoutlibSceneManagerRefreshIconAction =
+      LayoutlibSceneManagerRefreshIconAction(project, addRenderListener, parentDisposable)
+  }
+
   private var isRendering = false
     set(value) {
       if (field != value) {
@@ -35,11 +54,34 @@ class LayoutlibSceneManagerRefreshIconAction(sceneManager: LayoutlibSceneManager
         ActivityTracker.getInstance().inc()
       }
     }
+  private var isBuilding = false
+    set(value) {
+      if (field != value) {
+        field = value
+        // Force action update
+        ActivityTracker.getInstance().inc()
+      }
+    }
+
+  private val buildListener = object: BuildListener {
+    override fun buildStarted() {
+      isBuilding = true
+    }
+
+    override fun buildSucceeded() {
+      isBuilding = false
+    }
+
+    override fun buildFailed() {
+      isBuilding = false
+    }
+  }
 
   init {
     templatePresentation.disabledIcon = AnimatedIcon.Default()
 
-    sceneManager.addRenderListener(object : RenderListener {
+    setupBuildListener(project, buildListener, parentDisposable)
+    addRenderListener(object : RenderListener {
       override fun onRenderStarted() {
         isRendering = true
       }
@@ -53,7 +95,7 @@ class LayoutlibSceneManagerRefreshIconAction(sceneManager: LayoutlibSceneManager
   override fun update(e: AnActionEvent) {
     e.presentation.apply {
       isEnabled = false
-      isVisible = isRendering
+      isVisible = isRendering || isBuilding
     }
   }
 
