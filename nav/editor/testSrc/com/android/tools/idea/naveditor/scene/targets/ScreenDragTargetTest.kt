@@ -45,7 +45,6 @@ class ScreenDragTargetTest : NavTestCase() {
     val surface = model.surface as NavDesignSurface
     val view = NavView(surface, surface.sceneManager!!)
     `when`<SceneView>(surface.focusedSceneView).thenReturn(view)
-    `when`<SceneView>(surface.getSceneView(anyInt(), anyInt())).thenReturn(view)
 
     val scene = model.surface.scene!!
     scene.layout(0, SceneContext.get())

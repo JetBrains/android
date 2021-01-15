@@ -35,7 +35,6 @@ import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.model.ScaleKt;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -67,7 +66,6 @@ import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
 import com.android.utils.ImmutableCollectors;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
@@ -82,7 +80,6 @@ import com.intellij.util.ui.update.Update;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -644,42 +641,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       view.setForceLayersRepaint(value);
     }
     repaint();
-  }
-
-  @Override
-  @Nullable
-  public SceneView getSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
-    SceneView view = getHoverSceneView(x, y);
-    if (view == null) {
-      // TODO: For keeping the behaviour as before in multi-model case, we return primary SceneView when there is no hovered SceneView.
-      SceneManager manager = getSceneManager();
-      if (manager != null) {
-        view = manager.getSceneView();
-      }
-    }
-    return view;
-  }
-
-  /**
-   * Return the ScreenView under the given position
-   *
-   * @return the ScreenView, or null if we are not above one.
-   */
-  @Nullable
-  @Override
-  public SceneView getHoverSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
-    Collection<SceneView> sceneViews = getSceneViews();
-    Dimension scaledSize = new Dimension();
-    for (SceneView view : sceneViews) {
-      ScaleKt.scaleBy(view.getContentSize(scaledSize), view.getScale());
-      if (view.getX() <= x &&
-          x <= (view.getX() + scaledSize.width) &&
-          view.getY() <= y &&
-          y <= (view.getY() + scaledSize.height)) {
-        return view;
-      }
-    }
-    return null;
   }
 
   public void setAdaptiveIconShape(@NotNull ShapeMenuAction.AdaptiveIconShape adaptiveIconShape) {

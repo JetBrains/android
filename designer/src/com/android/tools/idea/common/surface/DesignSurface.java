@@ -89,6 +89,7 @@ import java.awt.Adjustable;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.GraphicsEnvironment;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.PointerInfo;
@@ -1345,17 +1346,53 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @Nullable
   public SceneView getSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
-    return getFocusedSceneView();
+    SceneView view = getHoverSceneView(x, y);
+    if (view == null) {
+      // TODO: For keeping the behaviour as before in multi-model case, we return primary SceneView when there is no hovered SceneView.
+      SceneManager manager = getSceneManager();
+      if (manager != null) {
+        view = manager.getSceneView();
+      }
+    }
+    return view;
   }
 
   /**
-   * Return the SceneView under the given position
+   * Return the ScreenView under the given (x, y) position. The coordinates are in the viewport view coordinate
+   * space so they will not change with scrolling.
    *
-   * @return the SceneView, or null if we are not above one.
+   * @return the ScreenView, or null if we are not above one.
    */
   @Nullable
   public SceneView getHoverSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
-    return getFocusedSceneView();
+    Collection<SceneView> sceneViews = getSceneViews();
+    Dimension scaledSize = new Dimension();
+    for (SceneView view : sceneViews) {
+      view.getScaledContentSize(scaledSize);
+      if (view.getX() <= x &&
+          x <= (view.getX() + scaledSize.width) &&
+          view.getY() <= y &&
+          y <= (view.getY() + scaledSize.height)) {
+        return view;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Returns the {@link SceneView} under the mouse cursor if the mouse is within the coordinates of this surface or null
+   * otherwise.
+   */
+  @Nullable
+  public SceneView getSceneViewAtMousePosition() {
+    Point mousePositionInSurface = !GraphicsEnvironment.isHeadless() ? getMousePosition(true) : null;
+    if (mousePositionInSurface == null) {
+      // The mouse is not over the surface
+      return null;
+    }
+
+    Point position = SwingUtilities.convertPoint(this, mousePositionInSurface, myScrollPane.getViewport().getView());
+    return getHoverSceneView(position.x, position.y);
   }
 
   /**
