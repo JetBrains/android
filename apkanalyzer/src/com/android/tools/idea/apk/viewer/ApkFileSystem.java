@@ -22,6 +22,7 @@ import com.google.common.primitives.Shorts;
 import com.google.devrel.gmscore.tools.apk.arsc.Chunk;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.DiskQueryRelay;
@@ -29,7 +30,8 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.impl.ArchiveHandler;
-import com.intellij.openapi.vfs.impl.jar.JarHandler;
+import com.intellij.openapi.vfs.impl.ZipHandler;
+import com.intellij.openapi.vfs.impl.jar.BasicJarHandler;
 import com.intellij.openapi.vfs.newvfs.ArchiveFileSystem;
 import com.intellij.openapi.vfs.newvfs.VfsImplUtil;
 import com.intellij.util.io.URLUtil;
@@ -86,7 +88,7 @@ public class ApkFileSystem extends ArchiveFileSystem {
   @NotNull
   @Override
   protected ArchiveHandler getHandler(@NotNull VirtualFile entryFile) {
-    return VfsImplUtil.getHandler(this, entryFile, JarHandler::new);
+    return VfsImplUtil.getHandler(this, entryFile, SystemInfo.isWindows ? BasicJarHandler::new : ZipHandler::new);
   }
 
   /**
