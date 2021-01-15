@@ -176,7 +176,15 @@ public class GradleInitScripts {
              "  }\n" +
              "  repositories {\n" + paths +
              "  }\n" +
-             "}\n";
+             "}\n" +
+             "try {\n" +
+             "  beforeSettings {\n" +
+             "    it.dependencyResolutionManagement {\n" +
+             "      repositories {\n" + paths +
+             "      }\n" +
+             "    }\n" +
+             "  }\n" +
+             "} catch (Throwable ignored) { /* In case this Gradle version does not support this. */}\n";
     }
 
     @NotNull
