@@ -322,12 +322,11 @@ class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
     handler = OSProcessHandler.Silent(GeneralCommandLine(realPath.toAbsolutePath().toString(), localPort.toString()))
     handler!!.addProcessListener(object : ProcessAdapter() {
       override fun processTerminated(event: ProcessEvent) {
-        // TODO(b/151639359) // We get a 137 when we terminate the server. Silence this error.
-        if (event.exitCode != 0 && event.exitCode != 137) {
-          Logger.getInstance(SkiaParser::class.java).error("SkiaServer terminated exitCode: ${event.exitCode}  text: ${event.text}")
+        if (event.exitCode == 0) {
+          Logger.getInstance(SkiaParser::class.java).info("SkiaServer terminated successfully")
         }
         else {
-          Logger.getInstance(SkiaParser::class.java).info("SkiaServer terminated successfully")
+          Logger.getInstance(SkiaParser::class.java).warn("SkiaServer terminated exitCode: ${event.exitCode}  text: ${event.text}")
         }
       }
 
