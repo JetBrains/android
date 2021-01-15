@@ -31,14 +31,14 @@ class NavInteractionHandler(private val surface: DesignSurface): InteractionHand
   override fun createInteractionOnPressed(@SwingCoordinate mouseX: Int,
                                           @SwingCoordinate mouseY: Int,
                                           @JdkConstants.InputEventMask modifiersEx: Int): Interaction? {
-    val sceneView = surface.getSceneView(mouseX, mouseY) ?: return null
+    val sceneView = surface.focusedSceneView ?: return null
     return SceneInteraction(sceneView);
   }
 
   override fun createInteractionOnDrag(@SwingCoordinate mouseX: Int,
                                        @SwingCoordinate mouseY: Int,
                                        @JdkConstants.InputEventMask modifiersEx: Int): Interaction? {
-    val sceneView = surface.getSceneView(mouseX, mouseY) ?: return null
+    val sceneView = surface.focusedSceneView ?: return null
     val scene = sceneView.scene
     val selectionModel = sceneView.selectionModel
 

@@ -787,7 +787,6 @@ public class NavDesignSurface extends DesignSurface {
     ).collect(Collectors.toList());
   }
 
-
   /*
    * If none of the newly selected item are visible, update the current navigation so that the first one is visible.
    */
