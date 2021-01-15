@@ -37,11 +37,11 @@ class VisualizationInteractionHandlerTest : SceneTest() {
 
     // Return SceneView when hover on it, null otherwise.
     val view = sceneManager.sceneView
-    `when`(surface.getHoverSceneView(anyInt(), anyInt())).thenReturn(null)
+    `when`(surface.getSceneViewAt(anyInt(), anyInt())).thenReturn(null)
     val xMatcher = intThat { view.x <= it && it <= view.x + view.scaledContentSize.width }
     val yMatcher = intThat { view.y <= it && it <= view.y + view.scaledContentSize.height }
 
-    `when`(surface.getHoverSceneView(xMatcher, yMatcher)).thenReturn(view)
+    `when`(surface.getSceneViewAt(xMatcher, yMatcher)).thenReturn(view)
   }
 
   fun testHoverToShowToolTips() {
