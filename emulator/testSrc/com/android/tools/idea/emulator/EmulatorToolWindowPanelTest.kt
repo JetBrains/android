@@ -285,10 +285,14 @@ class EmulatorToolWindowPanelTest {
 
     // Check camera movement.
     for (c in "WASQDE") {
-      ui.keyboard.pressAndRelease(c.toInt())
-      val call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+      ui.keyboard.press(c.toInt())
+      var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
       assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-      assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Key$c"""")
+      assertThat(shortDebugString(call.request)).isEqualTo("""key: "Key$c"""")
+      ui.keyboard.release(c.toInt())
+      call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+      assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "Key$c"""")
     }
 
     // Check camera rotation.
