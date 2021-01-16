@@ -18,6 +18,7 @@ package com.android.tools.idea.ndk
 import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import java.io.File
 import java.util.stream.Stream
 
@@ -26,6 +27,8 @@ class NativeWorkspaceService private constructor(val project: Project) {
   companion object {
     fun getInstance(project: Project) = project.service<NativeWorkspaceService>()
   }
+
+  fun getAdditionalNativeFiles(module: Module): Set<VirtualFile> = NativeWorkspaceProvider.getAdditionalNativeFiles(module)
 
   fun getNativeHeaderDirs(moduleVariantAbi: ModuleVariantAbi): Set<NativeHeaderDir> =
     NativeWorkspaceProvider.getNativeHeaderDirs(project, moduleVariantAbi)

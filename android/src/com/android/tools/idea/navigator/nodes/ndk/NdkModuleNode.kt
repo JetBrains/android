@@ -27,6 +27,7 @@ import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludeP
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.NativeIncludes
 import com.android.tools.idea.ndk.ModuleVariantAbi
 import com.android.tools.idea.ndk.NativeWorkspaceService
+import com.android.tools.idea.ndk.NativeWorkspaceService.Companion.getInstance
 import com.android.tools.idea.util.toIoFile
 import com.google.common.collect.HashMultimap
 import com.intellij.ide.projectView.PresentationData
@@ -160,12 +161,18 @@ private fun getLibraryBasedNativeNodes(ndkFacet: NdkFacet,
   else children
 }
 
-fun containedInIncludeFolders(project: Project, ndkModuleModel: NdkModuleModel, file: VirtualFile): Boolean {
+fun containedByNativeNodes(project: Project, ndkModuleModel: NdkModuleModel, file: VirtualFile): Boolean {
+  // Check if the file is an additional native files that is manually added.
+  val module = ModuleManager.getInstance(project).findModuleByName(ndkModuleModel.moduleName) ?: return false
+  if (getInstance(project).getAdditionalNativeFiles(module).contains(file)) {
+    return true
+  }
+
+  // Check if the file is a header file that's under the synthesized "Includes" node.
   if (!LexicalIncludePaths.hasHeaderExtension(file.name)) {
     // Skip directly if the file does not look like a header.
     return false
   }
-  val module = ModuleManager.getInstance(project).findModuleByName(ndkModuleModel.moduleName)!!
   val ndkFacet = NdkFacet.getInstance(module)!!
   val selectedVariantAbi = ndkFacet.selectedVariantAbi ?: return false
   val variant = selectedVariantAbi.variant
