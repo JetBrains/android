@@ -21,6 +21,7 @@ import com.android.tools.idea.ndk.NativeWorkspaceService
 import com.android.tools.idea.util.toIoFile
 import com.intellij.ide.projectView.ViewSettings
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode
+import com.intellij.ide.projectView.impl.nodes.PsiFileNode
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.ModuleRootManager
@@ -40,9 +41,18 @@ fun getContentRootBasedNativeNodes(module: Module,
       nativeWorkspaceService.shouldShowInProjectView(module, item.virtualFile.toIoFile())
     }
   }
-  if (sourceRootNodes.size == 1) {
+
+  val additionalFiles = nativeWorkspaceService.getAdditionalNativeFiles(module).mapNotNull { vf ->
+    if (!nativeWorkspaceService.shouldShowInProjectView(module, vf.toIoFile())) {
+      return@mapNotNull null
+    }
+    PsiFileNode(project, psiManager.findFile(vf) ?: return@mapNotNull null, settings)
+  }
+
+  if (sourceRootNodes.size == 1 && additionalFiles.isEmpty()) {
     sourceRootNodes = sourceRootNodes.first().children
   }
-  return sourceRootNodes + listOfNotNull(IncludesViewNodeV2.create(module, settings))
+
+  return sourceRootNodes + listOfNotNull(IncludesViewNodeV2.create(module, settings)) + additionalFiles
 }
 
