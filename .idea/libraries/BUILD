@@ -262,6 +262,13 @@ java_import(
 
 # managed by go/iml_to_build
 java_import(
+    name = "layoutinspector-compose-proto",
+    jars = ["//prebuilts/tools/common/app-inspection/androidx/compose/ui:layout_inspector_compose_java_proto.jar"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+java_import(
     name = "android-test-plugin-host-device-info-proto",
     jars = ["//tools/base/utp/android-test-plugin-host-device-info-proto:libstudio.android-test-plugin-host-device-info-proto.jar"],
     visibility = ["//visibility:public"],
