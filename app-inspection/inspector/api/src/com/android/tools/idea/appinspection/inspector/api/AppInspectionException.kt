@@ -33,7 +33,7 @@ class AppInspectionCrashException(message: String): AppInspectionConnectionExcep
 /**
  * Base class for all service errors.
  */
-abstract class AppInspectionServiceException(message: String) : Exception(message)
+abstract class AppInspectionServiceException(message: String) : AppInspectionException(message)
 
 /**
  * Thrown when an error is encountered during inspector launch other than version incompatibility
