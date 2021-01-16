@@ -21,11 +21,13 @@ import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.createChildScope
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.google.common.util.concurrent.ListenableFuture
@@ -55,6 +57,10 @@ class AppInspectionInspectorClient(
 
   private lateinit var viewInspector: ViewLayoutInspectorClient
   private lateinit var propertiesProvider: AppInspectionPropertiesProvider
+
+  /** Compose inspector, may be null if user's app isn't using the compose library. */
+  private var composeInspector: ComposeLayoutInspectorClient? = null
+
   private val exceptionHandler = CoroutineExceptionHandler { _, t ->
     fireError(t.message!!)
   }
@@ -65,6 +71,10 @@ class AppInspectionInspectorClient(
     runBlocking {
       viewInspector = ViewLayoutInspectorClient.launch(apiServices, model.project, process, scope, ::fireError, ::fireTreeEvent)
       propertiesProvider = AppInspectionPropertiesProvider(viewInspector, model)
+
+      if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT.get()) {
+        composeInspector = ComposeLayoutInspectorClient.launch(apiServices, model.project, process)
+      }
     }
 
     debugViewAttributes.set()
@@ -82,6 +92,7 @@ class AppInspectionInspectorClient(
     scope.launch(exceptionHandler) {
       debugViewAttributes.clear()
       viewInspector.disconnect()
+      composeInspector?.disconnect()
       future.set(null)
     }
     return future
