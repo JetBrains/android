@@ -27,6 +27,8 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.cancel
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Command
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesCommand
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Response
 
 const val COMPOSE_LAYOUT_INSPECTOR_ID = "layoutinspector.compose.inspection"
@@ -72,6 +74,15 @@ class ComposeLayoutInspectorClient(private val messenger: AppInspectorMessenger)
         null
       }
     }
+  }
+
+  suspend fun getComposeables(rootViewId: Long): GetComposablesResponse {
+    val response = messenger.sendCommand {
+      getComposablesCommand = GetComposablesCommand.newBuilder().apply {
+        this.rootViewId = rootViewId
+      }.build()
+    }
+    return response.getComposablesResponse
   }
 
   fun disconnect() {
