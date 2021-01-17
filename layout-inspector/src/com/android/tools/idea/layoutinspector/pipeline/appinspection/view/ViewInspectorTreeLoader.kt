@@ -17,11 +17,11 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
 
 import com.android.tools.idea.layoutinspector.SkiaParserService
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
-import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionTreeLoader
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.LowMemoryWatcher
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
@@ -34,14 +34,16 @@ private val LOAD_TIMEOUT = TimeUnit.SECONDS.toMillis(20)
 class ViewInspectorTreeLoader(
   private val project: Project,
   private val skiaParser: SkiaParserService,
-  private val event: LayoutInspectorViewProtocol.LayoutEvent,
+  private val viewEvent: LayoutInspectorViewProtocol.LayoutEvent,
   private val resourceLookup: ResourceLookup,
+  composeEvent: LayoutInspectorComposeProtocol.GetComposablesResponse?,
 ) {
   private val loadStartTime = AtomicLong(-1)
-  private val strings = StringTableImpl(event.stringsList)
 
   // if true, exit immediately and return null
   private var isInterrupted = false
+
+  private val viewNodeCreator = ViewNodeCreator(viewEvent, composeEvent)
 
   @Suppress("unused") // Need to keep a reference to receive notifications
   private val lowMemoryWatcher = LowMemoryWatcher.register(
@@ -55,40 +57,12 @@ class ViewInspectorTreeLoader(
       return null
     }
     try {
-      resourceLookup.updateConfiguration(event.appContext.convert(), strings)
-      val rootView = loadRootView() ?: return null
-      return ViewAndroidWindow(project, skiaParser, rootView, event, { isInterrupted })
+      resourceLookup.updateConfiguration(viewEvent.appContext.convert(), viewNodeCreator.strings)
+      val rootView = viewNodeCreator.createRootViewNode { isInterrupted } ?: return null
+      return ViewAndroidWindow(project, skiaParser, rootView, viewEvent, { isInterrupted })
     }
     finally {
       loadStartTime.set(0)
     }
-  }
-
-  private fun loadRootView(): ViewNode? {
-    return try {
-      loadView(event.rootView)
-    }
-    catch (interrupted: InterruptedException) {
-      null
-    }
-  }
-
-  private fun loadView(view: LayoutInspectorViewProtocol.ViewNode): ViewNode {
-    if (isInterrupted) {
-      throw InterruptedException()
-    }
-
-    val qualifiedName = "${strings[view.packageName]}.${strings[view.className]}"
-    val resource = view.resource.convert().createReference(strings)
-    val layoutResource = view.layoutResource.convert().createReference(strings)
-    val textValue = strings[view.textValue]
-    val rect = view.bounds.layout
-    val node = ViewNode(view.id, qualifiedName, layoutResource, rect.x, rect.y, rect.w, rect.h, null, resource, textValue,
-                        view.layoutFlags)
-    view.childrenList.map { loadView(it) }.forEach { child ->
-      node.children.add(child)
-      child.parent = node
-    }
-    return node
   }
 }

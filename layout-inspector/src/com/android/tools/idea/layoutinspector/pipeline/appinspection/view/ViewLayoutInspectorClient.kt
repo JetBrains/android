@@ -21,10 +21,12 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.ErrorEvent
@@ -49,11 +51,15 @@ private val JAR = AppInspectorJar("layoutinspector-view-inspection.jar",
  *     the inspector.
  *
  * @param messenger The messenger that lets us communicate with the view inspector.
+ *
+ * @param composeInspector An inspector which, if provided, lets us fetch additional data useful
+ *     for compose related values contained within our view tree.
  */
 class ViewLayoutInspectorClient(
   model: InspectorModel,
   eventScope: CoroutineScope,
   private val messenger: AppInspectorMessenger,
+  private val composeInspector: ComposeLayoutInspectorClient?,
   private val fireError: (String) -> Unit = {},
   private val fireTreeEvent: (Data) -> Unit = {},
 ) {
@@ -64,7 +70,8 @@ class ViewLayoutInspectorClient(
    */
   class Data(
     val rootIds: List<Long>,
-    val layoutEvent: LayoutEvent
+    val viewEvent: LayoutEvent,
+    val composeEvent: GetComposablesResponse?
   )
 
   companion object {
@@ -79,13 +86,14 @@ class ViewLayoutInspectorClient(
                        process: ProcessDescriptor,
                        model: InspectorModel,
                        eventScope: CoroutineScope,
+                       composeLayoutInspectorClient: ComposeLayoutInspectorClient?,
                        fireError: (String) -> Unit,
                        fireTreeEvent: (Data) -> Unit): ViewLayoutInspectorClient {
       // Set force = true, to be more aggressive about connecting the layout inspector if an old version was
       // left running for some reason. This is a better experience than silently falling back to a legacy client.
       val params = LaunchParameters(process, VIEW_LAYOUT_INSPECTOR_ID, JAR, model.project.name, force = true)
       val messenger = apiServices.launchInspector(params)
-      return ViewLayoutInspectorClient(model, eventScope, messenger, fireError, fireTreeEvent)
+      return ViewLayoutInspectorClient(model, eventScope, messenger, composeLayoutInspectorClient, fireError, fireTreeEvent)
     }
   }
 
@@ -159,9 +167,11 @@ class ViewLayoutInspectorClient(
     propertiesCache.retain(currRoots)
   }
 
-  private fun handleLayoutEvent(layoutEvent: LayoutEvent) {
+  private suspend fun handleLayoutEvent(layoutEvent: LayoutEvent) {
     propertiesCache.clearFor(layoutEvent.rootView.id)
-    fireTreeEvent(Data(currRoots, layoutEvent))
+
+    val composablesResponse = composeInspector?.getComposeables(layoutEvent.rootView.id)
+    fireTreeEvent(Data(currRoots, layoutEvent, composablesResponse))
   }
 }
 
