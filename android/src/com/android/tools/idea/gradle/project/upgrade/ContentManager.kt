@@ -7,13 +7,19 @@ import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessit
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT
+import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.ListenerManager
+import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.observable.ui.TextProperty
 import com.intellij.ide.plugins.newui.HorizontalLayout
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.CheckboxTree
@@ -28,9 +34,12 @@ import com.intellij.util.ui.tree.TreeModelAdapter
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.BorderLayout
 import java.util.EventListener
+import javax.swing.DefaultComboBoxModel
 import javax.swing.JButton
+import javax.swing.JTextField
 import javax.swing.JTree
 import javax.swing.event.TreeModelEvent
+import javax.swing.plaf.basic.BasicComboBoxEditor
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 
@@ -40,6 +49,8 @@ internal class ToolWindowModel(
 ) {
 
   val version = StringValueProperty(processor.new.toString())
+
+  val knownVersions = OptionalValueProperty<List<GradleVersion>>()
 
   val treeModel = DefaultTreeModel(CheckedTreeNode(null))
 
@@ -88,6 +99,16 @@ internal class ToolWindowModel(
       refreshTree()
     }
     refreshTree()
+
+    // Request known versions.
+    ProgressManager.getInstance().run(object : Task.Backgroundable(processor.project, "Looking for known versions", false) {
+      override fun run(indicator: ProgressIndicator) {
+        knownVersions.value = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
+          .filter { it > processor.current }
+          .toList()
+          .sortedDescending()
+      }
+    })
   }
 
   fun refreshTree() {
@@ -158,9 +179,8 @@ class ContentManager(val project: Project) {
       isRootVisible = false
       addCheckboxTreeListener(this@View.model.checkboxTreeStateUpdater)
     }
-    val textField = JBTextField().also {
-      myBindings.bindTwoWay(TextProperty(it), model.version)
-    }
+    val textField = AgpVersionEditor(model, myBindings, myListeners)
+
     val refreshButton = JButton("Refresh").apply {
       addActionListener { this@View.model.refreshTree() }
     }
@@ -211,6 +231,77 @@ class ContentManager(val project: Project) {
         }
       }
       super.customizeRenderer(tree, value, selected, expanded, leaf, row, hasFocus)
+    }
+  }
+
+  /**
+  Field is inspired by PSD AGP version field that shows known versions in dropdown but allows to type anything.
+  Info of where to look for further details on its implementation:
+  PSD has an AGP versions field that is an editable comboBox with selectable known versions.
+  The property is defined in [com.android.tools.idea.gradle.structure.model.PsProjectDescriptors.getAndroidGradlePluginVersion]
+  Gets known versions as [com.android.tools.idea.gradle.structure.model.helpers.PropertyKnownValuesKt.androidGradlePluginVersionValues]
+  (uses PsProject) that internally looks into all project repositories for known versions
+  (e.g. see [GoogleMavenRepository][com.android.ide.common.repository.GoogleMavenRepository]).
+  On UI side property uses [SimplePropertyEditor][com.android.tools.idea.gradle.structure.configurables.ui.properties.SimplePropertyEditor].
+
+  This implementation is partly copied from [RenderedComboBox in PSD][com.android.tools.idea.gradle.structure.configurables.ui.RenderedComboBox]
+
+   */
+  private class AgpVersionEditor(
+    private val model: ToolWindowModel,
+    private val myBindings: BindingsManager,
+    private val myListeners: ListenerManager
+  ) : ComboBox<GradleVersion>() {
+    private val itemsModel = DefaultComboBoxModel<GradleVersion>()
+    private val comboBoxEditor = object : BasicComboBoxEditor() {
+      override fun createEditorComponent(): JTextField {
+        return JBTextField()
+      }
+    }
+    val textProperty = TextProperty(comboBoxEditor.editorComponent as JTextField)
+    init {
+      super.setModel(itemsModel)
+      isEditable = true
+      setEditor(comboBoxEditor)
+
+      myBindings.bindTwoWay(textProperty, model.version)
+      myListeners.listen(model.knownVersions) { knownVersions -> setKnownValues(knownVersions.orElse(emptyList())) }
+      setKnownValues(model.knownVersions.getValueOr(emptyList()))
+    }
+
+    /**
+     * Populates the drop-down list of the combo-box.
+     */
+    fun setKnownValues(knownValues: List<GradleVersion>) {
+      //Copied from com/android/tools/idea/gradle/structure/configurables/ui/RenderedComboBox.kt
+      //beingLoaded = true
+      try {
+        val prevItemCount = itemsModel.size
+        val selectedItem = itemsModel.selectedItem
+        val existing = (0 until itemsModel.size).asSequence().map { itemsModel.getElementAt(it) }.toMutableSet()
+        knownValues.forEachIndexed { index, value ->
+          if (existing.contains(value)) {
+            while (itemsModel.size > index && itemsModel.getElementAt(index) != value) {
+              itemsModel.removeElementAt(index)
+              existing.remove(value)
+            }
+          }
+          if (itemsModel.size == index || itemsModel.getElementAt(index) != value) {
+            itemsModel.insertElementAt(value, index)
+          }
+        }
+        if (isPopupVisible && prevItemCount == 0) {
+          hidePopup()
+          showPopup()
+        }
+        if (itemsModel.selectedItem != selectedItem) {
+          itemsModel.selectedItem = selectedItem
+        }
+        //updateWatermark()
+      }
+      finally {
+        //beingLoaded = false
+      }
     }
   }
 }
