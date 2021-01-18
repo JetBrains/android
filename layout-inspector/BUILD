@@ -50,6 +50,7 @@ iml_module(
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
         "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto",
         "//tools/adt/idea/.idea/libraries:layoutinspector-compose-proto",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
     ],
 )
 
