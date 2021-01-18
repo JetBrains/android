@@ -97,6 +97,11 @@ interface ComposePreviewView {
   var hasContent: Boolean
 
   /**
+   * If true, the contents have been at least rendered once.
+   */
+  var hasRendered: Boolean
+
+  /**
    * Method called to force an update on the notifications for the given [FileEditor].
    */
   fun updateNotifications(parentEditor: FileEditor)
@@ -114,9 +119,9 @@ interface ComposePreviewView {
   fun showModalErrorMessage(message: String)
 
   /**
-   * If the content is not already visible, shows a "Building" message.
+   * If the content is not already visible it shows the given message.
    */
-  fun showBuildingMessage()
+  fun updateProgress(message: String)
 
   /**
    * If called the pinned previews will be shown/hidden at the top.
@@ -298,9 +303,9 @@ internal class ComposePreviewViewImpl(private val project: Project,
     showLoading(message("panel.building"))
   }
 
-  override fun showBuildingMessage() = UIUtil.invokeLaterIfNeeded {
+  override fun updateProgress(message: String) = UIUtil.invokeLaterIfNeeded {
     if (isMessageVisible) {
-      showLoading(message("panel.building"))
+      showLoading(message)
       hideContent()
     }
   }
@@ -350,17 +355,25 @@ internal class ComposePreviewViewImpl(private val project: Project,
       showModalErrorMessage(message("panel.needs.build"))
     }
     else {
-      log.debug("Show content")
-      hideLoading()
-      if (hasContent) {
-        showContent()
-      }
-      else {
-        hideContent()
-        loadingStopped(message("panel.no.previews.defined"),
-                       null,
-                       UrlData(message("panel.no.previews.action"), COMPOSE_PREVIEW_DOC_URL),
-                       null)
+      if (hasRendered) {
+        log.debug("Show content")
+        hideLoading()
+        if (hasContent) {
+          showContent()
+        }
+        else {
+          hideContent()
+          loadingStopped(message("panel.no.previews.defined"),
+                         null,
+                         UrlData(message("panel.no.previews.action"), COMPOSE_PREVIEW_DOC_URL),
+                         null)
+        }
+
+        if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
+          mainSurfacePinLabel.isVisible = !isPinnedSurfaceVisible
+          mainSurfacePinLabel.update()
+          pinnedPanelLabel.update()
+        }
       }
     }
 
@@ -393,6 +406,14 @@ internal class ComposePreviewViewImpl(private val project: Project,
     }
 
   override var hasContent: Boolean = true
+
+  @get:Synchronized
+  override var hasRendered: Boolean = false
+    @Synchronized
+    set(value) {
+      field = value
+      updateVisibilityAndNotifications()
+    }
 
   override var bottomPanel: JComponent?
     set(value) {

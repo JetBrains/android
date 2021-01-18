@@ -45,6 +45,8 @@ internal class TestComposePreviewView(override val pinnedSurface: NlDesignSurfac
   override var hasComponentsOverlay: Boolean = false
   override var isInteractive: Boolean = false
   override var hasContent: Boolean = true
+  override var hasRendered: Boolean = true
+
   override fun updateNotifications(parentEditor: FileEditor) {
   }
 
@@ -54,7 +56,7 @@ internal class TestComposePreviewView(override val pinnedSurface: NlDesignSurfac
   override fun showModalErrorMessage(message: String) {
   }
 
-  override fun showBuildingMessage() {
+  override fun updateProgress(message: String) {
   }
 
   override fun setPinnedSurfaceVisibility(visible: Boolean) {
