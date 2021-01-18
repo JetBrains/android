@@ -35,8 +35,7 @@ private val PROGRESS_LOGGER = StudioLoggerProgressIndicator(InstallableComponent
 abstract class InstallableComponent(
   private val name: String,
   description: String,
-  @JvmField protected val installUpdates: Boolean,
-  @JvmField protected val fileOp: FileOp
+  @JvmField protected val installUpdates: Boolean
 ) : ComponentTreeNode(description) {
   protected var willBeInstalled: BoolProperty = BoolValueProperty(true)
   private var userSelection: Boolean? = null // null means default component enablement is used

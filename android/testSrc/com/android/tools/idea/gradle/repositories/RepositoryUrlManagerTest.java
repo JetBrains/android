@@ -105,7 +105,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
                                                       true /* ues embedded studio repo */);
     mySdkHandler = new AndroidSdkHandler(myFileOp.toPath(SDK_DIR), myFileOp.toPath(ANDROID_PREFS_ROOT), myFileOp);
     AndroidSdkData sdk = Mockito.mock(AndroidSdkData.class);
-    Mockito.when(sdk.getLocation()).thenReturn(new File(SDK_DIR));
+    Mockito.when(sdk.getLocationFile()).thenReturn(new File(SDK_DIR));
   }
 
   /**

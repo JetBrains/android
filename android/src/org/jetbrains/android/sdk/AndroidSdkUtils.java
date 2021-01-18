@@ -35,13 +35,11 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import com.intellij.CommonBundle;
@@ -69,7 +67,6 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
 import java.io.File;
-import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -415,7 +412,7 @@ public final class AndroidSdkUtils {
       if (data == null) {
         data = getFirstAndroidModuleSdkData(project);
       }
-      adb = data == null ? null : new File(data.getLocation(), platformToolPath(FN_ADB));
+      adb = data == null ? null : new File(data.getLocationFile(), platformToolPath(FN_ADB));
     }
 
     return adb != null && adb.exists() ? adb : null;

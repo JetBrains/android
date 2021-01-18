@@ -68,6 +68,7 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -83,7 +84,6 @@ import org.jetbrains.annotations.Nullable;
  * perform component setup.
  */
 public class InstallComponentsPath extends DynamicWizardPath implements LongRunningOperationPath {
-  private final FileOp myFileOp;
   @NotNull private final FirstRunWizardMode myMode;
 
   // This will be different than the actual handler, since this will change as and when we change the path in the UI.
@@ -99,11 +99,10 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
                                @NotNull File sdkLocation,
                                @NotNull ProgressStep progressStep,
                                boolean installUpdates) {
-    myFileOp = FileOpUtils.create();
     myMode = mode;
 
     // Create a new instance for use during installation
-    myLocalHandler = AndroidSdkHandler.getInstance(myFileOp.toPath(sdkLocation));
+    myLocalHandler = AndroidSdkHandler.getInstance(sdkLocation.toPath());
 
     myProgressStep = progressStep;
     myComponentInstaller = new ComponentInstaller(myLocalHandler);
@@ -133,7 +132,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       components.add(new Gvm(installationIntention, FirstRunWizard.KEY_CUSTOM_INSTALL));
     }
     if (createAvd) {
-      components.add(new AndroidVirtualDevice(remotePackages, myInstallUpdates, myFileOp));
+      components.add(new AndroidVirtualDevice(remotePackages, myInstallUpdates));
     }
     return new ComponentCategory("Root", "Root node that is not supposed to appear in the UI", components);
   }
@@ -330,7 +329,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     String path = myState.get(WizardConstants.KEY_SDK_INSTALL_LOCATION);
     assert path != null;
 
-    return SdkLocationUtils.isWritable(myFileOp.toPath(path));
+    return SdkLocationUtils.isWritable(Paths.get(path));
   }
 
   private static class MergeOperation extends InstallOperation<File, File> {

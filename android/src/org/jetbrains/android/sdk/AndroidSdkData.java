@@ -34,6 +34,7 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.reference.SoftReference;
+import java.nio.file.Path;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -134,22 +135,29 @@ public class AndroidSdkData {
 
   private AndroidSdkData(@NotNull File localSdk) {
     mySdkHandler = AndroidSdkHandler.getInstance(localSdk.toPath());
-    File location = getLocation();
-    String locationPath = location.getPath();
+    String locationPath = getLocation().toString();
     Revision platformToolsRevision = parsePackageRevision(locationPath, FD_PLATFORM_TOOLS);
     myPlatformToolsRevision = platformToolsRevision == null ? -1 : platformToolsRevision.getMajor();
     myDeviceManager = DeviceManager.createInstance(mySdkHandler, new MessageBuildingSdkLog());
   }
 
   @NotNull
-  public File getLocation() {
+  public Path getLocation() {
+    Path location = mySdkHandler.getLocation();
+    // We only construct AndroidSdkData when we have a local SDK, which means location must not be null.
+    assert location != null;
+    return location;
+  }
+
+  @NotNull
+  public File getLocationFile() {
     return mySdkHandler.getLocation().toFile();
   }
 
   @Deprecated
   @NotNull
   public String getPath() {
-    return getLocation().getPath();
+    return getLocation().toString();
   }
 
   /**
@@ -220,12 +228,12 @@ public class AndroidSdkData {
     if (obj == null) return false;
     if (obj.getClass() != getClass()) return false;
     AndroidSdkData sdkData = (AndroidSdkData)obj;
-    return filesEqual(getLocation(), sdkData.getLocation());
+    return pathsEqual(getLocation().toString(), sdkData.getLocation().toString());
   }
 
   @Override
   public int hashCode() {
-    return fileHashCode(getLocation());
+    return pathHashCode(getLocation().toString());
   }
 
   @NotNull
