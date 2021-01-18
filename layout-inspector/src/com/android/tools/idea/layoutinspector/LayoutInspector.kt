@@ -46,6 +46,8 @@ class LayoutInspector(
 
   val currentClient: InspectorClient get() = launcher.activeClient
 
+  private val composeDependencyChecker = ComposeDependencyChecker(layoutInspectorModel.project)
+
   private val latestLoadTime = AtomicLong(-1)
 
   private val sequentialDispatcher = MoreExecutors.newSequentialExecutor(executor)
@@ -58,7 +60,7 @@ class LayoutInspector(
     if (client !== DisconnectedClient) {
       client.registerErrorCallback(::logError)
       client.registerTreeEventCallback(::loadComponentTree)
-      client.registerStateCallback { state -> if (state == InspectorClient.State.CONNECTED) layoutInspectorModel.updateConnection(client) }
+      client.registerStateCallback { state -> if (state == InspectorClient.State.CONNECTED) updateConnection(client) }
     }
     else {
       // If disconnected, e.g. stopped, force models to clear their state and, by association, the UI
@@ -69,6 +71,11 @@ class LayoutInspector(
         }
       }
     }
+  }
+
+  private fun updateConnection(client: InspectorClient) {
+    layoutInspectorModel.updateConnection(client)
+    composeDependencyChecker.performCheck(client)
   }
 
   private fun loadComponentTree(event: Any) {

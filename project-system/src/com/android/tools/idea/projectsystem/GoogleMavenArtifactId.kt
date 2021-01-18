@@ -99,6 +99,14 @@ enum class GoogleMavenArtifactId(val mavenGroupId: String, val mavenArtifactId: 
   PLAY_SERVICES_WEARABLE("com.google.android.gms", "play-services-wearable", false),
   PLAY_SERVICES_MAPS("com.google.android.gms", "play-services-maps", false),
   WEARABLE("com.google.android.support", "wearable", false),
+
+  // Compose
+  COMPOSE_RUNTIME("androidx.compose.runtime", "runtime", false),
+  OLD_COMPOSE_TOOLING("androidx.ui", "ui-tooling", false),
+  COMPOSE_TOOLING("androidx.compose.ui", "ui-tooling", false),
+
+  // Kotlin
+  KOTLIN_REFLECT("org.jetbrains.kotlin", "kotlin-reflect", false),
   ;
 
   fun getCoordinate(revision: String): GradleCoordinate =
