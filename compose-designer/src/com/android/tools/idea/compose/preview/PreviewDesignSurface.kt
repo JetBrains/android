@@ -288,8 +288,8 @@ internal fun NlDesignSurface.updatePreviewsAndRefresh(
       .map { it.requestComposeRender() }
       .toTypedArray())
       .join()
-    onRenderCompleted()
   }
+  onRenderCompleted()
 
   if (log.isDebugEnabled) {
     log.debug("Render completed in ${stopwatch?.duration?.toMillis()}ms")

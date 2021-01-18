@@ -515,7 +515,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
 
       override fun buildStarted() {
-        composeWorkBench.showBuildingMessage()
+        composeWorkBench.updateProgress(message("panel.building"))
         // When building, invalidate the Animation Inspector, since the animations are now obsolete and new ones will be subscribed once
         // build is complete and refresh is triggered.
         ComposePreviewAnimationManager.invalidate()
@@ -703,6 +703,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                    resetLiveLiteralsFound = { hasLiveLiterals = isLiveLiteralsEnabled })
 
   private fun onAfterRender() {
+    composeWorkBench.hasRendered = true
     if (!hasRenderedAtLeastOnce.get()) {
       // We zoom to fit to have better initial zoom level when first build is completed
       UIUtil.invokeLaterIfNeeded {
@@ -854,6 +855,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         }
         else {
           uniqueRefreshLauncher.launch {
+            composeWorkBench.updateProgress(message("panel.initializing"))
             doRefreshSync(filePreviewElements, quickRefresh)
           }?.join()
         }
