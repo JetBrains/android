@@ -276,7 +276,7 @@ class AgpUpgradeRefactoringProcessor(
     Java8DefaultRefactoringProcessor(this),
     CompileRuntimeConfigurationRefactoringProcessor(this),
     FabricCrashlyticsRefactoringProcessor(this),
-    MigrateToBuildFeaturesRefactoringProcessor(this)
+    MIGRATE_TO_BUILD_FEATURES_REFACTORING_PROCESSOR.RefactoringProcessor(this)
   )
 
   val targets = mutableListOf<PsiElement>()
@@ -710,7 +710,7 @@ enum class AgpUpgradeComponentNecessity {
 // of the functionality of a refactoring processor is handled by an outer (master) RefactoringProcessor, which delegates to sub-processors
 // for findUsages (and implicitly for performing the refactoring, implemented as methods on the UsageInfos).  However, there may be
 // a need for chained upgrades in the future, where each individual refactoring processor would run independently.
-sealed class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactoringProcessor {
+abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactoringProcessor {
   val current: GradleVersion
   val new: GradleVersion
   val uuid: String
@@ -1916,62 +1916,61 @@ class AddBuildTypeFirebaseCrashlyticsUsageInfo(
   override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.addBuildTypeFirebaseCrashlyticsUsageInfo.tooltipText")
 }
 
-class MigrateToBuildFeaturesRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
-  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+data class BooleanPropertiesMoveRefactoringInfo(
+  val optionalVersion: GradleVersion,
+  val requiredVersion: GradleVersion,
+  val commandNameSupplier: Supplier<String>,
+  val processedElementsHeaderSupplier: Supplier<String>,
+  val componentKind: UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind,
+  val propertyMoveInfos: List<BooleanPropertyMoveInfo>
+) {
 
-  override fun necessity() = standardRegionNecessity(current, new, GradleVersion.parse("4.0.0-alpha05"), GradleVersion.parse("7.0.0"))
+  inner class RefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
+    constructor(project: Project, current: GradleVersion, new: GradleVersion) : super(project, current, new)
+    constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
-  override fun getCommandName(): String = AndroidBundle.message("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.commandName")
+    override fun necessity() = standardRegionNecessity(current, new, optionalVersion, requiredVersion)
 
-  override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
-    builder.setKind(MIGRATE_TO_BUILD_FEATURES)
+    override fun getCommandName(): String = commandNameSupplier.get()
 
-  override fun findComponentUsages(): Array<out UsageInfo> {
-    val usages = ArrayList<UsageInfo>()
-    buildModel.allIncludedBuildModels.forEach model@{ model ->
-      val androidModel = model.android()
-      if (androidModel.dataBinding().enabled().getValue(BOOLEAN_TYPE) != null) {
-        run dataBinding@{
-          val psiElement = androidModel.dataBinding().enabled().psiElement ?: return@dataBinding
-          val wrappedPsiElement = WrappedPsiElement(psiElement, this, DATA_BINDING_ENABLED_USAGE_TYPE)
-          val usageInfo = DATA_BINDING_ENABLED_INFO.UsageInfo(wrappedPsiElement, model)
-          usages.add(usageInfo)
+    override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
+      builder.setKind(componentKind)
+
+    override fun findComponentUsages(): Array<out UsageInfo> {
+      val usages = ArrayList<UsageInfo>()
+      buildModel.allIncludedBuildModels.forEach buildModel@{ buildModel ->
+        propertyMoveInfos.forEach propertyInfo@{ propertyInfo ->
+          val propertyModel = buildModel.(propertyInfo.sourceModel)()
+          if (propertyModel.getValue(BOOLEAN_TYPE) != null) {
+            val psiElement = propertyModel.psiElement ?: return@propertyInfo
+            val wrappedPsiElement = WrappedPsiElement(psiElement, this, propertyInfo.usageType)
+            val usageInfo = propertyInfo.UsageInfo(wrappedPsiElement, buildModel)
+            usages.add(usageInfo)
+          }
         }
       }
+      return usages.toArray(UsageInfo.EMPTY_ARRAY)
+    }
 
-      if (androidModel.viewBinding().enabled().getValue(BOOLEAN_TYPE) != null) {
-        run viewBinding@{
-          val psiElement = androidModel.viewBinding().enabled().psiElement ?: return@viewBinding
-          val wrappedPsiElement = WrappedPsiElement(psiElement, this, VIEW_BINDING_ENABLED_USAGE_TYPE)
-          val usageInfo = VIEW_BINDING_ENABLED_INFO.UsageInfo(wrappedPsiElement, model)
-          usages.add(usageInfo)
+    override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
+      return object : UsageViewDescriptorAdapter() {
+        override fun getElements(): Array<PsiElement> {
+          return PsiElement.EMPTY_ARRAY
         }
+
+        override fun getProcessedElementsHeader(): String = processedElementsHeaderSupplier.get()
       }
     }
-    return usages.toArray(UsageInfo.EMPTY_ARRAY)
-  }
 
-  override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
-    return object : UsageViewDescriptorAdapter() {
-      override fun getElements(): Array<PsiElement> {
-        return PsiElement.EMPTY_ARRAY
-      }
-
-      override fun getProcessedElementsHeader(): String = AndroidBundle.message("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.usageView.header")
-    }
-  }
-
-  companion object {
-    val DATA_BINDING_ENABLED_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.dataBindingEnabledUsageType"))
-    val VIEW_BINDING_ENABLED_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.viewBindingEnabledUsageType"))
+    val info = this@BooleanPropertiesMoveRefactoringInfo
   }
 }
 
 data class BooleanPropertyMoveInfo(
   val sourceModel: GradleBuildModel.() -> ResolvedPropertyModel,
   val destinationModel: GradleBuildModel.() -> ResolvedPropertyModel,
-  val tooltipTextSupplier: Supplier<String>
+  val tooltipTextSupplier: Supplier<String>,
+  val usageType: UsageType
 ) {
 
   inner class UsageInfo(
@@ -1995,18 +1994,29 @@ data class BooleanPropertyMoveInfo(
 
     override fun getDiscriminatingValues(): List<Any> = listOf(this@BooleanPropertyMoveInfo)
   }
-
 }
+
 val VIEW_BINDING_ENABLED_INFO = BooleanPropertyMoveInfo(
   { android().viewBinding().enabled() },
   { android().buildFeatures().viewBinding() },
-  AndroidBundle.lazyMessage("project.upgrade.viewBindingEnabledUsageInfo.tooltipText")
+  AndroidBundle.lazyMessage("project.upgrade.viewBindingEnabledUsageInfo.tooltipText"),
+  UsageType(AndroidBundle.lazyMessage("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.viewBindingEnabledUsageType"))
 )
 
 val DATA_BINDING_ENABLED_INFO = BooleanPropertyMoveInfo(
   { android().dataBinding().enabled() },
   { android().buildFeatures().dataBinding() },
-  AndroidBundle.lazyMessage("project.upgrade.dataBindingEnabledUsageInfo.tooltipText")
+  AndroidBundle.lazyMessage("project.upgrade.dataBindingEnabledUsageInfo.tooltipText"),
+  UsageType(AndroidBundle.lazyMessage("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.dataBindingEnabledUsageType"))
+)
+
+val MIGRATE_TO_BUILD_FEATURES_REFACTORING_PROCESSOR = BooleanPropertiesMoveRefactoringInfo(
+  GradleVersion.parse("4.0.0-alpha05"),
+  GradleVersion.parse("7.0.0"),
+  AndroidBundle.lazyMessage("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.commandName"),
+  AndroidBundle.lazyMessage("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.usageView.header"),
+  MIGRATE_TO_BUILD_FEATURES,
+  listOf(DATA_BINDING_ENABLED_INFO, VIEW_BINDING_ENABLED_INFO)
 )
 
 /**
