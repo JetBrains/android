@@ -435,8 +435,7 @@ public final class AvdDeviceData {
     if (!skinLayoutFile.isFile()) {
       return null;
     }
-    FileOp fop = FileOpUtils.create();
-    SkinLayoutDefinition skin = SkinLayoutDefinition.parseFile(skinLayoutFile, fop);
+    SkinLayoutDefinition skin = SkinLayoutDefinition.parseFile(skinLayoutFile, FileOpUtils.create());
     if (skin == null) {
       return null;
     }
@@ -530,7 +529,9 @@ public final class AvdDeviceData {
 
   public void updateSkinFromDeviceAndSystemImage(@NotNull Device device, @Nullable SystemImageDescription systemImage) {
     Hardware defaultHardware = device.getDefaultHardware();
-    File skinFile = AvdWizardUtils.pathToUpdatedSkins(defaultHardware.getSkinFile(), systemImage, FileOpUtils.create());
+    File defaultHardwareSkinFile = defaultHardware.getSkinFile();
+    File skinFile = AvdWizardUtils.pathToUpdatedSkins(defaultHardwareSkinFile == null ? null : defaultHardwareSkinFile.toPath(),
+                                                      systemImage);
     myCustomSkinFile.setValue((skinFile == null) ? AvdWizardUtils.NO_SKIN : skinFile);
   }
 

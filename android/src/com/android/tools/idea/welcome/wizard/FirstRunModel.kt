@@ -16,8 +16,6 @@
 package com.android.tools.idea.welcome.wizard
 
 import com.android.repository.api.RepoManager
-import com.android.repository.io.FileOp
-import com.android.repository.io.FileOpUtils
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.observable.core.ObjectValueProperty
@@ -62,9 +60,7 @@ class FirstRunModel(private val mode: FirstRunWizardMode): WizardModel() {
     false
   }
 
-  private val fileOp: FileOp = FileOpUtils.create()
-
-  var localHandler: AndroidSdkHandler = AndroidSdkHandler.getInstance(fileOp.toPath(sdkLocation))
+  var localHandler: AndroidSdkHandler = AndroidSdkHandler.getInstance(sdkLocation.toPath())
 
   // FIXME (why always true?)
   /**
@@ -108,7 +104,7 @@ class FirstRunModel(private val mode: FirstRunWizardMode): WizardModel() {
       components.add(Gvm(installationIntention, FirstRunWizard.KEY_CUSTOM_INSTALL))
     }
     if (createAvd) {
-      components.add(AndroidVirtualDevice(remotePackages, installUpdates, fileOp))
+      components.add(AndroidVirtualDevice(remotePackages, installUpdates))
     }
     return ComponentCategory("Root", "Root node that is not supposed to appear in the UI", components)
   }

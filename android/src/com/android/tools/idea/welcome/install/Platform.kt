@@ -42,7 +42,7 @@ class Platform(
   private val myVersion: AndroidVersion,
   private val myIsDefaultPlatform: Boolean,
   installUpdates: Boolean
-) : InstallableComponent(name, description, installUpdates, FileOpUtils.create()) {
+) : InstallableComponent(name, description, installUpdates) {
   override val requiredSdkPackages: Collection<String>
     get() {
       val requests = mutableListOf(DetailsTypes.getPlatformPath(myVersion), DetailsTypes.getSourcesPath(myVersion))

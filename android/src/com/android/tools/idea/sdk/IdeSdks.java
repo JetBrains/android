@@ -600,7 +600,7 @@ public class IdeSdks {
       for (IAndroidTarget target : targets) {
         if (target.isPlatform() && !doesIdeAndroidSdkExist(target)) {
           String name = myAndroidSdks.chooseNameForNewLibrary(target);
-          Sdk sdk = myAndroidSdks.create(target, sdkData.getLocation(), name, ideJdk, true);
+          Sdk sdk = myAndroidSdks.create(target, sdkData.getLocationFile(), name, ideJdk, true);
           if (sdk != null) {
             sdks.add(sdk);
           }

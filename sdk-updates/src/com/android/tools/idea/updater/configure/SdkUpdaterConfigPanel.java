@@ -332,7 +332,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
         AndroidPlatform androidPlatform = AndroidPlatform.getInstance(facet.getModule());
         AndroidSdkData sdkData = androidPlatform == null ? null : androidPlatform.getSdkData();
         if (sdkData != null) {
-          locations.add(sdkData.getLocation());
+          locations.add(sdkData.getLocationFile());
         }
       }
     }

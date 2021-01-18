@@ -56,8 +56,7 @@ abstract class Vm(
 ) : InstallableComponent("Performance (${installerInfo.fullName})",
                          "Enables a hardware-assisted virtualization engine (hypervisor) to speed up " +
                          "Android app emulation on your development computer. (Recommended)",
-                         installationIntention === InstallationIntention.INSTALL_WITH_UPDATES,
-                         FileOpUtils.create()) {
+                         installationIntention === InstallationIntention.INSTALL_WITH_UPDATES) {
 
   var isInstallerSuccessfullyCompleted: Boolean = false
     private set

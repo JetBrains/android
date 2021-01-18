@@ -253,13 +253,9 @@ public class AvdWizardUtils {
    */
   @Deprecated
   @Slow
-  public static @Nullable File pathToUpdatedSkins(@Nullable File device,
-                                                  @Nullable SystemImageDescription image,
-                                                  @NotNull FileOp operations) {
-    FileSystem fileSystem =
-      operations instanceof FileOp ? ((FileOp)operations).getFileSystem() : FileSystems.getDefault();
-
-    return device == null ? null : DeviceSkinUpdater.updateSkins(fileSystem.getPath(device.getPath()), image, fileSystem).toFile();
+  public static @Nullable File pathToUpdatedSkins(@Nullable Path device,
+                                                  @Nullable SystemImageDescription image) {
+    return device == null ? null : DeviceSkinUpdater.updateSkins(device, image).toFile();
   }
 
   static boolean emulatorSupportsWebp(@NotNull AndroidSdkHandler sdkHandler) {

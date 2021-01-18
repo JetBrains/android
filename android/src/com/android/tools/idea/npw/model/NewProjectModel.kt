@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.model
 import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
+import com.android.io.CancellableFileIo
 import com.android.repository.io.FileOpUtils
 import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
@@ -69,6 +70,7 @@ import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.android.util.AndroidUtils
 import java.io.File
 import java.io.IOException
+import java.nio.file.Paths
 import java.util.Locale
 import java.util.Optional
 import java.util.regex.Pattern
@@ -156,7 +158,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       // already used in new wizard's PathValidator.
       // So the change below is therefore a more narrow case than initially supposed (however it still needs to be handled)
       try {
-        if (VfsUtil.createDirectoryIfMissing(projectLocation) != null && FileOpUtils.create().canWrite(File(projectLocation))) {
+        if (VfsUtil.createDirectoryIfMissing(projectLocation) != null && CancellableFileIo.isWritable(Paths.get(projectLocation))) {
           return@runWriteCommandAction true
         }
       }

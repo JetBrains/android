@@ -18,6 +18,7 @@ package com.android.tools.idea.welcome.install
 import com.android.SdkConstants
 import com.android.repository.api.RemotePackage
 import com.android.repository.io.FileOp
+import com.android.repository.io.FileOpUtils
 import com.android.resources.Density
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
@@ -36,6 +37,7 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.AvdOptionsModel
 import com.android.tools.idea.avdmanager.AvdWizardUtils
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
+import com.android.tools.idea.avdmanager.DeviceSkinUpdaterService
 import com.android.tools.idea.avdmanager.SystemImageDescription
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.welcome.wizard.deprecated.InstallComponentsPath.findLatestPlatform
@@ -51,13 +53,12 @@ import java.nio.file.Path
 /**
  * Logic for setting up Android virtual device
  */
-class AndroidVirtualDevice(
-  remotePackages: Map<String?, RemotePackage>, installUpdates: Boolean, fop: FileOp
+class AndroidVirtualDevice @JvmOverloads constructor(
+  remotePackages: Map<String?, RemotePackage>, installUpdates: Boolean, val fop: FileOp = FileOpUtils.create()
 ) : InstallableComponent(
   "Android Virtual Device",
   "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)",
-  installUpdates,
-  fop
+  installUpdates
 ) {
   private lateinit var myProgressStep: ProgressStep
   private var myLatestVersion: AndroidVersion? = null
@@ -81,7 +82,10 @@ class AndroidVirtualDevice(
     val d = getDevice(sdkHandler.location!!)
     val systemImageDescription = getSystemImageDescription(sdkHandler)
     val cardSize = EmulatedProperties.DEFAULT_INTERNAL_STORAGE.toIniString()
-    val hardwareSkinPath = AvdWizardUtils.pathToUpdatedSkins(d.defaultHardware.skinFile, systemImageDescription, fileOp)
+    val hardwareSkinPath = d.defaultHardware.skinFile?.let { fop.toPath(it) }
+      ?.let { defaultHardwareSkin ->
+        DeviceSkinUpdaterService.getInstance().updateSkins(defaultHardwareSkin, systemImageDescription).get()
+      }
     val displayName = connection.uniquifyDisplayName(d.displayName + " " + systemImageDescription.version + " " + systemImageDescription.abiType)
     val internalName = AvdWizardUtils.cleanAvdName(connection, displayName, true)
     val abi = Abi.getEnum(systemImageDescription.abiType)
@@ -93,7 +97,7 @@ class AndroidVirtualDevice(
     }
     return connection.createOrUpdateAvd(
       null, internalName, d, systemImageDescription, ScreenOrientation.PORTRAIT, false, cardSize,
-      hardwareSkinPath?.let { fileOp.toPath(it) }, settings, true
+      hardwareSkinPath, settings, true
     )
   }
 

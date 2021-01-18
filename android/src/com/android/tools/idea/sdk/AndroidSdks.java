@@ -173,7 +173,7 @@ public class AndroidSdks {
       AndroidPlatform androidPlatform = AndroidPlatform.getInstance(androidSdk);
       if (androidPlatform != null) {
         // Put default platforms in the list before non-default ones so they'll be looked at first.
-        File sdkPath = androidPlatform.getSdkData().getLocation();
+        File sdkPath = androidPlatform.getSdkData().getLocationFile();
         if (result.contains(sdkPath)) {
           continue;
         }
@@ -200,7 +200,7 @@ public class AndroidSdks {
       sdkData.getSdkHandler().getSdkManager(new StudioLoggerProgressIndicator(AndroidSdks.class)).markInvalid();
       IAndroidTarget target = sdkData.findTargetByHashString(targetHashString);
       if (target != null) {
-        return create(target, sdkData.getLocation(), true /* add roots */);
+        return create(target, sdkData.getLocationFile(), true /* add roots */);
       }
     }
     return null;
