@@ -382,7 +382,7 @@ class DefaultLookupUI : LookupUI {
         clickAction()
       }
     })
-    AccessibleContextUtil.setParent(list as Component, editor)
+    AccessibleContextUtil.setParent(list, editor)
   }
 
   private fun updateElementHeight() {
