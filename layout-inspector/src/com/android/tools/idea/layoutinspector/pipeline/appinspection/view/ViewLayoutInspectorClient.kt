@@ -20,12 +20,11 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.intellij.openapi.project.Project
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.ErrorEvent
@@ -52,6 +51,7 @@ private val JAR = AppInspectorJar("layoutinspector-view-inspection.jar",
  * @param messenger The messenger that lets us communicate with the view inspector.
  */
 class ViewLayoutInspectorClient(
+  model: InspectorModel,
   eventScope: CoroutineScope,
   private val messenger: AppInspectorMessenger,
   private val fireError: (String) -> Unit = {},
@@ -76,18 +76,20 @@ class ViewLayoutInspectorClient(
      *     expected that this will be a scope associated with a background dispatcher.
      */
     suspend fun launch(apiServices: AppInspectionApiServices,
-                       project: Project,
                        process: ProcessDescriptor,
+                       model: InspectorModel,
                        eventScope: CoroutineScope,
                        fireError: (String) -> Unit,
                        fireTreeEvent: (Data) -> Unit): ViewLayoutInspectorClient {
       // Set force = true, to be more aggressive about connecting the layout inspector if an old version was
       // left running for some reason. This is a better experience than silently falling back to a legacy client.
-      val params = LaunchParameters(process, VIEW_LAYOUT_INSPECTOR_ID, JAR, project.name, force = true)
+      val params = LaunchParameters(process, VIEW_LAYOUT_INSPECTOR_ID, JAR, model.project.name, force = true)
       val messenger = apiServices.launchInspector(params)
-      return ViewLayoutInspectorClient(eventScope, messenger, fireError, fireTreeEvent)
+      return ViewLayoutInspectorClient(model, eventScope, messenger, fireError, fireTreeEvent)
     }
   }
+
+  val propertiesCache = ViewPropertiesCache(this, model)
 
   /**
    * Whether this client is continuously receiving layout events or not.
@@ -95,8 +97,11 @@ class ViewLayoutInspectorClient(
    * This will be true between calls to `startFetching(continuous = true)` and
    * `stopFetching`.
    */
-  var isFetchingContinuously: Boolean = false
-    private set
+  private var isFetchingContinuously: Boolean = false
+    set(value) {
+      field = value
+      propertiesCache.allowFetching = value
+    }
 
   private val currRoots = mutableListOf<Long>()
 
@@ -150,9 +155,12 @@ class ViewLayoutInspectorClient(
   private fun handleRootsEvent(rootsEvent: WindowRootsEvent) {
     currRoots.clear()
     currRoots.addAll(rootsEvent.idsList)
+
+    propertiesCache.retain(currRoots)
   }
 
   private fun handleLayoutEvent(layoutEvent: LayoutEvent) {
+    propertiesCache.clearFor(layoutEvent.rootView.id)
     fireTreeEvent(Data(currRoots, layoutEvent))
   }
 }

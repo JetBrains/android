@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
 
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import kotlinx.coroutines.withContext
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.GetPropertiesResponse
 
@@ -27,41 +28,65 @@ class ViewPropertiesCache(
   private val client: ViewLayoutInspectorClient,
   private val model: InspectorModel
 ) {
-  private var lastGeneration = 0
-  private val cache = mutableMapOf<Long, ViewPropertiesData>()
 
   /**
-   * Request [ViewPropertiesData] cached against the passed in [viewId].
+   * If true, allow fetching data from the device if we don't have it in our local cache.
    *
-   * This could be null if the viewId is invalid (e.g. stale).
+   * We provide this lever because sometimes the inspector is in snapshot mode, and we don't want
+   * to pull data from the device that might be newer than what we see in our snapshot.
    */
-  suspend fun fetch(viewId: Long): ViewPropertiesData? {
-    if (lastGeneration == model.lastGeneration) {
-      val cached = cache[viewId]
+  var allowFetching = false
+
+  // Specifically, this is a Map<RootId, Map<ViewId, Data>>()
+  // Occasionally, roots are discarded, so we can drop whole branches of cached data in that case.
+  private val cache = mutableMapOf<Long, MutableMap<Long, ViewPropertiesData>>()
+
+  /**
+   * Remove all nested data for views that are children to [rootId].
+   */
+  fun clearFor(rootId: Long) {
+    cache.remove(rootId)
+  }
+
+  /**
+   * Remove all nested data for views that are not children under the passed in list of IDs.
+   *
+   * This is a useful method to call when an old root window is removed.
+   */
+  fun retain(rootIdsToKeep: Iterable<Long>) {
+    cache.keys.removeAll { rootId -> !rootIdsToKeep.contains(rootId) }
+  }
+
+  /**
+   * Request [ViewPropertiesData] cached against the passed in [view].
+   *
+   * This may initiate a fetch to device if the data is not locally cached already.
+   *
+   * This may also ultimately return null if the viewId is invalid (e.g. stale, and no longer found
+   * inside the model).
+   */
+  suspend fun getDataFor(view: ViewNode): ViewPropertiesData? {
+    val root = model.rootFor(view) ?: return null // Unrooted nodes are not supported
+    val cached = cache[root.drawId]?.get(view.drawId)
       if (cached != null) {
         return cached
       }
-    }
 
     // Don't update the cache if we're not actively communicating with the inspector. Otherwise,
     // we might override values with those that don't match our last snapshot.
-    if (!client.isFetchingContinuously) return null
+    if (!allowFetching) return null
 
     return withContext(AndroidDispatchers.workerThread) {
-      updateCache(client.fetchProperties(viewId))
+      updateCache(root.drawId, client.fetchProperties(view.drawId))
     }
   }
 
-  private fun updateCache(properties: GetPropertiesResponse): ViewPropertiesData? {
-    if (properties.viewId == 0L || properties.generation < model.lastGeneration) return null
-
-    if (lastGeneration < properties.generation) {
-      lastGeneration = properties.generation
-      cache.clear()
-    }
+  private fun updateCache(rootId: Long, properties: GetPropertiesResponse): ViewPropertiesData? {
+    if (properties.viewId == 0L) return null
 
     val data = ViewPropertiesDataGenerator(properties, model).generate()
-    cache[properties.viewId] = data
+    val innerMap = cache.computeIfAbsent(rootId) { mutableMapOf() }
+    innerMap[properties.viewId] = data
     return data
   }
 }

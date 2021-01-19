@@ -20,7 +20,6 @@ import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewPropertiesCache
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewPropertiesData
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
@@ -37,20 +36,18 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
 
 class AppInspectionPropertiesProvider(
-  client: ViewLayoutInspectorClient,
+  private val client: ViewLayoutInspectorClient,
   private val model: InspectorModel)
   : PropertiesProvider {
 
   override val resultListeners = mutableListOf<(PropertiesProvider, ViewNode, PropertiesTable<InspectorPropertyItem>) -> Unit>()
-
-  private val viewPropertiesCache = ViewPropertiesCache(client, model)
 
   override fun requestProperties(view: ViewNode): Future<*> {
     val future = CompletableFuture<Unit>()
     val self = this
 
     CoroutineScope(Dispatchers.Unconfined).launch {
-      val data = viewPropertiesCache.fetch(view.drawId)
+      val data = client.propertiesCache.getDataFor(view)
       if (data != null) {
         completeProperties(view, data)
         for (listener in resultListeners) {
@@ -71,9 +68,9 @@ class AppInspectionPropertiesProvider(
    * - Add a call location to all known object types where the className is known.
    * - Create resolution stack items based on the resolution stack received from the agent.
    */
-  private fun completeProperties(view: ViewNode, propertiesData: ViewPropertiesData): PropertiesTable<InspectorPropertyItem> {
+  private fun completeProperties(view: ViewNode, propertiesData: ViewPropertiesData) {
     val properties = propertiesData.properties
-    if (properties.getByNamespace(NAMESPACE_INTERNAL).isNotEmpty()) return properties
+    if (properties.getByNamespace(NAMESPACE_INTERNAL).isNotEmpty()) return
 
     if (view !is ComposeViewNode) {
       properties.values.forEach { it.resolveDimensionType(view) }
@@ -88,7 +85,6 @@ class AppInspectionPropertiesProvider(
         properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let { convertToResolutionStackItem(it, view, cell.value!!) }
       }.forEach { properties.put(it) }
     }
-    return properties
   }
 
   /**
