@@ -29,17 +29,17 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBColor;
-import java.io.IOException;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.io.IOException;
+import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A non-modal dialog displaying statistics as they're logged.
@@ -54,7 +54,7 @@ public class StatisticsViewer extends JPanel implements Disposable {
 
   StatisticsViewer() {
     super(new BorderLayout(0, 0));
-    Disposer.register(Disposer.get("ui"), this);
+    Disposer.register(ApplicationManager.getApplication(), this);
     Project project = ProjectManager.getInstance().getDefaultProject();
 
     // Use the ConsoleView from IntelliJ to render log entries as it makes for easy browsing, copy/paste & searching.
