@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
+package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.ViewNodeCache
 
 /**
- * Cache of view properties, to avoid expensive refetches when possible.
+ * Cache of compose parameters, to avoid expensive refetches when possible.
  */
-class ViewPropertiesCache(private val client: ViewLayoutInspectorClient, model: InspectorModel) : ViewNodeCache<ViewPropertiesData>(model) {
-  override suspend fun fetchDataFor(node: ViewNode): ViewPropertiesData? {
-    val properties = client.fetchProperties(node.drawId)
-    return if (properties.viewId != 0L) {
-      ViewPropertiesDataGenerator(properties, model).generate()
+class ComposeParametersCache(private val client: ComposeLayoutInspectorClient, model: InspectorModel) : ViewNodeCache<ComposeParametersData>(model) {
+  override suspend fun fetchDataFor(node: ViewNode): ComposeParametersData? {
+    val parameters = client.fetchParameters(node.drawId)
+    return if (parameters.composableId != 0L) {
+      ComposeParametersDataGenerator(parameters, model).generate()
     }
     else {
       null

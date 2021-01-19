@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
+import com.android.tools.idea.layoutinspector.properties.PropertyType
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import java.awt.Polygon
 import java.awt.Shape
 
 fun LayoutInspectorComposeProtocol.Quad.toShape(): Shape {
-    return Polygon(intArrayOf(x0, x1, x2, x3), intArrayOf(y0, y1, y2, y3), 4)
+  return Polygon(intArrayOf(x0, x1, x2, x3), intArrayOf(y0, y1, y2, y3), 4)
+}
+
+fun LayoutInspectorComposeProtocol.Parameter.Type.convert(): PropertyType {
+  return PropertyType.values()[this.number]
 }
