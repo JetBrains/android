@@ -20,7 +20,7 @@ package com.android.tools.idea.imports
  *
  * The full URL is [BASE_URL]/v[VERSION]/[NAME]-v[VERSION].json.
  */
-internal const val BASE_URL = "https://dl.google.com/android/studio/gmaven/index/test/"
+internal const val BASE_URL = "https://dl.google.com/android/studio/gmaven/index/release/"
 
 /**
  * Base name of Google Maven Class Index file.
