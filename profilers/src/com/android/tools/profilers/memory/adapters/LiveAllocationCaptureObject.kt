@@ -544,7 +544,7 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
       .build()
 
   private fun<T> List<T>.updateSeenTimestamp(timestamp: (T) -> Long) = stream().mapToLong(timestamp).max().ifPresent {
-    lastSeenTimestampNs = it
+    lastSeenTimestampNs = max(lastSeenTimestampNs, it)
   }
 
   companion object {
