@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.common.actions
 
-import com.android.tools.idea.gradle.util.BuildListener
-import com.android.tools.idea.gradle.util.setupBuildListener
+import com.android.tools.idea.projectsystem.BuildListener
+import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.intellij.ide.ActivityTracker
@@ -34,16 +34,18 @@ import com.intellij.ui.AnimatedIcon
 class LayoutlibSceneManagerRefreshIconAction private constructor(
   project: Project,
   addRenderListener: (RenderListener) -> Unit,
+  setupBuildListener: (Project, BuildListener, Disposable) -> Unit,
   parentDisposable: Disposable): AnAction() {
 
   constructor(sceneManager: LayoutlibSceneManager):
-    this(sceneManager.model.project, sceneManager::addRenderListener, sceneManager)
+    this(sceneManager.model.project, sceneManager::addRenderListener, ::setupBuildListener, sceneManager)
 
   companion object {
     fun forTesting(project: Project,
                    addRenderListener: (RenderListener) -> Unit,
+                   setupBuildListener: (Project, BuildListener, Disposable) -> Unit,
                    parentDisposable: Disposable): LayoutlibSceneManagerRefreshIconAction =
-      LayoutlibSceneManagerRefreshIconAction(project, addRenderListener, parentDisposable)
+      LayoutlibSceneManagerRefreshIconAction(project, addRenderListener, setupBuildListener, parentDisposable)
   }
 
   private var isRendering = false

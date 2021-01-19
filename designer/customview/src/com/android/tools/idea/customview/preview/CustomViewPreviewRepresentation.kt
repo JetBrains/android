@@ -36,8 +36,8 @@ import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.gradle.project.build.GradleBuildState
-import com.android.tools.idea.gradle.util.BuildListener
-import com.android.tools.idea.gradle.util.setupBuildListener
+import com.android.tools.idea.projectsystem.BuildListener
+import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize

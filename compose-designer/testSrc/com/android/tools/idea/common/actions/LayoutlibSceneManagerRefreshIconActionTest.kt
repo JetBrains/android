@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.common.actions
 
-import com.android.tools.idea.gradle.project.build.BuildContext
-import com.android.tools.idea.gradle.project.build.BuildStatus
-import com.android.tools.idea.gradle.project.build.GradleBuildState
-import com.android.tools.idea.gradle.util.BuildMode
+import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -51,26 +48,29 @@ internal class LayoutlibSceneManagerRefreshIconActionTest {
   @RunsInEdt
   @Test
   fun `build triggers refresh update`() {
-    val action = LayoutlibSceneManagerRefreshIconAction.forTesting(project, { }, projectRule.fixture.testRootDisposable)
+    val buildListener = mutableListOf<BuildListener>()
+    val action = LayoutlibSceneManagerRefreshIconAction.forTesting(project,
+                                                                   { },
+                                                                   { _, listener, _ -> buildListener.add(listener) },
+                                                                   projectRule.fixture.testRootDisposable)
     action.updateAndRun {
       assertFalse(it.presentation.isVisible)
     }
 
-    val buildContext = BuildContext(project, listOf(), BuildMode.ASSEMBLE)
     // Start build
-    GradleBuildState.getInstance(project).buildStarted(buildContext)
+    buildListener.forEach { it.buildStarted() }
     action.updateAndRun {
       assertTrue(it.presentation.isVisible)
     }
 
     // Build failed
-    GradleBuildState.getInstance(project).buildFinished(BuildStatus.FAILED)
+    buildListener.forEach { it.buildFailed() }
     action.updateAndRun {
       assertFalse(it.presentation.isVisible)
     }
 
     // Start a second build
-    GradleBuildState.getInstance(project).buildStarted(buildContext)
+    buildListener.forEach { it.buildStarted() }
     action.updateAndRun {
       assertTrue(it.presentation.isVisible)
     }
@@ -80,7 +80,9 @@ internal class LayoutlibSceneManagerRefreshIconActionTest {
   @Test
   fun `build triggers when scene manager refreshes`() {
     val renderListeners = mutableListOf<RenderListener>()
-    val action = LayoutlibSceneManagerRefreshIconAction.forTesting(project, { renderListeners.add(it) },
+    val action = LayoutlibSceneManagerRefreshIconAction.forTesting(project,
+                                                                   { renderListeners.add(it) },
+                                                                   { _, _, _ -> },
                                                                    projectRule.fixture.testRootDisposable)
     action.updateAndRun {
       assertFalse(it.presentation.isVisible)
