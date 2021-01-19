@@ -166,4 +166,7 @@
     <project.converterProvider implementation="com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationConverterProvider"/>
   </extensions>
 
+  <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
+    <taskManager implementation="com.android.tools.idea.gradle.task.AndroidGradleTaskManager"/>
+  </extensions>
 </idea-plugin>
