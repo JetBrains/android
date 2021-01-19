@@ -19,7 +19,8 @@ import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
-import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability.SUPPORTS_FILTERING_SYSTEM_NODES
 import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
@@ -36,6 +37,7 @@ import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
+import java.util.EnumSet
 
 class FilterNodeActionTest {
 
@@ -62,6 +64,7 @@ class FilterNodeActionTest {
     val client = mock(InspectorClient::class.java)
     val event = createEvent(inspector)
     `when`(inspector.currentClient).thenReturn(client)
+    `when`(client.capabilities).thenReturn(EnumSet.of(SUPPORTS_FILTERING_SYSTEM_NODES))
     `when`(client.isConnected).thenReturn(true)
     `when`(client.isCapturing).thenReturn(true)
     FilterNodeAction.setSelected(event, false)
@@ -76,6 +79,7 @@ class FilterNodeActionTest {
     val client = mock(InspectorClient::class.java)
     val event = createEvent(inspector)
     `when`(inspector.currentClient).thenReturn(client)
+    `when`(client.capabilities).thenReturn(EnumSet.of(SUPPORTS_FILTERING_SYSTEM_NODES))
     `when`(client.isConnected).thenReturn(true)
     `when`(client.isCapturing).thenReturn(false)
     TreeSettings.hideSystemNodes = false
@@ -88,10 +92,11 @@ class FilterNodeActionTest {
   }
 
   @Test
-  fun testFilterSystemNodeActionNotAvailableForLegacy() {
+  fun testFilterSystemNodeActionNotAvailableIfUnsupportedByClient() {
     val inspector = mock(LayoutInspector::class.java)
-    val client = mock(LegacyClient::class.java)
+    val client = mock(InspectorClient::class.java)
     val event = createEvent(inspector)
+    `when`(client.capabilities).thenReturn(EnumSet.noneOf(Capability::class.java))
     `when`(inspector.currentClient).thenReturn(client)
     `when`(client.isConnected).thenReturn(true)
     `when`(client.isCapturing).thenReturn(false)
