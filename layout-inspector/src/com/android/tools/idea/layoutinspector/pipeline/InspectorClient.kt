@@ -21,6 +21,7 @@ import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.properties.EmptyPropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import java.util.EnumSet
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
@@ -45,6 +46,12 @@ interface InspectorClient {
      * Indicates this client supports continuous fetching via [startFetching] and [stopFetching].
      */
     SUPPORTS_CONTINUOUS_MODE,
+
+    /**
+     * Indicates that this client is aware of and uses [TreeSettings.hideSystemNodes] when
+     * [startFetching] is called.
+     */
+    SUPPORTS_FILTERING_SYSTEM_NODES,
   }
 
   /**
