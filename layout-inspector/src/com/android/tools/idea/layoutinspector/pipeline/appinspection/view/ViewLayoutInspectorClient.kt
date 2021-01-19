@@ -22,6 +22,7 @@ import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameter
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -136,6 +137,10 @@ class ViewLayoutInspectorClient(
         .build()
     }
     return response.getPropertiesResponse
+  }
+
+  fun disconnect() {
+    messenger.scope.cancel()
   }
 
   private fun handleErrorEvent(errorEvent: ErrorEvent) {
