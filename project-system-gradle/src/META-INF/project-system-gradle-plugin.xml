@@ -144,7 +144,6 @@
     <projectResolve implementation="com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver"/>
     <projectResolve implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidMPPGradleProjectResolver"/>
     <resolve.contributor implementation="com.android.tools.idea.gradle.service.resolve.AndroidDslContributor"/>
-    <taskManager implementation="com.android.tools.idea.gradle.task.AndroidGradleTaskManager"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.build.output.DataBindingIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.CachedDependencyNotFoundIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.ClassLoadingIssueChecker"/>
