@@ -74,7 +74,7 @@ class AppInspectionInspectorClient(
   override fun doDisconnect(): ListenableFuture<Nothing> {
     val future = SettableFuture.create<Nothing>()
     scope.launch(exceptionHandler) {
-      apiServices.stopInspectors(process)
+      viewInspector.disconnect()
       future.set(null)
     }
     return future
