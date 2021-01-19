@@ -80,7 +80,9 @@ class ViewLayoutInspectorClient(
                        eventScope: CoroutineScope,
                        fireError: (String) -> Unit,
                        fireTreeEvent: (Data) -> Unit): ViewLayoutInspectorClient {
-      val params = LaunchParameters(process, VIEW_LAYOUT_INSPECTOR_ID, JAR, project.name)
+      // Set force = true, to be more aggressive about connecting the layout inspector if an old version was
+      // left running for some reason. This is a better experience than silently falling back to a legacy client.
+      val params = LaunchParameters(process, VIEW_LAYOUT_INSPECTOR_ID, JAR, project.name, force = true)
       val messenger = apiServices.launchInspector(params)
       return ViewLayoutInspectorClient(eventScope, messenger, fireError, fireTreeEvent)
     }
