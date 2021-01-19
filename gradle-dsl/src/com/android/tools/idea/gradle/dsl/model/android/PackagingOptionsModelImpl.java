@@ -26,13 +26,19 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class PackagingOptionsModelImpl extends GradleDslBlockModel implements PackagingOptionsModel {
-  // FIXME: implement doNotStrip
+  @NonNls public static final ModelPropertyDescription DO_NOT_STRIP = new ModelPropertyDescription("mDoNotStrip", MUTABLE_SET);
   @NonNls public static final ModelPropertyDescription EXCLUDES = new ModelPropertyDescription("mExcludes", MUTABLE_SET);
   @NonNls public static final ModelPropertyDescription MERGES = new ModelPropertyDescription("mMerges", MUTABLE_SET);
   @NonNls public static final ModelPropertyDescription PICK_FIRSTS = new ModelPropertyDescription("mPickFirsts", MUTABLE_SET);
 
   public PackagingOptionsModelImpl(@NotNull PackagingOptionsDslElement dslElement) {
     super(dslElement);
+  }
+
+  @Override
+  @NotNull
+  public ResolvedPropertyModel doNotStrip() {
+    return getModelForProperty(DO_NOT_STRIP);
   }
 
   @Override

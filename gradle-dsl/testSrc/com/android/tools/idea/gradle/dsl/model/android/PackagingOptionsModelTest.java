@@ -38,6 +38,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     PackagingOptionsModel packagingOptions = android.packagingOptions();
+    assertEquals("doNotStrip", ImmutableList.of("doNotStrip1", "doNotStrip2", "doNotStrip3"), packagingOptions.doNotStrip());
     assertEquals("excludes", ImmutableList.of("exclude1", "exclude2", "exclude3"), packagingOptions.excludes());
     assertEquals("merges", ImmutableList.of("merge1", "merge2", "merge3"), packagingOptions.merges());
     assertEquals("pickFirsts", ImmutableList.of("pickFirst1", "pickFirst2", "pickFirst3"), packagingOptions.pickFirsts());
@@ -51,6 +52,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     PackagingOptionsModel packagingOptions = android.packagingOptions();
+    assertEquals("doNotStrip", ImmutableList.of("doNotStrip1", "doNotStrip2", "doNotStrip3"), packagingOptions.doNotStrip());
     assertEquals("excludes", ImmutableList.of("exclude1", "exclude2", "exclude3"), packagingOptions.excludes());
     assertEquals("merges", ImmutableList.of("merge1", "merge2", "merge3"), packagingOptions.merges());
     assertEquals("pickFirsts", ImmutableList.of("pickFirst1", "pickFirst2", "pickFirst3"), packagingOptions.pickFirsts());
@@ -65,10 +67,12 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     PackagingOptionsModel packagingOptions = android.packagingOptions();
+    assertEquals("doNotStrip", ImmutableList.of("doNotStrip1", "doNotStrip2", "doNotStrip3"), packagingOptions.doNotStrip());
     assertEquals("excludes", ImmutableList.of("exclude1", "exclude2", "exclude3"), packagingOptions.excludes());
     assertEquals("merges", ImmutableList.of("merge1", "merge2", "merge3"), packagingOptions.merges());
     assertEquals("pickFirsts", ImmutableList.of("pickFirst1", "pickFirst2", "pickFirst3"), packagingOptions.pickFirsts());
 
+    packagingOptions.doNotStrip().getListValue("doNotStrip3").setValue("doNotStripX");
     packagingOptions.excludes().getListValue("exclude1").setValue("excludeX");
     packagingOptions.merges().getListValue("merge2").setValue("mergeX");
     packagingOptions.pickFirsts().getListValue("pickFirst3").setValue("pickFirstX");
@@ -80,6 +84,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     packagingOptions = android.packagingOptions();
+    assertEquals("doNotStrip", ImmutableList.of("doNotStrip1", "doNotStrip2", "doNotStripX"), packagingOptions.doNotStrip());
     assertEquals("excludes", ImmutableList.of("excludeX", "exclude2", "exclude3"), packagingOptions.excludes());
     assertEquals("merges", ImmutableList.of("merge1", "mergeX", "merge3"), packagingOptions.merges());
     assertEquals("pickFirsts", ImmutableList.of("pickFirst1", "pickFirst2", "pickFirstX"), packagingOptions.pickFirsts());
