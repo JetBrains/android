@@ -15,22 +15,15 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PACKAGING_OPTIONS_MODEL_ADD_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PACKAGING_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PACKAGING_OPTIONS_MODEL_APPEND_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PACKAGING_OPTIONS_MODEL_PARSE_ELEMENTS_IN_APPLICATION_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PACKAGING_OPTIONS_MODEL_PARSE_ELEMENTS_IN_ASSIGNMENT_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PACKAGING_OPTIONS_MODEL_REMOVE_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PACKAGING_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PACKAGING_OPTIONS_MODEL_REMOVE_ONLY_ELEMENT;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PACKAGING_OPTIONS_MODEL_REPLACE_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PACKAGING_OPTIONS_MODEL_REPLACE_ELEMENTS_EXPECTED;
-
+import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.PackagingOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
+import java.io.File;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.SystemDependent;
 import org.junit.Test;
 
 /**
@@ -39,7 +32,7 @@ import org.junit.Test;
 public class PackagingOptionsModelTest extends GradleFileModelTestCase {
   @Test
   public void testParseElementsInApplicationStatements() throws Exception {
-    writeToBuildFile(PACKAGING_OPTIONS_MODEL_PARSE_ELEMENTS_IN_APPLICATION_STATEMENTS);
+    writeToBuildFile(TestFile.PARSE_ELEMENTS_IN_APPLICATION_STATEMENTS);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -52,7 +45,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseElementsInAssignmentStatements() throws Exception {
-    writeToBuildFile(PACKAGING_OPTIONS_MODEL_PARSE_ELEMENTS_IN_ASSIGNMENT_STATEMENTS);
+    writeToBuildFile(TestFile.PARSE_ELEMENTS_IN_ASSIGNMENT_STATEMENTS);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -65,7 +58,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testReplaceElements() throws Exception {
-    writeToBuildFile(PACKAGING_OPTIONS_MODEL_REPLACE_ELEMENTS);
+    writeToBuildFile(TestFile.REPLACE_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -81,7 +74,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     packagingOptions.pickFirsts().getListValue("pickFirst3").setValue("pickFirstX");
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, PACKAGING_OPTIONS_MODEL_REPLACE_ELEMENTS_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.REPLACE_ELEMENTS_EXPECTED);
 
     android = buildModel.android();
     assertNotNull(android);
@@ -94,7 +87,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddElements() throws Exception {
-    writeToBuildFile(PACKAGING_OPTIONS_MODEL_ADD_ELEMENTS);
+    writeToBuildFile(TestFile.ADD_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -115,7 +108,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     // TODO(b/144280051): we emit Dsl with syntax errors here
     if(!isGroovy()) {
-      verifyFileContents(myBuildFile, PACKAGING_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED);
+      verifyFileContents(myBuildFile, TestFile.ADD_ELEMENTS_EXPECTED);
     }
     android = buildModel.android();
     assertNotNull(android);
@@ -128,7 +121,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAppendElements() throws Exception {
-    writeToBuildFile(PACKAGING_OPTIONS_MODEL_APPEND_ELEMENTS);
+    writeToBuildFile(TestFile.APPEND_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -145,7 +138,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
 
     applyChangesAndReparse(buildModel);
     // TODO(b/144280051): we emit Dsl with syntax errors here
-    // verifyFileContents(myBuildFile, PACKAGING_OPTIONS_MODEL_APPEND_ELEMENTS_EXPECTED);
+    // verifyFileContents(myBuildFile, TestFile.APPEND_ELEMENTS_EXPECTED);
 
     android = buildModel.android();
     assertNotNull(android);
@@ -158,7 +151,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveElements() throws Exception {
-    writeToBuildFile(PACKAGING_OPTIONS_MODEL_REMOVE_ELEMENTS);
+    writeToBuildFile(TestFile.REMOVE_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -188,7 +181,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveOneOfElements() throws Exception {
-    writeToBuildFile(PACKAGING_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS);
+    writeToBuildFile(TestFile.REMOVE_ONE_OF_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -205,7 +198,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
 
     applyChangesAndReparse(buildModel);
     // TODO(b/144280051): we emit Dsl with syntax errors here
-    // verifyFileContents(myBuildFile, PACKAGING_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_EXPECTED);
+    // verifyFileContents(myBuildFile, TestFile.REMOVE_ONE_OF_ELEMENTS_EXPECTED);
 
     android = buildModel.android();
     assertNotNull(android);
@@ -218,7 +211,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveOnlyElement() throws Exception {
-    writeToBuildFile(PACKAGING_OPTIONS_MODEL_REMOVE_ONLY_ELEMENT);
+    writeToBuildFile(TestFile.REMOVE_ONLY_ELEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -236,7 +229,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
 
     applyChangesAndReparse(buildModel);
     // TODO(b/144280051): we emit Dsl with syntax errors here
-    // verifyFileContents(myBuildFile, PACKAGING_OPTIONS_MODEL_REMOVE_ONLY_ELEMENT_EXPECTED);
+    // verifyFileContents(myBuildFile, TestFile.REMOVE_ONLY_ELEMENT_EXPECTED);
 
     android = buildModel.android();
     assertNotNull(android);
@@ -245,5 +238,32 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertMissingProperty("excludes", packagingOptions.excludes());
     assertEmpty("merges", packagingOptions.merges().toList());
     assertEmpty("pickFirsts", packagingOptions.pickFirsts().toList());
+  }
+
+  enum TestFile implements TestFileName {
+    PARSE_ELEMENTS_IN_APPLICATION_STATEMENTS("parseElementsInApplicationStatements"),
+    PARSE_ELEMENTS_IN_ASSIGNMENT_STATEMENTS("parseElementsInAssignmentStatements"),
+    REPLACE_ELEMENTS("replaceElements"),
+    REPLACE_ELEMENTS_EXPECTED("replaceElementsExpected"),
+    ADD_ELEMENTS("addElements"),
+    ADD_ELEMENTS_EXPECTED("addElementsExpected"),
+    APPEND_ELEMENTS("appendElements"),
+    APPEND_ELEMENTS_EXPECTED("appendElementsExpected"),
+    REMOVE_ELEMENTS("removeElements"),
+    REMOVE_ONE_OF_ELEMENTS("removeOneOfElements"),
+    REMOVE_ONE_OF_ELEMENTS_EXPECTED("removeOneOfElementsExpected"),
+    REMOVE_ONLY_ELEMENT("removeOnlyElement"),
+    REMOVE_ONLY_ELEMENT_EXPECTED("removeOnlyElementExpected"),
+    ;
+    @NotNull private @SystemDependent String path;
+    TestFile(@NotNull @SystemDependent String path) {
+      this.path = path;
+    }
+
+    @NotNull
+    @Override
+    public File toFile(@NotNull @SystemDependent String basePath, @NotNull String extension) {
+      return TestFileName.super.toFile(basePath + "/packagingOptionsModel/" + path, extension);
+    }
   }
 }
