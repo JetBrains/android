@@ -16,11 +16,11 @@
 package com.android.tools.idea.uibuilder.property2.support
 
 import com.android.SdkConstants
-import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
+import com.android.tools.property.panel.api.HelpSupport
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.command.WriteCommandAction
@@ -45,7 +45,7 @@ class ResourceActionsTest {
     val action = OpenResourceManagerAction
     val util = SupportTestUtil(projectRule, SdkConstants.TEXT_VIEW)
     val property = util.makeProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT, NelePropertyType.STRING)
-    val context = SimpleDataContext.getSimpleContext(HelpSupport.PROPERTY_ITEM.name, property)
+    val context = SimpleDataContext.getSimpleContext(HelpSupport.PROPERTY_ITEM, property)
     val event = AnActionEvent.createFromDataContext("", null, context)
     deleteXmlTag(property)
 
