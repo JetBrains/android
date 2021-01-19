@@ -3,8 +3,8 @@ package com.android.tools.idea.editors.literals
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.util.BuildListener
-import com.android.tools.idea.gradle.util.setupBuildListener
+import com.android.tools.idea.projectsystem.BuildListener
+import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.rendering.classloading.ConstantRemapperManager
 import com.android.tools.idea.util.ListenerCollection
 import com.intellij.codeInsight.highlighting.HighlightManager
