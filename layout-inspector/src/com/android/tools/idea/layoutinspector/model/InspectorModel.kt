@@ -81,6 +81,19 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   operator fun get(id: String) = root.flatten().find { it.viewId?.name == id }
 
   /**
+   * Get the root of the view tree that the view parameter lives in.
+   *
+   * This could be null if the view isn't in the model for any reason.
+   */
+   fun rootFor(view: ViewNode): ViewNode? {
+    return view.parentSequence.firstOrNull { it.parent === root }
+  }
+
+  fun rootFor(viewId: Long): ViewNode? {
+    return this[viewId]?.let { rootFor(it) }
+  }
+
+  /**
    * Update [root]'s bounds and children based on any updates to [windows]
    * Also adds a dark layer between windows if DIM_BEHIND is set.
    */

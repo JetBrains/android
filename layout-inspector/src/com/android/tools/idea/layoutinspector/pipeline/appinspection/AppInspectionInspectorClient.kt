@@ -69,7 +69,7 @@ class AppInspectionInspectorClient(
 
   override fun doConnect() {
     runBlocking {
-      viewInspector = ViewLayoutInspectorClient.launch(apiServices, model.project, process, scope, ::fireError, ::fireTreeEvent)
+      viewInspector = ViewLayoutInspectorClient.launch(apiServices, process, model, scope, ::fireError, ::fireTreeEvent)
       propertiesProvider = AppInspectionPropertiesProvider(viewInspector, model)
 
       if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT.get()) {
