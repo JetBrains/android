@@ -109,6 +109,7 @@ class ViewLayoutInspectorClient(
     set(value) {
       field = value
       propertiesCache.allowFetching = value
+      composeInspector?.parametersCache?.allowFetching = value
     }
 
   private val currRoots = mutableListOf<Long>()
@@ -165,10 +166,12 @@ class ViewLayoutInspectorClient(
     currRoots.addAll(rootsEvent.idsList)
 
     propertiesCache.retain(currRoots)
+    composeInspector?.parametersCache?.retain(currRoots)
   }
 
   private suspend fun handleLayoutEvent(layoutEvent: LayoutEvent) {
     propertiesCache.clearFor(layoutEvent.rootView.id)
+    composeInspector?.parametersCache?.clearFor(layoutEvent.rootView.id)
 
     val composablesResponse = composeInspector?.getComposeables(layoutEvent.rootView.id)
     fireTreeEvent(Data(currRoots, layoutEvent, composablesResponse))

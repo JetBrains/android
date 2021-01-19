@@ -70,11 +70,11 @@ class AppInspectionInspectorClient(
   override fun doConnect() {
     runBlocking {
       if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT.get()) {
-        composeInspector = ComposeLayoutInspectorClient.launch(apiServices, model.project, process)
+        composeInspector = ComposeLayoutInspectorClient.launch(apiServices, process, model)
       }
 
       viewInspector = ViewLayoutInspectorClient.launch(apiServices, process, model, scope, composeInspector, ::fireError, ::fireTreeEvent)
-      propertiesProvider = AppInspectionPropertiesProvider(viewInspector, model)
+      propertiesProvider = AppInspectionPropertiesProvider(viewInspector, composeInspector, model)
     }
 
     debugViewAttributes.set()

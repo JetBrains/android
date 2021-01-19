@@ -24,11 +24,14 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.cancel
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Command
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesCommand
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParametersCommand
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParametersResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Response
 
 const val COMPOSE_LAYOUT_INSPECTOR_ID = "layoutinspector.compose.inspection"
@@ -45,7 +48,7 @@ private val MINIMUM_COMPOSE_COORDINATE = ArtifactCoordinate(
  *
  * @param messenger The messenger that lets us communicate with the view inspector.
  */
-class ComposeLayoutInspectorClient(private val messenger: AppInspectorMessenger) {
+class ComposeLayoutInspectorClient(model: InspectorModel, private val messenger: AppInspectorMessenger) {
 
   companion object {
     /**
@@ -53,14 +56,14 @@ class ComposeLayoutInspectorClient(private val messenger: AppInspectorMessenger)
      * with it.
      */
     suspend fun launch(apiServices: AppInspectionApiServices,
-                       project: Project,
-                       process: ProcessDescriptor): ComposeLayoutInspectorClient? {
+                       process: ProcessDescriptor,
+                       model: InspectorModel): ComposeLayoutInspectorClient? {
       // Set force = true, to be more aggressive about connecting the layout inspector if an old version was
       // left running for some reason. This is a better experience than silently falling back to a legacy client.
-      val params = LaunchParameters(process, COMPOSE_LAYOUT_INSPECTOR_ID, JAR, project.name, MINIMUM_COMPOSE_COORDINATE, force = true)
+      val params = LaunchParameters(process, COMPOSE_LAYOUT_INSPECTOR_ID, JAR, model.project.name, MINIMUM_COMPOSE_COORDINATE, force = true)
       return try {
         val messenger = apiServices.launchInspector(params)
-        ComposeLayoutInspectorClient(messenger)
+        ComposeLayoutInspectorClient(model, messenger)
       }
       catch (ignored: AppInspectionVersionIncompatibleException) {
         // TODO(b/177702041): Show a banner to the user that they should upgrade their version of the compose library
@@ -76,6 +79,8 @@ class ComposeLayoutInspectorClient(private val messenger: AppInspectorMessenger)
     }
   }
 
+  val parametersCache = ComposeParametersCache(this, model)
+
   suspend fun getComposeables(rootViewId: Long): GetComposablesResponse {
     val response = messenger.sendCommand {
       getComposablesCommand = GetComposablesCommand.newBuilder().apply {
@@ -83,6 +88,15 @@ class ComposeLayoutInspectorClient(private val messenger: AppInspectorMessenger)
       }.build()
     }
     return response.getComposablesResponse
+  }
+
+  suspend fun fetchParameters(composableId: Long): GetParametersResponse {
+    val response = messenger.sendCommand {
+      getParametersCommand = GetParametersCommand.newBuilder()
+        .setComposableId(composableId)
+        .build()
+    }
+    return response.getParametersResponse
   }
 
   fun disconnect() {

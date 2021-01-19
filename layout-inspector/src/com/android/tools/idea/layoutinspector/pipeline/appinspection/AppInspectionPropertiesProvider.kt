@@ -19,6 +19,8 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeParametersData
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewPropertiesData
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
@@ -36,7 +38,8 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
 
 class AppInspectionPropertiesProvider(
-  private val client: ViewLayoutInspectorClient,
+  private val viewClient: ViewLayoutInspectorClient,
+  private val composeClient: ComposeLayoutInspectorClient?,
   private val model: InspectorModel)
   : PropertiesProvider {
 
@@ -47,11 +50,25 @@ class AppInspectionPropertiesProvider(
     val self = this
 
     CoroutineScope(Dispatchers.Unconfined).launch {
-      val data = client.propertiesCache.getDataFor(view)
-      if (data != null) {
-        completeProperties(view, data)
+      var propertiesTable: PropertiesTable<InspectorPropertyItem>? = null
+      if (view !is ComposeViewNode) {
+        val viewData = viewClient.propertiesCache.getDataFor(view)
+        if (viewData != null) {
+          completeProperties(view, viewData)
+          propertiesTable = viewData.properties
+        }
+      }
+      else {
+        val composeData = composeClient?.parametersCache?.getDataFor(view)
+        if (composeData != null) {
+          completeParameters(view, composeData)
+          propertiesTable = composeData.parameters
+        }
+      }
+
+      if (propertiesTable != null) {
         for (listener in resultListeners) {
-          listener(self, view, data.properties)
+          listener(self, view, propertiesTable)
         }
       }
       future.complete(Unit)
@@ -85,6 +102,13 @@ class AppInspectionPropertiesProvider(
         properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let { convertToResolutionStackItem(it, view, cell.value!!) }
       }.forEach { properties.put(it) }
     }
+  }
+
+  private fun completeParameters(view: ViewNode, parametersData: ComposeParametersData) {
+    val parameters = parametersData.parameters
+    if (parameters.getByNamespace(NAMESPACE_INTERNAL).isNotEmpty()) return
+
+    addInternalProperties(parameters, view, model)
   }
 
   /**
