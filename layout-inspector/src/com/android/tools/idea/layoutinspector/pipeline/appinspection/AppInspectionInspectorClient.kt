@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
+import com.android.ddmlib.AndroidDebugBridge
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
@@ -45,6 +46,7 @@ import java.util.EnumSet
  *     coroutine scope is used to handle the bridge between the two approaches.
  */
 class AppInspectionInspectorClient(
+  private val adb: AndroidDebugBridge,
   process: ProcessDescriptor,
   private val model: InspectorModel,
   @TestOnly private val apiServices: AppInspectionApiServices = AppInspectionDiscoveryService.instance.apiServices,
@@ -57,11 +59,15 @@ class AppInspectionInspectorClient(
     fireError(t.message!!)
   }
 
+  private val debugViewAttributes = DebugViewAttributes(adb, model.project, process)
+
   override fun doConnect() {
     runBlocking {
       viewInspector = ViewLayoutInspectorClient.launch(apiServices, model.project, process, scope, ::fireError, ::fireTreeEvent)
       propertiesProvider = AppInspectionPropertiesProvider(viewInspector, model)
     }
+
+    debugViewAttributes.set()
 
     if (isCapturing) {
       startFetching()
@@ -74,6 +80,7 @@ class AppInspectionInspectorClient(
   override fun doDisconnect(): ListenableFuture<Nothing> {
     val future = SettableFuture.create<Nothing>()
     scope.launch(exceptionHandler) {
+      debugViewAttributes.clear()
       viewInspector.disconnect()
       future.set(null)
     }
