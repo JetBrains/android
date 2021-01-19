@@ -48,6 +48,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.junit.rules.Timeout
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -67,8 +68,10 @@ import javax.swing.table.DefaultTableCellRenderer
 @RunsInEdt
 class ManageSnapshotsDialogTest {
   private val emulatorViewRule = EmulatorViewRule()
+  private val timeoutRule = Timeout.builder().withTimeout(60, TimeUnit.SECONDS).withLookingForStuckThread(true).build()
+
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(emulatorViewRule).around(DebugLoggerRule()).around(EdtRule())
+  val ruleChain: RuleChain = RuleChain.outerRule(emulatorViewRule).around(DebugLoggerRule()).around(timeoutRule).around(EdtRule())
 
   private var nullableEmulator: FakeEmulator? = null
   private var nullableEmulatorView: EmulatorView? = null
