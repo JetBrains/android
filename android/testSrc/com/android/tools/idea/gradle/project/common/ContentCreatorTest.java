@@ -44,7 +44,8 @@ public class ContentCreatorTest extends PlatformTestCase {
 
   public void testCreateLocalMavenRepoInitScriptContent() {
     List<String> repoPaths = Arrays.asList("path1", "path2", "path3");
-    String expected = "allprojects {\n" +
+    String expected = "import org.gradle.util.GradleVersion\n\n" +
+                      "allprojects {\n" +
                       "  buildscript {\n" +
                       "    repositories {\n" +
                       "      maven { url 'path1'}\n" +
@@ -58,7 +59,7 @@ public class ContentCreatorTest extends PlatformTestCase {
                       "      maven { url 'path3'}\n" +
                       "  }\n" +
                       "}\n" +
-                      "try {\n" +
+                      "if (GradleVersion.current().baseVersion >= GradleVersion.version('6.8')) {\n" +
                       "  beforeSettings {\n" +
                       "    it.dependencyResolutionManagement {\n" +
                       "      repositories {\n" +
@@ -68,7 +69,7 @@ public class ContentCreatorTest extends PlatformTestCase {
                       "      }\n" +
                       "    }\n" +
                       "  }\n" +
-                      "} catch (Throwable ignored) { /* In case this Gradle version does not support this. */}\n";;
+                      "}\n";
 
     String content = myContentCreator.createLocalMavenRepoInitScriptContent(repoPaths);
     assertEquals(expected, content);
