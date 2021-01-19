@@ -30,13 +30,13 @@ import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
-import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.EXPECTED_TEXT_TOOLTIP
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
+import com.android.tools.property.panel.api.HelpSupport
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.documentation.DocumentationManager
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -91,7 +91,7 @@ class HelpActionsTest {
     @Suppress("DEPRECATION")
     val tag = util.components[0].tagDeprecated
     util.loadProperties()
-    val context = SimpleDataContext.getSimpleContext(HelpSupport.PROPERTY_ITEM.name, util.properties[ANDROID_URI, ATTR_TEXT])
+    val context = SimpleDataContext.getSimpleContext(HelpSupport.PROPERTY_ITEM, util.properties[ANDROID_URI, ATTR_TEXT])
     val event = AnActionEvent.createFromDataContext("", null, context)
     HelpActions.help.actionPerformed(event)
     verify(manager).showJavaDocInfo(eq(tag), eq(tag), eq(true), isNull(), eq(EXPECTED_TEXT_TOOLTIP), eq(true))

@@ -108,14 +108,12 @@ open class NeleIdPropertyItem(
 
     if (StudioFlags.RESOLVE_USING_REPOS.get()) {
       val action = RenameElementAction()
-      val simpleContext = SimpleDataContext.getSimpleContext(
-        mapOf(
-          NEW_NAME_RESOURCE.name to newId,
-          CommonDataKeys.PSI_FILE.name to value.containingFile,
-          CommonDataKeys.PSI_ELEMENT.name to value,
-          CommonDataKeys.PROJECT.name to value.project),
-        null
-      )
+      val simpleContext = SimpleDataContext.builder()
+        .add(NEW_NAME_RESOURCE, newId)
+        .add(CommonDataKeys.PSI_FILE, value.containingFile)
+        .add(CommonDataKeys.PSI_ELEMENT, value)
+        .add(CommonDataKeys.PROJECT, value.project)
+        .build()
       ActionUtil.invokeAction(action, simpleContext, ActionPlaces.UNKNOWN, null, null)
     } else {
       // Exact replace only
