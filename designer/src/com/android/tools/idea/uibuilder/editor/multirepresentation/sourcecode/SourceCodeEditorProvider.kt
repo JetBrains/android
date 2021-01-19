@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 
 import com.android.tools.idea.flags.StudioFlags.NELE_SOURCE_CODE_EDITOR
+import com.intellij.ide.lightEdit.LightEdit
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorPolicy
@@ -35,7 +36,8 @@ import com.intellij.psi.PsiManager
 class SourceCodeEditorProvider : FileEditorProvider, QuickDefinitionProvider, DumbAware {
   private val LOG = Logger.getInstance(SourceCodeEditorProvider::class.java)
 
-  override fun accept(project: Project, file: VirtualFile): Boolean = NELE_SOURCE_CODE_EDITOR.get() && file.hasSourceFileExtension()
+  override fun accept(project: Project, file: VirtualFile): Boolean =
+    !LightEdit.owns(project) && NELE_SOURCE_CODE_EDITOR.get() && file.hasSourceFileExtension()
 
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {
     if (LOG.isDebugEnabled) {
