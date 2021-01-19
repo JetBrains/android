@@ -169,7 +169,8 @@ public class GradleInitScripts {
         path = escapeGroovyStringLiteral(path);
         paths.append("      maven { url '").append(path).append("'}\n");
       }
-      return "allprojects {\n" +
+      return "import org.gradle.util.GradleVersion\n\n" +
+             "allprojects {\n" +
              "  buildscript {\n" +
              "    repositories {\n" + paths +
              "    }\n" +
@@ -177,14 +178,14 @@ public class GradleInitScripts {
              "  repositories {\n" + paths +
              "  }\n" +
              "}\n" +
-             "try {\n" +
+             "if (GradleVersion.current().baseVersion >= GradleVersion.version('6.8')) {\n" +
              "  beforeSettings {\n" +
              "    it.dependencyResolutionManagement {\n" +
              "      repositories {\n" + paths +
              "      }\n" +
              "    }\n" +
              "  }\n" +
-             "} catch (Throwable ignored) { /* In case this Gradle version does not support this. */}\n";
+             "}\n";
     }
 
     @NotNull
