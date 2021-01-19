@@ -37,6 +37,8 @@ import org.jetbrains.annotations.NotNull;
 public class PackagingOptionsDslElement extends GradleDslBlockElement {
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
+    {"doNotStrip", property, DO_NOT_STRIP, VAR},
+    {"doNotStrip", exactly(1), DO_NOT_STRIP, OTHER},
     {"excludes", property, EXCLUDES, VAR},
     {"exclude", exactly(1), EXCLUDES, OTHER},
     {"merges", property, MERGES, VAR},
@@ -47,6 +49,8 @@ public class PackagingOptionsDslElement extends GradleDslBlockElement {
 
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> groovyToModelNameMap = Stream.of(new Object[][]{
+    {"doNotStrip", property, DO_NOT_STRIP, VAR},
+    {"doNotStrip", exactly(1), DO_NOT_STRIP, OTHER},
     {"excludes", property, EXCLUDES, VAR},
     {"exclude", exactly(1), EXCLUDES, OTHER},
     {"merges", property, MERGES, VAR},
@@ -78,6 +82,11 @@ public class PackagingOptionsDslElement extends GradleDslBlockElement {
   @Override
   public void addParsedElement(@NotNull GradleDslElement element) {
     String property = element.getName();
+    if (property.equals("doNotStrip")) {
+      addToParsedExpressionList(DO_NOT_STRIP, element);
+      return;
+    }
+
     if (property.equals("exclude")) {
       addToParsedExpressionList(EXCLUDES, element);
       return;

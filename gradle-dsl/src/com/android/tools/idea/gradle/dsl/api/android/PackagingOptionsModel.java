@@ -21,6 +21,9 @@ import org.jetbrains.annotations.NotNull;
 
 public interface PackagingOptionsModel extends GradleDslModel {
   @NotNull
+  ResolvedPropertyModel doNotStrip();
+
+  @NotNull
   ResolvedPropertyModel excludes();
 
   @NotNull
