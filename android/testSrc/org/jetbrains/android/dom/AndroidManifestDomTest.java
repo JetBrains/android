@@ -38,6 +38,47 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     return SdkConstants.FN_ANDROID_MANIFEST_XML;
   }
 
+  public void testProfileableHighlighting() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "    <application>\n" +
+      "        <profileable android:shell=\"true\"/>\n" +
+      "    </application>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.checkHighlighting();
+  }
+
+  public void testProfileableTagCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "    <application>\n" +
+      "        <<caret>\n" +
+      "    </application>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).contains("profileable");
+  }
+
+  public void testProfileableAttributeCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "    <application>\n" +
+      "        <profileable <caret>/>\n" +
+      "    </application>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).containsExactly("android:shell");
+  }
+
   public void testOverlayTagCompletion() throws Throwable {
     toTestCompletion("overlay.xml", "overlay_after.xml");
   }
