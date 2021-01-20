@@ -538,6 +538,8 @@ internal class ManageSnapshotsDialog(
       modality = IdeModalityType.MODELESS,
       createActions = { listOf(CloseDialogAction()) })
       .apply {
+        dialogManager = this
+
         backgroundExecutor.submit {
           readBootModeAndSnapshotList()
         }
@@ -556,13 +558,13 @@ internal class ManageSnapshotsDialog(
           updateSelectionState()
         })
 
-        dialogManager = this
         Disposer.register(disposable) {
           val dimensionService = DimensionService.getInstance()
           dimensionService.setLocation(DIMENSION_SERVICE_KEY, location, project)
           dimensionService.setSize(DIMENSION_SERVICE_KEY, size, project)
 
           // The dialog is closing but we still need to wait for all background operations to finish.
+          logger.debug("ManageSnapshotDialog is closing")
           dialogManager = null
           // Cancel unfinished icon loading.
           for (future in snapshotTableModel.snapshotIconMap.values) {
@@ -661,6 +663,7 @@ internal class ManageSnapshotsDialog(
   }
 
   private fun invokeLaterWhileDialogIsShowing(runnable: () -> Unit) {
+    logger.debug("calling invokeLater")
     ApplicationManager.getApplication().invokeLater(runnable, ModalityState.any()) { dialogManager == null }
   }
 
