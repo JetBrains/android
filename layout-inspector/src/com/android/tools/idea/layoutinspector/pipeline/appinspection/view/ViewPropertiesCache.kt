@@ -23,8 +23,8 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.ViewNodeCac
  * Cache of view properties, to avoid expensive refetches when possible.
  */
 class ViewPropertiesCache(private val client: ViewLayoutInspectorClient, model: InspectorModel) : ViewNodeCache<ViewPropertiesData>(model) {
-  override suspend fun fetchDataFor(node: ViewNode): ViewPropertiesData? {
-    val properties = client.fetchProperties(node.drawId)
+  override suspend fun fetchDataFor(root: ViewNode, node: ViewNode): ViewPropertiesData? {
+    val properties = client.getProperties(root.drawId, node.drawId)
     return if (properties.viewId != 0L) {
       ViewPropertiesDataGenerator(properties, model).generate()
     }

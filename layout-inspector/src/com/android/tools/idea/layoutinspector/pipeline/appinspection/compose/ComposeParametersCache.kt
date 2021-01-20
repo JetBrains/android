@@ -23,8 +23,8 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.ViewNodeCac
  * Cache of compose parameters, to avoid expensive refetches when possible.
  */
 class ComposeParametersCache(private val client: ComposeLayoutInspectorClient, model: InspectorModel) : ViewNodeCache<ComposeParametersData>(model) {
-  override suspend fun fetchDataFor(node: ViewNode): ComposeParametersData? {
-    val parameters = client.fetchParameters(node.drawId)
+  override suspend fun fetchDataFor(root: ViewNode, node: ViewNode): ComposeParametersData? {
+    val parameters = client.getParameters(root.drawId, node.drawId)
     return if (parameters.composableId != 0L) {
       ComposeParametersDataGenerator(parameters, model).generate()
     }

@@ -81,7 +81,7 @@ abstract class ViewNodeCache<D>(
     if (!allowFetching) return null
 
     return withContext(AndroidDispatchers.workerThread) {
-      val data = fetchDataFor(node)
+      val data = fetchDataFor(root, node)
       if (data != null) {
         val innerMap = cache.computeIfAbsent(root.drawId) { mutableMapOf() }
         innerMap[node.drawId] = data
@@ -90,5 +90,5 @@ abstract class ViewNodeCache<D>(
     }
   }
 
-  protected abstract suspend fun fetchDataFor(node: ViewNode): D?
+  protected abstract suspend fun fetchDataFor(root: ViewNode, node: ViewNode): D?
 }
