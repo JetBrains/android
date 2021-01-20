@@ -105,6 +105,19 @@ class FilterNodeActionTest {
     assertThat(event.presentation.isVisible).isFalse()
   }
 
+  @Test
+  fun testFilterSystemNodeActionAlwaysAvailableIfNotConnected() {
+    val inspector = mock(LayoutInspector::class.java)
+    val client = mock(InspectorClient::class.java)
+    val event = createEvent(inspector)
+    `when`(client.capabilities).thenReturn(EnumSet.noneOf(Capability::class.java))
+    `when`(inspector.currentClient).thenReturn(client)
+    `when`(client.isConnected).thenReturn(false)
+    TreeSettings.hideSystemNodes = false
+    FilterNodeAction.update(event)
+    assertThat(event.presentation.isVisible).isTrue()
+  }
+
   private fun createEvent(inspector: LayoutInspector): AnActionEvent {
     val dataContext = object : DataContext {
       override fun getData(dataId: String): Any? {
