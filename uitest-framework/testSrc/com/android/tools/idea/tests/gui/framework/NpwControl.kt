@@ -39,7 +39,11 @@ class NpwControl(private val project: Project) : TemplateRendererListener {
 
   override fun multiRenderingFinished() {
     // Update project files.
-    val gradleFile = File(project.basePath!!, SdkConstants.FN_BUILD_GRADLE)
+    updateRepositories(File(project.basePath!!, SdkConstants.FN_BUILD_GRADLE))
+    updateRepositories(File(project.basePath!!, SdkConstants.FN_SETTINGS_GRADLE))
+  }
+
+  private fun updateRepositories(gradleFile: File) {
     if (gradleFile.exists()) {
       val gradleVirtualFile = VfsUtil.findFileByIoFile(gradleFile, true)!!
       val origContent = VfsUtil.loadText(gradleVirtualFile)
