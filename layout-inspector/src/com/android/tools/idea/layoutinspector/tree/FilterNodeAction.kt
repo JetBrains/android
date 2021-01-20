@@ -45,8 +45,11 @@ object FilterNodeAction : ToggleAction("Filter system-defined layers", null, Stu
 
   override fun update(event: AnActionEvent) {
     event.presentation.isVisible =
-      inspector(event)?.currentClient?.capabilities?.contains(Capability.SUPPORTS_FILTERING_SYSTEM_NODES)
-      ?: true // If no client running for now, default to visible so user can modify selection
+      inspector(event)?.currentClient?.let { client ->
+        !client.isConnected // If not running, default to visible so user can modify selection when next client is connected
+        || client.capabilities.contains(Capability.SUPPORTS_FILTERING_SYSTEM_NODES)
+      }
+      ?: true
   }
 
   private fun inspector(event: AnActionEvent): LayoutInspector? = event.getData(LAYOUT_INSPECTOR_DATA_KEY)
