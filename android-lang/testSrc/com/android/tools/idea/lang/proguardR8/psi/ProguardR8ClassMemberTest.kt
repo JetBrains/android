@@ -21,7 +21,6 @@ import com.android.tools.idea.lang.proguardR8.ProguardR8TestCase
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElement
-import com.intellij.psi.ResolveResult
 import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference
 import com.intellij.psi.util.parentOfType
 
@@ -80,7 +79,7 @@ class ProguardR8ClassMemberTest : ProguardR8TestCase() {
       } else {
         classMemberReference = myFixture.referenceAtCaret as ProguardR8ClassMemberNameReference
       }
-      return (classMemberReference.resolveReference() as Collection<ResolveResult>).map { it.element!!.text }
+      return classMemberReference.multiResolve(false).map { it.element.text }
     }
 
     myFixture.addClass(
