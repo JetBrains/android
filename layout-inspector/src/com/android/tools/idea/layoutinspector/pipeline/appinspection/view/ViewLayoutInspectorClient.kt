@@ -22,6 +22,7 @@ import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameter
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
@@ -132,9 +133,10 @@ class ViewLayoutInspectorClient(
 
   suspend fun startFetching(continuous: Boolean) {
     messenger.sendCommand {
-      startFetchCommand = StartFetchCommand.newBuilder()
-        .setContinuous(continuous)
-        .build()
+      startFetchCommand = StartFetchCommand.newBuilder().apply {
+        this.continuous = continuous
+        skipSystemViews = TreeSettings.hideSystemNodes
+      }.build()
     }
     isFetchingContinuously = continuous
   }
@@ -146,11 +148,12 @@ class ViewLayoutInspectorClient(
     isFetchingContinuously = false
   }
 
-  suspend fun fetchProperties(viewId: Long): LayoutInspectorViewProtocol.GetPropertiesResponse {
+  suspend fun getProperties(rootViewId: Long, viewId: Long): LayoutInspectorViewProtocol.GetPropertiesResponse {
     val response = messenger.sendCommand {
-      getPropertiesCommand = GetPropertiesCommand.newBuilder()
-        .setViewId(viewId)
-        .build()
+      getPropertiesCommand = GetPropertiesCommand.newBuilder().apply {
+        this.rootViewId = rootViewId
+        this.viewId = viewId
+      }.build()
     }
     return response.getPropertiesResponse
   }

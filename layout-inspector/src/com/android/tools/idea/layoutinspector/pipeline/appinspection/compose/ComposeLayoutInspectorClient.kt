@@ -25,7 +25,7 @@ import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordin
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.intellij.openapi.project.Project
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import kotlinx.coroutines.cancel
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Command
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesCommand
@@ -85,16 +85,19 @@ class ComposeLayoutInspectorClient(model: InspectorModel, private val messenger:
     val response = messenger.sendCommand {
       getComposablesCommand = GetComposablesCommand.newBuilder().apply {
         this.rootViewId = rootViewId
+        skipSystemComposables = TreeSettings.hideSystemNodes
       }.build()
     }
     return response.getComposablesResponse
   }
 
-  suspend fun fetchParameters(composableId: Long): GetParametersResponse {
+  suspend fun getParameters(rootViewId: Long, composableId: Long): GetParametersResponse {
     val response = messenger.sendCommand {
-      getParametersCommand = GetParametersCommand.newBuilder()
-        .setComposableId(composableId)
-        .build()
+      getParametersCommand = GetParametersCommand.newBuilder().apply {
+        this.rootViewId = rootViewId
+        this.composableId = composableId
+        skipSystemComposables = TreeSettings.hideSystemNodes
+      }.build()
     }
     return response.getParametersResponse
   }
