@@ -231,7 +231,7 @@ public final class StudioFlagsDialog extends DialogWrapper {
           flagEditorPanel.add(flagEditor.editorComponent());
           flagEditorPanel.add(resetLink);
 
-          JPanel namePanel = new JPanel(new HorizontalLayout(JBUI.scale(UIUtil.DEFAULT_HGAP)));
+          JPanel namePanel = new JPanel(new HorizontalLayout(UIUtil.DEFAULT_HGAP));
           namePanel.add(name);
           namePanel.add(id);
           flagPanel.add(namePanel);
