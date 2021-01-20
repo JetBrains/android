@@ -19,6 +19,7 @@ import com.android.utils.HtmlBuilder;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,7 +37,7 @@ public class HtmlBuilderHelper {
   private static String getIconPath(String relative) {
     // TODO: Find a way to do this more efficiently; not referencing assets but the corresponding
     // AllIcons constants, and loading them into HTML class loader contexts?
-    URL resource = AllIcons.class.getClassLoader().getResource(relative);
+    URL resource = AllIcons.class.getClassLoader().getResource(StringUtil.trimStart(relative, "/"));
     try {
       return (resource != null) ? resource.toURI().toURL().toExternalForm() : null;
     }
