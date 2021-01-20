@@ -106,10 +106,10 @@ class FlagPropertyEditor(val editorModel: FlagPropertyEditorModel) : PropertyTex
  */
 class FlagPropertyPanel(private val editorModel: FlagPropertyEditorModel,
                         private val restoreFocusTo: JComponent,
-                        windowHeight: Int) : AdtSecondaryPanel(VerticalLayout(JBUI.scale(2))) {
+                        windowHeight: Int) : AdtSecondaryPanel(VerticalLayout(2)) {
   var balloon: Balloon? = null
   val searchField = SearchTextField()
-  private val innerPanel = AdtSecondaryPanel(VerticalLayout(JBUI.scale(2)))
+  private val innerPanel = AdtSecondaryPanel(VerticalLayout(2))
   private val flagDivider = JSeparator()
 
   init {
