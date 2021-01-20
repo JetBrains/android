@@ -24,8 +24,8 @@ import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiPolyVariantReference
 import com.intellij.psi.PsiPrimitiveType
-import com.intellij.psi.ResolveResult
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.IncorrectOperationException
 import org.junit.Assert
@@ -35,7 +35,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
   private fun getMethodsAtCaret(): List<PsiMethod> {
     val proguardMethod = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMemberName>()
     assertThat(proguardMethod).isNotNull()
-    return (proguardMethod!!.reference!!.resolveReference() as Collection<ResolveResult>).map { it.element as PsiMethod }
+    return (proguardMethod!!.reference as PsiPolyVariantReference).multiResolve(false).map { it.element as PsiMethod }
   }
 
   fun testMatchesToPsiType() {
@@ -617,7 +617,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
       }
       """.trimIndent()
     )
-    val methods = myFixture.referenceAtCaret.resolveReference() as Collection<ResolveResult>
+    val methods = (myFixture.referenceAtCaret as PsiPolyVariantReference).multiResolve(false).toList()
 
     // resolve methods with different return types
     assertThat(methods).hasSize(2)
