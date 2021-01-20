@@ -16,7 +16,6 @@
 package com.android.tools.idea.model
 
 import com.android.tools.idea.util.toIoFile
-import com.android.utils.FileUtils.createFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -24,11 +23,9 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.util.io.delete
-import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidRootUtil
-import java.io.File
 
 class MergedManifestModificationListenerTest : AndroidTestCase() {
   private lateinit var mergedManifestTracker: MergedManifestModificationTracker
@@ -42,45 +39,45 @@ class MergedManifestModificationListenerTest : AndroidTestCase() {
   fun testManifestPsiFileUpdate() {
     // To ensure the PSI file corresponding to the primary manifest virtual file is requested
     Manifest.getMainManifest(myFacet)
-    assertThat(mergedManifestTracker.modificationCount).isEqualTo(0L)
+    val baseMergedManifestTrackerCount: Long = mergedManifestTracker.modificationCount
 
     updatePrimaryManifestXml { addPermissionWithoutSaving("com.example.SEND_MESSAGE") }
 
     // picked up 1 document change(from a cached psi file)
-    assertThat(mergedManifestTracker.modificationCount).isEqualTo(1L)
+    assertThat(mergedManifestTracker.modificationCount).isEqualTo(baseMergedManifestTrackerCount + 1)
   }
 
   fun testManifestVirtualFileUpdate() {
-    assertThat(mergedManifestTracker.modificationCount).isEqualTo(0L)
+    val baseMergedManifestTrackerCount: Long = mergedManifestTracker.modificationCount
     updatePrimaryManifestXml { addPermissionWithSaving("com.example.SEND_MESSAGE") }
 
     // picked up 1 document(from virtual file corresponding to this specified document) change
-    assertThat(mergedManifestTracker.modificationCount).isEqualTo(1L)
+    assertThat(mergedManifestTracker.modificationCount).isEqualTo(baseMergedManifestTrackerCount + 1)
   }
 
   fun testManifestVirtualFileAndPsiFileUpdate() {
     // to ensure the PSI file corresponding to the primary manifest virtual file is requested
     Manifest.getMainManifest(myFacet)
-    assertThat(mergedManifestTracker.modificationCount).isEqualTo(0L)
+    val baseMergedManifestTrackerCount: Long = mergedManifestTracker.modificationCount
     updatePrimaryManifestXml { addPermissionWithSaving("com.example.SEND_MESSAGE") }
 
     // picked up 1 document(from a cached psi file) change
-    assertThat(mergedManifestTracker.modificationCount).isEqualTo(1L)
+    assertThat(mergedManifestTracker.modificationCount).isEqualTo(baseMergedManifestTrackerCount + 1)
   }
 
   fun testAncestorDirectoryDeleted() {
-    assertThat(mergedManifestTracker.modificationCount).isEqualTo(0L)
+    val baseMergedManifestTrackerCount: Long = mergedManifestTracker.modificationCount
 
     val manifestParent = AndroidRootUtil.getPrimaryManifestFile(myFacet)!!.parent!!.toIoFile()
     val manifestParentPath = manifestParent.toPath()
     manifestParentPath.delete(true)
     LocalFileSystem.getInstance().refreshAndFindFileByIoFile(manifestParent)
 
-    assertThat(mergedManifestTracker.modificationCount).isEqualTo(1L)
+    assertThat(mergedManifestTracker.modificationCount).isEqualTo(baseMergedManifestTrackerCount + 1)
   }
 
   fun testNoManifestContributorUpdate() {
-    assertThat(mergedManifestTracker.modificationCount).isEqualTo(0L)
+    val baseMergedManifestTrackerCount: Long = mergedManifestTracker.modificationCount
 
     myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.kt",
@@ -98,7 +95,7 @@ class MergedManifestModificationListenerTest : AndroidTestCase() {
         }
         """.trimIndent()
     )
-    assertThat(mergedManifestTracker.modificationCount).isEqualTo(0L)
+    assertThat(mergedManifestTracker.modificationCount).isEqualTo(baseMergedManifestTrackerCount)
   }
 
   private fun updatePrimaryManifestXml(update: VirtualFile.() -> Unit) {
