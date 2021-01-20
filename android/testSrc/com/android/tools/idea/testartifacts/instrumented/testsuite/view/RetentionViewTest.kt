@@ -113,6 +113,38 @@ class RetentionViewTest {
   }
 
   @Test
+  fun loadTarScreenshotCached() {
+    assertThat(retentionView.image).isNull()
+    val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_TAR)
+    // RetentionView needs a real file so that it can parse the file name extension for compression format.
+    val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR)
+    assertThat(url).isNotNull()
+    with(FileOutputStream(snapshotFile)) {
+      IOUtils.copy(url.openStream(), this)
+    }
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.setSnapshotFile(snapshotFile)
+    }
+    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.setSnapshotFile(null)
+    }
+    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    ApplicationManager.getApplication().invokeAndWait {
+      assertThat(retentionView.image).isNull()
+      // Fake the panel size so that it will update the image
+      retentionView.rootPanel.resize(200, 200)
+      retentionView.setSnapshotFile(snapshotFile)
+    }
+    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    ApplicationManager.getApplication().invokeAndWait {
+      assertThat(retentionView.image).isNotNull()
+      assertThat(retentionView.myImageLabel.icon).isNotNull()
+      assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+    }
+  }
+
+  @Test
   fun loadTarGzScreenshot() {
     assertThat(retentionView.image).isNull()
     val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_TAR_GZ)
@@ -156,6 +188,7 @@ class RetentionViewTest {
     val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_TAR_GZ)
     // RetentionView needs a real file so that it can parse the file name extension for compression format.
     val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
+    val application = ApplicationManager.getApplication()
     assertThat(url).isNotNull()
     with(FileOutputStream(snapshotFile)) {
       IOUtils.copy(url.openStream(), this)
@@ -165,11 +198,15 @@ class RetentionViewTest {
     retentionView.myRetentionDebugButton.isEnabled = false
     retentionView.myRetentionDebugButton.toolTipText = toolTipText
     retentionView.scanSnapshotFileContent(snapshotFile) {
-      uiUpdateChecks += 1
-      uiUpdateChecks > 2
+      if (application.isDispatchThread) {
+        uiUpdateChecks += 1
+        uiUpdateChecks > 1
+      } else {
+        false
+      }
     }
     (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
-    ApplicationManager.getApplication().invokeAndWait {
+    application.invokeAndWait {
       assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
       assertThat(retentionView.myRetentionDebugButton.toolTipText).contains("Validating snapshot")
     }
@@ -428,46 +465,23 @@ class RetentionViewTest {
       IOUtils.copy(url.openStream(), this)
     }
     ApplicationManager.getApplication().invokeAndWait {
-      var uiUpdateChecks = 0
-      retentionView.myRetentionDebugButton.isEnabled = false
-      retentionView.myRetentionDebugButton.toolTipText = toolTipText
-      retentionView.scanSnapshotFileContent(snapshotFile) {
-        uiUpdateChecks += 1
-        uiUpdateChecks > 2
+      for (i in 2..5) {
+        var uiUpdateChecks = 0
+        retentionView.myRetentionDebugButton.isEnabled = false
+        retentionView.myRetentionDebugButton.toolTipText = toolTipText
+        retentionView.scanSnapshotFileContent(snapshotFile) {
+          uiUpdateChecks += 1
+          uiUpdateChecks > i
+        }
+        assertThat(retentionView.image).isNull()
+        assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+        assertThat(retentionView.myRetentionDebugButton.toolTipText.contains("Validating snapshot file")).isTrue()
       }
-      assertThat(retentionView.image).isNull()
-      assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
-      assertThat(retentionView.myRetentionDebugButton.toolTipText).isNotEqualTo(toolTipText)
     }
   }
 
   @Test
   fun interruptUiUpdate3() {
-    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Not loadable".toByteArray(Charset.defaultCharset())))
-    val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
-    // RetentionView needs a real file so that it can parse the file name extension for compression format.
-    val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
-    val toolTipText = "default"
-    assertThat(url).isNotNull()
-    with(FileOutputStream(snapshotFile)) {
-      IOUtils.copy(url.openStream(), this)
-    }
-    ApplicationManager.getApplication().invokeAndWait {
-      var uiUpdateChecks = 0
-      retentionView.myRetentionDebugButton.isEnabled = false
-      retentionView.myRetentionDebugButton.toolTipText = toolTipText
-      retentionView.scanSnapshotFileContent(snapshotFile) {
-        uiUpdateChecks += 1
-        uiUpdateChecks > 2
-      }
-      assertThat(retentionView.image).isNull()
-      assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
-      assertThat(retentionView.myRetentionDebugButton.toolTipText).isNotEqualTo(toolTipText)
-    }
-  }
-
-  @Test
-  fun interruptUiUpdate4() {
     ApplicationManager.getApplication().invokeAndWait {
       val toolTipText = "default"
       var uiUpdateChecks = 0
@@ -480,23 +494,6 @@ class RetentionViewTest {
       assertThat(retentionView.image).isNull()
       assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
       assertThat(retentionView.myRetentionDebugButton.toolTipText).isEqualTo(toolTipText)
-    }
-  }
-
-  @Test
-  fun interruptUiUpdate5() {
-    ApplicationManager.getApplication().invokeAndWait {
-      val toolTipText = "default"
-      var uiUpdateChecks = 0
-      retentionView.myRetentionDebugButton.isEnabled = false
-      retentionView.myRetentionDebugButton.toolTipText = toolTipText
-      retentionView.scanSnapshotFileContent(null) {
-        uiUpdateChecks += 1
-        uiUpdateChecks > 2
-      }
-      assertThat(retentionView.image).isNull()
-      assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
-      assertThat(retentionView.myRetentionDebugButton.toolTipText).isNotEqualTo(toolTipText)
     }
   }
 
