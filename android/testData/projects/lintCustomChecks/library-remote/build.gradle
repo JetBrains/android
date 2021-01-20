@@ -1,5 +1,5 @@
 apply plugin: 'com.android.library'
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
 
 android {
     compileSdkVersion 24
@@ -14,10 +14,19 @@ android {
 group = 'com.example.google'
 version = '1.0'
 
-uploadArchives {
-    repositories.mavenDeployer {
-        repository(url: "file:${project.rootDir}/localRepo")
+afterEvaluate {
+  publishing {
+    repositories {
+      maven {
+        url = uri("${project.rootDir}/localRepo")
+      }
     }
+    publications {
+      release(MavenPublication) {
+        from components.release
+      }
+    }
+  }
 }
 
 dependencies {

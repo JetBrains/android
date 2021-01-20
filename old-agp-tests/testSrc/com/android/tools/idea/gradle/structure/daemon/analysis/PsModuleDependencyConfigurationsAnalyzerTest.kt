@@ -30,9 +30,12 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
 
 class PsModuleDependencyConfigurationsAnalyzerTest : DependencyTestCase() {
+
+  private val gradleVersion = "5.5"
+
   fun testObsoleteTestCompileConfigurationInLibrary() {
     // Use a plugin with instant app support
-    loadProject(TestProjectPaths.PSD_UPGRADE, null, null, "3.5.0")
+    loadProject(TestProjectPaths.PSD_UPGRADE, null, gradleVersion, "3.5.0")
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     val disposable = Disposer.newDisposable()
@@ -55,7 +58,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest : DependencyTestCase() {
 
   fun testObsoleteCompileConfigurationInLibrary() {
     // Use a plugin with instant app support
-    loadProject(TestProjectPaths.PSD_UPGRADE, null, null, "3.5.0")
+    loadProject(TestProjectPaths.PSD_UPGRADE, null, gradleVersion, "3.5.0")
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     val disposable = Disposer.newDisposable()
@@ -78,7 +81,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest : DependencyTestCase() {
 
   fun testObsoleteTestCompileConfigurationInApp() {
     // Use a plugin with instant app support
-    loadProject(TestProjectPaths.PSD_UPGRADE, null, null, "3.5.0")
+    loadProject(TestProjectPaths.PSD_UPGRADE, null, gradleVersion, "3.5.0")
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     val disposable = Disposer.newDisposable()
@@ -101,7 +104,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest : DependencyTestCase() {
 
   fun testObsoleteCompileConfigurationInApp() {
     // Use a plugin with instant app support
-    loadProject(TestProjectPaths.PSD_UPGRADE, null, null, "3.5.0")
+    loadProject(TestProjectPaths.PSD_UPGRADE, null, gradleVersion, "3.5.0")
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     val disposable = Disposer.newDisposable()
@@ -133,7 +136,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest : DependencyTestCase() {
   // no testObsoleteCompileTestConfigurationInTest() because com.android.test does not support compileTest dependencies
   fun testObsoleteCompileConfigurationInTest() {
     // Use a plugin with instant app support
-    loadProject(TestProjectPaths.PSD_UPGRADE, null, null, "3.5.0")
+    loadProject(TestProjectPaths.PSD_UPGRADE, null, gradleVersion, "3.5.0")
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     val disposable = Disposer.newDisposable()
@@ -157,7 +160,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest : DependencyTestCase() {
   // testCompile not supported by com.android.instantapp plugin
   fun testObsoleteCompileConfigurationInInstantApp() {
     // Use a plugin with instant app support
-    loadProject(TestProjectPaths.PSD_UPGRADE, null, null, "3.5.0")
+    loadProject(TestProjectPaths.PSD_UPGRADE, null, gradleVersion, "3.5.0")
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     val disposable = Disposer.newDisposable()
@@ -226,7 +229,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest : DependencyTestCase() {
 
   fun testObsoleteTestCompileScopeInJava() {
     // Use a plugin with instant app support
-    loadProject(TestProjectPaths.PSD_UPGRADE, null, null, "3.5.0")
+    loadProject(TestProjectPaths.PSD_UPGRADE, null, gradleVersion, "3.5.0")
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     val disposable = Disposer.newDisposable()
@@ -249,7 +252,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest : DependencyTestCase() {
 
   fun testObsoleteCompileConfigurationInJava() {
     // Use a plugin with instant app support
-    loadProject(TestProjectPaths.PSD_UPGRADE, null, null, "3.5.0")
+    loadProject(TestProjectPaths.PSD_UPGRADE, null, gradleVersion, "3.5.0")
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     val disposable = Disposer.newDisposable()
