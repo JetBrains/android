@@ -844,7 +844,7 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
         }
 
         if (node.getAdapter() instanceof ClassifierSet) {
-          CaptureObjectInstanceFilter leakFilter = myCaptureObject.getActivityFragmentLeakFilter();
+          CaptureObjectInstanceFilter leakFilter = myCaptureObject != null ? myCaptureObject.getActivityFragmentLeakFilter() : null;
           myLeakCount = leakFilter != null ?
                         ((ClassifierSet)node.getAdapter()).getInstanceFilterMatchCount(leakFilter) :
                         0;
