@@ -35,7 +35,7 @@ class AppInspectionTreeLoader(
   override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup): Pair<AndroidWindow?, Int>? {
     if (data is ViewLayoutInspectorClient.Data) {
       val window = ViewInspectorTreeLoader(project, skiaParser, data.viewEvent, resourceLookup, data.composeEvent).loadComponentTree()
-      return window to data.viewEvent.generation
+      return window to data.generation
     }
     return null
   }

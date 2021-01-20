@@ -69,6 +69,7 @@ class ViewLayoutInspectorClient(
    * layout inspector.
    */
   class Data(
+    val generation: Int,
     val rootIds: List<Long>,
     val viewEvent: LayoutEvent,
     val composeEvent: GetComposablesResponse?
@@ -112,6 +113,7 @@ class ViewLayoutInspectorClient(
       composeInspector?.parametersCache?.allowFetching = value
     }
 
+  private var generation = 0 // Update the generation each time we get a new LayoutEvent
   private val currRoots = mutableListOf<Long>()
 
   init {
@@ -170,11 +172,12 @@ class ViewLayoutInspectorClient(
   }
 
   private suspend fun handleLayoutEvent(layoutEvent: LayoutEvent) {
+    generation++
     propertiesCache.clearFor(layoutEvent.rootView.id)
     composeInspector?.parametersCache?.clearFor(layoutEvent.rootView.id)
 
     val composablesResponse = composeInspector?.getComposeables(layoutEvent.rootView.id)
-    fireTreeEvent(Data(currRoots, layoutEvent, composablesResponse))
+    fireTreeEvent(Data(generation, currRoots, layoutEvent, composablesResponse))
   }
 }
 
