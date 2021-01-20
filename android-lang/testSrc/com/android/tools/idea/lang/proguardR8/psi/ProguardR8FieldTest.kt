@@ -23,8 +23,8 @@ import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
+import com.intellij.psi.PsiPolyVariantReference
 import com.intellij.psi.PsiPrimitiveType
-import com.intellij.psi.ResolveResult
 import com.intellij.psi.util.parentOfType
 
 class ProguardR8FieldsTest : ProguardR8TestCase() {
@@ -479,7 +479,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
       }
       """.trimIndent()
     )
-    val fields = myFixture.referenceAtCaret.resolveReference() as Collection<ResolveResult>
+    val fields = (myFixture.referenceAtCaret as PsiPolyVariantReference).multiResolve(false).toList()
 
     assertThat(fields).hasSize(1)
     assertThat(fields.map { it.element!!.text }).contains("boolean[] myField;")
