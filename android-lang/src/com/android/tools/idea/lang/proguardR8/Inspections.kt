@@ -43,7 +43,7 @@ class ProguardR8ReferenceInspection : LocalInspectionTool() {
         super.visitClassMemberName(name)
         val reference = name.reference ?: return
         val classMember = reference.element.parentOfType<ProguardR8ClassMember>()!!
-        if (classMember.isParentClassKnown() && reference.resolveReference().isEmpty()) {
+        if (classMember.isParentClassKnown() && reference.multiResolve(false).isEmpty()) {
           // We can't resolve reference and we highlight it with "unused" (gray colour)
           // because it's not an error in Proguard/R8 to specify class member that doesn't exist
           holder.registerProblem(name, "The rule matches no class members")
