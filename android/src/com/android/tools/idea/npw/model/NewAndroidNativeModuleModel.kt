@@ -26,6 +26,7 @@ import com.android.tools.idea.wizard.template.CppStandardType
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
+import com.android.tools.idea.wizard.template.deriveNativeLibraryName
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE
 
@@ -72,14 +73,11 @@ class NewAndroidNativeModuleModel(
           enableCpp = true,
           cppStandard = cppStandard.value
         )
-        val nativeLibraryName = lastSegmentOfPackageName(data.packageName)
+        val nativeLibraryName = data.packageName.deriveNativeLibraryName()
         val nativeSourceName = "$nativeLibraryName.cpp"
         generateCMakeFile(data, nativeSourceName, nativeLibraryName)
         generateBasicJniBindings(data, language.get().orElse(Language.Java), "NativeLib", nativeSourceName, nativeLibraryName)
       }
   }
   override val loggingEvent: AndroidStudioEvent.TemplateRenderer = AndroidStudioEvent.TemplateRenderer.ANDROID_NATIVE_MODULE
-
-  private fun lastSegmentOfPackageName(packageName: String): String =
-    packageName.split('.').last()
 }
