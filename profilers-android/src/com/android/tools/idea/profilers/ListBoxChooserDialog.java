@@ -80,13 +80,6 @@ public class ListBoxChooserDialog<T> extends DialogWrapper {
     setTitle(title);
     myMessage = message;
 
-    // This keeps us in alignment with the intellij style. The style indicates that
-    // dialog buttons should be right aligned on mac (default) and center aligned
-    // on all other platforms.
-    if (!SystemInfo.isMac) {
-      setButtonsAlignment(SwingConstants.CENTER);
-    }
-
     myPresentationAdapter = presentationAdapter;
     myOptions = options;
     assert !myOptions.isEmpty();
