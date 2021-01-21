@@ -44,6 +44,7 @@ class GradleAndroidTestApplicationLaunchTaskTest {
   @Mock lateinit var mockHandler: ProcessHandler
   @Mock lateinit var mockLaunchStatus: LaunchStatus
   @Mock lateinit var mockPrinter: ConsolePrinter
+  @Mock lateinit var mockProcessHandler: ProcessHandler
 
   @Before
   fun setup() {
@@ -78,6 +79,7 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockProject,
       "taskId",
       /*waitForDebugger*/false,
+      mockProcessHandler,
       mockPrinter,
       mockDevice,
       gradleConnectedAndroidTestInvoker)
@@ -97,6 +99,7 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockProject,
       "taskId",
       /*waitForDebugger*/false,
+      mockProcessHandler,
       mockPrinter,
       mockDevice,
       mockPackageName,
@@ -118,6 +121,7 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockProject,
       "taskId",
       /*waitForDebugger*/false,
+      mockProcessHandler,
       mockPrinter,
       mockDevice,
       mockClassName,
@@ -140,6 +144,7 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockProject,
       "taskId",
       /*waitForDebugger*/true,
+      mockProcessHandler,
       mockPrinter,
       mockDevice,
       mockClassName,
