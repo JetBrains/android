@@ -254,8 +254,33 @@ final class Updater {
     myPresentation.setText(getText(device, target), false);
   }
 
+  /**
+   * Returns the text to display in the drop down button. It usually indicates the device selected by the user. If there's another device in
+   * the drop down with the same name as the selected device, this method appends the selected device's key (serial number) to the text to
+   * disambiguate it. If it's appropriate to display the boot option (Cold Boot, Quick Boot, the name of the snapshot for a snapshot boot),
+   * this method appends it to the text. If the underlying machinery has determined a reason why a device isn't valid, this method appends
+   * that too.
+   *
+   * @param device the device selected by the user
+   * @param target responsible for the boot option text if it's appropriate to display it
+   */
   private @NotNull String getText(@NotNull Device device, @NotNull Target target) {
     Key key = Devices.containsAnotherDeviceWithSameName(myDevices, device) ? device.getKey() : null;
-    return Devices.getText(device, key, mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet.getAsBoolean() ? target : null);
+    String bootOption;
+
+    if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet.getAsBoolean()) {
+      bootOption = null;
+    }
+    else if (device.isConnected()) {
+      bootOption = null;
+    }
+    else if (device.getSnapshots().isEmpty()) {
+      bootOption = null;
+    }
+    else {
+      bootOption = target.getText(device).orElseThrow(AssertionError::new);
+    }
+
+    return Devices.getText(device, key, bootOption);
   }
 }

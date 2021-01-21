@@ -41,8 +41,7 @@ final class Devices {
     return getText(device, key, null);
   }
 
-  static @NotNull String getText(@NotNull Device device, @Nullable Key key, @Nullable Target target) {
-    String bootOption = target == null ? null : target.getText(device).orElse(null);
+  static @NotNull String getText(@NotNull Device device, @Nullable Key key, @Nullable String bootOption) {
     return getText(device.getName(), key == null ? null : key.toString(), bootOption, device.getValidityReason());
   }
 

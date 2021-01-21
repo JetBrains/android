@@ -430,6 +430,69 @@ public final class UpdaterTest {
   }
 
   @Test
+  public void getTextDeviceIsConnected() {
+    // Arrange
+    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(key)
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    List<Device> devices = Collections.singletonList(device);
+
+    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
+    Mockito.when(service.getTargetSelectedWithComboBox(devices)).thenReturn(Optional.of(new QuickBootTarget(key)));
+
+    Updater updater = new Updater.Builder()
+      .setProject(myRule.getProject())
+      .setPresentation(myPresentation)
+      .setDevicesSelectedService(service)
+      .setDevices(devices)
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(() -> true)
+      .build();
+
+    // Act
+    updater.update();
+
+    // Assert
+    assertEquals("Pixel 4 API 30", myPresentation.getText());
+  }
+
+  @Test
+  public void getTextSnapshotsIsEmpty() {
+    // Arrange
+    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(key)
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    List<Device> devices = Collections.singletonList(device);
+
+    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
+    Mockito.when(service.getTargetSelectedWithComboBox(devices)).thenReturn(Optional.of(new QuickBootTarget(key)));
+
+    Updater updater = new Updater.Builder()
+      .setProject(myRule.getProject())
+      .setPresentation(myPresentation)
+      .setDevicesSelectedService(service)
+      .setDevices(devices)
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(() -> true)
+      .build();
+
+    // Act
+    updater.update();
+
+    // Assert
+    assertEquals("Pixel 4 API 30", myPresentation.getText());
+  }
+
+  @Test
   public void updatePlaceEqualsMainMenu() {
     // Arrange
     Updater updater = new Updater.Builder()
