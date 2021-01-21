@@ -162,6 +162,7 @@ public class IdeaTestSuiteBase {
   protected static void unzipIntoOfflineMavenRepo(@NotNull String repoZip) {
     File offlineRepoZip = getWorkspaceFileAndEnsureExistence(repoZip);
     File outDir = TestUtils.getPrebuiltOfflineMavenRepo().toFile();
+    System.out.printf("Unzipping offline repo %s to %s%n", offlineRepoZip, outDir);
     unzip(offlineRepoZip, outDir);
   }
 
