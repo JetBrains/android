@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.SupportedModuleChecker
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.project.sync.ModuleSetupContext
 import com.android.tools.idea.gradle.project.sync.idea.computeSdkReloadingAsNeeded
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.ModuleModelDataService
@@ -50,8 +49,8 @@ import com.intellij.execution.RunManagerEx
 import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.configurations.ConfigurationType
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.project.ProjectData
@@ -61,9 +60,11 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.LanguageLevelModuleExtension
+import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.io.FileUtil.getRelativePath
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION
 import org.jetbrains.jps.model.serialization.PathMacroUtil
@@ -119,15 +120,25 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
 
         moduleValidator.validate(module, androidModel)
       }
-      else {
-        // If we don't have a model for this module then we need to ensure that no Android facets are left on the module.
-        val facetModel = modelsProvider.getModifiableFacetModel(module)
-        removeAllFacets(facetModel, AndroidFacet.ID)
-      }
     }
 
     if (modelsByModuleName.isNotEmpty()) {
       moduleValidator.fixAndReportFoundIssues()
+    }
+  }
+
+  override fun eligibleOrphanCandidates(project: Project): List<Module> {
+    return ContainerUtil.map(ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID), AndroidFacet::getModule)
+  }
+
+  override fun removeData(toRemoveComputable: Computable<MutableCollection<Module>>,
+                          toIgnore: MutableCollection<DataNode<AndroidModuleModel>>,
+                          projectData: ProjectData,
+                          project: Project,
+                          modelsProvider: IdeModifiableModelsProvider) {
+    for (module in toRemoveComputable.get()) {
+      val facetModel = modelsProvider.getModifiableFacetModel(module)
+      removeAllFacets(facetModel, AndroidFacet.ID)
     }
   }
 

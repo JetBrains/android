@@ -22,15 +22,19 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
-import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkModuleCleanupStep;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
+import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,9 +71,23 @@ public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleM
         ModuleSetupContext context = myModuleSetupContextFactory.create(module, modelsProvider);
         myModuleSetup.setUpModule(context, ndkModuleModel);
       }
-      else {
-        ModifiableFacetModel facetModel = modelsProvider.getModifiableFacetModel(module);
-        removeAllFacets(facetModel, NdkFacet.getFacetTypeId());      }
+    }
+  }
+
+  @Override
+  protected List<@NotNull Module> eligibleOrphanCandidates(@NotNull Project project) {
+    return ContainerUtil.map(ProjectFacetManager.getInstance(project).getFacets(NdkFacet.getFacetTypeId()), NdkFacet::getModule);
+  }
+
+  @Override
+  public void removeData(@NotNull Computable<Collection<Module>> toRemoveComputable,
+                         @NotNull Collection<DataNode<NdkModuleModel>> toIgnore,
+                         @NotNull ProjectData projectData,
+                         @NotNull Project project,
+                         @NotNull IdeModifiableModelsProvider modelsProvider) {
+    for (Module module : toRemoveComputable.get()) {
+      ModifiableFacetModel facetModel = modelsProvider.getModifiableFacetModel(module);
+      removeAllFacets(facetModel, NdkFacet.getFacetTypeId());
     }
   }
 }
