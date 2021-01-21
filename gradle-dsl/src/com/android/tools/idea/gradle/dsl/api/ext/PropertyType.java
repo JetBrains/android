@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.api.ext;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-
 /**
  * Represents the property type for a {@link GradleDslElement}.
  * <ul>
