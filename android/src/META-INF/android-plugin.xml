@@ -282,7 +282,6 @@
     <postStartupActivity implementation="com.android.tools.idea.model.MergedManifestModificationListener$SubscriptionStartupActivity"/>
     <postStartupActivity implementation="com.android.tools.idea.res.AndroidFileChangeListener$SubscribeOnStartupActivity"/>
 
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleProjectComponent" />
     <projectService serviceImplementation="com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild" />
     <projectService serviceImplementation="com.android.tools.idea.project.SyncTimestamp" />
     <projectService serviceImplementation="com.android.tools.idea.profiling.view.AnalysisResultsManager" />
