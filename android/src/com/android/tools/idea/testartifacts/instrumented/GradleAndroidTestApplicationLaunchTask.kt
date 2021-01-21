@@ -25,6 +25,7 @@ import com.android.tools.idea.run.tasks.AppLaunchTask
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTaskDurations
+import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
@@ -40,6 +41,7 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
   private val project: Project,
   private val taskId: String,
   private val waitForDebugger: Boolean,
+  private val processHandler: ProcessHandler,
   private val consolePrinter: ConsolePrinter,
   private val device: IDevice,
   private val testPackageName: String,
@@ -57,10 +59,11 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
       project: Project,
       taskId: String,
       waitForDebugger: Boolean,
+      processHandler: ProcessHandler,
       consolePrinter: ConsolePrinter,
       device: IDevice,
       gradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker) : GradleAndroidTestApplicationLaunchTask {
-        return GradleAndroidTestApplicationLaunchTask(project, taskId, waitForDebugger, consolePrinter, device, "",
+        return GradleAndroidTestApplicationLaunchTask(project, taskId, waitForDebugger, processHandler, consolePrinter, device, "",
                                                       "", "", gradleConnectedAndroidTestInvoker)
     }
 
@@ -72,11 +75,12 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
       project: Project,
       taskId: String,
       waitForDebugger: Boolean,
+      processHandler: ProcessHandler,
       consolePrinter: ConsolePrinter,
       device: IDevice,
       testPackageName: String,
       gradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker) : GradleAndroidTestApplicationLaunchTask {
-      return GradleAndroidTestApplicationLaunchTask(project, taskId, waitForDebugger, consolePrinter, device, testPackageName,
+      return GradleAndroidTestApplicationLaunchTask(project, taskId, waitForDebugger, processHandler, consolePrinter, device, testPackageName,
                                                     "", "", gradleConnectedAndroidTestInvoker)
     }
 
@@ -88,12 +92,13 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
       project: Project,
       taskId: String,
       waitForDebugger: Boolean,
+      processHandler: ProcessHandler,
       consolePrinter: ConsolePrinter,
       device: IDevice,
       testClassName: String,
       gradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker) : GradleAndroidTestApplicationLaunchTask {
       return GradleAndroidTestApplicationLaunchTask(project, taskId, waitForDebugger,
-                                                    consolePrinter, device, "", testClassName, "", gradleConnectedAndroidTestInvoker)
+                                                    processHandler, consolePrinter, device, "", testClassName, "", gradleConnectedAndroidTestInvoker)
     }
 
     /**
@@ -104,12 +109,13 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
       project: Project,
       taskId: String,
       waitForDebugger: Boolean,
+      processHandler: ProcessHandler,
       consolePrinter: ConsolePrinter,
       device: IDevice,
       testClassName: String,
       testMethodName: String,
       gradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker) : GradleAndroidTestApplicationLaunchTask {
-      return GradleAndroidTestApplicationLaunchTask(project, taskId, waitForDebugger, consolePrinter, device, "",
+      return GradleAndroidTestApplicationLaunchTask(project, taskId, waitForDebugger, processHandler, consolePrinter, device, "",
                                                     testClassName, testMethodName, gradleConnectedAndroidTestInvoker)
     }
   }
@@ -126,6 +132,12 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
         override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
           super.onTaskOutput(id, text, stdOut)
           consolePrinter.stdout(text)
+        }
+
+        override fun onEnd(id: ExternalSystemTaskId,) {
+          super.onEnd(id)
+          consolePrinter.stdout("tests ended")
+          processHandler.detachProcess()
         }
       }
       AndroidGradleTaskManager().executeTasks(externalTaskId, taskNames, path.path, getGradleExecutionSettings(), null, listener)
