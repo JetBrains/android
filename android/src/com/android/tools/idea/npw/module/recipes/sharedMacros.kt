@@ -26,7 +26,6 @@ import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.Revision
-import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.android.tools.idea.wizard.template.getMaterialComponentName
 import com.android.tools.idea.wizard.template.renderIf
 import java.io.File
