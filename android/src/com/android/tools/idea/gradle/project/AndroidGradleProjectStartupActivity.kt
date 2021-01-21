@@ -57,6 +57,15 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
+import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
+
+import com.android.tools.idea.project.AndroidNotification
+import com.android.tools.idea.project.AndroidProjectInfo
+
+import com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME
+
+import com.android.tools.idea.sdk.IdeSdks
+import com.intellij.notification.NotificationType
 
 /**
  * Syncs Android Gradle project with the persisted project data on startup.
@@ -90,6 +99,33 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
     // Disable all settings sections that we don't want to be present in Android Studio.
     // See AndroidStudioPreferences for a full list.
     AndroidStudioPreferences.cleanUpPreferences(project)
+
+    // Suggest that Android Studio users use Gradle instead of IDEA project builder.
+    showMigrateToGradleWarning(project)
+
+    // Check if the Gradle JDK environment variable is valid
+    showInvalidJdkEnvVariableWarning(project)
+  }
+
+  private fun showInvalidJdkEnvVariableWarning(project: Project) {
+    val ideSdks = IdeSdks.getInstance()
+    if (ideSdks.isJdkEnvVariableDefined && !ideSdks.isJdkEnvVariableValid) {
+      val msg = "$JDK_LOCATION_ENV_VARIABLE_NAME is being ignored since it is set to an invalid JDK Location: ${ideSdks.envVariableJdkValue}"
+      AndroidNotification.getInstance(project).showBalloon("", msg, NotificationType.WARNING,
+                                                           SelectJdkFromFileSystemHyperlink.create(project)!!)
+    }
+  }
+
+  private fun showMigrateToGradleWarning(project: Project) {
+    val legacyAndroidProjects = LegacyAndroidProjects(project)
+    val androidProjectInfo = AndroidProjectInfo.getInstance(project)
+    if (androidProjectInfo.isLegacyIdeaAndroidProject() && !androidProjectInfo.isApkProject()) {
+      legacyAndroidProjects.trackProject()
+      if (!GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
+        // Suggest that Android Studio users use Gradle instead of IDEA project builder.
+        legacyAndroidProjects.showMigrateToGradleWarning()
+      }
+    }
   }
 }
 

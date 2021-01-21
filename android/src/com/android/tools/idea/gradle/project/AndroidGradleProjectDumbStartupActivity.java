@@ -27,6 +27,7 @@ import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationsConfiguration;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerManager;
+import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTrackerSettings;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -35,7 +36,6 @@ import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.annotations.NotNull;
 
-// FIXME-ank4: check is this activity still needed (was created as part of "dynamization" effort, contents might be outdated after 4.1 merge)
 public class AndroidGradleProjectDumbStartupActivity implements StartupActivity.DumbAware {
   // Copy of a private constant in GradleNotification.java.
   private static final String GRADLE_NOTIFICATION_GROUP_NAME = "Gradle Notification Group";
@@ -45,6 +45,7 @@ public class AndroidGradleProjectDumbStartupActivity implements StartupActivity.
     // Disable Gradle plugin notifications in Android Studio.
     if (IdeInfo.getInstance().isAndroidStudio()) {
       disableGradlePluginNotifications();
+      disableGradleAutoImport(project);
     }
 
     // Register a task that gets notified when a Gradle-based Android project is compiled via JPS.
@@ -52,6 +53,10 @@ public class AndroidGradleProjectDumbStartupActivity implements StartupActivity.
 
     // Register a task that gets notified when a Gradle-based Android project is compiled via direct Gradle invocation.
     registerAfterTaskForAndroidGradleProjectCompiledViaGradleInvocation(project);
+  }
+
+  private void disableGradleAutoImport(Project project) {
+    ExternalSystemProjectTrackerSettings.getInstance(project).setAutoReloadType(ExternalSystemProjectTrackerSettings.AutoReloadType.NONE);
   }
 
   private void registerAfterTaskForAndroidGradleProjectCompiledViaGradleInvocation(Project project) {
