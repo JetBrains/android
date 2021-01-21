@@ -451,6 +451,20 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   /**
+   * Delete a snapshot in the emulator.
+   *
+   * @param snapshotId the ID of the snapshot to delete
+   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case)
+   */
+  fun deleteSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getEmptyObserver()) {
+    val snapshot = SnapshotPackage.newBuilder().setSnapshotId(snapshotId).build()
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("deleteSnapshot(${shortDebugString(snapshot)})")
+    }
+    snapshotService.deleteSnapshot(snapshot, DelegatingStreamObserver(streamObserver, SnapshotServiceGrpc.getSaveSnapshotMethod()))
+  }
+
+  /**
    * Shows the extended controls of the emulator.
    *
    * @param paneIndex indentifies the pane to open
