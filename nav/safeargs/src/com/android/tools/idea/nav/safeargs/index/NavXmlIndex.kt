@@ -22,16 +22,13 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.util.indexing.DataIndexer
 import com.intellij.util.indexing.DefaultFileTypeSpecificInputFilter
 import com.intellij.util.indexing.FileBasedIndex
-import com.intellij.util.indexing.FileBasedIndexExtension
 import com.intellij.util.indexing.FileContent
 import com.intellij.util.indexing.ID
+import com.intellij.util.indexing.SingleEntryFileBasedIndexExtension
+import com.intellij.util.indexing.SingleEntryIndexer
 import com.intellij.util.io.DataExternalizer
-import com.intellij.util.io.EnumeratorStringDescriptor
-import com.intellij.util.io.KeyDescriptor
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataInput
@@ -42,22 +39,17 @@ import javax.xml.bind.JAXBContext
 /**
  * File based index for the parts of navigation xml files relevant to generating Safe Args classes.
  */
-class NavXmlIndex : FileBasedIndexExtension<String, NavXmlData>() {
+class NavXmlIndex : SingleEntryFileBasedIndexExtension<NavXmlData>() {
   companion object {
     private fun getLog() = Logger.getInstance(NavXmlIndex::class.java)
 
     @JvmField
-    val NAME = ID.create<String, NavXmlData>("NavXmlIndex")
+    val NAME = ID.create<Int, NavXmlData>("NavXmlIndex")
 
-    private fun getKeyForFile(file: VirtualFile) = FileBasedIndex.getFileId(file).toString()
-
-    private fun getDataForFile(file: VirtualFile, scope: GlobalSearchScope): NavXmlData? {
+    fun getDataForFile(project: Project, file: VirtualFile): NavXmlData? {
       ApplicationManager.getApplication().assertReadAccessAllowed()
-      val index = FileBasedIndex.getInstance()
-      return index.getValues(NAME, getKeyForFile(file), scope).firstOrNull()
+      return FileBasedIndex.getInstance().getSingleEntryIndexData(NAME, file, project)
     }
-
-    fun getDataForFile(project: Project, file: VirtualFile) = getDataForFile(file, GlobalSearchScope.fileScope(project, file))
   }
 
   private val jaxbContext = JAXBContext.newInstance(MutableNavNavigationData::class.java)
@@ -65,10 +57,9 @@ class NavXmlIndex : FileBasedIndexExtension<String, NavXmlData>() {
   private val jaxbSerializer get() = jaxbContext.createMarshaller()
   private val jaxbDeserializer get() = jaxbContext.createUnmarshaller()
 
-  override fun getVersion() = 8
-  override fun getKeyDescriptor(): KeyDescriptor<String> = EnumeratorStringDescriptor.INSTANCE
+  override fun getVersion() = 9
   override fun dependsOnFileContent() = true
-  override fun getName(): ID<String, NavXmlData> = NAME
+  override fun getName(): ID<Int, NavXmlData> = NAME
 
   override fun getInputFilter(): FileBasedIndex.InputFilter {
     return object : DefaultFileTypeSpecificInputFilter(XmlFileType.INSTANCE) {
@@ -106,19 +97,21 @@ class NavXmlIndex : FileBasedIndexExtension<String, NavXmlData>() {
     }
   }
 
-  override fun getIndexer(): DataIndexer<String, NavXmlData, FileContent> {
-    return DataIndexer { inputData ->
-      try {
-        val rootNav = jaxbDeserializer.unmarshal(StringReader(inputData.contentAsText.toString())) as NavNavigationData
-        mapOf(getKeyForFile(inputData.file) to NavXmlData(rootNav))
-      }
-      // Normally we'd just catch explicit exceptions, like UnmarshalException, but JAXB also
-      // throws AssertionErrors, which isn't documented. Since we don't really care why the parse
-      // failed, and we definitely don't want any exceptions to leak to our users here, to be safe
-      // we just catch and log all possible problems.
-      catch (e: Throwable) {
-        getLog().info("${NavXmlIndex::class.java.simpleName} skipping over \"${inputData.file.path}\"", e)
-        mapOf()
+  override fun getIndexer(): SingleEntryIndexer<NavXmlData> {
+    return object : SingleEntryIndexer<NavXmlData>(false) {
+      override fun computeValue(inputData: FileContent): NavXmlData? {
+        try {
+          val rootNav = jaxbDeserializer.unmarshal(StringReader(inputData.contentAsText.toString())) as NavNavigationData
+          return NavXmlData(rootNav)
+        }
+        // Normally we'd just catch explicit exceptions, like UnmarshalException, but JAXB also
+        // throws AssertionErrors, which isn't documented. Since we don't really care why the parse
+        // failed, and we definitely don't want any exceptions to leak to our users here, to be safe
+        // we just catch and log all possible problems.
+        catch (e: Throwable) {
+          getLog().info("${NavXmlIndex::class.java.simpleName} skipping over \"${inputData.file.path}\"", e)
+          return null
+        }
       }
     }
   }
