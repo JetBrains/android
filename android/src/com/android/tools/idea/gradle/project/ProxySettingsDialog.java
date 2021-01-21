@@ -23,7 +23,6 @@ import static com.android.tools.idea.gradle.util.ProxySettings.replacePipesWithC
 import static com.android.tools.idea.util.ParametersListUtil.COMMA_LINE_JOINER;
 import static com.android.tools.idea.util.ParametersListUtil.COMMA_LINE_PARSER;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static org.gradle.internal.impldep.org.eclipse.jgit.util.StringUtils.isEmptyOrNull;
 
 import com.android.tools.idea.gradle.util.ProxySettings;
 import com.google.common.annotations.VisibleForTesting;
