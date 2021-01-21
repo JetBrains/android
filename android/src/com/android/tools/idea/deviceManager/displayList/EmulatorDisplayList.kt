@@ -36,6 +36,8 @@ import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.avdmanager.EditAvdAction
 import com.android.tools.idea.avdmanager.RunAvdAction
 import com.android.tools.idea.avdmanager.SizeOnDiskColumn
+import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.deviceManager.displayList.columns.AvdActionsColumnInfo
 import com.android.tools.idea.deviceManager.displayList.columns.AvdDeviceColumnInfo
 import com.google.common.annotations.VisibleForTesting
@@ -55,6 +57,9 @@ import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
 import icons.StudioIcons
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.awt.BorderLayout
 import java.awt.CardLayout
 import java.awt.Component
@@ -206,11 +211,15 @@ class EmulatorDisplayList(private val project: Project?) : JPanel(), ListSelecti
    * Reload AVD definitions from disk and repopulate the table
    */
   override fun refreshAvds() {
-    avds = AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true)
-    val status = if (avds.isEmpty()) EMPTY else NONEMPTY
-    updateSearchResults(null)
-    (centerCardPanel.layout as CardLayout).show(centerCardPanel, status)
-    refreshErrorCheck()
+    GlobalScope.launch(ioThread) {
+      avds = AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true)
+      withContext(uiThread) {
+        val status = if (avds.isEmpty()) EMPTY else NONEMPTY
+        updateSearchResults(null)
+        (centerCardPanel.layout as CardLayout).show(centerCardPanel, status)
+        refreshErrorCheck()
+      }
+    }
   }
 
   /**

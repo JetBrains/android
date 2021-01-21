@@ -352,6 +352,7 @@ public class AvdManagerConnection {
    * @return a list of AVDs currently present on the system.
    */
   @NotNull
+  @Slow
   public List<AvdInfo> getAvds(boolean forceRefresh) {
     if (!initIfNecessary()) {
       return ImmutableList.of();
@@ -382,6 +383,7 @@ public class AvdManagerConnection {
     }
   }
 
+  @Slow
   public boolean deleteAvd(@NotNull String avdName) {
     if (!initIfNecessary()) {
       return false;
@@ -397,6 +399,7 @@ public class AvdManagerConnection {
   /**
    * Delete the given AVD if it exists.
    */
+  @Slow
   public boolean deleteAvd(@NotNull AvdInfo info) {
     if (!initIfNecessary()) {
       return false;
