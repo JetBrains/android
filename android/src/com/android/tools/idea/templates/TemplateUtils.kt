@@ -42,7 +42,6 @@ import com.intellij.openapi.vfs.VirtualFileVisitor
 import java.io.File
 import java.io.IOException
 import java.security.InvalidParameterException
-import java.util.regex.Pattern
 import kotlin.math.max
 
 /**
@@ -50,7 +49,6 @@ import kotlin.math.max
  */
 object TemplateUtils {
   private val LOG = Logger.getInstance("#org.jetbrains.android.templates.DomUtilities")
-  private val WINDOWS_NEWLINE = Pattern.compile("\r\n")
 
   /**
    * Returns a list of known API names
@@ -141,33 +139,6 @@ object TemplateUtils {
       val document = FileDocumentManager.getInstance().getDocument(file)
       document?.text
     })
-  }
-
-  /**
-   * Replaces the contents of the given file with the given string. Outputs
-   * text in UTF-8 character encoding. The file is created if it does not
-   * already exist.
-   */
-  @Throws(IOException::class)
-  @JvmStatic
-  fun writeTextFile(requestor: Any, contents: String?, to: File) {
-    if (contents == null) {
-      return
-    }
-    var vf = LocalFileSystem.getInstance().findFileByIoFile(to)
-    if (vf == null) {
-      // Creating a new file
-      val parentDir = checkedCreateDirectoryIfMissing(to.parentFile)
-      vf = parentDir.createChildData(requestor, to.name)
-    }
-    val document = FileDocumentManager.getInstance().getDocument(vf)
-    if (document != null) {
-      document.setText(WINDOWS_NEWLINE.matcher(contents).replaceAll("\n"))
-      FileDocumentManager.getInstance().saveDocument(document)
-    }
-    else {
-      vf.setBinaryContent(contents.toByteArray(Charsets.UTF_8), -1, -1, requestor)
-    }
   }
 
   /**
