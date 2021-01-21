@@ -2308,7 +2308,7 @@ val REMOVE_BUILD_TYPE_USE_PROGUARD_INFO = PropertiesOperationsRefactoringInfo(
  * a high-level description of the effect the refactoring will have on this usage.
  */
 class AgpComponentUsageTypeProvider : UsageTypeProvider {
-  override fun getUsageType(element: PsiElement?): UsageType? =
+  override fun getUsageType(element: PsiElement): UsageType? =
     if (StudioFlags.AGP_UPGRADE_ASSISTANT.get()) (element as? WrappedPsiElement)?.usageType else null
 }
 

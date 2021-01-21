@@ -45,7 +45,7 @@ import org.jetbrains.plugins.groovy.GroovyLanguage
  * Recognizes Groovy elements in files that [GradleFiles] considers to be build scripts.
  */
 class GradleUsageTypeProvider : UsageTypeProvider {
-  override fun getUsageType(element: PsiElement?): UsageType? {
+  override fun getUsageType(element: PsiElement): UsageType? {
     if (element?.language != GroovyLanguage && element?.language != KotlinLanguage.INSTANCE) return null
     return if (GradleFiles.getInstance(element.project).isGradleFile(element.containingFile)) GRADLE_USAGE_TYPE else null
   }
@@ -62,7 +62,7 @@ private val ANDROID_MANIFEST_USAGE_TYPE = UsageType(AndroidBundle.messagePointer
  * Categorises resource elements as either usages or declarations.
  */
 class AndroidResourceXmlUsageProvider : UsageTypeProviderEx {
-  override fun getUsageType(element: PsiElement?): UsageType? = getUsageType(element, UsageTarget.EMPTY_ARRAY)
+  override fun getUsageType(element: PsiElement): UsageType? = getUsageType(element, UsageTarget.EMPTY_ARRAY)
 
   override fun getUsageType(element: PsiElement?, targets: Array<out UsageTarget>): UsageType? {
     val xmlFile = element?.containingFile as? XmlFile ?: return null
