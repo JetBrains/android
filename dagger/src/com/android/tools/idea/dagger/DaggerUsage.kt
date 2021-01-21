@@ -69,7 +69,7 @@ class DaggerUsageTypeProvider : UsageTypeProviderEx {
     }
   }
 
-  override fun getUsageType(element: PsiElement?) = null
+  override fun getUsageType(element: PsiElement) = null
 }
 
 /**

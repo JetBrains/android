@@ -35,7 +35,7 @@ private val PROGUARD_R8_USAGE_TYPE = UsageType("Referenced in Shrinker Config fi
  * @see PROGUARD_R8_USAGE_TYPE
  */
 class ProguardR8UsageTypeProvider : UsageTypeProvider {
-  override fun getUsageType(element: PsiElement?) = if (element?.containingFile is ProguardR8PsiFile) PROGUARD_R8_USAGE_TYPE else null
+  override fun getUsageType(element: PsiElement) = if (element?.containingFile is ProguardR8PsiFile) PROGUARD_R8_USAGE_TYPE else null
 }
 
 /**

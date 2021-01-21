@@ -56,5 +56,5 @@ private val SQL_USAGE_TYPE = UsageType("Referenced in SQL query")
  * @see SQL_USAGE_TYPE
  */
 class AndroidSqlUsageTypeProvider : UsageTypeProvider {
-  override fun getUsageType(element: PsiElement?) = if (element is AndroidSqlNameElement) SQL_USAGE_TYPE else null
+  override fun getUsageType(element: PsiElement) = if (element is AndroidSqlNameElement) SQL_USAGE_TYPE else null
 }
