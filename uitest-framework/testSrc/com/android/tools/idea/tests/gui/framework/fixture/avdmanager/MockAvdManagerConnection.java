@@ -63,11 +63,6 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
     return mySdkHandler.getLocation().resolve(SdkConstants.OS_SDK_PLATFORM_TOOLS_FOLDER).resolve(SdkConstants.FN_ADB).toString();
   }
 
-  public boolean deleteAvdByDisplayName(@NotNull String avdName) {
-    // We need to delete the AVD ID. We get it by converting spaces to underscores.
-    return super.deleteAvd(avdName.replace(' ', '_'));
-  }
-
   public void killEmulator() {
     try {
       AndroidDebugBridge.initIfNeeded(false);

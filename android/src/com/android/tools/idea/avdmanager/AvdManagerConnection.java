@@ -383,19 +383,6 @@ public class AvdManagerConnection {
     }
   }
 
-  @Slow
-  public boolean deleteAvd(@NotNull String avdName) {
-    if (!initIfNecessary()) {
-      return false;
-    }
-    assert myAvdManager != null;
-    AvdInfo info = myAvdManager.getAvd(avdName, false);
-    if (info == null) {
-      return false;
-    }
-    return deleteAvd(info);
-  }
-
   /**
    * Delete the given AVD if it exists.
    */
