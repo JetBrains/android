@@ -24,6 +24,6 @@ interface ExportToFileDialogView {
   fun removeListener(listener: Listener)
 
   interface Listener {
-    suspend fun exportRequestSubmitted(params: ExportRequest)
+    fun exportRequestSubmitted(params: ExportRequest)
   }
 }
