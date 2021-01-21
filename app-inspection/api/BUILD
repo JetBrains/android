@@ -27,7 +27,6 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
-        "//tools/adt/idea/.idea/libraries:kotlinx-coroutines-guava",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
     ],
 )
