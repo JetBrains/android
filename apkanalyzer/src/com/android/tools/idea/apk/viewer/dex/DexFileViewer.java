@@ -130,13 +130,8 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     myProject = project;
     myApkFolder = apkFolder;
 
-    //noinspection Convert2Lambda // we need a new instance of this disposable every time, not just a lambda method
-    //noinspection AnonymousInnerClassMayBeStatic
-    myDisposable = new Disposable() {
-      @Override
-      public void dispose() {
-      }
-    };
+    // we need a new instance of this disposable every time, not just a lambda method
+    myDisposable = Disposer.newDisposable();
 
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), myDisposable);
     myLoadingPanel.startLoading();
