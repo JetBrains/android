@@ -55,7 +55,6 @@ import com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMi
 import com.android.tools.idea.templates.TemplateUtils.hasExtension
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDisk
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDocument
-import com.android.tools.idea.templates.TemplateUtils.writeTextFile
 import com.android.tools.idea.templates.resolveDependency
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -67,10 +66,12 @@ import com.android.tools.idea.wizard.template.findResource
 import com.android.utils.XmlUtils.XML_PROLOG
 import com.android.utils.findGradleBuildFile
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.base.Charsets
 import com.intellij.diff.comparison.ComparisonManager
 import com.intellij.diff.comparison.ComparisonPolicy.IGNORE_WHITESPACES
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.ReadonlyStatusHandler
 import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
 import com.intellij.openapi.vfs.VfsUtil.findFileByURL
@@ -80,6 +81,7 @@ import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.XmlElementFactory
 import java.io.File
+import java.util.regex.Pattern
 import com.android.tools.idea.templates.mergeXml as mergeXmlUtil
 
 /**
@@ -631,14 +633,34 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     context.warnings.add("The following file could not be created since it already exists: ${targetFile.path}")
 
   private open class RecipeIO {
+    private val WINDOWS_NEWLINE = Pattern.compile("\r\n")
+
+    /**
+     * Replaces the contents of the given file with the given string. Outputs
+     * text in UTF-8 character encoding. The file is created if it does not
+     * already exist.
+     */
     open fun writeFile(requestor: Any, contents: String?, to: File) {
-      checkedCreateDirectoryIfMissing(to.parentFile)
-      writeTextFile(this, contents, to)
+      if (contents == null) {
+        return
+      }
+
+      val parentDir = checkedCreateDirectoryIfMissing(to.parentFile)
+      val vf = LocalFileSystem.getInstance().findFileByIoFile(to) ?: parentDir.createChildData(requestor, to.name)
+      val document = FileDocumentManager.getInstance().getDocument(vf)
+
+      if (document != null) {
+        document.setText(WINDOWS_NEWLINE.matcher(contents).replaceAll("\n"))
+        FileDocumentManager.getInstance().saveDocument(document)
+      }
+      else {
+        vf.setBinaryContent(contents.toByteArray(Charsets.UTF_8), -1, -1, requestor)
+      }
     }
 
     open fun copyFile(requestor: Any, file: VirtualFile, toFile: File) {
       val toDir = checkedCreateDirectoryIfMissing(toFile.parentFile)
-      VfsUtilCore.copyFile(this, file, toDir)
+      VfsUtilCore.copyFile(requestor, file, toDir)
     }
 
     open fun copyFile(requestor: Any, file: VirtualFile, toFileDir: File, newName: String) {
