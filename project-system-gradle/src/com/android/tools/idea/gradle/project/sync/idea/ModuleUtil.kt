@@ -91,6 +91,12 @@ object ModuleUtil {
     linkAndroidModuleGroup { ideModelProvider.findIdeModule(it) }
 
   @JvmStatic
+  fun Module.unlinkAndroidModuleGroup() {
+    val androidModuleGroup = getUserData(LINKED_ANDROID_MODULE_GROUP) ?: return
+    androidModuleGroup.getModules().filter { !it.isDisposed }.forEach { it.putUserData(LINKED_ANDROID_MODULE_GROUP, null) }
+  }
+
+  @JvmStatic
   fun GradleSourceSetData.getIdeModuleSourceSet() =
     IdeModuleSourceSet.values().firstOrNull { sourceSetEnum -> sourceSetEnum.sourceSetName == moduleName }
 }

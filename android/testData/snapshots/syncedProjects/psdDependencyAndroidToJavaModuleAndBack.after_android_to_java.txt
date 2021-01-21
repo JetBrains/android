@@ -2147,11 +2147,6 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.jModuleL.main
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.moduleB.main
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleC
-        LINKED_ANDROID_MODULE_GROUP
-            holder                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleC
-            main                          : testPsdDependencyAndroidToJavaModuleAndBack.moduleC.main
-            unitTest                      : testPsdDependencyAndroidToJavaModuleAndBack.moduleC.unitTest
-            androidTest                   : testPsdDependencyAndroidToJavaModuleAndBack.moduleC.androidTest
         ExternalModuleGroup           : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :moduleC
@@ -2180,11 +2175,6 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleC.main
-        LINKED_ANDROID_MODULE_GROUP
-            holder                        : testPsdDependencyAndroidToJavaModuleAndBack.moduleC
-            main                          : testPsdDependencyAndroidToJavaModuleAndBack.moduleC.main
-            unitTest                      : testPsdDependencyAndroidToJavaModuleAndBack.moduleC.unitTest
-            androidTest                   : testPsdDependencyAndroidToJavaModuleAndBack.moduleC.androidTest
         ExternalModuleGroup           : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : unspecified

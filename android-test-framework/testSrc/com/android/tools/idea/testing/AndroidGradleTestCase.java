@@ -300,16 +300,32 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   }
 
   @NotNull
-  protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath, @Nullable String gradleVersion,
-                                         @Nullable String gradlePluginVersion, @Nullable String kotlinVersion) throws IOException {
+  protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath, @NotNull File targetPath) throws IOException {
+    return prepareProjectForImport(relativePath, targetPath, null, null, null);
+  }
+
+  @NotNull
+  protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath,
+                                         @NotNull File targetPath,
+                                         @Nullable String gradleVersion,
+                                         @Nullable String gradlePluginVersion,
+                                         @Nullable String kotlinVersion) throws IOException {
     File projectSourceRoot = resolveTestDataPath(relativePath);
-    File projectRoot = new File(toSystemDependentName(getProject().getBasePath()));
 
     prepareGradleProject(
       projectSourceRoot,
-      projectRoot,
+      targetPath,
       file -> patchPreparedProject(file, gradleVersion, gradlePluginVersion, kotlinVersion, getAdditionalRepos().toArray(new File[0])));
-    return projectRoot;
+    return targetPath;
+  }
+
+  @NotNull
+  protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath,
+                                         @Nullable String gradleVersion,
+                                         @Nullable String gradlePluginVersion,
+                                         @Nullable String kotlinVersion) throws IOException {
+    File projectRoot = new File(toSystemDependentName(getProject().getBasePath()));
+    return prepareProjectForImport(relativePath, projectRoot, gradleVersion, gradlePluginVersion, kotlinVersion);
   }
 
   @NotNull

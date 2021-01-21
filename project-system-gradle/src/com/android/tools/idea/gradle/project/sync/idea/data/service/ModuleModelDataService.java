@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.project.model.ModuleModel;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -23,16 +24,20 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
+import com.intellij.util.SmartList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class ModuleModelDataService<T extends ModuleModel> extends AbstractProjectDataService<T, Void> {
+public abstract class ModuleModelDataService<T extends ModuleModel> extends AbstractProjectDataService<T, Module> {
   @Override
   public final void importData(@NotNull Collection<? extends DataNode<T>> toImport,
                                @Nullable ProjectData projectData,
@@ -51,6 +56,32 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
                                      @NotNull Project project,
                                      @NotNull IdeModifiableModelsProvider modelsProvider,
                                      @NotNull Map<String, DataNode<T>> modelsByModuleName);
+
+  protected abstract List<@NotNull Module> eligibleOrphanCandidates(@NotNull Project project);
+
+  @Override
+  public @NotNull Computable<Collection<Module>> computeOrphanData(@NotNull Collection<? extends DataNode<T>> toImport,
+                                                                   @NotNull ProjectData projectData,
+                                                                   @NotNull Project project,
+                                                                   @NotNull IdeModifiableModelsProvider modelsProvider) {
+    final Map<String, DataNode<T>> modelsByModuleName = indexByModuleName(toImport, modelsProvider);
+    return () -> {
+      List<Module> orphanIdeModules = new SmartList<>();
+
+      for (Module module : eligibleOrphanCandidates(project)) {
+        if (!ExternalSystemApiUtil.isExternalSystemAwareModule(projectData.getOwner(), module)) continue;
+
+        final String rootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(module);
+        if (projectData.getLinkedExternalProjectPath().equals(rootProjectPath)) {
+          if (modelsByModuleName.get(ModuleSystemUtil.getHolderModule(module).getName()) == null) {
+            orphanIdeModules.add(module);
+          }
+        }
+      }
+
+      return orphanIdeModules;
+    };
+  }
 
   @NotNull
   private Map<String, DataNode<T>> indexByModuleName(@NotNull Collection<? extends DataNode<T>> dataNodes,

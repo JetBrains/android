@@ -24,9 +24,11 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.SupportedModuleChecker
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.PROJECT_SYNC_REQUEST
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.linkAndroidModuleGroup
+import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.unlinkAndroidModuleGroup
 import com.android.tools.idea.gradle.project.sync.idea.computeSdkReloadingAsNeeded
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.ModuleModelDataService
@@ -48,6 +50,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER
 import com.intellij.facet.ModifiableFacetModel
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -62,10 +65,12 @@ import com.intellij.openapi.progress.Task.Backgroundable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.LanguageLevelModuleExtension
+import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.io.FileUtil.getRelativePath
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.pom.java.LanguageLevel
+import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION
 import org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID
@@ -94,9 +99,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
                                  modelsByModuleName: Map<String, DataNode<GradleAndroidModel>>) {
     val moduleValidator = myModuleValidatorFactory.create(project)
 
-    // Any modules left in this set need to be purged of all Android and AndroidArtifact facets.
-    val nonAndroidModules = modelsProvider.modules.toMutableSet()
-
     for (nodeToImport in toImport) {
       val mainModuleDataNode = ExternalSystemApiUtil.findParent(
         nodeToImport,
@@ -104,7 +106,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
       ) ?: continue
       val mainModuleData = mainModuleDataNode.data
       val mainIdeModule = modelsProvider.findIdeModule(mainModuleData) ?: continue
-      nonAndroidModules.remove<Module>(mainIdeModule)
 
       val androidModel = nodeToImport.data
       androidModel.setModule(mainIdeModule)
@@ -113,7 +114,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
 
       val modules = mainIdeModule.getAllLinkedModules()
       modules.forEach { module ->
-        nonAndroidModules.remove<Module>(module)
         val facetModel = modelsProvider.getModifiableFacetModel(module)
 
         val androidFacet = modelsProvider.getModifiableFacetModel(module).getFacetByType(AndroidFacet.ID)
@@ -125,11 +125,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
       }
     }
 
-    nonAndroidModules.forEach { module ->
-      removeAllFacets(modelsProvider.getModifiableFacetModel(module), AndroidFacet.ID)
-      // We don't need to clean up the sdk or language level as that should be set by whatever is handling the new module type.
-    }
-
     if (modelsByModuleName.isNotEmpty()) {
       moduleValidator.fixAndReportFoundIssues()
     }
@@ -138,7 +133,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
   private fun Module.setupSdkAndLanguageLevel(
     modelsProvider: IdeModifiableModelsProvider,
     languageLevel: LanguageLevel?,
-    sdkToUse: Sdk?)  {
+    sdkToUse: Sdk?) {
     val rootModel = modelsProvider.getModifiableRootModel(this)
     if (languageLevel != null) {
       rootModel.getModuleExtension(
@@ -146,6 +141,22 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     }
     if (sdkToUse != null) {
       rootModel.sdk = sdkToUse
+    }
+  }
+
+  override fun eligibleOrphanCandidates(project: Project): List<Module> {
+    return ContainerUtil.map(ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID), AndroidFacet::getModule)
+  }
+
+  override fun removeData(toRemoveComputable: Computable<out Collection<Module>>,
+                          toIgnore: Collection<DataNode<GradleAndroidModel>>,
+                          projectData: ProjectData,
+                          project: Project,
+                          modelsProvider: IdeModifiableModelsProvider) {
+    for (module in toRemoveComputable.get()) {
+      val facetModel = modelsProvider.getModifiableFacetModel(module)
+      removeAllFacets(facetModel, AndroidFacet.ID)
+      module.unlinkAndroidModuleGroup()
     }
   }
 

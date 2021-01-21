@@ -27,6 +27,8 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.GradleModuleSetup;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
@@ -35,7 +37,10 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,13 +75,8 @@ public class GradleModuleModelDataService extends ModuleModelDataService<GradleM
                             @NotNull IdeModifiableModelsProvider modelsProvider,
                             @NotNull Map<String, DataNode<GradleModuleModel>> modelsByModuleName) {
     for (Module module : modelsProvider.getModules()) {
-      DataNode<GradleModuleModel> gradleModuleModelDataNode = modelsByModuleName.get(module.getName());
-      if (gradleModuleModelDataNode == null) {
-        // This happens when there is an orphan IDEA module that does not map to a Gradle project. One way for this to happen is when
-        // opening a project created in another machine, and Gradle import assigns a different name to a module. Then, user decides
-        // not to delete the orphan module when Studio prompts to do so.
-        removeAllFacets(modelsProvider.getModifiableFacetModel(module), GradleFacet.getFacetTypeId());      }
-      else {
+        DataNode<GradleModuleModel> gradleModuleModelDataNode = modelsByModuleName.get(module.getName());
+      if (gradleModuleModelDataNode != null) {
         myModuleSetup.setUpModule(module, modelsProvider, gradleModuleModelDataNode.getData());
       }
     }
@@ -84,6 +84,23 @@ public class GradleModuleModelDataService extends ModuleModelDataService<GradleM
     // For example, if module A -> B, and B comes from buildSrc. Then the dependency A has will be [PathToBuildSrcFolder]:[GradlePathOfModuleB].
     // In this case, a build participant will be created, which has [PathToBuildSrcFolder] as the project path, and [PathToModuleB] as one of the projects.
     populateExtraBuildParticipantFromBuildSrc(toImport, project);
+  }
+
+  @Override
+  protected List<@NotNull Module> eligibleOrphanCandidates(@NotNull Project project) {
+    return ContainerUtil.map(ProjectFacetManager.getInstance(project).getFacets(GradleFacet.getFacetTypeId()), GradleFacet::getModule);
+  }
+
+  @Override
+  public void removeData(Computable<? extends Collection<? extends Module>> toRemoveComputable,
+                         @NotNull Collection<? extends DataNode<GradleModuleModel>> toIgnore,
+                         @NotNull ProjectData projectData,
+                         @NotNull Project project,
+                         @NotNull IdeModifiableModelsProvider modelsProvider) {
+    for (Module module : toRemoveComputable.get()) {
+      ModifiableFacetModel facetModel = modelsProvider.getModifiableFacetModel(module);
+      removeAllFacets(facetModel, GradleFacet.getFacetTypeId());
+    }
   }
 
   private static void populateExtraBuildParticipantFromBuildSrc(@NotNull Collection<? extends DataNode<GradleModuleModel>> toImport,

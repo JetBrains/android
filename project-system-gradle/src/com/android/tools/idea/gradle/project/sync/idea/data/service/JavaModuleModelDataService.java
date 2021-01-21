@@ -24,12 +24,17 @@ import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetup;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
+import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
@@ -66,9 +71,23 @@ public class JavaModuleModelDataService extends ModuleModelDataService<JavaModul
         ModuleSetupContext context = myModuleSetupContextFactory.create(module, modelsProvider);
         myModuleSetup.setUpModule(context, javaModuleModelNode.getData());
       }
-      else {
-        ModifiableFacetModel facetModel = modelsProvider.getModifiableFacetModel(module);
-        removeAllFacets(facetModel, JavaFacet.getFacetTypeId());      }
+    }
+  }
+
+  @Override
+  protected List<@NotNull Module> eligibleOrphanCandidates(@NotNull Project project) {
+    return ContainerUtil.map(ProjectFacetManager.getInstance(project).getFacets(JavaFacet.getFacetTypeId()), JavaFacet::getModule);
+  }
+
+  @Override
+  public void removeData(@NotNull Computable<? extends Collection<? extends Module>> toRemoveComputable,
+                         @NotNull Collection<? extends DataNode<JavaModuleModel>> toIgnore,
+                         @NotNull ProjectData projectData,
+                         @NotNull Project project,
+                         @NotNull IdeModifiableModelsProvider modelsProvider) {
+    for (Module module : toRemoveComputable.get()) {
+      ModifiableFacetModel facetModel = modelsProvider.getModifiableFacetModel(module);
+      removeAllFacets(facetModel, JavaFacet.getFacetTypeId());
     }
   }
 }
