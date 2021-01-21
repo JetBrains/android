@@ -158,10 +158,7 @@ public final class GuiTests {
     PropertiesComponent.getInstance().setValue("SAVED_RENDER_LANGUAGE", "Java"); // New Activity "Source Language"
 
     Disposable project = ProjectManager.getInstance().getDefaultProject();
-    Disposable pigsFly = new Disposable() {
-      @Override
-      public void dispose() {}
-    };
+    Disposable pigsFly = Disposer.newDisposable();
     Disposer.register(project, pigsFly);
     FrequentEventDetector.disableUntil(pigsFly);  // i.e., never re-enable it
 
