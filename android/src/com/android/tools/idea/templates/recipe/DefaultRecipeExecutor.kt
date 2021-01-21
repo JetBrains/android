@@ -166,7 +166,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     require(hasExtension(targetFile, DOT_XML)) { "Only XML files can be merged at this point: $targetFile" }
 
     val targetText = readTargetText(targetFile) ?: run {
-      save(content, to, true, true)
+      save(content, to)
       return
     }
 
@@ -290,13 +290,13 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   }
 
   /**
-   * Instantiates the given template file into the given output file (running the Freemarker engine over it)
+   * Instantiates the given template file into the given output file.
+   * Note: It removes trailing whitespace both from beginning and end of source.
+   *       Also, it replaces any 2+ consequent empty lines with single empty line.
    */
-  override fun save(source: String, to: File, trimVertical: Boolean, squishEmptyLines: Boolean, commitDocument: Boolean) {
+  override fun save(source: String, to: File, commitDocument: Boolean) {
     val targetFile = getTargetFile(to)
-    val untrimmedContent = extractFullyQualifiedNames(to, source.withoutSkipLines())
-    val trimmedUnsquishedContent = if (trimVertical) untrimmedContent.trim() else untrimmedContent
-    val content = if (squishEmptyLines) trimmedUnsquishedContent.squishEmptyLines() else trimmedUnsquishedContent
+    val content = extractFullyQualifiedNames(to, source.withoutSkipLines()).trim().squishEmptyLines()
 
     if (targetFile.exists()) {
       if (!targetFile.contentEquals(content)) {
