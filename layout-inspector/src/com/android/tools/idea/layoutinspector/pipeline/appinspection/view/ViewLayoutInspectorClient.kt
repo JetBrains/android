@@ -28,12 +28,13 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.ErrorEvent
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Event
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.GetPropertiesCommand
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.GetPropertiesResponse
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.LayoutEvent
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.PropertiesEvent
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StartFetchCommand
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StopFetchCommand
@@ -125,6 +126,7 @@ class ViewLayoutInspectorClient(
           Event.SpecializedCase.ERROR_EVENT -> handleErrorEvent(event.errorEvent)
           Event.SpecializedCase.ROOTS_EVENT -> handleRootsEvent(event.rootsEvent)
           Event.SpecializedCase.LAYOUT_EVENT -> handleLayoutEvent(event.layoutEvent)
+          Event.SpecializedCase.PROPERTIES_EVENT -> handlePropertiesEvent(event.propertiesEvent)
           else -> error { "Unhandled event case: ${event.specializedCase}" }
         }
       }
@@ -148,7 +150,7 @@ class ViewLayoutInspectorClient(
     isFetchingContinuously = false
   }
 
-  suspend fun getProperties(rootViewId: Long, viewId: Long): LayoutInspectorViewProtocol.GetPropertiesResponse {
+  suspend fun getProperties(rootViewId: Long, viewId: Long): GetPropertiesResponse {
     val response = messenger.sendCommand {
       getPropertiesCommand = GetPropertiesCommand.newBuilder().apply {
         this.rootViewId = rootViewId
@@ -181,6 +183,14 @@ class ViewLayoutInspectorClient(
 
     val composablesResponse = composeInspector?.getComposeables(layoutEvent.rootView.id)
     fireTreeEvent(Data(generation, currRoots, layoutEvent, composablesResponse))
+  }
+
+  private suspend fun handlePropertiesEvent(propertiesEvent: PropertiesEvent) {
+    propertiesCache.setAllFrom(propertiesEvent)
+
+    composeInspector?.let {
+      it.parametersCache.setAllFrom(it.getAllParameters(propertiesEvent.rootId))
+    }
   }
 }
 

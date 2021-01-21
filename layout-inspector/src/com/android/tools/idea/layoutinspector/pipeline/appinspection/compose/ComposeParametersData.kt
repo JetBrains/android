@@ -22,8 +22,8 @@ import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLook
 import com.android.tools.idea.res.colorToString
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParametersResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Parameter
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.ParameterGroup
 import java.awt.Color
 
 class ComposeParametersData(
@@ -37,14 +37,14 @@ class ComposeParametersData(
  * Bridge between incoming proto data and classes expected by the Studio properties framework.
  */
 class ComposeParametersDataGenerator(
-  private val parameters: GetParametersResponse,
+  private val stringTable: StringTableImpl,
+  private val parameterGroup: ParameterGroup,
   private val lookup: ViewNodeAndResourceLookup) {
 
-  private val stringTable = StringTableImpl(parameters.stringsList)
   private val propertyTable = HashBasedTable.create<String, String, InspectorPropertyItem>()
 
   fun generate(): ComposeParametersData {
-    for (parameter in parameters.parametersList) {
+    for (parameter in parameterGroup.parameterList) {
       val item = parameter.toPropertyItem()
       propertyTable.put(item.namespace, item.name, item)
     }

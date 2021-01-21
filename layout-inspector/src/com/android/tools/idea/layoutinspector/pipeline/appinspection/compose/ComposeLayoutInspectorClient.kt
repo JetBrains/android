@@ -28,6 +28,8 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import kotlinx.coroutines.cancel
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Command
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersCommand
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesCommand
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParametersCommand
@@ -100,6 +102,16 @@ class ComposeLayoutInspectorClient(model: InspectorModel, private val messenger:
       }.build()
     }
     return response.getParametersResponse
+  }
+
+  suspend fun getAllParameters(rootViewId: Long): GetAllParametersResponse {
+    val response = messenger.sendCommand {
+      getAllParametersCommand = GetAllParametersCommand.newBuilder().apply {
+        this.rootViewId = rootViewId
+        skipSystemComposables = TreeSettings.hideSystemNodes
+      }.build()
+    }
+    return response.getAllParametersResponse
   }
 
   fun disconnect() {
