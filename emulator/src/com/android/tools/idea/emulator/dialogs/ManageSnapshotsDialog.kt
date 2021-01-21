@@ -16,6 +16,7 @@
 package com.android.tools.idea.emulator.dialogs
 
 import com.android.annotations.concurrency.Slow
+import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.SnapshotPackage
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.ui.ImagePanel
@@ -28,6 +29,7 @@ import com.android.tools.idea.emulator.EmulatorSettings
 import com.android.tools.idea.emulator.EmulatorSettings.SnapshotAutoDeletionPolicy
 import com.android.tools.idea.emulator.EmulatorView
 import com.android.tools.idea.emulator.logger
+import com.android.utils.TraceUtils.currentTime
 import com.google.common.html.HtmlEscapers
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.intellij.CommonBundle
@@ -316,9 +318,13 @@ internal class ManageSnapshotsDialog(
       }
 
       override fun onCompleted() {
-        finished()
+        logger.debug { "${currentTime()} createSnapshot.onCompleted: calling invokeLaterWhileDialogIsShowing" }
+        invokeLaterWhileDialogIsShowing {
+          finished()
+        }
         backgroundExecutor.submit {
           val snapshot = snapshotIoLock.read { snapshotManager.readSnapshotInfo(snapshotId) }
+          logger.debug { "${currentTime()} loadSnapshot.onCompleted: after snapshot loading, calling invokeLaterWhileDialogIsShowing" }
           invokeLaterWhileDialogIsShowing {
             if (snapshot == null) {
               showError()
@@ -333,18 +339,21 @@ internal class ManageSnapshotsDialog(
       }
 
       override fun onError(t: Throwable) {
-        showError()
-        finished()
-      }
-
-      private fun finished() {
+        logger.debug { "${currentTime()} createSnapshot.onError: calling invokeLaterWhileDialogIsShowing" }
         invokeLaterWhileDialogIsShowing {
-          emulatorView.hideLongRunningOperationIndicator()
-          takeSnapshotButton.isEnabled = true // Re-enable the button.
-          endLongOperation()
+          showError()
+          finished()
         }
       }
 
+      @UiThread
+      private fun finished() {
+        emulatorView.hideLongRunningOperationIndicator()
+        takeSnapshotButton.isEnabled = true // Re-enable the button.
+        endLongOperation()
+      }
+
+      @UiThread
       private fun showError() {
         showError("Unable to create a snapshot")
       }
@@ -366,6 +375,7 @@ internal class ManageSnapshotsDialog(
 
       override fun onNext(response: SnapshotPackage) {
         if (response.success) {
+          logger.debug { "${currentTime()} loadSnapshot.onNext: calling invokeLaterWhileDialogIsShowing" }
           invokeLaterWhileDialogIsShowing {
             snapshotTableModel.setLoadedLastSnapshot(snapshotTable.convertRowIndexToModel(selectedRow))
           }
@@ -373,6 +383,8 @@ internal class ManageSnapshotsDialog(
         else {
           val error = response.err.toString(UTF_8)
           val detail = if (error.isEmpty()) "" else " - $error"
+          logger.debug { "${currentTime()} loadSnapshot.onNext: error loading snapshot \"${snapshotToLoad.displayName}\"$detail," +
+                         " calling invokeLaterWhileDialogIsShowing" }
           invokeLaterWhileDialogIsShowing {
             showError("""Error loading snapshot "${snapshotToLoad.displayName}"$detail""")
           }
@@ -385,12 +397,14 @@ internal class ManageSnapshotsDialog(
 
       override fun onError(t: Throwable) {
         finished()
+        logger.debug { "${currentTime()} loadSnapshot.onError: calling invokeLaterWhileDialogIsShowing" }
         invokeLaterWhileDialogIsShowing {
           showError("""Error loading snapshot. See the error log""")
         }
       }
 
       private fun finished() {
+        logger.debug { "${currentTime()} loadSnapshot.finished: calling invokeLaterWhileDialogIsShowing" }
         invokeLaterWhileDialogIsShowing {
           endLongOperation()
           emulatorView.hideLongRunningOperationIndicator()
@@ -476,6 +490,7 @@ internal class ManageSnapshotsDialog(
 
       if (errors) {
         val snapshots = snapshotIoLock.read { snapshotManager.fetchSnapshotList() }
+        logger.debug { "${currentTime()} deleteSnapshotFolders: deletion error, calling invokeLaterWhileDialogIsShowing" }
         invokeLaterWhileDialogIsShowing {
           snapshotTableModel.update(snapshots)
           selectionState?.restoreSelection()
@@ -485,6 +500,7 @@ internal class ManageSnapshotsDialog(
       else if (notifyWhenDone) {
         val n = foldersToDelete.size
         val message = if (n == 1) "$n snapshot deleted" else "$n snapshots deleted"
+        logger.debug { "${currentTime()} deleteSnapshotFolders: $message calling invokeLaterWhileDialogIsShowing" }
         invokeLaterWhileDialogIsShowing {
           selectionStateLabel.text = message
         }
@@ -564,7 +580,7 @@ internal class ManageSnapshotsDialog(
           dimensionService.setSize(DIMENSION_SERVICE_KEY, size, project)
 
           // The dialog is closing but we still need to wait for all background operations to finish.
-          logger.debug("ManageSnapshotDialog is closing")
+          logger.debug { "${currentTime()} ManageSnapshotDialog is closing" }
           dialogManager = null
           // Cancel unfinished icon loading.
           for (future in snapshotTableModel.snapshotIconMap.values) {
@@ -574,10 +590,13 @@ internal class ManageSnapshotsDialog(
           backgroundExecutor.shutdown()
           ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Saving changes", false) {
             override fun run(indicator: ProgressIndicator) {
-              backgroundExecutor.awaitTermination(2, TimeUnit.SECONDS)
+              if (!backgroundExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                logger.warn("Background activity is still running after 5 seconds")
+              }
               snapshotIoLock.write {} // Wait for all file read operations to complete.
             }
           })
+          logger.debug { "${currentTime()} ManageSnapshotDialog is disposed" }
         }
       }
   }
@@ -602,8 +621,8 @@ internal class ManageSnapshotsDialog(
     }
 
     val snapshotAutoDeletionPolicy = EmulatorSettings.getInstance().snapshotAutoDeletionPolicy
-    logger.debug { "snapshotAutoDeletionPolicy: $snapshotAutoDeletionPolicy" }
-    logger.debug { "snapshots before deletion: $snapshots" }
+    logger.debug { "${currentTime()} snapshotAutoDeletionPolicy: $snapshotAutoDeletionPolicy" }
+    logger.debug { "${currentTime()} snapshots before deletion: $snapshots" }
     var incompatibleSnapshotsCount = 0
     var incompatibleSnapshotsSize = 0L
     if (snapshotAutoDeletionPolicy != SnapshotAutoDeletionPolicy.DO_NOT_DELETE) {
@@ -619,14 +638,15 @@ internal class ManageSnapshotsDialog(
       }
     }
 
+    logger.debug { "${currentTime()} readBootModeAndSnapshotList: calling invokeLaterWhileDialogIsShowing" }
     invokeLaterWhileDialogIsShowing {
-      logger.debug { "updating snapshot table with: $snapshots"}
+      logger.debug { "${currentTime()} updating snapshot table with: $snapshots" }
       snapshotTableModel.update(snapshots, bootSnapshot)
-      logger.debug { "incompatibleSnapshotsCount: $incompatibleSnapshotsCount"}
+      logger.debug { "${currentTime()} incompatibleSnapshotsCount: $incompatibleSnapshotsCount" }
       if (incompatibleSnapshotsCount != 0 && snapshotAutoDeletionPolicy == SnapshotAutoDeletionPolicy.ASK_BEFORE_DELETING &&
           confirmIncompatibleSnapshotsDeletion(incompatibleSnapshotsCount, incompatibleSnapshotsSize)) {
         deleteIncompatibleSnapshots(snapshots)
-        logger.debug { "updating snapshot table with: $snapshots"}
+        logger.debug { "${currentTime()} updating snapshot table with: $snapshots" }
         snapshotTableModel.update(snapshots, bootSnapshot)
       }
     }
@@ -635,12 +655,12 @@ internal class ManageSnapshotsDialog(
   private fun deleteIncompatibleSnapshots(snapshots: MutableList<SnapshotInfo>) {
     val foldersToDelete = snapshots.filter { !it.isCompatible }.map { it.snapshotFolder }
     snapshots.removeIf { !it.isCompatible }
-    logger.debug { "snapshots after deletion: $snapshots"}
+    logger.debug { "${currentTime()} snapshots after deletion: $snapshots" }
     deleteSnapshotFolders(foldersToDelete)
   }
 
   private fun confirmIncompatibleSnapshotsDeletion(incompatibleSnapshotsCount: Int, incompatibleSnapshotsSize: Long): Boolean {
-    logger.debug { "confirmIncompatibleSnapshotsDeletion: incompatibleSnapshotsCount: $incompatibleSnapshotsCount"}
+    logger.debug { "${currentTime()} confirmIncompatibleSnapshotsDeletion: incompatibleSnapshotsCount: $incompatibleSnapshotsCount" }
     val dialog = IncompatibleSnapshotsDeletionConfirmationDialog(incompatibleSnapshotsCount, incompatibleSnapshotsSize)
     val dialogWrapper = dialog.createWrapper(parent = snapshotTable).apply { show() }
     when (dialogWrapper.exitCode) {
@@ -648,7 +668,7 @@ internal class ManageSnapshotsDialog(
         if (dialog.doNotAskAgain) {
           EmulatorSettings.getInstance().snapshotAutoDeletionPolicy = SnapshotAutoDeletionPolicy.DELETE_AUTOMATICALLY
         }
-        logger.debug { "confirmIncompatibleSnapshotsDeletion: deletion confirmed"}
+        logger.debug { "${currentTime()} confirmIncompatibleSnapshotsDeletion: deletion confirmed" }
         return true
       }
 
@@ -658,12 +678,11 @@ internal class ManageSnapshotsDialog(
         }
       }
     }
-    logger.debug { "confirmIncompatibleSnapshotsDeletion: deletion rejected"}
+    logger.debug { "${currentTime()} confirmIncompatibleSnapshotsDeletion: deletion declined" }
     return false
   }
 
   private fun invokeLaterWhileDialogIsShowing(runnable: () -> Unit) {
-    logger.debug("calling invokeLater")
     ApplicationManager.getApplication().invokeLater(runnable, ModalityState.any()) { dialogManager == null }
   }
 
@@ -851,6 +870,7 @@ internal class ManageSnapshotsDialog(
         val icon = createDecoratedIcon(snapshot, baseIcon)
 
         // Schedule a table cell update on the UI thread.
+        logger.debug { "${currentTime()} createSnapshotIcon: calling invokeLaterWhileDialogIsShowing" }
         invokeLaterWhileDialogIsShowing {
           val index = indexOf(snapshot)
           if (index >= 0) {
