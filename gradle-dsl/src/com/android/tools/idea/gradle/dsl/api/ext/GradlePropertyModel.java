@@ -15,7 +15,6 @@ package com.android.tools.idea.gradle.dsl.api.ext;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -43,8 +42,11 @@ public interface GradlePropertyModel {
   @NotNull
   String DOUBLE_QUOTES = "\"";
 
+  /**
+   * @return instance of GradleDslElement, which is not accessible from this module
+   */
   @Nullable
-  GradleDslElement getRawElement();
+  Object getRawElement(); // FIXME-ank4: real type is GradleDslElement
 
   /**
    * Converts a string to one that can be used to set interpolated strings using {@link #setValue(Object)}
@@ -63,14 +65,22 @@ public interface GradlePropertyModel {
   }
 
   // The following are TypeReferences used in calls to getValue and getRawValue.
-  TypeReference<String> STRING_TYPE = new TypeReference<String>() {};
-  TypeReference<Integer> INTEGER_TYPE = new TypeReference<Integer>() {};
-  TypeReference<BigDecimal> BIG_DECIMAL_TYPE = new TypeReference<BigDecimal>() {};
-  TypeReference<Boolean> BOOLEAN_TYPE = new TypeReference<Boolean>() {};
-  TypeReference<List<GradlePropertyModel>> LIST_TYPE = new TypeReference<List<GradlePropertyModel>>() {};
-  TypeReference<Map<String, GradlePropertyModel>> MAP_TYPE = new TypeReference<Map<String, GradlePropertyModel>>() {};
-  TypeReference<Object> OBJECT_TYPE = new TypeReference<Object>() {};
-  TypeReference<ReferenceTo> REFERENCE_TO_TYPE = new TypeReference<ReferenceTo>() {};
+  TypeReference<String> STRING_TYPE = new TypeReference<>() {
+  };
+  TypeReference<Integer> INTEGER_TYPE = new TypeReference<>() {
+  };
+  TypeReference<BigDecimal> BIG_DECIMAL_TYPE = new TypeReference<>() {
+  };
+  TypeReference<Boolean> BOOLEAN_TYPE = new TypeReference<>() {
+  };
+  TypeReference<List<GradlePropertyModel>> LIST_TYPE = new TypeReference<>() {
+  };
+  TypeReference<Map<String, GradlePropertyModel>> MAP_TYPE = new TypeReference<>() {
+  };
+  TypeReference<Object> OBJECT_TYPE = new TypeReference<>() {
+  };
+  TypeReference<ReferenceTo> REFERENCE_TO_TYPE = new TypeReference<>() {
+  };
 
   /**
    * Represents the type of the value stored by this property, or when a type can't be found

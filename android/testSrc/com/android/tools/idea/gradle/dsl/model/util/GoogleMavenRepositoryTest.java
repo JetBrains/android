@@ -83,7 +83,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     assertThat(repositoriesModel.repositories()).isEmpty();
 
     // add repository
-    RepositoriesModelExtensionKt.addGoogleMavenRepository(buildModel.buildscript().repositories(), GradleVersion.parse("3.5"));
+    RepositoriesModelExtensionKt.addGoogleMavenRepository(buildModel.repositories(), GradleVersion.parse("3.5"));
     assertTrue(buildModel.isModified());
     runWriteCommandAction(getProject(), buildModel::applyChanges);
 
@@ -104,7 +104,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     assertThat(repositoriesModel.repositories()).isEmpty();
 
     // add repository
-    RepositoriesModelExtensionKt.addGoogleMavenRepository(buildModel.buildscript().repositories(), GradleVersion.parse("4.0"));
+    RepositoriesModelExtensionKt.addGoogleMavenRepository(buildModel.repositories(), GradleVersion.parse("4.0"));
     assertTrue(buildModel.isModified());
     runWriteCommandAction(getProject(), buildModel::applyChanges);
 
@@ -125,7 +125,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     assertThat(repositoriesModel.repositories()).hasSize(1);
 
     // add repository
-    RepositoriesModelExtensionKt.addGoogleMavenRepository(buildModel.buildscript().repositories(), GradleVersion.parse("3.5"));
+    RepositoriesModelExtensionKt.addGoogleMavenRepository(buildModel.repositories(), GradleVersion.parse("3.5"));
     assertTrue(buildModel.isModified());
     runWriteCommandAction(getProject(), buildModel::applyChanges);
 
@@ -147,7 +147,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     assertThat(repositoriesModel.repositories()).hasSize(1);
 
     // add repository
-    RepositoriesModelExtensionKt.addGoogleMavenRepository(buildModel.buildscript().repositories(), GradleVersion.parse("4.0"));
+    RepositoriesModelExtensionKt.addGoogleMavenRepository(buildModel.repositories(), GradleVersion.parse("4.0"));
 
     // Verify
     assertFalse(buildModel.isModified());
