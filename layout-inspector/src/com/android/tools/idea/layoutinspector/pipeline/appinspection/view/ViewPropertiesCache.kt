@@ -18,18 +18,27 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.ViewNodeCache
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.GetPropertiesResponse
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.PropertiesEvent
 
 /**
  * Cache of view properties, to avoid expensive refetches when possible.
  */
 class ViewPropertiesCache(private val client: ViewLayoutInspectorClient, model: InspectorModel) : ViewNodeCache<ViewPropertiesData>(model) {
   override suspend fun fetchDataFor(root: ViewNode, node: ViewNode): ViewPropertiesData? {
-    val properties = client.getProperties(root.drawId, node.drawId)
-    return if (properties.viewId != 0L) {
-      ViewPropertiesDataGenerator(properties, model).generate()
+    val response = client.getProperties(root.drawId, node.drawId)
+    return if (response != GetPropertiesResponse.getDefaultInstance()) {
+      ViewPropertiesDataGenerator(StringTableImpl(response.stringsList), response.propertyGroup, model).generate()
     }
     else {
       null
+    }
+  }
+
+  fun setAllFrom(event: PropertiesEvent) {
+    val stringTable = StringTableImpl(event.stringsList)
+    for (propertyGroup in event.propertyGroupsList) {
+      setDataFor(event.rootId, propertyGroup.viewId, ViewPropertiesDataGenerator(stringTable, propertyGroup, model).generate())
     }
   }
 }

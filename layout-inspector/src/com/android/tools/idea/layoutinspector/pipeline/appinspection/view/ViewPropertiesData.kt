@@ -25,8 +25,8 @@ import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.FlagValue
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.GetPropertiesResponse
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Property
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.PropertyGroup
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Resource
 import java.awt.Color
 
@@ -63,11 +63,11 @@ class ViewPropertiesData(
  * Bridge between incoming proto data and classes expected by the Studio properties framework.
  */
 class ViewPropertiesDataGenerator(
-  private val properties: GetPropertiesResponse,
+  private val stringTable: StringTableImpl,
+  private val properties: PropertyGroup,
   private val lookup: ViewNodeAndResourceLookup,
 ) {
   // TODO: The module namespace probably should be retrieved from the module. Use the layout namespace for now:
-  private val stringTable = StringTableImpl(properties.stringsList)
   private val layout = stringTable[properties.layout]
   private val propertyTable = HashBasedTable.create<String, String, InspectorPropertyItem>()
   private val classNamesTable = HashBasedTable.create<String, String, String>()

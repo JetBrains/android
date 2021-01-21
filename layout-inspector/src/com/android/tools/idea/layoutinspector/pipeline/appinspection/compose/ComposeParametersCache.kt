@@ -18,18 +18,28 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.ViewNodeCache
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParametersResponse
 
 /**
  * Cache of compose parameters, to avoid expensive refetches when possible.
  */
-class ComposeParametersCache(private val client: ComposeLayoutInspectorClient, model: InspectorModel) : ViewNodeCache<ComposeParametersData>(model) {
+class ComposeParametersCache(private val client: ComposeLayoutInspectorClient,
+                             model: InspectorModel) : ViewNodeCache<ComposeParametersData>(model) {
   override suspend fun fetchDataFor(root: ViewNode, node: ViewNode): ComposeParametersData? {
-    val parameters = client.getParameters(root.drawId, node.drawId)
-    return if (parameters.composableId != 0L) {
-      ComposeParametersDataGenerator(parameters, model).generate()
+    val response = client.getParameters(root.drawId, node.drawId)
+    return if (response != GetParametersResponse.getDefaultInstance()) {
+      ComposeParametersDataGenerator(StringTableImpl(response.stringsList), response.parameterGroup, model).generate()
     }
     else {
       null
+    }
+  }
+
+  fun setAllFrom(response: GetAllParametersResponse) {
+    val stringTable = StringTableImpl(response.stringsList)
+    for (group in response.parameterGroupsList) {
+      setDataFor(response.rootViewId, group.composableId, ComposeParametersDataGenerator(stringTable, group, model).generate())
     }
   }
 }
