@@ -19,6 +19,7 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.AbstractExpandableItemsHandler
 import com.intellij.util.Alarm
+import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import org.junit.Before
 import org.junit.Ignore
@@ -34,6 +35,7 @@ import java.awt.peer.ComponentPeer
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JScrollPane
+import javax.swing.ScrollPaneConstants
 import javax.swing.plaf.basic.BasicTreeUI
 
 class TreeImplTest {
@@ -136,8 +138,8 @@ class TreeImplTest {
     val bounds = tree.getRowBounds(tree.rowCount - 1)
     val right = bounds.maxX.toInt()
     val bottom = bounds.maxY.toInt()
-    tree.setSize(right, bottom)
     scrollPane.viewport.viewPosition = Point(right - 20, bottom - 20)
+    UIUtil.dispatchAllInvocationEvents()
     ui.mouse.rightClick(right - 10, bottom - 10)
     assertThat(contextPopup.popupInvokeCount).isEqualTo(0)
     assertThat(badgeItem.lastPopupItem).isEqualTo(item3)
@@ -161,13 +163,11 @@ class TreeImplTest {
     val tree = createTree()
     val scrollPane = setScrollPaneSize(tree, 20, 20)
     val ui = FakeUi(tree)
-    tree.expandRow(0)
-    tree.expandRow(1)
     val bounds = tree.getRowBounds(tree.rowCount - 1)
     val right = bounds.maxX.toInt()
     val bottom = bounds.maxY.toInt()
-    tree.setSize(right, bottom)
     scrollPane.viewport.viewPosition = Point(right - 20, bottom - 20)
+    UIUtil.dispatchAllInvocationEvents()
     ui.mouse.click(right - 10, bottom - 10)
     assertThat(badgeItem.lastActionItem).isEqualTo(item3)
   }
@@ -212,9 +212,28 @@ class TreeImplTest {
     assertThat(tree.expandableTreeItemsHandler.expandedItems).isEmpty()
   }
 
+  @RunsInEdt
+  @Test
+  fun testHiddenRootIsExpanded() {
+    val tree = createTree()
+    tree.isRootVisible = false
+    tree.showsRootHandles = true
+    val hiddenRoot = Item("hidden")
+    hiddenRoot.children.add(item1)
+    item1.parent = hiddenRoot
+    tree.model!!.treeRoot = hiddenRoot
+    assertThat(tree.rowCount).isEqualTo(1)
+    tree.updateUI()
+    assertThat(tree.rowCount).isEqualTo(1)
+  }
+
   private fun setScrollPaneSize(tree: TreeImpl, width: Int, height: Int): JScrollPane {
     val scrollPane = tree.parent.parent as JScrollPane
-    scrollPane.setBounds(0, 0, width, height)
+    scrollPane.verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
+    scrollPane.horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
+    scrollPane.setBounds(0, 0,
+                         width + scrollPane.verticalScrollBar.preferredSize.width,
+                         height + scrollPane.horizontalScrollBar.preferredSize.height)
     scrollPane.doLayout()
     tree.parent.doLayout()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -242,6 +261,7 @@ class TreeImplTest {
       .withContextMenu(contextPopup)
       .withDoubleClick(doubleClickHandler)
       .withoutTreeSearch()
+      .withInvokeLaterOption { it.run() }
       .build().first as JScrollPane
   }
 
