@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.internal
 
 import com.android.SdkConstants
 import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
+import com.android.prefs.AndroidLocationsSingleton
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.StudioPathManager
@@ -41,12 +42,14 @@ class ProjectDumper(
   private val devBuildHome: File = getStudioSourcesLocation()
   private val gradleCache: File = getGradleCacheLocation()
   private val userM2: File = getUserM2Location()
+  private val systemHome = getSystemHomeLocation()
 
   init {
     println("<DEV>         <== ${devBuildHome.absolutePath}")
     println("<GRADLE>      <== ${gradleCache.absolutePath}")
     println("<ANDROID_SDK> <== ${androidSdk.absolutePath}")
     println("<M2>          <==")
+    println("<HOME>        <== ${systemHome.absolutePath}")
     offlineRepos.forEach {
       println("                  ${it.absolutePath}")
     }
@@ -69,6 +72,7 @@ class ProjectDumper(
     // org.jetbrains.kotlin:kotlin-smth-smth-smth:1.3.1-eap-23"
     // kotlin-something-1.3.1-eap-23
     Regex("(?:(?:org.jetbrains.kotlin:kotlin(?:-[0-9a-z]*)*:)|(?:kotlin(?:-[0-9a-z]+)*)-)(\\d+\\.\\d+.[0-9a-z\\-]+)")
+  private val dotAndroidFolderPathPattern = Regex("^/([_/0-9a-z])+\\.android")
 
   fun String.toPrintablePaths(): Collection<String> =
     split(AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION).map { it.toPrintablePath() }
@@ -115,6 +119,7 @@ class ProjectDumper(
       .replace(gradleHashPattern, gradleHashStub)
       .replace(gradleDistPattern, "/$gradleDistStub/")
       .replace(ANDROID_GRADLE_PLUGIN_VERSION, "<AGP_VERSION>")
+      .replace(dotAndroidFolderPathPattern, "<.ANDROID>")
       .let {
         kotlinVersionPattern.find(it)?.let { match ->
           it.replace(match.groupValues[1], "<KOTLIN_VERSION>")
@@ -155,7 +160,7 @@ class ProjectDumper(
     if (version != null) this.replace("-$version", "-<VERSION>") else this
 
 
-  fun String.smartPad() = this.padEnd(max(20, 10 + this.length / 10 * 10))
+  fun String.smartPad() = this.padEnd(max(30, 10 + this.length / 10 * 10))
   fun String.markMatching(matching: String) = if (this == matching) "$this [=]" else this
 
   fun String.removeAndroidVersionsFromDependencyNames(): String =
@@ -183,6 +188,8 @@ fun ProjectDumper.head(name: String, value: () -> String? = { null }) {
 private fun getGradleCacheLocation() = File(System.getProperty("gradle.user.home") ?: (System.getProperty("user.home") + "/.gradle"))
 
 private fun getStudioSourcesLocation() = File(StudioPathManager.getSourcesRoot())
+
+private fun getSystemHomeLocation() = getStudioSourcesLocation().toPath().parent.toFile()
 
 private fun getUserM2Location() = File(System.getProperty("user.home") + "/.m2/repository")
 
