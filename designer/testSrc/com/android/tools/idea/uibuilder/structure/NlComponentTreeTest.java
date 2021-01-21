@@ -105,13 +105,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     myModel = createModel();
     myModel.getUpdateQueue().setPassThrough(true);
     // If using a lambda, it can be reused by the JVM and causing an exception because the Disposable is already disposed.
-    //noinspection Convert2Lambda
-    myDisposable = new Disposable() {
-      @Override
-      public void dispose() {
-
-      }
-    };
+    myDisposable = Disposer.newDisposable();
     mySurface = NlDesignSurface.builder(getProject(), myDisposable)
       .setSceneManagerProvider((surface, model) -> new SyncLayoutlibSceneManager((SyncNlModel) model) {
         @NotNull
