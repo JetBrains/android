@@ -81,7 +81,6 @@ import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.XmlElementFactory
 import java.io.File
-import java.util.regex.Pattern
 import com.android.tools.idea.templates.mergeXml as mergeXmlUtil
 
 /**
@@ -160,7 +159,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   }
 
   /**
-   * Merges the given XML file into the given destination file (or copies it over if  the destination file does not exist).
+   * Merges the given XML file into the given destination file (or copies it over if the destination file does not exist).
    */
   override fun mergeXml(source: String, to: File) {
     val content = source.withoutSkipLines()
@@ -633,8 +632,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     context.warnings.add("The following file could not be created since it already exists: ${targetFile.path}")
 
   private open class RecipeIO {
-    private val WINDOWS_NEWLINE = Pattern.compile("\r\n")
-
     /**
      * Replaces the contents of the given file with the given string. Outputs
      * text in UTF-8 character encoding. The file is created if it does not
@@ -647,15 +644,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
 
       val parentDir = checkedCreateDirectoryIfMissing(to.parentFile)
       val vf = LocalFileSystem.getInstance().findFileByIoFile(to) ?: parentDir.createChildData(requestor, to.name)
-      val document = FileDocumentManager.getInstance().getDocument(vf)
-
-      if (document != null) {
-        document.setText(WINDOWS_NEWLINE.matcher(contents).replaceAll("\n"))
-        FileDocumentManager.getInstance().saveDocument(document)
-      }
-      else {
-        vf.setBinaryContent(contents.toByteArray(Charsets.UTF_8), -1, -1, requestor)
-      }
+      vf.setBinaryContent(contents.toByteArray(Charsets.UTF_8), -1, -1, requestor)
     }
 
     open fun copyFile(requestor: Any, file: VirtualFile, toFile: File) {
@@ -711,7 +700,7 @@ fun CharSequence.squishEmptyLines(): String {
   var isLastBlank = false
   return this.split("\n").mapNotNull { line ->
     when {
-      !line.isBlank() -> line
+      line.isNotBlank() -> line
       !isLastBlank -> "" // replace blank with empty
       else -> null
     }.also {
