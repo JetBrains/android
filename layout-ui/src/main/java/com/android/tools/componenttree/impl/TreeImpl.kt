@@ -105,9 +105,7 @@ class TreeImpl(
   override fun getModel() = super.getModel() as? ComponentTreeModelImpl
 
   override fun setExpandedState(path: TreePath?, state: Boolean) {
-    // We never want to collapse the root
-    val isRoot = getRowForPath(path) == 0
-    if (!isRoot || showsRootHandles) {
+    if (path != null && !alwaysExpanded(path)) {
       super.setExpandedState(path, state)
     }
   }
@@ -254,6 +252,22 @@ class TreeImpl(
       model?.fireTreeStructureChange(event)
       TreeUtil.restoreExpandedPaths(this, expanded)
     }
+    if (!isRootVisible || !showsRootHandles) {
+      val currentModel = model
+      currentModel?.root?.let { root ->
+        val paths = mutableListOf(TreePath(root))
+        currentModel.children(root).mapTo(paths, { TreePath(arrayOf(root, it)) })
+        paths.filter { alwaysExpanded(it) }.forEach { super.setExpandedState(it, true) }
+      }
+    }
+  }
+
+  private fun alwaysExpanded(path: TreePath): Boolean {
+    // An invisible root or a root without root handles should always be expanded
+    val parentPath = path.parentPath ?: return !isRootVisible || !showsRootHandles
+
+    // The children of an invisible root that are shown without root handles should always be expanded
+    return parentPath.parentPath == null && !isRootVisible && !showsRootHandles
   }
 
   // region Support for Badges
@@ -286,6 +300,5 @@ class TreeImpl(
     val component = SwingUtilities.getDeepestComponentAt(renderComponent, x - bounds.x, y - bounds.y) as JComponent? ?: return null
     return Pair(component, item)
   }
-
   // endregion
 }
