@@ -21,6 +21,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
@@ -123,11 +124,13 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
           load.run()
         }
         else {
-          studioProfilers.ideServices
-            .openYesNoDialog("The hprof file is large, and Android Studio may become unresponsive while " +
-                             "it parses the data and afterwards. Do you want to continue?",
-                             "Heap Dump File Too Large",
-                             load, clear)
+          ApplicationManager.getApplication().invokeAndWait {
+            studioProfilers.ideServices
+              .openYesNoDialog("The hprof file is large, and Android Studio may become unresponsive while " +
+                               "it parses the data and afterwards. Do you want to continue?",
+                               "Heap Dump File Too Large",
+                               load, clear)
+          }
         }
       }
   }
