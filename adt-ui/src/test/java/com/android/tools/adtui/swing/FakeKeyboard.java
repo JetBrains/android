@@ -17,11 +17,11 @@ package com.android.tools.adtui.swing;
 
 import com.intellij.openapi.util.SystemInfo;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import java.awt.Component;
-import java.awt.KeyboardFocusManager;
+import it.unimi.dsi.fastutil.ints.IntSet;
+import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,7 +34,7 @@ public final class FakeKeyboard {
   public static final int MENU_KEY_CODE = SystemInfo.isMac ? KeyEvent.VK_META : KeyEvent.VK_CONTROL;
   public static final Key MENU_KEY = SystemInfo.isMac ? Key.META : Key.CTRL;
 
-  private final IntOpenHashSet myPressedKeys = new IntOpenHashSet();
+  private final IntSet myPressedKeys = new IntOpenHashSet();
   @Nullable private Component myFocus;
 
   /**
