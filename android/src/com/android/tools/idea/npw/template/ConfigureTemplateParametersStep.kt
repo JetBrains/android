@@ -74,7 +74,6 @@ import com.android.tools.idea.wizard.template.TextFieldWidget
 import com.android.tools.idea.wizard.template.UrlLinkWidget
 import com.android.tools.idea.wizard.template.Widget
 import com.google.common.base.Joiner
-import com.google.common.cache.CacheBuilder
 import com.google.common.io.Files
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -116,10 +115,8 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
   : ModelWizardStep<RenderTemplateModel>(model, title) {
   private val bindings = BindingsManager()
   private val listeners = ListenerManager()
-  private val thumbnailsCache = CacheBuilder.newBuilder().build(IconLoader())!!
   private val parameterRows = hashMapOf<Parameter<in Any>, RowEntry<*>>()
   private val userValues = hashMapOf<Parameter<*>, Any>()
-  private val thumbPath = StringValueProperty()
 
   /**
    * Validity check of all parameters is performed when any parameter changes, and the first error found is set here.
@@ -158,13 +155,6 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
   private val rootPanel: JScrollPane = wrapWithVScroll(validatorPanel)
   private var evaluationState = EvaluationState.NOT_EVALUATING
   private val parameters: Collection<Parameter<*>> get() = model.newTemplate.parameters
-
-  /**
-   * Get the current thumbnail path.
-   */
-  private val thumbnailPath: String
-    get() = model.newTemplate.thumb().path().path
-
   private val project: Project? get() = if (model.isNewProject) null else model.project
 
   /**
@@ -190,7 +180,6 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
 
     icon = newTemplate.formFactor.toWizardFormFactor().icon
 
-    thumbPath.set(thumbnailPath)
     templateTitleLabel.text = newTemplate.name
 
     for (widget in model.newTemplate.widgets) {
@@ -334,9 +323,6 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       }
     }
 
-    // Aggressively update the icon path just in case it changed
-    thumbPath.set(thumbnailPath)
-
     evaluationState = EvaluationState.NOT_EVALUATING
 
     invalidParameterMessage.set(validateAllParameters() ?: "")
@@ -373,7 +359,6 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
   override fun dispose() {
     bindings.releaseAll()
     listeners.releaseAll()
-    thumbnailsCache.invalidateAll()
   }
 
   /**
