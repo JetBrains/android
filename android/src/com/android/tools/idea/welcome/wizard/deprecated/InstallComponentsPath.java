@@ -17,6 +17,7 @@ package com.android.tools.idea.welcome.wizard.deprecated;
 
 import static com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated;
 
+import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.TypeDetails;
@@ -102,7 +103,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     myMode = mode;
 
     // Create a new instance for use during installation
-    myLocalHandler = AndroidSdkHandler.getInstance(sdkLocation.toPath());
+    myLocalHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, sdkLocation.toPath());
 
     myProgressStep = progressStep;
     myComponentInstaller = new ComponentInstaller(myLocalHandler);
@@ -225,7 +226,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       if (sdkPath != null) {
         File sdkLocation = new File(sdkPath);
         if (!FileUtil.filesEqual(myLocalHandler.getLocation().toFile(), sdkLocation)) {
-          myLocalHandler = AndroidSdkHandler.getInstance(myLocalHandler.getFileOp().toPath(sdkLocation));
+          myLocalHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, myLocalHandler.getFileOp().toPath(sdkLocation));
           StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
           myComponentsStep.startLoading();
           myLocalHandler.getSdkManager(progress)

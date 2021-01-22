@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sdk;
 
+import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.io.FileOpUtils;
@@ -73,7 +74,9 @@ public class SdkMerger {
 
     // Dest dir is changed, refresh.
     com.android.repository.api.ProgressIndicator repoProgress = getRepoProgress(indicator);
-    AndroidSdkHandler.getInstance(destDir.toPath()).getSdkManager(repoProgress).loadSynchronously(0, repoProgress, null, null);
+    AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, destDir.toPath())
+      .getSdkManager(repoProgress)
+      .loadSynchronously(0, repoProgress, null, null);
   }
 
   @NotNull
@@ -99,8 +102,8 @@ public class SdkMerger {
     com.android.repository.api.ProgressIndicator repoProgress = getRepoProgress(progress);
     Collection<MergeablePackage> results = Lists.newArrayList();
 
-    AndroidSdkHandler srcHandler = AndroidSdkHandler.getInstance(srcDir.toPath());
-    AndroidSdkHandler destHandler = AndroidSdkHandler.getInstance(destDir.toPath());
+    AndroidSdkHandler srcHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, srcDir.toPath());
+    AndroidSdkHandler destHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, destDir.toPath());
 
 
     Map<String, ? extends LocalPackage> srcPackages = srcHandler.getSdkManager(repoProgress).getPackages().getLocalPackages();

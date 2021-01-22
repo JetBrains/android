@@ -45,8 +45,8 @@ import static java.nio.file.StandardOpenOption.WRITE;
 import com.android.SdkConstants;
 import com.android.ddmlib.IDevice;
 import com.android.io.CancellableFileIo;
-import com.android.prefs.AndroidLocation;
-import com.android.prefs.AndroidLocation.AndroidLocationException;
+import com.android.prefs.AndroidLocationsException;
+import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
@@ -230,9 +230,9 @@ public class AvdManagerConnection {
         return false;
       }
       try {
-        myAvdManager = AvdManager.getInstance(mySdkHandler, new File(AndroidLocation.getAvdFolder()), SDK_LOG);
+        myAvdManager = AvdManager.getInstance(mySdkHandler, AndroidLocationsSingleton.INSTANCE.getAvdLocation(), SDK_LOG);
       }
-      catch (AndroidLocationException e) {
+      catch (AndroidLocationsException e) {
         IJ_LOG.error("Could not instantiate AVD Manager from SDK", e);
         return false;
       }
@@ -358,7 +358,7 @@ public class AvdManagerConnection {
         assert myAvdManager != null;
         myAvdManager.reloadAvds(SDK_LOG);
       }
-      catch (AndroidLocationException e) {
+      catch (AndroidLocationsException e) {
         IJ_LOG.error("Could not find Android SDK!", e);
       }
     }
@@ -511,7 +511,7 @@ public class AvdManagerConnection {
       try {
         baseFolder = myAvdManager.getBaseAvdFolder().getAbsolutePath();
       }
-      catch (AndroidLocationException e) {
+      catch (Throwable e) {
         baseFolder = "$HOME";
       }
 
@@ -893,7 +893,7 @@ public class AvdManagerConnection {
         avdFolder = myFileOp.toPath(AvdInfo.getDefaultAvdFolder(myAvdManager, avdName, myFileOp, true));
       }
     }
-    catch (AndroidLocationException e) {
+    catch (Throwable e) {
       IJ_LOG.error("Could not create AVD " + avdName, e);
       return null;
     }

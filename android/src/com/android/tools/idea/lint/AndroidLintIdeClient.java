@@ -29,6 +29,7 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.util.PathString;
 import com.android.manifmerger.Actions;
+import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.api.RemotePackage;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -210,7 +211,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
         if (localSdk == null) {
           File sdkHome = getSdkHome();
           if (sdkHome != null) {
-            sdk = AndroidSdkHandler.getInstance(sdkHome.toPath());
+            sdk = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, sdkHome.toPath());
           }
         }
       }

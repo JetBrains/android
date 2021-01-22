@@ -1,6 +1,7 @@
 package org.jetbrains.jps.android;
 
 import com.android.SdkConstants;
+import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.api.ProgressIndicatorAdapter;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -398,7 +399,7 @@ public class AndroidJpsUtil {
       return null;
     }
 
-    final AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(Paths.get(sdk.getHomePath()));
+    final AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, Paths.get(sdk.getHomePath()));
 
     RepoLogger log = new RepoLogger();
     final IAndroidTarget target = sdkHandler.getAndroidTargetManager(log).getTargetFromHashString(targetHashString, log);

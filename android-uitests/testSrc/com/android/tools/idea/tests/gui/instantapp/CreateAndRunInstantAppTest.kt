@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.instantapp
 
 import com.android.SdkConstants
-import com.android.prefs.AndroidLocation
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule
 import com.android.tools.idea.tests.gui.framework.GuiTestRule

@@ -15,7 +15,7 @@
  */
 package com.intellij.testGuiFramework.launcher
 
-import com.android.prefs.AndroidLocation
+import com.android.prefs.AbstractAndroidLocations
 import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.testutils.TestUtils.resolveWorkspacePath
@@ -207,7 +207,7 @@ object GuiTestLauncher {
       options += "-Didea.system.path=${IdeaTestSuiteBase.createTmpDir("idea/system")}"
       options += "-Didea.config.path=${IdeaTestSuiteBase.createTmpDir("idea/config")}"
       options += "-Dgradle.user.home=${IdeaTestSuiteBase.createTmpDir("home")}"
-      options += "-D${AndroidLocation.ANDROID_PREFS_ROOT}=${IdeaTestSuiteBase.createTmpDir(".android")}"
+      options += "-D${AbstractAndroidLocations.ANDROID_PREFS_ROOT}=${IdeaTestSuiteBase.createTmpDir(".android")}"
       options += "-Dlayoutlib.thread.timeout=60000"
       options += "-Dresolve.descriptors.in.resources=true"
       options += "-Dstudio.dev.jdk=${getJdkPathForGradle()}"
