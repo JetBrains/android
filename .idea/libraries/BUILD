@@ -87,18 +87,6 @@ java_import(
 
 # managed by go/iml_to_build
 java_import(
-    name = "asm-tools",
-    # do not sort: must match IML order
-    jars = [
-        "//prebuilts/tools/common/m2/repository/org/ow2/asm/asm/7.0:asm-tools_files",
-        "//prebuilts/tools/common/m2/repository/org/ow2/asm/asm-tree/7.0:asm-tools_files",
-        "//prebuilts/tools/common/m2/repository/org/ow2/asm/asm-analysis/7.0:asm-tools_files",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
     name = "truth-java8-extension",
     jars = ["//prebuilts/tools/common/m2/repository/com/google/truth/extensions/truth-java8-extension/0.42:truth-java8-extension_files"],
     visibility = ["//visibility:public"],
@@ -276,5 +264,17 @@ java_import(
 java_import(
     name = "android-test-plugin-host-device-info-proto",
     jars = ["//tools/base/utp/android-test-plugin-host-device-info-proto:libstudio.android-test-plugin-host-device-info-proto.jar"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+java_import(
+    name = "asm-tools",
+    # do not sort: must match IML order
+    jars = [
+        "//prebuilts/tools/common/m2/repository/org/ow2/asm/asm-analysis/7.0:asm-tools_files",
+        "//prebuilts/tools/common/m2/repository/org/ow2/asm/asm-tree/7.0:asm-tools_files",
+        "//prebuilts/tools/common/m2/repository/org/ow2/asm/asm/7.0:asm-tools_files",
+    ],
     visibility = ["//visibility:public"],
 )
