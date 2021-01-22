@@ -14,5 +14,6 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/app-inspection/inspectors/network/view:intellij.android.app-inspection.inspectors.network.view[module]",
         "//tools/adt/idea/app-inspection/inspectors/network/model:intellij.android.app-inspection.inspectors.network.model[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
     ],
 )

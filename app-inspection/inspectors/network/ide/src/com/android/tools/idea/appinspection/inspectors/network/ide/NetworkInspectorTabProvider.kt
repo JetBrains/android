@@ -24,6 +24,7 @@ import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvide
 import com.android.tools.idea.appinspection.inspector.ide.FrameworkInspectorLaunchParams
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorClient
 import com.android.tools.idea.appinspection.inspectors.view.NetworkInspectorTab
+import com.android.tools.idea.flags.StudioFlags.ENABLE_NETWORK_MANAGER_INSPECTOR_TAB
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import javax.swing.Icon
@@ -37,7 +38,7 @@ class NetworkInspectorTabProvider : AppInspectorTabProvider {
   )
 
   override fun isApplicable(): Boolean {
-    return false
+    return ENABLE_NETWORK_MANAGER_INSPECTOR_TAB.get()
   }
 
   override fun createTab(

@@ -1111,6 +1111,15 @@ public final class StudioFlags {
   );
   // endregion
 
+  // region Network Inspector
+  private static final FlagGroup NETWORK_INSPECTOR = new FlagGroup(FLAGS, "network.inspector", "Network Inspector");
+  public static final Flag<Boolean> ENABLE_NETWORK_MANAGER_INSPECTOR_TAB = Flag.create(
+    NETWORK_INSPECTOR, "enable.network.inspector.tab", "Enable Network Inspector Tab",
+    "Enables a Network Inspector Tab in the App Inspection tool window",
+    false
+  );
+  // endregion
+
   //region Device Manager
   private static final FlagGroup DEVICE_MANAGER = new FlagGroup(FLAGS, "device.manager", "Device Manager");
   public static final Flag<Boolean> ENABLE_NEW_DEVICE_MANAGER_PANEL = Flag.create(
