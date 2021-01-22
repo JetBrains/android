@@ -278,7 +278,7 @@ final class Updater {
       bootOption = null;
     }
     else {
-      bootOption = target.getText(device).orElseThrow(AssertionError::new);
+      bootOption = target.getText(device);
     }
 
     return Devices.getText(device, key, bootOption);

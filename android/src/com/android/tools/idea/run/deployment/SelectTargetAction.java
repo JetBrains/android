@@ -52,7 +52,7 @@ final class SelectTargetAction extends AnAction {
 
   @Override
   public void update(@NotNull AnActionEvent event) {
-    event.getPresentation().setText(myTarget.getText(myDevice).orElseThrow(AssertionError::new), false);
+    event.getPresentation().setText(myTarget.getText(myDevice), false);
   }
 
   @Override
