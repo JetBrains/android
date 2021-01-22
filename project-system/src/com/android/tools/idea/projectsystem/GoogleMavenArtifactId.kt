@@ -102,7 +102,6 @@ enum class GoogleMavenArtifactId(val mavenGroupId: String, val mavenArtifactId: 
 
   // Compose
   COMPOSE_RUNTIME("androidx.compose.runtime", "runtime", false),
-  OLD_COMPOSE_TOOLING("androidx.ui", "ui-tooling", false),
   COMPOSE_TOOLING("androidx.compose.ui", "ui-tooling", false),
 
   // Kotlin
