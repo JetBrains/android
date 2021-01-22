@@ -17,6 +17,7 @@ package com.android.tools.idea.templates
 
 import com.android.ide.common.signing.KeystoreHelper
 import com.android.ide.common.signing.KeytoolException
+import com.android.io.CancellableFileIo
 import com.android.prefs.AndroidLocationsException
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
@@ -48,7 +49,8 @@ object KeystoreUtils {
     if (!debugLocation.exists()) {
       val keystoreDirectory = AndroidLocationsSingleton.prefsLocation
 
-      if (!keystoreDirectory.canWrite()) {
+
+      if (!CancellableFileIo.isWritable(keystoreDirectory)) {
         throw AndroidLocationsException("Could not create debug keystore because \"$keystoreDirectory\" is not writable")
       }
 
