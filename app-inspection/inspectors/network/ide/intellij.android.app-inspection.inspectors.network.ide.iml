@@ -13,5 +13,6 @@
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.network.view" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.network.model" />
+    <orderEntry type="module" module-name="intellij.android.common" />
   </component>
 </module>
