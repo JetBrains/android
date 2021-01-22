@@ -25,16 +25,16 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
+import java.awt.Dimension;
+import javax.swing.Icon;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
 
 /**
  * The general look and feel for all Studio-specific wizards.
  */
 public final class StudioWizardLayout implements ModelWizardDialog.CustomLayout {
-
   private static final JBColor STUDIO_LAYOUT_HEADER_COLOR = new JBColor(0x616161, 0x4B4B4B);
   public static final Dimension DEFAULT_MIN_SIZE = JBUI.size(600, 350);
   public static final Dimension DEFAULT_PREFERRED_SIZE = JBUI.size(900, 650);

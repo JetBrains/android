@@ -16,9 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
-import static org.jetbrains.android.util.AndroidBundle.message;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
@@ -51,11 +49,7 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
 
   @NotNull
   public ChooseAndroidProjectStepFixture<NewProjectWizardFixture> getChooseAndroidProjectStep() {
-    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
       return new ChooseAndroidProjectStepFixture<>(this, findStepWithTitle("Templates"));
-    }
-    JRootPane rootPane = findStepWithTitle(message("android.wizard.project.new.choose"));
-    return new ChooseAndroidProjectStepFixture<>(this, rootPane);
   }
 
   @NotNull
@@ -77,12 +71,12 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
 
   @NotNull
   public IdeFrameFixture clickFinishAndWaitForSyncToFinish() {
-    return IdeFrameFixture.actAndWaitForGradleProjectSyncToFinish(Wait.seconds(120), () -> clickFinishAndGetIdeFrame());
+    return IdeFrameFixture.actAndWaitForGradleProjectSyncToFinish(Wait.seconds(120), this::clickFinishAndGetIdeFrame);
   }
 
   @NotNull
   public IdeFrameFixture clickFinishAndWaitForSyncToFinish(@NotNull Wait waitSync) {
-    return IdeFrameFixture.actAndWaitForGradleProjectSyncToFinish(waitSync, () -> clickFinishAndGetIdeFrame());
+    return IdeFrameFixture.actAndWaitForGradleProjectSyncToFinish(waitSync, this::clickFinishAndGetIdeFrame);
   }
 
   private IdeFrameFixture clickFinishAndGetIdeFrame() {
@@ -92,8 +86,7 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
     return ideFrameFixture;
   }
 
-  @NotNull
-  private NewProjectWizardFixture clickFinish() {
-    return clickFinish(Wait.seconds(15), Wait.seconds(240));
+  private void clickFinish() {
+    clickFinish(Wait.seconds(15), Wait.seconds(240));
   }
 }

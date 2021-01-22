@@ -78,11 +78,6 @@ public final class StudioFlags {
     "Shows an option on new Project/Module to allow the use of Kotlin script",
     false);
 
-  public static final Flag<Boolean> NPW_NEW_MODULE_WITH_SIDE_BAR = Flag.create(
-    NPW, "new.module.with.side.bar", "New Module with sidebar",
-    "Shows latest UX implementation of New Module with a left side bar",
-    true);
-
   public static final Flag<Boolean> NPW_NEW_NATIVE_MODULE = Flag.create(
     NPW, "new.native.module", "New Android Native Module",
     "Show template to create a new Android Native module in the new module wizard.",
