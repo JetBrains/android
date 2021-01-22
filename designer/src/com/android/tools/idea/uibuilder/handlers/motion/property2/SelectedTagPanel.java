@@ -35,9 +35,9 @@ public class SelectedTagPanel extends AdtSecondaryPanel {
 
   public SelectedTagPanel(@NotNull String label, @NotNull String id, @NotNull Icon icon, boolean includeTopBorder) {
     super(new BorderLayout());
-    JBLabel component = new JBLabel(id, icon, SwingConstants.LEADING);
-    JBLabel description = new JBLabel(label);
-    description.setForeground(new JBColor(Gray._192, Gray._128));
+    JBLabel component = new JBLabel(label, icon, SwingConstants.LEADING);
+    JBLabel description = new JBLabel(id);
+    component.setForeground(new JBColor(Gray._192, Gray._128));
     if (includeTopBorder) {
       Border border = JBUI.Borders.empty(VERTICAL_BORDER, HORIZONTAL_BORDER, 0, HORIZONTAL_BORDER);
       border = JBUI.Borders.merge(border,

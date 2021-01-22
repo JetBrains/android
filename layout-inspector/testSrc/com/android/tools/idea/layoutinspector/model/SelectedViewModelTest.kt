@@ -27,6 +27,7 @@ import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.google.common.truth.Truth.assertThat
+import com.intellij.util.text.nullize
 import icons.StudioIcons
 import org.junit.Test
 import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
@@ -63,6 +64,16 @@ class SelectedViewModelTest {
     assertThat(model.description).isEqualTo("DecorView")
   }
 
+  @Test
+  fun testCoreText() {
+    val name = nameOf("CoreText")
+    val id = idOf("")
+    val model = SelectedViewModel(name, id)
+    assertThat(model.id).isEqualTo("")
+    assertThat(model.icon).isEqualTo(StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW)
+    assertThat(model.description).isEqualTo("CoreText")
+  }
+
   private fun nameOf(name: String): InspectorPropertyItem {
     val lookup: ViewNodeAndResourceLookup = mock()
     return InspectorPropertyItem(ANDROID_URI, ATTR_NAME, Type.STRING, name, PropertySection.VIEW, null, 1L, lookup)
@@ -70,7 +81,7 @@ class SelectedViewModelTest {
 
   private fun idOf(id: String?): InspectorPropertyItem {
     val lookup: ViewNodeAndResourceLookup = mock()
-    val value = id?.let { "@id/$id" }
+    val value = id.nullize()?.let { "@id/$id" } ?: id
     return InspectorPropertyItem(ANDROID_URI, ATTR_ID, Type.STRING, value, PropertySection.VIEW, null, 1L, lookup)
   }
 }
