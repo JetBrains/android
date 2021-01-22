@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline.transport
 
 import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ID
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -153,10 +154,12 @@ class TransportPropertiesProvider(
     if (propertiesData == EMPTY_PROPERTIES_DATA || properties.getByNamespace(NAMESPACE_INTERNAL).isNotEmpty()) {
       return properties
     }
+    var attrId: String? = ""
     if (view !is ComposeViewNode) {
       properties.values.forEach { it.resolveDimensionType(view) }
+      attrId = properties.getOrNull(ANDROID_URI, ATTR_ID)?.value
     }
-    addInternalProperties(properties, view, model)
+    addInternalProperties(properties, view, attrId, model)
     ReadAction.run<Exception> {
       propertiesData.classNames.cellSet().mapNotNull { cell ->
         properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let { convertToItemWithClassLocation(it, cell.value!!) }

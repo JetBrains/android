@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ID
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -93,7 +95,6 @@ class AppInspectionPropertiesProvider(
       properties.values.forEach { it.resolveDimensionType(view) }
     }
 
-    addInternalProperties(properties, view, model)
     runReadAction {
       propertiesData.classNames.cellSet().mapNotNull { cell ->
         properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let { convertToItemWithClassLocation(it, cell.value!!) }
@@ -102,13 +103,14 @@ class AppInspectionPropertiesProvider(
         properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let { convertToResolutionStackItem(it, view, cell.value!!) }
       }.forEach { properties.put(it) }
     }
+    addInternalProperties(properties, view, properties.getOrNull(ANDROID_URI, ATTR_ID)?.value ,model)
   }
 
   private fun completeParameters(view: ViewNode, parametersData: ComposeParametersData) {
     val parameters = parametersData.parameters
     if (parameters.getByNamespace(NAMESPACE_INTERNAL).isNotEmpty()) return
 
-    addInternalProperties(parameters, view, model)
+    addInternalProperties(parameters, view, "", model)
   }
 
   /**
