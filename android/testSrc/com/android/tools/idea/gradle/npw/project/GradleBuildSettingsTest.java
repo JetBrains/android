@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.npw.project;
 
 import org.junit.Test;
 
-import static com.android.ide.common.repository.GradleVersion.parse;
 import static com.android.repository.Revision.parseRevision;
 import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion;
 import static org.junit.Assert.assertFalse;
@@ -31,22 +30,14 @@ public class GradleBuildSettingsTest {
 
   @Test
   public void toolsBuildVersionMoreRecentThanCurrent() {
-    assertTrue(needsExplicitBuildToolsVersion(parse("3.0.0"), parseRevision("27.0.4"), CURRENT_BUILD_TOOLS));
-    assertTrue(needsExplicitBuildToolsVersion(parse("3.0.0"), parseRevision("28.0.0"), CURRENT_BUILD_TOOLS));
+    assertTrue(needsExplicitBuildToolsVersion(parseRevision("27.0.4"), CURRENT_BUILD_TOOLS));
+    assertTrue(needsExplicitBuildToolsVersion(parseRevision("28.0.0"), CURRENT_BUILD_TOOLS));
   }
 
   @Test
   public void toolsBuildVersionLessRecentOrSameThanCurrent() {
-    assertFalse(needsExplicitBuildToolsVersion(parse("3.0.0"), parseRevision("27.0.0"), CURRENT_BUILD_TOOLS));
-    assertFalse(needsExplicitBuildToolsVersion(parse("3.0.0"), parseRevision("27.0.3"), CURRENT_BUILD_TOOLS));
-    assertFalse(needsExplicitBuildToolsVersion(parse("3.0.0"), parseRevision("26.0.0"), CURRENT_BUILD_TOOLS));
-  }
-
-  @Test
-  public void oldGradlePluginVersion() {
-    assertTrue(needsExplicitBuildToolsVersion(parse("2.0.0"), parseRevision("27.0.0"), CURRENT_BUILD_TOOLS));
-    assertTrue(needsExplicitBuildToolsVersion(parse("2.0.0"), parseRevision("27.0.3"), CURRENT_BUILD_TOOLS));
-    assertTrue(needsExplicitBuildToolsVersion(parse("2.0.0"), parseRevision("27.0.4"), CURRENT_BUILD_TOOLS));
-    assertTrue(needsExplicitBuildToolsVersion(parse("2.0.0"), parseRevision("28.0.0"), CURRENT_BUILD_TOOLS));
+    assertFalse(needsExplicitBuildToolsVersion(parseRevision("27.0.0"), CURRENT_BUILD_TOOLS));
+    assertFalse(needsExplicitBuildToolsVersion(parseRevision("27.0.3"), CURRENT_BUILD_TOOLS));
+    assertFalse(needsExplicitBuildToolsVersion(parseRevision("26.0.0"), CURRENT_BUILD_TOOLS));
   }
 }
