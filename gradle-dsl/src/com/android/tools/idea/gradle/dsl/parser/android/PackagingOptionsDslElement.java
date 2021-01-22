@@ -25,6 +25,7 @@ import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.android.packagingOptions.DexDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.packagingOptions.JniLibsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.packagingOptions.ResourcesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
@@ -68,6 +69,7 @@ public class PackagingOptionsDslElement extends GradleDslBlockElement {
   public static final ImmutableMap<String,PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"dex", DexDslElement.DEX},
     {"jniLibs", JniLibsDslElement.JNI_LIBS},
+    {"resources", ResourcesDslElement.RESOURCES},
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
   @Override
