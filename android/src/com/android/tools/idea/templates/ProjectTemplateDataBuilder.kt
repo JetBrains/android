@@ -120,9 +120,8 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   }.toJavaVersion()
 
   private fun addBuildToolVersion(project: Project, buildToolRevision: Revision) {
-    val gradlePluginVersion = determineGradlePluginVersion(project)
     buildToolsVersion = buildToolRevision
-    explicitBuildToolsVersion = needsExplicitBuildToolsVersion(gradlePluginVersion, buildToolRevision)
+    explicitBuildToolsVersion = needsExplicitBuildToolsVersion(buildToolRevision)
   }
 
   /** Find the most appropriated Gradle Plugin version for the specified project. */

@@ -50,7 +50,7 @@ fun buildGradle(
   enableCpp: Boolean = false,
   cppStandard: CppStandardType = CppStandardType.`Toolchain Default`
 ): String {
-  val explicitBuildToolsVersion = needsExplicitBuildToolsVersion(GradleVersion.parse(gradlePluginVersion), parseRevision(buildToolsVersion))
+  val explicitBuildToolsVersion = needsExplicitBuildToolsVersion(parseRevision(buildToolsVersion))
   val supportsImprovedTestDeps = supportsImprovedTestDeps(gradlePluginVersion)
   val isApplicationProject = !isLibraryProject
 
