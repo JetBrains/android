@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,30 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.api.android;
+package com.android.tools.idea.gradle.dsl.model.android.packagingOptions;
 
 import com.android.tools.idea.gradle.dsl.api.android.packagingOptions.DexModel;
-import com.android.tools.idea.gradle.dsl.api.android.packagingOptions.JniLibsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
+import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.parser.android.packagingOptions.DexDslElement;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public interface PackagingOptionsModel extends GradleDslModel {
-  @NotNull
-  ResolvedPropertyModel doNotStrip();
+public class DexModelImpl extends GradleDslBlockModel implements DexModel {
+  @NonNls public static final String USE_LEGACY_PACKAGING = "mUseLegacyPackaging";
 
-  @NotNull
-  ResolvedPropertyModel excludes();
+  public DexModelImpl(DexDslElement element) {
+    super(element);
+  }
 
+  @Override
   @NotNull
-  ResolvedPropertyModel merges();
-
-  @NotNull
-  ResolvedPropertyModel pickFirsts();
-
-  @NotNull
-  DexModel dex();
-
-  @NotNull
-  JniLibsModel jniLibs();
+  public ResolvedPropertyModel useLegacyPackaging() {
+    return getModelForProperty(USE_LEGACY_PACKAGING);
+  }
 }
