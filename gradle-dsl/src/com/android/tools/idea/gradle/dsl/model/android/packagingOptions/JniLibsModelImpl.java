@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,36 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.model.android;
+package com.android.tools.idea.gradle.dsl.model.android.packagingOptions;
 
-import static com.android.tools.idea.gradle.dsl.parser.android.packagingOptions.JniLibsDslElement.JNI_LIBS;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET;
 
-import com.android.tools.idea.gradle.dsl.api.android.PackagingOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.packagingOptions.JniLibsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
-import com.android.tools.idea.gradle.dsl.model.android.packagingOptions.JniLibsModelImpl;
-import com.android.tools.idea.gradle.dsl.parser.android.PackagingOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.packagingOptions.JniLibsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public class PackagingOptionsModelImpl extends GradleDslBlockModel implements PackagingOptionsModel {
-  @NonNls public static final ModelPropertyDescription DO_NOT_STRIP = new ModelPropertyDescription("mDoNotStrip", MUTABLE_SET);
+public class JniLibsModelImpl extends GradleDslBlockModel implements JniLibsModel {
   @NonNls public static final ModelPropertyDescription EXCLUDES = new ModelPropertyDescription("mExcludes", MUTABLE_SET);
-  @NonNls public static final ModelPropertyDescription MERGES = new ModelPropertyDescription("mMerges", MUTABLE_SET);
   @NonNls public static final ModelPropertyDescription PICK_FIRSTS = new ModelPropertyDescription("mPickFirsts", MUTABLE_SET);
+  @NonNls public static final ModelPropertyDescription KEEP_DEBUG_SYMBOLS = new ModelPropertyDescription("mKeepDebugSymbols", MUTABLE_SET);
+  @NonNls public static final String USE_LEGACY_PACKAGING = "mUseLegacyPackaging";
 
-  public PackagingOptionsModelImpl(@NotNull PackagingOptionsDslElement dslElement) {
-    super(dslElement);
-  }
-
-  @Override
-  @NotNull
-  public ResolvedPropertyModel doNotStrip() {
-    return getModelForProperty(DO_NOT_STRIP);
+  public JniLibsModelImpl(@NotNull JniLibsDslElement element) {
+    super(element);
   }
 
   @Override
@@ -53,19 +43,19 @@ public class PackagingOptionsModelImpl extends GradleDslBlockModel implements Pa
 
   @Override
   @NotNull
-  public ResolvedPropertyModel merges() {
-    return getModelForProperty(MERGES);
-  }
-
-  @Override
-  @NotNull
   public ResolvedPropertyModel pickFirsts() {
     return getModelForProperty(PICK_FIRSTS);
   }
 
   @Override
-  public @NotNull JniLibsModel jniLibs() {
-    JniLibsDslElement element = myDslElement.ensurePropertyElement(JNI_LIBS);
-    return new JniLibsModelImpl(element);
+  @NotNull
+  public ResolvedPropertyModel keepDebugSymbols() {
+    return getModelForProperty(KEEP_DEBUG_SYMBOLS);
+  }
+
+  @Override
+  @NotNull
+  public ResolvedPropertyModel useLegacyPackaging() {
+    return getModelForProperty(USE_LEGACY_PACKAGING);
   }
 }
