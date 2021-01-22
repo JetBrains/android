@@ -26,6 +26,8 @@ import com.intellij.facet.ui.FacetValidatorsManager
 import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleType
+import com.intellij.openapi.util.Key
+import org.jetbrains.android.facet.AndroidFacet
 
 val ANDROID_ARTIFACT_FACET_ID = FacetTypeId<AndroidArtifactFacet>("android-artifact")
 
@@ -51,6 +53,9 @@ class AndroidArtifactFacetType : FacetType<AndroidArtifactFacet, AndroidArtifact
   override fun isSuitableModuleType(moduleType: ModuleType<*>?): Boolean = moduleType is JavaModuleType
 }
 
+// This key will be present on all AndroidArtifactFacets it will link to the AndroidFacet of the parent module
+private val ANDROID_FACET_KEY : Key<AndroidFacet> = Key.create(AndroidFacet::class.java.name)
+
 class AndroidArtifactFacet(
   module: Module,
   name: String,
@@ -60,4 +65,10 @@ class AndroidArtifactFacet(
     val NAME = "Android Artifact"
     fun getFacetType() = FacetTypeRegistry.getInstance().findFacetType(ANDROID_ARTIFACT_FACET_ID) as AndroidArtifactFacetType
   }
+
+  fun linkToAndroidFacet(androidFacet: AndroidFacet) {
+    putUserData(ANDROID_FACET_KEY, androidFacet)
+  }
+
+  fun getLinkedAndroidFacet() : AndroidFacet? = getUserData(ANDROID_FACET_KEY)
 }
