@@ -213,8 +213,13 @@ private const val WINDOWS_PATH_LENGTH_LIMIT = 240
 
 private val ILLEGAL_CHARACTER_MATCHER: CharMatcher = CharMatcher.anyOf("[/\\?%*:|\"<>!;]")
 
-fun filenameRule(description: String, predicate:(String) -> Boolean) = createSimpleRule(
-  { _, file -> predicate(file.name) },
+/**
+ * Creates a rule that checks the filename.
+ *
+ * @param filenameIsAllowed returns true if the filename is allowed
+ */
+fun filenameRule(description: String, filenameIsAllowed:(String) -> Boolean) = createSimpleRule(
+  { _, file -> !filenameIsAllowed(file.name) },
   { _, fieldName -> "The $fieldName specified $description." }
 )
 
