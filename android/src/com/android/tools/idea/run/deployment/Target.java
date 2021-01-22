@@ -17,7 +17,6 @@ package com.android.tools.idea.run.deployment;
 
 import com.intellij.openapi.project.Project;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -55,7 +54,7 @@ abstract class Target {
    * @return the text for this target. It's used for the items in a virtual device's submenu and in the drop down button when a user selects
    * a target.
    */
-  abstract @NotNull Optional<@NotNull String> getText(@NotNull Device device);
+  abstract @NotNull String getText(@NotNull Device device);
 
   abstract void boot(@NotNull VirtualDevice device, @NotNull Project project);
 }

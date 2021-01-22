@@ -45,14 +45,13 @@ final class BootWithSnapshotTarget extends Target {
   }
 
   @Override
-  @NotNull Optional<@NotNull String> getText(@NotNull Device device) {
+  @NotNull String getText(@NotNull Device device) {
     Optional<String> text = device.getSnapshots().stream()
       .filter(snapshot -> snapshot.getDirectory().equals(mySnapshotKey))
       .map(Snapshot::toString)
       .findFirst();
 
-    assert text.isPresent();
-    return text;
+    return text.orElseThrow(AssertionError::new);
   }
 
   @Override
