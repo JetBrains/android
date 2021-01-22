@@ -64,7 +64,7 @@ class PersistentState {
   fun get(id: String, defaultValue: Boolean): Boolean {
     val value = get(id)
     return try {
-      if (value == null) defaultValue else java.lang.Boolean.parseBoolean(value)
+      value?.toBoolean() ?: defaultValue
     }
     catch (e: NumberFormatException) {
       defaultValue
@@ -77,7 +77,7 @@ class PersistentState {
   fun get(id: String, defaultValue: Int): Int {
     val value = get(id)
     return try {
-      if (value == null) defaultValue else Integer.parseInt(value)
+      value?.toInt() ?: defaultValue
     }
     catch (e: NumberFormatException) {
       defaultValue
@@ -90,7 +90,7 @@ class PersistentState {
   fun get(id: String, defaultValue: Long): Long {
     val value = get(id)
     return try {
-      if (value == null) defaultValue else java.lang.Long.parseLong(value)
+      value?.toLong() ?: defaultValue
     }
     catch (e: NumberFormatException) {
       defaultValue
@@ -103,7 +103,7 @@ class PersistentState {
   fun get(id: String, defaultValue: Float): Float {
     val value = get(id)
     return try {
-      if (value == null) defaultValue else java.lang.Float.parseFloat(value)
+      value?.toFloat() ?: defaultValue
     }
     catch (e: NumberFormatException) {
       defaultValue
@@ -162,7 +162,7 @@ class PersistentState {
       values?.remove(id)
     }
     else {
-      getValuesMap().put(id, value)
+      getValuesMap()[id] = value
     }
   }
 
@@ -178,7 +178,7 @@ class PersistentState {
    * Associates the given boolean value with the given [id].
    */
   operator fun set(id: String, value: Boolean) {
-    set(id, java.lang.Boolean.toString(value))
+    set(id, value.toString())
   }
 
   /**
@@ -186,14 +186,14 @@ class PersistentState {
    * in which case the value is removed.
    */
   fun set(id: String, value: Boolean?, defaultValue: Boolean) {
-    set(id, if (value == null || value == defaultValue) null else java.lang.Boolean.toString(value))
+    set(id, if (value == null || value == defaultValue) null else value.toString())
   }
 
   /**
    * Associates the given integer value with the given [id].
    */
   operator fun set(id: String, value: Int) {
-    set(id, Integer.toString(value))
+    set(id, value.toString())
   }
 
   /**
@@ -201,14 +201,14 @@ class PersistentState {
    * in which case the value is removed.
    */
   fun set(id: String, value: Int?, defaultValue: Int) {
-    set(id, if (value == null || value == defaultValue) null else java.lang.Integer.toString(value))
+    set(id, if (value == null || value == defaultValue) null else value.toString())
   }
 
   /**
    * Associates the given long value with the given [id].
    */
   operator fun set(id: String, value: Long) {
-    set(id, java.lang.Long.toString(value))
+    set(id, value.toString())
   }
 
   /**
@@ -216,14 +216,14 @@ class PersistentState {
    * in which case the value is removed.
    */
   fun set(id: String, value: Long?, defaultValue: Long) {
-    set(id, if (value == null || value == defaultValue) null else java.lang.Long.toString(value))
+    set(id, if (value == null || value == defaultValue) null else value.toString())
   }
 
   /**
    * Associates the given float value with the given [id].
    */
   operator fun set(id: String, value: Float) {
-    set(id, java.lang.Float.toString(value))
+    set(id, value.toString())
   }
 
   /**
@@ -231,7 +231,7 @@ class PersistentState {
    * in which case the value is removed.
    */
   fun set(id: String, value: Float?, defaultValue: Float) {
-    set(id, if (value == null || value == defaultValue) null else java.lang.Float.toString(value))
+    set(id, if (value == null || value == defaultValue) null else value.toString())
   }
 
   /**
@@ -267,16 +267,16 @@ class PersistentState {
   /**
    * Associates the given enum value with the given [id].
    */
-  operator fun set(id: String, value: java.lang.Enum<*>) {
-    set(id, value.name())
+  operator fun set(id: String, value: Enum<*>) {
+    set(id, value.name)
   }
 
   /**
    * Associates the given enum value with the given [id] unless it is equal to the default value,
    * in which case the value is removed.
    */
-  fun <T : java.lang.Enum<*>> set(id: String, value: T?, defaultValue: T) {
-    set(id, if (value == null || value == defaultValue) null else value.name())
+  fun <T : Enum<*>> set(id: String, value: T?, defaultValue: T) {
+    set(id, if (value == null || value == defaultValue) null else value.name)
   }
 
   /**
@@ -302,13 +302,13 @@ class PersistentState {
   }
 
   /**
-   * Returns the child state with the given [id], or creates a new child state, associates it with the [id] and retuns it.
+   * Returns the child state with the given [id], or creates a new child state, associates it with the [id] and returns it.
    */
   fun getOrCreateChild(id: String): PersistentState {
     var child = getChild(id)
     if (child == null) {
       child = PersistentState()
-      getChildrenMap().put(id, child)
+      getChildrenMap()[id] = child
     }
     return child
   }
@@ -321,7 +321,7 @@ class PersistentState {
       children?.remove(id)
     }
     else {
-      getChildrenMap().put(id, child)
+      getChildrenMap()[id] = child
     }
   }
 
