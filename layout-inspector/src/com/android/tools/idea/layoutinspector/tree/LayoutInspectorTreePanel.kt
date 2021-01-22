@@ -23,6 +23,8 @@ import com.android.tools.componenttree.api.ViewNodeType
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.ComposeViewNode
+import com.android.tools.idea.layoutinspector.model.IconProvider
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -31,8 +33,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.application.ApplicationManager
-import icons.StudioIcons
-import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
 import java.util.Collections
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -128,7 +128,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     override fun textValueOf(node: ViewNode) = node.textValue
 
     override fun iconOf(node: ViewNode): Icon =
-      AndroidDomElementDescriptorProvider.getIconForViewTag(node.unqualifiedName) ?: StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW
+      IconProvider.getIconForView(node.qualifiedName, node is ComposeViewNode)
 
     override fun parentOf(node: ViewNode): ViewNode? =
       if (hideTopSystemNodes && isTopSystemNode(node.parent)) node.parent?.parent else node.parent
