@@ -15,18 +15,12 @@
  */
 package com.android.tools.idea.npw.module.recipes.androidModule
 
-import com.android.ide.common.repository.GradleVersion
 import com.android.repository.Revision.parseRevision
 import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion
 import com.android.tools.idea.npw.module.recipes.androidConfig
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
-import com.android.tools.idea.npw.module.recipes.getConfigurationName
-import com.android.tools.idea.npw.module.recipes.supportsImprovedTestDeps
-import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
-import com.android.tools.idea.templates.resolveDependency
 import com.android.tools.idea.wizard.template.CppStandardType
 import com.android.tools.idea.wizard.template.FormFactor
-import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.has
 import com.android.tools.idea.wizard.template.renderIf
 
@@ -40,7 +34,6 @@ fun buildGradle(
   minApi: String,
   targetApi: String,
   useAndroidX: Boolean,
-  gradlePluginVersion: GradlePluginVersion,
   isCompose: Boolean = false,
   baseFeatureName: String = "base",
   wearProjectName: String = "wear",
@@ -51,7 +44,6 @@ fun buildGradle(
   cppStandard: CppStandardType = CppStandardType.`Toolchain Default`
 ): String {
   val explicitBuildToolsVersion = needsExplicitBuildToolsVersion(parseRevision(buildToolsVersion))
-  val supportsImprovedTestDeps = supportsImprovedTestDeps(gradlePluginVersion)
   val isApplicationProject = !isLibraryProject
 
   val androidConfigBlock = androidConfig(
@@ -83,18 +75,8 @@ dependencies {
 
   val composeDependenciesBlock = renderIf(isCompose) { "kotlinPlugin \"androidx.compose:compose-compiler:+\"" }
 
-  val oldTestDependenciesBlock = renderIf(!supportsImprovedTestDeps) {
-    """
-    ${getConfigurationName("androidTestCompile", gradlePluginVersion)}("${
-    resolveDependency(RepositoryUrlManager.get(), "com.android.support.test.espresso:espresso-core:+")
-    }", {
-      exclude group : "com.android.support", module: "support-annotations"
-    })
-    """
-  }
-
   val wearProjectBlock = when {
-    !wearProjectName.isBlank() && formFactorNames.has(FormFactor.Mobile) && formFactorNames.has(FormFactor.Wear) ->
+    wearProjectName.isNotBlank() && formFactorNames.has(FormFactor.Mobile) && formFactorNames.has(FormFactor.Wear) ->
       """wearApp project (":${wearProjectName}")"""
     else -> ""
   }
@@ -102,7 +84,6 @@ dependencies {
   val dependenciesBlock = """
   dependencies {
     $composeDependenciesBlock
-    $oldTestDependenciesBlock
     $wearProjectBlock
   }
   """
