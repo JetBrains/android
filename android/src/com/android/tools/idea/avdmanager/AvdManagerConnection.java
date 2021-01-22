@@ -230,7 +230,7 @@ public class AvdManagerConnection {
         return false;
       }
       try {
-        myAvdManager = AvdManager.getInstance(mySdkHandler, AndroidLocationsSingleton.INSTANCE.getAvdLocation(), SDK_LOG);
+        myAvdManager = AvdManager.getInstance(mySdkHandler, AndroidLocationsSingleton.INSTANCE.getAvdLocation().toFile(), SDK_LOG);
       }
       catch (AndroidLocationsException e) {
         IJ_LOG.error("Could not instantiate AVD Manager from SDK", e);

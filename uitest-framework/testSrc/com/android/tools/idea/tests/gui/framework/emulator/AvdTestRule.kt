@@ -243,8 +243,8 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
     val pb = ProcessBuilder()
     pb.command(listOf(emulatorBinary.absolutePath, "-no-window", "-avd", avdInfo.name))
     val env = pb.environment()
-    env["HOME"] = AndroidLocationsSingleton.userHomeLocation!!.absolutePath
-    env["ANDROID_AVD_HOME"] = AndroidLocationsSingleton.avdLocation.absolutePath
+    env["HOME"] = AndroidLocationsSingleton.userHomeLocation!!.toString()
+    env["ANDROID_AVD_HOME"] = AndroidLocationsSingleton.avdLocation.toString()
 //    env["DISPLAY"]  = ":0"
     pb.inheritIO()
     return pb.start()
@@ -252,7 +252,7 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
 
   private fun setupAdb(sdkLocation: File): AndroidDebugBridge {
     AndroidDebugBridge.init(AdbInitOptions.builder()
-                              .withEnv("HOME", AndroidLocationsSingleton.userHomeLocation!!.absolutePath)
+                              .withEnv("HOME", AndroidLocationsSingleton.userHomeLocation!!.toString())
                               .build())
     val adbBinary = File(sdkLocation, "platform-tools/adb")
 

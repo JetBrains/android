@@ -71,7 +71,7 @@ class EmulatorRule(val commandParameters: List<String> = COMMAND_PARAMETERS_EMBE
       val root = Files.createDirectories(tempDirectory.newPath())
       val registrationDirectory = Files.createDirectories(root.resolve("avd/running"))
       emulatorCatalog.overrideRegistrationDirectory(registrationDirectory)
-      val homeFolder = AndroidLocationsSingleton.userHomeLocation!!.toPath()
+      val homeFolder = AndroidLocationsSingleton.userHomeLocation!!
       val avdHome = Files.createDirectories(homeFolder.resolve(".android/avd"))
       createAvd(avdHome)
       val command = EmulatorLauncher().apply {
