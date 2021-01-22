@@ -19,7 +19,8 @@
 package com.android.tools.idea.welcome.config
 
 import com.google.common.annotations.VisibleForTesting
-import com.android.prefs.AndroidLocation
+import com.android.prefs.AndroidLocationsException
+import com.android.prefs.AndroidLocationsSingleton
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.idea.ui.validation.validators.PathValidator
 import com.google.common.base.Charsets
@@ -74,7 +75,7 @@ private val PATH_FIRST_RUN_PROPERTIES = FileUtil.join("studio", "installer", "fi
 private fun readProperties(): Map<String, String>? {
   try {
     // First run properties file contains a series of "key=value" lines.
-    val file = File(AndroidLocation.getFolder(), PATH_FIRST_RUN_PROPERTIES)
+    val file = File(AndroidLocationsSingleton.prefsLocation, PATH_FIRST_RUN_PROPERTIES)
     if (!file.isFile) {
       return null
     }
@@ -84,7 +85,7 @@ private fun readProperties(): Map<String, String>? {
       .filterNot { (k, _) -> k.isEmpty() }
       .associate { (k, v) -> k to v }
   }
-  catch (e: AndroidLocation.AndroidLocationException) {
+  catch (e: AndroidLocationsException) {
     log.error(e)
   }
   catch (e: IOException) {

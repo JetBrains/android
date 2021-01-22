@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.emulator.end2end
 
 import com.android.emulator.control.EmulatorStatus
-import com.android.prefs.AndroidLocation
+import com.android.prefs.AndroidLocationsSingleton
 import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.getSdk
 import com.android.testutils.TestUtils.resolveWorkspacePath
@@ -71,8 +71,8 @@ class EmulatorRule(val commandParameters: List<String> = COMMAND_PARAMETERS_EMBE
       val root = Files.createDirectories(tempDirectory.newPath())
       val registrationDirectory = Files.createDirectories(root.resolve("avd/running"))
       emulatorCatalog.overrideRegistrationDirectory(registrationDirectory)
-      val homeFolder = AndroidLocation.getUserHomeFolder()
-      val avdHome = Files.createDirectories(Paths.get(homeFolder).resolve(".android/avd"))
+      val homeFolder = AndroidLocationsSingleton.userHomeLocation!!.toPath()
+      val avdHome = Files.createDirectories(homeFolder.resolve(".android/avd"))
       createAvd(avdHome)
       val command = EmulatorLauncher().apply {
         exePath = getEmulatorBinary().toString()
@@ -80,7 +80,7 @@ class EmulatorRule(val commandParameters: List<String> = COMMAND_PARAMETERS_EMBE
         addParameters(commandParameters)
         if (TestUtils.runningFromBazel()) {
           // Redefine the home directory of the emulator process if running under Bazel.
-          environment["HOME"] = homeFolder
+          environment["HOME"] = homeFolder.toString()
         }
         environment["ANDROID_AVD_HOME"] = avdHome.toString()
         environment["ANDROID_SDK_ROOT"] = getSdk().toString()

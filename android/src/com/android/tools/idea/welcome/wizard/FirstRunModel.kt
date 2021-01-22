@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard
 
+import com.android.prefs.AndroidLocationsSingleton
 import com.android.repository.api.RepoManager
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
@@ -53,14 +54,14 @@ class FirstRunModel(private val mode: FirstRunWizardMode): WizardModel() {
   val customInstall: Boolean get() = installationType.get() == InstallationType.CUSTOM
   val jdkLocation = EmbeddedDistributionPaths.getInstance().embeddedJdkPath
   val sdkExists = if (sdkLocation.isDirectory) {
-    val sdkHandler = AndroidSdkHandler.getInstance(sdkLocation.toPath())
+    val sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, sdkLocation.toPath())
     val progress = StudioLoggerProgressIndicator(javaClass)
     sdkHandler.getSdkManager(progress).packages.localPackages.isNotEmpty()
   } else {
     false
   }
 
-  var localHandler: AndroidSdkHandler = AndroidSdkHandler.getInstance(sdkLocation.toPath())
+  var localHandler: AndroidSdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, sdkLocation.toPath())
 
   // FIXME (why always true?)
   /**

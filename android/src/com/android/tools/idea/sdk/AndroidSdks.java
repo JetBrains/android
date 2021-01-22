@@ -41,6 +41,7 @@ import static org.jetbrains.android.sdk.AndroidSdkType.SDK_NAME;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
 
 import com.android.annotations.NonNull;
+import com.android.prefs.AndroidLocationsSingleton;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.OptionalLibrary;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -130,7 +131,7 @@ public class AndroidSdks {
   @NotNull
   public AndroidSdkHandler tryToChooseSdkHandler() {
     AndroidSdkData data = tryToChooseAndroidSdk();
-    return data != null ? data.getSdkHandler() : AndroidSdkHandler.getInstance(null);
+    return data != null ? data.getSdkHandler() : AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, null);
   }
 
   /**

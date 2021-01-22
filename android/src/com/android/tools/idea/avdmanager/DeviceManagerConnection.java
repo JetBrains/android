@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.prefs.AndroidLocationsSingleton;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.devices.DeviceParser;
@@ -88,7 +89,7 @@ public class DeviceManagerConnection {
         IJ_LOG.error("No installed SDK found!");
         return false;
       }
-      ourDeviceManager = DeviceManager.createInstance(mySdkPath, SDK_LOG);
+      ourDeviceManager = DeviceManager.createInstance(AndroidLocationsSingleton.INSTANCE, mySdkPath, SDK_LOG);
     }
     return true;
   }

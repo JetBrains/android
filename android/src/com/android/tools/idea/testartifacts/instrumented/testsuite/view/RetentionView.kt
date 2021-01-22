@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.emulator.snapshot.SnapshotOuterClass
+import com.android.prefs.AndroidLocationsSingleton
 import com.android.repository.api.ProgressIndicator
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.concurrency.AndroidExecutors
@@ -85,7 +86,7 @@ import kotlin.concurrent.withLock
  * Shows the Android Test Retention artifacts
  */
 class RetentionView(private val androidSdkHandler: AndroidSdkHandler
-                    = AndroidSdkHandler.getInstance(IdeSdks.getInstance().androidSdkPath?.toPath()),
+                    = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, IdeSdks.getInstance().androidSdkPath?.toPath()),
                     private val progressIndicator: ProgressIndicator
                     = StudioLoggerProgressIndicator(RetentionView::class.java),
                     private val runtime: Runtime

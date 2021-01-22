@@ -23,7 +23,7 @@ import com.android.ddmlib.DdmPreferences
 import com.android.ddmlib.EmulatorConsole
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.TimeoutException
-import com.android.prefs.AndroidLocation
+import com.android.prefs.AndroidLocationsSingleton
 import com.android.repository.testframework.FakeProgressIndicator
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.devices.Device
@@ -124,7 +124,7 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
     // that use the emulator that are not running within Bazel.
     generatedSdkLocation = sdkLocation
 
-    val sdkManager = AndroidSdkHandler.getInstance(sdkLocation.toPath())
+    val sdkManager = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, sdkLocation.toPath())
     val avdMan = AvdManagerConnection.getAvdManagerConnection(sdkManager)
 
     var avd: AvdInfo?
@@ -243,8 +243,8 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
     val pb = ProcessBuilder()
     pb.command(listOf(emulatorBinary.absolutePath, "-no-window", "-avd", avdInfo.name))
     val env = pb.environment()
-    env["HOME"] = AndroidLocation.getUserHomeFolder()
-    env["ANDROID_AVD_HOME"] = AndroidLocation.getAvdFolder()
+    env["HOME"] = AndroidLocationsSingleton.userHomeLocation!!.absolutePath
+    env["ANDROID_AVD_HOME"] = AndroidLocationsSingleton.avdLocation.absolutePath
 //    env["DISPLAY"]  = ":0"
     pb.inheritIO()
     return pb.start()
@@ -252,7 +252,7 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
 
   private fun setupAdb(sdkLocation: File): AndroidDebugBridge {
     AndroidDebugBridge.init(AdbInitOptions.builder()
-                              .withEnv("HOME", AndroidLocation.getUserHomeFolder()!!)
+                              .withEnv("HOME", AndroidLocationsSingleton.userHomeLocation!!.absolutePath)
                               .build())
     val adbBinary = File(sdkLocation, "platform-tools/adb")
 
