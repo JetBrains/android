@@ -104,6 +104,116 @@ filegroup(
 )
 
 java_test(
+    name = "LayoutEditorMemoryUseTest",
+    size = "large",
+    data = COMMON_DATA + glob(["testData/LayoutTest/**"]) + glob(["testData/SimpleApplication/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.LayoutEditorMemoryUseTest"],
+    tags = COMMON_TAGS + ["very_flaky"],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "InspectionsMemoryUseTest",
+    size = "large",
+    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.InspectionsMemoryUseTest"],
+    tags = COMMON_TAGS + ["very_flaky"],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "GradleSyncMemoryUseTest",
+    size = "large",
+    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.GradleSyncMemoryUseTest"],
+    tags = COMMON_TAGS + ["very_flaky"],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "FindInPathMemoryLeakTest",
+    size = "large",
+    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.FindInPathMemoryLeakTest"],
+    tags = COMMON_TAGS + ["very_flaky"],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "EditorTabsMemoryUseTest",
+    size = "large",
+    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.EditorTabsMemoryUseTest"],
+    tags = COMMON_TAGS + ["very_flaky"],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "AddResourceMemoryUseTest",
+    size = "large",
+    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.AddResourceMemoryUseTest"],
+    tags = COMMON_TAGS + ["very_flaky"],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "AddAssetMemoryUseTest",
+    size = "large",
+    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.AddAssetMemoryUseTest"],
+    tags = COMMON_TAGS + ["very_flaky"],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "NavEditorMemoryUseTest",
+    size = "large",
+    data = COMMON_DATA + glob(["testData/Navigation/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.NavEditorMemoryUseTest"],
+    tags = COMMON_TAGS + ["very_flaky"],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "VisualizationTest",
+    size = "large",
+    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.VisualizationTest"],
+    tags = COMMON_TAGS + ["very_flaky"],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "ComposePreviewTest",
+    size = "large",
+    data = COMMON_DATA + glob(["testData/SimpleComposeApplication/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.compose.ComposePreviewTest"],
+    tags = COMMON_TAGS + ["very_flaky"],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "CustomViewPreviewTest",
+    size = "large",
+    data = COMMON_DATA + glob(["testData/SimpleComposeApplication/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.customview.CustomViewPreviewTest"],
+    tags = COMMON_TAGS + ["very_flaky"],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
     name = "GuiTestRuleTest",
     size = "large",
     data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
