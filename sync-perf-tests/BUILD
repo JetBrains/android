@@ -74,14 +74,16 @@ iml_module(
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.DolphinPerfTest",
             "tags": SYNC_PERFGATE_TAGS,
         },
-        "SantaTracker": {
-            "data": ["//prebuilts/studio/buildbenchmarks:SantaTracker_project"],
-            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.SantaTrackerPerfTest",
-            "tags": SYNC_PERFGATE_TAGS,
-        },
         "ExtraLarge": {
             "data": ["//prebuilts/studio/buildbenchmarks:ExtraLarge_project"],
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.ExtraLargePerfTest",
+            # Only run manually since this project requires too much memory (b/176172752)
+            "timeout": "long",
+            "tags": ["manual"],
+        },
+        "SantaTracker": {
+            "data": ["//prebuilts/studio/buildbenchmarks:SantaTracker_project"],
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.SantaTrackerPerfTest",
             "tags": SYNC_PERFGATE_TAGS,
         },
         # This split test target contains AveragePerfTest, and other unspecified tests if
