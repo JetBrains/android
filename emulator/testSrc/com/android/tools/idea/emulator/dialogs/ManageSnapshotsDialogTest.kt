@@ -98,6 +98,7 @@ class ManageSnapshotsDialogTest {
   @After
   fun tearDown() {
     EmulatorSettings.getInstance().snapshotAutoDeletionPolicy = DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY
+    findManageSnapshotDialog(emulatorView)?.close(DialogWrapper.CLOSE_EXIT_CODE) // Close the dialog in case it wasn't closed by the test.
   }
 
   @Test
