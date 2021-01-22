@@ -66,13 +66,13 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
 
   override fun handleFinished() {
     initMainModule()
-    val newRenderTemplateModel = createMainRenderModel()
     val packageName = projectModel.packageName.get()
+    val newRenderTemplateModel = createMainRenderModel().apply {
+      addRenderDefaultTemplateValues(this, packageName)
+    }
     if (hasCompanionApp.get() && newRenderTemplateModel.hasActivity) {
       val companionModuleModel = createCompanionModuleModel(projectModel)
-      val companionRenderModel = createCompanionRenderModel(companionModuleModel, packageName).apply {
-        newTemplate.parameters.find { it.name == "Package name" }
-      }
+      val companionRenderModel = createCompanionRenderModel(companionModuleModel, packageName)
 
       companionModuleModel.androidSdkInfo.value = androidSdkInfo().value
 
@@ -87,7 +87,6 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
     }
 
     if (newRenderTemplateModel.hasActivity) {
-      addRenderDefaultTemplateValues(newRenderTemplateModel, packageName)
       newRenderTemplateModel.handleFinished()
     }
     else {
