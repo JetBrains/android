@@ -43,6 +43,8 @@ import org.jetbrains.android.augment.StyleableAttrLightField
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.findOrCreateClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.references.KtSimpleNameReference
+import org.jetbrains.kotlin.idea.references.KtSimpleNameReference.ShorteningMode.NO_SHORTENING
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 
@@ -79,17 +81,24 @@ internal class CodeUsageInfo(
 ) : ResourceUsageInfo(fieldReferenceExpression) {
   fun updateClassReference(psiMigration: PsiMigration) {
     val reference = classReference
-    reference.bindToElement(
-      findOrCreateClass(
-        classReference.element.project,
-        psiMigration,
-        packageToRClass(inferredPackage ?: return),
 
-        // We're dealing with light R classes, so need to pick the right scope here. This will be handled by
-        // AndroidResolveScopeEnlarger.
-        scope = reference.element.resolveScope
-      )
+    val newRClass = findOrCreateClass(
+      classReference.element.project,
+      psiMigration,
+      packageToRClass(inferredPackage ?: return),
+
+      // We're dealing with light R classes, so need to pick the right scope here. This will be handled by
+      // AndroidResolveScopeEnlarger.
+      reference.element.resolveScope
     )
+
+    if (reference is KtSimpleNameReference) {
+      // For Kotlin references, we want to not use reference shortening, this is because otherwise we get sporadic prepending of
+      // "_root_ide_package_" to the package name.
+      reference.bindToElement(newRClass, NO_SHORTENING)
+    } else {
+      reference.bindToElement(newRClass)
+    }
   }
 }
 
