@@ -78,7 +78,7 @@ public class NewCppProjectTestUtil {
     assertThat(guiTest.ideFrame().findFileByRelativePath("app/src/main/cpp/native-lib.cpp")).isNotNull();
 
     String mainActivityText = guiTest.getProjectFileText("app/src/main/java/com/example/myapplication/MainActivity.java");
-    assertThat(mainActivityText).contains("System.loadLibrary(\"native-lib\")");
+    assertThat(mainActivityText).contains("System.loadLibrary(\"myapplication\")");
     assertThat(mainActivityText).contains("public native String stringFromJNI()");
   }
 
