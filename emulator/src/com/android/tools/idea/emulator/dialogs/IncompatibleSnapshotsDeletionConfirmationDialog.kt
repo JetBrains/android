@@ -61,7 +61,7 @@ internal class IncompatibleSnapshotsDeletionConfirmationDialog(
   fun createWrapper(project: Project? = null, parent: Component? = null): DialogWrapper {
     val dialogPanel = createPanel()
     return dialog(
-      title = "Delete incompatible snapshots?",
+      title = "Incompatible Snapshots Detected",
       resizable = true,
       panel = dialogPanel,
       project = project,
