@@ -70,7 +70,7 @@ class SelectedViewModelTest {
     val id = idOf("")
     val model = SelectedViewModel(name, id)
     assertThat(model.id).isEqualTo("")
-    assertThat(model.icon).isEqualTo(StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW)
+    assertThat(model.icon).isEqualTo(StudioIcons.LayoutEditor.Palette.TEXT_VIEW)
     assertThat(model.description).isEqualTo("CoreText")
   }
 
