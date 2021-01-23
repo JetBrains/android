@@ -47,6 +47,7 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<
       when (property.type) {
         Type.DRAWABLE,
         Type.COLOR -> ControlType.COLOR_EDITOR
+        Type.LAMBDA -> ControlType.LINK_EDITOR
         else -> ControlType.TEXT_EDITOR
       }
   }
