@@ -34,47 +34,50 @@ class EditorProviderImpl<in P : PropertyItem>(
   private val controlTypeProvider: ControlTypeProvider<P>
 ) : EditorProvider<P> {
 
-  override fun createEditor(property: P, asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {
-    val controlType = controlTypeProvider(property)
-
-    when (controlType) {
+  override fun createEditor(property: P, asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> =
+    when (controlTypeProvider(property)) {
       ControlType.COMBO_BOX ->
-        return createComboBoxEditor(property, true, enumSupportProvider(property)!!, asTableCellEditor)
+        createComboBoxEditor(property, true, enumSupportProvider(property)!!, asTableCellEditor)
 
       ControlType.DROPDOWN ->
-        return createComboBoxEditor(property, false, enumSupportProvider(property)!!, asTableCellEditor)
+        createComboBoxEditor(property, false, enumSupportProvider(property)!!, asTableCellEditor)
 
       ControlType.TEXT_EDITOR -> {
         val model = TextFieldPropertyEditorModel(property, true)
         val editor = PropertyTextField(model)
-        return Pair(model, addActionButtonBinding(model, editor))
+        Pair(model, addActionButtonBinding(model, editor))
       }
 
       ControlType.COLOR_EDITOR -> {
         val model = ColorFieldPropertyEditorModel(property)
         val editor = PropertyTextFieldWithLeftButton(model)
-        return Pair(model, addActionButtonBinding(model, editor))
+        Pair(model, addActionButtonBinding(model, editor))
       }
 
       ControlType.THREE_STATE_BOOLEAN -> {
         val model = ThreeStateBooleanPropertyEditorModel(property)
         val editor = PropertyThreeStateCheckBox(model)
-        return Pair(model, addActionButtonBinding(model, editor))
+        Pair(model, addActionButtonBinding(model, editor))
       }
 
       ControlType.FLAG_EDITOR -> {
         val model = FlagPropertyEditorModel(property as FlagsPropertyItem<*>)
         val editor = FlagPropertyEditor(model)
-        return Pair(model, addActionButtonBinding(model, editor))
+        Pair(model, addActionButtonBinding(model, editor))
       }
 
       ControlType.BOOLEAN -> {
         val model = BooleanPropertyEditorModel(property)
         val editor = PropertyCheckBox(model)
-        return Pair(model, addActionButtonBinding(model, editor))
+        Pair(model, addActionButtonBinding(model, editor))
+      }
+
+      ControlType.LINK_EDITOR -> {
+        val model = LinkPropertyEditorModel(property as LinkPropertyItem)
+        val editor = PropertyLink(model)
+        Pair(model, addActionButtonBinding(model, editor))
       }
     }
-  }
 
   private fun createComboBoxEditor(property: P,
                                    editable: Boolean,

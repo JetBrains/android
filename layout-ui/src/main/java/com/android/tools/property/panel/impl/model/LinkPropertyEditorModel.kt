@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.property.panel.api
+package com.android.tools.property.panel.impl.model
+
+import com.android.tools.property.panel.api.LinkPropertyItem
 
 /**
- * Supported editor control types.
- *
- * These control types are supported with standard swing implementations.
+ * Model for a link property which commonly is displayed as the value as text followed by a link
  */
-enum class ControlType {
-  BOOLEAN,
-  TEXT_EDITOR,
-  DROPDOWN,
-  COMBO_BOX,
-  THREE_STATE_BOOLEAN,
-  FLAG_EDITOR,
-  COLOR_EDITOR,
-  LINK_EDITOR,
+class LinkPropertyEditorModel(property: LinkPropertyItem): BasePropertyEditorModel(property) {
+  val linkProperty: LinkPropertyItem
+    get() = property as LinkPropertyItem
 }
