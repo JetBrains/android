@@ -375,11 +375,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     private set
 
   override var isLiveLiteralsEnabled: Boolean
-    get() = liveLiteralsManager.isEnabled
+    get() = liveLiteralsManager.isAvailable
     set(value) {
-      val wasEnabled = liveLiteralsManager.isEnabled
-      if (wasEnabled != value) {
-        liveLiteralsManager.isEnabled = value
+      val wasAvailable = liveLiteralsManager.isAvailable
+      if (wasAvailable != value) {
+        liveLiteralsManager.isAvailable = value
         forceRefresh()
       }
     }
@@ -480,7 +480,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   init {
     Disposer.register(this, ticker)
 
-    isLiveLiteralsEnabled = StudioFlags.COMPOSE_LIVE_LITERALS.get()
+    isLiveLiteralsEnabled = LiveLiteralsService.getInstance(project).isEnabled
   }
 
   override val component: JComponent = composeWorkBench.component

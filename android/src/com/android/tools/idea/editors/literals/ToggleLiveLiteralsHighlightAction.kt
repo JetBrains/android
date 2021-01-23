@@ -37,7 +37,7 @@ class ToggleLiveLiteralsHighlightAction : ToggleAction(message("live.literals.hi
 
     val project = e.project ?: return
     e.presentation.apply {
-      isEnabledAndVisible = StudioFlags.COMPOSE_LIVE_LITERALS.get()
+      isEnabledAndVisible = LiveLiteralsService.getInstance(project).isEnabled
       text = if (LiveLiteralsService.getInstance(project).showLiveLiteralsHighlights)
         message("live.literals.highlight.toggle.hide.title")
       else

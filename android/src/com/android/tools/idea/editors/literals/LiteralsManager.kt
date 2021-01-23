@@ -20,8 +20,8 @@ import com.intellij.codeInsight.highlighting.HighlightManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.markup.RangeHighlighter
-import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
@@ -432,7 +432,7 @@ class LiteralsManager(
  */
 fun LiteralReferenceSnapshot.highlightSnapshotInEditor(project: Project,
                                                        editor: Editor,
-                                                       textAttributes: TextAttributes,
+                                                       textAttributesKey: TextAttributesKey,
                                                        outHighlighters: MutableSet<RangeHighlighter>? = null) {
   val highlightManager = HighlightManager.getInstance(project)
   val elements = all.filterIsInstance<LiteralReferenceImpl>()
@@ -443,7 +443,7 @@ fun LiteralReferenceSnapshot.highlightSnapshotInEditor(project: Project,
   highlightManager.addOccurrenceHighlights(
     editor,
     elements,
-    textAttributes,
+    textAttributesKey,
     false,
     resultHighlighters)
   resultHighlighters.forEach {
