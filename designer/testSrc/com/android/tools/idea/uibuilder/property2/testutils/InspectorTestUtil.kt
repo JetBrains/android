@@ -28,12 +28,14 @@ import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.FlagsPropertyItem
 import com.android.tools.property.panel.api.InspectorLineModel
+import com.android.tools.property.panel.api.LinkPropertyItem
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.panel.api.PropertyEditorModel
 import com.android.tools.property.panel.impl.model.BooleanPropertyEditorModel
 import com.android.tools.property.panel.impl.model.ColorFieldPropertyEditorModel
 import com.android.tools.property.panel.impl.model.ComboBoxPropertyEditorModel
 import com.android.tools.property.panel.impl.model.FlagPropertyEditorModel
+import com.android.tools.property.panel.impl.model.LinkPropertyEditorModel
 import com.android.tools.property.panel.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.property.panel.impl.model.ThreeStateBooleanPropertyEditorModel
 import com.android.tools.property.panel.impl.model.util.FakeComponentLineModel
@@ -46,7 +48,6 @@ import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import com.google.common.truth.Truth
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.testFramework.PlatformTestUtil
 import org.mockito.Mockito
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -144,27 +145,15 @@ class FakeEditorProviderImpl(model: NelePropertiesModel): EditorProvider<NelePro
   override fun createEditor(property: NelePropertyItem, asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {
     val enumSupport = enumSupportProvider(property)
 
-    when (controlTypeProvider(property)) {
-      ControlType.COMBO_BOX ->
-        return Pair(ComboBoxPropertyEditorModel(property, enumSupport!!, true), JPanel())
-
-      ControlType.DROPDOWN ->
-        return Pair(ComboBoxPropertyEditorModel(property, enumSupport!!, false), JPanel())
-
-      ControlType.TEXT_EDITOR ->
-        return Pair(TextFieldPropertyEditorModel(property, true), JPanel())
-
-      ControlType.THREE_STATE_BOOLEAN ->
-        return Pair(ThreeStateBooleanPropertyEditorModel(property), JPanel())
-
-      ControlType.FLAG_EDITOR ->
-        return Pair(FlagPropertyEditorModel(property as FlagsPropertyItem<*>), JPanel())
-
-      ControlType.BOOLEAN ->
-        return Pair(BooleanPropertyEditorModel(property), JPanel())
-
-      ControlType.COLOR_EDITOR ->
-        return Pair(ColorFieldPropertyEditorModel(property), JPanel())
-    }
+    return when (controlTypeProvider(property)) {
+      ControlType.COMBO_BOX -> ComboBoxPropertyEditorModel(property, enumSupport!!, true)
+      ControlType.DROPDOWN -> ComboBoxPropertyEditorModel(property, enumSupport!!, false)
+      ControlType.TEXT_EDITOR -> TextFieldPropertyEditorModel(property, true)
+      ControlType.THREE_STATE_BOOLEAN -> ThreeStateBooleanPropertyEditorModel(property)
+      ControlType.FLAG_EDITOR -> FlagPropertyEditorModel(property as FlagsPropertyItem<*>)
+      ControlType.BOOLEAN -> BooleanPropertyEditorModel(property)
+      ControlType.COLOR_EDITOR -> ColorFieldPropertyEditorModel(property)
+      ControlType.LINK_EDITOR -> LinkPropertyEditorModel(property as LinkPropertyItem)
+    } to JPanel()
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,11 @@
  */
 package com.android.tools.property.panel.api
 
-/**
- * Supported editor control types.
- *
- * These control types are supported with standard swing implementations.
- */
-enum class ControlType {
-  BOOLEAN,
-  TEXT_EDITOR,
-  DROPDOWN,
-  COMBO_BOX,
-  THREE_STATE_BOOLEAN,
-  FLAG_EDITOR,
-  COLOR_EDITOR,
-  LINK_EDITOR,
+import com.intellij.openapi.actionSystem.AnAction
+
+interface LinkPropertyItem : PropertyItem {
+  /**
+   * An action which can be represented as a link in a property editor.
+   */
+  val link: AnAction
 }
