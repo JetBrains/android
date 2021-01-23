@@ -331,7 +331,7 @@ class TransportPropertiesProviderTest {
     assertThat(property.attrName).isEqualTo(name)
     assertThat(property.namespace).isEqualTo("")
     assertThat(property.type).isEqualTo(type.convert())
-    assertThat(property.value).isEqualTo("λ Lambda")
+    assertThat(property.value).isEqualTo("λ")
     assertThat(property.packageName).isEqualTo(packageName)
     assertThat(property.fileName).isEqualTo(fileName)
     assertThat(property.lambdaName).isEqualTo(lambdaName)

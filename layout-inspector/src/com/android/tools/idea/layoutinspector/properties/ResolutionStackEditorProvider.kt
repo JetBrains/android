@@ -36,10 +36,12 @@ class ResolutionStackEditorProvider(
 
   override fun createEditor(property: InspectorPropertyItem, asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {
     val (model, editor) = editorProvider.createEditor(property, asTableCellEditor)
-    model.readOnly = true
     model.isUsedInRendererWithSelection = true
-    return Pair(model, ResolutionElementEditor(resolutionStackModel, model, editor))
+    model.readOnly = property.type != PropertyType.LAMBDA
+    return if (property is InspectorGroupPropertyItem) Pair(model, ResolutionElementEditor(resolutionStackModel, model, editor))
+           else Pair(model, editor)
   }
 
-  fun isValueEditable(property: InspectorPropertyItem): Boolean = ResolutionElementEditor.hasLinkPanel(property)
+  fun isValueEditable(property: InspectorPropertyItem): Boolean =
+    ResolutionElementEditor.hasLinkPanel(property) || property.type == PropertyType.LAMBDA
 }

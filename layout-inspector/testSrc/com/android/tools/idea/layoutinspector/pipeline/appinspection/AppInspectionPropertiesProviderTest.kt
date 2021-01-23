@@ -752,7 +752,7 @@ class AppInspectionPropertiesProviderTest {
         assertProperty("elevation", PropertyType.DIMENSION_DP, "1.0px")
         // TODO(b/179324422): Investigate DIMENSION_SP formatting
         assertProperty("fontSize", PropertyType.DIMENSION_SP, "0px")
-        assertProperty("onTextLayout", PropertyType.LAMBDA, "λ Lambda", namespace = "")
+        assertProperty("onTextLayout", PropertyType.LAMBDA, "λ", namespace = "")
       }
     }
 

@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.layoutinspector.properties
 
-import com.android.tools.idea.layoutinspector.resource.SourceLocation
+import com.android.tools.property.panel.api.LinkPropertyItem
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import org.jetbrains.kotlin.idea.util.application.invokeLater
 
 /**
- * A [PropertyItem] for a lambda parameter from Compose.
+ * A [LinkPropertyItem] for a lambda parameter from Compose.
  *
  * @param name the parameter name
  * @param viewId the compose node this parameter belongs to
@@ -38,27 +41,31 @@ class LambdaPropertyItem(
   val startLineNumber: Int,
   val endLineNumber: Int,
   lookup: ViewNodeAndResourceLookup
-): InspectorGroupPropertyItem(
+): InspectorPropertyItem(
   namespace = "",
+  attrName = name,
   name = name,
-  type = PropertyType.LAMBDA,
-  value = "λ Lambda",
-  classLocation = null,
+  initialType = PropertyType.LAMBDA,
+  initialValue = "λ",
   group = PropertySection.DEFAULT,
   source = null,
   viewId = viewId,
-  lookup = lookup,
-  children = emptyList()
-) {
-  private var lookupDone = false
-  private var location: SourceLocation? = null
-
-  override val classLocation: SourceLocation?
-    get() = if (lookupDone) location else findLocation()
-
-  private fun findLocation(): SourceLocation? {
-    lookupDone = true
-    location = lookup.resourceLookup.findLambdaLocation(packageName, fileName, lambdaName, functionName, startLineNumber, endLineNumber)
-    return location
+  lookup = lookup
+), LinkPropertyItem {
+  override val link = object : AnAction("$fileName:$startLineNumber") {
+    override fun actionPerformed(event: AnActionEvent) {
+      val loc = lookup.resourceLookup.findLambdaLocation(packageName, fileName, lambdaName, functionName, startLineNumber, endLineNumber)
+      loc?.navigatable?.let {
+        if (it.canNavigate()) {
+          invokeLater {
+            // Execute this via invokeLater to avoid painting errors by JBTable (hover line) when focus is removed
+            it.navigate(true)
+          }
+          return
+        }
+      }
+      templatePresentation.isEnabled = false
+      templatePresentation.text = "$fileName:unknown"
+    }
   }
 }
