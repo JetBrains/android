@@ -2,6 +2,7 @@ package com.android.tools.idea.editors.literals
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.AndroidPsiUtils
+import com.android.tools.idea.editors.literals.ui.LiveLiteralsAvailableIndicatorFactory
 import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.BuildListener
@@ -15,13 +16,12 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.event.EditorFactoryEvent
 import com.intellij.openapi.editor.event.EditorFactoryListener
 import com.intellij.openapi.editor.event.EditorMouseEvent
 import com.intellij.openapi.editor.event.EditorMouseListener
-import com.intellij.openapi.editor.markup.EffectType
 import com.intellij.openapi.editor.markup.RangeHighlighter
-import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
@@ -30,15 +30,10 @@ import com.intellij.util.containers.WeakList
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import org.jetbrains.annotations.TestOnly
-import java.awt.Font
 import java.awt.GraphicsEnvironment
 import java.lang.ref.WeakReference
 
-private val LITERAL_TEXT_ATTRIBUTE = TextAttributes(UIUtil.getActiveTextColor(),
-                                                    null,
-                                                    UIUtil.getInactiveTextColor(),
-                                                    EffectType.ROUNDED_BOX,
-                                                    Font.BOLD)
+private val LITERAL_TEXT_ATTRIBUTE_KEY = TextAttributesKey.createTextAttributesKey("LiveLiteralsHighlightAttribute")
 
 /**
  * Time used to coalesce multiple changes without triggering onLiteralsHaveChanged calls.
@@ -46,11 +41,38 @@ private val LITERAL_TEXT_ATTRIBUTE = TextAttributes(UIUtil.getActiveTextColor(),
 private val DOCUMENT_CHANGE_COALESCE_TIME_MS = StudioFlags.COMPOSE_LIVE_LITERALS_UPDATE_RATE
 
 /**
- * Project service to track live literals. The service, when [isEnabled] is true, will listen for changes of constants
+ * Project service to track live literals. The service, when [isAvailable] is true, will listen for changes of constants
  * and will notify listeners.
  */
 @Service
-class LiveLiteralsService(private val project: Project) : Disposable {
+class LiveLiteralsService private constructor(private val project: Project,
+                                              private val availableListener: LiteralsAvailableListener) : Disposable {
+  /**
+   * Interface for listeners that want to be notified when Live Literals becomes available. For example
+   * when the preview or the emulator find that the current project supports them.
+   */
+  interface LiteralsAvailableListener {
+    /**
+     * Called when Live Literals becomes available. This might be called multiple times.
+     */
+    fun onAvailable()
+  }
+
+  constructor(project: Project) : this(project, object : LiteralsAvailableListener {
+    /**
+     * If true, the first time literals are available for this project, a popup will show explaining the basics to the user.
+     */
+    private var showIsAvailablePopup = LiveLiteralsApplicationConfiguration.getInstance().showAvailablePopup
+
+    override fun onAvailable() {
+      if (showIsAvailablePopup) {
+        // Once shown, do not show in this session for now.
+        showIsAvailablePopup = false
+        LiveLiteralsAvailableIndicatorFactory.showIsAvailablePopup(project)
+      }
+    }
+  })
+
   /**
    * Class that groups all the highlighters for a given file/editor combination. This allows enabling/disabling them.
    */
@@ -84,7 +106,7 @@ class LiveLiteralsService(private val project: Project) : Disposable {
       }
 
       if (fileSnapshot.all.isNotEmpty()) {
-        fileSnapshot.highlightSnapshotInEditor(project, editor, LITERAL_TEXT_ATTRIBUTE, outHighlighters)
+        fileSnapshot.highlightSnapshotInEditor(project, editor, LITERAL_TEXT_ATTRIBUTE_KEY, outHighlighters)
 
         if (outHighlighters.isNotEmpty()) {
           // Remove the highlights if the manager is deactivated
@@ -105,6 +127,16 @@ class LiveLiteralsService(private val project: Project) : Disposable {
 
   companion object {
     fun getInstance(project: Project): LiveLiteralsService = project.getService(LiveLiteralsService::class.java)
+
+    object NopListener : LiteralsAvailableListener {
+      override fun onAvailable() {}
+    }
+
+    @TestOnly
+    fun getInstanceForTest(project: Project, parentDisposable: Disposable, availableListener: LiteralsAvailableListener = NopListener): LiveLiteralsService =
+      LiveLiteralsService(project, availableListener).also {
+        Disposer.register(parentDisposable, it)
+      }
   }
 
   private val log = Logger.getInstance(LiveLiteralsService::class.java)
@@ -117,6 +149,7 @@ class LiveLiteralsService(private val project: Project) : Disposable {
       field = value
       refreshHighlightTrackersVisibility()
     }
+
   /**
    * Link to all instantiated [HighlightTracker]s. This allows to switch them on/off via the [ToggleLiveLiteralsHighlightAction].
    * This is a [WeakList] since the trackers will be mainly held by the mouse listener created in [addDocumentTracking].
@@ -147,13 +180,20 @@ class LiveLiteralsService(private val project: Project) : Disposable {
                                                       false).setRestartTimerOnAdd(true)
 
   /**
-   * Controls when the live literals tracking is enabled.
+   * True if Live Literals should be enabled for this project.
    */
-  var isEnabled = false
+  val isEnabled
+    get() = LiveLiteralsApplicationConfiguration.getInstance().isEnabled
+
+  /**
+   * Controls when the live literals tracking is available for the current project. The feature might be enable but not available if the
+   * current project has not any Live Literals yet.
+   */
+  var isAvailable = false
     set(value) {
       if (value != field) {
         field = value
-        if (value) activate() else deactivate()
+        if (value) activateTracking() else deactivateTracking()
       }
     }
 
@@ -163,7 +203,7 @@ class LiveLiteralsService(private val project: Project) : Disposable {
   /**
    * Method called to notify the listeners than a constant has changed.
    */
-  private fun fireOnLiteralsChanged(changed : List<LiteralReference>) = onLiteralsChangedListeners.forEach {
+  private fun fireOnLiteralsChanged(changed: List<LiteralReference>) = onLiteralsChangedListeners.forEach {
     it(changed)
   }
 
@@ -212,6 +252,8 @@ class LiveLiteralsService(private val project: Project) : Disposable {
     val fileSnapshot = literalsManager.findLiterals(file)
 
     if (fileSnapshot.all.isNotEmpty()) {
+      availableListener.onAvailable()
+
       documentSnapshots[document] = fileSnapshot
 
       Disposer.register(parentDisposable) {
@@ -256,8 +298,9 @@ class LiveLiteralsService(private val project: Project) : Disposable {
   })
 
   @Synchronized
-  private fun activate() {
+  private fun activateTracking() {
     if (Disposer.isDisposed(this)) return
+
     val newActivationDisposable = Disposer.newDisposable()
 
     // Find all the active editors
@@ -289,16 +332,18 @@ class LiveLiteralsService(private val project: Project) : Disposable {
 
       override fun buildStarted() {
         // Stop the literals listening while the build happens
-        deactivate()
+        deactivateTracking()
       }
     }, newActivationDisposable)
 
     Disposer.register(this, newActivationDisposable)
     activationDisposable = newActivationDisposable
+
+    LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
   }
 
   @Synchronized
-  private fun deactivate() {
+  private fun deactivateTracking() {
     trackers.clear()
     ConstantRemapperManager.getConstantRemapper().clearConstants(null)
     activationDisposable?.let {
@@ -306,10 +351,12 @@ class LiveLiteralsService(private val project: Project) : Disposable {
     }
     activationDisposable = null
     fireOnLiteralsChanged(emptyList())
+
+    LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
   }
 
   override fun dispose() {
-    isEnabled = false
-    deactivate()
+    isAvailable = false
+    deactivateTracking()
   }
 }
