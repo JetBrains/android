@@ -122,5 +122,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="module" module-name="intellij.android.server-flags" />
   </component>
 </module>

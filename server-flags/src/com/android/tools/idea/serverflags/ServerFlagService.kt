@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,21 +21,19 @@ interface ServerFlagService {
   val initialized: Boolean
   val configurationVersion: Long
   val names: List<String>
-
   fun getString(name: String): String?
   fun getInt(name: String): Int?
   fun getFloat(name: String): Float?
   fun getBoolean(name: String): Boolean?
   fun <T : Message> getProtoOrNull(name: String, instance: T): T?
-
   fun getString(name: String, defaultValue: String): String = getString(name) ?: defaultValue
   fun getInt(name: String, defaultValue: Int): Int = getInt(name) ?: defaultValue
   fun getFloat(name: String, defaultValue: Float): Float = getFloat(name) ?: defaultValue
   fun getBoolean(name: String, defaultValue: Boolean): Boolean = getBoolean(name) ?: defaultValue
-  fun <T : Message> getProto(name: String, defaultInstance: T) = getProtoOrNull(name, defaultInstance) ?: defaultInstance
+  fun <T : Message> getProto(name: String, defaultInstance: T) =
+    getProtoOrNull(name, defaultInstance) ?: defaultInstance
 
   companion object {
     var instance: ServerFlagService = ServerFlagServiceEmpty()
-      internal set
   }
 }
