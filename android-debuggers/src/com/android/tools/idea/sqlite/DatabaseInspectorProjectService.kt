@@ -234,17 +234,17 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     appInspectionIdeServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor
   ) = withContext(uiDispatcher) {
-    controller.startAppInspectionSession(databaseInspectorClientCommandsChannel, appInspectionIdeServices)
+    appPackageName = withContext(workerDispatcher) {
+      PackageNameProvider.getPackageName(project, processDescriptor.device.serial, processDescriptor.name).await()
+    }
+
+    controller.startAppInspectionSession(databaseInspectorClientCommandsChannel, appInspectionIdeServices, processDescriptor, appPackageName)
 
     // close all databases when a new session starts
     model.getOpenDatabaseIds().forEach { controller.closeDatabase(it) }
     model.clearDatabases()
 
     ideServices = appInspectionIdeServices
-
-    appPackageName = withContext(workerDispatcher) {
-      PackageNameProvider.getPackageName(project, processDescriptor.device.serial, processDescriptor.name).await()
-    }
   }
 
   @UiThread

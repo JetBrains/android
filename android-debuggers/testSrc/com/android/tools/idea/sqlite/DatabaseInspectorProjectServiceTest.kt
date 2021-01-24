@@ -158,7 +158,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     }
 
     // Assert
-    verify(databaseInspectorController).startAppInspectionSession(clientCommandsChannel, appInspectionServices)
+    verify(databaseInspectorController).startAppInspectionSession(clientCommandsChannel, appInspectionServices, processDescriptor, processDescriptor.name)
     verify(databaseInspectorController).stopAppInspectionSession("processName", processDescriptor)
   }
 

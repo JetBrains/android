@@ -377,6 +377,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       view,
       {},
       {},
+      {},
       EdtExecutorService.getInstance(),
       EdtExecutorService.getInstance()
     ).also { Disposer.register(testRootDisposable, it) }
