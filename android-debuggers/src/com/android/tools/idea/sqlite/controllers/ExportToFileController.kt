@@ -81,7 +81,7 @@ class ExportToFileController(
   private val view: ExportToFileDialogView,
   private val databaseRepository: DatabaseRepository,
   private val downloadDatabase: (LiveSqliteDatabaseId, handleError: (String, Throwable?) -> Unit) -> Flow<DownloadProgress>,
-  private val deleteDatabase: (DatabaseFileData) -> Unit,
+  private val deleteDatabase: suspend (DatabaseFileData) -> Unit,
   taskExecutor: Executor,
   edtExecutor: Executor,
   private val notifyExportComplete: (ExportRequest) -> Unit,
@@ -102,6 +102,10 @@ class ExportToFileController(
 
   override fun dispose() {
     view.removeListener(listener)
+  }
+
+  fun showView() {
+    view.show()
   }
 
   private suspend fun export(params: ExportRequest) = withContext(edtDispatcher) {
@@ -189,7 +193,7 @@ class ExportToFileController(
         }
         is LiveSqliteDatabaseId -> {
           downloadDatabase(database).let { files ->
-            Closeable { files.forEach { deleteDatabase(it) } }.use {
+            Closeable { files.forEach { projectScope.launch { deleteDatabase(it) } } }.use {
               files.let {
                 if (it.size != 1) throw IllegalStateException("Unexpected number of downloaded database files: ${it.size}")
                 task(it.single().mainFile.toNioPath())

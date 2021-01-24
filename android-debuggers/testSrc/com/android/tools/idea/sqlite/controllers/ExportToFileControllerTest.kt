@@ -71,7 +71,6 @@ import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.io.createDirectories
 import com.intellij.util.io.createFile
 import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.guava.await
@@ -101,6 +100,7 @@ private const val downloadFolderName = "downloaded$nonAsciiSuffix"
 /** Keeps connection ids unique */
 private val nextConnectionId: () -> Int = run { var next = 1; { next++ } }
 
+// TODO(161081452): add in-memory database test coverage
 @Suppress("IncorrectParentDisposable")
 class ExportToFileControllerTest : LightPlatformTestCase() {
   private lateinit var exportProcessedListener: ExportProcessedListener
@@ -142,7 +142,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
       view,
       databaseRepository,
       databaseDownloadTestFixture::downloadDatabase,
-      databaseDownloadTestFixture::deleteDatabase,
+      { databaseDownloadTestFixture.deleteDatabase(it) },
       taskExecutor,
       edtExecutor,
       exportProcessedListener::onExportComplete,

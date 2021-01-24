@@ -22,6 +22,7 @@ import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
+import com.android.tools.idea.sqlite.model.ExportDialogParams
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
@@ -53,6 +54,7 @@ class SqliteEvaluatorController(
   private val view: SqliteEvaluatorView,
   private val showSuccessfulExecutionNotification: (String) -> Unit,
   override val closeTabInvoked: () -> Unit,
+  private val showExportDialog: (ExportDialogParams) -> Unit,
   private val edtExecutor: Executor,
   private val taskExecutor: Executor
 ) : DatabaseInspectorController.TabController {
@@ -217,7 +219,7 @@ class SqliteEvaluatorController(
       databaseId = databaseId,
       databaseRepository = databaseRepository,
       sqliteStatement = sqliteStatement,
-      showExportDialog = {}, // TODO(161081452): provide an implementation
+      showExportDialog = showExportDialog,
       edtExecutor = edtExecutor,
       taskExecutor = taskExecutor
     )

@@ -25,7 +25,7 @@ import com.android.tools.idea.concurrency.transformAsync
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.ExportDialogParams
-import com.android.tools.idea.sqlite.model.ExportDialogParams.ExportQueryResultDialogParams
+import com.android.tools.idea.sqlite.model.ExportDialogParams.ExportQueryResultsDialogParams
 import com.android.tools.idea.sqlite.model.ExportDialogParams.ExportTableDialogParams
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
@@ -360,7 +360,7 @@ class TableController(
       val exportScenario: ExportDialogParams =
         when {
           tableName != null -> ExportTableDialogParams(databaseId, tableName)
-          sqliteStatement.isQueryStatement -> ExportQueryResultDialogParams(databaseId, sqliteStatement)
+          sqliteStatement.isQueryStatement -> ExportQueryResultsDialogParams(databaseId, sqliteStatement)
           else -> return // TODO(161081452): consider throwing an Exception or logging an error instead of silently ignoring the request
         }
 
