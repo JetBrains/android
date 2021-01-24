@@ -21,7 +21,6 @@ class ServerFlagServiceEmpty : ServerFlagService {
   override val initialized: Boolean = false
   override val configurationVersion: Long = -1
   override val names: List<String> = emptyList()
-
   override fun getString(name: String): String? {
     checkInternalDebugBuild()
     return null
@@ -50,7 +49,7 @@ class ServerFlagServiceEmpty : ServerFlagService {
   private fun checkInternalDebugBuild() {
     if (java.lang.Boolean.getBoolean("idea.is.internal")) {
       // This exception indicates that the service has been accessed before it has been initialized.
-      // Please reach out the the owners of this code to figure out how best to synchronize the calling
+      // Please reach out to the owners of this code to figure out how best to synchronize the calling
       // code with the service initialization.
       throw RuntimeException("call to ServerFlagService before initialization")
     }
