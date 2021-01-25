@@ -16,16 +16,19 @@
 package org.jetbrains.android.actions;
 
 import static com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated;
+
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.avdmanager.AvdListDialog;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,6 +43,12 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
 
     if (ActionPlaces.TOOLBAR.equals(event.getPlace())) {
       presentation.setIcon(null);
+    }
+
+    if (ActionPlaces.MAIN_TOOLBAR.equals(event.getPlace()) && !IdeInfo.getInstance().isAndroidStudio()) {
+      @Nullable Project project = event.getProject();
+      boolean hasAndroidFacets = project != null && ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID);
+      presentation.setVisible(hasAndroidFacets);
     }
 
     if (isChromeOSAndIsNotHWAccelerated()) {
