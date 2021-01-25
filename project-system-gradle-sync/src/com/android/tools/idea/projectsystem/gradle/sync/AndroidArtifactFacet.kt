@@ -32,6 +32,8 @@ import org.jetbrains.android.facet.AndroidFacet
 class AndroidArtifactFacetConfiguration : FacetConfiguration {
   override fun createEditorTabs(editorContext: FacetEditorContext?, validatorsManager: FacetValidatorsManager?): Array<FacetEditorTab>
     = emptyArray()
+
+  override fun toString(): String = "Empty Configuration"
 }
 
 class AndroidArtifactFacetType : FacetType<AndroidArtifactFacet, AndroidArtifactFacetConfiguration>(
