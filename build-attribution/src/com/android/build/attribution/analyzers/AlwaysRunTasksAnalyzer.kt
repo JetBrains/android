@@ -26,13 +26,14 @@ import org.gradle.tooling.events.task.TaskSuccessResult
 /**
  * Analyzer for reporting tasks that always run due to misconfiguration.
  */
-class AlwaysRunTasksAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter,
-                             taskContainer: TaskContainer,
-                             pluginContainer: PluginContainer)
-  : BaseAnalyzer(taskContainer, pluginContainer), BuildEventsAnalyzer {
+class AlwaysRunTasksAnalyzer(
+  warningsFilter: BuildAttributionWarningsFilter,
+  taskContainer: TaskContainer,
+  pluginContainer: PluginContainer
+) : BaseAnalyzer<AlwaysRunTasksAnalyzer.Result>(warningsFilter, taskContainer, pluginContainer),
+    BuildEventsAnalyzer,
+    PostBuildProcessAnalyzer {
   private val alwaysRunTasksSet = HashSet<AlwaysRunTaskData>()
-  lateinit var alwaysRunTasks: List<AlwaysRunTaskData>
-    private set
 
   override fun receiveEvent(event: ProgressEvent) {
     if (event is TaskFinishEvent && event.result is TaskSuccessResult) {
@@ -49,14 +50,20 @@ class AlwaysRunTasksAnalyzer(override val warningsFilter: BuildAttributionWarnin
     }
   }
 
-  override fun onBuildSuccess() {
-    alwaysRunTasks = alwaysRunTasksSet.filter {
-      warningsFilter.applyAlwaysRunTaskFilter(it.taskData) && applyIgnoredTasksFilter(it.taskData)
-    }
+  override fun cleanupTempState() {
     alwaysRunTasksSet.clear()
   }
 
-  override fun onBuildFailure() {
-    alwaysRunTasksSet.clear()
+  override fun onBuildSuccess() = Unit
+
+  override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalysisResult) {
+    // This has to run after all build data received as it uses taskType in filter and task type is received from BuildAttributionData file.
+    ensureResultCalculated()
   }
+
+  override fun calculateResult(): Result = Result(
+    alwaysRunTasksSet.filter { warningsFilter.applyAlwaysRunTaskFilter(it.taskData) && applyIgnoredTasksFilter(it.taskData) }
+  )
+
+  data class Result(val alwaysRunTasks: List<AlwaysRunTaskData>) : AnalyzerResult
 }

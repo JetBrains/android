@@ -31,26 +31,28 @@ import org.gradle.tooling.events.configuration.ProjectConfigurationSuccessResult
 /**
  * Analyzer for attributing project configuration time.
  */
-class ProjectConfigurationAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter,
-                                   taskContainer: TaskContainer,
-                                   pluginContainer: PluginContainer) : BaseAnalyzer(taskContainer, pluginContainer), BuildEventsAnalyzer {
+class ProjectConfigurationAnalyzer(
+  warningsFilter: BuildAttributionWarningsFilter,
+  taskContainer: TaskContainer,
+  pluginContainer: PluginContainer
+) : BaseAnalyzer<ProjectConfigurationAnalyzer.Result>(warningsFilter, taskContainer, pluginContainer), BuildEventsAnalyzer {
   private val applyPluginEventPrefix = "Apply plugin"
 
   /**
    * Contains for each plugin, the sum of configuration times for this plugin over all projects
    */
-  val pluginsConfigurationDataMap = HashMap<PluginData, Long>()
+  private val pluginsConfigurationDataMap = HashMap<PluginData, Long>()
 
   /**
    * Contains a list of project configuration data for each configured project
    */
-  val projectsConfigurationData = ArrayList<ProjectConfigurationData>()
+  private val projectsConfigurationData = ArrayList<ProjectConfigurationData>()
 
   /**
    * Contains a list of all applied plugins for each configured project.
    * May contain internal plugins
    */
-  val allAppliedPlugins = mutableMapOf<String, List<PluginData>>()
+  private val allAppliedPlugins = mutableMapOf<String, List<PluginData>>()
 
   /**
    * Builder for configuration data of the currently being configured project
@@ -127,20 +129,36 @@ class ProjectConfigurationAnalyzer(override val warningsFilter: BuildAttribution
     return null
   }
 
-  override fun onBuildStart() {
-    super.onBuildStart()
+  override fun cleanupTempState() {
     projectsConfigurationData.clear()
     pluginsConfigurationDataMap.clear()
+    allAppliedPlugins.clear()
     projectConfigurationBuilder = null
   }
 
-  override fun onBuildSuccess() {
-    // nothing to be done
-  }
+  override fun onBuildSuccess() = Unit
 
-  override fun onBuildFailure() {
-    projectsConfigurationData.clear()
-    pluginsConfigurationDataMap.clear()
-    projectConfigurationBuilder = null
-  }
+  override fun calculateResult(): Result = Result(
+    pluginsConfigurationDataMap.toMap(),
+    projectsConfigurationData.toList(),
+    allAppliedPlugins.toMap()
+  )
+
+  data class Result(
+    /**
+     * Contains for each plugin, the sum of configuration times for this plugin over all projects
+     */
+    val pluginsConfigurationDataMap: Map<PluginData, Long>,
+
+    /**
+     * Contains a list of project configuration data for each configured project
+     */
+    val projectsConfigurationData: List<ProjectConfigurationData>,
+
+    /**
+     * Contains a list of all applied plugins for each configured project.
+     * May contain internal plugins
+     */
+    val allAppliedPlugins: Map<String, List<PluginData>>
+  ) : AnalyzerResult
 }

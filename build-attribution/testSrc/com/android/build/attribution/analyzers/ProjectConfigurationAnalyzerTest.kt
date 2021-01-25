@@ -135,9 +135,9 @@ class ProjectConfigurationAnalyzerTest {
   fun testProjectConfigurationAnalyzer() {
     sendProjectConfigurationEventsToAnalyzer()
 
-    assertThat(analyzer.projectsConfigurationData).hasSize(1)
+    assertThat(analyzer.result.projectsConfigurationData).hasSize(1)
 
-    val configurationData = analyzer.projectsConfigurationData[0]
+    val configurationData = analyzer.result.projectsConfigurationData[0]
 
     assertThat(configurationData.projectPath).isEqualTo(":app")
 
@@ -147,7 +147,7 @@ class ProjectConfigurationAnalyzerTest {
                                               PluginConfigurationData(PluginData(pluginE, ""), 200))
 
     assertThat(
-      analyzer.pluginsConfigurationDataMap.map { (plugin, time) -> PluginConfigurationData(plugin, time) }).containsExactlyElementsIn(
+      analyzer.result.pluginsConfigurationDataMap.map { (plugin, time) -> PluginConfigurationData(plugin, time) }).containsExactlyElementsIn(
       expectedPluginsConfiguration)
 
     assertThat(configurationData.pluginsConfigurationData).containsExactlyElementsIn(expectedPluginsConfiguration)

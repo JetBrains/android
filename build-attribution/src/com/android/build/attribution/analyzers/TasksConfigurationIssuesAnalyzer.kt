@@ -24,20 +24,35 @@ import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 /**
  * An analyzer that looks for misconfigured tasks. Tasks that declare the same output are considered misconfigured.
  */
-class TasksConfigurationIssuesAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter,
-                                       taskContainer: TaskContainer,
-                                       pluginContainer: PluginContainer)
-  : BaseAnalyzer(taskContainer, pluginContainer), BuildAttributionReportAnalyzer {
-  var tasksSharingOutput: List<TasksSharingOutputData> = emptyList()
+class TasksConfigurationIssuesAnalyzer(
+  warningsFilter: BuildAttributionWarningsFilter,
+  taskContainer: TaskContainer,
+  pluginContainer: PluginContainer
+) : BaseAnalyzer<TasksConfigurationIssuesAnalyzer.Result>(warningsFilter, taskContainer, pluginContainer),
+    BuildAttributionReportAnalyzer,
+    PostBuildProcessAnalyzer {
 
-  override fun onBuildStart() {
-    super.onBuildStart()
-    tasksSharingOutput = emptyList()
+  private var tasksSharingOutput: Map<String, List<String>> = emptyMap()
+
+  override fun cleanupTempState() {
+    tasksSharingOutput = emptyMap()
   }
+
+  override fun onBuildSuccess() = Unit
 
   override fun receiveBuildAttributionReport(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData) {
-    tasksSharingOutput = androidGradlePluginAttributionData.tasksSharingOutput.map { entry ->
+    tasksSharingOutput = androidGradlePluginAttributionData.tasksSharingOutput
+  }
+
+  override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalysisResult) {
+    ensureResultCalculated()
+  }
+
+  override fun calculateResult(): Result = Result(
+    tasksSharingOutput = tasksSharingOutput.map { entry ->
       TasksSharingOutputData(entry.key, entry.value.mapNotNull(this::getTask))
     }.filter { entry -> entry.taskList.size > 1 }
-  }
+  )
+
+  data class Result(val tasksSharingOutput: List<TasksSharingOutputData>) : AnalyzerResult
 }

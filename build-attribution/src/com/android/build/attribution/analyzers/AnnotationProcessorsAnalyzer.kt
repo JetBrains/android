@@ -27,18 +27,20 @@ import java.time.Duration
 /**
  * Analyzer for reporting non incremental annotation processors and the annotation processors compilation time.
  */
-class AnnotationProcessorsAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter,
-                                   taskContainer: TaskContainer,
-                                   pluginContainer: PluginContainer)
-  : BaseAnalyzer(taskContainer, pluginContainer), BuildEventsAnalyzer {
+class AnnotationProcessorsAnalyzer(
+  warningsFilter: BuildAttributionWarningsFilter,
+  taskContainer: TaskContainer,
+  pluginContainer: PluginContainer
+) : BaseAnalyzer<AnnotationProcessorsAnalyzer.Result>(warningsFilter, taskContainer, pluginContainer),
+    BuildEventsAnalyzer {
+
   private val annotationProcessorsMap = HashMap<String, Duration>()
   private val nonIncrementalAnnotationProcessorsSet = HashSet<String>()
 
   /**
    * Sums up the compilation time for annotation processors for all sub-projects.
    */
-  private fun updateAnnotationProcessorCompilationTime(className: String,
-                                                       compilationDuration: Duration) {
+  private fun updateAnnotationProcessorCompilationTime(className: String, compilationDuration: Duration) {
     val currentDuration = annotationProcessorsMap.getOrDefault(className, Duration.ZERO)
     annotationProcessorsMap[className] = currentDuration + compilationDuration
   }
@@ -59,7 +61,7 @@ class AnnotationProcessorsAnalyzer(override val warningsFilter: BuildAttribution
     }
   }
 
-  override fun onBuildStart() {
+  override fun cleanupTempState() {
     annotationProcessorsMap.clear()
     nonIncrementalAnnotationProcessorsSet.clear()
   }
@@ -71,16 +73,13 @@ class AnnotationProcessorsAnalyzer(override val warningsFilter: BuildAttribution
     }
   }
 
-  override fun onBuildFailure() {
-    annotationProcessorsMap.clear()
-    nonIncrementalAnnotationProcessorsSet.clear()
-  }
+  override fun calculateResult(): Result = Result(
+    annotationProcessorsMap.map { AnnotationProcessorData(it.key, it.value) },
+    nonIncrementalAnnotationProcessorsSet.map { AnnotationProcessorData(it, annotationProcessorsMap[it]!!) }
+  )
 
-  fun getAnnotationProcessorsData(): List<AnnotationProcessorData> {
-    return annotationProcessorsMap.map { AnnotationProcessorData(it.key, it.value) }
-  }
-
-  fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorData> {
-    return nonIncrementalAnnotationProcessorsSet.map { AnnotationProcessorData(it, annotationProcessorsMap[it]!!) }
-  }
+  data class Result(
+    val annotationProcessorsData: List<AnnotationProcessorData>,
+    val nonIncrementalAnnotationProcessorsData: List<AnnotationProcessorData>
+  ) : AnalyzerResult
 }
