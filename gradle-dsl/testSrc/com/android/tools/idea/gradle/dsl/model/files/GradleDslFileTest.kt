@@ -169,6 +169,17 @@ class GradleDslFileTest : GradleFileModelTestCase() {
     verifyPropertyModel(property, STRING_TYPE, "value:name:2", STRING, REGULAR, 1)
   }
 
+  @Test
+  fun testDelete() {
+    writeToBuildFile(TestFile.DELETE)
+
+    val buildModel = gradleBuildModel
+
+    buildModel.delete()
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, "")
+  }
+
   fun getFile(file: VirtualFile, files: Set<GradleFileModel>) = files.first { toSystemIndependentPath(file.path) == it.virtualFile.path }
 
   enum class TestFile(val path: @SystemDependent String) : TestFileName {
@@ -185,6 +196,7 @@ class GradleDslFileTest : GradleFileModelTestCase() {
     LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_TWO("listPropertiesFromAppliedFilesAppliedFileTwo"),
     APPLY_FROM_BLOCK("applyFromBlock"),
     APPLY_FROM_BLOCK_APPLIED("applyFromBlockApplied"),
+    DELETE("delete")
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
