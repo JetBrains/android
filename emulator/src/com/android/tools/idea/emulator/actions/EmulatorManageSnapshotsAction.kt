@@ -25,6 +25,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Opens the manage Snapshots dialog.
@@ -80,5 +81,8 @@ private fun closeDuplicateDialogs(emulator: EmulatorController, project: Project
     dialogWrapper.close(DialogWrapper.CLOSE_EXIT_CODE)
   }
 }
+
+@VisibleForTesting
+fun getOpenManageSnapshotsDialogs(): Map<EmulatorView, DialogWrapper> = openDialogs
 
 private val openDialogs = mutableMapOf<EmulatorView, DialogWrapper>()

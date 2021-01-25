@@ -192,7 +192,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
                 emulator = oldEmulators[emulatorId]
                 if (emulator == null) {
                   if (StudioFlags.EMBEDDED_EMULATOR_TRACE_DISCOVERY.get()) {
-                    logger.info("Discovered emulator ${emulatorId}")
+                    logger.info("Discovered emulator $emulatorId")
                   }
                   emulator = EmulatorController(emulatorId, this)
                   created = true

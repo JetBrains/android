@@ -30,9 +30,13 @@ import com.android.tools.idea.emulator.EmulatorView
 import com.android.tools.idea.emulator.EmulatorViewRule
 import com.android.tools.idea.emulator.FakeEmulator
 import com.android.tools.idea.emulator.actions.findManageSnapshotDialog
+import com.android.tools.idea.emulator.actions.getOpenManageSnapshotsDialogs
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.testing.DebugLoggerRule
+import com.android.utils.TraceUtils
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
@@ -98,7 +102,15 @@ class ManageSnapshotsDialogTest {
   @After
   fun tearDown() {
     EmulatorSettings.getInstance().snapshotAutoDeletionPolicy = DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY
-    findManageSnapshotDialog(emulatorView)?.close(DialogWrapper.CLOSE_EXIT_CODE) // Close the dialog in case it wasn't closed by the test.
+    val dialog = findManageSnapshotDialog(emulatorView)
+    val msg = dialog?.let { "the dialog was not closed by the test" } ?: ""
+    Logger.getInstance(javaClass).debug { "${TraceUtils.currentTime()} tearDown: $msg" }
+    dialog?.close(DialogWrapper.CLOSE_EXIT_CODE) // Close the dialog in case it wasn't closed by the test.
+    if (getOpenManageSnapshotsDialogs().isNotEmpty()) {
+      Logger.getInstance(javaClass).debug {
+        "${TraceUtils.currentTime()} tearDown: the dialog is still not closed after calling close(DialogWrapper.CLOSE_EXIT_CODE)"
+      }
+    }
   }
 
   @Test
