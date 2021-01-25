@@ -31,10 +31,13 @@ import kotlin.math.max
 /**
  * An analyzer for calculating the critical path, that is the path of tasks determining the total build duration.
  */
-class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter,
-                           taskContainer: TaskContainer,
-                           pluginContainer: PluginContainer)
-  : BaseAnalyzer(taskContainer, pluginContainer), BuildEventsAnalyzer {
+class CriticalPathAnalyzer(
+  warningsFilter: BuildAttributionWarningsFilter,
+  taskContainer: TaskContainer,
+  pluginContainer: PluginContainer
+) : BaseAnalyzer<CriticalPathAnalyzer.Result>(warningsFilter, taskContainer, pluginContainer),
+    BuildEventsAnalyzer,
+    PostBuildProcessAnalyzer {
   private val tasksSet = HashSet<TaskData>()
 
   /**
@@ -42,14 +45,11 @@ class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarnings
    */
   private val dependenciesMap = HashMap<TaskData, List<TaskData>>()
 
-  val tasksDeterminingBuildDuration = ArrayList<TaskData>()
-  val pluginsDeterminingBuildDuration = ArrayList<PluginBuildData>()
+  private val tasksDeterminingBuildDuration = ArrayList<TaskData>()
+  private val pluginsDeterminingBuildDuration = ArrayList<PluginBuildData>()
 
-  var buildStartedTimestamp = Long.MAX_VALUE
-    private set
-
-  var buildFinishedTimestamp = Long.MIN_VALUE
-    private set
+  private var buildStartedTimestamp = Long.MAX_VALUE
+  private var buildFinishedTimestamp = Long.MIN_VALUE
 
   override fun receiveEvent(event: ProgressEvent) {
     // Since we stopped listening to generic events, we don't get build finished event. But we can calculate the build time from the start
@@ -349,8 +349,7 @@ class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarnings
     pluginsDeterminingBuildDuration.sortByDescending { it.buildDuration }
   }
 
-  override fun onBuildStart() {
-    super.onBuildStart()
+  override fun cleanupTempState() {
     tasksSet.clear()
     dependenciesMap.clear()
     tasksDeterminingBuildDuration.clear()
@@ -359,15 +358,27 @@ class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarnings
     buildFinishedTimestamp = Long.MIN_VALUE
   }
 
-  override fun onBuildSuccess() {
-    calculateTasksDeterminingBuildDuration(calculateTasksCriticalPathBasedOnDependencies())
-    calculatePluginsDeterminingBuildDuration()
-    tasksSet.clear()
-    dependenciesMap.clear()
+  override fun onBuildSuccess() = Unit
+
+  override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalysisResult) {
+    ensureResultCalculated()
   }
 
-  override fun onBuildFailure() {
-    tasksSet.clear()
-    dependenciesMap.clear()
+  override fun calculateResult(): Result {
+    calculateTasksDeterminingBuildDuration(calculateTasksCriticalPathBasedOnDependencies())
+    calculatePluginsDeterminingBuildDuration()
+    return Result(
+      tasksDeterminingBuildDuration.toList(),
+      pluginsDeterminingBuildDuration.toList(),
+      buildStartedTimestamp,
+      buildFinishedTimestamp
+    )
   }
+
+  data class Result(
+    val tasksDeterminingBuildDuration: List<TaskData>,
+    val pluginsDeterminingBuildDuration: List<PluginBuildData>,
+    val buildStartedTimestamp: Long,
+    val buildFinishedTimestamp: Long
+  ) : AnalyzerResult
 }
