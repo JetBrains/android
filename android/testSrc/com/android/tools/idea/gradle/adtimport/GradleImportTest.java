@@ -46,7 +46,6 @@ import com.android.prefs.AndroidLocation;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.ImportUtil;
@@ -3403,7 +3402,6 @@ public class GradleImportTest extends AndroidTestCase {
       args.add(customizedGradleHome);
     }
     args.add("assembleDebug");
-    GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArg(args);
     removeJcenter(new File(base, "build.gradle"));
     AndroidGradleTests.updateToolingVersionsAndPaths(base);
     GeneralCommandLine cmdLine = new GeneralCommandLine(args).withWorkDirectory(pwd);
