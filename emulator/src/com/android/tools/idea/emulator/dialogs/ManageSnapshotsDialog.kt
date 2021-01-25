@@ -1147,6 +1147,7 @@ internal class ManageSnapshotsDialog(
 
     override fun actionPerformed(event: ActionEvent) {
       val wrapper = DialogWrapper.findInstance(event.source as? Component)
+      logger.debug { "${currentTime()} CloseDialogAction.actionPerformed: wrapper=$wrapper" }
       wrapper?.close(DialogWrapper.CLOSE_EXIT_CODE)
     }
   }
