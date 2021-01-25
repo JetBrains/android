@@ -15,7 +15,6 @@
  */
 package com.android.tools.property.panel.impl.ui
 
-import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.adtui.stdui.KeyStrokes
@@ -49,7 +48,8 @@ class PropertyComboBox(model: ComboBoxPropertyEditorModel, asTableCellEditor: Bo
   private val comboBox = WrappedComboBox(model, asTableCellEditor)
 
   init {
-    background = secondaryPanelBackground
+    background = UIUtil.TRANSPARENT_COLOR
+    isOpaque = false
     comboBox.actionOnKeyNavigation = false
     add(comboBox, BorderLayout.CENTER)
   }
@@ -77,7 +77,8 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     registerActionKey({ tab { enterInPopup() } }, KeyStrokes.TAB, "tab", condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     registerActionKey({ backtab { enterInPopup() } }, KeyStrokes.BACKTAB, "backtab")
     focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves
-    background = secondaryPanelBackground
+    background = UIUtil.TRANSPARENT_COLOR
+    isOpaque = false
     HelpSupportBinding.registerHelpKeyActions(this, { model.property }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     if (asTableCellEditor) {
       putClientProperty("JComboBox.isTableCellEditor", true)
@@ -90,7 +91,8 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     textField.registerActionKey({ tab { enter() } }, KeyStrokes.TAB, "tab")
     textField.registerActionKey({ backtab { enter() } }, KeyStrokes.BACKTAB, "backtab")
     textField.focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves
-    textField.background = secondaryPanelBackground
+    textField.background = UIUtil.TRANSPARENT_COLOR
+    textField.isOpaque = false
     textField.putClientProperty(UndoRedoAction.IGNORE_SWING_UNDO_MANAGER, true)
 
     val focusListener = TextEditorFocusListener(textField, this, model)
@@ -187,7 +189,8 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
   private fun setFromModel() {
     isVisible = model.visible
     foreground = model.displayedForeground(UIUtil.getLabelForeground())
-    background = model.displayedBackground(secondaryPanelBackground)
+    background = model.displayedBackground(UIUtil.TRANSPARENT_COLOR)
+    isOpaque = model.isUsedInRendererWithSelection
     if (model.focusRequest && !isFocusOwner) {
       requestFocusInWindow()
     }
