@@ -107,6 +107,7 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
       AddBuildTypeFirebaseCrashlyticsUsageInfo(wrappedPsiElement, buildTypeModel),
       VIEW_BINDING_ENABLED_INFO.UsageInfo(wrappedPsiElement, gradleBuildModel),
       DATA_BINDING_ENABLED_INFO.UsageInfo(wrappedPsiElement, gradleBuildModel),
+      SOURCE_SET_JNI_INFO.UsageInfo(wrappedPsiElement, gradleBuildModel),
     )
     usageInfos.forEach { one ->
       usageInfos.filter { it !== one }.forEach { two ->

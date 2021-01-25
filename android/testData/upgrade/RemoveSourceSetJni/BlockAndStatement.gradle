@@ -1,0 +1,11 @@
+android {
+  compileSdkVersion 30
+  sourceSets {
+    main {
+      jni {
+        srcDir 'jniSource'
+      }
+    }
+  }
+  sourceSets.main.jni.exclude 'jniSource/foo'
+}
