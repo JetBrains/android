@@ -15,16 +15,45 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.project.Project;
+import com.intellij.serviceContainer.NonInjectable;
+import java.util.Collection;
 import java.util.Objects;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
 // TODO Reduce the visibility of SelectMultipleDevicesAction and ID
 public final class SelectMultipleDevicesAction extends AnAction {
   public static final String ID = "SelectMultipleDevices";
+  private final @NotNull Function<@NotNull Project, @NotNull AsyncDevicesGetter> myAsyncDevicesGetterGetInstance;
 
+  @SuppressWarnings("unused")
   private SelectMultipleDevicesAction() {
+    this(AsyncDevicesGetter::getInstance);
+  }
+
+  @VisibleForTesting
+  @NonInjectable
+  SelectMultipleDevicesAction(@NotNull Function<@NotNull Project, @NotNull AsyncDevicesGetter> asyncDevicesGetterGetInstance) {
+    myAsyncDevicesGetterGetInstance = asyncDevicesGetterGetInstance;
+  }
+
+  @Override
+  public void update(@NotNull AnActionEvent event) {
+    Project project = event.getProject();
+    Presentation presentation = event.getPresentation();
+
+    if (project == null) {
+      presentation.setEnabledAndVisible(false);
+      return;
+    }
+
+    boolean empty = myAsyncDevicesGetterGetInstance.apply(project).get().map(Collection::isEmpty).orElse(true);
+    presentation.setEnabledAndVisible(!empty);
   }
 
   @Override
