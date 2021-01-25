@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.GradleFileModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
+import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -86,6 +87,17 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
   public List<GradlePropertyModel> getDeclaredProperties() {
     return myGradleDslFile.getContainedElements(false).stream().map(e -> new GradlePropertyModelImpl(e))
       .collect(Collectors.toList());
+  }
+
+  @Override
+  public void delete() {
+    // It could be argued that removing the file completely (when applied) would be a more correct interpretation of calling
+    // delete() on a file.  On the other hand, that's awkward to implement at the moment, and there's another school of thought that
+    // would say that calling delete() on a file model is almost certainly wrong.  This is a tasteful compromise: remove everything in
+    // the file, but not the file itself (so that references to the file from other files, such as from apply statements, continue
+    // to resolve): this is consistent with the view of the model as a view on a collection of language-level elements, rather than
+    // the files that contain them.
+    myGradleDslFile.getContainedElements(true).forEach(PropertyUtil::removeElement);
   }
 
   @NotNull

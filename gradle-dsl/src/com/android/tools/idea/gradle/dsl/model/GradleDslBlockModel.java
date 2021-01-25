@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.removeElement;
+
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
@@ -68,6 +70,11 @@ public abstract class GradleDslBlockModel implements GradleDslModel {
     return myDslElement.getContainedElements(true).stream()
                        .filter(e -> e instanceof GradleDslExpression)
                        .map(e -> new GradlePropertyModelImpl(e)).collect(Collectors.toList());
+  }
+
+  @Override
+  public void delete() {
+    removeElement(myDslElement);
   }
 
   @NotNull
