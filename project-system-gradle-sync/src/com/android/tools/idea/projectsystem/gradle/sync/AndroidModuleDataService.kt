@@ -44,6 +44,7 @@ import com.intellij.execution.BeforeRunTask
 import com.intellij.execution.BeforeRunTaskProvider
 import com.intellij.execution.RunManagerEx
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.facet.ModifiableFacetModel
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -124,7 +125,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
       removeAllFacets(mainFacetModel, AndroidArtifactFacet.ID)
 
       // Create the Android facet and attach to the module.
-      val androidFacet = mainFacetModel.getFacetByType(AndroidFacet.ID) ?: createAndroidFacet(mainIdeModule, modelsProvider)
+      val androidFacet = mainFacetModel.getFacetByType(AndroidFacet.ID) ?: createAndroidFacet(mainIdeModule, mainFacetModel)
 
       // Configure that Android facet from the information in the AndroidModuleModel.
       configureFacet(androidFacet, androidModel)
@@ -144,7 +145,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
 
         // Set up artifact facets on modules that aren't the holder
         val artifactFacet = modelsProvider.getModifiableFacetModel(childModule).getFacetByType(AndroidArtifactFacet.ID)
-                            ?: createArtifactFacet(childModule, modelsProvider)
+                            ?: createArtifactFacet(childModule, childFacetModel)
         // Link the facet to the main Android Facet on the holder module.
         artifactFacet.linkToAndroidFacet(androidFacet)
 
@@ -216,24 +217,22 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
 /**
  * Creates an [AndroidFacet] on the given [module] with the default facet configuration.
  */
-private fun createAndroidFacet(module: Module, modelsProvider: IdeModifiableModelsProvider): AndroidFacet {
-  val model = modelsProvider.getModifiableFacetModel(module)
+private fun createAndroidFacet(module: Module, facetModel: ModifiableFacetModel): AndroidFacet {
   val facetType = AndroidFacet.getFacetType()
   val facet = facetType.createFacet(module, AndroidFacet.NAME, facetType.createDefaultConfiguration(), null)
   @Suppress("UnstableApiUsage")
-  model.addFacet(facet, ExternalSystemApiUtil.toExternalSource(GRADLE_SYSTEM_ID))
+  facetModel.addFacet(facet, ExternalSystemApiUtil.toExternalSource(GRADLE_SYSTEM_ID))
   return facet
 }
 
 /**
  * Creates an [AndroidArtifactFacet] on the given [module] with the default facet configuration.
  */
-private fun createArtifactFacet(module: Module, modelsProvider: IdeModifiableModelsProvider) : AndroidArtifactFacet {
-  val model = modelsProvider.getModifiableFacetModel(module)
+private fun createArtifactFacet(module: Module, facetModel: ModifiableFacetModel) : AndroidArtifactFacet {
   val facetType = AndroidArtifactFacet.getFacetType()
   val facet = facetType.createFacet(module, AndroidArtifactFacet.NAME, facetType.createDefaultConfiguration(), null)
   @Suppress("UnstableApiUsage")
-  model.addFacet(facet, ExternalSystemApiUtil.toExternalSource(GRADLE_SYSTEM_ID))
+  facetModel.addFacet(facet, ExternalSystemApiUtil.toExternalSource(GRADLE_SYSTEM_ID))
   return facet
 }
 
