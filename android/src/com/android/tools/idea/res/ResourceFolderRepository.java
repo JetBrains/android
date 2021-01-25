@@ -15,63 +15,26 @@
  */
 package com.android.tools.idea.res;
 
-import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX;
-import static com.android.SdkConstants.ATTR_FORMAT;
-import static com.android.SdkConstants.ATTR_NAME;
-import static com.android.SdkConstants.NEW_ID_PREFIX;
-import static com.android.SdkConstants.TAG_ITEM;
-import static com.android.SdkConstants.TAG_RESOURCES;
-import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.resources.ResourceFolderType.COLOR;
-import static com.android.resources.ResourceFolderType.DRAWABLE;
-import static com.android.resources.ResourceFolderType.FONT;
-import static com.android.resources.ResourceFolderType.VALUES;
-import static com.android.tools.idea.res.AndroidFileChangeListener.isRelevantFile;
-import static com.android.tools.idea.resources.base.RepositoryLoader.portableFileName;
-import static com.android.tools.idea.resources.base.ResourceSerializationUtil.createPersistentCache;
-import static com.android.tools.idea.resources.base.ResourceSerializationUtil.writeResourcesToStream;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static com.android.tools.idea.res.IdeResourcesUtil.getResourceTypeForResourceTag;
-
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.DensityBasedResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.FileResourceNameValidator;
-import com.android.ide.common.resources.ResourceFile;
-import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceMergerItem;
-import com.android.ide.common.resources.ResourceVisitor;
-import com.android.ide.common.resources.SingleNamespaceResourceRepository;
-import com.android.ide.common.resources.ValueResourceNameValidator;
+import com.android.ide.common.resources.*;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.util.PathString;
-import com.android.resources.Density;
-import com.android.resources.FolderTypeRelationship;
-import com.android.resources.ResourceFolderType;
-import com.android.resources.ResourceType;
-import com.android.resources.ResourceUrl;
-import com.android.resources.ResourceVisibility;
+import com.android.resources.*;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.resources.base.Base128InputStream;
-import com.android.tools.idea.resources.base.BasicDensityBasedFileResourceItem;
-import com.android.tools.idea.resources.base.BasicFileResourceItem;
-import com.android.tools.idea.resources.base.BasicResourceItem;
-import com.android.tools.idea.resources.base.BasicValueResourceItemBase;
-import com.android.tools.idea.resources.base.LoadableResourceRepository;
-import com.android.tools.idea.resources.base.RepositoryConfiguration;
-import com.android.tools.idea.resources.base.RepositoryLoader;
-import com.android.tools.idea.resources.base.ResourceSerializationUtil;
-import com.android.tools.idea.resources.base.ResourceSourceFile;
+import com.android.tools.idea.resources.base.*;
 import com.android.tools.idea.util.FileExtensions;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.WriteAction;
@@ -79,7 +42,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
@@ -88,51 +50,11 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileFilter;
 import com.intellij.problems.WolfTheProblemSolver;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiNameHelper;
-import com.intellij.psi.PsiTreeAnyChangeAbstractAdapter;
-import com.intellij.psi.PsiTreeChangeAdapter;
-import com.intellij.psi.PsiTreeChangeEvent;
-import com.intellij.psi.PsiTreeChangeListener;
-import com.intellij.psi.PsiWhiteSpace;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiTreeChangeEventImpl;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlAttributeValue;
-import com.intellij.psi.xml.XmlComment;
-import com.intellij.psi.xml.XmlDocument;
-import com.intellij.psi.xml.XmlElement;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlProcessingInstruction;
-import com.intellij.psi.xml.XmlTag;
-import com.intellij.psi.xml.XmlText;
+import com.intellij.psi.xml.*;
 import com.intellij.util.concurrency.EdtExecutorService;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.function.Consumer;
-import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.Contract;
@@ -140,6 +62,27 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.ide.PooledThreadExecutor;
+
+import javax.annotation.concurrent.GuardedBy;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.function.Consumer;
+
+import static com.android.SdkConstants.*;
+import static com.android.resources.ResourceFolderType.*;
+import static com.android.tools.idea.res.AndroidFileChangeListener.isRelevantFile;
+import static com.android.tools.idea.res.IdeResourcesUtil.getResourceTypeForResourceTag;
+import static com.android.tools.idea.resources.base.RepositoryLoader.portableFileName;
+import static com.android.tools.idea.resources.base.ResourceSerializationUtil.createPersistentCache;
+import static com.android.tools.idea.resources.base.ResourceSerializationUtil.writeResourcesToStream;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * The {@link ResourceFolderRepository} is leaf in the repository tree, and is used for user editable resources (e.g. the resources in the
@@ -496,7 +439,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                                      @NotNull PsiFile file, @NotNull FolderConfiguration folderConfiguration) {
     boolean added = false;
     FileType fileType = file.getFileType();
-    if (fileType == StdFileTypes.XML) {
+    if (fileType == XmlFileType.INSTANCE) {
       XmlFile xmlFile = (XmlFile)file;
       assert xmlFile.isValid();
       XmlDocument document = xmlFile.getDocument();
@@ -763,7 +706,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       }
     } else if (checkResourceFilename(file, folderType)) {
       ResourceItemSource<? extends ResourceItem> source = mySources.get(file.getVirtualFile());
-      if (source instanceof PsiResourceFile && file.getFileType() == StdFileTypes.XML) {
+      if (source instanceof PsiResourceFile && file.getFileType() == XmlFileType.INSTANCE) {
         // If the old file was a PsiResourceFile for an XML file, we can update ID ResourceItems in place.
         PsiResourceFile psiResourceFile = (PsiResourceFile)source;
         // Already seen this file; no need to do anything unless it's an XML file with generated ids;
@@ -850,7 +793,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
           if (fileParent != null) {
             FolderConfiguration folderConfiguration = FolderConfiguration.getConfigForFolder(fileParent.getName());
             if (folderConfiguration != null) {
-              boolean idGeneratingFile = idGeneratingFolder && file.getFileType() == StdFileTypes.XML;
+              boolean idGeneratingFile = idGeneratingFolder && file.getFileType() == XmlFileType.INSTANCE;
               scanFileResourceFileAsPsi(result, folderType, folderConfiguration, type, idGeneratingFile, file);
             }
           }
@@ -1097,7 +1040,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
               return;
             }
             scheduleScan(psiFile, folderType);
-          } else if (FolderTypeRelationship.isIdGeneratingFolderType(folderType) && psiFile.getFileType() == StdFileTypes.XML) {
+          } else if (FolderTypeRelationship.isIdGeneratingFolderType(folderType) && psiFile.getFileType() == XmlFileType.INSTANCE) {
             if (parent instanceof XmlComment || child instanceof XmlComment) {
               return;
             }
@@ -1259,7 +1202,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
               // Some other change: do full file rescan.
               scheduleScan(psiFile, folderType);
             }
-          } else if (FolderTypeRelationship.isIdGeneratingFolderType(folderType) && psiFile.getFileType() == StdFileTypes.XML) {
+          } else if (FolderTypeRelationship.isIdGeneratingFolderType(folderType) && psiFile.getFileType() == XmlFileType.INSTANCE) {
             // TODO: Handle removals of id's (values an attributes) incrementally.
             scheduleScan(psiFile, folderType);
           } else if (folderType == FONT) {
@@ -1286,7 +1229,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
           // such as editing the content of a drawable XML file.
           ResourceFolderType folderType = IdeResourcesUtil.getFolderType(psiFile);
           if (folderType != null && FolderTypeRelationship.isIdGeneratingFolderType(folderType) &&
-              psiFile.getFileType() == StdFileTypes.XML) {
+              psiFile.getFileType() == XmlFileType.INSTANCE) {
             // The only way the edit affected the set of resources was if the user added or removed an
             // id attribute. Since these can be added redundantly we can't automatically remove the old
             // value if you renamed one, so we'll need a full file scan.

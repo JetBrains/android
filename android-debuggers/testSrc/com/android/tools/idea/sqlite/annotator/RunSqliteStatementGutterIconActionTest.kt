@@ -31,19 +31,15 @@ import com.android.tools.idea.sqlite.utils.toSqliteValues
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.caret
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
+import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.awt.RelativePoint
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.spy
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
+import org.mockito.Mockito.*
 import java.awt.Component
 import java.awt.Point
 import java.awt.event.MouseEvent
@@ -557,7 +553,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
 
   private fun setUpJavaFixture(sqlStatement: String) {
     myFixture.configureByText(
-      StdFileTypes.JAVA,
+      JavaFileType.INSTANCE,
       // language=java
       """
           package com.example;

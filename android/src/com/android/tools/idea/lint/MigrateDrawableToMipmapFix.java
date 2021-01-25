@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.lint;
 
-import static com.android.SdkConstants.ATTR_NAME;
-import static com.android.SdkConstants.ATTR_TYPE;
-import static com.android.SdkConstants.FD_RES_VALUES;
-
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -30,32 +26,27 @@ import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiElementFactory;
-import com.intellij.psi.PsiExpression;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiIdentifier;
-import com.intellij.psi.PsiReference;
-import com.intellij.psi.PsiReferenceExpression;
+import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.psi.SearchUtils;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Quickfix which migrates a drawable resource into a mipmap resource, moving bitmap and drawable XML
@@ -132,7 +123,7 @@ class MigrateDrawableToMipmapFix implements LintIdeQuickFix {
             continue;
           }
 
-          if (FileTypeRegistry.getInstance().isFileOfType(file, StdFileTypes.XML) && parent.getName().startsWith(FD_RES_VALUES)) {
+          if (FileTypeRegistry.getInstance().isFileOfType(file, XmlFileType.INSTANCE) && parent.getName().startsWith(FD_RES_VALUES)) {
             // Resource alias rather than an actual drawable XML file: update the type reference instead
             XmlFile xmlFile = (XmlFile)bitmap;
             XmlTag root = xmlFile.getRootTag();

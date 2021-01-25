@@ -15,26 +15,6 @@
  */
 package com.android.tools.idea.rendering;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_ID;
-import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.CLASS_FLEXBOX_LAYOUT;
-import static com.android.SdkConstants.CLASS_VIEW;
-import static com.android.SdkConstants.DOT_JAVA;
-import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
-import static com.android.SdkConstants.VALUE_FILL_PARENT;
-import static com.android.SdkConstants.VALUE_MATCH_PARENT;
-import static com.android.SdkConstants.VALUE_TRUE;
-import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
-import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_PREFIX;
-import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
-import static com.android.tools.idea.rendering.RenderLogger.TAG_STILL_BUILDING;
-import static com.android.tools.idea.res.IdeResourcesUtil.isViewPackageNeeded;
-import static com.android.tools.lint.detector.api.Lint.editDistance;
-import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
-
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
@@ -55,6 +35,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.impl.javaCompiler.javac.JavacConfiguration;
+import com.intellij.ide.highlighter.JavaFileType;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
@@ -63,7 +45,6 @@ import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ShowSettingsUtil;
@@ -93,27 +74,6 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import java.awt.datatransfer.StringSelection;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
-import javax.swing.text.html.HTMLDocument;
-import javax.swing.text.html.HTMLFrameHyperlinkEvent;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.manifest.Application;
@@ -127,6 +87,27 @@ import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.compiler.JpsJavaCompilerOptions;
+
+import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+import javax.swing.text.html.HTMLDocument;
+import javax.swing.text.html.HTMLFrameHyperlinkEvent;
+import java.awt.datatransfer.StringSelection;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static com.android.SdkConstants.*;
+import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_PREFIX;
+import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
+import static com.android.tools.idea.rendering.RenderLogger.TAG_STILL_BUILDING;
+import static com.android.tools.idea.res.IdeResourcesUtil.isViewPackageNeeded;
+import static com.android.tools.lint.detector.api.Lint.editDistance;
+import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 
 /**
  * Class that finds {@link RenderErrorModel.Issue}s in a {@link RenderResult}.
@@ -465,7 +446,7 @@ public class RenderErrorContributor {
     if (logger.seenTagPrefix(TAG_RESOURCES_PREFIX)) {
       // Do we have errors in the res/ files?
       // See if it looks like we have aapt problems
-      boolean haveResourceErrors = wolfgang.hasProblemFilesBeneath(virtualFile -> FileTypeRegistry.getInstance().isFileOfType(virtualFile, StdFileTypes.XML));
+      boolean haveResourceErrors = wolfgang.hasProblemFilesBeneath(virtualFile -> FileTypeRegistry.getInstance().isFileOfType(virtualFile, XmlFileType.INSTANCE));
       if (haveResourceErrors) {
         summary = "Resource errors";
         builder.addBold("This project contains resource errors, so aapt did not succeed, " +
@@ -474,7 +455,7 @@ public class RenderErrorContributor {
       }
     }
     else if (renderTask.getLayoutlibCallback().isUsed()) {
-      boolean hasJavaErrors = wolfgang.hasProblemFilesBeneath(virtualFile -> FileTypeRegistry.getInstance().isFileOfType(virtualFile, StdFileTypes.JAVA));
+      boolean hasJavaErrors = wolfgang.hasProblemFilesBeneath(virtualFile -> FileTypeRegistry.getInstance().isFileOfType(virtualFile, JavaFileType.INSTANCE));
       if (hasJavaErrors) {
         summary = "Compilation errors";
         builder.addBold("This project contains Java compilation errors, " +

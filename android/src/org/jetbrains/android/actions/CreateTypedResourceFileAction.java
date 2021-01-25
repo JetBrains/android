@@ -21,8 +21,10 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.IdeResourceNameValidator;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.CommonBundle;
 import com.intellij.ide.IdeView;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -33,7 +35,6 @@ import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -58,7 +59,6 @@ import org.jetbrains.android.dom.transition.TransitionDomUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.android.util.AndroidBundle;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,7 +76,7 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
                                        boolean valuesResourceFile,
                                        boolean chooseTagName) {
     super(AndroidBundle.messagePointer("new.typed.resource.action.title", resourcePresentableName),
-          AndroidBundle.messagePointer("new.typed.resource.action.description", resourcePresentableName), StdFileTypes.XML.getIcon());
+          AndroidBundle.messagePointer("new.typed.resource.action.description", resourcePresentableName), XmlFileType.INSTANCE.getIcon());
     myResourceFolderType = resourceFolderType;
     myResourcePresentableName = resourcePresentableName;
     myDefaultRootTag = getDefaultRootTagByResourceType(resourceFolderType);

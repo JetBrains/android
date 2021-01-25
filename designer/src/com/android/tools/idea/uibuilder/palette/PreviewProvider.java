@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import static com.android.tools.idea.uibuilder.api.PaletteComponentHandler.NO_PREVIEW;
-
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceFolderType;
@@ -36,10 +34,10 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.IconLoader;
@@ -53,9 +51,12 @@ import com.intellij.ui.scale.ScaleContext;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.StartupUiUtil;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
 import java.awt.*;
-import java.awt.Dimension;
-import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.RasterFormatException;
 import java.util.List;
@@ -64,10 +65,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
-import javax.swing.*;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.idea.uibuilder.api.PaletteComponentHandler.NO_PREVIEW;
 
 /**
  * Creates a preview image that is used when dragging an item from the palette.
@@ -229,7 +228,7 @@ public class PreviewProvider implements Disposable {
     }
     PsiFile file = PsiFileFactory
       .getInstance(renderTask.getContext().getModule().getProject())
-      .createFileFromText(PREVIEW_PLACEHOLDER_FILE, StdFileTypes.XML, xml);
+      .createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml);
 
     assert file instanceof XmlFile;
     renderTask.setXmlFile((XmlFile)file);
