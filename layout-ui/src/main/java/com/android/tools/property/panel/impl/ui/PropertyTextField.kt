@@ -15,7 +15,6 @@
  */
 package com.android.tools.property.panel.impl.ui
 
-import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
@@ -39,7 +38,8 @@ class PropertyTextField(
 ) : CommonTextField<TextFieldPropertyEditorModel>(editorModel), DataProvider {
 
   init {
-    background = secondaryPanelBackground
+    background = UIUtil.TRANSPARENT_COLOR
+    isOpaque = false
     registerActionKey({ enter() }, KeyStrokes.ENTER, "enter")
     registerActionKey({ tab() }, KeyStrokes.TAB, "tab")
     registerActionKey({ backTab() }, KeyStrokes.BACKTAB, "backTab")
@@ -56,7 +56,8 @@ class PropertyTextField(
     isVisible = editorModel.visible
     isFocusable = !editorModel.readOnly
     foreground = editorModel.displayedForeground(UIUtil.getLabelForeground())
-    background = editorModel.displayedBackground(secondaryPanelBackground)
+    background = editorModel.displayedBackground(UIUtil.TRANSPARENT_COLOR)
+    isOpaque = editorModel.isUsedInRendererWithSelection
     if (editorModel.focusRequest && !isFocusOwner) {
       requestFocusInWindow()
     }
