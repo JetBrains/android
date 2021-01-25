@@ -16,10 +16,10 @@
 package com.android.tools.idea.refactoring.modularize;
 
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -38,7 +38,7 @@ public class AndroidModularizeAction extends BaseJavaRefactoringAction {
 
   @Override
   protected boolean isAvailableForFile(PsiFile file) {
-    return file != null && file.getFileType() == StdFileTypes.JAVA && AndroidUtils.hasAndroidFacets(file.getProject());
+    return file != null && file.getFileType() == JavaFileType.INSTANCE && AndroidUtils.hasAndroidFacets(file.getProject());
   }
 
   @Override

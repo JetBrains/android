@@ -5,7 +5,7 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.AndroidInternalRClassFinder;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.openapi.fileTypes.StdFileTypes;
+import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.ModificationTracker;
@@ -32,7 +32,7 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
 
   public AndroidInternalRClass(@NotNull PsiManager psiManager, @NotNull AndroidPlatform platform, Sdk sdk) {
     super(psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
-    myFile = PsiFileFactory.getInstance(myManager.getProject()).createFileFromText("R.java", StdFileTypes.JAVA, "");
+    myFile = PsiFileFactory.getInstance(myManager.getProject()).createFileFromText("R.java", JavaFileType.INSTANCE, "");
     myFile.getViewProvider().getVirtualFile().putUserData(ANDROID_INTERNAL_R, sdk);
     setModuleInfo(sdk);
     myPlatform = platform;

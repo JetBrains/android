@@ -3,19 +3,17 @@ package org.jetbrains.android;
 
 import com.intellij.codeInsight.actions.RearrangeCodeProcessor;
 import com.intellij.codeInsight.actions.ReformatCodeProcessor;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.codeStyle.arrangement.engine.ArrangementEngine;
 import com.intellij.psi.formatter.xml.XmlCodeStyleSettings;
-import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
-
 import java.io.IOException;
 import java.util.Arrays;
+import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
 
 public class AndroidXmlFormatterTest extends AndroidTestCase {
   private static final String BASE_PATH = "formatter/xml/";
@@ -29,7 +27,7 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
     xmlSettings.XML_ALIGN_ATTRIBUTES = true;
     xmlSettings.XML_SPACE_INSIDE_EMPTY_TAG = false;
     xmlSettings.XML_KEEP_LINE_BREAKS = true;
-    mySettings.getIndentOptions(StdFileTypes.XML).CONTINUATION_INDENT_SIZE = 8;
+    mySettings.getIndentOptions(XmlFileType.INSTANCE).CONTINUATION_INDENT_SIZE = 8;
     doTestLayout("layout1.xml");
   }
 
@@ -131,7 +129,7 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
     xmlSettings.XML_ATTRIBUTE_WRAP = CommonCodeStyleSettings.DO_NOT_WRAP;
     xmlSettings.XML_ALIGN_ATTRIBUTES = true;
     xmlSettings.XML_SPACE_INSIDE_EMPTY_TAG = false;
-    mySettings.getIndentOptions(StdFileTypes.XML).CONTINUATION_INDENT_SIZE = 8;
+    mySettings.getIndentOptions(XmlFileType.INSTANCE).CONTINUATION_INDENT_SIZE = 8;
     doTestManifest("manifest1.xml");
   }
 
@@ -172,7 +170,7 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
     xmlSettings.XML_ATTRIBUTE_WRAP = CommonCodeStyleSettings.WRAP_ON_EVERY_ITEM;
     xmlSettings.XML_ALIGN_ATTRIBUTES = true;
     xmlSettings.XML_SPACE_INSIDE_EMPTY_TAG = false;
-    mySettings.getIndentOptions(StdFileTypes.XML).CONTINUATION_INDENT_SIZE = 8;
+    mySettings.getIndentOptions(XmlFileType.INSTANCE).CONTINUATION_INDENT_SIZE = 8;
     doTestManifest("manifest1.xml");
   }
 

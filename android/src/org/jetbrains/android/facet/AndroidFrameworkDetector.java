@@ -19,13 +19,13 @@ import com.intellij.framework.detection.DetectedFrameworkDescription;
 import com.intellij.framework.detection.FacetBasedFrameworkDetector;
 import com.intellij.framework.detection.FileContentPattern;
 import com.intellij.framework.detection.FrameworkDetectionContext;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.DumbService;
@@ -166,7 +166,7 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
   @Override
   @NotNull
   public FileType getFileType() {
-    return StdFileTypes.XML;
+    return XmlFileType.INSTANCE;
   }
 
   @Override

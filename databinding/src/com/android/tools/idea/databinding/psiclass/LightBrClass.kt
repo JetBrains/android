@@ -22,10 +22,23 @@ import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.common.collect.ImmutableSet
-import com.intellij.openapi.fileTypes.StdFileTypes
+import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
-import com.intellij.psi.*
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiElementFactory
+import com.intellij.psi.PsiField
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiFileFactory
+import com.intellij.psi.PsiIdentifier
+import com.intellij.psi.PsiJavaFile
+import com.intellij.psi.PsiManager
+import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiModifier
+import com.intellij.psi.PsiModifierListOwner
+import com.intellij.psi.PsiType
 import com.intellij.psi.impl.light.LightField
 import com.intellij.psi.impl.light.LightIdentifier
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
@@ -91,7 +104,7 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, priv
 
     // Create a dummy, backing file to represent this BR file
     val factory = PsiFileFactory.getInstance(project)
-    val backingFile = factory.createFileFromText("BR.java", StdFileTypes.JAVA,
+    val backingFile = factory.createFileFromText("BR.java", JavaFileType.INSTANCE,
                                                  "// This class is generated on-the-fly by the IDE.") as PsiJavaFile
     backingFile.packageName = qualifiedName.replace(".BR", "")
     containingFile = backingFile

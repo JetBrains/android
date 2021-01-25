@@ -23,6 +23,7 @@ import com.android.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -30,20 +31,18 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Base class for external annotators that place resource icons in the gutter of the editor.
@@ -180,7 +179,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
     // For xml files, we want to open raw color and color resource picker.
     // For java and kotlin files, we should open color resource picker only and set R.color.[resource_name] to the field.
     // TODO: Open color resource picker for java and kotlin files.
-    boolean isClickable = AndroidAnnotatorUtil.getFileType(element) == StdFileTypes.XML;
+    boolean isClickable = AndroidAnnotatorUtil.getFileType(element) == XmlFileType.INSTANCE;
     return new AndroidAnnotatorUtil.ColorRenderer(element, color, resourceResolver, reference, isClickable, configuration);
   }
 

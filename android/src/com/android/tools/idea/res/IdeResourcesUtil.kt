@@ -93,6 +93,7 @@ import com.google.common.collect.Sets
 import com.intellij.ide.actions.CreateElementActionBase
 import com.intellij.ide.fileTemplates.FileTemplateManager
 import com.intellij.ide.fileTemplates.FileTemplateUtil
+import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.lang.xml.XMLLanguage
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
@@ -103,7 +104,6 @@ import com.intellij.openapi.command.WriteCommandAction.writeCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressManager
@@ -128,7 +128,6 @@ import com.intellij.psi.PsiReferenceExpression
 import com.intellij.psi.ResolveResult
 import com.intellij.psi.SyntaxTraverser
 import com.intellij.psi.XmlElementFactory
-import com.intellij.psi.impl.PsiModificationTrackerImpl
 import com.intellij.psi.util.InheritanceUtil
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlAttribute
@@ -174,11 +173,7 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import java.awt.Color
 import java.io.File
 import java.io.IOException
-import java.util.ArrayList
-import java.util.Comparator
-import java.util.EnumSet
-import java.util.HashMap
-import java.util.Properties
+import java.util.*
 import java.util.function.Function
 import javax.swing.Icon
 
@@ -2229,8 +2224,8 @@ fun compareResourceFiles(file1: VirtualFile?, file2: VirtualFile?): Int {
     0
   }
   else if (file1 != null && file2 != null) {
-    val xml1 = file1.fileType === StdFileTypes.XML
-    val xml2 = file2.fileType === StdFileTypes.XML
+    val xml1 = file1.fileType === XmlFileType.INSTANCE
+    val xml2 = file2.fileType === XmlFileType.INSTANCE
     if (xml1 != xml2) {
       return if (xml1) -1 else 1
     }
@@ -2284,8 +2279,8 @@ fun compareResourceFiles(file1: PsiFile?, file2: PsiFile?): Int {
     0
   }
   else if (file1 != null && file2 != null) {
-    val xml1 = file1.fileType === StdFileTypes.XML
-    val xml2 = file2.fileType === StdFileTypes.XML
+    val xml1 = file1.fileType === XmlFileType.INSTANCE
+    val xml2 = file2.fileType === XmlFileType.INSTANCE
     if (xml1 != xml2) {
       return if (xml1) -1 else 1
     }

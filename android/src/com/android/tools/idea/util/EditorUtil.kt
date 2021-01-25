@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.util
 
+import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.ide.impl.ProjectViewSelectInPaneTarget
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.openapi.application.ApplicationManager
@@ -23,7 +24,6 @@ import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
-import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
@@ -112,7 +112,7 @@ object EditorUtil {
   @JvmStatic
   fun openEditor(project: Project, vFile: VirtualFile) {
     val descriptor =
-      if (vFile.fileType === StdFileTypes.XML && AndroidEditorSettings.getInstance().globalState.isPreferXmlEditor) {
+      if (vFile.fileType === XmlFileType.INSTANCE && AndroidEditorSettings.getInstance().globalState.isPreferXmlEditor) {
         OpenFileDescriptor(project, vFile, 0)
       }
       else {
