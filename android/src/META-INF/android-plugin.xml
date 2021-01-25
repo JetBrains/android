@@ -210,7 +210,7 @@
     </action>
     <action id="AndroidMigrateToNonTransitiveRClassesAction"
             class="org.jetbrains.android.refactoring.namespaces.MigrateToNonTransitiveRClassesAction"
-            text="Migrate to Non-Transitive R Classes"
+            text="Migrate to Non-Transitive R Classes..."
             description="Migrates the project to use Non-Transitive R classes">
       <add-to-group group-id="RefactoringMenu"/>
     </action>

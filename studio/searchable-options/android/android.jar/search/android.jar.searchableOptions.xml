@@ -388,11 +388,11 @@
     <option name="appcompat" path="ActionManager" hit="Migrate to AppCompat..." />
     <option name="migrate" path="ActionManager" hit="Migrate to AppCompat..." />
     <option name="to" path="ActionManager" hit="Migrate to AppCompat..." />
-    <option name="classes" path="ActionManager" hit="Migrate to Non-Transitive R Classes" />
-    <option name="migrate" path="ActionManager" hit="Migrate to Non-Transitive R Classes" />
-    <option name="non-transitive" path="ActionManager" hit="Migrate to Non-Transitive R Classes" />
-    <option name="r" path="ActionManager" hit="Migrate to Non-Transitive R Classes" />
-    <option name="to" path="ActionManager" hit="Migrate to Non-Transitive R Classes" />
+    <option name="classes" path="ActionManager" hit="Migrate to Non-Transitive R Classes..." />
+    <option name="migrate" path="ActionManager" hit="Migrate to Non-Transitive R Classes..." />
+    <option name="non-transitive" path="ActionManager" hit="Migrate to Non-Transitive R Classes..." />
+    <option name="r" path="ActionManager" hit="Migrate to Non-Transitive R Classes..." />
+    <option name="to" path="ActionManager" hit="Migrate to Non-Transitive R Classes..." />
     <option name="migrate" path="ActionManager" hit="Migrate to Resource Namespaces..." />
     <option name="namespaces" path="ActionManager" hit="Migrate to Resource Namespaces..." />
     <option name="resource" path="ActionManager" hit="Migrate to Resource Namespaces..." />
