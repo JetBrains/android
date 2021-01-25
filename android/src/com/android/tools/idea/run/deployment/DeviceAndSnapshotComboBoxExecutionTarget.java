@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -111,6 +112,6 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
 
   @Override
   public boolean canRun(@NotNull RunConfiguration configuration) {
-    return true;
+    return configuration instanceof AndroidRunConfigurationBase;
   }
 }

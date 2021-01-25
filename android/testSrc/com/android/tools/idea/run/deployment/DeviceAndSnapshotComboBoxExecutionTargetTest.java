@@ -16,12 +16,17 @@
 package com.android.tools.idea.run.deployment;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.AndroidRunConfiguration;
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.intellij.execution.ExecutionTarget;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
+import com.intellij.execution.application.ApplicationConfiguration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -130,5 +135,18 @@ public final class DeviceAndSnapshotComboBoxExecutionTargetTest {
 
     // Assert
     assertEquals("Multiple Devices", actualDisplayName);
+  }
+
+  @Test
+  public void deviceTargetNotSuggestedForNonAndroidRunConfigurations() {
+    ExecutionTarget target = new DeviceAndSnapshotComboBoxExecutionTarget(Collections.emptyList());
+
+    AndroidRunConfiguration android = Mockito.mock(AndroidRunConfiguration.class);
+    AndroidTestRunConfiguration androidTest = Mockito.mock(AndroidTestRunConfiguration.class);
+    ApplicationConfiguration nonAndroid = Mockito.mock(ApplicationConfiguration.class);
+
+    assertTrue(target.canRun(android));
+    assertTrue(target.canRun(androidTest));
+    assertFalse(target.canRun(nonAndroid));
   }
 }
