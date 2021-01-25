@@ -130,6 +130,19 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     verifyFileContents(buildFile, TestFileName("MigrateToBuildFeatures/ViewBindingEnabledLiteralExpected"))
   }
 
+  @Test
+  fun testEnabledEffectOnRemoveSourceSetJni() {
+    fun AgpUpgradeComponentRefactoringProcessor.isRemoveSourceSetJni() =
+      this is RemovePropertiesRefactoringInfo.RefactoringProcessor && info == REMOVE_SOURCE_SET_JNI_INFO
+
+    writeToBuildFile(TestFileName("RemoveSourceSetJni/SingleBlock"))
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("8.0.0"))
+    processor.classpathRefactoringProcessor.isEnabled = false
+    processor.componentRefactoringProcessors.forEach { it.isEnabled = it.isRemoveSourceSetJni() }
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("RemoveSourceSetJni/SingleBlockExpected"))
+  }
+
   @Ignore("gradle-wrapper.properties is not a build file") // TODO(b/152854665)
   fun testEnabledEffectOnAgpGradleVersion() {
     writeToBuildFile(TestFileName("AgpGradleVersion/OldGradleVersion"))

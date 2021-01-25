@@ -41,6 +41,7 @@ import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginDependency
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
@@ -77,6 +78,7 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.Upgra
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GRADLE_VERSION
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.JAVA8_DEFAULT
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TO_BUILD_FEATURES
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REMOVE_SOURCE_SET_JNI
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.EXECUTE
@@ -276,7 +278,8 @@ class AgpUpgradeRefactoringProcessor(
     Java8DefaultRefactoringProcessor(this),
     CompileRuntimeConfigurationRefactoringProcessor(this),
     FabricCrashlyticsRefactoringProcessor(this),
-    MIGRATE_TO_BUILD_FEATURES_INFO.RefactoringProcessor(this)
+    MIGRATE_TO_BUILD_FEATURES_INFO.RefactoringProcessor(this),
+    REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(this)
   )
 
   val targets = mutableListOf<PsiElement>()
@@ -2017,6 +2020,93 @@ val MIGRATE_TO_BUILD_FEATURES_INFO = BooleanPropertiesMoveRefactoringInfo(
   AndroidBundle.lazyMessage("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.usageView.header"),
   MIGRATE_TO_BUILD_FEATURES,
   listOf(DATA_BINDING_ENABLED_INFO, VIEW_BINDING_ENABLED_INFO)
+)
+
+data class RemovePropertiesRefactoringInfo(
+  val optionalVersion: GradleVersion,
+  val requiredVersion: GradleVersion,
+  val commandNameSupplier: Supplier<String>,
+  val processedElementsHeaderSupplier: Supplier<String>,
+  val componentKind: UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind,
+  val removePropertiesInfos: List<RemovePropertiesInfo>
+) {
+
+  inner class RefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
+    constructor(project: Project, current: GradleVersion, new: GradleVersion) : super(project, current, new)
+    constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
+
+    override fun necessity() = standardRegionNecessity(current, new, optionalVersion, requiredVersion)
+
+    override fun getCommandName(): String = commandNameSupplier.get()
+
+    override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
+      builder.setKind(componentKind)
+
+    override fun findComponentUsages(): Array<out UsageInfo> {
+      val usages = ArrayList<UsageInfo>()
+      buildModel.allIncludedBuildModels.forEach buildModel@{ buildModel ->
+        removePropertiesInfos.forEach propertyInfo@{ propertyInfo ->
+          val models = buildModel.(propertyInfo.model)()
+          models.forEach model@{ model ->
+            val psiElement = model.representativeContainedPsiElement ?: return@model
+            val wrappedPsiElement = WrappedPsiElement(psiElement, this, propertyInfo.usageType)
+            val usageInfo = propertyInfo.UsageInfo(wrappedPsiElement, buildModel)
+            usages.add(usageInfo)
+          }
+        }
+      }
+      return usages.toArray(UsageInfo.EMPTY_ARRAY)
+    }
+
+    override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
+      return object : UsageViewDescriptorAdapter() {
+        override fun getElements(): Array<PsiElement> {
+          return PsiElement.EMPTY_ARRAY
+        }
+
+        override fun getProcessedElementsHeader(): String = processedElementsHeaderSupplier.get()
+      }
+    }
+
+    val info = this@RemovePropertiesRefactoringInfo
+  }
+}
+
+data class RemovePropertiesInfo(
+  val model: GradleBuildModel.() -> List<GradleDslModel>,
+  val tooltipTextSupplier: Supplier<String>,
+  val usageType: UsageType
+) {
+  inner class UsageInfo(
+    element: WrappedPsiElement,
+    val buildModel: GradleBuildModel
+  ) : GradleBuildModelUsageInfo(element) {
+
+    override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+      buildModel.model().forEach {
+        it.delete()
+      }
+    }
+
+    override fun getTooltipText(): String = tooltipTextSupplier.get()
+
+    override fun getDiscriminatingValues(): List<Any> = listOf(this@RemovePropertiesInfo)
+  }
+}
+
+val SOURCE_SET_JNI_INFO = RemovePropertiesInfo(
+  { android().sourceSets().map { sourceSet -> sourceSet.jni() } },
+  AndroidBundle.lazyMessage("project.upgrade.sourceSetJniUsageInfo.tooltipText"),
+  UsageType(AndroidBundle.lazyMessage("project.upgrade.sourceSetJniUsageInfo.usageType"))
+)
+
+val REMOVE_SOURCE_SET_JNI_INFO = RemovePropertiesRefactoringInfo(
+  GradleVersion.parse("7.0.0-alpha06"),
+  GradleVersion.parse("8.0.0"),
+  AndroidBundle.lazyMessage("project.upgrade.removeSourceSetJniRefactoringProcessor.commandName"),
+  AndroidBundle.lazyMessage("project.upgrade.removeSourceSetJniRefactoringProcessor.usageView.header"),
+  REMOVE_SOURCE_SET_JNI,
+  listOf(SOURCE_SET_JNI_INFO)
 )
 
 /**
