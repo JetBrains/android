@@ -32,14 +32,12 @@ import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocName
 import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.junit.Ignore
 import java.io.File
 import java.nio.file.Paths
 
 /**
  * Tests for [ComposeSampleResolutionService]
  */
-@Ignore("b/177954369")
 class ComposeSampleResolutionServiceTest : AndroidGradleTestCase() {
   override fun setUp() {
     super.setUp()
