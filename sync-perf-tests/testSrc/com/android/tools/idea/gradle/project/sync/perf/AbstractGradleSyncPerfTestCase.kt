@@ -349,6 +349,7 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
         }
       }
       metricMemoryUsedIde.commit("Memory")
+      metricMemoryUsedGradleRsz.commit("MemoryGradleRsz")
     }
 
     private fun getFirstBusyDaemonPid(): Long? {
