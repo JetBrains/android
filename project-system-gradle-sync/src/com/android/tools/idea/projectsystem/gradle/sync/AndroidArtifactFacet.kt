@@ -29,15 +29,13 @@ import com.intellij.openapi.module.ModuleType
 import com.intellij.openapi.util.Key
 import org.jetbrains.android.facet.AndroidFacet
 
-val ANDROID_ARTIFACT_FACET_ID = FacetTypeId<AndroidArtifactFacet>("android-artifact")
-
 class AndroidArtifactFacetConfiguration : FacetConfiguration {
   override fun createEditorTabs(editorContext: FacetEditorContext?, validatorsManager: FacetValidatorsManager?): Array<FacetEditorTab>
     = emptyArray()
 }
 
 class AndroidArtifactFacetType : FacetType<AndroidArtifactFacet, AndroidArtifactFacetConfiguration>(
-  ANDROID_ARTIFACT_FACET_ID,
+  AndroidArtifactFacet.ID,
   "android-artifact",
   AndroidArtifactFacet.NAME
 ) {
@@ -62,8 +60,9 @@ class AndroidArtifactFacet(
   config: AndroidArtifactFacetConfiguration
 ) : Facet<AndroidArtifactFacetConfiguration>(getFacetType(), module, name, config, null) {
   companion object {
-    val NAME = "Android Artifact"
-    fun getFacetType() = FacetTypeRegistry.getInstance().findFacetType(ANDROID_ARTIFACT_FACET_ID) as AndroidArtifactFacetType
+    val ID = FacetTypeId<AndroidArtifactFacet>("android-artifact")
+    const val NAME = "Android Artifact"
+    fun getFacetType() = FacetTypeRegistry.getInstance().findFacetType(ID) as AndroidArtifactFacetType
   }
 
   fun linkToAndroidFacet(androidFacet: AndroidFacet) {
