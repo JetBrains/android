@@ -27,9 +27,11 @@ import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.sanitizeFileName
+import com.twelvemonkeys.lang.StringUtil
 import org.jetbrains.android.facet.AndroidFacetProperties
 import java.io.File
 import java.lang.Math.max
+import java.util.Locale
 
 /**
  * A helper class to dump an IDEA project to a stable human readable text format that can be compared in tests.
@@ -73,6 +75,19 @@ class ProjectDumper(
     // kotlin-something-1.3.1-eap-23
     Regex("(?:(?:org.jetbrains.kotlin:kotlin(?:-[0-9a-z]*)*:)|(?:kotlin(?:-[0-9a-z]+)*)-)(\\d+\\.\\d+.[0-9a-z\\-]+)")
   private val dotAndroidFolderPathPattern = Regex("^/([_/0-9a-z])+\\.android")
+
+  fun String.normalizeCxxPath(name: String, variantName: String?): String {
+    // Special case for the release variant that is represented as relwithdebinfo variant.
+    val cxxVariantName =  when {
+      variantName?.toLowerCase(Locale.ROOT) == "release" -> "relWithDebInfo"
+      else -> variantName
+    }
+    cxxVariantName?.let {
+      val cxxConfigurationPattern = Regex("/.cxx/${StringUtil.capitalize(cxxVariantName)}/[0-9a-z]{8}/${name}")
+      return this.replace(cxxConfigurationPattern, "/.cxx/{${cxxVariantName.toUpperCase(Locale.ROOT)}}/${name}")
+    }
+    return this
+  }
 
   fun String.toPrintablePaths(): Collection<String> =
     split(AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION).map { it.toPrintablePath() }
