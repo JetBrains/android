@@ -102,6 +102,7 @@ class ImportUtpResultAction(icon: Icon? = null,
       val contentManager = toolWindow.contentManager
       val content = contentManager.factory.createContent(testSuiteView.component, "Imported Android Test Results", true)
       contentManager.addContent(content)
+      contentManager.setSelectedContent(content)
 
       project.coroutineScope.launch {
         testAdapter.forwardResults(testSuiteView)
