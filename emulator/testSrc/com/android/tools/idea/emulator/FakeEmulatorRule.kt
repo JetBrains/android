@@ -16,6 +16,7 @@
 package com.android.tools.idea.emulator
 
 import com.android.tools.idea.testing.TemporaryDirectoryRule
+import com.android.utils.TraceUtils.currentTime
 import io.grpc.ManagedChannelBuilder
 import io.grpc.inprocess.InProcessChannelBuilder
 import org.junit.rules.ExternalResource
@@ -47,6 +48,7 @@ class FakeEmulatorRule : TestRule {
     }
 
     override fun after() {
+      println("${currentTime()} FakeEmulatorRule.after:")
       for (emulator in emulators) {
         emulator.stop()
       }
@@ -55,6 +57,7 @@ class FakeEmulatorRule : TestRule {
       val emulatorCatalog = RunningEmulatorCatalog.getInstance()
       emulatorCatalog.overrideRegistrationDirectory(null)
       RuntimeConfigurationOverrider.clearOverride()
+      println("${currentTime()} FakeEmulatorRule.after: finished")
     }
   }
 
