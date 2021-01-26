@@ -22,13 +22,16 @@ import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.replaceService
 import org.junit.After
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 
 /**
  * Tests for [AndroidMavenImportIntentionAction], for disabling [StudioFlags.AUTO_IMPORT] specific tests.
@@ -38,11 +41,16 @@ class AndroidMavenImportIntentionActionAutoImportDisabledTest {
   private val projectRule = AndroidGradleProjectRule()
 
   @get:Rule
-  val ruleChain = org.junit.rules.RuleChain.outerRule(projectRule).around(EdtRule())!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
   @Before
   fun setUp() {
     StudioFlags.ENABLE_AUTO_IMPORT.override(false)
+    ApplicationManager.getApplication().replaceService(
+      MavenClassRegistryManager::class.java,
+      fakeMavenClassRegistryManager,
+      projectRule.fixture.testRootDisposable
+    )
   }
 
   @After

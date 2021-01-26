@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.imports
 
-import com.android.ide.common.repository.NetworkCache
+import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -24,7 +25,8 @@ import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
-import java.io.InputStream
+import org.mockito.Mockito.`when`
+import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.TimeUnit
 
 /**
@@ -60,11 +62,51 @@ internal fun assertBuildGradle(projectRule: AndroidGradleProjectRule, check: (St
   check(buildGradlePsi!!.text)
 }
 
-internal class FakeGMavenIndexRepository(
-  val data: String
-) : GMavenIndexRepository, NetworkCache("https://example.com/", GMAVEN_INDEX_CACHE_DIR_KEY, null) {
-  override fun readUrlData(url: String, timeout: Int): ByteArray? = data.toByteArray()
-  override fun error(throwable: Throwable, message: String?) = throw throwable
-  override fun readDefaultData(relative: String) = data.byteInputStream()
-  override fun fetchIndex(relative: String): InputStream? = findData(relative)
-}
+internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
+  get() {
+    val mavenClassRegistry = if (StudioFlags.ENABLE_AUTO_IMPORT.get()) {
+      val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
+      `when`(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
+        """
+          {
+            "Index": [
+              {
+                "groupId": "androidx.palette",
+                "artifactId": "palette",
+                "version": "1.0.0",
+                "fqcns": [
+                  "androidx.palette.graphics.Palette"
+                ]
+              },
+              {
+                "groupId": "androidx.room",
+                "artifactId": "room-runtime",
+                "version": "2.2.6",
+                "fqcns": [
+                  "androidx.room.Room",
+                  "androidx.room.RoomDatabase"
+                ]
+              },
+              {
+                "groupId": "androidx.recyclerview",
+                "artifactId": "recyclerview",
+                "version": "1.1.0",
+                "fqcns": [
+                  "androidx.recyclerview.widget.RecyclerView"
+                ]
+              }
+            ]
+          }
+        """.trimIndent().byteInputStream(UTF_8)
+      )
+
+      MavenClassRegistryFromRepository(gMavenIndexRepositoryMock)
+    }
+    else {
+      MavenClassRegistryFromHardcodedMap
+    }
+
+    return mock<MavenClassRegistryManager>().apply {
+      `when`(getMavenClassRegistry()).thenReturn(mavenClassRegistry)
+    }
+  }

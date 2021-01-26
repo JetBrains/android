@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.imports
 
-import com.android.tools.idea.flags.StudioFlags
-
 /**
  * Lookup from class names to maven.google.com artifacts.
  */
-interface MavenClassRegistry {
+abstract class MavenClassRegistryBase {
   /**
    * Library for each of the GMaven artifact.
    *
@@ -32,7 +30,7 @@ interface MavenClassRegistry {
   /**
    * Given a class name, returns the likely collection of [Library] objects for the following quick fixes purposes.
    */
-  fun findLibraryData(className: String, useAndroidX: Boolean): Collection<Library>
+  abstract fun findLibraryData(className: String, useAndroidX: Boolean): Collection<Library>
 
   /**
    * For the given runtime artifact, if it also requires an annotation processor, provide it
@@ -81,17 +79,5 @@ interface MavenClassRegistry {
       "com.google.firebase:firebase-storage" -> "com.google.firebase:firebase-storage-ktx"
       else -> null
     }
-  }
-}
-
-/**
- * Switches between local and remote registry by [StudioFlags.ENABLE_AUTO_IMPORT].
- */
-fun getMavenClassRegistry(): MavenClassRegistry {
-  return if (StudioFlags.ENABLE_AUTO_IMPORT.get()) {
-    mavenClassRegistryRemote
-  }
-  else {
-    MavenClassRegistryLocal
   }
 }
