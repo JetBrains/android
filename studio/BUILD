@@ -83,6 +83,9 @@ studio_plugin(
             "//tools/adt/idea/native-symbolizer:native-symbolizer",
             "//tools/adt/idea/whats-new-assistant:whats-new-assistant",
             "//tools/base/dynamic-layout-inspector/common:studio.dynamic-layout-inspector.common",
+            "//tools/adt/idea/app-inspection/inspectors/network/ide:intellij.android.app-inspection.inspectors.network.ide",
+            "//tools/adt/idea/app-inspection/inspectors/network/model:intellij.android.app-inspection.inspectors.network.model",
+            "//tools/adt/idea/app-inspection/inspectors/network/view:intellij.android.app-inspection.inspectors.network.view",
         ],
         "artwork.jar": [
             "//tools/adt/idea/artwork:intellij.android.artwork",
