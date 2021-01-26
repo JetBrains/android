@@ -1,0 +1,3 @@
+android {
+  defaultConfig.applicationId = "foo.bar"
+}
