@@ -239,7 +239,9 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    */
   fun setClipboard(clipData: ClipData, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("setClipboard(${shortDebugString(clipData)})")
+      // Don't log the actual clipboard contents to protect user privacy.
+      val clipDataForLogging = shortDebugString(clipData.toBuilder().setText("<clipboard contents>").build())
+      LOG.info("setClipboard($clipDataForLogging)")
     }
     emulatorController.setClipboard(clipData, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetClipboardMethod()))
   }
