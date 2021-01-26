@@ -21,12 +21,10 @@ import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.SdkConstants.FN_RESOURCE_STATIC_LIBRARY
 import com.android.SdkConstants.FN_RESOURCE_TEXT
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalLibrary
 import com.android.projectmodel.ExternalLibraryImpl
 import com.android.projectmodel.RecursiveResourceFolder
 import com.android.tools.idea.model.AndroidManifestIndex
-import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.queryPackageNameFromManifestIndex
 import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
@@ -81,13 +79,6 @@ import kotlin.reflect.KProperty
 
 private val PACKAGE_NAME_KEY = Key.create<CachedValue<String?>>("main.manifest.package.name")
 private val LOG: Logger get() = Logger.getInstance("DefaultModuleSystem.kt")
-
-/** Creates a map for the given pairs, filtering out null values. */
-private fun <K, V> notNullMapOf(vararg pairs: Pair<K, V?>): Map<K, V> {
-  return pairs.asSequence()
-    .filter { it.second != null }
-    .toMap() as Map<K, V>
-}
 
 class DefaultModuleSystem(override val module: Module) :
   AndroidModuleSystem,
@@ -219,14 +210,7 @@ class DefaultModuleSystem(override val module: Module) :
   }
 
   override fun getManifestOverrides(): ManifestOverrides {
-    val androidModel = module.androidFacet?.let(AndroidModel::get) ?: return ManifestOverrides()
-    val directOverrides = notNullMapOf(
-      ManifestSystemProperty.MIN_SDK_VERSION to androidModel.minSdkVersion?.apiString,
-      ManifestSystemProperty.TARGET_SDK_VERSION to androidModel.targetSdkVersion?.apiString,
-      ManifestSystemProperty.VERSION_CODE to androidModel.versionCode?.takeIf { it > 0 }?.toString(),
-      ManifestSystemProperty.PACKAGE to androidModel.applicationId
-    )
-    return ManifestOverrides(directOverrides)
+    return ManifestOverrides()
   }
 
   override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope {
