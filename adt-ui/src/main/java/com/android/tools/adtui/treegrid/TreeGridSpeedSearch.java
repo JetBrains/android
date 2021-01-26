@@ -15,18 +15,19 @@
  */
 package com.android.tools.adtui.treegrid;
 
+import static java.util.Arrays.stream;
+
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ui.SpeedSearchBase;
-import com.intellij.util.ArrayUtil;
+import java.awt.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.List;
-import java.util.function.Function;
-
-import static java.util.Arrays.stream;
 
 /**
  * SpeedSearch for a {@link TreeGrid}
@@ -60,17 +61,19 @@ public class TreeGridSpeedSearch<T> extends SpeedSearchBase<TreeGrid<T>> {
 
   @NotNull
   @Override
-  protected Object[] getAllElements() {
+  protected ListIterator<Object> getElementIterator(int startingViewIndex) {
     AbstractTreeStructure model = myComponent.getModel();
-    if (model == null) {
-      return ArrayUtil.EMPTY_OBJECT_ARRAY;
-    }
-    Object root = model.getRootElement();
-    Object[] sections = model.getChildElements(root);
-    if (sections == null || sections.length == 0) {
-      return ArrayUtil.EMPTY_OBJECT_ARRAY;
-    }
-    return stream(sections).flatMap(section -> stream(model.getChildElements(section))).toArray();
+    List<Object> list = model == null ? Collections.emptyList() : stream(model.getChildElements(model.getRootElement()))
+      .flatMap(section -> stream(model.getChildElements(section)))
+      .collect(Collectors.toUnmodifiableList());
+    return list.listIterator(startingViewIndex);
+  }
+
+  @Override
+  protected int getElementCount() {
+    AbstractTreeStructure model = myComponent.getModel();
+    return model == null ? 0 : (int)stream(model.getChildElements(model.getRootElement()))
+      .flatMap(section -> stream(model.getChildElements(section))).count();
   }
 
   @Nullable
