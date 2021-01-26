@@ -29,6 +29,7 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.wm.impl.welcomeScreen.FlatWelcomeFrame;
 import com.intellij.openapi.wm.impl.welcomeScreen.RecentProjectPanel;
 import com.intellij.ui.components.JBList;
+import com.intellij.ui.components.JBOptionButton;
 import com.intellij.ui.components.labels.LinkLabel;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -120,9 +121,9 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
       @Override
       protected boolean isMatching(@NotNull JComponent comp) {
         // Depending if the Welcome Wizard has recent Projects, we can have a buttons at the top or a JLabel inside a panel.
-        return  (comp instanceof JButton && text.equals(((JButton) comp).getText())) ||
-                (comp instanceof JLabel && text.equals(((JLabel) comp).getText())) ||
-                (comp instanceof ActionButton && text.equals(((ActionButton)comp).getAction().getTemplateText()));
+        return (comp instanceof JBOptionButton && text.equals(((JButton) comp).getText())) ||
+               (comp instanceof JLabel && text.equals(((JLabel) comp).getText())) ||
+               (comp instanceof ActionButton && text.equals(((ActionButton)comp).getAction().getTemplateText()));
       }
     });
 
