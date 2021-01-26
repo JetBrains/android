@@ -23,16 +23,7 @@ public class ModuleModelDataServiceTest extends AndroidGradleTestCase {
 
     GradleImportingTestUtil.waitForProjectReload(
       () -> {
-        // FIXME-ank: there is a defect in new workspace model which fails concurrent import of two linked gradle projects
         GradleProjectImportUtil.linkAndRefreshGradleProject(linkedProject1.getAbsolutePath(), getProject());
-        //GradleProjectImportUtil.linkAndRefreshGradleProject(linkedProject2.getAbsolutePath(), getProject());
-        return null;
-      }
-    );
-
-    GradleImportingTestUtil.waitForProjectReload(
-      () -> {
-        //GradleProjectImportUtil.linkAndRefreshGradleProject(linkedProject1.getAbsolutePath(), getProject());
         GradleProjectImportUtil.linkAndRefreshGradleProject(linkedProject2.getAbsolutePath(), getProject());
         return null;
       }
