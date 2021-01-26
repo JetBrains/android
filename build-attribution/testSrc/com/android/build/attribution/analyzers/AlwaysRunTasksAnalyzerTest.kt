@@ -31,6 +31,7 @@ import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.util.io.FileUtil
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -105,6 +106,7 @@ class AlwaysRunTasksAnalyzerTest {
   }
 
   @Test
+  @Ignore("b/179137380")
   fun testAlwaysRunTasksAnalyzerWithSuppressedWarning() {
     setUpProject()
 

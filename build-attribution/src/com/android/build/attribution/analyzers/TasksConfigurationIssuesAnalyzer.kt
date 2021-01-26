@@ -15,7 +15,6 @@
  */
 package com.android.build.attribution.analyzers
 
-import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TasksSharingOutputData
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
@@ -24,9 +23,8 @@ import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
  * An analyzer that looks for misconfigured tasks. Tasks that declare the same output are considered misconfigured.
  */
 class TasksConfigurationIssuesAnalyzer(
-  warningsFilter: BuildAttributionWarningsFilter,
   private val taskContainer: TaskContainer
-) : BaseAnalyzer<TasksConfigurationIssuesAnalyzer.Result>(warningsFilter),
+) : BaseAnalyzer<TasksConfigurationIssuesAnalyzer.Result>(),
     BuildAttributionReportAnalyzer,
     PostBuildProcessAnalyzer {
 

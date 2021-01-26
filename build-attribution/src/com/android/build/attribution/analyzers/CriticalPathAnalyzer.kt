@@ -15,7 +15,6 @@
  */
 package com.android.build.attribution.analyzers
 
-import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.PluginData
@@ -32,10 +31,9 @@ import kotlin.math.max
  * An analyzer for calculating the critical path, that is the path of tasks determining the total build duration.
  */
 class CriticalPathAnalyzer(
-  warningsFilter: BuildAttributionWarningsFilter,
   private val taskContainer: TaskContainer,
   private val pluginContainer: PluginContainer
-) : BaseAnalyzer<CriticalPathAnalyzer.Result>(warningsFilter),
+) : BaseAnalyzer<CriticalPathAnalyzer.Result>(),
     BuildEventsAnalyzer,
     PostBuildProcessAnalyzer {
   private val tasksSet = HashSet<TaskData>()

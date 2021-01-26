@@ -16,7 +16,6 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionManagerImpl
-import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskContainer
@@ -53,7 +52,7 @@ class CriticalPathAnalyzerTest {
   fun testCriticalPathAnalyzer() {
     val pluginContainer = PluginContainer()
     val taskContainer = TaskContainer()
-    val analyzer = CriticalPathAnalyzer(BuildAttributionWarningsFilter(), taskContainer, pluginContainer)
+    val analyzer = CriticalPathAnalyzer(taskContainer, pluginContainer)
     val wrapper = BuildAnalyzersWrapper(listOf(analyzer), taskContainer, pluginContainer)
 
     val pluginA = createBinaryPluginIdentifierStub("pluginA")

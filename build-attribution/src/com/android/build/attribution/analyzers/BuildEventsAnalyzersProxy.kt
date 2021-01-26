@@ -15,7 +15,6 @@
  */
 package com.android.build.attribution.analyzers
 
-import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.AnnotationProcessorData
 import com.android.build.attribution.data.GarbageCollectionData
@@ -75,17 +74,16 @@ interface BuildEventsAnalysisResult {
  * Used to fetch the final data from the analyzers after the build is complete.
  */
 class BuildEventsAnalyzersProxy(
-  warningsFilter: BuildAttributionWarningsFilter,
   taskContainer: TaskContainer,
   pluginContainer: PluginContainer
 ) : BuildEventsAnalysisResult {
-  private val alwaysRunTasksAnalyzer = AlwaysRunTasksAnalyzer(warningsFilter, taskContainer, pluginContainer)
-  private val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer(warningsFilter, taskContainer)
-  private val criticalPathAnalyzer = CriticalPathAnalyzer(warningsFilter, taskContainer, pluginContainer)
-  private val noncacheableTasksAnalyzer = NoncacheableTasksAnalyzer(warningsFilter, taskContainer)
-  private val garbageCollectionAnalyzer = GarbageCollectionAnalyzer(warningsFilter)
-  private val projectConfigurationAnalyzer = ProjectConfigurationAnalyzer(warningsFilter, pluginContainer)
-  private val tasksConfigurationIssuesAnalyzer = TasksConfigurationIssuesAnalyzer(warningsFilter, taskContainer)
+  private val alwaysRunTasksAnalyzer = AlwaysRunTasksAnalyzer(taskContainer, pluginContainer)
+  private val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer(taskContainer)
+  private val criticalPathAnalyzer = CriticalPathAnalyzer(taskContainer, pluginContainer)
+  private val noncacheableTasksAnalyzer = NoncacheableTasksAnalyzer(taskContainer)
+  private val garbageCollectionAnalyzer = GarbageCollectionAnalyzer()
+  private val projectConfigurationAnalyzer = ProjectConfigurationAnalyzer(pluginContainer)
+  private val tasksConfigurationIssuesAnalyzer = TasksConfigurationIssuesAnalyzer(taskContainer)
 
   val buildAnalyzers: List<BaseAnalyzer<*>>
     get() = listOf(

@@ -15,7 +15,6 @@
  */
 package com.android.build.attribution.analyzers
 
-import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.AnnotationProcessorData
 import com.android.build.attribution.data.TaskContainer
 import org.gradle.tooling.events.ProgressEvent
@@ -27,9 +26,8 @@ import java.time.Duration
  * Analyzer for reporting non incremental annotation processors and the annotation processors compilation time.
  */
 class AnnotationProcessorsAnalyzer(
-  warningsFilter: BuildAttributionWarningsFilter,
   private val taskContainer: TaskContainer,
-) : BaseAnalyzer<AnnotationProcessorsAnalyzer.Result>(warningsFilter),
+) : BaseAnalyzer<AnnotationProcessorsAnalyzer.Result>(),
     BuildEventsAnalyzer {
   private val annotationProcessorsMap = HashMap<String, Duration>()
   private val nonIncrementalAnnotationProcessorsSet = HashSet<String>()
@@ -49,8 +47,7 @@ class AnnotationProcessorsAnalyzer(
         result.annotationProcessorResults?.forEach {
           updateAnnotationProcessorCompilationTime(it.className, it.duration)
 
-          if (it.type == JavaCompileTaskOperationResult.AnnotationProcessorResult.Type.UNKNOWN &&
-              warningsFilter.applyNonIncrementalAnnotationProcessorFilter(it.className)) {
+          if (it.type == JavaCompileTaskOperationResult.AnnotationProcessorResult.Type.UNKNOWN) {
             nonIncrementalAnnotationProcessorsSet.add(it.className)
           }
         }

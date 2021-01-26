@@ -15,7 +15,6 @@
  */
 package com.android.build.attribution.analyzers
 
-import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.TaskContainer
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
@@ -29,7 +28,7 @@ class GarbageCollectionAnalyzerTest {
   fun testAnalyzer() {
     val taskContainer = TaskContainer()
     val pluginContainer = PluginContainer()
-    val analyzersProxy = BuildEventsAnalyzersProxy(BuildAttributionWarningsFilter(), taskContainer, pluginContainer)
+    val analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer)
     val analyzersWrapper = BuildAnalyzersWrapper(analyzersProxy.buildAnalyzers, taskContainer, pluginContainer)
 
 
@@ -52,7 +51,7 @@ class GarbageCollectionAnalyzerTest {
 
   @Test
   fun testJava8VersionParsed() {
-    val analyzer = GarbageCollectionAnalyzer(BuildAttributionWarningsFilter())
+    val analyzer = GarbageCollectionAnalyzer()
 
     analyzer.onBuildStart()
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(javaInfo = JavaInfo(version = "1.8.1")))
@@ -62,10 +61,11 @@ class GarbageCollectionAnalyzerTest {
 
   @Test
   fun testGcParameterDetected() {
-    val analyzer = GarbageCollectionAnalyzer(BuildAttributionWarningsFilter())
+    val analyzer = GarbageCollectionAnalyzer()
 
     analyzer.onBuildStart()
-    analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(javaInfo = JavaInfo(vmArguments = listOf("-Xmx8G", "-XX:+UseSerialGC"))))
+    analyzer.receiveBuildAttributionReport(
+      AndroidGradlePluginAttributionData(javaInfo = JavaInfo(vmArguments = listOf("-Xmx8G", "-XX:+UseSerialGC"))))
 
     assertThat(analyzer.result.isSettingSet).isTrue()
   }

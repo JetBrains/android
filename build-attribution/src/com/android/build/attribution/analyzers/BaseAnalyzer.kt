@@ -15,9 +15,6 @@
  */
 package com.android.build.attribution.analyzers
 
-import com.android.build.attribution.BuildAttributionWarningsFilter
-import com.android.build.attribution.data.PluginContainer
-import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 
@@ -37,9 +34,7 @@ interface AnalyzerResult
  * 2) convert this collected data into a final result object in [calculatingResult] when requested.
  * 3) clean up collected temporal data in [cleanupTempState], called automatically when data is no more needed.
  */
-abstract class BaseAnalyzer<T : AnalyzerResult>(
-  val warningsFilter: BuildAttributionWarningsFilter
-) {
+abstract class BaseAnalyzer<T : AnalyzerResult> {
 
   /** Cache for calculated result. */
   private var _result: T? = null

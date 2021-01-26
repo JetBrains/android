@@ -85,7 +85,7 @@ class NoncacheableTasksAnalyzerTest {
   }
 
   @Test
-  @Ignore("b/144419681")
+  @Ignore("b/144419681, b/179137380")
   fun testNoncacheableTasksAnalyzerWithSuppressedWarning() {
     setUpProject()
 
