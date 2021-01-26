@@ -33,9 +33,8 @@ import org.gradle.tooling.events.configuration.ProjectConfigurationSuccessResult
  */
 class ProjectConfigurationAnalyzer(
   warningsFilter: BuildAttributionWarningsFilter,
-  taskContainer: TaskContainer,
-  pluginContainer: PluginContainer
-) : BaseAnalyzer<ProjectConfigurationAnalyzer.Result>(warningsFilter, taskContainer, pluginContainer), BuildEventsAnalyzer {
+  private val pluginContainer: PluginContainer
+) : BaseAnalyzer<ProjectConfigurationAnalyzer.Result>(warningsFilter), BuildEventsAnalyzer {
   private val applyPluginEventPrefix = "Apply plugin"
 
   /**
@@ -76,7 +75,7 @@ class ProjectConfigurationAnalyzer(
       if (event is ProjectConfigurationFinishEvent && event.result is ProjectConfigurationSuccessResult) {
         allAppliedPlugins[event.descriptor.project.projectPath] =
           (event.result as ProjectConfigurationSuccessResult).pluginApplicationResults.map {
-            getPlugin(it.plugin, event.descriptor.project.projectPath)
+            pluginContainer.getPlugin(it.plugin, event.descriptor.project.projectPath)
           }
         projectsConfigurationData.add(projectConfigurationBuilder!!.build(event.result.endTime - event.result.startTime))
         projectConfigurationBuilder = null
@@ -88,7 +87,7 @@ class ProjectConfigurationAnalyzer(
           // Check that the parent is not another binary plugin, to make sure that this plugin was added by the user
           if (event.descriptor.parent?.name?.startsWith(applyPluginEventPrefix) != true) {
             val pluginName = event.descriptor.name.substring(applyPluginEventPrefix.length + 1)
-            val plugin = getPlugin(PluginData.PluginType.BINARY_PLUGIN, pluginName, projectConfigurationBuilder!!.projectPath)
+            val plugin = pluginContainer.getPlugin(PluginData.PluginType.BINARY_PLUGIN, pluginName, projectConfigurationBuilder!!.projectPath)
             val pluginConfigurationTime = event.result.endTime - event.result.startTime
 
             updatePluginConfigurationTime(plugin, pluginConfigurationTime)

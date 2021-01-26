@@ -19,6 +19,7 @@ import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.TaskContainer
+import com.android.build.attribution.data.TaskData
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskSuccessResult
@@ -28,9 +29,9 @@ import org.gradle.tooling.events.task.TaskSuccessResult
  */
 class AlwaysRunTasksAnalyzer(
   warningsFilter: BuildAttributionWarningsFilter,
-  taskContainer: TaskContainer,
-  pluginContainer: PluginContainer
-) : BaseAnalyzer<AlwaysRunTasksAnalyzer.Result>(warningsFilter, taskContainer, pluginContainer),
+  private val taskContainer: TaskContainer,
+  private val pluginContainer: PluginContainer
+) : BaseAnalyzer<AlwaysRunTasksAnalyzer.Result>(warningsFilter),
     BuildEventsAnalyzer,
     PostBuildProcessAnalyzer {
   private val alwaysRunTasksSet = HashSet<AlwaysRunTaskData>()
@@ -48,6 +49,10 @@ class AlwaysRunTasksAnalyzer(
         }
       }
     }
+  }
+
+  private fun getTask(event: TaskFinishEvent): TaskData {
+    return taskContainer.getTask(event, pluginContainer)
   }
 
   override fun cleanupTempState() {

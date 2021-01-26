@@ -48,4 +48,11 @@ class PluginContainer {
   fun clear() {
     pluginCache.clear()
   }
+
+  fun getPlugin(pluginType: PluginData.PluginType, displayName: String, projectPath: String): PluginData {
+    if (pluginType == PluginData.PluginType.SCRIPT) {
+      return getPlugin(pluginType, "$projectPath:$displayName")
+    }
+    return getPlugin(pluginType, displayName)
+  }
 }

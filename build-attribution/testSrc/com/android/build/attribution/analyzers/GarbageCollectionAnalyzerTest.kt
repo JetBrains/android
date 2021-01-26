@@ -52,7 +52,7 @@ class GarbageCollectionAnalyzerTest {
 
   @Test
   fun testJava8VersionParsed() {
-    val analyzer = GarbageCollectionAnalyzer(BuildAttributionWarningsFilter(), TaskContainer(), PluginContainer())
+    val analyzer = GarbageCollectionAnalyzer(BuildAttributionWarningsFilter())
 
     analyzer.onBuildStart()
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(javaInfo = JavaInfo(version = "1.8.1")))
@@ -62,7 +62,7 @@ class GarbageCollectionAnalyzerTest {
 
   @Test
   fun testGcParameterDetected() {
-    val analyzer = GarbageCollectionAnalyzer(BuildAttributionWarningsFilter(), TaskContainer(), PluginContainer())
+    val analyzer = GarbageCollectionAnalyzer(BuildAttributionWarningsFilter())
 
     analyzer.onBuildStart()
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(javaInfo = JavaInfo(vmArguments = listOf("-Xmx8G", "-XX:+UseSerialGC"))))

@@ -30,7 +30,7 @@ import org.junit.Test
 class ProjectConfigurationAnalyzerTest {
 
   private val warningsFilter = BuildAttributionWarningsFilter()
-  private val analyzer = ProjectConfigurationAnalyzer(warningsFilter, TaskContainer(), PluginContainer())
+  private val analyzer = ProjectConfigurationAnalyzer(warningsFilter, PluginContainer())
 
   private val pluginA = createBinaryPluginIdentifierStub("pluginA")
   private val pluginB = createBinaryPluginIdentifierStub("pluginB")

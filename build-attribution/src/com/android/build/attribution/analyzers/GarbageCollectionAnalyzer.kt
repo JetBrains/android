@@ -23,11 +23,9 @@ import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.intellij.util.lang.JavaVersion
 
 class GarbageCollectionAnalyzer(
-  warningsFilter: BuildAttributionWarningsFilter,
-  taskContainer: TaskContainer,
-  pluginContainer: PluginContainer
+  warningsFilter: BuildAttributionWarningsFilter
 ) :
-  BaseAnalyzer<GarbageCollectionAnalyzer.Result>(warningsFilter, taskContainer, pluginContainer), BuildAttributionReportAnalyzer {
+  BaseAnalyzer<GarbageCollectionAnalyzer.Result>(warningsFilter), BuildAttributionReportAnalyzer {
   private var garbageCollectionData: List<GarbageCollectionData> = emptyList()
   private var javaVersion: Int? = null
   private var isSettingSet: Boolean? = null
