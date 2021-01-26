@@ -16,6 +16,7 @@
 package com.android.tools.idea.projectsystem.gradle.sync
 
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.facet.AndroidArtifactFacet
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
