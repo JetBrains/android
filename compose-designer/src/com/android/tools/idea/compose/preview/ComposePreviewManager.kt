@@ -123,7 +123,7 @@ interface ComposePreviewManager {
   /**
    * Enables/disables live literals in the preview.
    */
-  var isLiveLiteralsEnabled: Boolean
+  val isLiveLiteralsEnabled: Boolean
 }
 
 val ComposePreviewManager.isInStaticAndNonAnimationMode: Boolean

@@ -76,7 +76,7 @@ internal class LiveLiteralsServiceTest {
     val liveLiteralsService = getTestLiveLiteralsService()
     assertTrue(liveLiteralsService.allConstants().isEmpty())
     assertFalse(isAvailable)
-    liveLiteralsService.isAvailable = true
+    liveLiteralsService.liveLiteralsMonitorStarted("TestDevice")
     assertTrue(isAvailable)
     assertEquals(9, liveLiteralsService.allConstants().size)
   }
@@ -86,7 +86,7 @@ internal class LiveLiteralsServiceTest {
     val liveLiteralsService = getTestLiveLiteralsService()
     assertTrue(liveLiteralsService.allConstants().isEmpty())
     assertFalse(isAvailable)
-    liveLiteralsService.isAvailable = true
+    liveLiteralsService.liveLiteralsMonitorStarted("TestDevice")
     assertFalse("Live Literals should not be available since there are no constants", isAvailable)
     assertTrue(liveLiteralsService.allConstants().isEmpty())
     projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)

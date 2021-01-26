@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.literals.ui
 
 import com.android.tools.idea.editors.literals.LiveLiteralsApplicationConfiguration
-import com.android.tools.idea.editors.literals.LiveLiteralsService
+import com.android.tools.idea.editors.literals.internal.LiveLiteralsDeploymentReportService
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.options.BoundSearchableConfigurable
 import com.intellij.openapi.options.Configurable
@@ -45,8 +45,8 @@ class LiveLiteralsConfigurable : BoundSearchableConfigurable(
     if (!LiveLiteralsApplicationConfiguration.getInstance().isEnabled) {
       // Make sure we disable all the live literals services
       ProjectManager.getInstance().openProjects
-        .map { LiveLiteralsService.getInstance(it) }
-        .forEach { it.isAvailable = false }
+        .map { LiveLiteralsDeploymentReportService.getInstance(it) }
+        .forEach { it.stopAllMonitors() }
     }
     LiveLiteralsAvailableIndicatorFactory.updateAllWidgets()
   }

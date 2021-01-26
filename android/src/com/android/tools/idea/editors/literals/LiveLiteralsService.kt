@@ -2,6 +2,7 @@ package com.android.tools.idea.editors.literals
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.AndroidPsiUtils
+import com.android.tools.idea.editors.literals.internal.LiveLiteralsDeploymentReportService
 import com.android.tools.idea.editors.literals.ui.LiveLiteralsAvailableIndicatorFactory
 import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.flags.StudioFlags
@@ -41,12 +42,53 @@ private val LITERAL_TEXT_ATTRIBUTE_KEY = TextAttributesKey.createTextAttributesK
 private val DOCUMENT_CHANGE_COALESCE_TIME_MS = StudioFlags.COMPOSE_LIVE_LITERALS_UPDATE_RATE
 
 /**
+ * Interface implementing by services handling live literals.
+ */
+interface LiveLiteralsMonitorHandler {
+  /**
+   * Describes a problem found during deployment.
+   * @param severity Severity of the problem.
+   * @param content Description of the problem.
+   */
+  data class Problem(val severity: Severity, val content: String) {
+    enum class Severity {
+      INFO,
+      WARNING,
+      ERROR
+    }
+
+    companion object {
+      fun info(content: String) = Problem(Severity.INFO, content)
+      fun warn(content: String) = Problem(Severity.WARNING, content)
+      fun error(content: String) = Problem(Severity.ERROR, content)
+    }
+  }
+
+  /**
+   * Call this method when the deployment for [deviceId] has started. This will clear all current registered
+   * [Problem]s for that device.
+   */
+  fun liveLiteralsMonitorStarted(deviceId: String)
+
+  /**
+   * Call this method when the monitoring for [deviceId] has stopped. For example, if the application has stopped.
+   */
+  fun liveLiteralsMonitorStopped(deviceId: String)
+
+  /**
+   * Call this method when the deployment for [deviceId] has finished. [problems] includes a list
+   * of the problems found while deploying literals.
+   */
+  fun liveLiteralPushed(deviceId: String, problems: Collection<Problem> = listOf())
+}
+
+/**
  * Project service to track live literals. The service, when [isAvailable] is true, will listen for changes of constants
  * and will notify listeners.
  */
 @Service
 class LiveLiteralsService private constructor(private val project: Project,
-                                              private val availableListener: LiteralsAvailableListener) : Disposable {
+                                              private val availableListener: LiteralsAvailableListener) : LiveLiteralsMonitorHandler, Disposable {
   /**
    * Interface for listeners that want to be notified when Live Literals becomes available. For example
    * when the preview or the emulator find that the current project supports them.
@@ -56,6 +98,24 @@ class LiveLiteralsService private constructor(private val project: Project,
      * Called when Live Literals becomes available. This might be called multiple times.
      */
     fun onAvailable()
+  }
+
+  init {
+    LiveLiteralsDeploymentReportService.getInstance(project).subscribe(this, object: LiveLiteralsDeploymentReportService.Listener {
+      override fun onMonitorStarted(deviceId: String) {
+        if (LiveLiteralsDeploymentReportService.getInstance(project).hasActiveDevices) {
+          activateTracking()
+        }
+      }
+
+      override fun onMonitorStopped(deviceId: String) {
+        if (!LiveLiteralsDeploymentReportService.getInstance(project).hasActiveDevices) {
+          deactivateTracking()
+        }
+      }
+
+      override fun onLiveLiteralsPushed(deviceId: String) {}
+    })
   }
 
   constructor(project: Project) : this(project, object : LiteralsAvailableListener {
@@ -126,6 +186,7 @@ class LiveLiteralsService private constructor(private val project: Project,
   }
 
   companion object {
+    @JvmStatic
     fun getInstance(project: Project): LiveLiteralsService = project.getService(LiveLiteralsService::class.java)
 
     object NopListener : LiteralsAvailableListener {
@@ -189,13 +250,8 @@ class LiveLiteralsService private constructor(private val project: Project,
    * Controls when the live literals tracking is available for the current project. The feature might be enable but not available if the
    * current project has not any Live Literals yet.
    */
-  var isAvailable = false
-    set(value) {
-      if (value != field) {
-        field = value
-        if (value) activateTracking() else deactivateTracking()
-      }
-    }
+  val isAvailable: Boolean
+    get() = LiveLiteralsDeploymentReportService.getInstance(project).hasActiveDevices
 
   @TestOnly
   fun allConstants(): Collection<LiteralReference> = documentSnapshots.flatMap { (_, snapshot) -> snapshot.all }
@@ -300,6 +356,7 @@ class LiveLiteralsService private constructor(private val project: Project,
   @Synchronized
   private fun activateTracking() {
     if (Disposer.isDisposed(this)) return
+    log.debug("activateTracking")
 
     val newActivationDisposable = Disposer.newDisposable()
 
@@ -344,6 +401,7 @@ class LiveLiteralsService private constructor(private val project: Project,
 
   @Synchronized
   private fun deactivateTracking() {
+    log.debug("deactivateTracking")
     trackers.clear()
     ConstantRemapperManager.getConstantRemapper().clearConstants(null)
     activationDisposable?.let {
@@ -355,8 +413,16 @@ class LiveLiteralsService private constructor(private val project: Project,
     LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
   }
 
+  override fun liveLiteralsMonitorStarted(deviceId: String) =
+    LiveLiteralsDeploymentReportService.getInstance(project).liveLiteralsMonitorStarted(deviceId)
+
+  override fun liveLiteralsMonitorStopped(deviceId: String) =
+    LiveLiteralsDeploymentReportService.getInstance(project).liveLiteralsMonitorStopped(deviceId)
+
+  override fun liveLiteralPushed(deviceId: String, problems: Collection<LiveLiteralsMonitorHandler.Problem>) =
+    LiveLiteralsDeploymentReportService.getInstance(project).liveLiteralPushed(deviceId, problems)
+
   override fun dispose() {
-    isAvailable = false
     deactivateTracking()
   }
 }

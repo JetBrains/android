@@ -83,6 +83,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.awt.Color
 import java.time.Duration
+import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
@@ -207,6 +208,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                    override val preferredInitialVisibility: PreferredVisibility,
                                    composePreviewViewProvider: ComposePreviewViewProvider) :
   PreviewRepresentation, ComposePreviewManagerEx, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
+  /**
+   * Fake device id to identify this preview with the live literals service. This allows live literals to track how
+   * many "users" it has.
+   */
+  private val previewDeviceId = "Preview#${UUID.randomUUID()}"
   private val LOG = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val project = psiFile.project
   private val psiFilePointer = SmartPointerManager.createPointer(psiFile)
@@ -372,17 +378,13 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   override var hasLiveLiterals: Boolean = false
-    private set
-
-  override var isLiveLiteralsEnabled: Boolean
-    get() = liveLiteralsManager.isAvailable
-    set(value) {
-      val wasAvailable = liveLiteralsManager.isAvailable
-      if (wasAvailable != value) {
-        liveLiteralsManager.isAvailable = value
-        forceRefresh()
-      }
+    private set(value) {
+      field = value
+      LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(previewDeviceId)
     }
+
+  override val isLiveLiteralsEnabled: Boolean
+    get() = liveLiteralsManager.isAvailable
 
   override var showDebugBoundaries: Boolean = false
     set(value) {
@@ -479,8 +481,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   init {
     Disposer.register(this, ticker)
-
-    isLiveLiteralsEnabled = LiveLiteralsService.getInstance(project).isEnabled
   }
 
   override val component: JComponent = composeWorkBench.component
@@ -515,6 +515,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
 
       override fun buildStarted() {
+        // Stop live literals monitoring for this preview. If the new build has live literals, they will
+        // be re-enabled later automatically via the HasLiveLiterals check.
+        LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(previewDeviceId)
         composeWorkBench.updateProgress(message("panel.building"))
         // When building, invalidate the Animation Inspector, since the animations are now obsolete and new ones will be subscribed once
         // build is complete and refresh is triggered.
@@ -602,7 +605,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     activationLock.withLock {
       LOG.debug("onDeactivate")
       interactivePreviewElementInstance = null
-      isLiveLiteralsEnabled = false
+      LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(previewDeviceId)
       isActive.set(false)
 
       project.getService(PreviewProjectService::class.java).deactivationQueue.addDelayedAction(this, this::onDeactivationTimeout)
