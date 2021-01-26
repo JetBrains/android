@@ -278,3 +278,10 @@ java_import(
     ],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build
+java_import(
+    name = "network_inspector_java_proto",
+    jars = ["//tools/base/network-inspector:network_inspector_java_proto.jar"],
+    visibility = ["//visibility:public"],
+)
