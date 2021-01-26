@@ -17,7 +17,6 @@ package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.AnnotationProcessorData
-import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.TaskContainer
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.task.TaskFinishEvent
@@ -29,11 +28,9 @@ import java.time.Duration
  */
 class AnnotationProcessorsAnalyzer(
   warningsFilter: BuildAttributionWarningsFilter,
-  taskContainer: TaskContainer,
-  pluginContainer: PluginContainer
-) : BaseAnalyzer<AnnotationProcessorsAnalyzer.Result>(warningsFilter, taskContainer, pluginContainer),
+  private val taskContainer: TaskContainer,
+) : BaseAnalyzer<AnnotationProcessorsAnalyzer.Result>(warningsFilter),
     BuildEventsAnalyzer {
-
   private val annotationProcessorsMap = HashMap<String, Duration>()
   private val nonIncrementalAnnotationProcessorsSet = HashSet<String>()
 
@@ -67,7 +64,7 @@ class AnnotationProcessorsAnalyzer(
   }
 
   override fun onBuildSuccess() {
-    if (anyTask(::isKaptTask)) {
+    if (taskContainer.any(::isKaptTask)) {
       // TODO(b/159108417): get data about annotation processors incrementality from kapt
       nonIncrementalAnnotationProcessorsSet.clear()
     }

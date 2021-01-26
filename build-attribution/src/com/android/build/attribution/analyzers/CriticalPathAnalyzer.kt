@@ -33,9 +33,9 @@ import kotlin.math.max
  */
 class CriticalPathAnalyzer(
   warningsFilter: BuildAttributionWarningsFilter,
-  taskContainer: TaskContainer,
-  pluginContainer: PluginContainer
-) : BaseAnalyzer<CriticalPathAnalyzer.Result>(warningsFilter, taskContainer, pluginContainer),
+  private val taskContainer: TaskContainer,
+  private val pluginContainer: PluginContainer
+) : BaseAnalyzer<CriticalPathAnalyzer.Result>(warningsFilter),
     BuildEventsAnalyzer,
     PostBuildProcessAnalyzer {
   private val tasksSet = HashSet<TaskData>()
@@ -60,12 +60,12 @@ class CriticalPathAnalyzer(
     }
 
     if (event is TaskFinishEvent && event.result is TaskSuccessResult) {
-      val task = getTask(event)
+      val task = taskContainer.getTask(event, pluginContainer)
       val dependenciesList = ArrayList<TaskData>()
 
       event.descriptor.dependencies.forEach { dependency ->
         if (dependency is TaskOperationDescriptor) {
-          getTask(dependency.taskPath)?.let {
+          taskContainer.getTask(dependency.taskPath)?.let {
             dependenciesList.add(it)
           }
         }

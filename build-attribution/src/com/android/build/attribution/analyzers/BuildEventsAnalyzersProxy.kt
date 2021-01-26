@@ -80,12 +80,12 @@ class BuildEventsAnalyzersProxy(
   pluginContainer: PluginContainer
 ) : BuildEventsAnalysisResult {
   private val alwaysRunTasksAnalyzer = AlwaysRunTasksAnalyzer(warningsFilter, taskContainer, pluginContainer)
-  private val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer(warningsFilter, taskContainer, pluginContainer)
+  private val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer(warningsFilter, taskContainer)
   private val criticalPathAnalyzer = CriticalPathAnalyzer(warningsFilter, taskContainer, pluginContainer)
-  private val noncacheableTasksAnalyzer = NoncacheableTasksAnalyzer(warningsFilter, taskContainer, pluginContainer)
-  private val garbageCollectionAnalyzer = GarbageCollectionAnalyzer(warningsFilter, taskContainer, pluginContainer)
-  private val projectConfigurationAnalyzer = ProjectConfigurationAnalyzer(warningsFilter, taskContainer, pluginContainer)
-  private val tasksConfigurationIssuesAnalyzer = TasksConfigurationIssuesAnalyzer(warningsFilter, taskContainer, pluginContainer)
+  private val noncacheableTasksAnalyzer = NoncacheableTasksAnalyzer(warningsFilter, taskContainer)
+  private val garbageCollectionAnalyzer = GarbageCollectionAnalyzer(warningsFilter)
+  private val projectConfigurationAnalyzer = ProjectConfigurationAnalyzer(warningsFilter, pluginContainer)
+  private val tasksConfigurationIssuesAnalyzer = TasksConfigurationIssuesAnalyzer(warningsFilter, taskContainer)
 
   val buildAnalyzers: List<BaseAnalyzer<*>>
     get() = listOf(

@@ -17,12 +17,9 @@ package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.PluginContainer
-import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import org.gradle.language.base.plugins.LifecycleBasePlugin
-import org.gradle.tooling.events.PluginIdentifier
-import org.gradle.tooling.events.task.TaskFinishEvent
 
 /**
  * This is a marker interface for the output of any build analyzer.
@@ -41,13 +38,12 @@ interface AnalyzerResult
  * 3) clean up collected temporal data in [cleanupTempState], called automatically when data is no more needed.
  */
 abstract class BaseAnalyzer<T : AnalyzerResult>(
-  val warningsFilter: BuildAttributionWarningsFilter,
-  private val taskContainer: TaskContainer,
-  private val pluginContainer: PluginContainer
+  val warningsFilter: BuildAttributionWarningsFilter
 ) {
 
   /** Cache for calculated result. */
   private var _result: T? = null
+
   /** Marks that result computation is in progress to detect dependency cycles. */
   private var calculatingResult = false
 
@@ -80,27 +76,6 @@ abstract class BaseAnalyzer<T : AnalyzerResult>(
   abstract fun onBuildSuccess()
 
   fun onBuildFailure() = cleanupTempState()
-
-  protected fun getPlugin(pluginType: PluginData.PluginType, displayName: String, projectPath: String): PluginData {
-    if (pluginType == PluginData.PluginType.SCRIPT) {
-      return pluginContainer.getPlugin(pluginType, "$projectPath:$displayName")
-    }
-    return pluginContainer.getPlugin(pluginType, displayName)
-  }
-
-  protected fun getPlugin(pluginIdentifier: PluginIdentifier, projectPath: String): PluginData {
-    return pluginContainer.getPlugin(pluginIdentifier, projectPath)
-  }
-
-  protected fun getTask(taskPath: String): TaskData? {
-    return taskContainer.getTask(taskPath)
-  }
-
-  protected fun getTask(event: TaskFinishEvent): TaskData {
-    return taskContainer.getTask(event, pluginContainer)
-  }
-
-  protected fun anyTask(predicate: (TaskData) -> Boolean) = taskContainer.any(predicate)
 
   /**
    * Filter to ignore certain tasks or tasks from certain plugins.

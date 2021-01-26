@@ -16,15 +16,11 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
-import com.android.build.attribution.data.PluginContainer
-import com.android.build.attribution.data.TaskContainer
 import com.google.common.truth.Truth
 import org.junit.Test
 
 class BaseAnalyzerTest {
 
-  val taskContainer = TaskContainer()
-  val pluginContainer = PluginContainer()
   val filter = BuildAttributionWarningsFilter()
 
   class Result : AnalyzerResult
@@ -33,7 +29,7 @@ class BaseAnalyzerTest {
   fun testResultCached() {
     var calculateCallsCount = 0
 
-    val analyzer =  object : BaseAnalyzer<Result>(filter, taskContainer, pluginContainer) {
+    val analyzer =  object : BaseAnalyzer<Result>(filter) {
       override fun calculateResult(): Result {
         calculateCallsCount++
         return Result()
@@ -58,7 +54,7 @@ class BaseAnalyzerTest {
   fun testCleanupCalledAfterResultCalculated() {
     var cleanUpCallsCount = 0
 
-    val analyzer =  object : BaseAnalyzer<Result>(filter, taskContainer, pluginContainer) {
+    val analyzer =  object : BaseAnalyzer<Result>(filter) {
       override fun calculateResult(): Result = Result()
 
       override fun cleanupTempState() {
@@ -80,7 +76,7 @@ class BaseAnalyzerTest {
   fun testCleanupCalledAfterBuildFailed() {
     var cleanUpCallsCount = 0
 
-    val analyzer =  object : BaseAnalyzer<Result>(filter, taskContainer, pluginContainer) {
+    val analyzer =  object : BaseAnalyzer<Result>(filter) {
       override fun calculateResult(): Result = Result()
 
       override fun cleanupTempState() {
@@ -99,7 +95,7 @@ class BaseAnalyzerTest {
 
   @Test(expected = BaseAnalyzer.ResultComputationLoopException::class)
   fun testComputationLoopDetected() {
-    class AnalyzerWithDependency : BaseAnalyzer<Result>(filter, taskContainer, pluginContainer) {
+    class AnalyzerWithDependency : BaseAnalyzer<Result>(filter) {
       var dependency : BaseAnalyzer<Result>? = null
       override fun calculateResult(): Result {
         return dependency?.result ?: Result()

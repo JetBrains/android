@@ -16,7 +16,6 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
-import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TasksSharingOutputData
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
@@ -26,9 +25,8 @@ import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
  */
 class TasksConfigurationIssuesAnalyzer(
   warningsFilter: BuildAttributionWarningsFilter,
-  taskContainer: TaskContainer,
-  pluginContainer: PluginContainer
-) : BaseAnalyzer<TasksConfigurationIssuesAnalyzer.Result>(warningsFilter, taskContainer, pluginContainer),
+  private val taskContainer: TaskContainer
+) : BaseAnalyzer<TasksConfigurationIssuesAnalyzer.Result>(warningsFilter),
     BuildAttributionReportAnalyzer,
     PostBuildProcessAnalyzer {
 
@@ -50,7 +48,7 @@ class TasksConfigurationIssuesAnalyzer(
 
   override fun calculateResult(): Result = Result(
     tasksSharingOutput = tasksSharingOutput.map { entry ->
-      TasksSharingOutputData(entry.key, entry.value.mapNotNull(this::getTask))
+      TasksSharingOutputData(entry.key, entry.value.mapNotNull(taskContainer::getTask))
     }.filter { entry -> entry.taskList.size > 1 }
   )
 
