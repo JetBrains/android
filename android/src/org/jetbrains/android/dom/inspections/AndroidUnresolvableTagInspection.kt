@@ -5,7 +5,7 @@ import com.android.SdkConstants.VIEW_TAG
 import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.imports.AndroidMavenImportFix
-import com.android.tools.idea.imports.getMavenClassRegistry
+import com.android.tools.idea.imports.MavenClassRegistryManager
 import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.LocalQuickFix
@@ -65,6 +65,7 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
   private class MyVisitor(private val myInspectionManager: InspectionManager,
                           private val myOnTheFly: Boolean) : XmlRecursiveElementVisitor() {
     val myResult: MutableList<ProblemDescriptor> = ArrayList()
+    val mavenClassRegistryManager = MavenClassRegistryManager.getInstance()
 
     override fun visitXmlTag(tag: XmlTag) {
       super.visitXmlTag(tag)
@@ -102,7 +103,8 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
 
         val fixes = mutableListOf<LocalQuickFix>()
         val useAndroidX = tag.project.isAndroidx()
-        getMavenClassRegistry().findLibraryData(className, useAndroidX)
+        mavenClassRegistryManager.getMavenClassRegistry()
+          .findLibraryData(className, useAndroidX)
           .asSequence()
           .map {
             val resolvedArtifact = if (useAndroidX) {

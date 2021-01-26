@@ -1138,10 +1138,12 @@ kotlin_library(
     name = "update_offline_gmaven_index",
     srcs = [
         "src/com/android/tools/idea/imports/GMavenIndexConstants.kt",
+        "src/com/android/tools/idea/imports/GzipUtils.kt",
         "src/com/android/tools/idea/imports/UpdateOfflineGMavenIndex.kt",
     ],
     deps = [
         "//tools/base/third_party:com.google.guava_guava",
+        "//tools/base/third_party:org.apache.commons_commons-compress",
     ],
 )
 

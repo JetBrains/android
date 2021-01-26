@@ -15,16 +15,20 @@
  */
 package com.android.tools.idea.imports
 
+import com.android.testutils.MockitoKt.mock
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import org.mockito.Mockito.`when`
+import java.nio.charset.StandardCharsets.UTF_8
 
 /**
- * Tests for [MavenClassRegistryRemote].
+ * Tests for [MavenClassRegistryFromRepository].
  */
-class MavenClassRegistryRemoteTest {
+class MavenClassRegistryFromRepositoryTest {
   @Test
   fun parseJsonFile() {
-    val fakeGMavenIndexRepository = FakeGMavenIndexRepository(
+    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
+    `when`(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
       """
         {
           "Index": [
@@ -54,21 +58,22 @@ class MavenClassRegistryRemoteTest {
             }
           ]
         }
-      """.trimIndent()
+      """.trimIndent().byteInputStream(UTF_8)
     )
-    val mavenClassRegistry = MavenClassRegistryRemote(fakeGMavenIndexRepository)
+
+    val mavenClassRegistry = MavenClassRegistryFromRepository(gMavenIndexRepositoryMock)
 
     assertThat(mavenClassRegistry.lookup).containsExactlyEntriesIn(
       mapOf(
         "ComponentActivity" to listOf(
-          MavenClassRegistry.Library(artifact = "androidx.activity:activity", packageName = "androidx.activity")
+          MavenClassRegistryBase.Library(artifact = "androidx.activity:activity", packageName = "androidx.activity")
         ),
         "Fake" to listOf(
-          MavenClassRegistry.Library(artifact = "androidx.activity:activity", packageName = "androidx.activity"),
-          MavenClassRegistry.Library(artifact = "androidx.annotation:annotation", packageName = "androidx.annotation")
+          MavenClassRegistryBase.Library(artifact = "androidx.activity:activity", packageName = "androidx.activity"),
+          MavenClassRegistryBase.Library(artifact = "androidx.annotation:annotation", packageName = "androidx.annotation")
         ),
         "AnimRes" to listOf(
-          MavenClassRegistry.Library(artifact = "androidx.annotation:annotation", packageName = "androidx.annotation")
+          MavenClassRegistryBase.Library(artifact = "androidx.annotation:annotation", packageName = "androidx.annotation")
         )
       )
     )
@@ -76,22 +81,25 @@ class MavenClassRegistryRemoteTest {
 
   @Test
   fun parseMalformedJsonFile_noIndexKeyDeclared() {
-    val fakeGMavenIndexRepository = FakeGMavenIndexRepository(
+    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
+    `when`(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
       """
         {
           "Indices": [
           ]
         }
-      """.trimIndent()
+      """.trimIndent().byteInputStream(UTF_8)
     )
-    val mavenClassRegistry = MavenClassRegistryRemote(fakeGMavenIndexRepository)
+
+    val mavenClassRegistry = MavenClassRegistryFromRepository(gMavenIndexRepositoryMock)
 
     assertThat(mavenClassRegistry.lookup).isEmpty()
   }
 
   @Test
   fun parseMalformedJsonFile_noGroupIdDeclared() {
-    val fakeGMavenIndexRepository = FakeGMavenIndexRepository(
+    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
+    `when`(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
       """
         {
           "Index": [
@@ -105,16 +113,18 @@ class MavenClassRegistryRemoteTest {
             },
           ]
         }
-      """.trimIndent()
+      """.trimIndent().byteInputStream(UTF_8)
     )
-    val mavenClassRegistry = MavenClassRegistryRemote(fakeGMavenIndexRepository)
+
+    val mavenClassRegistry = MavenClassRegistryFromRepository(gMavenIndexRepositoryMock)
 
     assertThat(mavenClassRegistry.lookup).isEmpty()
   }
 
   @Test
   fun parseMalformedJsonFile_noArtifactIdDeclared() {
-    val fakeGMavenIndexRepository = FakeGMavenIndexRepository(
+    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
+    `when`(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
       """
         {
           "Index": [
@@ -128,16 +138,18 @@ class MavenClassRegistryRemoteTest {
             },
           ]
         }
-      """.trimIndent()
+      """.trimIndent().byteInputStream(UTF_8)
     )
-    val mavenClassRegistry = MavenClassRegistryRemote(fakeGMavenIndexRepository)
+
+    val mavenClassRegistry = MavenClassRegistryFromRepository(gMavenIndexRepositoryMock)
 
     assertThat(mavenClassRegistry.lookup).isEmpty()
   }
 
   @Test
   fun parseMalformedJsonFile_noVersionDeclared() {
-    val fakeGMavenIndexRepository = FakeGMavenIndexRepository(
+    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
+    `when`(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
       """
         {
           "Index": [
@@ -151,16 +163,18 @@ class MavenClassRegistryRemoteTest {
             },
           ]
         }
-      """.trimIndent()
+      """.trimIndent().byteInputStream(UTF_8)
     )
-    val mavenClassRegistry = MavenClassRegistryRemote(fakeGMavenIndexRepository)
+
+    val mavenClassRegistry = MavenClassRegistryFromRepository(gMavenIndexRepositoryMock)
 
     assertThat(mavenClassRegistry.lookup).isEmpty()
   }
 
   @Test
   fun parseMalformedJsonFile_noFqcnsDeclared() {
-    val fakeGMavenIndexRepository = FakeGMavenIndexRepository(
+    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
+    `when`(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
       """
         {
           "Index": [
@@ -171,9 +185,10 @@ class MavenClassRegistryRemoteTest {
             },
           ]
         }
-      """.trimIndent()
+      """.trimIndent().byteInputStream(UTF_8)
     )
-    val mavenClassRegistry = MavenClassRegistryRemote(fakeGMavenIndexRepository)
+
+    val mavenClassRegistry = MavenClassRegistryFromRepository(gMavenIndexRepositoryMock)
 
     assertThat(mavenClassRegistry.lookup).isEmpty()
   }

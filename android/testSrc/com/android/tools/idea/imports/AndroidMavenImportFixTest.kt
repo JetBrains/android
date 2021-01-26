@@ -23,15 +23,23 @@ import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiManager
+import com.intellij.testFramework.replaceService
 import org.jetbrains.android.dom.inspections.AndroidUnresolvableTagInspection
 
 class AndroidMavenImportFixTest : AndroidGradleTestCase() {
   fun testMissingClassHighlightingAndAddLibraryQuickfix_autoImportDisabled() {
     try {
       StudioFlags.ENABLE_AUTO_IMPORT.override(false)
+      ApplicationManager.getApplication().replaceService(
+        MavenClassRegistryManager::class.java,
+        fakeMavenClassRegistryManager,
+        myFixture.testRootDisposable
+      )
+
       val inspection = AndroidUnresolvableTagInspection()
       myFixture.enableInspections(inspection)
 
@@ -68,6 +76,12 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
   fun testMissingClassHighlightingAndAddLibraryQuickfix_autoImportEnabled() {
     try {
       StudioFlags.ENABLE_AUTO_IMPORT.override(true)
+      ApplicationManager.getApplication().replaceService(
+        MavenClassRegistryManager::class.java,
+        fakeMavenClassRegistryManager,
+        myFixture.testRootDisposable
+      )
+
       val inspection = AndroidUnresolvableTagInspection()
       myFixture.enableInspections(inspection)
 

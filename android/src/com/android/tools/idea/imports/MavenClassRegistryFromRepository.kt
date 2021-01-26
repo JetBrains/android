@@ -28,20 +28,19 @@ import java.io.InputStreamReader
  * Here, it covers all the latest stable versions of libraries which are explicitly marked as `Yes` to include in
  * go/studio-auto-import-packages.
  */
-class MavenClassRegistryRemote(private val indexRepository: GMavenIndexRepository) : MavenClassRegistry {
-  val lookup: Map<String, List<MavenClassRegistry.Library>> by lazy {
-    generateLookup()
-  }
+// TODO: rename to MavenClassRegistry.
+class MavenClassRegistryFromRepository(private val indexRepository: GMavenIndexRepository) : MavenClassRegistryBase() {
+  val lookup: Map<String, List<Library>> = generateLookup()
 
   /**
-   * Given a class name, returns the likely collection of [MavenClassRegistry.Library] objects for the maven.google.com
+   * Given a class name, returns the likely collection of [MavenClassRegistryBase.Library] objects for the maven.google.com
    * artifacts containing that class.
    *
    * Here, the passed in [className] can be either short class name or fully qualified class name.
    *
    * This implementation only returns results of index data from [GMavenIndexRepository].
    */
-  override fun findLibraryData(className: String, useAndroidX: Boolean): Collection<MavenClassRegistry.Library> {
+  override fun findLibraryData(className: String, useAndroidX: Boolean): Collection<Library> {
     // We only support projects that set android.useAndroidX=true.
     if (!useAndroidX) return emptyList()
 
@@ -56,23 +55,20 @@ class MavenClassRegistryRemote(private val indexRepository: GMavenIndexRepositor
     return foundArtifacts.filter { it.packageName == packageName }
   }
 
-  private fun generateLookup(): Map<String, List<MavenClassRegistry.Library>> {
-    val file = "$NAME-v$VERSION.json"
-    val relative = "v$VERSION/$file"
-
-    val data = indexRepository.fetchIndex(relative) ?: return emptyMap()
+  private fun generateLookup(): Map<String, List<Library>> {
+    val data = indexRepository.loadIndexFromDisk()
 
     return try {
       data.use { readIndicesFromJsonFile(it) }
     }
     catch (e: Exception) {
-      logger<MavenClassRegistryRemote>().warn("Problem reading \"$file\" file: ${e.message}")
+      logger<MavenClassRegistryFromRepository>().warn("Problem reading GMaven index file: ${e.message}")
       emptyMap()
     }
   }
 
   @Throws(IOException::class)
-  private fun readIndicesFromJsonFile(inputStream: InputStream): Map<String, List<MavenClassRegistry.Library>> {
+  private fun readIndicesFromJsonFile(inputStream: InputStream): Map<String, List<Library>> {
     return JsonReader(InputStreamReader(inputStream)).use {
       it.beginObject()
       if (it.nextName() != "Index") throw MalformedIndexException("\"Index\" key is missing($it).")
@@ -84,8 +80,8 @@ class MavenClassRegistryRemote(private val indexRepository: GMavenIndexRepositor
   }
 
   @Throws(IOException::class)
-  private fun readIndexArray(reader: JsonReader): Map<String, List<MavenClassRegistry.Library>> {
-    val map = mutableMapOf<String, List<MavenClassRegistry.Library>>()
+  private fun readIndexArray(reader: JsonReader): Map<String, List<Library>> {
+    val map = mutableMapOf<String, List<Library>>()
 
     reader.beginArray()
     while (reader.hasNext()) {
@@ -171,12 +167,12 @@ data class GMavenArtifactIndex(
   val fqcns: Collection<FqName>
 ) {
   /**
-   * Converts to a map from class names to corresponding [MavenClassRegistry.Library]s.
+   * Converts to a map from class names to corresponding [MavenClassRegistryBase.Library]s.
    */
-  fun toMavenClassRegistryMap(): Map<String, MavenClassRegistry.Library> {
+  fun toMavenClassRegistryMap(): Map<String, MavenClassRegistryBase.Library> {
     return fqcns.asSequence()
       .map { fqName ->
-        val library = MavenClassRegistry.Library(
+        val library = MavenClassRegistryBase.Library(
           artifact = "$groupId:$artifactId",
           packageName = fqName.parent().asString(),
         )
@@ -184,13 +180,6 @@ data class GMavenArtifactIndex(
       }
       .toMap()
   }
-}
-
-/**
- * A single object of [MavenClassRegistryRemote] which is initialized in lazy way.
- */
-val mavenClassRegistryRemote: MavenClassRegistryRemote by lazy {
-  MavenClassRegistryRemote(GMavenIndexRepositoryImpl())
 }
 
 /**
