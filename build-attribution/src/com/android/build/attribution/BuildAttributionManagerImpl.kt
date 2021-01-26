@@ -40,7 +40,7 @@ class BuildAttributionManagerImpl(
   private val pluginContainer = PluginContainer()
 
   @get:VisibleForTesting
-  val analyzersProxy = BuildEventsAnalyzersProxy(BuildAttributionWarningsFilter.getInstance(project), taskContainer, pluginContainer)
+  val analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer)
   private val analyzersWrapper = BuildAnalyzersWrapper(analyzersProxy.buildAnalyzers, taskContainer, pluginContainer)
 
   override fun onBuildStart() {

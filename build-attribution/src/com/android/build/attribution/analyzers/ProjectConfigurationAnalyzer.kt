@@ -15,11 +15,9 @@
  */
 package com.android.build.attribution.analyzers
 
-import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
-import com.android.build.attribution.data.TaskContainer
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationDescriptor
 import org.gradle.tooling.events.ProgressEvent
@@ -32,9 +30,8 @@ import org.gradle.tooling.events.configuration.ProjectConfigurationSuccessResult
  * Analyzer for attributing project configuration time.
  */
 class ProjectConfigurationAnalyzer(
-  warningsFilter: BuildAttributionWarningsFilter,
   private val pluginContainer: PluginContainer
-) : BaseAnalyzer<ProjectConfigurationAnalyzer.Result>(warningsFilter), BuildEventsAnalyzer {
+) : BaseAnalyzer<ProjectConfigurationAnalyzer.Result>(), BuildEventsAnalyzer {
   private val applyPluginEventPrefix = "Apply plugin"
 
   /**
@@ -87,7 +84,8 @@ class ProjectConfigurationAnalyzer(
           // Check that the parent is not another binary plugin, to make sure that this plugin was added by the user
           if (event.descriptor.parent?.name?.startsWith(applyPluginEventPrefix) != true) {
             val pluginName = event.descriptor.name.substring(applyPluginEventPrefix.length + 1)
-            val plugin = pluginContainer.getPlugin(PluginData.PluginType.BINARY_PLUGIN, pluginName, projectConfigurationBuilder!!.projectPath)
+            val plugin = pluginContainer.getPlugin(PluginData.PluginType.BINARY_PLUGIN, pluginName,
+                                                   projectConfigurationBuilder!!.projectPath)
             val pluginConfigurationTime = event.result.endTime - event.result.startTime
 
             updatePluginConfigurationTime(plugin, pluginConfigurationTime)

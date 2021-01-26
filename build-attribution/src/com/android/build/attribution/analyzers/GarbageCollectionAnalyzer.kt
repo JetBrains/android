@@ -15,17 +15,12 @@
  */
 package com.android.build.attribution.analyzers
 
-import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.GarbageCollectionData
-import com.android.build.attribution.data.PluginContainer
-import com.android.build.attribution.data.TaskContainer
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.intellij.util.lang.JavaVersion
 
-class GarbageCollectionAnalyzer(
-  warningsFilter: BuildAttributionWarningsFilter
-) :
-  BaseAnalyzer<GarbageCollectionAnalyzer.Result>(warningsFilter), BuildAttributionReportAnalyzer {
+class GarbageCollectionAnalyzer :
+  BaseAnalyzer<GarbageCollectionAnalyzer.Result>(), BuildAttributionReportAnalyzer {
   private var garbageCollectionData: List<GarbageCollectionData> = emptyList()
   private var javaVersion: Int? = null
   private var isSettingSet: Boolean? = null
