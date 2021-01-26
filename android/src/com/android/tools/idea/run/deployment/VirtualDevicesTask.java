@@ -22,19 +22,16 @@ import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ThreeState;
-import com.intellij.util.containers.ContainerUtil;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
@@ -117,20 +114,9 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
 
   @NotNull
   private Collection<VirtualDevice> getVirtualDevices() {
-    Collection<AvdInfo> avdCollection = myGetAvds.get();
-
-    Collection<VirtualDevice> deviceCollection = avdCollection.stream()
+    return myGetAvds.get().stream()
       .map(avd -> newDisconnectedDevice(avd, getSnapshots(avd)))
       .collect(Collectors.toList());
-
-    if (!hasDuplicateKeys(deviceCollection)) {
-      return deviceCollection;
-    }
-
-    Logger.getInstance(VirtualDevicesTask.class).warn("duplicate keys found");
-    logDebugStrings(avdCollection);
-
-    return newListWithoutDuplicateKeys(deviceCollection);
   }
 
   @NotNull
@@ -212,26 +198,5 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
       .setValid(!compatibility.isCompatible().equals(ThreeState.NO))
       .setValidityReason(compatibility.getReason())
       .build();
-  }
-
-  private static boolean hasDuplicateKeys(@NotNull Collection<@NotNull ? extends Device> devices) {
-    Collection<Key> keys = devices.stream()
-      .map(Device::getKey)
-      .collect(Collectors.toSet());
-
-    return keys.size() != devices.size();
-  }
-
-  private static void logDebugStrings(@NotNull Collection<@NotNull AvdInfo> avds) {
-    Logger logger = Logger.getInstance(VirtualDevicesTask.class);
-
-    avds.stream()
-      .map(AvdInfo::toDebugString)
-      .forEach(logger::warn);
-  }
-
-  private static @NotNull List<@NotNull VirtualDevice> newListWithoutDuplicateKeys(@NotNull Collection<@NotNull VirtualDevice> devices) {
-    Collection<Key> keys = Sets.newHashSetWithExpectedSize(devices.size());
-    return ContainerUtil.filter(devices, device -> keys.add(device.getKey()));
   }
 }
