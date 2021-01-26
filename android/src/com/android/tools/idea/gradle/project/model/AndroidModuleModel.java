@@ -345,7 +345,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   /**
    * @return the version code associated with the merged flavor of the selected variant, or {@code null} if none have been set.
    */
-  @Override
   @Nullable
   public Integer getVersionCode() {
     IdeVariant variant = getSelectedVariant();
