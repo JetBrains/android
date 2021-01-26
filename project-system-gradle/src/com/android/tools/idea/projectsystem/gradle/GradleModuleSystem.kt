@@ -412,7 +412,7 @@ class GradleModuleSystem(
 
   override fun getManifestOverrides(): ManifestOverrides {
     val facet = AndroidFacet.getInstance(module)
-    val androidModel = facet?.let(AndroidModel::get) ?: return ManifestOverrides()
+    val androidModel = facet?.let(AndroidModuleModel::get) ?: return ManifestOverrides()
     val directOverrides = notNullMapOf(
       ManifestSystemProperty.MIN_SDK_VERSION to androidModel.minSdkVersion?.apiString,
       ManifestSystemProperty.TARGET_SDK_VERSION to androidModel.targetSdkVersion?.apiString,

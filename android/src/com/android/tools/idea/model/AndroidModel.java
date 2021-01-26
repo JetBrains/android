@@ -115,12 +115,6 @@ public interface AndroidModel {
   AndroidVersion getTargetSdkVersion();
 
   /**
-   * @return the internal version number of the Android application.
-   */
-  @Nullable
-  Integer getVersionCode();
-
-  /**
    * Indicates whether the given file or directory is generated.
    *
    * @param file the file or directory.
