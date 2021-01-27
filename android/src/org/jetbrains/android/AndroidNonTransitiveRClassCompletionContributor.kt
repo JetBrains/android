@@ -17,6 +17,8 @@ package org.jetbrains.android
 
 import android.databinding.tool.ext.capitalizeUS
 import com.android.SdkConstants.R_CLASS
+import com.android.resources.ResourceType
+import com.android.tools.idea.AndroidPsiUtils.getPreviousInQualifiedChain
 import com.android.tools.idea.kotlin.getPreviousInQualifiedChain
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.AndroidRClassBase
@@ -29,6 +31,7 @@ import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.completion.InsertionContext
+import com.intellij.codeInsight.completion.JavaCompletionSorting
 import com.intellij.codeInsight.lookup.DefaultLookupItemRenderer
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
@@ -38,10 +41,12 @@ import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
+import com.intellij.psi.PsiReferenceExpression
 import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.ProcessingContext
 import org.jetbrains.android.augment.ResourceRepositoryInnerRClass
+import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.references.KtSimpleNameReference
 import org.jetbrains.kotlin.idea.references.KtSimpleNameReference.ShorteningMode.NO_SHORTENING
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -52,7 +57,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 /**
  * Provides references to all accessible resource fields, when a user types "R.resourceType." for kotlin files.
  */
-class AndroidNonTransitiveRClassKotlinCompletionContributor : CompletionContributor() {
+class AndroidNonTransitiveRClassKotlinCompletionContributor : CompletionContributor()   {
 
   init {
     extend(
@@ -101,6 +106,56 @@ class AndroidNonTransitiveRClassKotlinCompletionContributor : CompletionContribu
 }
 
 /**
+ * Provides references to all accessible resource fields, when a user types "R.resourceType." for Java files.
+ */
+class AndroidNonTransitiveRClassJavaCompletionContributor : CompletionContributor() {
+
+  init {
+    extend(
+      CompletionType.BASIC,
+      PlatformPatterns.psiElement().withSuperParent(1, PsiReferenceExpression::class.java),
+      object : CompletionProvider<CompletionParameters>(){
+        override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+          addNonLocalResourceFields(parameters, result)
+        }
+      }
+    )
+  }
+
+  fun addNonLocalResourceFields(parameters: CompletionParameters, _result: CompletionResultSet) {
+    val element = parameters.position
+    val facet = element.androidFacet ?: return
+
+    val moduleSystem = element.getModuleSystem() ?: return
+    if (moduleSystem.isRClassTransitive) return
+
+    val referenceExpression = element.parent as? PsiReferenceExpression ?: return
+    val innerClass = getPreviousInQualifiedChain(referenceExpression) ?: return
+    val typeName = innerClass.referenceName ?: return
+    if (ResourceType.fromClassName(typeName) == null) return
+    val rClass = getPreviousInQualifiedChain(innerClass) ?: return
+    if (rClass.referenceName != R_CLASS) return
+
+    // We don't want to provide completions to R classes with package names already present.
+    if (getPreviousInQualifiedChain(rClass) != null) return
+
+    val moduleRClass = rClass.resolve() as? ModuleRClass ?: return
+
+    // Need to add JavaCompletionSorting to the CompletionResultSet, otherwise every item added will always be at the top of the list, due
+    // them using a different CompletionSorter
+    val result = JavaCompletionSorting.addJavaSorting(parameters, _result)
+
+    val rClassesAccessibleFromModule = ProjectLightResourceClassService.getInstance(element.project)
+      .getLightRClassesAccessibleFromModule(facet.module, false)
+      .filter { !(it is ModuleRClass && it.facet == moduleRClass.facet) }
+    val lookupElements = rClassesAccessibleFromModule
+      .flatMap { it.findInnerClassByName(typeName, false)?.allFields?.toList() ?: emptyList() }
+      .map { NonTransitiveResourceFieldLookupElement(it) }
+    result.addAllElements(lookupElements)
+  }
+}
+
+/**
  * Lookup element for resources shown on R.resourceType. elements that are not from the current Module R class
  *
  * Insert handler is provided to insert the correct package name of the R class of the selected resource.
@@ -127,13 +182,25 @@ class NonTransitiveResourceFieldLookupElement(element: PsiField) :
     psiDocumentManager.commitAllDocuments()
     psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
 
-    val firstChild = context.file.findElementAt(context.startOffset)
-                       ?.parentOfType<KtExpression>()
-                       ?.getPreviousInQualifiedChain()
-                       ?.getPreviousInQualifiedChain() as? PsiElement ?: return
+    val file = context.file
     val rClass = underlyingElement.parent.parent as? AndroidRClassBase ?: return
-    if (firstChild.text == R_CLASS) {
-      (firstChild.references?.firstIsInstance<KtSimpleNameReference>())?.bindToElement(rClass, NO_SHORTENING)
+
+    val elementAtCaretOffset = file.findElementAt(context.startOffset) ?: return
+    if (file.language == KotlinLanguage.INSTANCE) {
+      val rClassElement = elementAtCaretOffset
+                            .parentOfType<KtExpression>()
+                            ?.getPreviousInQualifiedChain()
+                            ?.getPreviousInQualifiedChain() as? PsiElement ?: return
+      if (rClassElement.text == R_CLASS) {
+        (rClassElement.references?.firstIsInstance<KtSimpleNameReference>())?.bindToElement(rClass, NO_SHORTENING)
+      }
+    } else {
+      val rFieldElement = elementAtCaretOffset.parent as? PsiReferenceExpression ?: return
+      val innerRClassElement = getPreviousInQualifiedChain(rFieldElement) ?: return
+      val rClassElement = getPreviousInQualifiedChain(innerRClassElement) as? PsiElement ?: return
+      if (rClassElement.text == R_CLASS) {
+        rClassElement.reference?.bindToElement(rClass)
+      }
     }
   }
 }
