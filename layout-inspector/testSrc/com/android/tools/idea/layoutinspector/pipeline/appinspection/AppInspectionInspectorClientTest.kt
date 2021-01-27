@@ -39,7 +39,7 @@ class AppInspectionInspectorClientTest {
   @Test
   fun inspectorStartsFetchingOnConnect() = runBlocking {
     val startFetchReceived = CompletableDeferred<Unit>()
-    inspectionRule.viewInspectorHandler.addCommandListener { command, response ->
+    inspectionRule.viewInspector.addCommandListener { command, response ->
       // For this test, we should only ever receive a "start fetch" command and no others.
       assertThat(command.specializedCase).isEqualTo(ViewProtocol.Command.SpecializedCase.START_FETCH_COMMAND)
       startFetchReceived.complete(Unit)
