@@ -45,6 +45,7 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
   @NotNull protected final CachedValue<PsiClass[]> myClassCache;
   @NotNull protected final String myShortName;
   @NotNull protected final PsiJavaFile myFile;
+  @Nullable private final String myPackageName;
 
   public AndroidClassWithOnlyInnerClassesBase(@NotNull String shortName,
                                               @Nullable String packageName,
@@ -54,6 +55,7 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
     Project project = getProject();
 
     myShortName = shortName;
+    myPackageName = packageName;
 
     myClassCache =
       CachedValuesManager.getManager(project).createCachedValue(() -> {
@@ -82,6 +84,11 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
       packageName = "_";
     }
     myFile.setPackageName(packageName);
+  }
+
+  @Nullable
+  public String getPackageName() {
+    return myPackageName;
   }
 
   @NotNull

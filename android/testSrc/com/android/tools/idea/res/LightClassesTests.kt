@@ -35,6 +35,8 @@ import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.updatePrimaryManifest
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.TargetElementUtil
+import com.intellij.codeInsight.lookup.LookupElement
+import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
@@ -675,7 +677,12 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       myFixture.moveCaret("R.string.|anotherLib,")
       myFixture.completeBasic()
-      assertThat(myFixture.lookupElementStrings).containsAllIn(arrayOf("anotherLibString", "libString", "anotherAppString", "appString"))
+      assertThat(myFixture.lookupElements.map { it.toPresentableText() })
+        .containsAllIn(arrayOf(
+          "anotherLibString  (com.example.mylib) Int",
+          "libString  (com.example.mylib) Int",
+          "anotherAppString null Int",
+          "appString null Int"))
 
       // Check insert handler works correctly
       myFixture.moveCaret("R.string.anotherLib|,")
@@ -1949,4 +1956,14 @@ class GeneratedResourcesTest : AndroidGradleTestCase() {
 
     assertThat(myFixture.lookupElementStrings).containsExactly("sample_raw_resource", "class")
   }
+}
+
+/**
+ * The default lookup string from CodeInsightTestFixture, only includes the item text, and not other aspects of the lookup element such
+ * as tail text and type text. We want to verify certain aspects are present in the lookup elements.
+ */
+private fun LookupElement.toPresentableText(): String {
+  val presentation = LookupElementPresentation()
+  renderElement(presentation)
+  return "${presentation.itemText} ${presentation.tailText} ${presentation.typeText}"
 }
