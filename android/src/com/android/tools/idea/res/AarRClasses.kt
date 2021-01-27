@@ -36,7 +36,6 @@ import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.AAR_ADDRESS_K
 import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.LIGHT_CLASS_KEY
 import org.jetbrains.android.augment.AndroidLightField.FieldModifier
 import org.jetbrains.android.augment.InnerRClassBase
-import org.jetbrains.android.augment.InnerRClassBase.buildResourceFields
 import org.jetbrains.android.augment.StyleableAttrFieldUrl
 import java.io.File
 import java.io.IOException
@@ -58,7 +57,7 @@ import kotlin.concurrent.withLock
 class SmallAarRClass(
   psiManager: PsiManager,
   library: Library,
-  private val packageName: String,
+  packageName: String,
   private val aarResources: ResourceRepository,
   private val resourceNamespace: ResourceNamespace,
   aarAddress: String
@@ -121,7 +120,7 @@ private class SmallAarInnerRClass(
 class TransitiveAarRClass(
   psiManager: PsiManager,
   library: Library,
-  private val packageName: String,
+  packageName: String,
   private val symbolFile: File,
   aarAddress: String
 ) : AndroidRClassBase(psiManager, packageName) {
