@@ -1148,5 +1148,14 @@ public final class StudioFlags {
   );
   // endregion DDMLIB
 
+  //region SERVER_FLAGS
+  private static final FlagGroup SERVER_FLAGS = new FlagGroup(FLAGS, "serverflags", "Server Flags");
+  public static final Flag<Boolean> TEST_SERVER_FLAG = Flag.create(
+    SERVER_FLAGS, "test", "Test Server Enabled Flag",
+    "Creates a sample studio flag that can be set using a server flag",
+    false
+  );
+  // endregion SERVER_FLAGS
+
   private StudioFlags() { }
 }
