@@ -132,7 +132,9 @@ internal class ToolWindowModel(
     processor.components().forEach { it.isEnabled = false }
     CheckboxTreeHelper.getCheckedNodes(AgpUpgradeComponentRefactoringProcessor::class.java, null, treeModel)
       .forEach { it.isEnabled = true }
-    val runProcessor = showAndGetAgpUpgradeDialog(processor)
+    // TODO(b/178569506): user configuration of any individual refactoring processors (as of 2021-01 the Java8Default processor) should
+    //  also be performed here.
+    val runProcessor = showAndGetAgpUpgradeDialog(processor, true)
     if (runProcessor) {
       DumbService.getInstance(processor.project).smartInvokeLater {
         processor.run()
