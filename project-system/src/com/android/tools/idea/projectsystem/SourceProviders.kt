@@ -22,10 +22,10 @@ import com.intellij.ProjectTopics
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetManagerAdapter
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.components.ServiceManager
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
@@ -222,11 +222,9 @@ private class SourceProviderManagerComponent(val project: Project) : ProjectComp
       if (!subscribedToRootsChangedEvents) {
         connection.subscribe(ProjectTopics.PROJECT_ROOTS, object : ModuleRootListener {
           override fun rootsChanged(event: ModuleRootEvent) {
-            ModuleManager.getInstance(project)
-              .modules.asIterable()
-              .mapNotNull { it -> FacetManager.getInstance(it).getFacetByType(AndroidFacet.ID) }.forEach { facet ->
-                onChanged(facet)
-              }
+            for (facet in ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)) {
+              onChanged(facet)
+            }
           }
         })
         subscribedToRootsChangedEvents = true
