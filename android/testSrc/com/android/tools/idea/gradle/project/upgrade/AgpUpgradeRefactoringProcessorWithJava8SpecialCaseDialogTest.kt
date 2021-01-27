@@ -289,4 +289,36 @@ class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialogTest : HeavyPlatfo
     assertEquals(INSERT_OLD_DEFAULT, java8DefaultProcessor.noLanguageLevelAction)
     assertTrue(isPreviewUsagesField.getBoolean(processor))
   }
+
+  @Test
+  fun testUpgradeVersionTextIfAgpClasspathEnabled() {
+    val fromVersion = "4.1.0"
+    val toVersion = "4.2.0-alpha05"
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse(fromVersion), GradleVersion.parse(toVersion))
+    processor.setJava8DefaultIsAlwaysNoOpForProject(false)
+    processor.classpathRefactoringProcessor.isEnabled = true
+    val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(
+      processor, processor.getJava8DefaultRefactoringProcessor(), false, true)
+    val editorPanes = UIUtil.findComponentsOfType(dialog.createCenterPanel(), JEditorPane::class.java)
+    assertSize(1, editorPanes)
+    assertTrue(editorPanes[0].text.contains("from\\s+Android\\s+Gradle\\s+Plugin\\s+version\\s+$fromVersion".toRegex()))
+    assertTrue(editorPanes[0].text.contains("to\\s+version\\s+$toVersion".toRegex()))
+    Disposer.dispose(dialog.disposable)
+  }
+
+  @Test
+  fun testNoUpgradeVersionTextIfAgpClasspathNotEnabled() {
+    val fromVersion = "4.1.0"
+    val toVersion = "4.2.0-alpha05"
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse(fromVersion), GradleVersion.parse(toVersion))
+    processor.setJava8DefaultIsAlwaysNoOpForProject(false)
+    processor.classpathRefactoringProcessor.isEnabled = false
+    val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(
+      processor, processor.getJava8DefaultRefactoringProcessor(), false, true)
+    val editorPanes = UIUtil.findComponentsOfType(dialog.createCenterPanel(), JEditorPane::class.java)
+    assertSize(1, editorPanes)
+    assertFalse(editorPanes[0].text.contains("version\\s+$fromVersion".toRegex()))
+    assertFalse(editorPanes[0].text.contains("to\\s+version\\s+$toVersion".toRegex()))
+    Disposer.dispose(dialog.disposable)
+  }
 }
