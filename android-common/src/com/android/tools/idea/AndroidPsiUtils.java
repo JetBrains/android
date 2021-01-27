@@ -41,6 +41,7 @@ import com.intellij.psi.PsiClassOwner;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiExpression;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.PsiManager;
@@ -467,5 +468,15 @@ public class AndroidPsiUtils {
   @Nullable
   public static PsiType toPsiType(@NotNull PsiClass clazz) {
     return JavaPsiFacade.getElementFactory(clazz.getProject()).createType(clazz);
+  }
+
+  /**
+   * When given an element in a qualified chain expression (eg. `activity` in `R.layout.activity`) for a Java file, this finds the previous
+   * element in the chain (in this case `layout`).
+   */
+  @Nullable
+  public static PsiReferenceExpression getPreviousInQualifiedChain(PsiReferenceExpression referenceExpression) {
+    PsiExpression expression = referenceExpression.getQualifierExpression();
+    return expression instanceof PsiReferenceExpression ? (PsiReferenceExpression)expression : null;
   }
 }
