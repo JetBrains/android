@@ -71,11 +71,11 @@ fun getPackageName(module: Module) = module.getModuleSystem().getPackageName()
  * TODO: Make this build-system independent.
  */
 fun getTestPackageName(facet: AndroidFacet): String? {
-  val flavor = AndroidModuleModel.get(facet)?.selectedVariant?.mergedFlavor ?: return null
-  return flavor.testApplicationId ?: run {
+  val variant = AndroidModuleModel.get(facet)?.selectedVariant?: return null
+  return variant.testApplicationId ?: run {
     // That's how AGP works today: in apps the applicationId from the model is used with the ".test" suffix (ignoring the manifest), in libs
     // there is no applicationId and the package name from the manifest is used with the suffix.
-    val applicationId = if (facet.configuration.isLibraryProject) getPackageName(facet) else flavor.applicationId
+    val applicationId = if (facet.configuration.isLibraryProject) getPackageName(facet) else variant.mergedFlavor.applicationId
     if (applicationId.isNullOrEmpty()) null else "$applicationId.test"
   }
 }

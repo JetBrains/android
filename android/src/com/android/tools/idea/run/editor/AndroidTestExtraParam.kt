@@ -105,7 +105,7 @@ fun Sequence<AndroidTestExtraParam>.merge(params: Sequence<AndroidTestExtraParam
  * Retrieves [AndroidTestExtraParam]s from a given [AndroidModuleModel].
  */
 fun AndroidModuleModel?.getAndroidTestExtraParams(): Sequence<AndroidTestExtraParam> {
-  return this?.selectedVariant?.mergedFlavor?.testInstrumentationRunnerArguments?.asSequence()?.map { (key, value) ->
+  return this?.selectedVariant?.testInstrumentationRunnerArguments?.asSequence()?.map { (key, value) ->
     AndroidTestExtraParam(key, value, value, AndroidTestExtraParamSource.GRADLE)
   } ?: emptySequence()
 }
