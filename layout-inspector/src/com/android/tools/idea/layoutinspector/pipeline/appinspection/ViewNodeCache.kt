@@ -72,9 +72,9 @@ abstract class ViewNodeCache<D>(
   suspend fun getDataFor(node: ViewNode): D? {
     val root = model.rootFor(node) ?: return null // Unrooted nodes are not supported
     val cached = cache[root.drawId]?.get(node.drawId)
-      if (cached != null) {
-        return cached
-      }
+    if (cached != null) {
+      return cached
+    }
 
     // Don't update the cache if we're not actively communicating with the inspector. Otherwise,
     // we might override values with those that don't match our last snapshot.
