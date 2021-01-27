@@ -25,16 +25,3 @@ import org.jetbrains.kotlin.idea.facet.KotlinFacetType
 fun Project.hasAnyKotlinModules(): Boolean = ProjectFacetManager.getInstance(this).hasFacets(KotlinFacetType.TYPE_ID)
 
 fun Module.hasKotlinFacet(): Boolean = KotlinFacet.get(this) != null
-
-fun isKotlinPluginAvailable(): Boolean {
-  return try {
-    Class.forName("org.jetbrains.kotlin.idea.facet.KotlinFacet")
-    true
-  }
-  catch (e: ClassNotFoundException) {
-    false
-  }
-  catch (e: LinkageError) {
-    false
-  }
-}
