@@ -43,7 +43,4 @@ class SqliteFileTypeDetector : FileTypeRegistry.FileTypeDetector {
     return SQLITE3_FORMAT_HEADER.size
   }
 
-  override fun getDetectedFileTypes(): Collection<FileType> {
-    return listOf(SqliteFileType)
-  }
 }
