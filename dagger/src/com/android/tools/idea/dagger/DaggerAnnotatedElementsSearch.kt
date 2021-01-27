@@ -324,7 +324,8 @@ private val kotlinPrimitiveTypeFqNameToPsiType: Map<String, PsiType> = mapOf(
 
 private val kotlinTypeMapper = KotlinTypeMapper(
   BindingContext.EMPTY, ClassBuilderMode.LIGHT_CLASSES,
-  JvmProtoBufUtil.DEFAULT_MODULE_NAME, KotlinTypeMapper.LANGUAGE_VERSION_SETTINGS_DEFAULT
+  JvmProtoBufUtil.DEFAULT_MODULE_NAME, KotlinTypeMapper.LANGUAGE_VERSION_SETTINGS_DEFAULT,
+  useOldInlineClassesManglingScheme = false
 )
 
 private fun PsiBasedClassResolver.matchAnnotation(annotationEntry: KtAnnotationEntry): Boolean {

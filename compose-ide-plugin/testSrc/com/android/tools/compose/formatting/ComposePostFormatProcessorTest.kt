@@ -23,6 +23,7 @@ import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.loadNewFile
+import com.intellij.application.options.CodeStyle
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.codeStyle.CodeStyleManager
@@ -65,7 +66,7 @@ class ComposePostFormatProcessorTest {
     """.trimIndent()
     )
 
-    val settings = KotlinCodeStyleSettings.getInstance(project)
+    val settings = CodeStyle.getSettings(project).getCustomSettings(KotlinCodeStyleSettings::class.java)
     settings.CONTINUATION_INDENT_FOR_CHAINED_CALLS = false
   }
 
