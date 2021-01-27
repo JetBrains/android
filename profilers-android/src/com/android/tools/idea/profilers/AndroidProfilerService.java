@@ -42,7 +42,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * An application-level service that manages application level configurations for the profilers. When constructed this class subscribes
- * itself to the application MessageBus and listens for {@link TransportDeviceManager.TOPIC} events.
+ * itself to the application MessageBus and listens for {@link TransportDeviceManager#TOPIC} events.
  */
 public class AndroidProfilerService implements TransportDeviceManager.TransportDeviceManagerListener {
   private final int LIVE_ALLOCATION_STACK_DEPTH = Integer.getInteger("profiler.alloc.stack.depth", 50);
@@ -72,7 +72,7 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
 
   @Override
   public void customizeProxyService(@NotNull TransportProxy proxy) {
-    ProfilerServiceProxyManager.registerProxies(proxy);
+    // Register profiler-specific command handlers (memory GC, pre-O CPU recording, etc.).
     ProfilerServiceProxyManager.registerCommandHandlers(proxy);
 
     // Instantiate and register energy usage preprocessor, which preprocesses unified events and periodically insert energy usage events
