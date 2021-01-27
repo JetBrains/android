@@ -22,6 +22,8 @@ import com.android.tools.idea.layoutinspector.resource.data.Configuration
 import com.android.tools.idea.layoutinspector.resource.data.Locale
 import com.android.tools.idea.layoutinspector.resource.data.Resource
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import java.awt.Polygon
+import java.awt.Shape
 
 fun LayoutInspectorViewProtocol.Screenshot.Type.toImageType(): AndroidWindow.ImageType {
   return when (this) {
@@ -73,4 +75,8 @@ fun LayoutInspectorViewProtocol.AppContext.convert(): AppContext {
 
 fun LayoutInspectorViewProtocol.Property.Type.convert(): PropertyType {
   return PropertyType.values()[this.number]
+}
+
+fun LayoutInspectorViewProtocol.Quad.toShape(): Shape {
+  return Polygon(intArrayOf(x0, x1, x2, x3), intArrayOf(y0, y1, y2, y3), 4)
 }

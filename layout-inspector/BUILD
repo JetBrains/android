@@ -113,6 +113,7 @@ iml_module(
         "//tools/adt/idea/app-inspection/ide:intellij.android.app-inspection.ide[module, test]",
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module, test]",
         "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto[test]",
+        "//tools/adt/idea/.idea/libraries:layoutinspector-compose-proto[test]",
         "//tools/adt/idea/layout-inspector:skiaparser_test_support",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
     ],
