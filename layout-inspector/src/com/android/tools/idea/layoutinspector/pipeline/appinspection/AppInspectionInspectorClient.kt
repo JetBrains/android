@@ -49,7 +49,7 @@ import java.util.EnumSet
  *     coroutine scope is used to handle the bridge between the two approaches.
  */
 class AppInspectionInspectorClient(
-  private val adb: AndroidDebugBridge,
+  adb: AndroidDebugBridge,
   process: ProcessDescriptor,
   private val model: InspectorModel,
   @TestOnly private val apiServices: AppInspectionApiServices = AppInspectionDiscoveryService.instance.apiServices,
