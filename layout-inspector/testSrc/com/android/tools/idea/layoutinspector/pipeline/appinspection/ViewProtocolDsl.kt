@@ -19,8 +19,11 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Bounds
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.LayoutEvent
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Property
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.PropertyGroup
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Quad
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Rect
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Resource
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StringEntry
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.ViewNode
 
@@ -33,8 +36,15 @@ import layoutinspector.view.inspection.LayoutInspectorViewProtocol.ViewNode
 // The rule of thumb for adding a utility method here or not is if you find yourself otherwise writing a ton of
 // `Proto.Class.newBuilder().apply` noise in your tests, especially if within deep, nested tree structures.
 
+// Need to create a helper function to avoid name ambiguity
+private fun createViewString(id: Int, str: String): StringEntry {
+  return StringEntry.newBuilder().setId(id).setStr(str).build()
+}
+
+fun ViewString(id: Int, str: String) = createViewString(id, str)
+
 fun LayoutEvent.Builder.ViewString(id: Int, str: String) {
-  addStrings(StringEntry.newBuilder().setId(id).setStr(str).build())
+  addStrings(createViewString(id, str))
 }
 
 // Need to create a helper function to avoid name ambiguity
@@ -72,4 +82,20 @@ fun Quad(x0: Int, y0: Int, x1: Int, y1: Int, x2: Int, y2: Int, x3: Int, y3: Int)
     this.x3 = x3
     this.y3 = y3
   }.build()
+}
+
+fun Resource(type: Int, namespace: Int, name: Int): Resource {
+  return Resource.newBuilder().apply {
+    this.type = type
+    this.namespace = namespace
+    this.name = name
+  }.build()
+}
+
+fun PropertyGroup(init: PropertyGroup.Builder.() -> Unit): PropertyGroup {
+  return PropertyGroup.newBuilder().apply(init).build()
+}
+
+fun PropertyGroup.Builder.Property(init: Property.Builder.() -> Unit) {
+  addProperty(Property.newBuilder().apply(init).build())
 }
