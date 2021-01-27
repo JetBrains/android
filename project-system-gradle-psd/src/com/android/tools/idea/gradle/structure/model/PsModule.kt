@@ -321,6 +321,12 @@ abstract class PsModule protected constructor(
       parsedModel?.repositories()?.repositories().orEmpty().mapNotNull { repositoryModel ->
         repositoryModel.toArtifactRepository()
       })
+    if (repositories.isEmpty()) {
+      val settingsModel = parent.parsedModel.projectSettingsModel ?: return
+      repositories.addAll(settingsModel.dependencyResolutionManagement().repositories().repositories().mapNotNull { repositoryModel ->
+        repositoryModel.toArtifactRepository()
+      })
+    }
   }
 
   interface ModuleChangedListener : EventListener {
