@@ -95,26 +95,34 @@ class ManageSnapshotsDialogTest {
     enableHeadlessDialogs(testRootDisposable)
     emulatorView = emulatorViewRule.newEmulatorView()
     emulator = emulatorViewRule.getFakeEmulator(emulatorView)
-    assertThat(getOpenManageSnapshotsDialogs()).isEmpty()
+    closeAllManageSnapshotDialogs()
   }
 
   @After
   fun tearDown() {
+    println("${currentTime()} tearDown: started")
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     EmulatorSettings.getInstance().snapshotAutoDeletionPolicy = DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY
+
     val dialog = findManageSnapshotDialog(emulatorView)
-    val msg = dialog?.let { "the dialog was not closed by the test" } ?: ""
-    println("${currentTime()} tearDown: $msg")
+    dialog?.let { println("${currentTime()} tearDown: the dialog was not closed by the test") }
     dialog?.close(DialogWrapper.CLOSE_EXIT_CODE) // Close the dialog in case it wasn't closed by the test.
     if (findManageSnapshotDialog(emulatorView) != null) {
-      println("${currentTime()} the dialog is still not closed after calling close(DialogWrapper.CLOSE_EXIT_CODE)")
+      println("${currentTime()} tearDown: the dialog is still not closed after calling close(DialogWrapper.CLOSE_EXIT_CODE)")
     }
     val count = getOpenManageSnapshotsDialogs().size
     if (count != 0) {
       println("${currentTime()} tearDown: there are still $count open dialogs remaining")
     }
     println("${currentTime()} tearDown: finished")
+  }
+
+  private fun closeAllManageSnapshotDialogs() {
+    for (dialog in getOpenManageSnapshotsDialogs().values) {
+      dialog.close(DialogWrapper.CLOSE_EXIT_CODE)
+    }
+    assertThat(getOpenManageSnapshotsDialogs()).isEmpty()
   }
 
   @Test
