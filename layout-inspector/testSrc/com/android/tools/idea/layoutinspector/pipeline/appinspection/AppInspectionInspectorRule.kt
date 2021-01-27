@@ -65,18 +65,18 @@ class AppInspectionInspectorRule : TestRule {
   private val inspectionService = AppInspectionServiceRule(timer, transportService, grpcServer)
 
   /**
-   * A fake handler which pretends to be acting like an inspector running on device normally would.
+   * A fake which pretends to be acting like an inspector running on device normally would.
    *
    * Use this to intercept commands normally sent to the view inspector.
    */
-  val viewInspectorHandler = FakeViewLayoutInspector()
+  val viewInspector = FakeViewLayoutInspector()
 
   init {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestAppInspectorCommandHandler(
       timer,
       rawInspectorResponse = { rawCommand ->
         val viewCommand = ViewProtocol.Command.parseFrom(rawCommand.content)
-        val viewResponse = viewInspectorHandler.handleCommand(viewCommand)
+        val viewResponse = viewInspector.handleCommand(viewCommand)
         val rawResponse = AppInspection.RawResponse.newBuilder().setContent(viewResponse.toByteString())
         AppInspection.AppInspectionResponse.newBuilder().setRawResponse(rawResponse)
       })
