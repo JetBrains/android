@@ -42,8 +42,7 @@ import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtoc
  * Note that some parameters are provided lazily to allow rules to initialize them first.
  */
 class AppInspectionClientProvider(private val getApiServices: () -> AppInspectionApiServices,
-                                  private val getScope: () -> CoroutineScope,
-                                  private val inspectorId: String)
+                                  private val getScope: () -> CoroutineScope)
   : InspectorClientProvider {
   override fun create(params: InspectorClientLauncher.Params, model: InspectorModel): InspectorClient {
     val apiServices = getApiServices()
@@ -71,7 +70,16 @@ class AppInspectionInspectorRule : TestRule {
    *
    * Use this to intercept commands normally sent to the view inspector.
    */
-  val viewInspector = FakeViewLayoutInspector()
+  val viewInspector = FakeViewLayoutInspector(object : FakeViewLayoutInspector.Connection() {
+    override fun sendEvent(event: layoutinspector.view.inspection.LayoutInspectorViewProtocol.Event) {
+      inspectionService.addAppInspectionEvent(
+        AppInspection.AppInspectionEvent.newBuilder().apply {
+          inspectorId = VIEW_LAYOUT_INSPECTOR_ID
+          rawEventBuilder.content = event.toByteString()
+        }.build()
+      )
+    }
+  })
 
   init {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestAppInspectorCommandHandler(
@@ -88,8 +96,8 @@ class AppInspectionInspectorRule : TestRule {
   /**
    * Convenience method so users don't have to manually create an [AppInspectionClientProvider].
    */
-  fun createInspectorClientProvider(inspectorId: String = VIEW_LAYOUT_INSPECTOR_ID): AppInspectionClientProvider {
-    return AppInspectionClientProvider({ inspectionService.apiServices }, { inspectionService.scope }, inspectorId)
+  fun createInspectorClientProvider(): AppInspectionClientProvider {
+    return AppInspectionClientProvider({ inspectionService.apiServices }, { inspectionService.scope })
   }
 
   override fun apply(base: Statement, description: Description): Statement {
