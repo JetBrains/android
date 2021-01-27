@@ -20,7 +20,6 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.util.addDependenciesWithUiConfirmation
 import com.android.tools.idea.util.dependsOn
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -65,8 +64,12 @@ class ComposeDependencyChecker(private val project: Project) {
       if (missing.isNotEmpty()) {
         // Only sync once:
         // Add the first operation with requestSync=true and perform the operation in reversed order below.
-        val sync = operations.isEmpty()
-        operations.add { module.addDependenciesWithUiConfirmation(missing, promptUserBeforeAdding = false, requestSync = sync) }
+
+        // Temporary disable the actual library addition:
+        //     val sync = operations.isEmpty()
+        //     operations.add { module.addDependenciesWithUiConfirmation(missing, promptUserBeforeAdding = false, requestSync = sync) }
+        operations.add {}
+        // End temporary change
       }
     }
 
