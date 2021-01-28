@@ -20,6 +20,7 @@ import com.android.tools.componenttree.api.ComponentTreeBuilder
 import com.android.tools.componenttree.api.ComponentTreeModel
 import com.android.tools.componenttree.api.ComponentTreeSelectionModel
 import com.android.tools.componenttree.api.ViewNodeType
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
@@ -31,6 +32,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.application.ApplicationManager
 import java.util.Collections
@@ -86,6 +88,15 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     layoutInspector?.layoutInspectorModel?.modificationListeners?.add(this::modelModified)
     componentTreeModel.treeRoot = layoutInspector?.layoutInspectorModel?.root
     toolContext?.layoutInspectorModel?.selectionListeners?.add(this::selectionChanged)
+  }
+
+  override fun getGearActions(): List<AnAction> {
+    return if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPONENT_TREE_OPTIONS.get()) {
+      listOf(CallstackAction, DrawablesInCallstackAction)
+    }
+    else {
+      listOf()
+    }
   }
 
   override fun getAdditionalActions() = listOf(FilterNodeAction)
