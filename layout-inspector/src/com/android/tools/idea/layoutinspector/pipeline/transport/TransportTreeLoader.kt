@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.project.Project
@@ -105,7 +106,7 @@ private class TransportTreeLoaderImpl(
     return null
   }
 
-  private fun loadView(view: LayoutInspectorProto.View): ViewNode {
+  private fun loadView(view: LayoutInspectorProto.View, parent: ViewNode? = null, parentIsCallstack: Boolean = false): ViewNode {
     if (isInterrupted) {
       throw InterruptedException()
     }
@@ -121,19 +122,23 @@ private class TransportTreeLoaderImpl(
         }
       }
       else null
+    var canAddToCallstack = false
     val node = if (view.packageName != 0) {
       ViewNode(view.drawId, qualifiedName, layout, view.x, view.y, view.width, view.height, transformedBounds, viewId, textValue,
                view.layoutFlags)
     }
     else {
       val composeFileName = stringTable[view.composeFilename]
+      canAddToCallstack = view.subViewCount == 1 &&
+                          TreeSettings.composeAsCallstack &&
+                          (TreeSettings.composeDrawablesInCallstack || view.subViewList.first().drawId < 0L)
       ComposeViewNode(view.drawId, qualifiedName, layout, view.x, view.y, view.width, view.height, transformedBounds, viewId, textValue,
                       view.layoutFlags, composeFileName, view.composePackageHash, view.composeOffset, view.composeLineNumber)
     }
-    view.subViewList.map { loadView(it) }.forEach {
-      node.children.add(it)
-      it.parent = node
-    }
+    parent?.children?.add(node)
+    node.parent = parent
+    val addToNode = if (canAddToCallstack && parentIsCallstack) parent else node
+    view.subViewList.forEach { loadView(it, addToNode, canAddToCallstack) }
     return node
   }
 
