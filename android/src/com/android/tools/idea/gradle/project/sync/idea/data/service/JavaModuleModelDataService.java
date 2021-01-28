@@ -75,11 +75,6 @@ public class JavaModuleModelDataService extends ModuleModelDataService<JavaModul
   }
 
   @Override
-  protected List<@NotNull Module> eligibleOrphanCandidates(@NotNull Project project) {
-    return ContainerUtil.map(ProjectFacetManager.getInstance(project).getFacets(JavaFacet.getFacetTypeId()), JavaFacet::getModule);
-  }
-
-  @Override
   public void removeData(@NotNull Computable<? extends Collection<? extends Module>> toRemoveComputable,
                          @NotNull Collection<? extends DataNode<JavaModuleModel>> toIgnore,
                          @NotNull ProjectData projectData,
