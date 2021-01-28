@@ -43,7 +43,7 @@
         </constraints>
         <properties>
           <editable value="false"/>
-          <foreground color="-11645362"/>
+          <font size="11"/>
           <text value="Allows the profilers to track data such as network payloads, application events and object counts for devices running API level &lt; 26, but it might have a minor performance impact on your build speeds. "/>
         </properties>
       </component>
@@ -65,8 +65,7 @@
           <doubleBuffered value="false"/>
           <editable value="false"/>
           <enabled value="true"/>
-          <font size="9"/>
-          <foreground color="-11645362"/>
+          <font size="11"/>
           <margin top="0" left="3" bottom="0" right="3"/>
           <text value="Native memory sampling rate. This value when set will remain for both startup and non-startup recordings." noi18n="true"/>
         </properties>
@@ -153,8 +152,7 @@
           <doubleBuffered value="false"/>
           <editable value="false"/>
           <enabled value="true"/>
-          <font size="9"/>
-          <foreground color="-11645362"/>
+          <font size="11"/>
           <margin top="0" left="3" bottom="0" right="3"/>
           <text value="You must select Run &gt; Profile from the main menu and deploy your app to a device" noi18n="true"/>
         </properties>
