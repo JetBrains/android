@@ -20,6 +20,7 @@ import com.intellij.codeInsight.CodeInsightSettings
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInsight.daemon.quickFix.ActionHint
 import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.util.io.FileUtil
@@ -39,7 +40,6 @@ import org.jetbrains.kotlin.android.KotlinLightProjectDescriptor
 import org.jetbrains.kotlin.android.KotlinTestUtils
 import org.jetbrains.kotlin.idea.test.configureCompilerOptions
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.test.testFramework.runWriteAction
 import java.io.File
 import java.util.ArrayList
 import java.util.regex.Pattern
