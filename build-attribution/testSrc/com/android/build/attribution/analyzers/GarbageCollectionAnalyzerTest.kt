@@ -15,7 +15,9 @@
  */
 package com.android.build.attribution.analyzers
 
+import com.android.build.attribution.data.GradlePluginsData
 import com.android.build.attribution.data.PluginContainer
+import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.data.TaskContainer
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData.JavaInfo
@@ -36,7 +38,7 @@ class GarbageCollectionAnalyzerTest {
     analyzersWrapper.onBuildSuccess(AndroidGradlePluginAttributionData(
       garbageCollectionData = mapOf(("gc1" to 500L), ("gc2" to 200L)),
       javaInfo = JavaInfo("11.0.8", "N/A", "", emptyList())
-    ), analyzersProxy)
+    ), GradlePluginsData.emptyData, analyzersProxy, StudioProvidedInfo(null, null))
 
     assertThat(analyzersProxy.getTotalGarbageCollectionTimeMs()).isEqualTo(700)
 

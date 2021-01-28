@@ -20,14 +20,18 @@ import com.android.build.attribution.analytics.BuildAttributionAnalyticsManager
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
 import com.android.build.attribution.analyzers.BuildAnalyzersWrapper
 import com.android.build.attribution.data.PluginContainer
+import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.ui.BuildAttributionUiManager
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
+import com.android.tools.idea.gradle.util.GradleProperties
 import com.android.utils.FileUtils
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import org.gradle.tooling.events.ProgressEvent
 import java.io.File
@@ -45,6 +49,7 @@ class BuildAttributionManagerImpl(
 
   override fun onBuildStart() {
     analyzersWrapper.onBuildStart()
+    ServiceManager.getService(KnownGradlePluginsService::class.java).asyncRefresh()
   }
 
   override fun onBuildSuccess(attributionFileDir: File) {
@@ -55,7 +60,12 @@ class BuildAttributionManagerImpl(
       analyticsManager.logBuildAttributionPerformanceStats(buildFinishedTimestamp - analyzersProxy.getBuildFinishedTimestamp()) {
         try {
           val attributionData = AndroidGradlePluginAttributionData.load(attributionFileDir)
-          analyzersWrapper.onBuildSuccess(attributionData, analyzersProxy)
+          val pluginsData = ServiceManager.getService(KnownGradlePluginsService::class.java).gradlePluginsData
+          val studioProvidedInfo = StudioProvidedInfo(
+            agpVersion = AndroidPluginInfo.find(project)?.pluginVersion,
+            configurationCachingGradlePropertyState = GradleProperties(project).properties.getProperty("org.gradle.unsafe.configuration-cache")
+          )
+          analyzersWrapper.onBuildSuccess(attributionData, pluginsData, analyzersProxy, studioProvidedInfo)
         }
         finally {
           FileUtils.deleteRecursivelyIfExists(FileUtils.join(attributionFileDir, SdkConstants.FD_BUILD_ATTRIBUTION))

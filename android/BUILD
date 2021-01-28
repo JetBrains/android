@@ -1039,6 +1039,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-gradle-plugin-model/1.4.30:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-gradle-plugin/1.3.20:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-gradle-plugin/1.3.72:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-gradle-plugin/1.4.10:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-gradle-plugin/1.4.20:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-gradle-plugin/1.4.30:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-native-utils/1.3.20:jar",

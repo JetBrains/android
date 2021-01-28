@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.analyzers
 
+import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TasksSharingOutputData
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
@@ -38,7 +39,7 @@ class TasksConfigurationIssuesAnalyzer(
     tasksSharingOutput = androidGradlePluginAttributionData.tasksSharingOutput
   }
 
-  override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalysisResult) {
+  override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalysisResult, studioProvidedInfo: StudioProvidedInfo) {
     ensureResultCalculated()
   }
 

@@ -16,8 +16,9 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionManagerImpl
+import com.android.build.attribution.data.GradlePluginsData
 import com.android.build.attribution.data.PluginContainer
-import com.android.build.attribution.data.PluginData
+import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import com.android.tools.idea.flags.StudioFlags
@@ -101,7 +102,12 @@ class CriticalPathAnalyzerTest {
 
     // When the build is finished successfully and the analyzer is run
 
-    wrapper.onBuildSuccess(null, Mockito.mock(BuildEventsAnalysisResult::class.java))
+    wrapper.onBuildSuccess(
+      null,
+      GradlePluginsData.emptyData,
+      Mockito.mock(BuildEventsAnalysisResult::class.java),
+      StudioProvidedInfo(null, null)
+    )
 
     // Then the analyzer should find this critical path
     // SAMPLE(0) -> CLEAN(5) -> A(10) -> MID1(4) -> MID2(4) -> C(30) -> D(20) -> F(10) -> LAST(17)
@@ -150,7 +156,13 @@ class CriticalPathAnalyzerTest {
 
     // When the build is finished successfully and the analyzer is run
 
-    wrapper.onBuildSuccess(null, Mockito.mock(BuildEventsAnalysisResult::class.java))
+    wrapper.onBuildSuccess(
+      null,
+      GradlePluginsData.emptyData,
+
+      Mockito.mock(BuildEventsAnalysisResult::class.java),
+      StudioProvidedInfo(null, null)
+    )
 
     // Then the analyzer should find this critical path
     // A(10) -> B(5) -> D(25)

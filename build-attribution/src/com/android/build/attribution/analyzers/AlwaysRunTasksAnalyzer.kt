@@ -17,6 +17,7 @@ package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.PluginContainer
+import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import org.gradle.tooling.events.ProgressEvent
@@ -57,7 +58,7 @@ class AlwaysRunTasksAnalyzer(
     alwaysRunTasksSet.clear()
   }
 
-  override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalysisResult) {
+  override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalysisResult, studioProvidedInfo: StudioProvidedInfo) {
     // This has to run after all build data received as it uses taskType in filter and task type is received from BuildAttributionData file.
     ensureResultCalculated()
   }

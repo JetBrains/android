@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.build.attribution.analyzers
+package com.android.build.attribution.data
 
-import com.android.build.attribution.data.StudioProvidedInfo
+import com.android.ide.common.repository.GradleVersion
 
-/**
- * Analyzer that requires to run some post-processing after build, possibly using results of other analyzers.
- */
-interface PostBuildProcessAnalyzer {
-  fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalysisResult, studioProvidedInfo: StudioProvidedInfo)
-}
+data class StudioProvidedInfo(
+  val agpVersion: GradleVersion?,
+  val configurationCachingGradlePropertyState: String?
+)
