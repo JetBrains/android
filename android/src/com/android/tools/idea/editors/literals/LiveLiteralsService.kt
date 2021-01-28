@@ -34,7 +34,7 @@ import org.jetbrains.annotations.TestOnly
 import java.awt.GraphicsEnvironment
 import java.lang.ref.WeakReference
 
-private val LITERAL_TEXT_ATTRIBUTE_KEY = TextAttributesKey.createTextAttributesKey("LiveLiteralsHighlightAttribute")
+internal val LITERAL_TEXT_ATTRIBUTE_KEY = TextAttributesKey.createTextAttributesKey("LiveLiteralsHighlightAttribute")
 
 /**
  * Time used to coalesce multiple changes without triggering onLiteralsHaveChanged calls.

@@ -784,6 +784,13 @@
     <option name="verbose" hit="Verbose" />
     <option name="warning" hit="Warning" />
   </configurable>
+  <configurable id="reference.settingsdialog.IDE.editor.colors.Live Literals" configurable_name="Live Literals">
+    <option name="literals" hit="Live Literals" />
+    <option name="live" hit="Live Literals" />
+    <option name="highlights" hit="Live Literals Highlights" />
+    <option name="literals" hit="Live Literals Highlights" />
+    <option name="live" hit="Live Literals Highlights" />
+  </configurable>
   <configurable id="project.propDebugger" configurable_name="Debugger">
     <option name="" hit=" Existing ADB server port:" />
     <option name="adb" hit=" Existing ADB server port:" />
