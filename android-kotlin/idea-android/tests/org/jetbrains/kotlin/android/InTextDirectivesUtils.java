@@ -18,22 +18,42 @@ package org.jetbrains.kotlin.android;
 
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.ArrayUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import kotlin.text.StringsKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.utils.ExceptionUtilsKt;
+import org.junit.Assert;
 
 // Adapted from the Kotlin test framework (after taking over android-kotlin sources).
 public final class InTextDirectivesUtils {
 
   private InTextDirectivesUtils() {
+  }
+
+  @Nullable
+  public static Integer getPrefixedInt(String fileText, String prefix) {
+    String[] strings = findArrayWithPrefixes(fileText, prefix);
+    if (strings.length > 0) {
+      assert strings.length == 1;
+      return Integer.parseInt(strings[0]);
+    }
+
+    return null;
+  }
+
+  @NotNull
+  public static String[] findArrayWithPrefixes(@NotNull String fileText, @NotNull String... prefixes) {
+    return ArrayUtil.toStringArray(findListWithPrefixes(fileText, prefixes));
   }
 
   @NotNull
@@ -113,6 +133,32 @@ public final class InTextDirectivesUtils {
     }
 
     return result;
+  }
+
+  public static void assertHasUnknownPrefixes(String fileText, Collection<String> knownPrefixes) {
+    Set<String> prefixes = new HashSet<>();
+
+    for (String line : fileNonEmptyCommentedLines(fileText)) {
+      String prefix = probableDirective(line);
+      if (prefix != null) {
+        prefixes.add(prefix);
+      }
+    }
+
+    prefixes.removeAll(cleanDirectivesFromComments(knownPrefixes));
+
+    Assert.assertTrue("File contains some unexpected directives" + prefixes, prefixes.isEmpty());
+  }
+
+  private static String probableDirective(String line) {
+    String[] arr = line.split(" ", 2);
+    String firstWord = arr[0];
+
+    if (firstWord.length() > 1 && StringUtil.toUpperCase(firstWord).equals(firstWord)) {
+      return firstWord;
+    }
+
+    return null;
   }
 
   private static List<String> cleanDirectivesFromComments(Collection<String> prefixes) {
