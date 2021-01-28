@@ -36,9 +36,9 @@ import junit.framework.ComparisonFailure
 import junit.framework.TestCase
 import org.jetbrains.kotlin.android.DirectiveBasedActionUtils
 import org.jetbrains.kotlin.android.KotlinLightProjectDescriptor
+import org.jetbrains.kotlin.android.KotlinTestUtils
 import org.jetbrains.kotlin.idea.test.configureCompilerOptions
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.test.KotlinTestUtils
 import org.jetbrains.kotlin.test.testFramework.runWriteAction
 import java.io.File
 import java.util.ArrayList
@@ -106,12 +106,7 @@ abstract class AbstractQuickFixMultiFileTest : LightJavaCodeInsightFixtureTestCa
 
         if (actionShouldBeAvailable) {
           val afterFilePath = beforeFileName.replace(".before.Main.", ".after.")
-          try {
-            myFixture.checkResultByFile(afterFilePath)
-          }
-          catch (e: ComparisonFailure) {
-            KotlinTestUtils.assertEqualsToFile(File(testDataPath, afterFilePath), editor)
-          }
+          myFixture.checkResultByFile(afterFilePath)
 
           for (file in myFixture.file.containingDirectory.files) {
             val fileName = file.name
