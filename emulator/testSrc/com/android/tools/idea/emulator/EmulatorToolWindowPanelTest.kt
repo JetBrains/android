@@ -25,7 +25,9 @@ import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
@@ -70,7 +72,7 @@ class EmulatorToolWindowPanelTest {
   fun setUp() {
     setPortableUiFont()
     // Necessary to properly update button states.
-    installHeadlessTestDataManager(projectRule.project, projectRule.fixture.testRootDisposable)
+    HeadlessDataManager.fallbackToProductionDataManager(projectRule.fixture.testRootDisposable)
   }
 
   @Test
@@ -205,6 +207,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(emulators).hasSize(1)
     val emulatorController = emulators.first()
     val panel = EmulatorToolWindowPanel(emulatorController)
+    Disposer.register(projectRule.fixture.testRootDisposable, panel::destroyContent)
     waitForCondition(2, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     emulator.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getStatus" call.
     return panel
