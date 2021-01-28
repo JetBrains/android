@@ -128,10 +128,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     }
   }
 
-  override fun eligibleOrphanCandidates(project: Project): List<Module> {
-    return ContainerUtil.map(ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID), AndroidFacet::getModule)
-  }
-
   override fun removeData(toRemoveComputable: Computable<out Collection<Module>>,
                           toIgnore: Collection<DataNode<AndroidModuleModel>>,
                           projectData: @NotNull ProjectData,
