@@ -733,6 +733,12 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   }
 
   @Override
+  public void delete() {
+    myProperties.forEach(e -> e.myElement.delete());
+    super.delete();
+  }
+
+  @Override
   protected void apply() {
     getDslFile().getWriter().applyDslPropertiesElement(this);
     myProperties.removeElements(GradleDslElement::delete);
