@@ -16,7 +16,7 @@
 package org.jetbrains.kotlin.android.intention
 
 import org.jetbrains.android.compose.stubComposableAnnotation
-import org.jetbrains.kotlin.test.KotlinTestUtils
+import org.jetbrains.kotlin.android.KotlinTestUtils
 
 class KotlinAndroidAddStringResourceTest : AbstractAndroidResourceIntentionTest() {
   fun testKotlinAndroidAddStringResource_composable_function() {
