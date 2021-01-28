@@ -24,6 +24,7 @@ fun androidProjectGradleSettings(appTitle: String, kotlinVersion: String): Strin
 
     """
 dependencyResolutionManagement {
+  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
   repositories {
     google()
     jcenter()
