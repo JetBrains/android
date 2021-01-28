@@ -68,8 +68,6 @@ abstract class BaseAnalyzer<T : AnalyzerResult> {
     cleanupTempState()
   }
 
-  abstract fun onBuildSuccess()
-
   fun onBuildFailure() = cleanupTempState()
 
   /**

@@ -57,8 +57,6 @@ class AlwaysRunTasksAnalyzer(
     alwaysRunTasksSet.clear()
   }
 
-  override fun onBuildSuccess() = Unit
-
   override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalysisResult) {
     // This has to run after all build data received as it uses taskType in filter and task type is received from BuildAttributionData file.
     ensureResultCalculated()

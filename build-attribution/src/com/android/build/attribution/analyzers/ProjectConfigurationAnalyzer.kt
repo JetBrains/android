@@ -133,8 +133,6 @@ class ProjectConfigurationAnalyzer(
     projectConfigurationBuilder = null
   }
 
-  override fun onBuildSuccess() = Unit
-
   override fun calculateResult(): Result = Result(
     pluginsConfigurationDataMap.toMap(),
     projectsConfigurationData.toList(),

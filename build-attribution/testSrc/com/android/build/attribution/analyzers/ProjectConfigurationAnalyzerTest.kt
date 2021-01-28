@@ -125,7 +125,6 @@ class ProjectConfigurationAnalyzerTest {
 
     analyzer.receiveEvent(createProjectConfigurationFinishEventStub(":app", 0, 4500))
 
-    analyzer.onBuildSuccess()
   }
 
   @Test

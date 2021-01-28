@@ -31,8 +31,6 @@ class NoncacheableTasksAnalyzer(
     noncacheableTasks = emptyList()
   }
 
-  override fun onBuildSuccess() = Unit
-
   override fun receiveBuildAttributionReport(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData) {
     noncacheableTasks = androidGradlePluginAttributionData.noncacheableTasks
       .mapNotNull(taskContainer::getTask)

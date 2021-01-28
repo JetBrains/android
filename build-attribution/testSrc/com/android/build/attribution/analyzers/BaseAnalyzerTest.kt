@@ -33,12 +33,9 @@ class BaseAnalyzerTest {
       }
 
       override fun cleanupTempState() = Unit
-
-      override fun onBuildSuccess() = Unit
     }
 
     analyzer.onBuildStart()
-    analyzer.onBuildSuccess()
     val result1 = analyzer.result
     val result2 = analyzer.result
 
@@ -57,12 +54,9 @@ class BaseAnalyzerTest {
       override fun cleanupTempState() {
         cleanUpCallsCount++
       }
-
-      override fun onBuildSuccess() = Unit
     }
 
     analyzer.onBuildStart()
-    analyzer.onBuildSuccess()
     analyzer.result
 
     // Should be called on start and after compute.
@@ -79,8 +73,6 @@ class BaseAnalyzerTest {
       override fun cleanupTempState() {
         cleanUpCallsCount++
       }
-
-      override fun onBuildSuccess() = Unit
     }
 
     analyzer.onBuildStart()
@@ -99,8 +91,6 @@ class BaseAnalyzerTest {
       }
 
       override fun cleanupTempState() = Unit
-
-      override fun onBuildSuccess() = Unit
     }
 
     val analyzer1 = AnalyzerWithDependency()
