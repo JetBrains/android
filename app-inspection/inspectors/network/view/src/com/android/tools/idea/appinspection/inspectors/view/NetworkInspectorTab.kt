@@ -16,17 +16,16 @@
 package com.android.tools.idea.appinspection.inspectors.view
 
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorClient
-import kotlinx.coroutines.runBlocking
 import javax.swing.JButton
 
 class NetworkInspectorTab(private val client: NetworkInspectorClient) {
   val component = JButton("Click here")
 
   init {
-    component.addActionListener {
-      runBlocking {
-        component.text = client.send("Hello World!")
-      }
-    }
+    //component.addActionListener {
+    //  runBlocking {
+    //    component.text = client.send("Hello World!")
+    //  }
+    //}
   }
 }
