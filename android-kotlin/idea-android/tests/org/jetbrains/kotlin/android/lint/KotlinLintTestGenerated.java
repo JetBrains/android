@@ -7,130 +7,125 @@ package org.jetbrains.kotlin.android.lint;
 
 import com.intellij.testFramework.TestDataPath;
 import org.jetbrains.kotlin.test.JUnit3RunnerWithInners;
-import org.jetbrains.kotlin.test.KotlinTestUtils;
-import org.jetbrains.kotlin.test.TargetBackend;
 import org.junit.runner.RunWith;
 
 @SuppressWarnings("all")
 @TestDataPath("$PROJECT_ROOT")
 @RunWith(JUnit3RunnerWithInners.class)
 public class KotlinLintTestGenerated extends AbstractKotlinLintTest {
-    private void runTest(String testDataFilePath) throws Exception {
-        KotlinTestUtils.runTest(this::doTest, TargetBackend.ANY, testDataFilePath);
-    }
 
     public void testDisabled() {}
     /* TODO(b/117954721): The Kotlin Lint tests in android-kotlin are flaky due to spurious errors from the Kotlin compiler.
     public void testAlarm() throws Exception {
-        runTest("idea-android/testData/android/lint/alarm.kt");
+        doTest("idea-android/testData/android/lint/alarm.kt");
     }
 
     public void testApiCheck() throws Exception {
-        runTest("idea-android/testData/android/lint/apiCheck.kt");
+        doTest("idea-android/testData/android/lint/apiCheck.kt");
     }
 
     public void testCallSuper() throws Exception {
-        runTest("idea-android/testData/android/lint/callSuper.kt");
+        doTest("idea-android/testData/android/lint/callSuper.kt");
     }
 
     public void testCloseCursor() throws Exception {
-        runTest("idea-android/testData/android/lint/closeCursor.kt");
+        doTest("idea-android/testData/android/lint/closeCursor.kt");
     }
 
     public void testCommitFragment() throws Exception {
-        runTest("idea-android/testData/android/lint/commitFragment.kt");
+        doTest("idea-android/testData/android/lint/commitFragment.kt");
     }
 
     public void testFindViewById() throws Exception {
-        runTest("idea-android/testData/android/lint/findViewById.kt");
+        doTest("idea-android/testData/android/lint/findViewById.kt");
     }
 
     public void testJavaPerformance() throws Exception {
-        runTest("idea-android/testData/android/lint/javaPerformance.kt");
+        doTest("idea-android/testData/android/lint/javaPerformance.kt");
     }
 
     public void testJavaScriptInterface() throws Exception {
-        runTest("idea-android/testData/android/lint/javaScriptInterface.kt");
+        doTest("idea-android/testData/android/lint/javaScriptInterface.kt");
     }
 
     public void testLayoutInflation() throws Exception {
-        runTest("idea-android/testData/android/lint/layoutInflation.kt");
+        doTest("idea-android/testData/android/lint/layoutInflation.kt");
     }
 
     public void testLog() throws Exception {
-        runTest("idea-android/testData/android/lint/log.kt");
+        doTest("idea-android/testData/android/lint/log.kt");
     }
 
     public void testNoInternationalSms() throws Exception {
-        runTest("idea-android/testData/android/lint/noInternationalSms.kt");
+        doTest("idea-android/testData/android/lint/noInternationalSms.kt");
     }
 
     public void testOverrideConcrete() throws Exception {
-        runTest("idea-android/testData/android/lint/overrideConcrete.kt");
+        doTest("idea-android/testData/android/lint/overrideConcrete.kt");
     }
 
     public void testParcel() throws Exception {
-        runTest("idea-android/testData/android/lint/parcel.kt");
+        doTest("idea-android/testData/android/lint/parcel.kt");
     }
 
     public void testSdCardTest() throws Exception {
-        runTest("idea-android/testData/android/lint/sdCardTest.kt");
+        doTest("idea-android/testData/android/lint/sdCardTest.kt");
     }
 
     public void testSetJavaScriptEnabled() throws Exception {
-        runTest("idea-android/testData/android/lint/setJavaScriptEnabled.kt");
+        doTest("idea-android/testData/android/lint/setJavaScriptEnabled.kt");
     }
 
     public void testSharedPrefs() throws Exception {
-        runTest("idea-android/testData/android/lint/sharedPrefs.kt");
+        doTest("idea-android/testData/android/lint/sharedPrefs.kt");
     }
 
     public void testShowDiagnosticsWhenFileIsRed() throws Exception {
-        runTest("idea-android/testData/android/lint/showDiagnosticsWhenFileIsRed.kt");
+        doTest("idea-android/testData/android/lint/showDiagnosticsWhenFileIsRed.kt");
     }
 
     public void testSqlite() throws Exception {
-        runTest("idea-android/testData/android/lint/sqlite.kt");
+        doTest("idea-android/testData/android/lint/sqlite.kt");
     }
 
     public void testSupportAnnotation() throws Exception {
-        runTest("idea-android/testData/android/lint/supportAnnotation.kt");
+        doTest("idea-android/testData/android/lint/supportAnnotation.kt");
     }
 
     public void testSystemServices() throws Exception {
-        runTest("idea-android/testData/android/lint/systemServices.kt");
+        doTest("idea-android/testData/android/lint/systemServices.kt");
     }
 
     public void testToast() throws Exception {
-        runTest("idea-android/testData/android/lint/toast.kt");
+        doTest("idea-android/testData/android/lint/toast.kt");
     }
 
     public void testValueOf() throws Exception {
-        runTest("idea-android/testData/android/lint/valueOf.kt");
+        doTest("idea-android/testData/android/lint/valueOf.kt");
     }
 
     public void testVelocityTrackerRecycle() throws Exception {
-        runTest("idea-android/testData/android/lint/velocityTrackerRecycle.kt");
+        doTest("idea-android/testData/android/lint/velocityTrackerRecycle.kt");
     }
 
     public void testViewConstructor() throws Exception {
-        runTest("idea-android/testData/android/lint/viewConstructor.kt");
+        doTest("idea-android/testData/android/lint/viewConstructor.kt");
     }
 
     public void testViewHolder() throws Exception {
-        runTest("idea-android/testData/android/lint/viewHolder.kt");
+        doTest("idea-android/testData/android/lint/viewHolder.kt");
     }
 
     public void testWrongAnnotation() throws Exception {
-        runTest("idea-android/testData/android/lint/wrongAnnotation.kt");
+        doTest("idea-android/testData/android/lint/wrongAnnotation.kt");
     }
 
     public void testWrongImport() throws Exception {
-        runTest("idea-android/testData/android/lint/wrongImport.kt");
+        doTest("idea-android/testData/android/lint/wrongImport.kt");
     }
 
     public void testWrongViewCall() throws Exception {
-        runTest("idea-android/testData/android/lint/wrongViewCall.kt");
+        doTest("idea-android/testData/android/lint/wrongViewCall.kt");
     }
     TODO(b/117954721): The Kotlin Lint tests in android-kotlin are flaky due to spurious errors from the Kotlin compiler. */
 }
