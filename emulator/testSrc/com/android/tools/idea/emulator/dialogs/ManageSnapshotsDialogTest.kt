@@ -36,6 +36,7 @@ import com.android.tools.idea.testing.DebugLoggerRule
 import com.android.utils.TraceUtils.currentTime
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
@@ -95,34 +96,28 @@ class ManageSnapshotsDialogTest {
     enableHeadlessDialogs(testRootDisposable)
     emulatorView = emulatorViewRule.newEmulatorView()
     emulator = emulatorViewRule.getFakeEmulator(emulatorView)
-    closeAllManageSnapshotDialogs()
+    Disposer.register(testRootDisposable) {
+      println("${currentTime()} Cleanup started")
+      val dialog = findManageSnapshotDialog(emulatorView)
+      dialog?.let { println("${currentTime()} the dialog was not closed by the test") }
+      dialog?.disposeIfNeeded()
+      if (findManageSnapshotDialog(emulatorView) != null) {
+        println("${currentTime()} the dialog is still not closed after calling disposeIfNeeded")
+      }
+
+      EmulatorSettings.getInstance().snapshotAutoDeletionPolicy = DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY
+      println("${currentTime()} Cleanup finished")
+    }
   }
 
   @After
   fun tearDown() {
     println("${currentTime()} tearDown: started")
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-
-    EmulatorSettings.getInstance().snapshotAutoDeletionPolicy = DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY
-
-    val dialog = findManageSnapshotDialog(emulatorView)
-    dialog?.let { println("${currentTime()} tearDown: the dialog was not closed by the test") }
-    dialog?.close(DialogWrapper.CLOSE_EXIT_CODE) // Close the dialog in case it wasn't closed by the test.
-    if (findManageSnapshotDialog(emulatorView) != null) {
-      println("${currentTime()} tearDown: the dialog is still not closed after calling close(DialogWrapper.CLOSE_EXIT_CODE)")
-    }
     val count = getOpenManageSnapshotsDialogs().size
     if (count != 0) {
       println("${currentTime()} tearDown: there are still $count open dialogs remaining")
     }
     println("${currentTime()} tearDown: finished")
-  }
-
-  private fun closeAllManageSnapshotDialogs() {
-    for (dialog in getOpenManageSnapshotsDialogs().values) {
-      dialog.close(DialogWrapper.CLOSE_EXIT_CODE)
-    }
-    assertThat(getOpenManageSnapshotsDialogs()).isEmpty()
   }
 
   @Test
@@ -285,6 +280,7 @@ class ManageSnapshotsDialogTest {
 
   @Test
   fun testIncompatibleSnapshotsConfirmedDeletion() {
+    assertThat(EmulatorSettings.getInstance().snapshotAutoDeletionPolicy).isEqualTo(SnapshotAutoDeletionPolicy.ASK_BEFORE_DELETING)
     emulator.createSnapshot("valid_snapshot")
     emulator.createIncompatibleSnapshot("incompatible_snapshot1")
     emulator.createIncompatibleSnapshot("incompatible_snapshot2")
@@ -319,6 +315,7 @@ class ManageSnapshotsDialogTest {
 
   @Test
   fun testIncompatibleSnapshotsDeclinedDeletion() {
+    assertThat(EmulatorSettings.getInstance().snapshotAutoDeletionPolicy).isEqualTo(SnapshotAutoDeletionPolicy.ASK_BEFORE_DELETING)
     emulator.createSnapshot("valid_snapshot")
     emulator.createIncompatibleSnapshot("incompatible_snapshot1")
     emulator.createIncompatibleSnapshot("incompatible_snapshot2")
