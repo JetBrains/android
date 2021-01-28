@@ -69,8 +69,6 @@ class EmulatorToolWindowManagerTest {
 
   @Before
   fun setUp() {
-    // Necessary to properly update button states.
-    installHeadlessTestDataManager(project, projectRule.testRootDisposable)
     val windowManager = TestToolWindowManager(project)
     toolWindow = windowManager.toolWindow
     project.registerServiceInstance(ToolWindowManager::class.java, windowManager)

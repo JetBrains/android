@@ -47,6 +47,7 @@ import com.intellij.ide.dnd.DnDEvent
 import com.intellij.ide.dnd.DnDManager
 import com.intellij.ide.dnd.DnDTarget
 import com.intellij.ide.dnd.TransferableWrapper
+import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
@@ -122,7 +123,7 @@ class EmulatorToolWindowPanelTest {
   @Before
   fun setUp() {
     // Necessary to properly update toolbar button states.
-    installHeadlessTestDataManager(projectRule.project, testRootDisposable)
+    HeadlessDataManager.fallbackToProductionDataManager(testRootDisposable)
   }
 
   @Test
