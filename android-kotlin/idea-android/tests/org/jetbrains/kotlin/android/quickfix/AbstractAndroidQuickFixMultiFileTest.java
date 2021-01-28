@@ -23,9 +23,10 @@ import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.facet.impl.FacetUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.Extensions;
+import com.intellij.psi.PsiFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.idea.test.KotlinTestImportFilter;
+import org.jetbrains.kotlin.android.InTextDirectivesUtils;
 
 public abstract class AbstractAndroidQuickFixMultiFileTest extends AbstractQuickFixMultiFileTest {
 
@@ -39,13 +40,13 @@ public abstract class AbstractAndroidQuickFixMultiFileTest extends AbstractQuick
     protected void setUp() {
         super.setUp();
         addAndroidFacet();
-        Extensions.getRootArea().getExtensionPoint(ImportFilter.EP_NAME).registerExtension(KotlinTestImportFilter.INSTANCE);
+        Extensions.getRootArea().getExtensionPoint(ImportFilter.EP_NAME).registerExtension(new KotlinTestImportFilter());
     }
 
     @Override
     protected void tearDown() {
         try {
-            Extensions.getRootArea().getExtensionPoint(ImportFilter.EP_NAME).unregisterExtension(KotlinTestImportFilter.INSTANCE);
+            Extensions.getRootArea().getExtensionPoint(ImportFilter.EP_NAME).unregisterExtension(new KotlinTestImportFilter());
             AndroidFacet facet = FacetManager.getInstance(myFixture.getModule()).getFacetByType(AndroidFacet.getFacetType().getId());
             FacetUtil.deleteFacet(facet);
         } finally {
@@ -60,5 +61,14 @@ public abstract class AbstractAndroidQuickFixMultiFileTest extends AbstractQuick
         ModifiableFacetModel facetModel = facetManager.createModifiableModel();
         facetModel.addFacet(facet);
         ApplicationManager.getApplication().runWriteAction(facetModel::commit);
+    }
+
+    // Adapted from the Kotlin test framework (after taking over android-kotlin sources).
+    private static class KotlinTestImportFilter extends ImportFilter {
+        @Override
+        public boolean shouldUseFullyQualifiedName(@NotNull PsiFile file,
+                                                   @NotNull String fqName) {
+            return InTextDirectivesUtils.findLinesWithPrefixesRemoved(file.getText(), "// DO_NOT_IMPORT:").contains(fqName);
+        }
     }
 }
