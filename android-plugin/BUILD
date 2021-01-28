@@ -49,5 +49,6 @@ iml_module(
         "//tools/adt/idea/android-test-retention:intellij.android.testRetention[module]",
         "//tools/adt/idea/app-inspection/inspectors/workmanager/ide:intellij.android.app-inspection.inspectors.workmanager.ide[module]",
         "//tools/adt/idea/app-inspection/inspectors/network/ide:intellij.android.app-inspection.inspectors.network.ide[module]",
+        "//tools/adt/idea/app-inspection/inspectors/backgroundtask/ide:intellij.android.app-inspection.inspectors.backgroundtask.ide[module]",
     ],
 )

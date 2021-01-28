@@ -449,6 +449,7 @@ filegroup(
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
         "//tools/analytics-library/protos/src/main/proto:studio.proto",
         "//tools/base/app-inspection/inspectors/network:network_inspector_java_proto",
+        "//tools/base/app-inspection/inspectors/backgroundtask:backgroundtask_inspector_java_proto",
         "//tools/base/bazel:studio-grpc",
         "//tools/base/bazel:studio-proto",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.

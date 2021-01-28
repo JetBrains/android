@@ -1214,6 +1214,16 @@ public final class StudioFlags {
   );
   // endregion
 
+  // region BackgroundTask Inspector
+  private static final FlagGroup BACKGROUND_TASK_INSPECTOR =
+    new FlagGroup(FLAGS, "backgroundtask.inspector", "BackgroundTask Inspector");
+  public static final Flag<Boolean> ENABLE_BACKGROUND_TASK_INSPECTOR_TAB = Flag.create(
+    BACKGROUND_TASK_INSPECTOR, "enable.backgroundtask.inspector.tab", "Enable BackgroundTask Inspector Tab",
+    "Enables a BackgroundTask Inspector Tab in the App Inspection tool window",
+    false
+  );
+  // endregion
+
   //region Device Manager
   private static final FlagGroup DEVICE_MANAGER = new FlagGroup(FLAGS, "device.manager", "Device Manager");
   public static final Flag<Boolean> ENABLE_NEW_DEVICE_MANAGER_PANEL = Flag.create(
