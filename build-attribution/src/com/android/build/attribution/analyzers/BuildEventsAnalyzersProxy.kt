@@ -26,6 +26,7 @@ import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
+import com.android.ide.common.repository.GradleVersion
 import kotlinx.collections.immutable.toImmutableMap
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 
@@ -57,6 +58,11 @@ interface BuildEventsAnalysisResult {
   fun getAppliedPlugins(): Map<String, List<PluginData>>
 
   /**
+   * TODO documentation
+   */
+  fun getConfigurationCachingCompatibility(): ConfigurationCachingCompatibilityProjectResult
+
+  /**
    * List of garbage collection data for this build.
    */
   fun getGarbageCollectionData(): List<GarbageCollectionData>
@@ -84,6 +90,8 @@ class BuildEventsAnalyzersProxy(
   private val garbageCollectionAnalyzer = GarbageCollectionAnalyzer()
   private val projectConfigurationAnalyzer = ProjectConfigurationAnalyzer(pluginContainer)
   private val tasksConfigurationIssuesAnalyzer = TasksConfigurationIssuesAnalyzer(taskContainer)
+  private val configurationCachingCompatibilityAnalyzer = ConfigurationCachingCompatibilityAnalyzer()
+
 
   val buildAnalyzers: List<BaseAnalyzer<*>>
     get() = listOf(
@@ -93,7 +101,8 @@ class BuildEventsAnalyzersProxy(
       noncacheableTasksAnalyzer,
       garbageCollectionAnalyzer,
       projectConfigurationAnalyzer,
-      tasksConfigurationIssuesAnalyzer
+      tasksConfigurationIssuesAnalyzer,
+      configurationCachingCompatibilityAnalyzer
     )
 
   override fun getAnnotationProcessorsData(): List<AnnotationProcessorData> {
@@ -160,6 +169,10 @@ class BuildEventsAnalyzersProxy(
 
   override fun getAppliedPlugins(): Map<String, List<PluginData>> {
     return projectConfigurationAnalyzer.result.allAppliedPlugins.toImmutableMap()
+  }
+
+  override fun getConfigurationCachingCompatibility(): ConfigurationCachingCompatibilityProjectResult {
+    return configurationCachingCompatibilityAnalyzer.result
   }
 
   override fun getAlwaysRunTasks(): List<AlwaysRunTaskData> {

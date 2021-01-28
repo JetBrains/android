@@ -18,6 +18,7 @@ package com.android.build.attribution.analyzers
 import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.PluginData
+import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import org.gradle.tooling.events.FinishEvent
@@ -356,7 +357,7 @@ class CriticalPathAnalyzer(
     buildFinishedTimestamp = Long.MIN_VALUE
   }
 
-  override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalysisResult) {
+  override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalysisResult, studioProvidedInfo: StudioProvidedInfo) {
     ensureResultCalculated()
   }
 

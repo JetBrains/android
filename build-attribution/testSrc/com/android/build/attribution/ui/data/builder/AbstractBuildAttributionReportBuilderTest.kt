@@ -16,6 +16,8 @@
 package com.android.build.attribution.ui.data.builder
 
 import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
+import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
+import com.android.build.attribution.analyzers.NoIncompatiblePlugins
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.AnnotationProcessorData
 import com.android.build.attribution.data.GarbageCollectionData
@@ -52,6 +54,7 @@ open class AbstractBuildAttributionReportBuilderTest {
     override fun getAlwaysRunTasks(): List<AlwaysRunTaskData> = emptyList()
     override fun getNonCacheableTasks(): List<TaskData> = emptyList()
     override fun getAppliedPlugins(): Map<String, List<PluginData>> = emptyMap()
+    override fun getConfigurationCachingCompatibility() = NoIncompatiblePlugins
     override fun getTasksSharingOutput(): List<TasksSharingOutputData> = emptyList()
     override fun getGarbageCollectionData(): List<GarbageCollectionData> = emptyList()
     override fun getTotalGarbageCollectionTimeMs(): Long = 0

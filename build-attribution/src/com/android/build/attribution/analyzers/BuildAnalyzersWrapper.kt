@@ -15,7 +15,9 @@
  */
 package com.android.build.attribution.analyzers
 
+import com.android.build.attribution.data.GradlePluginsData
 import com.android.build.attribution.data.PluginContainer
+import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.data.TaskContainer
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import org.gradle.tooling.events.ProgressEvent
@@ -28,6 +30,7 @@ class BuildAnalyzersWrapper(
 
   private val buildEventsAnalyzers = buildAnalyzers.filterIsInstance<BuildEventsAnalyzer>()
   private val buildAttributionReportAnalyzers = buildAnalyzers.filterIsInstance<BuildAttributionReportAnalyzer>()
+  private val knownPluginsDataAnalyzers = buildAnalyzers.filterIsInstance<KnownPluginsDataAnalyzer>()
   private val postBuildAnalyzers = buildAnalyzers.filterIsInstance<PostBuildProcessAnalyzer>()
 
   fun onBuildStart() {
@@ -38,7 +41,9 @@ class BuildAnalyzersWrapper(
 
   fun onBuildSuccess(
     androidGradlePluginAttributionData: AndroidGradlePluginAttributionData?,
-    analyzersResult: BuildEventsAnalysisResult
+    gradlePluginsData: GradlePluginsData,
+    analyzersResult: BuildEventsAnalysisResult,
+    studioProvidedInfo: StudioProvidedInfo
   ) {
 
     if (androidGradlePluginAttributionData != null) {
@@ -50,7 +55,9 @@ class BuildAnalyzersWrapper(
       buildAttributionReportAnalyzers.forEach { it.receiveBuildAttributionReport(androidGradlePluginAttributionData) }
     }
 
-    postBuildAnalyzers.forEach { it.runPostBuildAnalysis(analyzersResult) }
+    knownPluginsDataAnalyzers.forEach { it.receiveKnownPluginsData(gradlePluginsData) }
+
+    postBuildAnalyzers.forEach { it.runPostBuildAnalysis(analyzersResult, studioProvidedInfo) }
   }
 
   fun onBuildFailure() {
