@@ -18,7 +18,14 @@ package org.jetbrains.kotlin.android
 
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiComment
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiMember
+import com.intellij.psi.PsiWhiteSpace
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.util.SmartFMap
 import org.jetbrains.kotlin.idea.refactoring.introduce.ExtractTestFiles
 import org.jetbrains.kotlin.idea.refactoring.introduce.checkExtract
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractFunction.EXTRACT_FUNCTION
@@ -32,10 +39,12 @@ import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.Extracti
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.ExtractionResult
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.possibleReturnTypes
 import org.jetbrains.kotlin.idea.util.IdeDescriptorRenderers
+import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtPackageDirective
+import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.test.InTextDirectivesUtils
-import org.jetbrains.kotlin.test.util.findElementByCommentPrefix
 import java.util.Collections
 
 abstract class AbstractAndroidExtractionTest: KotlinAndroidTestCase() {
@@ -120,4 +129,33 @@ abstract class AbstractAndroidExtractionTest: KotlinAndroidTestCase() {
             handler.doInvoke(editor, file, elements, explicitPreviousSibling ?: previousSibling)
         }
     }
+
+  private fun PsiFile.findElementByCommentPrefix(commentText: String): PsiElement? =
+    findElementsByCommentPrefix(commentText).keys.singleOrNull()
+
+  // Originally from jetTestUtils.kt
+  private fun PsiFile.findElementsByCommentPrefix(prefix: String): Map<PsiElement, String> {
+    var result = SmartFMap.emptyMap<PsiElement, String>()
+    accept(
+      object : KtTreeVisitorVoid() {
+        override fun visitComment(comment: PsiComment) {
+          val commentText = comment.text
+          if (commentText.startsWith(prefix)) {
+            val parent = comment.parent
+            val elementToAdd = when (parent) {
+                                 is KtDeclaration -> parent
+                                 is PsiMember -> parent
+                                 else -> PsiTreeUtil.skipSiblingsForward(
+                                   comment,
+                                   PsiWhiteSpace::class.java, PsiComment::class.java, KtPackageDirective::class.java
+                                 )
+                               } ?: return
+
+            result = result.plus(elementToAdd, commentText.substring(prefix.length).trim())
+          }
+        }
+      }
+    )
+    return result
+  }
 }
