@@ -278,20 +278,6 @@ studio_plugin(
 studio_plugin(
     name = "com.android.tools.ndk",
     directory = "android-ndk",
-    external_xmls = [
-        "META-INF/CidrClangdPlugin.xml",
-        "META-INF/CidrCommonPlugin.xml",
-        "META-INF/CidrDebuggerPlugin.xml",
-        "META-INF/CidrExecutionPlugin.xml",
-        "META-INF/CidrLangBase.xml",
-        "META-INF/CidrLangObjCPlugin.xml",
-        "META-INF/CidrLangPlugin.xml",
-        "META-INF/CidrProjectModelPlugin.xml",
-        "META-INF/CidrUtilPlugin.xml",
-        "META-INF/CidrWorkspaceModelCore.xml",
-        "META-INF/DoxygenPlugin.xml",
-        "META-INF/OCDebuggerPlugin.xml",
-    ],
     libs = ["//tools/vendor/google/android-ndk/lib:org.eclipse.cdt"],
     modules = {"android-ndk.jar": ["//tools/vendor/google/android-ndk:android-ndk"]},
     provided = [
@@ -303,6 +289,9 @@ studio_plugin(
     deps = [
         ":org.jetbrains.android",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-c-clangd",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-c-plugin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-cidr-base-plugin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
     ],
 )
@@ -773,6 +762,9 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-textmate",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-changeReminder",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-yaml",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-c-clangd",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-c-plugin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-cidr-base-plugin",
     ],
 )
 
