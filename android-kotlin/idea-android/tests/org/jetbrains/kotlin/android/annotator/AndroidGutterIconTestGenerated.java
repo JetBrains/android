@@ -6,13 +6,11 @@
 package org.jetbrains.kotlin.android.annotator;
 
 import com.intellij.testFramework.TestDataPath;
-import org.jetbrains.kotlin.test.JUnit3RunnerWithInners;
 import org.jetbrains.kotlin.android.KotlinTestUtils;
 import org.junit.runner.RunWith;
 
 @SuppressWarnings("all")
 @TestDataPath("$PROJECT_ROOT")
-@RunWith(JUnit3RunnerWithInners.class)
 public class AndroidGutterIconTestGenerated extends AbstractAndroidGutterIconTest {
 
     public void testColor() throws Exception {
