@@ -377,8 +377,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override var isLiveLiteralsEnabled: Boolean
     get() = liveLiteralsManager.isEnabled
     set(value) {
-      liveLiteralsManager.isEnabled = value
-      forceRefresh()
+      val wasEnabled = liveLiteralsManager.isEnabled
+      if (wasEnabled != value) {
+        liveLiteralsManager.isEnabled = value
+        forceRefresh()
+      }
     }
 
   override var showDebugBoundaries: Boolean = false
