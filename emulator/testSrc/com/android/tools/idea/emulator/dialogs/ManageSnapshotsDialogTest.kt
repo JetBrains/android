@@ -30,8 +30,10 @@ import com.android.tools.idea.emulator.EmulatorView
 import com.android.tools.idea.emulator.EmulatorViewRule
 import com.android.tools.idea.emulator.FakeEmulator
 import com.android.tools.idea.emulator.actions.findManageSnapshotDialog
+import com.android.tools.idea.emulator.actions.getOpenManageSnapshotsDialogs
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.testing.DebugLoggerRule
+import com.android.utils.TraceUtils.currentTime
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.testFramework.EdtRule
@@ -48,6 +50,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.junit.rules.Timeout
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -67,8 +70,10 @@ import javax.swing.table.DefaultTableCellRenderer
 @RunsInEdt
 class ManageSnapshotsDialogTest {
   private val emulatorViewRule = EmulatorViewRule()
+  private val timeoutRule = Timeout.builder().withTimeout(60, TimeUnit.SECONDS).withLookingForStuckThread(true).build()
+
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(emulatorViewRule).around(DebugLoggerRule()).around(EdtRule())
+  val ruleChain: RuleChain = RuleChain.outerRule(timeoutRule).around(DebugLoggerRule()).around(emulatorViewRule).around(EdtRule())
 
   private var nullableEmulator: FakeEmulator? = null
   private var nullableEmulatorView: EmulatorView? = null
@@ -90,11 +95,34 @@ class ManageSnapshotsDialogTest {
     enableHeadlessDialogs(testRootDisposable)
     emulatorView = emulatorViewRule.newEmulatorView()
     emulator = emulatorViewRule.getFakeEmulator(emulatorView)
+    closeAllManageSnapshotDialogs()
   }
 
   @After
   fun tearDown() {
+    println("${currentTime()} tearDown: started")
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
     EmulatorSettings.getInstance().snapshotAutoDeletionPolicy = DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY
+
+    val dialog = findManageSnapshotDialog(emulatorView)
+    dialog?.let { println("${currentTime()} tearDown: the dialog was not closed by the test") }
+    dialog?.close(DialogWrapper.CLOSE_EXIT_CODE) // Close the dialog in case it wasn't closed by the test.
+    if (findManageSnapshotDialog(emulatorView) != null) {
+      println("${currentTime()} tearDown: the dialog is still not closed after calling close(DialogWrapper.CLOSE_EXIT_CODE)")
+    }
+    val count = getOpenManageSnapshotsDialogs().size
+    if (count != 0) {
+      println("${currentTime()} tearDown: there are still $count open dialogs remaining")
+    }
+    println("${currentTime()} tearDown: finished")
+  }
+
+  private fun closeAllManageSnapshotDialogs() {
+    for (dialog in getOpenManageSnapshotsDialogs().values) {
+      dialog.close(DialogWrapper.CLOSE_EXIT_CODE)
+    }
+    assertThat(getOpenManageSnapshotsDialogs()).isEmpty()
   }
 
   @Test
@@ -253,8 +281,6 @@ class ManageSnapshotsDialogTest {
     assertThat(closeButton.text).isEqualTo("Close")
     ui.clickOn(closeButton)
     assertThat(dialog.isShowing).isFalse()
-
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
 
   @Test
@@ -317,8 +343,6 @@ class ManageSnapshotsDialogTest {
     assertThat(table.items.count { !it.isCompatible }).isEqualTo(2) // The two incompatible snapshots were preserved.
     // Close the "Manage Snapshots" dialog.
     ui1.clickOn(rootPane1.defaultButton)
-
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
 
   @Test
@@ -342,8 +366,6 @@ class ManageSnapshotsDialogTest {
     assertThat(table.items).hasSize(2) // The two incompatible snapshots were deleted automatically.
     // Close the "Manage Snapshots" dialog.
     ui.clickOn(rootPane.defaultButton)
-
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
 
   @Test
@@ -367,8 +389,6 @@ class ManageSnapshotsDialogTest {
     assertThat(table.items).hasSize(4) // No snapshots were deleted.
     // Close the "Manage Snapshots" dialog.
     ui.clickOn(rootPane.defaultButton)
-
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
 
   private fun showManageSnapshotsDialog(): DialogWrapper {

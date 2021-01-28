@@ -34,7 +34,7 @@ public class RenderSecurityManagerFactory {
     if (RenderSecurityManager.RESTRICT_READS) {
       projectPath = module.getProject().getBasePath();
       if (platform != null) {
-        sdkPath = platform.getSdkData().getLocation().getPath();
+        sdkPath = platform.getSdkData().getLocation().toString();
       }
     }
 

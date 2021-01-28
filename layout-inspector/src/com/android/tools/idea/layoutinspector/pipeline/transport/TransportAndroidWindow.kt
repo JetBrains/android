@@ -33,8 +33,9 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import java.awt.Rectangle
-import java.io.ByteArrayInputStream
-import javax.imageio.ImageIO
+import java.io.ByteArrayOutputStream
+import java.nio.ByteBuffer
+import java.util.zip.Inflater
 
 /**
  * An [AndroidWindow] used by transport clients.
@@ -66,7 +67,7 @@ class TransportAndroidWindow(
     if (bytes.isNotEmpty()) {
       try {
         when (imageType) {
-          ImageType.PNG_AS_REQUESTED, ImageType.PNG_SKP_TOO_LARGE -> processPng(bytes, root, client)
+          ImageType.BITMAP_AS_REQUESTED -> processBitmap(bytes, root, client)
           ImageType.SKP -> processSkp(bytes, skiaParser, project, client, root, scale)
           else -> client.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE) // Shouldn't happen
         }
@@ -117,13 +118,24 @@ class TransportAndroidWindow(
     }
   }
 
-  private fun processPng(bytes: ByteArray, rootView: ViewNode, client: TransportInspectorClient) {
-    ImageIO.read(ByteArrayInputStream(bytes))?.let {
-      ViewNode.writeDrawChildren { drawChildren ->
-        rootView.flatten().forEach { it.drawChildren().clear() }
-        rootView.drawChildren().add(DrawViewImage(it, rootView))
-        rootView.flatten().forEach { it.children.mapTo(it.drawChildren()) { child -> DrawViewChild(child) } }
+  private fun processBitmap(bytes: ByteArray, rootView: ViewNode, client: TransportInspectorClient) {
+    val inf = Inflater().also { it.setInput(bytes) }
+    val baos = ByteArrayOutputStream()
+    val buffer = ByteArray(4096)
+    while (!inf.finished()) {
+      val count = inf.inflate(buffer)
+      if (count <= 0) {
+        break
       }
+      baos.write(buffer, 0, count)
+    }
+
+    val image = LayoutInspectorUtils.createImage565(ByteBuffer.wrap(baos.toByteArray()), rootView.width, rootView.height)
+
+    ViewNode.writeDrawChildren { drawChildren ->
+      rootView.flatten().forEach { it.drawChildren().clear() }
+      rootView.drawChildren().add(DrawViewImage(image, rootView))
+      rootView.flatten().forEach { it.children.mapTo(it.drawChildren()) { child -> DrawViewChild(child) } }
     }
     client.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
   }

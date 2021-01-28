@@ -54,7 +54,7 @@ class AndroidLintCustomCheckTest {
       myProjectRule.load("projects/lintCustomChecks")
 
       // Publish the library-remote module to a local maven repository so we can get custom Lint checks from its AAR.
-      myProjectRule.invokeTasks(":library-remote:uploadArchives")
+      myProjectRule.invokeTasks(":library-remote:publish")
 
       // We are required (above) to run Gradle sync prior to running :library-remote:uploadArchives, but that means that the app
       // module cannot yet have had a dependency on the remote library (otherwise Gradle sync would fail!). So,

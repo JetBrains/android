@@ -62,7 +62,7 @@ object EmptyPropertiesProvider : PropertiesProvider {
 /**
  * Add a few fabricated internal attributes.
  */
-internal fun addInternalProperties(table: PropertiesTable<InspectorPropertyItem>, view: ViewNode, lookup: ViewNodeAndResourceLookup) {
+fun addInternalProperties(table: PropertiesTable<InspectorPropertyItem>, view: ViewNode, lookup: ViewNodeAndResourceLookup) {
   add(table, ATTR_NAME, Type.STRING, view.qualifiedName, VIEW, view.drawId, lookup)
   add(table, ATTR_X, Type.DIMENSION, view.x.toString(), DIMENSION, view.drawId, lookup)
   add(table, ATTR_Y, Type.DIMENSION, view.y.toString(), DIMENSION, view.drawId, lookup)

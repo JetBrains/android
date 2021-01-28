@@ -23,6 +23,7 @@ import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -43,10 +44,11 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
         return@CopyResultImageAction surface.getSceneManager(it) as LayoutlibSceneManager
       }
 
-      // If no model is selected, copy the image under the mouse
-      val mouseLocation = surface.getMousePosition(true) ?: return@CopyResultImageAction null
-      surface.getHoverSceneView(mouseLocation.x, mouseLocation.y)?.sceneManager as? LayoutlibSceneManager
-    })
+      surface.sceneViewAtMousePosition?.sceneManager as? LayoutlibSceneManager
+    },
+    message("copy.result.image.action.title"),
+    message("copy.result.image.action.done.text")
+  )
 
   override fun registerActionsShortcuts(component: JComponent) {
     registerAction(copyResultImageAction, IdeActions.ACTION_COPY, component)

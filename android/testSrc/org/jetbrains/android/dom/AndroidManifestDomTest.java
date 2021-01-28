@@ -6,10 +6,6 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.SdkConstants;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.intellij.codeInsight.completion.CompletionType;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
@@ -36,6 +32,47 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   @Override
   protected String getPathToCopy(String testFileName) {
     return SdkConstants.FN_ANDROID_MANIFEST_XML;
+  }
+
+  public void testProfileableHighlighting() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "    <application>\n" +
+      "        <profileable android:shell=\"true\"/>\n" +
+      "    </application>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.checkHighlighting();
+  }
+
+  public void testProfileableTagCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "    <application>\n" +
+      "        <<caret>\n" +
+      "    </application>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).contains("profileable");
+  }
+
+  public void testProfileableAttributeCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "    <application>\n" +
+      "        <profileable <caret>/>\n" +
+      "    </application>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).containsExactly("android:shell");
   }
 
   public void testOverlayTagCompletion() throws Throwable {
@@ -638,17 +675,8 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   }
 
   private void doTestSdkVersionAttributeValueCompletion() throws Throwable {
-    final ProjectJdkTable projectJdkTable = ProjectJdkTable.getInstance();
-    final Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
-
-    ApplicationManager.getApplication().runWriteAction(() -> projectJdkTable.addJdk(sdk));
-    try {
       doTestCompletionVariants(getTestName(true) + ".xml", "1", "2", "3", "4", "5", "6", "7",
                                "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25",
                                "26", "27", "28", "29", "30");
-    }
-    finally {
-      ApplicationManager.getApplication().runWriteAction(() -> projectJdkTable.removeJdk(sdk));
-    }
   }
 }

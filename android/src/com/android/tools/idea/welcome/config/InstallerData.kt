@@ -18,13 +18,14 @@
 
 package com.android.tools.idea.welcome.config
 
+import com.android.io.CancellableFileIo
 import com.google.common.annotations.VisibleForTesting
-import com.android.prefs.AndroidLocation
+import com.android.prefs.AndroidLocationsException
+import com.android.prefs.AndroidLocationsSingleton
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.idea.ui.validation.validators.PathValidator
 import com.google.common.base.Charsets
 import com.google.common.base.MoreObjects
-import com.google.common.io.Files
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
@@ -32,6 +33,7 @@ import com.intellij.openapi.util.io.FileUtil
 
 import java.io.File
 import java.io.IOException
+import java.nio.file.Files
 
 private val log: Logger = logger<InstallerData>()
 
@@ -74,17 +76,18 @@ private val PATH_FIRST_RUN_PROPERTIES = FileUtil.join("studio", "installer", "fi
 private fun readProperties(): Map<String, String>? {
   try {
     // First run properties file contains a series of "key=value" lines.
-    val file = File(AndroidLocation.getFolder(), PATH_FIRST_RUN_PROPERTIES)
-    if (!file.isFile) {
+    val file = AndroidLocationsSingleton.prefsLocation.resolve(PATH_FIRST_RUN_PROPERTIES)
+    if (CancellableFileIo.notExists(file)) {
       return null
     }
-    return Files.readLines(file, Charsets.UTF_16LE)
+
+    return CancellableFileIo.readAllLines(file, Charsets.UTF_16LE)
       .filter { '=' in it }
       .map { it.split('=') }
       .filterNot { (k, _) -> k.isEmpty() }
       .associate { (k, v) -> k to v }
   }
-  catch (e: AndroidLocation.AndroidLocationException) {
+  catch (e: AndroidLocationsException) {
     log.error(e)
   }
   catch (e: IOException) {

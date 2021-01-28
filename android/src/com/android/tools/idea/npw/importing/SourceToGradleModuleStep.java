@@ -23,7 +23,6 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.ModuleImporter;
 import com.android.tools.idea.gradle.project.ModuleToImport;
 import com.android.tools.idea.observable.BindingsManager;
@@ -74,7 +73,7 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
   private final BindingsManager myBindings = new BindingsManager();
 
   @NotNull private final JComponent myRootPanel;
-  @NotNull private ValidatorPanel myValidatorPanel;
+  @NotNull private final ValidatorPanel myValidatorPanel;
 
   private final BoolProperty myCanGoForward = new BoolValueProperty();
 
@@ -116,13 +115,7 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
     myValidatorPanel = new ValidatorPanel(this, myPanel);
     myValidatorPanel.registerValidator(model.sourceLocation, value -> updateStepStatus(model.sourceLocation.get()));
 
-    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
-      myRootPanel = wrapWithVScroll(myValidatorPanel, SMALL);
-    }
-    else {
-      mySourceDirTitle.setVisible(false);
-      myRootPanel = wrapWithVScroll(myValidatorPanel);
-    }
+    myRootPanel = wrapWithVScroll(myValidatorPanel, SMALL);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 

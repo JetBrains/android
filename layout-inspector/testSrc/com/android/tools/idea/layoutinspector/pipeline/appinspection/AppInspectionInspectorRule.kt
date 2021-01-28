@@ -49,7 +49,7 @@ class AppInspectionClientProvider(private val getApiServices: () -> AppInspectio
     val apiServices = getApiServices()
     val scope = getScope()
 
-    return AppInspectionInspectorClient(params.process, model, apiServices, scope)
+    return AppInspectionInspectorClient(params.adb, params.process, model, apiServices, scope)
   }
 }
 

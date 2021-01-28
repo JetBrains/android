@@ -101,6 +101,7 @@ public class ErrorPanel extends JPanel {
     put(MotionSceneAttrs.Tags.ON_CLICK, MotionSceneAttrs.Tags.TRANSITION);
     put(MotionSceneAttrs.Tags.ON_SWIPE, MotionSceneAttrs.Tags.TRANSITION);
     put(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, MotionSceneAttrs.Tags.CONSTRAINT);
+    put(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, MotionSceneAttrs.Tags.CONSTRAINT_OVERRIDE);
     put(MotionSceneAttrs.Tags.MOTION, MotionSceneAttrs.Tags.CONSTRAINT);
     put(MotionSceneAttrs.Tags.LAYOUT, MotionSceneAttrs.Tags.CONSTRAINT);
     put(MotionSceneAttrs.Tags.PROPERTY_SET, MotionSceneAttrs.Tags.CONSTRAINT);

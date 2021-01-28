@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
@@ -32,17 +33,18 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.executors.DefaultDebugExecutor;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Mockito;
 
 public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase {
   private ConsolePrinter mockConsolePrinter = mock(ConsolePrinter.class);
   private IDevice mockDevice = mock(IDevice.class);
   private LaunchStatus mockLaunchStatus = mock(LaunchStatus.class);
+  private ProcessHandler mockProcessHandler = mock(ProcessHandler.class);
   private ProgramRunner runner = new DefaultStudioProgramRunner();
 
   @Override
@@ -54,6 +56,7 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
     if (myAndroidFacet == null) {
       fail("AndroidFacet was null");
     }
+    when(mockLaunchStatus.getProcessHandler()).thenReturn(mockProcessHandler);
   }
 
   private void loadProject() throws Exception {
@@ -273,7 +276,7 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
 
     ApplicationIdProvider appIdProvider = mock(GradleApplicationIdProvider.class);
-    Mockito.when(appIdProvider.getTestPackageName()).thenReturn(null);
+    when(appIdProvider.getTestPackageName()).thenReturn(null);
 
     LaunchOptions launchOptions = LaunchOptions.builder()
       .setClearLogcatBeforeStart(false)
@@ -309,7 +312,7 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
 
     ApplicationIdProvider appIdProvider = mock(GradleApplicationIdProvider.class);
-    Mockito.when(appIdProvider.getTestPackageName()).thenThrow(new ApkProvisionException("unable to determine package name"));
+    when(appIdProvider.getTestPackageName()).thenThrow(new ApkProvisionException("unable to determine package name"));
 
     LaunchOptions launchOptions = LaunchOptions.builder()
       .setClearLogcatBeforeStart(false)

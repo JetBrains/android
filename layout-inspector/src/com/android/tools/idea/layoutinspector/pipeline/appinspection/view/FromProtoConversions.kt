@@ -16,6 +16,10 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
 
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.properties.PropertyType
+import com.android.tools.idea.layoutinspector.resource.data.AppContext
+import com.android.tools.idea.layoutinspector.resource.data.Configuration
+import com.android.tools.idea.layoutinspector.resource.data.Locale
 import com.android.tools.idea.layoutinspector.resource.data.Resource
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 
@@ -28,4 +32,45 @@ fun LayoutInspectorViewProtocol.Screenshot.Type.toImageType(): AndroidWindow.Ima
 
 fun LayoutInspectorViewProtocol.Resource.convert(): Resource {
   return Resource(type, namespace, name)
+}
+
+fun LayoutInspectorViewProtocol.Locale.convert(): Locale {
+  return Locale(language, country, variant, script)
+}
+
+fun LayoutInspectorViewProtocol.Configuration.convert(): Configuration {
+  return Configuration(
+    fontScale,
+    countryCode,
+    networkCode,
+    locale.convert(),
+    screenLayout,
+    colorMode,
+    touchScreen,
+    keyboard,
+    keyboardHidden,
+    hardKeyboardHidden,
+    navigation,
+    navigationHidden,
+    uiMode,
+    smallestScreenWidth,
+    density,
+    orientation,
+    screenWidth,
+    screenHeight
+  )
+}
+
+fun LayoutInspectorViewProtocol.AppContext.convert(): AppContext {
+  return AppContext(
+    apiLevel,
+    apiCodeName,
+    appPackageName,
+    theme.convert(),
+    configuration.convert()
+  )
+}
+
+fun LayoutInspectorViewProtocol.Property.Type.convert(): PropertyType {
+  return PropertyType.values()[this.number]
 }

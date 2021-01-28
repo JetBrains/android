@@ -16,12 +16,12 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.layoutinspector.common.MostRecentExecutor
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.Messages
@@ -46,9 +46,11 @@ class LayoutInspector(
 
   val currentClient: InspectorClient get() = launcher.activeClient
 
+  private val composeDependencyChecker = ComposeDependencyChecker(layoutInspectorModel.project)
+
   private val latestLoadTime = AtomicLong(-1)
 
-  private val sequentialDispatcher = MoreExecutors.newSequentialExecutor(executor)
+  private val recentExecutor = MostRecentExecutor(executor)
 
   init {
     launcher.addClientChangedListener(::clientChanged)
@@ -58,7 +60,7 @@ class LayoutInspector(
     if (client !== DisconnectedClient) {
       client.registerErrorCallback(::logError)
       client.registerTreeEventCallback(::loadComponentTree)
-      client.registerStateCallback { state -> if (state == InspectorClient.State.CONNECTED) layoutInspectorModel.updateConnection(client) }
+      client.registerStateCallback { state -> if (state == InspectorClient.State.CONNECTED) updateConnection(client) }
     }
     else {
       // If disconnected, e.g. stopped, force models to clear their state and, by association, the UI
@@ -71,10 +73,13 @@ class LayoutInspector(
     }
   }
 
+  private fun updateConnection(client: InspectorClient) {
+    layoutInspectorModel.updateConnection(client)
+    composeDependencyChecker.performCheck(client)
+  }
+
   private fun loadComponentTree(event: Any) {
-    // TODO: If there are many calls to loadComponentTree done before the first one finishes,
-    //  intermediate requests are needless and could be skipped.
-    sequentialDispatcher.execute {
+    recentExecutor.execute {
       val time = System.currentTimeMillis()
       val treeLoader = currentClient.treeLoader
       val allIds = treeLoader.getAllWindowIds(event)

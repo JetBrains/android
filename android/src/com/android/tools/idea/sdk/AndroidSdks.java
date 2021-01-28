@@ -41,6 +41,7 @@ import static org.jetbrains.android.sdk.AndroidSdkType.SDK_NAME;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
 
 import com.android.annotations.NonNull;
+import com.android.prefs.AndroidLocationsSingleton;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.OptionalLibrary;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -85,8 +86,6 @@ public class AndroidSdks {
   @NonNls public static final String SDK_NAME_PREFIX = "Android ";
 
   @NotNull private final IdeInfo myIdeInfo;
-  @NotNull private final Jdks myJdks;
-
   @Nullable private AndroidSdkData mySdkData;
 
   @NotNull
@@ -95,14 +94,13 @@ public class AndroidSdks {
   }
 
   public AndroidSdks() {
-    this(Jdks.getInstance(), IdeInfo.getInstance());
+    this(IdeInfo.getInstance());
   }
 
   @NonInjectable
   @VisibleForTesting
-  public AndroidSdks(@NotNull Jdks jdks, @NotNull IdeInfo ideInfo) {
+  public AndroidSdks(@NotNull IdeInfo ideInfo) {
     myIdeInfo = ideInfo;
-    myJdks = jdks;
   }
 
   @Nullable
@@ -133,7 +131,7 @@ public class AndroidSdks {
   @NotNull
   public AndroidSdkHandler tryToChooseSdkHandler() {
     AndroidSdkData data = tryToChooseAndroidSdk();
-    return data != null ? data.getSdkHandler() : AndroidSdkHandler.getInstance(null);
+    return data != null ? data.getSdkHandler() : AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, null);
   }
 
   /**
@@ -173,7 +171,7 @@ public class AndroidSdks {
       AndroidPlatform androidPlatform = AndroidPlatform.getInstance(androidSdk);
       if (androidPlatform != null) {
         // Put default platforms in the list before non-default ones so they'll be looked at first.
-        File sdkPath = androidPlatform.getSdkData().getLocation();
+        File sdkPath = androidPlatform.getSdkData().getLocationFile();
         if (result.contains(sdkPath)) {
           continue;
         }
@@ -200,7 +198,7 @@ public class AndroidSdks {
       sdkData.getSdkHandler().getSdkManager(new StudioLoggerProgressIndicator(AndroidSdks.class)).markInvalid();
       IAndroidTarget target = sdkData.findTargetByHashString(targetHashString);
       if (target != null) {
-        return create(target, sdkData.getLocation(), true /* add roots */);
+        return create(target, sdkData.getLocationFile(), true /* add roots */);
       }
     }
     return null;
@@ -208,7 +206,7 @@ public class AndroidSdks {
 
   @Nullable
   public Sdk create(@NotNull IAndroidTarget target, @NotNull File sdkPath, boolean addRoots) {
-    Sdk jdk = myJdks.chooseOrCreateJavaSdk();
+    Sdk jdk = getJdk();
     return jdk != null ? create(target, sdkPath, jdk, addRoots) : null;
   }
 
@@ -550,5 +548,9 @@ public class AndroidSdks {
   private static VirtualFile getVirtualFile(@NotNull PsiElement element) {
     PsiFile file = element.getContainingFile();
     return file != null ? file.getVirtualFile() : null;
+  }
+
+  Sdk getJdk() {
+    return IdeSdks.getInstance().getJdk();
   }
 }

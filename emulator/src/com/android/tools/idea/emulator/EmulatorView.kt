@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.ClipData
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
+import com.android.emulator.control.KeyboardEvent.KeyEventType
 import com.android.emulator.control.Notification.EventType.VIRTUAL_SCENE_CAMERA_ACTIVE
 import com.android.emulator.control.Notification.EventType.VIRTUAL_SCENE_CAMERA_INACTIVE
 import com.android.emulator.control.Rotation.SkinRotation
@@ -69,6 +70,7 @@ import java.awt.Graphics2D
 import java.awt.Image
 import java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager
 import java.awt.MouseInfo
+import java.awt.Point
 import java.awt.Rectangle
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
@@ -242,6 +244,8 @@ class EmulatorView(
     }
 
   private var virtualSceneCameraOperatingDisposable: Disposable? = null
+  private val virtualSceneCameraOrientation = Point()
+  private val virtualSceneCameraReferencePoint = Point()
 
   init {
     Disposer.register(parentDisposable, this)
@@ -271,7 +275,9 @@ class EmulatorView(
       }
 
       override fun mouseDragged(event: MouseEvent) {
-        sendMouseEvent(event.x, event.y, 1)
+        if (!virtualSceneCameraActive) {
+          sendMouseEvent(event.x, event.y, 1)
+        }
       }
     }
     addMouseListener(mouseListener)
@@ -299,17 +305,40 @@ class EmulatorView(
         }
 
         if (virtualSceneCameraOperating) {
-          val keyName =
+          val point =
             when (event.keyCode) {
-              VK_Q -> "KeyQ"
-              VK_W -> "KeyW"
-              VK_E -> "KeyE"
-              VK_A -> "KeyA"
-              VK_S -> "KeyS"
-              VK_D -> "KeyD"
-            else -> return
+              VK_LEFT, VK_KP_LEFT -> Point(-VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS, 0)
+              VK_RIGHT, VK_KP_RIGHT -> Point(VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS, 0)
+              VK_UP, VK_KP_UP -> Point(0, -VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS)
+              VK_DOWN, VK_KP_DOWN -> Point(0, VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS)
+              VK_HOME -> Point(-VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS, -VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS)
+              VK_END -> Point(-VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS, VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS)
+              VK_PAGE_UP -> Point(VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS, -VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS)
+              VK_PAGE_DOWN -> Point(VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS, VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS)
+              else -> null
+            }
+          if (point != null) {
+            virtualSceneCameraOrientation.translate(point.x, point.y)
+            virtualSceneCameraReferencePoint.translate(-point.x, -point.y)
+            val mouseEvent = MouseEventMessage.newBuilder()
+              .setX(virtualSceneCameraOrientation.x)
+              .setY(virtualSceneCameraOrientation.y)
+              .build()
+            emulator.sendMouse(mouseEvent)
           }
-          emulator.sendKey(createHardwareKeyEvent(keyName))
+          else {
+            val keyName =
+              when (event.keyCode) {
+                VK_Q -> "KeyQ"
+                VK_W -> "KeyW"
+                VK_E -> "KeyE"
+                VK_A -> "KeyA"
+                VK_S -> "KeyS"
+                VK_D -> "KeyD"
+                else -> return
+              }
+            emulator.sendKey(createHardwareKeyEvent(keyName, eventType = KeyEventType.keydown))
+          }
           return
         }
 
@@ -346,6 +375,19 @@ class EmulatorView(
       override fun keyReleased(event: KeyEvent) {
         if (event.keyCode == VK_SHIFT) {
           virtualSceneCameraOperating = false
+        }
+        else if (virtualSceneCameraOperating) {
+          val keyName =
+            when (event.keyCode) {
+              VK_Q -> "KeyQ"
+              VK_W -> "KeyW"
+              VK_E -> "KeyE"
+              VK_A -> "KeyA"
+              VK_S -> "KeyS"
+              VK_D -> "KeyD"
+              else -> return
+            }
+          emulator.sendKey(createHardwareKeyEvent(keyName, eventType = KeyEventType.keyup))
         }
       }
     })
@@ -782,31 +824,41 @@ class EmulatorView(
   }
 
   private fun startOperatingVirtualSceneCamera() {
-    findNotificationHolderPanel()?.showNotification("Move camera with WASDQE keys, rotate with mouse")
+    findNotificationHolderPanel()?.showNotification("Move camera with WASDQE keys, rotate with mouse or arrow keys")
     val disposable = Disposer.newDisposable("Virtual scene camera operation")
     virtualSceneCameraOperatingDisposable = disposable
+    virtualSceneCameraOrientation.move(0, 0)
     val glass = IdeGlassPaneUtil.find(this)
     val cursor = AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.MOVE)
     val rootPane = glass.rootPane
+    val scale = 360.0 * 5 / min(rootPane.width, rootPane.height)
     UIUtil.setCursor(rootPane, cursor)
     glass.setCursor(cursor, this)
-    val referencePoint = MouseInfo.getPointerInfo().location
-    SwingUtilities.convertPointFromScreen(referencePoint, rootPane)
-    val scale = 180.0 / min(rootPane.width, rootPane.height) //TODO: Check with the emulator team regarding the scale.
+    val point = MouseInfo.getPointerInfo().location
+    SwingUtilities.convertPointFromScreen(point, rootPane)
+    virtualSceneCameraReferencePoint.location = point.scaled(scale)
     val mouseListener = object: MouseAdapter() {
+
       override fun mouseMoved(event: MouseEvent) {
+        virtualSceneCameraOrientation.move(
+            event.x.scaled(scale) - virtualSceneCameraReferencePoint.x, event.y.scaled(scale) - virtualSceneCameraReferencePoint.y)
         val mouseEvent = MouseEventMessage.newBuilder()
-          .setX((event.x - referencePoint.x).scaled(scale))
-          .setY((event.y - referencePoint.y).scaled(scale))
+          .setX(virtualSceneCameraOrientation.x)
+          .setY(virtualSceneCameraOrientation.y)
           .build()
         emulator.sendMouse(mouseEvent)
         event.consume()
+      }
+
+      override fun mouseDragged(e: MouseEvent) {
+        mouseMoved(e)
       }
 
       override fun mouseEntered(event: MouseEvent) {
         glass.setCursor(cursor, this)
       }
     }
+
     glass.addMousePreprocessor(mouseListener, disposable)
     glass.addMouseMotionPreprocessor(mouseListener, disposable)
   }
@@ -1019,6 +1071,9 @@ class EmulatorView(
 }
 
 private var emulatorOutOfDateNotificationShown = false
+
+private const val VIRTUAL_SCENE_CAMERA_ROTATION_STEP_DEGREES = 5
+private const val VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS = VIRTUAL_SCENE_CAMERA_ROTATION_STEP_DEGREES * 5
 
 private const val MAX_SCALE = 2.0 // Zoom above 200% is not allowed.
 

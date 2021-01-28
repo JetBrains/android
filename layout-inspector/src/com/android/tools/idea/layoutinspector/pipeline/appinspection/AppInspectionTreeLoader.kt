@@ -26,14 +26,16 @@ import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.intellij.openapi.project.Project
 
 /**
- * A [TreeLoader] that uses a [AppInspectionInspectorClient] to fetch a view tree from an API 29+ device, and parses it into [ViewNode]s
+ * A [TreeLoader] that uses data from the [AppInspectionInspectorClient] to fetch a view tree from an API 29+ device, and parses it into
+ * [ViewNode]s.
  */
 class AppInspectionTreeLoader(
   private val project: Project,
   private val skiaParser: SkiaParserService = SkiaParser) : TreeLoader {
   override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup): Pair<AndroidWindow?, Int>? {
     if (data is ViewLayoutInspectorClient.Data) {
-      return ViewInspectorTreeLoader(project, skiaParser, data.layoutEvent).loadComponentTree() to data.layoutEvent.generation
+      val window = ViewInspectorTreeLoader(project, skiaParser, data.viewEvent, resourceLookup, data.composeEvent).loadComponentTree()
+      return window to data.generation
     }
     return null
   }

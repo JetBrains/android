@@ -15,16 +15,20 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
+import com.android.ddmlib.AndroidDebugBridge
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.createChildScope
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.google.common.util.concurrent.ListenableFuture
@@ -45,6 +49,7 @@ import java.util.EnumSet
  *     coroutine scope is used to handle the bridge between the two approaches.
  */
 class AppInspectionInspectorClient(
+  adb: AndroidDebugBridge,
   process: ProcessDescriptor,
   private val model: InspectorModel,
   @TestOnly private val apiServices: AppInspectionApiServices = AppInspectionDiscoveryService.instance.apiServices,
@@ -52,14 +57,28 @@ class AppInspectionInspectorClient(
 ) : AbstractInspectorClient(process) {
 
   private lateinit var viewInspector: ViewLayoutInspectorClient
+  private lateinit var propertiesProvider: AppInspectionPropertiesProvider
+
+  /** Compose inspector, may be null if user's app isn't using the compose library. */
+  private var composeInspector: ComposeLayoutInspectorClient? = null
+
   private val exceptionHandler = CoroutineExceptionHandler { _, t ->
     fireError(t.message!!)
   }
 
+  private val debugViewAttributes = DebugViewAttributes(adb, model.project, process)
+
   override fun doConnect() {
     runBlocking {
-      viewInspector = ViewLayoutInspectorClient.launch(apiServices, model.project, process, scope, ::fireError, ::fireTreeEvent)
+      if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT.get()) {
+        composeInspector = ComposeLayoutInspectorClient.launch(apiServices, process, model)
+      }
+
+      viewInspector = ViewLayoutInspectorClient.launch(apiServices, process, model, scope, composeInspector, ::fireError, ::fireTreeEvent)
+      propertiesProvider = AppInspectionPropertiesProvider(viewInspector, composeInspector, model)
     }
+
+    debugViewAttributes.set()
 
     if (isCapturing) {
       startFetching()
@@ -72,7 +91,9 @@ class AppInspectionInspectorClient(
   override fun doDisconnect(): ListenableFuture<Nothing> {
     val future = SettableFuture.create<Nothing>()
     scope.launch(exceptionHandler) {
-      apiServices.stopInspectors(process)
+      debugViewAttributes.clear()
+      viewInspector.disconnect()
+      composeInspector?.disconnect()
       future.set(null)
     }
     return future
@@ -96,9 +117,10 @@ class AppInspectionInspectorClient(
     }
   }
 
-  override val capabilities = EnumSet.of(InspectorClient.Capability.SUPPORTS_CONTINUOUS_MODE)!!
+  override val capabilities = EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE, Capability.SUPPORTS_FILTERING_SYSTEM_NODES)!!
   override val treeLoader: TreeLoader = AppInspectionTreeLoader(model.project)
-  override val provider: PropertiesProvider = AppInspectionPropertiesProvider()
+  override val provider: PropertiesProvider
+    get() = propertiesProvider
   override val isCapturing: Boolean
     get() = InspectorClientSettings.isCapturingModeOn
 }

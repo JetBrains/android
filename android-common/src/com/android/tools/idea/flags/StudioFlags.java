@@ -78,11 +78,6 @@ public final class StudioFlags {
     "Shows an option on new Project/Module to allow the use of Kotlin script",
     false);
 
-  public static final Flag<Boolean> NPW_NEW_MODULE_WITH_SIDE_BAR = Flag.create(
-    NPW, "new.module.with.side.bar", "New Module with sidebar",
-    "Shows latest UX implementation of New Module with a left side bar",
-    true);
-
   public static final Flag<Boolean> NPW_NEW_NATIVE_MODULE = Flag.create(
     NPW, "new.native.module", "New Android Native Module",
     "Show template to create a new Android Native module in the new module wizard.",
@@ -354,6 +349,11 @@ public final class StudioFlags {
     "Enable state list picker for selector drawable.",
     true);
 
+  public static final Flag<Boolean> NELE_ASSET_REPOSITORY_INCLUDE_AARS_THROUGH_PROJECT_SYSTEM = Flag.create(
+    NELE, "asset.repository.include.aars.through.project.system", "Include AARs through project system",
+    "Include resource directories from AARs found through project system.",
+    false);
+
   //endregion
 
   //region Navigation Editor
@@ -563,13 +563,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> BUILD_ATTRIBUTION_ENABLED = Flag.create(
     GRADLE_IDE, "build.attribution", "Enable build attribution",
     "Enable build attribution.", true);
-  public static final Flag<Boolean> NEW_BUILD_ANALYZER_UI_NAVIGATION_ENABLED = Flag.create(
-    GRADLE_IDE, "build.analyzer.new.ui.navigation", "Enable new UI navigation model for \"Build Analyzer\"",
-    "Enable new UI navigation model for \"Build Analyzer\".", true);
-  public static final Flag<Boolean> NEW_BUILD_ANALYZER_UI_VISUALIZATION_ENABLED = Flag.create(
-    GRADLE_IDE, "build.analyzer.new.ui.visualization", "Enable new visualization for \"Build Analyzer\"",
-    "Enable new visualization of tasks impact for \"Build Analyzer\" as well as filtering feature that depends on it",
-    true);
   public static final Flag<Boolean> AGP_UPGRADE_ASSISTANT = Flag.create(
     GRADLE_IDE, "agp.upgrade.assistant", "Enable AGP Upgrade Assistant",
     "Enable the Upgrade Assistant for helping with AGP upgrades", true);
@@ -612,6 +605,15 @@ public final class StudioFlags {
     "If enabled, Database Inspector will download a copy of open databases when the connection to the device is lost.",
     true
   );
+  public static final Flag<Boolean> DATABASE_INSPECTOR_EXPORT_TO_FILE_ENABLED = Flag.create(
+    DATABASE_INSPECTOR,
+    "export.to.file.enabled",
+    // TODO(161081452): remove "work in progress" note below when the feature is ready for at least a Canary release.
+    "Enable Export to File feature in Database Inspector (work in progress)",
+    "If enabled, Database Inspector will expose an ability for the user to export a table, query results, or the whole database " +
+    "to a local file.",
+    false
+  );
   //endregion
 
   //region Layout Inspector
@@ -640,7 +642,7 @@ public final class StudioFlags {
     "If enabled and this is a locally-built studio instance, use the locally-built skia server instead of one from the SDK.", false);
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.compose.support", "Show inspectables from Compose",
-    "If enabled the component tree will include Composable nodes if they are wrapped in an Inspectable.", false);
+    "If enabled the component tree will include Composable nodes if they are wrapped in an Inspectable.", true);
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_USE_INSPECTION = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.use.inspection", "Use app inspection client",
     "If enabled, use a client built on the app inspection pipeline instead of the transport pipeline.", false);
@@ -998,13 +1000,6 @@ public final class StudioFlags {
     false
   );
 
-  public static final Flag<Boolean> COMPOSE_ALWAYS_ON_LIVE_LITERALS = Flag.create(
-    COMPOSE, "preview.always.on.live.literals",
-    "Enable the \"always on\" live literals",
-    "If enabled, live literals are always enabled without user interaction",
-    false
-  );
-
   public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_LITERALS = Flag.create(
     COMPOSE, "deploy.live.literals.deploy",
     "Enable live literals deploy",
@@ -1116,6 +1111,15 @@ public final class StudioFlags {
   );
   // endregion
 
+  // region Network Inspector
+  private static final FlagGroup NETWORK_INSPECTOR = new FlagGroup(FLAGS, "network.inspector", "Network Inspector");
+  public static final Flag<Boolean> ENABLE_NETWORK_MANAGER_INSPECTOR_TAB = Flag.create(
+    NETWORK_INSPECTOR, "enable.network.inspector.tab", "Enable Network Inspector Tab",
+    "Enables a Network Inspector Tab in the App Inspection tool window",
+    false
+  );
+  // endregion
+
   //region Device Manager
   private static final FlagGroup DEVICE_MANAGER = new FlagGroup(FLAGS, "device.manager", "Device Manager");
   public static final Flag<Boolean> ENABLE_NEW_DEVICE_MANAGER_PANEL = Flag.create(
@@ -1134,6 +1138,24 @@ public final class StudioFlags {
     false
   );
   // endregion
+
+  //region DDMLIB
+  private static final FlagGroup DDMLIB = new FlagGroup(FLAGS, "ddmlib", "DDMLIB");
+  public static final Flag<Boolean> ENABLE_JDWP_PROXY_SERVICE = Flag.create(
+    DDMLIB, "enable.jdwp.proxy.service", "Enable jdwp proxy service",
+    "Creates a proxy service within DDMLIB to allow shared device client connections.",
+    true
+  );
+  // endregion DDMLIB
+
+  //region SERVER_FLAGS
+  private static final FlagGroup SERVER_FLAGS = new FlagGroup(FLAGS, "serverflags", "Server Flags");
+  public static final Flag<Boolean> TEST_SERVER_FLAG = Flag.create(
+    SERVER_FLAGS, "test", "Test Server Enabled Flag",
+    "Creates a sample studio flag that can be set using a server flag",
+    false
+  );
+  // endregion SERVER_FLAGS
 
   private StudioFlags() { }
 }

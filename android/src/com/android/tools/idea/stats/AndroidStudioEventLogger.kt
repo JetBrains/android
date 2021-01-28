@@ -38,7 +38,7 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
 
   private fun logFileUsage(data: Map<String, Any>) {
     UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
-      kind = AndroidStudioEvent.EventKind.SURVEY_RESPONSE
+      kind = AndroidStudioEvent.EventKind.FILE_USAGE
       fileUsage = FileUsage.newBuilder().apply {
         (data["file_path"] as? String)?.let { filePath = it }
         (data["file_type"] as? String)?.let { fileType = it }

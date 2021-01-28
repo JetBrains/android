@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property2.testutils
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
+import com.android.tools.idea.uibuilder.property2.NelePropertiesModelTest
 import com.android.tools.idea.uibuilder.property2.NelePropertiesProvider
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
@@ -64,7 +65,9 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, pa
 
   init {
     // Make sure the initial property load by model is done before replacing the properties in the model:
-    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+    model.lastSelectionUpdate.get()
+    NelePropertiesModelTest.waitUntilLastSelectionUpdateCompleted(model)
+
     model.setPropertiesInTest(properties)
   }
 

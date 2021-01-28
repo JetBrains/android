@@ -43,7 +43,7 @@ abstract class DatabaseTest<T : DataStoreTable<*>> {
 
   @Before
   @Throws(Exception::class)
-  open fun setUp() {
+  open fun before() {
     dbFile = File.createTempFile("DatabaseTableTest", "mysql")
     dbFile.deleteOnExit()
     database = DataStoreDatabase(dbFile.absolutePath, DataStoreDatabase.Characteristic.DURABLE, FakeLogService())
@@ -52,7 +52,7 @@ abstract class DatabaseTest<T : DataStoreTable<*>> {
   }
 
   @After
-  fun tearDown() {
+  fun after() {
     database.disconnect()
   }
 

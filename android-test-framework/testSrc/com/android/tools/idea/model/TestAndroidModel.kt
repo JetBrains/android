@@ -30,7 +30,6 @@ open class TestAndroidModel @JvmOverloads constructor(
   private val classJarProvider: ClassJarProvider? = null,
   private val overridesManifestPackage: Boolean = false,
   private val debuggable: Boolean = false,
-  private val versionCode: Int? = null,
   private val namespacing: Namespacing = Namespacing.DISABLED,
   private val desugaringLevel: Set<Desugaring> = Desugaring.DEFAULT
 ) : AndroidModel {
@@ -48,7 +47,6 @@ open class TestAndroidModel @JvmOverloads constructor(
   override fun getMinSdkVersion(): AndroidVersion? = minSdkVersion
   override fun getRuntimeMinSdkVersion(): AndroidVersion? = runtimeMinSdkVersion
   override fun getTargetSdkVersion(): AndroidVersion? = targetSdkVersion
-  override fun getVersionCode(): Int? = versionCode
   override fun getClassJarProvider(): ClassJarProvider = classJarProvider ?: error("classJarProvider not set")
   override fun getNamespacing(): Namespacing = namespacing
   override fun getDesugaring(): Set<Desugaring> = desugaringLevel

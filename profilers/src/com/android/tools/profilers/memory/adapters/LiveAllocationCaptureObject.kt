@@ -295,9 +295,6 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
               deltaAllocationList.size + deltaFreeList.size + resetDeltaAllocationList.size + resetDeltaFreeList.size > 0) {
             if (clear) {
               heapSets.forEach { it.clearClassifierSets() }
-              if (selection.selectedClassSet != null) {
-                selection.selectClassSet(ClassSet.EMPTY_SET)
-              }
             }
             if (stage.studioProfilers.ideServices.featureConfig.isMemorySnapshotEnabled) {
               snapshotList.forEach { heapSets[it.heapId].addSnapshotInstanceObject(it) }
@@ -547,7 +544,7 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
       .build()
 
   private fun<T> List<T>.updateSeenTimestamp(timestamp: (T) -> Long) = stream().mapToLong(timestamp).max().ifPresent {
-    lastSeenTimestampNs = it
+    lastSeenTimestampNs = max(lastSeenTimestampNs, it)
   }
 
   companion object {

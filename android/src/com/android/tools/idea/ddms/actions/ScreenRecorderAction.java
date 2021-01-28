@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ddms.actions;
 
+import com.android.prefs.AndroidLocationsException;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.CollectingOutputReceiver;
@@ -24,7 +25,6 @@ import com.android.ddmlib.NullOutputReceiver;
 import com.android.ddmlib.ScreenRecorderOptions;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
-import com.android.prefs.AndroidLocation.AndroidLocationException;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.ddms.DeviceContext;
@@ -169,7 +169,7 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
     try {
       return AvdManager.getInstance(AndroidSdks.getInstance().tryToChooseSdkHandler(), new LogWrapper(logger));
     }
-    catch (AndroidLocationException exception) {
+    catch (AndroidLocationsException exception) {
       logger.warn(exception);
       return null;
     }

@@ -34,6 +34,7 @@ import static java.util.Collections.emptyList;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
@@ -189,6 +190,10 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
   public boolean configurationTypeIsSupported(@NotNull RunConfiguration runConfiguration) {
     if (!(ProjectSystemUtil.getProjectSystem(runConfiguration.getProject()) instanceof GradleProjectSystem)) {
+      return false;
+    }
+    // Disable "Gradle-aware Make" task for instrumentation tests run via UTP so that APK handling is delegated to AGP
+    if (StudioFlags.UTP_INSTRUMENTATION_TESTING.get() && runConfiguration instanceof AndroidTestRunConfiguration) {
       return false;
     }
     return runConfiguration instanceof PreferGradleMake || isUnitTestConfiguration(runConfiguration);

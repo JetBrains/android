@@ -68,38 +68,3 @@ internal class FakeGMavenIndexRepository(
   override fun readDefaultData(relative: String) = data.byteInputStream()
   override fun fetchIndex(relative: String): InputStream? = findData(relative)
 }
-
-internal val fakeGMavenIndexRepository = FakeGMavenIndexRepository(
-  """
-      {
-        "Index": [
-          {
-            "groupId": "androidx.palette",
-            "artifactId": "palette",
-            "version": "1.0.0",
-            "fqcns": [
-              "androidx.palette.graphics.Palette",
-              "androidx.palette.graphics.Target"
-            ]
-          },
-          {
-            "groupId": "androidx.recyclerview",
-            "artifactId": "recyclerview",
-            "version": "1.1.0",
-            "fqcns": [
-              "androidx.recyclerview.widget.RecyclerView"
-            ]
-          },
-          {
-            "groupId": "androidx.room",
-            "artifactId": "room-runtime",
-            "version": "2.2.5",
-            "fqcns": [
-              "androidx.room.Room",
-              "androidx.room.RoomDatabase"
-            ]
-          }
-        ]
-      }
-    """.trimIndent()
-)

@@ -211,10 +211,12 @@ internal fun isCleanEnoughProject(project: Project): Boolean {
 /**
  * Show an appropriate dialog, and return whether the AGP upgrade should proceed by running the refactoring processor.  The
  * usual case is the return value from a dialog presenting information and options to the user, but we show a different
- * dialog if we detect that the upgrade will fail in some way.
+ * dialog if we detect that the upgrade will fail in some way.  If [preserveProcessorConfigurations] is false (the default), the
+ * dialog is permitted to initialize the processors' state (whether they are enabled, and any configuration) appropriately; if it
+ * is true, the processor is assumed to be already configured.
  */
 @Slow
-fun showAndGetAgpUpgradeDialog(processor: AgpUpgradeRefactoringProcessor): Boolean {
+fun showAndGetAgpUpgradeDialog(processor: AgpUpgradeRefactoringProcessor, preserveProcessorConfigurations: Boolean = false): Boolean {
   val java8Processor = processor.componentRefactoringProcessors.firstIsInstanceOrNull<Java8DefaultRefactoringProcessor>()
   if (java8Processor == null) {
     LOG.error("no Java8Default processor found in AGP Upgrade Processor")
@@ -234,7 +236,8 @@ fun showAndGetAgpUpgradeDialog(processor: AgpUpgradeRefactoringProcessor): Boole
       dialog.show()
       return@invokeAndWaitIfNeeded false
     }
-    val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor, java8Processor!!, hasChangesInBuildFiles)
+    val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(
+      processor, java8Processor!!, hasChangesInBuildFiles, preserveProcessorConfigurations)
     dialog.showAndGet()
   }
   return runProcessor

@@ -28,7 +28,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -41,7 +40,6 @@ import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.lang.reflect.Constructor;
 import java.util.Iterator;
 import java.util.List;
@@ -842,7 +840,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
   private String stripSdkHome(@NotNull String html) {
     AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
     assertNotNull(platform);
-    String location = platform.getSdkData().getLocation().getPath();
+    String location = platform.getSdkData().getLocation().toString();
     location = FileUtil.toSystemIndependentName(location);
     html = html.replace(location, "$SDK_HOME")
       .replace("file:///", "file://"); // On Windows JavaDoc source may start with /

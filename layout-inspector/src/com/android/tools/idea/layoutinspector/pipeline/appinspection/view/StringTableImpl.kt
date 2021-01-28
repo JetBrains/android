@@ -15,11 +15,17 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
 
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.common.StringTable
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Resource
 
 class StringTableImpl(strings: List<LayoutInspectorViewProtocol.StringEntry>) : StringTable {
   private val table = strings.associateBy({ it.id }, { it.str })
   override val keys: Set<Int> = table.keys
   override operator fun get(id: Int): String = table[id].orEmpty()
+
+  operator fun get(resource: Resource?): ResourceReference? {
+    return resource?.convert()?.createReference(this)
+  }
 }

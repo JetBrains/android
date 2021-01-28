@@ -29,7 +29,6 @@ import java.nio.file.Paths
 
 /** Key used in cache directories to locate the gmaven.index network cache. */
 const val GMAVEN_INDEX_CACHE_DIR_KEY = "gmaven.index"
-private const val BASE_URL = "https://dl.google.com/android/studio/gmaven/index/test/"
 
 /**
  * An implementation of [GMavenIndexRepository] to provide data about the GMaven indices on [BASE_URL].
@@ -54,7 +53,9 @@ class GMavenIndexRepositoryImpl : GMavenIndexRepository, NetworkCache(BASE_URL, 
     .readTimeout(timeout)
     .readBytes(null)
 
-  override fun readDefaultData(relative: String): InputStream? = null
+  override fun readDefaultData(relative: String): InputStream? {
+    return GMavenIndexRepositoryImpl::class.java.classLoader.getResourceAsStream("gmavenIndex/$OFFLINE_NAME.json")
+  }
 
   override fun error(throwable: Throwable, message: String?) {
     Logger.getInstance(GMavenIndexRepositoryImpl::class.java).warn(message, throwable)

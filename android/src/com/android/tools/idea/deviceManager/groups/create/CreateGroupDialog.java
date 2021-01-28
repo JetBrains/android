@@ -44,8 +44,7 @@ public class CreateGroupDialog {
     myDialog.init();
   }
 
-  @NotNull
-  public JComponent createCenterPanel() {
+  @NotNull JComponent createCenterPanel() {
     return myPanel.getComponent();
   }
 

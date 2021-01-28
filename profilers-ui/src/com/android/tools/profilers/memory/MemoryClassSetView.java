@@ -113,16 +113,12 @@ public final class MemoryClassSetView extends AspectObserver {
 
   @Nullable private List<FieldObject> myFieldObjectPath;
 
-  private final boolean myIsFullScreenHeapDumpUi;
-
   MemoryClassSetView(@NotNull MemoryCaptureSelection selection,
                      @NotNull IdeProfilerComponents ideProfilerComponents,
                      @NotNull Range selectionRange,
-                     @NotNull StreamingTimeline timeline,
-                     boolean isFullScreenHeapDumpUi) {
+                     @NotNull StreamingTimeline timeline) {
     mySelection = selection;
     myContextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
-    myIsFullScreenHeapDumpUi = isFullScreenHeapDumpUi;
 
     mySelection.getAspect().addDependency(this)
       .onChange(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE, this::refreshCaptureObject)
@@ -192,18 +188,6 @@ public final class MemoryClassSetView extends AspectObserver {
       InstanceAttribute.RETAINED_SIZE,
       makeSizeColumn("Retained Size", 130, ValueObject::getRetainedSize));
 
-
-    if (!isFullScreenHeapDumpUi) {
-      JPanel headingPanel = new JPanel(new BorderLayout());
-      JLabel instanceViewLabel = new JLabel("Instance View");
-      instanceViewLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
-      headingPanel.add(instanceViewLabel, BorderLayout.WEST);
-
-      CloseButton closeButton = new CloseButton(e -> mySelection.selectClassSet(null));
-      headingPanel.add(closeButton, BorderLayout.EAST);
-
-      myInstancesPanel.add(headingPanel, BorderLayout.NORTH);
-    }
     myInstancesPanel.setVisible(false);
   }
 
@@ -444,13 +428,7 @@ public final class MemoryClassSetView extends AspectObserver {
         }
 
         myMemoizedChildrenCount = myClassSet.getInstancesCount();
-        myClassSet.getInstancesStream().forEach(subAdapter ->
-                                                  InstanceNodeKt.addChild(
-                                                    this,
-                                                    subAdapter,
-                                                    myIsFullScreenHeapDumpUi ?
-                                                    LeafNode::new :
-                                                    InstanceDetailsTreeNode::new));
+        myClassSet.getInstancesStream().forEach(subAdapter -> InstanceNodeKt.addChild(this, subAdapter, LeafNode::new));
 
         if (myTreeModel != null) {
           myTreeModel.nodeChanged(this);

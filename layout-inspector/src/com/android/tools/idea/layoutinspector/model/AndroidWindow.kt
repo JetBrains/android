@@ -48,12 +48,7 @@ abstract class AndroidWindow(
     /**
      * The image associated with this window is a PNG (which we requested)
      */
-    PNG_AS_REQUESTED,
-
-    /**
-     * The image associated with this window is a PNG (even though we wanted a SKIA picture)
-     */
-    PNG_SKP_TOO_LARGE,
+    BITMAP_AS_REQUESTED,
   }
 
   val isDimBehind: Boolean

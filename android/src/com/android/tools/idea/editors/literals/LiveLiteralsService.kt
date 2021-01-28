@@ -1,10 +1,11 @@
 package com.android.tools.idea.editors.literals
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.util.BuildListener
-import com.android.tools.idea.gradle.util.setupBuildListener
+import com.android.tools.idea.projectsystem.BuildListener
+import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.rendering.classloading.ConstantRemapperManager
 import com.android.tools.idea.util.ListenerCollection
 import com.intellij.codeInsight.highlighting.HighlightManager
@@ -16,16 +17,21 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.EditorFactoryEvent
 import com.intellij.openapi.editor.event.EditorFactoryListener
+import com.intellij.openapi.editor.event.EditorMouseEvent
+import com.intellij.openapi.editor.event.EditorMouseListener
 import com.intellij.openapi.editor.markup.EffectType
 import com.intellij.openapi.editor.markup.RangeHighlighter
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.psi.PsiFile
 import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.containers.WeakList
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import org.jetbrains.annotations.TestOnly
 import java.awt.Font
+import java.awt.GraphicsEnvironment
 import java.lang.ref.WeakReference
 
 private val LITERAL_TEXT_ATTRIBUTE = TextAttributes(UIUtil.getActiveTextColor(),
@@ -45,11 +51,77 @@ private val DOCUMENT_CHANGE_COALESCE_TIME_MS = StudioFlags.COMPOSE_LIVE_LITERALS
  */
 @Service
 class LiveLiteralsService(private val project: Project) : Disposable {
+  /**
+   * Class that groups all the highlighters for a given file/editor combination. This allows enabling/disabling them.
+   */
+  @UiThread
+  private inner class HighlightTracker(
+    file: PsiFile,
+    private val editor: Editor,
+    private val fileSnapshot: LiteralReferenceSnapshot) : Disposable {
+    private val project = file.project
+    private var showingHighlights = false
+    private val outHighlighters = mutableSetOf<RangeHighlighter>()
+
+    @Suppress("IncorrectParentDisposable")
+    private fun clearAll() {
+      if (Disposer.isDisposed(project)) return
+      val highlightManager = HighlightManager.getInstance(project)
+      outHighlighters.forEach { highlightManager.removeSegmentHighlighter(editor, it) }
+      outHighlighters.clear()
+    }
+
+    fun showHighlights() {
+      if (showingHighlights) return
+      showingHighlights = true
+
+      // Take a snapshot
+      if (log.isDebugEnabled) {
+        fileSnapshot.all.forEach {
+          val elementPathString = it.usages.joinToString("\n") { element -> element.toString() }
+          log.debug("[${it.uniqueId}] Found constant ${it.text} \n$elementPathString\n\n")
+        }
+      }
+
+      if (fileSnapshot.all.isNotEmpty()) {
+        fileSnapshot.highlightSnapshotInEditor(project, editor, LITERAL_TEXT_ATTRIBUTE, outHighlighters)
+
+        if (outHighlighters.isNotEmpty()) {
+          // Remove the highlights if the manager is deactivated
+          Disposer.register(this, this::hideHighlights)
+        }
+      }
+    }
+
+    fun hideHighlights() {
+      clearAll()
+      showingHighlights = false
+    }
+
+    override fun dispose() {
+      hideHighlights()
+    }
+  }
+
   companion object {
     fun getInstance(project: Project): LiveLiteralsService = project.getService(LiveLiteralsService::class.java)
   }
 
   private val log = Logger.getInstance(LiveLiteralsService::class.java)
+
+  /**
+   * If true, the highlights will be shown.
+   */
+  var showLiveLiteralsHighlights = false
+    set(value) {
+      field = value
+      refreshHighlightTrackersVisibility()
+    }
+  /**
+   * Link to all instantiated [HighlightTracker]s. This allows to switch them on/off via the [ToggleLiveLiteralsHighlightAction].
+   * This is a [WeakList] since the trackers will be mainly held by the mouse listener created in [addDocumentTracking].
+   */
+  private val trackers = WeakList<HighlightTracker>()
 
   /**
    * [ListenerCollection] for all the listeners that need to be notified when any live literal has changed value.
@@ -112,7 +184,7 @@ class LiveLiteralsService(private val project: Project) : Disposable {
 
   @Synchronized
   private fun onDocumentsUpdated(document: Collection<Document>, @Suppress("UNUSED_PARAMETER") lastUpdateNanos: Long) {
-    var updateList = ArrayList<LiteralReference>();
+    val updateList = ArrayList<LiteralReference>()
     document.flatMap {
       documentSnapshots[it]?.modified ?: emptyList()
     }.forEach {
@@ -137,35 +209,51 @@ class LiveLiteralsService(private val project: Project) : Disposable {
    */
   private fun addDocumentTracking(parentDisposable: Disposable, editor: Editor, document: Document) {
     val file = AndroidPsiUtils.getPsiFileSafely(project, document) ?: return
-
-    // Take a snapshot
     val fileSnapshot = literalsManager.findLiterals(file)
-    if (log.isDebugEnabled) {
-      fileSnapshot.all.forEach {
-        val elementPathString = it.usages.joinToString("\n") { element -> element.toString() }
-        log.debug("[${it.uniqueId}] Found constant ${it.text} \n$elementPathString\n\n")
-      }
-    }
 
     if (fileSnapshot.all.isNotEmpty()) {
       documentSnapshots[document] = fileSnapshot
 
-      // When using "always-on" live literals, we don't show highlights.
-      if (!StudioFlags.COMPOSE_ALWAYS_ON_LIVE_LITERALS.get()) {
-        UIUtil.invokeAndWaitIfNeeded(Runnable {
-          val highlightManager = HighlightManager.getInstance(project)
-          val outHighlighters = mutableSetOf<RangeHighlighter>()
-          fileSnapshot.highlightSnapshotInEditor(project, editor, LITERAL_TEXT_ATTRIBUTE, outHighlighters)
-          if (outHighlighters.isNotEmpty()) {
-            // Remove the highlights if the manager is deactivated
-            Disposer.register(parentDisposable, {
-              outHighlighters.forEach { highlightManager.removeSegmentHighlighter(editor, it) }
-            })
-          }
-        })
+      Disposer.register(parentDisposable) {
+        documentSnapshots.remove(document)
       }
     }
+
+    val tracker = HighlightTracker(file, editor, fileSnapshot)
+    trackers.add(tracker)
+    Disposer.register(parentDisposable, tracker)
+    editor.addEditorMouseListener(object : EditorMouseListener {
+      override fun mouseEntered(event: EditorMouseEvent) {
+        if (showLiveLiteralsHighlights) {
+          tracker.showHighlights()
+        }
+      }
+
+      override fun mouseExited(event: EditorMouseEvent) {
+        tracker.hideHighlights()
+      }
+    }, parentDisposable)
+
+    // If the mouse is already within the editor hover area, activate the highlights
+    if (GraphicsEnvironment.isHeadless() || editor.component.mousePosition != null) {
+      UIUtil.invokeAndWaitIfNeeded(Runnable {
+        if (showLiveLiteralsHighlights) {
+          tracker.showHighlights()
+        }
+      })
+    }
   }
+
+  private fun refreshHighlightTrackersVisibility() = UIUtil.invokeAndWaitIfNeeded(Runnable {
+    trackers.forEach {
+      if (showLiveLiteralsHighlights) {
+        it.showHighlights()
+      }
+      else {
+        it.hideHighlights()
+      }
+    }
+  })
 
   @Synchronized
   private fun activate() {
@@ -210,7 +298,8 @@ class LiveLiteralsService(private val project: Project) : Disposable {
   }
 
   @Synchronized
-  private fun deactivate(fireChangeListeners: Boolean = true) {
+  private fun deactivate() {
+    trackers.clear()
     ConstantRemapperManager.getConstantRemapper().clearConstants(null)
     activationDisposable?.let {
       Disposer.dispose(it)
@@ -221,6 +310,6 @@ class LiveLiteralsService(private val project: Project) : Disposable {
 
   override fun dispose() {
     isEnabled = false
-    deactivate(false)
+    deactivate()
   }
 }

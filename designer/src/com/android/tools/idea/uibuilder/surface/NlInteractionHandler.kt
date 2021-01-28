@@ -17,8 +17,6 @@ package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.Coordinates
-import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneInteraction
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.Interaction
@@ -34,7 +32,7 @@ import java.awt.Rectangle
 class NlInteractionHandler(private val surface: DesignSurface): InteractionHandlerBase(surface) {
 
   override fun createInteractionOnPressed(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int, modifiersEx: Int): Interaction? {
-    val view = surface.getSceneView(mouseX, mouseY) ?: return null
+    val view = surface.getSceneViewAtOrPrimary(mouseX, mouseY) ?: return null
     val screenView = view as ScreenView
     if (isInResizeZone(view, mouseX, mouseY)) {
       val configuration = view.sceneManager.model.configuration
@@ -106,7 +104,7 @@ class NlInteractionHandler(private val surface: DesignSurface): InteractionHandl
   override fun createInteractionOnDrag(@SwingCoordinate mouseX: Int,
                                        @SwingCoordinate mouseY: Int,
                                        @JdkConstants.InputEventMask modifiersEx: Int): Interaction? {
-    if (surface.getHoverSceneView(mouseX, mouseY) == null) {
+    if (surface.getSceneViewAt(mouseX, mouseY) == null) {
       val focusedSceneView = surface.focusedSceneView ?: return null
       return MarqueeInteraction(focusedSceneView)
     }
@@ -136,7 +134,7 @@ class NlInteractionHandler(private val surface: DesignSurface): InteractionHandl
   }
 
   private fun clickPreview(@SwingCoordinate x: Int, @SwingCoordinate y: Int, needsFocusEditor: Boolean) {
-    val sceneView = surface.getSceneView(x, y) ?: return
+    val sceneView = surface.getSceneViewAtOrPrimary(x, y) ?: return
     val androidX = Coordinates.getAndroidXDip(sceneView, x)
     val androidY = Coordinates.getAndroidYDip(sceneView, y)
 
@@ -153,7 +151,7 @@ class NlInteractionHandler(private val surface: DesignSurface): InteractionHandl
   override fun getCursorWhenNoInteraction(@SwingCoordinate mouseX: Int,
                                           @SwingCoordinate mouseY: Int,
                                           @JdkConstants.InputEventMask modifiersEx: Int): Cursor? {
-    val sceneView = surface.getSceneView(mouseX, mouseY)
+    val sceneView = surface.getSceneViewAtOrPrimary(mouseX, mouseY)
     if (sceneView != null) {
       // Check if the mouse position is at the bottom-right corner of sceneView.
       if (isInResizeZone(sceneView, mouseX, mouseY)) {

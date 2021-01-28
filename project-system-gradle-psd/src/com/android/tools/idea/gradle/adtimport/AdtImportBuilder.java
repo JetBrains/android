@@ -87,7 +87,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
       importer.setCreateGradleWrapper(true);
       AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
       if (sdkData != null) {
-        importer.setSdkLocation(sdkData.getLocation());
+        importer.setSdkLocation(sdkData.getLocationFile());
       }
     }
     importer.importProjects(projects);

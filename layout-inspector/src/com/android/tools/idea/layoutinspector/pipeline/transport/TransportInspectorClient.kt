@@ -70,7 +70,6 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import java.awt.Component
 import java.awt.event.ActionEvent
 import java.util.EnumSet
-import java.util.concurrent.Future
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import javax.swing.AbstractAction
@@ -83,7 +82,7 @@ class TransportInspectorClient(
   private val transportComponents: TransportComponents
 ) : AbstractInspectorClient(process) {
 
-  override val capabilities = EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE)
+  override val capabilities = EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE, Capability.SUPPORTS_FILTERING_SYSTEM_NODES)
 
   private val eventCallbacks = mutableMapOf<EventGroupIds, MutableList<(Any) -> Unit>>()
 

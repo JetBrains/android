@@ -36,9 +36,6 @@ public class DeployTask extends AbstractDeployTask {
   private static final Logger LOG = Logger.getInstance(DeployTask.class);
   private static final String ID = "DEPLOY";
 
-  // TODO: May be the hooks to start live updates should be a task on it's own?
-  private final Runnable startLiveUpdate;
-
   private final String[] userInstallOptions;
   private final boolean installOnAllUsers;
 
@@ -50,7 +47,6 @@ public class DeployTask extends AbstractDeployTask {
    */
   public DeployTask(@NotNull Project project,
                     @NotNull Map<String, List<File>> packages,
-                    @Nullable Runnable startLiveUpdate,
                     String userInstallOptions,
                     boolean installOnAllUsers,
                     boolean alwaysInstallWithPm) {
@@ -62,7 +58,6 @@ public class DeployTask extends AbstractDeployTask {
       this.userInstallOptions = new String[0];
     }
     this.installOnAllUsers = installOnAllUsers;
-    this.startLiveUpdate = startLiveUpdate;
   }
 
   @NotNull
@@ -114,7 +109,8 @@ public class DeployTask extends AbstractDeployTask {
     // Since the app has already been stopped from Studio, requesting "--dont-kill" prevent the package manager from
     // issuing a "force-stop", but still yield the expecting behavior that app is restarted after install. Note that
     // this functionality is only valid for Android Nougat or above.
-    if (device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.N)) {
+    boolean isDontKillSupported = device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.N);
+    if (isDontKillSupported) {
       options.setDontKill();
     }
 
@@ -134,10 +130,9 @@ public class DeployTask extends AbstractDeployTask {
 
     Deployer.Result result = deployer.install(applicationId, getPathsToInstall(files), options.build(), installMode);
 
-    // If install fails, an Exception would have been thrown to prevent live updates from starting.
-    if (device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.R) && startLiveUpdate != null) {
-      // Needs Android 11 because of start-up agent.
-      startLiveUpdate.run();
+    // Manually force-stop the application if we set --dont-kill above.
+    if (!result.skippedInstall && isDontKillSupported) {
+      device.forceStop(applicationId);
     }
     return result;
   }

@@ -81,7 +81,6 @@ class ModuleTemplateDataBuilder(
   var unitTestDir: File? = null
   var aidlDir: File? = null
   var rootDir: File? = null
-  var hasApplicationTheme: Boolean = true
   var name: String? = null
   var isLibrary: Boolean? = null
   var packageName: PackageName? = null
@@ -134,9 +133,6 @@ class ModuleTemplateDataBuilder(
     )
 
     isLibrary = facet.configuration.isLibraryProject
-
-    val appTheme = MergedManifestManager.getMergedManifestSupplier(facet.module).now
-    hasApplicationTheme = appTheme != null
 
     setApplicationTheme(facet)
 
@@ -231,7 +227,6 @@ class ModuleTemplateDataBuilder(
     aidlDir!!,
     rootDir!!,
     isNewModule,
-    hasApplicationTheme,
     name!!,
     isLibrary!!,
     packageName!!,

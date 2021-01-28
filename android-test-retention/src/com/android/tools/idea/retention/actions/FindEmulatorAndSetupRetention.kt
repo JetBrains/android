@@ -124,7 +124,7 @@ class FindEmulatorAndSetupRetention : AnAction() {
           val shouldAttachDebugger = dataContext.getData(RETENTION_AUTO_CONNECT_DEBUGGER_KEY) ?: false
           val packageName = dataContext.getData(PACKAGE_NAME_KEY) ?: return
           if (!shouldAttachDebugger) {
-            if (!emulatorController.pushAndLoadSync(snapshotId, snapshotFile, indicator)) {
+            if (!emulatorController.pushAndLoadAndDeleteSync(snapshotId, snapshotFile, indicator)) {
               showErrorMessage(project, "Failed to import snapshots. Please try to boot emulator (${deviceName}) with the same "
                                         + "command line parameters as you run the test.")
             }
@@ -156,7 +156,7 @@ class FindEmulatorAndSetupRetention : AnAction() {
           }
           AndroidDebugBridge.addDeviceChangeListener(deviceChangeListener)
           try {
-            if (!emulatorController.pushAndLoadSync(snapshotId, snapshotFile, indicator)) {
+            if (!emulatorController.pushAndLoadAndDeleteSync(snapshotId, snapshotFile, indicator)) {
               showErrorMessage(project, "Failed to import snapshots. Please try to boot emulator (${deviceName}) with the same "
                                         + "command line parameters as you run the test.")
               return
@@ -265,8 +265,8 @@ private fun connectDebugger(device: IDevice, dataContext: DataContext) {
  * @return true if succeeds.
  */
 @Slow
-private fun EmulatorController.pushAndLoadSync(snapshotId: String, snapshotFile: File, indicator: ProgressIndicator): Boolean {
-  return pushSnapshotSync(snapshotId, snapshotFile, indicator) && loadSnapshotSync(snapshotId)
+private fun EmulatorController.pushAndLoadAndDeleteSync(snapshotId: String, snapshotFile: File, indicator: ProgressIndicator): Boolean {
+  return pushSnapshotSync(snapshotId, snapshotFile, indicator) && loadSnapshotSync(snapshotId) && deleteSnapshotSync(snapshotId)
 }
 
 /**
@@ -281,6 +281,37 @@ private fun EmulatorController.loadSnapshotSync(snapshotId: String): Boolean {
   val doneSignal = CountDownLatch(1)
   var succeeded = true
   loadSnapshot(snapshotId, object : StreamObserver<SnapshotPackage> {
+    override fun onNext(response: SnapshotPackage) {
+      if (!response.success) {
+        succeeded = false
+        showErrorMessage(null, "Snapshot load failed: " + response.err.toString(Charset.defaultCharset()))
+      }
+    }
+    override fun onCompleted() {
+      doneSignal.countDown()
+    }
+
+    override fun onError(throwable: Throwable) {
+      succeeded = false
+      doneSignal.countDown()
+    }
+  })
+  ProgressIndicatorUtils.awaitWithCheckCanceled(doneSignal)
+  return succeeded
+}
+
+/**
+ * Delete a snapshot in the emulator.
+ *
+ * @param snapshotId a name of a snapshot in the emulator.
+ *
+ * @return true if succeeds.
+ */
+@Slow
+private fun EmulatorController.deleteSnapshotSync(snapshotId: String): Boolean {
+  val doneSignal = CountDownLatch(1)
+  var succeeded = true
+  deleteSnapshot(snapshotId, object : StreamObserver<SnapshotPackage> {
     override fun onNext(response: SnapshotPackage) {
       if (!response.success) {
         succeeded = false

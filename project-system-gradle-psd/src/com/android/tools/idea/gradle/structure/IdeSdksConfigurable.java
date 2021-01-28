@@ -599,7 +599,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     if (sdkData == null) {
       return null;
     }
-    List<Sdk> sdks = ideSdks.createAndroidSdkPerAndroidTarget(sdkData.getLocation());
+    List<Sdk> sdks = ideSdks.createAndroidSdkPerAndroidTarget(sdkData.getLocationFile());
     return !sdks.isEmpty() ? sdks.get(0) : null;
   }
 

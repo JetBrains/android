@@ -17,7 +17,7 @@ package com.android.tools.idea.layoutinspector.tree
 
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import icons.StudioIcons
@@ -44,7 +44,12 @@ object FilterNodeAction : ToggleAction("Filter system-defined layers", null, Stu
   }
 
   override fun update(event: AnActionEvent) {
-    event.presentation.isVisible = inspector(event)?.currentClient !is LegacyClient
+    event.presentation.isVisible =
+      inspector(event)?.currentClient?.let { client ->
+        !client.isConnected // If not running, default to visible so user can modify selection when next client is connected
+        || client.capabilities.contains(Capability.SUPPORTS_FILTERING_SYSTEM_NODES)
+      }
+      ?: true
   }
 
   private fun inspector(event: AnActionEvent): LayoutInspector? = event.getData(LAYOUT_INSPECTOR_DATA_KEY)

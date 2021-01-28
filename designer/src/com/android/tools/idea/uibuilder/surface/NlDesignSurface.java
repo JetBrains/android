@@ -35,7 +35,6 @@ import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.model.ScaleKt;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -47,6 +46,7 @@ import com.android.tools.idea.common.surface.InteractionHandler;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.SurfaceScale;
 import com.android.tools.idea.common.surface.SurfaceScreenScalingFactor;
+import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
@@ -67,7 +67,6 @@ import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
 import com.android.utils.ImmutableCollectors;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
@@ -82,7 +81,6 @@ import com.intellij.util.ui.update.Update;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -441,7 +439,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     myMinScale = minScale;
     myMaxScale = maxScale;
 
-    myScrollPane.getViewport().addChangeListener(e -> {
+    getViewport().addChangeListener(e -> {
       // Calculate the viewport position of scroll view when its size is changed.
       // When the view size is changed, the new center position should have same weight in both x and y axis as before.
       // Consider the size of the view is 1000 * 2000 and the zoom center is at (800, 1500). So the weight is 0.8 on x-axis and 0.75 on
@@ -450,7 +448,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       // We calculate the new viewport position to achieve above behavior.
       // FIXME: This doesn't work when scaling makes re-layout when using GridLayout.
       //        Consider to use hovered SceneView to determine the new viewport position in that case.
-      JViewport port = (JViewport)e.getSource();
+      DesignSurfaceViewport port = getViewport();
       Dimension newViewportSize = port.getViewSize();
       if (newViewportSize == null ||
           newViewportSize.width == 0 ||
@@ -481,8 +479,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       int newViewPositionY = (int)(newZoomCenterInViewportY - zoomCenterY);
 
       // Make sure the view port position doesn't go out of bound. (It may happen when zooming-out)
-      newViewPositionX = Math.max(0, Math.min(newViewPositionX, newViewWidth - port.getWidth()));
-      newViewPositionY = Math.max(0, Math.min(newViewPositionY, newViewHeight - port.getHeight()));
+      newViewPositionX = Math.max(0, Math.min(newViewPositionX, newViewWidth - port.getViewportComponent().getWidth()));
+      newViewPositionY = Math.max(0, Math.min(newViewPositionY, newViewHeight - port.getViewportComponent().getHeight()));
 
       myCurrentViewportSize = newViewportSize;
 
@@ -572,7 +570,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   public void setResizeMode(boolean isResizing) {
     myIsCanvasResizing = isResizing;
     // When in resize mode, allow the scrollable surface autoscroll so it follow the mouse.
-    myScrollPane.setAutoscrolls(isResizing);
+    setSurfaceAutoscrolls(isResizing);
   }
 
   /**
@@ -644,42 +642,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       view.setForceLayersRepaint(value);
     }
     repaint();
-  }
-
-  @Override
-  @Nullable
-  public SceneView getSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
-    SceneView view = getHoverSceneView(x, y);
-    if (view == null) {
-      // TODO: For keeping the behaviour as before in multi-model case, we return primary SceneView when there is no hovered SceneView.
-      SceneManager manager = getSceneManager();
-      if (manager != null) {
-        view = manager.getSceneView();
-      }
-    }
-    return view;
-  }
-
-  /**
-   * Return the ScreenView under the given position
-   *
-   * @return the ScreenView, or null if we are not above one.
-   */
-  @Nullable
-  @Override
-  public SceneView getHoverSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
-    Collection<SceneView> sceneViews = getSceneViews();
-    Dimension scaledSize = new Dimension();
-    for (SceneView view : sceneViews) {
-      ScaleKt.scaleBy(view.getContentSize(scaledSize), view.getScale());
-      if (view.getX() <= x &&
-          x <= (view.getX() + scaledSize.width) &&
-          view.getY() <= y &&
-          y <= (view.getY() + scaledSize.height)) {
-        return view;
-      }
-    }
-    return null;
   }
 
   public void setAdaptiveIconShape(@NotNull ShapeMenuAction.AdaptiveIconShape adaptiveIconShape) {
@@ -927,8 +889,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     if (x < 0 || y < 0) {
       // This happens when zooming is triggered by shortcut or zoom buttons.
       // We use the center point of scroll pane as scaling center.
-      myZoomCenter.x = myScrollPane.getViewport().getWidth() / 2;
-      myZoomCenter.y = myScrollPane.getViewport().getHeight() / 2;
+      myZoomCenter.x = getViewport().getViewportComponent().getWidth() / 2;
+      myZoomCenter.y = getViewport().getViewportComponent().getHeight() / 2;
 
       // Convert the center point in scroll pane to view port coordinate system.
       Point scrollPosition = getScrollPosition();
@@ -941,7 +903,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       myZoomCenterInViewport.y = y;
 
       // The given zoom center is in Viewport coordinate, we need to calculate the point in scroll pane.
-      Point center = SwingUtilities.convertPoint(myScrollPane.getViewport().getView(), x, y, myScrollPane.getViewport());
+      Point center = SwingUtilities.convertPoint(getViewport().getViewComponent(), x, y, getViewport().getViewportComponent());
       myZoomCenter.x = center.x;
       myZoomCenter.y = center.y;
     }

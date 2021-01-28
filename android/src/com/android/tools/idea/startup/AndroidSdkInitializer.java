@@ -24,6 +24,7 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform
 import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
 
 import com.android.SdkConstants;
+import com.android.prefs.AndroidLocationsSingleton;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -98,7 +99,7 @@ public class AndroidSdkInitializer implements Runnable {
     }
 
     if (androidSdkPath != null) {
-      AndroidSdkHandler handler = AndroidSdkHandler.getInstance(androidSdkPath.toPath());
+      AndroidSdkHandler handler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, androidSdkPath.toPath());
       new PatchInstallingRestarter(handler).restartAndInstallIfNecessary();
       // We need to start the system info monitoring even in case when user never
       // runs a single emulator instance: e.g., incompatible hypervisor might be
@@ -244,7 +245,7 @@ public class AndroidSdkInitializer implements Runnable {
    * or property doesn't exist.
    * <p>
    * This is only useful in a scenario where existing users of ADT/Eclipse get Studio, but without the bundle. This method duplicates some
-   * functionality of {@link com.android.prefs.AndroidLocation} since we don't want any file system writes to happen during this process.
+   * functionality of {@link com.android.prefs.AbstractAndroidLocations} since we don't want any file system writes to happen during this process.
    */
   @Nullable
   private static String getLastSdkPathUsedByAndroidTools() {

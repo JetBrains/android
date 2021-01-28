@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.deployment;
 
 import com.intellij.openapi.project.Project;
-import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,12 +25,12 @@ final class PhysicalDeviceTarget extends Target {
   }
 
   /**
-   * @return Optional.empty. Physical devices never get submenus and as there's only one type of target for them, there's no need for
-   * distinguishing text.
+   * @return throws UnsupportedOperationException. The text indicates the way a device will be booted but physical devices are not booted by
+   * the drop down.
    */
   @Override
-  @NotNull Optional<@NotNull String> getText(@NotNull Device device) {
-    return Optional.empty();
+  @NotNull String getText(@NotNull Device device) {
+    throw new UnsupportedOperationException();
   }
 
   @Override

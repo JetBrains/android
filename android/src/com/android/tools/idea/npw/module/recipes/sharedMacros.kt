@@ -26,7 +26,6 @@ import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.Revision
-import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.android.tools.idea.wizard.template.getMaterialComponentName
 import com.android.tools.idea.wizard.template.renderIf
 import java.io.File
@@ -244,15 +243,10 @@ fun basicThemesXml(parent: String, themeName: String = "Theme.App") = """
 </resources>
 """
 
-fun supportsImprovedTestDeps(agpVersion: GradlePluginVersion) =
-  GradleVersion.parse(agpVersion).compareIgnoringQualifiers("3.0.0") >= 0
-
-fun RecipeExecutor.addTestDependencies(agpVersion: GradlePluginVersion) {
+fun RecipeExecutor.addTestDependencies() {
   addDependency("junit:junit:4.+", "testCompile")
-  if (supportsImprovedTestDeps(agpVersion)) {
-    addDependency("com.android.support.test:runner:+", "androidTestCompile")
-    addDependency("com.android.support.test.espresso:espresso-core:+", "androidTestCompile")
-  }
+  addDependency("com.android.support.test:runner:+", "androidTestCompile")
+  addDependency("com.android.support.test.espresso:espresso-core:+", "androidTestCompile")
 }
 
 fun RecipeExecutor.createDefaultDirectories(moduleOut: File, srcOut: File) {

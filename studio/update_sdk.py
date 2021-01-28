@@ -10,8 +10,8 @@ import glob
 import shutil
 import xml.etree.ElementTree as ET
 
-# A list of files not included in the SDK because they are maked by files in the root lib directory
-# This should be sorted out at a different leve, but for now removing them here
+# A list of files not included in the SDK because they are made by files in the root lib directory
+# This should be sorted out at a different level, but for now removing them here
 HIDDEN = [
     "/plugins/Kotlin/lib/kotlin-stdlib-jdk8.jar",
     "/plugins/Kotlin/lib/kotlin-stdlib.jar",

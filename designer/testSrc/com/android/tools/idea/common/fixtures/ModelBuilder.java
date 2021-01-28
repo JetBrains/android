@@ -209,7 +209,7 @@ public class ModelBuilder {
       SceneManager sceneManager = myManagerFactory.apply(model);
       when(surface.getSceneManager()).thenReturn(sceneManager);
       when(surface.getSceneManagers()).thenReturn(ImmutableList.of(sceneManager));
-      when(surface.getSceneView(anyInt(), anyInt())).thenCallRealMethod();
+      when(surface.getSceneViewAtOrPrimary(anyInt(), anyInt())).thenCallRealMethod();
       when(surface.getFocusedSceneView()).thenReturn(sceneManager.getSceneView());
       if (myDevice != null) {
         model.getConfiguration().setDevice(myDevice, true);

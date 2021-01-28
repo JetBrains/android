@@ -30,6 +30,7 @@ import com.intellij.openapi.vfs.newvfs.persistent.FSRecords
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.AndroidTestBase.getModulePath
+import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices
 import org.jetbrains.plugins.gradle.settings.DistributionType
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
@@ -45,6 +46,7 @@ import java.io.File
 import java.time.Duration
 import java.time.Instant
 import java.util.ArrayList
+import java.util.Scanner
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.logging.Logger
 
@@ -214,20 +216,24 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
     }
     finally {
       memoryThread.stopReadings()
-      log.info("Average: ${measurements.average()}")
-      log.info("min: ${measurements.min()}")
-      log.info("max: ${measurements.max()}")
-      val memory = memoryThread.usedMemory
-      log.info("Memory average: ${memory.average()}")
-      log.info("Memory min: ${memory.min()}")
-      log.info("Memory max: ${memory.max()}")
-      showHistogram(memory)
+      logSummary("Time", measurements, log)
+      val memory = memoryThread.usedMemoryIde
+      logSummary("Memory IDE", memory, log)
+      showHistogram(memory, log)
+      val memoryGradleRsz = memoryThread.usedMemoryGradleRsz
+      logSummary("Memory Gradle rsz", memoryGradleRsz, log)
+      showHistogram(memoryGradleRsz, log)
     }
   }
 
-  private fun showHistogram(values: ArrayList<Long>) {
+  private fun logSummary(name: String, values: ArrayList<Long>, log: Logger) {
+    log.info("$name average: ${values.average()}")
+    log.info("$name min: ${values.min()}")
+    log.info("$name max: ${values.max()}")
+  }
+
+  private fun showHistogram(values: ArrayList<Long>, log: Logger) {
     val maximum = values.max()
-    val log = getLogger()
     if (maximum == null) {
       log.info("***NO VALUES WERE CAPTURED***")
       return
@@ -304,15 +310,18 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
     return scenarioName.toString()
   }
 
-  class MemoryMeasurementThread(private val scenarioName: String): Thread() {
-    val usedMemory = ArrayList<Long>()
+  private inner class MemoryMeasurementThread(private val scenarioName: String): Thread() {
+    val usedMemoryIde = ArrayList<Long>()
+    val usedMemoryGradleRsz = ArrayList<Long>()
+    var daemonPid: Long? = null
     private var stopRunning = AtomicBoolean(false)
 
     override fun run() {
       val memoryBenchmark = Benchmark.Builder("Memory usage")
         .setProject(BENCHMARK_PROJECT)
         .build()
-      val metricMemoryUsed = Metric(scenarioName)
+      val metricMemoryUsedIde = Metric(scenarioName)
+      val metricMemoryUsedGradleRsz = Metric(scenarioName + "_GradleRsz")
       var nextReading = Instant.now()
       while (!stopRunning.get()) {
         val currentInstant = Instant.now()
@@ -321,21 +330,69 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
           sleep(waitMillis)
           continue
         }
-        val usage = getUsedMemory()
-        usedMemory.add(usage)
-        metricMemoryUsed.addSamples(memoryBenchmark, MetricSample(currentInstant.toEpochMilli(), usage))
+        val epocMilli = currentInstant.toEpochMilli()
+
+        val usageIde = getUsedMemoryIde()
+        usedMemoryIde.add(usageIde)
+        metricMemoryUsedIde.addSamples(memoryBenchmark, MetricSample(epocMilli, usageIde))
+
+        val usageGradleRsz = getUsedMemoryGradleRsz()
+        if (usageGradleRsz != null) {
+          usedMemoryGradleRsz.add(usageGradleRsz)
+          metricMemoryUsedGradleRsz.addSamples(memoryBenchmark, MetricSample(epocMilli, usageGradleRsz))
+        }
+
         nextReading = nextReading.plusMillis(MEMORY_MEASUREMENT_INTERVAL_MILLIS)
         if (nextReading < currentInstant) {
           val toSkip: Long = 1 + (Duration.between(nextReading, currentInstant).toMillis() / MEMORY_MEASUREMENT_INTERVAL_MILLIS)
           nextReading = currentInstant.plusMillis(MEMORY_MEASUREMENT_INTERVAL_MILLIS * toSkip)
         }
       }
-      metricMemoryUsed.commit("Memory")
+      metricMemoryUsedIde.commit("Memory")
+      metricMemoryUsedGradleRsz.commit("MemoryGradleRsz")
     }
 
-    private fun getUsedMemory(): Long {
+    private fun getFirstBusyDaemonPid(): Long? {
+      val daemon = GradleDaemonServices.getDaemonsStatus().find {it.status == "BUSY"} ?: return null
+      return daemon.pid
+    }
+
+    private fun getUsedMemoryIde(): Long {
       val runtime = Runtime.getRuntime()
       return runtime.totalMemory() - runtime.freeMemory()
+    }
+
+    private fun getUsedMemoryGradleRsz(): Long? {
+      val busyPid = getFirstBusyDaemonPid()
+      if (busyPid != null) {
+        daemonPid = busyPid
+      }
+      if (daemonPid == null) {
+        return null
+      }
+      val runtime = Runtime.getRuntime()
+      // resident set size in kilobytes of the daemon process and its subprocesses
+      val command = "ps -p $daemonPid --no-heading -o rsz"
+      val process = runtime.exec(command)
+      val result = process.waitFor()
+      if (result != 0) {
+        try {
+          val errorMessage = Scanner(process.errorStream).useDelimiter("\\A").next()
+          getLogger().warning("Error $result while running \"$command\", message: \"$errorMessage\"")
+        }
+        catch (ignored: Exception) {
+        }
+        return null
+      }
+      try {
+        val inputStream = process.inputStream
+        val usedKB = Scanner(inputStream).useDelimiter("\\A").next().trim().toLong()
+        return usedKB * 1024
+      }
+      catch (exc: Exception) {
+        getLogger().warning("Exception while parsing output of command \"$command\": $exc")
+      }
+      return null
     }
 
     fun stopReadings() {

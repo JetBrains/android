@@ -59,7 +59,7 @@ class CapturePanel(profilersView: StudioProfilersView,
   val captureView = MemoryCaptureView(selection, ideComponents) // TODO: remove after full migration. Only needed for legacy tests
   val classGrouping = MemoryClassGrouping(selection)
   val classifierView = MemoryClassifierView(selection, ideComponents)
-  val classSetView = MemoryClassSetView(selection, ideComponents, selectionRange, timeline, isFullScreenHeapDumpUi)
+  val classSetView = MemoryClassSetView(selection, ideComponents, selectionRange, timeline)
   val instanceDetailsView = MemoryInstanceDetailsView(selection, ideComponents, timeline)
 
   val captureInfoMessage = JLabel(StudioIcons.Common.WARNING).apply {

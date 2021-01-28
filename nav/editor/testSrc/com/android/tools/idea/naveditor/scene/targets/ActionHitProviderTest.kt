@@ -59,7 +59,6 @@ class ActionHitProviderTest : NavTestCase() {
     val surface = model.surface as NavDesignSurface
     val view = NavView(surface, surface.sceneManager!!)
     `when`<SceneView>(surface.focusedSceneView).thenReturn(view)
-    `when`<SceneView>(surface.getSceneView(anyInt(), anyInt())).thenReturn(view)
 
     val scene = model.surface.scene!!
     val component = scene.getSceneComponent("fragment1")!!

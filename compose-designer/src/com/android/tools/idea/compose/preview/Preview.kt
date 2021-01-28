@@ -45,8 +45,8 @@ import com.android.tools.idea.editors.setupOnSaveListener
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_BUILD_ON_SAVE
-import com.android.tools.idea.gradle.util.BuildListener
-import com.android.tools.idea.gradle.util.setupBuildListener
+import com.android.tools.idea.projectsystem.BuildListener
+import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.classloading.CooperativeInterruptTransform
 import com.android.tools.idea.rendering.classloading.HasLiveLiteralsTransform
@@ -55,6 +55,7 @@ import com.android.tools.idea.rendering.classloading.toClassTransform
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
@@ -92,8 +93,7 @@ import kotlin.properties.Delegates
 /**
  * Background color for the surface while "Interactive" is enabled.
  */
-private val INTERACTIVE_BACKGROUND_COLOR = JBColor(Color(203, 210, 217),
-                                                   Color(70, 69, 77))
+private val INTERACTIVE_BACKGROUND_COLOR = JBColor(Color(203, 210, 217), MEUI.ourInteractiveBackgroundColor)
 
 /**
  * [NlModel] associated preview data
@@ -364,7 +364,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private val liveLiteralsManager = LiveLiteralsService.getInstance(project).apply {
     addOnLiteralsChangedListener(this) {
-      forceRefresh()
+      surface.layoutlibSceneManagers.forEach {
+        it.forceReinflate()
+        it.requestRender()
+      }
     }
   }
 
@@ -374,9 +377,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override var isLiveLiteralsEnabled: Boolean
     get() = liveLiteralsManager.isEnabled
     set(value) {
-      // When always-on is enabled, we do not allow changing the value
-      if (StudioFlags.COMPOSE_ALWAYS_ON_LIVE_LITERALS.get()) return
-
       liveLiteralsManager.isEnabled = value
       forceRefresh()
     }
@@ -477,7 +477,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   init {
     Disposer.register(this, ticker)
 
-    isLiveLiteralsEnabled = StudioFlags.COMPOSE_ALWAYS_ON_LIVE_LITERALS.get()
+    isLiveLiteralsEnabled = StudioFlags.COMPOSE_LIVE_LITERALS.get()
   }
 
   override val component: JComponent = composeWorkBench.component
@@ -512,7 +512,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
 
       override fun buildStarted() {
-        composeWorkBench.showBuildingMessage()
+        composeWorkBench.updateProgress(message("panel.building"))
         // When building, invalidate the Animation Inspector, since the animations are now obsolete and new ones will be subscribed once
         // build is complete and refresh is triggered.
         ComposePreviewAnimationManager.invalidate()
@@ -644,7 +644,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override var isBuildOnSaveEnabled: Boolean = false
     get() = COMPOSE_PREVIEW_BUILD_ON_SAVE.get() && field
 
-  private var lastPinsModificationCount = PinnedPreviewElementManager.getInstance(project).modificationCount
+  private var lastPinsModificationCount = -1L
 
   private fun hasErrorsAndNeedsBuild(): Boolean =
     previewElements.isNotEmpty() &&
@@ -700,6 +700,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                    resetLiveLiteralsFound = { hasLiveLiterals = isLiveLiteralsEnabled })
 
   private fun onAfterRender() {
+    composeWorkBench.hasRendered = true
     if (!hasRenderedAtLeastOnce.get()) {
       // We zoom to fit to have better initial zoom level when first build is completed
       UIUtil.invokeLaterIfNeeded {
@@ -851,6 +852,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         }
         else {
           uniqueRefreshLauncher.launch {
+            composeWorkBench.updateProgress(message("panel.initializing"))
             doRefreshSync(filePreviewElements, quickRefresh)
           }?.join()
         }

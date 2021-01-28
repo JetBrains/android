@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.annotations.concurrency.Slow
+import com.android.io.CancellableFileIo
 import com.android.repository.Revision
 import com.android.repository.api.LocalPackage
 import com.android.repository.api.RepoManager
@@ -25,6 +26,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.proto.SkiaParser
 import com.android.tools.idea.layoutinspector.proto.SkiaParserServiceGrpc
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.idea.protobuf.Empty
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
@@ -47,9 +49,13 @@ import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.grpc.netty.NettyChannelBuilder
-import java.io.File
+import io.grpc.stub.StreamObserver
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.annotation.XmlAttribute
 import javax.xml.bind.annotation.XmlElement
@@ -60,6 +66,8 @@ private const val PARSER_PACKAGE_NAME = "skiaparser"
 private const val INITIAL_DELAY_MILLI_SECONDS = 10L
 private const val MAX_DELAY_MILLI_SECONDS = 1000L
 private const val MAX_TIMES_TO_RETRY = 10
+// TODO: optimize
+private const val CHUNK_SIZE = 1024 * 1024
 
 class InvalidPictureException : Exception()
 class UnsupportedPictureVersionException(val version: Int) : Exception()
@@ -79,7 +87,8 @@ interface SkiaParserService {
 // The minimum version of a skia parser component required by this version of studio.
 // It's the parser's responsibility to be compatible with all supported studio versions.
 private val minimumRevisions = mapOf(
-  "skiaparser;1" to Revision(4)
+  "skiaparser;1" to Revision(6),
+  "skiaparser;2" to Revision(1)
 )
 
 object SkiaParser : SkiaParserService {
@@ -100,14 +109,12 @@ object SkiaParser : SkiaParserService {
     isInterrupted: () -> Boolean
   ): SkiaViewNode? {
     val server = runServer(data) ?: throw UnsupportedPictureVersionException(getSkpVersion(data))
-    val response = server.getViewTree(data, requestedNodes, scale)
-    return response?.root?.let {
-      try {
-        buildTree(it, isInterrupted, requestedNodes.associateBy { req -> req.id })
-      }
-      catch (interruptedException: InterruptedException) {
-        null
-      }
+    val (root, images) = server.getViewTree(data, requestedNodes, scale) ?: return null
+    return try {
+      buildTree(root, images, isInterrupted, requestedNodes.associateBy { req -> req.id })
+    }
+    catch (interruptedException: InterruptedException) {
+      null
     }
   }
 
@@ -219,7 +226,7 @@ object SkiaParser : SkiaParserService {
     if (latestPackage != null) {
       val mappingFile = latestPackage.location.resolve(VERSION_MAP_FILE_NAME)
       try {
-        val mapInputStream = sdkHandler.fileOp.newFileInputStream(mappingFile)
+        val mapInputStream = CancellableFileIo.newInputStream(mappingFile)
         val map = unmarshaller.unmarshal(mapInputStream) as VersionMap
         synchronized(mapLock) {
           val newMap = mutableMapOf<Int?, ServerInfo>()
@@ -256,20 +263,20 @@ class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
   private val serverName = "skia-grpc-server" + if (isWindows) ".exe" else ""
 
   val skpVersionRange: IntRange = IntRange(skpStart, skpEnd ?: Int.MAX_VALUE)
-  var client: SkiaParserServiceGrpc.SkiaParserServiceBlockingStub? = null
+  var client: SkiaParserServiceGrpc.SkiaParserServiceStub? = null
   var channel: ManagedChannel? = null
   var handler: OSProcessHandler? = null
 
   private val progressIndicator = StudioLoggerProgressIndicator(ServerInfo::class.java)
   private val packagePath = "${PARSER_PACKAGE_NAME}${RepoPackage.PATH_SEPARATOR}$serverVersion"
 
-  private val serverPath: File? = findPath()
+  private val serverPath: Path? = findPath()
 
-  private fun findPath(): File? {
+  private fun findPath(): Path? {
     return if (serverVersion == null) {
       // devbuild
       if (StudioPathManager.isRunningFromSources()) {
-        File(StudioPathManager.getBinariesRoot(), "tools/base/dynamic-layout-inspector/skia/${serverName}")
+        Paths.get(StudioPathManager.getBinariesRoot()).resolve("tools/base/dynamic-layout-inspector/skia/${serverName}")
       }
       else null
     }
@@ -289,7 +296,7 @@ class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
           return null
         }
       }
-      sdkHandler.fileOp.toFile(serverPackage.location.resolve(serverName))
+      serverPackage.location.resolve(serverName)
     }
   }
 
@@ -306,32 +313,20 @@ class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
       // already started
       return
     }
-    if (serverPath?.exists() != true && !tryDownload()) {
+    if (serverPath?.let { CancellableFileIo.exists(it) } != true && !tryDownload()) {
       throw Exception("Unable to find server version $serverVersion")
     }
     val realPath = serverPath ?: throw Exception("Unable to find server version $serverVersion")
 
-    // TODO: actually find and (re-)launch the server, and reconnect here if necessary.
-    val localPort = NetUtils.findAvailableSocketPort()
-    if (localPort < 0) {
-      throw Exception("Unable to find available socket port")
-    }
-
-    channel = NettyChannelBuilder
-      .forAddress("localhost", localPort)
-      .usePlaintext()
-      .maxInboundMessageSize(512 * 1024 * 1024 - 1)
-      .build()
-    client = SkiaParserServiceGrpc.newBlockingStub(channel)
-    handler = OSProcessHandler.Silent(GeneralCommandLine(realPath.absolutePath, localPort.toString()))
+    val localPort = createGrpcClient()
+    handler = OSProcessHandler.Silent(GeneralCommandLine(realPath.toAbsolutePath().toString(), localPort.toString()))
     handler!!.addProcessListener(object : ProcessAdapter() {
       override fun processTerminated(event: ProcessEvent) {
-        // TODO(b/151639359) // We get a 137 when we terminate the server. Silence this error.
-        if (event.exitCode != 0 && event.exitCode != 137) {
-          Logger.getInstance(SkiaParser::class.java).error("SkiaServer terminated exitCode: ${event.exitCode}  text: ${event.text}")
+        if (event.exitCode == 0) {
+          Logger.getInstance(SkiaParser::class.java).info("SkiaServer terminated successfully")
         }
         else {
-          Logger.getInstance(SkiaParser::class.java).info("SkiaServer terminated successfully")
+          Logger.getInstance(SkiaParser::class.java).warn("SkiaServer terminated exitCode: ${event.exitCode}  text: ${event.text}")
         }
       }
 
@@ -346,8 +341,39 @@ class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
     handler?.startNotify()
   }
 
+  @VisibleForTesting
+  fun createGrpcClient() : Int {
+    // TODO: actually find and (re-)launch the server, and reconnect here if necessary.
+    val localPort = NetUtils.findAvailableSocketPort()
+    if (localPort < 0) {
+      throw Exception("Unable to find available socket port")
+    }
+
+    channel = NettyChannelBuilder
+      .forAddress("localhost", localPort)
+      .usePlaintext()
+      // TODO: chunk incoming images
+      .maxInboundMessageSize(512 * 1024 * 1024 - 1)
+      .build()
+    client = SkiaParserServiceGrpc.newStub(channel)
+    return localPort
+  }
+
   @Slow
   fun shutdown() {
+    val lock = CountDownLatch(1)
+    client?.shutdown(Empty.getDefaultInstance(), object: StreamObserver<Empty> {
+      override fun onNext(ignore: Empty?) {
+        lock.countDown()
+      }
+
+      override fun onError(p0: Throwable?) {}
+      override fun onCompleted() {}
+    })
+    if (!lock.await(10, TimeUnit.SECONDS)) {
+      Logger.getInstance(SkiaParser::class.java).warn("Timed out waiting for skia parser shutdown. A skia-grpc-server process could have" +
+                                                      " been orphaned.")
+    }
     channel?.shutdownNow()
     channel?.awaitTermination(1, TimeUnit.SECONDS)
     channel = null
@@ -384,50 +410,101 @@ class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
   }
 
   @Slow
-  fun getViewTree(data: ByteArray, requestedNodes: Iterable<SkiaParser.RequestedNodeInfo>, scale: Double): SkiaParser.GetViewTreeResponse? {
+  fun getViewTree(data: ByteArray, requestedNodes: Iterable<SkiaParser.RequestedNodeInfo>, scale: Double): Pair<SkiaParser.InspectorView, Map<Int, ByteString>>? {
     ping()
     return getViewTreeImpl(data, requestedNodes, scale)
   }
 
-  // TODO: add ping functionality to the server?
   @Slow
   fun ping() {
-    getViewTreeImpl(ByteArray(1), emptyList(), 0.0)
+    var tries = 0
+    var delay = INITIAL_DELAY_MILLI_SECONDS
+    var lastException: Throwable? = null
+    while (tries < MAX_TIMES_TO_RETRY) {
+
+      try {
+        val lock = CountDownLatch(1)
+        client?.ping(Empty.getDefaultInstance(), object: StreamObserver<Empty> {
+          override fun onNext(ignore: Empty?) {
+            lock.countDown()
+          }
+
+          override fun onError(p0: Throwable?) {
+            p0?.printStackTrace()
+            lastException = p0
+          }
+          override fun onCompleted() {}
+        })
+
+        if (lock.await(1, TimeUnit.SECONDS)) {
+          return
+        }
+      }
+      catch (ignore: TimeoutException) {
+        // try again
+        lastException = ignore
+      }
+      catch (ex: StatusRuntimeException) {
+        if (ex.status.code != Status.Code.UNAVAILABLE) {
+          throw ex
+        }
+        lastException = ex
+      }
+      Thread.sleep(delay)
+      tries++
+      delay = min(2 * delay, MAX_DELAY_MILLI_SECONDS)
+    }
+    throw lastException!!
   }
 
   private fun getViewTreeImpl(
     data: ByteArray,
     requestedNodes: Iterable<SkiaParser.RequestedNodeInfo>,
     scale: Double
-  ): SkiaParser.GetViewTreeResponse? {
-    val request = SkiaParser.GetViewTreeRequest.newBuilder()
-      .setVersion(1)
-      .setSkp(ByteString.copyFrom(data))
-      .addAllRequestedNodes(requestedNodes)
-      .setScale(scale.toFloat())
-      .build()
-    return getViewTreeWithRetry(request)
-  }
+  ): Pair<SkiaParser.InspectorView, Map<Int, ByteString>>? {
+    val responseFuture = CompletableFuture<SkiaParser.InspectorView?>()
+    val images = mutableMapOf<Int, ByteString>()
 
-  private fun getViewTreeWithRetry(request: SkiaParser.GetViewTreeRequest): SkiaParser.GetViewTreeResponse? {
-    var tries = 0
-    var delay = INITIAL_DELAY_MILLI_SECONDS
-    var lastException: StatusRuntimeException? = null
-    while (tries < MAX_TIMES_TO_RETRY) {
-      try {
-        return client?.getViewTree(request)
-      }
-      catch (ex: StatusRuntimeException) {
-        if (ex.status.code != Status.Code.UNAVAILABLE) {
-          throw ex
+    val requestObserver = client?.getViewTree2(object: StreamObserver<SkiaParser.GetViewTreeResponse> {
+      private var lastResponse: SkiaParser.GetViewTreeResponse? = null
+
+      override fun onNext(response: SkiaParser.GetViewTreeResponse) {
+        lastResponse = response
+        if (response.imageId > 0) {
+          images[response.imageId] = response.image
         }
-        Thread.sleep(delay)
-        tries++
-        delay = min(2 * delay, MAX_DELAY_MILLI_SECONDS)
-        lastException = ex
+      }
+
+      override fun onError(p0: Throwable?) {
+        p0?.printStackTrace()
+        responseFuture.complete(null)
+      }
+
+      override fun onCompleted() {
+          responseFuture.complete(lastResponse?.root)
+      }
+    })!!
+
+    for (offset in data.indices step CHUNK_SIZE) {
+      val size = min(CHUNK_SIZE, data.size - offset)
+      val requestBuilder = SkiaParser.GetViewTreeRequest.newBuilder()
+        .setVersion(2)
+        .setTotalSize(data.size)
+        .setSkp(ByteString.copyFrom(data, offset, size))
+      if (offset + size == data.size) {
+        // this is the last request, add the rest of the data
+        requestBuilder.addAllRequestedNodes(requestedNodes)
+          .setScale(scale.toFloat())
+        requestObserver.onNext(requestBuilder.build())
+        requestObserver.onCompleted()
+      }
+      else {
+        requestObserver.onNext(requestBuilder.build())
       }
     }
-    throw lastException!!
+
+    val response = responseFuture.get()?.let { Pair(it, images) }
+    return response
   }
 }
 

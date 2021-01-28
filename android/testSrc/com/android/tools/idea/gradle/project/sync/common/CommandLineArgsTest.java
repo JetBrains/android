@@ -77,7 +77,7 @@ public class CommandLineArgsTest extends HeavyPlatformTestCase {
     List<String> args = myArgs.get(project);
     check(args);
     verify(myInitScripts, times(1)).addAndroidStudioToolingPluginInitScriptCommandLineArg(args);
-    verify(myInitScripts, times(1)).addLocalMavenRepoInitScriptCommandLineArg(args);
+    verify(myInitScripts, times(0)).addLocalMavenRepoInitScriptCommandLineArg(args);
   }
 
   public void testGetWithAndroidStudio() {

@@ -20,7 +20,6 @@ import com.android.tools.adtui.model.AspectModel
 import com.android.tools.adtui.model.DataSeries
 import com.android.tools.adtui.model.DurationData
 import com.android.tools.adtui.model.DurationDataModel
-import com.android.tools.adtui.model.EaseOutModel
 import com.android.tools.adtui.model.Interpolatable
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangeSelectionListener
@@ -82,7 +81,6 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
   val objectsAxis = ClampedAxisComponentModel.Builder(detailedMemoryUsage.objectsRange, OBJECT_COUNT_AXIS_FORMATTER).build()
   val legends = MemoryStageLegends(this, timeline.dataRange, false)
   val tooltipLegends = MemoryStageLegends(this, timeline.tooltipRange, true)
-  val instructionsEaseOutModel = EaseOutModel(profilers.updater, PROFILING_INSTRUCTIONS_EASE_OUT_NS)
   val eventMonitor = EventMonitor(profilers)
 
   private val allocationSamplingRateUpdatable = Updatable {
@@ -102,7 +100,6 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
         selectCaptureFromSelectionRange()
         profilers.ideServices.featureTracker.trackSelectRange()
         profilers.ideServices.temporaryProfilerPreferences.setBoolean(HAS_USED_MEMORY_CAPTURE, true)
-        instructionsEaseOutModel.setCurrentPercentage(1f)
       }
 
       override fun selectionCleared() = selectCaptureFromSelectionRange()
@@ -307,7 +304,10 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
   protected fun <T: DurationData> makeModel(series: DataSeries<T>) = DurationDataModel(RangedSeries(timeline.viewRange, series))
 
   protected inline fun <T: DurationData> makeModel(make: DataSeriesConstructor<T>) =
-    makeModel(make(studioProfilers.client, sessionData, studioProfilers.ideServices.featureTracker, this))
+    makeModel(applyDataSeriesConstructor(make))
+
+  protected inline fun <T: DurationData> applyDataSeriesConstructor(f: DataSeriesConstructor<T>) =
+    f(studioProfilers.client, sessionData, studioProfilers.ideServices.featureTracker, this)
 
   protected fun getDeviceForSelectedSession() = studioProfilers.getStream(studioProfilers.session.streamId).let { stream ->
     if (stream.type === Common.Stream.Type.DEVICE) stream.device

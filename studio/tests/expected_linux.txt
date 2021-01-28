@@ -1434,13 +1434,13 @@ android-studio/lib/ant/lib/ant.pom
 android-studio/lib/ant/lib/libraries.properties
 android-studio/lib/ant/src.zip
 android-studio/lib/antlr4-runtime-4.1.jar
-android-studio/lib/asm-5.0.3.jar
+android-studio/lib/asm-7.0.jar
 android-studio/lib/asm-7.1.jar
 android-studio/lib/asm-all-9.0.jar
-android-studio/lib/asm-analysis-5.0.3.jar
+android-studio/lib/asm-analysis-7.0.jar
 android-studio/lib/asm-analysis-7.1.jar
 android-studio/lib/asm-commons-7.1.jar
-android-studio/lib/asm-tree-5.0.3.jar
+android-studio/lib/asm-tree-7.0.jar
 android-studio/lib/asm-tree-7.1.jar
 android-studio/lib/asm-util-7.1.jar
 android-studio/lib/automaton-1.12-1.jar
@@ -1724,7 +1724,6 @@ android-studio/lib/xz-1.8.jar
 android-studio/license/XStream_license.txt
 android-studio/license/ant_license.txt
 android-studio/license/antlr4-runtime-4.5.3.jar-NOTICE
-android-studio/license/asm-5.0.3-NOTICE
 android-studio/license/asm_license.txt
 android-studio/license/bouncycastle-1.48-NOTICE
 android-studio/license/commons-compress-NOTICE
@@ -2003,9 +2002,9 @@ android-studio/plugins/android/lib/android.jar
 android-studio/plugins/android/lib/androidAnnotations.jar
 android-studio/plugins/android/lib/antlr4-runtime-4.5.3.jar
 android-studio/plugins/android/lib/artwork.jar
-android-studio/plugins/android/lib/asm-5.0.3.jar
-android-studio/plugins/android/lib/asm-analysis-5.0.3.jar
-android-studio/plugins/android/lib/asm-tree-5.0.3.jar
+android-studio/plugins/android/lib/asm-7.0.jar
+android-studio/plugins/android/lib/asm-analysis-7.0.jar
+android-studio/plugins/android/lib/asm-tree-7.0.jar
 android-studio/plugins/android/lib/auto-common-0.10.jar
 android-studio/plugins/android/lib/build-common.jar
 android-studio/plugins/android/lib/commons-lang-2.6.jar

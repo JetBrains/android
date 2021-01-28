@@ -26,7 +26,6 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleThemes
 import com.android.tools.idea.wizard.template.CppStandardType
-import com.android.tools.idea.wizard.template.ViewBindingSupport
 
 enum class IconsGenerationStyle {
   ALL,
@@ -73,9 +72,8 @@ fun RecipeExecutor.generateCommonModule(
       minApi.apiString,
       apis.targetApi.apiString,
       useAndroidX,
-      agpVersion,
-      hasTests = generateTests,
       formFactorNames = projectData.includedFormFactorNames,
+      hasTests = generateTests,
       addLintOptions = addLintOptions,
       enableCpp = enableCpp,
       cppStandard = cppStandard
@@ -95,7 +93,7 @@ fun RecipeExecutor.generateCommonModule(
   save(gitignore(), moduleOut.resolve(".gitignore"))
   if (generateTests) {
     addTests(packageName, useAndroidX, isLibraryProject, testOut, unitTestOut, language)
-    addTestDependencies(agpVersion)
+    addTestDependencies()
   }
   proguardRecipe(moduleOut, data.isLibrary)
 

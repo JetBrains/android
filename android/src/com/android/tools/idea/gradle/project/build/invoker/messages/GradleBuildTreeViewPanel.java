@@ -221,7 +221,7 @@ public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
     }
 
     @Override
-    public boolean isSelected(AnActionEvent e) {
+    public boolean isSelected(@NotNull AnActionEvent e) {
       GradleBuildTreeViewConfiguration configuration = getConfiguration();
       if (configuration == null) {
         return false;
@@ -230,7 +230,7 @@ public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
     }
 
     @Override
-    public void setSelected(AnActionEvent e, boolean state) {
+    public void setSelected(@NotNull AnActionEvent e, boolean state) {
       myConfiguration.update(myElementKind, state);
       myBuilder.updateTree();
     }

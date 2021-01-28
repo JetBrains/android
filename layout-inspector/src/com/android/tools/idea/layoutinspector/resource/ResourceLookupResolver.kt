@@ -62,9 +62,9 @@ import com.android.tools.idea.res.resolveStateList
 import com.android.tools.idea.res.resourceNamespace
 import com.android.tools.idea.res.toFileResourcePathString
 import com.android.tools.idea.util.toVirtualFile
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.ide.util.EditSourceUtil
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 import com.intellij.psi.JavaPsiFacade
@@ -91,8 +91,7 @@ import javax.swing.Icon
  * The namespaces from the agent are using the real package names.
  */
 fun findFacetFromPackage(project: Project, packageName: String): AndroidFacet? {
-  return ModuleManager.getInstance(project).modules
-    .mapNotNull { AndroidFacet.getInstance(it) }
+  return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)
     .firstOrNull { Manifest.getMainManifest(it)?.`package`?.value == packageName }
 }
 

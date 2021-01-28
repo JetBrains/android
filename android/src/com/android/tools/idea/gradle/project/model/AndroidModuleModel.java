@@ -29,7 +29,6 @@ import static java.util.stream.Collectors.toMap;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.build.GenericBuiltArtifacts;
-import com.android.ide.common.gradle.model.GradleModelConverterUtil;
 import com.android.ide.common.gradle.model.IdeAaptOptions;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
@@ -82,8 +81,9 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   // Placeholder application id if the project is never built before, there is no way to get application id.
   public static final String UNINITIALIZED_APPLICATION_ID = "uninitialized.application.id";
   private static final AndroidVersion NOT_SPECIFIED = new AndroidVersion(0, null);
-  private final static String ourAndroidSyncVersion = "2020-09-17/1";
+  private final static String ourAndroidSyncVersion = "2021-01-27/1";
 
+  @Nullable public transient Object lintModuleModelCache;
   @Nullable private transient Module myModule;
 
   @NotNull private ProjectSystemId myProjectSystemId;
@@ -303,7 +303,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Nullable
   public AndroidVersion getMinSdkVersion() {
     if (myMinSdkVersion == null) {
-      IdeApiVersion minSdkVersion = getSelectedVariant().getMergedFlavor().getMinSdkVersion();
+      IdeApiVersion minSdkVersion = getSelectedVariant().getMinSdkVersion();
       if (minSdkVersion != null && minSdkVersion.getCodename() != null) {
         IdeApiVersion defaultConfigVersion = getAndroidProject().getDefaultConfig().getProductFlavor().getMinSdkVersion();
         if (defaultConfigVersion != null) {
@@ -330,21 +330,20 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Override
   @Nullable
   public AndroidVersion getRuntimeMinSdkVersion() {
-    IdeApiVersion minSdkVersion = getSelectedVariant().getMergedFlavor().getMinSdkVersion();
+    IdeApiVersion minSdkVersion = getSelectedVariant().getMinSdkVersion();
     return minSdkVersion != null ? convertVersion(minSdkVersion, null) : null;
   }
 
   @Override
   @Nullable
   public AndroidVersion getTargetSdkVersion() {
-    IdeApiVersion targetSdkVersion = getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
+    IdeApiVersion targetSdkVersion = getSelectedVariant().getTargetSdkVersion();
     return targetSdkVersion != null ? convertVersion(targetSdkVersion, null) : null;
   }
 
   /**
    * @return the version code associated with the merged flavor of the selected variant, or {@code null} if none have been set.
    */
-  @Override
   @Nullable
   public Integer getVersionCode() {
     IdeVariant variant = getSelectedVariant();

@@ -18,7 +18,6 @@ package com.android.tools.idea.npw.project
 import com.android.tools.adtui.ASGallery
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.adtui.util.FormScalingUtil
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.model.NewProjectModuleModel
 import com.android.tools.idea.npw.template.ChooseGalleryItemStep
@@ -86,12 +85,9 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     newProjectModuleModel = NewProjectModuleModel(model)
     val renderModel = newProjectModuleModel!!.extraRenderTemplateModel
     return listOf(
-      if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
-        ConfigureAndroidProjectStep(newProjectModuleModel!!, model)
-      } else {
-        com.android.tools.idea.npw.project.deprecated.ConfigureAndroidProjectStep(newProjectModuleModel!!, model)
-      },
-      ConfigureTemplateParametersStep(renderModel, message("android.wizard.config.activity.title"), listOf()))
+      ConfigureAndroidProjectStep(newProjectModuleModel!!, model),
+      ConfigureTemplateParametersStep(renderModel, message("android.wizard.config.activity.title"), listOf())
+    )
   }
 
   private fun createUIComponents() {
@@ -102,7 +98,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
   override fun onWizardStarting(wizard: Facade) {
     loadingPanel.startLoading()
     // Constructing FormFactors performs disk access and XML parsing, so let's do it in background thread.
-    BackgroundTaskUtil.executeOnPooledThread(this, Runnable {
+    BackgroundTaskUtil.executeOnPooledThread(this, {
       val formFactors = formFactors.get()
 
       // Update UI with the loaded formFactors. Switch back to UI thread.
@@ -120,9 +116,6 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
 
     formFactors.forEach {
       with(it.tabPanel) {
-        if (!StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
-          tabsPanel.addTab(it.formFactor.toString(), myRootPanel)
-        }
         myGallery.setDefaultAction(object : AbstractAction() {
           override fun actionPerformed(actionEvent: ActionEvent?) {
             wizard.goForward()
@@ -130,16 +123,8 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
         })
         val activitySelectedListener = ListSelectionListener {
           myGallery.selectedElement?.let { renderer ->
-            if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
-              myTemplateName.isVisible = false
-              myTemplateDesc.parent.isVisible = false // Hides both myTemplateDesc/myDocumentationLink and removes panel padding
-            }
-            else {
-              myTemplateName.text = renderer.label
-              myTemplateDesc.text = "<html>" + renderer.description + "</html>"
-              myDocumentationLink.isVisible = renderer.documentationUrl != null
-              myDocumentationLink.setHyperlinkTarget(renderer.documentationUrl)
-            }
+            myTemplateName.isVisible = false
+            myTemplateDesc.parent.isVisible = false // Hides both myTemplateDesc/myDocumentationLink and removes panel padding
 
             canGoForward.set(true)
           } ?: canGoForward.set(false)
@@ -149,44 +134,39 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
       }
     }
 
-    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
-      leftList.setCellRenderer { _, value, _, isSelected, cellHasFocus ->
-        JBLabel(value.formFactor.toString()).apply {
-          isOpaque = true
-          background = UIUtil.getListBackground(isSelected, cellHasFocus)
-          foreground = UIUtil.getListForeground(isSelected, cellHasFocus)
-          border = JBUI.Borders.emptyLeft(TABLE_CELL_LEFT_PADDING)
+    leftList.setCellRenderer { _, value, _, isSelected, cellHasFocus ->
+      JBLabel(value.formFactor.toString()).apply {
+        isOpaque = true
+        background = UIUtil.getListBackground(isSelected, cellHasFocus)
+        foreground = UIUtil.getListForeground(isSelected, cellHasFocus)
+        border = JBUI.Borders.emptyLeft(TABLE_CELL_LEFT_PADDING)
 
-          val size = JBUI.size(TABLE_CELL_WIDTH, TABLE_CELL_HEIGHT)
-          preferredSize = size
-        }
+        val size = JBUI.size(TABLE_CELL_WIDTH, TABLE_CELL_HEIGHT)
+        preferredSize = size
       }
-      AccessibleContextUtil.setName(leftList, message("android.wizard.project.new.choose"))
-      leftList.selectionMode = ListSelectionModel.SINGLE_SELECTION
-      leftList.setListData(formFactors.toTypedArray())
-      leftList.selectedIndex = 0
-      listEntriesListeners.listenAndFire(SelectedListValueProperty(leftList)) { formFactorInfo ->
-        rightPanel.removeAll()
-        rightPanel.add(formFactorInfo.get().tabPanel.myRootPanel, BorderLayout.CENTER)
-        rightPanel.revalidate()
-        rightPanel.repaint()
-      }
-
-      val leftPanel = JPanel(BorderLayout()).apply {
-        add(createTitle(), BorderLayout.NORTH)
-        add(leftList, BorderLayout.CENTER)
-      }
-
-      val mainPanel = JPanel(BorderLayout()).apply {
-        add(leftPanel, BorderLayout.WEST)
-        add(rightPanel, BorderLayout.CENTER)
-      }
-
-      loadingPanel.add(mainPanel)
     }
-    else {
-      loadingPanel.add(tabsPanel)
+    AccessibleContextUtil.setName(leftList, message("android.wizard.project.new.choose"))
+    leftList.selectionMode = ListSelectionModel.SINGLE_SELECTION
+    leftList.setListData(formFactors.toTypedArray())
+    leftList.selectedIndex = 0
+    listEntriesListeners.listenAndFire(SelectedListValueProperty(leftList)) { formFactorInfo ->
+      rightPanel.removeAll()
+      rightPanel.add(formFactorInfo.get().tabPanel.myRootPanel, BorderLayout.CENTER)
+      rightPanel.revalidate()
+      rightPanel.repaint()
     }
+
+    val leftPanel = JPanel(BorderLayout()).apply {
+      add(createTitle(), BorderLayout.NORTH)
+      add(leftList, BorderLayout.CENTER)
+    }
+
+    val mainPanel = JPanel(BorderLayout()).apply {
+      add(leftPanel, BorderLayout.WEST)
+      add(rightPanel, BorderLayout.CENTER)
+    }
+
+    loadingPanel.add(mainPanel)
 
     FormScalingUtil.scaleComponentTree(this.javaClass, loadingPanel)
     loadingPanel.apply {
@@ -196,7 +176,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
   }
 
   override fun onProceeding() {
-    val selectedIndex  = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) leftList.selectedIndex else tabsPanel.selectedIndex
+    val selectedIndex = leftList.selectedIndex
     val selectedFormFactorInfo = formFactors.get()[selectedIndex]
     val selectedTemplate =  selectedFormFactorInfo.tabPanel.myGallery.selectedElement!!
     with(newProjectModuleModel!!) {

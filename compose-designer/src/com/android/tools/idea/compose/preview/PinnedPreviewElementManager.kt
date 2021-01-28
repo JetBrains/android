@@ -11,7 +11,9 @@ import com.android.tools.idea.util.ListenerCollection
 import com.google.common.collect.Sets
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.psi.PsiElement
@@ -72,10 +74,11 @@ class PinnedPreviewElementManagerImpl internal constructor(val project: Project)
   internal val previewElements: Sequence<PreviewElementInstance>
     get() {
       val filesWithPinnedElements = pinnedElements.map { it.containingFilePath }.toSet()
-      val kotlinAnnotations: Sequence<PsiElement> = ReadAction.compute<Sequence<PsiElement>, Throwable> {
-        KotlinAnnotationsIndex.getInstance().get(COMPOSE_PREVIEW_ANNOTATION_NAME, project,
-                                                 GlobalSearchScope.projectScope(project)).asSequence()
-      }
+      val kotlinAnnotations: Sequence<PsiElement> = DumbService.getInstance(project).runReadActionInSmartMode(
+        Computable<Sequence<PsiElement>> {
+          KotlinAnnotationsIndex.getInstance().get(COMPOSE_PREVIEW_ANNOTATION_NAME, project,
+                                                   GlobalSearchScope.projectScope(project)).asSequence()
+        })
 
       val foundPreviewElementPaths: Set<String> by lazy {
         kotlinAnnotations

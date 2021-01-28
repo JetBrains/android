@@ -15,7 +15,7 @@
  */
 package com.android.studio.updater
 
-import com.android.prefs.AndroidLocation
+import com.android.prefs.AbstractAndroidLocations
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.google.common.collect.MoreCollectors
 import com.google.wireless.android.play.playlog.proto.ClientAnalytics
@@ -113,7 +113,7 @@ class StudioPatchUpdaterIntegrationTest {
   @Test
   fun patchApplicationSmokeTest() {
     val analyticsHome = createAnalyticsHome()
-    val env = mapOf(AndroidLocation.ANDROID_PREFS_ROOT to analyticsHome.toString())
+    val env = mapOf(AbstractAndroidLocations.ANDROID_PREFS_ROOT to analyticsHome.toString())
 
     // When V1 to V2 patch applied to V1
     val dir = ExampleDirectory.V1.createExampleDir(myTempDirectory)

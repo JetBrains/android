@@ -19,7 +19,6 @@ import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
 import static com.google.common.base.Strings.nullToEmpty;
 
 import com.android.repository.Revision;
-import com.android.repository.io.FileOpUtils;
 import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenSize;
@@ -62,6 +61,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -766,8 +766,7 @@ public final class AvdOptionsModel extends WizardModel {
 
     File skinFile = (myAvdDeviceData.customSkinFile().get().isPresent())
                     ? myAvdDeviceData.customSkinFile().getValue()
-                    : AvdWizardUtils.pathToUpdatedSkins(device.getDefaultHardware().getSkinFile(), systemImage,
-                                                        FileOpUtils.create());
+                    : AvdWizardUtils.pathToUpdatedSkins(device.getDefaultHardware().getSkinFile().toPath(), systemImage);
 
     if (myBackupSkinFile.get().isPresent()) {
       hardwareProperties.put(AvdManager.AVD_INI_BACKUP_SKIN_PATH, myBackupSkinFile.getValue().getPath());

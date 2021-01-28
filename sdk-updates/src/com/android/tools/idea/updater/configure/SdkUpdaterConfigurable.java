@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.updater.configure;
 
+import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.api.Channel;
 import com.android.repository.api.DelegatingProgressIndicator;
 import com.android.repository.api.LocalPackage;
@@ -146,7 +147,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
    */
   AndroidSdkHandler getSdkHandler() {
     File location = myPanel.getSelectedSdkLocation();
-    return AndroidSdkHandler.getInstance(location == null ? null : location.toPath());
+    return AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE,  location == null ? null : location.toPath());
   }
 
   RepoManager getRepoManager() {

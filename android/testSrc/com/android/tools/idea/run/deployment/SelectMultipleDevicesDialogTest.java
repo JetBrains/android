@@ -17,13 +17,18 @@ package com.android.tools.idea.run.deployment;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.deployment.DevicesSelectedService.PersistentStateComponent;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ValidationInfo;
+import java.nio.file.FileSystem;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -96,7 +101,7 @@ public final class SelectMultipleDevicesDialogTest {
       .build();
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
-    initDialog(() -> true, new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device)), project -> service);
+    initDialog(() -> true, new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device), () -> false), project -> service);
 
     // Act
     myDialog.getTable().setSelected(true, 0);
@@ -121,7 +126,7 @@ public final class SelectMultipleDevicesDialogTest {
     DevicesSelectedService service = new DevicesSelectedService(new PersistentStateComponent(), clock, () -> false);
     service.setTargetsSelectedWithDialog(Collections.singleton(new QuickBootTarget(key)));
 
-    initDialog(() -> false, new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device)), project -> service);
+    initDialog(() -> false, new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device), () -> false), project -> service);
 
     // Act
     myDialog.getTable().setSelected(false, 0);
@@ -157,7 +162,7 @@ public final class SelectMultipleDevicesDialogTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    SelectMultipleDevicesDialogTableModel model = new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device));
+    SelectMultipleDevicesDialogTableModel model = new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device), () -> false);
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
     Mockito.when(service.getTargetsSelectedWithDialog()).thenReturn(Collections.singleton(new QuickBootTarget(key)));
@@ -181,7 +186,7 @@ public final class SelectMultipleDevicesDialogTest {
       .build();
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
-    initDialog(() -> false, new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device)), project -> service);
+    initDialog(() -> false, new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device), () -> false), project -> service);
 
     // Act
     myDialog.getTable().setSelected(true, 0);
@@ -189,5 +194,35 @@ public final class SelectMultipleDevicesDialogTest {
 
     // Assert
     Mockito.verify(service).setTargetsSelectedWithDialog(Collections.singleton(new QuickBootTarget(key)));
+  }
+
+  @Test
+  public void doValidate() {
+    // Arrange
+    FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .addSnapshot(new Snapshot(fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-07_16-36-58")))
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(true)
+      .build();
+
+    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
+    initDialog(() -> false, new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device), () -> true), project -> service);
+
+    SelectMultipleDevicesDialogTable table = myDialog.getTable();
+    table.setSelected(true, 0);
+    table.setSelected(true, 1);
+
+    // Act
+    ValidationInfo validation = myDialog.doValidate();
+
+    // Assert
+    assert validation != null;
+
+    assertEquals("Some of the selected targets are for the same device. Each target should be for a different device.", validation.message);
+    assertNull(validation.component);
   }
 }

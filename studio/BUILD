@@ -82,7 +82,10 @@ studio_plugin(
             "//tools/adt/idea/wizard:intellij.android.wizard",
             "//tools/adt/idea/native-symbolizer:native-symbolizer",
             "//tools/adt/idea/whats-new-assistant:whats-new-assistant",
-            "//tools/base/dynamic-layout-inspector/common:studio.layout-inspector-common",
+            "//tools/base/dynamic-layout-inspector/common:studio.dynamic-layout-inspector.common",
+            "//tools/adt/idea/app-inspection/inspectors/network/ide:intellij.android.app-inspection.inspectors.network.ide",
+            "//tools/adt/idea/app-inspection/inspectors/network/model:intellij.android.app-inspection.inspectors.network.model",
+            "//tools/adt/idea/app-inspection/inspectors/network/view:intellij.android.app-inspection.inspectors.network.view",
         ],
         "artwork.jar": [
             "//tools/adt/idea/artwork:intellij.android.artwork",
@@ -161,8 +164,8 @@ studio_plugin(
     ],
     resources = {
         "lib": [
-            "//tools/adt/idea/android/lib:asm-tools_files",
             "//tools/adt/idea/android/lib:bundled-libs",
+            "//tools/adt/idea/.idea/libraries:asm-tools",
             "//tools/adt/idea/artwork:device-art-resources-bundle",  # duplicated in android.jar
             "//tools/adt/idea/android/lib:sample-data-bundle",
             "//tools/adt/idea/android/annotations:androidAnnotations",
@@ -471,9 +474,9 @@ android_studio(
     },
     searchable_options = "searchable-options",
     version_eap = True,
-    version_full = "Arctic Fox | {0}.{1}.{2} Canary {3}",
-    version_micro = 1,
-    version_patch = 5,
+    version_full = "dev build",
+    version_micro = 0,
+    version_patch = 0,
 )
 
 py_test(

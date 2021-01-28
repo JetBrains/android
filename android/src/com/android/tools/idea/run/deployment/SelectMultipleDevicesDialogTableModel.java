@@ -17,8 +17,11 @@ package com.android.tools.idea.run.deployment;
 
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.swing.Icon;
@@ -30,39 +33,51 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
   static final int TYPE_MODEL_COLUMN_INDEX = 1;
   private static final int DEVICE_MODEL_COLUMN_INDEX = 2;
   private static final int SERIAL_NUMBER_MODEL_COLUMN_INDEX = 3;
-  private static final int SNAPSHOT_MODEL_COLUMN_INDEX = 4;
+  private static final int BOOT_OPTION_MODEL_COLUMN_INDEX = 4;
 
   private final @NotNull List<@NotNull SelectMultipleDevicesDialogTableModelRow> myRows;
 
   @NotNull
   private final Multiset<String> myDeviceNameMultiset;
 
-  SelectMultipleDevicesDialogTableModel(@NotNull List<Device> devices) {
-    myRows = devices.stream()
-      .sorted(new DeviceComparator())
-      .map(SelectMultipleDevicesDialogTableModelRow::new)
-      .collect(Collectors.toList());
+  SelectMultipleDevicesDialogTableModel(@NotNull List<@NotNull Device> devices,
+                                        @NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabledGet) {
+    devices.sort(new DeviceComparator());
+    myRows = new ArrayList<>();
+
+    for (Device device : devices) {
+      for (Target target : getTargets(device)) {
+        myRows.add(new SelectMultipleDevicesDialogTableModelRow(device, selectDeviceSnapshotComboBoxSnapshotsEnabledGet, target));
+      }
+    }
 
     myDeviceNameMultiset = devices.stream()
       .map(Device::getName)
       .collect(Collectors.toCollection(() -> HashMultiset.create(devices.size())));
   }
 
+  private static @NotNull Iterable<@NotNull Target> getTargets(@NotNull Device device) {
+    if (device.isConnected()) {
+      return Collections.singletonList(device.getDefaultTarget());
+    }
+
+    if (device.getSnapshots().isEmpty()) {
+      return Collections.singletonList(device.getDefaultTarget());
+    }
+
+    return device.getTargets();
+  }
+
   @NotNull Set<@NotNull Target> getSelectedTargets() {
     return myRows.stream()
       .filter(SelectMultipleDevicesDialogTableModelRow::isSelected)
-      .map(SelectMultipleDevicesDialogTableModelRow::getDevice)
-      .map(Device::getDefaultTarget)
+      .map(SelectMultipleDevicesDialogTableModelRow::getTarget)
       .collect(Collectors.toSet());
   }
 
   void setSelectedTargets(@NotNull Set<@NotNull Target> selectedTargets) {
-    Set<Key> keys = selectedTargets.stream()
-      .map(Target::getDeviceKey)
-      .collect(Collectors.toSet());
-
     IntStream.range(0, myRows.size())
-      .filter(modelRowIndex -> keys.contains(myRows.get(modelRowIndex).getDevice().getKey()))
+      .filter(modelRowIndex -> selectedTargets.contains(myRows.get(modelRowIndex).getTarget()))
       .forEach(modelRowIndex -> setValueAt(true, modelRowIndex, SELECTED_MODEL_COLUMN_INDEX));
   }
 
@@ -88,8 +103,8 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
         return "Device";
       case SERIAL_NUMBER_MODEL_COLUMN_INDEX:
         return "Serial Number";
-      case SNAPSHOT_MODEL_COLUMN_INDEX:
-        return "Snapshot";
+      case BOOT_OPTION_MODEL_COLUMN_INDEX:
+        return "Boot Option";
       default:
         throw new AssertionError(modelColumnIndex);
     }
@@ -105,7 +120,7 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
         return Icon.class;
       case DEVICE_MODEL_COLUMN_INDEX:
       case SERIAL_NUMBER_MODEL_COLUMN_INDEX:
-      case SNAPSHOT_MODEL_COLUMN_INDEX:
+      case BOOT_OPTION_MODEL_COLUMN_INDEX:
         return Object.class;
       default:
         throw new AssertionError(modelColumnIndex);
@@ -120,7 +135,7 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
       case TYPE_MODEL_COLUMN_INDEX:
       case DEVICE_MODEL_COLUMN_INDEX:
       case SERIAL_NUMBER_MODEL_COLUMN_INDEX:
-      case SNAPSHOT_MODEL_COLUMN_INDEX:
+      case BOOT_OPTION_MODEL_COLUMN_INDEX:
         return false;
       default:
         throw new AssertionError(modelColumnIndex);
@@ -139,8 +154,8 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
         return myRows.get(modelRowIndex).getDeviceCellText();
       case SERIAL_NUMBER_MODEL_COLUMN_INDEX:
         return getSerialNumber(myRows.get(modelRowIndex).getDevice());
-      case SNAPSHOT_MODEL_COLUMN_INDEX:
-        return "";
+      case BOOT_OPTION_MODEL_COLUMN_INDEX:
+        return myRows.get(modelRowIndex).getBootOption();
       default:
         throw new AssertionError(modelColumnIndex);
     }

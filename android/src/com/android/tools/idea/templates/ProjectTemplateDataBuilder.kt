@@ -26,19 +26,13 @@ import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
-import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.PackageName
 import com.android.tools.idea.wizard.template.ProjectTemplateData
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl
-import com.intellij.openapi.roots.LanguageLevelProjectExtension
-import com.intellij.util.lang.JavaVersion
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.kotlin.idea.versions.bundledRuntimeVersion
 import java.io.File
@@ -53,7 +47,6 @@ val log: Logger get() = logger<ProjectTemplateDataBuilder>()
 class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   var androidXSupport: Boolean? = null
   var gradlePluginVersion: GradleVersion? = null
-  var javaVersion: JavaVersion? = null
   var sdkDir: File? = null
   var language: Language? = null
   var kotlinVersion: String? = null
@@ -70,7 +63,6 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
     applicationName = project.name
     kotlinVersion = bundledRuntimeVersion()
     gradlePluginVersion = determineGradlePluginVersion(project)
-    javaVersion = determineJavaVersion(project)
     // If we create a new project, then we have a checkbox for androidX support
     if (!isNewProject) {
       androidXSupport = project.isAndroidx()
@@ -111,18 +103,9 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
     setEssentials(project)
   }
 
-  // We can't JUST look at the overall project level language level, since  Gradle sync appears not
-  // to sync the overall project level; instead we  have to take the min of all the modules
-  private fun determineJavaVersion(project: Project) = runReadAction {
-    ModuleManager.getInstance(project).modules
-      .mapNotNull { LanguageLevelModuleExtensionImpl.getInstance(it)?.languageLevel }
-      .min() ?: LanguageLevelProjectExtension.getInstance(project).languageLevel
-  }.toJavaVersion()
-
   private fun addBuildToolVersion(project: Project, buildToolRevision: Revision) {
-    val gradlePluginVersion = determineGradlePluginVersion(project)
     buildToolsVersion = buildToolRevision
-    explicitBuildToolsVersion = needsExplicitBuildToolsVersion(gradlePluginVersion, buildToolRevision)
+    explicitBuildToolsVersion = needsExplicitBuildToolsVersion(buildToolRevision)
   }
 
   /** Find the most appropriated Gradle Plugin version for the specified project. */
@@ -140,7 +123,6 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   fun build() = ProjectTemplateData(
     androidXSupport!!,
     gradlePluginVersion!!.toString(),
-    javaVersion!!.toString(),
     sdkDir,
     Language.valueOf(language!!.toString()),
     kotlinVersion!!,

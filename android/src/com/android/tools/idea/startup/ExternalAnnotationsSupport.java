@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.startup;
 
+import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
@@ -147,7 +148,7 @@ public class ExternalAnnotationsSupport {
           File sdkRoot = new File(sdkRootPath);
           if (sdkRoot.isDirectory()) {
             ProgressIndicator progress = new StudioLoggerProgressIndicator(ExternalAnnotationsSupport.class);
-            AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(sdkRoot.toPath());
+            AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, sdkRoot.toPath());
             LocalPackage info = sdkHandler.getLocalPackage(FD_PLATFORMS + ";" + platformHash, progress);
             if (info != null) {
               Revision revision = info.getVersion();

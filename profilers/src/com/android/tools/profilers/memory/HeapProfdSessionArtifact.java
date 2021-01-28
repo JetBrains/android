@@ -50,7 +50,7 @@ public class HeapProfdSessionArtifact extends MemorySessionArtifact<Memory.Memor
     MemoryProfiler.saveHeapProfdSampleToFile(getProfilers().getClient(), getSession(), getArtifactProto(), outputStream);
   }
 
-  public static List<SessionArtifact> getSessionArtifacts(@NotNull StudioProfilers profilers,
+  public static List<SessionArtifact<?>> getSessionArtifacts(@NotNull StudioProfilers profilers,
                                                           @NotNull Common.Session session,
                                                           @NotNull Common.SessionMetaData sessionMetaData) {
     Range queryRangeUs = new Range(TimeUnit.NANOSECONDS.toMicros(session.getStartTimestamp()),

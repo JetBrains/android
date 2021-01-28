@@ -52,7 +52,7 @@ public class AndroidSdkDataTest extends AndroidTestCase {
   public void testSdkDataExposesSdkComponents() throws Exception {
     assertNotNull(sdkData.getLatestBuildTool(false));
     assertThat(sdkData.getTargets().length).isAtLeast(1);
-    assertTrue(FileUtil.filesEqual(sdkData.getLocation(), TestUtils.getSdk().toFile()));
+    assertEquals(sdkData.getLocation(), TestUtils.getSdk());
   }
 
   public void testGetSdkDataReturnsNullForInvalidSdkLocations() throws Exception {

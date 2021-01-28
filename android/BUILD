@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 load("//tools/base/bazel:maven.bzl", "maven_repo")
 load("//tools/base/bazel:maven.bzl", "maven_java_library")
 load("@exec_properties//:constants.bzl", "LARGE_MACHINE")
@@ -427,6 +428,17 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "layout-inspector-artifacts",
+    srcs = [
+        "//prebuilts/tools/common/app-inspection/androidx/compose/ui:layout_inspector_compose_java_proto",
+        "//tools/base/dynamic-layout-inspector/agent/appinspection:agent",
+        "//tools/base/dynamic-layout-inspector/agent/appinspection/proto:layout_inspector_view_java_proto",
+        "//tools/base/dynamic-layout-inspector/skia/proto:layout_inspector_skia_java_proto",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 # Various artifacts that the ANT and within-idea studio build depend on.
 filegroup(
     name = "artifacts",
@@ -434,6 +446,7 @@ filegroup(
         ":android-core-proto",
         ":android-core-proto-test",
         ":deploy-artifacts",
+        ":layout-inspector-artifacts",
         ":profiler-artifacts",
         ":transport-artifacts",
         "//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite_inspector_proto",
@@ -444,14 +457,12 @@ filegroup(
         "//tools/base/bazel:studio-proto",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
         "//tools/base/ddmlib:am-instrumentation-data-proto",
-        "//tools/base/dynamic-layout-inspector/agent/appinspection:agent",
-        "//tools/base/dynamic-layout-inspector/agent/appinspection/proto:layout_inspector_view_java_proto",
-        "//tools/base/dynamic-layout-inspector/skia/proto:layout_inspector_skia_java_proto",
         "//tools/base/emulator/proto:emulator_java_proto",
         "//tools/base/game-tools/protos:game-tools-protos",
         "//tools/base/sdk-common/aia-manifest-jar-generator:proto",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
         "//tools/base/tracer:trace_agent",
+        "//tools/base/utp/android-test-plugin-host-device-info-proto:studio.android-test-plugin-host-device-info-proto",
     ] + select({
         "//tools/base/bazel:windows": [],
         "//conditions:default": [
@@ -1089,6 +1100,26 @@ studio_data(
         "tools/adt/idea/android/resources/": "",
     },
     visibility = ["//visibility:public"],
+)
+
+# built for updating "resources/gmavenIndex/classes-offline.json".
+kotlin_library(
+    name = "update_offline_gmaven_index",
+    srcs = [
+        "src/com/android/tools/idea/imports/GMavenIndexConstants.kt",
+        "src/com/android/tools/idea/imports/UpdateOfflineGMavenIndex.kt",
+    ],
+    deps = [
+        "//tools/base/third_party:com.google.guava_guava",
+    ],
+)
+
+java_binary(
+    name = "update_offline_gmaven_index_main",
+    main_class = "com.android.tools.idea.imports.UpdateOfflineGMavenIndex",
+    runtime_deps = [
+        ":update_offline_gmaven_index",
+    ],
 )
 
 # managed by go/iml_to_build

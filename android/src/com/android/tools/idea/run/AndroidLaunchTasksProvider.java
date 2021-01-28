@@ -39,6 +39,7 @@ import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.tasks.RunInstantAppTask;
 import com.android.tools.idea.run.tasks.ShowLogcatTask;
+import com.android.tools.idea.run.tasks.StartLiveLiteralMonitoringTask;
 import com.android.tools.idea.run.tasks.UninstallIotLauncherAppsTask;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.SwapInfo;
@@ -186,6 +187,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           packages.build(),
           isApplyChangesFallbackToRun(),
           myLaunchOptions.getAlwaysInstallWithPm()));
+        tasks.add(new StartLiveLiteralMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName)));
         break;
       case APPLY_CODE_CHANGES:
         tasks.add(new ApplyCodeChangesTask(
@@ -193,14 +195,16 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           packages.build(),
           isApplyCodeChangesFallbackToRun(),
           myLaunchOptions.getAlwaysInstallWithPm()));
+        tasks.add(new StartLiveLiteralMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName)));
         break;
       case DEPLOY:
         tasks.add(new DeployTask(
           myProject,
-          packages.build(), AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName),
+          packages.build(),
           myLaunchOptions.getPmInstallOptions(device),
           myLaunchOptions.getInstallOnAllUsers(),
           myLaunchOptions.getAlwaysInstallWithPm()));
+        tasks.add(new StartLiveLiteralMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName)));
         break;
       default: throw new IllegalStateException("Unhandled Deploy Type");
     }

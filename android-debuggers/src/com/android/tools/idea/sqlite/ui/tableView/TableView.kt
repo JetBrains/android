@@ -100,6 +100,7 @@ interface TableView {
     fun loadLastRowsInvoked()
     fun refreshDataInvoked()
     fun toggleLiveUpdatesInvoked()
+    fun showExportToFileDialogInvoked()
     fun updateCellInvoked(targetRowIndex: Int, targetColumn: ViewColumn, newValue: SqliteValue)
 
     /**

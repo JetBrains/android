@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.npw.ideahost
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ChooseModuleTypeWizard
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider
-import com.android.tools.idea.npw.module.deprecated.ChooseModuleTypeStep
 import com.android.tools.idea.npw.project.ChooseAndroidProjectStep
 import com.android.tools.idea.npw.project.ConfigureAndroidSdkStep
 import com.android.tools.idea.sdk.IdeSdks
@@ -67,7 +65,7 @@ class AndroidModuleBuilder : ModuleBuilder(), WizardDelegate {
   override fun getDescription(): String = AndroidBundle.message("android.wizard.module.description")
 
   override fun getNodeIcon(): Icon = AndroidIcons.Android
-  override fun getParentGroup(): String? = JavaModuleType.JAVA_GROUP
+  override fun getParentGroup(): String = JavaModuleType.JAVA_GROUP
   override fun getModuleType(): ModuleType<*> = JavaModuleType.getModuleType()
   override fun modifyProjectTypeStep(settingsStep: SettingsStep): ModuleWizardStep? = null // Stubbed out. See class header.
   override fun setupRootModel(modifiableRootModel: ModifiableRootModel) {
@@ -84,7 +82,7 @@ class AndroidModuleBuilder : ModuleBuilder(), WizardDelegate {
    * @param ctx Provides information about how the wizard was created (i.e. new project or new module)
    * @param parentDisposable Controls the lifetime of the wizard
    */
-  override fun getCustomOptionsStep(ctx: WizardContext, parentDisposable: Disposable): ModuleWizardStep? {
+  override fun getCustomOptionsStep(ctx: WizardContext, parentDisposable: Disposable): ModuleWizardStep {
     if (wizardAdapter == null) {
       createWizardAdaptor(ctx.wizard, if (ctx.isCreatingNewProject) WizardType.PROJECT else WizardType.MODULE, ctx.project)
     }
@@ -109,33 +107,28 @@ class AndroidModuleBuilder : ModuleBuilder(), WizardDelegate {
   private fun createWizardAdaptor(hostWizard: AbstractWizard<*>, type: WizardType, project: Project?) {
     Preconditions.checkState(wizardAdapter == null, "Attempting to create a Wizard Adaptor when one already exists.")
 
-    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get() && type == WizardType.MODULE) {
-      val moduleDescriptions = ModuleDescriptionProvider.EP_NAME.extensions.flatMap { it.getDescriptions(project!!) }
-      val chooseModuleWizard =
-        ChooseModuleTypeWizard(project!!, ":", moduleDescriptions, ProjectSyncInvoker.DefaultProjectSyncInvoker())
+    when (type) {
+      WizardType.MODULE -> {
+        val moduleDescriptions = ModuleDescriptionProvider.EP_NAME.extensions.flatMap { it.getDescriptions(project!!) }
+        val chooseModuleWizard =
+          ChooseModuleTypeWizard(project!!, ":", moduleDescriptions, ProjectSyncInvoker.DefaultProjectSyncInvoker())
 
-      wizardAdapter = IdeaMultiWizardAdapter(hostWizard, chooseModuleWizard.mainPanel).apply {
-        chooseModuleWizard.setWizardModelListenerAndFire { modelWizard ->
-          setModelWizard(modelWizard)
+        wizardAdapter = IdeaMultiWizardAdapter(hostWizard, chooseModuleWizard.mainPanel).apply {
+          chooseModuleWizard.setWizardModelListenerAndFire { modelWizard ->
+            setModelWizard(modelWizard)
+          }
         }
       }
-      return
-    }
-
-    val builder = ModelWizard.Builder().apply {
-      if (IdeSdks.getInstance().androidSdkPath == null) {
-        addStep(ConfigureAndroidSdkStep())
-      }
-      if (type == WizardType.PROJECT) {
-        addStep(ChooseAndroidProjectStep(NewProjectModel()))
-      }
-      else {
-        val moduleDescriptions = ModuleDescriptionProvider.EP_NAME.extensions.flatMap { it.getDescriptions(project!!) }
-        addStep(ChooseModuleTypeStep(project!!, ":", moduleDescriptions, ProjectSyncInvoker.DefaultProjectSyncInvoker()))
+      WizardType.PROJECT -> {
+        val modelWizard = ModelWizard.Builder().apply {
+          if (IdeSdks.getInstance().androidSdkPath == null) {
+            addStep(ConfigureAndroidSdkStep())
+          }
+          addStep(ChooseAndroidProjectStep(NewProjectModel()))
+        }.build()
+        wizardAdapter = IdeaWizardAdapter(hostWizard, modelWizard)
       }
     }
-
-    wizardAdapter = IdeaWizardAdapter(hostWizard, builder.build())
   }
 
   private enum class WizardType {

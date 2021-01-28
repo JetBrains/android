@@ -52,6 +52,8 @@ import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBSplitter
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
+import java.awt.Component
+import java.awt.Dimension
 import java.awt.event.AdjustmentEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -95,6 +97,11 @@ interface ComposePreviewView {
   var hasContent: Boolean
 
   /**
+   * If true, the contents have been at least rendered once.
+   */
+  var hasRendered: Boolean
+
+  /**
    * Method called to force an update on the notifications for the given [FileEditor].
    */
   fun updateNotifications(parentEditor: FileEditor)
@@ -112,9 +119,9 @@ interface ComposePreviewView {
   fun showModalErrorMessage(message: String)
 
   /**
-   * If the content is not already visible, shows a "Building" message.
+   * If the content is not already visible it shows the given message.
    */
-  fun showBuildingMessage()
+  fun updateProgress(message: String)
 
   /**
    * If called the pinned previews will be shown/hidden at the top.
@@ -147,7 +154,7 @@ private fun createOverlayPanel(vararg components: JComponent): JPanel =
     }
   }
 
-private class PinnedLabelPanel(pinAction: AnAction? = null) : JPanel(BorderLayout()) {
+private class PinnedLabelPanel(pinAction: AnAction? = null) : JPanel() {
   private val button = ActionButtonWithText(pinAction,
                                             PresentationFactory().getPresentation(pinAction ?: EmptyAction()),
                                             "PinnedToolbar",
@@ -157,16 +164,16 @@ private class PinnedLabelPanel(pinAction: AnAction? = null) : JPanel(BorderLayou
   }
 
   init {
-    isOpaque = false
-    add(JPanel().apply {
-      isOpaque = false
-      add(button)
-    }, BorderLayout.LINE_START)
+    add(button)
+    alignmentX = Component.LEFT_ALIGNMENT
+    alignmentY = Component.TOP_ALIGNMENT
   }
 
   fun update() {
     button.update()
   }
+
+  override fun getMaximumSize(): Dimension = preferredSize
 }
 
 /**
@@ -212,8 +219,15 @@ internal class ComposePreviewViewImpl(private val project: Project,
 
   override val component: JComponent = this
 
-  private val pinnedPanelLabel = PinnedLabelPanel(onUnPinAction)
+  private val pinnedPanelLabel = PinnedLabelPanel(onUnPinAction).apply {
+    // Top left corner of the OverlayLayout
+    alignmentX = Component.LEFT_ALIGNMENT
+    alignmentY = Component.TOP_ALIGNMENT
+  }
   private val mainSurfacePinLabel = PinnedLabelPanel(onPinFileAction).apply {
+    // Top left corner of the OverlayLayout
+    alignmentX = Component.LEFT_ALIGNMENT
+    alignmentY = Component.TOP_ALIGNMENT
     // By default, hide until the label has been set.
     isVisible = false
   }
@@ -289,9 +303,9 @@ internal class ComposePreviewViewImpl(private val project: Project,
     showLoading(message("panel.building"))
   }
 
-  override fun showBuildingMessage() = UIUtil.invokeLaterIfNeeded {
+  override fun updateProgress(message: String) = UIUtil.invokeLaterIfNeeded {
     if (isMessageVisible) {
-      showLoading(message("panel.building"))
+      showLoading(message)
       hideContent()
     }
   }
@@ -341,22 +355,31 @@ internal class ComposePreviewViewImpl(private val project: Project,
       showModalErrorMessage(message("panel.needs.build"))
     }
     else {
-      log.debug("Show content")
-      hideLoading()
-      if (hasContent) {
-        showContent()
-      }
-      else {
-        hideContent()
-        loadingStopped(message("panel.no.previews.defined"),
-                       null,
-                       UrlData(message("panel.no.previews.action"), COMPOSE_PREVIEW_DOC_URL),
-                       null)
+      if (hasRendered) {
+        log.debug("Show content")
+        hideLoading()
+        if (hasContent) {
+          showContent()
+        }
+        else {
+          hideContent()
+          loadingStopped(message("panel.no.previews.defined"),
+                         null,
+                         UrlData(message("panel.no.previews.action"), COMPOSE_PREVIEW_DOC_URL),
+                         null)
+        }
+
+        if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
+          mainSurfacePinLabel.isVisible = !isPinnedSurfaceVisible
+          mainSurfacePinLabel.update()
+          pinnedPanelLabel.update()
+        }
       }
     }
 
     if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
-      mainSurfacePinLabel.isVisible = !isPinnedSurfaceVisible
+      // The "pin this file" action is only visible if the pin surface is not visible and if we are not in interactive.
+      mainSurfacePinLabel.isVisible = !isInteractive && !isPinnedSurfaceVisible
       mainSurfacePinLabel.update()
       pinnedPanelLabel.update()
     }
@@ -379,9 +402,18 @@ internal class ComposePreviewViewImpl(private val project: Project,
       else {
         delegateInteractionHandler.delegate = staticPreviewInteractionHandler
       }
+      updateVisibilityAndNotifications()
     }
 
   override var hasContent: Boolean = true
+
+  @get:Synchronized
+  override var hasRendered: Boolean = false
+    @Synchronized
+    set(value) {
+      field = value
+      updateVisibilityAndNotifications()
+    }
 
   override var bottomPanel: JComponent?
     set(value) {

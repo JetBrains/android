@@ -142,7 +142,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface) : Inte
     val location = dragEvent.location
     val mouseX = location.x
     val mouseY = location.y
-    val sceneView = surface.getSceneView(mouseX, mouseY)
+    val sceneView = surface.getSceneViewAtOrPrimary(mouseX, mouseY)
     if (sceneView == null) {
       event.reject()
       return null
@@ -191,13 +191,13 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface) : Inte
                                              @SwingCoordinate y: Int,
                                              @JdkConstants.InputEventMask modifiersEx: Int) {
     val allowToggle = modifiersEx and (InputEvent.SHIFT_MASK or Toolkit.getDefaultToolkit().menuShortcutKeyMask) != 0
-    surface.getSceneView(x, y)?.selectComponentAt(x, y, modifiersEx, allowToggle, false)
+    surface.getSceneViewAtOrPrimary(x, y)?.selectComponentAt(x, y, modifiersEx, allowToggle, false)
   }
 
   override fun hoverWhenNoInteraction(@SwingCoordinate mouseX: Int,
                                       @SwingCoordinate mouseY: Int,
                                       @JdkConstants.InputEventMask modifiersEx: Int) {
-    val sceneView = surface.getSceneView(mouseX, mouseY)
+    val sceneView = surface.getSceneViewAtOrPrimary(mouseX, mouseY)
     if (sceneView != null) {
       val context = sceneView.context
       context.setMouseLocation(mouseX, mouseY)
@@ -215,7 +215,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface) : Inte
     val x = mouseEvent.x
     val y = mouseEvent.y
     val modifiersEx = mouseEvent.modifiersEx
-    val sceneView = surface.getSceneView(x, y)
+    val sceneView = surface.getSceneViewAtOrPrimary(x, y)
     if (sceneView != null) {
       val component = sceneView.selectComponentAt(x, y, modifiersEx, false, true)
       val actions = surface.actionManager.getPopupMenuActions(component)
@@ -227,7 +227,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface) : Inte
   override fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction? {
     val x = mouseWheelEvent.x
     val y = mouseWheelEvent.y
-    val sceneView = surface.getSceneView(x, y) ?: return null
+    val sceneView = surface.getSceneViewAtOrPrimary(x, y) ?: return null
     val component = Coordinates.findComponent(sceneView, x, y) ?: return null // There is no component consuming the scroll
     return ScrollInteraction.createScrollInteraction(sceneView, component)
   }
@@ -238,7 +238,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface) : Inte
       val splitEditor = selectedEditor as DesignToolsSplitEditor?
       if (splitEditor!!.isSplitMode()) {
         // If we're in split mode, we want to select the component in the text editor.
-        val sceneView = surface.getSceneView(x, y) ?: return
+        val sceneView = surface.getSceneViewAtOrPrimary(x, y) ?: return
         // TODO: Use {@link SceneViewHelper#selectComponentAt() instead.
         val component = Coordinates.findComponent(sceneView, x, y)
         if (component != null) {
@@ -249,7 +249,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface) : Inte
   }
 
   override fun doubleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) {
-    val sceneView = surface.getSceneView(x, y) ?: return
+    val sceneView = surface.getSceneViewAtOrPrimary(x, y) ?: return
 
     // TODO: Use {@link SceneViewHelper#selectComponentAt() instead.
     val component = Coordinates.findComponent(sceneView, x, y)

@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.deployment;
 
 import com.intellij.openapi.project.Project;
-import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,8 +25,8 @@ final class QuickBootTarget extends Target {
   }
 
   @Override
-  @NotNull Optional<@NotNull String> getText(@NotNull Device device) {
-    return Optional.of("Quick Boot");
+  @NotNull String getText(@NotNull Device device) {
+    return "Quick Boot";
   }
 
   @Override

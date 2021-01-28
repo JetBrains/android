@@ -17,8 +17,9 @@ package com.android.tools.idea.templates
 
 import com.android.ide.common.signing.KeystoreHelper
 import com.android.ide.common.signing.KeytoolException
-import com.android.prefs.AndroidLocation
-import com.android.prefs.AndroidLocation.AndroidLocationException
+import com.android.io.CancellableFileIo
+import com.android.prefs.AndroidLocationsException
+import com.android.prefs.AndroidLocationsSingleton
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.utils.StdLogger
 import com.google.common.base.Strings
@@ -41,15 +42,16 @@ import java.security.cert.Certificate
 object KeystoreUtils {
   private val log: Logger get() = logger<KeystoreUtils>()
 
-  @Throws(KeytoolException::class, AndroidLocationException::class)
+  @Throws(KeytoolException::class, AndroidLocationsException::class)
   @JvmStatic
   fun getOrCreateDefaultDebugKeystore(): File {
-    val debugLocation = File(KeystoreHelper.defaultDebugKeystoreLocation())
+    val debugLocation = KeystoreHelper.defaultDebugKeystoreLocation(AndroidLocationsSingleton)
     if (!debugLocation.exists()) {
-      val keystoreDirectory = File(AndroidLocation.getFolder())
+      val keystoreDirectory = AndroidLocationsSingleton.prefsLocation
 
-      if (!keystoreDirectory.canWrite()) {
-        throw AndroidLocationException("Could not create debug keystore because \"$keystoreDirectory\" is not writable")
+
+      if (!CancellableFileIo.isWritable(keystoreDirectory)) {
+        throw AndroidLocationsException("Could not create debug keystore because \"$keystoreDirectory\" is not writable")
       }
 
       val logger = StdLogger(StdLogger.Level.ERROR)
@@ -62,7 +64,7 @@ object KeystoreUtils {
     }
     /** It should have been created by [KeystoreHelper.createDebugStore] */
     if (!debugLocation.exists()) {
-      throw AndroidLocationException("Could not create debug keystore")
+      throw AndroidLocationsException("Could not create debug keystore")
     }
     return debugLocation
   }

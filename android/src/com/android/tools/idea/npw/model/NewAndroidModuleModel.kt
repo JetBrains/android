@@ -131,11 +131,13 @@ class NewAndroidModuleModel(
   val bytecodeLevel: OptionalProperty<BytecodeLevel> = OptionalValueProperty(getInitialBytecodeLevel())
 
   init {
-    val msg: String = when {
-      isLibrary -> "My Library"
-      else -> "My Application"
+    if (applicationName.isEmpty.get()) {
+      val msg: String = when {
+        isLibrary -> "My Library"
+        else -> "My Application"
+      }
+      applicationName.set(msg)
     }
-    applicationName.set(msg)
   }
 
   override val loggingEvent: AndroidStudioEvent.TemplateRenderer

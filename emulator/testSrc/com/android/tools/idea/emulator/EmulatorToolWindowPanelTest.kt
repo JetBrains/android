@@ -58,6 +58,7 @@ import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.ArgumentCaptor
 import org.mockito.MockedStatic
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.anyLong
@@ -71,7 +72,11 @@ import java.awt.Point
 import java.awt.PointerInfo
 import java.awt.datatransfer.DataFlavor
 import java.awt.event.FocusEvent
+import java.awt.event.KeyEvent.VK_DOWN
+import java.awt.event.KeyEvent.VK_LEFT
+import java.awt.event.KeyEvent.VK_RIGHT
 import java.awt.event.KeyEvent.VK_SHIFT
+import java.awt.event.KeyEvent.VK_UP
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.MOUSE_MOVED
 import java.io.File
@@ -269,7 +274,8 @@ class EmulatorToolWindowPanelTest {
 
     // Check that the notification changes when Shift is pressed.
     ui.keyboard.press(VK_SHIFT)
-    assertThat(ui.findComponent<EditorNotificationPanel>()?.text).isEqualTo("Move camera with WASDQE keys, rotate with mouse")
+    assertThat(ui.findComponent<EditorNotificationPanel>()?.text)
+        .isEqualTo("Move camera with WASDQE keys, rotate with mouse or arrow keys")
 
     // Drain the gRPC call log.
     for (i in 1..5) {
@@ -280,10 +286,14 @@ class EmulatorToolWindowPanelTest {
 
     // Check camera movement.
     for (c in "WASQDE") {
-      ui.keyboard.pressAndRelease(c.toInt())
-      val call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+      ui.keyboard.press(c.toInt())
+      var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
       assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-      assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Key$c"""")
+      assertThat(shortDebugString(call.request)).isEqualTo("""key: "Key$c"""")
+      ui.keyboard.release(c.toInt())
+      call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+      assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "Key$c"""")
     }
 
     // Check camera rotation.
@@ -291,9 +301,29 @@ class EmulatorToolWindowPanelTest {
     val y = initialMousePosition.y + 10
     val event = MouseEvent(glassPane, MOUSE_MOVED, System.currentTimeMillis(), ui.keyboard.toModifiersCode(), x, y, x, y, 0, false, 0)
     glassPane.dispatch(event)
-    val call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 2 y: 5")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 23 y: 45")
+
+    ui.keyboard.pressAndRelease(VK_LEFT)
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: -2 y: 45")
+
+    ui.keyboard.pressAndRelease(VK_RIGHT)
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 23 y: 45")
+
+    ui.keyboard.pressAndRelease(VK_UP)
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 23 y: 20")
+
+    ui.keyboard.pressAndRelease(VK_DOWN)
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 23 y: 45")
 
     // Check that the notification changes when Shift is released.
     ui.keyboard.release(VK_SHIFT)
@@ -326,37 +356,68 @@ class EmulatorToolWindowPanelTest {
     panel.createContent(false)
 
     val target = nullableTarget as DnDTarget
-    val transferableWrapper = mock<TransferableWrapper>()
-    val fileList = listOf(File("/some_folder/myapp.apk"))
-    `when`(transferableWrapper.asFileList()).thenReturn(fileList)
-    val dnDEvent = mock<DnDEvent>()
-    `when`(dnDEvent.isDataFlavorSupported(DataFlavor.javaFileListFlavor)).thenReturn(true)
-    `when`(dnDEvent.attachedObject).thenReturn(transferableWrapper)
-
-    // Simulate drag.
-    target.update(dnDEvent)
-
-    verify(dnDEvent).isDropPossible = true
-
     val device = mock<IDevice>()
     `when`(device.isEmulator).thenReturn(true)
     `when`(device.serialNumber).thenReturn("emulator-${emulator.serialPort}")
     `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.MIN_RECOMMENDED_API))
-    val deployed = CountDownLatch(1)
-    val installOptions = listOf("-t", "--user", "current", "--full", "--dont-kill")
-    `when`(device.installPackages(eq(fileList), eq(true), eq(installOptions), anyLong(), any())).then { deployed.countDown() }
     val mockAdb = mock<AndroidDebugBridge>()
     `when`(mockAdb.devices).thenReturn(arrayOf(device))
     val mockAdbService = mock<AdbService>()
     `when`(mockAdbService.getDebugBridge(any())).thenReturn(immediateFuture(mockAdb))
     ApplicationManager.getApplication().registerServiceInstance(AdbService::class.java, mockAdbService)
 
-    // Simulate drop.
-    target.drop(dnDEvent)
+    // Check APK installation.
+    val apkFileList = listOf(File("/some_folder/myapp.apk"))
+    val dnDEvent1 = createDnDEvent(apkFileList)
 
-    assertThat(deployed.await(2, TimeUnit.SECONDS)).isTrue()
+    // Simulate drag.
+    target.update(dnDEvent1)
+
+    verify(dnDEvent1).isDropPossible = true
+
+    val installPackagesCalled = CountDownLatch(1)
+    val installOptions = listOf("-t", "--user", "current", "--full", "--dont-kill")
+    val fileListCaptor = ArgumentCaptor.forClass(apkFileList.javaClass)
+    `when`(device.installPackages(fileListCaptor.capture(), eq(true), eq(installOptions), anyLong(), any()))
+      .then { installPackagesCalled.countDown() }
+
+    // Simulate drop.
+    target.drop(dnDEvent1)
+
+    assertThat(installPackagesCalled.await(2, TimeUnit.SECONDS)).isTrue()
+    assertThat(fileListCaptor.value).isEqualTo(apkFileList)
+
+    // Check file copying.
+    val fileList = listOf(File("/some_folder/file1.txt"), File("/some_folder/file2.jpg"))
+    val dnDEvent2 = createDnDEvent(fileList)
+
+    // Simulate drag.
+    target.update(dnDEvent2)
+
+    verify(dnDEvent2).isDropPossible = true
+
+    val allFilesPushed = CountDownLatch(fileList.size)
+    val firstArgCaptor = ArgumentCaptor.forClass(String::class.java)
+    val secondArgCaptor = ArgumentCaptor.forClass(String::class.java)
+    `when`(device.pushFile(firstArgCaptor.capture(), secondArgCaptor.capture())).then { allFilesPushed.countDown() }
+
+    // Simulate drop.
+    target.drop(dnDEvent2)
+
+    assertThat(allFilesPushed.await(2, TimeUnit.SECONDS)).isTrue()
+    assertThat(firstArgCaptor.allValues).isEqualTo(fileList.map(File::getAbsolutePath).toList())
+    assertThat(secondArgCaptor.allValues).isEqualTo(fileList.map { "/sdcard/Download/${it.name}" }.toList())
 
     panel.destroyContent()
+  }
+
+  private fun createDnDEvent(files: List<File>): DnDEvent {
+    val transferableWrapper = mock<TransferableWrapper>()
+    `when`(transferableWrapper.asFileList()).thenReturn(files)
+    val dnDEvent = mock<DnDEvent>()
+    `when`(dnDEvent.isDataFlavorSupported(DataFlavor.javaFileListFlavor)).thenReturn(true)
+    `when`(dnDEvent.attachedObject).thenReturn(transferableWrapper)
+    return dnDEvent
   }
 
   private fun FakeUi.mousePressOn(component: Component) {

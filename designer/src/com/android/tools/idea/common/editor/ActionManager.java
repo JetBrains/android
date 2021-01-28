@@ -64,7 +64,7 @@ public abstract class ActionManager<S extends DesignSurface> {
 
   @NotNull
   public JComponent createDesignSurfaceToolbar() {
-    return new DesignSurfaceActionsToolbar(mySurface, mySurface, mySurface).getDesignSurfaceToolbar();
+    return new DesignSurfaceFloatingActionsToolbarProvider(mySurface, mySurface, mySurface).getFloatingToolbar();
   }
 
   /**

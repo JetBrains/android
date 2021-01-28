@@ -26,6 +26,7 @@ import org.junit.Assume
 import org.junit.Before
 import org.junit.Test
 import java.io.File
+import java.util.Locale
 
 class PathValidatorTest {
   private lateinit var fileOp: MockFileOp
@@ -213,6 +214,13 @@ class PathValidatorTest {
     // This path validator has its warning registered before its error, but we should still show the error first
     val result = validator.validate(File("whitespace and illegal characters??!"))
     assertThat(result.severity).isEqualTo(Severity.ERROR)
+  }
+
+  @Test
+  fun fileNameRule() {
+    val allCapRule = filenameRule("all cap") { it == it.toUpperCase(Locale.US) }
+    assertRulePasses(fileOp, allCapRule, File("foo/bar/ALL_CAP"))
+    assertRuleFails(fileOp, allCapRule, File("foo/bar/Not_All_Cap"))
   }
 }
 

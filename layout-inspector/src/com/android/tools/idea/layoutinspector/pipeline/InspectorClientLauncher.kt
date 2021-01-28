@@ -60,7 +60,7 @@ class InspectorClientLauncher(adb: AndroidDebugBridge,
           { params ->
             if (params.process.device.apiLevel >= AndroidVersion.VersionCodes.Q) {
               if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_USE_INSPECTION.get()) {
-                AppInspectionInspectorClient(params.process, model)
+                AppInspectionInspectorClient(params.adb, params.process, model)
               }
               else {
                 TransportInspectorClient(params.adb, params.process, model, transportComponents)

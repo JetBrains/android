@@ -94,13 +94,13 @@ public class AnimationToolbar extends JPanel implements Disposable {
     myMaxTimeMs = initialMaxTimeMs;
 
     Box buttonsPanel = Box.createHorizontalBox();
-    myPlayButton = newControlButton(StudioIcons.LayoutEditor.Motion.PLAY, "Play", this::onPlay);
+    myPlayButton = newControlButton(StudioIcons.LayoutEditor.Motion.PLAY, "Play", "Play", this::onPlay);
     myPlayButton.setEnabled(true);
-    myPauseButton = newControlButton(StudioIcons.LayoutEditor.Motion.PAUSE, "Pause", this::onPause);
+    myPauseButton = newControlButton(StudioIcons.LayoutEditor.Motion.PAUSE, "Pause", "Pause", this::onPause);
     myPauseButton.setEnabled(true);
-    myStopButton = newControlButton(StudioIcons.LayoutEditor.Motion.END_CONSTRAINT, "Stop", this::onStop);
-    myFrameFwdButton = newControlButton(StudioIcons.LayoutEditor.Motion.GO_TO_END, "Step forward", this::onFrameFwd);
-    myFrameBckButton = newControlButton(StudioIcons.LayoutEditor.Motion.GO_TO_START, "Step backwards", this::onFrameBck);
+    myStopButton = newControlButton(StudioIcons.LayoutEditor.Motion.END_CONSTRAINT, "Stop", "Reset", this::onStop);
+    myFrameFwdButton = newControlButton(StudioIcons.LayoutEditor.Motion.GO_TO_END, "Step forward", "Step forward", this::onFrameFwd);
+    myFrameBckButton = newControlButton(StudioIcons.LayoutEditor.Motion.GO_TO_START, "Step backward", "Step backward", this::onFrameBck);
 
     JPanel controlBar = new JPanel(new FlowLayout()) {
       @Override
@@ -215,7 +215,10 @@ public class AnimationToolbar extends JPanel implements Disposable {
    * Creates a new toolbar control button
    */
   @NotNull
-  private static JButton newControlButton(@NotNull Icon baseIcon, @NotNull String label, @NotNull Runnable callback) {
+  private static JButton newControlButton(@NotNull Icon baseIcon,
+                                          @NotNull String label,
+                                          @Nullable String tooltip,
+                                          @NotNull Runnable callback) {
     JButton button = new CommonButton();
     button.setName(label);
     button.setIcon(baseIcon);
@@ -227,6 +230,7 @@ public class AnimationToolbar extends JPanel implements Disposable {
     button.setBorderPainted(false);
     button.setFont(BUTTON_FONT);
     button.setEnabled(false);
+    button.setToolTipText(tooltip);
 
     return button;
   }

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
 import com.google.common.truth.Expect
+import com.intellij.openapi.project.Project
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
@@ -26,6 +27,9 @@ import org.junit.Test
 class MigrateToBuildFeaturesRefactoringProcessorTest: UpgradeGradleFileModelTestCase() {
   @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
+
+  fun MigrateToBuildFeaturesRefactoringProcessor(project: Project, current: GradleVersion, new: GradleVersion) =
+    MIGRATE_TO_BUILD_FEATURES_REFACTORING_PROCESSOR.RefactoringProcessor(project, current, new)
 
   @Test
   fun testNecessities() {

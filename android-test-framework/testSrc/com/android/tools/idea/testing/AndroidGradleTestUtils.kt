@@ -66,6 +66,9 @@ import com.android.testutils.TestUtils.getLatestAndroidPlatform
 import com.android.testutils.TestUtils.getSdk
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
+import com.android.tools.idea.gradle.project.facet.java.JavaFacet
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
@@ -80,13 +83,17 @@ import com.android.tools.idea.gradle.util.emulateStartupActivityForTest
 import com.android.tools.idea.io.FilePaths
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.android.utils.FileUtils
 import com.android.utils.appendCapitalized
+import com.google.common.truth.Truth.assertThat
 import com.intellij.externalSystem.JavaProjectData
 import com.intellij.ide.impl.ProjectUtil
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -115,6 +122,7 @@ import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ThrowableConsumer
 import com.intellij.util.text.nullize
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
@@ -124,6 +132,7 @@ import org.jetbrains.plugins.gradle.model.ExternalTask
 import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache
 import java.io.File
 import java.io.IOException
+import java.util.function.Consumer
 
 typealias AndroidProjectBuilderCore = (projectName: String, basePath: File, agpVersion: String) -> AndroidProject
 
@@ -1102,5 +1111,36 @@ fun JavaCodeInsightTestFixture.makeAutoIndexingOnCopy(): JavaCodeInsightTestFixt
     override fun copyDirectoryToProject(sourceFilePath: String, targetPath: String): VirtualFile {
       error("Not implemented")
     }
+  }
+}
+
+
+fun verifySyncSkipped(project: Project, disposable: Disposable) {
+  assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.SKIPPED)
+  project.verifyModelsAttached()
+  var completed = false
+  project.runWhenSmartAndSynced(disposable, callback = Consumer {
+    completed = true
+  })
+  assertThat(completed).isTrue()
+}
+
+inline fun <reified F, reified M> Module.verifyModel(getFacet: Module.() -> F?, getModel: F.() -> M) {
+  val facet = getFacet()
+  if (facet != null) {
+    val model = facet.getModel()
+    assertThat(model).named("${M::class.simpleName} for ${F::class.simpleName} in ${name} module").isNotNull()
+  }
+}
+
+private fun Project.verifyModelsAttached() {
+  ModuleManager.getInstance(this).modules.forEach { module ->
+    module.verifyModel(GradleFacet::getInstance, GradleFacet::getGradleModuleModel)
+    if (GradleFacet.getInstance(module) != null) {
+      // Java facets are not created for modules without GradleFacet even if there is a JavaModuleModel.
+      module.verifyModel(JavaFacet::getInstance, JavaFacet::getJavaModuleModel)
+    }
+    module.verifyModel(AndroidFacet::getInstance, AndroidModuleModel::get)
+    module.verifyModel({ NdkFacet.getInstance(this) }, { ndkModuleModel })
   }
 }

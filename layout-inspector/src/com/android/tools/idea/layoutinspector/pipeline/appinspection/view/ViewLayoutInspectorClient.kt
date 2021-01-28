@@ -20,14 +20,22 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.intellij.openapi.project.Project
+import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.ErrorEvent
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Event
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.GetPropertiesCommand
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.GetPropertiesResponse
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.LayoutEvent
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.PropertiesEvent
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StartFetchCommand
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StopFetchCommand
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.WindowRootsEvent
@@ -45,10 +53,15 @@ private val JAR = AppInspectorJar("layoutinspector-view-inspection.jar",
  *     the inspector.
  *
  * @param messenger The messenger that lets us communicate with the view inspector.
+ *
+ * @param composeInspector An inspector which, if provided, lets us fetch additional data useful
+ *     for compose related values contained within our view tree.
  */
 class ViewLayoutInspectorClient(
+  model: InspectorModel,
   eventScope: CoroutineScope,
   private val messenger: AppInspectorMessenger,
+  private val composeInspector: ComposeLayoutInspectorClient?,
   private val fireError: (String) -> Unit = {},
   private val fireTreeEvent: (Data) -> Unit = {},
 ) {
@@ -58,8 +71,10 @@ class ViewLayoutInspectorClient(
    * layout inspector.
    */
   class Data(
+    val generation: Int,
     val rootIds: List<Long>,
-    val layoutEvent: LayoutEvent
+    val viewEvent: LayoutEvent,
+    val composeEvent: GetComposablesResponse?
   )
 
   companion object {
@@ -71,17 +86,36 @@ class ViewLayoutInspectorClient(
      *     expected that this will be a scope associated with a background dispatcher.
      */
     suspend fun launch(apiServices: AppInspectionApiServices,
-                       project: Project,
                        process: ProcessDescriptor,
+                       model: InspectorModel,
                        eventScope: CoroutineScope,
+                       composeLayoutInspectorClient: ComposeLayoutInspectorClient?,
                        fireError: (String) -> Unit,
                        fireTreeEvent: (Data) -> Unit): ViewLayoutInspectorClient {
-      val params = LaunchParameters(process, VIEW_LAYOUT_INSPECTOR_ID, JAR, project.name)
+      // Set force = true, to be more aggressive about connecting the layout inspector if an old version was
+      // left running for some reason. This is a better experience than silently falling back to a legacy client.
+      val params = LaunchParameters(process, VIEW_LAYOUT_INSPECTOR_ID, JAR, model.project.name, force = true)
       val messenger = apiServices.launchInspector(params)
-      return ViewLayoutInspectorClient(eventScope, messenger, fireError, fireTreeEvent)
+      return ViewLayoutInspectorClient(model, eventScope, messenger, composeLayoutInspectorClient, fireError, fireTreeEvent)
     }
   }
 
+  val propertiesCache = ViewPropertiesCache(this, model)
+
+  /**
+   * Whether this client is continuously receiving layout events or not.
+   *
+   * This will be true between calls to `startFetching(continuous = true)` and
+   * `stopFetching`.
+   */
+  private var isFetchingContinuously: Boolean = false
+    set(value) {
+      field = value
+      propertiesCache.allowFetching = value
+      composeInspector?.parametersCache?.allowFetching = value
+    }
+
+  private var generation = 0 // Update the generation each time we get a new LayoutEvent
   private val currRoots = mutableListOf<Long>()
 
   init {
@@ -92,6 +126,7 @@ class ViewLayoutInspectorClient(
           Event.SpecializedCase.ERROR_EVENT -> handleErrorEvent(event.errorEvent)
           Event.SpecializedCase.ROOTS_EVENT -> handleRootsEvent(event.rootsEvent)
           Event.SpecializedCase.LAYOUT_EVENT -> handleLayoutEvent(event.layoutEvent)
+          Event.SpecializedCase.PROPERTIES_EVENT -> handlePropertiesEvent(event.propertiesEvent)
           else -> error { "Unhandled event case: ${event.specializedCase}" }
         }
       }
@@ -100,16 +135,33 @@ class ViewLayoutInspectorClient(
 
   suspend fun startFetching(continuous: Boolean) {
     messenger.sendCommand {
-      startFetchCommand = StartFetchCommand.newBuilder()
-        .setContinuous(continuous)
-        .build()
+      startFetchCommand = StartFetchCommand.newBuilder().apply {
+        this.continuous = continuous
+        skipSystemViews = TreeSettings.hideSystemNodes
+      }.build()
     }
+    isFetchingContinuously = continuous
   }
 
   suspend fun stopFetching() {
     messenger.sendCommand {
       stopFetchCommand = StopFetchCommand.getDefaultInstance()
     }
+    isFetchingContinuously = false
+  }
+
+  suspend fun getProperties(rootViewId: Long, viewId: Long): GetPropertiesResponse {
+    val response = messenger.sendCommand {
+      getPropertiesCommand = GetPropertiesCommand.newBuilder().apply {
+        this.rootViewId = rootViewId
+        this.viewId = viewId
+      }.build()
+    }
+    return response.getPropertiesResponse
+  }
+
+  fun disconnect() {
+    messenger.scope.cancel()
   }
 
   private fun handleErrorEvent(errorEvent: ErrorEvent) {
@@ -119,10 +171,26 @@ class ViewLayoutInspectorClient(
   private fun handleRootsEvent(rootsEvent: WindowRootsEvent) {
     currRoots.clear()
     currRoots.addAll(rootsEvent.idsList)
+
+    propertiesCache.retain(currRoots)
+    composeInspector?.parametersCache?.retain(currRoots)
   }
 
-  private fun handleLayoutEvent(layoutEvent: LayoutEvent) {
-    fireTreeEvent(Data(currRoots, layoutEvent))
+  private suspend fun handleLayoutEvent(layoutEvent: LayoutEvent) {
+    generation++
+    propertiesCache.clearFor(layoutEvent.rootView.id)
+    composeInspector?.parametersCache?.clearFor(layoutEvent.rootView.id)
+
+    val composablesResponse = composeInspector?.getComposeables(layoutEvent.rootView.id)
+    fireTreeEvent(Data(generation, currRoots, layoutEvent, composablesResponse))
+  }
+
+  private suspend fun handlePropertiesEvent(propertiesEvent: PropertiesEvent) {
+    propertiesCache.setAllFrom(propertiesEvent)
+
+    composeInspector?.let {
+      it.parametersCache.setAllFrom(it.getAllParameters(propertiesEvent.rootId))
+    }
   }
 }
 
@@ -130,8 +198,8 @@ class ViewLayoutInspectorClient(
  * Convenience method for wrapping a specific view-inspector command inside a parent
  * app inspection command.
  */
-private suspend fun AppInspectorMessenger.sendCommand(initCommand: Command.Builder.() -> Unit) {
+private suspend fun AppInspectorMessenger.sendCommand(initCommand: Command.Builder.() -> Unit): Response {
   val command = Command.newBuilder()
   command.initCommand()
-  sendRawCommand(command.build().toByteArray())
+  return Response.parseFrom(sendRawCommand(command.build().toByteArray()))
 }

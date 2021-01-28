@@ -17,8 +17,8 @@ package com.android.tools.idea.templates
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
-import com.android.tools.idea.actions.NewAndroidComponentAction
 import com.android.tools.adtui.device.FormFactor
+import com.android.tools.idea.actions.NewAndroidComponentAction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
@@ -31,7 +31,6 @@ import com.android.tools.idea.npw.template.ChooseFragmentTypeStep
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.ui.wizard.SimpleStudioWizardLayout
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
-import com.android.tools.idea.ui.wizard.StudioWizardLayout
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.template.Category
@@ -157,7 +156,7 @@ class TemplateManager private constructor() {
   }
 
   @GuardedBy("CATEGORY_TABLE_LOCK")
-  private fun addTemplateToTable(template: Template, userDefinedTemplate: Boolean = false) = with(template) {
+  private fun addTemplateToTable(template: Template) = with(template) {
     if (category == Category.Compose && !StudioFlags.COMPOSE_WIZARD_TEMPLATES.get()) {
       return
     }
@@ -214,7 +213,7 @@ class TemplateManager private constructor() {
         else -> throw RuntimeException("Invalid category name: $category")
       }
       val wizard = ModelWizard.Builder().addStep(chooseTypeStep).build()
-      val wizardLayout = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) SimpleStudioWizardLayout() else StudioWizardLayout()
+      val wizardLayout = SimpleStudioWizardLayout()
       StudioWizardDialogBuilder(wizard, dialogTitle).build(wizardLayout).show()
     }
 

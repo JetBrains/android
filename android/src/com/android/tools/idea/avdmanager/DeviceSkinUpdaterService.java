@@ -46,7 +46,7 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 @Service
-final class DeviceSkinUpdaterService {
+public final class DeviceSkinUpdaterService {
   private final @NotNull ListeningExecutorService myExecutorService;
 
   private DeviceSkinUpdaterService() {
@@ -58,7 +58,7 @@ final class DeviceSkinUpdaterService {
     myExecutorService = MoreExecutors.listeningDecorator(delegate);
   }
 
-  static @NotNull DeviceSkinUpdaterService getInstance() {
+  public static @NotNull DeviceSkinUpdaterService getInstance() {
     return ServiceManager.getService(DeviceSkinUpdaterService.class);
   }
 
@@ -73,8 +73,8 @@ final class DeviceSkinUpdaterService {
   }
 
   @AnyThread
-  @NotNull ListenableFuture<@NotNull Path> updateSkins(@NotNull Path device,
-                                                       @Nullable @SuppressWarnings("SameParameterValue") SystemImageDescription image) {
+  public @NotNull ListenableFuture<@NotNull Path> updateSkins(@NotNull Path device,
+                                                              @Nullable @SuppressWarnings("SameParameterValue") SystemImageDescription image) {
     return myExecutorService.submit(() -> DeviceSkinUpdater.updateSkins(device, image));
   }
 

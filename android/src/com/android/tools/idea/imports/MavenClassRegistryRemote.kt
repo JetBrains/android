@@ -22,15 +22,13 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
 
-private const val NAME = "classes"
-private const val VERSION = 0.1
-
 /**
  * Lookup from class names to maven.google.com artifacts by reading indices from [GMavenIndexRepository].
  *
- * Here, it covers all the latest stable versions of androidX artifacts.
+ * Here, it covers all the latest stable versions of androidX libraries and those explicitly included non-androidX
+ * ones(go/studio-auto-import-packages).
  */
-class MavenClassRegistryRemote(val indexRepository: GMavenIndexRepository) : MavenClassRegistry {
+class MavenClassRegistryRemote(private val indexRepository: GMavenIndexRepository) : MavenClassRegistry {
   val lookup: Map<String, List<MavenClassRegistry.Library>> by lazy {
     generateLookup()
   }
@@ -44,16 +42,28 @@ class MavenClassRegistryRemote(val indexRepository: GMavenIndexRepository) : Mav
    * This implementation only returns results of index data from [GMavenIndexRepository].
    */
   override fun findLibraryData(className: String, useAndroidX: Boolean): Collection<MavenClassRegistry.Library> {
-    if (!useAndroidX) return emptyList()
-
     val index = className.lastIndexOf('.')
     val shortName = className.substring(index + 1)
     val packageName = if (index == -1) "" else className.substring(0, index)
 
-    val foundArtifacts = lookup[shortName] ?: return emptyList()
+    val foundArtifacts = lookup[shortName]?.resolve(useAndroidX) ?: return emptyList()
+
     if (packageName.isEmpty()) return foundArtifacts
 
     return foundArtifacts.filter { it.packageName == packageName }
+  }
+
+  /**
+   * Returns a filtered collection of [MavenClassRegistry.Library] based on whether the project uses AndroidX or not.
+   *
+   * If the project doesn't use AndroidX, those androidX libraries in the given collection are filtered out.
+   */
+  private fun Collection<MavenClassRegistry.Library>.resolve(
+    useAndroidX: Boolean
+  ): Collection<MavenClassRegistry.Library> {
+    if (useAndroidX) return this
+
+    return this.filter { !it.artifact.startsWith("androidx") }
   }
 
   private fun generateLookup(): Map<String, List<MavenClassRegistry.Library>> {
@@ -190,7 +200,7 @@ data class GMavenArtifactIndex(
  * A single object of [MavenClassRegistryRemote] which is initialized in lazy way.
  */
 val mavenClassRegistryRemote: MavenClassRegistryRemote by lazy {
-  MavenClassRegistryRemote(GMavenIndexRepository.getInstance())
+  MavenClassRegistryRemote(GMavenIndexRepositoryImpl())
 }
 
 /**

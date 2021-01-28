@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.module
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.benchmark.NewBenchmarkModuleDescriptionProvider
 import com.android.tools.idea.npw.dynamicapp.NewDynamicAppModuleDescriptionProvider
 import com.android.tools.idea.npw.importing.ImportModuleGalleryEntryProvider
@@ -78,11 +77,9 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
       message("android.wizard.module.import.eclipse.title"),
       message("android.wizard.module.new.java.or.kotlin.library"),
       message("android.wizard.module.new.benchmark.module.app")
-    )
-      .filterNot {
-        StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get() &&
-        (it == message("android.wizard.module.import.gradle.title") || it == message("android.wizard.module.import.eclipse.title"))
-      }
+    ).filterNot {
+      it == message("android.wizard.module.import.gradle.title") || it == message("android.wizard.module.import.eclipse.title")
+    }
 
     assertThat(sortedEntries).containsExactlyElementsIn(expectedEntries).inOrder()
   }

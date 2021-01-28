@@ -93,6 +93,13 @@ internal fun Dimension.scaled(scaleX: Double, scaleY: Double): Dimension {
 }
 
 /**
+ * Returns this [Point] scaled by the given factor.
+ */
+internal fun Point.scaled(scale: Double): Point {
+  return if (scale == 1.0) this else Point(x.scaled(scale), y.scaled(scale))
+}
+
+/**
  * Returns this [Dimension] rotated according to [rotation].
  */
 internal fun Dimension.rotated(rotation: SkinRotation): Dimension {

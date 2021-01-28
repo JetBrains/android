@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio
 
+import com.android.prefs.AndroidLocationsSingleton
 import com.android.repository.testframework.MockFileOp
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.material.icons.MaterialVdIcons
@@ -191,7 +192,7 @@ class MaterialVdIconsProviderTestWithSdk {
     testMaterialIconsSdkDirectory.resolve("style1").resolve("my_sdk_icon").apply { mkdirs() }.resolve("my_sdk_icon.xml").writeText(
       SIMPLE_VD)
 
-    val sdkHandler = AndroidSdkHandler.getInstance(testSdkDirectory.toPath())
+    val sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, testSdkDirectory.toPath())
     Mockito.`when`(rule.mockService(AndroidSdks::class.java).tryToChooseSdkHandler()).thenReturn(sdkHandler)
   }
 

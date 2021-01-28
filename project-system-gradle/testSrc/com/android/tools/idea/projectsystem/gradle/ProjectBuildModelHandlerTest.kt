@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.sync.GradleFiles
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.intellij.openapi.application.ApplicationManager
 import org.jetbrains.android.AndroidTestCase
-import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
@@ -30,7 +29,6 @@ import org.mockito.Mockito.verify
 class ProjectBuildModelHandlerTest : AndroidTestCase() {
   @Mock lateinit var projectBuildModel: ProjectBuildModel
 
-  @Before
   override fun setUp() {
     super.setUp()
     projectBuildModel = mock(ProjectBuildModel::class.java)

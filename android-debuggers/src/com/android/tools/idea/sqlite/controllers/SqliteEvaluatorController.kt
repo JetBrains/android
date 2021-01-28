@@ -217,6 +217,7 @@ class SqliteEvaluatorController(
       databaseId = databaseId,
       databaseRepository = databaseRepository,
       sqliteStatement = sqliteStatement,
+      showExportDialog = {}, // TODO(161081452): provide an implementation
       edtExecutor = edtExecutor,
       taskExecutor = taskExecutor
     )

@@ -252,6 +252,9 @@ class SceneViewPeerPanel(val sceneView: SceneView,
     add(sceneViewTopPanel)
     add(sceneViewBottomPanel)
     add(sceneViewLeftPanel)
+    // This setup the initial positions of sceneViewTopPanel, sceneViewBottomPanel, and sceneViewLeftPanel.
+    // Otherwise they are all placed at top-left corner before first time layout.
+    doLayout()
   }
 
   override fun isValid(): Boolean {

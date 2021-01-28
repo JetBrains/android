@@ -16,12 +16,16 @@
 package com.android.tools.idea.res;
 
 import com.android.ide.common.gradle.model.IdeAndroidLibrary;
-import com.android.ide.common.gradle.model.IdeLibrary;
 import com.android.ide.common.rendering.api.AssetRepository;
+import com.android.projectmodel.ExternalLibrary;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.fonts.DownloadableFontCacheService;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.sampledata.datasource.ResourceContent;
 import com.google.common.collect.Streams;
@@ -33,7 +37,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -185,10 +191,22 @@ public class AssetRepositoryImpl extends AssetRepository {
         .flatMap(Streams::stream);
 
     VirtualFileManager manager = VirtualFileManager.getInstance();
-    Stream<VirtualFile> dirsFromAars = ResourceRepositoryManager.findAarLibraries(facet).stream()
+
+    // TODO(b/178424022) Library dependencies from project system should be sufficient for asset folder dependencies.
+    //  This should be removed once the bug is resolved.
+    Stream<VirtualFile> dirsFromAars = findAarLibraries(facet).stream()
       .map(aarMapper)
       .map(path -> manager.findFileByUrl("file://" + path))
       .filter(Objects::nonNull);
+
+    Stream<VirtualFile> libraryDepAars = Stream.empty();
+    if (StudioFlags.NELE_ASSET_REPOSITORY_INCLUDE_AARS_THROUGH_PROJECT_SYSTEM.get()) {
+      libraryDepAars = ProjectSystemUtil.getModuleSystem(facet.getModule()).getResolvedLibraryDependencies().stream()
+        .map(ExternalLibrary::getLocation)
+        .filter((location) -> location != null && location.getFileName().endsWith(".aar"))
+        .map(path -> manager.findFileByUrl("file://" + path.getPortablePath()))
+        .filter(Objects::nonNull);
+    }
 
     Stream<VirtualFile> frameworkDirs = Stream.of(getSdkResDirOrJar(facet))
       .filter(Objects::nonNull)
@@ -203,7 +221,7 @@ public class AssetRepositoryImpl extends AssetRepository {
       .map(dir -> manager.findFileByUrl("file://" + dir.getAbsolutePath()))
       .filter(Objects::nonNull);
 
-    return Stream.of(dirsFromSources, dirsFromAars, frameworkDirs, sampleDataDirs)
+    return Stream.of(dirsFromSources, dirsFromAars, frameworkDirs, sampleDataDirs, libraryDepAars)
       .flatMap(stream -> stream);
   }
 
@@ -219,5 +237,28 @@ public class AssetRepositoryImpl extends AssetRepository {
       myFrameworkResDirOrJar = compatibilityTarget.getPath(IAndroidTarget.RESOURCES);
     }
     return myFrameworkResDirOrJar;
+  }
+
+  @NotNull
+  public static Collection<IdeAndroidLibrary> findAarLibraries(@NotNull AndroidFacet facet) {
+    List<IdeAndroidLibrary> libraries = new ArrayList<>();
+    if (AndroidModel.isRequired(facet)) {
+      AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
+      if (androidModel != null) {
+        List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
+        addGradleLibraries(libraries, androidModel);
+        for (AndroidFacet dependentFacet : dependentFacets) {
+          AndroidModuleModel dependentGradleModel = AndroidModuleModel.get(dependentFacet);
+          if (dependentGradleModel != null) {
+            addGradleLibraries(libraries, dependentGradleModel);
+          }
+        }
+      }
+    }
+    return libraries;
+  }
+
+  private static void addGradleLibraries(@NotNull List<IdeAndroidLibrary> list, @NotNull AndroidModuleModel androidModuleModel) {
+    list.addAll(androidModuleModel.getSelectedMainCompileLevel2Dependencies().getAndroidLibraries());
   }
 }

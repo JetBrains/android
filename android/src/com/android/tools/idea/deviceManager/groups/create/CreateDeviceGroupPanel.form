@@ -55,7 +55,7 @@
           </component>
         </children>
       </grid>
-      <nested-form id="35c22" form-file="com/android/tools/idea/deviceManager/groups/create/AddDevicesToGroupPanel.form" binding="myAddDevicesToGroupPanel">
+      <nested-form id="35c22" form-file="com/android/tools/idea/deviceManager/groups/create/AddDevicesToGroupPanel.form" binding="myAddDevicesToGroupPanel" custom-create="true">
         <constraints>
           <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>

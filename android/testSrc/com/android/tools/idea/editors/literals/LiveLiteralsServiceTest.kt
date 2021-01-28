@@ -1,16 +1,12 @@
 package com.android.tools.idea.editors.literals
 
-import com.android.tools.idea.rendering.classloading.ConstantRemapperManager
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.util.ui.UIUtil
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -25,6 +21,7 @@ internal class LiveLiteralsServiceTest {
 
   @Before
   fun setup() {
+    StudioFlags.COMPOSE_LIVE_LITERALS.override(true)
     project = projectRule.project
     file1 = projectRule.fixture.addFileToProject("src/main/java/com/literals/test/Test.kt", """
       package com.literals.test

@@ -17,6 +17,7 @@ package com.android.tools.idea.lint.common;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.client.api.XmlParser;
 import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Position;
@@ -48,12 +49,22 @@ class DomPsiParser extends XmlParser {
 
   @Override
   public int getNodeStartOffset(@NonNull XmlContext context, @NonNull Node node) {
+    return getNodeStartOffset(myClient, context.file, node);
+  }
+
+  @Override
+  public int getNodeStartOffset(@NonNull LintClient client, @NonNull File file, @NonNull Node node) {
     TextRange textRange = DomPsiConverter.getTextRange(node);
     return textRange.getStartOffset();
   }
 
   @Override
   public int getNodeEndOffset(@NonNull XmlContext context, @NonNull Node node) {
+    return getNodeEndOffset(myClient, context.file, node);
+  }
+
+  @Override
+  public int getNodeEndOffset(@NonNull LintClient client, @NonNull File file, @NonNull Node node) {
     TextRange textRange = DomPsiConverter.getTextRange(node);
     return textRange.getEndOffset();
   }
@@ -147,6 +158,13 @@ class DomPsiParser extends XmlParser {
 
   @NonNull
   @Override
+  public Location getLocation(@NonNull LintClient client,
+                              @NonNull File file, @NonNull Node node) {
+    return getLocation(file, node);
+  }
+
+  @NonNull
+  @Override
   public Location getLocation(@NonNull File file, @NonNull Node node) {
     TextRange textRange = DomPsiConverter.getTextRange(node);
     Position start = new LintXmlPosition(node, textRange.getStartOffset());
@@ -166,19 +184,31 @@ class DomPsiParser extends XmlParser {
   @NonNull
   @Override
   public Location getNameLocation(@NonNull XmlContext context, @NonNull Node node) {
+    return getNameLocation(myClient, context.file, node);
+  }
+
+  @NonNull
+  @Override
+  public Location getNameLocation(@NonNull LintClient client, @NonNull File file, @NonNull Node node) {
     TextRange textRange = DomPsiConverter.getTextNameRange(node);
     Position start = new LintXmlPosition(node, textRange.getStartOffset());
     Position end = new LintXmlPosition(node, textRange.getEndOffset());
-    return Location.create(context.file, start, end).withSource(node);
+    return Location.create(file, start, end).withSource(node);
   }
 
   @NonNull
   @Override
   public Location getValueLocation(@NonNull XmlContext context, @NonNull Attr node) {
+    return getValueLocation(myClient, context.file, node);
+  }
+
+  @NonNull
+  @Override
+  public Location getValueLocation(@NonNull LintClient client, @NonNull File file, @NonNull Attr node) {
     TextRange textRange = DomPsiConverter.getTextValueRange(node);
     Position start = new LintXmlPosition(node, textRange.getStartOffset());
     Position end = new LintXmlPosition(node, textRange.getEndOffset());
-    return Location.create(context.file, start, end).withSource(node);
+    return Location.create(file, start, end).withSource(node);
   }
 
   @NonNull

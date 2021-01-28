@@ -213,6 +213,16 @@ private const val WINDOWS_PATH_LENGTH_LIMIT = 240
 
 private val ILLEGAL_CHARACTER_MATCHER: CharMatcher = CharMatcher.anyOf("[/\\?%*:|\"<>!;]")
 
+/**
+ * Creates a rule that checks the filename.
+ *
+ * @param filenameIsAllowed returns true if the filename is allowed
+ */
+fun filenameRule(description: String, filenameIsAllowed:(String) -> Boolean) = createSimpleRule(
+  { _, file -> !filenameIsAllowed(file.name) },
+  { _, fieldName -> "The $fieldName specified $description." }
+)
+
 val IS_EMPTY = createSimpleRule(
   { _, file -> file.name.isEmpty() },
   { _, fieldName -> "Please specify a $fieldName." }
@@ -229,6 +239,11 @@ val INVALID_SLASHES = createSimpleRule(
 val LOCATION_IS_A_FILE = createSimpleRule(
   { fileOp, file -> fileOp.isFile(file) },
   { _, fieldName -> "The $fieldName specified already exists." }
+)
+
+val LOCATION_IS_NOT_A_FILE = createSimpleRule(
+  { fileOp, file -> !fileOp.isFile(file) },
+  { _, fieldName -> "The $fieldName specified does not exist." }
 )
 
 val LOCATION_IS_ROOT = createSimpleRule(

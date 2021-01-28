@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.welcome.install
 
+import com.android.prefs.AndroidLocationsSingleton
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.testutils.TestUtils
 import com.google.common.truth.Truth.assertThat
@@ -24,7 +25,7 @@ class AndroidSdkTest {
   @Test
   fun `get required SDK packages doesn't return emulator on Chrome OS`() {
     val sdk = AndroidSdk(true).apply {
-      updateState(AndroidSdkHandler.getInstance(TestUtils.getSdk()))
+      updateState(AndroidSdkHandler.getInstance(AndroidLocationsSingleton, TestUtils.getSdk()))
     }
     val packages = sdk.getRequiredSdkPackages(true)
     assertThat(packages).containsExactly("platform-tools")
