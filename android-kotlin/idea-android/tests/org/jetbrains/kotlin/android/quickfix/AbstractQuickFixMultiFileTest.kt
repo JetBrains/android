@@ -38,7 +38,6 @@ import junit.framework.TestCase
 import org.jetbrains.kotlin.android.DirectiveBasedActionUtils
 import org.jetbrains.kotlin.android.KotlinLightProjectDescriptor
 import org.jetbrains.kotlin.android.KotlinTestUtils
-import org.jetbrains.kotlin.idea.test.configureCompilerOptions
 import org.jetbrains.kotlin.psi.KtFile
 import java.io.File
 import java.util.ArrayList
@@ -72,7 +71,6 @@ abstract class AbstractQuickFixMultiFileTest : LightJavaCodeInsightFixtureTestCa
     val beforeFileName = "$beforeFileNamePrefix.before.Main.kt"
     val mainFile = File(testDataPath, beforeFileName)
     val originalFileText = FileUtil.loadFile(mainFile, true)
-    configureCompilerOptions(originalFileText, project, myFixture.module)
 
     val mainFileDir = mainFile.parentFile!!
 
