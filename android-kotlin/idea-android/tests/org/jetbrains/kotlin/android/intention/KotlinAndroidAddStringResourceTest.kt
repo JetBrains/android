@@ -17,10 +17,8 @@ package org.jetbrains.kotlin.android.intention
 
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.test.KotlinTestUtils
-import org.jetbrains.kotlin.test.TestMetadata
 
 class KotlinAndroidAddStringResourceTest : AbstractAndroidResourceIntentionTest() {
-  @TestMetadata("kotlinAndroidAddStringResource/composableFunction/function.test")
   fun testKotlinAndroidAddStringResource_composable_function() {
     myFixture.stubComposableAnnotation()
     myFixture.addFileToProject(
