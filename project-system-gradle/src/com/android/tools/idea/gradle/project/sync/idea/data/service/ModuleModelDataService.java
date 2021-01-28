@@ -57,8 +57,6 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
                                      @NotNull IdeModifiableModelsProvider modelsProvider,
                                      @NotNull Map<String, DataNode<T>> modelsByModuleName);
 
-  protected abstract List<@NotNull Module> eligibleOrphanCandidates(@NotNull Project project);
-
   @Override
   public @NotNull Computable<Collection<Module>> computeOrphanData(@NotNull Collection<? extends DataNode<T>> toImport,
                                                                    @NotNull ProjectData projectData,
@@ -68,7 +66,7 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
     return () -> {
       List<Module> orphanIdeModules = new SmartList<>();
 
-      for (Module module : eligibleOrphanCandidates(project)) {
+      for (Module module : modelsProvider.getModules()) {
         if (!ExternalSystemApiUtil.isExternalSystemAwareModule(projectData.getOwner(), module)) continue;
 
         final String rootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(module);

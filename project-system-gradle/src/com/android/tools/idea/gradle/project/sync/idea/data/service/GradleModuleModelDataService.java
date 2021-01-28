@@ -87,11 +87,6 @@ public class GradleModuleModelDataService extends ModuleModelDataService<GradleM
   }
 
   @Override
-  protected List<@NotNull Module> eligibleOrphanCandidates(@NotNull Project project) {
-    return ContainerUtil.map(ProjectFacetManager.getInstance(project).getFacets(GradleFacet.getFacetTypeId()), GradleFacet::getModule);
-  }
-
-  @Override
   public void removeData(Computable<? extends Collection<? extends Module>> toRemoveComputable,
                          @NotNull Collection<? extends DataNode<GradleModuleModel>> toIgnore,
                          @NotNull ProjectData projectData,

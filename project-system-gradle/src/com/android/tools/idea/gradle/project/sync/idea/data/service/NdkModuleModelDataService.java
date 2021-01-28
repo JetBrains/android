@@ -72,11 +72,6 @@ public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleM
   }
 
   @Override
-  protected List<@NotNull Module> eligibleOrphanCandidates(@NotNull Project project) {
-    return ContainerUtil.map(ProjectFacetManager.getInstance(project).getFacets(NdkFacet.getFacetTypeId()), NdkFacet::getModule);
-  }
-
-  @Override
   public void removeData(Computable<? extends Collection<? extends Module>> toRemoveComputable,
                          @NotNull Collection<? extends DataNode<NdkModuleModel>> toIgnore,
                          @NotNull ProjectData projectData,

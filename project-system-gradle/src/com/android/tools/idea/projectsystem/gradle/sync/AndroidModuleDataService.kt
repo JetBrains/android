@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.SupportedModuleChecker
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.PROJECT_SYNC_REQUEST
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.linkAndroidModuleGroup
@@ -50,7 +49,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER
 import com.intellij.facet.ModifiableFacetModel
-import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -70,7 +68,6 @@ import com.intellij.openapi.util.io.FileUtil.getRelativePath
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.pom.java.LanguageLevel
-import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION
 import org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID
@@ -142,10 +139,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     if (sdkToUse != null) {
       rootModel.sdk = sdkToUse
     }
-  }
-
-  override fun eligibleOrphanCandidates(project: Project): List<Module> {
-    return ContainerUtil.map(ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID), AndroidFacet::getModule)
   }
 
   override fun removeData(toRemoveComputable: Computable<out Collection<Module>>,
