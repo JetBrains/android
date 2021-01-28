@@ -173,6 +173,7 @@ studio_plugin(
         ],
         "resources": [
             "//tools/base/dynamic-layout-inspector/agent/appinspection:bundle",
+            "//tools/base/network-inspector:bundle",
             "//tools/base/profiler/transform:profilers-transform",
             "//tools/base/profiler/app:perfa",
             "//tools/base/profiler/app:perfa_okhttp",
