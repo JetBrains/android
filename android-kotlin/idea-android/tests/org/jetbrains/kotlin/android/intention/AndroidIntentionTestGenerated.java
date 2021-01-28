@@ -6,17 +6,14 @@
 package org.jetbrains.kotlin.android.intention;
 
 import com.intellij.testFramework.TestDataPath;
-import org.jetbrains.kotlin.test.JUnit3RunnerWithInners;
 import org.jetbrains.kotlin.android.KotlinTestUtils;
 import org.junit.runner.RunWith;
 
 @SuppressWarnings("all")
 @TestDataPath("$PROJECT_ROOT")
-@RunWith(JUnit3RunnerWithInners.class)
-public class AndroidIntentionTestGenerated extends AbstractAndroidIntentionTest {
+public class AndroidIntentionTestGenerated {
 
     @TestDataPath("$PROJECT_ROOT")
-    @RunWith(JUnit3RunnerWithInners.class)
     public static class AddActivityToManifest extends AbstractAndroidIntentionTest {
         public void testAbstract() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/intention/addActivityToManifest/abstract.kt");
@@ -70,7 +67,6 @@ public class AndroidIntentionTestGenerated extends AbstractAndroidIntentionTest 
     }
 
     @TestDataPath("$PROJECT_ROOT")
-    @RunWith(JUnit3RunnerWithInners.class)
     public static class AddBroadcastReceiverToManifest extends AbstractAndroidIntentionTest {
         public void testAbstract() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/intention/addBroadcastReceiverToManifest/abstract.kt");
@@ -124,7 +120,6 @@ public class AndroidIntentionTestGenerated extends AbstractAndroidIntentionTest 
     }
 
     @TestDataPath("$PROJECT_ROOT")
-    @RunWith(JUnit3RunnerWithInners.class)
     public static class AddServiceToManifest extends AbstractAndroidIntentionTest {
         public void testAbstract() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/intention/addServiceToManifest/abstract.kt");
@@ -178,7 +173,6 @@ public class AndroidIntentionTestGenerated extends AbstractAndroidIntentionTest 
     }
 
     @TestDataPath("$PROJECT_ROOT")
-    @RunWith(JUnit3RunnerWithInners.class)
     public static class ImplementParcelable extends AbstractAndroidIntentionTest {
 
         public void testAllNullableTypes() throws Exception {
@@ -233,7 +227,6 @@ public class AndroidIntentionTestGenerated extends AbstractAndroidIntentionTest 
     }
 
     @TestDataPath("$PROJECT_ROOT")
-    @RunWith(JUnit3RunnerWithInners.class)
     public static class RedoParcelable extends AbstractAndroidIntentionTest {
 
         public void testIndirectParcelable() throws Exception {
@@ -278,7 +271,6 @@ public class AndroidIntentionTestGenerated extends AbstractAndroidIntentionTest 
     }
 
     @TestDataPath("$PROJECT_ROOT")
-    @RunWith(JUnit3RunnerWithInners.class)
     public static class RemoveParcelable extends AbstractAndroidIntentionTest {
 
         public void testInderectParcelable() throws Exception {

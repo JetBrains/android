@@ -6,12 +6,10 @@
 package org.jetbrains.kotlin.android.lint;
 
 import com.intellij.testFramework.TestDataPath;
-import org.jetbrains.kotlin.test.JUnit3RunnerWithInners;
 import org.junit.runner.RunWith;
 
 @SuppressWarnings("all")
 @TestDataPath("$PROJECT_ROOT")
-@RunWith(JUnit3RunnerWithInners.class)
 public class KotlinLintTestGenerated extends AbstractKotlinLintTest {
 
     public void testDisabled() {}

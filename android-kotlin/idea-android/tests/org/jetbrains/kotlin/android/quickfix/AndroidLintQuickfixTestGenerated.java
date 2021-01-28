@@ -6,17 +6,14 @@
 package org.jetbrains.kotlin.android.quickfix;
 
 import com.intellij.testFramework.TestDataPath;
-import org.jetbrains.kotlin.test.JUnit3RunnerWithInners;
 import org.jetbrains.kotlin.android.KotlinTestUtils;
 import org.junit.runner.RunWith;
 
 @SuppressWarnings("all")
 @TestDataPath("$PROJECT_ROOT")
-@RunWith(JUnit3RunnerWithInners.class)
-public class AndroidLintQuickfixTestGenerated extends AbstractAndroidLintQuickfixTest {
+public class AndroidLintQuickfixTestGenerated {
 
     @TestDataPath("$PROJECT_ROOT")
-    @RunWith(JUnit3RunnerWithInners.class)
     public static class FindViewById extends AbstractAndroidLintQuickfixTest {
 
         public void testNullableType() throws Exception {
@@ -31,7 +28,6 @@ public class AndroidLintQuickfixTestGenerated extends AbstractAndroidLintQuickfi
     }
 
     @TestDataPath("$PROJECT_ROOT")
-    @RunWith(JUnit3RunnerWithInners.class)
     public static class Parcelable extends AbstractAndroidLintQuickfixTest {
 
         public void testMissingCreator() throws Exception {
@@ -46,7 +42,6 @@ public class AndroidLintQuickfixTestGenerated extends AbstractAndroidLintQuickfi
     }
 
     @TestDataPath("$PROJECT_ROOT")
-    @RunWith(JUnit3RunnerWithInners.class)
     public static class RequiresApi extends AbstractAndroidLintQuickfixTest {
 
         public void testAnnotation() throws Exception {
@@ -101,7 +96,6 @@ public class AndroidLintQuickfixTestGenerated extends AbstractAndroidLintQuickfi
     }
 
     @TestDataPath("$PROJECT_ROOT")
-    @RunWith(JUnit3RunnerWithInners.class)
     public static class SuppressLint extends AbstractAndroidLintQuickfixTest {
         public void testActivityMethod() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/suppressLint/activityMethod.kt");
@@ -150,7 +144,6 @@ public class AndroidLintQuickfixTestGenerated extends AbstractAndroidLintQuickfi
     }
 
     @TestDataPath("$PROJECT_ROOT")
-    @RunWith(JUnit3RunnerWithInners.class)
     public static class TargetApi extends AbstractAndroidLintQuickfixTest {
 
         public void testAnnotation() throws Exception {
@@ -205,7 +198,6 @@ public class AndroidLintQuickfixTestGenerated extends AbstractAndroidLintQuickfi
     }
 
     @TestDataPath("$PROJECT_ROOT")
-    @RunWith(JUnit3RunnerWithInners.class)
     public static class TargetVersionCheck extends AbstractAndroidLintQuickfixTest {
 
         public void testAnnotation() throws Exception {
