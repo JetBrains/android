@@ -187,9 +187,6 @@
     <option name="layout" path="ActionManager" hit="Create Help Panel for Motion Layout Editor" />
     <option name="motion" path="ActionManager" hit="Create Help Panel for Motion Layout Editor" />
     <option name="panel" path="ActionManager" hit="Create Help Panel for Motion Layout Editor" />
-    <option name="create" path="ActionManager" hit="Create New Project" />
-    <option name="new" path="ActionManager" hit="Create New Project" />
-    <option name="project" path="ActionManager" hit="Create New Project" />
     <option name="a" path="ActionManager" hit="Create a new Android object from the Other category" />
     <option name="android" path="ActionManager" hit="Create a new Android object from the Other category" />
     <option name="category" path="ActionManager" hit="Create a new Android object from the Other category" />
@@ -452,8 +449,11 @@
     <option name="to" path="ActionManager" hit="Navigate to shared preferences folder" />
     <option name="module" path="ActionManager" hit="New Module..." />
     <option name="new" path="ActionManager" hit="New Module..." />
+    <option name="new" path="ActionManager" hit="New Project" />
+    <option name="project" path="ActionManager" hit="New Project" />
     <option name="new" path="ActionManager" hit="New Project..." />
     <option name="project" path="ActionManager" hit="New Project..." />
+    <option name="open" path="ActionManager" hit="Open" />
     <option name="an" path="ActionManager" hit="Open Asset Studio to create an image asset" />
     <option name="asset" path="ActionManager" hit="Open Asset Studio to create an image asset" />
     <option name="create" path="ActionManager" hit="Open Asset Studio to create an image asset" />
@@ -476,10 +476,6 @@
     <option name="studio" path="ActionManager" hit="Open Vector Asset Studio to create an image asset" />
     <option name="to" path="ActionManager" hit="Open Vector Asset Studio to create an image asset" />
     <option name="vector" path="ActionManager" hit="Open Vector Asset Studio to create an image asset" />
-    <option name="an" path="ActionManager" hit="Open an Existing Project" />
-    <option name="existing" path="ActionManager" hit="Open an Existing Project" />
-    <option name="open" path="ActionManager" hit="Open an Existing Project" />
-    <option name="project" path="ActionManager" hit="Open an Existing Project" />
     <option name="open" path="ActionManager" hit="Open recent test session" />
     <option name="recent" path="ActionManager" hit="Open recent test session" />
     <option name="session" path="ActionManager" hit="Open recent test session" />
