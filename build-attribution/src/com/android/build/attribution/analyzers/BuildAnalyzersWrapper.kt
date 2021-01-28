@@ -40,7 +40,6 @@ class BuildAnalyzersWrapper(
     androidGradlePluginAttributionData: AndroidGradlePluginAttributionData?,
     analyzersResult: BuildEventsAnalysisResult
   ) {
-    buildAnalyzers.forEach(BaseAnalyzer<*>::onBuildSuccess)
 
     if (androidGradlePluginAttributionData != null) {
       taskContainer.updateTasksData(androidGradlePluginAttributionData)

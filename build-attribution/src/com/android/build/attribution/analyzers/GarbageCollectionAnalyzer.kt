@@ -31,8 +31,6 @@ class GarbageCollectionAnalyzer :
     isSettingSet = null
   }
 
-  override fun onBuildSuccess() = Unit
-
   override fun receiveBuildAttributionReport(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData) {
     garbageCollectionData = androidGradlePluginAttributionData.garbageCollectionData.map { GarbageCollectionData(it.key, it.value) }
     javaVersion = JavaVersion.tryParse(androidGradlePluginAttributionData.javaInfo.version)?.feature

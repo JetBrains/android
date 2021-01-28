@@ -34,8 +34,6 @@ class TasksConfigurationIssuesAnalyzer(
     tasksSharingOutput = emptyMap()
   }
 
-  override fun onBuildSuccess() = Unit
-
   override fun receiveBuildAttributionReport(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData) {
     tasksSharingOutput = androidGradlePluginAttributionData.tasksSharingOutput
   }

@@ -60,17 +60,16 @@ class AnnotationProcessorsAnalyzer(
     nonIncrementalAnnotationProcessorsSet.clear()
   }
 
-  override fun onBuildSuccess() {
+  override fun calculateResult(): Result {
     if (taskContainer.any(::isKaptTask)) {
       // TODO(b/159108417): get data about annotation processors incrementality from kapt
       nonIncrementalAnnotationProcessorsSet.clear()
     }
+    return Result(
+      annotationProcessorsMap.map { AnnotationProcessorData(it.key, it.value) },
+      nonIncrementalAnnotationProcessorsSet.map { AnnotationProcessorData(it, annotationProcessorsMap[it]!!) }
+    )
   }
-
-  override fun calculateResult(): Result = Result(
-    annotationProcessorsMap.map { AnnotationProcessorData(it.key, it.value) },
-    nonIncrementalAnnotationProcessorsSet.map { AnnotationProcessorData(it, annotationProcessorsMap[it]!!) }
-  )
 
   data class Result(
     val annotationProcessorsData: List<AnnotationProcessorData>,
