@@ -6,8 +6,6 @@ Android Studio Preview.app/Contents/Resources/build.txt
 Android Studio Preview.app/Contents/Resources/icons.db
 Android Studio Preview.app/Contents/Resources/studio.icns
 Android Studio Preview.app/Contents/bin/appletviewer.policy
-Android Studio Preview.app/Contents/bin/clang/mac/clang-tidy
-Android Studio Preview.app/Contents/bin/clang/mac/clangd
 Android Studio Preview.app/Contents/bin/format.sh
 Android Studio Preview.app/Contents/bin/fsnotifier
 Android Studio Preview.app/Contents/bin/game-tools.sh
@@ -1471,7 +1469,6 @@ Android Studio Preview.app/Contents/lib/ant/lib/ant.jar
 Android Studio Preview.app/Contents/lib/ant/lib/ant.pom
 Android Studio Preview.app/Contents/lib/ant/lib/libraries.properties
 Android Studio Preview.app/Contents/lib/ant/src.zip
-Android Studio Preview.app/Contents/lib/antlr4-runtime-4.1.jar
 Android Studio Preview.app/Contents/lib/asm-7.0.jar
 Android Studio Preview.app/Contents/lib/asm-all-9.0.jar
 Android Studio Preview.app/Contents/lib/asm-analysis-7.0.jar
@@ -2695,6 +2692,17 @@ Android Studio Preview.app/Contents/plugins/android/resources/transport/native/a
 Android Studio Preview.app/Contents/plugins/android/resources/transport/native/agent/x86/libjvmtiagent.so
 Android Studio Preview.app/Contents/plugins/android/resources/transport/native/agent/x86_64/libjvmtiagent.so
 Android Studio Preview.app/Contents/plugins/android/resources/transport/x86/transport
+Android Studio Preview.app/Contents/plugins/c-clangd/lib/LICENSE.txt
+Android Studio Preview.app/Contents/plugins/c-clangd/lib/c-clangd.jar
+Android Studio Preview.app/Contents/plugins/c-plugin/bin/clang/mac/clang-tidy
+Android Studio Preview.app/Contents/plugins/c-plugin/bin/clang/mac/clangd
+Android Studio Preview.app/Contents/plugins/c-plugin/lib/LICENSE.txt
+Android Studio Preview.app/Contents/plugins/c-plugin/lib/c-plugin.jar
+Android Studio Preview.app/Contents/plugins/c-plugin/lib/resources_en.jar
+Android Studio Preview.app/Contents/plugins/cidr-base-plugin/lib/LICENSE.txt
+Android Studio Preview.app/Contents/plugins/cidr-base-plugin/lib/antlr4-runtime-4.1.jar
+Android Studio Preview.app/Contents/plugins/cidr-base-plugin/lib/cidr-base-plugin.jar
+Android Studio Preview.app/Contents/plugins/cidr-base-plugin/lib/resources_en.jar
 Android Studio Preview.app/Contents/plugins/completionMlRanking/lib/completionMlRanking.jar
 Android Studio Preview.app/Contents/plugins/completionMlRanking/lib/ngram-slp-0.0.2.jar
 Android Studio Preview.app/Contents/plugins/completionMlRanking/lib/resources_en.jar

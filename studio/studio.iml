@@ -53,5 +53,8 @@
     <orderEntry type="library" name="studio-plugin-textmate" level="project" />
     <orderEntry type="library" name="studio-plugin-vcs-changeReminder" level="project" />
     <orderEntry type="library" name="studio-plugin-yaml" level="project" />
+    <orderEntry type="library" name="studio-plugin-c-clangd" level="project" />
+    <orderEntry type="library" name="studio-plugin-c-plugin" level="project" />
+    <orderEntry type="library" name="studio-plugin-cidr-base-plugin" level="project" />
   </component>
 </module>

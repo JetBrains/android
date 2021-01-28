@@ -8,8 +8,6 @@ android-studio/bin/append.bat
 android-studio/bin/appletviewer.policy
 android-studio/bin/breakgen.dll
 android-studio/bin/breakgen64.dll
-android-studio/bin/clang/win/clang-tidy.exe
-android-studio/bin/clang/win/clangd.exe
 android-studio/bin/elevator.exe
 android-studio/bin/format.bat
 android-studio/bin/fsnotifier-wsl
@@ -977,7 +975,6 @@ android-studio/lib/ant/lib/ant.jar
 android-studio/lib/ant/lib/ant.pom
 android-studio/lib/ant/lib/libraries.properties
 android-studio/lib/ant/src.zip
-android-studio/lib/antlr4-runtime-4.1.jar
 android-studio/lib/asm-7.0.jar
 android-studio/lib/asm-all-9.0.jar
 android-studio/lib/asm-analysis-7.0.jar
@@ -2211,6 +2208,17 @@ android-studio/plugins/android/resources/transport/native/agent/armeabi-v7a/libj
 android-studio/plugins/android/resources/transport/native/agent/x86/libjvmtiagent.so
 android-studio/plugins/android/resources/transport/native/agent/x86_64/libjvmtiagent.so
 android-studio/plugins/android/resources/transport/x86/transport
+android-studio/plugins/c-clangd/lib/LICENSE.txt
+android-studio/plugins/c-clangd/lib/c-clangd.jar
+android-studio/plugins/c-plugin/bin/clang/win/clang-tidy.exe
+android-studio/plugins/c-plugin/bin/clang/win/clangd.exe
+android-studio/plugins/c-plugin/lib/LICENSE.txt
+android-studio/plugins/c-plugin/lib/c-plugin.jar
+android-studio/plugins/c-plugin/lib/resources_en.jar
+android-studio/plugins/cidr-base-plugin/lib/LICENSE.txt
+android-studio/plugins/cidr-base-plugin/lib/antlr4-runtime-4.1.jar
+android-studio/plugins/cidr-base-plugin/lib/cidr-base-plugin.jar
+android-studio/plugins/cidr-base-plugin/lib/resources_en.jar
 android-studio/plugins/completionMlRanking/lib/completionMlRanking.jar
 android-studio/plugins/completionMlRanking/lib/ngram-slp-0.0.2.jar
 android-studio/plugins/completionMlRanking/lib/resources_en.jar
