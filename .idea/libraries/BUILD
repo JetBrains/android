@@ -227,13 +227,6 @@ java_import(
 
 # managed by go/iml_to_build
 java_import(
-    name = "kotlin-plugin-test",
-    jars = ["//prebuilts/tools/common/android-kotlin:kotlin-plugin-test_files"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
     name = "tightvnc",
     jars = ["//prebuilts/tools/common/tightvnc:tightvnc_files"],
     visibility = ["//visibility:public"],
