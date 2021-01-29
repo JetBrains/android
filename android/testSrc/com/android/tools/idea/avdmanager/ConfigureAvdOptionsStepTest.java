@@ -89,7 +89,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     FakePackage.FakeLocalPackage pkgQ = new FakePackage.FakeLocalPackage(qPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsQ =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsQ.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    detailsQ.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     detailsQ.setAbi("x86");
     detailsQ.setApiLevel(29);
     pkgQ.setTypeDetails((TypeDetails) detailsQ);
@@ -100,7 +100,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     FakePackage.FakeLocalPackage pkgMarshmallow = new FakePackage.FakeLocalPackage(marshmallowPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsMarshmallow =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsMarshmallow.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    detailsMarshmallow.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     detailsMarshmallow.setAbi("x86");
     detailsMarshmallow.setApiLevel(23);
     pkgMarshmallow.setTypeDetails((TypeDetails) detailsMarshmallow);
@@ -111,7 +111,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     FakePackage.FakeLocalPackage pkgPreview = new FakePackage.FakeLocalPackage(previewPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsPreview =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsPreview.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    detailsPreview.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     detailsPreview.setAbi("x86");
     detailsPreview.setApiLevel(99);
     detailsPreview.setCodename("Z"); // Setting a code name is the key!
@@ -124,7 +124,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     FakePackage.FakeLocalPackage pkgZulu = new FakePackage.FakeLocalPackage(zuluPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsZulu =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsZulu.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    detailsZulu.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     detailsZulu.setAbi("x86");
     detailsZulu.setApiLevel(99);
     pkgZulu.setTypeDetails((TypeDetails) detailsZulu);

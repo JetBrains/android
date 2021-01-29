@@ -85,7 +85,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     FakePackage.FakeLocalPackage pkgGapi = new FakePackage.FakeLocalPackage(gapiPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsGapi =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsGapi.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    detailsGapi.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     detailsGapi.setAbi("x86");
     detailsGapi.setVendor(IdDisplay.create("google", "Google"));
     detailsGapi.setApiLevel(23);
@@ -97,7 +97,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     FakePackage.FakeLocalPackage pkgGapi29 = new FakePackage.FakeLocalPackage(gapi29Path, fileOp);
     DetailsTypes.SysImgDetailsType detailsGapi29 =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsGapi29.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    detailsGapi29.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     detailsGapi29.setAbi("x86");
     detailsGapi29.setVendor(IdDisplay.create("google", "Google"));
     detailsGapi29.setApiLevel(29);
@@ -109,7 +109,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     FakePackage.FakeLocalPackage pkgGapi30 = new FakePackage.FakeLocalPackage(gapi30Path, fileOp);
     DetailsTypes.SysImgDetailsType detailsGapi30 =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsGapi30.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    detailsGapi30.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     detailsGapi30.setAbi("x86");
     detailsGapi30.setVendor(IdDisplay.create("google", "Google"));
     detailsGapi30.setApiLevel(30);
@@ -121,7 +121,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     FakePackage.FakeLocalPackage pkgPs = new FakePackage.FakeLocalPackage(psPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsPs =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsPs.setTag(IdDisplay.create("google_apis_playstore", "Google Play"));
+    detailsPs.getTags().add(IdDisplay.create("google_apis_playstore", "Google Play"));
     detailsPs.setAbi("x86");
     detailsPs.setVendor(IdDisplay.create("google", "Google"));
     detailsPs.setApiLevel(24);
@@ -133,7 +133,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     FakePackage.FakeLocalPackage pkgWear = new FakePackage.FakeLocalPackage(wearPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsWear =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsWear.setTag(IdDisplay.create("android-wear", "Wear OS"));
+    detailsWear.getTags().add(IdDisplay.create("android-wear", "Wear OS"));
     detailsWear.setAbi("x86");
     detailsWear.setVendor(IdDisplay.create("google", "Google"));
     detailsWear.setApiLevel(25);
@@ -145,7 +145,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     FakePackage.FakeLocalPackage pkgWear29 = new FakePackage.FakeLocalPackage(wear29Path, fileOp);
     DetailsTypes.SysImgDetailsType detailsWear29 =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsWear29.setTag(IdDisplay.create("android-wear", "Wear OS"));
+    detailsWear29.getTags().add(IdDisplay.create("android-wear", "Wear OS"));
     detailsWear29.setAbi("x86");
     detailsWear29.setVendor(IdDisplay.create("google", "Google"));
     detailsWear29.setApiLevel(29);
@@ -157,7 +157,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     FakePackage.FakeLocalPackage pkgCnWear = new FakePackage.FakeLocalPackage(wearCnPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsWearCn =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsWearCn.setTag(IdDisplay.create("android-wear", "Wear OS for China"));
+    detailsWearCn.getTags().add(IdDisplay.create("android-wear", "Wear OS for China"));
     detailsWearCn.setAbi("x86");
     detailsWearCn.setVendor(IdDisplay.create("google", "Google"));
     detailsWearCn.setApiLevel(25);
@@ -169,7 +169,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     FakePackage.FakeLocalPackage pkgAutomotive = new FakePackage.FakeLocalPackage(automotivePath, fileOp);
     DetailsTypes.SysImgDetailsType detailsAutomotive =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsAutomotive.setTag(IdDisplay.create("android-automotive", "Android Automotive"));
+    detailsAutomotive.getTags().add(IdDisplay.create("android-automotive", "Android Automotive"));
     detailsAutomotive.setAbi("x86");
     detailsAutomotive.setVendor(IdDisplay.create("google", "Google"));
     detailsAutomotive.setApiLevel(28);
@@ -181,7 +181,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     FakePackage.FakeLocalPackage pkgAutomotivePs = new FakePackage.FakeLocalPackage(automotivePsPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsAutomotivePs =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsAutomotivePs.setTag(IdDisplay.create("android-automotive-playstore", "Android Automotive with Google Play"));
+    detailsAutomotivePs.getTags().add(IdDisplay.create("android-automotive-playstore", "Android Automotive with Google Play"));
     detailsAutomotivePs.setAbi("x86");
     detailsAutomotivePs.setVendor(IdDisplay.create("google", "Google"));
     detailsAutomotivePs.setApiLevel(28);
