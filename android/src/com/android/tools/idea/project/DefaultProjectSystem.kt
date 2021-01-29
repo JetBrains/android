@@ -47,7 +47,6 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.facet.ProjectFacetManager
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -59,6 +58,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.createSourceProvidersForLegacyModule
 import java.io.File
 import java.nio.file.Path
+import java.util.IdentityHashMap
 
 /**
  * This implementation of AndroidProjectSystem is used for projects where the build system is not
@@ -94,7 +94,8 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
 
   override val projectSystem = this
 
-  override fun getModuleSystem(module: Module): AndroidModuleSystem = DefaultModuleSystem(module)
+  private val moduleCache: MutableMap<Module, AndroidModuleSystem> = IdentityHashMap()
+  override fun getModuleSystem(module: Module): AndroidModuleSystem = moduleCache.getOrPut(module, { DefaultModuleSystem(module) })
 
   override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider? {
     val module = (runConfiguration as? ModuleBasedConfiguration<*, *>)?.configurationModule?.module ?: return null
