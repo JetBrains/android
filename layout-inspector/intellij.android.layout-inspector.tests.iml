@@ -57,5 +57,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="module" module-name="intellij.android.projectSystem" />
   </component>
 </module>
