@@ -23,6 +23,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.swing.FakeUi
@@ -194,6 +195,7 @@ class ResolutionElementEditorTest {
     @Suppress("UndesirableClassUsage")
     val generatedImage = BufferedImage(200, 300, BufferedImage.TYPE_INT_ARGB)
     val graphics = generatedImage.createGraphics()
+    graphics.color = secondaryPanelBackground
     graphics.fillRect(0, 0, 200, 300)
     editors[0].setSize(200, editors[0].height)
     editors[0].doLayout()
