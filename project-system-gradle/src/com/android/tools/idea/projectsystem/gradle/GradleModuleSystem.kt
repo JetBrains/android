@@ -420,11 +420,11 @@ class GradleModuleSystem(
       ManifestSystemProperty.PACKAGE to androidModel.applicationId
     )
     val gradleModel = AndroidModuleModel.get(facet) ?: return ManifestOverrides(directOverrides)
-    val flavor = gradleModel.selectedVariant.mergedFlavor
-    val buildType = gradleModel.findBuildType(gradleModel.selectedVariant.buildType)!!.buildType
-    val placeholders = (flavor.manifestPlaceholders + buildType.manifestPlaceholders).mapValues { it.value.toString() }
+    val variant = gradleModel.selectedVariant
+    val buildType = gradleModel.findBuildType(variant.buildType)!!.buildType
+    val placeholders = variant.manifestPlaceholders
     val directOverridesFromGradle = notNullMapOf(
-      ManifestSystemProperty.MAX_SDK_VERSION to flavor.maxSdkVersion?.toString(),
+      ManifestSystemProperty.MAX_SDK_VERSION to variant.maxSdkVersion?.toString(),
       ManifestSystemProperty.VERSION_NAME to getVersionNameOverride(facet, gradleModel, buildType)
     )
     return ManifestOverrides(directOverrides + directOverridesFromGradle, placeholders)

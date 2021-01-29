@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.model;
 
-import com.android.ide.common.gradle.model.IdeBuildTypeContainer;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.google.common.collect.ImmutableMap;
@@ -41,17 +40,8 @@ public class ManifestPlaceholderResolver {
     AndroidModuleModel model = AndroidModuleModel.get(module);
 
     if (model != null) {
-      ImmutableMap.Builder<String, Object> placeholdersBuilder = ImmutableMap.builder();
-
       IdeVariant selectedVariant = model.getSelectedVariant();
-      IdeBuildTypeContainer buildType = model.findBuildType(selectedVariant.getBuildType());
-      if (buildType != null) {
-        placeholdersBuilder.putAll(buildType.getBuildType().getManifestPlaceholders());
-      }
-      // flavors and default config
-      placeholdersBuilder.putAll(selectedVariant.getMergedFlavor().getManifestPlaceholders());
-
-      myPlaceholders = placeholdersBuilder.build();
+      myPlaceholders = ImmutableMap.copyOf(selectedVariant.getManifestPlaceholders());
     } else {
       myPlaceholders = ImmutableMap.of();
     }
