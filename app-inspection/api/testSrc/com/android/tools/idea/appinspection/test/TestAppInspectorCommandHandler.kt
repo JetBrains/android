@@ -100,6 +100,8 @@ class TestAppInspectorCommandHandler(
         )
       }
     }
+
+    timer.currentTimeNs += 1 // Make sure poller sees any newly added events
   }
 }
 
