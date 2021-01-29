@@ -123,5 +123,14 @@
     <orderEntry type="library" name="studio-plugin-junit" level="project" />
     <orderEntry type="library" name="studio-plugin-properties" level="project" />
     <orderEntry type="library" name="studio-plugin-platform-images" level="project" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/base/utp/android-test-plugin-host-retention-proto/libstudio.android-test-plugin-host-retention-proto.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>

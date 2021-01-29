@@ -43,6 +43,7 @@ data class AndroidTestCase(val id: String,
                            var startTimestampMillis: Long? = null,
                            var endTimestampMillis: Long? = null,
                            var benchmark: String = "",
+                           var retentionInfo: File? = null,
                            var retentionSnapshot: File? = null)
 
 /**

@@ -34,6 +34,7 @@ import com.android.tools.idea.testartifacts.instrumented.PACKAGE_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_AUTO_CONNECT_DEBUGGER_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_ON_FINISH_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
+import com.android.tools.utp.plugins.host.icebox.proto.IceboxOutputProto.IceboxOutput
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
@@ -120,7 +121,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
         EMULATOR_SNAPSHOT_ID_KEY.name -> snapshotId
         EMULATOR_SNAPSHOT_FILE_KEY.name -> snapshotFile
         EMULATOR_SNAPSHOT_LAUNCH_PARAMETERS.name -> snapshotProto?.launchParametersList
-        PACKAGE_NAME_KEY.name -> packageName
+        PACKAGE_NAME_KEY.name -> retentionInfo?.appPackage?:classPackageName
         RETENTION_AUTO_CONNECT_DEBUGGER_KEY.name -> true
         RETENTION_ON_FINISH_KEY.name -> Runnable { myRetentionDebugButton.isEnabled = true }
         DEVICE_NAME_KEY.name -> androidDevice!!.deviceName
@@ -129,7 +130,8 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
     }
   }
 
-  private var packageName = ""
+  private var classPackageName = ""
+  private var retentionInfo: IceboxOutput? = null
   @VisibleForTesting
   val myRetentionDebugButton: JButton = JButton("Start retention debug", AllIcons.Actions.Execute).apply {
     addActionListener {
@@ -224,8 +226,12 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
   // Please only access it in AppUIUtil.invokeOnEdt
   private val cachedDataMap = HashMap<String, CachedData>()
 
+  // Get the name of the APP being tested.
+  @VisibleForTesting
+  val appName: String get() = myRetentionPanel.getData(PACKAGE_NAME_KEY.name) as String
+
   fun setPackageName(packageName: String) {
-    this.packageName = packageName
+    this.classPackageName = packageName
   }
 
   @AnyThread
@@ -244,6 +250,15 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
         myImageLabel.icon = ImageIcon(newImage)
         myInnerPanel.revalidate()
       }
+    }
+  }
+
+  @AnyThread
+  fun setRetentionInfoFile(retentionInfoFile: File?) {
+    if (retentionInfoFile == null) {
+      retentionInfo = null
+    } else {
+      retentionInfo = IceboxOutput.parseFrom(retentionInfoFile.inputStream())
     }
   }
 

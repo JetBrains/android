@@ -36,6 +36,7 @@ iml_module(
         "//tools/adt/idea/android/lib:pepk",
         "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.8-alpha01:utp-core-proto",
         "//tools/adt/idea/android:libandroid-core-proto",
+        "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
     ],
     iml_files = ["intellij.android.core.iml"],
     lint_baseline = "lint_baseline.xml",
@@ -118,6 +119,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-webp",
+        "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
     ],
 )
 
@@ -128,6 +130,7 @@ iml_module(
         "//tools/adt/idea/android/lib:instantapps-api",
         "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.8-alpha01:utp-core-proto",
         "//tools/adt/idea/android:libandroid-core-proto",
+        "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
     ],
     exec_properties = LARGE_MACHINE,
     iml_files = ["intellij.android.core.tests.iml"],
@@ -384,6 +387,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
+        "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
     ],
 )
 
@@ -467,6 +471,7 @@ filegroup(
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
         "//tools/base/tracer:trace_agent",
         "//tools/base/utp/android-test-plugin-host-device-info-proto:studio.android-test-plugin-host-device-info-proto",
+        "//tools/base/utp/android-test-plugin-host-retention-proto:studio.android-test-plugin-host-retention-proto",
     ] + select({
         "//tools/base/bazel:windows": [],
         "//conditions:default": [
@@ -1148,5 +1153,12 @@ java_import(
 java_import(
     name = "libandroid-core-proto-test",
     jars = ["//tools/adt/idea/android:libandroid-core-proto-test.jar"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+java_import(
+    name = "libstudio.android-test-plugin-host-retention-proto",
+    jars = ["//tools/base/utp/android-test-plugin-host-retention-proto:libstudio.android-test-plugin-host-retention-proto.jar"],
     visibility = ["//visibility:public"],
 )

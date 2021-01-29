@@ -771,6 +771,7 @@ class AndroidTestResultsTableViewTest {
       override fun getTotalDuration(): Duration = Duration.ZERO
       override fun getErrorStackTrace(device: AndroidDevice): String = ""
       override fun getBenchmark(device: AndroidDevice): String = ""
+      override fun getRetentionInfo(device: AndroidDevice): File? = null
       override fun getRetentionSnapshot(device: AndroidDevice): File? = null
     }
   }

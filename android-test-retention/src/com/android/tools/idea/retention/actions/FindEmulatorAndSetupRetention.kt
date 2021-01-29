@@ -152,7 +152,14 @@ class FindEmulatorAndSetupRetention : AnAction() {
               }
             }
 
-            override fun deviceChanged(device: IDevice, changeMask: Int) {}
+            // Sometimes it reports back in device changed instead of connected.
+            override fun deviceChanged(device: IDevice, changeMask: Int) {
+              if (device.isOnline && emulatorSerialString == device.serialNumber) {
+                adbDevice = device;
+                deviceReadySignal.countDown()
+                AndroidDebugBridge.removeDeviceChangeListener(this)
+              }
+            }
           }
           AndroidDebugBridge.addDeviceChangeListener(deviceChangeListener)
           try {
@@ -164,6 +171,7 @@ class FindEmulatorAndSetupRetention : AnAction() {
             indicator.fraction = LOAD_SNAPSHOT_FRACTION
             LOG.info("Snapshot loaded.")
             ProgressIndicatorUtils.awaitWithCheckCanceled(deviceReadySignal)
+            LOG.info("Device ready.")
           } finally {
             AndroidDebugBridge.removeDeviceChangeListener(deviceChangeListener)
           }
