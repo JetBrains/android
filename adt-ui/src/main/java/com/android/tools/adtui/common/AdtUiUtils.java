@@ -19,8 +19,8 @@ import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
 import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
 import static java.awt.event.InputEvent.META_DOWN_MASK;
 
-import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener;
 import com.intellij.openapi.keymap.MacKeymapUtil;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.JBColor;
@@ -80,23 +80,38 @@ public final class AdtUiUtils {
   }
 
   /**
-   * Similar to {@link #shrinkToFit(String, Predicate<String>)},
+   * Collapse a line of text to fit the availableSpace by truncating the string and pad the end with ellipsis.
+   *
+   * @param text           the original text.
+   * @param metrics        the {@link FontMetrics} used to measure the text's width.
+   * @param availableSpace the available space to render the text.
+   * @param spaceThreshold if availableSpace is not larger than this threshold, return an empty string.
+   * @return the fitted text
+   */
+  @NotNull
+  public static String shrinkToFit(@NotNull String text, @NotNull FontMetrics metrics, float availableSpace, float spaceThreshold) {
+    // FontMetrics#stringWidth(String) has some runtime overhead so the threshold is a performance optimization.
+    return shrinkToFit(text, s -> availableSpace > spaceThreshold && availableSpace >= metrics.stringWidth(s));
+  }
+
+  /**
+   * Similar to {@link #shrinkToFit(String, Predicate)},
    * but instead of a predicate to fit space it uses the font metrics compared to available space.
    */
-  public static String shrinkToFit(String text, FontMetrics metrics, float availableSpace) {
-    return shrinkToFit(text, s -> metrics.stringWidth(s) <= availableSpace);
+  @NotNull
+  public static String shrinkToFit(@NotNull String text, @NotNull FontMetrics metrics, float availableSpace) {
+    return shrinkToFit(text, metrics, availableSpace, 0.0f);
   }
 
   /**
    * Collapses a line of text to fit the availableSpace by truncating the string and pad the end with ellipsis.
    *
-   * @param text              the original text.
-   * @param metrics           the {@link FontMetrics} used to measure the text's width.
-   * @param availableSpace    the available space to render the text.
-   * @param options           options to format the fitted string.
+   * @param text             the original text.
+   * @param textFitPredicate predicate to test if text fits.
    * @return the fitted text.
    */
-  public static String shrinkToFit(String text, Predicate<String> textFitPredicate) {
+  @NotNull
+  public static String shrinkToFit(@NotNull String text, @NotNull Predicate<String> textFitPredicate) {
     if (textFitPredicate.test(text)) {
       // Enough space - early return.
       return text;
@@ -118,7 +133,8 @@ public final class AdtUiUtils {
       else {
         largestLength = midLength - 1;
       }
-    } while (smallestLength <= largestLength);
+    }
+    while (smallestLength <= largestLength);
 
     // Note: Don't return "..." if that's all we could show
     return (bestLength > 0) ? text.substring(0, bestLength) + ELLIPSIS : "";
