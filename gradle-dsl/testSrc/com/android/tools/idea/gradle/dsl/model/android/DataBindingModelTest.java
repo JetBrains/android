@@ -157,7 +157,7 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     dataBinding = android.dataBinding();
-    checkForInValidPsiElement(dataBinding, DataBindingModelImpl.class);
+    checkForInvalidPsiElement(dataBinding, DataBindingModelImpl.class);
     assertMissingProperty("addDefaultAdapters", dataBinding.addDefaultAdapters());
     assertMissingProperty("enabled", dataBinding.enabled());
     assertMissingProperty("version", dataBinding.version());

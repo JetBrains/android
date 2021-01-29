@@ -458,14 +458,14 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    checkForInValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
+    checkForInvalidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
     assertMissingProperty(android.defaultConfig().applicationId())
 
     android.defaultConfig().applicationId().setValue("foo.bar")
     assertEquals("defaultConfig", "foo.bar", android.defaultConfig().applicationId())
 
     buildModel.resetState()
-    checkForInValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
+    checkForInvalidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
     assertMissingProperty(android.defaultConfig().applicationId())
   }
 
@@ -600,7 +600,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
-    checkForInValidPsiElement(android, AndroidModelImpl::class.java)
+    checkForInvalidPsiElement(android, AndroidModelImpl::class.java)
   }
 
   @Test
@@ -968,14 +968,14 @@ class AndroidModelTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, "")
 
     assertMissingProperty(android.defaultConfig().applicationId())
-    checkForInValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
+    checkForInvalidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
 
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
 
     assertMissingProperty(android.defaultConfig().applicationId())
-    checkForInValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
+    checkForInvalidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
   }
 
   @Test

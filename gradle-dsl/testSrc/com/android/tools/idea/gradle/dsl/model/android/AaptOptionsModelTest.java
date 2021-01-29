@@ -202,7 +202,7 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     aaptOptions = android.aaptOptions();
-    checkForInValidPsiElement(aaptOptions, AaptOptionsModelImpl.class);
+    checkForInvalidPsiElement(aaptOptions, AaptOptionsModelImpl.class);
     assertMissingProperty("additionalParameters", aaptOptions.additionalParameters());
     assertMissingProperty("cruncherEnabled", aaptOptions.cruncherEnabled());
     assertMissingProperty("cruncherProcesses", aaptOptions.cruncherProcesses());
@@ -260,7 +260,7 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     aaptOptions = android.aaptOptions();
-    checkForInValidPsiElement(aaptOptions, AaptOptionsModelImpl.class);
+    checkForInvalidPsiElement(aaptOptions, AaptOptionsModelImpl.class);
     assertMissingProperty("additionalParameters", aaptOptions.additionalParameters());
     assertMissingProperty("noCompress", aaptOptions.noCompress());
   }
