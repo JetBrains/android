@@ -854,14 +854,15 @@ private fun createAndroidModuleDataNode(
   )
 
   val modelVersion = GradleVersion.tryParseAndroidGradlePluginVersion(androidProjectStub.modelVersion)
+  val androidProject = modelCache.androidProjectFrom(androidProjectStub)
   moduleDataNode.addChild(
     DataNode<AndroidModuleModel>(
       AndroidProjectKeys.ANDROID_MODEL,
       AndroidModuleModel.create(
         moduleName,
         moduleBasePath,
-        modelCache.androidProjectFrom(androidProjectStub),
-        androidProjectStub.variants.map { modelCache.variantFrom(it, modelVersion) },
+        androidProject,
+        androidProjectStub.variants.map { modelCache.variantFrom(androidProject, it, modelVersion) },
         selectedVariantName
       ),
       null

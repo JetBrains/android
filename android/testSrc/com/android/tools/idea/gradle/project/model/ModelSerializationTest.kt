@@ -112,7 +112,11 @@ class ModelSerializationTest {
       "moduleName",
       File("some/file/path"),
       androidProject,
-      variants.map { modelCache.variantFrom(it, GradleVersion.tryParseAndroidGradlePluginVersion(androidProject.modelVersion)) },
+      variants.map { modelCache.variantFrom(
+        androidProject,
+        it,
+        GradleVersion.tryParseAndroidGradlePluginVersion(androidProject.modelVersion)
+      ) },
       "variantName"
     )
   }
@@ -373,7 +377,8 @@ class ModelSerializationTest {
 
   @Test
   fun variant() = assertSerializable {
-    modelCache.variantFrom(VariantStub(), gradleVersion)
+    val androidProject = modelCache.androidProjectFrom(AndroidProjectStub("3.6.0"))
+    modelCache.variantFrom(androidProject, VariantStub(), gradleVersion)
   }
 
   @Test
