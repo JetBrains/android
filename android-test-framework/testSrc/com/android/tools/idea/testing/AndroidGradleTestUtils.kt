@@ -80,6 +80,7 @@ import com.android.tools.idea.gradle.project.sync.issues.SyncIssues.Companion.sy
 import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.util.emulateStartupActivityForTest
+import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
 import com.android.tools.idea.io.FilePaths
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.ProjectSystemService
@@ -1124,6 +1125,11 @@ fun verifySyncSkipped(project: Project, disposable: Disposable) {
   })
   assertThat(completed).isTrue()
 }
+
+fun switchVariant(project: Project, moduleGradlePath: String, variant: String) {
+  BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.gradleModule(moduleGradlePath)!!.name, variant)
+}
+
 
 inline fun <reified F, reified M> Module.verifyModel(getFacet: Module.() -> F?, getModel: F.() -> M) {
   val facet = getFacet()
