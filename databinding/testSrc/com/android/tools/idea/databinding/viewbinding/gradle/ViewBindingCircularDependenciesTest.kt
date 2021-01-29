@@ -26,7 +26,6 @@ import com.intellij.psi.JavaPsiFacade
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -37,7 +36,6 @@ import org.junit.rules.RuleChain
  *
  * See also: b/141255511
  */
-@Ignore("b/176824925")
 class ViewBindingCircularDependenciesTest {
 
   private val projectRule = AndroidGradleProjectRule()
