@@ -61,7 +61,7 @@ class AvdOptionsModelTest : AndroidTestCase() {
     val googlePlayPath = "system-images;android-23;google_apis_playstore;x86"
     val googlePlayPkg = FakePackage.FakeLocalPackage(googlePlayPath, fileOp)
     val googlePlayDetails = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType()
-    googlePlayDetails.tag = IdDisplay.create("google_apis_playstore", "Google Play")
+    googlePlayDetails.tags.add(IdDisplay.create("google_apis_playstore", "Google Play"))
     googlePlayDetails.abi = "x86"
     googlePlayDetails.apiLevel = 23
     googlePlayPkg.typeDetails = googlePlayDetails as TypeDetails
@@ -71,7 +71,7 @@ class AvdOptionsModelTest : AndroidTestCase() {
     val nonPlayPath = "system-images;android-23;google_apis;x86"
     val nonPlayPkg = FakePackage.FakeLocalPackage(nonPlayPath, fileOp)
     val nonPlayDetails = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType()
-    nonPlayDetails.tag = IdDisplay.create("google_apis", "Google APIs")
+    nonPlayDetails.tags.add(IdDisplay.create("google_apis", "Google APIs"))
     nonPlayDetails.abi = "x86"
     nonPlayDetails.apiLevel = 23
     nonPlayPkg.typeDetails = nonPlayDetails as TypeDetails
