@@ -47,6 +47,8 @@ class AndroidDeviceSpecUtilTest {
   private lateinit var myDevice4: AndroidDevice
   @Mock
   private lateinit var myDevice5: AndroidDevice
+  @Mock
+  private lateinit var myDevice6: AndroidDevice
 
   @Mock
   private lateinit var myLaunchedDevice1: IDevice
@@ -58,6 +60,8 @@ class AndroidDeviceSpecUtilTest {
   private lateinit var myLaunchedDevice4: IDevice
   @Mock
   private lateinit var myLaunchedDevice5: IDevice
+  @Mock
+  private lateinit var myLaunchedDevice6: IDevice
 
   private var myFile: File? = null
 
@@ -97,6 +101,11 @@ class AndroidDeviceSpecUtilTest {
     `when`(myDevice5.abis).thenReturn(arrayListOf(Abi.MIPS))
     `when`(myDevice5.launchedDevice).thenReturn(Futures.immediateFuture(myLaunchedDevice5))
 
+    `when`(myDevice6.version).thenReturn(AndroidVersion(29, "R"))
+    `when`(myLaunchedDevice6.version).thenReturn(AndroidVersion(29, "R"))
+    `when`(myDevice6.density).thenReturn(Density.XXHIGH.dpiValue)
+    `when`(myDevice6.abis).thenReturn(arrayListOf(Abi.X86, Abi.X86_64))
+    `when`(myDevice6.launchedDevice).thenReturn(Futures.immediateFuture(myLaunchedDevice6))
   }
 
   private fun setupDeviceConfig(device: IDevice, config: String) {
@@ -172,6 +181,12 @@ class AndroidDeviceSpecUtilTest {
   fun jsonFileFromDevice2And5IsCorrectAndShouldNotContainLanguages() {
     myFile = createJsonFile(true, myDevice2, myDevice5)
     assertThat(myFile!!.readText()).isEqualTo("{\"sdk_version\":22}")
+  }
+
+  @Test
+  fun jsonFileFromPreviewDeviceContainsCodeName() {
+    myFile = createJsonFile(true, myDevice6)
+    assertThat(myFile!!.readText()).isEqualTo("{\"sdk_version\":29,\"codename\":\"R\",\"screen_density\":480,\"supported_abis\":[\"x86\",\"x86_64\"]}")
   }
 
   private fun createJsonFile(fetchLanguages: Boolean, vararg devices: AndroidDevice): File {
