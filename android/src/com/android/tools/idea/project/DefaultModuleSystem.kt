@@ -85,6 +85,8 @@ class DefaultModuleSystem(override val module: Module) :
   ClassFileFinder by ModuleBasedClassFileFinder(module),
   SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
 
+  private val registeredDependencies = mutableListOf<GradleCoordinate>()
+
   override fun canRegisterDependency(type: DependencyType): CapabilityStatus {
     return CapabilityNotSupported()
   }
@@ -94,6 +96,7 @@ class DefaultModuleSystem(override val module: Module) :
   }
 
   override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) {
+    registeredDependencies.add(coordinate)
   }
 
   override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? = null
@@ -129,6 +132,12 @@ class DefaultModuleSystem(override val module: Module) :
             return GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
           }
         }
+      }
+    }
+
+    for (dependency in registeredDependencies) {
+      if (dependency.isSameArtifact(coordinate)) {
+        return dependency
       }
     }
 
