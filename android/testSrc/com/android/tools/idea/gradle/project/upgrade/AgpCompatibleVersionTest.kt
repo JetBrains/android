@@ -4,13 +4,14 @@ import com.android.SdkConstants
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.project.upgrade.AgpGradleVersionRefactoringProcessor.Companion.getCompatibleGradleVersion
 import com.google.common.truth.Expect
+import com.intellij.testFramework.LightPlatformTestCase
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
-class AgpCompatibleVersionTest {
+class AgpCompatibleVersionTest : LightPlatformTestCase() {
   @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
 
