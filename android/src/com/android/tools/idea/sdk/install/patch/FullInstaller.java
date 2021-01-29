@@ -103,7 +103,8 @@ class FullInstaller extends AbstractInstaller implements PatchOperation {
     assert archive != null;
     try {
       Path downloadLocation = installTempPath.resolve(url.getFile());
-      String checksum = archive.getComplete().getChecksum();
+      // TODO: sha-256
+      String checksum = archive.getComplete().getTypedChecksum().getValue();
       downloader.downloadFullyWithCaching(url, downloadLocation, checksum, progress.createSubProgress(0.5));
       progress.setFraction(0.5);
       if (progress.isCanceled()) {
