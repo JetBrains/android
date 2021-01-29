@@ -519,7 +519,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     assertTrue(model.hasValidPsiElement());
   }
 
-  public static <T> void checkForInValidPsiElement(@NotNull T object, @NotNull Class<? extends GradleDslBlockModel> clazz) {
+  public static <T> void checkForInvalidPsiElement(@NotNull T object, @NotNull Class<? extends GradleDslBlockModel> clazz) {
     assertThat(object).isInstanceOf(clazz);
     GradleDslBlockModel model = clazz.cast(object);
     assertFalse(model.hasValidPsiElement());

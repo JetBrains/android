@@ -196,7 +196,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     dexOptions = android.dexOptions();
-    checkForInValidPsiElement(dexOptions, DexOptionsModelImpl.class);
+    checkForInvalidPsiElement(dexOptions, DexOptionsModelImpl.class);
     assertMissingProperty("additionalParameters", dexOptions.additionalParameters());
     assertMissingProperty("javaMaxHeapSize", dexOptions.javaMaxHeapSize());
     assertMissingProperty("jumboMode", dexOptions.jumboMode());
@@ -251,7 +251,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     dexOptions = android.dexOptions();
-    checkForInValidPsiElement(dexOptions, DexOptionsModelImpl.class);
+    checkForInvalidPsiElement(dexOptions, DexOptionsModelImpl.class);
     assertMissingProperty("additionalParameters", dexOptions.additionalParameters());
   }
 }

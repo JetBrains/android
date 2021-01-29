@@ -79,7 +79,7 @@ class KotlinOptionsModelTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, KOTLIN_OPTIONS_MODEL_REMOVE_EXPECTED)
     android = buildModel.android()
     kotlinOptions = android.kotlinOptions()
-    checkForInValidPsiElement(kotlinOptions, KotlinOptionsModelImpl::class.java)
+    checkForInvalidPsiElement(kotlinOptions, KotlinOptionsModelImpl::class.java)
     assertMissingProperty(kotlinOptions.jvmTarget())
     assertMissingProperty(kotlinOptions.useIR())
   }

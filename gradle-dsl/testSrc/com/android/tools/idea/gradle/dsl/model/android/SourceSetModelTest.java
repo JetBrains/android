@@ -213,7 +213,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
 
     android = buildModel.android();
     assertNotNull(android);
-    checkForInValidPsiElement(android, AndroidModelImpl.class); // the whole android block is deleted from the file.
+    checkForInvalidPsiElement(android, AndroidModelImpl.class); // the whole android block is deleted from the file.
     assertThat(android.sourceSets()).isEmpty();
   }
 
@@ -365,7 +365,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
 
     android = buildModel.android();
     assertNotNull(android);
-    checkForInValidPsiElement(android, AndroidModelImpl.class); // Whole android block gets removed as it would become empty.
+    checkForInvalidPsiElement(android, AndroidModelImpl.class); // Whole android block gets removed as it would become empty.
     assertEmpty(android.sourceSets());
   }
 
@@ -401,7 +401,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
 
     android = buildModel.android();
     assertNotNull(android);
-    checkForInValidPsiElement(android, AndroidModelImpl.class); // Whole android block gets removed as it would become empty.
+    checkForInvalidPsiElement(android, AndroidModelImpl.class); // Whole android block gets removed as it would become empty.
     assertEmpty(android.sourceSets());
   }
 
