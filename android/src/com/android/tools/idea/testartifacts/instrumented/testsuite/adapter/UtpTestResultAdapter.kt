@@ -138,11 +138,16 @@ class UtpTestResultAdapter(private val protoFile: File) {
       val iceboxArtifact = testResultProto.outputArtifactList.find {
         iceboxArtifactRegrex.matches(File(it.sourcePath?.path).name)
       }
+      val iceboxInfo = testResultProto.outputArtifactList.find {
+        it.label.label == "icebox.info" && it.label.namespace == "android"
+      }
       val retentionArtifactFile = resolveFile(dir, iceboxArtifact?.sourcePath?.path)
+      val iceboxInfoFile = resolveFile(dir, iceboxInfo?.sourcePath?.path)
       val testCase = AndroidTestCase(id = fullName,
                                      methodName = testCaseProto.testMethod,
                                      className = testCaseProto.testClass,
                                      packageName = testCaseProto.testPackage,
+                                     retentionInfo = iceboxInfoFile,
                                      retentionSnapshot = retentionArtifactFile,
                                      result = when (testResultProto.testStatus) {
                                        TestStatusProto.TestStatus.PASSED -> AndroidTestCaseResult.PASSED

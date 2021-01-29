@@ -25,6 +25,7 @@ import com.android.repository.testframework.MockFileOp
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.utp.plugins.host.icebox.proto.IceboxOutputProto
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.DisposableRule
@@ -87,6 +88,17 @@ class RetentionViewTest {
     `when`(mockRuntime.exec(any(Array<String>::class.java))).thenReturn(mockProcess)
     `when`(mockRuntime.exec(anyString())).thenReturn(mockProcess)
     retentionView = RetentionView(androidSdkHandler, FakeProgressIndicator(), mockRuntime)
+  }
+
+  @Test
+  fun loadRetentionInfo() {
+    val packageName = "my.app.name"
+    val iceboxInfo = temporaryFolderRule.newFile()
+    FileOutputStream(iceboxInfo).use {
+      IceboxOutputProto.IceboxOutput.newBuilder().setAppPackage(packageName).build().writeTo(it)
+    }
+    retentionView.setRetentionInfoFile(iceboxInfo)
+    assertThat(packageName).isEqualTo(retentionView.appName)
   }
 
   @Test

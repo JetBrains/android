@@ -173,6 +173,10 @@ class DetailsViewContentView(parentDisposable: Disposable, project: Project, log
     myBenchmarkTab.isHidden = StringUtil.isEmpty(benchmarkText)
   }
 
+  fun setRetentionInfo(retentionInfo: File?) {
+    myRetentionView.setRetentionInfoFile(retentionInfo)
+  }
+
   fun setRetentionSnapshot(rententionSnapshot: File?) {
     myRetentionSnapshot = rententionSnapshot
     refreshRetentionView()

@@ -93,6 +93,10 @@ interface AndroidTestResults {
    */
   fun getBenchmark(device: AndroidDevice): String
   /**
+   * Returns the retention info artifact from Android Test Retention if available.
+   */
+  fun getRetentionInfo(device: AndroidDevice): File?
+  /**
    * Returns the snapshot artifact from Android Test Retention if available.
    */
   fun getRetentionSnapshot(device: AndroidDevice): File?

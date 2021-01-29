@@ -2590,6 +2590,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/layoutlib/data/mac/lib64
 Android Studio Preview.app/Contents/plugins/android/lib/libandroid-core-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libjava_sites.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libjava_version.jar
+Android Studio Preview.app/Contents/plugins/android/lib/libstudio.android-test-plugin-host-retention-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/lint-ide.jar
 Android Studio Preview.app/Contents/plugins/android/lib/manifest-merger.jar
 Android Studio Preview.app/Contents/plugins/android/lib/moshi-1.6.0.jar
