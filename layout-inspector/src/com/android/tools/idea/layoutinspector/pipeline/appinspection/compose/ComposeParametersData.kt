@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
 import com.android.SdkConstants
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
+import com.android.tools.idea.layoutinspector.properties.LambdaPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.res.colorToString
@@ -53,6 +54,20 @@ class ComposeParametersDataGenerator(
 
   private fun Parameter.toPropertyItem(): InspectorPropertyItem {
     val name = stringTable[name]
+    if (type == Parameter.Type.LAMBDA || type == Parameter.Type.FUNCTION_REFERENCE) {
+      return LambdaPropertyItem(
+        name = name,
+        viewId = 0L,
+        packageName = stringTable[lambdaValue.packageName],
+        fileName = stringTable[lambdaValue.fileName],
+        lambdaName = stringTable[lambdaValue.lambdaName],
+        functionName = stringTable[lambdaValue.functionName],
+        startLineNumber = lambdaValue.startLineNumber,
+        endLineNumber = lambdaValue.endLineNumber,
+        lookup = lookup
+      )
+    }
+
     val value: Any = when (type) {
       Parameter.Type.STRING -> stringTable[int32Value]
       Parameter.Type.BOOLEAN -> (int32Value == 1)
@@ -65,7 +80,6 @@ class ComposeParametersDataGenerator(
       Parameter.Type.DIMENSION_EM -> floatValue
       //Parameter.Type.RESOURCE -> TODO: Support converting resource type
       Parameter.Type.COLOR -> colorToString(Color(int32Value))
-      //Parameter.Type.LAMBDA -> TODO: Support converting lambda type
       else -> ""
     }
     val type = type.convert()
