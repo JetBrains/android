@@ -459,7 +459,7 @@ class GradleModuleSystem(
     return variant.testApplicationId ?: run {
       // That's how AGP works today: in apps the applicationId from the model is used with the ".test" suffix (ignoring the manifest), in libs
       // there is no applicationId and the package name from the manifest is used with the suffix.
-      val applicationId = if (facet.configuration.isLibraryProject) getPackageName() else variant.mergedFlavor.applicationId
+      val applicationId = if (facet.configuration.isLibraryProject) getPackageName() else variant.deprecatedPreMergedApplicationId
       if (applicationId.isNullOrEmpty()) null else "$applicationId.test"
     }
   }
