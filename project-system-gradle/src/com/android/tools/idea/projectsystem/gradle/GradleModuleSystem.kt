@@ -453,6 +453,17 @@ class GradleModuleSystem(
     return getPackageName(module)
   }
 
+  override fun getTestPackageName(): String? {
+    val facet = AndroidFacet.getInstance(module) ?: return null
+    val variant = AndroidModuleModel.get(facet)?.selectedVariant ?: return null
+    return variant.testApplicationId ?: run {
+      // That's how AGP works today: in apps the applicationId from the model is used with the ".test" suffix (ignoring the manifest), in libs
+      // there is no applicationId and the package name from the manifest is used with the suffix.
+      val applicationId = if (facet.configuration.isLibraryProject) getPackageName() else variant.mergedFlavor.applicationId
+      if (applicationId.isNullOrEmpty()) null else "$applicationId.test"
+    }
+  }
+
   override fun getNotRuntimeConfigurationSpecificApplicationIdProviderForLegacyUse(): ApplicationIdProvider {
     return GradleApplicationIdProvider(
       AndroidFacet.getInstance(module) ?: throw IllegalStateException("Cannot find AndroidFacet. Module: ${module.name}"), { null }
