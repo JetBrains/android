@@ -473,7 +473,7 @@ public class GradleApkProvider implements ApkProvider {
       File targetApk = getApk(targetVariant, deviceAbis, deviceVersion, targetFacet, false);
 
       // TODO: use the applicationIdProvider to get the applicationId (we might not know it by sync time for Instant Apps)
-      String applicationId = targetVariant.getMergedFlavor().getApplicationId();
+      String applicationId = targetVariant.getDeprecatedPreMergedApplicationId();
       if (applicationId == null) {
         // If can't find applicationId in model, get it directly from manifest
         applicationId = targetAndroidModel.getApplicationId();
