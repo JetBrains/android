@@ -41,7 +41,7 @@ class GradleModuleSystemIntegrationTest : GradleIntegrationTest {
   var testName = TestName()
 
   @get:Rule
-  val expect = Expect.createAndEnableStackTrace()
+  val expect: Expect = Expect.createAndEnableStackTrace()
 
   @Test
   fun manifestOverrides() {
