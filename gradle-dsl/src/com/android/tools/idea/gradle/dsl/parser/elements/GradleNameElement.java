@@ -122,10 +122,16 @@ public class GradleNameElement {
                                GradleDslNameConverter converter,
                                GradleDslElement context) {
     setUpFrom(nameElement, converter);
+    // TODO(xof): I'm suspicious of this fullName() call here.  Either work out why it's not a problem (and comment here) or come
+    //  up with a case where it does the wrong thing (and fix).
     ModelPropertyDescription property = converter.modelDescriptionForParent(fullName(), context);
-    String newName = property == null ? fullName() : property.name;
-    rename(newName);
-    myOriginalName = newName;
+    if (property == null) {
+      rename(fullNameParts());
+    }
+    else {
+      rename(property.name);
+    }
+    myOriginalName = findName();
   }
 
   @NotNull
