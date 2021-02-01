@@ -61,7 +61,7 @@ public class JavaModuleModelDataService extends ModuleModelDataService<JavaModul
   }
 
   @Override
-  protected void importData(@NotNull Collection<DataNode<JavaModuleModel>> toImport,
+  protected void importData(@NotNull Collection<? extends DataNode<JavaModuleModel>> toImport,
                             @NotNull Project project,
                             @NotNull IdeModifiableModelsProvider modelsProvider,
                             @NotNull Map<String, JavaModuleModel> modelsByModuleName) {
@@ -80,8 +80,8 @@ public class JavaModuleModelDataService extends ModuleModelDataService<JavaModul
   }
 
   @Override
-  public void removeData(@NotNull Computable<Collection<Module>> toRemoveComputable,
-                         @NotNull Collection<DataNode<JavaModuleModel>> toIgnore,
+  public void removeData(@NotNull Computable<? extends Collection<? extends Module>> toRemoveComputable,
+                         @NotNull Collection<? extends DataNode<JavaModuleModel>> toIgnore,
                          @NotNull ProjectData projectData,
                          @NotNull Project project,
                          @NotNull IdeModifiableModelsProvider modelsProvider) {

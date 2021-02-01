@@ -69,7 +69,7 @@ public class GradleModuleModelDataService extends ModuleModelDataService<GradleM
   }
 
   @Override
-  protected void importData(@NotNull Collection<DataNode<GradleModuleModel>> toImport,
+  protected void importData(@NotNull Collection<? extends DataNode<GradleModuleModel>> toImport,
                             @NotNull Project project,
                             @NotNull IdeModifiableModelsProvider modelsProvider,
                             @NotNull Map<String, GradleModuleModel> modelsByModuleName) {
@@ -91,8 +91,8 @@ public class GradleModuleModelDataService extends ModuleModelDataService<GradleM
   }
 
   @Override
-  public void removeData(@NotNull Computable<Collection<Module>> toRemoveComputable,
-                         @NotNull Collection<DataNode<GradleModuleModel>> toIgnore,
+  public void removeData(Computable<? extends Collection<? extends Module>> toRemoveComputable,
+                         @NotNull Collection<? extends DataNode<GradleModuleModel>> toIgnore,
                          @NotNull ProjectData projectData,
                          @NotNull Project project,
                          @NotNull IdeModifiableModelsProvider modelsProvider) {
@@ -102,7 +102,7 @@ public class GradleModuleModelDataService extends ModuleModelDataService<GradleM
     }
   }
 
-  private static void populateExtraBuildParticipantFromBuildSrc(@NotNull Collection<DataNode<GradleModuleModel>> toImport,
+  private static void populateExtraBuildParticipantFromBuildSrc(@NotNull Collection<? extends DataNode<GradleModuleModel>> toImport,
                                                                 @NotNull Project project) {
     if (toImport.isEmpty()) {
       return;

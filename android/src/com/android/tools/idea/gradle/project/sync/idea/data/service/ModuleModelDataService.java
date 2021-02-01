@@ -41,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class ModuleModelDataService<T extends ModuleModel> extends AbstractProjectDataService<T, Module> {
   @Override
-  public final void importData(@NotNull Collection<DataNode<T>> toImport,
+  public final void importData(@NotNull Collection<? extends DataNode<T>> toImport,
                                @Nullable ProjectData projectData,
                                @NotNull Project project,
                                @NotNull IdeModifiableModelsProvider modelsProvider) {
@@ -54,7 +54,7 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
     }
   }
 
-  private void importData(@NotNull Collection<DataNode<T>> toImport,
+  private void importData(@NotNull Collection<? extends DataNode<T>> toImport,
                           @NotNull Project project,
                           @NotNull IdeModifiableModelsProvider modelsProvider) {
     WriteCommandAction.runWriteCommandAction(project, ()->  {
@@ -66,7 +66,7 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
     });
   }
 
-  protected abstract void importData(@NotNull Collection<DataNode<T>> toImport,
+  protected abstract void importData(@NotNull Collection<? extends DataNode<T>> toImport,
                                      @NotNull Project project,
                                      @NotNull IdeModifiableModelsProvider modelsProvider,
                                      @NotNull Map<String, T> modelsByModuleName);
@@ -74,7 +74,7 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
   protected abstract List<@NotNull Module> eligibleOrphanCandidates(@NotNull Project project);
 
   @Override
-  public @NotNull Computable<Collection<Module>> computeOrphanData(@NotNull Collection<DataNode<T>> toImport,
+  public @NotNull Computable<Collection<Module>> computeOrphanData(@NotNull Collection<? extends DataNode<T>> toImport,
                                                                    @NotNull ProjectData projectData,
                                                                    @NotNull Project project,
                                                                    @NotNull IdeModifiableModelsProvider modelsProvider) {
@@ -99,7 +99,7 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
   }
 
   @NotNull
-  private Map<String, T> indexByModuleName(@NotNull Collection<DataNode<T>> dataNodes,
+  private Map<String, T> indexByModuleName(@NotNull Collection<? extends DataNode<T>> dataNodes,
                                            @NotNull IdeModifiableModelsProvider modelsProvider) {
     if (dataNodes.isEmpty()) {
       return Collections.emptyMap();
