@@ -83,6 +83,10 @@ class TaskData(val taskName: String,
     return Objects.hash(taskName, projectPath, originPlugin)
   }
 
+  override fun toString(): String {
+    return "TaskData(taskPath='${getTaskPath()}')"
+  }
+
   companion object {
     const val UNKNOWN_TASK_TYPE = "UNKNOWN"
 
