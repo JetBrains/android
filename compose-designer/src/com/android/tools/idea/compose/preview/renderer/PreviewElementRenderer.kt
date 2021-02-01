@@ -32,7 +32,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
-import java.util.function.Supplier
 
 /**
  * Returns a [CompletableFuture] that creates a [RenderTask] for a single [PreviewElementInstance]. It is the
@@ -41,7 +40,8 @@ import java.util.function.Supplier
 @VisibleForTesting
 fun createRenderTaskFuture(facet: AndroidFacet,
                            previewElement: PreviewElementInstance,
-                           privateClassLoader: Boolean = false): CompletableFuture<RenderTask> {
+                           privateClassLoader: Boolean = false,
+                           classesToPreload: Collection<String> = emptyList()): CompletableFuture<RenderTask> {
   val project = facet.module.project
 
   val file = ComposeAdapterLightVirtualFile("singlePreviewElement.xml", previewElement.toPreviewXml().buildString()) { previewElement.previewElementDefinitionPsi?.virtualFile }
@@ -54,6 +54,9 @@ fun createRenderTaskFuture(facet: AndroidFacet,
     .disableDecorations().apply {
       if (privateClassLoader) {
         usePrivateClassLoader()
+      }
+      if (classesToPreload.isNotEmpty()) {
+        preloadClasses(classesToPreload)
       }
     }
     .withRenderingMode(SessionParams.RenderingMode.SHRINK)

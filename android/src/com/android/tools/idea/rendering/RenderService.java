@@ -53,6 +53,8 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -384,6 +386,11 @@ public class RenderService implements Disposable {
     private boolean privateClassLoader = false;
 
     /**
+     * Force classes preloading in RenderTask right after creation.
+     */
+    private Collection<String> classesToPreload = Collections.emptyList();
+
+    /**
      * Additional bytecode transform to apply to project classes when loaded.
      */
     private ClassTransform myAdditionalProjectTransform = ClassTransform.getIdentity();
@@ -410,6 +417,16 @@ public class RenderService implements Disposable {
       myConfiguration = configuration;
       myImagePool = defaultImagePool;
       myCredential = credential;
+    }
+
+
+    /**
+     * Forces preloading classes in RenderTask after creation.
+     */
+    @NotNull
+    public RenderTaskBuilder preloadClasses(Collection<String> classesToPreload) {
+      this.classesToPreload = classesToPreload;
+      return this;
     }
 
     /**
@@ -636,7 +653,8 @@ public class RenderService implements Disposable {
             new RenderTask(myFacet, myService, myConfiguration, myLogger, layoutLib,
                            device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myDownscaleFactor, stackTraceCaptureElement, myManifestProvider,
-                           privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader);
+                           privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
+                           classesToPreload);
           if (myPsiFile instanceof XmlFile) {
             task.setXmlFile((XmlFile)myPsiFile);
           }
