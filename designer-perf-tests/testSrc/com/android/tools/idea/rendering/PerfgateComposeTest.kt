@@ -117,4 +117,30 @@ class PerfgateComposeTest {
       renderResult
     }
   }
+
+  @Test
+  fun complexPerf() {
+    composeTimeBenchmark.measureOperation(listOf(
+      // Measures the full rendering time, including ModuleClassLoader instantiation, inflation and render.
+      ElapsedTimeMeasurement(Metric("complex_template_end_to_end_time")),
+      // Measures the memory usage of the render operation end to end.
+      MemoryUseMeasurement(Metric("complex_template_memory_use")),
+      // Measures just the inflate time.
+      InflateTimeMeasurement(Metric("complex_template_inflate_time")),
+      // Measures just the render time.
+      RenderTimeMeasurement(Metric("complex_template_render_time"))),
+                                          printSamples = true) {
+      val renderResult = renderPreviewElementForResult(projectRule.androidFacet(":app"),
+                                                       SinglePreviewElementInstance.forTesting(
+                                                         "google.simpleapplication.ComplexPreviewKt.ComplexPreview"),
+                                                        true).get()
+      val image = renderResult!!.renderedImage
+      assertTrue(
+        "Valid result image is expected to be bigger than 10x10. It's ${image.width}x${image.height}",
+        image.width > 10 && image.height > 10)
+      assertNotNull(image.copy)
+
+      renderResult
+    }
+  }
 }
