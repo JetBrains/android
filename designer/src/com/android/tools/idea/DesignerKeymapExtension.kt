@@ -53,7 +53,7 @@ private const val KEYMAP_SECTION_NAME = "Android Design Tools"
  *   ...
  */
 class DesignerKeymapExtension : KeymapExtension {
-  override fun createGroup(filtered: Condition<AnAction>, project: Project?): KeymapGroup? {
+  override fun createGroup(filtered: Condition<in AnAction>, project: Project?): KeymapGroup? {
     if (StudioFlags.NELE_CUSTOM_SHORTCUT_KEYMAP.get()) {
       val keymapGroup = KeymapGroupFactory.getInstance().createGroup(KEYMAP_SECTION_NAME)
 

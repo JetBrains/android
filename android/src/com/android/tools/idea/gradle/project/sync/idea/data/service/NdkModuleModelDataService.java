@@ -61,7 +61,7 @@ public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleM
   }
 
   @Override
-  protected void importData(@NotNull Collection<DataNode<NdkModuleModel>> toImport,
+  protected void importData(@NotNull Collection<? extends DataNode<NdkModuleModel>> toImport,
                             @NotNull Project project,
                             @NotNull IdeModifiableModelsProvider modelsProvider,
                             @NotNull Map<String, NdkModuleModel> modelsByModuleName) {
@@ -80,8 +80,8 @@ public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleM
   }
 
   @Override
-  public void removeData(@NotNull Computable<Collection<Module>> toRemoveComputable,
-                         @NotNull Collection<DataNode<NdkModuleModel>> toIgnore,
+  public void removeData(Computable<? extends Collection<? extends Module>> toRemoveComputable,
+                         @NotNull Collection<? extends DataNode<NdkModuleModel>> toIgnore,
                          @NotNull ProjectData projectData,
                          @NotNull Project project,
                          @NotNull IdeModifiableModelsProvider modelsProvider) {

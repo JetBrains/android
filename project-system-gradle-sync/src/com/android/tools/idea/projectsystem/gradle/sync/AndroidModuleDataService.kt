@@ -67,6 +67,7 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION
+import org.jetbrains.annotations.NotNull
 import org.jetbrains.jps.model.serialization.PathMacroUtil
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
@@ -131,11 +132,11 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     return ContainerUtil.map(ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID), AndroidFacet::getModule)
   }
 
-  override fun removeData(toRemoveComputable: Computable<MutableCollection<Module>>,
-                          toIgnore: MutableCollection<DataNode<AndroidModuleModel>>,
-                          projectData: ProjectData,
-                          project: Project,
-                          modelsProvider: IdeModifiableModelsProvider) {
+  override fun removeData(toRemoveComputable: Computable<out Collection<Module>>,
+                          toIgnore: Collection<DataNode<AndroidModuleModel>>,
+                          projectData: @NotNull ProjectData,
+                          project: @NotNull Project,
+                          modelsProvider: @NotNull IdeModifiableModelsProvider) {
     for (module in toRemoveComputable.get()) {
       val facetModel = modelsProvider.getModifiableFacetModel(module)
       removeAllFacets(facetModel, AndroidFacet.ID)
