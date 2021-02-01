@@ -24,5 +24,6 @@
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="library" name="studio-plugin-junit" level="project" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.psd" />
   </component>
 </module>

@@ -26,6 +26,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
+        "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module]",
     ],
 )
 
@@ -79,5 +80,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
+        "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module, test]",
     ],
 )
