@@ -45,7 +45,7 @@ public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleM
   }
 
   @Override
-  protected void importData(@NotNull Collection<DataNode<NdkModuleModel>> toImport,
+  protected void importData(@NotNull Collection<? extends DataNode<NdkModuleModel>> toImport,
                             @NotNull Project project,
                             @NotNull IdeModifiableModelsProvider modelsProvider,
                             @NotNull Map<String, DataNode<NdkModuleModel>> modelsByModuleName) {

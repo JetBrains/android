@@ -57,7 +57,7 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
     }
 
     override fun postProcess(
-        toImport: MutableCollection<DataNode<ModuleData>>,
+        toImport: Collection<DataNode<ModuleData>>,
         projectData: ProjectData?,
         project: Project,
         modelsProvider: IdeModifiableModelsProvider

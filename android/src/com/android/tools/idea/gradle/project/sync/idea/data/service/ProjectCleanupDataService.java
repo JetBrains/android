@@ -51,7 +51,7 @@ public class ProjectCleanupDataService extends AbstractProjectDataService<Projec
   }
 
   @Override
-  public void importData(@NotNull Collection<DataNode<ProjectCleanupModel>> toImport,
+  public void importData(@NotNull Collection<? extends DataNode<ProjectCleanupModel>> toImport,
                          @Nullable ProjectData projectData,
                          @NotNull Project project,
                          @NotNull IdeModifiableModelsProvider modelsProvider) {

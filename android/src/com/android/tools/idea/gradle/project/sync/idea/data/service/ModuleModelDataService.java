@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class ModuleModelDataService<T extends ModuleModel> extends AbstractProjectDataService<T, Void> {
   @Override
-  public final void importData(@NotNull Collection<DataNode<T>> toImport,
+  public final void importData(@NotNull Collection<? extends DataNode<T>> toImport,
                                @Nullable ProjectData projectData,
                                @NotNull Project project,
                                @NotNull IdeModifiableModelsProvider modelsProvider) {
@@ -47,13 +47,13 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
     });
   }
 
-  protected abstract void importData(@NotNull Collection<DataNode<T>> toImport,
+  protected abstract void importData(@NotNull Collection<? extends DataNode<T>> toImport,
                                      @NotNull Project project,
                                      @NotNull IdeModifiableModelsProvider modelsProvider,
                                      @NotNull Map<String, DataNode<T>> modelsByModuleName);
 
   @NotNull
-  private Map<String, DataNode<T>> indexByModuleName(@NotNull Collection<DataNode<T>> dataNodes,
+  private Map<String, DataNode<T>> indexByModuleName(@NotNull Collection<? extends DataNode<T>> dataNodes,
                                            @NotNull IdeModifiableModelsProvider modelsProvider) {
     if (dataNodes.isEmpty()) {
       return Collections.emptyMap();

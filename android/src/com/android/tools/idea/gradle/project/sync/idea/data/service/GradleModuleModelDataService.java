@@ -64,7 +64,7 @@ public class GradleModuleModelDataService extends ModuleModelDataService<GradleM
   }
 
   @Override
-  protected void importData(@NotNull Collection<DataNode<GradleModuleModel>> toImport,
+  protected void importData(@NotNull Collection<? extends DataNode<GradleModuleModel>> toImport,
                             @NotNull Project project,
                             @NotNull IdeModifiableModelsProvider modelsProvider,
                             @NotNull Map<String, DataNode<GradleModuleModel>> modelsByModuleName) {
@@ -85,7 +85,7 @@ public class GradleModuleModelDataService extends ModuleModelDataService<GradleM
     populateExtraBuildParticipantFromBuildSrc(toImport, project);
   }
 
-  private static void populateExtraBuildParticipantFromBuildSrc(@NotNull Collection<DataNode<GradleModuleModel>> toImport,
+  private static void populateExtraBuildParticipantFromBuildSrc(@NotNull Collection<? extends DataNode<GradleModuleModel>> toImport,
                                                                 @NotNull Project project) {
     if (toImport.isEmpty()) {
       return;

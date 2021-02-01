@@ -36,7 +36,7 @@ class KotlinGradleAndroidModuleModelProjectDataService : AbstractProjectDataServ
     override fun getTargetDataKey() = ANDROID_MODEL
 
     override fun postProcess(
-            toImport: MutableCollection<DataNode<AndroidModuleModel>>,
+            toImport: Collection<DataNode<AndroidModuleModel>>,
             projectData: ProjectData?,
             project: Project,
             modelsProvider: IdeModifiableModelsProvider
