@@ -42,7 +42,7 @@ import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.FilePosition
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.ide.BrowserUtil
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -61,7 +61,7 @@ import java.util.concurrent.CompletableFuture
 class CreateGradleWrapperQuickFix : BuildIssueQuickFix {
   override val id = "migrate.gradle.wrapper"
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
     invokeLater {
       val projectDirPath = Projects.getBaseDirPath(project)
@@ -93,7 +93,7 @@ class FixAndroidGradlePluginVersionQuickFix(givenPluginVersion: GradleVersion?, 
   val pluginVersion = givenPluginVersion ?: GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
   val gradleVersion = givenGradleVersion ?: GradleVersion.parse(SdkConstants.GRADLE_LATEST_VERSION)
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
 
     invokeLater {
@@ -113,7 +113,7 @@ class InstallBuildToolsQuickFix(private val version: String,
                                 private val removeBuildTools: Boolean): BuildIssueQuickFix {
   override val id = "install.build.tools"
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
     invokeLater {
       val minBuildToolsVersion = Revision.parseRevision(version)
@@ -143,7 +143,7 @@ class InstallCmakeQuickFix(cmakeVersion: Revision?) : BuildIssueQuickFix {
   override val id = "INSTALL_CMAKE"
   val myCmakeVersion: Revision? = cmakeVersion
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
 
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
@@ -215,7 +215,7 @@ class InstallCmakeQuickFix(cmakeVersion: Revision?) : BuildIssueQuickFix {
 class OpenFileAtLocationQuickFix(val myFilePosition: FilePosition) : BuildIssueQuickFix {
   override val id = "open.file"
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
 
     val projectFile = project.projectFile ?: return CompletableFuture.completedFuture<Any>(null)
@@ -235,7 +235,7 @@ class OpenFileAtLocationQuickFix(val myFilePosition: FilePosition) : BuildIssueQ
 
 class OpenLinkQuickFix(val link: String) : BuildIssueQuickFix {
   override val id = "open.more.details"
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
 
     invokeLater {
@@ -249,7 +249,7 @@ class OpenLinkQuickFix(val link: String) : BuildIssueQuickFix {
 class OpenPluginBuildFileQuickFix : BuildIssueQuickFix {
   override val id = "open.plugin.build.file"
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
 
     invokeLater {
@@ -270,7 +270,7 @@ class OpenPluginBuildFileQuickFix : BuildIssueQuickFix {
 class OpenProjectStructureQuickfix : BuildIssueQuickFix {
   override val id = "open.jdk.ndk.settings"
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val service = ProjectSettingsService.getInstance(project)
     if (service is AndroidProjectSettingsService) {
       service.openSdkSettings()
@@ -282,7 +282,7 @@ class OpenProjectStructureQuickfix : BuildIssueQuickFix {
 class SetCmakeDirQuickFix(private val myPath: File) : BuildIssueQuickFix {
   override val id = "SET_CMAKE_DIR"
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
 
     invokeLater {
@@ -301,7 +301,7 @@ class SyncProjectRefreshingDependenciesQuickFix : BuildIssueQuickFix {
   val linkText = "Re-download dependencies and sync project (requires network)"
   private val EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY = Key.create<Array<String>>("extra.gradle.command.line.options")
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     project.putUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY, arrayOf("--refresh-dependencies"))
     GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_REFRESH_DEPENDENCIES)
     return CompletableFuture.completedFuture<Any>(null)
@@ -311,7 +311,7 @@ class SyncProjectRefreshingDependenciesQuickFix : BuildIssueQuickFix {
 class ToggleOfflineModeQuickFix(private val myEnableOfflineMode: Boolean) : BuildIssueQuickFix {
   override val id = "enable.disable.offline.mode"
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
 
     invokeLater {

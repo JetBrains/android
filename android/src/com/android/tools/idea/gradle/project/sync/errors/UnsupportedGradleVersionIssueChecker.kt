@@ -31,7 +31,7 @@ import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.options.ShowSettingsUtil
@@ -144,7 +144,7 @@ class UnsupportedGradleVersionIssueChecker: GradleIssueChecker {
   class OpenGradleSettingsQuickFix: BuildIssueQuickFix {
     override val id = "open.gradle.settings"
 
-    override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+    override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
       val future = CompletableFuture<Any>()
       invokeLater {
         val manager = ExternalSystemApiUtil.getManager(GradleUtil.GRADLE_SYSTEM_ID)
@@ -160,7 +160,7 @@ class UnsupportedGradleVersionIssueChecker: GradleIssueChecker {
   class FixGradleVersionInWrapperQuickFix(private var gradleWrapper: GradleWrapper?, private val gradleVersion: String?): BuildIssueQuickFix {
     override val id = "fix.gradle.version.in.wrapper"
 
-    override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+    override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
       val future = CompletableFuture<Any>()
       invokeLater {
         if (gradleWrapper == null) gradleWrapper = GradleWrapper.find(project) ?: return@invokeLater

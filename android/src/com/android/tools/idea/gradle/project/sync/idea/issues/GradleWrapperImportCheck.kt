@@ -29,7 +29,7 @@ import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.build.issue.quickfix.OpenFileQuickFix
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -120,7 +120,7 @@ private class ConfirmSHA256FromGradleWrapperQuickFix(
                                      " as checksum for $distributionUrl and sync project"
   override val id: String = "confirm.SHA256.from.gradle.wrapper"
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     // Add checksum to map of used checksums
     PersistentSHA256Checksums.getInstance().storeChecksum(distributionUrl, distributionSHA)
 
@@ -134,7 +134,7 @@ private class RemoveSHA256FromGradleWrapperQuickFix : DescribedBuildIssueQuickFi
   override val description: String = "Remove $DISTRIBUTION_SHA_256_SUM and sync project"
   override val id: String = "remove.SHA256.from.gradle.wrapper"
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Unit>()
     invokeLater {
       run {

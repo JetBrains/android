@@ -28,7 +28,7 @@ import com.intellij.find.FindManager
 import com.intellij.find.FindSettings
 import com.intellij.find.impl.FindInProjectUtil
 import com.intellij.find.impl.FindInProjectUtil.StringUsageTarget
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import com.intellij.usages.UsageInfo2UsageAdapter
@@ -108,7 +108,7 @@ class MissingDependencyIssueChecker: GradleIssueChecker {
 class SearchInBuildFilesQuickFix(private val text: String): BuildIssueQuickFix {
   override val id = "search.in.build.files"
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
 
     invokeLater {
