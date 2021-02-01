@@ -33,7 +33,7 @@ import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.facet.FacetManager
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.module.ModuleManager
@@ -124,7 +124,7 @@ class MissingPlatformIssueChecker: GradleIssueChecker {
 class InstallPlatformQuickFix(private val androidVersions: List<AndroidVersion>): BuildIssueQuickFix {
   override val id = "install.android.platform"
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
     val platforms = mutableListOf<String>()
     invokeLater {
@@ -144,7 +144,7 @@ class InstallPlatformQuickFix(private val androidVersions: List<AndroidVersion>)
 class OpenAndroidSdkManagerQuickFix: BuildIssueQuickFix {
   override val id = "open.android.sdk.manager"
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     SdkQuickfixUtils.showAndroidSdkManager()
     return CompletableFuture.completedFuture<Any>(null)
   }

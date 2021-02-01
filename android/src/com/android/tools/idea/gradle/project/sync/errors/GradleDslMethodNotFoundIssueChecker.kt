@@ -32,7 +32,7 @@ import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -101,7 +101,7 @@ class GradleDslMethodNotFoundIssueChecker : GradleIssueChecker {
 class GetGradleSettingsQuickFix : BuildIssueQuickFix {
   override val id = "open.gradle.settings"
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
 
     invokeLater {
@@ -128,7 +128,7 @@ class GetGradleSettingsQuickFix : BuildIssueQuickFix {
 class ApplyGradlePluginQuickFix(private val myFilePosition: FilePosition) : BuildIssueQuickFix {
   override val id = "apply.gradle.plugin"
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
 
     invokeLater {
