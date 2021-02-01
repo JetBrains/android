@@ -96,12 +96,6 @@ public interface IdeProfilerServices {
    */
   void enableAdvancedProfiling();
 
-  /**
-   * Returns the currently loaded application ID. If one is not available an empty string should be returned.
-   */
-  @NotNull
-  String getApplicationId();
-
   @NotNull
   FeatureConfig getFeatureConfig();
 

@@ -354,7 +354,6 @@ class CpuCaptureParserTest {
     val parser = CpuCaptureParser(services)
     val traceFile = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
 
-    services.applicationId = "displayingbitmaps"
     services.setListBoxOptionsIndex(0)
     val futureCapture = parser.parseForTest(traceFile, nameHint = "displayingbitmaps")
     assertThat(futureCapture.isCompletedExceptionally).isFalse()
