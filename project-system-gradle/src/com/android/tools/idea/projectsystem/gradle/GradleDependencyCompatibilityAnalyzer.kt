@@ -20,17 +20,31 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.GradleVersionRange
 import com.android.ide.common.repository.MavenRepositories
-import com.android.repository.io.FileOpUtils
+import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
+import com.android.tools.idea.gradle.structure.configurables.CachingRepositorySearchFactory
+import com.android.tools.idea.gradle.structure.configurables.RepositorySearchFactory
+import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
+import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
+import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact
+import com.android.tools.idea.gradle.structure.model.repositories.search.GoogleRepository
+import com.android.tools.idea.gradle.structure.model.repositories.search.MavenCentralRepository
+import com.android.tools.idea.gradle.structure.model.repositories.search.SearchQuery
+import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
+import com.android.tools.idea.gradle.structure.model.repositories.search.SearchResult
+import com.android.tools.idea.gradle.structure.model.toArtifactRepository
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
-import com.google.common.base.Predicates
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import org.jetbrains.annotations.TestOnly
 import java.util.ArrayDeque
 
+private const val MAX_ARTIFACTS_TO_REQUEST = 50  // Note: we do not expect more than one result per repository.
 private val groupsWithVersionIdentifyRequirements = listOf(SdkConstants.SUPPORT_LIB_GROUP_ID)
 
 /**
@@ -39,6 +53,7 @@ private val groupsWithVersionIdentifyRequirements = listOf(SdkConstants.SUPPORT_
 class GradleDependencyCompatibilityAnalyzer(
   private val moduleSystem: GradleModuleSystem,
   private val projectBuildModelHandler: ProjectBuildModelHandler,
+  @TestOnly private val repositorySearchFactory: RepositorySearchFactory = CachingRepositorySearchFactory(),
   @TestOnly private val repoUrlManager: RepositoryUrlManager = RepositoryUrlManager.get()
 ) {
 
@@ -67,12 +82,48 @@ class GradleDependencyCompatibilityAnalyzer(
    */
   fun analyzeDependencyCompatibility(
     dependenciesToAdd: List<GradleCoordinate>
+  ): ListenableFuture<Triple<List<GradleCoordinate>, List<GradleCoordinate>, String>> =
+    findVersions(dependenciesToAdd).transform(MoreExecutors.directExecutor(), { analyzeCompatibility(dependenciesToAdd, it) })
+
+  @Suppress("UnstableApiUsage") // Futures.allAsList
+  private fun findVersions(dependencies: List<GradleCoordinate>): ListenableFuture<List<SearchResult>> =
+    Futures.allAsList(dependencies.map {
+      createSearchService().search(SearchRequest(SearchQuery(it.groupId, it.artifactId), MAX_ARTIFACTS_TO_REQUEST, 0))
+    })
+
+  private fun createSearchService(): ArtifactRepositorySearchService {
+    val repositories = mutableListOf<ArtifactRepository>()
+    projectBuildModelHandler.read {
+      getModuleBuildModel(moduleSystem.module)
+        ?.repositories()
+        ?.repositories()
+        .orEmpty()
+        .mapNotNullTo(repositories) { repositoryModel -> repositoryModel.toArtifactRepository() }
+
+      if (repositories.isEmpty()) {
+        projectSettingsModel
+          ?.dependencyResolutionManagement()
+          ?.repositories()
+          ?.repositories()
+          ?.mapNotNullTo(repositories) { repositoryModel -> repositoryModel.toArtifactRepository() }
+      }
+    }
+    if (repositories.isEmpty()) {
+      repositories.add(GoogleRepository)
+      repositories.add(MavenCentralRepository)
+    }
+    return repositorySearchFactory.create(repositories)
+  }
+
+  private fun analyzeCompatibility(
+    dependenciesToAdd: List<GradleCoordinate>,
+    searchResults: List<SearchResult>
   ): Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> {
-    val missing = mutableListOf<GradleCoordinate>()
-    val latestVersions = findLatestVersions(dependenciesToAdd, missing)
-    if (latestVersions.isEmpty()) {
+    val versionsMap = searchResults.filter { it.artifactFound() }.associate { it.toGradleCoordinateIdVersionPair() }
+    val dependencies = dependenciesToAdd.associateBy { GradleCoordinateId(it) }
+    if (!versionsMap.keys.containsAll(dependencies.keys)) {
       // The new dependencies were not found, just return.
-      return Triple(emptyList(), missing, "")
+      return createMissingDependenciesResponse(dependencies, versionsMap)
     }
 
     // First analyze the existing dependency artifacts of all the related modules.
@@ -87,26 +138,41 @@ class GradleDependencyCompatibilityAnalyzer(
     }
     catch (ex: VersionIncompatibilityException) {
       // The existing dependencies are not compatible.
-      // There is no point in trying to find the correct new dependency.
-      latestVersions.forEach { (artifact, version) ->
-        found.add(GradleCoordinate(artifact.groupId, artifact.artifactId, version.toString()))
+      // There is no point in trying to find the correct new dependency, just pick the most recent.
+      dependencies.keys.forEach { artifact ->
+        versionsMap[artifact]?.firstOrNull()?.let { found.add(artifact.toGradleCoordinate(it)) }
       }
-      return Triple(found, missing, "Inconsistencies in the existing project dependencies found.\n${ex.message}")
+      return Triple(found, listOf(), "Inconsistencies in the existing project dependencies found.\n${ex.message}")
     }
 
     // Then attempt to find a version of each new artifact that would not cause compatibility problems with the existing dependencies.
     val baseAnalyzer = AndroidDependencyAnalyzer(analyzer)
     val warning = StringBuilder()
-    for ((artifact, latestVersion) in latestVersions) {
+    for (artifact in dependencies.keys) {
+      val versions = versionsMap[artifact] ?: listOf()
       try {
-        found.add(findCompatibleVersion(analyzer, baseAnalyzer, artifact, latestVersion))
+        found.add(findCompatibleVersion(analyzer, baseAnalyzer, artifact, versions.listIterator()))
       }
       catch (ex: VersionIncompatibilityException) {
         warning.append(if (warning.isNotEmpty()) "\n\n" else "").append(ex.message)
-        found.add(GradleCoordinate(artifact.groupId, artifact.artifactId, latestVersion.toString()))
+        versions.firstOrNull()?.let { found.add(artifact.toGradleCoordinate(it)) }
       }
     }
-    return Triple(found, missing, warning.toString())
+    return Triple(found, listOf(), warning.toString())
+  }
+
+  private fun createMissingDependenciesResponse(
+    dependencies: Map<GradleCoordinateId, GradleCoordinate>,
+    resultMap: Map<GradleCoordinateId, List<GradleVersion>>
+  ): Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> {
+    val found = dependencies.values.filter { resultMap.containsKey(GradleCoordinateId(it)) }
+    val missing = dependencies.values.filter { !resultMap.containsKey(GradleCoordinateId(it)) }
+    assert(missing.isNotEmpty())
+    val message = when (missing.size) {
+      1 -> "The dependency was not found: ${missing.first()}"
+      else -> "The dependencies were not found:\n   ${missing.joinToString("\n   ")}"
+    }
+    return Triple(found, missing, message)
   }
 
   /**
@@ -161,32 +227,7 @@ class GradleDependencyCompatibilityAnalyzer(
   }
 
   /**
-   * Find the latest version in the maven repository for the given [dependenciesToAdd].
-   * Return the result as a map from the [GradleCoordinateId] to the latest version found.
-   * Any dependencies that are not found in the maven repository is added to [missing].
-   */
-  private fun findLatestVersions(dependenciesToAdd: List<GradleCoordinate>,
-                                 missing: MutableList<GradleCoordinate>): Map<GradleCoordinateId, GradleVersion> {
-    val foundArtifactToVersion = mutableMapOf<GradleCoordinateId, GradleVersion>()
-    for (coordinate in dependenciesToAdd) {
-      val id = GradleCoordinateId(coordinate)
-
-      // Always look for a stable version first. If none exists look for a preview version.
-      @Suppress("DEPRECATION")
-      val latestVersion = repoUrlManager.findVersion(id.groupId, id.artifactId, Predicates.alwaysTrue(), false, FileOpUtils.create())
-                          ?: repoUrlManager.findVersion(id.groupId, id.artifactId, Predicates.alwaysTrue(), true, FileOpUtils.create())
-      if (latestVersion == null) {
-        missing.add(coordinate)
-      }
-      else {
-        foundArtifactToVersion[id] = latestVersion
-      }
-    }
-    return foundArtifactToVersion
-  }
-
-  /**
-   * Find a compatible version of an [id] starting with the [latestVersion].
+   * Find a compatible version of an [id] among the possible [versions].
    *
    * If a compatibility problem is found try the previous known version of the [id]
    * until either there is no compatibility problems or the added id requires a
@@ -200,13 +241,15 @@ class GradleDependencyCompatibilityAnalyzer(
    * should be updated with the state created by adding the successful version of this
    * [id] such that other artifacts can be tested with the dependencies added.
    */
-  private fun findCompatibleVersion(analyzer: AndroidDependencyAnalyzer,
-                                    baseAnalyzer: AndroidDependencyAnalyzer,
-                                    id: GradleCoordinateId,
-                                    latestVersion: GradleVersion): GradleCoordinate {
+  private fun findCompatibleVersion(
+    analyzer: AndroidDependencyAnalyzer,
+    baseAnalyzer: AndroidDependencyAnalyzer,
+    id: GradleCoordinateId,
+    versions: Iterator<GradleVersion>
+  ): GradleCoordinate {
     var found: GradleCoordinate? = null
-    val testVersion = analyzer.getVersionIdentityMatch(id.groupId) ?: latestVersion
-    var candidate = createGradleCoordinate(id.groupId, id.artifactId, testVersion)
+    val testVersion = analyzer.getVersionIdentityMatch(id.groupId) ?: versions.next()
+    var candidate = id.toGradleCoordinate(testVersion)
     var bestError: VersionIncompatibilityException? = null
 
     while (found == null) {
@@ -218,31 +261,62 @@ class GradleDependencyCompatibilityAnalyzer(
       catch (ex: VersionIncompatibilityException) {
         analyzer.copy(baseAnalyzer)
         val nextVersionToTest = when {
-          ex.problemVersion1.min.major + 2 < ex.problemVersion2.min.major -> throw bestError ?: ex
-          id == ex.problemId2 && candidate.version!!.major > ex.problemVersion2.min.major ->
-            findNextVersion(id, { it.major == ex.problemVersion2.min.major }, candidate.isPreview) ?: throw bestError ?: ex
-          else ->
-            findNextVersion(id, { it < candidate.version!! }, candidate.isPreview) ?: throw bestError ?: ex
-        }
-        candidate = createGradleCoordinate(id.groupId, id.artifactId, nextVersionToTest)
+          // At this point we know that we have created a version incompatibility by adding [candidate].
+          // If the incompatibility created is more than 2 major versions off, then trying an older version of the candidate
+          // is not likely to solve the problem. So jump to the preview section or stop.
+          //
+          // Example:
+          //   - candidate is androidx:recyclerview:recyclerview:1.1.17
+          //   - the problem artifact is androidx:annotation:annotation problemVersion1 is 4.1.2 and problemVersion2 is 1.2.0
+          // We know that problemVersion2 was added because of the [candidate], trying an older version of candidate would not help.
+          ex.problemVersion1.min.major + 2 < ex.problemVersion2.min.major ->
+            if (candidate.version?.isPreview == false) versions.nextPreviewOrNull() else throw bestError ?: ex
+
+          else -> versions.nextOrNull()
+        } ?: throw bestError ?: ex
+        candidate = id.toGradleCoordinate(nextVersionToTest)
         bestError = ex
       }
     }
     return found
   }
 
-  @Suppress("DEPRECATION")
-  private fun findNextVersion(id: GradleCoordinateId, filter: (GradleVersion) -> Boolean, isPreview: Boolean): GradleVersion? =
-    repoUrlManager.findVersion(id.groupId, id.artifactId, { filter(it) }, isPreview, FileOpUtils.create())
+  private fun SearchResult.artifactFound(): Boolean =
+    artifacts.firstOrNull { it.unsortedVersions.isNotEmpty() } != null
 
-  private fun createGradleCoordinate(mavenGroupId: String, mavenArtifactId: String, version: GradleVersion) =
-    GradleCoordinate(mavenGroupId, mavenArtifactId, version.toString())
+  private fun SearchResult.toGradleCoordinateIdVersionPair(): Pair<GradleCoordinateId, List<GradleVersion>> =
+    artifacts.first().let { Pair(GradleCoordinateId(it.groupId, it.name), stableFirst(artifacts)) }
+
+  private fun stableFirst(artifacts: List<FoundArtifact>): List<GradleVersion> {
+    // Remove duplicates by copying all versions into a Set<GradleVersion>...
+    val versions = artifacts.flatMapTo(mutableSetOf()) { it.unsortedVersions }
+    return versions.sortedWith(stableFirstComparator)
+  }
+
+  private fun <T> Iterator<T>.nextOrNull(): T? =
+    if (hasNext()) next() else null
+
+  private fun Iterator<GradleVersion>.nextPreviewOrNull(): GradleVersion? {
+    var next: GradleVersion? = nextOrNull() ?: return null
+    while (next != null && !next.isPreview) {
+      next = nextOrNull()
+    }
+    return next
+  }
+
+  private val stableFirstComparator: Comparator<GradleVersion> =
+    compareBy<GradleVersion> { !it.isPreview }.thenBy { it }.reversed()
 
   private data class GradleCoordinateId(val groupId: String, val artifactId: String) {
     constructor(coordinate: GradleCoordinate) : this(coordinate.groupId, coordinate.artifactId)
 
     override fun toString() = "$groupId:$artifactId"
-    fun isSameAs(coordinate: GradleCoordinate) = groupId == coordinate.groupId && artifactId == coordinate.artifactId
+
+    fun isSameAs(coordinate: GradleCoordinate) =
+      groupId == coordinate.groupId && artifactId == coordinate.artifactId
+
+    fun toGradleCoordinate(version: GradleVersion) =
+      GradleCoordinate(groupId, artifactId, version.toString())
   }
 
   /**
@@ -324,7 +398,6 @@ class GradleDependencyCompatibilityAnalyzer(
       groupMap.putAll(analyzer.groupMap)
     }
 
-
     fun getVersionIdentityMatch(groupId: String): GradleVersion? {
       return groupMap[groupId]?.versionRange?.min
     }
@@ -373,6 +446,8 @@ class GradleDependencyCompatibilityAnalyzer(
         dependencyMap[id] = versionRange
         explicitMap[id] = explicitDependency
         moduleMap[id] = fromModule
+
+        //TODO: Find a way to get artifact dependencies from all repositories...
         repoUrlManager
           .findCompileDependencies(id.groupId, id.artifactId, versionRange.min)
           .forEach { addDependency(it, explicitDependency, fromModule) }

@@ -62,6 +62,7 @@ import org.jetbrains.android.util.AndroidUtils
 import java.io.File
 import java.nio.file.Path
 import java.util.Collections
+import java.util.concurrent.TimeUnit
 import com.android.builder.model.CodeShrinker as BuildModelCodeShrinker
 
 /**
@@ -201,7 +202,8 @@ class GradleModuleSystem(
    */
   override fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>)
     : Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> =
-    dependencyCompatibility.analyzeDependencyCompatibility(dependenciesToAdd)
+    //TODO: Change the API to return a ListenableFuture instead of calling get with a timeout here...
+    dependencyCompatibility.analyzeDependencyCompatibility(dependenciesToAdd).get(20, TimeUnit.SECONDS)
 
   override fun getManifestOverrides(): ManifestOverrides {
     val facet = AndroidFacet.getInstance(module)
