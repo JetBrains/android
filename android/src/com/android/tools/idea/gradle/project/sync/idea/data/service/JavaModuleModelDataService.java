@@ -56,7 +56,7 @@ public class JavaModuleModelDataService extends ModuleModelDataService<JavaModul
   }
 
   @Override
-  protected void importData(@NotNull Collection<DataNode<JavaModuleModel>> toImport,
+  protected void importData(@NotNull Collection<? extends DataNode<JavaModuleModel>> toImport,
                             @NotNull Project project,
                             @NotNull IdeModifiableModelsProvider modelsProvider,
                             @NotNull Map<String, DataNode<JavaModuleModel>> modelsByModuleName) {

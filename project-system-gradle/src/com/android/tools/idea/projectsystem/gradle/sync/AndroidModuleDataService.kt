@@ -194,7 +194,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     })
   }
 
-  override fun postProcess(toImport: MutableCollection<DataNode<AndroidModuleModel>>,
+  override fun postProcess(toImport: Collection<DataNode<AndroidModuleModel>>,
                            projectData: ProjectData?,
                            project: Project,
                            modelsProvider: IdeModifiableModelsProvider) {

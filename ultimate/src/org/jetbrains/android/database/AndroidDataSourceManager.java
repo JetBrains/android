@@ -66,7 +66,7 @@ public class AndroidDataSourceManager extends BasicDataSourceManager<AndroidData
   }
 
   @Override
-  public AnAction getCreateDataSourceAction(@NotNull Consumer<AndroidDataSource> consumer) {
+  public AnAction getCreateDataSourceAction(@NotNull Consumer<? super AndroidDataSource> consumer) {
     if (!ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)) return null;
     return new DumbAwareAction("Android SQLite", null, AndroidIcons.Android) {
       @Override
