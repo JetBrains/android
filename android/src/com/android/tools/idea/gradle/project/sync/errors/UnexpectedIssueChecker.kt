@@ -24,7 +24,7 @@ import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.ide.actions.RevealFileAction
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
@@ -66,7 +66,7 @@ class UnexpectedIssueChecker: GradleIssueChecker {
 class FileBugQuickFix: BuildIssueQuickFix {
   override val id = "file.bug"
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
     invokeLater {
       SendFeedbackAction.submit(project)
@@ -80,7 +80,7 @@ class ShowLogQuickFix: BuildIssueQuickFix {
   override val id = "show.log.file"
   private val IDEA_LOG_FILE_NAME = "idea.log"
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
     invokeLater {
       val logFile = File(PathManager.getLogPath(), IDEA_LOG_FILE_NAME)

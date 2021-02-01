@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
@@ -42,7 +42,7 @@ abstract class AbstractSetLanguageLevel8QuickFix(private val setJvmTarget: Boole
 
   abstract fun buildFilesToApply(project: Project): List<VirtualFile>
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
     try {
       if (!project.isDisposed) {

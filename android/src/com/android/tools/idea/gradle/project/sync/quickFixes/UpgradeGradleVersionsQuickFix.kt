@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.project.upgrade.showAndGetAgpUpgradeDialog
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -51,7 +51,7 @@ class UpgradeGradleVersionsQuickFix(val gradleVersion: GradleVersion,
    *
    * @return A [CompletableFuture] that will be a [Boolean], indicating whether the changes were applied or not.
    */
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataProvider: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
     val runnable = Runnable {
       AndroidExecutors.getInstance().ioThreadExecutor.execute {

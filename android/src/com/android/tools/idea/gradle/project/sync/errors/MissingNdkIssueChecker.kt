@@ -26,7 +26,7 @@ import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -141,7 +141,7 @@ class MissingNdkIssueChecker: GradleIssueChecker {
   class FixNdkVersionQuickFix(val version: String) : BuildIssueQuickFix {
     override val id: String = "fix.ndk.version.quickfix"
 
-    override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+    override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
       val future = CompletableFuture<Any>()
       ApplicationManager.getApplication().invokeLater {
         try {
@@ -168,7 +168,7 @@ class MissingNdkIssueChecker: GradleIssueChecker {
     override val id: String
       get() = "install.ndk.quickfix"
 
-    override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+    override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
       val future = CompletableFuture<Any>()
       ApplicationManager.getApplication().invokeLater {
         try {

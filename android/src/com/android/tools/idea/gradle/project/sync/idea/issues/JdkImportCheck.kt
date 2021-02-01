@@ -32,7 +32,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.issue.BuildIssue
 import com.intellij.ide.BrowserUtil
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction
@@ -143,7 +143,7 @@ private class UseJavaHomeAsJdkQuickFix(val javaHome: String) : DescribedBuildIss
   override val description: String = "Set Android Studio to use the same JDK as Gradle and sync project"
   override val id: String = "use.java.home.as.jdk"
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataProvider: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Nothing>()
     invokeLater {
       runWriteAction { setJdkAsJavaHome(project, javaHome) }
@@ -158,7 +158,7 @@ private class UseEmbeddedJdkQuickFix : DescribedBuildIssueQuickFix {
   override val description: String = "Use embedded JDK"
   override val id: String = "use.embedded.jdk"
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Nothing>()
     invokeLater {
       runWriteAction { setJdkAsEmbedded(project) }
@@ -173,7 +173,7 @@ private class DownloadAndroidStudioQuickFix : DescribedBuildIssueQuickFix {
   override val description: String = "See Android Studio download options"
   override val id: String = "download.android.studio"
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     BrowserUtil.browse("http://developer.android.com/studio/index.html#downloads")
     return CompletableFuture.completedFuture(null)
   }
@@ -183,7 +183,7 @@ private class DownloadJdk8QuickFix : DescribedBuildIssueQuickFix {
   override val description: String = "Download JDK 8"
   override val id: String = "download.jdk8"
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     BrowserUtil.browse(Jdks.DOWNLOAD_JDK_8_URL)
     return CompletableFuture.completedFuture(null)
   }
@@ -193,7 +193,7 @@ private class SelectJdkFromFileSystemQuickFix : DescribedBuildIssueQuickFix {
   override val description: String = "Select a JDK from the File System"
   override val id: String = "select.jdk.from.new.psd"
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val service = ProjectSettingsService.getInstance(project)
     if (service is AndroidProjectSettingsService) {
       service.chooseJdkLocation()
