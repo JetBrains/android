@@ -111,7 +111,7 @@ class ExternalNdkBuildIssuesReporter extends BaseSyncIssuesReporter {
               for (BuildIssueQuickFix quickFix : buildIssue.getQuickFixes()) {
                 notificationData.setListener(quickFix.getId(), (notification, event) -> {
                   if (event.getSource() instanceof JComponent) {
-                    quickFix.runQuickFix(project, DataManager.getDataProvider((JComponent)event.getSource()));
+                    quickFix.runQuickFix(project, DataManager.getInstance().getDataContext((JComponent)event.getSource()));
                   }
                 });
                 quickFixes.add(quickFix);

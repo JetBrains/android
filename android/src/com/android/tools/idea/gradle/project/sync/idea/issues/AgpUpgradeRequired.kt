@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.project.upgrade.performForcedPluginUpgrade
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
@@ -84,7 +84,7 @@ class AgpUpgradeRequiredIssueChecker : GradleIssueChecker {
 private class AgpUpgradeQuickFix(val currentAgpVersion: GradleVersion) : BuildIssueQuickFix {
   override val id: String = "android.gradle.plugin.forced.update"
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Unit>()
     updateAndRequestSync(project, currentAgpVersion, future)
     return future

@@ -24,7 +24,7 @@ import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
@@ -84,7 +84,7 @@ class GradleDistributionInstallIssueChecker : GradleIssueChecker {
   class DeleteFileAndSyncQuickFix(val file: File, private val syncTrigger: GradleSyncStats.Trigger) : BuildIssueQuickFix {
     override val id = "delete.file.and.sync"
 
-    override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+    override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
       val future = CompletableFuture<Any>()
 
       invokeLater {

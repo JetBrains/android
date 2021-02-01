@@ -33,7 +33,7 @@ import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -143,7 +143,7 @@ class FixBuildToolsVersionQuickFix(
   private val removeBuildTools: Boolean): BuildIssueQuickFix {
   override val id = "fix.build.tools.version"
 
-  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
     invokeLater {
       val processor = FixBuildToolsProcessor(project, buildFiles, version, true, removeBuildTools)

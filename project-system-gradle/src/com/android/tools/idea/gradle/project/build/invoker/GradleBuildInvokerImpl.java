@@ -62,7 +62,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -611,8 +611,8 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
     public void onFailure(@NotNull ExternalSystemTaskId id, @NotNull Exception e) {
       myBuildFailed = true;
       String title = myExecutionName + " failed";
-      DataProvider dataProvider = BuildConsoleUtils.getDataProvider(id, myBuildViewManager);
-      FailureResult failureResult = ExternalSystemUtil.createFailureResult(title, e, GRADLE_SYSTEM_ID, myProject, dataProvider);
+      DataContext dataContext = BuildConsoleUtils.getDataContext(id, myBuildViewManager);
+      FailureResult failureResult = ExternalSystemUtil.createFailureResult(title, e, GRADLE_SYSTEM_ID, myProject, dataContext);
       myBuildEventDispatcher.onEvent(id, new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "failed", failureResult));
       super.onFailure(id, e);
     }
