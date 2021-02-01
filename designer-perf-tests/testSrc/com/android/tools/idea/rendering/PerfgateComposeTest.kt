@@ -21,6 +21,7 @@ import com.android.tools.idea.compose.preview.renderer.createRenderTaskFuture
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager.INTERACTIVE_CLASSES_TO_PRELOAD
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.intellij.openapi.application.ApplicationManager
@@ -184,7 +185,8 @@ class PerfgateComposeTest {
       val renderTaskFuture = createRenderTaskFuture(projectRule.androidFacet(":app"),
                                                     SinglePreviewElementInstance.forTesting(
                                                       "google.simpleapplication.ComplexPreviewKt.ComplexPreview"),
-                                                    true)
+                                                    privateClassLoader = true,
+                                                    classesToPreload = INTERACTIVE_CLASSES_TO_PRELOAD.toList())
 
       // Pseudo interactive
       val frameNanos = 16000000L

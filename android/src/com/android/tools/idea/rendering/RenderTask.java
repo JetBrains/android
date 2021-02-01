@@ -82,6 +82,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -206,7 +207,8 @@ public class RenderTask {
              boolean privateClassLoader,
              @NotNull ClassTransform additionalProjectTransform,
              @NotNull ClassTransform additionalNonProjectTransform,
-             @NotNull Runnable onNewModuleClassLoader) {
+             @NotNull Runnable onNewModuleClassLoader,
+             @NotNull Collection<String> classesToPreload) {
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
 
     if (!isSecurityManagerEnabled) {
@@ -243,6 +245,7 @@ public class RenderTask {
                                               additionalNonProjectTransform,
                                               onNewModuleClassLoader);
     }
+    preloadClasses(myModuleClassLoader, classesToPreload);
     try {
       myLayoutlibCallback =
         new LayoutlibCallbackImpl(
@@ -264,6 +267,19 @@ public class RenderTask {
     } catch (Exception ex) {
       clearClassLoader();
       throw ex;
+    }
+  }
+
+  /**
+   * When executing the user code some code paths may take significantly longer time when executed the first time. This happens because the
+   * ClassLoader has to load the classes used in those paths first. If that happens e.g. in interactive preview this produces visual lass,
+   * glitches and might even affect the logic. In order to prevent this from happening, we load the classes in advance.
+   */
+  private static void preloadClasses(ModuleClassLoader moduleClassLoader, Collection<String> classesToPreload) {
+    for (String classToPreload: classesToPreload) {
+      try {
+        moduleClassLoader.loadClass(classToPreload);
+      } catch (ClassNotFoundException ignore) { }
     }
   }
 
