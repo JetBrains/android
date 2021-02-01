@@ -45,14 +45,9 @@ internal class AnimationClock(val clock: Any) {
   val setClockTimeFunction by lazy { findClockFunction("setClockTime") }
 
   /**
-   * Function `updateAnimationStates` of [clock].
+   * Function `updateFromAndToStates` of [clock].
    */
-  val updateAnimationStatesFunction by lazy { findClockFunction("updateAnimationStates") }
-
-  /**
-   * Function `updateSeekableAnimation` of [clock].
-   */
-  val updateSeekableAnimationFunction by lazy { findClockFunction("updateSeekableAnimation") }
+  val updateFromAndToStatesFunction by lazy { findClockFunction("updateFromAndToStates") }
 
   private fun findClockFunction(functionName: String): Method =
     clock::class.java.methods.single { it.name == functionName }.apply { isAccessible = true }

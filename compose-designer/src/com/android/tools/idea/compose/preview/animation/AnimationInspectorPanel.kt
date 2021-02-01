@@ -85,12 +85,17 @@ private const val TIMELINE_HEADER_HEIGHT = 25
 /**
  * Half width of the shape used as the handle of the timeline scrubber.
  */
-private const val TIMELINE_HANDLE_HALF_WIDTH = 5;
+private const val TIMELINE_HANDLE_HALF_WIDTH = 5
 
 /**
  * Half height of the shape used as the handle of the timeline scrubber.
  */
-private const val TIMELINE_HANDLE_HALF_HEIGHT = 5;
+private const val TIMELINE_HANDLE_HALF_HEIGHT = 5
+
+/**
+ * Default max duration (ms) of the animation preview when it's not possible to get it from Compose.
+ */
+private const val DEFAULT_MAX_DURATION_MS = 10000L
 
 /**
  * Displays details about animations belonging to a Compose Preview. Allows users to see all the properties (e.g. `ColorPropKeys`) being
@@ -185,7 +190,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     animationTabs[animation]?.let { tab ->
       tab.isUpdatingAnimationStates = true
       tab.updateStateComboboxes(states.toTypedArray())
-      tab.updateSeekableAnimation()
+      tab.updateAnimationStartAndEndStates()
       tab.endStateComboBox.selectedIndex = 1.coerceIn(0, tab.endStateComboBox.itemCount)
       tab.isUpdatingAnimationStates = false
     }
@@ -287,7 +292,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       if (!isUpdatingAnimationStates) {
         logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_START_STATE)
       }
-      updateSeekableAnimation()
+      updateAnimationStartAndEndStates()
     }
 
     /**
@@ -298,7 +303,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         // Only log end state changes if not swapping states, which has its own tracking.
         logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_END_STATE)
       }
-      updateSeekableAnimation()
+      updateAnimationStartAndEndStates()
     }
 
     private val startStateComboBox = ComboBox(DefaultComboBoxModel(arrayOf<Any>()))
@@ -346,18 +351,12 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     /**
      * Updates the actual animation in Compose to set its start and end states to the ones selected in the respective combo boxes.
      */
-    fun updateSeekableAnimation() {
+    fun updateAnimationStartAndEndStates() {
       val clock = animationClock ?: return
       val startState = startStateComboBox.selectedItem
       val toState = endStateComboBox.selectedItem
 
-      clock.updateSeekableAnimationFunction.invoke(clock.clock, animation, startState, toState)
-
-      val updatedStates = surface.layoutlibSceneManagers.singleOrNull()?.executeCallbacksAndRequestRender {
-        clock.updateAnimationStatesFunction.invoke(clock.clock)
-      } ?: false
-
-      if (!updatedStates) return
+      if (!surface.executeOnRenderThread { clock.updateFromAndToStatesFunction.invoke(clock.clock, animation, startState, toState) }) return
 
       timeline.jumpToStart()
       timeline.setClockTime(0) // Make sure that clock time is actually set in case timeline was already in 0.
@@ -373,10 +372,14 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
      */
     fun updateTimelineWindowSize() {
       val clock = animationClock ?: return
-      val maxDurationPerIteration = clock.getMaxDurationPerIteration.invoke(clock.clock) as Long
+
+      var maxDurationPerIteration = DEFAULT_MAX_DURATION_MS
+      if (!surface.executeOnRenderThread { maxDurationPerIteration = clock.getMaxDurationPerIteration.invoke(clock.clock) as Long }) return
       timeline.updateMaxDuration(maxDurationPerIteration)
 
-      val maxDuration = clock.getMaxDurationFunction.invoke(clock.clock) as Long
+      var maxDuration = DEFAULT_MAX_DURATION_MS
+      if (!surface.executeOnRenderThread { maxDuration = clock.getMaxDurationFunction.invoke(clock.clock) as Long }) return
+
       timeline.maxLoopCount = if (maxDuration > maxDurationPerIteration) {
         // The max duration is longer than the max duration per iteration. This means that a repeatable animation has multiple iterations,
         // so we need to add as many loops to the timeline as necessary to display all the iterations.
@@ -744,7 +747,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
      */
     var maxLoopCount = 1L
 
-    private val slider = object : JSlider(0, 10000, 0) {
+    private val slider = object : JSlider(0, DEFAULT_MAX_DURATION_MS.toInt(), 0) {
       override fun updateUI() {
         setUI(TimelineSliderUI())
         updateLabelUIs()
@@ -802,10 +805,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         clockTimeMs += slider.maximum * loopCount
       }
 
-      val clockUpdated = surface.layoutlibSceneManagers.singleOrNull()?.executeCallbacksAndRequestRender {
-        clock.setClockTimeFunction.invoke(clock.clock, clockTimeMs)
-      } ?: false
-      if (!clockUpdated) return
+      if (!surface.executeOnRenderThread { clock.setClockTimeFunction.invoke(clock.clock, clockTimeMs) }) return
       tab.updateProperties()
     }
 
@@ -971,4 +971,9 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       }
     }
   }
+
+  private fun DesignSurface.executeOnRenderThread(callback: () -> Unit) =
+    surface.layoutlibSceneManagers.singleOrNull()?.executeCallbacksAndRequestRender {
+      callback()
+    } ?: false
 }
