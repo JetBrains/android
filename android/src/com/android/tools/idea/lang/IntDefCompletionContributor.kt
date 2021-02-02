@@ -21,12 +21,17 @@ import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.patterns.PlatformPatterns.or
 import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.psi.PsiAnnotation
+import com.intellij.psi.PsiAnnotationParameterList
 import com.intellij.psi.PsiArrayInitializerMemberValue
+import com.intellij.psi.PsiCall
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiExpressionList
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiNameValuePair
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiReferenceExpression
@@ -98,6 +103,65 @@ class IntDefCompletionContributorKotlin : CompletionContributor() {
   }
 }
 
+
+/**
+ * Adds named constants from @IntDef annotation for a code completion for a [PsiReferenceExpression](argument).
+ *
+ * See also [IntDef documentation](https://developer.android.com/reference/androidx/annotation/IntDef)
+ */
+class IntDefCompletionContributorJava : CompletionContributor() {
+
+  private val intDefValuesCompletionProvider = object : CompletionProvider<CompletionParameters>() {
+    override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+      val argumentToComplete = parameters.position.parentOfType<PsiReferenceExpression>() ?: return
+      val intDefValues = argumentToComplete.getIntDefValues() ?: return
+      val lookupElements = intDefValues.map { LookupElementBuilder.create(it) }
+      result.addAllElements(lookupElements)
+    }
+  }
+
+  /**
+   * Returns @IntDef values for [PsiReferenceExpression](argument) as Strings, if there is no @IntDef annotation for given argument returns null.
+   *
+   * Returns values for the first encountered @IntDef annotation.
+   */
+  private fun PsiReferenceExpression.getIntDefValues(): List<String>? {
+    val call = parentOfType<PsiCall>() ?: parentOfType<PsiAnnotation>()
+    when (call) {
+      is PsiCall -> {
+        val calleeElement = call.resolveMethod() ?: return null
+        val argumentIndex = call.argumentList?.expressions?.indexOf(this) ?: return null
+        return getIntDefValues(calleeElement.navigationElement, argumentIndex, null)
+      }
+      is PsiAnnotation -> {
+        var calleeElement = call.resolveAnnotationType()?.navigationElement
+        if (calleeElement is KtClass) {
+          calleeElement = calleeElement.primaryConstructor
+        }
+        if (calleeElement == null) return null
+
+        val argumentName = this.parent.safeAs<PsiNameValuePair>()?.name
+        return getIntDefValues(calleeElement.navigationElement, -1, argumentName)
+      }
+    }
+    return null
+  }
+
+  init {
+    extend(CompletionType.BASIC,
+           psiElement().withParent(
+             psiElement(PsiReferenceExpression::class.java).inside(
+               or(
+                 psiElement(PsiExpressionList::class.java).withParent(PsiCall::class.java),
+                 psiElement(PsiNameValuePair::class.java).withParent(psiElement(PsiAnnotationParameterList::class.java))
+               )
+             )
+           ),
+           intDefValuesCompletionProvider
+    )
+  }
+}
+
 /**
  * Returns @IntDef values for an argument with given [argumentName] or [argumentIndex] within [calleeElement].
  *
@@ -151,9 +215,8 @@ private fun valuesFromKtAnnotationEntry(intDefAnnotation: KtAnnotationEntry): Li
 private val KtAnnotationEntry.intDefValues: List<String>?
   get() {
     val annotationElement = calleeExpression?.constructorReferenceExpression?.resolve() ?: return null
-    val cachedValuesManager = CachedValuesManager.getManager(project)
 
-    return cachedValuesManager.getCachedValue(annotationElement) {
+    return CachedValuesManager.getCachedValue(annotationElement) {
       var source = annotationElement.navigationElement
       if (source is KtPrimaryConstructor) {
         source = source.containingClass()
@@ -168,9 +231,8 @@ private val KtAnnotationEntry.intDefValues: List<String>?
 private val PsiAnnotation.intDefValues: List<String>?
   get() {
     val annotationElement = resolveAnnotationType() ?: return null
-    val cachedValuesManager = CachedValuesManager.getManager(project)
 
-    return cachedValuesManager.getCachedValue(annotationElement) {
+    return CachedValuesManager.getCachedValue(annotationElement) {
       CachedValueProvider.Result(intDefValuesFromAnnotationClass(annotationElement.navigationElement), annotationElement)
     }
   }
