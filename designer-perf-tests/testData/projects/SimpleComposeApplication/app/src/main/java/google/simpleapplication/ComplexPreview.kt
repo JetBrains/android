@@ -40,27 +40,27 @@ fun ComplexPreview() {
         }
       }
       Text("Text1")
-    }
-
-    Box(
-      modifier = Modifier
-        .background(
-          Color.Blue,
-          RoundedCornerShape(15.dp)
+      Box(
+        modifier = Modifier
+          .background(
+            Color.Blue,
+            RoundedCornerShape(15.dp)
+          )
+          .clickable { short = !short }
+          .padding(20.dp)
+          .wrapContentSize()
+          .animateContentSize { startSize, endSize -> println("$startSize -> $endSize") }
+      ) {
+        Text(
+          if (short) {
+            shortText
+          }
+          else {
+            longText
+          },
+          style = AmbientTextStyle.current.copy(color = Color.White)
         )
-        .clickable { short = !short }
-        .padding(20.dp)
-        .wrapContentSize()
-        .animateContentSize { startSize, endSize -> println("$startSize -> $endSize") }
-    ) {
-      Text(
-        if (short) {
-          shortText
-        } else {
-          longText
-        },
-        style = AmbientTextStyle.current.copy(color = Color.White)
-      )
+      }
     }
   }
 }
