@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.deviceManager.groups;
 
-import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.table.JBTable;
-import java.util.Collections;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
@@ -41,16 +38,7 @@ public class DeviceGroupsTabPanel {
 
   private void createUIComponents() {
     myDeviceGroupsToolbarPanel = new DeviceGroupsToolbarPanel(myProject);
-
-    // Hardcode for now
-    DeviceGroup exampleGroup = new DeviceGroup("Example Group", "My group of devices");
-    // TODO(b/174518417): call this on a background thread
-    for (AvdInfo avdInfo : AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true)) {
-      exampleGroup.getDevices().add(new GroupableDevice(avdInfo));
-    }
-    DeviceGroupsTableModel groupsTableModel = new DeviceGroupsTableModel(Collections.singletonList(exampleGroup));
-
-    myGroupsTable = new JBTable(groupsTableModel);
+    myGroupsTable = new JBTable(new DeviceGroupsTableModel(PersistentDeviceGroups.getInstance().getDeviceGroups()));
     myGroupsTable.setDefaultRenderer(DeviceGroup.class, new DeviceGroupTableCellRenderer());
   }
 }
