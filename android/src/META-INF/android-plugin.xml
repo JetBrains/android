@@ -482,6 +482,7 @@
 
     <postStartupActivity implementation="com.android.tools.idea.stats.CompletionStats$MyStartupActivity"/>
     <completion.contributor language="JAVA"
+                            id="AndroidJavaCompletionContributor"
                             implementationClass="org.jetbrains.android.AndroidJavaCompletionContributor"
                             order="first"/>
     <completion.contributor language="JAVA"
@@ -497,6 +498,9 @@
     <completion.contributor language="kotlin"
                             implementationClass="com.android.tools.idea.lang.IntDefCompletionContributorKotlin"
                             order="first, before KotlinCompletionContributor"/>
+    <completion.contributor language="JAVA"
+                            implementationClass="com.android.tools.idea.lang.IntDefCompletionContributorJava"
+                            order="first, before AndroidJavaCompletionContributor"/>
     <renamePsiElementProcessor implementation="org.jetbrains.android.refactoring.renaming.ResourceReferenceRenameProcessor" order="first"/>
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidApplicationPackageRenameProcessor" order="first"/>
 
