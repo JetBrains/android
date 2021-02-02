@@ -23,9 +23,9 @@ import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiUtil
 import org.jetbrains.kotlin.idea.debugger.SourceLineKind
+import org.jetbrains.kotlin.idea.debugger.evaluate.KotlinDebuggerCaches
 import org.jetbrains.kotlin.idea.debugger.isInlineFunctionLineNumber
 import org.jetbrains.kotlin.idea.debugger.mapStacktraceLineToSource
-import org.jetbrains.kotlin.idea.debugger.readBytecodeInfo
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.jvm.JvmClassName
 import kotlin.math.absoluteValue
@@ -43,14 +43,9 @@ internal fun remapInlineLocation(
   searchScope: GlobalSearchScope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false)): Pair<KtFile, Int> {
   val virtualFile = PsiUtil.getVirtualFile(ktFile) ?: return Pair(ktFile, line)
   val internalClassName = JvmClassName.byInternalName(className.replace(".", "/"))
-  val bytecodeInfo = readBytecodeInfo(module.project,
-                                      internalClassName,
-                                      virtualFile) ?: return ktFile to line
-  if (bytecodeInfo.smapData == null) {
-    return ktFile to line
-  }
+  val smapData = KotlinDebuggerCaches.getSmapCached(module.project, internalClassName, virtualFile) ?: return ktFile to line
 
-  val inlineRemapped = mapStacktraceLineToSource(bytecodeInfo.smapData!!,
+  val inlineRemapped = mapStacktraceLineToSource(smapData,
                                                  line,
                                                  module.project,
                                                  SourceLineKind.CALL_LINE,
