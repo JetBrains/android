@@ -268,6 +268,7 @@ public class StudioIcons {
       public static final Icon CHIP = load("/studio/icons/layout-editor/palette/chip.svg"); // 16x16
       public static final Icon CHRONOMETER = load("/studio/icons/layout-editor/palette/chronometer.svg"); // 16x16
       public static final Icon COLLAPSING_TOOLBAR_LAYOUT = load("/studio/icons/layout-editor/palette/collapsing-toolbar-layout.svg"); // 16x16
+      public static final Icon COMPOSABLE_FUNCTION = load("/studio/icons/layout-editor/palette/composable-function.svg"); // 16x16
       public static final Icon CONSTRAINT_HELPER = load("/studio/icons/layout-editor/palette/constraint-helper.svg"); // 16x16
       public static final Icon CONSTRAINT_LAYOUT = load("/studio/icons/layout-editor/palette/constraint-layout.svg"); // 16x16
       public static final Icon CONSTRAINT_SET = load("/studio/icons/layout-editor/palette/constraint-set.svg"); // 16x16
@@ -679,6 +680,7 @@ public class StudioIcons {
     public static class StatusBar {
       public static final Icon ADB_MANAGED = load("/studio/icons/shell/status-bar/adb-managed.svg"); // 16x16
       public static final Icon ADB_UNMANAGED = load("/studio/icons/shell/status-bar/adb-unmanaged.svg"); // 16x16
+      public static final Icon LIVE_LITERALS = load("/studio/icons/shell/status-bar/live-literals.svg"); // 16x16
       public static final Icon LOCK = load("/studio/icons/shell/status-bar/lock.svg"); // 16x16
       public static final Icon WINDOW_TOGGLE = load("/studio/icons/shell/status-bar/window-toggle.svg"); // 16x16
       public static final Icon WINDOW_TOGGLED = load("/studio/icons/shell/status-bar/window-toggled.svg"); // 16x16
