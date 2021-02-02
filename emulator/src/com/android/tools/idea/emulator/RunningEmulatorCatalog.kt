@@ -24,6 +24,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil.getTempDirectory
@@ -198,7 +199,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
                 emulator = oldEmulators[emulatorId]
                 if (emulator == null) {
                   if (StudioFlags.EMBEDDED_EMULATOR_TRACE_DISCOVERY.get()) {
-                    logger.info("Discovered emulator $emulatorId")
+                    thisLogger().info("Discovered emulator $emulatorId")
                   }
                   emulator = EmulatorController(emulatorId, this)
                   created = true
@@ -242,7 +243,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
       if (listenersSnapshot.isNotEmpty()) {
         for (emulator in removedEmulators) {
           if (StudioFlags.EMBEDDED_EMULATOR_TRACE_DISCOVERY.get()) {
-            logger.info("Emulator ${emulator.emulatorId} stopped")
+            thisLogger().info("Emulator ${emulator.emulatorId} stopped")
           }
           for (listener in listenersSnapshot) {
             if (isDisposing) break
@@ -261,9 +262,8 @@ class RunningEmulatorCatalog : Disposable.Parent {
       for (emulator in removedEmulators) {
         Disposer.dispose(emulator)
       }
-    }
-    catch (e: IOException) {
-      logger.error("Running Emulator detection failed", e)
+    } catch (e: IOException) {
+      thisLogger().error("Running Emulator detection failed", e)
 
       synchronized(dataLock) {
         for (future in futures) {
@@ -409,7 +409,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
     private fun computeRegistrationDirectory(): Path? {
       val container = computeRegistrationDirectoryContainer()
       if (container == null) {
-        logger.error("Unable to determine Emulator registration directory")
+        thisLogger().error("Unable to determine Emulator registration directory")
       }
       return container?.resolve(REGISTRATION_DIRECTORY_RELATIVE_PATH)
     }
