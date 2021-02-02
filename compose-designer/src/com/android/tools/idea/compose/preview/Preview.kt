@@ -145,13 +145,12 @@ private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
                                            onLiveLiteralsFound: () -> Unit,
                                            resetLiveLiteralsFound: () -> Unit): LayoutlibSceneManager =
   sceneManager.apply {
-    val usePrivateClassLoader = requestPrivateClassLoader || isLiveLiteralsEnabled
-    val reinflate = changeRequiresReinflate(showDecorations, isInteractive, usePrivateClassLoader)
+    val reinflate = changeRequiresReinflate(showDecorations, isInteractive, requestPrivateClassLoader)
     setTransparentRendering(!showDecorations)
     setShrinkRendering(!showDecorations)
     setUseImagePool(false)
     interactive = isInteractive
-    isUsePrivateClassLoader = usePrivateClassLoader
+    isUsePrivateClassLoader = requestPrivateClassLoader
     setOnNewClassLoader(resetLiveLiteralsFound)
     if (isLiveLiteralsEnabled) {
       setProjectClassesTransform(
