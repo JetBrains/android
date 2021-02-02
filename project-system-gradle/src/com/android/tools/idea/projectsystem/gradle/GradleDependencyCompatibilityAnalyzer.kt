@@ -53,9 +53,9 @@ private val groupsWithVersionIdentifyRequirements = listOf(SdkConstants.SUPPORT_
 class GradleDependencyCompatibilityAnalyzer(
   private val moduleSystem: GradleModuleSystem,
   private val projectBuildModelHandler: ProjectBuildModelHandler,
-  @TestOnly private val repositorySearchFactory: RepositorySearchFactory = CachingRepositorySearchFactory(),
   @TestOnly private val repoUrlManager: RepositoryUrlManager = RepositoryUrlManager.get()
 ) {
+  private val repositorySearchFactory: RepositorySearchFactory = CachingRepositorySearchFactory()
 
   /**
    * Analyze the existing artifacts and [dependenciesToAdd] for version capability.

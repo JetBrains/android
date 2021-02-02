@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
@@ -31,6 +30,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.util.EventDispatcher
+import com.intellij.util.Url
 import com.intellij.util.Urls
 import icons.StudioIcons.Shell.Filetree.ANDROID_MODULE
 import java.io.File
@@ -364,13 +364,16 @@ fun RepositoryModel.toArtifactRepository(): ArtifactRepository? {
 
 private fun maybeCreateLocalMavenRepository(mavenRepositoryModel: MavenRepositoryModel): LocalMavenRepository? {
   val repositoryUrl = mavenRepositoryModel.url().forceString()
-  val parsedRepositoryUrl = Urls.parse(repositoryUrl, false)
-  if (parsedRepositoryUrl != null && parsedRepositoryUrl.isInLocalFileSystem) {
-    val repositoryPath = parsedRepositoryUrl.path
-    val repositoryRootFile = File(repositoryPath)
-    if (repositoryRootFile.isAbsolute) {
-      return LocalMavenRepository(repositoryRootFile, mavenRepositoryModel.name().forceString())
-    }
+  val parsedRepositoryUrl = parseToLocalFile(repositoryUrl, false) ?: parseToLocalFile(repositoryUrl, true) ?: return null
+  val repositoryPath = parsedRepositoryUrl.path
+  val repositoryRootFile = File(repositoryPath)
+  if (repositoryRootFile.isAbsolute) {
+    return LocalMavenRepository(repositoryRootFile, mavenRepositoryModel.name().forceString())
   }
   return null
+}
+
+private fun parseToLocalFile(url: String, asLocalIfNoScheme: Boolean): Url? {
+  val parsedRepositoryUrl = Urls.parse(url, asLocalIfNoScheme) ?: return null
+  return if (parsedRepositoryUrl.isInLocalFileSystem) parsedRepositoryUrl else null
 }
