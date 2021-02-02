@@ -79,10 +79,15 @@ interface LiveLiteralsMonitorHandler {
   fun liveLiteralsMonitorStopped(deviceId: String)
 
   /**
-   * Call this method when the deployment for [deviceId] has finished. [problems] includes a list
-   * of the problems found while deploying literals.
+   * Call this method when the deployment of live literals has started. The pushId allows to correlate the start with the end of a push.
    */
-  fun liveLiteralPushed(deviceId: String, problems: Collection<Problem> = listOf())
+  fun liveLiteralPushStarted(deviceId: String, pushId: String)
+
+  /**
+   * Call this method when the deployment for [deviceId] has finished. [problems] includes a list
+   * of the problems found while deploying literals. The pushId allows to correlate the start with the end of a push.
+   */
+  fun liveLiteralPushed(deviceId: String, pushId: String, problems: Collection<Problem> = listOf())
 }
 
 /**
@@ -428,8 +433,11 @@ class LiveLiteralsService private constructor(private val project: Project,
   override fun liveLiteralsMonitorStopped(deviceId: String) =
     LiveLiteralsDeploymentReportService.getInstance(project).liveLiteralsMonitorStopped(deviceId)
 
-  override fun liveLiteralPushed(deviceId: String, problems: Collection<LiveLiteralsMonitorHandler.Problem>) =
-    LiveLiteralsDeploymentReportService.getInstance(project).liveLiteralPushed(deviceId, problems)
+  override fun liveLiteralPushStarted(deviceId: String, pushId: String) =
+    LiveLiteralsDeploymentReportService.getInstance(project).liveLiteralPushStarted(deviceId, pushId)
+
+  override fun liveLiteralPushed(deviceId: String, pushId: String, problems: Collection<LiveLiteralsMonitorHandler.Problem>) =
+    LiveLiteralsDeploymentReportService.getInstance(project).liveLiteralPushed(deviceId, pushId, problems)
 
   override fun dispose() {
     deactivateTracking()
