@@ -266,20 +266,7 @@ final class Updater {
    */
   private @NotNull String getText(@NotNull Device device, @NotNull Target target) {
     Key key = Devices.containsAnotherDeviceWithSameName(myDevices, device) ? device.getKey() : null;
-    String bootOption;
-
-    if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet.getAsBoolean()) {
-      bootOption = null;
-    }
-    else if (device.isConnected()) {
-      bootOption = null;
-    }
-    else if (device.getSnapshots().isEmpty()) {
-      bootOption = null;
-    }
-    else {
-      bootOption = target.getText(device);
-    }
+    String bootOption = Devices.getBootOption(device, target, mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet).orElse(null);
 
     return Devices.getText(device, key, bootOption);
   }

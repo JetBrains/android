@@ -52,19 +52,7 @@ final class SelectMultipleDevicesDialogTableModelRow {
   }
 
   @NotNull String getBootOption() {
-    if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet.getAsBoolean()) {
-      return "";
-    }
-
-    if (myDevice.isConnected()) {
-      return "";
-    }
-
-    if (myDevice.getSnapshots().isEmpty()) {
-      return "";
-    }
-
-    return myTarget.getText(myDevice);
+    return Devices.getBootOption(myDevice, myTarget, mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet).orElse("");
   }
 
   @NotNull Target getTarget() {
