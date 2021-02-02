@@ -24,6 +24,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import java.nio.file.FileSystem;
+import java.nio.file.Path;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -34,17 +35,21 @@ public final class SelectTargetActionTest {
   @Test
   public void update() {
     // Arrange
+    Key deviceKey = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+
     FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
-    Snapshot snapshot = new Snapshot(fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-07_16-36-58"));
+    Path snapshotKey = fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-07_16-36-58");
+
+    Target target = new BootWithSnapshotTarget(deviceKey, snapshotKey);
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"))
+      .setKey(deviceKey)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .addSnapshot(snapshot)
+      .addSnapshot(new Snapshot(snapshotKey))
       .build();
 
-    AnAction action = SelectTargetAction.newBootWithSnapshotAction(device, Mockito.mock(DeviceAndSnapshotComboBoxAction.class), snapshot);
+    AnAction action = new SelectTargetAction(target, device, Mockito.mock(DeviceAndSnapshotComboBoxAction.class));
 
     Presentation presentation = new Presentation();
 
