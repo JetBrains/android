@@ -167,5 +167,11 @@ public class ImportApkActionTest extends PlatformTestCase {
     public boolean reopenLastProjectsOnStart() {
       return false;
     }
+
+    @NotNull
+    @Override
+    public String suggestNewProjectLocation() {
+      return "";
+    }
   }
 }
