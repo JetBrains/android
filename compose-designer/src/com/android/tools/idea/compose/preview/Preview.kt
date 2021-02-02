@@ -86,6 +86,7 @@ import java.time.Duration
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantLock
 import javax.swing.JComponent
 import kotlin.concurrent.withLock
@@ -369,11 +370,20 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     previewElementProvider.instanceFilter = null
   }
 
+  /**
+   * Counter used to generate unique push ids.
+   */
+  private val pushIdCounter = AtomicLong()
   private val liveLiteralsManager = LiveLiteralsService.getInstance(project).apply {
     addOnLiteralsChangedListener(this@ComposePreviewRepresentation) {
+      // We generate an id for the push of the new literals so it can be tracked by the metrics stats.
+      val pushId = pushIdCounter.getAndIncrement().toString(16)
+      LiveLiteralsService.getInstance(project).liveLiteralPushStarted(previewDeviceId, pushId)
       surface.layoutlibSceneManagers.forEach {
         it.forceReinflate()
-        it.requestRender()
+        it.requestRender().whenComplete { _, _ ->
+          LiveLiteralsService.getInstance(project).liveLiteralPushed(previewDeviceId, pushId, listOf())
+        }
       }
     }
   }

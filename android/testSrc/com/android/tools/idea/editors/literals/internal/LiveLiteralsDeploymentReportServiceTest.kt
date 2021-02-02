@@ -63,11 +63,11 @@ internal class LiveLiteralsDeploymentReportServiceTest {
     assertEquals(0, deployments)
 
     // Push to a different device should not trigger a deployment
-    service.liveLiteralPushed("DeviceB")
+    service.liveLiteralPushed("DeviceB", "0")
     assertTrue(service.hasActiveDevices)
     assertEquals(0, deployments)
 
-    service.liveLiteralPushed("DeviceA")
+    service.liveLiteralPushed("DeviceA", "0")
     assertTrue(service.hasActiveDevices)
     assertEquals(1, deployments)
   }
@@ -78,11 +78,11 @@ internal class LiveLiteralsDeploymentReportServiceTest {
     assertFalse(service.hasActiveDevices)
     service.liveLiteralsMonitorStarted("DeviceA")
     // Finish the deployment successfully
-    service.liveLiteralPushed("DeviceA")
+    service.liveLiteralPushed("DeviceA", "0")
     assertFalse(service.hasProblems)
 
     service.liveLiteralsMonitorStarted("DeviceA")
-    service.liveLiteralPushed("DeviceA", listOf(
+    service.liveLiteralPushed("DeviceA", "0", listOf(
       LiveLiteralsMonitorHandler.Problem.info("Info"),
       LiveLiteralsMonitorHandler.Problem.warn("Warn"),
     ))
@@ -95,7 +95,7 @@ internal class LiveLiteralsDeploymentReportServiceTest {
 
     service.liveLiteralsMonitorStarted("DeviceA")
     assertTrue(service.hasProblems)
-    service.liveLiteralPushed("DeviceA")
+    service.liveLiteralPushed("DeviceA", "0")
     assertTrue(service.problems.isEmpty())
   }
 
@@ -110,29 +110,29 @@ internal class LiveLiteralsDeploymentReportServiceTest {
         deployments++
       }
     })
-    service.liveLiteralPushed("DeviceB")
+    service.liveLiteralPushed("DeviceB", "0")
     assertEquals("The device was not active, no deployments expected", 0, deployments)
 
     service.liveLiteralsMonitorStarted("DeviceA")
     service.liveLiteralsMonitorStarted("DeviceB")
-    service.liveLiteralPushed("DeviceB")
+    service.liveLiteralPushed("DeviceB", "0")
     assertTrue(service.hasActiveDevices)
     assertEquals(1, deployments)
-    service.liveLiteralPushed("DeviceC") // Device is not active, will be ignored
+    service.liveLiteralPushed("DeviceC", "0") // Device is not active, will be ignored
     assertEquals(1, deployments)
-    service.liveLiteralPushed("DeviceA")
+    service.liveLiteralPushed("DeviceA", "0")
     assertEquals(2, deployments)
 
-    service.liveLiteralPushed("DeviceB", listOf(LiveLiteralsMonitorHandler.Problem.info("Test")))
+    service.liveLiteralPushed("DeviceB", "0", listOf(LiveLiteralsMonitorHandler.Problem.info("Test")))
     assertTrue(service.hasProblems)
     assertEquals(3, deployments)
     service.liveLiteralsMonitorStopped("DeviceB")
     assertFalse(service.hasProblems)
 
     // Device is not active, this should not be recorded
-    service.liveLiteralPushed("DeviceB", listOf(LiveLiteralsMonitorHandler.Problem.info("Test")))
+    service.liveLiteralPushed("DeviceB", "0", listOf(LiveLiteralsMonitorHandler.Problem.info("Test")))
     assertFalse(service.hasProblems)
-    service.liveLiteralPushed("DeviceA", listOf(LiveLiteralsMonitorHandler.Problem.info("Test")))
+    service.liveLiteralPushed("DeviceA", "0", listOf(LiveLiteralsMonitorHandler.Problem.info("Test")))
     assertTrue(service.hasProblems)
   }
 }
