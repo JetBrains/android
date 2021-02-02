@@ -12,7 +12,6 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/.idea/libraries:Guava",
         "//tools/adt/idea/.idea/libraries:aapt-proto",
         "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer[module]",
         "//tools/base/common:studio.android.sdktools.common[module]",

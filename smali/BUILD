@@ -22,7 +22,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/.idea/libraries:Guava",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
     ],
 )

@@ -21,7 +21,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:protobuf",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/.idea/libraries:Guava[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
     ],
 )

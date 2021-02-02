@@ -11,6 +11,5 @@
     <orderEntry type="module" module-name="intellij.android.observable" />
     <orderEntry type="module" module-name="intellij.android.observable.ui" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
-    <orderEntry type="library" name="Guava" level="project" />
   </component>
 </module>
