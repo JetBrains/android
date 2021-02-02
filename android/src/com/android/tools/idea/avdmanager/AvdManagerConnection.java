@@ -1020,12 +1020,16 @@ public class AvdManagerConnection {
     }
   }
 
-  public boolean avdExists(String candidate) {
-    if (!initIfNecessary()) {
-      return false;
+  public @Nullable AvdInfo findAvd(@NotNull String avdId) {
+    if (initIfNecessary()) {
+      assert myAvdManager != null;
+      return myAvdManager.getAvd(avdId, false);
     }
-    assert myAvdManager != null;
-    return myAvdManager.getAvd(candidate, false) != null;
+    return null;
+  }
+
+  public boolean avdExists(@NotNull String candidate) {
+    return findAvd(candidate) != null;
   }
 
   static boolean isAvdRepairable(@NotNull AvdInfo.AvdStatus avdStatus) {
@@ -1047,12 +1051,9 @@ public class AvdManagerConnection {
 
   @Nullable
   public AvdInfo reloadAvd(@NotNull String avdId) {
-    if (initIfNecessary()) {
-      assert myAvdManager != null;
-      AvdInfo avd = myAvdManager.getAvd(avdId, false);
-      if (avd != null) {
-        return reloadAvd(avd);
-      }
+    AvdInfo avd = findAvd(avdId);
+    if (avd != null) {
+      return reloadAvd(avd);
     }
     return null;
   }
