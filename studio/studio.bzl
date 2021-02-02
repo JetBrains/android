@@ -390,7 +390,7 @@ def _codesign(ctx, filelist_template, entitlements, prefix, out):
 
 def _android_studio_prefix(ctx, platform):
     if platform == MAC:
-        return ctx.attr.platform.mac_bundle_name + "/"
+        return ctx.attr.platform.platform_info.mac_bundle_name + "/"
     return "android-studio/"
 
 def _android_studio_os(ctx, platform, out):
@@ -622,12 +622,29 @@ def _intellij_platform_impl_os(ctx, platform, data):
     return base_zip, plugin_zips
 
 def _intellij_platform_impl(ctx):
-    base_linux, plugins_linux = _intellij_platform_impl_os(ctx, LINUX, ctx.attr.data)
-    base_win, plugins_win = _intellij_platform_impl_os(ctx, WIN, ctx.attr.data)
-    base_mac, plugins_mac = _intellij_platform_impl_os(ctx, MAC, ctx.attr.data)
+    base_linux, plugins_linux = _intellij_platform_impl_os(ctx, LINUX, ctx.attr.studio_data)
+    base_win, plugins_win = _intellij_platform_impl_os(ctx, WIN, ctx.attr.studio_data)
+    base_mac, plugins_mac = _intellij_platform_impl_os(ctx, MAC, ctx.attr.studio_data)
 
+    infos = []
+    for jar in ctx.files.jars:
+        ijar = java_common.run_ijar(
+            actions = ctx.actions,
+            jar = jar,
+            java_toolchain = find_java_toolchain(ctx, ctx.attr._java_toolchain),
+        )
+        infos.append(JavaInfo(
+            output_jar = jar,
+            compile_jar = ijar,
+        ))
+
+    runfiles = ctx.runfiles(files = ctx.files.data)
+    files = depset([base_linux, base_mac, base_win])
     return struct(
-        files = depset([base_linux, base_mac, base_win]),
+        providers = [
+            DefaultInfo(files = files, runfiles = runfiles),
+            java_common.merge(infos),
+        ],
         data = struct(
             files = depset([]),
             files_linux = depset([base_linux]),
@@ -642,14 +659,19 @@ def _intellij_platform_impl(ctx):
             files_win = depset(plugins_win),
             mappings = {},
         ),
-        mac_bundle_name = ctx.attr.mac_bundle_name,
+        platform_info = struct(
+            mac_bundle_name = ctx.attr.mac_bundle_name,
+        ),
     )
 
 _intellij_platform = rule(
     attrs = {
-        "data": attr.label(),
+        "jars": attr.label_list(allow_files = True),
+        "data": attr.label_list(allow_files = True),
+        "studio_data": attr.label(),
         "compress": attr.bool(),
         "mac_bundle_name": attr.string(),
+        "_java_toolchain": attr.label(default = Label("@bazel_tools//tools/jdk:current_java_toolchain")),
         "_zipper": attr.label(
             default = Label("@bazel_tools//tools/zip:zipper"),
             cfg = "host",
@@ -664,13 +686,16 @@ def intellij_platform(
         src,
         spec,
         **kwargs):
-    native.java_import(
+    _intellij_platform(
         name = name,
         jars = select({
             "//tools/base/bazel:windows": [src + "/windows/android-studio" + jar for jar in spec.jars + spec.jars_windows],
             "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents" + jar for jar in spec.jars + spec.jars_darwin],
             "//conditions:default": [src + "/linux/android-studio" + jar for jar in spec.jars + spec.jars_linux],
         }),
+        compress = _is_release(),
+        mac_bundle_name = spec.mac_bundle_name,
+        studio_data = name + ".data",
         visibility = ["//visibility:public"],
         # Local linux sandbox does not support spaces in names, so we exclude some files
         # Otherwise we get: "link or target filename contains space"
@@ -750,13 +775,5 @@ def intellij_platform(
     native.java_import(
         name = name + "-updater",
         jars = [src + "/updater-full.jar"],
-        visibility = ["//visibility:public"],
-    )
-
-    _intellij_platform(
-        name = name + ".platform",
-        compress = _is_release(),
-        data = name + ".data",
-        mac_bundle_name = spec.mac_bundle_name,
         visibility = ["//visibility:public"],
     )
