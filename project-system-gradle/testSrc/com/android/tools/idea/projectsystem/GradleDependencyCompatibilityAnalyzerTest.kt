@@ -382,6 +382,56 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
     assertThat(found).isEmpty()
   }
 
+  fun testWithExplicitVersion() {
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(GradleCoordinate(SdkConstants.SUPPORT_LIB_GROUP_ID, SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID, "23.1.0"))
+    ).get(1, TimeUnit.SECONDS)
+
+    assertThat(warning).isEmpty()
+    assertThat(missing).isEmpty()
+    assertThat(found).containsExactly(GradleCoordinate("com.android.support", "appcompat-v7", "23.1.0"))
+  }
+
+  fun testWithExplicitPreviewVersion() {
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(GradleCoordinate(SdkConstants.CONSTRAINT_LAYOUT_LIB_GROUP_ID, SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT_ID, "1.1.0-beta3"))
+    ).get(1, TimeUnit.SECONDS)
+
+    assertThat(warning).isEmpty()
+    assertThat(missing).isEmpty()
+    assertThat(found).containsExactly(GradleCoordinate("com.android.support.constraint", "constraint-layout", "1.1.0-beta3"))
+  }
+
+  fun testWithExplicitNonExistingVersion() {
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(GradleCoordinate(SdkConstants.SUPPORT_LIB_GROUP_ID, SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID, "22.17.3"))
+    ).get(1, TimeUnit.SECONDS)
+
+    assertThat(warning).isEqualTo("The dependency was not found: com.android.support:appcompat-v7:22.17.3")
+    assertThat(missing).containsExactly(GradleCoordinate("com.android.support", "appcompat-v7", "22.17.3"))
+    assertThat(found).isEmpty()
+  }
+
+  fun testWithMajorVersion() {
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(GradleCoordinate(SdkConstants.SUPPORT_LIB_GROUP_ID, SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID, "23.+"))
+    ).get(1, TimeUnit.SECONDS)
+
+    assertThat(warning).isEmpty()
+    assertThat(missing).isEmpty()
+    assertThat(found).containsExactly(GradleCoordinate("com.android.support", "appcompat-v7", "23.1.1"))
+  }
+
+  fun testWithMajorMinorVersion() {
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(GradleCoordinate(SdkConstants.SUPPORT_LIB_GROUP_ID, SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID, "22.2.+"))
+    ).get(1, TimeUnit.SECONDS)
+
+    assertThat(warning).isEmpty()
+    assertThat(missing).isEmpty()
+    assertThat(found).containsExactly(GradleCoordinate("com.android.support", "appcompat-v7", "22.2.1"))
+  }
+
   /**
    * Create a fake {@link AndroidModuleModel} and sets up the module with
    * [artifacts] dependencies.
