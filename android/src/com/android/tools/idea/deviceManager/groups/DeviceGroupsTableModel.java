@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.deviceManager.groups;
 
+import java.util.Collection;
 import java.util.List;
 import javax.swing.table.AbstractTableModel;
 import org.jetbrains.annotations.NotNull;

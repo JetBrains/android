@@ -19,7 +19,6 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.deviceManager.groups.GroupableDevice;
 import com.intellij.ui.table.JBTable;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.JButton;
@@ -62,7 +61,7 @@ public class AddDevicesToGroupPanel {
   }
 
   private void createGroupTable() {
-    myGroupTableModel = new GroupableDeviceTableModel(Collections.emptyList());
+    myGroupTableModel = new GroupableDeviceTableModel();
     myGroupTable = new JBTable(myGroupTableModel);
     myGroupTable.setDefaultRenderer(GroupableDevice.class, new GroupableDeviceTableCellRenderer());
     myGroupTable.getColumnModel().getColumn(0).setPreferredWidth(220);
@@ -95,5 +94,9 @@ public class AddDevicesToGroupPanel {
     GroupableDevice device = myGroupTableModel.getDeviceAt(modelRowIndex);
     myGroupTableModel.removeRow(modelRowIndex);
     myAvailableTableModel.addDevice(device);
+  }
+
+  @NotNull List<@NotNull GroupableDevice> getGroupableDevices() {
+    return myGroupTableModel.getGroupableDevices();
   }
 }
