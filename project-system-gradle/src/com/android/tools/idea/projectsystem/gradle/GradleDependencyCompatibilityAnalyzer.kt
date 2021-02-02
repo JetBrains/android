@@ -119,9 +119,9 @@ class GradleDependencyCompatibilityAnalyzer(
     dependenciesToAdd: List<GradleCoordinate>,
     searchResults: List<SearchResult>
   ): Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> {
-    val versionsMap = searchResults.filter { it.artifactFound() }.associate { it.toGradleCoordinateIdVersionPair() }
     val dependencies = dependenciesToAdd.associateBy { GradleCoordinateId(it) }
-    if (!versionsMap.keys.containsAll(dependencies.keys)) {
+    val versionsMap = searchResults.filter { it.artifactFound() }.associate { it.toGradleCoordinateIdVersionPair(dependencies) }
+    if (!versionsMap.keys.containsAll(dependencies.keys) || versionsMap.values.any { it.isEmpty() }) {
       // The new dependencies were not found, just return.
       return createMissingDependenciesResponse(dependencies, versionsMap)
     }
@@ -165,8 +165,8 @@ class GradleDependencyCompatibilityAnalyzer(
     dependencies: Map<GradleCoordinateId, GradleCoordinate>,
     resultMap: Map<GradleCoordinateId, List<GradleVersion>>
   ): Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> {
-    val found = dependencies.values.filter { resultMap.containsKey(GradleCoordinateId(it)) }
-    val missing = dependencies.values.filter { !resultMap.containsKey(GradleCoordinateId(it)) }
+    val found = dependencies.values.filter { resultMap[GradleCoordinateId(it)]?.isNotEmpty() ?: false }
+    val missing = dependencies.values.filter { resultMap[GradleCoordinateId(it)]?.isEmpty() ?: true }
     assert(missing.isNotEmpty())
     val message = when (missing.size) {
       1 -> "The dependency was not found: ${missing.first()}"
@@ -284,13 +284,25 @@ class GradleDependencyCompatibilityAnalyzer(
   private fun SearchResult.artifactFound(): Boolean =
     artifacts.firstOrNull { it.unsortedVersions.isNotEmpty() } != null
 
-  private fun SearchResult.toGradleCoordinateIdVersionPair(): Pair<GradleCoordinateId, List<GradleVersion>> =
-    artifacts.first().let { Pair(GradleCoordinateId(it.groupId, it.name), stableFirst(artifacts)) }
+  private fun SearchResult.toGradleCoordinateIdVersionPair(
+    requestedDependencies: Map<GradleCoordinateId, GradleCoordinate>
+  ): Pair<GradleCoordinateId, List<GradleVersion>> {
+    val id = artifacts.first().let { GradleCoordinateId(it.groupId, it.name) }
+    val versionFilter = requestedDependencies[id]?.version?.let { versionFilter(it) } ?: { true }
+    return Pair(id, selectAndSort(artifacts, versionFilter))
+  }
 
-  private fun stableFirst(artifacts: List<FoundArtifact>): List<GradleVersion> {
+  private fun selectAndSort(artifacts: List<FoundArtifact>, versionFilter: (GradleVersion) -> Boolean): List<GradleVersion> {
     // Remove duplicates by copying all versions into a Set<GradleVersion>...
-    val versions = artifacts.flatMapTo(mutableSetOf()) { it.unsortedVersions }
+    val versions = artifacts.flatMapTo(mutableSetOf()) { it.unsortedVersions.filter(versionFilter) }
     return versions.sortedWith(stableFirstComparator)
+  }
+
+  private fun versionFilter(requested: GradleVersion): (GradleVersion) -> Boolean = when {
+    requested.major == Int.MAX_VALUE -> { _ -> true }
+    requested.minor == Int.MAX_VALUE -> { version -> version.major == requested.major }
+    requested.micro == Int.MAX_VALUE -> { version -> version.major == requested.major && version.minor == requested.minor }
+    else -> { version -> version == requested }
   }
 
   private fun <T> Iterator<T>.nextOrNull(): T? =
