@@ -25,10 +25,6 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
-import com.android.tools.idea.gradle.structure.configurables.RepositorySearchFactory
-import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearch
-import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
-import com.android.tools.idea.gradle.structure.model.repositories.search.LocalMavenRepository
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.gradle.CHECK_DIRECT_GRADLE_DEPENDENCIES
 import com.android.tools.idea.projectsystem.gradle.GradleDependencyCompatibilityAnalyzer
@@ -69,8 +65,6 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
     useEmbeddedStudioRepo = false
   )
 
-  private val searchService = ArtifactRepositorySearch(listOf(LocalMavenRepository(mavenRepository.cacheDir!!.toFile(), "local")))
-
   private lateinit var analyzer: GradleDependencyCompatibilityAnalyzer
   private var androidProject: IdeAndroidProject? = null
 
@@ -84,12 +78,6 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
-    val repositorySearchFactory = object: RepositorySearchFactory {
-      override fun create(repositories: Collection<ArtifactRepositorySearchService>): ArtifactRepositorySearchService {
-        return searchService
-      }
-    }
-
     val moduleSystem = GradleModuleSystem(
       module = myModule,
       projectBuildModelHandler = ProjectBuildModelHandler(project),
@@ -99,12 +87,12 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
     analyzer = GradleDependencyCompatibilityAnalyzer(
       moduleSystem = moduleSystem,
       projectBuildModelHandler = ProjectBuildModelHandler(project),
-      repositorySearchFactory = repositorySearchFactory,
       repoUrlManager = repoUrlManager
     )
   }
 
   fun testGetAvailableDependency_fallbackToPreview() {
+    addBuildFile()
     // In the test repo NAVIGATION only has a preview version 0.0.1-alpha1
     val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
       listOf(GoogleMavenArtifactId.NAVIGATION.getCoordinate("+"))).get(1, TimeUnit.SECONDS)
@@ -115,6 +103,7 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
   }
 
   fun testGetAvailableDependency_returnsLatestStable() {
+    addBuildFile()
     // In the test repo CONSTRAINT_LAYOUT has a stable version of 1.0.2 and a beta version of 1.1.0-beta3
     val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
       listOf(GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+"))).get(1, TimeUnit.SECONDS)
@@ -125,6 +114,7 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
   }
 
   fun testGetAvailableDependency_returnsNullWhenNoneMatches() {
+    addBuildFile()
     // The test repo does not have any version of PLAY_SERVICES_ADS.
     val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
       listOf(GoogleMavenArtifactId.PLAY_SERVICES_ADS.getCoordinate("+"))).get(1, TimeUnit.SECONDS)
@@ -137,7 +127,7 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
   fun testAddSupportDependencyWithMatchInSubModule() {
     val libraryModule = getAdditionalModuleByName(library1ModuleName)!!
     createFakeModel(libraryModule, Collections.singletonList("com.android.support:appcompat-v7:23.1.1"))
-    myFixture.addFileToProject("build.gradle", """
+    addBuildFile("""
       dependencies {
           api project(':$library1ModuleName')
       }""".trimIndent())
@@ -158,7 +148,7 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
 
   fun testAddSupportDependencyWithMatchInAppModule() {
     createFakeModel(myModule, listOf("com.android.support:recyclerview-v7:22.2.1"))
-    myFixture.addFileToProject("build.gradle", """
+    addBuildFile("""
       dependencies {
           api project(':$library1ModuleName')
           implementation 'com.android.support:appcompat-v7:22.2.1'
@@ -187,7 +177,7 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
 
   fun testProjectWithIncompatibleDependencies() {
     createFakeModel(myModule, listOf("androidx.appcompat:appcompat:2.0.0", "androidx.appcompat:appcompat:1.2.0"))
-    myFixture.addFileToProject("build.gradle", """
+    addBuildFile("""
       dependencies {
           implementation 'androidx.appcompat:appcompat:2.0.0'
           implementation 'androidx.appcompat:appcompat:1.2.0'
@@ -209,7 +199,7 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
 
   fun testProjectWithIncompatibleIndirectDependencies() {
     createFakeModel(myModule, listOf("androidx.appcompat:appcompat:2.0.0", "androidx.core:core:1.0.0"))
-    myFixture.addFileToProject("build.gradle", """
+    addBuildFile("""
       dependencies {
           implementation 'androidx.appcompat:appcompat:2.0.0'
           implementation 'androidx.core:core:1.0.0'
@@ -236,7 +226,7 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
 
   fun testTwoArtifactsWithConflictingDependencies() {
     createFakeModel(myModule, Collections.singletonList("com.google.android.material:material:1.3.0"))
-    myFixture.addFileToProject("build.gradle", """
+    addBuildFile("""
       dependencies {
           implementation 'com.google.android.material:material:1.3.0'
       }""".trimIndent())
@@ -260,7 +250,7 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
   }
 
   fun testTwoArtifactsWithConflictingDependenciesInDifferentModules() {
-    myFixture.addFileToProject("build.gradle", """
+    addBuildFile("""
       dependencies {
           api project(':$library1ModuleName')
       }""".trimIndent())
@@ -290,7 +280,7 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
   }
 
   fun testPreviewsAreAcceptedIfNoStableExists() {
-    myFixture.addFileToProject("build.gradle", """
+    addBuildFile("""
       dependencies {
           implementation 'androidx.appcompat:appcompat:2.0.0'
       }""".trimIndent())
@@ -305,7 +295,7 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
 
   fun testNewestSameMajorIsChosenFromExistingIndirectDependency() {
     createFakeModel(myModule, listOf("androidx.appcompat:appcompat:1.0.0"))
-    myFixture.addFileToProject("build.gradle", """
+    addBuildFile("""
       dependencies {
           implementation 'androidx.appcompat:appcompat:1.0.0'
       }""".trimIndent())
@@ -323,6 +313,7 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
     // We should ignore test dependencies with analyzing compatibility issues.
     // In this case recyclerview and material have conflicting dependencies on mockito,
     // recyclerview on mockito-core:2.19.0 and material on mockito-core:1.9.5
+    addBuildFile()
     createFakeModel(myModule, listOf("androidx.recyclerview:recyclerview:1.2.0"))
     val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
       listOf(GradleCoordinate("com.google.android.material", "material", "+"))).get(1, TimeUnit.SECONDS)
@@ -336,6 +327,7 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
   fun testAddingKotlinStdlibDependenciesFromMultipleSources() {
     // We are adding 2 kotlin dependencies which depend on different kotlin stdlib
     // versions: 1.2.50 and 1.3.0. Make sure the dependencies can be added without errors.
+    addBuildFile()
     val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
       listOf(GradleCoordinate("androidx.core", "core-ktx", "1.0.0"),
              GradleCoordinate("androidx.navigation", "navigation-runtime-ktx", "2.0.0"))).get(1, TimeUnit.SECONDS)
@@ -348,6 +340,7 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
   }
 
   fun testGetAvailableDependencyWithRequiredVersionMatching() {
+    addBuildFile()
     val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
       listOf(GradleCoordinate(SdkConstants.SUPPORT_LIB_GROUP_ID, SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID, "+"))).get(1, TimeUnit.SECONDS)
 
@@ -374,6 +367,7 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
   }
 
   fun testGetAvailableDependencyWhenUnavailable() {
+    addBuildFile()
     val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
       listOf(GradleCoordinate("nonexistent", "dependency123", "+"))).get(1, TimeUnit.SECONDS)
 
@@ -383,6 +377,7 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
   }
 
   fun testWithExplicitVersion() {
+    addBuildFile()
     val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
       listOf(GradleCoordinate(SdkConstants.SUPPORT_LIB_GROUP_ID, SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID, "23.1.0"))
     ).get(1, TimeUnit.SECONDS)
@@ -393,6 +388,7 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
   }
 
   fun testWithExplicitPreviewVersion() {
+    addBuildFile()
     val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
       listOf(GradleCoordinate(SdkConstants.CONSTRAINT_LAYOUT_LIB_GROUP_ID, SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT_ID, "1.1.0-beta3"))
     ).get(1, TimeUnit.SECONDS)
@@ -403,6 +399,7 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
   }
 
   fun testWithExplicitNonExistingVersion() {
+    addBuildFile()
     val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
       listOf(GradleCoordinate(SdkConstants.SUPPORT_LIB_GROUP_ID, SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID, "22.17.3"))
     ).get(1, TimeUnit.SECONDS)
@@ -413,6 +410,7 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
   }
 
   fun testWithMajorVersion() {
+    addBuildFile()
     val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
       listOf(GradleCoordinate(SdkConstants.SUPPORT_LIB_GROUP_ID, SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID, "23.+"))
     ).get(1, TimeUnit.SECONDS)
@@ -423,6 +421,7 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
   }
 
   fun testWithMajorMinorVersion() {
+    addBuildFile()
     val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
       listOf(GradleCoordinate(SdkConstants.SUPPORT_LIB_GROUP_ID, SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID, "22.2.+"))
     ).get(1, TimeUnit.SECONDS)
@@ -430,6 +429,17 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
     assertThat(warning).isEmpty()
     assertThat(missing).isEmpty()
     assertThat(found).containsExactly(GradleCoordinate("com.android.support", "appcompat-v7", "22.2.1"))
+  }
+
+  private fun addBuildFile(extra: String = "") {
+    myFixture.addFileToProject("build.gradle", """
+    repositories {
+        maven {
+            url 'file://${mavenRepository.cacheDir}'
+        }
+    }
+    $extra
+    """.trimIndent())
   }
 
   /**
