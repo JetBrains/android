@@ -28,7 +28,6 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader[module, test]",
-        "//tools/adt/idea/.idea/libraries:Guava[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8[test]",
         "//prebuilts/studio/layoutlib/data:layoutlib[test]",
     ],
