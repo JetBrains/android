@@ -21,10 +21,11 @@ import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService.LearnMoreAction
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.util.addDependenciesWithUiConfirmation
 import com.android.tools.idea.util.dependsOn
-import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
@@ -61,18 +62,16 @@ class ComposeDependencyChecker(private val project: Project) {
         }
       }
       if (!module.dependsOn(GoogleMavenArtifactId.KOTLIN_REFLECT)) {
-        missing.add(GoogleMavenArtifactId.KOTLIN_REFLECT.getCoordinate("+"))
+        val kotlinVersion = moduleSystem.getResolvedDependency(GoogleMavenArtifactId.KOTLIN_STDLIB.getCoordinate("+"))?.version
+        missing.add(GoogleMavenArtifactId.KOTLIN_REFLECT.getCoordinate(kotlinVersion?.toString() ?: "+"))
         addReflectionLibrary = true
       }
       if (missing.isNotEmpty()) {
         // Only sync once:
         // Add the first operation with requestSync=true and perform the operation in reversed order below.
 
-        // Temporary disable the actual library addition:
-        //     val sync = operations.isEmpty()
-        //     operations.add { module.addDependenciesWithUiConfirmation(missing, promptUserBeforeAdding = false, requestSync = sync) }
-        operations.add {}
-        // End temporary change
+        val sync = operations.isEmpty()
+        operations.add { module.addDependenciesWithUiConfirmation(missing, promptUserBeforeAdding = false, requestSync = sync) }
       }
     }
 
@@ -82,17 +81,15 @@ class ComposeDependencyChecker(private val project: Project) {
 
     val message = createMessage(addToolingLibrary, addReflectionLibrary)
     val bannerService = InspectorBannerService.getInstance(project)
-    // Temporary disable the actual library addition:
-    //val addToProject = object : AnAction("Add to Project") {
-    //  override fun actionPerformed(event: AnActionEvent) {
-    //    ApplicationManager.getApplication().invokeAndWait {
-    //      operations.reversed().forEach { it() }
-    //      bannerService.notification = null
-    //    }
-    //  }
-    //}
-    // End temporary change
-    bannerService.setNotification(message, listOf(LearnMoreAction(LEARN_MORE_LINK), bannerService.DISMISS_ACTION))
+    val addToProject = object : AnAction("Add to Project") {
+      override fun actionPerformed(event: AnActionEvent) {
+        ApplicationManager.getApplication().invokeAndWait {
+          operations.reversed().forEach { it() }
+          bannerService.notification = null
+        }
+      }
+    }
+    bannerService.setNotification(message, listOf(addToProject, LearnMoreAction(LEARN_MORE_LINK), bannerService.DISMISS_ACTION))
   }
 
   private fun createMessage(addToolingLibrary: Boolean, addReflectionLibrary: Boolean): String {

@@ -56,6 +56,7 @@ import com.intellij.ui.AppUIUtil
 import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.createSourceProvidersForLegacyModule
+import org.jetbrains.annotations.TestOnly
 import java.io.File
 import java.nio.file.Path
 import java.util.IdentityHashMap
@@ -96,6 +97,11 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
 
   private val moduleCache: MutableMap<Module, AndroidModuleSystem> = IdentityHashMap()
   override fun getModuleSystem(module: Module): AndroidModuleSystem = moduleCache.getOrPut(module, { DefaultModuleSystem(module) })
+
+  @TestOnly
+  fun setModuleSystem(module: Module, moduleSystem: AndroidModuleSystem) {
+    moduleCache[module] = moduleSystem
+  }
 
   override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider? {
     val module = (runConfiguration as? ModuleBasedConfiguration<*, *>)?.configurationModule?.module ?: return null
