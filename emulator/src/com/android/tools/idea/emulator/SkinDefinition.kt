@@ -25,6 +25,7 @@ import com.android.tools.adtui.ImageUtils.TRANSPARENCY_FILTER
 import com.android.tools.adtui.ImageUtils.getCropBounds
 import com.android.tools.adtui.ImageUtils.getCroppedImage
 import com.android.tools.idea.avdmanager.SkinLayoutDefinition
+import com.intellij.openapi.diagnostic.thisLogger
 import org.jetbrains.kotlin.utils.ThreadSafe
 import java.awt.Dimension
 import java.awt.Point
@@ -164,10 +165,10 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
         }
       }
       catch (e: NoSuchFileException) {
-        logger.error("File not found: ${e.file}")
+        thisLogger().error("File not found: ${e.file}")
       }
       catch (e: IOException) {
-        logger.error(e)
+        thisLogger().error(e)
       }
       return null
     }
@@ -467,7 +468,7 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
       if (image == null) {
         val file = Paths.get(url.toURI())
         val detail = if (Files.notExists(file)) " - the file does not exist" else ""
-        logger.warn("Failed to read Emulator skin image ${file}${detail}")
+        thisLogger().warn("Failed to read Emulator skin image ${file}${detail}")
       }
       return image
     }

@@ -21,11 +21,11 @@ import com.android.emulator.control.ImageFormat
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.emulator.EmptyStreamObserver
 import com.android.tools.idea.emulator.EmulatorController
-import com.android.tools.idea.emulator.logger
 import com.android.tools.idea.io.IdeFileUtils
 import com.android.tools.idea.protobuf.ByteString
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
@@ -94,11 +94,11 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
           continue
         }
         catch (e: IOException) {
-          logger.error("Unable to create screenshot file $file", e)
+          thisLogger().error("Unable to create screenshot file $file", e)
           return
         }
       }
-      logger.error("Unable to create screenshot file - no suitable name") // Reaching this line is extremely unlikely.
+      thisLogger().error("Unable to create screenshot file - no suitable name") // Reaching this line is extremely unlikely.
     }
   }
 }
