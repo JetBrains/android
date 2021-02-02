@@ -424,7 +424,7 @@ android_studio(
             "//tools/analytics-library/crash:analytics-crash",
         ],
     },
-    platform = "//prebuilts/studio/intellij-sdk:studio-sdk.platform",
+    platform = "//prebuilts/studio/intellij-sdk:studio-sdk",
     plugins = [
         ":org.jetbrains.android",
         ":com.android.tools.apk",
