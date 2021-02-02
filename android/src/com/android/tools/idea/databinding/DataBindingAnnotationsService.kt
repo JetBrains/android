@@ -17,20 +17,20 @@ package com.android.tools.idea.databinding
 
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.databinding.util.DataBindingUtil
+import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiElement
-import com.intellij.psi.impl.java.stubs.index.JavaAnnotationIndex
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiAnnotation
+import com.intellij.psi.PsiArrayInitializerMemberValue
+import com.intellij.psi.PsiMethod
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.search.searches.AnnotatedElementsSearch
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
-import org.jetbrains.uast.UAnnotation
-import org.jetbrains.uast.UCallExpression
-import org.jetbrains.uast.evaluateString
-import org.jetbrains.uast.toUElementOfType
+import org.jetbrains.plugins.groovy.lang.psi.impl.stringValue
 
 /**
  * A module-level service which provides utility functions for querying / caching data extracted
@@ -59,15 +59,14 @@ class DataBindingAnnotationsService(val module: Module) {
     return cachedBindingAdapterAttributes.value
   }
 
-  private fun findJavaAndKotlinAnnotations(fqName: String, scope: GlobalSearchScope, project: Project): Sequence<UAnnotation> {
-    // We avoid using AnnotatedElementsSearch here, because that returns annotated elements rather than the
-    // annotations themselves, and for Kotlin it also wraps everything in KtLightElements.
-    val shortName = fqName.substringAfterLast('.')
-    val javaAnnotations: Sequence<PsiElement> = JavaAnnotationIndex.getInstance().get(shortName, project, scope).asSequence()
-    val kotlinAnnotations: Sequence<PsiElement> = KotlinAnnotationsIndex.getInstance().get(shortName, project, scope).asSequence()
-    return (javaAnnotations + kotlinAnnotations)
-      .mapNotNull { it.toUElementOfType<UAnnotation>() }
-      .filter { it.qualifiedName == fqName }
+  private fun findJavaAndKotlinAnnotations(fqName: String, scope: GlobalSearchScope, project: Project): List<PsiAnnotation> {
+    val facade = JavaPsiFacade.getInstance(project)
+    val bindingAdapterAnnotation = facade.findClass(fqName, scope) ?: return emptyList()
+    return AnnotatedElementsSearch.searchElements(
+      bindingAdapterAnnotation, scope, PsiMethod::class.java)
+      .mapNotNull { annotatedMethod ->
+        AnnotationUtil.findAnnotation(annotatedMethod, fqName)
+      }
   }
 
   /**
@@ -83,19 +82,18 @@ class DataBindingAnnotationsService(val module: Module) {
 
     val scope = module.getModuleWithDependenciesAndLibrariesScope(false)
     val annotations = findJavaAndKotlinAnnotations(mode.bindingAdapter, scope, module.project)
-
-    val allAttributes = mutableSetOf<String>()
-    for (annotation in annotations) {
-      val value = annotation.findDeclaredAttributeValue("value") ?: continue
-      val expressions = when (value) {
-        is UCallExpression -> value.valueArguments.asSequence() // Unwraps array initializers.
-        else -> sequenceOf(value)
+    return annotations.asSequence()
+      .mapNotNull { it.findAttributeValue("value") }
+      .map { attributeValue ->
+        if (attributeValue is PsiArrayInitializerMemberValue) {
+          attributeValue.initializers.toList()
+        }
+        else {
+          listOf(attributeValue)
+        }
       }
-      expressions
-        .mapNotNull { it.evaluateString() }
-        .forEach { allAttributes.add(it) }
-    }
-
-    return allAttributes
+      .flatten()
+      .mapNotNull { it.stringValue() }
+      .toSet()
   }
 }
