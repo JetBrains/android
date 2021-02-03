@@ -1241,6 +1241,19 @@ public class MemoryClassifierViewTest {
     assertThat(tableColumnModel.getColumn(0).getHeaderValue()).isEqualTo("Callstack Name");
   }
 
+  @Test
+  public void smallestSuperSetNodeOfEmptyInstances() {
+    FakeCaptureObject capture = new FakeCaptureObject.Builder().build();
+    capture.addInstanceObjects(new HashSet<>(Collections.singletonList(new FakeInstanceObject.Builder(capture, 0, "obj").build())));
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false,
+                                                            new CaptureEntry<>(new Object(), () -> capture)),
+                                  null);
+    myStage.getCaptureSelection().selectHeapSet(capture.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID));
+    myStage.getCaptureSelection().setClassGrouping(ARRANGE_BY_PACKAGE);
+    MemoryObjectTreeNode<ClassifierSet> root = (MemoryObjectTreeNode<ClassifierSet>)myClassifierView.getTree().getModel().getRoot();
+    assertThat(MemoryClassifierView.findSmallestSuperSetNode(root, ClassSet.EMPTY_SET)).isSameAs(root);
+  }
+
   private static int countClassSets(@NotNull MemoryObjectTreeNode<ClassifierSet> node) {
     int classSetCount = 0;
     for (MemoryObjectTreeNode<ClassifierSet> child : node.getChildren()) {
