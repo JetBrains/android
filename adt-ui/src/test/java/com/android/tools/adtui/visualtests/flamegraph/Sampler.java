@@ -17,9 +17,6 @@
 package com.android.tools.adtui.visualtests.flamegraph;
 
 import com.android.tools.adtui.model.DefaultHNode;
-import com.android.tools.adtui.flamegraph.SampledMethodUsage;
-import com.android.tools.adtui.model.HNode;
-
 import java.util.HashMap;
 import java.util.Set;
 import java.util.Stack;
