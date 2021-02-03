@@ -399,12 +399,15 @@ class EmulatorToolWindowPanelTest {
     val allFilesPushed = CountDownLatch(fileList.size)
     val firstArgCaptor = ArgumentCaptor.forClass(String::class.java)
     val secondArgCaptor = ArgumentCaptor.forClass(String::class.java)
-    `when`(device.pushFile(firstArgCaptor.capture(), secondArgCaptor.capture())).then { allFilesPushed.countDown() }
+    `when`(device.pushFile(firstArgCaptor.capture(), secondArgCaptor.capture())).then {
+      println("EmulatorToolWindowPanelTest.testDnD: file pushed")
+      allFilesPushed.countDown()
+    }
 
     // Simulate drop.
     target.drop(dnDEvent2)
 
-    assertThat(allFilesPushed.await(2, TimeUnit.SECONDS)).isTrue()
+    assertThat(allFilesPushed.await(5, TimeUnit.SECONDS)).isTrue()
     assertThat(firstArgCaptor.allValues).isEqualTo(fileList.map(File::getAbsolutePath).toList())
     assertThat(secondArgCaptor.allValues).isEqualTo(fileList.map { "/sdcard/Download/${it.name}" }.toList())
 
