@@ -18,16 +18,12 @@ package org.jetbrains.kotlin.android.lint
 
 import com.android.testutils.TestUtils
 import com.intellij.codeInspection.InspectionProfileEntry
-import com.intellij.facet.FacetManager
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
 import com.intellij.util.PathUtil
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.AndroidFacetConfiguration
+import org.jetbrains.kotlin.android.ConfigLibraryUtil
+import org.jetbrains.kotlin.android.InTextDirectivesUtils
+import org.jetbrains.kotlin.android.InTextDirectivesUtils.findStringWithPrefixes
 import org.jetbrains.kotlin.android.KotlinAndroidTestCase
-import org.jetbrains.kotlin.idea.test.ConfigLibraryUtil
-import org.jetbrains.kotlin.test.InTextDirectivesUtils
-import org.jetbrains.kotlin.test.InTextDirectivesUtils.findStringWithPrefixes
 import java.io.File
 
 abstract class AbstractKotlinLintTest : KotlinAndroidTestCase() {

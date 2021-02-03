@@ -17,7 +17,6 @@
 package org.jetbrains.kotlin.android
 
 import com.android.testutils.TestUtils
-import org.jetbrains.kotlin.idea.test.ConfigLibraryUtil
 import org.jetbrains.kotlin.utils.PathUtil
 import java.io.File
 

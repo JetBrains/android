@@ -22,8 +22,8 @@ import com.intellij.util.PathUtil
 import com.intellij.util.ui.ColorIcon
 import junit.framework.TestCase
 import org.jetbrains.kotlin.android.KotlinAndroidTestCase
-import org.jetbrains.kotlin.idea.test.ConfigLibraryUtil
-import org.jetbrains.kotlin.test.InTextDirectivesUtils
+import org.jetbrains.kotlin.android.ConfigLibraryUtil
+import org.jetbrains.kotlin.android.InTextDirectivesUtils
 import java.awt.Color
 import java.io.File
 import javax.swing.ImageIcon
