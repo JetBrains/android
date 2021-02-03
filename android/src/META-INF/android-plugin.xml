@@ -702,6 +702,7 @@
     <applicationConfigurable provider="com.android.tools.idea.editors.literals.ui.LiveLiteralsConfigurableProvider"
                              key="live.literals.configurable.display.name" bundle="messages.AndroidBundle" groupId="editor"/>
     <colorSettingsPage implementation="com.android.tools.idea.editors.literals.ui.LiveLiteralsHighlightColorConfigurable"/>
+    <notificationGroup id="Live Literal Problem Notification" displayType="NONE" />
 
     <additionalTextAttributes scheme="Default" file="colorschemes/LiveLiteralsColorSchemeDefault.xml"/>
     <additionalTextAttributes scheme="Darcula" file="colorschemes/LiveLiteralsColorSchemeDarcula.xml"/>
