@@ -15,26 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
-import com.android.tools.idea.common.error.Issue
-import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssuePanel
-import com.android.tools.idea.common.error.IssueProvider
-import com.android.tools.idea.common.error.IssueSource
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.validator.ValidatorResult
-import com.android.tools.lint.detector.api.Category
-import com.google.common.collect.ImmutableCollection
-import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import junit.framework.TestCase
-import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 class NlLayoutScannerControlTest : LayoutTestCase() {
 
@@ -75,75 +63,6 @@ class NlLayoutScannerControlTest : LayoutTestCase() {
     }
   }
 
-  fun testRunLayoutScannerNoSceneManager() {
-    val surface = mockSurfaceNoSceneManager()
-    val control = NlLayoutScannerControl(surface, disposable!!)
-
-    assertNotNull(control.runLayoutScanner())
-  }
-
-  fun testRunLayoutScanner() {
-    val surface = surface!!
-    val sceneManager = sceneManager!!
-    Mockito.`when`(surface.sceneManager).thenReturn(sceneManager)
-
-    val control = NlLayoutScannerControl(surface, disposable!!)
-
-    assertNotNull(control.runLayoutScanner())
-
-    // Verify request to render
-    Mockito.verify(sceneManager, Mockito.times(1)).forceReinflate()
-    Mockito.verify(surface, Mockito.times(1)).requestRender()
-  }
-
-  fun testLayoutScannerResult() {
-    val surface = surface!!
-    val control = NlLayoutScannerControl(surface, disposable!!)
-
-    val latch = CountDownLatch(1)
-    val result = control.runLayoutScanner()
-    result.thenAccept {
-      assertTrue(it)
-      latch.countDown()
-    }
-
-    // Simulate render -> atf result
-    simulateSurfaceRefreshedWithScanner(control, 2)
-
-    // check if result from runLayoutScanner triggered
-    latch.await(500, TimeUnit.MILLISECONDS)
-    TestCase.assertEquals(0, latch.count)
-
-    // check if issue panel is opened
-    val showIssuePanelArg = ArgumentCaptor.forClass(Boolean::class.java)
-    Mockito.verify(surface, Mockito.times(1)).setShowIssuePanel(showIssuePanelArg.capture(), eq(false))
-    assertTrue(showIssuePanelArg.value)
-  }
-
-  fun testLayoutScannerListenerResult() {
-    val surface = surface!!
-    val control = NlLayoutScannerControl(surface, disposable!!)
-
-    simulateSurfaceRefreshedWithScanner(control, 2)
-    val result = control.runLayoutScanner()
-
-    control.scannerListener.lintUpdated(null)
-
-    assertTrue(result.get())
-  }
-
-  fun testLayoutScannerListenerNoResult() {
-    val surface = surface!!
-    val control = NlLayoutScannerControl(surface, disposable!!)
-
-    simulateSurfaceRefreshedWithScanner(control, 0)
-    val result = control.runLayoutScanner()
-
-    control.scannerListener.lintUpdated(null)
-
-    assertFalse(result.get())
-  }
-
   fun testIssuePanelExpandedWithIssues() {
     val surface = surface!!
     val control = NlLayoutScannerControl(surface, disposable!!)
@@ -158,105 +77,6 @@ class NlLayoutScannerControlTest : LayoutTestCase() {
     control.issuePanelListener.onMinimizeChanged(false)
 
     Mockito.verify(surface, Mockito.never()).requestRender()
-  }
-
-  fun testIssuePanelMinimizedWithoutIssue() {
-    val surface = surface!!
-    val control = NlLayoutScannerControl(surface, disposable!!)
-
-    // Test when issue panel is minimized
-    control.issuePanelListener.onMinimizeChanged(true)
-
-    // When minimized it should be cleared.
-    assertTrue(control.scanner.issues.isEmpty())
-    assertFalse(check.isLayoutScannerEnabled)
-  }
-
-  fun testIssuePanelMinimizedWithIssues() {
-    val surface = surface!!
-    val control = NlLayoutScannerControl(surface, disposable!!)
-
-    // Precondition: Scanner has some issues already
-    val issuesSize = 5
-    simulateSurfaceRefreshedWithScanner(control, issuesSize)
-    assertEquals(issuesSize, control.scanner.issues.size)
-
-    // Test when issue panel is minimized
-    control.issuePanelListener.onMinimizeChanged(true)
-
-    // When minimized it should be cleared.
-    assertTrue(control.scanner.issues.isEmpty())
-    assertFalse(check.isLayoutScannerEnabled)
-  }
-
-  fun testHasNoA11yIssue() {
-    val surface = surface!!
-    val control = NlLayoutScannerControl(surface, disposable!!)
-
-    assertFalse(control.hasA11yIssue())
-  }
-
-  fun testHasSystemLintA11yIssue() {
-    val surface = surface!!
-    val control = NlLayoutScannerControl(surface, disposable!!)
-
-    addA11ySystemLintIssue(surface)
-
-    assertTrue(control.hasA11yIssue())
-  }
-
-  fun testHasAtfA11yIssue() {
-    val surface = surface!!
-    val control = NlLayoutScannerControl(surface, disposable!!)
-
-    // Precondition: Scanner has some issues already
-    val issuesSize = 5
-    simulateSurfaceRefreshedWithScanner(control, issuesSize)
-    assertEquals(issuesSize, control.scanner.issues.size)
-
-    assertTrue(control.hasA11yIssue())
-  }
-
-  fun testToDetailedStringNoResult() {
-    val result = ValidatorResult.Builder().build()
-    assertEquals("Result containing 0 issues:\n", result.toDetailedString())
-  }
-
-  fun testToDetailedString() {
-    val result = ValidatorResult.Builder()
-    for (i in 0 until 3) {
-      result.mIssues.add(ScannerTestHelper
-          .createTestIssueBuilder()
-          .setMsg("msg : $i")
-          .build())
-    }
-    assertEquals("""
-      Result containing 3 issues:
-       - [E::ERROR] msg : 0
-       - [E::ERROR] msg : 1
-       - [E::ERROR] msg : 2
-
-    """.trimIndent(),
-                 result.build().toDetailedString())
-  }
-
-  private fun addA11ySystemLintIssue(surface: NlDesignSurface) {
-    surface.issueModel.addIssueProvider(object : IssueProvider() {
-      override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
-        issueListBuilder.add(object : Issue() {
-          override val summary: String
-            get() = "summary"
-          override val description: String
-            get() = "description"
-          override val severity: HighlightSeverity
-            get() = HighlightSeverity.ERROR
-          override val source: IssueSource
-            get() = IssueSource.NONE
-          override val category: String
-            get() = Category.A11Y.name
-        })
-      }
-    })
   }
 
   /**

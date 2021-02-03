@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import static com.android.tools.idea.actions.DesignerDataKeys.LAYOUT_SCANNER_KEY;
 import static com.android.tools.idea.flags.StudioFlags.NELE_LAYOUT_SCANNER_IN_EDITOR;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
@@ -1016,9 +1015,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
     if (LayoutPreviewHandlerKt.LAYOUT_PREVIEW_HANDLER_KEY.is(dataId) ) {
       return this;
-    }
-    else if(LAYOUT_SCANNER_KEY.is(dataId)) {
-      return myValidatorControl;
     }
 
     return super.getData(dataId);

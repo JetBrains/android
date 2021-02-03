@@ -19,7 +19,6 @@ package com.android.tools.idea.actions
 
 import com.android.tools.idea.common.editor.DesignSurfaceNotificationManager
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.uibuilder.surface.LayoutScannerControl
 import com.intellij.openapi.actionSystem.DataKey
 
 /**
@@ -29,13 +28,6 @@ import com.intellij.openapi.actionSystem.DataKey
  */
 @JvmField
 val DESIGN_SURFACE: DataKey<DesignSurface> = DataKey.create(DesignSurface::class.qualifiedName!!)
-
-/**
- * Data key to retrieve [LayoutScannerControl]. The control allows layout validator to be turned
- * on or off.
- */
-@JvmField
-val LAYOUT_SCANNER_KEY = DataKey.create<LayoutScannerControl>(LayoutScannerControl::class.java.name)
 
 /**
  * Data key to retrieve [DesignSurfaceNotificationManager] which controls the notification status of [NlDesignSurface]
