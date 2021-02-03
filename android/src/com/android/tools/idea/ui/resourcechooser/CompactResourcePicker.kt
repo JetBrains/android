@@ -211,7 +211,7 @@ class CompactResourcePicker(
                              action.templatePresentation,
                              "",
                              JBUI.size(60, 0)).apply {
-      foreground = JBUI.CurrentTheme.Link.linkColor()
+      foreground = JBUI.CurrentTheme.Link.Foreground.ENABLED
       isFocusable = true
     }, BorderLayout.EAST)
   }

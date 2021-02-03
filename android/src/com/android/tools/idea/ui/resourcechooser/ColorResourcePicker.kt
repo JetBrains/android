@@ -149,7 +149,7 @@ class ColorResourcePicker(configuration: Configuration, initialResourceReference
         val browseLabel = ClickableLabel("Browse").apply {
           background = PICKER_BACKGROUND_COLOR
           isOpaque = false
-          foreground = JBUI.CurrentTheme.Link.linkColor()
+          foreground = JBUI.CurrentTheme.Link.Foreground.ENABLED
           border = JBUI.Borders.empty(HORIZONTAL_MARGIN_TO_PICKER_BORDER / 2, HORIZONTAL_MARGIN_TO_PICKER_BORDER)
 
           addActionListener {

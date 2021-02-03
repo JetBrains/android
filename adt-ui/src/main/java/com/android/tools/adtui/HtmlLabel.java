@@ -78,7 +78,7 @@ public class HtmlLabel extends JEditorPane {
                       "ol li { margin-left: 0px; padding-left: 0px; list-style-type: decimal; }";
     ((HTMLDocument)editorPane.getDocument()).getStyleSheet().addRule(bodyRule);
 
-    String linkColor = "#" + ColorUtil.toHex(JBUI.CurrentTheme.Link.linkColor());
+    String linkColor = "#" + ColorUtil.toHex(JBUI.CurrentTheme.Link.Foreground.ENABLED);
     ((HTMLDocument)editorPane.getDocument()).getStyleSheet().addRule("a { color: " + linkColor + "; text-decoration: none;}");
   }
 }

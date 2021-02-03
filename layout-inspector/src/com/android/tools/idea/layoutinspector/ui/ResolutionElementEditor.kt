@@ -211,7 +211,7 @@ class ResolutionElementEditor(
       val showAsLink = location.navigatable != null
       val normalForegroundColor = when {
         isSelected -> UIUtil.getTableForeground(true, true)
-        showAsLink -> JBUI.CurrentTheme.Link.linkColor()
+        showAsLink -> JBUI.CurrentTheme.Link.Foreground.ENABLED
         else -> UIUtil.getTableForeground(false, false)
       }
       text = location.source
