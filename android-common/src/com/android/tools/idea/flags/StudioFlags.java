@@ -730,6 +730,12 @@ public final class StudioFlags {
     "If enabled, for projects using CMake, Android project view menu would show an option to `Show Files Unknown To CMake`.",
     true
   );
+
+  public static final Flag<Boolean> ENABLE_LLDB_NATVIS = Flag.create(
+    NDK, "lldb.natvis", "Use NatVis visualizers in native debugger",
+    "If enabled, native debugger formats variables using NatVis files found in the project.",
+    true
+  );
   //endregion
 
   //region Editor
