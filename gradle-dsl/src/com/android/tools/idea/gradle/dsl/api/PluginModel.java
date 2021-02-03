@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.api;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.util.PsiElementHolder;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import org.jetbrains.annotations.Nullable;
 
-public interface PluginModel {
+public interface PluginModel extends PsiElementHolder {
   @NotNull
   static List<String> extractNames(@NotNull List<PluginModel> plugins) {
     return ContainerUtil.map(plugins, plugin -> plugin.name().forceString());
@@ -39,7 +40,4 @@ public interface PluginModel {
   ResolvedPropertyModel apply();
 
   void remove();
-
-  @Nullable
-  PsiElement getPsiElement();
 }
