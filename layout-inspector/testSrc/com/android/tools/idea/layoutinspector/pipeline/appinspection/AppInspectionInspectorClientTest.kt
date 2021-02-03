@@ -21,12 +21,15 @@ import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.sendEvent
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.util.concurrent.ArrayBlockingQueue
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as ComposeProtocol
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
@@ -55,14 +58,25 @@ class AppInspectionInspectorClientTest {
     InspectorClientSettings.isCapturingModeOn = true
 
     val startFetchReceived = CompletableDeferred<Unit>()
-    inspectionRule.viewInspector.addCommandListener(ViewProtocol.Command.SpecializedCase.START_FETCH_COMMAND) { command ->
+    inspectionRule.viewInspector.listenWhen({ it.hasStartFetchCommand() }) { command ->
       assertThat(command.startFetchCommand.continuous).isTrue()
       startFetchReceived.complete(Unit)
+    }
+
+    // Initial fetch additionally triggers requests for composables
+    val composeCommands = ArrayBlockingQueue<ComposeProtocol.Command>(1)
+    inspectionRule.composeInspector.listenWhen({ true }) { command ->
+      composeCommands.add(command)
     }
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     startFetchReceived.await() // If here, we already successfully connected (and sent an initial command)
     assertThat(inspectorRule.inspectorClient).isInstanceOf(AppInspectionInspectorClient::class.java)
+
+    // View Inspector layout event -> Compose Inspector get composables command
+    composeCommands.take().let { command ->
+      assertThat(command.specializedCase).isEqualTo(ComposeProtocol.Command.SpecializedCase.GET_COMPOSABLES_COMMAND)
+    }
   }
 
   @Test
@@ -70,14 +84,30 @@ class AppInspectionInspectorClientTest {
     InspectorClientSettings.isCapturingModeOn = false
 
     val startFetchReceived = CompletableDeferred<Unit>()
-    inspectionRule.viewInspector.addCommandListener(ViewProtocol.Command.SpecializedCase.START_FETCH_COMMAND) { command ->
+    inspectionRule.viewInspector.listenWhen({ it.hasStartFetchCommand() }) { command ->
       assertThat(command.startFetchCommand.continuous).isFalse()
       startFetchReceived.complete(Unit)
+    }
+
+    // Initial fetch additionally triggers requests for composables
+    val composeCommands = ArrayBlockingQueue<ComposeProtocol.Command>(2)
+    inspectionRule.composeInspector.listenWhen({ true }) { command ->
+      composeCommands.add(command)
     }
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     startFetchReceived.await() // If here, we already successfully connected (and sent an initial command)
     assertThat(inspectorRule.inspectorClient).isInstanceOf(AppInspectionInspectorClient::class.java)
+
+    // View Inspector layout event -> Compose Inspector get composables command
+    composeCommands.take().let { command ->
+      assertThat(command.specializedCase).isEqualTo(ComposeProtocol.Command.SpecializedCase.GET_COMPOSABLES_COMMAND)
+    }
+    // View Inspector properties event -> Compose Inspector get all parameters
+    composeCommands.take().let { command ->
+      assertThat(command.specializedCase).isEqualTo(ComposeProtocol.Command.SpecializedCase.GET_ALL_PARAMETERS_COMMAND)
+    }
+
   }
 
   @Test
@@ -130,7 +160,7 @@ class AppInspectionInspectorClientTest {
   @Test
   fun inspectorSendsStopFetchCommand() = runBlocking {
     val stopFetchReceived = CompletableDeferred<Unit>()
-    inspectionRule.viewInspector.addCommandListener(ViewProtocol.Command.SpecializedCase.STOP_FETCH_COMMAND) {
+    inspectionRule.viewInspector.listenWhen({ it.hasStopFetchCommand() }) {
       stopFetchReceived.complete(Unit)
     }
 
@@ -143,12 +173,14 @@ class AppInspectionInspectorClientTest {
   fun inspectorFiresErrorOnErrorEvent() = runBlocking {
     val startFetchError = "Failed to start fetching or whatever"
 
-    inspectionRule.viewInspector.addCommandListener(ViewProtocol.Command.SpecializedCase.START_FETCH_COMMAND) {
+    inspectionRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
       inspectionRule.viewInspector.connection.sendEvent {
         errorEventBuilder.apply {
           message = startFetchError
         }
       }
+
+      ViewProtocol.Response.newBuilder().setStartFetchResponse(ViewProtocol.StartFetchResponse.getDefaultInstance()).build()
     }
 
     val error = CompletableDeferred<String>()
