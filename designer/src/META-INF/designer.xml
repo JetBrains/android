@@ -173,12 +173,6 @@
 
       <add-to-group group-id="Android.Designer.ToolsActions"/>
     </group>
-
-    <action id="Android.Designer.LayoutScannerAction"
-            text="Run accessibility scanner"
-            icon="StudioIcons.LayoutEditor.Toolbar.ACCESSIBILITY"
-            class="com.android.tools.idea.uibuilder.surface.LayoutScannerAction">
-    </action>
   </actions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.assistant">

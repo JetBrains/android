@@ -613,17 +613,6 @@
     <option name="build" path="ActionManager" hit="Run Without Build" />
     <option name="run" path="ActionManager" hit="Run Without Build" />
     <option name="without" path="ActionManager" hit="Run Without Build" />
-    <option name="accessibility" path="ActionManager" hit="Run accessibility scanner" />
-    <option name="run" path="ActionManager" hit="Run accessibility scanner" />
-    <option name="scanner" path="ActionManager" hit="Run accessibility scanner" />
-    <option name="accessibility" path="ActionManager" hit="Run accessibility testing framework scanner on current layout" />
-    <option name="current" path="ActionManager" hit="Run accessibility testing framework scanner on current layout" />
-    <option name="framework" path="ActionManager" hit="Run accessibility testing framework scanner on current layout" />
-    <option name="layout" path="ActionManager" hit="Run accessibility testing framework scanner on current layout" />
-    <option name="on" path="ActionManager" hit="Run accessibility testing framework scanner on current layout" />
-    <option name="run" path="ActionManager" hit="Run accessibility testing framework scanner on current layout" />
-    <option name="scanner" path="ActionManager" hit="Run accessibility testing framework scanner on current layout" />
-    <option name="testing" path="ActionManager" hit="Run accessibility testing framework scanner on current layout" />
     <option name="generate" path="ActionManager" hit="Run generate sources Gradle tasks" />
     <option name="gradle" path="ActionManager" hit="Run generate sources Gradle tasks" />
     <option name="run" path="ActionManager" hit="Run generate sources Gradle tasks" />

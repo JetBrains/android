@@ -34,7 +34,6 @@ import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration;
 import com.android.tools.idea.ui.designer.overlays.OverlayMenuAction;
 import com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction;
 import com.android.tools.idea.uibuilder.actions.SwitchToNextScreenViewProviderAction;
-import com.android.tools.idea.uibuilder.surface.LayoutScannerAction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.intellij.openapi.actionSystem.ActionGroup;
@@ -42,7 +41,6 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.keymap.KeymapUtil;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
@@ -139,7 +137,6 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
       // Ignore Issue panel in visualisation.
       return group;
     }
-    group.add(LayoutScannerAction.getInstance());
     group.add(IssueNotificationAction.getInstance());
     return group;
   }
